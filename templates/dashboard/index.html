@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<p>The links below should work at some point (once there is something to display).  For now, feel free to add links to make testing easier to <code>templates/dashboard/index.html</code>.</p>
+
+{% regroup memberships by offering.semester as by_semester %}
+{% for semester in by_semester %}
+  <h2 id="{{semester.grouper.name}}">{{semester.grouper.label}}</h2>
+  <ul>
+  {% for membership in semester.list %}
+    <li><a href="{{membership.offering.get_absolute_url}}">{{membership.offering.name}}</a></li>
+  {% endfor %}
+  </ul>
+{% endfor %}
+
+{% endblock %}

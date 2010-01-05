@@ -1,0 +1,15 @@
+MANIFEST.in
+Makefile
+NEWS.txt
+README.txt
+setup.py
+django_cas/__init__.py
+django_cas/backends.py
+django_cas/decorators.py
+django_cas/middleware.py
+django_cas/models.py
+django_cas/views.py
+django_cas.egg-info/PKG-INFO
+django_cas.egg-info/SOURCES.txt
+django_cas.egg-info/dependency_links.txt
+django_cas.egg-info/top_level.txt

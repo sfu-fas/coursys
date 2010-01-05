@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Data Import{% endblock %}
+{% block h1 %}Data Import{% endblock %}
+
+{% block content %}
+<form action="./" method="POST">
+{{ form.as_p }}
+<input type="submit" value="Submit" />
+</form>
+
+{% endblock %}
