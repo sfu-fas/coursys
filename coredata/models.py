@@ -73,6 +73,7 @@ class SemesterWeek(models.Model):
         return "%s week %i" % (self.semester.name, self.week)
     class Meta:
         ordering = ['semester','week']
+        unique_together = (('semester', 'week'))
 
     
 class CourseOffering(models.Model):
