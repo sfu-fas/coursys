@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if memberships %}
+<p>Yeah, you are an advisor.</p>
+<p>Search: <input type="text" value="this is not working" /> <input type="button" value="search"> </p>
+{% else %}
+<p>You are not an advisor.</p>
+
+{% endif %}
+
+{% endblock %}

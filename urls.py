@@ -33,4 +33,7 @@ urlpatterns = patterns('',
     (r'^media/(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': settings.MEDIA_ROOT}),
 
+    # for Advisor_A
+    (r'^advisors_A/$', 'advisors_A.views.index'),
+
 )
