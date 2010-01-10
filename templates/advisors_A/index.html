@@ -1,8 +1,7 @@
 {% extends "base.html" %}
 
-{% block content %}
+{% block headextra %}
 
-<script type="text/javascript" src="http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js"></script>
 <script type="text/javascript">
 $(document).ready(
     function() {
@@ -26,10 +25,15 @@ $(document).ajaxStart( function() {
       }
 </style>
 
+{% endblock %}
+
+
+{% block content %}
+
 {% if memberships %}
 <p>Yeah, you are an advisor.</p>
 <div>
-    <input id="q" text="text" />
+    <input id="q" type="text" />
     <input id="searchSubmit" type="submit" value="Search" />
     <div id="spinner">Loading...</div>
     <div id="results"></div>

@@ -4,6 +4,7 @@ from django.template import RequestContext
 from coredata.models import OtherUser, Person
 from django.db.models import Q
 from django.http import HttpResponse
+from advisors_A.models import Note
 
 @login_required
 def index(request):
@@ -24,7 +25,14 @@ def search(request):
 		Q(last_name__contains = q) |
 		Q(middle_name__contains = q) |
 		Q(pref_first_name__contains = q)).order_by('last_name')
-	print results
+	#print results
 	return render_to_response("advisors_A/results.html", {'results':results}, context_instance=RequestContext(request))
     else:
 	return HttpResponse('<h1>Page not found</h1>')
+
+@login_required
+def display_notes(request, empId):
+    target_student = Person.objects.get(emplid = empId )
+    results = Note.objects.filter(student=target_student).order_by('-time_created')
+    #print results
+    return render_to_response("advisors_A/notes.html", { 'results':results, 'student':target_student }, context_instance=RequestContext(request))

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<p><b>Notes for Student {{ student.first_name }} {{ student.last_name }}</b> ({{ student.emplid }})
+<br />
+
+<p>
+{% if results %}
+    {% for entry in results %}
+    <div>
+	<p>
+	    {{ entry.time_created }}, by {{ entry.advisor.first_name }} {{ entry.advisor.last_name }} <br />
+	    <i> {{ entry.content }} </i> <br />
+	    <small>hidden: {{ entry.hidden }}</small>
+	</p>
+    </div>
+    {% endfor %}
+{% else %}
+    <div>
+	<p>No note found for this student.</p>
+    </div>
+{% endif %}
+{% endblock %}
