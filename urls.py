@@ -34,6 +34,6 @@ urlpatterns = patterns('',
         {'document_root': settings.MEDIA_ROOT}),
 
     # for Advisor_A
-    (r'^advisors_A/$', 'advisors_A.views.index'),
+    (r'^advisors_A/', include('advisors_A.urls')),
 
 )

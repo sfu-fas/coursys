@@ -1,0 +1,49 @@
+{% if results %}
+	<table>
+	<tr>
+	    <td>
+	    <strong>Found {{ results|length }} users</strong>
+	    </td>
+	</tr>
+	<tr>
+	    <td>
+		#
+	    </td>
+	    <td>
+		Name
+	    </td>
+	    <td>
+		EmpId
+	    </td>
+	    <td>
+		UserId
+	    </td>
+	    <td>
+		View Notes
+	    </td>
+	</tr>
+	{% for user in results %}
+	<tr>
+	    <td>
+		<strong>{{ forloop.counter }}.</strong>
+	    </td>
+	    <td>
+		{{ user.first_name }} {{ user.last_name }}<br/>
+	    </td>
+	    <td>
+		{{ user.emplid }}
+	    </td>
+	    <td>
+		{{ user.userid }}
+	    </td>
+	    <td>
+		<a href="/advisors_A/notes/{{ user.emplid }}">View</a>
+	    </td>
+	</tr>
+	{% endfor %}
+	</table>
+{% else %}
+	<div class="note">
+	Your search yielded no results
+	</div>
+{% endif %}

@@ -2,12 +2,41 @@
 
 {% block content %}
 
+<script type="text/javascript" src="http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js"></script>
+<script type="text/javascript">
+$(document).ready(
+    function() {
+	$('#searchSubmit').click(
+	    function() {
+		q = $('#q').val();
+		$('#results').html('&nbsp;').load('/advisors_A/search/?q=' + q);
+	    });
+    });
+
+$(document).ajaxStart( function() {
+    $('#spinner').show();
+}).ajaxStop(function() {
+    $('#spinner').hide();
+});
+</script>
+
+<style type="text/css">
+      #spinner {
+	  display: none;
+      }
+</style>
+
 {% if memberships %}
 <p>Yeah, you are an advisor.</p>
-<p>Search: <input type="text" value="this is not working" /> <input type="button" value="search"> </p>
+<div>
+    <input id="q" text="text" />
+    <input id="searchSubmit" type="submit" value="Search" />
+    <div id="spinner">Loading...</div>
+    <div id="results"></div>
+</div>
+
 {% else %}
 <p>You are not an advisor.</p>
-
 {% endif %}
 
 {% endblock %}
