@@ -2,17 +2,24 @@
 
 {% block content %}
 
-<p><b>Notes for Student {{ student.first_name }} {{ student.last_name }}</b> ({{ student.emplid }})
-<br />
+{% block personal %}
+{{ student.first_name }} {{ student.last_name }}, ({{ student.emplid }}) <br />
+<code>personal information shows here</code>
+{% endblock %}
 
-<p>
+{% block notes %}
+<h2>Advising Notes</h2>
+{% if membership %}
+    <a href="/advisors_A/add_note">new note</a>
+{% endif %}
 {% if results %}
     {% for entry in results %}
     <div>
 	<p>
 	    {{ entry.time_created }}, by {{ entry.advisor.first_name }} {{ entry.advisor.last_name }} <br />
 	    <i> {{ entry.content }} </i> <br />
-	    <small>hidden: {{ entry.hidden }}</small>
+	    <small>hidden: {{ entry.hidden }}</small> <br/>
+	    <a href="/media/{{ entry.file_uploaded }}">attachment</a>
 	</p>
     </div>
     {% endfor %}
@@ -21,4 +28,11 @@
 	<p>No note found for this student.</p>
     </div>
 {% endif %}
+{% endblock %}
+
+{% block courses %}
+<h2>Courses Enrolled</h2>
+    <code>courses show here</code>
+{% endblock %}
+
 {% endblock %}

@@ -5,10 +5,13 @@
 <script type="text/javascript">
 $(document).ready(
     function() {
-	$('#searchSubmit').click(
+	//$('#searchSubmit').click(
+	$('#q').keyup(
 	    function() {
 		q = $('#q').val();
-		$('#results').html('&nbsp;').load('/advisors_A/search/?q=' + q);
+		q = $.trim(q);
+		if (q != "")
+		    $('#results').html('&nbsp;').load('/advisors_A/search/?q=' + q);
 	    });
     });
 
@@ -31,16 +34,18 @@ $(document).ajaxStart( function() {
 {% block content %}
 
 {% if memberships %}
-<p>Yeah, you are an advisor.</p>
+<p>Yeah, you are an advisor. Type to search.</p>
 <div>
     <input id="q" type="text" />
-    <input id="searchSubmit" type="submit" value="Search" />
+    <!--<input id="searchSubmit" type="submit" value="Search" />-->
     <div id="spinner">Loading...</div>
     <div id="results"></div>
 </div>
 
 {% else %}
-<p>You are not an advisor.</p>
+    <script type="text/javascript">
+	window.location.replace("notes/{{student.emplid}}/");
+    </script>
 {% endif %}
 
 {% endblock %}

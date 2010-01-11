@@ -10,9 +10,10 @@ from advisors_A.models import Note
 
 @login_required
 def index(request):
-    userid = request.user.username
-    memberships = OtherUser.objects.filter(person__userid=userid).filter(role='ADVS')
-    return render_to_response("advisors_A/index.html", {'memberships': memberships}, context_instance=RequestContext(request))
+    target_userid = request.user.username
+    memberships = OtherUser.objects.filter(person__userid=target_userid).filter(role='ADVS')
+    student = Person.objects.get(userid = target_userid)
+    return render_to_response("advisors_A/index.html", {'memberships': memberships, 'student':student}, context_instance=RequestContext(request))
 
 @login_required
 def search(request):
@@ -73,4 +74,10 @@ def display_notes(request, empId):
     target_student = Person.objects.get(emplid = empId )
     results = Note.objects.filter(student=target_student).order_by('-time_created')
     #print results
-    return render_to_response("advisors_A/notes.html", { 'results':results, 'student':target_student }, context_instance=RequestContext(request))
+    
+    #student's view:
+    if target_student.userid == request.user.username:
+	return render_to_response('advisors_A/notes_student.html', {'results':results, 'student':target_student, 'membership':False}, context_instance=RequestContext(request))
+    else:
+    #advisor's view
+	return render_to_response("advisors_A/notes.html", { 'results':results, 'student':target_student, 'membership':True }, context_instance=RequestContext(request))
