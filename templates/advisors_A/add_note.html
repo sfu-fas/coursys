@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Add a new note{% endblock %}
+
+{% block h1 %}Add a new note{% endblock %}
+
+{% block content %}
+<form action="/advisors_A/add_note/" method="POST", enctype="multipart/form-data">
+{{ form.as_p }}
+<input type="submit" value="Submit" />
+</form>
+
+{% endblock %}
