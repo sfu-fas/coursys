@@ -46,7 +46,7 @@ from models import *
 from datetime import datetime
 
 @login_required
-def add_note(request):
+def add_note(request, empId):
     """
     Add a new note
     """   
@@ -65,6 +65,9 @@ def add_note(request):
     else:    
         # unbound
         form = NoteForm()
+	target_student = Person.objects.get(emplid = empId)
+	print target_student
+	# we should restrict 'student' field and 'advisor' field when the form is presented
 
     return render_to_response("advisors_A/add_note.html", {"form" : form,}, context_instance=RequestContext(request))
 

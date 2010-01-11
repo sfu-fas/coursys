@@ -10,7 +10,7 @@
 {% block notes %}
 <h2>Advising Notes</h2>
 {% if membership %}
-    <a href="/advisors_A/add_note">new note</a>
+    <a href="/advisors_A/notes/{{ student.emplid }}/add_note">new note</a>
 {% endif %}
 {% if results %}
     {% for entry in results %}
