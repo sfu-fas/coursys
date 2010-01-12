@@ -5,13 +5,13 @@
 <script type="text/javascript">
 $(document).ready(
     function() {
-	//$('#searchSubmit').click(
 	$('#q').keyup(
 	    function() {
-		q = $('#q').val();
+		var q = $('#q').val();
 		q = $.trim(q);
-		if (q != "")
-		    $('#results').html('&nbsp;').load('/advisors_A/search/?q=' + q);
+		if (q != "") {
+		    $('#results').load("/advisors_A/search/?q=" + q);
+		}
 	    });
     });
 
