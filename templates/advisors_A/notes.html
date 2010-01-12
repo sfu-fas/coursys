@@ -17,8 +17,8 @@
     <div>
 	<p>
 	    {{ entry.time_created }}, by {{ entry.advisor.first_name }} {{ entry.advisor.last_name }} <br />
-	    <i> {{ entry.content }} </i> <br />
-	    <small>hidden: {{ entry.hidden }}</small> <br/>
+	    <i> <b>Content:</b> {{ entry.content }} </i> <br />
+	    <small> <b>Hidden:</b> {{ entry.hidden }}</small> <br/>
 	    {# only show the attachment when there is one #}
 	    {% if entry.file_uploaded %}
 	   		<a href="/media/{{ entry.file_uploaded }}">attachment</a>

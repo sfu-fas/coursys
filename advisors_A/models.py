@@ -17,8 +17,6 @@ class Note(models.Model):
         ordering = ['time_created', 'advisor', 'student']
         
 from django.forms import ModelForm
-from django.forms import Textarea
-
 class NoteForm(ModelForm):
     class Meta:
         model = Note            

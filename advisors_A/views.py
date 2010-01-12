@@ -5,7 +5,7 @@ from coredata.models import OtherUser, Person
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
-from advisors_A.models import Note
+from advisors_A.models import *
 
 
 @login_required
@@ -33,9 +33,8 @@ def search(request):
     else:
 	return HttpResponse('<h1>Page not found</h1>')
 
-from models import *
-from datetime import datetime
 
+from datetime import datetime
 @login_required
 def add_note(request, empId):
     """
