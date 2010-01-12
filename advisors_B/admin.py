@@ -1,5 +1,4 @@
-from advisors_B.models import Note
-from advisors_B import Person
+from advisors_B.models import *
 from django.contrib import admin
 
 class NoteAdmin(admin.ModelAdmin):
