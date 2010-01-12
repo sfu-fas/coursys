@@ -33,15 +33,6 @@ def search(request):
     else:
 	return HttpResponse('<h1>Page not found</h1>')
 
-
-from django.core.files import File
-def handle_uploaded_file(f):
-    desf = File(open(f.name, 'wb+'))    
-    for chunk in f.chunks():
-        desf.write(chunk)
-    desf.close()
-
-
 from models import *
 from datetime import datetime
 
@@ -51,25 +42,22 @@ def add_note(request, empId):
     Add a new note
     """   
     if request.method =='POST':
-        # create the form that binds to the data in the request 
-        form = NoteForm(request.POST, request.FILES)
-        if form.is_valid()== True:
-            print request.FILES['file_uploaded'].name
-            handle_uploaded_file(request.FILES['file_uploaded'])
-            # save this new note            
-            new_note = form.save()
-            new_note.time_created = datetime.now()            
-            new_note.save()      
+        # create the form that binds to the data in the request                   
+        current_advisor = Person.objects.get(userid = request.user.username)   
+        target_student = Person.objects.get(emplid = empId)
+        default_note = Note(student = target_student, advisor = current_advisor,time_created = datetime.now())                              
+       
+        form = NoteForm(request.POST, request.FILES, instance = default_note)
+        if form.is_valid()==True:            
+            new_note = form.save()  
+            new_note.save()
             # return to the index page ?
-            return HttpResponseRedirect(reverse('advisors_A.views.index'))     
+            return HttpResponseRedirect(reverse('advisors_A.views.index'))             
     else:    
-        # unbound
-        form = NoteForm()
-	target_student = Person.objects.get(emplid = empId)
-	print target_student
-	# we should restrict 'student' field and 'advisor' field when the form is presented
-
-    return render_to_response("advisors_A/add_note.html", {"form" : form,}, context_instance=RequestContext(request))
+        # unbound     
+        form = NoteForm()   
+        
+    return render_to_response("advisors_A/add_note.html", {"form" : form, "empid" : empId}, context_instance=RequestContext(request))
 
 
 @login_required
