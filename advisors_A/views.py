@@ -42,17 +42,18 @@ def add_note(request, empId):
     Add a new note
     """   
     if request.method =='POST':
-        # create the form that binds to the data in the request                   
+        # set the known fields of the note to be created                
         current_advisor = Person.objects.get(userid = request.user.username)   
         target_student = Person.objects.get(emplid = empId)
         default_note = Note(student = target_student, advisor = current_advisor,time_created = datetime.now())                              
        
+        # create the form that binds to the data in the request   
         form = NoteForm(request.POST, request.FILES, instance = default_note)
         if form.is_valid()==True:            
             new_note = form.save()  
             new_note.save()
-            # return to the index page ?
-            return HttpResponseRedirect(reverse('advisors_A.views.index'))             
+            # return back to the student notes page
+            return HttpResponseRedirect(reverse('advisors_A.views.display_notes', args=(empId,)))             
     else:    
         # unbound     
         form = NoteForm()   

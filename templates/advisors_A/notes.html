@@ -19,7 +19,10 @@
 	    {{ entry.time_created }}, by {{ entry.advisor.first_name }} {{ entry.advisor.last_name }} <br />
 	    <i> {{ entry.content }} </i> <br />
 	    <small>hidden: {{ entry.hidden }}</small> <br/>
-	    <a href="/media/{{ entry.file_uploaded }}">attachment</a>
+	    {# only show the attachment when there is one #}
+	    {% if entry.file_uploaded %}
+	   		<a href="/media/{{ entry.file_uploaded }}">attachment</a>
+	   	{% endif %}
 	</p>
     </div>
     {% endfor %}
