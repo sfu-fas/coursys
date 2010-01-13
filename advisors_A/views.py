@@ -6,16 +6,16 @@ from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from advisors_A.models import *
+from courselib.auth import requires_advisor
 
-
-@login_required
+@requires_advisor()
 def index(request):
     target_userid = request.user.username
     memberships = OtherUser.objects.filter(person__userid=target_userid).filter(role='ADVS')
     student = Person.objects.get(userid = target_userid)
     return render_to_response("advisors_A/index.html", {'memberships': memberships, 'student':student}, context_instance=RequestContext(request))
 
-@login_required
+@requires_advisor()
 def search(request):
     if request.is_ajax():
 	q = request.GET.get('q')
@@ -35,7 +35,7 @@ def search(request):
 
 
 from datetime import datetime
-@login_required
+@requires_advisor()
 def add_note(request, empId):
     """
     Add a new note

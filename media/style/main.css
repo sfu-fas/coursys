@@ -1,3 +1,10 @@
+@import("sfu.css");
+
 #sysmenu {
   text-align: right;
+}
+.debug {
+  font-size: small;
+  color: #aaa;
+  font-family: monospace;
 }

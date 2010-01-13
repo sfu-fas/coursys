@@ -20,5 +20,16 @@ Logged in as {{user.username}}.
 {% block content %}{% endblock %}
 </div>
 
+{% if debug %}
+<p class="debug">
+{{sql_queries|length}}
+</p>
+<ul class="debug">
+{% for q in sql_queries %}
+<li>{{q.sql}}</li>
+{% endfor %}
+</ul>
+{% endif %}
+
 </body>
 </html>
