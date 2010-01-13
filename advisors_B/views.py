@@ -10,16 +10,18 @@ from django.template import RequestContext
 from coredata.models import Member
 
 def index(request):
-    userid = request.user.username
-    memberships = Member.objects.exclude(role="DROP").filter(offering__graded=True).filter(person__userid=userid)
-    return render_to_response("advisors_B/index.html", {'memberships': memberships}, context_instance=RequestContext(request))
+    return render_to_response("advisors_B/index.html")
 
 
-def search(request):
-    return render_to_response("advisors_B/search.html")
+def search_result(request):
+    return render_to_response("advisors_B/search_result.html")
                               
-def add_note(request):
-    return render_to_response("advisors_B/add.html")
+def create(request):
+    return render_to_response("advisors_B/create.html")
 
-def display_note(request):
-    return render_to_response("advisors_B/display.html")
+def detail(request, note_id):
+    try:
+        n = Note.objects.get(pk = note_id)
+    except Note.DoesNotExist:
+        raise Http404
+    return render_to_response("advisors_B/detail.html",{'note':n})

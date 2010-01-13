@@ -3,9 +3,9 @@ from django.contrib import admin
 
 class NoteAdmin(admin.ModelAdmin):
     fieldsets = [
-        ('CreateInfo', {'fields':['CreateDate','Student', 'Author']}),
+        ('CreateInfo', {'fields':['create_date','student', 'author']}),
 
-        ('Note Detail', {'fields':['Content','Hidden']})
+        ('Note Detail', {'fields':['content','hidden','file']})
     ]
     
 admin.site.register(Note,NoteAdmin)

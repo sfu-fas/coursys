@@ -36,4 +36,9 @@ urlpatterns = patterns('',
     # for Advisor_A
     (r'^advisors_A/', include('advisors_A.urls')),
 
+
+
+    #for Advisors_B
+    (r'^advisors_B/', include('advisors_B.urls')),
 )
+
