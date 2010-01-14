@@ -1,14 +1,14 @@
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
-from coredata.models import OtherUser, Person
+from coredata.models import OtherUser, Person, CourseOffering
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from advisors_A.models import *
 from courselib.auth import requires_advisor
 
-@requires_advisor()
+@login_required
 def index(request):
     target_userid = request.user.username
     memberships = OtherUser.objects.filter(person__userid=target_userid).filter(role='ADVS')
@@ -64,11 +64,14 @@ def add_note(request, empId):
 def display_notes(request, empId):
     target_student = Person.objects.get(emplid = empId )
     results = Note.objects.filter(student=target_student).order_by('-time_created')
+    #get the courses taken by the student    
+    courses_enrolled = target_student.member.all()
+    print courses_enrolled
     #print results
     
     #student's view:
-    if target_student.userid == request.user.username:
-	return render_to_response('advisors_A/notes_student.html', {'results':results, 'student':target_student, 'membership':False}, context_instance=RequestContext(request))
+    if target_student.userid == request.user.username:      
+        return render_to_response('advisors_A/notes_student.html', {'results':results, 'student':target_student, 'courses': courses_enrolled, 'membership':False}, context_instance=RequestContext(request))
     else:
     #advisor's view
-	return render_to_response("advisors_A/notes.html", { 'results':results, 'student':target_student, 'membership':True }, context_instance=RequestContext(request))
+        return render_to_response("advisors_A/notes.html", { 'results':results, 'student':target_student, 'membership':True }, context_instance=RequestContext(request))

@@ -4,8 +4,14 @@
 {% block content %}
 
 {% block personal %}
-{{ student.first_name }} {{ student.last_name }}, ({{ student.emplid }}) <br />
-<code>personal information shows here</code>
+<h2>Personal Information Summary</h2>
+<p> 
+    <b> First name:  </b>  {{ student.first_name }} <br />
+    <b> Middle name: </b> {{ student.middle_name }} <br />
+    <b> Last name:   </b> {{ student.last_name }} <br />
+    <b> Student No.: </b> {{ student.emplid }} <br />
+    <b> Email: </b> {{ student.email }} <br />
+</p> 
 {% endblock %}
 
 {% block notes %}
@@ -38,7 +44,11 @@
 
 {% block courses %}
 <h2>Courses Enrolled</h2>
-    <code>courses show here</code>
+    {% for cs in courses %}
+    <div>
+    	<b> {{ forloop.counter }}.</b> {{ cs }}
+    <div>
+    {% endfor %}
 {% endblock %}
 
 {% endblock %}
