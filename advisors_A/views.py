@@ -72,6 +72,9 @@ def display_notes(request, empId):
     #student's view:
     if target_student.userid == request.user.username:      
         return render_to_response('advisors_A/notes_student.html', {'results':results, 'student':target_student, 'courses': courses_enrolled, 'membership':False}, context_instance=RequestContext(request))
-    else:
+    elif OtherUser.objects.filter(person__userid=target_student.userid).filter(role="ADVS"):
     #advisor's view
         return render_to_response("advisors_A/notes.html", { 'results':results, 'student':target_student, 'courses': courses_enrolled, 'membership':True }, context_instance=RequestContext(request))
+    else:
+    #forbidden
+	return render_to_response("403.html", context_instance=RequestContext(request))
