@@ -1,9 +1,27 @@
-<html>
-<body>
-
-<script type="text/javascript">
-document.write("Any one knows how to write the template ...?  - -b ");
-</script>
-
-</body>
-</html>
+{% extends "base.html" %}
+{% block content %}
+    <p> Note details </p>
+    {% if note %}
+       {% for entry in note %}
+        <div>
+            <p>
+               <b>Create Date:</b> {{ entry.create_date }}, by {{ entry.author.first_name }} {{ entry.author.last_name }}
+                {% if entry.hidden %}
+                    <b>This Note is Hidden</b>
+                {% else %}
+                    <i> <b>Advisor:</b> {{ entry.author  }} </i> <br />
+                    <i> <b>Studnet:</b> {{ entry.student }} </i> <br />
+                    <i> <b>Content:</b> {{ entry.content }} </i> <br />
+                    {% if entry.file %}
+                        <a href="/media/{{ entry.file_uploaded }}">attachment</a>
+                    {% endif %}
+                {% endif %}
+            </p>
+         </div>
+        {% endfor %}
+    {% else %} 
+        <div>
+            <p>No note founded</p>
+        </div>
+{% endif %}
+{% endblock content%}
