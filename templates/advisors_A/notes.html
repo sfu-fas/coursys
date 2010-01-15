@@ -1,5 +1,24 @@
 {% extends "base.html" %}
 
+{% block headextra %}
+<script type="text/javascript">
+    function collapse_all() {
+	{% for entry in results %}
+	    {% if entry.hidden %}
+		$('#note_{{forloop.counter}}').slideUp(200);
+	    {% endif %}
+	{% endfor %}
+    }
+    function expend_all() {
+	{% for entry in results %}
+	    {% if entry.hidden %}
+		//alert("#note_{{forloop.counter}}.slideDown");
+		$('#note_{{forloop.counter}}').slideDown(200);
+	    {% endif %}
+	{% endfor %}
+    }
+</script>
+{% endblock %}
 
 {% block content %}
 
@@ -20,6 +39,7 @@
     <a href="/advisors_A/notes/{{ student.emplid }}/add_note">new note</a>
     <p></p>
 {% endif %}
+<a href="javascript:collapse_all()">collapse all</a>  <a href="javascript:expend_all()">expend all</a>
 {% if results %}
     {% for entry in results %}
     <div>
