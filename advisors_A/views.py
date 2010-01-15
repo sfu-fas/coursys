@@ -19,7 +19,7 @@ def index(request):
 def search(request):
     if request.is_ajax():
 	q = request.GET.get('q')
-	auto_go = request.GET.get('auto')
+	auto_go = (request.GET.get('auto') == 'True')
 	results = None
 	if q is not None:
 	    results = Person.objects.filter(
@@ -29,8 +29,11 @@ def search(request):
 		Q(last_name__contains = q) |
 		Q(middle_name__contains = q) |
 		Q(pref_first_name__contains = q)).order_by('last_name')
-	print auto_go
-	return render_to_response("advisors_A/results.html", {'results':results, 'auto_go':auto_go}, context_instance=RequestContext(request))
+	if results.count == 1:
+	    only_one_result = True
+	else:
+	    only_one_result = False
+	return render_to_response("advisors_A/results.html", {'results':results, 'auto_go':auto_go, 'only_one':only_one_result}, context_instance=RequestContext(request))
     else:
 	return HttpResponse('<h1>Page not found</h1>')
 

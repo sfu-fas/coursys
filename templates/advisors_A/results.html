@@ -1,4 +1,4 @@
-{% if results|length == 1 and auto_go == 'True' %}
+{% if only_one and auto_go %}
     <script type="text/javascript">
 	window.location.replace("/advisors_A/notes/{{ results.0.emplid }}");
     </script>
