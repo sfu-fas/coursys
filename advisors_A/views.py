@@ -74,4 +74,4 @@ def display_notes(request, empId):
         return render_to_response('advisors_A/notes_student.html', {'results':results, 'student':target_student, 'courses': courses_enrolled, 'membership':False}, context_instance=RequestContext(request))
     else:
     #advisor's view
-        return render_to_response("advisors_A/notes.html", { 'results':results, 'student':target_student, 'membership':True }, context_instance=RequestContext(request))
+        return render_to_response("advisors_A/notes.html", { 'results':results, 'student':target_student, 'courses': courses_enrolled, 'membership':True }, context_instance=RequestContext(request))

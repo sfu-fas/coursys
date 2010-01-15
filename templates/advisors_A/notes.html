@@ -43,12 +43,13 @@
 {% endblock %}
 
 {% block courses %}
-<h2>Courses Enrolled</h2>
+<h2>Courses Enrolled</h2>    
+    <div> <strong> {{ courses|length }} courses enrolled </strong> </div>
     {% for cs in courses %}
     <div>
     	<b> {{ forloop.counter }}.</b> {{ cs }}
-    <div>
-    {% endfor %}
+    <div>    
+    {% endfor %}	
 {% endblock %}
 
 {% endblock %}
