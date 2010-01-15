@@ -18,21 +18,32 @@
 <h2>Advising Notes</h2>
 {% if membership %}
     <a href="/advisors_A/notes/{{ student.emplid }}/add_note">new note</a>
+    <p></p>
 {% endif %}
 {% if results %}
     {% for entry in results %}
     <div>
-	<p>
-	    {{ entry.time_created }}, by {{ entry.advisor.first_name }} {{ entry.advisor.last_name }} <br />
-	    {% if entry.hidden %}	    
-	    <b>This Note is Hidden</b>	   	    
-	    {% else %}
-		    <i> <b>Content:</b> {{ entry.content }} </i> <br />
-		    {% if entry.file_uploaded %}
-		   		<a href="/media/{{ entry.file_uploaded }}">attachment</a>
-		   	{% endif %}
+	{% if entry.hidden %}
+	<div id="toggle_hide_{{forloop.counter}}" style="background-color:#FFCC33">hidden note</div>
+	<script type="text/javascript">
+	    $(document).ready(
+	    function() {
+		$('#note_{{forloop.counter}}').hide();
+		$('#toggle_hide_{{forloop.counter}}').click(
+		    function() {
+			$('#note_{{forloop.counter}}').slideToggle(200);
+		    });
+	    });
+	</script>
+	{% endif %}
+	<div id="note_{{forloop.counter}}" {% if entry.hidden %} style="background-color:#FFCC33" {% endif %}>
+	    {{ entry.time_created }}, by {{ entry.advisor.first_name }} {{ entry.advisor.last_name }} <br>
+		<i> <b>Content:</b> {{ entry.content }} </i> <br>
+		{% if entry.file_uploaded %}
+		    <a href="/media/{{ entry.file_uploaded }}">attachment</a>
 		{% endif %}
-	</p>
+	</div>
+	<br>
     </div>
     {% endfor %}
 {% else %}
@@ -44,12 +55,17 @@
 
 {% block courses %}
 <h2>Courses Enrolled</h2>    
-    <div> <strong> {{ courses|length }} courses enrolled </strong> </div>
-    {% for cs in courses %}
-    <div>
-    	<b> {{ forloop.counter }}.</b> {{ cs }}
-    <div>    
-    {% endfor %}	
+
+    {% regroup course_memberships by offering.semester as by_semester %}
+    {% for semester in by_semester %}
+      <h3 id="semester-{{semester.grouper.name}}">{{semester.grouper.label}}</h3>
+      <ul>
+      {% for membership in semester.list %}
+	<li><a href="{{membership.offering.get_absolute_url}}">{{membership.offering.name}}</a></li>
+      {% endfor %}
+      </ul>
+    {% endfor %}
+
 {% endblock %}
 
 {% endblock %}

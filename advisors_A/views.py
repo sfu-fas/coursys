@@ -1,7 +1,7 @@
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
-from coredata.models import OtherUser, Person, CourseOffering
+from coredata.models import OtherUser, Person, Member
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
@@ -64,17 +64,16 @@ def add_note(request, empId):
 def display_notes(request, empId):
     target_student = Person.objects.get(emplid = empId )
     results = Note.objects.filter(student=target_student).order_by('-time_created')
-    #get the courses taken by the student    
-    courses_enrolled = target_student.member.all()
-    print courses_enrolled
-    #print results
-    
+    memberships = Member.objects.exclude(role="DROP").filter(offering__graded=True).filter(person__userid=target_student.userid) \
+            .select_related('offering','person','offering__semester')
+    #print memberships
+
     #student's view:
     if target_student.userid == request.user.username:      
-        return render_to_response('advisors_A/notes_student.html', {'results':results, 'student':target_student, 'courses': courses_enrolled, 'membership':False}, context_instance=RequestContext(request))
-    elif OtherUser.objects.filter(person__userid=target_student.userid).filter(role="ADVS"):
+        return render_to_response('advisors_A/notes_student.html', {'results':results, 'student':target_student, 'membership':False, 'course_memberships':memberships}, context_instance=RequestContext(request))
+    elif OtherUser.objects.filter(person__userid=request.user.username).filter(role="ADVS"):
     #advisor's view
-        return render_to_response("advisors_A/notes.html", { 'results':results, 'student':target_student, 'courses': courses_enrolled, 'membership':True }, context_instance=RequestContext(request))
+        return render_to_response("advisors_A/notes.html", { 'results':results, 'student':target_student, 'membership':True, 'course_memberships':memberships }, context_instance=RequestContext(request))
     else:
     #forbidden
 	return render_to_response("403.html", context_instance=RequestContext(request))
