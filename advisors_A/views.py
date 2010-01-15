@@ -29,10 +29,11 @@ def search(request):
 		Q(last_name__contains = q) |
 		Q(middle_name__contains = q) |
 		Q(pref_first_name__contains = q)).order_by('last_name')
-	if results.count == 1:
+	if len(results) == 1:
 	    only_one_result = True
 	else:
 	    only_one_result = False
+	#print only_one_result, auto_go,
 	return render_to_response("advisors_A/results.html", {'results':results, 'auto_go':auto_go, 'only_one':only_one_result}, context_instance=RequestContext(request))
     else:
 	return HttpResponse('<h1>Page not found</h1>')
