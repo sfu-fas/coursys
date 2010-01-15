@@ -77,3 +77,9 @@ def display_notes(request, empId):
     else:
     #forbidden
 	return render_to_response("403.html", context_instance=RequestContext(request))
+
+@requires_advisor()
+def hide_note(request, empId, noteId):
+    note = Note.objects.get(id = noteId)
+    note.hide()
+    return HttpResponseRedirect(reverse('advisors_A.views.display_notes', args=(empId,)))     

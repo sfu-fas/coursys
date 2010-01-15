@@ -23,8 +23,9 @@
 {% if results %}
     {% for entry in results %}
     <div>
+    <b>Note {{forloop.counter}}:</b>
 	{% if entry.hidden %}
-	<div id="toggle_hide_{{forloop.counter}}" style="background-color:#FFCC33">hidden note</div>
+	<div id="toggle_hide_{{forloop.counter}}" style="background-color:#FFCC33"> hidden note </div>
 	<script type="text/javascript">
 	    $(document).ready(
 	    function() {
@@ -41,6 +42,10 @@
 		<i> <b>Content:</b> {{ entry.content }} </i> <br>
 		{% if entry.file_uploaded %}
 		    <a href="/media/{{ entry.file_uploaded }}">attachment</a>
+		{% endif %}
+		{% if entry.hidden %}
+		{% else %} 			
+		<input type="button" value="Hide" onClick="location.href='/advisors_A/notes/{{student.emplid}}/{{entry.id}}/hide'">					
 		{% endif %}
 	</div>
 	<br>

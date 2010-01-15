@@ -10,7 +10,12 @@ class Note(models.Model):
     content = models.TextField(null = True, max_length=1000, blank=True)     
     file_uploaded = models.FileField(null = True, upload_to = "advisors_A/files/%Y/%m/%d'", blank=True)   
     hidden = models.BooleanField(null = False, default = False)
-    # TODO: add uploaded_file here
+    def hide(self):
+        """
+        set hidden flag
+        """
+        self.hidden = True
+        self.save()    
     def __unicode__(self):
         return "student: %s, advisor: %s, on %s" % (str(self.student), str(self.advisor), str(self.time_created))
     class Meta:
