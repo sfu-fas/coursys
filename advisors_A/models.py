@@ -10,11 +10,11 @@ class Note(models.Model):
     content = models.TextField(null = True, max_length=1000, blank=True)     
     file_uploaded = models.FileField(null = True, upload_to = "advisors_A/files/%Y/%m/%d'", blank=True)   
     hidden = models.BooleanField(null = False, default = False)
-    def hide(self):
+    def hide(self, attr):
         """
         set hidden flag
         """
-        self.hidden = True
+        self.hidden = attr
         self.save()    
     def __unicode__(self):
         return "student: %s, advisor: %s, on %s" % (str(self.student), str(self.advisor), str(self.time_created))

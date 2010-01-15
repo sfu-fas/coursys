@@ -44,10 +44,13 @@
 		    <a href="/media/{{ entry.file_uploaded }}">attachment</a>
 		{% endif %}
 		{% if entry.hidden %}
+		    {% if membership %}
+			<input type="button" value=" Unhide " onClick="location.href='/advisors_A/notes/{{student.emplid}}/{{entry.id}}/hide/False/'">
+		    {% endif %}
 		{% else %}
-			{% if membership %} 			
-			<input type="button" value=" Hide " onClick="location.href='/advisors_A/notes/{{student.emplid}}/{{entry.id}}/hide'">					
-	        {% endif %}
+		    {% if membership %}
+			<input type="button" value=" Hide " onClick="location.href='/advisors_A/notes/{{student.emplid}}/{{entry.id}}/hide/True/'">
+		    {% endif %}
 		{% endif %}
 	</div>
 	<br>

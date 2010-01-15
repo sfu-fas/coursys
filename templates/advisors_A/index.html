@@ -6,13 +6,30 @@
 $(document).ready(
     function() {
 	$('#q').keyup(
-	    function() {
-		var q = $('#q').val();
-		q = $.trim(q);
-		if (q != "") {
-		    $('#results').load("/advisors_A/search/?q=" + q);
+	    function(e) {
+		var code = (e.keyCode ? e.keyCode : e.which);
+		if (code != 13) {
+		//not ENTER key
+		    var q = $('#q').val();
+		    q = $.trim(q);
+		    if (q != "") {
+			$('#results').load("/advisors_A/search/?q=" + q);
+		    }
 		}
 	    });
+	$('#q').keydown(
+	    function(e) {
+		var code = (e.keyCode ? e.keyCode : e.which);
+		if(code == 13) {
+		//ENTER key
+		    var q = $('#q').val();
+		    q = $.trim(q);
+		    if (q != "") {
+			$('#results').load("/advisors_A/search/?q=" + q +"&auto=True");
+		    }
+		}
+	    }
+	);
     });
 
 $(document).ajaxStart( function() {
@@ -34,7 +51,7 @@ $(document).ajaxStart( function() {
 {% block content %}
 
 {% if memberships %}
-<p>Yeah, you are an advisor. Type to search.</p>
+<p>Yeah, you are an advisor. Press enter to search.</p>
 <div>
     <input id="q" type="text" />
     <!--<input id="searchSubmit" type="submit" value="Search" />-->
