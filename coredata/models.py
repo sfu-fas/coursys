@@ -127,7 +127,7 @@ class CourseOffering(models.Model):
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False)
 
     def __unicode__(self):
-        return "%s %s %s (%s)" % (self.subject, self.number, self.section, self.semester)
+        return "%s %s %s (%s)" % (self.subject, self.number, self.section, self.semester.label())
     def name(self):
         if self.graded:
             return "%s %s %s" % (self.subject, self.number, self.section[:-2])

@@ -3,6 +3,7 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.http import HttpResponseForbidden, HttpResponseRedirect
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
+from django.utils.http import urlquote
 
 from coredata.models import OtherUser, CourseOffering, Member
 
@@ -53,13 +54,12 @@ def requires_advisor(login_url=None):
     """
     return user_passes_test(is_advisor, login_url=login_url)
 
-def is_course_member_by_slug(u, **kwargs):
+def is_course_member_by_slug(u, course_slug, **kwargs):
     """
     Return True if user is any kind of member (non-dropped) from course indicated by 'course_slug' keyword.
     """
-    slug = kwargs['course_slug']
-    #offering = get_object_or_404(CourseOffering, slug=slug)
-    memberships = Member.objects.exclude(role="DROP").filter(offering__slug=slug, person__userid=u.username)
+    #offering = get_object_or_404(CourseOffering, slug=course_slug)
+    memberships = Member.objects.exclude(role="DROP").filter(offering__slug=course_slug, person__userid=u.username)
     count = memberships.aggregate(Count('person'))['person__count']
     return count>0
 

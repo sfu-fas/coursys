@@ -2,7 +2,7 @@
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
-from coredata.models import Member
+from coredata.models import Member, CourseOffering
 from courselib.auth import requires_course_by_slug
 
 @login_required
@@ -18,5 +18,6 @@ def course(request, course_slug):
     """
     Course front page
     """
-    return render_to_response("dashboard/course.html", {}, context_instance=RequestContext(request))
+    course = CourseOffering.objects.get(slug=course_slug)
+    return render_to_response("dashboard/course.html", {'course':course}, context_instance=RequestContext(request))
 
