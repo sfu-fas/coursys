@@ -1,8 +1,23 @@
+/* some mods to SFU template CSS */
+div#main p {
+  margin-top: 1em;
+}
+#PageTitle {
+  margin: 0.75em 0 0.25em;
+  padding: 0;
+}
+
+/* CSS for system elements */
+div#main {
+  margin-bottom: 1.5em;
+}
 #sysmenu {
   text-align: right;
+  margin-right: 0.5em;
 }
 .debug {
   font-size: small;
   color: #aaa;
   font-family: monospace;
 }
+
