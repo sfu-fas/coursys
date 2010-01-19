@@ -4,6 +4,7 @@ from settings import CAS_SERVER_URL
 
 from coredata.tests import create_offering
 from coredata.models import *
+from courselib.testing import *
 
 class DashboardTest(TestCase):
     fixtures = ['test_data']
@@ -23,7 +24,7 @@ class DashboardTest(TestCase):
         c = CourseOffering.objects.get(slug='1101-cmpt-125-d200')
         self.assertContains(response, '<a href="%s"' % (c.get_absolute_url()) )
 
-        #print response.content
+        validate_content(self, response.content)
 
 
     def test_course_page(self):
@@ -50,6 +51,7 @@ class DashboardTest(TestCase):
         m.save()
         response = client.get(c.get_absolute_url())
         self.assertEquals(response.status_code, 200)
+        validate_content(self, response.content)
 
         # dropped students should be forbidden
         m.role="DROP"

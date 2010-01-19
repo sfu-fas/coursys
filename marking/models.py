@@ -1,6 +1,4 @@
 from django.db import models
-from autoslug import AutoSlugField
-from timezones.fields import TimeZoneField
 from grades.models import NumericActivity, NumericGrade 
 
 class ActivityComponent(models.Model):
@@ -25,7 +23,6 @@ class ActivityMark(models.Model):
     numeric_grade = models.OneToOneField(NumericGrade, null = False)  
     overall_comment = models.TextField(null = True, max_length=1000, blank=True)
     late_penalty = models.IntegerField(null = True, default = 0, blank = True)
-    #TODO: add rubric field
     #TODO: add mark adjustment and reason fields  
     def __unicode__(self):
         # get the student and the activity
