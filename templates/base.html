@@ -1,13 +1,51 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<title>{% block title %}Course Management System{% endblock %}</title>
-<meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
-<link rel="stylesheet" href="{{MEDIA_URL}}style/main.css" media="all" />
-<script type="text/javascript" src="{{MEDIA_URL}}js/jquery.js"></script>
-{% block headextra %}{% endblock %}</head>
+  <title>{% block title %}Course Management System{% endblock %}</title>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+  <link rel="stylesheet" href="{{MEDIA_URL}}style/sfu.css" media="all" />
+  <link rel="stylesheet" href="{{MEDIA_URL}}style/main.css" media="all" />
+  <script type="text/javascript" src="{{MEDIA_URL}}js/jquery.js"></script>
+  {% block headextra %}{% endblock %}
+  <XXXscript type="text/javascript" src="/javascript/menu.js"></script>
+</head>
 <body>
-<h1>{% block h1 %}Course Management System{% endblock %}</h1>
+<div id="container">
+  <div id="head">
+    <div id="banner-space">
+      <a href="http://www.sfu.ca/" id="logo"></a>
+    </div>
+    <div id="bar-space">
+      <div id="links-left">
+        <a href="http://www.sfu.ca/" id="sfu">sfu.ca</a>
+        <a href="http://www.burnaby.sfu.ca/">Burnaby</a> | 
+        <a href="http://www.surrey.sfu.ca/">Surrey</a> | 
+        <a href="http://www.vancouver.sfu.ca/">Vancouver</a>
+      </div>
+
+      <ul id="links-right">
+      <li>
+        <a href="http://www.sfu.ca/onlineservices/index.html">SFU Online</a>
+        <script type="text/javascript" src="http://www.sfu.ca/hp/clf/js/SFUonline.js"></script>
+      </li>
+      <li> | </li>
+      <li>
+        <script type="text/javascript" src="http://www.sfu.ca/hp/clf/js/AtoZ.js"></script><noscript>
+	<div><a href="http://www.sfu.ca/dir/az_dir.html">A-Z Links</a></div></noscript>
+      </li>
+      <li> | </li>
+      <li>
+        <label for="sfu-search">SFU Search</label>
+        <input type="text" id="sfu-search" name="sfu-search" size="20" />
+      </li>
+      </ul>
+    </div>
+  </div>
+	<div id="body">
+		<div id="center">
+		  <div id="content">
+                  <h1 id="title">{% block h1 %}Course Management System{% endblock %}</h1>	
+
 
 <div id="sysmenu">
 {% if user %}
@@ -16,7 +54,7 @@ Logged in as {{user.username}}.
 <a href="/logout/">Logout</a>
 </div>
 
-<div id="content">
+<div id="pagecontent">
 {% block content %}{% endblock %}
 </div>
 
@@ -31,5 +69,28 @@ Logged in as {{user.username}}.
 </ul>
 {% endif %}
 
-</body>
+		  </div>
+		</div>
+
+		<div id="left">
+			<ul id="menu">
+			<li>Menu One</li>
+			<li>Menu Two
+			  <ul>
+			  <li>Two A</li>
+			  <li>Two B</li>
+			  <li>Two C</li>
+			  </ul>
+			</li>
+			<li>Menu Three</li>
+			<li>Menu Four</li>
+			</ul>
+		</div>
+	  </div>
+	  <div id="foot">
+      <span>8888 University Drive, Burnaby, B.C. Canada V5A 1S6 | <a href="http://www.sfu.ca/webmaster/terms.html">Terms / Privacy</a> | <a href="http://www.sfu.ca/contact/index.html">Contact Us</a> | <a href="http://www.sfu.ca/about/sitemap.html">SiteMap</a> | <a href="http://www.sfu.ca/security/sfuroadconditions/">Road Conditions</a></span>
+		&copy; Simon Fraser University
+	  </div>
+	</div>
+  </body>
 </html>
