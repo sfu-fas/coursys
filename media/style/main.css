@@ -8,12 +8,21 @@ div#main p {
 }
 
 /* CSS for system elements */
+/* SFU colours: (as found at http://www.sfu.ca/clf/web/index.html)
+red     #b5111b
+blue    #0054a6
+visited #25316e
+grey    #54534a
+*/
 div#main {
   margin-bottom: 1.5em;
 }
 #sysmenu {
+  float: right;
+  width: 18em;
   text-align: right;
-  margin-right: 0.5em;
+  margin: 0.2em 1em 0 0;
+  font-size: 0.81em;
 }
 .debug {
   font-size: small;

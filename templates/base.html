@@ -1,4 +1,6 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+{% comment %}
+Adapted from the Dreamweaver template here: http://www.sfu.ca/clf/web/index.html
+{% endcomment %}<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
@@ -24,15 +26,9 @@
 <body>
 <div id="absWrapper">
 	<div id="container">
-		<script type="text/javascript" src="http://www.sfu.ca/hp/clf/js/main_sfu_script.js"></script>
-		<a href="../index.html">Simon Fraser University</a>
-		<script type="text/javascript">
-		//<![CDATA[
-		document.write('</'+'div>');
-		//]]>
-		</script><noscript>
-		<div id="header" class="banner_0"><a href="../">Simon Fraser University</a></div>
-		</noscript>
+		<div id="header" class="banner_0">
+		<a href="http://www.sfu.ca/">Simon Fraser University</a>
+		</div>
 		{% block navmenu %}
 		<ul id="main_nav">
 			<li class="homeLink"><a href="/">Home</a></li>
@@ -50,9 +46,15 @@
 		</ul>
 		{% endblock %}
 		<div id="sideItems">
+<div id="sysmenu">
+{% if user %}
+Logged in as {{user.username}}.
+{% endif %}
+<a href="/logout/">Logout</a>
+</div>
 				<div id="breadcrumbs">
 				  <ul>
-				    {% block breadcrumbs %}<li><a href="http://www.cs.sfu.ca/">SFU CS</a></li><li>&gt; <a href="/">Course Management</a></li>{% endblock %}
+				    {% block breadcrumbs %}<li><a href="http://www.sfu.ca/">SFU</a></li><li>&gt; <a href="http://www.cs.sfu.ca/">Computing Science</a></li><li>&gt; <a href="/">Course Management</a></li>{% endblock %}
 			          </ul>
 				</div>
 		<h1 id="PageTitle">{% block h1 %}Course Management System{% endblock %}</h1>
@@ -88,12 +90,7 @@
 	  </div>
 
 
-<div id="sysmenu">
-{% if user %}
-Logged in as {{user.username}}.
-{% endif %}
-<a href="/logout/">Logout</a>
-</div>
+
 <div id="main">
 {% block content %}{% endblock %}
 </div>
