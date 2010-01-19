@@ -13,7 +13,7 @@ def index(request):
             .select_related('offering','person','offering__semester')
     return render_to_response("dashboard/index.html", {'memberships': memberships}, context_instance=RequestContext(request))
 
-@requires_course_by_slug()
+@requires_course_by_slug
 def course(request, course_slug):
     """
     Course front page

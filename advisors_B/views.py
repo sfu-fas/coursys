@@ -24,11 +24,11 @@ def index(request):
         print note_list
         return render_to_response("advisors_B/student.html",{'note_list':note_list})
 
-@requires_advisor()
+@requires_advisor
 def search_result(request):
     return render_to_response("advisors_B/search_result.html")
 
-@requires_advisor()
+@requires_advisor
 def create(request):
     return render_to_response("advisors_B/create.html")
 

@@ -15,7 +15,7 @@ def index(request):
     student = Person.objects.get(userid = target_userid)
     return render_to_response("advisors_A/index.html", {'memberships': memberships, 'student':student}, context_instance=RequestContext(request))
 
-@requires_advisor()
+@requires_advisor
 def search(request):
     if request.is_ajax():
 	q = request.GET.get('q')
@@ -40,7 +40,7 @@ def search(request):
 
 
 from datetime import datetime
-@requires_advisor()
+@requires_advisor
 def add_note(request, empId):
     """
     Add a new note
@@ -83,7 +83,7 @@ def display_notes(request, empId):
     #forbidden
 	return render_to_response("403.html", context_instance=RequestContext(request))
 
-@requires_advisor()
+@requires_advisor
 def hide_note(request, empId, noteId, attr):
     note = Note.objects.get(id = noteId)
     note.hide(attr == 'True')

@@ -48,11 +48,15 @@ def is_advisor(u, **kwargs):
     count = perms.aggregate(Count('person'))['person__count']
     return count>0
 
-def requires_advisor(login_url=None):
+def requires_advisor(function=None, login_url=None):
     """
     Allows access if user is an advisor.
     """
-    return user_passes_test(is_advisor, login_url=login_url)
+    actual_decorator = user_passes_test(is_advisor, login_url=login_url)
+    if function:
+        return  actual_decorator(function)
+    else:
+        return actual_decorator
 
 def is_course_member_by_slug(u, course_slug, **kwargs):
     """
@@ -63,10 +67,14 @@ def is_course_member_by_slug(u, course_slug, **kwargs):
     count = memberships.aggregate(Count('person'))['person__count']
     return count>0
 
-def requires_course_by_slug(login_url=None):
+def requires_course_by_slug(function=None, login_url=None):
     """
     Allows access if user is any kind of member (non-dropped) from course indicated by 'slug'.
     """
-    return user_passes_test(is_course_member_by_slug, login_url=login_url)
+    actual_decorator = user_passes_test(is_course_member_by_slug, login_url=login_url)
+    if function:
+        return  actual_decorator(function)
+    else:
+        return actual_decorator
 
 
