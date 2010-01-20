@@ -3,7 +3,7 @@ from django.db import models
 from django.template.defaultfilters import slugify
 
 from timezones.fields import TimeZoneField
-from coredata.models import Person, OtherUser
+from coredata.models import Person, Role
 from django import forms
 
 class Note(models.Model):
@@ -13,7 +13,7 @@ class Note(models.Model):
     content = models.CharField(max_length = 1000)
     student = models.ForeignKey(Person)
     create_date = models.DateTimeField('create date')
-    author = models.ForeignKey(OtherUser)
+    author = models.ForeignKey(Role)
     hidden = models.BooleanField(default = False)
     file = models.FileField(upload_to='UploadFile/', blank = True)
 

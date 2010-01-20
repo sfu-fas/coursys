@@ -13,7 +13,7 @@ from coredata.models import Member
 @login_required
 def index(request):
     is_advisor = True
-    for advisor in OtherUser.objects.filter(role = 'ADVS'):
+    for advisor in Role.objects.filter(role = 'ADVS'):
         if advisor.person.userid == request.user.username:
             is_advisor = True
             break
@@ -31,7 +31,7 @@ def search_result(request):
 @login_required()
 def create(request, advisor_id, student_id):
     p = Person.objects.get(userid = advisor_id)
-    advisor = OtherUser.objects.get(person = p)
+    advisor = Role.objects.get(person = p)
     student = Person.objects.get(userid = student_id)
     return render_to_response("advisors_B/create.html", {'advisor':advisor, 'student': student})
 

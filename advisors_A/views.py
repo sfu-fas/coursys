@@ -1,7 +1,7 @@
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
-from coredata.models import OtherUser, Person, Member
+from coredata.models import Role, Person, Member
 from django.db.models import Q
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
@@ -11,7 +11,7 @@ from courselib.auth import requires_advisor
 @login_required
 def index(request):
     target_userid = request.user.username
-    memberships = OtherUser.objects.filter(person__userid=target_userid).filter(role='ADVS')
+    memberships = Role.objects.filter(person__userid=target_userid).filter(role='ADVS')
     student = Person.objects.get(userid = target_userid)
     return render_to_response("advisors_A/index.html", {'memberships': memberships, 'student':student}, context_instance=RequestContext(request))
 
@@ -76,7 +76,7 @@ def display_notes(request, empId):
     #student's view:
     if target_student.userid == request.user.username:      
         return render_to_response('advisors_A/notes_student.html', {'results':results, 'student':target_student, 'membership':False, 'course_memberships':memberships}, context_instance=RequestContext(request))
-    elif OtherUser.objects.filter(person__userid=request.user.username).filter(role="ADVS"):
+    elif Role.objects.filter(person__userid=request.user.username).filter(role="ADVS"):
     #advisor's view
         return render_to_response("advisors_A/notes.html", { 'results':results, 'student':target_student, 'membership':True, 'course_memberships':memberships }, context_instance=RequestContext(request))
     else:

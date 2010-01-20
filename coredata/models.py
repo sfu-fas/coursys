@@ -216,13 +216,14 @@ class MeetingTime(models.Model):
         ordering = ['weekday']
         #unique_together = (('offering', 'weekday', 'start_time'), ('offering', 'weekday', 'end_time'))
 
-class OtherUser(models.Model):
+class Role(models.Model):
     """
-    Additional users of the system (not course-related).
+    Additional roles within the system (not course-related).
     """
     ROLE_CHOICES = (
         ('ADVS', 'Advisor'),
         ('ADMN', 'Departmental Administrator'),
+        ('NONE', 'none'),
     )
     ROLES = dict(ROLE_CHOICES)
     person = models.ForeignKey(Person)

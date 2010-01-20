@@ -5,7 +5,7 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils.http import urlquote
 
-from coredata.models import OtherUser, CourseOffering, Member
+from coredata.models import Role, CourseOffering, Member
 
 try:
     from functools import wraps
@@ -44,7 +44,7 @@ def is_advisor(u, **kwargs):
     """
     Return True is the given user is an advisor
     """
-    perms = OtherUser.objects.filter(person__userid=u.username, role='ADVS')
+    perms = Role.objects.filter(person__userid=u.username, role='ADVS')
     count = perms.aggregate(Count('person'))['person__count']
     return count>0
 

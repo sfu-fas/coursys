@@ -17943,7 +17943,7 @@
    "person": 109,
    "role": "ADVS" 
   }, 
-  "model": "coredata.otheruser", 
+  "model": "coredata.role", 
   "pk": 1
  },
  {

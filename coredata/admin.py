@@ -37,5 +37,5 @@ admin.site.register(Person, PersonAdmin)
 admin.site.register(Semester, SemesterAdmin)
 admin.site.register(MeetingTime)
 admin.site.register(Member, MemberAdmin)
-admin.site.register(OtherUser)
+admin.site.register(Role)
 
