@@ -12,7 +12,7 @@ from coredata.models import Member
 
 @login_required
 def index(request):
-    is_advisor = False
+    is_advisor = True
     for advisor in OtherUser.objects.filter(role = 'ADVS'):
         if advisor.person.userid == request.user.username:
             is_advisor = True
@@ -24,13 +24,16 @@ def index(request):
         print note_list
         return render_to_response("advisors_B/student.html",{'note_list':note_list})
 
-@requires_advisor
+@requires_advisor()
 def search_result(request):
     return render_to_response("advisors_B/search_result.html")
 
-@requires_advisor
-def create(request):
-    return render_to_response("advisors_B/create.html")
+@login_required()
+def create(request, advisor_id, student_id):
+    p = Person.objects.get(userid = advisor_id)
+    advisor = OtherUser.objects.get(person = p)
+    student = Person.objects.get(userid = student_id)
+    return render_to_response("advisors_B/create.html", {'advisor':advisor, 'student': student})
 
 @login_required
 def detail(request, note_id):
