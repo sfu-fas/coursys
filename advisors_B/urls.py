@@ -6,10 +6,10 @@ from advisors_B.models import *
 from django.conf import settings
 admin.autodiscover()
 
-urlpatterns = patterns('courses.advisors_B.views',
+urlpatterns = patterns('advisors_B.views',
     (r'^$','index'),
     (r'^(?P<note_id>\d+)/detail/$', 'detail'),
-    (r'^create/$','create'),
+    (r'^(?P<advisor_id>\w+)/(?P<student_id>\w+)/create/$','create'),
     (r'^searchresult/$', 'search_result'),
 
 )
