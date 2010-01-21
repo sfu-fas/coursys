@@ -44,7 +44,7 @@ def create(request, advisor_id, student_id):
     else:
             form = NoteForm()
     new_note.save()
-    return render_to_response("advisors_B/create.html", {'advisor':c_advisor, 'student': c_student,})
+    return render_to_response("advisors_B/create.html", {'advisor':c_advisor, 'student': c_student, 'id':new_note.id})
 
 @login_required
 def detail(request, note_id):
