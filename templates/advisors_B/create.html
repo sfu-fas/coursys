@@ -5,7 +5,7 @@
 		{% if student %}
 			<p><b>Author:</b> {{ advisor.person.first_name }} {{ advisor.person.last_name}}</p><br />
 			<p><b>Student:</b> {{ student.first_name }} {{ student.last_name }} ({{ student.email }})</p><br />
-                        <form action="submit" method="POST", enctype="multipart/form-data">		
+                        <form action=""/advisors_B/{{empid}}/{{empid}}/create/"" method="POST", enctype="multipart/form-data">		
 				<label><b>Content:</b><br />
 				<textarea name="content" cols="50" rows="10" wrap="virtual" id="content"></textarea><br />
 				<label><br />
