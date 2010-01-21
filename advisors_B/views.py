@@ -33,6 +33,14 @@ def create(request, advisor_id, student_id):
     p = Person.objects.get(userid = advisor_id)
     advisor = Role.objects.get(person = p)
     student = Person.objects.get(userid = student_id)
+    if request.method=='POST':
+        form = NoteForm(request.POST,request.FIlES)
+        if form.is_valid():
+            form.save()
+        return HttpResponseRedirect(reverse('advisors_B.views.notes', args=(form.note)))   
+    else:
+        form = NoteForm()
+            
     return render_to_response("advisors_B/create.html", {'advisor':advisor, 'student': student})
 
 @login_required
