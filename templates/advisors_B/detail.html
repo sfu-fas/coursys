@@ -18,7 +18,7 @@
 <p class="p1">{% extends "base.html" %} {% block content %}</p>
 <p class="p2"><b>Note details</b></p>
 <p class="p1">{% if note %}</p>
-<p class="p2">Create Date: {{ note.create_date|date:"P F j, Y" }}</p>
+<p class="p2"><b>Create Date:</b> {{ note.create_date|date:"P F j, Y" }}</p>
 <p class="p3"><br></p>
 <p class="p1">{% if note.hidden %}</p>
 <p class="p2">This Note is Hidden</p>
@@ -37,3 +37,4 @@
 <p class="p1">{% endif %} {% endblock content%}</p>
 </body>
 </html>
+>>>>>>> .r63
