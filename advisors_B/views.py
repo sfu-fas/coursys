@@ -10,6 +10,7 @@ from courselib.auth import requires_advisor
 from django.template import RequestContext
 from coredata.models import Member
 from django.core.urlresolvers import reverse
+from datetime import datetime
 
 @login_required
 def index(request):
@@ -25,24 +26,25 @@ def index(request):
         print note_list
         return render_to_response("advisors_B/student.html",{'note_list':note_list})
 
-@requires_advisor()
+@login_required()
 def search_result(request):
-    return render_to_response("advisors_B/search_result.html")
+    return render_to_response("advisors_B/searchresult.html")
 
 @login_required()
 def create(request, advisor_id, student_id):
     p = Person.objects.get(userid = advisor_id)
-    advisor = Role.objects.get(person = p)
-    student = Person.objects.get(userid = student_id)
+    c_advisor = Role.objects.get(person = p)
+    c_student = Person.objects.get(userid = student_id)
+    new_note=Note(student=c_student,author=c_advisor,create_date = datetime.now())
     if request.method=='POST':
-        form = NoteForm(request.POST,request.FILES)
+        form = NoteForm(request.POST,request.FILES,instance = new_note)
         if form.is_valid():
-            form.save()  
-        return HttpResponseRedirect('/advisors_B')   
+            form.save()
+            return HttpResponseRedirect(reverse('advisors_B.views.search', args=({'note':new_note},)))   
     else:
-        form = NoteForm()
-            
-    return render_to_response("advisors_B/create.html", {'advisor':advisor, 'student': student})
+            form = NoteForm()
+    new_note.save()
+    return render_to_response("advisors_B/create.html", {'advisor':c_advisor, 'student': c_student,})
 
 @login_required
 def detail(request, note_id):
