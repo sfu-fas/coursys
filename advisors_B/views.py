@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from courselib.auth import requires_advisor
 from django.template import RequestContext
 from coredata.models import Member
+from django.core.urlresolvers import reverse
 
 @login_required
 def index(request):
@@ -34,10 +35,10 @@ def create(request, advisor_id, student_id):
     advisor = Role.objects.get(person = p)
     student = Person.objects.get(userid = student_id)
     if request.method=='POST':
-        form = NoteForm(request.POST,request.FIlES)
+        form = NoteForm(request.POST,request.FILES)
         if form.is_valid():
-            form.save()
-        return HttpResponseRedirect(reverse('advisors_B.views.notes', args=(form.note)))   
+            form.save()  
+        return HttpResponseRedirect('/advisors_B')   
     else:
         form = NoteForm()
             

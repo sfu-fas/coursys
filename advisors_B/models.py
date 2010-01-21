@@ -4,7 +4,7 @@ from django.template.defaultfilters import slugify
 
 from timezones.fields import TimeZoneField
 from coredata.models import Person, Role
-from django import forms
+from django.forms import ModelForm
 
 class Note(models.Model):
     """
@@ -25,6 +25,6 @@ class Note(models.Model):
         self.create_date = datetime.date.today()
         return
 
-class NoteForm(forms.Form):
+class NoteForm(ModelForm):
     class Meta:
         model = Note
