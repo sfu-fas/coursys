@@ -40,10 +40,10 @@ def create(request, advisor_id, student_id):
         form = NoteForm(request.POST,request.FILES,instance = new_note)
         if form.is_valid():
             form.save()
+    		new_note.save()
             return HttpResponseRedirect(reverse('advisors_B.views.search', args=({'note':new_note},)))   
     else:
             form = NoteForm()
-    new_note.save()
     return render_to_response("advisors_B/create.html", {'advisor':c_advisor, 'student': c_student, 'id':new_note.id})
 
 @login_required
