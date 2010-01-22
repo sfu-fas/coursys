@@ -9,6 +9,7 @@ class ActivityComponent(models.Model):
     max_mark = models.DecimalField(max_digits=5, decimal_places=2)
     title = models.CharField(max_length=30, help_text='Title of the component.')
     description = models.CharField(max_length = 200, help_text='Description of the component')
+    common_problems = models.TextField(null = True, max_length = 1000, blank = True)
     def __unicode__(self):
         return "component %s for %s" % (self.title, self.numeric_activity)
     class Meta:
@@ -19,14 +20,16 @@ class ActivityMark(models.Model):
     """
     General Marking class for one numeric activity 
     """    
-    overall_comment = models.TextField(null = True, max_length=1000, blank=True)
+    overall_comment = models.TextField(null = True, max_length = 1000, blank = True)
     late_penalty = models.IntegerField(null = True, default = 0, blank = True)
-    
-    #TODO: add mark adjustment and reason fields  
-    def __unicode__(self):
+    mark_adjustment = models.IntegerField(null = True, default = 0, blank = True)
+    mark_adjustment_reason = models.TextField(null = True, max_length = 1000, blank = True)
+    file_attachment = models.FileField(null = True, upload_to = "student&group/files/%Y %m %d %H:%M:%S'", blank=True)#TODO: need to add student name or group name to the path  
+     
+    #def __unicode__(self):
         # get the activity
-        activity = self.numeric_grade.typed_activity      
-        return "Marking for for activity [%s]" %(activity,)
+        #activity = self.numeric_grade.typed_activity #Can the base class use numeric_grade from derived class?     
+        #return "Marking for for activity [%s]" %(activity,)
 
 class StudentActivityMark(ActivityMark):
     """
@@ -52,11 +55,11 @@ class GroupActivityMark(ActivityMark):
     group = None #TODO:change to ForeignKey(Group.group object, null = False)
     grade = models.DecimalField(max_digits=5, decimal_places=2)
     def __unicode__(self):
-        return "Marking for [%s] for activity [%s]" %(self.group,)
+        return "Marking for [%s] for activity [%s]" %(self.group,)#TODO: need some way to find the activity
     
     def setMark(self, grade, status_flag):
         #set mark for each of the student in the group
-        grade = value
+        self.grade = grade
  
 class ActivityComponentMark(models.Model):
     """
