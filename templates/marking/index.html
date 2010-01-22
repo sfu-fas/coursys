@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Course Management Marking{% endblock %}
+
+{% block h1 %}Marking{% endblock %}
+
+{% block navmenu %}
+<ul id="main_nav">
+	<li class="homeLink"><a href="/">Home</a></li>
+	<li><a href="/marking">Courses</a></li>
+	<li><a href="/marking">Settings</a></li>
+	<li><a href="/marking">Help</a></li>
+</ul>
+{% endblock %}
+
+{% block breadcrumbs %}
+<li><a href="http://www.sfu.ca/">SFU</a></li>
+<li>&gt; <a href="http://www.cs.sfu.ca/">Computing Science</a></li>
+<li>&gt; <a href="/">Course Management</a></li>
+<li>&gt; <a href="/marking">Marking</a></li>
+{% endblock %}
+
+
+{% block content %}
+{% block courses %}
+<h2>Courses</h2>    
+    {% regroup course_memberships by offering.semester as semester_groups %}
+    {% for semester in semester_groups %}
+      <h3 id="semester-{{semester.grouper.name}}">{{semester.grouper.label}}</h3>
+      <ul>
+      {% for membership in semester.list %}
+	  <li><a href="/marking{{membership.offering.get_absolute_url}}">{{membership.offering.name}}</a></li>
+      {% endfor %}
+      </ul>
+    {% endfor %}    
+{% endblock %}
+{% endblock %}
