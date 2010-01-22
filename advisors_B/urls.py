@@ -10,6 +10,7 @@ urlpatterns = patterns('advisors_B.views',
     (r'^$','index'),
     (r'^(?P<note_id>\d+)/detail/$', 'detail'),
     (r'^(?P<advisor_id>\w+)/(?P<student_id>\w+)/create/$','create'),
+	(r'^(?P<advisor_id>\w+)/(?P<student_id>\w+)/submit/$', 'submit'),
     (r'^searchresult/$', 'search_result'),
 
 )
