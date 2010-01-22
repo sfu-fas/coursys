@@ -222,6 +222,7 @@ class Role(models.Model):
     """
     ROLE_CHOICES = (
         ('ADVS', 'Advisor'),
+        ('FAC', 'Faculty Member'),
         ('ADMN', 'Departmental Administrator'),
         ('NONE', 'none'),
     )
