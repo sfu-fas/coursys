@@ -28,7 +28,7 @@ class Activity(models.Model):
     name = models.CharField(max_length=30, help_text='Name of the activity.')
     short_name = models.CharField(max_length=15, help_text='Short-form name of the activity.')
     slug = AutoSlugField(populate_from='short_name', null=False, editable=False)
-    percent = model.DecimalField(max_digits=5, decimal_places=2, null=True)
+    percent = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     
     offering = models.ForeignKey(CourseOffering)
 
@@ -64,8 +64,8 @@ class CalculatedNumericActivity(Activity):
         verbose_name_plural = "calculated numeric activities"
 
 class CalculatedLetterActivity(Activity):
-    source = model.ForeignKey(Activity)
-    exam_activity = model.ForeignKey(Activity)
+    source_activity = models.ForeignKey(Activity, related_name="source")
+    exam_activity = models.ForeignKey(Activity, related_name="exam")
 
 class LetterCuttoff(models.Model):
     pass
