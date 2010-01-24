@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+    <p><b><font size = "3"> Search</font></b></p>
+    {% if error %}
+               <p>Please type in a search term.</p>
+    {% endif %}
+     <form action="/search/" method="get">
+         <input type="text" name="q">
+         <input type="submit" value="Search">
+     </form>
+{% endblock content%}
