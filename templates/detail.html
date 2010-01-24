@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+    <p><b><font size = "3"> Note details </font></b></p>
+    {% if note %}
+               <p>Create Date: {{ note.create_date|date:"P F j, Y" }}</p><br />
+                {% if note.hidden %}
+                    <p>This Note is Hidden</p>
+                {% else %}
+                    <p><b>Created by: </b>{{ note.author  }} </p><br />
+                    <p><b>Student: </b>{{ note.student.first_name }} {{ note.student.last_name}} </p><br />
+                    <p><b>Content:</b><br /> {{ note.content }} </p><br />
+                    {% if note.file %}
+					<p><b> Attachment: </b></p>
+                        <a href="{{ note.file.url }}">{{ note.file.name }}</a> ({{ note.file.size }} bytes)
+                    {% endif %}
+                {% endif %}
+    {% else %} 
+        <div>
+            <p>No note founded</p>
+        </div>
+{% endif %}
+{% endblock content%}
