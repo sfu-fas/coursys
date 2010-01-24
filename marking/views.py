@@ -84,7 +84,7 @@ def manage_activity_components(request, course_slug, activity_short_name):
     
     error_info = ""
     
-    from django.forms.models import modelformset_factory, inlineformset_factory
+    from django.forms.models import modelformset_factory
     course = CourseOffering.objects.get(slug = course_slug)    
     activity = NumericActivity.objects.filter(offering = course).get(short_name = activity_short_name) 
    
@@ -108,7 +108,7 @@ def manage_activity_components(request, course_slug, activity_short_name):
            or _check_components_toadd(formset_toadd) == False:
               error_info = "some component has error" 
         elif _check_components_titles(formset_main, formset_toadd) == False:             
-              error_info = "Components must have unique name"
+              error_info = "Each component must have an unique title"
         else:          
             # save the main formset first            
             instances = formset_main.save()
@@ -119,7 +119,7 @@ def manage_activity_components(request, course_slug, activity_short_name):
                                                 args=(course_slug,)))                   
     else: # for PUT
         formset_main = ComponentsFormSet1(queryset = qset1, prefix='main')        
-        formset_toadd = ComponentsFormSet2(prefix = "toadd", queryset = qset2)
+        formset_toadd = ComponentsFormSet2(queryset = qset2, prefix = "toadd")
     
     return render_to_response("marking/components.html", 
                               {'course' : course, 'activity' : activity, 'fields_main' : fcols1, 'fields_toadd' : fcols2, \
