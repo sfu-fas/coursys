@@ -6,16 +6,18 @@ class ActivityComponent(models.Model):
     Markable Component of a numeric activity   
     """
     numeric_activity = models.ForeignKey(NumericActivity, null = False)
-    max_mark = models.DecimalField(max_digits=5, decimal_places=2)
-    title = models.CharField(max_length=30, help_text='Title of the component.')
-    description = models.CharField(max_length = 200, help_text='Description of the component')
+    max_mark = models.DecimalField(max_digits=5, decimal_places=2, null = False)
+    title = models.CharField(max_length=30, null = False)
+    description = models.CharField(max_length = 200, null = True, blank = True)
+    
+    # set this flag if it is deleted by the user
+    deleted = models.BooleanField(null = False, default = False)
     common_problems = models.TextField(null = True, max_length = 1000, blank = True)
     def __unicode__(self):
         return "component %s for %s" % (self.title, self.numeric_activity)
-    class Meta:
-        unique_together = (('numeric_activity', 'title'),)
-    
-    
+    #class Meta:
+     #   unique_together = (('numeric_activity', 'title'),)
+     
 class ActivityMark(models.Model):
     """
     General Marking class for one numeric activity 

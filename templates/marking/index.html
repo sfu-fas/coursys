@@ -1,25 +1,8 @@
-{% extends "base.html" %}
+{% extends "marking_base.html" %}
 
-{% block title %}Course Management Marking{% endblock %}
+{% block title %}Marking{% endblock %}
 
 {% block h1 %}Marking{% endblock %}
-
-{% block navmenu %}
-<ul id="main_nav">
-	<li class="homeLink"><a href="/">Home</a></li>
-	<li><a href="/marking">Courses</a></li>
-	<li><a href="/marking">Settings</a></li>
-	<li><a href="/marking">Help</a></li>
-</ul>
-{% endblock %}
-
-{% block breadcrumbs %}
-<li><a href="http://www.sfu.ca/">SFU</a></li>
-<li>&gt; <a href="http://www.cs.sfu.ca/">Computing Science</a></li>
-<li>&gt; <a href="/">Course Management</a></li>
-<li>&gt; <a href="/marking">Marking</a></li>
-{% endblock %}
-
 
 {% block content %}
 {% block courses %}

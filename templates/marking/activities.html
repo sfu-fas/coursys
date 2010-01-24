@@ -1,0 +1,20 @@
+{% extends "marking_base.html" %}
+
+{% block title %}Marking Activities{% endblock %}
+
+{% block h1 %}Marking Activities{% endblock %}
+
+{% block content %}
+
+<h2>Activities</h2>    
+     
+    {% for activity in activities %}      
+      <h3>{{activity}}</h3>
+      <div>
+	  <a href="/marking/{{course_slug}}/{{activity.short_name}}/mark">Mark ...</a>
+	  <a href="/marking/{{course_slug}}/{{activity.short_name}}/components">Components ...</a>
+	  <a href="marking/{{course_slug}}/{{activity.short_name}}/common_problems">Common Problems ...</a>
+	  </div>
+    {% endfor %}    
+
+{% endblock %}

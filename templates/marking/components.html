@@ -1,0 +1,81 @@
+{% extends "marking_base.html" %}
+
+
+
+{% block title %}{{course.name}}: {{activity.name}} Components{% endblock %}
+
+{% block h1 %}{{course.name}}: {{activity.name}} Components{% endblock %}
+
+{% block headextra %}
+<style type="text/css">
+  .my_table_header {
+  	background-color:#1CCC33;
+  	font-size:20px;
+  	color:#FFFFFF;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<form action="/marking/{{course.slug}}/{{activity.short_name}}/components/" method="POST">  
+  
+   {{ formset_main.management_form }}   
+  
+    {% if formset_main.forms %}
+    <h2>Current Components<h2>
+       <table>
+          <tr>
+             {% for field in fields_main %}
+             	<td><span class="my_table_header">{{field}}</span></td>
+             {% endfor %}
+          </tr>         
+	      {% for form in formset_main.forms %} 	      
+			  {{form.id}} {% comment %} important here !!! {% endcomment %}   
+			  <tr>	 		       
+				   {% for field in form %}			   
+			            <td>
+			            {{field}}
+			            {% if field.errors %}	            
+				        	<img src="{{MEDIA_URL}}/icons/cross.png" />
+				        {% endif %}
+				        </td>
+			       {% endfor %}
+		      </tr>
+         {% endfor %}
+      </table>
+               
+   {% else %}
+   		<h2> Currently No Components </h2>
+   {% endif %}
+   
+   {{ formset_toadd.management_form }}      
+   <h2> Add More (you can add {{formset_toadd.total_form_count}} at a time) </h2>
+   <table> 
+          <tr>
+             {% for field in fields_toadd %}
+             	<td><span class="my_table_header">{{field}}</span></td>
+             {% endfor %}
+          </tr>             
+   {% for form in formset_toadd.forms %}
+   <tr>
+	   {% for field in form %}	
+	        {{form.id}}	        	   
+	        <td>
+	        {{field}}
+	         {% if field.errors %}	            
+	        	<img src="{{MEDIA_URL}}/icons/cross.png" />
+	         {% endif %}
+	        </td>	   
+        {% endfor %}
+   </tr>
+   {% endfor %}
+   </table>  
+   {% if error_info %}
+   		<h2 style = "color:red">Can not save: {{error_info}}<h2>
+   {% endif %}
+   <input type="submit" value="Save" />  
+   <input type="button" value="Reset" onClick="location.href='/marking/{{course.slug}}/{{activity.short_name}}/components'">
+</form>
+
+{% endblock %}
