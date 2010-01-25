@@ -4,11 +4,12 @@ from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from coredata.models import *
+from courselib.auth import requires_faculty_member
 from grades.models import NumericActivity
 from models import *
-from django.forms import ValidationError
 
-@login_required
+
+@requires_faculty_member
 def index(request):
     target_userid = request.user.username
     person = Person.objects.get(userid = target_userid)
@@ -18,7 +19,7 @@ def index(request):
     print courses[0].offering.get_absolute_url()
     return render_to_response("marking/index.html", {'person':person, 'course_memberships':courses}, context_instance=RequestContext(request))
 
-@login_required
+@requires_faculty_member
 def list_activities(request, course_slug):
     print "list_activities %s" % course_slug
     target_userid = request.user.username
@@ -77,9 +78,9 @@ def _save_components_toadd(formset, activity):
             instance = form.save(commit = False)
             instance.numeric_activity = activity
             instance.save()
-            print "Compnent %s added" % instance
+            print "Component %s added" % instance
 
-@login_required
+@requires_faculty_member
 def manage_activity_components(request, course_slug, activity_short_name):    
     
     error_info = ""
@@ -88,9 +89,9 @@ def manage_activity_components(request, course_slug, activity_short_name):
     course = CourseOffering.objects.get(slug = course_slug)    
     activity = NumericActivity.objects.filter(offering = course).get(short_name = activity_short_name) 
    
-    fields1 = ('deleted', 'title', 'description', 'max_mark',)
+    fields1 = ('title', 'description', 'max_mark', 'deleted',)
     fields2 = ('title', 'description', 'max_mark',)
-    fcols1 = ('Delete?', 'Title', 'Description', 'Max Mark',)
+    fcols1 = ('Title', 'Description', 'Max Mark', 'Delete?',)
     fcols2 = ('Title', 'Description', 'Max Mark',)
     qset1 =  ActivityComponent.objects.filter(numeric_activity = activity, deleted=False);
     qset2 =  ActivityComponent.objects.none();

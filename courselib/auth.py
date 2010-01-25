@@ -77,4 +77,23 @@ def requires_course_by_slug(function=None, login_url=None):
     else:
         return actual_decorator
 
+def is_faculty_member(u, **kwargs):
+    """
+    Return True if the user is a faculty member
+    """
+    perms = Role.objects.filter(person__userid=u.username, role='FAC')
+    count = perms.aggregate(Count('person'))['person__count']
+    return count>0
+
+def requires_faculty_member(function=None, login_url=None):
+    """
+    Allows access if user is a faculty member.
+    """
+    print function
+    print login_url
+    actual_decorator = user_passes_test(is_faculty_member, login_url=login_url)
+    if function:
+        return  actual_decorator(function)
+    else:
+        return actual_decorator
 
