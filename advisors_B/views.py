@@ -27,7 +27,24 @@ def index(request):
 
 @requires_advisor()
 def search_result(request):
-    return render_to_response("advisors_B/search_result.html")
+    error=False
+    if 'q' in request.GET:
+        q=request.GET['q']
+        if not q:
+            error=True
+        else:
+            qstr=(Q(first_name__icontains = q)|
+		Q(last_name__icontains = q) |
+		Q(middle_name__icontains = q))
+            students=Person.objects.filter(qstr)
+            return render_to_response('search_result.html',{'students':students,'q':q})
+     return render_to_response('search_form.html',{'error',error})
+#use the example code in the book <<The definitive guide to Django>>,chapt.7
+
+@requires_advisor()
+def search_form(request):
+    return render_to_response('search_form.html')
+
 
 @login_required()
 def create(request, advisor_id, student_id):
