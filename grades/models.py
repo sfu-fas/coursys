@@ -10,6 +10,42 @@ FLAG_CHOICES = [
     ('DISH', 'academic dishonesty') ]
 FLAGS = dict(FLAG_CHOICES)
 
+ACTIVITY_STATUS_CHOICES = [
+    ('RLS', 'released'),
+    ('URLS', 'unreleased'),
+    ('INVI', 'invisible') ]
+ACTIVITY_STATUS = dict(ACTIVITY_STATUS_CHOICES)
+
+LETTER_GRADE_CHOICES = [
+    ('A+', 'A+ - Excellent performance'),
+    ('A', 'A - Excellent performance'),
+    ('A-', 'A- - Excellent performance'),
+    ('B+', 'B+ - Good performance'),
+    ('B', 'B - Good performance'),
+    ('B-', 'B- - Good performance'),
+    ('C+', 'C+ - Satisfactory performance'),
+    ('C', 'C - Satisfactory performance'),
+    ('C-', 'C- - Marginal performance'),
+    ('D', 'D - Marginal performance'),
+    ('F', 'F - Fail(Unsatisfactory performance)'),
+    ('FD', 'FD - Fail(Academic discipline)'),
+    ('N', 'N - Did not write exam or did not complete course'),
+    ('P', 'P - Satisfactory performance or better (pass, ungraded)'),
+    ('W', 'W - Withdrawn'),
+    ('AE', 'AE - Aegrotat standing, compassionate pass'),
+    ('AU', 'AU - Audit'),
+    ('CC', 'CC - Course challenge'),
+    ('CF', 'CF - Course challenge fail'),
+    ('CN', 'CN - Did not complete challenge'),
+    ('CR', 'CR - Credit without grade'),
+    ('FX', 'FX - Formal exchange'),
+    ('WD', 'WD - Withdrawal'),
+    ('WE', 'WE - Withdrawal under extenuating circumstances'),
+    ('DE', 'DE - Deferred grade'),
+    ('GN', 'GN - Grade not reported'),
+    ('IP', 'IP - In progress') ]
+LETTER_GRADE = dict(LETTER_GRADE_CHOICES)
+
 ACTIVITY_TYPES = ['numericactivity', 'letteractivity']
 
 class Activity(models.Model):
@@ -28,12 +64,14 @@ class Activity(models.Model):
     name = models.CharField(max_length=30, help_text='Name of the activity.')
     short_name = models.CharField(max_length=15, help_text='Short-form name of the activity.')
     slug = AutoSlugField(populate_from='short_name', null=False, editable=False)
-    percent = models.DecimalField(max_digits=5, decimal_places=2, null=True)
+    status = models.CharField(max_length=4, null=False, choices=ACTIVITY_STATUS_CHOICES, help_text='Activity status.')
+    due_date = models.DateTimeField(blank=True, null=True, help_text='Activity due date')
+    percent = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     
     offering = models.ForeignKey(CourseOffering)
 
     def __unicode__(self):
-        return "%s" % (self.name)
+        return "%s - %s" % (self.offering, self.name)
     class Meta:
         verbose_name_plural = "activities"
         unique_together = (("offering", "name"), ("offering", "short_name"))
@@ -54,28 +92,59 @@ class LetterActivity(Activity):
     class Meta:
         verbose_name_plural = "letter activities"
 
-class CalculatedNumericActivity(Activity):
+class CalNumericActivity(NumericActivity):
     """
-    Activity with a calcualted numeric mark
+    Activity with a calculated numeric grade which is the final numeric grade of the course offering
     """
-    formula = models.CharField(max_length=100)
+    formula = models.CharField(max_length=100, blank=True, null=True,
+                               help_text='parsed fomula to calculate final numeric grade')
 
     class Meta:
-        verbose_name_plural = "calculated numeric activities"
+        verbose_name_plural = "cal numeric activities"
 
-class CalculatedLetterActivity(Activity):
-    source_activity = models.ForeignKey(Activity, related_name="source")
-    exam_activity = models.ForeignKey(Activity, related_name="exam")
+class CalLetterActivity(LetterActivity):
+    """
+    Activity with a calculated letter grade which is the final letter grade of the course offering
+    """
+    cal_numeric_activity = models.ForeignKey(CalNumericActivity, blank=True, null=True,
+                                                    related_name='CLA_set_keyfrom_cal_numeric_activity')
+    exam_activity = models.ForeignKey(Activity, blank=True, null=True, related_name='CLA_set_keyfrom_exam_activity')
+    # letter_cutoff = models.ForeignKey(LetterCutoff, blank=True, null=True, help_text='letter cutoff scheme')
+    
+    class Meta:
+        verbose_name_plural = 'cal letter activities'
 
-class LetterCuttoff(models.Model):
+class LetterCutoff(models.Model):
     pass
 
 class NumericGrade(models.Model):
     """
-    Individual grade for a NumericActivity.
+    Individual numeric grade for a NumericActivity.
     """
     typed_activity = models.ForeignKey(NumericActivity, null=False)
     member = models.ForeignKey(Member, null=False)
 
     value = models.DecimalField(max_digits=5, decimal_places=2)
     flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade')
+    
+    def __unicode__(self):
+        return "Member[%s]'s grade[%s] for [%s]" % (self.member.person.userid, self.value, self.typed_activity)
+    
+    class Meta:
+        unique_together = (('typed_activity', 'member'), )
+    
+class LetterGrade(models.Model):
+    """
+    Individual letter grade for a LetterActivity
+    """
+    typed_activity = models.ForeignKey(LetterActivity, null=False)
+    member = models.ForeignKey(Member, null=False)
+    
+    letter_grade = models.CharField(max_length=2, null=False, choices=LETTER_GRADE_CHOICES)
+    flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade')
+    
+    def __unicode__(self):
+        return "Member[%s]'s letter grade[%s] for [%s]" % (self.member.person.userid, self.letter_grade, self.typed_activity)
+    
+    class Meta:
+        unique_together = (('typed_activity', 'member'), )
