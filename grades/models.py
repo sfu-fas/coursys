@@ -96,7 +96,7 @@ class CalNumericActivity(NumericActivity):
     """
     Activity with a calculated numeric grade which is the final numeric grade of the course offering
     """
-    formula = models.CharField(max_length=100, blank=True, null=True,
+    formula = models.CharField(max_length=250, blank=True, null=True,
                                help_text='parsed fomula to calculate final numeric grade')
 
     class Meta:
@@ -106,9 +106,9 @@ class CalLetterActivity(LetterActivity):
     """
     Activity with a calculated letter grade which is the final letter grade of the course offering
     """
-    cal_numeric_activity = models.ForeignKey(CalNumericActivity, blank=True, null=True,
-                                                    related_name='CLA_set_keyfrom_cal_numeric_activity')
-    exam_activity = models.ForeignKey(Activity, blank=True, null=True, related_name='CLA_set_keyfrom_exam_activity')
+    numeric_activity = models.ForeignKey(NumericActivity, blank=True, null=True,
+                                                    related_name='numeric_activity')
+    exam_activity = models.ForeignKey(Activity, blank=True, null=True, related_name='exam_activity')
     # letter_cutoff = models.ForeignKey(LetterCutoff, blank=True, null=True, help_text='letter cutoff scheme')
     
     class Meta:
@@ -121,7 +121,7 @@ class NumericGrade(models.Model):
     """
     Individual numeric grade for a NumericActivity.
     """
-    typed_activity = models.ForeignKey(NumericActivity, null=False)
+    activity = models.ForeignKey(NumericActivity, null=False)
     member = models.ForeignKey(Member, null=False)
 
     value = models.DecimalField(max_digits=5, decimal_places=2)
@@ -131,13 +131,13 @@ class NumericGrade(models.Model):
         return "Member[%s]'s grade[%s] for [%s]" % (self.member.person.userid, self.value, self.typed_activity)
     
     class Meta:
-        unique_together = (('typed_activity', 'member'), )
+        unique_together = (('activity', 'member'), )
     
 class LetterGrade(models.Model):
     """
     Individual letter grade for a LetterActivity
     """
-    typed_activity = models.ForeignKey(LetterActivity, null=False)
+    activity = models.ForeignKey(LetterActivity, null=False)
     member = models.ForeignKey(Member, null=False)
     
     letter_grade = models.CharField(max_length=2, null=False, choices=LETTER_GRADE_CHOICES)
@@ -147,4 +147,4 @@ class LetterGrade(models.Model):
         return "Member[%s]'s letter grade[%s] for [%s]" % (self.member.person.userid, self.letter_grade, self.typed_activity)
     
     class Meta:
-        unique_together = (('typed_activity', 'member'), )
+        unique_together = (('activity', 'member'), )
