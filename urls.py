@@ -15,7 +15,7 @@ urlpatterns = patterns('',
     (r'^(?P<course_slug>' + COURSE_SLUG_RE + ')/$', 'courses.dashboard.views.course'),
     
 
-    (r'^import/', 'courses.coredata.views.importer'),
+    #(r'^import/', 'courses.coredata.views.importer'),
     
     
     

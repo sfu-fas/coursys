@@ -38,7 +38,7 @@ def search_result(request):
 		Q(middle_name__icontains = q))
             students=Person.objects.filter(qstr)
             return render_to_response('search_result.html',{'students':students,'q':q})
-     return render_to_response('search_form.html',{'error',error})
+     #return render_to_response('search_form.html',{'error',error})
 #use the example code in the book <<The definitive guide to Django>>,chapt.7
 
 @requires_advisor()

@@ -4,12 +4,12 @@ from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from coredata.models import *
-from courselib.auth import requires_faculty_member
+from courselib.auth import requires_faculty_member, requires_course_staff_by_slug
 from grades.models import NumericActivity
 from models import *
 
 
-@requires_faculty_member
+@login_required
 def index(request):
     target_userid = request.user.username
     person = Person.objects.get(userid = target_userid)
@@ -19,7 +19,7 @@ def index(request):
     print courses[0].offering.get_absolute_url()
     return render_to_response("marking/index.html", {'person':person, 'course_memberships':courses}, context_instance=RequestContext(request))
 
-@requires_faculty_member
+@requires_course_staff_by_slug
 def list_activities(request, course_slug):
     print "list_activities %s" % course_slug
     target_userid = request.user.username

@@ -59,5 +59,40 @@ class DashboardTest(TestCase):
         response = client.get(c.get_absolute_url())
         self.assertEquals(response.status_code, 403)
 
+    def test_staff_page(self):
+        """
+        Check the requires_course_staff_by_slug decorator.
+        """
+        # a URL and some members/non-members
+        url = "/marking/1101-cmpt-165-d100/"
+        instr = "ggbaker"
+        ta = "0grad"
+        student = "0aaa0"
+        nobody = "0kvm"
+        
+        client = Client()
+
+        # try without logging in
+        response = client.get(url)
+        self.assertEquals(response.status_code, 302)
+        # try as instructor
+        client.login(ticket=instr, service=CAS_SERVER_URL)
+        response = client.get(url)
+        self.assertEquals(response.status_code, 200)
+        validate_content(self, response.content)
+        # try as TA
+        client.login(ticket=ta, service=CAS_SERVER_URL)
+        response = client.get(url)
+        self.assertEquals(response.status_code, 200)
+        # try as student
+        client.login(ticket=student, service=CAS_SERVER_URL)
+        response = client.get(url)
+        self.assertEquals(response.status_code, 403)
+        # try as non-member
+        client.login(ticket=nobody, service=CAS_SERVER_URL)
+        response = client.get(url)
+        self.assertEquals(response.status_code, 403)
+        
+        
 
 
