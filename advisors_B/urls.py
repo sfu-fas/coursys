@@ -11,6 +11,7 @@ urlpatterns = patterns('advisors_B.views',
     (r'^(?P<note_id>\d+)/detail/$', 'detail'),
     (r'^(?P<advisor_id>\w+)/(?P<student_id>\w+)/create/$','create'),
 	(r'^(?P<advisor_id>\w+)/(?P<student_id>\w+)/submit/$', 'submit'),
-    (r'^searchresult/$', 'search_result'),
+    (r'^search_form/$', 'search_form')                   
+    (r'^search/$', 'search_result'),
 
 )
