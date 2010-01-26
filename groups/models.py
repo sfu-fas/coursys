@@ -8,7 +8,7 @@ class Group(models.Model):
     General group information in the courses
     """
     name = models.CharField(max_length=30, help_text='Group name')
-    manager = models.ForeignKey(Member, blank = True)
+    manager = models.OneToOneField(Member, blank = True)
     courseoffering = models.ForeignKey(CourseOffering)
 
     def __unicode__(self):  
