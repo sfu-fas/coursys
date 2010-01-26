@@ -19,11 +19,11 @@ def index(request):
             is_advisor = True
             break
     if is_advisor:
-        return render_to_response("advisors_B/advisor.html")
+        return render_to_response("advisors_B/advisor.html", context_instance=RequestContext(request))
     else:
         note_list = Note.objects.filter(student__userid = request.user.username).order_by('-create_date')
         print note_list
-        return render_to_response("advisors_B/student.html",{'note_list':note_list})
+        return render_to_response("advisors_B/student.html",{'note_list':note_list}, context_instance=RequestContext(request))
 
 @requires_advisor()
 def search_result(request):
