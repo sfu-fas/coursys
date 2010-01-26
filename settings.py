@@ -101,6 +101,7 @@ INSTALLED_APPS = (
     'coredata',
     'dashboard',
     'grades',
+	'groups',
 
     # for orientation project only
     'advisors_A',
