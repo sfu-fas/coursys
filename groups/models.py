@@ -7,21 +7,22 @@ class Group(models.Model):
     """
     General group information in the courses
     """
-    name = models.CharField(maxlength=32)
-    manager = models.OneToOneField(Person)
-    course = models.ForeignKey(courseoffering)
+    name = models.CharField(max_length=30, help_text='Group name')
+    manager = models.ForeignKey(Member, blank = True)
+    courseoffering = models.ForeignKey(CourseOffering)
 
     def __unicode__(self):  
-        return self.name
-    
+        return '%s' % (self.name)
 
-
-class GroupMember(models.Model)
+class GroupMember(models.Model):
     """
     Member information of each group
     """
-    group=models.ForeignKey(group)
+    group=models.ForeignKey(Group)
     student= models.ForeignKey(Member)
     confirmed= models.BooleanField(default = False)
+
+    def __unicode__(self):
+	    return '%s %s' % (self.student.person, self.group)
     
     
