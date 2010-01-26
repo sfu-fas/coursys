@@ -97,7 +97,7 @@ class CalNumericActivity(NumericActivity):
     Activity with a calculated numeric grade which is the final numeric grade of the course offering
     """
     formula = models.CharField(max_length=250, blank=True, null=True,
-                               help_text='parsed fomula to calculate final numeric grade')
+                               help_text='parsed formula to calculate final numeric grade')
 
     class Meta:
         verbose_name_plural = "cal numeric activities"
@@ -109,13 +109,11 @@ class CalLetterActivity(LetterActivity):
     numeric_activity = models.ForeignKey(NumericActivity, blank=True, null=True,
                                                     related_name='numeric_activity')
     exam_activity = models.ForeignKey(Activity, blank=True, null=True, related_name='exam_activity')
-    # letter_cutoff = models.ForeignKey(LetterCutoff, blank=True, null=True, help_text='letter cutoff scheme')
+    letter_cutoff_formula = models.CharField(max_length=250, blank=True, null=True,
+                                              help_text='parsed formula to calculate final letter grade')
     
     class Meta:
         verbose_name_plural = 'cal letter activities'
-
-class LetterCutoff(models.Model):
-    pass
 
 class NumericGrade(models.Model):
     """
