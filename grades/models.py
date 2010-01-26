@@ -107,8 +107,8 @@ class CalLetterActivity(LetterActivity):
     Activity with a calculated letter grade which is the final letter grade of the course offering
     """
     numeric_activity = models.ForeignKey(NumericActivity, blank=True, null=True,
-                                                    related_name='numeric_activity')
-    exam_activity = models.ForeignKey(Activity, blank=True, null=True, related_name='exam_activity')
+                                                    related_name='numeric_source_set')
+    exam_activity = models.ForeignKey(Activity, blank=True, null=True, related_name='exam_set')
     letter_cutoff_formula = models.CharField(max_length=250, blank=True, null=True,
                                               help_text='parsed formula to calculate final letter grade')
     
