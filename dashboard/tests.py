@@ -24,7 +24,7 @@ class DashboardTest(TestCase):
         c = CourseOffering.objects.get(slug='1101-cmpt-125-d200')
         self.assertContains(response, '<a href="%s"' % (c.get_absolute_url()) )
 
-        validate_content(self, response.content)
+        validate_content(self, response.content, "index page")
 
 
     def test_course_page(self):
@@ -51,7 +51,7 @@ class DashboardTest(TestCase):
         m.save()
         response = client.get(c.get_absolute_url())
         self.assertEquals(response.status_code, 200)
-        validate_content(self, response.content)
+        validate_content(self, response.content, c.get_absolute_url())
 
         # dropped students should be forbidden
         m.role="DROP"
@@ -79,7 +79,7 @@ class DashboardTest(TestCase):
         client.login(ticket=instr, service=CAS_SERVER_URL)
         response = client.get(url)
         self.assertEquals(response.status_code, 200)
-        validate_content(self, response.content)
+        validate_content(self, response.content, url)
         # try as TA
         client.login(ticket=ta, service=CAS_SERVER_URL)
         response = client.get(url)
