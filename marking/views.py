@@ -80,7 +80,7 @@ def _save_components_toadd(formset, activity):
             instance.save()
             print "Component %s added" % instance
 
-@requires_faculty_member
+@requires_course_staff_by_slug
 def manage_activity_components(request, course_slug, activity_short_name):    
     
     error_info = ""
