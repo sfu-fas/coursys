@@ -1,4 +1,4 @@
-{% extends "marking_base.html" %}
+{% extends "marking/base.html" %}
 
 {% block title %}Marking{% endblock %}
 
@@ -8,13 +8,15 @@
 {% block courses %}
 <h2>Courses</h2>    
     {% regroup course_memberships by offering.semester as semester_groups %}
-    {% for semester in semester_groups %}
-      <h3 id="semester-{{semester.grouper.name}}">{{semester.grouper.label}}</h3>
+    <ul>
+    {% for semester in semester_groups %}      
+      <li><h3 id="semester-{{semester.grouper.name}}">{{semester.grouper.label}}</li>
       <ul>
       {% for membership in semester.list %}
-	  <li><a href="/marking{{membership.offering.get_absolute_url}}">{{membership.offering.name}}</a></li>
+	  	<li><a href="{% url marking.views.list_activities course_slug=membership.offering.slug %}">{{membership.offering.name}}</a></li>
       {% endfor %}
-      </ul>
-    {% endfor %}    
+      </ul>     
+    {% endfor %}
+    </ul>    
 {% endblock %}
 {% endblock %}

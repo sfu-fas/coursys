@@ -13,7 +13,7 @@ $(document).ready(
 		    var q = $('#q').val();
 		    q = $.trim(q);
 		    if (q != "") {
-			$('#results').load("/advisors_A/search/?q=" + q);
+			$('#results').load("{% url advisors_A.views.search %}"+"?q=" + q);
 		    }
 		}
 	    });
@@ -25,7 +25,7 @@ $(document).ready(
 		    var q = $('#q').val();
 		    q = $.trim(q);
 		    if (q != "") {
-			$('#results').load("/advisors_A/search/?q=" + q +"&auto=True");
+			$('#results').load("{% url advisors_A.views.search %}"+"?q=" + q +"&auto=True");
 		    }
 		}
 	    }
@@ -61,7 +61,7 @@ $(document).ajaxStart( function() {
 
 {% else %}
     <script type="text/javascript">
-	window.location.replace("notes/{{student.emplid}}/");
+	window.location.replace("{% url advisors_A.views.display_notes empId=student.emplid %}");
     </script>
 {% endif %}
 

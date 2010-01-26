@@ -30,3 +30,10 @@ div#main {
   font-family: monospace;
 }
 
+/* CSS for marking */
+span.marking_activity_component {
+	background-color:#1CCC33;
+  	font-size:20px;
+  	color:#FFFFFF;
+}
+

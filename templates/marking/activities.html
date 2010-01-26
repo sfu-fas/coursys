@@ -1,4 +1,4 @@
-{% extends "marking_base.html" %}
+{% extends "marking/base.html" %}
 
 {% block title %}Marking Activities{% endblock %}
 
@@ -7,14 +7,15 @@
 {% block content %}
 
 <h2>Activities</h2>    
-     
-    {% for activity in activities %}      
-      <h3>{{activity}}</h3>
-      <div>
-	  <a href="/marking/{{course_slug}}/{{activity.short_name}}/mark">Mark ...</a>
-	  <a href="/marking/{{course_slug}}/{{activity.short_name}}/components">Components ...</a>
-	  <a href="marking/{{course_slug}}/{{activity.short_name}}/common_problems">Common Problems ...</a>
-	  </div>
+      <ul>
+     {% for activity in activities %}      
+	      <li>{{activity}}</li>	      
+	      <ul>      
+			  <li><a href="marking/{{course_slug}}/{{activity.short_name}}/mark">Mark ...</a></li>
+			  <li><a href="{% url marking.views.manage_activity_components course_slug=course_slug, activity_short_name=activity.short_name %}">Components ...</a></li>
+			  <li><a href="marking/{{course_slug}}/{{activity.short_name}}/common_problems">Common Problems ...</a></li>
+		  </ul>		  
+	  </ul>
     {% endfor %}    
 
 {% endblock %}

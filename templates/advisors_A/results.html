@@ -1,6 +1,6 @@
 {% if only_one and auto_go %}
     <script type="text/javascript">
-	window.location.replace("/advisors_A/notes/{{ results.0.emplid }}");
+	window.location.replace("{% url advisors_A.views.display_notes empId=results.0.emplid %}");
     </script>
 {% endif %}
 {% if results|length %}
@@ -23,7 +23,7 @@
 	<td>{{ user.first_name }} {{ user.last_name }}<br/></td>
 	<td>{{ user.emplid }}</td>
 	<td>{{ user.userid }}</td>
-	<td><a href="/advisors_A/notes/{{ user.emplid }}">View</a></td>
+	<td><a href="{% url advisors_A.views.display_notes empId=user.emplid %}">View</a></td>
     </tr>
     {% endfor %}
     </table>

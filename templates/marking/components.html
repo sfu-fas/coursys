@@ -1,4 +1,4 @@
-{% extends "marking_base.html" %}
+{% extends "marking/base.html" %}
 
 
 
@@ -6,19 +6,9 @@
 
 {% block h1 %}{{course.name}}: {{activity.name}} Components{% endblock %}
 
-{% block headextra %}
-<style type="text/css">
-  .my_table_header {
-  	background-color:#1CCC33;
-  	font-size:20px;
-  	color:#FFFFFF;
-  }
-</style>
-{% endblock %}
-
 {% block content %}
 
-<form action="/marking/{{course.slug}}/{{activity.short_name}}/components/" method="POST">  
+<form action="{% url marking.views.manage_activity_components course_slug=course.slug, activity_short_name=activity.short_name %}" method="POST">  
   
    {{ formset_main.management_form }}   
   
@@ -27,7 +17,7 @@
        <table>
           <tr>
              {% for field in fields_main %}
-             	<td><span class="my_table_header">{{field}}</span></td>
+             	<td><span class="marking_activity_component">{{field}}</span></td>
              {% endfor %}
           </tr>         
 	      {% for form in formset_main.forms %} 	      
@@ -54,7 +44,7 @@
    <table> 
           <tr>
              {% for field in fields_toadd %}
-             	<td><span class="my_table_header">{{field}}</span></td>
+             	<td><span class="marking_activity_component">{{field}}</span></td>
              {% endfor %}
           </tr>             
    {% for form in formset_toadd.forms %}
@@ -75,7 +65,7 @@
    		<h2 style = "color:red">Can not save: {{error_info}}<h2>
    {% endif %}
    <input type="submit" value="Save" />  
-   <input type="button" value="Reset" onClick="location.href='/marking/{{course.slug}}/{{activity.short_name}}/components'">
+   <input type="button" value="Reset" onClick="location.href='{% url marking.views.manage_activity_components course_slug=course.slug, activity_short_name=activity.short_name %}'">
 </form>
 
 {% endblock %}

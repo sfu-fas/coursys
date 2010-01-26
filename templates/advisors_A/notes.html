@@ -24,19 +24,23 @@
 
 {% block personal %}
 <h2>Personal Information Summary</h2>
-<p> 
-    <b> First name:  </b>  {{ student.first_name }} <br />
-    <b> Middle name: </b> {{ student.middle_name }} <br />
-    <b> Last name:   </b> {{ student.last_name }} <br />
-    <b> Student No.: </b> {{ student.emplid }} <br />
-    <b> Email: </b> {{ student.email }} <br />
-</p> 
+<dl>
+   <dt>First name:</dt><dd>{{ student.first_name }}</dd>
+   <dt>Last name:</dt><dd>{{ student.last_name }}</dd>
+   </dl>
+<dl> 
+    <dt> First name:</dt><dd>{{ student.first_name }}</dd>
+    <dt> Middle name:</dt><dd>{{ student.middle_name }}</dd>
+    <dt> Last name:</dt><dd>{{ student.last_name }}</dd>
+    <dt> Student No.:</dt><dd>{{ student.emplid }}</dd>
+    <dt> Email:</dt><dd>{{ student.email }}</dd>
+</dl> 
 {% endblock %}
 
 {% block notes %}
 <h2>Advising Notes</h2>
 {% if membership %}
-    <a href="/advisors_A/notes/{{ student.emplid }}/add_note">new note</a>
+    <a href="{% url advisors_A.views.add_note empId=student.emplid %}">new note</a>
     <p></p>
 {% endif %}
 <a href="javascript:collapse_all()">collapse all</a>  <a href="javascript:expend_all()">expend all</a>
@@ -65,11 +69,11 @@
 		{% endif %}
 		{% if entry.hidden %}
 		    {% if membership %}
-			<input type="button" value=" Unhide " onClick="location.href='/advisors_A/notes/{{student.emplid}}/{{entry.id}}/hide/False/'">
+			<input type="button" value=" Unhide " onClick="location.href='{% url advisors_A.views.hide_note empId=student.emplid, noteId=entry.id, attr='False' %}'">
 		    {% endif %}
 		{% else %}
 		    {% if membership %}
-			<input type="button" value=" Hide " onClick="location.href='/advisors_A/notes/{{student.emplid}}/{{entry.id}}/hide/True/'">
+			<input type="button" value=" Hide " onClick="location.href='{% url advisors_A.views.hide_note empId=student.emplid, noteId=entry.id, attr='True' %}'">
 		    {% endif %}
 		{% endif %}
 	</div>
@@ -84,17 +88,18 @@
 {% endblock %}
 
 {% block courses %}
-<h2>Courses Enrolled</h2>    
-
+<h2>Courses Enrolled</h2>
     {% regroup course_memberships by offering.semester as by_semester %}
+    <ul>
     {% for semester in by_semester %}
-      <h3 id="semester-{{semester.grouper.name}}">{{semester.grouper.label}}</h3>
+      <li><h3 id="semester-{{semester.grouper.name}}">{{semester.grouper.label}}</h3></li>
       <ul>
       {% for membership in semester.list %}
-	<li><a href="{{membership.offering.get_absolute_url}}">{{membership.offering.name}}</a></li>
+	  	<li><a href="{% url courses.dashboard.views.course course_slug=membership.offering.slug %}">{{membership.offering.name}}</a></li>
       {% endfor %}
       </ul>
     {% endfor %}
+    </ul>
 
 {% endblock %}
 
