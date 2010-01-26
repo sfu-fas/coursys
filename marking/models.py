@@ -12,11 +12,21 @@ class ActivityComponent(models.Model):
     
     # set this flag if it is deleted by the user
     deleted = models.BooleanField(null = False, default = False)
-    common_problems = models.TextField(null = True, max_length = 1000, blank = True)
     def __unicode__(self):
         return "component %s for %s" % (self.title, self.numeric_activity)
     #class Meta:
      #   unique_together = (('numeric_activity', 'title'),)
+     
+class CommonProblem(models.Model):
+    """
+    Common problem of a activity component. One activity component can have several common problems.
+    """
+    activity_component = models.ForeignKey(ActivityComponent, null = False)
+    title = models.CharField(max_length=30, null = False)
+    penalty = models.IntegerField(null = True, default = 0, blank = True)
+    description = models.TextField(null = True, max_length = 1000, blank = True)
+    def __unicode__(self):
+        return "common problem %s for %s" % (self.title, self.activity_component)
      
 class ActivityMark(models.Model):
     """
