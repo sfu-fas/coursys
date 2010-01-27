@@ -100,14 +100,13 @@ INSTALLED_APPS = (
     'coredata',
     'dashboard',
     'grades',
-	'groups',
+    'marking',
+    'log',
+    'groups',
 
     # for orientation project only
     'advisors_A',
     'advisors_B',
-    
-    # for marking app
-    'marking'
 )
 
 #CAS_SERVER_URL = "https://cas.sfu.ca/cgi-bin/WebObjects/cas.woa/wa/"
