@@ -85,7 +85,7 @@ class ActivityComponentMark(models.Model):
     
     def __unicode__(self):
         # get the student and the activity
-        student = self.activity_mark.numeric_grade.member.person  
+        student = self.activity_mark.numeric_grade.member.person
         return "Marking for [%s]" %(self.activity_component,)
         
     class Meta:

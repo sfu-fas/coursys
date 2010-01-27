@@ -11,7 +11,6 @@
 <form action="{% url marking.views.manage_activity_components course_slug=course.slug, activity_short_name=activity.short_name %}" method="POST">  
   
    {{ formset_main.management_form }}   
-  
     {% if formset_main.forms %}
     <h2>Current Components<h2>
        <table>
@@ -22,15 +21,28 @@
           </tr>         
 	      {% for form in formset_main.forms %} 	      
 			  {{form.id}} {% comment %} important here !!! {% endcomment %}   
-			  <tr>	 		       
-				   {% for field in form %}			   
-			            <td>
-			            {{field}}
-			            {% if field.errors %}	            
-				        	<img src="{{MEDIA_URL}}/icons/cross.png" />
-				        {% endif %}
-				        </td>
-			       {% endfor %}
+			  <tr>			 
+			       {% ifequal form.prefix "current" %} {# form for a current component #}	 		       
+					   {% for field in form %}				   
+				            <td>			            
+				            {{field}}
+				            {% if field.errors %}	            
+					        	<img src="{{MEDIA_URL}}/icons/cross.png" />
+					        {% endif %}
+					        </td>
+				       {% endfor %}
+			       {% else %}{# form for a new component to add, not show the "deleted" field #}
+			       	   {% for field in form %}
+			       	        {% ifnotequal field.name "deleted" %}
+					            <td>			            
+					            {{field}}
+					            {% if field.errors %}	            
+						        	<img src="{{MEDIA_URL}}/icons/cross.png" />
+						        {% endif %}
+						        </td>
+					        {% endifnotequal %}
+				       {% endfor %}			       
+			       {% endifequal %}
 		      </tr>
          {% endfor %}
       </table>
@@ -39,28 +51,6 @@
    		<h2> Currently No Components </h2>
    {% endif %}
    
-   {{ formset_toadd.management_form }}      
-   <h2> Add More (you can add {{formset_toadd.total_form_count}} at a time) </h2>
-   <table> 
-          <tr>
-             {% for field in fields_toadd %}
-             	<td><span class="marking_activity_component">{{field}}</span></td>
-             {% endfor %}
-          </tr>             
-   {% for form in formset_toadd.forms %}
-   <tr>
-	   {% for field in form %}	
-	        {{form.id}}	        	   
-	        <td>
-	        {{field}}
-	         {% if field.errors %}	            
-	        	<img src="{{MEDIA_URL}}/icons/cross.png" />
-	         {% endif %}
-	        </td>	   
-        {% endfor %}
-   </tr>
-   {% endfor %}
-   </table>  
    {% if error_info %}
    		<h2 style = "color:red">Can not save: {{error_info}}<h2>
    {% endif %}
