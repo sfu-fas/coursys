@@ -1,7 +1,9 @@
 # Create your views here.
-from django.http import HttpResponse, HttpResponseRedirect
+#from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import Context, loader
+from django.db.models import query  
+from django.db.models import Q 
 from advisors_B.models import *
 #from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
@@ -19,7 +21,7 @@ def index(request):
             is_advisor = True
             break
     if is_advisor:
-        return render_to_response("advisors_B/advisor.html", context_instance=RequestContext(request))
+        return render_to_response("advisors_B/search_form.html", context_instance=RequestContext(request))
     else:
         note_list = Note.objects.filter(student__userid = request.user.username).order_by('-create_date')
         print note_list
@@ -34,11 +36,11 @@ def search_result(request):
             error=True
         else:
             qstr=(Q(first_name__icontains = q)|
-		Q(last_name__icontains = q) |
+		Q(last_name__icontains = q)|
 		Q(middle_name__icontains = q))
             students=Person.objects.filter(qstr)
-            return render_to_response('search_result.html',{'students':students,'q':q})
-     #return render_to_response('search_form.html',{'error',error})
+            return render_to_response('search_result.html',{'students':students,'q':q},context_instance=RequestContext(request))
+     return render_to_response('search_form.html',{'error',error},context_instance=RequestContext(request))
 #use the example code in the book <<The definitive guide to Django>>,chapt.7
 
 @requires_advisor()
