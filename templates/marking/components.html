@@ -9,8 +9,7 @@
 {% block content %}
 
 <form action="{% url marking.views.manage_activity_components course_slug=course.slug, activity_short_name=activity.short_name %}" method="POST">  
-  
-   {{ formset_main.management_form }}   
+    {{ formset_main.management_form }}   
     {% if formset_main.forms %}
     <h2>Current Components<h2>
        <table>
@@ -19,31 +18,33 @@
              	<td><span class="marking_activity_component">{{field}}</span></td>
              {% endfor %}
           </tr>         
-	      {% for form in formset_main.forms %} 	      
+	      {% for form in formset_main.forms|slice:":-5" %} 	      
 			  {{form.id}} {% comment %} important here !!! {% endcomment %}   
-			  <tr>			 
-			       {% ifequal form.prefix "current" %} {# form for a current component #}	 		       
-					   {% for field in form %}				   
-				            <td>			            
-				            {{field}}
-				            {% if field.errors %}	            
-					        	<img src="{{MEDIA_URL}}/icons/cross.png" />
-					        {% endif %}
-					        </td>
-				       {% endfor %}
-			       {% else %}{# form for a new component to add, not show the "deleted" field #}
-			       	   {% for field in form %}
-			       	        {% ifnotequal field.name "deleted" %}
-					            <td>			            
-					            {{field}}
-					            {% if field.errors %}	            
-						        	<img src="{{MEDIA_URL}}/icons/cross.png" />
-						        {% endif %}
-						        </td>
-					        {% endifnotequal %}
-				       {% endfor %}			       
-			       {% endifequal %}
-		      </tr>
+			  <tr>			  		       
+				   {% for field in form %}				   
+			            <td>			            
+			            {{field}}
+			            {% if field.errors %}	            
+				        	<img src="{{MEDIA_URL}}/icons/cross.png" />
+				        {% endif %}
+				        </td>
+			       {% endfor %}
+			 </tr>
+	      {% endfor %}
+	      {% for form in formset_main.forms|slice:"-5:" %} 	      
+	      {{form.id}} {% comment %} important here !!! {% endcomment %}  	   
+	      <tr>  
+       	   {% for field in form %}
+       	        {% ifnotequal field.name "deleted" %}
+		            <td>			            
+		            {{field}}
+		            {% if field.errors %}	            
+			        	<img src="{{MEDIA_URL}}/icons/cross.png" />
+			        {% endif %}
+			        </td>
+		        {% endifnotequal %}
+	       {% endfor %}	
+          </tr>
          {% endfor %}
       </table>
                

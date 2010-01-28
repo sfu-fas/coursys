@@ -64,22 +64,23 @@ def _save_components(formset, activity):
 
 @requires_course_staff_by_slug
 def manage_activity_components(request, course_slug, activity_short_name):    
-    
+            
     error_info = ""
-    
-    from django.forms.models import modelformset_factory
     course = CourseOffering.objects.get(slug = course_slug)    
     activity = NumericActivity.objects.filter(offering = course).get(short_name = activity_short_name) 
    
     fields = ('title', 'description', 'max_mark', 'deleted',)
-    fcols = ('Title', 'Description', 'Max Mark', 'Delete?',)
+    fcols = ('Title', 'Description', 'Max Mark', 'Delete?',)    
+    
+    from django.forms.models import modelformset_factory    
+    ComponentsFormSet  = modelformset_factory(ActivityComponent, fields=fields, \
+                                              can_delete = False, extra = 5) 
     
     qset =  ActivityComponent.objects.filter(numeric_activity = activity, deleted=False);
-          
-    ComponentsFormSet  = modelformset_factory(ActivityComponent, fields=fields, \
-                                              can_delete = False, extra = 5)        
+                 
     if request.method == "POST":     
-        formset_main = ComponentsFormSet(request.POST, queryset = qset, prefix='main')
+        formset_main = ComponentsFormSet(request.POST, queryset = qset)
+        print formset_main.as_table
         
         if formset_main.is_valid() == False:
               error_info = "Some component has error" 
@@ -91,17 +92,9 @@ def manage_activity_components(request, course_slug, activity_short_name):
             return HttpResponseRedirect(reverse('marking.views.list_activities', \
                                                 args=(course_slug,)))                   
     else: # for PUT
-        formset_main = ComponentsFormSet(queryset = qset, prefix='main') 
-        # set different prefixes for forms
-        i = 0;
-        for form in formset_main.forms:
-            if i >= len(qset):
-                form.prefix = "new"
-            else:
-                form.prefix = "current"  
-            i += 1
+        formset_main = ComponentsFormSet(queryset = qset) 
     
     return render_to_response("marking/components.html", 
                               {'course' : course, 'activity' : activity, 'fields_main' : fcols,\
-                               'formset_main' : formset_main,'error_info' : error_info, },\
-                                context_instance=RequestContext(request))
+                               'formset_main' : formset_main,'error_info' : error_info,},\
+                               context_instance=RequestContext(request))

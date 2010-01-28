@@ -10,12 +10,13 @@
     {% regroup course_memberships by offering.semester as semester_groups %}
     <ul>
     {% for semester in semester_groups %}      
-      <li><h3 id="semester-{{semester.grouper.name}}">{{semester.grouper.label}}</li>
+      <li><h3 id="semester-{{semester.grouper.name}}">{{semester.grouper.label}}
       <ul>
       {% for membership in semester.list %}
 	  	<li><a href="{% url marking.views.list_activities course_slug=membership.offering.slug %}">{{membership.offering.name}}</a></li>
       {% endfor %}
-      </ul>     
+      </ul>
+      </li>    
     {% endfor %}
     </ul>    
 {% endblock %}
