@@ -1,0 +1,60 @@
+{% extends "grades/base.html" %}
+
+{% block h1 %}Grades{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{{MEDIA_URL}}style/grades/main.css" media="all" />
+<!-- <script type="text/javascript" src="{{MEDIA_URL}}js/dataTables-1.6/media/js/jquery.dataTables.js"></script>
+<script type="text/javascript" src="{{MEDIA_URL}}js/grades/main.js"></script> -->
+{% endblock %}
+
+{% block breadcrumbs_extra %}
+<li>&gt; <a href="{% url grades.views.course course_slug=course.slug %}"></a>{{ course.name }}</li>
+{% endblock %}
+
+
+{% block content %}
+<p>Course content goes here.</p>
+<br/>
+<br/>
+<div id="activity_container">
+    <a href="#">Add Activity</a>
+    <table id='activities'>
+        <thead>
+            <tr>
+                <th>Activity</th>
+                <th>Status</th>
+                <th>Due Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for activity in activities %} 
+            <tr>
+                <td>{{ activity.name }} ({{ activity.percent }}%)</td>
+                {% ifequal activity.status 'RLS' %}
+                <td class="green">
+                    {{ activity.get_status_display }}
+                </td>
+                {% endifequal %}
+                {% ifequal activity.status 'URLS' %}
+                <td class="red">
+                    {{ activity.get_status_display }}
+                </td>
+                {% endifequal %}
+                {% ifequal activity.status 'INVI' %}
+                <td class="grey">
+                    {{ activity.get_status_display }}
+                </td>
+                {% endifequal %}
+                <td>{{ activity.due_date }}</td>
+                <td><a href="#">Edit</a> <a href="#">Delete</a></td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td>No Activity</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
