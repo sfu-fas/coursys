@@ -7,6 +7,7 @@ def validate_content(testcase, data, page_descr="unknown page"):
     Validate data as XHTML 1.0 (strict).
     
     testcase should be a unittest.TestCase object (or similar).
+    page_descr should be a human-readable description of the page being tested.
     """
     # force use of local copy of DTD
     dtd = os.path.join(os.getcwd(), "courselib/dtd", "xhtml1-strict.dtd")
