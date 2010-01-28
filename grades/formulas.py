@@ -37,18 +37,15 @@ def create_parser():
 	return ("func",) + tuple(toks[0])
 
     def expr_parse(s, loc, toks):
-	if type(toks) == ParseResults:
-            ts = toks[0]
-            if len(ts) == 2:
-        	# unary operator
-        	return ("sign",) + tuple(toks[0])
-            elif len(ts) > 1 and len(ts)%2==1:
-        	# one or more ops at the same level
-        	return ("expr",) + tuple(toks[0])
-            else:
-        	raise ParseException, "Unknown expression parsed."
-	else:
-            return toks[0]
+        ts = toks[0]
+        if len(ts) == 2:
+            # unary operator
+            return ("sign",) + tuple(toks[0])
+        elif len(ts) > 1 and len(ts)%2==1:
+            # one or more ops at the same level
+            return ("expr",) + tuple(toks[0])
+        else:
+            raise ParseException, "Unknown expression parsed."
 
     sign = Literal("+") | Literal("-")
     real = (Word( nums ) + "." + Optional( Word(nums) ) +  # whole/decimal part
@@ -106,9 +103,11 @@ def eval_parse(tree, vals):
     elif t == 'expr':
         expr = list(tree)
         expr.reverse()
-        expr.pop()
+        expr.pop() # remove the 'expr' marker
+        # extract first term
         val = eval_parse(expr.pop(), vals)
         while expr:
+            # extract operator/operand pairs until they're all gone
             operator = expr.pop()
             operand = eval_parse(expr.pop(), vals)
             if operator == "+":
@@ -142,7 +141,8 @@ def eval_parse(tree, vals):
             vals = [eval_parse(t, vals) for t in tree[3:]]
             vals.sort()
             return sum(vals[-n:])
-        return 0
+        else:
+            raise EvalException, "Unknown function in parse tree: %s"%(func,)
     else:
         raise EvalException, "Unknown element in parse tree: %s"%(tree,)
     
