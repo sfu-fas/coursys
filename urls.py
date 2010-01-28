@@ -44,5 +44,8 @@ urlpatterns = patterns('',
     
     # for Marking
     (r'^marking/', include('marking.urls')),
+    
+    # for Grades
+    (r'^grades/', include('grades.urls')),
 )
 
