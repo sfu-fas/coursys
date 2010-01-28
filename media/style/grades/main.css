@@ -1,0 +1,35 @@
+/* CSS for system elements */
+/* SFU colours: (as found at http://www.sfu.ca/clf/web/index.html)
+red     #b5111b
+blue    #0054a6
+visited #25316e
+grey    #54534a
+*/
+
+table {
+  border-collapse: collapse;
+  border-spacing: 2px 5px;
+}
+table, th, td {
+  border: solid 1px black;
+}
+
+td {
+  padding: 10px;
+}
+
+.green {
+  color: green;
+}
+
+.grey {
+  color: grey;
+}
+
+.red {
+  color: red;
+}
+
+#activity_container {
+  width: 600px;
+}
