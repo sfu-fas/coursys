@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Group Management{% endblock %}
+
+{% block h1 %}Group Management{% endblock %}
+
+{% block content %}
+<div id="groupcontainer">
+<div id="grouplist">
+	<h1>Group list</h1>
+	{% for entry in grouplist %}
+		<p>{{ entry }}</p>&nbsp;<a href="groups/join/">Join</a><br />
+	{% endfor %}
+	
+	<a href="groups/create/">Create a group</a><br />
+	
+	{% if group and not confirmed %}
+		<div id="invited">*You have been invited to join group {{ group }}. <a href="groups/joinconfirm/">Confirm</a>.</div>
+	{% endif %}
+</div>
+
+<div id="groupmembership">
+	{% if group and confirmed %}
+		<h1>Group I belong to:</h1>
+		<p>{{ group }}.</p>
+		<h2>Members:</h2>
+		{% for entry in memberlist %}
+			<p>{{ entry.student.person.first_name }} {{ entry.student.person.last_name }}
+			{% if group.manager == entry %}
+				(manager)
+			{%endif}
+			</p>
+		{% endfor %}
+		<a href="groups/invite/">Invite a member</a>
+		<a href="groups/changemanager">Change/Add manager</a>
+	{% else %}
+		<p>You don't belong to any group currently in this course.</p>
+	{% endif %}
+</div>
+</div>
+{% endblock %}
