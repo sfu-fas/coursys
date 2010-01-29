@@ -15,6 +15,6 @@ def groupmanage(request):
 		else:
 			c = True
 			memberlist = GroupMember.objects.get(group = g)
-		render_to_response('group/student.html', {'group':g,'confirmed':c,'memberlist':memberlist,'grouplist':grouplist}, context_instance = RequestContext(request))
+		render_to_response('groups/student.html', {'group':g,'confirmed':c,'memberlist':memberlist,'grouplist':grouplist}, context_instance = RequestContext(request))
 	else if m.role == 'INST':
-		render_to_response('group/instructor.html', context_instance = RequestContext(request))
+		render_to_response('groups/instructor.html', context_instance = RequestContext(request))
