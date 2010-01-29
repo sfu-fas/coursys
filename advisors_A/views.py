@@ -1,4 +1,4 @@
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
 from coredata.models import Role, Person, Member
@@ -12,7 +12,8 @@ from courselib.auth import requires_advisor
 def index(request):
     target_userid = request.user.username
     memberships = Role.objects.filter(person__userid=target_userid).filter(role='ADVS')
-    student = Person.objects.get(userid = target_userid)
+    #student = Person.objects.get(userid = target_userid)
+    student = get_object_or_404(Person, userid = target_userid)
     return render_to_response("advisors_A/index.html", {'memberships': memberships, 'student':student}, context_instance=RequestContext(request))
 
 @requires_advisor
@@ -55,7 +56,6 @@ def add_note(request, empId):
         form = NoteForm(request.POST, request.FILES, instance = default_note)
         if form.is_valid()==True:            
             new_note = form.save()  
-            new_note.save()
             # return back to the student notes page
             return HttpResponseRedirect(reverse('advisors_A.views.display_notes', args=(empId,)))             
     else:    

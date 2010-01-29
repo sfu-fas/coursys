@@ -187,7 +187,7 @@ class Member(models.Model):
         #if self.person:
         #    return "%s in %s" % (self.person, self.offering)
         #else:
-        return "%s in %s" % (self.person.userid, self.offering)
+        return "%s (%s) in %s" % (self.person.userid, self.person.emplid, self.offering,)
 
     class Meta:
         unique_together = (('person', 'offering', 'role'),)

@@ -119,14 +119,14 @@ class NumericGrade(models.Model):
     activity = models.ForeignKey(NumericActivity, null=False)
     member = models.ForeignKey(Member, null=False)
 
-    value = models.DecimalField(max_digits=5, decimal_places=2)
-    flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade')
+    value = models.DecimalField(max_digits=5, decimal_places=2, default = 0)
+    flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade', default = 'NOGR')
     
     def __unicode__(self):
-        return "Member[%s]'s grade[%s] for [%s]" % (self.member.person.userid, self.value, self.typed_activity)
+        return "Member[%s]'s grade[%s] for [%s]" % (self.member.person.userid, self.value, self.activity)
     
     class Meta:
-        unique_together = (('activity', 'member'), )
+        unique_together = (('activity', 'member'),)
     
 class LetterGrade(models.Model):
     """
