@@ -1,3 +1,4 @@
+import copy
 from django.db import models
 from grades.models import NumericActivity, NumericGrade 
 
@@ -102,5 +103,23 @@ class ActivityComponentMarkForm(ModelForm):
         model = ActivityComponentMark            
         fields = ['comment', 'value']
         exclude = ['activity_mark', 'activity_component']
+        
+def copyCourseSetup(course_copy_from, course_copy_to):
+    # copy course setup from one to another
+    # TODO: code for copying other kinds of activity can be added on demand
+    for numeric_activity in NumericActivity.objects.filter(offering = course_copy_from):
+        new_numeric_activity = copy.deepcopy(numeric_activity)
+        new_numeric_activity.id = None
+        new_numeric_activity.pk = None
+        new_numeric_activity.offering = course_copy_to
+        new_numeric_activity.save()
+        print "Activity %s is copied" % new_numeric_activity
+        for activity_component in ActivityComponent.objects.filter(numeric_activity = numeric_activity):
+            new_activity_component = copy.deepcopy(activity_component)
+            new_activity_component.id = None
+            new_activity_component.pk = None
+            new_activity_component.numeric_activity = new_numeric_activity
+            new_activity_component.save()
+            print "component %s is copied" % new_activity_component
     
     
