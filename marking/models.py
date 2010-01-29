@@ -25,6 +25,7 @@ class CommonProblem(models.Model):
     title = models.CharField(max_length=30, null = False)
     penalty = models.IntegerField(null = True, default = 0, blank = True)
     description = models.TextField(null = True, max_length = 1000, blank = True)
+    deleted = models.BooleanField(null = False, default = False)
     def __unicode__(self):
         return "common problem %s for %s" % (self.title, self.activity_component)
      
