@@ -9,9 +9,7 @@
 {% block content %}
 
 <form action="{% url marking.views.manage_activity_components course_slug=course.slug, activity_short_name=activity.short_name %}" method="POST">  
-    {{ formset_main.management_form }}   
-    {% if formset_main.forms %}
-    <h2>Current Components<h2>
+    {{ formset_main.management_form }} 
        <table>
           <tr>
              {% for field in fields_main %}
@@ -19,7 +17,7 @@
              {% endfor %}
           </tr>         
 	      {% for form in formset_main.forms|slice:":-5" %} 	      
-			  {{form.id}} {% comment %} important here !!! {% endcomment %}   
+			  {{form.id}}  {# important here !!! #}  
 			  <tr>			  		       
 				   {% for field in form %}				   
 			            <td>			            
@@ -32,7 +30,7 @@
 			 </tr>
 	      {% endfor %}
 	      {% for form in formset_main.forms|slice:"-5:" %} 	      
-	      {{form.id}} {% comment %} important here !!! {% endcomment %}  	   
+	      {{form.id}} {# important here !!! #}  	   
 	      <tr>  
        	   {% for field in form %}
        	        {% ifnotequal field.name "deleted" %}
@@ -47,10 +45,6 @@
           </tr>
          {% endfor %}
       </table>
-               
-   {% else %}
-   		<h2> Currently No Components </h2>
-   {% endif %}
    
    {% if error_info %}
    		<h2 style = "color:red">Can not save: {{error_info}}<h2>

@@ -56,9 +56,13 @@ class StudentActivityMark(ActivityMark):
         return "Marking for [%s] for activity [%s]" %(student, activity)
 
     def setMark(self, grade):
+        """         
+        Set the mark
+e       """
         self.numeric_grade.value = grade
-        self.numeric_grade.flag = FLAGS['GRAD']
-        self.numeric_grade.save()    
+        self.numeric_grade.flag = 'GRAD'
+        self.numeric_grade.save()            
+        
         
 class GroupActivityMark(ActivityMark):
     """
@@ -90,5 +94,12 @@ class ActivityComponentMark(models.Model):
         
     class Meta:
         unique_together = (('activity_mark', 'activity_component'),)
+
+from django.forms import ModelForm
+class ActivityComponentMarkForm(ModelForm):
+    class Meta:
+        model = ActivityComponentMark            
+        fields = ['comment', 'value']
+        exclude = ['activity_mark', 'activity_component']
     
     
