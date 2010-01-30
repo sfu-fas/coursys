@@ -173,23 +173,21 @@ def marking(request, course_slug, activity_short_name):
                                     
             return HttpResponseRedirect(reverse('marking.views.list_activities', \
                                                 args=(course_slug,)))       
-    else:                  
+    else: # for PUT request                 
         receiver_form = MarkReceiverForm(prefix = "receiver-form")
         for i in range(leng):
             forms.append(ActivityComponentMarkForm(prefix = "cmp-form-%s" % (i+1)))
-            print forms[i].as_p()
         additional_info_form = ActivityMarkForm(prefix = "additional-form") 
            
     mark_components = []
     for i in range(leng):
         common_problems = CommonProblem.objects.filter(activity_component = components[i], deleted = False)
-        cmp_form = {'component' : components[i], 'form' : forms[i], 'common_problems' : common_problems}        
-        mark_components.append(cmp_form)
+        comp = {'component' : components[i], 'form' : forms[i], 'common_problems' : common_problems}        
+        mark_components.append(comp)
   
     return render_to_response("marking/marking.html",
-                             {'course':course, 'activity' : activity, 'receiver_form' : receiver_form,
+                             {'course':course, 'activity' : activity, 'receiver_form' : receiver_form, \
                               'additional_info_form' : additional_info_form, 'mark_components': mark_components, \
-                              'error_info': error_info, },\
-                              context_instance=RequestContext(request))
+                              'error_info': error_info, }, context_instance=RequestContext(request))
     
         

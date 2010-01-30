@@ -11,7 +11,7 @@
   <ul>
  {% for activity in activities %}      
       <li>{{activity}}</li>	 
-      <div class = "marking_activity">
+      <div class = "marking_a">
 		  <ul> 
 		  <li><a href="{% url marking.views.marking course_slug=course_slug, activity_short_name=activity.short_name %}">Mark ...</a></li>
 		  <li><a href="{% url marking.views.manage_activity_components course_slug=course_slug, activity_short_name=activity.short_name %}">Components ...</a></li>

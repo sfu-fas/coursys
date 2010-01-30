@@ -1,18 +1,15 @@
 /* CSS for marking */
 
-.marking_activity a:link
+.marking_a
 {
-display:block;
 font-weight:bold;
-color:#FFFFFF;
+color:black;
 background-color:#FFCC33;
-width:120px;
-text-align:center;
-padding:4px;
-text-transform:uppercase;
+width:160px;
+text-transform:capitalize;
 }
 
-.marking_activity a:hover,.marking_activity a:active
+.marking_a a:hover,.marking_a a:active
 {
 background-color:#FF9900;
 margin: 10;  
