@@ -16,7 +16,6 @@ def index(request):
     # get the course offerings of this user
     courses = Member.objects.exclude(role="DROP").filter(offering__graded=True).filter(person__userid=target_userid) \
             .select_related('offering','offering__semester')
-    print courses[0].offering.get_absolute_url()
     return render_to_response("marking/index.html", {'person':person, 'course_memberships':courses}, context_instance=RequestContext(request))
 
 @requires_course_staff_by_slug
@@ -118,28 +117,31 @@ def marking(request, course_slug, activity_short_name):
     if request.method == "POST":
                 
         receiver_form = MarkReceiverForm(request.POST, prefix = "receiver-form")
-        print receiver_form.errors
-        
+                
         if not receiver_form.is_valid():
             error_info = "Please select the student or group to give the mark to"       
         
         for i in range(leng):
             forms.append(ActivityComponentMarkForm(request.POST, prefix = "cmp-form-%s" % (i+1)))
        
-        total_mark = 0
-        for i in range(leng):         
-            if not forms[i].is_valid():
-                error_info = "Error found"
-                break
-            cmp_mark = forms[i].save(commit = False)            
-            if cmp_mark.value > components[i].max_mark or cmp_mark.value < 0:
-                error_info = "Invalid mark for %s" % components[i].title
-                break;  
-            total_mark += cmp_mark.value
+        if not error_info:
+            total_mark = 0
+            for i in range(leng):         
+                if not forms[i].is_valid():
+                    error_info = "Error found"
+                    break
+                cmp_mark = forms[i].save(commit = False)            
+                if cmp_mark.value > components[i].max_mark or cmp_mark.value < 0:
+                    error_info = "Invalid mark for %s" % components[i].title
+                    break;  
+                total_mark += cmp_mark.value
+                
+        additional_info_form = ActivityMarkForm(request.POST, request.FILES, prefix = "overall-form")
+        
+        if (not error_info) and (not overall_info_form.is_valid()):
+            error_info = "Error found"
             
-        if not error_info:             
-          
-            print total_mark
+        if not error_info: 
             # get the student
             student = receiver_form.cleaned_data["student_selection"]   
             print student
@@ -157,10 +159,11 @@ def marking(request, course_slug, activity_short_name):
                                     
             return HttpResponseRedirect(reverse('marking.views.list_activities', \
                                                 args=(course_slug,)))       
-    else:   
-        for i in range(leng):
-            forms.append(ActivityComponentMarkForm(prefix = "cmp-form-%s" % (i+1)))       
+    else:                  
         receiver_form = MarkReceiverForm(prefix = "receiver-form")
+        for i in range(leng):
+            forms.append(ActivityComponentMarkForm(prefix = "cmp-form-%s" % (i+1)))
+        additional_info_form = ActivityMarkForm(prefix = "overall-form") 
     
     mark_components = []
     for i in range(leng):
@@ -169,7 +172,8 @@ def marking(request, course_slug, activity_short_name):
   
     return render_to_response("marking/marking.html",
                              {'course':course, 'activity' : activity, 'receiver_form' : receiver_form,
-                             'mark_components': mark_components, 'error_info': error_info, },\
-                             context_instance=RequestContext(request))
+                              'additional_info_form' : additional_info_form, 'mark_components': mark_components, \
+                              'error_info': error_info, },\
+                              context_instance=RequestContext(request))
     
         

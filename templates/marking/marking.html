@@ -8,9 +8,7 @@
 
 {% block content %}
 
-
-
-<form action="{% url marking.views.marking course_slug=course.slug, activity_short_name=activity.short_name %}" method="POST">  
+<form action="{% url marking.views.marking course_slug=course.slug, activity_short_name=activity.short_name %}" method="POST" enctype="multipart/form-data">  
 	 {{receiver_form.as_p}}
 	 {% for entry in mark_components %} 
 	     <div>         
@@ -25,14 +23,16 @@
 			      <img src="{{MEDIA_URL}}/icons/cross.png" />
 			{% endif %}        	
 	     {% endfor %}
-	     <div>
+	     </div>
      {% empty %}
 	   	<h2> No Components to Mark</h2>
 	 {% endfor %}
+	 
+	 {{additional_info_form.as_p}}
    
-   {% if error_info %}
+     {% if error_info %}
    		<h2 style = "color:red">Can not save: {{error_info}}<h2>
-   {% endif %}
+     {% endif %}
    <input type="submit" value="Save" />  
    <input type="button" value="Reset" onClick="location.href='{% url marking.views.marking course_slug=course.slug, activity_short_name=activity.short_name %}'">
 </form>

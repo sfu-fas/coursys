@@ -103,6 +103,14 @@ class ActivityComponentMarkForm(ModelForm):
         model = ActivityComponentMark            
         fields = ['comment', 'value']
         exclude = ['activity_mark', 'activity_component']
+
+        
+class ActivityMarkForm(ModelForm):
+    class Meta:
+        model = ActivityMark
+        fields = ['late_penalty', 'mark_adjustment', 'mark_adjustment_reason', 'overall_comment', \
+                  'file_attachment']
+
         
 def copyCourseSetup(course_copy_from, course_copy_to):
     # copy course setup from one to another
@@ -121,5 +129,6 @@ def copyCourseSetup(course_copy_from, course_copy_to):
             new_activity_component.numeric_activity = new_numeric_activity
             new_activity_component.save()
             print "component %s is copied" % new_activity_component
+
     
     
