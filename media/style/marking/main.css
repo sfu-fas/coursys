@@ -97,6 +97,16 @@ padding: 10px;
 display:none;
 }
 
+.marking_form .common_problems
+{
+display: block;
+background-color: #99CCCC;
+height:30px;
+position: relative;
+left: 0px;
+}
+
+
 .marking_comp_forset table, .marking_comp_forset td
 {
 border: 1px outset #CCFF99;
@@ -109,6 +119,8 @@ background-color:#1CCC33;
 font-size:20px;
 color:#FFFFFF;
 }
+
+
 
 
 

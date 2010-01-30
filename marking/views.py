@@ -76,7 +76,6 @@ def manage_activity_components(request, course_slug, activity_short_name):
                  
     if request.method == "POST":     
         formset_main = ComponentsFormSet(request.POST, queryset = qset)
-        print formset_main.as_table
         
         if formset_main.is_valid() == False:
               error_info = "Some component has error" 
@@ -176,14 +175,15 @@ def marking(request, course_slug, activity_short_name):
                                                 args=(course_slug,)))       
     else:                  
         receiver_form = MarkReceiverForm(prefix = "receiver-form")
-        print receiver_form
         for i in range(leng):
             forms.append(ActivityComponentMarkForm(prefix = "cmp-form-%s" % (i+1)))
+            print forms[i].as_p()
         additional_info_form = ActivityMarkForm(prefix = "additional-form") 
            
     mark_components = []
     for i in range(leng):
-        cmp_form = {'component' : components[i], 'form' : forms[i]}        
+        common_problems = CommonProblem.objects.filter(activity_component = components[i], deleted = False)
+        cmp_form = {'component' : components[i], 'form' : forms[i], 'common_problems' : common_problems}        
         mark_components.append(cmp_form)
   
     return render_to_response("marking/marking.html",

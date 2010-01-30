@@ -1,6 +1,15 @@
 {% extends "marking/base.html" %}
 
-
+{% block marking_header_extra %}
+<script type="text/javascript">
+function append_problem(n, content)
+{   
+	var comments = document.querySelectorAll("textarea");
+	var oldconent = comments[n-1].value;
+	comments[n-1].value += (oldconent == '' ? '' : '; ') + content;
+}
+</script>
+{% endblock%}
 
 {% block title %}{{course.name}}: {{activity.name}} Marking{% endblock %}
 
@@ -14,9 +23,8 @@
 	 {{receiver_form.as_p}}
 	 </div>
 	
-	 {% for entry in mark_components %}            
-        
-         <div class = "comp">
+	 {% for entry in mark_components %}        
+	     <div class = "comp">
 	     <p class = "marking_title">{{entry.component.title}}:  {{entry.component.description}}</p>     
 	     {% for field in entry.form %} 
 	      	{% ifequal field.name "value" %}	      	    
@@ -27,9 +35,18 @@
 	      	{% if field.errors %}	            
 			      <img src="{{MEDIA_URL}}/icons/cross.png" />
 			{% endif %}        	
-	     {% endfor %}	     
-	     </div>
-    
+	     {% endfor %}
+	     <p class = "common_problems">
+	     {% with forloop.counter as pos %}
+	     <label>common problems: </label>	     
+	     {% for problem in entry.common_problems %}
+	     	<input type = "button" value = {{problem.title}} OnClick = "append_problem({{pos}}, '{{problem.description}}');"/>	 
+	     {% empty %}	     
+	     None    	     
+	     {% endfor %}
+	     {% endwith %}
+	     </p>	     	     
+	     </div> 
      {% empty %}
 	   	<h2> No Components to Mark</h2>
 	 {% endfor %}
@@ -42,6 +59,7 @@
      {% if error_info %}
    		<h2 style = "color:red">Can not save: {{error_info}}<h2>
      {% endif %}
+     
    <input type="submit" value="Save" />  
    <input type="button" value="Reset" onClick="location.href='{% url marking.views.marking course_slug=course.slug, activity_short_name=activity.short_name %}'">
 </form>
