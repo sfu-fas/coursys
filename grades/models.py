@@ -139,7 +139,7 @@ class LetterGrade(models.Model):
     flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade')
     
     def __unicode__(self):
-        return "Member[%s]'s letter grade[%s] for [%s]" % (self.member.person.userid, self.letter_grade, self.typed_activity)
+        return "Member[%s]'s letter grade[%s] for [%s]" % (self.member.person.userid, self.letter_grade, self.activity)
     
     class Meta:
         unique_together = (('activity', 'member'), )

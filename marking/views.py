@@ -1,4 +1,4 @@
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
@@ -12,7 +12,7 @@ from django.forms.models import modelformset_factory
 @login_required
 def index(request):
     target_userid = request.user.username
-    person = Person.objects.get(userid = target_userid)
+    person = get_object_or_404(Person, userid = target_userid)
     # get the course offerings of this user
     courses = Member.objects.exclude(role="DROP").filter(offering__graded=True).filter(person__userid=target_userid) \
             .select_related('offering','offering__semester')
@@ -20,12 +20,9 @@ def index(request):
 
 @requires_course_staff_by_slug
 def list_activities(request, course_slug):
-    print "list_activities %s" % course_slug
-    target_userid = request.user.username
-    print course_slug
-    person = Person.objects.get(userid = target_userid)
-    # get the numeric activities for this course_offering    
-    course = CourseOffering.objects.get(slug=course_slug)
+    target_userid = request.user.username  
+    # get the numeric activities for this course_offering 
+    course = get_object_or_404(CourseOffering, slug = course_slug)
     all_activities = course.activity_set.all()
     target_activities = []
     # only show the numeric activities for marking
@@ -66,8 +63,8 @@ def _save_components(formset, activity):
 def manage_activity_components(request, course_slug, activity_short_name):    
             
     error_info = ""
-    course = CourseOffering.objects.get(slug = course_slug)    
-    activity = NumericActivity.objects.filter(offering = course).get(short_name = activity_short_name) 
+    course = get_object_or_404(CourseOffering, slug = course_slug)
+    activity = get_object_or_404(NumericActivity, offering = course, short_name = activity_short_name) 
    
     fields = ('title', 'description', 'max_mark', 'deleted',)
     fcols = ('Title', 'Description', 'Max Mark', 'Delete?',)    
@@ -102,8 +99,8 @@ def manage_activity_components(request, course_slug, activity_short_name):
 def marking(request, course_slug, activity_short_name):
     
     error_info = ""
-    course = CourseOffering.objects.get(slug = course_slug)    
-    activity = NumericActivity.objects.filter(offering = course).get(short_name = activity_short_name)    
+    course = get_object_or_404(CourseOffering, slug = course_slug)    
+    activity = get_object_or_404(NumericActivity, offering = course, short_name = activity_short_name)    
     
     from django import forms    
     students_qset = course.members.filter(person__offering = course, person__role = "STUD")     
@@ -114,57 +111,76 @@ def marking(request, course_slug, activity_short_name):
     leng = len(components)    
     forms = []    
         
-    if request.method == "POST":
-                
+    if request.method == "POST":                
         receiver_form = MarkReceiverForm(request.POST, prefix = "receiver-form")
-                
+                       
         if not receiver_form.is_valid():
-            error_info = "Please select the student or group to give the mark to"       
-        
+            error_info = "Please select the student or group to give the mark to"     
+                  
         for i in range(leng):
             forms.append(ActivityComponentMarkForm(request.POST, prefix = "cmp-form-%s" % (i+1)))
-       
+        
+        cmp_marks = []
         if not error_info:
             total_mark = 0
             for i in range(leng):         
                 if not forms[i].is_valid():
                     error_info = "Error found"
                     break
-                cmp_mark = forms[i].save(commit = False)            
+                cmp_mark = forms[i].save(commit = False)
+                cmp_mark.activity_component = components[i]                
+                cmp_marks.append(cmp_mark)            
                 if cmp_mark.value > components[i].max_mark or cmp_mark.value < 0:
                     error_info = "Invalid mark for %s" % components[i].title
                     break;  
                 total_mark += cmp_mark.value
                 
-        additional_info_form = ActivityMarkForm(request.POST, request.FILES, prefix = "overall-form")
+        additional_info_form = ActivityMarkForm(request.POST, request.FILES, prefix = "additional-form")
         
-        if (not error_info) and (not overall_info_form.is_valid()):
+        if (not error_info) and (not additional_info_form.is_valid()):
             error_info = "Error found"
             
+        # no error, save the result
         if not error_info: 
-            # get the student
-            student = receiver_form.cleaned_data["student_selection"]   
-            print student
-            membership = course.member_set.get(person = student)
-            print membership
-            
+            #get the student and the member
+            student = receiver_form.cleaned_data["student_selection"]            
+            membership = course.member_set.get(person = student)                     
+            #get the corresponding NumericGrade object
             try: 
                 ngrade = NumericGrade.objects.get(activity = activity, member = membership)                  
-            except NumericGrade.DoesNotExist: #if the corresponding NumericalGrade does not exist yet
+            except NumericGrade.DoesNotExist: #if the  NumericalGrade does not exist yet, create a new one
                 ngrade = NumericGrade(activity = activity, member = membership)                  
-                ngrade.save()   
+                ngrade.save()                            
+                stu_activity_mark = StudentActivityMark(numeric_grade = ngrade)            
+            else:
+                #get the corresponding StudentActivityMark object
+                try:                     
+                    stu_activity_mark = StudentActivityMark.objects.get(numeric_grade = ngrade)   
+                except StudentActivityMark.DoesNotExist: #if the  StudentActivityMark does not exist yet, create a new one               
+                    stu_activity_mark = StudentActivityMark(numeric_grade = ngrade)
+                        
+            #get the additional info
+            additional = additional_info_form.save(commit = False)             
+            #copy the additional info        
+            stu_activity_mark.copyAdditionalFrom(additional)            
+            #assign the mark 
+            stu_activity_mark.setMark(total_mark - additional.late_penalty + additional.mark_adjustment)           
+            stu_activity_mark.save()
             
-            activity_mark = StudentActivityMark(numeric_grade = ngrade)       
-            activity_mark.setMark(total_mark)
+            #save the individual ComponentMarks
+            for cmp_mark in cmp_marks:
+                cmp_mark.activity_mark = stu_activity_mark
+                cmp_mark.save()
                                     
             return HttpResponseRedirect(reverse('marking.views.list_activities', \
                                                 args=(course_slug,)))       
     else:                  
         receiver_form = MarkReceiverForm(prefix = "receiver-form")
+        print receiver_form
         for i in range(leng):
             forms.append(ActivityComponentMarkForm(prefix = "cmp-form-%s" % (i+1)))
-        additional_info_form = ActivityMarkForm(prefix = "overall-form") 
-    
+        additional_info_form = ActivityMarkForm(prefix = "additional-form") 
+           
     mark_components = []
     for i in range(leng):
         cmp_form = {'component' : components[i], 'form' : forms[i]}        

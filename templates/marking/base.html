@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{% block headextra %}
+<link rel="stylesheet" href="{{MEDIA_URL}}style/marking/main.css" media="all" />
+{% endblock %}
+
 {% block navmenu %}
 <ul id="main_nav">
 	<li class="homeLink"><a href="/">Home</a></li>

@@ -8,28 +8,37 @@
 
 {% block content %}
 
-<form action="{% url marking.views.marking course_slug=course.slug, activity_short_name=activity.short_name %}" method="POST" enctype="multipart/form-data">  
+<form class = "marking_form" action="{% url marking.views.marking course_slug=course.slug, activity_short_name=activity.short_name %}" method="POST" enctype="multipart/form-data">  
+	
+	 <div class = "receiv">
 	 {{receiver_form.as_p}}
-	 {% for entry in mark_components %} 
-	     <div>         
-	     <p>{{entry.component.title}}:  {{entry.component.description}}</p>  
+	 </div>
+	
+	 {% for entry in mark_components %}            
+        
+         <div class = "comp">
+	     <p class = "marking_title">{{entry.component.title}}:  {{entry.component.description}}</p>     
 	     {% for field in entry.form %} 
-	      	{% ifequal field.name "value" %}
-	      		{{field}} out of {{entry.component.max_mark}}
+	      	{% ifequal field.name "value" %}	      	    
+	      		<b class = "mark">{{field}} Out of {{entry.component.max_mark}}</b>      		
 	      	{% else %}
 	      		{{ field.label_tag }}: {{ field }}
 	      	{% endifequal %}  
 	      	{% if field.errors %}	            
 			      <img src="{{MEDIA_URL}}/icons/cross.png" />
 			{% endif %}        	
-	     {% endfor %}
+	     {% endfor %}	     
 	     </div>
+    
      {% empty %}
 	   	<h2> No Components to Mark</h2>
 	 {% endfor %}
 	 
+	 <div class = "additional">
+	 <p class = "marking_title">Additional Information</p>  
 	 {{additional_info_form.as_p}}
-   
+     </div>
+     
      {% if error_info %}
    		<h2 style = "color:red">Can not save: {{error_info}}<h2>
      {% endif %}

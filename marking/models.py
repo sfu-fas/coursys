@@ -40,10 +40,8 @@ class ActivityMark(models.Model):
     mark_adjustment_reason = models.TextField(null = True, max_length = 1000, blank = True)
     file_attachment = models.FileField(null = True, upload_to = "student&group/files/%Y %m %d %H:%M:%S'", blank=True)#TODO: need to add student name or group name to the path  
      
-    #def __unicode__(self):
-        # get the activity
-        #activity = self.numeric_grade.typed_activity #Can the base class use numeric_grade from derived class?     
-        #return "Marking for for activity [%s]" %(activity,)
+    def __unicode__(self):
+        return "Supper object containing additional info for marking"
 
 class StudentActivityMark(ActivityMark):
     """
@@ -54,9 +52,19 @@ class StudentActivityMark(ActivityMark):
     def __unicode__(self):
         # get the student and the activity
         student = self.numeric_grade.member.person
-        activity = self.numeric_grade.typed_activity      
+        activity = self.numeric_grade.activity      
         return "Marking for [%s] for activity [%s]" %(student, activity)
-
+    
+    def copyAdditionalFrom(self, super_obj):
+        """
+        Copy additional information form a super object--an ActivityMark object
+        """
+        self.late_penalty = super_obj.late_penalty
+        self.overall_comment = super_obj.overall_comment
+        self.mark_adjustment = super_obj.mark_adjustment
+        self.mark_adjustment_reason = super_obj.mark_adjustment_reason
+        self.file_attachment = super_obj.file_attachment
+   
     def setMark(self, grade):
         """         
         Set the mark
@@ -91,7 +99,6 @@ class ActivityComponentMark(models.Model):
     
     def __unicode__(self):
         # get the student and the activity
-        student = self.activity_mark.numeric_grade.member.person
         return "Marking for [%s]" %(self.activity_component,)
         
     class Meta:

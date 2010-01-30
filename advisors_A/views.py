@@ -47,9 +47,9 @@ def add_note(request, empId):
     Add a new note
     """   
     if request.method =='POST':
-        # set the known fields of the note to be created                
-        current_advisor = Person.objects.get(userid = request.user.username)   
-        target_student = Person.objects.get(emplid = empId)
+        # set the known fields of the note to be created           
+        current_advisor = get_object_or_404(Person, userid = request.user.username)        
+        target_student = get_object_or_404(Person, emplid = empId)
         default_note = Note(student = target_student, advisor = current_advisor,time_created = datetime.now())                              
        
         # create the form that binds to the data in the request   
@@ -67,7 +67,7 @@ def add_note(request, empId):
 
 @login_required
 def display_notes(request, empId):
-    target_student = Person.objects.get(emplid = empId )
+    target_student = get_object_or_404(Person, emplid = empId)
     results = Note.objects.filter(student=target_student).order_by('-time_created')
     memberships = Member.objects.exclude(role="DROP").filter(offering__graded=True).filter(person__userid=target_student.userid) \
             .select_related('offering','person','offering__semester')
@@ -85,6 +85,7 @@ def display_notes(request, empId):
 
 @requires_advisor
 def hide_note(request, empId, noteId, attr):
-    note = Note.objects.get(id = noteId)
+    
+    note = get_object_or_404(Note, id = noteId)
     note.hide(attr == 'True')
     return HttpResponseRedirect(reverse('advisors_A.views.display_notes', args=(empId,)))

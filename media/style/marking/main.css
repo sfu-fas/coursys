@@ -1,0 +1,114 @@
+/* CSS for marking */
+
+.marking_activity a:link
+{
+display:block;
+font-weight:bold;
+color:#FFFFFF;
+background-color:#FFCC33;
+width:120px;
+text-align:center;
+padding:4px;
+text-transform:uppercase;
+}
+
+.marking_activity a:hover,.marking_activity a:active
+{
+background-color:#FF9900;
+margin: 10;  
+}
+
+.marking_form div.receiv
+{
+margin: 5px 5px;
+padding: 10px;
+}
+
+.marking_form div.receiv select
+{
+width:  150px;
+height: 20px;
+}
+
+.marking_form div.comp
+{
+display: block;
+background-color:#CCFFFF;
+margin: 5px 5px;
+padding: 10px;
+}
+
+.marking_form div textarea 
+{
+border-style:inset;
+border-color:#FFFFCC;
+position:relative;
+height:60px;
+width:300px; 
+}
+
+.marking_form .marking_title
+{
+color: #505050;
+font-size:18px;
+text-align:center; 
+font-weight:bold;
+text-transform:capitalize;	
+position: relative;
+top: -20px;
+}
+
+.marking_form input[type="text"]
+{
+border-style:inset;
+border-color:#FFFFCC;
+text-align: right;
+width: 80px;
+height: 18px;
+}
+
+.marking_form .mark
+{
+font-size:14px;
+position: relative;
+top: -50px;
+right: -50px;
+}
+
+.marking_form label
+{
+color:#black;	 
+font-size:14px;	
+text-align:left;	
+text-transform:capitalize;	
+}
+
+.marking_form div.additional
+{
+display: block;
+background-color:#CCFF99;
+margin: 5px 5px;
+padding: 10px;
+}
+
+/* not display the errorlist of the django form */
+.marking_form .errorlist
+{
+display:none;
+}
+
+.marking_comp_forset table, .marking_comp_forset td
+{
+border: 1px outset #CCFF99;
+}
+
+.marking_comp_forset span.header
+{	
+display: block;
+background-color:#1CCC33;
+font-size:20px;
+color:#FFFFFF;
+}
+
+
+

@@ -8,12 +8,12 @@
 
 {% block content %}
 
-<form action="{% url marking.views.manage_activity_components course_slug=course.slug, activity_short_name=activity.short_name %}" method="POST">  
+<form class = "marking_comp_forset" action="{% url marking.views.manage_activity_components course_slug=course.slug, activity_short_name=activity.short_name %}" method="POST">  
     {{ formset_main.management_form }} 
        <table>
           <tr>
              {% for field in fields_main %}
-             	<td><span class="marking_activity_component">{{field}}</span></td>
+             	<td><span class="header">{{field}}</span></td>
              {% endfor %}
           </tr>         
 	      {% for form in formset_main.forms|slice:":-5" %} 	      
