@@ -1,0 +1,30 @@
+{% extends "grades/base.html" %}
+
+{% block h1 %}   {{course.name}} {% endblock %}
+
+{% block breadcrumbs_extra %}
+<li>&gt; <a href="{% url grades.views.student_view student_id%}">Student</a>>{{ course.name }}</li>
+{% endblock %}
+
+
+{% block content %}
+<br/>
+<div id="activity_container">
+    <table id='activities'>
+        <thead>
+            <tr>
+                <th>Assignment</th>
+                <th>Percentage</th>
+                 <th>Grade</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for activity in activities %} 
+            <tr>
+                <td>{{ activity.name }} ({{ activity.percent }}%)</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
