@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Group Management{% endblock %}
+
+{% block h1 %}Group Management{% endblock %}
+
+{% block content %}
+<div id="groupindex">
+	<ul>
+		{% for entry in courselist %}
+		<li><a href="{% url groups.views.groupmanage course_slug=entry.offering.slug %}">{{ entry.offering }}</a></li>
+		{% endfor %}
+	</ul>
+</div>
+{% endblock %}
