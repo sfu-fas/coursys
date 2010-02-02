@@ -26,9 +26,9 @@
 		<h2>Members:</h2>
 		{% for entry in memberlist %}
 			<p>{{ entry.student.person.first_name }} {{ entry.student.person.last_name }}
-			{% if group.manager == entry %}
+			{% ifequal group.manager entry %}
 				(manager)
-			{%endif}
+			{% endifequal %}
 			</p>
 		{% endfor %}
 		<a href="groups/invite/">Invite a member</a>
