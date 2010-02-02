@@ -12,6 +12,9 @@ coredata: data on course offerings and enrolment; imported from goSFU or set by 
   coredata/fake_importer.py: program to do the import from goSFU, faking some things for development.
 dashboard: responsible for display of front page, main course pages, news items
 grades: management of course grades
+marking:
+submission:
+groups:
 
 OTHER
 initial_data.json: basic data: semesters from 1094 to 1107

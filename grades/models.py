@@ -76,14 +76,40 @@ class Activity(models.Model):
         verbose_name_plural = "activities"
         unique_together = (("offering", "name"), ("offering", "short_name"))
 
+    def display_grade_student(self, student):
+        """
+        String representing grade for this student
+        """
+        if self.status=="URLS":
+            return "--"
+        elif self.status=="INVI":
+            raise RuntimeError, "Can't display invisible grade."
+        else:
+            return self.display_grade_visible(student)
+
+    def display_grade_staff(self, student):
+        """
+        String representing grade for this student
+        """
+        return self.display_grade_visible(student)
+
 class NumericActivity(Activity):
     """
     Activity with a numeric mark
     """
     max_grade = models.DecimalField(max_digits=5, decimal_places=2)
+    
 
     class Meta:
         verbose_name_plural = "numeric activities"
+
+    def display_grade_visible(self, student):
+        grades = NumericGrade.objects.filter(activity=self, member__person=student)
+        if len(grades)==0:
+            grade = "--"
+        else:
+            grade = grades[0].value
+        return "%f/%f" % (grade, self.max_grade)
 
 class LetterActivity(Activity):
     """
