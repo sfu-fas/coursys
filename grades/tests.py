@@ -40,6 +40,8 @@ class GradesTest(TestCase):
         p = pickle.dumps(tree)
         tree2 = pickle.loads(p)
         self.assertEqual(tree, tree2)
+        # check that it found the right list of columns used
+        self.assertEqual(cols_used(tree), set(['A1', 'A2', 'Assignment #1']))
         
         # test parsing and evaluation to make sure we get the right values out
         for expr, correct in test_formulas:

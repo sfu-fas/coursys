@@ -20,30 +20,37 @@ def create_parser():
     Build and return a parser for expressions.
     
     Parser builds a tuple-based representation of the formula the should be easy to evaluate.
-    Each component is a tuple with the first element indicating the type, and the rest giving
-    the required arguments for the formula-chunk.
+    Each component is a tuple with:
+       the first element indicats the type,
+       the second element gives a set of columns referenced
+       the rest gives the required arguments for the formula-chunk.
     
     Parser throws ParseException if something goes wrong.
     """
     from external.pyparsing import Literal, Word, Optional, CaselessLiteral, Group, StringStart, StringEnd, Suppress, ParseResults, CharsNotIn, Forward, nums, delimitedList, operatorPrecedence, opAssoc
 
     def column_parse(toks):
-	return ("col", toks[0][0])
+	return ("col", set([toks[0][0]]), toks[0][0])
 
     def real_parse(toks):
-	return ("num", float(''.join(toks)))
+	return ("num", set(), float(''.join(toks)))
 
     def func_parse(toks):
-	return ("func",) + tuple(toks[0])
+        cols = set()
+        cols.update(*(t[1] for t in toks[0][1:]))
+	return ("func", cols) + tuple(toks[0])
 
     def expr_parse(s, loc, toks):
         ts = toks[0]
         if len(ts) == 2:
             # unary operator
-            return ("sign",) + tuple(toks[0])
+            return ("sign", ts[1][1], ts[0]) + tuple(ts[1:])
         elif len(ts) > 1 and len(ts)%2==1:
             # one or more ops at the same level
-            return ("expr",) + tuple(toks[0])
+            # build list of referenced columns:
+            cols = set()
+            cols.update(*(t[1] for t in ts[0::2]))
+            return ("expr", cols, ts[0]) + tuple(ts[1:])
         else:
             raise ParseException, "Unknown expression parsed."
 
@@ -83,6 +90,12 @@ def parse(expr):
     """
     return parser.parseString(expr)[0]
 
+def cols_used(tree):
+    """
+    Return the set of column/activity labels used in the parse tree
+    """
+    return tree[1]
+
 def eval_parse(tree, vals):
     """
     Evaluate an expression given its parse tree and dictionary of column values.
@@ -92,18 +105,19 @@ def eval_parse(tree, vals):
     Throws KeyError for unknown column.
     """
     t = tree[0]
-    if t == 'sign' and tree[1] == '+':
-        return eval_parse(tree[2], vals)
-    elif t == 'sign' and tree[1] == '-':
-        return -eval_parse(tree[2], vals)
+    if t == 'sign' and tree[2] == '+':
+        return eval_parse(tree[3], vals)
+    elif t == 'sign' and tree[2] == '-':
+        return -eval_parse(tree[3], vals)
     elif t == 'col':
-        return float(vals[tree[1]])
+        return float(vals[tree[2]])
     elif t == 'num':
-        return tree[1]
+        return tree[2]
     elif t == 'expr':
         expr = list(tree)
         expr.reverse()
         expr.pop() # remove the 'expr' marker
+        expr.pop() # remove the column set
         # extract first term
         val = eval_parse(expr.pop(), vals)
         while expr:
@@ -122,23 +136,23 @@ def eval_parse(tree, vals):
                 raise EvalException, "Unknown operator in parse tree: %s"%(operator,)
         return val
     elif t == 'func':
-        func = tree[1]
+        func = tree[2]
         if func == 'SUM':
-            return sum(eval_parse(t, vals) for t in tree[2:])
+            return sum(eval_parse(t, vals) for t in tree[3:])
         elif func == 'MAX':
-            return max(eval_parse(t, vals) for t in tree[2:])
+            return max(eval_parse(t, vals) for t in tree[3:])
         elif func == 'MIN':
-            return min(eval_parse(t, vals) for t in tree[2:])
+            return min(eval_parse(t, vals) for t in tree[3:])
         elif func == 'AVG':
-            return sum(eval_parse(t, vals) for t in tree[2:]) / (len(tree)-2)
+            return sum(eval_parse(t, vals) for t in tree[3:]) / (len(tree)-3)
         elif func == 'BEST':
             # round first argument to an int: it's the number of best items to pick
-            n = int(round( eval_parse(tree[2], vals) ) + 0.1)
+            n = int(round( eval_parse(tree[3], vals) ) + 0.1)
             if n < 1:
                 raise EvalException, 'Bad number of "best" selected, %i.'%(n,)
-            if n > len(tree)-3:
+            if n > len(tree)-4:
                 raise EvalException, "Not enough arguments to choose %i best."%(n,)
-            vals = [eval_parse(t, vals) for t in tree[3:]]
+            vals = [eval_parse(t, vals) for t in tree[4:]]
             vals.sort()
             return sum(vals[-n:])
         else:
