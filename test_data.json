@@ -17957,5 +17957,14 @@
   }, 
   "model": "coredata.person", 
   "pk": 109
- } 
+ },
+ {
+  "fields": {
+   "person": 22, 
+   "role": "SYSA"
+  }, 
+  "model": "coredata.role", 
+  "pk": 2
+ }
+
 ]

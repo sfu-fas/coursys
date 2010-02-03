@@ -7,17 +7,17 @@ from courselib.auth import *
 from coredata.models import *
 from django.core.urlresolvers import reverse
 
-@login_required
+@requires_role("SYSA")
 def importer(request):
     """
     Run the data importer.
     """
-    if request.method == 'POST': # If the form has been submitted...
+    if request.method == 'POST':
         form = ImportForm(request.POST)
         if form.is_valid():
             return HttpResponse('thanks')
     else:
-        form = ImportForm() # An unbound form
+        form = ImportForm()
     
     return render_to_response('coredata/form.html', {'form': form}, context_instance=RequestContext(request))
 
