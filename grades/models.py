@@ -61,8 +61,8 @@ class Activity(models.Model):
             # do things that use the NumericActivity instance
             ...  
     """
-    name = models.CharField(max_length=30, help_text='Name of the activity.')
-    short_name = models.CharField(max_length=15, help_text='Short-form name of the activity.')
+    name = models.CharField(max_length=30, db_index=True, help_text='Name of the activity.')
+    short_name = models.CharField(max_length=15, db_index=True, help_text='Short-form name of the activity.')
     slug = AutoSlugField(populate_from='short_name', null=False, editable=False)
     status = models.CharField(max_length=4, null=False, choices=ACTIVITY_STATUS_CHOICES, help_text='Activity status.')
     due_date = models.DateTimeField(blank=True, null=True, help_text='Activity due date')

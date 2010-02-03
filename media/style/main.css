@@ -30,7 +30,25 @@ div#main {
   font-family: monospace;
 }
 
-
+table {
+  border-collapse: collapse;
+  border: 1px solid black;
+  margin: 0.5em;
+}
+table td, table th {
+  border: 1px solid black;
+  padding: 0.1em 0.25em;
+}
+table th {
+  background-color: #ddd;
+  font-size: 110%;
+}
+.dataTables_wrapper {
+  margin: 1em 0;
+}
+th.sorting_asc, th.sorting_desc {
+  border-width: 2px;
+}
  
  
 

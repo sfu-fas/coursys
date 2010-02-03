@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Course Management System Roles{% endblock %}
+{% block h1 %}Course Management System Roles{% endblock %}
+
+{% block content %}
+
+<form action="{% url coredata.views.new_role %}" method="post">
+{{ form.as_p }}
+<p><input type="submit" value="Submit" /></p>
+</form>
+
+
+{% endblock %}

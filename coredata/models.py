@@ -224,6 +224,7 @@ class Role(models.Model):
         ('ADVS', 'Advisor'),
         ('FAC', 'Faculty Member'),
         ('ADMN', 'Departmental Administrator'),
+        ('SYSA', 'System Administrator'),
         ('NONE', 'none'),
     )
     ROLES = dict(ROLE_CHOICES)

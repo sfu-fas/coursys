@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Course Management System Roles{% endblock %}
+{% block h1 %}Course Management System Roles{% endblock %}
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#roles').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block content %}
+<p>
+<a href="{% url coredata.views.new_role %}">Add new role</a>
+</p>
+<table id="roles">
+  <thead><tr><th scope="col">Name</th><th scope="col">Role</th><th scope="col">Actions</th></tr></thead>
+  <tbody>
+  {% for role in roles %}
+  <tr><td scope="row">{{role.person}}</td><td>{{role.get_role_display}}</td>
+  <td><a href="#">delete</a></td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

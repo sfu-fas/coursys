@@ -16,6 +16,8 @@ urlpatterns = patterns('',
     
 
     #(r'^import/', 'courses.coredata.views.importer'),
+    (r'^roles/$', 'courses.coredata.views.role_list'),
+    (r'^roles/new$', 'courses.coredata.views.new_role'),
     
     
     
