@@ -1,0 +1,104 @@
+fieldset {
+    width: 100%;
+    padding: 0 0 0 0;
+    border: 1px solid #BFBAB0;
+    background: #F2EFE9;
+    background-image: url('/media/images/grades/fieldset_gradient.jpg');
+    background-repeat: repeat-x;
+}
+fieldset .submit {
+    margin: 0 0 0 11em;
+    background-color: #B5111A;
+    border: 1px solid #FFF;
+    color: #FFF;
+}
+fieldset ul {
+    list-style: none;
+    padding: 1em 1em 0 1em;
+}
+fieldset ul.errorlist {
+    list-style: none;
+    padding: 0;
+}
+fieldset li {
+    float: left;
+    clear: left;
+    width: 100%;
+    padding-bottom: 1em;
+}
+fieldset .errorlist li {
+    float: none;
+    clear: none;
+    padding: 0;
+}
+fieldset div.inputfield {
+    float: left;
+}
+legend {
+    padding: 0;
+    margin-left: 1em;
+    color: #B5111A;
+    font-weight: bold;
+}
+fieldset label {
+    display: block;
+    width: 10em;
+    float: left;
+    margin-right: 1em;
+}
+fieldset .fomula_box {
+    margin-bottom: 1em;
+    background-color: #BCBCB4;
+}
+#activity_form_container p.errorindicator {
+    border: 2px solid red;
+    padding: 0.5em 0.5em 0.5em 0.5em;
+    background-color: #fffead;
+    color: red;
+    margin-bottom: 1em;
+}
+#activity_form_container .errorlist {
+    color: red;
+}
+#add_activity_nav {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+    float: left;
+}
+#add_activity_nav li {
+    float: left;
+}
+#add_activity_nav li a {
+    display: block;
+    width: 15em;
+    height: 2em;
+    color: #FFF;
+    text-align: center;
+    line-height: 2;
+    background-color: #CB5A60;
+    border-right: 1px solid #FFF;
+    text-decoration: none;
+}
+#add_activity_nav li a:hover {
+    border-bottom: 5px solid #d8d5d5;
+}
+#add_activity_nav li.current a {
+    background-color: #B5111A;
+    font-weight: bold;
+}
+#activity_form_container {
+    clear: left;
+    width: 600px;
+}
+
+/* Override SFU template style */
+#container a:hover {
+    text-decoration: none;
+}
+#container {
+    z-index: auto;
+}
+
+/* Override jquery UI style, otherwise the datepicker will be displayed too large */
+#ui-datepicker-div {font-size:0.8em}

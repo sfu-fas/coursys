@@ -3,13 +3,21 @@
 {% block h1 %}Grades{% endblock %}
 
 {% block headextra %}
-<link rel="stylesheet" href="{{MEDIA_URL}}style/grades/main.css" media="all" />
-<!-- <script type="text/javascript" src="{{MEDIA_URL}}js/dataTables-1.6/media/js/jquery.dataTables.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}js/grades/main.js"></script> -->
+<link type="text/css" href="{{MEDIA_URL}}jquery-ui-1.7.2.custom/css/smoothness/jquery-ui-1.7.2.custom.css" rel="stylesheet" />
+<link type="text/css" href="{{MEDIA_URL}}style/grades/activitytable.css" rel="stylesheet" />
+<script type="text/javascript" src="{{MEDIA_URL}}datatables/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+	oTable = $('#activities').dataTable({
+		"bJQueryUI": true,
+		"sPaginationType": "full_numbers"
+	});
+    });
+</script>
 {% endblock %}
 
 {% block breadcrumbs_extra %}
-<li>&gt; <a href="{% url grades.views.course course_slug=course.slug %}"></a>{{ course.name }}</li>
+<li>&gt; <a href="{% url grades.views.course course_slug=course.slug %}">{{ course.name }}</a></li>
 {% endblock %}
 
 
@@ -18,19 +26,24 @@
 <br/>
 <br/>
 <div id="activity_container">
-    <a href="#">Add Activity</a>
-    <table id='activities'>
+    <a id="addactivity" href="{% url grades.views.course course_slug=course.slug %}/addnumericactivity">Add Activity</a>
+    <table class="display" id="activities">
         <thead>
             <tr>
                 <th>Activity</th>
                 <th>Status</th>
                 <th>Due Date</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
             {% for activity in activities %} 
             <tr>
-                <td>{{ activity.name }} ({{ activity.percent }}%)</td>
+                <td>{{ activity.name }}
+                {% if activity.percent %}
+                    &nbsp;({{ activity.percent }}%)
+                {% endif %}
+                </td>
                 {% ifequal activity.status 'RLS' %}
                 <td class="green">
                     {{ activity.get_status_display }}
@@ -51,7 +64,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td>No Activity</td>
+                <td colspan="4">No Activity</td>
             </tr>
             {% endfor %}
         </tbody>

@@ -1,0 +1,107 @@
+{% extends "grades/base.html" %}
+
+{% block h1 %}Grades{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{{MEDIA_URL}}style/grades/activityform.css" type="text/css" />
+<link type="text/css" href="{{MEDIA_URL}}jquery-ui-1.7.2.custom/css/smoothness/jquery-ui-1.7.2.custom.css" rel="stylesheet" />
+<script type="text/javascript" src="{{MEDIA_URL}}jquery-ui-1.7.2.custom/js/jquery-ui-1.7.2.custom.min.js"></script>
+<!--[if lte IE 8]>
+<link rel="stylesheet" href="{{MEDIA_URL}}style/grades/activityform-ie.css" type="text/css" />
+<![endif]-->
+<script type="text/javascript">
+$(document).ready(function() {
+    $("#numeric_formula_box").hide();
+    $("input:checkbox[name='specify_numeric_formula']").click(function(){
+        if ($(this).attr("checked"))
+            $("#numeric_formula_box").show(500);
+        else
+            $("#numeric_formula_box").hide(500);
+    });
+    $("#id_due_date").datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.bmp',
+                                changeMonth: true, changeYear: true, showOn: 'button'});
+});
+</script>
+{% endblock %}
+
+{% block breadcrumbs_extra %}
+<li>&gt; <a href="{% url grades.views.course course_slug=course.slug %}">{{ course.name }}</a></li>
+<li>&gt; <a href="{% url grades.views.add_numeric_activity course_slug=course.slug %}">Add Activity</a></li>
+{% endblock %}
+
+
+{% block content %}
+<h2>Add Activity</h2>
+<br/>
+<ul id="add_activity_nav">
+    <li class="current"><a href="{% url grades.views.add_numeric_activity course_slug=course.slug %}">Numeric Graded Activity</a></li>
+    <li><a href="{% url grades.views.add_letter_activity course_slug=course.slug %}">Letter Graded Activity</a></li>
+</ul>
+<div id="activity_form_container">
+    {% if form.errors %}
+    <p class="errorindicator">
+        <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
+        Please correct the error below.
+    </p>
+    {% endif %}
+    <form action="{% url grades.views.add_numeric_activity course_slug=course.slug %}" method="post">
+        <fieldset>
+            <legend>Activity Info</legend>
+            <ul>
+                <li>
+                    {{ form.name.label_tag }}
+                    <div class="inputfield">
+                        {{ form.name }}{% if form.name.errors %}<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>{% endif %}
+                        {{form.name.errors}}
+                    </div>
+                </li>
+                <li>
+                    {{ form.short_name.label_tag }}
+                    <div class="inputfield">
+                        {{ form.short_name }}{% if form.short_name.errors %}<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>{% endif %}
+                        {{ form.short_name.errors }}
+                    </div>
+                </li>
+                <li>
+                    {{ form.status.label_tag }}
+                    <div class="inputfield">
+                        {{ form.status }}{% if form.status.errors %}<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>{% endif %}
+                        {{ form.status.errors }}
+                    </div>
+                </li>
+                <li>
+                    {{ form.due_date.label_tag }}
+                    <div class="inputfield">
+                        {{ form.due_date }}{% if form.due_date.errors %}<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>{% endif %}
+                        {{ form.due_date.errors }}
+                    </div>
+                </li>
+                <li>
+                    {{ form.percent.label_tag }}
+                    <div class="inputfield">
+                        {{ form.percent }}{% if form.percent.errors %}<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>{% endif %}
+                        {{ form.percent.errors }}
+                    </div>
+                </li>
+                <li>
+                    {{ form.max_grade.label_tag }}
+                    <div class="inputfield">
+                        {{ form.max_grade }}{% if form.max_grade.errors %}<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>{% endif %}
+                        {{ form.max_grade.errors }}
+                    </div>
+                </li>
+                <li>
+                    {{ form.specify_numeric_formula.label_tag }}
+                    {{ form.specify_numeric_formula }}
+                </li>
+                <li id="numeric_formula_box" class="fomula_box">
+                    To be added
+                </li>
+                <li>
+                    <input class="submit" type="submit" value="Submit" />
+                </li>
+            </ul>
+        </fieldset>
+    </form>
+</div>
+{% endblock %}
