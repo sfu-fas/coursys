@@ -39,14 +39,11 @@ $(document).ready(function() {
     <li><a href="{% url grades.views.add_letter_activity course_slug=course.slug %}">Letter Graded Activity</a></li>
 </ul>
 <div id="activity_form_container">
-    {% if form.errors %}
-    <p class="errorindicator">
-        <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
-        Please correct the error below.
-    </p>
-    {% endif %}
+    {{form|error_note}}
     <form action="{% url grades.views.add_numeric_activity course_slug=course.slug %}" method="post">
-    {{form|display_form}}
-    </form>
+        <fieldset>
+            <legend>Activity Info</legend>
+            {{form|display_form}}
+        </fieldset>
 </div>
 {% endblock %}
