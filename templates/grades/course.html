@@ -29,18 +29,12 @@
     <a id="addactivity" href="{% url grades.views.course course_slug=course.slug %}/addnumericactivity">Add Activity</a>
     <table class="display" id="activities">
         <thead>
-            {% if activities %}
-                <tr>
-                    <th>Activity</th>
-                    <th>Status</th>
-                    <th>Due Date</th>
-                    <th></th>
-                </tr>
-            {% else %}
-                <tr>
-                    <th>Activity</th>
-                </tr>
-            {% endif %}
+            <tr>
+                <th>Activity</th>
+                <th>Status</th>
+                <th>Due Date</th>
+                <th></th>
+            </tr>
         </thead>
         <tbody>
             {% for activity in activities %} 
@@ -71,6 +65,9 @@
             {% empty %}
             <tr>
                 <td>No Activity</td>
+                <td></td>
+                <td></td>
+                <td></td>
             </tr>
             {% endfor %}
         </tbody>
