@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+	<h1>Create Group</h1>
+	{% if student %}
+		<h3>Manager:{{ student.first_name }} {{ student.last_name }} ({{ student.email }})</h3>
+		<form action="/create/" method="POST">
+			<label for="name">:Group Name </label>
+                        <input type="text" name="name" value="{{ name }}">
+			<input type="submit" value="Add">
+                </form>
+        {% else %}
+		<p> Student does not exist </p>
+	{% endif %}
+{% endblock content %}
