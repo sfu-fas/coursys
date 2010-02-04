@@ -1,0 +1,52 @@
+{% extends "grades/base.html" %}
+{% load course_display %}
+
+{% block h1 %}Grades{% endblock %}
+
+{% block headextra %}
+<link rel="stylesheet" href="{{MEDIA_URL}}style/grades/activityform.css" type="text/css" />
+<link type="text/css" href="{{MEDIA_URL}}jquery-ui-1.7.2.custom/css/smoothness/jquery-ui-1.7.2.custom.css" rel="stylesheet" />
+<script type="text/javascript" src="{{MEDIA_URL}}jquery-ui-1.7.2.custom/js/jquery-ui-1.7.2.custom.min.js"></script>
+<!--[if lte IE 8]>
+<link rel="stylesheet" href="{{MEDIA_URL}}style/grades/activityform-ie.css" type="text/css" />
+<![endif]-->
+<script type="text/javascript">
+$(document).ready(function() {
+    $("#numeric_formula_box").hide();
+    $("input:checkbox[name='specify_numeric_formula']").click(function(){
+        if ($(this).attr("checked"))
+            $("#numeric_formula_box").show(500);
+        else
+            $("#numeric_formula_box").hide(500);
+    });
+    $("#id_due_date").datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.bmp',
+                                changeMonth: true, changeYear: true, showOn: 'button'});
+});
+</script>
+{% endblock %}
+
+{% block breadcrumbs_extra %}
+<li>&gt; <a href="{% url grades.views.course course_slug=course.slug %}">{{ course.name }}</a></li>
+<li>&gt; <a href="{% url grades.views.add_numeric_activity course_slug=course.slug %}">Add Activity</a></li>
+{% endblock %}
+
+
+{% block content %}
+<h2>Add Activity</h2>
+<br/>
+<ul id="add_activity_nav">
+    <li class="current"><a href="{% url grades.views.add_numeric_activity course_slug=course.slug %}">Numeric Graded Activity</a></li>
+    <li><a href="{% url grades.views.add_letter_activity course_slug=course.slug %}">Letter Graded Activity</a></li>
+</ul>
+<div id="activity_form_container">
+    {% if form.errors %}
+    <p class="errorindicator">
+        <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
+        Please correct the error below.
+    </p>
+    {% endif %}
+    <form action="{% url grades.views.add_numeric_activity course_slug=course.slug %}" method="post">
+    {{form|display_form}}
+    </form>
+</div>
+{% endblock %}

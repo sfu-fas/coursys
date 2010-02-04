@@ -103,6 +103,7 @@ INSTALLED_APPS = (
     'marking',
     'log',
     'groups',
+    'submission',
 
     # for orientation project only
     'advisors_A',
