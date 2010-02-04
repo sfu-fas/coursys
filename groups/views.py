@@ -42,3 +42,8 @@ def groupmanage(request, course_slug):
 		return render_to_response('groups/instructor.html', context_instance = RequestContext(request))
 	else:
 		return render_to_response('groups/instructor.html', context_instance = RequestContext(request))
+@login_required
+def create(request,student_id):
+        p= get_object_or_404(Person,userid=student_id)
+	group_manager=Role.objects.get(person = p)
+	return render_to_response('groups/create.html', {'manager':group_manager,'group_name':request.POST.get('name',' ')},context_instance = RequestContext(request)) 
