@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Group Management{% endblock %}
+
+{% block h1 %}Group Management{% endblock %}
+
+{% block content %}
+<div id="grouplist">
+	<h1>Group list</h1>
+	{% if grouplist %}
+		{% for entry in grouplist %}
+			<p>{{ entry }}</p>&nbsp;<a href="groups/join/">Join</a><br />
+		{% endfor %}
+	{% else %}
+		<p>There are currently no groups in this course offering</p>
+	{% endif %}
+	
+</div>
+{% endblock %}
