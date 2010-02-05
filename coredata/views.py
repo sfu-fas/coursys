@@ -12,6 +12,7 @@ def importer(request):
     """
     Run the data importer.
     """
+    raise NotImplemented
     if request.method == 'POST':
         form = ImportForm(request.POST)
         if form.is_valid():

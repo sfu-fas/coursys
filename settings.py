@@ -95,7 +95,6 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
-    'django.contrib.admin',
     #'django.contrib.messages',
     'coredata',
     'dashboard',
@@ -109,9 +108,12 @@ INSTALLED_APPS = (
     'advisors_A',
     'advisors_B',
 )
+if DEBUG:
+    INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.admin',)
 
-#CAS_SERVER_URL = "https://cas.sfu.ca/cgi-bin/WebObjects/cas.woa/wa/"
-CAS_SERVER_URL = "http://lefty.cmpt.sfu.ca/fake-cas/"
+CAS_SERVER_URL = "https://cas.sfu.ca/cgi-bin/WebObjects/cas.woa/wa/"
+if DEBUG:
+    CAS_SERVER_URL = "http://lefty.cmpt.sfu.ca/fake-cas/"
 LOGIN_URL = "/login/"
 LOGOUT_URL = "/logout/"
 LOGIN_REDIRECT_URL = "/"
