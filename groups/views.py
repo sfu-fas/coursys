@@ -2,8 +2,6 @@
 from django.contrib.auth.decorators import login_required
 from coredata.models import Member, Person, CourseOffering
 from groups.models import *
-from django.contrib.auth.decorators import login_required
-from groups.models import *
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
@@ -25,13 +23,10 @@ def groupmanage(request, course_slug):
 		grouplist = None
 	memberlist = GroupMember.objects.none()
 	if m.role == 'STUD':
-		#gm = GroupMember.objects.get(student = m).field()
 		try:
 			g = Group.objects.get(courseoffering=course, groupmember__student=m)
 		except:
 			g = None
-		#g = gm.get(courseoffering=course)
-		#return HttpResponse(str(g))
 		if g is None:
 			c = False
 		else:
@@ -39,11 +34,10 @@ def groupmanage(request, course_slug):
 			memberlist = GroupMember.objects.filter(group = g)
 		return render_to_response('groups/student.html', {'group':g,'confirmed':c,'memberlist':memberlist,'grouplist':grouplist}, context_instance = RequestContext(request))
 	elif m.role == 'INST':
-		return render_to_response('groups/instructor.html', context_instance = RequestContext(request))
-	else:
-		return render_to_response('groups/instructor.html', context_instance = RequestContext(request))
+		return render_to_response('groups/instructor.html', {'grouplist':grouplist}, context_instance = RequestContext(request))
+
 @login_required
 def create(request,student_id):
-        p= get_object_or_404(Person,userid=student_id)
+	p= get_object_or_404(Person,userid=student_id)
 	group_manager=Role.objects.get(person = p)
 	return render_to_response('groups/create.html', {'manager':group_manager,'group_name':request.POST.get('name',' ')},context_instance = RequestContext(request)) 
