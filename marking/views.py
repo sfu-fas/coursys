@@ -67,7 +67,6 @@ def manage_activity_components(request, course_slug, activity_short_name):
     activity = get_object_or_404(NumericActivity, offering = course, short_name = activity_short_name) 
    
     fields = ('title', 'description', 'max_mark', 'deleted',)
-    fcols = ('Title', 'Description', 'Max Mark', 'Delete?',)    
     
     ComponentsFormSet  = modelformset_factory(ActivityComponent, fields=fields, \
                                               can_delete = False, extra = 5) 
@@ -90,7 +89,7 @@ def manage_activity_components(request, course_slug, activity_short_name):
         formset_main = ComponentsFormSet(queryset = qset) 
     
     return render_to_response("marking/components.html", 
-                              {'course' : course, 'activity' : activity, 'fields_main' : fcols,\
+                              {'course' : course, 'activity' : activity,\
                                'formset_main' : formset_main,'error_info' : error_info,},\
                                context_instance=RequestContext(request))
     
@@ -102,7 +101,6 @@ def manage_common_problems(request, course_slug, activity_short_name):
     activity = get_object_or_404(NumericActivity, offering = course, short_name = activity_short_name) 
    
     fields = ('title', 'activity_component', 'description', 'penalty', 'deleted',)
-    fcols = ('Title', 'component', 'Description', 'penalty', 'Delete?',)    
     
     CommonProblemFormSet  = modelformset_factory(CommonProblem, fields=fields, \
                                               can_delete = False, extra = 5) 
@@ -127,7 +125,7 @@ def manage_common_problems(request, course_slug, activity_short_name):
         formset_main = CommonProblemFormSet(queryset = qset) 
     
     return render_to_response("marking/commonProblem.html", 
-                              {'course' : course, 'activity' : activity, 'fields_main' : fcols,\
+                              {'course' : course, 'activity' : activity, 
                                'formset_main' : formset_main,'error_info' : error_info,},\
                                context_instance=RequestContext(request))
     

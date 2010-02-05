@@ -9,7 +9,7 @@ class ActivityComponent(models.Model):
     numeric_activity = models.ForeignKey(NumericActivity, null = False)
     max_mark = models.DecimalField(max_digits=5, decimal_places=2, null = False)
     title = models.CharField(max_length=30, null = False)
-    description = models.CharField(max_length = 200, null = True, blank = True)
+    description = models.TextField(max_length = 200, null = True, blank = True)
     
     # set this flag if it is deleted by the user
     deleted = models.BooleanField(null = False, default = False)
@@ -27,7 +27,7 @@ class CommonProblem(models.Model):
     activity_component = models.ForeignKey(ActivityComponent, null = False)
     title = models.CharField(max_length=30, null = False)
     penalty = models.IntegerField(null = True, default = 0, blank = True)
-    description = models.CharField(max_length = 200, null = True, blank = True)
+    description = models.TextField(max_length = 200, null = True, blank = True)
     deleted = models.BooleanField(null = False, default = False)
     def __unicode__(self):
         return "common problem %s for %s" % (self.title, self.activity_component)

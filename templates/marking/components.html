@@ -1,6 +1,18 @@
 {% extends "marking/base.html" %}
 
-
+{% block marking_header_extra %}
+<link type="text/css" href="{{MEDIA_URL}}jquery-ui-1.7.2.custom/css/smoothness/jquery-ui-1.7.2.custom.css" rel="stylesheet" />
+<link type="text/css" href="{{MEDIA_URL}}style/marking/table.css" rel="stylesheet" />
+<script type="text/javascript" src="{{MEDIA_URL}}datatables/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+	oTable = $('#activity_components').dataTable({
+		"bJQueryUI": true,
+		"sPaginationType": "full_numbers"
+	});
+    });
+</script>
+{% endblock %}
 
 {% block title %}{{course.name}}: {{activity.name}} Components{% endblock %}
 
@@ -9,27 +21,39 @@
 {% block content %}
 
 <form class = "marking_comp_forset" action="{% url marking.views.manage_activity_components course_slug=course.slug, activity_short_name=activity.short_name %}" method="POST">  
-    {{ formset_main.management_form }} 
-       <table>
+     <div id = "table_container">
+     {% if error_info %}
+     <p class="errorindicator">
+        <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
+        {{error_info}}
+     </p>
+     {% endif %}
+     {{ formset_main.management_form }} 
+      <table class="display" id="activity_components">
+      	<thead>
           <tr>
-             {% for field in fields_main %}
-             	<td><span class="header">{{field}}</span></td>
-             {% endfor %}
+         	<th>Title</th>
+         	<th>Description</th>
+         	<th>Max Mark</th>
+         	<th>Delete?</th>            
           </tr>         
+        </thead>  
+        <tbody>
 	      {% for form in formset_main.forms|slice:":-5" %} 	      
 			  {{form.id}}  {# important here !!! #}  
-			  <tr>			  		       
+			  <tr>	  		       
 				   {% for field in form %}				   
 			            <td>			            
 			            {{field}}
 			            {% if field.errors %}	            
-				        	<img src="{{MEDIA_URL}}/icons/cross.png" />
+				        	<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>
+				        	{{ field.errors }}
 				        {% endif %}
 				        </td>
 			       {% endfor %}
 			 </tr>
 	      {% endfor %}
-	      {% for form in formset_main.forms|slice:"-5:" %} 	      
+	      {% for form in formset_main.forms|slice:"-5:" %} {# you can add 5 more components #}	      
 	      {{form.id}} {# important here !!! #}  	   
 	      <tr>  
        	   {% for field in form %}
@@ -37,18 +61,17 @@
 		            <td>			            
 		            {{field}}
 		            {% if field.errors %}	            
-			        	<img src="{{MEDIA_URL}}/icons/cross.png" />
+			        	<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>
+			        	{{ field.errors }}			        	
 			        {% endif %}
 			        </td>
 		        {% endifnotequal %}
 	       {% endfor %}	
           </tr>
          {% endfor %}
+         </tbody>
       </table>
-   
-   {% if error_info %}
-   		<h2 style = "color:red">Can not save: {{error_info}}<h2>
-   {% endif %}
+   </div>
    <input type="submit" value="Save" />  
    <input type="button" value="Reset" onClick="location.href='{% url marking.views.manage_activity_components course_slug=course.slug, activity_short_name=activity.short_name %}'">
 </form>
