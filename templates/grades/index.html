@@ -2,9 +2,8 @@
 
 {% block h1 %}Grades{% endblock %}
 
-
 {% block content %}
-
+<p><a href="{% url grades.views.student_view %}">Student</a></p>
 {% regroup memberships by offering.semester as by_semester %}
 {% for semester in by_semester %}
   <h2 id="semester-{{semester.grouper.name}}">{{semester.grouper.label}}</h2>

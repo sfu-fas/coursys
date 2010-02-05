@@ -1,30 +1,56 @@
 {% extends "grades/base.html" %}
+{% load grade_student %}
 
-{% block h1 %}   {{course.name}} {% endblock %}
+{% block h1 %}   {{course.name}}<br> {{course.title }} {% endblock %}
 
 {% block breadcrumbs_extra %}
-<li>&gt; <a href="{% url grades.views.student_view student_id%}">Student</a>>{{ course.name }}</li>
+<li>&gt; <a href="{% url grades.views.student_view %}">Student</a>>{{ course.name }}</li>
 {% endblock %}
-
 
 {% block content %}
 <br/>
-<div id="activity_container">
-    <table id='activities'>
+<div id="grade_container">
+    <table class="display" id='grades' align=center style="text-align:center">
         <thead>
             <tr>
-                <th>Assignment</th>
+                <th>Activity</th>
                 <th>Percentage</th>
-                 <th>Grade</th>
+                <th>Grade</th>
             </tr>
         </thead>
         <tbody>
-            {% for activity in activities %} 
-            <tr>
-                <td>{{ activity.name }} ({{ activity.percent }}%)</td>
-            </tr>
+            {% for numeric in numerics %}
+                {% ifequal numeric.status 'RLS' %}
+                    <tr>
+                        <td>
+                            {{ numeric.name }}
+                        </td>                        
+                        <td >
+                            {{ numeric.percent }}{% if numeric.percent %}%{% endif %}
+                        </td>
+                        <td>
+                            {{numeric|stu_grade:student}}
+                        </td>
+                    </tr>
+                {% endifequal %}
+            {% endfor %}
+            {% for letter in letters %}
+                {% ifequal letter.status 'RLS' %}
+                    <tr>
+                        <td>
+                            {{ letter.name }}
+                        </td>
+                        <td>
+                            {{ letter.percent }}{% if letter.percent %}%{% endif %}
+                        </td>
+                        <td>
+                            {{letter|stu_grade:student}}
+                        </td>
+                    </tr>
+                {% endifequal %}
             {% endfor %}
         </tbody>
     </table>
 </div>
 {% endblock %}
+

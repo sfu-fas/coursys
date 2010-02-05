@@ -1,19 +1,24 @@
 {% extends "grades/base.html" %}
 
-{% block h1 %}{{student.last_name}} {{student.first_name}}{% endblock %}
+{% block h1 %}<font style="text-transform: none;"> {{student.preferred_first_name}} {{student.last_name}}</font> {% endblock %}
 
 {% block breadcrumbs_extra %}
-  <li>&gt; <a href="{% url grades.views.student_view student_id=student.userid %}">Student</a></li>
+  <li>&gt; <a href="{% url grades.views.student_view %}">Student</a></li>
 {% endblock %}
 
 {% block content %}
+  <div>
+   <p><font style="font-size:13px;font-weight:550">
+     You have {{enrollment.count}} course{{enrollment.count|pluralize}} in GradeBook:
+   </font></p>
+  </div>
 
 {% regroup enrollment by offering.semester as by_semester %}
 {% for semester in by_semester %}
   <h2 id="semester-{{semester.grouper.name}}">{{semester.grouper.label}}</h2>
   <ul>
   {% for enrollments in semester.list %}
-   <li><a href="{% url grades.views.student_grade student_id=student.userid course_slug=enrollments.offering.slug%}">{{enrollments.offering.name}}</a></li>  
+   <li><a href="{% url grades.views.student_grade course_slug=enrollments.offering.slug%}">{{enrollments.offering.name}}</a></li>  
   {% endfor %}
   </ul>
 {% endfor %}
