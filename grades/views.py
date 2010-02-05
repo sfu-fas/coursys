@@ -3,11 +3,11 @@ from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
-from coredata.models import Member, CourseOffering,Person
+from coredata.models import Member, CourseOffering,Person,Role
 from courselib.auth import requires_course_by_slug
 from grades.models import ACTIVITY_STATUS
 from grades.forms import NumericActivityForm, LetterActivityForm
-from grades.models import NumericActivity, LetterActivity
+from grades.models import *
 
 @login_required
 def index(request):
@@ -77,22 +77,22 @@ def add_letter_activity(request, course_slug):
 
 
 @login_required
-def student_view(request, student_id):
-    target_student = Person.objects.get(userid = student_id )
-    enrollment= Member.objects.filter(person=target_student).exclude(role="DROP")
-    context ={'student_id':student_id,'enrollment':enrollment,'student':target_student}
-    #student's view:
-    if target_student.userid == request.user.username:      
-        return render_to_response('grades/student_view.html', context,
+def student_view(request):
+    student_id = request.user.username
+    student = Person.objects.get(userid = student_id )
+    enrollment= Member.objects.filter(person=student).exclude(role="DROP").filter(offering__graded=True)
+    context ={'enrollment':enrollment,'student':student}    
+    return render_to_response('grades/student_view.html', context,
                                   context_instance=RequestContext(request))
 
-
 @requires_course_by_slug
-def student_grade(request,student_id,course_slug):
+def student_grade(request,course_slug):
+    student_id = request.user.username
+    student = Person.objects.get(userid = student_id )
     course = CourseOffering.objects.get(slug=course_slug)
-    activities = course.activity_set.all()
-    
-    context = {'student_id':student_id, 'course': course, 'activities': activities}
+    numerics = NumericActivity.objects.filter(offering = course)
+    letters = LetterActivity.objects.filter(offering = course)
+    context = {'student':student,'course': course, 'numerics': numerics,'letters':letters}
     return render_to_response("grades/student_grade.html", context,
                               context_instance=RequestContext(request))
 
