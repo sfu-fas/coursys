@@ -14,6 +14,9 @@ class Group(models.Model):
     def __unicode__(self):  
         return '%s' % (self.name)
 
+	def get_absolute_url(self):
+		return '/%s/' % (self.courseoffering.slug)
+
 class GroupMember(models.Model):
     """
     Member information of each group
@@ -24,5 +27,9 @@ class GroupMember(models.Model):
 
     def __unicode__(self):
 	    return '%s %s' % (self.student.person, self.group)
+	
+    class Meta:
+        unique_together = ("group", "student", "confirmed")
+	
     
     
