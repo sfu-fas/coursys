@@ -95,6 +95,43 @@ def manage_activity_components(request, course_slug, activity_short_name):
                                context_instance=RequestContext(request))
     
 @requires_course_staff_by_slug
+def manage_common_problems(request, course_slug, activity_short_name):    
+       
+    error_info = ""
+    course = get_object_or_404(CourseOffering, slug = course_slug)
+    activity = get_object_or_404(NumericActivity, offering = course, short_name = activity_short_name) 
+   
+    fields = ('title', 'activity_component', 'description', 'penalty', 'deleted',)
+    fcols = ('Title', 'component', 'Description', 'penalty', 'Delete?',)    
+    
+    CommonProblemFormSet  = modelformset_factory(CommonProblem, fields=fields, \
+                                              can_delete = False, extra = 5) 
+    
+    qset =  CommonProblem.objects.filter(numeric_activity = activity, deleted=False);
+                 
+    if request.method == "POST":     
+        formset_main = CommonProblemFormSet(request.POST, queryset = qset)
+        
+        if formset_main.is_valid() == False:
+              error_info = "Some common problem has error" 
+        # TODO need to change the function name or duplicate one for common problem
+        elif _check_components_titles(formset_main) == False:             
+              error_info = "Each common problem must have an unique title"
+        else:          
+            # save the main formset first  
+            # TODO need to change the function name or duplicate one for common problem
+            _save_components(formset_main, activity)
+            return HttpResponseRedirect(reverse('marking.views.list_activities', \
+                                                args=(course_slug,)))                   
+    else: # for PUT
+        formset_main = CommonProblemFormSet(queryset = qset) 
+    
+    return render_to_response("marking/commonProblem.html", 
+                              {'course' : course, 'activity' : activity, 'fields_main' : fcols,\
+                               'formset_main' : formset_main,'error_info' : error_info,},\
+                               context_instance=RequestContext(request))
+    
+@requires_course_staff_by_slug
 def marking(request, course_slug, activity_short_name):
     
     error_info = ""

@@ -1,0 +1,56 @@
+{% extends "marking/base.html" %}
+
+
+
+{% block title %}{{course.name}}: {{activity.name}} Components{% endblock %}
+
+{% block h1 %}{{course.name}}: {{activity.name}} Components{% endblock %}
+
+{% block content %}
+
+<form class = "marking_common_problem_forset" action="{% url marking.views.manage_common_problems course_slug=course.slug, activity_short_name=activity.short_name %}" method="POST">
+    {{ formset_main.management_form }} 
+       <table>
+          <tr>
+             {% for field in fields_main %}
+                 <td><span class="header">{{field}}</span></td>
+             {% endfor %}
+          </tr>         
+          {% for form in formset_main.forms|slice:":-5" %}           
+              {{form.id}}  {# important here !!! #}  
+              <tr>                             
+                   {% for field in form %}                   
+                        <td>                        
+                        {{field}}
+                        {% if field.errors %}                
+                            <img src="{{MEDIA_URL}}/icons/cross.png" />
+                        {% endif %}
+                        </td>
+                   {% endfor %}
+             </tr>
+          {% endfor %}
+          {% for form in formset_main.forms|slice:"-5:" %}           
+          {{form.id}} {# important here !!! #}         
+          <tr>  
+              {% for field in form %}
+                   {% ifnotequal field.name "deleted" %}
+                    <td>                        
+                    {{field}}
+                    {% if field.errors %}                
+                        <img src="{{MEDIA_URL}}/icons/cross.png" />
+                    {% endif %}
+                    </td>
+                {% endifnotequal %}
+           {% endfor %}    
+          </tr>
+         {% endfor %}
+      </table>
+   
+   {% if error_info %}
+           <h2 style = "color:red">Can not save: {{error_info}}<h2>
+   {% endif %}
+   <input type="submit" value="Save" />  
+   <input type="button" value="Reset" onClick="location.href='{% url marking.views.manage_common_problems course_slug=course.slug, activity_short_name=activity.short_name %}'">
+</form>
+
+{% endblock %}
