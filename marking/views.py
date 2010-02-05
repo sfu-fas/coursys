@@ -38,7 +38,8 @@ def _check_components_titles(formset):
       for form in formset.forms:
         try: # since title is required, empty title triggers KeyError and don't consider this row
             form.cleaned_data['title']
-        except KeyError:
+        except KeyError:                 
+            print "key error"
             continue
         else:  
             title = form.cleaned_data['title']
@@ -46,6 +47,40 @@ def _check_components_titles(formset):
                 return False
             titles.append(title)        
       return True 
+
+def _check_common_problem_titles(formset):
+      common_problems = {}
+      for form in formset.forms:
+        try: # component is required, empty component triggers KeyError and don't consider this row
+            form.cleaned_data['activity_component']
+        except KeyError:
+            continue
+        try: # title is required, empty title triggers KeyError and don't consider this row
+            form.cleaned_data['title']
+        except KeyError:
+            continue
+        else:            
+            component = form.cleaned_data['activity_component']
+            title = form.cleaned_data['title']
+            if (not form.cleaned_data['deleted']) and \
+               component in common_problems.keys() and \
+               common_problems[component] == form.cleaned_data['title']:
+               return False
+            common_problems[component] = title
+      return True 
+
+def _save_common_problems(formset):
+      for form in formset.forms:
+        try:  # component is required, empty component triggers KeyError and don't consider this row
+            form.cleaned_data['activity_component']
+        except KeyError:       
+            continue
+        try:  # title is required, empty title triggers KeyError and don't consider this row
+            form.cleaned_data['title']
+        except KeyError:            
+            continue
+        else:
+            instance = form.save()
 
 def _save_components(formset, activity):
       for form in formset.forms:
@@ -57,7 +92,6 @@ def _save_components(formset, activity):
             instance = form.save(commit = False)
             instance.numeric_activity = activity
             instance.save()
-            print "Component %s added" % instance
 
 @requires_course_staff_by_slug
 def manage_activity_components(request, course_slug, activity_short_name):    
@@ -74,23 +108,23 @@ def manage_activity_components(request, course_slug, activity_short_name):
     qset =  ActivityComponent.objects.filter(numeric_activity = activity, deleted=False);
                  
     if request.method == "POST":     
-        formset_main = ComponentsFormSet(request.POST, queryset = qset)
+        formset = ComponentsFormSet(request.POST, queryset = qset)
         
-        if formset_main.is_valid() == False:
+        if formset.is_valid() == False:
               error_info = "Some component has error" 
-        elif _check_components_titles(formset_main) == False:             
+        elif _check_components_titles(formset) == False:             
               error_info = "Each component must have an unique title"
         else:          
-            # save the main formset first  
-            _save_components(formset_main, activity)
+            # save the formset  
+            _save_components(formset, activity)
             return HttpResponseRedirect(reverse('marking.views.list_activities', \
                                                 args=(course_slug,)))                   
     else: # for PUT
-        formset_main = ComponentsFormSet(queryset = qset) 
+        formset = ComponentsFormSet(queryset = qset) 
     
     return render_to_response("marking/components.html", 
                               {'course' : course, 'activity' : activity,\
-                               'formset_main' : formset_main,'error_info' : error_info,},\
+                               'formset' : formset,'error_info' : error_info,},\
                                context_instance=RequestContext(request))
     
 @requires_course_staff_by_slug
@@ -100,33 +134,34 @@ def manage_common_problems(request, course_slug, activity_short_name):
     course = get_object_or_404(CourseOffering, slug = course_slug)
     activity = get_object_or_404(NumericActivity, offering = course, short_name = activity_short_name) 
    
-    fields = ('title', 'activity_component', 'description', 'penalty', 'deleted',)
+    fields = ('activity_component', 'title', 'description', 'penalty', 'deleted',)
     
     CommonProblemFormSet  = modelformset_factory(CommonProblem, fields=fields, \
                                               can_delete = False, extra = 5) 
     
-    qset =  CommonProblem.objects.filter(numeric_activity = activity, deleted=False);
+    # only filter out the common problems associated with components of this activity
+    components = activity.activitycomponent_set.filter(deleted = False)    
+    qset =  CommonProblem.objects.filter(activity_component__in=components, deleted=False);
                  
     if request.method == "POST":     
-        formset_main = CommonProblemFormSet(request.POST, queryset = qset)
+        formset = CommonProblemFormSet(request.POST, queryset = qset)
         
-        if formset_main.is_valid() == False:
-              error_info = "Some common problem has error" 
+        if formset.is_valid() == False:
+              error_info = "Some common problem has error"              
         # TODO need to change the function name or duplicate one for common problem
-        elif _check_components_titles(formset_main) == False:             
-              error_info = "Each common problem must have an unique title"
-        else:          
-            # save the main formset first  
-            # TODO need to change the function name or duplicate one for common problem
-            _save_components(formset_main, activity)
+        elif _check_common_problem_titles(formset) == False:             
+              error_info = "Each common problem must have an unique title within one component"
+        else:       
+            # save the formset  
+            _save_common_problems(formset)
             return HttpResponseRedirect(reverse('marking.views.list_activities', \
                                                 args=(course_slug,)))                   
-    else: # for PUT
-        formset_main = CommonProblemFormSet(queryset = qset) 
+    else: # for PUT        
+        formset = CommonProblemFormSet(queryset = qset) 
     
     return render_to_response("marking/commonProblem.html", 
                               {'course' : course, 'activity' : activity, 
-                               'formset_main' : formset_main,'error_info' : error_info,},\
+                               'formset' : formset,'error_info' : error_info,},\
                                context_instance=RequestContext(request))
     
 @requires_course_staff_by_slug

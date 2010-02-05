@@ -20,8 +20,8 @@
 
 {% block content %}
 
-<form class = "marking_common_problem_forset" action="{% url marking.views.manage_common_problems course_slug=course.slug, activity_short_name=activity.short_name %}" method="POST">
-    {{ formset_main.management_form }} 
+<form action="{% url marking.views.manage_common_problems course_slug=course.slug, activity_short_name=activity.short_name %}" method="POST">
+    {{ formset.management_form }} 
      <div id = "table_container">
 	   {% if error_info %}
 	   <p class="errorindicator">
@@ -31,16 +31,16 @@
       {% endif %}
        <table class="display" id="activity_components">
         <thead>
-          <tr>
+          <tr>             
+             <th>Associated Component</th>
              <th>Title</th>
-             <th>Component</th>
              <th>Description</th>
              <th>Penalty</th>
              <th>Deleted?</th>
           </tr>    
         </thead>     
          <tbody>
-	      {% for form in formset_main.forms|slice:":-5" %} 	      
+	      {% for form in formset.forms|slice:":-5" %} 	      
 			  {{form.id}}  {# important here !!! #}  
 			  <tr>	  		       
 				   {% for field in form %}				   
@@ -54,7 +54,7 @@
 			       {% endfor %}
 			 </tr>
 	      {% endfor %}
-	      {% for form in formset_main.forms|slice:"-5:" %} {# you can add 5 more common problems #}	      
+	      {% for form in formset.forms|slice:"-5:" %} {# you can add 5 more common problems #}	      
 	      {{form.id}} {# important here !!! #}  	   
 	      <tr>  
        	   {% for field in form %}

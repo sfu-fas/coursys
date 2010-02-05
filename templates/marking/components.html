@@ -20,7 +20,8 @@
 
 {% block content %}
 
-<form class = "marking_comp_forset" action="{% url marking.views.manage_activity_components course_slug=course.slug, activity_short_name=activity.short_name %}" method="POST">  
+<form action="{% url marking.views.manage_activity_components course_slug=course.slug, activity_short_name=activity.short_name %}" method="POST">  
+     {{ formset.management_form }} 
      <div id = "table_container">
      {% if error_info %}
      <p class="errorindicator">
@@ -28,7 +29,6 @@
         {{error_info}}
      </p>
      {% endif %}
-     {{ formset_main.management_form }} 
       <table class="display" id="activity_components">
       	<thead>
           <tr>
@@ -39,7 +39,7 @@
           </tr>         
         </thead>  
         <tbody>
-	      {% for form in formset_main.forms|slice:":-5" %} 	      
+	      {% for form in formset.forms|slice:":-5" %} 	      
 			  {{form.id}}  {# important here !!! #}  
 			  <tr>	  		       
 				   {% for field in form %}				   
@@ -53,7 +53,7 @@
 			       {% endfor %}
 			 </tr>
 	      {% endfor %}
-	      {% for form in formset_main.forms|slice:"-5:" %} {# you can add 5 more components #}	      
+	      {% for form in formset.forms|slice:"-5:" %} {# you can add 5 more components #}	      
 	      {{form.id}} {# important here !!! #}  	   
 	      <tr>  
        	   {% for field in form %}

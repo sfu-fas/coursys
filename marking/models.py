@@ -12,23 +12,19 @@ class ActivityComponent(models.Model):
     description = models.TextField(max_length = 200, null = True, blank = True)
     
     # set this flag if it is deleted by the user
-    deleted = models.BooleanField(null = False, default = False)
-    def __unicode__(self):
-        #return "component %s for %s" % (self.title, self.numeric_activity)
-        return "component %s" % (self.title)
-    #class Meta:
-     #   unique_together = (('numeric_activity', 'title'),)
-     
+    deleted = models.BooleanField(null = False, db_index = True, default = False)
+    def __unicode__(self):        
+        return self.title
+         
 class CommonProblem(models.Model):
     """
     Common problem of a activity component. One activity component can have several common problems.
     """
-    numeric_activity = models.ForeignKey(NumericActivity, null = False)
     activity_component = models.ForeignKey(ActivityComponent, null = False)
     title = models.CharField(max_length=30, null = False)
     penalty = models.IntegerField(null = True, default = 0, blank = True)
     description = models.TextField(max_length = 200, null = True, blank = True)
-    deleted = models.BooleanField(null = False, default = False)
+    deleted = models.BooleanField(null = False, db_index = True, default = False)
     def __unicode__(self):
         return "common problem %s for %s" % (self.title, self.activity_component)
      
