@@ -3,9 +3,7 @@
 {% block h1 %}Grades{% endblock %}
 
 {% block headextra %}
-<link type="text/css" href="{{MEDIA_URL}}jquery-ui-1.7.2.custom/css/smoothness/jquery-ui-1.7.2.custom.css" rel="stylesheet" />
 <link type="text/css" href="{{MEDIA_URL}}style/grades/activitytable.css" rel="stylesheet" />
-<script type="text/javascript" src="{{MEDIA_URL}}datatables/js/jquery.dataTables.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function() {
 	oTable = $('#activities').dataTable({

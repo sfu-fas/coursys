@@ -6,5 +6,5 @@ urlpatterns = patterns('',
 	url(r'^(?P<course_slug>' + COURSE_SLUG_RE + ')/$', 'groups.views.groupmanage'),
 	url(r'^create/$', 'groups.views.create'),
 	url(r'^(?P<course_slug>' + COURSE_SLUG_RE + ')/join/(?P<groupname>\w+)/$', 'groups.views.join'),
-	url(r'^(?P<course_slug>' + COURSE_SLUG_RE + ')/joinconfirm/$', 'groups.views.joinconfirm'),
+	#url(r'^(?P<course_slug>' + COURSE_SLUG_RE + ')/joinconfirm/$', 'groups.views.joinconfirm'),
 )
