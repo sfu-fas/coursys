@@ -39,10 +39,11 @@ def groupmanage(request, course_slug):
 		return render_to_response('groups/instructor.html', {'course_slug':course_slug, 'grouplist':grouplist}, context_instance = RequestContext(request))
 
 @login_required
-def create(request,student_id):
-	p= get_object_or_404(Person,userid=student_id)
-	group_manager=Role.objects.get(person = p)
-	return render_to_response('groups/create.html', {'manager':group_manager,'group_name':request.POST.get('name',' ')},context_instance = RequestContext(request)) 
+def create(request,course_slug):
+	p = get_object_or_404(Person,userid=request.user.username)
+	c = get_object_or_404(CourseOffering, slug = course_slug)
+	group_manager=Member.objects.get(person = p, offering = c)
+	return render_to_response('groups/create.html', {'manager':group_manager},context_instance = RequestContext(request)) 
 
 @login_required
 def join(request, course_slug, groupname):
@@ -53,3 +54,6 @@ def join(request, course_slug, groupname):
 	gm = GroupMember(group = g, student = m, confirmed = True)
 	gm.save();
 	return redirect(g, context_instance = RequestContext(request))
+	
+def joinconfirm(request):
+	return render_to_response('groups/create.html', context_instance = RequestContext(request)) 
