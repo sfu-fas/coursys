@@ -30,6 +30,3 @@ class GroupMember(models.Model):
 	
     class Meta:
         unique_together = ("group", "student", "confirmed")
-	
-    
-    
