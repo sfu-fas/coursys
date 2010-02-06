@@ -1,5 +1,7 @@
 from django.test import TestCase
 from grades.formulas import *
+from grades.models import *
+from coredata.tests import create_offering
 import pickle
 
 expr_vals = { # dictionary of assignment marks for formula testing
@@ -63,5 +65,28 @@ class GradesTest(TestCase):
         self.assertRaises(ParseException, parse, "(2+3*84")
         self.assertRaises(ParseException, parse, "2+3**84")
         self.assertRaises(ParseException, parse, "AVG(2,3,4")
+
+    def test_activities(self):
+        """
+        Test activity classes: subclasses, selection, sorting.
+        """
+        s, c = create_offering()
+       
+        a = NumericActivity(name="Assignment 1", short_name="A1", status="RLS", offering=c, position=2, max_grade=15)
+        a.save()
+        a = NumericActivity(name="Assignment 2", short_name="A2", status="RLS", offering=c, position=6, max_grade=15)
+        a.save()
+        a = LetterActivity(name="Project", short_name="Proj", status="URLS", offering=c, position=1)
+        a.save()
+        a = CalNumericActivity(name="Total", short_name="Total", status="URLS", offering=c, position=42, max_grade=30, formula="[A1]+[A2]")
+        a.save()
+       
+        allact = AllActivities_filter(offering=c)
+        self.assertEqual(len(allact), 4)
+        self.assertEqual(allact[0].slug, 'proj') # make sure position=1 is first
+        self.assertEqual(type(allact[1]), NumericActivity)
+        self.assertEqual(type(allact[3]), CalNumericActivity)
+
+
 
 

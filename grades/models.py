@@ -46,27 +46,19 @@ LETTER_GRADE_CHOICES = [
     ('IP', 'IP - In progress') ]
 LETTER_GRADE = dict(LETTER_GRADE_CHOICES)
 
-ACTIVITY_TYPES = ['numericactivity', 'letteractivity']
-
 class Activity(models.Model):
     """
     Generic activity (i.e. column in the gradebook that can have a value assigned for each student).
     This should never be instantiated directly: only its sublcasses should.
-    
-    When retrieving a collection of Activity objects, check their types like this:
-        activity = ...
-        if has_attr(activity, 'numericactivity'):
-            # we have a NumericActivity
-            activity = activity.numericactivity
-            # do things that use the NumericActivity instance
-            ...  
     """
     name = models.CharField(max_length=30, db_index=True, help_text='Name of the activity.')
     short_name = models.CharField(max_length=15, db_index=True, help_text='Short-form name of the activity.')
-    slug = AutoSlugField(populate_from='short_name', null=False, editable=False)
+    slug = AutoSlugField(populate_from='short_name', null=False, editable=False, unique_with='offering')
     status = models.CharField(max_length=4, null=False, choices=ACTIVITY_STATUS_CHOICES, help_text='Activity status.')
     due_date = models.DateTimeField(blank=True, null=True, help_text='Activity due date')
     percent = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
+    
+    position = models.PositiveSmallIntegerField()
     #submittable = 
     #group_activity = 
     
@@ -74,9 +66,12 @@ class Activity(models.Model):
 
     def __unicode__(self):
         return "%s - %s" % (self.offering, self.name)
+    def __cmp__(self, other):
+        return cmp(self.position, other.position)
     class Meta:
         verbose_name_plural = "activities"
         unique_together = (("offering", "name"), ("offering", "short_name"))
+        ordering = ['position']
 
     def display_grade_student(self, student):
         """
@@ -111,7 +106,7 @@ class NumericActivity(Activity):
             grade = "--"
         else:
             grade = grades[0].value
-        return "%f/%f" % (grade, self.max_grade)
+        return "%s/%s" % (grade, self.max_grade)
 
 class LetterActivity(Activity):
     """
@@ -139,6 +134,35 @@ class CalLetterActivity(LetterActivity):
     
     class Meta:
         verbose_name_plural = 'cal letter activities'
+
+
+
+
+
+# list of all subclasses of Activity:
+# MUST have deepest subclasses first (i.e. nothing *after* a class is one of its subclasses)
+ACTIVITY_TYPES = [CalNumericActivity, NumericActivity, CalLetterActivity, LetterActivity]
+
+def AllActivities_filter(**kwargs):
+    """
+    Return all activities as their most specific class.
+    
+    This isn't pretty, but it will do the job.
+    """
+    activities = [] # list of activities
+    found = set() # keep track of what has been found so we can exclude less-specific duplicates.
+    for ActivityType in ACTIVITY_TYPES:
+        acts = list(ActivityType.objects.filter(**kwargs))
+        activities.extend( (a for a in acts if a.id not in found) )
+        found.update( (a.id for a in acts) )
+
+    activities.sort()
+    return activities
+
+
+
+
+
 
 class NumericGrade(models.Model):
     """

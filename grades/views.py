@@ -43,7 +43,7 @@ def add_numeric_activity(request, course_slug):
                                             due_date=form.cleaned_data['due_date'],
                                             percent=form.cleaned_data['percent'],
                                             max_grade=form.cleaned_data['max_grade'],
-                                            offering=course)
+                                            offering=course, position=1)
             return HttpResponseRedirect(reverse('grades.views.course', kwargs={'course_slug': course_slug}))
     else:
         form = NumericActivityForm()
@@ -65,7 +65,7 @@ def add_letter_activity(request, course_slug):
                                            status=form.cleaned_data['status'],
                                             due_date=form.cleaned_data['due_date'],
                                             percent=form.cleaned_data['percent'],
-                                            offering=course)
+                                            offering=course, position=1)
             return HttpResponseRedirect(reverse('grades.views.course', kwargs={'course_slug': course_slug}))
     else:
         form = LetterActivityForm()
