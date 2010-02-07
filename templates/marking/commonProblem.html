@@ -1,4 +1,5 @@
 {% extends "marking/base.html" %}
+{% load course_display %}
 
 {% block marking_header_extra %}
 <link type="text/css" href="{{MEDIA_URL}}jquery-ui-1.7.2.custom/css/smoothness/jquery-ui-1.7.2.custom.css" rel="stylesheet" />
@@ -6,7 +7,7 @@
 <script type="text/javascript" src="{{MEDIA_URL}}datatables/js/jquery.dataTables.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function() {
-	oTable = $('#activity_components').dataTable({
+	oTable = $('#common_problems').dataTable({
 		"bJQueryUI": true,
 		"sPaginationType": "full_numbers"
 	});
@@ -29,7 +30,7 @@
 	      {{error_info}}
 	   </p>	   
       {% endif %}
-       <table class="display" id="activity_components">
+       <table class="display" id="common_problems">
         <thead>
           <tr>             
              <th>Associated Component</th>
@@ -42,34 +43,12 @@
          <tbody>
 	      {% for form in formset.forms|slice:":-5" %} 	      
 			  {{form.id}}  {# important here !!! #}  
-			  <tr>	  		       
-				   {% for field in form %}				   
-			            <td>			            
-			            {{field}}
-			            {% if field.errors %}	            
-				        	<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>
-				        	{{ field.errors }}
-				        {% endif %}
-				        </td>
-			       {% endfor %}
-			 </tr>
+			  {{form|display_form_as_row:"deleted_flag"}}
 	      {% endfor %}
 	      {% for form in formset.forms|slice:"-5:" %} {# you can add 5 more common problems #}	      
-	      {{form.id}} {# important here !!! #}  	   
-	      <tr>  
-       	   {% for field in form %}
-       	        {% ifnotequal field.name "deleted" %}
-		            <td>			            
-		            {{field}}
-		            {% if field.errors %}	            
-			        	<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>
-			        	{{ field.errors }}			        	
-			        {% endif %}
-			        </td>
-		        {% endifnotequal %}
-	       {% endfor %}	
-          </tr>
-         {% endfor %}
+		      {{form.id}} {# important here !!! #}  	   
+		      {{form|display_form_as_row}}
+          {% endfor %}
          </tbody>
       </table>
    </div>

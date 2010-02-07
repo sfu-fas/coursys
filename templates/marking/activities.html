@@ -7,21 +7,20 @@
 
 {% block content %}
 
-<h2>Activities</h2>    
-  <ul>
- {% for activity in activities %}      
-      <li>{{activity}}</li>	 
-      <div class = "marking_a">
-		  <ul> 
-		  <li><a href="{% url marking.views.marking course_slug=course_slug, activity_short_name=activity.short_name %}">Mark ...</a></li>
-		  <li><a href="{% url marking.views.manage_activity_components course_slug=course_slug, activity_short_name=activity.short_name %}">Components ...</a></li>
-		  <li><a href="{% url marking.views.manage_common_problems course_slug=course_slug, activity_short_name=activity.short_name %}">Common_Problems ...</a></li>
-		  </ul>	
-      <div/>  
+<h2>Activities</h2> 
+ 
+ {% for activity in activities %}          
+   <h3>{{activity}}</h3>	 
+   <div class = "marking_a">
+	  <ul> 
+	  <li><a href="{% url marking.views.marking course_slug=course_slug, activity_short_name=activity.short_name %}">Mark</a></li>
+	  <li><a href="{% url marking.views.manage_activity_components course_slug=course_slug, activity_short_name=activity.short_name %}">Components</a></li>
+	  <li><a href="{% url marking.views.manage_common_problems course_slug=course_slug, activity_short_name=activity.short_name %}">Common Problems</a></li>
+	  </ul>	  
+   </div>    
 {% empty %}
-  <li>No activities defined.</li>
+  <h3>No activities defined.</h3>
 {% endfor %}    
-  </ul>
-</div>
+
 
 {% endblock %}

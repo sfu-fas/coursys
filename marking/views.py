@@ -38,8 +38,7 @@ def _check_components_titles(formset):
       for form in formset.forms:
         try: # since title is required, empty title triggers KeyError and don't consider this row
             form.cleaned_data['title']
-        except KeyError:                 
-            print "key error"
+        except KeyError:      
             continue
         else:  
             title = form.cleaned_data['title']

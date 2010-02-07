@@ -9,7 +9,7 @@
 <h2>Courses</h2>    
     {% regroup course_memberships by offering.semester as semester_groups %}    
     {% for semester in semester_groups %}           
-      <h2 id="semester-{{semester.grouper.name}}">{{semester.grouper.label}}</h2> 
+      <h3 id="semester-{{semester.grouper.name}}">{{semester.grouper.label}}</h3> 
       <div class = "marking_a">     
       <ul>
       {% for membership in semester.list %}

@@ -44,4 +44,30 @@ def error_note(form):
 
     return mark_safe(output)
 
+FIELD_AS_TD_TEMPLATE = Template('''<td>
+                           {% if field.errors %}
+                               <p class="errorindicator">
+                                <img src="''' + MEDIA_URL + '''icons/error.png" alt="error" />
+                               {{ field.errors.0 }}    
+                               </p>  
+                           {% endif %}
+                        {{ field }}                   
+                </td>''')
+
+@register.filter
+def display_form_as_row(form, arg=None):
+    """
+    Convert the form to a HTML table row
+    set arg to be "deleted_flag" to include the deleted field
+    """    
+    output = ["<tr>"]
+    for field in form:
+        if field.name == "deleted" and (arg != "deleted_flag"):
+            continue
+        c = Context({"field":field})
+        output.append( FIELD_AS_TD_TEMPLATE.render(c))
+    
+    output.append("</tr>")    
+    
+    return mark_safe('\n'.join(output)) 
 
