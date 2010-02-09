@@ -119,8 +119,19 @@ fieldset {
     background-image: url('/media/images/grades/fieldset_gradient.jpg');
     background-repeat: repeat-x;
 }
-fieldset input {
-    width: 20em;
+fieldset .inputfield ul {
+    padding: 0;
+    margin: 0;
+}
+fieldset .inputfield li {
+    padding: 0;
+    margin: 0;
+}
+fieldset .inputfield label {
+    width: 30em;
+}
+fieldset .inputfield input[type='text'] {
+    width: 30em;
 }
 fieldset .submit {
     width: 10em;

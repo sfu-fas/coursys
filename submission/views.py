@@ -43,7 +43,7 @@ def _show_components_instructor(request, course_slug, activity_shortname):
     form = AddComponentForm()
     new_component_added = None
 
-    #if user is staff member, update/add component
+    #if form is submitted, validate / update component
     if request.method == 'POST':
 	incoming_form = AddComponentForm(request.POST)
         if incoming_form.is_valid():
