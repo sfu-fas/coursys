@@ -1,6 +1,6 @@
 import copy
 from django.db import models
-from grades.models import NumericActivity, NumericGrade 
+from grades.models import NumericActivity, NumericGrade, LetterGrade 
 
 class ActivityComponent(models.Model):
     """    
@@ -10,6 +10,7 @@ class ActivityComponent(models.Model):
     max_mark = models.DecimalField(max_digits=5, decimal_places=2, null = False)
     title = models.CharField(max_length=30, null = False)
     description = models.TextField(max_length = 200, null = True, blank = True)
+    position = models.IntegerField(null = True, default = 0, blank =True)
     
     # set this flag if it is deleted by the user
     deleted = models.BooleanField(null = False, db_index = True, default = False)
@@ -46,6 +47,7 @@ class StudentActivityMark(ActivityMark):
     Marking of one student on one numeric activity 
     """        
     numeric_grade = models.OneToOneField(NumericGrade, null = False)
+    letter_grade = models.OneToOneField(LetterGrade, null = True)
     
     def __unicode__(self):
         # get the student and the activity
