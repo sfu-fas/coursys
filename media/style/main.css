@@ -77,7 +77,7 @@ th.sorting_asc, th.sorting_desc {
 
 
 /* things under container */
-#container a.button{
+a.button{
     display: block;
     width: 10em;
     height: 2em;
@@ -88,31 +88,29 @@ th.sorting_asc, th.sorting_desc {
     text-decoration: none;
     font-weight: bold;
 }
-#container a.button:hover {
+a.button:hover {
     border-bottom: 5px solid #d8d5d5;
     text-decoration: none;
 }
-#container .indicator {
+.indicator {
     width:48em;
-    border: 1px solid red;
+    border: 1px solid;
     padding: 0.5em 0.5em 0.5em 0.5em;
     background-color: #fffead;
-    color: red;
-    margin-bottom: 1em;
-    float: left;
+    margin: 0em;
 }
-#container .indicator#success{
+.indicator#success{
     border: 1px solid green;
     color: green;
 }
-#container .indicator#error{
+.indicator#error{
     border: 1px solid red;
     color: red;
 }
 
 
 fieldset {
-    width: 48em;
+    width: 100%;
     padding: 0 0 0 0;
     border: 1px solid #BFBAB0;
     background: #F2EFE9;
