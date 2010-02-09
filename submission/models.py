@@ -9,6 +9,7 @@ STATUS_CHOICES = [
     ('DON', 'Marked') ]
 
 TYPE_CHOICES = [
+    ('',''),
     ('URL', 'URL Component'),
     ('Archive', 'Archive Component'),
     ('C/C++', 'C/C++ Component')
