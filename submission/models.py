@@ -25,6 +25,11 @@ class SubmissionComponent(models.Model):
     title = models.CharField(max_length=100, help_text='Name for this component (e.g. "Part 1" or "Programming Section")')
     position = models.PositiveSmallIntegerField()
 
+    def __cmp__(self, other):
+        return cmp(self.position, other.position)
+    class Meta:
+        ordering = ['position']
+
 class URLComponent(SubmissionComponent):
     "A URL submission component"
 class ArchiveComponent(SubmissionComponent):
@@ -33,7 +38,27 @@ class ArchiveComponent(SubmissionComponent):
 class CppComponent(SubmissionComponent):
     "C/C++ file submission component"
 class PlainTextComponent(SubmissionComponent):
-    "C/C++ file submission component"
+    "Text file submission component"
+
+# list of all subclasses of SubmissionComponent:
+# MUST have deepest subclasses first (i.e. nothing *after* a class is one of its subclasses)
+COMPONENT_TYPES = [URLComponent, ArchiveComponent, CppComponent, PlainTextComponent]
+
+def AllComponents(activity):
+    """
+    Return all components for this activity as their most specific class.
+    """
+    components = [] # list of components
+    found = set() # keep track of what has been found so we can exclude less-specific duplicates.
+    for ComponentType in COMPONENT_TYPES:
+        comps = list(ComponentType.objects.filter(activity=activity))
+        components.extend( (c for c in comps if c.id not in found) )
+        found.update( (c.id for c in comps) )
+
+    components.sort()
+    return components
+
+
 
 # per-submission models, created when a student/group submits an assignment:
 
