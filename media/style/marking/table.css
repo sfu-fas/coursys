@@ -35,6 +35,12 @@
 .dataTables_paginate {
     display: none;
 }
+
+.dataTables_info {
+    height: 22px;
+    line-height: 22px;
+}
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * DataTables display
  */
@@ -78,7 +84,7 @@ table.display td.center {
 * DataTables row classes
 */
 tr.odd {
-    background-color: #CCFFCC;
+    background-color: #E2E4FF;
 }
 
 tr.even {
@@ -101,11 +107,6 @@ tr.even {
 .fg-toolbar {
     padding: 1px;
 }
-.dataTables_info {
-    height: 22px;
-    line-height: 22px;
-}
-
 
 /* The following css will make the sorting icon float to right. Not sure how the underline implementation */
 .css_right {

@@ -16,6 +16,9 @@ class ActivityComponent(models.Model):
     deleted = models.BooleanField(null = False, db_index = True, default = False)
     def __unicode__(self):        
         return self.title
+    class Meta:
+        verbose_name_plural = "Activity Marking Components"
+        ordering = ['numeric_activity', 'deleted', 'position']
          
 class CommonProblem(models.Model):
     """

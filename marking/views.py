@@ -82,6 +82,7 @@ def _save_common_problems(formset):
             instance = form.save()
 
 def _save_components(formset, activity):
+      position = 1;
       for form in formset.forms:
         try:  # title is required, empty title triggers KeyError and don't consider this row
             form.cleaned_data['title']
@@ -90,7 +91,13 @@ def _save_components(formset, activity):
         else:
             instance = form.save(commit = False)
             instance.numeric_activity = activity
-            instance.save()
+            if not instance.deleted:
+                instance.position = position
+                position += 1
+            else:
+                position = None
+            instance.save()            
+           
 
 @requires_course_staff_by_slug
 def manage_activity_components(request, course_slug, activity_short_name):    
@@ -102,7 +109,7 @@ def manage_activity_components(request, course_slug, activity_short_name):
     fields = ('title', 'description', 'max_mark', 'deleted',)
     
     ComponentsFormSet  = modelformset_factory(ActivityComponent, fields=fields, \
-                                              can_delete = False, extra = 5) 
+                                              can_delete = False, extra = 3) 
     
     qset =  ActivityComponent.objects.filter(numeric_activity = activity, deleted=False);
                  
@@ -136,7 +143,7 @@ def manage_common_problems(request, course_slug, activity_short_name):
     fields = ('activity_component', 'title', 'description', 'penalty', 'deleted',)
     
     CommonProblemFormSet  = modelformset_factory(CommonProblem, fields=fields, \
-                                              can_delete = False, extra = 5) 
+                                              can_delete = False, extra = 3) 
     
     # only filter out the common problems associated with components of this activity
     components = activity.activitycomponent_set.filter(deleted = False)    

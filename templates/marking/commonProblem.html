@@ -41,11 +41,11 @@
           </tr>    
         </thead>     
          <tbody>
-	      {% for form in formset.forms|slice:":-5" %} 	      
+	      {% for form in formset.forms|slice:":-3" %} 	      
 			  {{form.id}}  {# important here !!! #}  
 			  {{form|display_form_as_row:"deleted_flag"}}
 	      {% endfor %}
-	      {% for form in formset.forms|slice:"-5:" %} {# you can add 5 more common problems #}	      
+	      {% for form in formset.forms|slice:"-3:" %} {# you can add 5 more common problems #}	      
 		      {{form.id}} {# important here !!! #}  	   
 		      {{form|display_form_as_row}}
           {% endfor %}
