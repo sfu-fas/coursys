@@ -95,7 +95,7 @@ def _save_components(formset, activity):
                 instance.position = position
                 position += 1
             else:
-                position = None
+                instance.position = None
             instance.save()            
            
 
