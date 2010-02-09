@@ -18,6 +18,19 @@ def index(request):
 
 @login_required
 def show_components(request, course_slug, activity_shortname):
+    #if student
+    return _show_components_student(request, course_slug, activity_shortname)
+    #if staff
+    return _show_components_instructor(request, course_slug, activity_shortname)
+
+@login_required
+def _show_components_student(request, course_slug, activity_shortname):
+    course = get_object_or_404(CourseOffering, slug = course_slug)
+    activity = get_object_or_404(course.activity_set,short_name = activity_shortname)
+    return HttpResponse('hello')
+
+@login_required
+def _show_components_instructor(request, course_slug, activity_shortname):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set, short_name = activity_shortname)
     form = AddComponentForm()
@@ -44,3 +57,4 @@ def show_components(request, course_slug, activity_shortname):
 	return render_to_response("submission/component_view.html",
 	    {"activity":activity},
 	    context_instance=RequestContext(request))
+
