@@ -4,6 +4,7 @@ from coredata.models import Member, Person, CourseOffering
 from groups.models import *
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext
+from groups.forms import GroupForm
 from django.http import HttpResponse, HttpResponseRedirect
 
 @login_required
@@ -44,6 +45,22 @@ def create(request,course_slug):
 	c = get_object_or_404(CourseOffering, slug = course_slug)
 	group_manager=Member.objects.get(person = p, offering = c)
 	return render_to_response('groups/create.html', {'manager':group_manager},context_instance = RequestContext(request)) 
+
+@login_required
+def create_result(request,course_slug):
+        if request.method=='POST':
+             form=GroupForm(request.POST)
+             if form.is_valid():
+                     p = get_object_or_404(Person,userid=request.user.username)
+                     c = get_object_or_404(CourseOffering, slug = course_slug)
+                     gm= Member.objects.get(person = p, offering = c)
+                     g = form.cleaned.data
+                     Group.objects.create(name=g['name'],manager=g['manager'])
+                     return HttpResponseRedirect('groups/index.html',context_instance = RequestContext(request))
+        else:
+                form=GroupForm()
+        #context = {'course': c,'form': form}
+        return render_to_response('groups/create_form.html',{'form':form})
 
 @login_required
 def join(request, course_slug, groupname):
