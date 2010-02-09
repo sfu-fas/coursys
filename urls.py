@@ -30,6 +30,9 @@ urlpatterns = patterns('',
 
     # for groups
     (r'^groups/', include('groups.urls')),
+
+    #submission
+    (r'^submission/', include('submission.urls')),
 )
 if settings.DEBUG:
     # URLs for development only:

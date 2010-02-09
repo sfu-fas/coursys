@@ -1,0 +1,38 @@
+{% extends "submission/base.html" %}
+{% load course_display %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block h1 %}Configure Submission for {{activity.name}}{% endblock %}
+
+{% block breadcrumbs %}
+<li><a href="http://www.sfu.ca/">SFU</a></li>
+<li>&gt; <a href="http://www.cs.sfu.ca/">Computing Science</a></li>
+<li>&gt; <a href="/">Course Management</a></li>
+<li>&gt; <a href="/submission">Submission</a></li>
+{% block breadcrumbs_extra %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+{% if form.errors %}
+<div class="indicator" id="error">
+    <img src="{{MEDIA_URL}}icons/action_delete.png" alt="error" />
+    Please correct the errors below.
+</div>
+{% endif %}
+{% if new_added %}
+<div class="indicator" id="success">
+    <img src="{{MEDIA_URL}}icons/action_check.png" alt="check" />
+    New Component added successfully.
+</div>
+{% endif%}
+
+<form action="" method="post">
+<fieldset>
+    <legend>Add Component</legend>
+    {{form|display_form}}
+</fieldset>
+</form>
+
+{% endblock %}

@@ -8,6 +8,12 @@ STATUS_CHOICES = [
     ('INP', 'In-Progress'),
     ('DON', 'Marked') ]
 
+TYPE_CHOICES = [
+    ('URL', 'URL Component'),
+    ('Archive', 'Archive Component'),
+    ('C/C++', 'C/C++ Component')
+]
+
 # per-activity models, defined by instructor:
 
 class SubmissionComponent(models.Model):
@@ -23,6 +29,8 @@ class URLComponent(SubmissionComponent):
 class ArchiveComponent(SubmissionComponent):
     "An archive file (TGZ/ZIP/RAR) submission component"
     max_size = models.PositiveIntegerField()
+class CppComponent(SubmissionComponent):
+    "C/C++ file submission component"
 
 # per-submission models, created when a student/group submits an assignment:
 
@@ -54,4 +62,7 @@ class SubmittedURL(SubmittedComponent):
 class SubmittedArchive(SubmittedComponent):
     component = models.ForeignKey(ArchiveComponent, null=False)
     archive = models.FileField(upload_to="submittedarchive") # TODO: change to a more secure directory
-
+class SubmittedCpp(SubmittedComponent):
+    component = models.ForeignKey(CppComponent, null=False)
+    cpp = models.FileField(upload_to="submittedcpp") # TODO: change to a more secure directory
+    

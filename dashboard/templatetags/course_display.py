@@ -9,8 +9,9 @@ from django.utils.safestring import mark_safe
 FIELD_TEMPLATE = Template('''<li>
                     {{ field.label_tag }}
                     <div class="inputfield">
-                        {{ field }}{% if field.errors %}<img src="''' + MEDIA_URL + '''icons/error.png" alt="error"/>{% endif %}
-                        {{field.errors}}
+                        {{ field }}
+			{% if field.errors %}<div class="errortext"><img src="''' + MEDIA_URL + '''icons/error.png" alt="error"/>&nbsp;{{field.errors.0}}</div>{% endif %}
+			<div class="helptext">{{field.help_text}}</div>
                     </div>
                 </li>''')
 ERROR_NOTE_TEMPLATE = Template('''

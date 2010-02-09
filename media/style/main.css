@@ -74,3 +74,92 @@ th.sorting_asc, th.sorting_desc {
     padding:0 30px 30px 0;
     margin:0 0 0 0;
 }
+
+
+/* things under container */
+#container a.button{
+    display: block;
+    width: 10em;
+    height: 2em;
+    color: #FFFFFF;
+    text-align: center;
+    line-height: 2em;
+    background-color: #B5111b;
+    text-decoration: none;
+    font-weight: bold;
+}
+#container a.button:hover {
+    border-bottom: 5px solid #d8d5d5;
+    text-decoration: none;
+}
+#container .indicator {
+    width:48em;
+    border: 1px solid red;
+    padding: 0.5em 0.5em 0.5em 0.5em;
+    background-color: #fffead;
+    color: red;
+    margin-bottom: 1em;
+    float: left;
+}
+#container .indicator#success{
+    border: 1px solid green;
+    color: green;
+}
+#container .indicator#error{
+    border: 1px solid red;
+    color: red;
+}
+
+
+fieldset {
+    width: 48em;
+    padding: 0 0 0 0;
+    border: 1px solid #BFBAB0;
+    background: #F2EFE9;
+    background-image: url('/media/images/grades/fieldset_gradient.jpg');
+    background-repeat: repeat-x;
+}
+fieldset input {
+    width: 20em;
+}
+fieldset .submit {
+    width: 10em;
+    margin: 0 0 0 44em;
+    background-color: #B5111A;
+    border: 1px solid #FFF;
+    color: #FFF;
+}
+fieldset ul {
+    list-style: none;
+    padding: 1em 1em 0 1em;
+}
+fieldset li {
+    float: left;
+    clear: left;
+    width: 100%;
+    padding-bottom: 1em;
+}
+fieldset div.inputfield {
+    float: left;
+}
+fieldset .helptext {
+    color: gray;
+    font-size: 0.9em;
+}
+fieldset .errortext {
+    color: red;
+    font-size: 0.9em;
+}
+legend {
+    padding: 0;
+    margin-left: 1em;
+    color: #B5111A;
+    font-weight: bold;
+}
+fieldset label {
+    display: block;
+    width: 7em;
+    float: left;
+    margin-right: 1em;
+}
+
