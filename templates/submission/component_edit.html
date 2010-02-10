@@ -15,17 +15,18 @@
 {% endblock %}
 
 {% block content %}
+<div id="form_container">
 {% if form.errors %}
-<div class="indicator" id="error">
+<p class="errorindicator">
     <img src="{{MEDIA_URL}}icons/action_delete.png" alt="error" />
     Please correct the errors below.
-</div>
+</p>
 {% endif %}
 {% if new_added %}
-<div class="indicator" id="success">
+<p class="successindicator">
     <img src="{{MEDIA_URL}}icons/action_check.png" alt="check" />
     New Component added successfully.
-</div>
+</p>
 {% endif%}
 
 <form action="" method="post">
@@ -34,5 +35,6 @@
     {{form|display_form}}
 </fieldset>
 </form>
+</div>
 
 {% endblock %}

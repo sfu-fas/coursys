@@ -3,7 +3,6 @@
 {% block h1 %}Grades{% endblock %}
 
 {% block headextra %}
-<link type="text/css" href="{{MEDIA_URL}}style/grades/activitytable.css" rel="stylesheet" />
 <script type="text/javascript">
     $(document).ready(function() {
 	oTable = $('#activities').dataTable({
@@ -24,7 +23,7 @@
 <br/>
 <br/>
 <div id="activity_container">
-    <a id="addactivity" href="{% url grades.views.course course_slug=course.slug %}/addnumericactivity">Add Activity</a>
+    <a class="button" href="{% url grades.views.course course_slug=course.slug %}/addnumericactivity">Add Activity</a>
     <table class="display" id="activities">
         <thead>
             <tr>

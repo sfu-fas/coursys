@@ -3,10 +3,6 @@
 {% block h1 %}Grades{% endblock %}
 
 {% block headextra %}
-<link rel="stylesheet" href="{{MEDIA_URL}}style/grades/activityform.css" type="text/css" />
-<!--[if lte IE 8]>
-<link rel="stylesheet" href="{{MEDIA_URL}}style/grades/activityform-ie.css" type="text/css" />
-<![endif]-->
 <script type="text/javascript">
 $(document).ready(function() {
     $("#numeric_formula_box").hide();
@@ -31,65 +27,72 @@ $(document).ready(function() {
 {% block content %}
 <h2>Add Activity</h2>
 <br/>
-<ul id="add_activity_nav">
+<ul id="form_nav">
     <li class="current"><a href="{% url grades.views.add_numeric_activity course_slug=course.slug %}">Numeric Graded Activity</a></li>
     <li><a href="{% url grades.views.add_letter_activity course_slug=course.slug %}">Letter Graded Activity</a></li>
 </ul>
-<div id="activity_form_container">
+<div id="form_container">
     {% if form.errors %}
     <p class="errorindicator">
         <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
         Please correct the error below.
     </p>
     {% endif %}
+    {% if form.non_field_errors %}
+    <p class="errorindicator">
+        <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
+        {{ form.non_field_errors }}
+    </p>
+    {% endif %}
     <form action="{% url grades.views.add_numeric_activity course_slug=course.slug %}" method="post">
         <fieldset>
             <legend>Activity Info</legend>
+            <p class="requireindicator"><img src="{{MEDIA_URL}}/icons/required_star.gif" alt="required" />&nbsp;Indicate required field</p>
             <ul>
                 <li>
-                    {{ form.name.label_tag }}
+                    {{ form.name.label_tag }}{% if form.name.required %}<img src="{{MEDIA_URL}}/icons/required_star.gif" alt="required"/>{% endif %}
                     <div class="inputfield">
                         {{ form.name }}{% if form.name.errors %}<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>{% endif %}
                         {{form.name.errors}}
                     </div>
                 </li>
                 <li>
-                    {{ form.short_name.label_tag }}
+                    {{ form.short_name.label_tag|safe }}
                     <div class="inputfield">
                         {{ form.short_name }}{% if form.short_name.errors %}<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>{% endif %}
                         {{ form.short_name.errors }}
                     </div>
                 </li>
                 <li>
-                    {{ form.status.label_tag }}
+                    {{ form.status.label_tag|safe }}
                     <div class="inputfield">
                         {{ form.status }}{% if form.status.errors %}<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>{% endif %}
                         {{ form.status.errors }}
                     </div>
                 </li>
                 <li>
-                    {{ form.due_date.label_tag }}
+                    {{ form.due_date.label_tag|safe }}
                     <div class="inputfield">
                         {{ form.due_date }}{% if form.due_date.errors %}<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>{% endif %}
                         {{ form.due_date.errors }}
                     </div>
                 </li>
                 <li>
-                    {{ form.percent.label_tag }}
+                    {{ form.percent.label_tag|safe }}
                     <div class="inputfield">
                         {{ form.percent }}{% if form.percent.errors %}<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>{% endif %}
                         {{ form.percent.errors }}
                     </div>
                 </li>
                 <li>
-                    {{ form.max_grade.label_tag }}
+                    {{ form.max_grade.label_tag|safe }}
                     <div class="inputfield">
                         {{ form.max_grade }}{% if form.max_grade.errors %}<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>{% endif %}
                         {{ form.max_grade.errors }}
                     </div>
                 </li>
                 <li>
-                    {{ form.specify_numeric_formula.label_tag }}
+                    {{ form.specify_numeric_formula.label_tag|safe }}
                     {{ form.specify_numeric_formula }}
                 </li>
                 <li id="numeric_formula_box" class="fomula_box">

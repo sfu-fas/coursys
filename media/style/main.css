@@ -1,3 +1,8 @@
+/* Override SFU template style */
+#container {
+  z-index: auto;
+}
+
 /* some mods to SFU template CSS */
 div#main p {
   margin-top: 1em;
@@ -50,7 +55,104 @@ th.sorting_asc, th.sorting_desc {
   border-width: 2px;
 }
  
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+  DataTable styles
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
  
+/* DataTables features */
+.dataTables_wrapper {
+    width: 700px;
+    clear: both;
+    
+    /* Override style in "media/style/main.css" */
+    margin: 0;
+    zoom: 1; /* Feeling sorry for IE */
+}
+.dataTables_length {
+    width: 40%;
+    float: left;
+}
+
+.dataTables_filter {
+    width: 50%;
+    float: right;
+    text-align: right;
+}
+.dataTables_info {
+    width: 40%;
+    float: left;
+}
+
+.dataTables_paginate {
+    width: 40%;
+    float: right;
+    text-align: right;
+}
+
+/* DataTables display */
+table.display {
+    margin: 0;
+    width: 100%;
+    clear: both;
+    
+    /* Override style in "media/style/main.css" */
+    border-width: 0;
+}
+
+table.display thead th {
+    padding: 3px 0px 3px 10px;
+    font-weight: bold;
+    cursor: pointer;
+    * cursor: hand;
+}
+
+table.display td {
+    padding: 3px 10px;
+    
+    /* Override style in "media/style/main.css" */
+    border-width: 0;
+}
+
+table.display td.center {
+    text-align: center;
+}
+
+/* DataTables row classes */
+tr.odd {
+    background-color: #E2E4FF;
+}
+
+tr.even {
+    background-color: white;
+}
+
+
+/* jQuery UI specific styling */
+.paging_full_numbers .fg-button {
+    padding: 2px 6px;
+    cursor: pointer;
+    * cursor: hand;
+}
+
+.paging_full_numbers {
+    height: 22px;
+    line-height: 22px;
+}
+.fg-toolbar {
+    padding: 1px;
+}
+.dataTables_info {
+    height: 22px;
+    line-height: 22px;
+}
+
+
+/* The following css will make the datatable sorting icon float to right. */
+.css_right {
+    float: right;
+}
+
+
 
 /* CSS for group */
 #groupcontainer {
@@ -77,7 +179,8 @@ th.sorting_asc, th.sorting_desc {
 
 
 /* things under container */
-a.button{
+/* need to add '#container' as selector in order to override SFU template style */
+#container a.button{
     display: block;
     width: 10em;
     height: 2em;
@@ -88,27 +191,33 @@ a.button{
     text-decoration: none;
     font-weight: bold;
 }
-a.button:hover {
+#container a.button:hover {
     border-bottom: 5px solid #d8d5d5;
     text-decoration: none;
 }
-.indicator {
-    width:48em;
+#form_container p.errorindicator, #form_container p.successindicator {
     border: 1px solid;
     padding: 0.5em 0.5em 0.5em 0.5em;
     background-color: #fffead;
-    margin: 0em;
+    margin-bottom: 1em;
 }
-.indicator#success{
+#form_container p.successindicator {
     border: 1px solid green;
     color: green;
 }
-.indicator#error{
+#form_container p.errorindicator {
     border: 1px solid red;
     color: red;
 }
+#form_container .errorlist {
+    color: red;
+}
+#form_container p.requireindicator {
+    padding: 0 0 0 1em;
+    color: #D52E2D;
+}
 
-
+/* form style (grouped by list) */
 fieldset {
     width: 100%;
     padding: 0 0 0 0;
@@ -132,8 +241,8 @@ fieldset .inputfield input[type='text'] {
     width: 30em;
 }
 fieldset .submit {
-    width: 10em;
-    margin: 0 0 0 44em;
+    width: 6em;
+    margin: 0 0 0 11em;
     background-color: #B5111A;
     border: 1px solid #FFF;
     color: #FFF;
@@ -142,11 +251,20 @@ fieldset ul {
     list-style: none;
     padding: 1em 1em 0 1em;
 }
+fieldset ul.errorlist {
+    list-style: none;
+    padding: 0;
+}
 fieldset li {
     float: left;
     clear: left;
     width: 100%;
     padding-bottom: 1em;
+}
+fieldset .errorlist li {
+    float: none;
+    clear: none;
+    padding: 0;
 }
 fieldset div.inputfield {
     float: left;
@@ -166,9 +284,60 @@ legend {
     font-weight: bold;
 }
 fieldset label {
+    position: relative;
     display: block;
-    width: 7em;
+    width: 10em;
     float: left;
     margin-right: 1em;
 }
+/* requried_star style in the label */
+fieldset label em {
+    position: absolute;
+    left: 10em;
+}
+fieldset .fomula_box {
+    margin-bottom: 1em;
+    background-color: #BCBCB4;
+}
+fieldset input#id_specify_numeric_formula,  fieldset input#id_specify_letter_formula{
+    width: auto;
+}
 
+/* navigator style for selecting different form */
+#form_nav {
+    margin: 0 0 1em 0;
+    padding: 0;
+    list-style-type: none;
+    width: 402px;
+    height: 30px;
+}
+#form_nav li {
+    float: left;
+}
+#form_nav li a {
+    display: block;
+    width: 200px;
+    height: 30px;
+    color: #FFF;
+    text-align: center;
+    line-height: 2;
+    background-color: #CB5A60;
+    border-right: 1px solid #FFF;
+    text-decoration: none;
+}
+#form_nav li a:hover {
+    border-bottom: 5px solid #d8d5d5;
+    text-decoration: none;
+}
+#form_nav li.current a {
+    background-color: #B5111A;
+    font-weight: bold;
+}
+
+#form_container {
+    width: 600px;
+}
+
+
+/* Override jquery UI style, otherwise the datepicker will be displayed too large */
+#ui-datepicker-div {font-size:0.8em}

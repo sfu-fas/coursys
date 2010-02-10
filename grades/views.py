@@ -1,4 +1,4 @@
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
@@ -8,6 +8,8 @@ from courselib.auth import requires_course_by_slug
 from grades.models import ACTIVITY_STATUS
 from grades.forms import NumericActivityForm, LetterActivityForm
 from grades.models import *
+from django.forms.util import ErrorList
+
 
 @login_required
 def index(request):
@@ -24,7 +26,7 @@ def course(request, course_slug):
     """
     Course front page
     """
-    course = CourseOffering.objects.get(slug=course_slug)
+    course = get_object_or_404(CourseOffering, slug=course_slug)
     activities = course.activity_set.all()
     context = {'course': course, 'activities': activities}
     return render_to_response("grades/course.html", context,
@@ -32,11 +34,11 @@ def course(request, course_slug):
     
 @requires_course_by_slug
 def add_numeric_activity(request, course_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    
     if request.method == 'POST': # If the form has been submitted...
-        form = NumericActivityForm(request.POST) # A form bound to the POST data
+        form = NumericActivityForm(course_slug, request.POST) # A form bound to the POST data
         if form.is_valid(): # All validation rules pass
-            course = CourseOffering.objects.get(slug=course_slug)
-            # Todo: Need validation for already existed activity
             NumericActivity.objects.create(name=form.cleaned_data['name'],
                                            short_name=form.cleaned_data['short_name'],
                                            status=form.cleaned_data['status'],
@@ -46,19 +48,19 @@ def add_numeric_activity(request, course_slug):
                                             offering=course, position=1)
             return HttpResponseRedirect(reverse('grades.views.course', kwargs={'course_slug': course_slug}))
     else:
-        form = NumericActivityForm()
-    print form.errors
-    course = CourseOffering.objects.get(slug=course_slug)
+        form = NumericActivityForm(course_slug)
+    print form.fields['name'].required
     activities = course.activity_set.all()
     context = {'course': course, 'activities': activities, 'form': form}
     return render_to_response('grades/add_numeric_activity.html', context, context_instance=RequestContext(request))
     
 @requires_course_by_slug
 def add_letter_activity(request, course_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    
     if request.method == 'POST': # If the form has been submitted...
-        form = LetterActivityForm(request.POST) # A form bound to the POST data
+        form = LetterActivityForm(course_slug, request.POST) # A form bound to the POST data
         if form.is_valid(): # All validation rules pass
-            course = CourseOffering.objects.get(slug=course_slug)
             # Todo: Need validation for already existed activity
             LetterActivity.objects.create(name=form.cleaned_data['name'],
                                            short_name=form.cleaned_data['short_name'],
@@ -68,8 +70,7 @@ def add_letter_activity(request, course_slug):
                                             offering=course, position=1)
             return HttpResponseRedirect(reverse('grades.views.course', kwargs={'course_slug': course_slug}))
     else:
-        form = LetterActivityForm()
-    course = CourseOffering.objects.get(slug=course_slug)
+        form = LetterActivityForm(course_slug)
     activities = course.activity_set.all()
     context = {'course': course, 'activities': activities, 'form': form}
     return render_to_response('grades/add_letter_activity.html', context, context_instance=RequestContext(request))

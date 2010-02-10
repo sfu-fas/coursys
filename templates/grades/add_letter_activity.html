@@ -3,10 +3,6 @@
 {% block h1 %}Grades{% endblock %}
 
 {% block headextra %}
-<link rel="stylesheet" href="{{MEDIA_URL}}style/grades/activityform.css" type="text/css" />
-<!--[if lte IE 8]>
-<link rel="stylesheet" href="{{MEDIA_URL}}style/grades/activityform-ie.css" type="text/css" />
-<![endif]-->
 <script type="text/javascript">
 $(document).ready(function() {
     $("#letter_formula_box").hide();
@@ -30,20 +26,27 @@ $(document).ready(function() {
 {% block content %}
 <h2>Add Activity</h2>
 <br/>
-<ul id="add_activity_nav">
+<ul id="form_nav">
     <li><a href="{% url grades.views.add_numeric_activity course_slug=course.slug %}">Numeric Graded Activity</a></li>
     <li class="current"><a href="{% url grades.views.add_letter_activity course_slug=course.slug %}">Letter Graded Activity</a></li>
 </ul>
-<div id="activity_form_container">
+<div id="form_container">
     {% if form.errors %}
     <p class="errorindicator">
         <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
         Please correct the error below.
     </p>
     {% endif %}
+    {% if form.non_field_errors %}
+    <p class="errorindicator">
+        <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
+        {{ form.non_field_errors }}
+    </p>
+    {% endif %}
     <form action="{% url grades.views.add_letter_activity course_slug=course.slug %}" method="post">
         <fieldset>
             <legend>Activity Info</legend>
+            <p class="requireindicator"><img src="{{MEDIA_URL}}/icons/required_star.gif" alt="required" />&nbsp;Indicate required field</p>
             <ul>
                 <li>
                     {{ form.name.label_tag }}
