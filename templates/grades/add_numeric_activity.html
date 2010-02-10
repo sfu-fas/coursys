@@ -50,49 +50,49 @@ $(document).ready(function() {
             <p class="requireindicator"><img src="{{MEDIA_URL}}/icons/required_star.gif" alt="required" />&nbsp;Indicate required field</p>
             <ul>
                 <li>
-                    {{ form.name.label_tag }}{% if form.name.required %}<img src="{{MEDIA_URL}}/icons/required_star.gif" alt="required"/>{% endif %}
+                    {{ form.name.label_tag }}
                     <div class="inputfield">
                         {{ form.name }}{% if form.name.errors %}<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>{% endif %}
                         {{form.name.errors}}
                     </div>
                 </li>
                 <li>
-                    {{ form.short_name.label_tag|safe }}
+                    {{ form.short_name.label_tag }}
                     <div class="inputfield">
                         {{ form.short_name }}{% if form.short_name.errors %}<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>{% endif %}
                         {{ form.short_name.errors }}
                     </div>
                 </li>
                 <li>
-                    {{ form.status.label_tag|safe }}
+                    {{ form.status.label_tag }}
                     <div class="inputfield">
                         {{ form.status }}{% if form.status.errors %}<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>{% endif %}
                         {{ form.status.errors }}
                     </div>
                 </li>
                 <li>
-                    {{ form.due_date.label_tag|safe }}
+                    {{ form.due_date.label_tag }}
                     <div class="inputfield">
                         {{ form.due_date }}{% if form.due_date.errors %}<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>{% endif %}
                         {{ form.due_date.errors }}
                     </div>
                 </li>
                 <li>
-                    {{ form.percent.label_tag|safe }}
+                    {{ form.percent.label_tag }}
                     <div class="inputfield">
                         {{ form.percent }}{% if form.percent.errors %}<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>{% endif %}
                         {{ form.percent.errors }}
                     </div>
                 </li>
                 <li>
-                    {{ form.max_grade.label_tag|safe }}
+                    {{ form.max_grade.label_tag }}
                     <div class="inputfield">
                         {{ form.max_grade }}{% if form.max_grade.errors %}<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>{% endif %}
                         {{ form.max_grade.errors }}
                     </div>
                 </li>
                 <li>
-                    {{ form.specify_numeric_formula.label_tag|safe }}
+                    {{ form.specify_numeric_formula.label_tag }}
                     {{ form.specify_numeric_formula }}
                 </li>
                 <li id="numeric_formula_box" class="fomula_box">

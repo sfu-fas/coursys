@@ -49,7 +49,6 @@ def add_numeric_activity(request, course_slug):
             return HttpResponseRedirect(reverse('grades.views.course', kwargs={'course_slug': course_slug}))
     else:
         form = NumericActivityForm(course_slug)
-    print form.fields['name'].required
     activities = course.activity_set.all()
     context = {'course': course, 'activities': activities, 'form': form}
     return render_to_response('grades/add_numeric_activity.html', context, context_instance=RequestContext(request))
