@@ -7,5 +7,7 @@
 <li>&gt; <a href="http://www.cs.sfu.ca/">Computing Science</a></li>
 <li>&gt; <a href="/">Course Management</a></li>
 <li>&gt; <a href="/submission">Submission</a></li>
+<li>&gt; <a href="{% url grades.views.course course_slug=course.slug %}">{{course.name}}</a></li>
+<li>&gt; <a href="">{{activity.slug}}</a></li>
 {% block breadcrumbs_extra %}{% endblock %}
 {% endblock %}

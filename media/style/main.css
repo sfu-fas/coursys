@@ -179,25 +179,31 @@ tr.even {
 
 
 /* things under container */
-/* need to add '#container' as selector in order to override SFU template style */
-#container a.button{
+#main a.button {
+/* need to add '#main' as selector in order to override SFU template style */
     display: block;
     width: 10em;
     height: 2em;
     color: #FFFFFF;
     text-align: center;
     line-height: 2em;
-    background-color: #B5111b;
+    background-color: #0054a6;
     text-decoration: none;
     font-weight: bold;
+    border-right: 1px solid white;
 }
-#container a.button:hover {
+#main #current_type {
+    background-color: #B5111B;
+}
+#main a.button:hover {
+    background-color: #B5111B;
     border-bottom: 5px solid #d8d5d5;
     text-decoration: none;
 }
-#form_container p.errorindicator, #form_container p.successindicator {
+
+#form_container p.errorindicator, #form_container p.successindicator, #form_container p.warningindicator {
     border: 1px solid;
-    padding: 0.5em 0.5em 0.5em 0.5em;
+    padding: 0.5em;
     background-color: #fffead;
     margin-bottom: 1em;
 }
@@ -209,6 +215,10 @@ tr.even {
     border: 1px solid red;
     color: red;
 }
+#form_container p.warningindicator {
+    border: 1px solid orange;
+    color: orange;
+}
 #form_container .errorlist {
     color: red;
 }
@@ -216,7 +226,9 @@ tr.even {
     padding: 0 0 0 1em;
     color: #D52E2D;
 }
-
+/*
+ * field set
+ */
 /* form style (grouped by list) */
 fieldset {
     width: 100%;
@@ -225,6 +237,7 @@ fieldset {
     background: #F2EFE9;
     background-image: url('/media/images/grades/fieldset_gradient.jpg');
     background-repeat: repeat-x;
+    margin: 0;
 }
 fieldset .inputfield ul {
     padding: 0;
@@ -289,6 +302,17 @@ fieldset label {
     width: 10em;
     float: left;
     margin-right: 1em;
+    padding-top: 0.5em;
+    text-align: right;
+}
+.add_nav {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    float: left;
+}
+.add_nav li {
+    float: left;
 }
 /* requried_star style in the label */
 fieldset label em {
@@ -302,6 +326,21 @@ fieldset .fomula_box {
 fieldset input#id_specify_numeric_formula,  fieldset input#id_specify_letter_formula{
     width: auto;
 }
+
+/*
+ *  containers
+ */
+
+#add_submission_component_container {
+    clear: left;
+}
+#edit_submission_component_container {
+    margin: 1em 0 0.5em 0;
+}
+#edit_submission_component_add_button {
+    margin-left: 30em;
+}
+
 
 /* navigator style for selecting different form */
 #form_nav {

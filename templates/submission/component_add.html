@@ -1,0 +1,55 @@
+{% extends "submission/base.html" %}
+{% load course_display %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block h1 %}Add Component for {{activity.name}}{% endblock %}
+
+{% block breadcrumbs %}
+<li><a href="http://www.sfu.ca/">SFU</a></li>
+<li>&gt; <a href="http://www.cs.sfu.ca/">Computing Science</a></li>
+<li>&gt; <a href="/">Course Management</a></li>
+<li>&gt; <a href="/submission">Submission</a></li>
+<li>&gt; <a href="{% url grades.views.course course_slug=course.slug %}">{{course.name}}</a></li>
+<li>&gt; <a href="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug%}">{{activity.slug}}</a></li>
+{% block breadcrumbs_extra %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+<h2>Select Component Type:</h2>
+
+<ul class="add_nav">
+    <li><a href="?type=Archive" class="button"	{% ifequal type 'Archive' %}id="current_type"{% endifequal %}>Archive</a></li>
+    <li><a href="?type=URL" class="button"	{% ifequal type 'URL' %}id="current_type"{% endifequal %}>URL</a></li>
+    <li><a href="?type=Cpp" class="button"	{% ifequal type 'Cpp' %}id="current_type"{% endifequal %}>C/C++</a></li>
+    <li><a href="?type=Java" class="button"	{% ifequal type 'Java' %}id="current_type"{% endifequal %}>Java</a></li>
+    <li><a href="?type=PlainText" class="button"{% ifequal type 'PlainText' %}id="current_type"{% endifequal %}>Plain Text</a></li>
+</ul>
+
+<div id="form_container">
+<div id="add_submission_component_container">
+
+{% if form.errors %}
+<p class="errorindicator">
+    <img src="{{MEDIA_URL}}icons/action_delete.png" alt="error" />
+    Please correct the errors below.
+</p>
+{% endif %}
+{% if new_added %}
+<p class="successindicator">
+    <img src="{{MEDIA_URL}}icons/action_check.png" alt="check" />
+    New Component added successfully.
+</p>
+{% endif%}
+
+<form action="" method="post">
+<fieldset>
+    <legend>Add Component</legend>
+    {{form|display_form}}
+</fieldset>
+</form>
+</div>
+    
+</div>
+{% endblock %}

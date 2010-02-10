@@ -21,7 +21,7 @@ ERROR_NOTE_TEMPLATE = Template('''
     </p>''')
 
 @register.filter
-def display_form(form):
+def display_form(form, text="Submit"):
     """
     Convert the form to HTML as we like it.
     """
@@ -30,7 +30,7 @@ def display_form(form):
         c = Context({"field":field})
         output.append( FIELD_TEMPLATE.render(c) )
 
-    output.append('<li><input class="submit" type="submit" value="Submit" /></li>\n</ul>')
+    output.append('<li><input class="submit" type="submit" value='+text+' /></li>\n</ul>')
     return mark_safe('\n'.join(output))
 
 @register.filter

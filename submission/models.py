@@ -11,8 +11,9 @@ STATUS_CHOICES = [
 TYPE_CHOICES = [
     ('Archive', 'Archive Component'),
     ('URL', 'URL Component'),
-    ('C/C++', 'C/C++ Component'),
-    ('Plain', 'Plain Text Component'),
+    ('Cpp', 'C/C++ Component'),
+    ('PlainText', 'Plain Text Component'),
+    ('Java', 'Java Component'),
 ]
 
 # per-activity models, defined by instructor:
@@ -37,12 +38,17 @@ class ArchiveComponent(SubmissionComponent):
     max_size = models.PositiveIntegerField()
 class CppComponent(SubmissionComponent):
     "C/C++ file submission component"
+    extension = [".c", ".cpp", ".cxx"]
 class PlainTextComponent(SubmissionComponent):
     "Text file submission component"
+    max_length = models.PositiveIntegerField()
+class JavaComponent(SubmissionComponent):
+    "Text file submission component"
+    extension = [".java"]
 
 # list of all subclasses of SubmissionComponent:
 # MUST have deepest subclasses first (i.e. nothing *after* a class is one of its subclasses)
-COMPONENT_TYPES = [URLComponent, ArchiveComponent, CppComponent, PlainTextComponent]
+COMPONENT_TYPES = [URLComponent, ArchiveComponent, CppComponent, PlainTextComponent, JavaComponent]
 
 def AllComponents(activity):
     """
@@ -96,3 +102,6 @@ class SubmittedCpp(SubmittedComponent):
 class SubmittedPlainText(SubmittedComponent):
     component = models.ForeignKey(CppComponent, null=False)
     text = models.CharField(max_length=3000)
+class SubmittedJava(SubmittedComponent):
+    component = models.ForeignKey(CppComponent, null=False)
+    java = models.FileField(upload_to="submittedjava") # TODO: change to a more secure directory
