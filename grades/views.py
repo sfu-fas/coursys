@@ -1,11 +1,11 @@
 from django.shortcuts import render_to_response, get_object_or_404
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
 from coredata.models import Member, CourseOffering,Person,Role
-from courselib.auth import requires_course_by_slug
-from grades.models import ACTIVITY_STATUS
+from courselib.auth import requires_course_by_slug, requires_course_staff_by_slug, is_course_staff_by_slug
+from grades.models import ACTIVITY_STATUS, all_activities_filter
 from grades.forms import NumericActivityForm, LetterActivityForm
 from grades.models import *
 from django.forms.util import ErrorList
@@ -28,11 +28,12 @@ def course(request, course_slug):
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activities = course.activity_set.all()
-    context = {'course': course, 'activities': activities}
+    is_course_staff = is_course_staff_by_slug(request.user, course_slug)
+    context = {'course': course, 'activities': activities, 'is_course_staff':is_course_staff}
     return render_to_response("grades/course.html", context,
                               context_instance=RequestContext(request))
-    
-@requires_course_by_slug
+
+@requires_course_staff_by_slug
 def add_numeric_activity(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     
@@ -53,7 +54,7 @@ def add_numeric_activity(request, course_slug):
     context = {'course': course, 'activities': activities, 'form': form}
     return render_to_response('grades/add_numeric_activity.html', context, context_instance=RequestContext(request))
     
-@requires_course_by_slug
+@requires_course_staff_by_slug
 def add_letter_activity(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     
@@ -67,14 +68,29 @@ def add_letter_activity(request, course_slug):
                                             due_date=form.cleaned_data['due_date'],
                                             percent=form.cleaned_data['percent'],
                                             offering=course, position=1)
-            return HttpResponseRedirect(reverse('grades.views.course', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('grades.views.course',
+                                                kwargs={'course_slug': course_slug}))
     else:
         form = LetterActivityForm(course_slug)
     activities = course.activity_set.all()
     context = {'course': course, 'activities': activities, 'form': form}
     return render_to_response('grades/add_letter_activity.html', context, context_instance=RequestContext(request))
 
+@requires_course_staff_by_slug
+def delete_activity_review(request, course_slug, activity_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activities = all_activities_filter(slug=activity_slug)
+    if (len(activities) == 1):
+        context = {'course': course, 'activity': activities[0]}
+        return render_to_response('grades/delete_activity_review.html', context, context_instance=RequestContext(request))
+    else:
+        raise Http404
 
+@requires_course_staff_by_slug
+def delete_activity_confirm(request, course_slug, activity_slug):
+    activity = get_object_or_404(Activity, slug=activity_slug)
+    activity.delete()
+    return HttpResponseRedirect(reverse('grades.views.course', kwargs={'course_slug': course_slug}))
 
 @login_required
 def student_view(request):

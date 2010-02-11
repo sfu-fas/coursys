@@ -1,6 +1,6 @@
 {% extends "grades/base.html" %}
 
-{% block h1 %}Grades{% endblock %}
+{% block h1 %}Add Activity ({{ course.name }}){% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
@@ -25,7 +25,6 @@ $(document).ready(function() {
 
 
 {% block content %}
-<h2>Add Activity</h2>
 <br/>
 <ul id="form_nav">
     <li class="current"><a href="{% url grades.views.add_numeric_activity course_slug=course.slug %}">Numeric Graded Activity</a></li>

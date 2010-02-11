@@ -1,7 +1,6 @@
 from django import forms
 from django.conf import settings
 from grades.models import ACTIVITY_STATUS_CHOICES, NumericActivity, Activity
-from xml.sax.saxutils import unescape, escape
 from django.utils.safestring import mark_safe
 
 _required_star = '<em><img src="'+settings.MEDIA_URL+'icons/required_star.gif" alt="required"/></em>'

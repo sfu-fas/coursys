@@ -201,6 +201,44 @@ tr.even {
     text-decoration: none;
 }
 
+/* red button */
+#main a.redbutton {
+/* need to add '#main' as selector in order to override SFU template style */
+    display: block;
+    width: 10em;
+    height: 1.5em;
+    color: #FFFFFF;
+    text-align: center;
+    line-height: 1.5em;
+    background-color: #B5111A;
+    text-decoration: none;
+    font-weight: bold;
+}
+#main a.redbutton:hover {
+    border-bottom: 5px solid #d8d5d5;
+    text-decoration: none;
+}
+.buttongroup {
+  margin: 0.5em;
+}
+
+table.info tbody th {
+  text-align: left;
+}
+table.info tbody th {
+  width: 30%;
+}
+table.info tbody th, table.info tbody td{
+  border-color:#ccc;
+}
+table.info {
+  border-color: #ccc;
+  width: 100%;
+}
+#tablecontainer {
+  width: 600px;
+}
+
 #form_container p.errorindicator, #form_container p.successindicator, #form_container p.warningindicator {
     border: 1px solid;
     padding: 0.5em;
@@ -302,7 +340,7 @@ fieldset label {
     width: 10em;
     float: left;
     margin-right: 1em;
-    padding-top: 0.5em;
+    line-height: 1.5em;
     text-align: right;
 }
 .add_nav {
@@ -348,7 +386,7 @@ fieldset input#id_specify_numeric_formula,  fieldset input#id_specify_letter_for
     padding: 0;
     list-style-type: none;
     width: 402px;
-    height: 30px;
+    height: 28px;
 }
 #form_nav li {
     float: left;
@@ -356,10 +394,10 @@ fieldset input#id_specify_numeric_formula,  fieldset input#id_specify_letter_for
 #form_nav li a {
     display: block;
     width: 200px;
-    height: 30px;
+    height: 28px;
     color: #FFF;
     text-align: center;
-    line-height: 2;
+    line-height: 2em;
     background-color: #CB5A60;
     border-right: 1px solid #FFF;
     text-decoration: none;

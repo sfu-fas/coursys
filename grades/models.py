@@ -142,7 +142,7 @@ class CalLetterActivity(LetterActivity):
 # MUST have deepest subclasses first (i.e. nothing *after* a class is one of its subclasses)
 ACTIVITY_TYPES = [CalNumericActivity, NumericActivity, CalLetterActivity, LetterActivity]
 
-def AllActivities_filter(**kwargs):
+def all_activities_filter(**kwargs):
     """
     Return all activities as their most specific class.
     
