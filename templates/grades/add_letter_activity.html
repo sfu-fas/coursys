@@ -1,6 +1,13 @@
 {% extends "grades/base.html" %}
 
-{% block h1 %}Add Activity ({{ course.name }}){% endblock %}
+{% block h1 %}
+{% ifequal form_type 'add' %}
+Add Letter Graded Activity
+{% endifequal %}
+{% ifequal form_type 'edit' %}
+Edit Letter Graded Activity
+{% endifequal %}
+{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
@@ -20,15 +27,22 @@ $(document).ready(function() {
 
 {% block breadcrumbs_extra %}
 <li>&gt; <a href="{% url grades.views.course course_slug=course.slug %}">{{ course.name }}</a></li>
+{% ifequal form_type 'add' %}
 <li>&gt; <a href="{% url grades.views.add_numeric_activity course_slug=course.slug %}">Add Activity</a></li>
+{% endifequal %}
+{% ifequal form_type 'edit' %}
+<li>&gt; <a href="{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}">Edit Letter Graded Activity</a></li>
+{% endifequal %}
 {% endblock %}
 
 {% block content %}
 <br/>
+{% ifequal form_type 'add' %}
 <ul id="form_nav">
     <li><a href="{% url grades.views.add_numeric_activity course_slug=course.slug %}">Numeric Graded Activity</a></li>
     <li class="current"><a href="{% url grades.views.add_letter_activity course_slug=course.slug %}">Letter Graded Activity</a></li>
 </ul>
+{% endifequal %}
 <div id="form_container">
     {% if form.errors %}
     <p class="errorindicator">
@@ -42,7 +56,8 @@ $(document).ready(function() {
         {{ form.non_field_errors }}
     </p>
     {% endif %}
-    <form action="{% url grades.views.add_letter_activity course_slug=course.slug %}" method="post">
+    <form action="{% ifequal form_type 'add' %}{% url grades.views.add_numeric_activity course_slug=course.slug %}{% endifequal %}
+                {% ifequal form_type 'edit' %}{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}{% endifequal %}" method="post">
         <fieldset>
             <legend>Activity Info</legend>
             <p class="requireindicator"><img src="{{MEDIA_URL}}/icons/required_star.gif" alt="required" />&nbsp;Indicate required field</p>

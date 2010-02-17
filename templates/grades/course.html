@@ -60,7 +60,7 @@
                 {% endifequal %}
                 <td>{{ activity.due_date }}</td>
                 <td>
-                    <a href="#">Edit</a>&nbsp;
+                    <a href="{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}">Edit</a>&nbsp;
                     <a href="{% url grades.views.delete_activity_review course_slug=course.slug activity_slug=activity.slug %}">
                         Delete
                     </a>

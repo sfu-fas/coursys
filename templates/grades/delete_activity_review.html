@@ -4,6 +4,7 @@
 
 {% block breadcrumbs_extra %}
 <li>&gt; <a href="{% url grades.views.course course_slug=course.slug %}">{{ course.name }}</a></li>
+<li>&gt; <a href="{% url grades.views.delete_activity_review course_slug=course.slug activity_slug=activity.slug %}">Delete Activity</a></li>
 {% endblock %}
 
 
