@@ -38,17 +38,22 @@ class SubmissionComponent(models.Model):
 
 class URLComponent(SubmissionComponent):
     "A URL submission component"
+    type = models.CharField(max_length=10, null=False, choices=TYPE_CHOICES, help_text='Component type.', default='URL')
 class ArchiveComponent(SubmissionComponent):
     "An archive file (TGZ/ZIP/RAR) submission component"
+    type = models.CharField(max_length=10, null=False, choices=TYPE_CHOICES, help_text='Component type.', default='Archive')
     max_size = models.PositiveIntegerField(help_text="Maximum size of the archive file, in KB.", null=True, default=10000)
 class CppComponent(SubmissionComponent):
     "C/C++ file submission component"
+    type = models.CharField(max_length=10, null=False, choices=TYPE_CHOICES, help_text='Component type.', default='Cpp')
     extension = [".c", ".cpp", ".cxx"]
 class PlainTextComponent(SubmissionComponent):
     "Text file submission component"
+    type = models.CharField(max_length=10, null=False, choices=TYPE_CHOICES, help_text='Component type.', default='PlainText')
     max_length = models.PositiveIntegerField(help_text="Maximum number of characters for plain text.", null=True, default=5000)
 class JavaComponent(SubmissionComponent):
     "Text file submission component"
+    type = models.CharField(max_length=10, null=False, choices=TYPE_CHOICES, help_text='Component type.', default='Java')
     extension = [".java"]
 
 # list of all subclasses of SubmissionComponent:

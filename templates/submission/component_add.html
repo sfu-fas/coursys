@@ -17,6 +17,7 @@
 {% endblock %}
 
 {% block content %}
+<a href="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug %}" class="button">Back</a>
 <h2>Select Component Type:</h2>
 
 <ul class="add_nav">

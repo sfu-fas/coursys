@@ -365,6 +365,12 @@ fieldset input#id_specify_numeric_formula,  fieldset input#id_specify_letter_for
     width: auto;
 }
 
+/* compact version */
+fieldset .compact {
+    
+}
+
+
 /*
  *  containers
  */
@@ -376,7 +382,7 @@ fieldset input#id_specify_numeric_formula,  fieldset input#id_specify_letter_for
     margin: 1em 0 0.5em 0;
 }
 #edit_submission_component_add_button {
-    margin-left: 30em;
+    margin-left: 0em;
 }
 
 

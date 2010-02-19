@@ -8,6 +8,7 @@ from submission.forms import *
 from dashboard.templatetags.course_display import display_form
 from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug, requires_course_staff_by_slug
 from submission.models import select_all_components
+from django.core.urlresolvers import reverse
 
 @login_required
 def index(request):
@@ -44,19 +45,39 @@ def _show_components_student(request, course_slug, activity_slug):
 def _show_components_staff(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug = course_slug)
     activity = get_object_or_404(course.activity_set,slug = activity_slug)
-    component_set = select_all_components(activity)
-    component_updated = None
-    form_errors = None
-    form_set = None
+
+    if request.method == 'POST':
+        pass
+    else:
+        pass
+
+    component_list = select_all_components(activity)
+    form_set = []
+    #for each component, build its form
+    for component in component_list:
+        form = None
+        type = component.type
+        if type == 'Archive':
+            form = ArchiveComponentForm(instance=component)
+        elif type == 'URL':
+            form = URLComponentForm(instance=component)
+        elif type == 'Cpp':
+            form = CppComponentForm(instance=component)
+        elif type == 'PlainText':
+            form = PlainTextComponentForm(instance=component)
+        elif type == 'Java':
+            form = JavaComponentForm(instance=component)
+        #if the form exists, add it to the list
+        if form != None:
+            form_set.append(form)
     return render_to_response("submission/component_edit.html",
-        {"course":course, "activity":activity, "form_set":form_set, "updated":component_updated, "errors":form_errors},
+        {"course":course, "activity":activity, "form_set":form_set},
         context_instance=RequestContext(request))
-    
+
 @requires_course_staff_by_slug
-def add_component(request, course_slug, activity_slug):
+def add_component(request, course_slug, activity_slug, new_added=False):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set, slug = activity_slug)
-    new_component_added = None
 
     #default, Archive
     type = request.GET.get('type')
@@ -64,22 +85,22 @@ def add_component(request, course_slug, activity_slug):
 	type = 'Archive'
 
     if type == 'Archive':
-	form = ArchiveComponentForm()
-	new_form = ArchiveComponentForm(request.POST)
+        form = ArchiveComponentForm()
+        new_form = ArchiveComponentForm(request.POST)
     elif type == 'URL':
-	form = URLComponentForm()
-	new_form = URLComponentForm(request.POST)
+        form = URLComponentForm()
+        new_form = URLComponentForm(request.POST)
     elif type == 'Cpp':
-	form = CppComponentForm()
-	new_form = CppComponentForm(request.POST)
+        form = CppComponentForm()
+        new_form = CppComponentForm(request.POST)
     elif type == 'PlainText':
-	form = PlainTextComponentForm()
-	new_form = PlainTextComponentForm(request.POST)
+        form = PlainTextComponentForm()
+        new_form = PlainTextComponentForm(request.POST)
     elif type == 'Java':
-	form = JavaComponentForm()
-	new_form = JavaComponentForm(request.POST)
+        form = JavaComponentForm()
+        new_form = JavaComponentForm(request.POST)
     else:
-	raise Http404()
+        raise Http404()
 
     #if form is submitted, validate / update component
     if request.method == 'POST':
@@ -92,10 +113,10 @@ def add_component(request, course_slug, activity_slug):
                 count = len(select_all_components(activity))
                 new_component.position = count + 1
             new_component.save()
-            new_component_added = True
-	else:
-	    form = new_form
-
-    return render_to_response("submission/component_add.html",
-	{"course":course, "activity":activity, "form":form, "new_added":new_component_added, "type":type},
-	context_instance=RequestContext(request))
+            #TODO: add a redirect
+            #return HttpResponseRedirect(reverse('submission.views.add_component', args=[course_slug, activity_slug,True]))
+        else:
+            form = new_form
+    return render_to_response("submission/component_add.html", 
+        {"course":course, "activity":activity, "form":form, "new_added":new_added, "type":type},
+        context_instance=RequestContext(request))

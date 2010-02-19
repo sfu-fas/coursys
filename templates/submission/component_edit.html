@@ -17,41 +17,40 @@
 {% endblock %}
 
 {% block content %}
-<div id="form_container">
-{% if errors %}
-<p class="errorindicator">
-    <img src="{{MEDIA_URL}}icons/action_delete.png" alt="error" />
-    Please correct the errors below.
-</p>
-{% endif %}
-{% if updated %}
-<p class="successindicator">
-    <img src="{{MEDIA_URL}}icons/action_check.png" alt="check" />
-    Components updated successfully.
-</p>
-{% endif%}
-<div id="edit_submission_component_container">
-{% if not form_set %}
-<p class="warningindicator">
-    <img src="{{MEDIA_URL}}icons/exclamation.png" alt="warning" />
-    No component found.
-</p>
-{% else %}
-{% for form in form_set %}
- {{form}}
-{% endfor %}
-<!--<form action="" method="post">
-<fieldset>
-     for form in form_set %}
-    <legend>{{form.title}}</legend>
-    {{form|display_form}}
-     endfor %}
-</fieldset>
-</form>
--->
-{% endif %}
-</div>
-</div>
 <a class="button" href="add_component/" id="edit_submission_component_add_button">Add Component</a>
+<div id="form_container">
+<div id="edit_submission_component_container">
+    {% if errors %}
+    <p class="errorindicator">
+        <img src="{{MEDIA_URL}}icons/action_delete.png" alt="error" />
+        Please correct the errors below.
+    </p>
+    {% endif %}
+    {% if updated %}
+    <p class="successindicator">
+        <img src="{{MEDIA_URL}}icons/action_check.png" alt="check" />
+        Components updated successfully.
+    </p>
+    {% endif%}
+
+    {% ifequal form_set|length 0 %}
+    <p class="warningindicator">
+        <img src="{{MEDIA_URL}}icons/exclamation.png" alt="warning" />
+        No component found.
+    </p>
+    {% else %}
+    <form action="" method="post">
+    {% for form in form_set %}
+    <fieldset>
+        <legend>Legend</legend>
+        {{form|display_form:'Update'}}
+    </fieldset>
+    {% endfor %}
+    
+    </form>
+    {% endifequal %}
+</div>
+</div>
+
 
 {% endblock %}
