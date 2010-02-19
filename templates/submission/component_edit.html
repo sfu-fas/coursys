@@ -12,7 +12,7 @@
 <li>&gt; <a href="/">Course Management</a></li>
 <li>&gt; <a href="/submission">Submission</a></li>
 <li>&gt; <a href="{% url grades.views.course course_slug=course.slug %}">{{course.name}}</a></li>
-<li>&gt; <a href="">{{activity.slug}}</a></li>
+<li>&gt; <a href="">{{activity.short_name}}</a></li>
 {% block breadcrumbs_extra %}{% endblock %}
 {% endblock %}
 
@@ -30,7 +30,6 @@
     Components updated successfully.
 </p>
 {% endif%}
-
 <div id="edit_submission_component_container">
 {% if not form_set %}
 <p class="warningindicator">

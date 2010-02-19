@@ -24,7 +24,7 @@ class SubmissionTest(TestCase):
         c = CppComponent(activity=a, title="CPP", position=2)
         c.save()
         
-        comps = AllComponents(a)
+        comps = select_all_components(a)
         self.assertEqual(len(comps), 4)
         self.assertEqual(comps[0].title, 'Archive') # make sure position=1 is first
         self.assertEqual(type(comps[1]), CppComponent)

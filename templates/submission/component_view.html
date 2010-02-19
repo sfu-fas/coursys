@@ -1,13 +1,14 @@
 {% extends "submission/base.html" %}
 
-{% block h1 %}Submission for ACTIVITY.NAME{% endblock %}
+{% block h1 %}Submission for {{activity.name}}{% endblock %}
 
 {% block breadcrumbs %}
 <li><a href="http://www.sfu.ca/">SFU</a></li>
 <li>&gt; <a href="http://www.cs.sfu.ca/">Computing Science</a></li>
 <li>&gt; <a href="/">Course Management</a></li>
 <li>&gt; <a href="/submission">Submission</a></li>
-<li>&gt; <a href="{% url grades.views.course course_slug=course.slug %}">{{course.name}}</a></li>
-<li>&gt; <a href="">{{activity.slug}}</a></li>
+<li>&gt; <a href="{% url dashboard.views.course course_slug=course.slug %}">{{course.name}}</a></li>
+<li>&gt; <a href="">{{activity.short_name}}</a></li>
 {% block breadcrumbs_extra %}{% endblock %}
 {% endblock %}
+

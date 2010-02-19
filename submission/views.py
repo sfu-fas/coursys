@@ -7,7 +7,7 @@ from courselib.auth import requires_course_by_slug
 from submission.forms import *
 from dashboard.templatetags.course_display import display_form
 from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug, requires_course_staff_by_slug
-from submission.models import AllComponents
+from submission.models import select_all_components
 
 @login_required
 def index(request):
@@ -37,14 +37,14 @@ def _show_components_student(request, course_slug, activity_slug):
     activity = get_object_or_404(course.activity_set,slug = activity_slug)
     # TODO: finish student's view
     return render_to_response("submission/component_view.html",
-	{},
+	{"course":course, "activity":activity},
 	context_instance=RequestContext(request))
 
 @login_required
 def _show_components_staff(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug = course_slug)
     activity = get_object_or_404(course.activity_set,slug = activity_slug)
-    component_set = AllComponents(activity)
+    component_set = select_all_components(activity)
     component_updated = None
     form_errors = None
     form_set = None
@@ -85,7 +85,13 @@ def add_component(request, course_slug, activity_slug):
     if request.method == 'POST':
 	#incoming_form = AddComponentForm(request.POST)
         if new_form.is_valid():
-	    #TODO: update/add component
+            #add component
+            new_component = new_form.save(commit=False)
+            new_component.activity = activity
+            if new_component.position == None:
+                count = len(select_all_components(activity))
+                new_component.position = count + 1
+            new_component.save()
             new_component_added = True
 	else:
 	    form = new_form

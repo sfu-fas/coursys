@@ -1,7 +1,9 @@
 from django.db import models
 from grades.models import Activity
 from coredata.models import Member
+#from courses.grades.models import slug
 from groups.models import Group
+
 
 STATUS_CHOICES = [
     ('NEW', 'New'),
@@ -24,24 +26,27 @@ class SubmissionComponent(models.Model):
     """
     activity = models.ForeignKey(Activity)
     title = models.CharField(max_length=100, help_text='Name for this component (e.g. "Part 1" or "Programming Section")')
-    position = models.PositiveSmallIntegerField()
+    description = models.CharField(max_length=1000, help_text="Short explanation for this component.", null=True,blank=True)
+    position = models.PositiveSmallIntegerField(help_text="The order of display for listing components.", null=True,blank=True)
 
     def __cmp__(self, other):
         return cmp(self.position, other.position)
     class Meta:
         ordering = ['position']
+    def __unicode__(self):
+        return "%s %s %s"%(self.title, self.position, self.description)
 
 class URLComponent(SubmissionComponent):
     "A URL submission component"
 class ArchiveComponent(SubmissionComponent):
     "An archive file (TGZ/ZIP/RAR) submission component"
-    max_size = models.PositiveIntegerField()
+    max_size = models.PositiveIntegerField(help_text="Maximum size of the archive file, in KB.", null=True, default=10000)
 class CppComponent(SubmissionComponent):
     "C/C++ file submission component"
     extension = [".c", ".cpp", ".cxx"]
 class PlainTextComponent(SubmissionComponent):
     "Text file submission component"
-    max_length = models.PositiveIntegerField()
+    max_length = models.PositiveIntegerField(help_text="Maximum number of characters for plain text.", null=True, default=5000)
 class JavaComponent(SubmissionComponent):
     "Text file submission component"
     extension = [".java"]
@@ -50,7 +55,7 @@ class JavaComponent(SubmissionComponent):
 # MUST have deepest subclasses first (i.e. nothing *after* a class is one of its subclasses)
 COMPONENT_TYPES = [URLComponent, ArchiveComponent, CppComponent, PlainTextComponent, JavaComponent]
 
-def AllComponents(activity):
+def select_all_components(activity):
     """
     Return all components for this activity as their most specific class.
     """
