@@ -52,7 +52,7 @@ def _show_components_staff(request, course_slug, activity_slug):
         pass
 
     component_list = select_all_components(activity)
-    form_set = []
+    form_list = []
     #for each component, build its form
     for component in component_list:
         form = None
@@ -69,9 +69,9 @@ def _show_components_staff(request, course_slug, activity_slug):
             form = JavaComponentForm(instance=component)
         #if the form exists, add it to the list
         if form != None:
-            form_set.append(form)
+            form_list.append(form)
     return render_to_response("submission/component_edit.html",
-        {"course":course, "activity":activity, "form_set":form_set},
+        {"course":course, "activity":activity, "form_list":form_list, "component_list":component_list},
         context_instance=RequestContext(request))
 
 @requires_course_staff_by_slug
@@ -102,7 +102,7 @@ def add_component(request, course_slug, activity_slug, new_added=False):
     else:
         raise Http404()
 
-    #if form is submitted, validate / update component
+    #if form is submitted, validate / add component
     if request.method == 'POST':
 	#incoming_form = AddComponentForm(request.POST)
         if new_form.is_valid():
@@ -113,8 +113,10 @@ def add_component(request, course_slug, activity_slug, new_added=False):
                 count = len(select_all_components(activity))
                 new_component.position = count + 1
             new_component.save()
-            #TODO: add a redirect
-            #return HttpResponseRedirect(reverse('submission.views.add_component', args=[course_slug, activity_slug,True]))
+            new_added = True
+            request.method = 'HAHA'
+            #TODO: how to add a redirect?
+            #return add_component(request, course_slug, activity_slug, new_added=True)
         else:
             form = new_form
     return render_to_response("submission/component_add.html", 

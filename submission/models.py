@@ -52,7 +52,7 @@ class PlainTextComponent(SubmissionComponent):
     type = models.CharField(max_length=10, null=False, choices=TYPE_CHOICES, help_text='Component type.', default='PlainText')
     max_length = models.PositiveIntegerField(help_text="Maximum number of characters for plain text.", null=True, default=5000)
 class JavaComponent(SubmissionComponent):
-    "Text file submission component"
+    "Java file submission component"
     type = models.CharField(max_length=10, null=False, choices=TYPE_CHOICES, help_text='Component type.', default='Java')
     extension = [".java"]
 
@@ -72,6 +72,11 @@ def select_all_components(activity):
         found.update( (c.id for c in comps) )
 
     components.sort()
+    count = 1;
+    for component in components:
+        component.position = count
+        count = count + 1
+        component.save()
     return components
 
 

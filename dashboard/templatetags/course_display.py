@@ -25,11 +25,12 @@ def display_form(form, text="Submit"):
     """
     Convert the form to HTML as we like it.
     """
-    output = ["<ul>"]
+    output = ['<p class="requireindicator"><img src="/media//icons/required_star.gif" alt="required" />&nbsp;indicates required field</p>']
+    output.append("<ul>")
     for field in form:
         c = Context({"field":field})
         output.append( FIELD_TEMPLATE.render(c) )
-
+    
     output.append('<li><input class="submit" type="submit" value='+text+' /></li>\n</ul>')
     return mark_safe('\n'.join(output))
 

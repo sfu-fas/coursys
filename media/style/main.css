@@ -275,7 +275,7 @@ fieldset {
     background: #F2EFE9;
     background-image: url('/media/images/grades/fieldset_gradient.jpg');
     background-repeat: repeat-x;
-    margin: 0;
+    margin: 1em 0 1em 0;
 }
 fieldset .inputfield ul {
     padding: 0;
@@ -291,16 +291,17 @@ fieldset .inputfield label {
 fieldset .inputfield input[type='text'] {
     width: 30em;
 }
-fieldset .submit {
-    width: 6em;
+fieldset .submit, form .submit {
+    min-width: 6em;
     margin: 0 0 0 11em;
     background-color: #B5111A;
     border: 1px solid #FFF;
     color: #FFF;
+    float: right;
 }
 fieldset ul {
     list-style: none;
-    padding: 1em 1em 0 1em;
+    padding: 0 1em 0 1em;
 }
 fieldset ul.errorlist {
     list-style: none;
@@ -333,6 +334,7 @@ legend {
     margin-left: 1em;
     color: #B5111A;
     font-weight: bold;
+    font-size: 1.5em;
 }
 fieldset label {
     position: relative;
@@ -365,9 +367,26 @@ fieldset input#id_specify_numeric_formula,  fieldset input#id_specify_letter_for
     width: auto;
 }
 
-/* compact version */
-fieldset .compact {
-    
+fieldset .position {
+    float:right;
+    width: 20%;
+}
+fieldset .view {
+    float:left;
+    width: 80%;
+}
+fieldset .view label {
+    width: 7em;
+    text-align: right;
+    line-height: 1em;
+    font-weight: bold;
+}
+fieldset #editbutton a.button{
+    font-size: 0.5em;
+    float: left;
+}
+fieldset #editbutton a.button:hover{
+    border: 0;
 }
 
 
