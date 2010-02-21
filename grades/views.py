@@ -52,7 +52,7 @@ def add_numeric_activity(request, course_slug):
     else:
         form = NumericActivityForm()
     context = {'course': course, 'form': form, 'form_type': FORMTYPE['add']}
-    return render_to_response('grades/add_numeric_activity.html', context, context_instance=RequestContext(request))
+    return render_to_response('grades/numeric_activity_form.html', context, context_instance=RequestContext(request))
 
 def _create_activity_formdatadict(activity):
     if not [activity for activity_type in ACTIVITY_TYPES if isinstance(activity, activity_type)]:
@@ -110,10 +110,10 @@ def edit_activity(request, course_slug, activity_slug):
                 form = LetterActivityForm(datadict)
         if isinstance(activity, NumericActivity):
             context = {'course': course, 'activity': activity, 'form': form, 'form_type': FORMTYPE['edit']}
-            return render_to_response('grades/add_numeric_activity.html', context, context_instance=RequestContext(request))
+            return render_to_response('grades/numeric_activity_form.html', context, context_instance=RequestContext(request))
         elif isinstance(activity, LetterActivity):
             context = {'course': course, 'activity': activity, 'form': form, 'form_type': FORMTYPE['edit']}
-            return render_to_response('grades/add_letter_activity.html', context, context_instance=RequestContext(request))
+            return render_to_response('grades/letter_activity_form.html', context, context_instance=RequestContext(request))
         
     else:
         raise Http404
@@ -141,7 +141,7 @@ def add_letter_activity(request, course_slug):
         form = LetterActivityForm()
     activities = course.activity_set.all()
     context = {'course': course, 'form': form, 'form_type': FORMTYPE['add']}
-    return render_to_response('grades/add_letter_activity.html', context, context_instance=RequestContext(request))
+    return render_to_response('grades/letter_activity_form.html', context, context_instance=RequestContext(request))
 
 @requires_course_staff_by_slug
 def delete_activity_review(request, course_slug, activity_slug):

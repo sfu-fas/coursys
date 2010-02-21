@@ -5,7 +5,7 @@
 Add Numeric Graded Activity
 {% endifequal %}
 {% ifequal form_type 'edit' %}
-Edit Letter Graded Activity
+Edit Numeric Graded Activity
 {% endifequal %}
 {% endblock %}
 
@@ -61,7 +61,7 @@ $(document).ready(function() {
                 {% ifequal form_type 'edit' %}{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}{% endifequal %}" method="post">
         <fieldset>
             <legend>Activity Info</legend>
-            <p class="requireindicator"><img src="{{MEDIA_URL}}/icons/required_star.gif" alt="required" />&nbsp;Indicate required field</p>
+            <p class="requireindicator"><img src="{{MEDIA_URL}}/icons/required_star.gif" alt="required" />&nbsp;Indicates required field</p>
             <ul>
                 <li>
                     {{ form.name.label_tag }}

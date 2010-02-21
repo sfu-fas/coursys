@@ -56,11 +56,11 @@ $(document).ready(function() {
         {{ form.non_field_errors }}
     </p>
     {% endif %}
-    <form action="{% ifequal form_type 'add' %}{% url grades.views.add_numeric_activity course_slug=course.slug %}{% endifequal %}
+    <form action="{% ifequal form_type 'add' %}{% url grades.views.add_letter_activity course_slug=course.slug %}{% endifequal %}
                 {% ifequal form_type 'edit' %}{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}{% endifequal %}" method="post">
         <fieldset>
             <legend>Activity Info</legend>
-            <p class="requireindicator"><img src="{{MEDIA_URL}}/icons/required_star.gif" alt="required" />&nbsp;Indicate required field</p>
+            <p class="requireindicator"><img src="{{MEDIA_URL}}/icons/required_star.gif" alt="required" />&nbsp;Indicates required field</p>
             <ul>
                 <li>
                     {{ form.name.label_tag }}
