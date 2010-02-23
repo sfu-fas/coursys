@@ -117,6 +117,15 @@ table.display td.center {
     text-align: center;
 }
 
+table.display td textarea{
+	width: 180px;
+	height: 60px;
+}
+
+table.display td select{
+	width: 100px;
+}
+
 /* DataTables row classes */
 tr.odd {
     background-color: #E2E4FF;
@@ -235,8 +244,16 @@ table.info {
   border-color: #ccc;
   width: 100%;
 }
-#tablecontainer {
+#table_container {
   width: 600px;
+}
+
+#table_container p.errorindicator {
+	border: 2px solid red;
+    padding: 0.5em;
+    background-color: #fffead;
+    color: red;
+    margin-bottom: 1em;
 }
 
 #form_container p.errorindicator, #form_container p.successindicator, #form_container p.warningindicator {
@@ -404,6 +421,48 @@ fieldset #editbutton a.button:hover{
     margin-left: 0em;
 }
 
+/* marking style */
+.marking_a
+{
+font-weight:bold;
+color:black;
+background-color:#FFCC33;
+width:160px;
+text-transform:capitalize;
+}
+
+.marking_a a:hover,.marking_a a:active
+{
+background-color:#FF9900;
+margin: 10;  
+}
+
+#marking_container .receiver
+{
+margin: 10px 10px;
+}
+
+#marking_container input[type="text"]{
+ 	width: 120px;
+}
+
+#marking_container textarea{
+	width: 400px;
+	height: 80px;
+}
+
+#marking_container .common_problems{
+	float: right;
+	background-color: #D0D0D0;
+	width: auto;
+	height: 25px;
+	padding: 4px;
+	margin: 10px;
+}
+
+#marking_container .requireindicator{
+	display: none;
+}
 
 /* navigator style for selecting different form */
 #form_nav {

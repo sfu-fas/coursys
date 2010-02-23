@@ -50,7 +50,6 @@ class StudentActivityMark(ActivityMark):
     Marking of one student on one numeric activity 
     """        
     numeric_grade = models.OneToOneField(NumericGrade, null = False)
-    letter_grade = models.OneToOneField(LetterGrade, null = True)
     
     def __unicode__(self):
         # get the student and the activity
@@ -71,7 +70,7 @@ class StudentActivityMark(ActivityMark):
     def setMark(self, grade):
         """         
         Set the mark
-e       """
+        """
         self.numeric_grade.value = grade
         self.numeric_grade.flag = 'GRAD'
         self.numeric_grade.save()            

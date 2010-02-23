@@ -1,11 +1,12 @@
 {% extends "marking/base.html" %}
+{% load course_display %}
 
 {% block marking_header_extra %}
 <script type="text/javascript">
 function append_problem(n, content)
 {   
 	var comments = document.querySelectorAll("textarea");
-	var oldconent = comments[n-1].value;
+	var oldconent = comments[n-1].value;	
 	comments[n-1].value += (oldconent == '' ? '' : '; ') + content;
 }
 </script>
@@ -16,52 +17,65 @@ function append_problem(n, content)
 {% block h1 %}{{course.name}}: {{activity.name}} Marking {% endblock %}
 
 {% block content %}
+     
+<div id = "form_container">
+<div id = "marking_container">
+{% if error_info %}
+   <p class="errorindicator">
+      <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
+      {{error_info}}
+   </p>	   
+ {% endif %}
 
-<form class = "marking_form" action="{% url marking.views.marking course_slug=course.slug, activity_short_name=activity.short_name %}" method="POST" enctype="multipart/form-data">  
-	
-	 <div class = "receiv">
-	 {{receiver_form.as_p}}
-	 </div>
-	
-	 {% for entry in mark_components %}        
-	     <div class = "comp">
-	     <p class = "marking_title">{{entry.component.title}}:  {{entry.component.description}}</p>     
-	     {% for field in entry.form %} 
-	      	{% ifequal field.name "value" %}	      	    
-	      		<b class = "mark">{{field}} Out of {{entry.component.max_mark}}</b>      		
-	      	{% else %}
-	      		{{ field.label_tag }}: {{ field }}
-	      	{% endifequal %}  
-	      	{% if field.errors %}	            
-			      <img src="{{MEDIA_URL}}/icons/cross.png" />
-			{% endif %}        	
-	     {% endfor %}
-	     <p class = "common_problems">
-	     {% with forloop.counter as pos %}
-	     <label>common problems: </label>	     
-	     {% for problem in entry.common_problems %}
-	     	<input type = "button" value = {{problem.title}} OnClick = "append_problem({{pos}}, '{{problem.description}}');"/>	 
-	     {% empty %}	     
-	     None    	     
-	     {% endfor %}
-	     {% endwith %}
-	     </p>	     	     
-	     </div> 
+<form action="{% url marking.views.marking course_slug=course.slug, activity_short_name=activity.short_name %}" method="POST" enctype="multipart/form-data">  
+     <div class = "receiver">
+	 {{receiver_form}}
+	 </div>	
+	 {% for entry in mark_components %}  	     
+	     <fieldset>
+	     <legend>{{entry.component.title}}</legend> 
+		     <ul>
+		        <li class = "common_problems">
+			    {% with forloop.counter as pos %}
+			    <b>Common problems:</b>     
+			    {% for problem in entry.common_problems %}
+			        <input type = "button" value = {{problem.title}} OnClick = "append_problem({{pos}}, '{{problem.description}}');"/>	 
+			    {% empty %}	     
+			    None    	     
+			    {% endfor %}
+			    {% endwith %}
+			    </li>	     		       
+		        <li class = "view">
+		      		<div class="inputfield">		      		 
+		        	Comment {{ entry.form.comment }}
+		      		{% if entry.form.comment.errors %}
+		      		<div class="errortext">
+		      		<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>&nbsp;{{entry.form.comment.errors.0}}
+		      		</div>
+		      		{% endif %}
+		      		</div>			      	  	
+				</li>
+				<li class = "view"> 
+		            <div class = "inputfield">
+		        	Mark {{entry.form.value}} Out of {{entry.component.max_mark}}
+		        	{% if entry.form.value.errors %}
+		        	<div class="errortext">
+		        	<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>&nbsp;{{entry.form.value.errors.0}}
+		        	</div>
+		        	{% endif %}
+		       		</div>
+		        </li>				
+		 	</ul>   	 
+	  </fieldset>
      {% empty %}
-	   	<h2> No Components to Mark</h2>
-	 {% endfor %}
-	 
-	 <div class = "additional">
-	 <p class = "marking_title">Additional Information</p>  
-	 {{additional_info_form.as_p}}
-     </div>
-     
-     {% if error_info %}
-   		<h2 style = "color:red">Can not save: {{error_info}}<h2>
-     {% endif %}
-     
-   <input type="submit" value="Save" />  
-   <input type="button" value="Reset" onClick="location.href='{% url marking.views.marking course_slug=course.slug, activity_short_name=activity.short_name %}'">
+	   	<h3> No Components to Mark</h3>
+	 {% endfor %}	 
+	 <fieldset>
+	 <legend>Additional Information</legend>  
+	 {{additional_info_form|display_form}}
+	 </fieldset>     
 </form>
+</div>
+</div>
 
 {% endblock %}
