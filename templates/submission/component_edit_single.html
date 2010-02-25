@@ -1,0 +1,68 @@
+{% extends "submission/base.html" %}
+{% load course_display %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block h1 %}Edit Component for {{activity.name}}{% endblock %}
+
+{% block breadcrumbs %}
+<li><a href="http://www.sfu.ca/">SFU</a></li>
+<li>&gt; <a href="http://www.cs.sfu.ca/">Computing Science</a></li>
+<li>&gt; <a href="/">Course Management</a></li>
+<li>&gt; <a href="/submission">Submission</a></li>
+<li>&gt; <a href="{% url grades.views.course course_slug=course.slug %}">{{course.name}}</a></li>
+<li>&gt; <a href="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug%}">{{activity.short_name}}</a></li>
+{% block breadcrumbs_extra %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+<a href="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug %}" class="button">Back</a>
+
+
+    <h2>Change Component Type:</h2>
+{% if component %}
+    <ul class="add_nav">
+        <li class="warning"><img src="{{MEDIA_URL}}icons/exclamation.png" alt="Warning" />&nbsp;Changing type takes effect immediately and may cause loss of property (e.g, max size for an archive file)</li>
+        <li><a href="?type={{type}}&id={{edit_id}}&to_type=Archive" class="button"	{% ifequal type 'Archive' %}id="current_type"{% endifequal %}>Archive</a></li>
+        <li><a href="?type={{type}}&id={{edit_id}}&to_type=URL" class="button"	{% ifequal type 'URL' %}id="current_type"{% endifequal %}>URL</a></li>
+        <li><a href="?type={{type}}&id={{edit_id}}&to_type=Cpp" class="button"	{% ifequal type 'Cpp' %}id="current_type"{% endifequal %}>C/C++</a></li>
+        <li><a href="?type={{type}}&id={{edit_id}}&to_type=Java" class="button"	{% ifequal type 'Java' %}id="current_type"{% endifequal %}>Java</a></li>
+        <li><a href="?type={{type}}&id={{edit_id}}&to_type=PlainText" class="button"{% ifequal type 'PlainText' %}id="current_type"{% endifequal %}>Plain Text</a></li>
+    </ul>
+    
+{% endif %}
+
+    <div id="form_container">
+{% if not component %}
+    <p class="errorindicator">
+        <img src="{{MEDIA_URL}}icons/action_delete.png" alt="error" />
+        The component you specified is invalid.
+    </p>
+{% else %}
+    <div id="edit_single_submission_component_form_container">
+
+    {% if form.errors %}
+    <p class="errorindicator">
+        <img src="{{MEDIA_URL}}icons/action_delete.png" alt="error" />
+        Please correct the errors below.
+    </p>
+    {% endif %}
+    {% if new_added %}
+    <p class="successindicator">
+        <img src="{{MEDIA_URL}}icons/action_check.png" alt="check" />
+        New Component added successfully.
+    </p>
+    {% endif%}
+
+    <form action="" method="post">
+    <fieldset>
+            <legend>{{component.title}}</legend>
+            {{form|display_form:'Update'}}
+        </fieldset>
+    </form>
+    </div>
+
+    </div>
+{% endif %}
+{% endblock %}

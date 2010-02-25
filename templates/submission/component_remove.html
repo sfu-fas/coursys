@@ -1,0 +1,45 @@
+{% extends "submission/base.html" %}
+{% load course_display %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block h1 %}Component Removal for {{activity.name}}{% endblock %}
+
+{% block breadcrumbs %}
+<li><a href="http://www.sfu.ca/">SFU</a></li>
+<li>&gt; <a href="http://www.cs.sfu.ca/">Computing Science</a></li>
+<li>&gt; <a href="/">Course Management</a></li>
+<li>&gt; <a href="/submission">Submission</a></li>
+<li>&gt; <a href="{% url grades.views.course course_slug=course.slug %}">{{course.name}}</a></li>
+<li>&gt; <a href="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug%}">{{activity.short_name}}</a></li>
+{% block breadcrumbs_extra %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+<a href="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug %}" class="button">Back</a>
+<h2>You are about to remove:</h2>
+
+<div id="form_container">
+{% if not component %}
+    <p class="errorindicator">
+        <img src="{{MEDIA_URL}}icons/action_delete.png" alt="error" />
+        You havn't specify which component to remove.
+    </p>
+{% else %}
+    <form action="" method="post">
+    <fieldset>
+            <legend>{{component.title}}</legend>
+            <ul>
+                <li class="view"><label>Type:</label>{{component.type}}</li>
+                <li class="view"><label>Description:</label>{{component.description}}</li>
+                {% if component.max_size %}<li class="view"><label>Maximum Size:</label>{{component.max_size}} KB</li>{% endif %}
+                {% if component.max_length %}<li class="view"><label>Maximum Length:</label>{{component.max_length}}</li>{% endif %}
+            </ul>
+        </fieldset>
+        <input type="submit" class="submit" value="Confirm Removal"/>
+    </form>
+    <br/>
+{% endif %}
+</div>
+{% endblock %}

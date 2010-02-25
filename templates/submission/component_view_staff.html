@@ -19,26 +19,12 @@
 {% block content %}
 <a class="button" href="add_component/" id="edit_submission_component_add_button">Add Component</a>
 <div id="form_container">
-<div id="edit_submission_component_container">
-    {% if errors %}
-    <p class="errorindicator">
-        <img src="{{MEDIA_URL}}icons/action_delete.png" alt="error" />
-        Please correct the errors below.
-    </p>
-    {% endif %}
-    {% if updated %}
-    <p class="successindicator">
-        <img src="{{MEDIA_URL}}icons/action_check.png" alt="check" />
-        Components updated successfully.
-    </p>
-    {% endif%}
-
-    {% ifequal form_set|length 0 %}
+{% ifequal component_list|length 0 %}
     <p class="warningindicator">
         <img src="{{MEDIA_URL}}icons/exclamation.png" alt="warning" />
         No component found.
     </p>
-    {% else %}
+{% else %}
     <form action="" method="post">
     {% for component in component_list %}
     <fieldset>
@@ -49,15 +35,14 @@
             <li class="view"><label>Description:</label>{{component.description}}</li>
             {% if component.max_size %}<li class="view"><label>Maximum Size:</label>{{component.max_size}} KB</li>{% endif %}
             {% if component.max_length %}<li class="view"><label>Maximum Length:</label>{{component.max_length}}</li>{% endif %}
-            <li id="editbutton"><a class="button" href="">Edit</a><a class="button" href="">Remove</a></li>
+            <li id="editbutton"><a class="button" href="remove/?type={{component.type}}&id={{component.id}}">Remove</a><a class="button" href="edit/?type={{component.type}}&id={{component.id}}">Edit</a></li>
         </ul>
     </fieldset>
     {% endfor %}
     <input type="submit" class="submit" value="Update Position"/>
     </form>
-    {% endifequal %}
+{% endifequal %}
     <br/>
-</div>
 </div>
 
 

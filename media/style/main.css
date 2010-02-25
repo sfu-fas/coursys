@@ -371,6 +371,12 @@ fieldset label {
 .add_nav li {
     float: left;
 }
+.add_nav .warning {
+    margin-bottom: 0.2em;
+    width:100%;
+    clear:both;
+    color:grey;
+}
 /* requried_star style in the label */
 fieldset label em {
     position: absolute;
@@ -400,12 +406,14 @@ fieldset .view label {
 }
 fieldset #editbutton a.button{
     font-size: 0.5em;
-    float: left;
+    float: right;
 }
 fieldset #editbutton a.button:hover{
     border: 0;
 }
-
+fieldset .hidden {
+    display: none;
+}
 
 /*
  *  containers
@@ -414,8 +422,8 @@ fieldset #editbutton a.button:hover{
 #add_submission_component_container {
     clear: left;
 }
-#edit_submission_component_container {
-    margin: 1em 0 0.5em 0;
+#edit_single_submission_component_form_container {
+    margin: 5.5em 0 0.5em 0;
 }
 #edit_submission_component_add_button {
     margin-left: 0em;

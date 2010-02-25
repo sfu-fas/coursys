@@ -17,7 +17,7 @@ class ArchiveComponentForm(ComponentForm):
         model = ArchiveComponent
         fields = ['title', 'description', 'max_size', 'position']
         widgets = {
-            'description': Textarea(attrs={'cols': 60, 'rows': 5}),
+            'description': Textarea(attrs={'cols': 50, 'rows': 5}),
             'max_size': TextInput(attrs={'style':'width:5em'}),
             'position': TextInput(attrs={'maxlength':'3', 'style':'width:2em'}),
         }
@@ -27,7 +27,7 @@ class URLComponentForm(ComponentForm):
         model = URLComponent
         fields = ['title', 'description', 'position']
         widgets = {
-            'description': Textarea(attrs={'cols':60, 'rows':5}),
+            'description': Textarea(attrs={'cols':50, 'rows':5}),
             'position': TextInput(attrs={'maxlength':'3', 'style':'width:2em'}),
         }
 
@@ -36,7 +36,7 @@ class CppComponentForm(ComponentForm):
         model = CppComponent
         fields = ['title', 'description', 'position']
         widgets = {
-            'description': Textarea(attrs={'cols':60, 'rows':5}),
+            'description': Textarea(attrs={'cols':50, 'rows':5}),
             'position': TextInput(attrs={'maxlength':'3', 'style':'width:2em'}),
         }
 
@@ -45,7 +45,7 @@ class JavaComponentForm(ComponentForm):
         model = JavaComponent
         fields = ['title', 'description', 'position']
         widgets = {
-            'description': Textarea(attrs={'cols':60, 'rows':5}),
+            'description': Textarea(attrs={'cols':50, 'rows':5}),
             'position': TextInput(attrs={'maxlength':'3', 'style':'width:2em'}),
         }
 
@@ -54,7 +54,7 @@ class PlainTextComponentForm(ComponentForm):
         model = PlainTextComponent
         fields = ['title', 'description', 'max_length', 'position']
         widgets = {
-            'description': Textarea(attrs={'cols':60, 'rows':5}),
+            'description': Textarea(attrs={'cols':50, 'rows':5}),
             'max_length': TextInput(attrs={'style':'width:5em'}),
             'position': TextInput(attrs={'maxlength':'3', 'style':'width:2em'}),
         }

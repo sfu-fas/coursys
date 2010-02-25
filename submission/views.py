@@ -43,6 +43,10 @@ def _show_components_student(request, course_slug, activity_slug):
 
 @login_required
 def _show_components_staff(request, course_slug, activity_slug):
+    """
+    Show all the components of this activity
+    Responsible for updating position
+    """
     course = get_object_or_404(CourseOffering, slug = course_slug)
     activity = get_object_or_404(course.activity_set,slug = activity_slug)
 
@@ -53,33 +57,150 @@ def _show_components_staff(request, course_slug, activity_slug):
         for component in component_list:
             counter = counter + 1
             t = request.POST.get('' + str(counter) + '_position');
-            component.position = t
-            component.save()
+            #in case t is not a number
+            try:
+                component.position = int(t)
+                component.save()
+            except:
+                pass
         return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
 
     
     component_list = select_all_components(activity)
-    form_list = []
-    #for each component, build its form
-    for component in component_list:
-        form = None
-        type = component.type
-        if type == 'Archive':
-            form = ArchiveComponentForm(instance=component)
-        elif type == 'URL':
-            form = URLComponentForm(instance=component)
-        elif type == 'Cpp':
-            form = CppComponentForm(instance=component)
-        elif type == 'PlainText':
-            form = PlainTextComponentForm(instance=component)
-        elif type == 'Java':
-            form = JavaComponentForm(instance=component)
-        #if the form exists, add it to the list
-        if form != None:
-            form_list.append(form)
-    return render_to_response("submission/component_edit.html",
-        {"course":course, "activity":activity, "form_list":form_list, "component_list":component_list},
+    return render_to_response("submission/component_view_staff.html",
+        {"course":course, "activity":activity, "component_list":component_list},
         context_instance=RequestContext(request))
+
+
+@requires_course_staff_by_slug
+def confirm_remove(request, course_slug, activity_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(course.activity_set, slug = activity_slug)
+    component_list = select_all_components(activity)
+    
+    #show confirm message
+    del_id = request.GET.get('id')
+    del_type = request.GET.get('type')
+    component = None
+    if del_id == None or del_type == None:
+        #url is invalid
+        pass
+    else:
+        #make sure type, id, and activity is correct
+        for c in component_list:
+            if str(c.type) == del_type and str(c.id) == del_id and c.activity == activity:
+                component = c
+                break
+
+    #if confirmed
+    if request.method == 'POST' and component != None:
+        component.delete()
+        return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
+
+    return render_to_response("submission/component_remove.html",
+            {"course":course, "activity":activity, "component":component, "del_id":del_id},
+            context_instance=RequestContext(request))
+
+
+
+@requires_course_staff_by_slug
+def edit_single(request, course_slug, activity_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(course.activity_set, slug = activity_slug)
+    component_list = select_all_components(activity)
+
+    #get component
+    edit_id = request.GET.get('id')
+    edit_type = request.GET.get('type')
+    component = None
+    if edit_id == None or edit_type == None:
+        #url is invalid
+        pass
+    else:
+        #make sure type, id, and activity is correct
+        for c in component_list:
+            if str(c.type) == edit_type and str(c.id) == edit_id and c.activity == activity:
+                component = c
+                break
+    #if component is invalid
+    if component == None:
+        return render_to_response("submission/component_edit_single.html",
+            {"course":course, "activity":activity, "component":component},
+            context_instance=RequestContext(request))
+
+    #get type change
+    type = request.GET.get('to_type')
+    #if no type change
+    if type == None:
+        pass
+    elif type == component.type:
+        #no change
+        return HttpResponseRedirect("?type="+type+"&id="+str(component.id))
+    else:
+        #if need to change type
+        if type == 'Archive':
+            new_component = ArchiveComponent()
+        elif type == 'URL':
+            new_component = URLComponent()
+        elif type == 'Cpp':
+            new_component = CppComponent()
+        elif type == 'PlainText':
+            new_component = PlainTextComponent()
+        elif type == 'Java':
+            new_component = JavaComponent()
+        else:
+            #to_type is invalid, just ignore
+            new_component = component
+        #copy a new component
+        new_component.activity = component.activity
+        new_component.title = component.title
+        new_component.description = component.description
+        new_component.position = component.position
+        #save new component
+        component.delete()
+        new_component.save()
+        #refresh the form
+        return HttpResponseRedirect("?type="+new_component.type+"&id="+str(new_component.id))
+        
+    
+    #make form
+    form = None
+    new_form = None
+    if edit_type == 'Archive':
+        form = ArchiveComponentForm(instance=component)
+        new_form = ArchiveComponentForm(request.POST)
+    elif edit_type == 'URL':
+        form = URLComponentForm(instance=component)
+        new_form = URLComponentForm(request.POST)
+    elif edit_type == 'Cpp':
+        form = CppComponentForm(instance=component)
+        new_form = CppComponentForm(request.POST)
+    elif edit_type == 'PlainText':
+        form = PlainTextComponentForm(instance=component)
+        new_form = PlainTextComponentForm(request.POST)
+    elif edit_type == 'Java':
+        form = JavaComponentForm(instance=component)
+        new_form = JavaComponentForm(request.POST)
+        
+    #if form submitted
+    if request.method == 'POST':
+        if new_form.is_valid():
+            new_component = new_form.save(commit=False)
+            new_component.activity = activity
+            new_component.id = component.id
+            if new_component.position == None:
+                count = len(select_all_components(activity))
+                new_component.position = count*10 + 10
+            new_component.save()
+            return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
+        else:
+            form = new_form
+
+    #render the page
+    return render_to_response("submission/component_edit_single.html",
+            {"course":course, "activity":activity, "component":component, "edit_id":edit_id,
+             "type":edit_type, "form":form},
+            context_instance=RequestContext(request))
 
 @requires_course_staff_by_slug
 def add_component(request, course_slug, activity_slug, new_added=False):
@@ -89,7 +210,7 @@ def add_component(request, course_slug, activity_slug, new_added=False):
     #default, Archive
     type = request.GET.get('type')
     if type == None:
-	type = 'Archive'
+        type = 'Archive'
 
     if type == 'Archive':
         form = ArchiveComponentForm()
@@ -118,12 +239,11 @@ def add_component(request, course_slug, activity_slug, new_added=False):
             new_component.activity = activity
             if new_component.position == None:
                 count = len(select_all_components(activity))
-                new_component.position = count + 1
+                new_component.position = count*10 + 10
             new_component.save()
             new_added = True
-            request.method = 'HAHA'
-            #TODO: how to add a redirect?
-            #return add_component(request, course_slug, activity_slug, new_added=True)
+            #TODO: how to add a redirect? blow doesn't work
+            #return HttpResponseRedirect(reverse(add_component, args=[course_slug, activity_slug, True]))
         else:
             form = new_form
     return render_to_response("submission/component_add.html", 

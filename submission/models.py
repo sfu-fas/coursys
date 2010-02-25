@@ -34,7 +34,7 @@ class SubmissionComponent(models.Model):
     class Meta:
         ordering = ['position']
     def __unicode__(self):
-        return "%s %s %s"%(self.title, self.position, self.description)
+        return "%s[%s]%s"%(self.title, self.type, self.description)
 
 class URLComponent(SubmissionComponent):
     "A URL submission component"
