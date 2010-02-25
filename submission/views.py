@@ -22,13 +22,13 @@ def index(request):
 def show_components(request, course_slug, activity_slug):
     #if course staff
     if is_course_staff_by_slug(request.user, course_slug):
-	return _show_components_staff(request, course_slug, activity_slug)
+        return _show_components_staff(request, course_slug, activity_slug)
     #else course member
     elif is_course_member_by_slug(request.user, course_slug):
-	return _show_components_student(request, course_slug, activity_slug)
+        return _show_components_student(request, course_slug, activity_slug)
     #else not found, return 403
     else:
-	resp = render_to_response('403.html', context_instance=RequestContext(request))
+        resp = render_to_response('403.html', context_instance=RequestContext(request))
         resp.status_code = 403
         return resp
 
@@ -46,11 +46,18 @@ def _show_components_staff(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug = course_slug)
     activity = get_object_or_404(course.activity_set,slug = activity_slug)
 
+    #if POST, update the positions
     if request.method == 'POST':
-        pass
-    else:
-        pass
+        component_list = select_all_components(activity)
+        counter = 0
+        for component in component_list:
+            counter = counter + 1
+            t = request.POST.get('' + str(counter) + '_position');
+            component.position = t
+            component.save()
+        return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
 
+    
     component_list = select_all_components(activity)
     form_list = []
     #for each component, build its form

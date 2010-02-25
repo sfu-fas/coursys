@@ -74,7 +74,7 @@ def select_all_components(activity):
     components.sort()
     count = 1;
     for component in components:
-        component.position = count
+        component.position = count*10
         count = count + 1
         component.save()
     return components
