@@ -315,6 +315,7 @@ fieldset .submit, form .submit {
     border: 1px solid #FFF;
     color: #FFF;
     float: right;
+    padding: 0.3em 0.5em 0.3em 0.5em;
 }
 fieldset ul {
     list-style: none;
@@ -375,7 +376,14 @@ fieldset label {
     margin-bottom: 0.2em;
     width:100%;
     clear:both;
-    color:grey;
+    color: gray;
+}
+#main .add_nav .button {
+    background-color: #b4b4aa;
+    width: 9em;
+}
+#main .add_nav #current_type {
+    background-color: #0054a6;
 }
 /* requried_star style in the label */
 fieldset label em {
@@ -405,7 +413,6 @@ fieldset .view label {
     font-weight: bold;
 }
 fieldset #editbutton a.button{
-    font-size: 0.5em;
     float: right;
 }
 fieldset #editbutton a.button:hover{
