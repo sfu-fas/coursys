@@ -31,16 +31,21 @@ def show_components(request, course_slug, activity_slug):
         resp = render_to_response('403.html', context_instance=RequestContext(request))
         resp.status_code = 403
         return resp
-
+'student submission'
 @login_required
 def _show_components_student(request, course_slug, activity_slug):
+    """
+    Show all the component submission history of this activity
+    """
     course = get_object_or_404(CourseOffering, slug = course_slug)
     activity = get_object_or_404(course.activity_set,slug = activity_slug)
     # TODO: finish student's view
+    component_list = select_all_submitted_components(activity)
+    print component_list
     return render_to_response("submission/component_view.html",
 	{"course":course, "activity":activity},
 	context_instance=RequestContext(request))
-
+'staff submission configuratiton'
 @login_required
 def _show_components_staff(request, course_slug, activity_slug):
     """

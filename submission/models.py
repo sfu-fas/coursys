@@ -3,6 +3,7 @@ from grades.models import Activity
 from coredata.models import Member
 #from courses.grades.models import slug
 from groups.models import Group
+from datetime import datetime
 
 
 STATUS_CHOICES = [
@@ -104,6 +105,14 @@ class SubmittedComponent(models.Model):
     Part of a student's/group's submission
     """
     submission = models.ForeignKey(Submission)
+    submit_time = models.DateTimeField(auto_now_add = True)
+    def get_late_time():
+        "return how late the submission is"
+        time = submit_time - activity.due_date
+        if time < datetime.datedelta():
+            return 0
+        else:
+            return time
 
 class SubmittedURL(SubmittedComponent):
     component = models.ForeignKey(URLComponent, null=False)
@@ -120,3 +129,20 @@ class SubmittedPlainText(SubmittedComponent):
 class SubmittedJava(SubmittedComponent):
     component = models.ForeignKey(CppComponent, null=False)
     java = models.FileField(upload_to="submittedjava") # TODO: change to a more secure directory
+
+
+SUBMITTED_TYPES = [SubmittedURL, SubmittedArchive, SubmittedCpp, SubmittedPlainText, SubmittedJava]
+def select_all_submitted_components(activity):
+    submitted_component = [] # list of submitted component
+    found = set() # keep track of what has been found so we can exclude less-specific duplicates.
+    for SubmittedType in SUBMITTED_TYPES:
+        subs = list(SubmittedType.objects.filter(submission__activity = activity))
+        submitted_component.extend(s for s in subs if s.id not in found)
+        found.update( (s.id for s in subs) )
+
+    submitted_component.sort()
+    return submitted_component
+
+def select_students_submitted_components(activity, userid):
+    submitted_component = select_all_submitted_components(activity)
+    return submitted_component.filter(creater__person__userid = userid)
