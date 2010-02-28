@@ -6,6 +6,7 @@ from django.core.urlresolvers import reverse
 from coredata.models import *
 from courselib.auth import requires_faculty_member, requires_course_staff_by_slug
 from grades.models import NumericActivity
+from log.models import *
 from models import *
 from django.forms.models import modelformset_factory    
 
@@ -246,6 +247,12 @@ def marking(request, course_slug, activity_short_name):
             for cmp_mark in cmp_marks:
                 cmp_mark.activity_mark = stu_activity_mark
                 cmp_mark.save()
+                
+            #add the log entry    
+            l = LogEntry(userid=request.user.username, \
+              description="edited grade on %s for %s changed to %s" % (activity, student.userid, total_mark),\
+              related_object=ngrade )
+            l.save()
                                     
             return HttpResponseRedirect(reverse('marking.views.list_activities', \
                                                 args=(course_slug,)))       
