@@ -93,7 +93,7 @@ def confirm_remove(request, course_slug, activity_slug):
     else:
         #make sure type, id, and activity is correct
         for c in component_list:
-            if str(c.type) == del_type and str(c.id) == del_id and c.activity == activity:
+            if str(c.get_type()) == del_type and str(c.id) == del_id and c.activity == activity:
                 component = c
                 break
 
@@ -116,6 +116,7 @@ def edit_single(request, course_slug, activity_slug):
 
     #get component
     edit_id = request.GET.get('id')
+    #TODO: if id is unique, probably don't need to pass type in URL
     edit_type = request.GET.get('type')
     component = None
     if edit_id == None or edit_type == None:
@@ -124,7 +125,7 @@ def edit_single(request, course_slug, activity_slug):
     else:
         #make sure type, id, and activity is correct
         for c in component_list:
-            if str(c.type) == edit_type and str(c.id) == edit_id and c.activity == activity:
+            if str(c.get_type()) == edit_type and str(c.id) == edit_id and c.activity == activity:
                 component = c
                 break
     #if component is invalid
@@ -138,11 +139,11 @@ def edit_single(request, course_slug, activity_slug):
     #if no type change
     if type == None:
         pass
-    elif type == component.type:
+    elif type == component.get_type():
         #no change
         return HttpResponseRedirect("?type="+type+"&id="+str(component.id))
     else:
-        #if need to change type
+    #if need to change type
         if type == 'Archive':
             new_component = ArchiveComponent()
         elif type == 'URL':
@@ -157,6 +158,7 @@ def edit_single(request, course_slug, activity_slug):
             #to_type is invalid, just ignore
             new_component = component
         #copy a new component
+        new_component.id = component.id
         new_component.activity = component.activity
         new_component.title = component.title
         new_component.description = component.description
@@ -165,7 +167,7 @@ def edit_single(request, course_slug, activity_slug):
         component.delete()
         new_component.save()
         #refresh the form
-        return HttpResponseRedirect("?type="+new_component.type+"&id="+str(new_component.id))
+        return HttpResponseRedirect("?type="+new_component.get_type()+"&id="+str(new_component.id))
         
     
     #make form

@@ -1,5 +1,5 @@
 {% extends "submission/base.html" %}
-{% load course_display %}
+{% load submission_filters %}
 
 {% block headextra %}
 {% endblock %}
@@ -31,11 +31,11 @@
         <legend>{{component.title}}</legend>
         <ul>
             <li class="position">Position:<input type="text" name="{{forloop.counter}}_position" value="{{component.position}}" maxlength="3em" style="width:3em"/></li>
-            <li class="view"><label>Type:</label>{{component.type}}</li>
+            <li class="view"><label>Type:</label>{{component|get_component_type}}</li>
             <li class="view"><label>Description:</label>{{component.description}}</li>
             {% if component.max_size %}<li class="view"><label>Maximum Size:</label>{{component.max_size}} KB</li>{% endif %}
             {% if component.max_length %}<li class="view"><label>Maximum Length:</label>{{component.max_length}}</li>{% endif %}
-            <li id="editbutton"><a class="button" href="remove/?type={{component.type}}&id={{component.id}}">Remove</a><a class="button" href="edit/?type={{component.type}}&id={{component.id}}">Edit</a></li>
+            <li id="editbutton"><a class="button" href="remove/?type={{component|get_component_type}}&id={{component.id}}">Remove</a><a class="button" href="edit/?type={{component|get_component_type}}&id={{component.id}}">Edit</a></li>
         </ul>
     </fieldset>
     {% endfor %}
