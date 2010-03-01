@@ -110,6 +110,9 @@ class SubmittedComponent(models.Model):
     """
     submission = models.ForeignKey(StudentSubmission)
     submit_time = models.DateTimeField(auto_now_add = True)
+    def get_time(self):
+        "return the submit time of the component"
+        return self.submit_time.strftime("%Y-%m-%d %H:%M:%S")
     def get_late_time():
         "return how late the submission is"
         time = submit_time - activity.due_date
@@ -121,24 +124,51 @@ class SubmittedComponent(models.Model):
         return cmp(self.submit_time, other.submit_time)
     class Meta:
         ordering = ['submit_time']
+    def get_type(self):
+        "Return xxx of Submittedxxx as type"
+        class_name = self.__class__.__name__
+        return class_name[9:]
+    def get_size_in_kb(self):
+        res = int(self.get_size())/1024
+        return int(self.get_size())/1024
 
     
 
 class SubmittedURL(SubmittedComponent):
     component = models.ForeignKey(URLComponent, null=False)
     url = models.URLField(verify_exists=True)
+    def get_url(self):
+        return self.url
+    def get_size(self):
+        return None
 class SubmittedArchive(SubmittedComponent):
     component = models.ForeignKey(ArchiveComponent, null=False)
     archive = models.FileField(upload_to="submittedarchive") # TODO: change to a more secure directory
+    def get_url(self):
+        return self.archive.url
+    def get_size(self):
+        return self.archive.size
 class SubmittedCpp(SubmittedComponent):
     component = models.ForeignKey(CppComponent, null=False)
     cpp = models.FileField(upload_to="submittedcpp") # TODO: change to a more secure directory
+    def get_url(self):
+        return self.cpp.url
+    def get_size(self):
+        return self.cpp.size
 class SubmittedPlainText(SubmittedComponent):
     component = models.ForeignKey(CppComponent, null=False)
     text = models.CharField(max_length=3000)
+    def get_url(self):
+        return self.text.url
+    def get_size(self):
+        return self.text.size
 class SubmittedJava(SubmittedComponent):
     component = models.ForeignKey(CppComponent, null=False)
     java = models.FileField(upload_to="submittedjava") # TODO: change to a more secure directory
+    def get_url(self):
+        return self.java.url
+    def get_size(self):
+        return self.java.size
 
 
 SUBMITTED_TYPES = [SubmittedURL, SubmittedArchive, SubmittedCpp, SubmittedPlainText, SubmittedJava]
