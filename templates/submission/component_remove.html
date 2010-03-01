@@ -31,7 +31,7 @@
     <fieldset>
             <legend>{{component.title}}</legend>
             <ul>
-                <li class="view"><label>Type:</label>{{component|get_component_type}}</li>
+                <li class="view"><label>Type:</label>{{component.get_type}}</li>
                 <li class="view"><label>Description:</label>{{component.description}}</li>
                 {% if component.max_size %}<li class="view"><label>Maximum Size:</label>{{component.max_size}} KB</li>{% endif %}
                 {% if component.max_length %}<li class="view"><label>Maximum Length:</label>{{component.max_length}}</li>{% endif %}
