@@ -1,0 +1,84 @@
+{% extends "grades/base.html" %}
+
+{% block h1 %}Activity Information{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+    $(document).ready(function() {
+	oTable = $('#activities').dataTable({
+		"bJQueryUI": true,
+		"sPaginationType": "full_numbers",
+		"iDisplayLength" : 50
+	});
+    });
+</script>
+{% endblock %}
+
+{% block breadcrumbs_extra %}
+<li>&gt; <a href="{% url grades.views.course course_slug=course.slug %}">{{ course.name }}</a></li>
+<li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li>
+{% endblock %}
+
+
+{% block content %}
+<div id="table_container">
+    
+    <table class="info">
+        <tbody>
+            <tr>
+                <th>Name:</th>
+                <td>
+                    {{activity.name}}
+                    <span>(<a href="{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}">Edit</a>) </span> 
+                    <span>(<a href="{% url grades.views.delete_activity_review course_slug=course.slug activity_slug=activity.slug %}">Delete</a>)</span>
+                </td>
+            </tr>
+            <tr>
+                <th>Short name:</th>
+                <td>{{activity.short_name}}</td>
+            </tr>
+            <tr>
+                <th>Status:</th>
+                <td>{{activity.get_status_display}}</td>
+            </tr>
+            <tr>
+                <th>Due date:</th>
+                <td>{{activity.due_date}}</td>
+            </tr>
+            <tr>
+                <th>Percentage:</th>
+                <td>{{activity.percent}}</td>
+            </tr>
+            {% if activity.max_grade %}
+            <tr>
+                <th>Maximum grade:</th>
+                <td>{{activity.max_grade}}</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+<div id="grades_container">
+    <h2>Student Grades</h2>
+    <table class="display" id="activities">
+        <thead>
+            <tr>
+                <th>Student Name</th>
+		<th>Student Number</th>
+		<th>Grade Status</th>
+		<th>Grade</th>
+            </tr>
+	</thead>
+        <tbody>
+	    {% for student_grade_info in student_grade_info_list %}
+	    <tr>
+		<td>{{ student_grade_info.name }}</td>
+		<td>{{ student_grade_info.emplid }}</td>
+		<td>{{ student_grade_info.grade_status }}</td>
+		<td>{{ student_grade_info.grade }}</td>
+	    </tr>
+	    {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

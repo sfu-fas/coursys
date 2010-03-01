@@ -9,11 +9,11 @@ FORMTYPE = {'add': 'add', 'edit': 'edit'}
 
 class NumericActivityForm(forms.Form):
     name = forms.CharField(max_length=30, label=mark_safe('Name:'+_required_star))
-    short_name = forms.CharField(max_length=15, label=mark_safe('Short name:'+_required_star))
-    status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS', label=mark_safe('Status:'+_required_star))
-    due_date = forms.DateTimeField(required=False, label='Due date:')
+    short_name = forms.CharField(max_length=15, label=mark_safe('Short name:' + _required_star))
+    status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS', label=mark_safe('Status:' + _required_star))
+    due_date = forms.DateTimeField(label=mark_safe('Due date:' + _required_star))
     percent = forms.DecimalField(max_digits=5, decimal_places=2, required=False, label='Percentage:')
-    max_grade = forms.DecimalField(max_digits=5, decimal_places=2, label=mark_safe('Maximum grade:'+_required_star))
+    max_grade = forms.DecimalField(max_digits=5, decimal_places=2, label=mark_safe('Maximum grade:' + _required_star))
     specify_numeric_formula = forms.BooleanField(label='Specify formula:', required=False)
     
     def __init__(self, *args, **kwargs):
@@ -57,7 +57,7 @@ class LetterActivityForm(forms.Form):
     name = forms.CharField(max_length=30, label=mark_safe('Name:'+_required_star))
     short_name = forms.CharField(max_length=15, label=mark_safe('Short name:'+_required_star))
     status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS', label=mark_safe('Status:'+_required_star))
-    due_date = forms.DateTimeField(required=False, label='Due date:')
+    due_date = forms.DateTimeField(label=mark_safe('Due date:' + _required_star))
     percent = forms.DecimalField(max_digits=5, decimal_places=2, required=False, label='Percentage:')
     specify_letter_formula = forms.BooleanField(label='Specify formula:', required=False)
     

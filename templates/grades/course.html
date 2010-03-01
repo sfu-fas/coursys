@@ -7,7 +7,8 @@
     $(document).ready(function() {
 	oTable = $('#activities').dataTable({
 		"bJQueryUI": true,
-		"sPaginationType": "full_numbers"
+		"sPaginationType": "full_numbers",
+                "iDisplayLength" : 50
 	});
     });
 </script>
@@ -30,18 +31,27 @@
         <thead>
             <tr>
                 <th>Activity</th>
+                <th>Percentage</th>
                 <th>Status</th>
                 <th>Due Date</th>
-                <th></th>
             </tr>
         </thead>
         <tbody>
-            {% for activity in activities %} 
+            {% for activity in activities %}
             <tr>
-                <td>{{ activity.name }}
-                {% if activity.percent %}
-                    &nbsp;({{ activity.percent }}%)
-                {% endif %}
+                <td>
+                    <strong>
+                        <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">{{ activity.name }}</a>
+                    </strong>
+                    <div class="row-actions">
+                        <span><a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">Info</a> | </span>
+                        <span><a href="#">Mark</a> | </span>
+                        <span><a href="{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}">Edit</a> | </span>
+                        <span><a href="{% url grades.views.delete_activity_review course_slug=course.slug activity_slug=activity.slug %}">Delete</a></span>
+                    </div>
+                </td>
+                <td>
+                    {{ activity.percent }}
                 </td>
                 {% ifequal activity.status 'RLS' %}
                 <td class="green">
@@ -59,19 +69,6 @@
                 </td>
                 {% endifequal %}
                 <td>{{ activity.due_date }}</td>
-                <td>
-                    <a href="{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}">Edit</a>&nbsp;
-                    <a href="{% url grades.views.delete_activity_review course_slug=course.slug activity_slug=activity.slug %}">
-                        Delete
-                    </a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td>No Activity</td>
-                <td></td>
-                <td></td>
-                <td></td>
             </tr>
             {% endfor %}
         </tbody>

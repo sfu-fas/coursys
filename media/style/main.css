@@ -128,7 +128,7 @@ table.display td select{
 
 /* DataTables row classes */
 tr.odd {
-    background-color: #E2E4FF;
+    background-color: #F5F5F5;
 }
 
 tr.even {
@@ -161,7 +161,16 @@ tr.even {
     float: right;
 }
 
-
+/* Row action in course activity page  */
+.row-actions {
+  visibility: hidden;
+}
+tr:hover .row-actions {
+  visibility: visible;
+}
+#activities td {
+  vertical-align: top;
+}
 
 /* CSS for group */
 #groupcontainer {
@@ -256,6 +265,10 @@ table.info {
     margin-bottom: 1em;
 }
 
+
+#form_container {
+    width: 650px;
+}
 #form_container p.errorindicator, #form_container p.successindicator, #form_container p.warningindicator {
     border: 1px solid;
     padding: 0.5em;
@@ -352,7 +365,7 @@ legend {
     margin-left: 1em;
     color: #B5111A;
     font-weight: bold;
-    font-size: 1.5em;
+    font-size: 1.2em;
 }
 fieldset label {
     position: relative;
@@ -439,17 +452,17 @@ fieldset .hidden {
 /* marking style */
 .marking_a
 {
-font-weight:bold;
-color:black;
-background-color:#FFCC33;
-width:160px;
-text-transform:capitalize;
+  font-weight:bold;
+  color:black;
+  background-color:#FFCC33;
+  width:160px;
+  text-transform:capitalize;
 }
 
 .marking_a a:hover,.marking_a a:active
 {
-background-color:#FF9900;
-margin: 10;  
+  background-color:#FF9900;
+  margin: 10;
 }
 
 #marking_container .receiver
@@ -511,9 +524,7 @@ margin: 10px 10px;
     font-weight: bold;
 }
 
-#form_container {
-    width: 600px;
-}
+
 
 
 /* Override jquery UI style, otherwise the datepicker will be displayed too large */
