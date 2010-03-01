@@ -3,10 +3,10 @@ from coredata.models import Member, CourseOffering
 from django.shortcuts import render_to_response, get_object_or_404#, redirect
 from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, Http404
-from courselib.auth import requires_course_by_slug
+from courselib.auth import requires_course_by_slug,requires_course_staff_by_slug
 from submission.forms import *
 from dashboard.templatetags.course_display import display_form
-from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug, requires_course_staff_by_slug
+from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug
 from submission.models import select_all_components
 from django.core.urlresolvers import reverse
 
@@ -31,8 +31,9 @@ def show_components(request, course_slug, activity_slug):
         resp = render_to_response('403.html', context_instance=RequestContext(request))
         resp.status_code = 403
         return resp
-'student submission'
-@login_required
+    
+#student submission main page
+#@requires_course_by_slug
 def _show_components_student(request, course_slug, activity_slug):
     """
     Show all the component submission history of this activity
@@ -41,11 +42,28 @@ def _show_components_student(request, course_slug, activity_slug):
     activity = get_object_or_404(course.activity_set,slug = activity_slug)
     # TODO: finish student's view
     component_list = select_all_submitted_components(activity)
-    print component_list
+    #print component_list
     return render_to_response("submission/component_view.html",
 	{"course":course, "activity":activity},
 	context_instance=RequestContext(request))
-'staff submission configuratiton'
+        
+#student's submission page
+@requires_course_by_slug
+def add_submission():
+    pass
+
+#student submission history page
+@login_required
+def show_components_submission_history(request, course_slug, activity_slug):
+    course = get_object_or_404(CourseOffering, slug = course_slug)
+    activity = get_object_or_404(course.activity_set,slug = activity_slug)
+    all_submitted_components = select_students_submitted_components(activity, request.user.username)
+    print all_submitted_components
+    return render_to_response("submission/submission_history_view.html", 
+        {'submitted_component': all_submitted_components, 'course':course, 'activity':activity},
+        context_instance = RequestContext(request))
+
+#staff submission configuratiton
 @login_required
 def _show_components_staff(request, course_slug, activity_slug):
     """

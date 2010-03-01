@@ -1,0 +1,26 @@
+{% extends "submission/component_view.html" %}
+
+{% block h1 %}Submission history for {{activity.name}}{% endblock %}
+
+{% block breadcrumbs_extra %}
+<li>&gt; <a href="">Submission History</a></li>
+{% endblock %}
+
+{% block content %}
+<!--{% regroup submitted_component|dictsort:"component" by component as by_component %}-->
+{% regroup submitted_component by component as by_component %}
+{% for component in by_component %}
+<h2>{{component.grouper.title}}</h2>
+{% for item in component.list %}
+<ul>
+    <li><label>time:</label>{{item.submit_time}}</li>
+    <li><label>download:</label><a herf ="">download</a></li>
+    <li><label>size:</label></li>
+</ul>
+{% endfor %}
+{% endfor %}
+
+
+
+{% endblock %}
+

@@ -93,11 +93,12 @@ class Submission(models.Model):
     """
     activity = models.ForeignKey(Activity)
     created_at = models.DateTimeField(auto_now_add=True)
-    owner = models.ForeignKey(Member, null=True)
+    owner = models.ForeignKey(Member, null=True, help_text = "TA or instructor that will mark this submission")
     status = models.CharField(max_length=3, null=False, choices=STATUS_CHOICES)
 
 class StudentSubmission(Submission):
     member = models.ForeignKey(Member, null=False)
+    
 class GroupSubmission(Submission):
     group = models.ForeignKey(Group, null=False)
 
@@ -107,7 +108,7 @@ class SubmittedComponent(models.Model):
     """
     Part of a student's/group's submission
     """
-    submission = models.ForeignKey(Submission)
+    submission = models.ForeignKey(StudentSubmission)
     submit_time = models.DateTimeField(auto_now_add = True)
     def get_late_time():
         "return how late the submission is"
@@ -116,6 +117,12 @@ class SubmittedComponent(models.Model):
             return 0
         else:
             return time
+    def __cmp__(self, other):
+        return cmp(self.submit_time, other.submit_time)
+    class Meta:
+        ordering = ['submit_time']
+
+    
 
 class SubmittedURL(SubmittedComponent):
     component = models.ForeignKey(URLComponent, null=False)
@@ -146,6 +153,20 @@ def select_all_submitted_components(activity):
     submitted_component.sort()
     return submitted_component
 
+# TODO: group submission selector
 def select_students_submitted_components(activity, userid):
     submitted_component = select_all_submitted_components(activity)
-    return submitted_component.filter(creater__person__userid = userid)
+    new_submitted_component = [comp for comp in submitted_component if comp.submission.member.person.userid == userid]# [comp for comp in submitted_component if comp.submission.member.person.userid == userid]
+    new_submitted_component.sort()
+    print new_submitted_component
+    return new_submitted_component
+
+def select_students_submission_by_component(component, userid):
+    submitted_component = select_students_submitted_components(component.activity ,userid)
+    new_submitted_component = [comp for comp in submitted_component if comp.component == component]
+    new_submitted_component.sort()
+    return new_submitted_component
+
+def select_students_newest_submission_by_component(component, userid):
+    component_list = select_students_submission_by_component(component, userid)
+    component_list.get()
