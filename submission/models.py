@@ -113,7 +113,7 @@ class SubmittedComponent(models.Model):
     def get_time(self):
         "return the submit time of the component"
         return self.submit_time.strftime("%Y-%m-%d %H:%M:%S")
-    def get_late_time():
+    def get_late_time(self):
         "return how late the submission is"
         time = submit_time - activity.due_date
         if time < datetime.datedelta():
@@ -130,7 +130,7 @@ class SubmittedComponent(models.Model):
         return class_name[9:]
     def get_size_in_kb(self):
         res = int(self.get_size())/1024
-        return int(self.get_size())/1024
+        return res
 
     
 
@@ -156,14 +156,14 @@ class SubmittedCpp(SubmittedComponent):
     def get_size(self):
         return self.cpp.size
 class SubmittedPlainText(SubmittedComponent):
-    component = models.ForeignKey(CppComponent, null=False)
+    component = models.ForeignKey(PlainTextComponent, null=False)
     text = models.CharField(max_length=3000)
     def get_url(self):
         return self.text.url
     def get_size(self):
         return self.text.size
 class SubmittedJava(SubmittedComponent):
-    component = models.ForeignKey(CppComponent, null=False)
+    component = models.ForeignKey(JavaComponent, null=False)
     java = models.FileField(upload_to="submittedjava") # TODO: change to a more secure directory
     def get_url(self):
         return self.java.url
@@ -188,7 +188,6 @@ def select_students_submitted_components(activity, userid):
     submitted_component = select_all_submitted_components(activity)
     new_submitted_component = [comp for comp in submitted_component if comp.submission.member.person.userid == userid]# [comp for comp in submitted_component if comp.submission.member.person.userid == userid]
     new_submitted_component.sort()
-    print new_submitted_component
     return new_submitted_component
 
 def select_students_submission_by_component(component, userid):

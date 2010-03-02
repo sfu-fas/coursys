@@ -40,12 +40,24 @@ def _show_components_student(request, course_slug, activity_slug):
     """
     course = get_object_or_404(CourseOffering, slug = course_slug)
     activity = get_object_or_404(course.activity_set,slug = activity_slug)
-    # TODO: finish student's view
-    component_list = select_all_submitted_components(activity)
-    #print component_list
+    component_list = select_all_components(activity)
+    all_submitted = select_students_submitted_components(activity, request.user.username)
+
+    # pair<component, latest_submission>
+    submitted_pair_list = []
+    for component in component_list:
+        pair = []
+        pair.append(component)
+        c = [sub for sub in all_submitted if sub.component == component]
+        if len(c) == 0:
+            pair.append(None)
+        else:
+            pair.append(c[0])
+        submitted_pair_list.append(pair)
+    
     return render_to_response("submission/component_view.html",
-	{"course":course, "activity":activity},
-	context_instance=RequestContext(request))
+        {"course":course, "activity":activity, "submitted_pair":submitted_pair_list},
+        context_instance=RequestContext(request))
         
 #student's submission page
 @requires_course_by_slug

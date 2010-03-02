@@ -269,28 +269,29 @@ table.info {
 #form_container {
     width: 650px;
 }
-#form_container p.errorindicator, #form_container p.successindicator, #form_container p.warningindicator {
+#form_container .errorindicator, #form_container .successindicator, #form_container .warningindicator {
     border: 1px solid;
     padding: 0.5em;
     background-color: #fffead;
     margin-bottom: 1em;
+    margin-top: 0;
 }
-#form_container p.successindicator {
+#form_container .successindicator {
     border: 1px solid green;
     color: green;
 }
-#form_container p.errorindicator {
+#form_container .errorindicator {
     border: 1px solid red;
     color: red;
 }
-#form_container p.warningindicator {
+#form_container .warningindicator {
     border: 1px solid orange;
     color: orange;
 }
 #form_container .errorlist {
     color: red;
 }
-#form_container p.requireindicator {
+#form_container .requireindicator {
     padding: 0 0 0 1em;
     color: #D52E2D;
 }
@@ -448,6 +449,9 @@ fieldset .hidden {
 #edit_submission_component_add_button {
     margin-left: 0em;
 }
+#component_view_student_container {
+    clear: left;
+}
 
 /* marking style */
 .marking_a
@@ -524,8 +528,37 @@ margin: 10px 10px;
     font-weight: bold;
 }
 
-
+/* display my submision */
+#my_submission_dashboard {
+    margin: 1em 0 4em 0;
+}
+#my_submission_dashboard h1{
+    margin: 0em;
+    padding: 0em;
+}
+#form_container .component_description {
+    margin: 0 0 0.5em 0;
+    padding: 0 0 0 0em;
+    list-style: none;
+}
+#form_container .component_description label {
+    font-weight: bold;
+    margin-right: 1em;
+}
 
 
 /* Override jquery UI style, otherwise the datepicker will be displayed too large */
 #ui-datepicker-div {font-size:0.8em}
+
+
+/* styles of titles, texts, etc., override SFU's template' */
+#main h2 {
+    font-family: 'Lucida Grande', Lucida, Arial, Verdana, sans-serif;
+    margin: 1em 0 0 0;
+    padding: 0em;
+}
+#main h3 {
+    font-family: 'Lucida Grande', Lucida, Arial, Verdana, sasns-serif;
+    margin: 0;
+    padding: 0;
+}

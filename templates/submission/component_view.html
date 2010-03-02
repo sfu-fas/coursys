@@ -13,6 +13,63 @@
 {% endblock %}
 
 {% block content%}
-<a href ="">New Submission</a>
-<a href ="history/">Submission History</a>
+
+<h3>Due Date: &emsp;&emsp;{{activity.due_date}}</h3>
+<h3>Current Time: {% now "Y-m-d H:m:s" %}</h3>
+
+
+<div id="my_submission_dashboard"><h1>My Submission</h1>
+<ul class="add_nav">
+    <li><a href ="submit/" class="button">New Submission</a></li>
+    <li><a href ="history/" class="button">View History</a></li>
+    <li><a href ="" class="button" title="not implemented yet">Download All</a></li>
+</ul>
+</div>
+
+<div id="form_container">
+<div id="component_view_student_container">
+    
+{# <!-- pair<component, it's latest submission> --> #}
+{% for pair in submitted_pair %}
+<h2>{{forloop.counter}}. {{pair.0.title}}</h2>
+<h3>{{pair.0.get_type}} Component</h3>
+<ul class="component_description">
+    <li class="view"><label>Description:</label>{{pair.0.description}}</li>
+    {% if pair.0.max_size %}<li class="view"><label>Max File Size:</label>{{pair.0.max_size}} KB</li>{% endif %}
+    {% if pair.0.max_length %}<li class="view"><label>Max Length:</label>{{pair.0.max_length}} Characters</li>{% endif %}
+</ul>
+
+{% ifequal pair.1 None %}
+    <div class="warningindicator">
+        <img src="{{MEDIA_URL}}icons/exclamation.png" alt="warning" />
+        You haven't made any submission to this component.
+    </div>
+{% else %}
+    <div class="successindicator">
+        <img src="{{MEDIA_URL}}icons/action_check.png" alt="check" />
+        You have made submission to this component.
+        <ul class="component_description">
+            <li><label>Latest Submission: </label>{{pair.1.get_time}}</li>
+            {% if pair.1.get_size %}
+                <li><label>File Size:</label>{{pair.1.get_size_in_kb}} KB</li>
+            {% endif %}
+            {% ifequal pair.1.get_type 'URL' %}
+                <li><label>URL:</label><a href="{{pair.1.get_url}}">{{pair.1.get_url}}</a></li>
+            {% else%}
+            {% ifequal pair.1.get_type 'PlainText' %}
+                <li><label>Text:</label>{{pair.1.text}}</li>
+            {% else %}
+                <li><a href ={{pair.1.get_url}}>Download</a></li>
+            {% endifequal %}
+            {% endifequal %}
+        </ul>   
+    </div>
+    
+{% endifequal %}
+
+
+{% endfor %}
+</div>
+</div>
+
 {% endblock %}
