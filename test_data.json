@@ -17965,6 +17965,159 @@
   }, 
   "model": "coredata.role", 
   "pk": 2
+ },
+ {
+  "fields": {
+   "due_date": "2010-03-17 00:00:00", 
+   "name": "Assignment 1", 
+   "offering": 184, 
+   "percent": "10", 
+   "position": 1, 
+   "short_name": "A1", 
+   "slug": "a1", 
+   "status": "RLS"
+  }, 
+  "model": "grades.activity", 
+  "pk": 1
+ }, 
+ {
+  "fields": {
+   "due_date": "2010-03-31 00:00:00", 
+   "name": "Assignment 2", 
+   "offering": 184, 
+   "percent": "10", 
+   "position": 1, 
+   "short_name": "A2", 
+   "slug": "a2", 
+   "status": "URLS"
+  }, 
+  "model": "grades.activity", 
+  "pk": 2
+ }, 
+ {
+  "fields": {
+   "due_date": "2010-04-21 00:00:00", 
+   "name": "Midterm Exam", 
+   "offering": 184, 
+   "percent": "20", 
+   "position": 1, 
+   "short_name": "MT", 
+   "slug": "mt", 
+   "status": "URLS"
+  }, 
+  "model": "grades.activity", 
+  "pk": 3
+ }, 
+ {
+  "fields": {
+   "max_grade": "15"
+  }, 
+  "model": "grades.numericactivity", 
+  "pk": 1
+ }, 
+ {
+  "fields": {
+   "max_grade": "25"
+  }, 
+  "model": "grades.numericactivity", 
+  "pk": 2
+ }, 
+ {
+  "fields": {
+   "max_grade": "90"
+  }, 
+  "model": "grades.numericactivity", 
+  "pk": 3
+ },
+ {
+  "fields": {
+   "deleted": false, 
+   "description": "Part 1 was done correctly: good code, comments, etc.", 
+   "max_mark": "5", 
+   "numeric_activity": 1, 
+   "position": 1, 
+   "title": "Part 1"
+  }, 
+  "model": "marking.activitycomponent", 
+  "pk": 1
+ }, 
+ {
+  "fields": {
+   "deleted": false, 
+   "description": "Here, we were looking for...", 
+   "max_mark": "10", 
+   "numeric_activity": 1, 
+   "position": 2, 
+   "title": "Part 2"
+  }, 
+  "model": "marking.activitycomponent", 
+  "pk": 2
+ }, 
+ {
+  "fields": {
+   "deleted": false, 
+   "description": "Parts 1 and 2 were correctly combined into a working solution", 
+   "max_mark": "10", 
+   "numeric_activity": 1, 
+   "position": 3, 
+   "title": "Integration"
+  }, 
+  "model": "marking.activitycomponent", 
+  "pk": 3
+ }, 
+ {
+  "fields": {
+   "activity_component": 1, 
+   "deleted": false, 
+   "description": "Function abc() wasn't completed", 
+   "penalty": 2, 
+   "title": "abc"
+  }, 
+  "model": "marking.commonproblem", 
+  "pk": 1
+ }, 
+ {
+  "fields": {
+   "activity_component": 1, 
+   "deleted": false, 
+   "description": "Def class was not included in solution", 
+   "penalty": 3, 
+   "title": "Def"
+  }, 
+  "model": "marking.commonproblem", 
+  "pk": 2
+ },
+ {
+  "fields": {
+   "activity": 1, 
+   "description": "URL", 
+   "position": 10, 
+   "title": "Assignment URL"
+  }, 
+  "model": "submission.submissioncomponent", 
+  "pk": 1
+ }, 
+ {
+  "fields": {
+   "activity": 1, 
+   "description": "Essay", 
+   "position": 20, 
+   "title": "Essay"
+  }, 
+  "model": "submission.submissioncomponent", 
+  "pk": 2
+ }, 
+ {
+  "fields": {}, 
+  "model": "submission.urlcomponent", 
+  "pk": 1
+ }, 
+ {
+  "fields": {
+   "max_length": 5000
+  }, 
+  "model": "submission.plaintextcomponent", 
+  "pk": 2
  }
 
 ]
