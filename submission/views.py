@@ -119,9 +119,13 @@ def show_components_submission_history(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug = course_slug)
     activity = get_object_or_404(course.activity_set,slug = activity_slug)
     all_submitted_components = select_students_submitted_components(activity, request.user.username)
-    print all_submitted_components
+    component_list = select_all_components(activity)
+    empty_component = []
+    for component in component_list:
+        if select_students_submission_by_component(component, request.user.username) == []:
+            empty_component.append(component)
     return render_to_response("submission/submission_history_view.html", 
-        {'submitted_component': all_submitted_components, 'course':course, 'activity':activity},
+        {'submitted_component': all_submitted_components,'empty_component': empty_component, 'course':course, 'activity':activity},
         context_instance = RequestContext(request))
 
 #staff submission configuratiton
