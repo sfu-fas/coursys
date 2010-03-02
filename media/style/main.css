@@ -223,8 +223,8 @@ tr:hover .row-actions {
 #main a.redbutton {
 /* need to add '#main' as selector in order to override SFU template style */
   display: block;
-  width: 10em;
-  height: 1.5em;
+  width: 6em;
+  height: 1.4em;
   color: #FFFFFF;
   text-align: center;
   line-height: 1.5em;
@@ -232,7 +232,9 @@ tr:hover .row-actions {
   border: 1px solid #FFF;
   text-decoration: none;
   font-weight: bold;
+  padding: 0.3em 0.5em 0.3em 0.5em;
 }
+
 #main a.redbutton:hover {
   border-color: #BCBCB4;
   text-decoration: none;

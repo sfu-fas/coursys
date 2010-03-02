@@ -43,6 +43,10 @@
 <div id="table_container">
     <table class="info">
         <tbody>
+	    <tr>
+                <th>Activity Type</th>
+                <td>{{ activity_type }}</td>
+            </tr>
             <tr>
                 <th>Name</th>
                 <td>
@@ -67,12 +71,12 @@
                 <th>Percentage</th>
                 <td>{{activity.percent}}</td>
             </tr>
-            {% if activity.max_grade %}
+            {% ifequal activity_type 'Numeric Graded' %}
             <tr>
                 <th>Maximum grade</th>
                 <td>{{activity.max_grade}}</td>
             </tr>
-            {% endif %}
+            {% endifequal %}
         </tbody>
     </table>
 </div>

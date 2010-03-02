@@ -2,6 +2,25 @@
 
 {% block h1 %}Delete Activity ({{ course.name }}){% endblock %}
 
+{% block headextra %}
+<script type="text/javascript">
+    $(document).ready(function() {
+        // add button style
+        $('.redbutton').mousedown(
+            function(){ 
+		$(this).addClass("redbutton_onclick"); 
+            }
+        )
+        // add button style
+        $('.redbutton').mouseup(
+            function(){ 
+		$(this).removeClass("redbutton_onclick"); 
+            }
+        )
+    });
+</script>
+{% endblock %}
+
 {% block breadcrumbs_extra %}
 <li>&gt; <a href="{% url grades.views.course course_slug=course.slug %}">{{ course.name }}</a></li>
 <li>&gt; <a href="{% url grades.views.delete_activity_review course_slug=course.slug activity_slug=activity.slug %}">Delete {{ activity.name }}</a></li>
@@ -12,6 +31,10 @@
 <div id="table_container">
     <table class="info">
         <tbody>
+            <tr>
+                <th>Activity Type</th>
+                <td>{{ activity_type }}</td>
+            </tr>
             <tr>
                 <th>Name</th>
                 <td>{{activity.name}}</td>

@@ -20,7 +20,8 @@ def index(request):
             .select_related('offering','person','offering__semester')
     return render_to_response("grades/index.html", {'memberships': memberships}, context_instance=RequestContext(request))
     
-FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo'}
+_FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo'}
+_ACTIVITY_TYPE = {'NG': 'Numeric Graded', 'LG': 'Letter Graded'}
 
 class _CourseInfo:
     """
@@ -51,7 +52,7 @@ def course(request, course_slug):
                               course.semester.label() + ' (' + course.semester.name + ')',
                               course.title, course.get_campus_display(), course_instructor_list,
                               course_ta_list, course_grade_approver_list)
-    context = {'course': course, 'activities': activities, 'course_info': course_info, 'from_page': FROMPAGE['course']}
+    context = {'course': course, 'activities': activities, 'course_info': course_info, 'from_page': _FROMPAGE['course']}
     return render_to_response("grades/course.html", context,
                               context_instance=RequestContext(request))
     
@@ -130,7 +131,11 @@ def activity_info(request, course_slug, activity_slug):
             id = request.GET['id']
         if not id:
             student_grade_info_list = _create_StudentGradeInfo_list(course, activity)
-            context = {'course': course, 'activity': activity, 'student_grade_info_list': student_grade_info_list, 'from_page': FROMPAGE['activityinfo']}
+            if isinstance(activity, NumericActivity):
+                activity_type = _ACTIVITY_TYPE['NG']
+            elif isinstance(activity, LetterActivity):
+                activity_type = _ACTIVITY_TYPE['LG']
+            context = {'course': course, 'activity_type': activity_type, 'activity': activity, 'student_grade_info_list': student_grade_info_list, 'from_page': _FROMPAGE['activityinfo']}
             return render_to_response('grades/activity_info.html', context, context_instance=RequestContext(request))
         else:
             student = get_object_or_404(Person, id=id)
@@ -203,7 +208,7 @@ def edit_activity(request, course_slug, activity_slug):
         
         from_page = request.GET['from_page']
         if from_page == None:
-            from_page = FROMPAGE['course']
+            from_page = _FROMPAGE['course']
         
         if request.method == 'POST': # If the form has been submitted...
             if isinstance(activity, NumericActivity):
@@ -216,9 +221,9 @@ def edit_activity(request, course_slug, activity_slug):
                 _populate_activity_from_formdata(activity, form.cleaned_data)
                 activity.save()
                 print from_page
-                if from_page == FROMPAGE['course']:
+                if from_page == _FROMPAGE['course']:
                     return HttpResponseRedirect(reverse('grades.views.course', kwargs={'course_slug': course_slug}))
-                elif from_page == FROMPAGE['activityinfo']:
+                elif from_page == _FROMPAGE['activityinfo']:
                     return HttpResponseRedirect(reverse('grades.views.activity_info',
                                                         kwargs={'course_slug': course_slug, 'activity_slug': activity_slug}))
         else:
@@ -269,7 +274,12 @@ def delete_activity_review(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activities = all_activities_filter(slug=activity_slug)
     if (len(activities) == 1):
-        context = {'course': course, 'activity': activities[0]}
+        activity = activities[0]
+        if isinstance(activity, NumericActivity):
+                activity_type = _ACTIVITY_TYPE['NG']
+        elif isinstance(activity, LetterActivity):
+            activity_type = _ACTIVITY_TYPE['LG']
+        context = {'course': course, 'activity_type': activity_type, 'activity': activities[0]}
         return render_to_response('grades/delete_activity_review.html', context, context_instance=RequestContext(request))
     else:
         raise Http404
