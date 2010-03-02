@@ -1,9 +1,10 @@
 from django import forms
 from submission.models import *
-from django.forms.widgets import Textarea, TextInput
+from django.forms.widgets import Textarea, TextInput, FileInput
 from django.forms import ModelForm
 from django.conf import settings
 from django.utils.safestring import mark_safe
+
 
 _required_star = '<em><img src="'+settings.MEDIA_URL+'icons/required_star.gif" alt="required"/></em>'
 
@@ -58,3 +59,39 @@ class PlainTextComponentForm(ComponentForm):
             'max_length': TextInput(attrs={'style':'width:5em'}),
             'position': TextInput(attrs={'maxlength':'3', 'style':'width:2em'}),
         }
+
+class SubmissionForm(ModelForm):
+    class Meta:
+        model = SubmittedComponent
+        fields = []
+        widgets = {}
+
+class SubmittedURLForm(SubmissionForm):
+    class Meta:
+        model = SubmittedURL
+        fields = ['url']
+        widgets = {'url': Textarea(attrs = {'cols':50, 'rows':2})}
+
+class SubmittedArchiveForm(SubmissionForm):
+    class Meta:
+        model = SubmittedArchive
+        fields = ['archive']
+        widgets = {'archive': FileInput()}
+
+class SubmittedCppForm(SubmissionForm):
+    class Meta:
+        model = SubmittedCpp
+        fields = ['cpp']
+        widgets = {'cpp': FileInput()}
+
+class SubmittedJavaForm(SubmissionForm):
+    class Meta:
+        model = SubmittedJava
+        fields = ['java']
+        widgets = {'java':FileInput()}
+
+class SubmittedPlainTextForm(SubmissionForm):
+    class Meta:
+        model = SubmittedPlainText
+        fields = ['text']
+        widgets = {'text':Textarea(attrs = {'cols':50, 'rows':5})}

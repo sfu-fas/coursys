@@ -61,8 +61,57 @@ def _show_components_student(request, course_slug, activity_slug):
         
 #student's submission page
 @requires_course_by_slug
-def add_submission():
-    pass
+def add_submission(request, course_slug, activity_slug):
+    """
+    enable student to upload files to a activity
+    """
+    course = get_object_or_404(CourseOffering, slug = course_slug)
+    activity = get_object_or_404(course.activity_set,slug = activity_slug)
+    component_list = select_all_components(activity)
+    component_list.sort()
+    component_form_list=[]
+    for component in component_list:
+        if component.get_type() == 'URL':
+            pair = []
+            pair.append(component)
+            pair.append(SubmittedURLForm(prefix=component.id))
+            component_form_list.append(pair)
+        elif component.get_type() == 'Archive':
+            pair = []
+            pair.append(component)
+            pair.append(SubmittedArchiveForm(prefix = component.id))
+            component_form_list.append(pair)
+        elif component.get_type() == 'Cpp':
+            pair = []
+            pair.append(component)
+            pair.append(SubmittedCppForm(prefix = component.id))
+            component_form_list.append(pair)
+        elif component.get_type() == 'Java':
+            pair = []
+            pair.append(component)
+            pair.append(SubmittedJavaForm(prefix = component.id))
+            component_form_list.append(pair)
+        elif component.get_type() == 'PlainText':
+            pair = []
+            pair.append(component)
+            pair.append(SubmittedPlainTextForm(prefix = component.id))
+            component_form_list.append(pair)
+    if request.method == 'POST':
+        for component in component_list:
+            get(component.id+form.field)
+            url.component = component
+            pass
+
+        return HttpResponse("uploded")
+        #form = Submission.ContactForm(request.POST, request.FILE)
+        #if form.is_valid():
+#            pass
+#        pass
+    else:
+        component_list = select_all_components(activity)
+        return render_to_response("submission/submission_add.html",
+        {'component_form_list': component_form_list, "course": course, "activity": activity},
+        context_instance = RequestContext(request))
 
 #student submission history page
 @login_required

@@ -1,0 +1,25 @@
+{% extends "submission/component_view.html"%}
+
+{% block h1 %}{% endblock %}
+<li>&gt; <a href="">add</a></li>
+{% block extra_breadcrubs %}
+{% endblock %}
+{% block content %}
+
+<h2>Add new submission for {{activity.name}}</h2>
+
+<a href ="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug%}">Back</a>
+
+
+<form action ="" method ="POST">
+    {% for sub_list in component_form_list %}
+        <div>
+            component {{sub_list.0.title}}
+            {{sub_list.1.as_p}}
+        </div>
+    {% endfor %}
+
+    <input type ="submit" value ="Submit">
+</form>
+
+{% endblock%}

@@ -9,6 +9,9 @@
 
 {% block content %}
 <!--{% regroup submitted_component|dictsort:"component" by component as by_component %}-->
+{% ifequal submitted_component None %}
+    <h2>Currently you have no submission for this activity.</h2>
+{% endifequal %}
 {% regroup submitted_component by component as by_component %}
 {% for component in by_component %}
 <h2>{{component.grouper.title}}</h2>
