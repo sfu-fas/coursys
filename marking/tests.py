@@ -11,6 +11,12 @@ from grades.models import *
 from models import *
 from settings import CAS_SERVER_URL
 from courselib.testing import *
+from datetime import *
+from django.forms.models import modelformset_factory   
+from django.template import Context, loader
+from django.test.client import MULTIPART_CONTENT
+from StringIO import *
+
 
 class BasicTest(TestCase):
     fixtures = ['test_data']    
@@ -21,7 +27,7 @@ class BasicTest(TestCase):
         #add an numeric activity and its components
         a = NumericActivity(offering = c, name = 'assignment_1', \
                             short_name = 'a1', status = 'released', \
-                            max_grade = 100, position = 0)
+                            due_date = datetime.now(), max_grade = 100, position = 0)
         a.save()
       
         co1 = ActivityComponent(numeric_activity = a, title = 'part1', max_mark = 20, position = 0)
@@ -47,7 +53,7 @@ class BasicTest(TestCase):
         c = CourseOffering.objects.get(slug = '1101-cmpt-165-d100')
         a = NumericActivity(offering = c, name = 'assignment_1', \
                             short_name = 'a1', status = 'released', \
-                            max_grade = 100, position = 0)
+                            due_date = datetime.now(), max_grade = 100, position = 0)
         a.save()        
         co1 = ActivityComponent(numeric_activity = a, title = 'part1', max_mark = 50, position = 0)
         co2 = ActivityComponent(numeric_activity = a, title = 'part2', max_mark = 50, position = 1) 
@@ -94,5 +100,50 @@ class BasicTest(TestCase):
         self.assertEquals(len(com1['common_problems']), 2)
         self.assertEquals(com2['component'], co2)
         self.assertEquals(len(com2['common_problems']), 1)
-           
+       
+    def test_post_activity_components(self):
+        c = CourseOffering.objects.get(slug = '1101-cmpt-165-d100')
+       
+        #add an numeric activity and its components
+        a = NumericActivity(offering = c, name = 'assignment_1', \
+                            short_name = 'a1', status = 'released', \
+                            due_date = datetime.now(), max_grade = 100, position = 0)
+        a.save()
+                                    
+        self.client.login(ticket = 'ggbaker', service=CAS_SERVER_URL)
+        url = '/marking/1101-cmpt-165-d100/a1/components/';
+        # 2 forms for the first 2 components to add
+        post_data = {'form-0-id' : ['', ''], 'form-1-id' : ['', ''],
+                     'form-0-title': ['part1'], 'form-1-title': ['part2'], 
+                     'form-0-max_mark' : ['20'], 'form-1-max_mark': ['20'],                    
+                     'form-0-description' : ['basic1'], 'form-1-description': ['basic2'],
+                     'form-TOTAL_FORMS' : ['3'], 'form-INITIAL_FORMS':['0']}
         
+        response = self.client.post(url, post_data, follow = True)
+        self.assertEquals(response.status_code, 200)
+        
+        cps = ActivityComponent.objects.filter(numeric_activity = a, deleted = False)
+        self.assertEquals(len(cps), 2)
+        self.assertEquals(cps[0].title, 'part1')        
+        self.assertEquals(cps[1].title, 'part2')
+        
+        # keep the first 2 components, and add 2 more new components
+        post_data2 = {'form-2-id' : ['', ''], 'form-3-id' : ['', ''],
+                     'form-2-title': ['part3'], 'form-3-title': ['part4'], 
+                     'form-2-max_mark' : ['30'], 'form-3-max_mark': ['30'],                    
+                     'form-2-description' : ['advanced1'], 'form-3-description': ['advanced2'],
+                     }
+        post_data.update(post_data2)
+       
+        post_data['form-0-id'] = [str(cps[0].id), str(cps[0].id)]
+        post_data['form-1-id'] = [str(cps[1].id), str(cps[1].id)]        
+        post_data['form-INITIAL_FORMS'] = ['2']
+        
+        post_data['form-TOTAL_FORMS'] = ['5']
+                
+        response = self.client.post(url, post_data, follow = True)
+        self.assertEquals(response.status_code, 200)
+        cps = ActivityComponent.objects.filter(numeric_activity = a, deleted = False)
+        self.assertEquals(len(cps), 4)
+        self.assertEquals(cps[2].title, 'part3')        
+        self.assertEquals(cps[3].title, 'part4')
