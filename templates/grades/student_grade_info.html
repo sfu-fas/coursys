@@ -1,0 +1,76 @@
+{% extends "grades/base.html" %}
+
+{% block h1 %}Student Grade Information{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+    $(document).ready(function() {
+        // add button style
+        $('.redbutton').mousedown(
+            function(){ 
+		$(this).addClass("redbutton_onclick"); 
+            }
+        )
+        // add button style
+        $('.redbutton').mouseup(
+            function(){ 
+		$(this).removeClass("redbutton_onclick"); 
+            }
+        )
+    });
+</script>
+{% endblock %}
+
+{% block breadcrumbs_extra %}
+<li>&gt; <a href="{% url grades.views.course course_slug=course.slug %}">{{ course.name }}</a></li>
+<li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li>
+<li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}?id={{ student_grade_info.id }}">{{ student_grade_info.name }}</a></li>
+{% endblock %}
+
+
+{% block content %}
+<div id="table_container">
+    <table class="info">
+        <tbody>
+            <tr>
+                <th>Course</th>
+                <td>
+                    {{course.name}}
+                </td>
+            </tr>
+            <tr>
+                <th>Activity</th>
+                <td>
+                    {{activity.name}}
+                </td>
+            </tr>
+
+            <tr>
+                <th>Student Name</th>
+                <td>
+                    {{student_grade_info.name}}
+                </td>
+            </tr>
+            <tr>
+                <th>Student Id</th>
+                <td>{{student_grade_info.emplid}}</td>
+            </tr>
+            <tr>
+                <th>Student Email</th>
+                <td><a href="mailto:{{ student_grade_info.email }}">{{ student_grade_info.email }}</a></td>
+            </tr>
+            <tr>
+                <th>Grade Status</th>
+                <td>{{student_grade_info.grade_status}}</td>
+            </tr>
+            <tr>
+                <th>Grade</th>
+                <td>{{student_grade_info.grade}}</td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="buttongroup">
+        <a class="redbutton" href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">Back</a>
+    </div>
+</div>
+{% endblock %}

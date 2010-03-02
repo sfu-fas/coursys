@@ -4,7 +4,7 @@
 
 {% block breadcrumbs_extra %}
 <li>&gt; <a href="{% url grades.views.course course_slug=course.slug %}">{{ course.name }}</a></li>
-<li>&gt; <a href="{% url grades.views.delete_activity_review course_slug=course.slug activity_slug=activity.slug %}">Delete Activity</a></li>
+<li>&gt; <a href="{% url grades.views.delete_activity_review course_slug=course.slug activity_slug=activity.slug %}">Delete {{ activity.name }}</a></li>
 {% endblock %}
 
 
@@ -13,28 +13,28 @@
     <table class="info">
         <tbody>
             <tr>
-                <th>Name:</th>
+                <th>Name</th>
                 <td>{{activity.name}}</td>
             </tr>
             <tr>
-                <th>Short name:</th>
+                <th>Short name</th>
                 <td>{{activity.short_name}}</td>
             </tr>
             <tr>
-                <th>Status:</th>
+                <th>Status</th>
                 <td>{{activity.get_status_display}}</td>
             </tr>
             <tr>
-                <th>Due date:</th>
+                <th>Due date</th>
                 <td>{{activity.due_date}}</td>
             </tr>
             <tr>
-                <th>Percentage:</th>
+                <th>Percentage</th>
                 <td>{{activity.percent}}</td>
             </tr>
             {% if activity.max_grade %}
             <tr>
-                <th>Maximum grade:</th>
+                <th>Maximum grade</th>
                 <td>{{activity.max_grade}}</td>
             </tr>
             {% endif %}

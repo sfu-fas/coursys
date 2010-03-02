@@ -5,10 +5,29 @@
 {% block headextra %}
 <script type="text/javascript">
     $(document).ready(function() {
-	oTable = $('#activities').dataTable({
+	// add button style
+        $('.redbutton').mousedown(
+            function(){ 
+		$(this).addClass("redbutton_onclick"); 
+            }
+        )
+        // add button style
+        $('.redbutton').mouseup(
+            function(){ 
+		$(this).removeClass("redbutton_onclick"); 
+            }
+        )
+	// activate dataTable ui
+	oTable = $('#student_grades').dataTable({
 		"bJQueryUI": true,
 		"sPaginationType": "full_numbers",
-		"iDisplayLength" : 50
+		"iDisplayLength" : 50,
+		"aoColumns": [
+		    { "sType": "html" },
+		    null,
+		    null,
+		    null
+		]
 	});
     });
 </script>
@@ -22,11 +41,10 @@
 
 {% block content %}
 <div id="table_container">
-    
     <table class="info">
         <tbody>
             <tr>
-                <th>Name:</th>
+                <th>Name</th>
                 <td>
                     {{activity.name}}
                     <span>(<a href="{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}">Edit</a>) </span> 
@@ -34,24 +52,24 @@
                 </td>
             </tr>
             <tr>
-                <th>Short name:</th>
+                <th>Short name</th>
                 <td>{{activity.short_name}}</td>
             </tr>
             <tr>
-                <th>Status:</th>
+                <th>Status</th>
                 <td>{{activity.get_status_display}}</td>
             </tr>
             <tr>
-                <th>Due date:</th>
+                <th>Due date</th>
                 <td>{{activity.due_date}}</td>
             </tr>
             <tr>
-                <th>Percentage:</th>
+                <th>Percentage</th>
                 <td>{{activity.percent}}</td>
             </tr>
             {% if activity.max_grade %}
             <tr>
-                <th>Maximum grade:</th>
+                <th>Maximum grade</th>
                 <td>{{activity.max_grade}}</td>
             </tr>
             {% endif %}
@@ -60,7 +78,9 @@
 </div>
 <div id="grades_container">
     <h2>Student Grades</h2>
-    <table class="display" id="activities">
+    <a class="redbutton" href="#">Mark All</a>
+    <br/>
+    <table class="display" id="student_grades">
         <thead>
             <tr>
                 <th>Student Name</th>
@@ -72,7 +92,11 @@
         <tbody>
 	    {% for student_grade_info in student_grade_info_list %}
 	    <tr>
-		<td>{{ student_grade_info.name }}</td>
+		<td>
+		    <strong>
+			<a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}?id={{ student_grade_info.id }}">{{ student_grade_info.name }}</a>
+		    </strong>
+		</td>
 		<td>{{ student_grade_info.emplid }}</td>
 		<td>{{ student_grade_info.grade_status }}</td>
 		<td>{{ student_grade_info.grade }}</td>

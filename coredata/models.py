@@ -19,7 +19,10 @@ class Person(models.Model):
     def __unicode__(self):
         return "%s, %s" % (self.last_name, self.first_name)
     def name(self):
-        return "%s %s" % (self.pref_first_name, self.last_name)
+        if self.middle_name:
+            return "%s %s %s" % (self.pref_first_name, self.middle_name, self.last_name)
+        else:
+            return "%s %s" % (self.pref_first_name, self.last_name)
     def email(self):
         return "%s@sfu.ca" % (self.userid)
     class Meta:

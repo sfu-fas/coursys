@@ -5,6 +5,19 @@
 {% block headextra %}
 <script type="text/javascript">
     $(document).ready(function() {
+        // add button style
+        $('.redbutton').mousedown(
+            function(){ 
+		$(this).addClass("redbutton_onclick"); 
+            }
+        )
+        // add button style
+        $('.redbutton').mouseup(
+            function(){ 
+		$(this).removeClass("redbutton_onclick"); 
+            }
+        )
+        // activate dataTable ui
 	oTable = $('#activities').dataTable({
 		"bJQueryUI": true,
 		"sPaginationType": "full_numbers",
@@ -20,13 +33,76 @@
 
 
 {% block content %}
-<p>Course content goes here.</p>
-<br/>
-<br/>
+<div id="table_container">
+    <table class="info">
+        <tbody>
+            <tr>
+                <th>Subject</th>
+                <td>
+                    {{ course_info.subject }}
+                </td>
+            </tr>
+            <tr>
+                <th>Catalog Number</th>
+                <td>
+                    {{ course_info.number }}
+                </td>
+            </tr>
+            <tr>
+                <th>Section</th>
+                <td>
+                    {{ course_info.section }}
+                </td>
+            </tr>
+            <tr>
+                <th>Semester</th>
+                <td>
+                    {{ course_info.semester }}
+                </td>
+            </tr>
+            <tr>
+                <th>Title</th>
+                <td>
+                    {{ course_info.title }}
+                </td>
+            </tr>
+            <tr>
+                <th>Campus</th>
+                <td>
+                    {{ course_info.campus }}
+                </td>
+            </tr>
+            <tr>
+                <th>Instructor(s)</th>
+                <td>
+                    {% for instructor in course_info.instructor_list %}
+                    {{ instructor.name }} (<a href="mailto:{{ instructor.email }}">{{ instructor.email }}</a>){% if not forloop.first %},{% endif %}
+                    {% endfor %}
+                </td>
+            </tr>
+            <tr>
+                <th>TA(s)</th>
+                <td>
+                    {% for ta in course_info.ta_list %}
+                    {{ ta.name }} (<a href="mailto:{{ ta.email }}">{{ ta.email }}</a>){% if not forloop.first %},{% endif %}
+                    {% endfor %}
+                </td>
+            </tr>
+            <tr>
+                <th>Grade Approver(s)</th>
+                <td>
+                    {% for grade_approver in course_info.grade_approver_list %}
+                    {{ grade_approver.name }} (<a href="mailto:{{ grade_approver.email }}">{{ grade_approver.email }}</a>){% if not forloop.first %},{% endif %}
+                    {% endfor %}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 <div id="activity_container">
-    {% if is_course_staff %}
+    <h2>Course Activities</h2>
     <a class="redbutton" href="{% url grades.views.add_numeric_activity course_slug=course.slug %}">Add Activity</a>
-    {% endif %}
+    <br/>
     <table class="display" id="activities">
         <thead>
             <tr>

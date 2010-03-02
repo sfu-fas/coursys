@@ -113,6 +113,14 @@ class LetterActivity(Activity):
     """
     class Meta:
         verbose_name_plural = "letter activities"
+    
+    def display_grade_visible(self, student):
+        grades = LetterGrade.objects.filter(activity=self, member__person=student)
+        if len(grades)==0:
+            grade = "--"
+        else:
+            grade = grades[0].letter_grade
+        return "%s" % grade
 
 class CalNumericActivity(NumericActivity):
     """
@@ -128,7 +136,7 @@ class CalLetterActivity(LetterActivity):
     Activity with a calculated letter grade which is the final letter grade of the course offering
     """
     numeric_activity = models.ForeignKey(NumericActivity, related_name='numeric_source_set')
-    exam_activity = models.ForeignKey(Activity, blank=True, null=True, related_name='exam_set')
+    exam_activity = models.ForeignKey(Activity, null=True, related_name='exam_set')
     letter_cutoff_formula = models.CharField(max_length=250, help_text='parsed formula to calculate final letter grade')
     
     class Meta:
@@ -170,7 +178,7 @@ class NumericGrade(models.Model):
     activity = models.ForeignKey(NumericActivity, null=False)
     member = models.ForeignKey(Member, null=False)
 
-    value = models.DecimalField(max_digits=5, decimal_places=2, default = 0)
+    value = models.DecimalField(max_digits=5, decimal_places=2, default = 0, null=False)
     flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade', default = 'NOGR')
     
     def __unicode__(self):
@@ -187,7 +195,7 @@ class LetterGrade(models.Model):
     member = models.ForeignKey(Member, null=False)
     
     letter_grade = models.CharField(max_length=2, null=False, choices=LETTER_GRADE_CHOICES)
-    flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade')
+    flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade', default = 'NOGR')
     
     def __unicode__(self):
         return "Member[%s]'s letter grade[%s] for [%s]" % (self.member.person.userid, self.letter_grade, self.activity)

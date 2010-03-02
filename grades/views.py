@@ -21,62 +21,101 @@ def index(request):
     return render_to_response("grades/index.html", {'memberships': memberships}, context_instance=RequestContext(request))
     
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo'}
-@requires_course_by_slug
+
+class _CourseInfo:
+    """
+    Object holding course info for the display in 'course' page 
+    """
+    def __init__(self, subject, number, section, semester, title, campus, instructor_list, ta_list, grade_approver_list):
+        self.subject = subject
+        self.number = number
+        self.section = section
+        self.semester = semester
+        self.title = title
+        self.campus = campus
+        self.instructor_list = instructor_list
+        self.ta_list = ta_list
+        self.grade_approver_list = grade_approver_list
+        
+@requires_course_staff_by_slug
 def course(request, course_slug):
     """
     Course front page
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activities = course.activity_set.all()
-    is_course_staff = is_course_staff_by_slug(request.user, course_slug)
-    context = {'course': course, 'activities': activities, 'is_course_staff':is_course_staff, 'from_page': FROMPAGE['course']}
+    course_instructor_list = course.members.filter(person__role='INST')
+    course_ta_list = course.members.filter(person__role='TA')
+    course_grade_approver_list = course.members.filter(person__role='APPR')
+    course_info = _CourseInfo(course.subject, course.number, course.section,
+                              course.semester.label() + ' (' + course.semester.name + ')',
+                              course.title, course.get_campus_display(), course_instructor_list,
+                              course_ta_list, course_grade_approver_list)
+    context = {'course': course, 'activities': activities, 'course_info': course_info, 'from_page': FROMPAGE['course']}
     return render_to_response("grades/course.html", context,
                               context_instance=RequestContext(request))
     
 class _StudentGradeInfo:
     """
-    Object holding student grade info for the 'activity_info' page 
+    Object holding student grade info for the display in 'activity_info' page 
     """
-    def __init__(self, name, emplid, grade_status, grade):
+    def __init__(self, id, name, emplid, email, grade_status, grade):
+        self.id = id
         self.name = name
         self.emplid = emplid
+        self.email = email
         self.grade_status = grade_status
         self.grade = grade
         
-def _create_StudentGradeInfo_list(course, activity):
+def _create_StudentGradeInfo_list(course, activity, student=None):
     """
-    Return a _StudentGradeInfo list which contains all the enrolled students' grade information in a course activity
+    Return a _StudentGradeInfo list which either contains all the enrolled students'
+    grade information in a course activity when student is not specified, or contains
+    the specified student's grade information in a course activity
     """
+    if not course or not activity:
+        return
     if not [activity for activity_type in ACTIVITY_TYPES if isinstance(activity, activity_type)]:
         return
     if not isinstance(course, CourseOffering):
         return
-    
     # verify if the course contains the activity
     if not all_activities_filter(slug=activity.slug, offering=course):
         return
-    student_list = course.members.filter(person__role='STUD')
+    if not student:
+        student_list = course.members.filter(person__role='STUD')
+    else:
+        if not isinstance(student, Person):
+            return
+        student_list = [student]
     student_grade_info_list = []
-    for student in student_list:
-        if isinstance(activity, NumericActivity):
-            try:
-                numeric_grade = NumericGrade.objects.get(activity=activity, member__person=student)
-                student_grade_status = numeric_grade.get_flag_display()
-                student_grade = str(numeric_grade.value) + '/' + str(activity.max_grade)
-            except NumericGrade.DoesNotExist:
+    if isinstance(activity, NumericActivity):
+        numeric_grade_list = NumericGrade.objects.filter(activity=activity)
+        for student in student_list:
+            student_grade_status = None
+            for numeric_grade in numeric_grade_list:
+                if numeric_grade.member.person == student:
+                    student_grade_status = numeric_grade.get_flag_display()
+                    student_grade = str(numeric_grade.value) + '/' + str(activity.max_grade)
+                    break
+            if not student_grade_status:
                 student_grade_status = FLAGS['NOGR']
-                student_grade = 'N/A'
-        elif isinstance(activity, LetterActivity):
-            try:
-                letter_grade = LetterGrade.objects.get(activity=activity, member__person=student)
-                student_grade_status = letter_grade.get_flag_display()
-                student_grade = letter_grade.letter_grade
-            except LetterGrade.DoesNotExist:
+                student_grade = '--'
+            student_grade_info_list.append(_StudentGradeInfo(student.id, student.name(), student.emplid, student.email(),
+                                                            student_grade_status, student_grade))
+    elif isinstance(activity, LetterActivity):
+        letter_grade_list = LetterGrade.objects.filter(activity=activity)
+        for student in student_list:
+            student_grade_status = None
+            for letter_grade in letter_grade_list:
+                if letter_grade.member.person == student:
+                    student_grade_status = letter_grade.get_flag_display()
+                    student_grade = letter_grade.letter_grade
+                    break
+            if not student_grade_status:
                 student_grade_status = FLAGS['NOGR']
-                student_grade = 'N/A'
-        student_grade_info_list.append(_StudentGradeInfo(student.first_name + ' ' +
-                                                            student.middle_name + ' ' +
-                                                            student.last_name, student.emplid,
+                student_grade = '--'
+            student_grade_info_list.append(_StudentGradeInfo(student.id, student.name(), student.emplid, student.email(),
                                                             student_grade_status, student_grade))
     return student_grade_info_list
 
@@ -86,9 +125,18 @@ def activity_info(request, course_slug, activity_slug):
     activities = all_activities_filter(slug=activity_slug, offering=course)
     if (len(activities) == 1):
         activity = activities[0]
-        student_grade_info_list = _create_StudentGradeInfo_list(course, activity)
-        context = {'course': course, 'activity': activity, 'student_grade_info_list': student_grade_info_list, 'from_page': FROMPAGE['activityinfo']}
-        return render_to_response('grades/activity_info.html', context, context_instance=RequestContext(request))
+        id = None
+        if request.GET.has_key('id'):
+            id = request.GET['id']
+        if not id:
+            student_grade_info_list = _create_StudentGradeInfo_list(course, activity)
+            context = {'course': course, 'activity': activity, 'student_grade_info_list': student_grade_info_list, 'from_page': FROMPAGE['activityinfo']}
+            return render_to_response('grades/activity_info.html', context, context_instance=RequestContext(request))
+        else:
+            student = get_object_or_404(Person, id=id)
+            student_grade_info = _create_StudentGradeInfo_list(course, activity, student)[0]
+            context = {'course': course, 'activity': activity, 'student_grade_info': student_grade_info}
+            return render_to_response('grades/student_grade_info.html', context, context_instance=RequestContext(request))
     else:
         raise Http404
 
@@ -100,13 +148,16 @@ def add_numeric_activity(request, course_slug):
         form = NumericActivityForm(request.POST) # A form bound to the POST data
         form.activate_addform_validation(course_slug)
         if form.is_valid(): # All validation rules pass
-            NumericActivity.objects.create(name=form.cleaned_data['name'],
-                                           short_name=form.cleaned_data['short_name'],
-                                           status=form.cleaned_data['status'],
-                                            due_date=form.cleaned_data['due_date'],
-                                            percent=form.cleaned_data['percent'],
-                                            max_grade=form.cleaned_data['max_grade'],
-                                            offering=course, position=1)
+            try:
+                NumericActivity.objects.create(name=form.cleaned_data['name'],
+                                                short_name=form.cleaned_data['short_name'],
+                                                status=form.cleaned_data['status'],
+                                                due_date=form.cleaned_data['due_date'],
+                                                percent=form.cleaned_data['percent'],
+                                                max_grade=form.cleaned_data['max_grade'],
+                                                offering=course, position=1)
+            except Error:
+                Http404
             return HttpResponseRedirect(reverse('grades.views.course', kwargs={'course_slug': course_slug}))
     else:
         form = NumericActivityForm()
@@ -196,13 +247,15 @@ def add_letter_activity(request, course_slug):
         form = LetterActivityForm(request.POST) # A form bound to the POST data
         form.activate_addform_validation(course_slug)
         if form.is_valid(): # All validation rules pass
-            # Todo: Need validation for already existed activity
-            LetterActivity.objects.create(name=form.cleaned_data['name'],
-                                           short_name=form.cleaned_data['short_name'],
-                                           status=form.cleaned_data['status'],
-                                            due_date=form.cleaned_data['due_date'],
-                                            percent=form.cleaned_data['percent'],
-                                            offering=course, position=1)
+            try:
+                LetterActivity.objects.create(name=form.cleaned_data['name'],
+                                                short_name=form.cleaned_data['short_name'],
+                                                status=form.cleaned_data['status'],
+                                                due_date=form.cleaned_data['due_date'],
+                                                percent=form.cleaned_data['percent'],
+                                                offering=course, position=1)
+            except Error:
+                return Http404
             return HttpResponseRedirect(reverse('grades.views.course',
                                                 kwargs={'course_slug': course_slug}))
     else:

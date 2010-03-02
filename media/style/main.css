@@ -222,20 +222,25 @@ tr:hover .row-actions {
 /* red button */
 #main a.redbutton {
 /* need to add '#main' as selector in order to override SFU template style */
-    display: block;
-    width: 10em;
-    height: 1.5em;
-    color: #FFFFFF;
-    text-align: center;
-    line-height: 1.5em;
-    background-color: #B5111A;
-    text-decoration: none;
-    font-weight: bold;
+  display: block;
+  width: 10em;
+  height: 1.5em;
+  color: #FFFFFF;
+  text-align: center;
+  line-height: 1.5em;
+  background-color: #B5111A;
+  border: 1px solid #FFF;
+  text-decoration: none;
+  font-weight: bold;
 }
 #main a.redbutton:hover {
-    border-bottom: 5px solid #d8d5d5;
-    text-decoration: none;
+  border-color: #BCBCB4;
+  text-decoration: none;
 }
+#main a.redbutton_onclick {
+  background-color: #BCBCB4;
+}
+
 .buttongroup {
   margin: 0.5em;
 }
@@ -323,13 +328,17 @@ fieldset .inputfield input[type='text'] {
     width: 30em;
 }
 fieldset .submit, form .submit {
-    min-width: 6em;
-    margin: 0 0 0 11em;
-    background-color: #B5111A;
-    border: 1px solid #FFF;
-    color: #FFF;
-    float: right;
-    padding: 0.3em 0.5em 0.3em 0.5em;
+  min-width: 6em;
+  margin: 0 0 0 11em;
+  background-color: #B5111A;
+  border: 1px solid #FFF;
+  color: #FFF;
+  float: right;
+  padding: 0.3em 0.5em 0.3em 0.5em;
+}
+fieldset .submit:hover, form .submit:hover {
+  border-color: #BCBCB4;
+  color: #eaf2fa;
 }
 fieldset ul {
     list-style: none;
