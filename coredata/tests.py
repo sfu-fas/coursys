@@ -3,7 +3,8 @@ from coredata.models import *
 
 from django.db.models import *
 from django.db import IntegrityError
-from datetime import date
+from datetime import date, datetime
+import pytz
 
 def create_semester():
     s = Semester(name="1077", start=date(2007,9,4), end=date(2007,12,3))
@@ -64,7 +65,19 @@ class CoredataTest(TestCase):
         self.assertRaises(IntegrityError, px.save)
         px = Person(emplid=210012348, userid="test1")
         self.assertRaises(IntegrityError, px.save)
+    
+    def _test_due_date(self, s, dt, wk, wkday, reverse=None):
+        """
+        Test for semester.week_weekday and semester.duedate
+        """
+        wk0, wkday0 = s.week_weekday(dt)
+        self.assertEqual((wk,wkday), (wk0,wkday0))
+        due = s.duedate(wk, wkday)
+        if not reverse:
+            reverse = dt.date()
+        self.assertEqual(reverse, due)
         
+    
     def test_semester(self):
         """
         Create and test a semester object
@@ -72,12 +85,34 @@ class CoredataTest(TestCase):
         s = create_semester()
         wk = SemesterWeek(semester=s, week=1, monday=date(2007,9,3))
         wk.save()
+        wk = SemesterWeek(semester=s, week=5, monday=date(2007,10,8)) # pretend there is a Oct 1-5 break
+        wk.save()
         
         self.assertEquals(s.label(), "Fall 2007")
         
         s2 = Semester(name="1077", start=date(2007,9,4), end=date(2007,12,3))
         self.assertRaises(IntegrityError, s2.save)
         
+        # test due date calculations: convert date to week-of-semester and weekday (and back)
+        tz = pytz.timezone('America/Vancouver')
+        
+        dt = datetime(2007, 9, 19)
+        self._test_due_date(s, dt, 3, 2)
+        
+        dt = datetime(2007, 11, 16, tzinfo=tz) # timezone change between this and previous SemesterWeek
+        self._test_due_date(s, dt, 10, 4)
+
+        dt = datetime(2007, 11, 4, tzinfo=tz) # timezone change between this and previous Monday
+        self._test_due_date(s, dt, 8, 6)
+
+        dt = datetime(2007, 10, 10, tzinfo=tz) # right after a break
+        self._test_due_date(s, dt, 5, 2)
+        
+        dt = datetime(2007, 10, 3, tzinfo=tz) # during a break
+        # shouldn't be inverse function here: duedate always returns an in-semester date
+        self._test_due_date(s, dt, 5, 2, reverse=date(2007,10,10))
+
+
 
     def test_course_offering(self):
         """

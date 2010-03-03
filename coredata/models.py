@@ -2,6 +2,8 @@ from django.db import models
 from django.template.defaultfilters import slugify
 from autoslug import AutoSlugField
 from timezones.fields import TimeZoneField
+from django.conf import settings
+import datetime
 
 class Person(models.Model):
     """
@@ -56,6 +58,50 @@ class Semester(models.Model):
 
     def __unicode__(self):
         return str(self.name)
+    
+    def week_weekday(self, dt):
+        """
+        Given a datetime, return the week-of-semester and day-of-week (with 0=Monday).
+        """
+        # gracefully deal with both date and datetime objects
+        if isinstance(dt, datetime.datetime):
+            date = dt.date()
+        else:
+            date = dt
+
+        # find the "base": first known week before the given date
+        weeks = list(SemesterWeek.objects.filter(semester=self))
+        weeks.reverse()
+        base = None
+        for w in weeks:
+            if w.monday <= date:
+                base = w
+                break
+
+        if base is None:
+            raise ValueError, "Date seems to be before the start of semester."
+
+        diff = date - base.monday
+        diff = int(round(diff.days + diff.seconds/86400.0)+0.5) # convert to number of days, rounding off any timezone stuff
+        week = base.week + diff//7
+        wkday = date.weekday()
+        return week, wkday
+    
+    def duedate(self, wk, wkday):
+        """
+        Calculate duedate based on week-of-semester and weekday.
+        """
+        # find the "base": first known week before mk
+        weeks = list(SemesterWeek.objects.filter(semester=self))
+        weeks.reverse()
+        base = None
+        for w in weeks:
+            if w.week <= wk:
+                base = w
+                break
+        
+        dt = base.monday + datetime.timedelta(days=7*(wk-base.week)+wkday)
+        return dt
 
     class Meta:
         ordering = ['name']
