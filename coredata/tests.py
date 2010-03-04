@@ -72,9 +72,10 @@ class CoredataTest(TestCase):
         """
         wk0, wkday0 = s.week_weekday(dt)
         self.assertEqual((wk,wkday), (wk0,wkday0))
-        due = s.duedate(wk, wkday)
+        due = s.duedate(wk, wkday, dt)
         if not reverse:
-            reverse = dt.date()
+            reverse = dt
+
         self.assertEqual(reverse, due)
         
     
@@ -96,10 +97,10 @@ class CoredataTest(TestCase):
         # test due date calculations: convert date to week-of-semester and weekday (and back)
         tz = pytz.timezone('America/Vancouver')
         
-        dt = datetime(2007, 9, 19)
+        dt = datetime(2007, 9, 19, 23, 59, 59)
         self._test_due_date(s, dt, 3, 2)
         
-        dt = datetime(2007, 11, 16, tzinfo=tz) # timezone change between this and previous SemesterWeek
+        dt = datetime(2007, 11, 16, 16, 0, 0, tzinfo=tz) # timezone change between this and previous SemesterWeek
         self._test_due_date(s, dt, 10, 4)
 
         dt = datetime(2007, 11, 4, tzinfo=tz) # timezone change between this and previous Monday
@@ -110,7 +111,7 @@ class CoredataTest(TestCase):
         
         dt = datetime(2007, 10, 3, tzinfo=tz) # during a break
         # shouldn't be inverse function here: duedate always returns an in-semester date
-        self._test_due_date(s, dt, 5, 2, reverse=date(2007,10,10))
+        self._test_due_date(s, dt, 5, 2, reverse=datetime(2007,10,10, tzinfo=tz))
 
 
 

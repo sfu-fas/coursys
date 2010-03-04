@@ -87,9 +87,9 @@ class Semester(models.Model):
         wkday = date.weekday()
         return week, wkday
     
-    def duedate(self, wk, wkday):
+    def duedate(self, wk, wkday, time):
         """
-        Calculate duedate based on week-of-semester and weekday.
+        Calculate duedate based on week-of-semester and weekday.  Provided argument time can be either datetime.time or datetime.datetime: time is copied from this to new duedate.
         """
         # find the "base": first known week before mk
         weeks = list(SemesterWeek.objects.filter(semester=self))
@@ -100,7 +100,10 @@ class Semester(models.Model):
                 base = w
                 break
         
-        dt = base.monday + datetime.timedelta(days=7*(wk-base.week)+wkday)
+        date = base.monday + datetime.timedelta(days=7*(wk-base.week)+wkday)
+        # construct the datetime from date and time.
+        dt = datetime.datetime(year=date.year, month=date.month, day=date.day, 
+            hour=time.hour, minute=time.minute, second=time.second, microsecond=time.microsecond, tzinfo=time.tzinfo)
         return dt
 
     class Meta:
