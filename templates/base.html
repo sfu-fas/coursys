@@ -94,7 +94,16 @@ Logged in as {{user.username}}.
 			</ul>
 	  </div>
 
-
+{% if messages %}
+<div id="messages">
+<h3>Messages</h3>
+<ul>
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+</div>
+{% endif %}
 
 <div id="main">
 {% block content %}{% endblock %}

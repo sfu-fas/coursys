@@ -29,10 +29,35 @@ div#main {
   margin: 0.2em 1em 0 0;
   font-size: 0.81em;
 }
+/*
 .debug {
   font-size: small;
   color: #aaa;
   font-family: monospace;
+}
+*/
+div#messages {
+  border: 1px solid #b5111b;
+  padding: 0.5em;
+  margin: 1em 1em 1em 0;
+  color: #b5111b;
+}
+div#messages h3 {
+  margin: 0 0 0.5em 0;
+  padding: 0;
+  color: #b5111b;
+}
+div#messages ul {
+  margin: 0 0.5em 0 1.4em;
+  padding: 0;
+}
+div#messages li {
+  list-style-type: circle;
+  margin: 0;
+  padding: 0;
+}
+div#messages .error, div#messages .warning {
+  font-weight: bold;
 }
 
 table {

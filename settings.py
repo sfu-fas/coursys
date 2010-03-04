@@ -66,6 +66,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     #'django.contrib.messages.middleware.MessageMiddleware',
+    'contrib.messages.middleware.MessageMiddleware', # temp: replace with above after 1.2 release
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django_cas.middleware.CASMiddleware',
 )
@@ -78,6 +79,7 @@ TEMPLATE_CONTEXT_PROCESSORS = ("django.core.context_processors.auth",
     "django.core.context_processors.i18n",
     "django.core.context_processors.media",
     #"django.contrib.messages.context_processors.messages"
+    'contrib.messages.context_processors.messages', # temp: replace with above after 1.2 release
     )
 
 ROOT_URLCONF = 'courses.urls'
@@ -96,6 +98,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     #'django.contrib.messages',
+    'contrib.messages', # temp: replace with above after 1.2 release
     'coredata',
     'dashboard',
     'grades',
@@ -108,6 +111,10 @@ INSTALLED_APPS = (
     'advisors_A',
     'advisors_B',
 )
+
+#MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+MESSAGE_STORAGE = 'contrib.messages.storage.session.SessionStorage' # temp: replace with above after 1.2 release
+
 if DEBUG:
     INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.admin',)
 
