@@ -194,7 +194,7 @@ def marking(request, course_slug, activity_short_name):
         
     if request.method == "POST":                
         student_receiver_form = MarkStudentReceiverForm(request.POST, prefix = "student-receiver-form")
-        group_receiver_form = MarkGroupReceiverForm(request.POST, prefix = "group-receiver-from")
+        group_receiver_form = MarkGroupReceiverForm(request.POST, prefix = "group-receiver-form")
         
         is_student = student_receiver_form.is_valid()
         is_group = group_receiver_form.is_valid()

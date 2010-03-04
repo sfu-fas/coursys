@@ -147,3 +147,36 @@ class BasicTest(TestCase):
         self.assertEquals(len(cps), 4)
         self.assertEquals(cps[2].title, 'part3')        
         self.assertEquals(cps[3].title, 'part4')
+    
+    def test_group_setMark(self):
+        c = CourseOffering.objects.get(slug = '1101-cmpt-165-d100')
+       
+        #add an numeric activity and its components
+        a = NumericActivity(offering = c, name = 'assignment_1', \
+                            short_name = 'a1', status = 'released', \
+                            due_date = datetime.now(), max_grade = 100, position = 0)
+        a.save()
+        
+        #take 2 students to make a group       
+        stud1 = Member.objects.get(person = Person.objects.get(userid = '0aaa0'), offering = c)
+        stud2 = Member.objects.get(person = Person.objects.get(userid = '0aaa1'), offering = c)
+                
+        group = Group.objects.create(courseoffering = c, name = 'hello', manager = stud1)
+        member1 = GroupMember.objects.create(group = group, student = stud1, confirmed = True)
+        member2 = GroupMember.objects.create(group = group, student = stud2, confirmed = True)
+        
+        group_mark = GroupActivityMark(group = group, numeric_activity = a)
+        group_mark.setMark(30)
+        group_mark.save()
+        
+        num_grades = NumericGrade.objects.filter(activity = a)
+        self.assertEquals(len(num_grades), 2)
+        self.assertEquals(num_grades[0].member, stud1)        
+        self.assertEquals(num_grades[0].value, 30)     
+        self.assertEquals(num_grades[0].flag, 'GRAD')
+        self.assertEquals(num_grades[1].member, stud2) 
+        self.assertEquals(num_grades[1].value, 30) 
+        self.assertEquals(num_grades[1].flag, 'GRAD')
+        
+        
+        

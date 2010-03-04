@@ -100,12 +100,12 @@ class GroupActivityMark(ActivityMark):
     def setMark(self, grade):
         self.grade = grade        
         #assign mark for each member in the group
-        group_members = group.groupmember_set.filter(confirmed = True)
-        for group_member in group_members:
+        group_members = self.group.groupmember_set.filter(confirmed = True)
+        for g_member in group_members:
             try: 
-                ngrade = NumericGrade.objects.get(activity = self.numeric_activity, member = group_member)                  
+                ngrade = NumericGrade.objects.get(activity = self.numeric_activity, member = g_member.student)                  
             except NumericGrade.DoesNotExist: #if the  NumericalGrade does not exist yet, create a new one
-                ngrade = NumericGrade(activity = self.numeric_activity, member = group_member)
+                ngrade = NumericGrade(activity = self.numeric_activity, member = g_member.student)
             ngrade.value = grade
             ngrade.flag = 'GRAD'
             ngrade.save()            
