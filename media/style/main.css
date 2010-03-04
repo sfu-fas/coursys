@@ -482,7 +482,7 @@ fieldset .hidden {
 
 #marking_container .receiver
 {
-margin: 10px 10px;
+	padding: 20px;
 }
 
 #marking_container input[type="text"]{

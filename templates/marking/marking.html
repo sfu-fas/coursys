@@ -28,9 +28,10 @@ function append_problem(n, content)
  {% endif %}
 
 <form action="{% url marking.views.marking course_slug=course.slug, activity_short_name=activity.short_name %}" method="POST" enctype="multipart/form-data">  
-     <div class = "receiver">
-	 {{receiver_form}}
-	 </div>	
+     <h2> Mark for: </h2>
+     <div class = "receiver"> {{student_receiver_form}} </div>
+     <b> OR </b>
+     <div class = "receiver"> {{group_receiver_form}} </div>
 	 {% for entry in mark_components %}  	     
 	     <fieldset>
 	     <legend>{{entry.component.title}}</legend> 

@@ -6,9 +6,11 @@ from django.core.urlresolvers import reverse
 from coredata.models import *
 from courselib.auth import requires_faculty_member, requires_course_staff_by_slug
 from grades.models import NumericActivity
+from groups.models import Group
 from log.models import *
-from models import *
-from django.forms.models import modelformset_factory    
+from models import *      
+from django.forms.models import modelformset_factory
+
 
 @login_required
 def index(request):
@@ -177,22 +179,33 @@ def marking(request, course_slug, activity_short_name):
     error_info = ""
     course = get_object_or_404(CourseOffering, slug = course_slug)    
     activity = get_object_or_404(NumericActivity, offering = course, short_name = activity_short_name)    
-    
-    from django import forms    
-    students_qset = course.members.filter(person__offering = course, person__role = "STUD")     
-    class MarkReceiverForm(forms.Form):
-        student_selection = forms.ModelChoiceField(queryset = students_qset)        
+     
+    students_qset = course.members.filter(person__offering = course, person__role = "STUD")
+    groups_qset = Group.objects.filter(courseoffering = course)
+    from django import forms 
+    class MarkStudentReceiverForm(forms.Form):
+        student = forms.ModelChoiceField(queryset = students_qset)        
+    class MarkGroupReceiverForm(forms.Form):
+        group = forms.ModelChoiceField(queryset = groups_qset)    
     
     components = ActivityComponent.objects.filter(numeric_activity = activity, deleted = False)     
     leng = len(components)    
     forms = []    
         
     if request.method == "POST":                
-        receiver_form = MarkReceiverForm(request.POST, prefix = "receiver-form")
-                       
-        if not receiver_form.is_valid():
+        student_receiver_form = MarkStudentReceiverForm(request.POST, prefix = "student-receiver-form")
+        group_receiver_form = MarkGroupReceiverForm(request.POST, prefix = "group-receiver-from")
+        
+        is_student = student_receiver_form.is_valid()
+        is_group = group_receiver_form.is_valid()
+        
+        # this should be ensured on the client side
+        if is_student and is_group: 
+            error_info = "You can only give mark to a student or a group but not both at the same time"               
+                        
+        if (not is_student) and (not is_group):
             error_info = "Please select the student or group to give the mark to"     
-                  
+                          
         for i in range(leng):
             forms.append(ActivityComponentMarkForm(request.POST, prefix = "cmp-form-%s" % (i+1)))
         
@@ -217,47 +230,55 @@ def marking(request, course_slug, activity_short_name):
             error_info = "Error found"
             
         # no error, save the result
-        if not error_info: 
-            #get the student and the member
-            student = receiver_form.cleaned_data["student_selection"]            
-            membership = course.member_set.get(person = student)                     
-            #get the corresponding NumericGrade object
-            try: 
-                ngrade = NumericGrade.objects.get(activity = activity, member = membership)                  
-            except NumericGrade.DoesNotExist: #if the  NumericalGrade does not exist yet, create a new one
-                ngrade = NumericGrade(activity = activity, member = membership)                  
-                ngrade.save()                            
-                stu_activity_mark = StudentActivityMark(numeric_grade = ngrade)            
-            else:
-                #get the corresponding StudentActivityMark object
-                try:                     
-                    stu_activity_mark = StudentActivityMark.objects.get(numeric_grade = ngrade)   
-                except StudentActivityMark.DoesNotExist: #if the  StudentActivityMark does not exist yet, create a new one               
-                    stu_activity_mark = StudentActivityMark(numeric_grade = ngrade)
+        if not error_info:             
+            if is_student: #get the student
+                student = receiver_form.cleaned_data['student']
+                membership = course.member_set.get_object_or_404(person = student)                     
+                #get the corresponding NumericGrade object
+                try: 
+                    ngrade = NumericGrade.objects.get(activity = activity, member = membership)                  
+                except NumericGrade.DoesNotExist: #if the  NumericalGrade does not exist yet, create a new one
+                    ngrade = NumericGrade(activity = activity, member = membership)                  
+                    ngrade.save()                            
+                    activity_mark = StudentActivityMark(numeric_grade = ngrade)            
+                else:
+                    #get the corresponding StudentActivityMark object
+                    try:                     
+                        activity_mark = StudentActivityMark.objects.get(numeric_grade = ngrade)   
+                    except StudentActivityMark.DoesNotExist: #if the  StudentActivityMark does not exist yet, create a new one               
+                        activity_mark = StudentActivityMark(numeric_grade = ngrade)
+            else:#get the group
+                group = receiver_form.cleaned_data['group']
+                try: 
+                    activity_mark = GroupActivityMark.objects.get(group = group, numeric_activity = activity)
+                except GroupActivityMark.DoesNotExist:
+                    activity_mark = GroupActivityMark(group = group, numeric_activity = activity)
                         
             #get the additional info
             additional = additional_info_form.save(commit = False)             
             #copy the additional info        
-            stu_activity_mark.copyAdditionalFrom(additional)            
-            #assign the mark 
-            stu_activity_mark.setMark(total_mark - additional.late_penalty + additional.mark_adjustment)           
-            stu_activity_mark.save()
+            activity_mark.copyFrom(additional)            
+            #assign the mark
+            activity_mark.setMark(total_mark - additional.late_penalty + additional.mark_adjustment)           
+            activity_mark.save()
             
             #save the individual ComponentMarks
             for cmp_mark in cmp_marks:
-                cmp_mark.activity_mark = stu_activity_mark
+                cmp_mark.activity_mark = activity_mark
                 cmp_mark.save()
-                
-            #add the log entry    
+                 
+            #add the log entry 
+            receiver = is_student and 'student ' + student.userid or 'group ' + group.name
             l = LogEntry(userid=request.user.username, \
-              description="edited grade on %s for %s changed to %s" % (activity, student.userid, total_mark),\
-              related_object=ngrade )
-            l.save()
+              description="edited grade on %s for %s changed to %s" % \
+              (activity, receiver, total_mark), related_object=activity_mark)                     
+            l.save()                         
                                     
             return HttpResponseRedirect(reverse('marking.views.list_activities', \
                                                 args=(course_slug,)))       
     else: # for PUT request                 
-        receiver_form = MarkReceiverForm(prefix = "receiver-form")
+        student_receiver_form = MarkStudentReceiverForm(prefix = "student-receiver-form")
+        group_receiver_form = MarkGroupReceiverForm(prefix = "group-receiver-form")
         for i in range(leng):
             forms.append(ActivityComponentMarkForm(prefix = "cmp-form-%s" % (i+1)))
         additional_info_form = ActivityMarkForm(prefix = "additional-form") 
@@ -269,7 +290,8 @@ def marking(request, course_slug, activity_short_name):
         mark_components.append(comp)
   
     return render_to_response("marking/marking.html",
-                             {'course':course, 'activity' : activity, 'receiver_form' : receiver_form, \
+                             {'course':course, 'activity' : activity, \
+                              'student_receiver_form' : student_receiver_form, 'group_receiver_form' : group_receiver_form,
                               'additional_info_form' : additional_info_form, 'mark_components': mark_components, \
                               'error_info': error_info, }, context_instance=RequestContext(request))
     

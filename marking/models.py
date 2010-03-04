@@ -1,6 +1,7 @@
 import copy
 from django.db import models
 from grades.models import NumericActivity, NumericGrade, LetterGrade 
+from groups.models import Group, GroupMember
 
 class ActivityComponent(models.Model):
     """    
@@ -44,29 +45,33 @@ class ActivityMark(models.Model):
      
     def __unicode__(self):
         return "Supper object containing additional info for marking"
+    
+    def copyFrom(self, obj):
+        """
+        Copy information form another ActivityMark object
+        """
+        self.late_penalty = obj.late_penalty
+        self.overall_comment = obj.overall_comment
+        self.mark_adjustment = obj.mark_adjustment
+        self.mark_adjustment_reason = obj.mark_adjustment_reason
+        self.file_attachment = obj.file_attachment
+    
+    def setMark(self, grade):
+        pass
+
 
 class StudentActivityMark(ActivityMark):
     """
     Marking of one student on one numeric activity 
     """        
     numeric_grade = models.OneToOneField(NumericGrade, null = False)
-    
+       
     def __unicode__(self):
         # get the student and the activity
         student = self.numeric_grade.member.person
         activity = self.numeric_grade.activity      
-        return "Marking for [%s] for activity [%s]" %(student, activity)
-    
-    def copyAdditionalFrom(self, super_obj):
-        """
-        Copy additional information form a super object--an ActivityMark object
-        """
-        self.late_penalty = super_obj.late_penalty
-        self.overall_comment = super_obj.overall_comment
-        self.mark_adjustment = super_obj.mark_adjustment
-        self.mark_adjustment_reason = super_obj.mark_adjustment_reason
-        self.file_attachment = super_obj.file_attachment
-   
+        return "Marking for student [%s] for activity [%s]" %(student, activity)   
+      
     def setMark(self, grade):
         """         
         Set the mark
@@ -80,14 +85,31 @@ class GroupActivityMark(ActivityMark):
     """
     Marking of one group on one numeric activity
     """
-    group = None #TODO:change to ForeignKey(Group.group object, null = False)
+    group = models.ForeignKey(Group, null = False) 
+    numeric_activity = models.ForeignKey(NumericActivity, null = False)
+    # The grade can be also found through any group memeber's numeric_grade object
+    # Keep a copy here just for fast query for the grade given the group and the activity
     grade = models.DecimalField(max_digits=5, decimal_places=2)
-    def __unicode__(self):
-        return "Marking for [%s] for activity [%s]" %(self.group,)#TODO: need some way to find the activity
     
-    def setMark(self, grade, status_flag):
-        #set mark for each of the student in the group
-        self.grade = grade
+    class Meta:
+        unique_together = (('group', 'numeric_activity'),)
+    
+    def __unicode__(self):
+        return "Marking for group [%s] for activity [%s]" %(self.group,)#TODO: need some way to find the activity
+    
+    def setMark(self, grade):
+        self.grade = grade        
+        #assign mark for each member in the group
+        group_members = group.groupmember_set.filter(confirmed = True)
+        for group_member in group_members:
+            try: 
+                ngrade = NumericGrade.objects.get(activity = self.numeric_activity, member = group_member)                  
+            except NumericGrade.DoesNotExist: #if the  NumericalGrade does not exist yet, create a new one
+                ngrade = NumericGrade(activity = self.numeric_activity, member = group_member)
+            ngrade.value = grade
+            ngrade.flag = 'GRAD'
+            ngrade.save()            
+            
  
 class ActivityComponentMark(models.Model):
     """
