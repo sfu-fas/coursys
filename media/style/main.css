@@ -297,6 +297,16 @@ table.info {
     margin-bottom: 1em;
 }
 
+.position_button {
+  float: left;
+}
+.position_placeholder {
+  float: left;
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
 
 #form_container {
     width: 650px;

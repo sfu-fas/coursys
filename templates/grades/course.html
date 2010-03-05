@@ -2,26 +2,17 @@
 
 {% block h1 %}Course Information{% endblock %}
 
-{% block headextra %}
+{% block grades_headextra %}
 <script type="text/javascript">
     $(document).ready(function() {
-        // add button style
-        $('.redbutton').mousedown(
-            function(){ 
-		$(this).addClass("redbutton_onclick"); 
-            }
-        )
-        // add button style
-        $('.redbutton').mouseup(
-            function(){ 
-		$(this).removeClass("redbutton_onclick"); 
-            }
-        )
+        addLinkClickStyle('.redbutton', 'redbutton_onclick');
+        addLinkClickStyle('.position_button', 'ui-state-hover');
         // activate dataTable ui
 	oTable = $('#activities').dataTable({
 		"bJQueryUI": true,
 		"sPaginationType": "full_numbers",
-                "iDisplayLength" : 50
+                "iDisplayLength" : 50,
+                "bSort": false,
 	});
     });
 </script>
@@ -106,15 +97,27 @@
     <table class="display" id="activities">
         <thead>
             <tr>
-                <th>Activity</th>
-                <th>Percentage</th>
-                <th>Status</th>
-                <th>Due Date</th>
+                <th class="ui-state-default">Order</th>
+                <th class="ui-state-default">Activity</th>
+                <th class="ui-state-default">Percentage</th>
+                <th class="ui-state-default">Status</th>
+                <th class="ui-state-default">Due Date</th>
             </tr>
         </thead>
         <tbody>
             {% for activity in activities %}
             <tr>
+                <td>
+                    {% if not forloop.first %}
+                    <a href="#"><span class="position_button ui-state-default ui-icon ui-icon-arrowthick-1-n"></span></a>
+                    {% endif %}
+                    {% if forloop.first %}
+                    <span class="position_placeholder"></span>
+                    {% endif %}
+                    {% if not forloop.last %}
+                    <a href="#"><span class="position_button ui-state-default ui-icon ui-icon-arrowthick-1-s"></span></a>
+                    {% endif %}
+                </td>
                 <td>
                     <strong>
                         <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">{{ activity.name }}</a>

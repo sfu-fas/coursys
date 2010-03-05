@@ -2,6 +2,30 @@
 
 {% block title %}Grades{% endblock %}
 
+{% block headextra %}
+<script type="text/javascript">
+    function addLinkClickStyle(selector, styleclass ) {
+        $(selector).mousedown(
+            function(){ 
+		$(this).addClass(styleclass); 
+            }
+        )
+        $(selector).mouseup(
+            function(){ 
+		$(this).removeClass(styleclass); 
+            }
+        )
+        $(selector).mouseout(
+            function(){ 
+		$(this).removeClass(styleclass); 
+            }
+        )
+    }
+</script>
+{% block grades_headextra %}
+{% endblock %}
+{% endblock %}
+
 {% block breadcrumbs %}
 <li><a href="http://www.sfu.ca/">SFU</a></li>
 <li>&gt; <a href="http://www.cs.sfu.ca/">Computing Science</a></li>

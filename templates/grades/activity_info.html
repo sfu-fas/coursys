@@ -2,21 +2,10 @@
 
 {% block h1 %}Activity Information{% endblock %}
 
-{% block headextra %}
+{% block grades_headextra %}
 <script type="text/javascript">
     $(document).ready(function() {
-	// add button style
-        $('.redbutton').mousedown(
-            function(){ 
-		$(this).addClass("redbutton_onclick"); 
-            }
-        )
-        // add button style
-        $('.redbutton').mouseup(
-            function(){ 
-		$(this).removeClass("redbutton_onclick"); 
-            }
-        )
+	addLinkClickStyle('.redbutton', 'redbutton_onclick');
 	// activate dataTable ui
 	oTable = $('#student_grades').dataTable({
 		"bJQueryUI": true,
