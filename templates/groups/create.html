@@ -2,7 +2,7 @@
 {% block content %}
 	<h1>Create Group</h1>
 	{% if user %}
-		<form action="/create/" method="POST">
+		<form action="{% url groups.views.create_result course_slug=course.slug  %}" method="POST">
 			<label for="name">Group Name </label>
                         <input type="text" id="name">
 			<input type="submit" value="Create">

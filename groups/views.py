@@ -44,7 +44,7 @@ def create(request,course_slug):
 	p = get_object_or_404(Person,userid=request.user.username)
 	c = get_object_or_404(CourseOffering, slug = course_slug)
 	group_manager=Member.objects.get(person = p, offering = c)
-	return render_to_response('groups/create.html', {'manager':group_manager},context_instance = RequestContext(request)) 
+	return render_to_response('groups/create.html', {'manager':group_manager, 'course':c},context_instance = RequestContext(request)) 
 
 @login_required
 def create_result(request,course_slug):
