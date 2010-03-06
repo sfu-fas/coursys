@@ -3,9 +3,10 @@ from django.http import HttpResponseRedirect, Http404
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
+from django.db.models.aggregates import Max
 from coredata.models import Member, CourseOffering, Person, Role
 from courselib.auth import requires_course_by_slug, requires_course_staff_by_slug, is_course_staff_by_slug
-from grades.models import ACTIVITY_STATUS, FLAGS, all_activities_filter, \
+from grades.models import ACTIVITY_STATUS, FLAGS, all_activities_filter, Activity, \
                         NumericActivity, LetterActivity, NumericGrade, LetterGrade, ACTIVITY_TYPES
 from grades.forms import NumericActivityForm, LetterActivityForm, FORMTYPE
 from grades.models import *
@@ -21,6 +22,7 @@ def index(request):
     return render_to_response("grades/index.html", {'memberships': memberships}, context_instance=RequestContext(request))
     
 _FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo'}
+_ORDER_TYPE = {'UP': 'up', 'DN': 'down'}
 _ACTIVITY_TYPE = {'NG': 'Numeric Graded', 'LG': 'Letter Graded'}
 
 class _CourseInfo:
@@ -37,14 +39,59 @@ class _CourseInfo:
         self.instructor_list = instructor_list
         self.ta_list = ta_list
         self.grade_approver_list = grade_approver_list
-        
+
+def _reorder_course_activities(ordered_activities, activity_slug, order):
+    """
+    Reorder the activity in the Activity list of a course. Please make
+    sure the Activity list belongs to the same course.
+    """
+    if not isinstance(ordered_activities, list):
+        return
+    for activity in ordered_activities:
+        if not isinstance(activity, Activity):
+            return
+    for i in range(0, len(ordered_activities)):
+        if ordered_activities[i].slug == activity_slug:
+            if (order == _ORDER_TYPE['UP']) and (not i == 0):
+                # swap position
+                temp = ordered_activities[i-1].position
+                ordered_activities[i-1].position = ordered_activities[i].position
+                ordered_activities[i].position = temp
+                ordered_activities[i-1].save()
+                ordered_activities[i].save()
+                # swap activity in the ordered_activities list for display purpose
+                temp = ordered_activities[i-1]
+                ordered_activities[i-1] = ordered_activities[i]
+                ordered_activities[i] = temp
+            elif (order == _ORDER_TYPE['DN']) and (not i == len(ordered_activities) - 1):
+                # swap position
+                temp = ordered_activities[i+1].position
+                ordered_activities[i+1].position = ordered_activities[i].position
+                ordered_activities[i].position = temp
+                ordered_activities[i+1].save()
+                ordered_activities[i].save()
+                # swap activity in the ordered_activities list for display purpose
+                temp = ordered_activities[i+1]
+                ordered_activities[i+1] = ordered_activities[i]
+                ordered_activities[i] = temp
+            break
+    
 @requires_course_staff_by_slug
 def course(request, course_slug):
     """
     Course front page
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    activities = course.activity_set.all()
+    activities = list(course.activity_set.all())
+    
+    order = None
+    act = None
+    if request.GET.has_key('order'):
+        order = request.GET['order']
+    if request.GET.has_key('act'):
+        act = request.GET['act']
+    if order:
+        _reorder_course_activities(activities, act, order)
     course_instructor_list = course.members.filter(person__role='INST')
     course_ta_list = course.members.filter(person__role='TA')
     course_grade_approver_list = course.members.filter(person__role='APPR')
@@ -55,7 +102,7 @@ def course(request, course_slug):
     context = {'course': course, 'activities': activities, 'course_info': course_info, 'from_page': _FROMPAGE['course']}
     return render_to_response("grades/course.html", context,
                               context_instance=RequestContext(request))
-    
+
 class _StudentGradeInfo:
     """
     Object holding student grade info for the display in 'activity_info' page 
@@ -154,15 +201,20 @@ def add_numeric_activity(request, course_slug):
         form.activate_addform_validation(course_slug)
         if form.is_valid(): # All validation rules pass
             try:
+                aggr_dict = Activity.objects.filter(offering=course).aggregate(Max('position'))
+                if not aggr_dict['position__max']:
+                    position = 1
+                else:
+                    position = aggr_dict['position__max'] + 1
                 NumericActivity.objects.create(name=form.cleaned_data['name'],
                                                 short_name=form.cleaned_data['short_name'],
                                                 status=form.cleaned_data['status'],
                                                 due_date=form.cleaned_data['due_date'],
                                                 percent=form.cleaned_data['percent'],
                                                 max_grade=form.cleaned_data['max_grade'],
-                                                offering=course, position=1)
-            except Error:
-                Http404
+                                                offering=course, position=position)
+            except Exception:
+                raise Http404
             return HttpResponseRedirect(reverse('grades.views.course', kwargs={'course_slug': course_slug}))
     else:
         form = NumericActivityForm()
@@ -253,14 +305,19 @@ def add_letter_activity(request, course_slug):
         form.activate_addform_validation(course_slug)
         if form.is_valid(): # All validation rules pass
             try:
+                aggr_dict = Activity.objects.filter(offering=course).aggregate(Max('position'))
+                if not aggr_dict['position__max']:
+                    position = 1
+                else:
+                    position = aggr_dict['position__max'] + 1
                 LetterActivity.objects.create(name=form.cleaned_data['name'],
                                                 short_name=form.cleaned_data['short_name'],
                                                 status=form.cleaned_data['status'],
                                                 due_date=form.cleaned_data['due_date'],
                                                 percent=form.cleaned_data['percent'],
-                                                offering=course, position=1)
-            except Error:
-                return Http404
+                                                offering=course, position=position)
+            except Exception:
+                raise Http404
             return HttpResponseRedirect(reverse('grades.views.course',
                                                 kwargs={'course_slug': course_slug}))
     else:
@@ -286,8 +343,22 @@ def delete_activity_review(request, course_slug, activity_slug):
 
 @requires_course_staff_by_slug
 def delete_activity_confirm(request, course_slug, activity_slug):
-    activity = get_object_or_404(Activity, slug=activity_slug)
-    activity.delete()
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activities = list(course.activity_set.all())
+    activity_found = False
+    for i in range(0, len(activities)):
+        if activities[i].slug == activity_slug:
+            activity_found = True
+            try:
+                activities[i].delete()
+            except Exception:
+                raise Http404
+            for j in range(len(activities) - 1, i, -1):
+                activities[j].position = activities[j-1].position
+                activities[j].save()
+            break
+    if not activity_found:
+        raise Http404
     return HttpResponseRedirect(reverse('grades.views.course', kwargs={'course_slug': course_slug}))
 
 @login_required

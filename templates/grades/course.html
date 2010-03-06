@@ -28,43 +28,43 @@
     <table class="info">
         <tbody>
             <tr>
-                <th>Subject</th>
+                <th  class="ui-state-default">Subject</th>
                 <td>
                     {{ course_info.subject }}
                 </td>
             </tr>
             <tr>
-                <th>Catalog Number</th>
+                <th  class="ui-state-default">Catalog Number</th>
                 <td>
                     {{ course_info.number }}
                 </td>
             </tr>
             <tr>
-                <th>Section</th>
+                <th  class="ui-state-default">Section</th>
                 <td>
                     {{ course_info.section }}
                 </td>
             </tr>
             <tr>
-                <th>Semester</th>
+                <th class="ui-state-default">Semester</th>
                 <td>
                     {{ course_info.semester }}
                 </td>
             </tr>
             <tr>
-                <th>Title</th>
+                <th class="ui-state-default">Title</th>
                 <td>
                     {{ course_info.title }}
                 </td>
             </tr>
             <tr>
-                <th>Campus</th>
+                <th class="ui-state-default">Campus</th>
                 <td>
                     {{ course_info.campus }}
                 </td>
             </tr>
             <tr>
-                <th>Instructor(s)</th>
+                <th class="ui-state-default">Instructor(s)</th>
                 <td>
                     {% for instructor in course_info.instructor_list %}
                     {{ instructor.name }} (<a href="mailto:{{ instructor.email }}">{{ instructor.email }}</a>){% if not forloop.first %},{% endif %}
@@ -72,7 +72,7 @@
                 </td>
             </tr>
             <tr>
-                <th>TA(s)</th>
+                <th class="ui-state-default">TA(s)</th>
                 <td>
                     {% for ta in course_info.ta_list %}
                     {{ ta.name }} (<a href="mailto:{{ ta.email }}">{{ ta.email }}</a>){% if not forloop.first %},{% endif %}
@@ -80,7 +80,7 @@
                 </td>
             </tr>
             <tr>
-                <th>Grade Approver(s)</th>
+                <th class="ui-state-default">Grade Approver(s)</th>
                 <td>
                     {% for grade_approver in course_info.grade_approver_list %}
                     {{ grade_approver.name }} (<a href="mailto:{{ grade_approver.email }}">{{ grade_approver.email }}</a>){% if not forloop.first %},{% endif %}
@@ -109,13 +109,17 @@
             <tr>
                 <td>
                     {% if not forloop.first %}
-                    <a href="#"><span class="position_button ui-state-default ui-icon ui-icon-arrowthick-1-n"></span></a>
+                    <a href="{% url grades.views.course course_slug=course.slug %}?order=up&act={{ activity.slug }}">
+                        <span class="position_button ui-state-default ui-icon ui-icon-arrowthick-1-n"></span>
+                    </a>
                     {% endif %}
                     {% if forloop.first %}
                     <span class="position_placeholder"></span>
                     {% endif %}
                     {% if not forloop.last %}
-                    <a href="#"><span class="position_button ui-state-default ui-icon ui-icon-arrowthick-1-s"></span></a>
+                    <a href="{% url grades.views.course course_slug=course.slug %}?order=down&act={{ activity.slug }}">
+                        <span class="position_button ui-state-default ui-icon ui-icon-arrowthick-1-s"></span>
+                    </a>
                     {% endif %}
                 </td>
                 <td>

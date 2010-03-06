@@ -57,7 +57,7 @@ class Activity(models.Model):
     status = models.CharField(max_length=4, null=False, choices=ACTIVITY_STATUS_CHOICES, help_text='Activity status.')
     due_date = models.DateTimeField(null=False, help_text='Activity due date')
     percent = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    position = models.PositiveSmallIntegerField()
+    position = models.PositiveSmallIntegerField(help_text="The order of displaying course activities.")
     #submittable = 
     #group_activity = 
     

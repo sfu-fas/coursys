@@ -33,11 +33,11 @@
     <table class="info">
         <tbody>
 	    <tr>
-                <th>Activity Type</th>
+                <th class="ui-state-default">Activity Type</th>
                 <td>{{ activity_type }}</td>
             </tr>
             <tr>
-                <th>Name</th>
+                <th class="ui-state-default">Name</th>
                 <td>
                     {{activity.name}}
                     <span>(<a href="{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}">Edit</a>) </span> 
@@ -45,24 +45,24 @@
                 </td>
             </tr>
             <tr>
-                <th>Short name</th>
+                <th class="ui-state-default">Short name</th>
                 <td>{{activity.short_name}}</td>
             </tr>
             <tr>
-                <th>Status</th>
+                <th class="ui-state-default">Status</th>
                 <td>{{activity.get_status_display}}</td>
             </tr>
             <tr>
-                <th>Due date</th>
+                <th class="ui-state-default">Due date</th>
                 <td>{{activity.due_date}}</td>
             </tr>
             <tr>
-                <th>Percentage</th>
+                <th class="ui-state-default">Percentage</th>
                 <td>{{activity.percent}}</td>
             </tr>
             {% ifequal activity_type 'Numeric Graded' %}
             <tr>
-                <th>Maximum grade</th>
+                <th class="ui-state-default">Maximum grade</th>
                 <td>{{activity.max_grade}}</td>
             </tr>
             {% endifequal %}

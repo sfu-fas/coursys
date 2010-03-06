@@ -273,6 +273,7 @@ tr:hover .row-actions {
 }
 
 table.info tbody th {
+  font-weight: bold;
   text-align: left;
 }
 table.info tbody th {

@@ -17986,7 +17986,7 @@
    "name": "Assignment 2", 
    "offering": 184, 
    "percent": "10", 
-   "position": 1, 
+   "position": 2, 
    "short_name": "A2", 
    "slug": "a2", 
    "status": "URLS"
@@ -18000,7 +18000,7 @@
    "name": "Midterm Exam", 
    "offering": 184, 
    "percent": "20", 
-   "position": 1, 
+   "position": 3, 
    "short_name": "MT", 
    "slug": "mt", 
    "status": "URLS"
