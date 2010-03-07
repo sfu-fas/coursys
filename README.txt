@@ -1,5 +1,5 @@
 Here is a quick description of what is in the project:
- 
+
 EXTERNAL APPS
 autoslug: adds AutoSlugField field type
 django_cas: CAS authentication
