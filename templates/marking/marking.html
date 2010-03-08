@@ -4,8 +4,8 @@
 {% block marking_header_extra %}
 <script type="text/javascript">
 function append_problem(n, content)
-{   
-	var comments = document.querySelectorAll("textarea");
+{       
+    var comments = document.querySelectorAll("textarea");    
 	var oldconent = comments[n-1].value;	
 	comments[n-1].value += (oldconent == '' ? '' : '; ') + content;
 }
@@ -20,13 +20,6 @@ function append_problem(n, content)
      
 <div id = "form_container">
 <div id = "marking_container">
-{% if error_info %}
-   <p class="errorindicator">
-      <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
-      {{error_info}}
-   </p>	   
- {% endif %}
-
 <form action="{% url marking.views.marking course_slug=course.slug, activity_short_name=activity.short_name %}" method="POST" enctype="multipart/form-data">  
      <h2> Mark for: </h2>
      <div class = "receiver"> {{student_receiver_form}} </div>

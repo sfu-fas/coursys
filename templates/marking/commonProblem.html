@@ -21,12 +21,6 @@
 <form action="{% url marking.views.manage_common_problems course_slug=course.slug, activity_short_name=activity.short_name %}" method="POST">
     {{ formset.management_form }} 
      <div id = "table_container">
-	   {% if error_info %}
-	   <p class="errorindicator">
-	      <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
-	      {{error_info}}
-	   </p>	   
-      {% endif %}
        <table class="display" id="common_problems">
         <thead>
           <tr>             

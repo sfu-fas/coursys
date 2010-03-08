@@ -12,8 +12,7 @@ class ActivityComponent(models.Model):
     max_mark = models.DecimalField(max_digits=5, decimal_places=2, null = False)
     title = models.CharField(max_length=30, null = False)
     description = models.TextField(max_length = 200, null = True, blank = True)
-    position = models.IntegerField(null = True, default = 0, blank =True)
-    
+    position = models.IntegerField(null = True, default = 0, blank =True)    
     # set this flag if it is deleted by the user
     deleted = models.BooleanField(null = False, db_index = True, default = False)
     def __unicode__(self):        
@@ -128,21 +127,6 @@ class ActivityComponentMark(models.Model):
         
     class Meta:
         unique_together = (('activity_mark', 'activity_component'),)
-
-from django.forms import ModelForm
-class ActivityComponentMarkForm(ModelForm):
-    class Meta:
-        model = ActivityComponentMark            
-        fields = ['comment', 'value']
-        exclude = ['activity_mark', 'activity_component']
-
-        
-class ActivityMarkForm(ModelForm):
-    class Meta:
-        model = ActivityMark
-        fields = ['late_penalty', 'mark_adjustment', 'mark_adjustment_reason', 'overall_comment', \
-                  'file_attachment']
-
         
 def copyCourseSetup(course_copy_from, course_copy_to):
     # copy course setup from one to another

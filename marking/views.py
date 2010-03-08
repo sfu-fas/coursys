@@ -9,7 +9,9 @@ from grades.models import NumericActivity
 from groups.models import Group
 from log.models import *
 from models import *      
+from forms import *
 from django.forms.models import modelformset_factory
+from contrib import messages
 
 
 @login_required
@@ -34,42 +36,6 @@ def list_activities(request, course_slug):
             target_activities.append(act)            
             
     return render_to_response("marking/activities.html", {'course_slug': course_slug, 'activities' : target_activities}, context_instance=RequestContext(request))
-
-
-def _check_components_titles(formset):
-      titles = []
-      for form in formset.forms:
-        try: # since title is required, empty title triggers KeyError and don't consider this row
-            form.cleaned_data['title']
-        except KeyError:      
-            continue
-        else:  
-            title = form.cleaned_data['title']
-            if (not form.cleaned_data['deleted']) and title in titles:
-                return False
-            titles.append(title)        
-      return True 
-
-def _check_common_problem_titles(formset):
-      common_problems = {}
-      for form in formset.forms:
-        try: # component is required, empty component triggers KeyError and don't consider this row
-            form.cleaned_data['activity_component']
-        except KeyError:
-            continue
-        try: # title is required, empty title triggers KeyError and don't consider this row
-            form.cleaned_data['title']
-        except KeyError:
-            continue
-        else:            
-            component = form.cleaned_data['activity_component']
-            title = form.cleaned_data['title']
-            if (not form.cleaned_data['deleted']) and \
-               component in common_problems.keys() and \
-               common_problems[component] == form.cleaned_data['title']:
-               return False
-            common_problems[component] = title
-      return True 
 
 def _save_common_problems(formset):
       for form in formset.forms:
@@ -105,47 +71,51 @@ def _save_components(formset, activity):
 @requires_course_staff_by_slug
 def manage_activity_components(request, course_slug, activity_short_name):    
             
-    error_info = ""
+    error_info = None
     course = get_object_or_404(CourseOffering, slug = course_slug)
     activity = get_object_or_404(NumericActivity, offering = course, short_name = activity_short_name) 
    
     fields = ('title', 'description', 'max_mark', 'deleted',)
     
     ComponentsFormSet  = modelformset_factory(ActivityComponent, fields=fields, \
+                                              formset=BaseActivityComponentFormSet, \
                                               can_delete = False, extra = 3) 
     
     qset =  ActivityComponent.objects.filter(numeric_activity = activity, deleted=False);
                  
     if request.method == "POST":     
-        formset = ComponentsFormSet(request.POST, queryset = qset)
+        formset = ComponentsFormSet(activity, request.POST, queryset = qset)
         
-        if formset.is_valid() == False:
-              error_info = "Some component has error" 
-        elif _check_components_titles(formset) == False:             
-              error_info = "Each component must have an unique title"
+        if not formset.is_valid():
+              if formset.non_form_errors():
+                  error_info = formset.non_form_errors()[0] 
         else:          
             # save the formset  
             _save_components(formset, activity)
+            messages.add_message(request, messages.SUCCESS, 'Activity Components Saved')
             return HttpResponseRedirect(reverse('marking.views.list_activities', \
                                                 args=(course_slug,)))                   
-    else: # for PUT
+    else: # for GET
         formset = ComponentsFormSet(queryset = qset) 
     
+    if error_info:
+        messages.add_message(request, messages.ERROR, error_info)
     return render_to_response("marking/components.html", 
                               {'course' : course, 'activity' : activity,\
-                               'formset' : formset,'error_info' : error_info,},\
+                               'formset' : formset },\
                                context_instance=RequestContext(request))
     
 @requires_course_staff_by_slug
 def manage_common_problems(request, course_slug, activity_short_name):    
        
-    error_info = ""
+    error_info = None
     course = get_object_or_404(CourseOffering, slug = course_slug)
     activity = get_object_or_404(NumericActivity, offering = course, short_name = activity_short_name) 
    
     fields = ('activity_component', 'title', 'description', 'penalty', 'deleted',)
     
-    CommonProblemFormSet  = modelformset_factory(CommonProblem, fields=fields, \
+    CommonProblemFormSet = modelformset_factory(CommonProblem, fields=fields, \
+                                              formset=BaseCommonProblemFormSet, \
                                               can_delete = False, extra = 3) 
     
     # only filter out the common problems associated with components of this activity
@@ -155,23 +125,24 @@ def manage_common_problems(request, course_slug, activity_short_name):
     if request.method == "POST":     
         formset = CommonProblemFormSet(request.POST, queryset = qset)
         
-        if formset.is_valid() == False:
-              error_info = "Some common problem has error"              
-        # TODO need to change the function name or duplicate one for common problem
-        elif _check_common_problem_titles(formset) == False:             
-              error_info = "Each common problem must have an unique title within one component"
+        if not formset.is_valid():
+             if formset.non_form_errors():
+                  error_info = formset.non_form_errors()[0] 
         else:       
             # save the formset  
             _save_common_problems(formset)
+            messages.add_message(request, messages.SUCCESS, 'Common problems Saved')
             return HttpResponseRedirect(reverse('marking.views.list_activities', \
                                                 args=(course_slug,)))                   
-    else: # for PUT        
+    else: # for GET        
         formset = CommonProblemFormSet(queryset = qset) 
     
+    if error_info:
+        messages.add_message(request, messages.ERROR, error_info)    
     return render_to_response("marking/commonProblem.html", 
                               {'course' : course, 'activity' : activity, 
-                               'formset' : formset,'error_info' : error_info,},\
-                               context_instance=RequestContext(request))
+                              'formset' : formset },\
+                              context_instance=RequestContext(request))
     
 @requires_course_staff_by_slug
 def marking(request, course_slug, activity_short_name):
@@ -182,6 +153,7 @@ def marking(request, course_slug, activity_short_name):
      
     students_qset = course.members.filter(person__offering = course, person__role = "STUD")
     groups_qset = Group.objects.filter(courseoffering = course)
+    
     from django import forms 
     class MarkStudentReceiverForm(forms.Form):
         student = forms.ModelChoiceField(queryset = students_qset)        
@@ -214,7 +186,7 @@ def marking(request, course_slug, activity_short_name):
             total_mark = 0
             for i in range(leng):         
                 if not forms[i].is_valid():
-                    error_info = "Error found"
+                    error_info = "Error found" 
                     break
                 cmp_mark = forms[i].save(commit = False)
                 cmp_mark.activity_component = components[i]                
@@ -226,8 +198,8 @@ def marking(request, course_slug, activity_short_name):
                 
         additional_info_form = ActivityMarkForm(request.POST, request.FILES, prefix = "additional-form")
         
-        if (not error_info) and (not additional_info_form.is_valid()):
-            error_info = "Error found"
+        if (not additional_info_form.is_valid()) and (not error_info):
+            error_info = "Error found in additional information"
             
         # no error, save the result
         if not error_info:             
@@ -273,7 +245,7 @@ def marking(request, course_slug, activity_short_name):
               description="edited grade on %s for %s changed to %s" % \
               (activity, receiver, total_mark), related_object=activity_mark)                     
             l.save()                         
-                                    
+            messages.add_message(request, messages.SUCCESS, 'Marking for %s on activity %s finished' %s (receiver, activity.name,))                      
             return HttpResponseRedirect(reverse('marking.views.list_activities', \
                                                 args=(course_slug,)))       
     else: # for PUT request                 
@@ -288,11 +260,13 @@ def marking(request, course_slug, activity_short_name):
         common_problems = CommonProblem.objects.filter(activity_component = components[i], deleted = False)
         comp = {'component' : components[i], 'form' : forms[i], 'common_problems' : common_problems}        
         mark_components.append(comp)
-  
+     
+    if error_info:
+        messages.add_message(request, messages.ERROR, error_info)
     return render_to_response("marking/marking.html",
                              {'course':course, 'activity' : activity, \
                               'student_receiver_form' : student_receiver_form, 'group_receiver_form' : group_receiver_form,
-                              'additional_info_form' : additional_info_form, 'mark_components': mark_components, \
-                              'error_info': error_info, }, context_instance=RequestContext(request))
+                              'additional_info_form' : additional_info_form, 'mark_components': mark_components }, \
+                              context_instance=RequestContext(request))
     
         
