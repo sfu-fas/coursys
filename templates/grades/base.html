@@ -4,18 +4,16 @@
 
 {% block headextra %}
 <script type="text/javascript">
-    function addLinkClickStyle(selector, styleclass ) {
+    function addLinkClickStyleClass(selector, styleclass ) {
         $(selector).mousedown(
             function(){ 
 		$(this).addClass(styleclass); 
             }
-        )
-        $(selector).mouseup(
+        ).mouseup(
             function(){ 
 		$(this).removeClass(styleclass); 
             }
-        )
-        $(selector).mouseout(
+        ).mouseout(
             function(){ 
 		$(this).removeClass(styleclass); 
             }

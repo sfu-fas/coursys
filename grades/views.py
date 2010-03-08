@@ -59,10 +59,6 @@ def _reorder_course_activities(ordered_activities, activity_slug, order):
                 ordered_activities[i].position = temp
                 ordered_activities[i-1].save()
                 ordered_activities[i].save()
-                # swap activity in the ordered_activities list for display purpose
-                temp = ordered_activities[i-1]
-                ordered_activities[i-1] = ordered_activities[i]
-                ordered_activities[i] = temp
             elif (order == _ORDER_TYPE['DN']) and (not i == len(ordered_activities) - 1):
                 # swap position
                 temp = ordered_activities[i+1].position
@@ -70,10 +66,6 @@ def _reorder_course_activities(ordered_activities, activity_slug, order):
                 ordered_activities[i].position = temp
                 ordered_activities[i+1].save()
                 ordered_activities[i].save()
-                # swap activity in the ordered_activities list for display purpose
-                temp = ordered_activities[i+1]
-                ordered_activities[i+1] = ordered_activities[i]
-                ordered_activities[i] = temp
             break
     
 @requires_course_staff_by_slug
@@ -92,6 +84,7 @@ def course(request, course_slug):
         act = request.GET['act']
     if order:
         _reorder_course_activities(activities, act, order)
+        return HttpResponseRedirect(reverse('grades.views.course', kwargs={'course_slug': course_slug}))
     course_instructor_list = course.members.filter(person__role='INST')
     course_ta_list = course.members.filter(person__role='TA')
     course_grade_approver_list = course.members.filter(person__role='APPR')
@@ -329,7 +322,7 @@ def add_letter_activity(request, course_slug):
 @requires_course_staff_by_slug
 def delete_activity_review(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    activities = all_activities_filter(slug=activity_slug)
+    activities = all_activities_filter(offering=course, slug=activity_slug)
     if (len(activities) == 1):
         activity = activities[0]
         if isinstance(activity, NumericActivity):

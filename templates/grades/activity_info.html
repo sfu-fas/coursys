@@ -5,7 +5,7 @@
 {% block grades_headextra %}
 <script type="text/javascript">
     $(document).ready(function() {
-	addLinkClickStyle('.redbutton', 'redbutton_onclick');
+	addLinkClickStyleClass('a.redbutton', 'redbutton_onclick');
 	// activate dataTable ui
 	oTable = $('#student_grades').dataTable({
 		"bJQueryUI": true,

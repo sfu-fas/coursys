@@ -5,8 +5,8 @@
 {% block grades_headextra %}
 <script type="text/javascript">
     $(document).ready(function() {
-        addLinkClickStyle('.redbutton', 'redbutton_onclick');
-        addLinkClickStyle('.position_button', 'ui-state-hover');
+        addLinkClickStyleClass('a.redbutton', 'redbutton_onclick');
+        addLinkClickStyleClass('span.position_button', 'ui-state-hover');
         // activate dataTable ui
 	oTable = $('#activities').dataTable({
 		"bJQueryUI": true,
