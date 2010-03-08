@@ -98,9 +98,13 @@ class Submission(models.Model):
 
 class StudentSubmission(Submission):
     member = models.ForeignKey(Member, null=False)
+    def get_userid(self):
+        return self.member.person.userid
     
 class GroupSubmission(Submission):
     group = models.ForeignKey(Group, null=False)
+    def get_userid(self):
+        return self.group.manager.userid
 
 # parts of a submission, created as part of a student/group submission
 
@@ -157,7 +161,7 @@ class SubmittedCpp(SubmittedComponent):
         return self.cpp.size
 class SubmittedPlainText(SubmittedComponent):
     component = models.ForeignKey(PlainTextComponent, null=False)
-    text = models.CharField(max_length=3000)
+    text = models.TextField(max_length=3000)
     def get_url(self):
         return self.text.url
     def get_size(self):

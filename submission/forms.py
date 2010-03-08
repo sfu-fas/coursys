@@ -70,7 +70,7 @@ class SubmittedURLForm(SubmissionForm):
     class Meta:
         model = SubmittedURL
         fields = ['url']
-        widgets = {'url': Textarea(attrs = {'cols':50, 'rows':2})}
+        widgets = {'url': TextInput(attrs = {'style':'width:25em'})}
 
 class SubmittedArchiveForm(SubmissionForm):
     class Meta:

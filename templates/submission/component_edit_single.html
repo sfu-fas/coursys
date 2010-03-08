@@ -19,9 +19,8 @@
 {% block content %}
 <a href="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug %}" class="button">Back</a>
 
-
-    <h2>Change Component Type:</h2>
 {% if component %}
+    <h2>Change Component Type:</h2>
     <ul class="add_nav">
         <li class="warning"><img src="{{MEDIA_URL}}icons/exclamation.png" alt="Warning" />&nbsp;Changing type takes effect immediately and may cause loss of property (e.g, max size for an archive file)</li>
         <li><a href="?type={{type}}&id={{edit_id}}&to_type=Archive" class="button"	{% ifequal type 'Archive' %}id="current_type"{% endifequal %}>Archive</a></li>
@@ -30,30 +29,9 @@
         <li><a href="?type={{type}}&id={{edit_id}}&to_type=Java" class="button"	{% ifequal type 'Java' %}id="current_type"{% endifequal %}>Java</a></li>
         <li><a href="?type={{type}}&id={{edit_id}}&to_type=PlainText" class="button"{% ifequal type 'PlainText' %}id="current_type"{% endifequal %}>Plain Text</a></li>
     </ul>
-    
-{% endif %}
 
     <div id="form_container">
-{% if not component %}
-    <p class="errorindicator">
-        <img src="{{MEDIA_URL}}icons/action_delete.png" alt="error" />
-        The component you specified is invalid.
-    </p>
-{% else %}
     <div id="edit_single_submission_component_form_container">
-
-    {% if form.errors %}
-    <p class="errorindicator">
-        <img src="{{MEDIA_URL}}icons/action_delete.png" alt="error" />
-        Please correct the errors below.
-    </p>
-    {% endif %}
-    {% if new_added %}
-    <p class="successindicator">
-        <img src="{{MEDIA_URL}}icons/action_check.png" alt="check" />
-        New Component added successfully.
-    </p>
-    {% endif%}
 
     <form action="" method="post">
     <fieldset>
@@ -62,7 +40,6 @@
         </fieldset>
     </form>
     </div>
-
     </div>
 {% endif %}
 {% endblock %}

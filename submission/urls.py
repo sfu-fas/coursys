@@ -10,4 +10,5 @@ urlpatterns = patterns('',
     url(r'^(?P<course_slug>' + COURSE_SLUG_RE + ')/(?P<activity_slug>\w+)/add_component/$', 'submission.views.add_component'),
     url(r'^(?P<course_slug>' + COURSE_SLUG_RE + ')/(?P<activity_slug>\w+)/remove/$', 'submission.views.confirm_remove'),
     url(r'^(?P<course_slug>' + COURSE_SLUG_RE + ')/(?P<activity_slug>\w+)/edit/$', 'submission.views.edit_single'),
+    url(r'^(?P<course_slug>' + COURSE_SLUG_RE + ')/(?P<activity_slug>\w+)/download_txt/$', 'submission.views.download_txt'),
 )

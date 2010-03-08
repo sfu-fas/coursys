@@ -9,6 +9,8 @@ from dashboard.templatetags.course_display import display_form
 from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug
 from submission.models import select_all_components
 from django.core.urlresolvers import reverse
+from contrib import messages
+from django.template.defaultfilters import slugify
 
 @login_required
 def index(request):
@@ -54,7 +56,7 @@ def _show_components_student(request, course_slug, activity_slug):
         else:
             pair.append(c[0])
         submitted_pair_list.append(pair)
-    
+
     return render_to_response("submission/component_view.html",
         {"course":course, "activity":activity, "submitted_pair":submitted_pair_list},
         context_instance=RequestContext(request))
@@ -151,6 +153,7 @@ def _show_components_staff(request, course_slug, activity_slug):
                 component.save()
             except:
                 pass
+        messages.add_message(request, messages.SUCCESS, 'Component positions updated.')
         return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
 
     
@@ -183,6 +186,7 @@ def confirm_remove(request, course_slug, activity_slug):
     #if confirmed
     if request.method == 'POST' and component != None:
         component.delete()
+        messages.add_message(request, messages.SUCCESS, 'Component "' +  component.title + '" removed.')
         return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
 
     return render_to_response("submission/component_remove.html",
@@ -213,6 +217,7 @@ def edit_single(request, course_slug, activity_slug):
                 break
     #if component is invalid
     if component == None:
+        messages.add_message(request, messages.ERROR, 'The component you specified is invalid.')
         return render_to_response("submission/component_edit_single.html",
             {"course":course, "activity":activity, "component":component},
             context_instance=RequestContext(request))
@@ -285,6 +290,7 @@ def edit_single(request, course_slug, activity_slug):
             return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
         else:
             form = new_form
+            messages.add_message(request, messages.ERROR, 'Please correct the errors in the form.')
 
     #render the page
     return render_to_response("submission/component_edit_single.html",
@@ -293,7 +299,7 @@ def edit_single(request, course_slug, activity_slug):
             context_instance=RequestContext(request))
 
 @requires_course_staff_by_slug
-def add_component(request, course_slug, activity_slug, new_added=False):
+def add_component(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set, slug = activity_slug)
 
@@ -331,11 +337,31 @@ def add_component(request, course_slug, activity_slug, new_added=False):
                 count = len(select_all_components(activity))
                 new_component.position = count*10 + 10
             new_component.save()
-            new_added = True
-            #TODO: how to add a redirect? blow doesn't work
-            #return HttpResponseRedirect(reverse(add_component, args=[course_slug, activity_slug, True]))
+            messages.add_message(request, messages.SUCCESS, 'New component "' + new_component.title + '" successfully added.')
+            return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
         else:
+            messages.add_message(request, messages.ERROR, 'Please correct the errors in the form.')
             form = new_form
     return render_to_response("submission/component_add.html", 
-        {"course":course, "activity":activity, "form":form, "new_added":new_added, "type":type},
+        {"course":course, "activity":activity, "form":form, "type":type},
         context_instance=RequestContext(request))
+
+@login_required
+def download_txt(request, course_slug, activity_slug):
+    id = request.GET.get('id')
+    t = get_object_or_404(SubmittedPlainText, id = id)
+    #if not course_staff
+    if not is_course_staff_by_slug(request.user, course_slug):
+        #if not myself
+        if not request.user.username == t.submission.get_userid():
+#            #return HttpResponseForbidden()
+#            resp = render_to_response('403.html', context_instance=RequestContext(request))
+#            resp.status_code = 403
+#            return resp
+            messages.add_message(request, messages.WARNING, "Your don't have permission to the resource you just requested.")
+            return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
+        #TODO: for group submission, allow the member in the same group to download
+        
+    response = HttpResponse(t.text, mimetype='text/plain')
+    response['Content-Disposition'] = 'attachment; filename=%s' % t.submission.get_userid() + "_" + slugify(t.component.title) + ".txt"
+    return response

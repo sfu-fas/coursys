@@ -41,6 +41,7 @@ div#messages {
   padding: 0.5em;
   margin: 1em 1em 1em 0;
   color: #b5111b;
+  background-color: #f8f8c2;
 }
 div#messages h3 {
   margin: 0 0 0.5em 0;
@@ -52,12 +53,27 @@ div#messages ul {
   padding: 0;
 }
 div#messages li {
-  list-style-type: circle;
+  list-style-type: none;
   margin: 0;
-  padding: 0;
+  padding: 0 0 0 20px;
 }
-div#messages .error, div#messages .warning {
-  font-weight: bold;
+div#messages .success {
+    color: #92be2c;
+    background-image: url('/media/icons/action_check.png');
+    background-repeat: no-repeat;
+    font-weight: bold;
+}
+div#messages .error {
+    color: #c33a41;
+    background-image: url('/media/icons/action_delete.png');
+    background-repeat: no-repeat;
+    font-weight: bold;
+}
+div#messages .warning {
+    color: #e06121;
+    background-image: url('/media/icons/exclamation.png');
+    background-repeat: no-repeat;
+    font-weight: bold;
 }
 
 table {
@@ -315,7 +331,7 @@ table.info {
 #form_container .errorindicator, #form_container .successindicator, #form_container .warningindicator {
     border: 1px solid;
     padding: 0.5em;
-    background-color: #fffead;
+    background-color: #F8F8C2;
     margin-bottom: 1em;
     margin-top: 0;
 }
