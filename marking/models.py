@@ -43,7 +43,11 @@ class ActivityMark(models.Model):
     mark_adjustment_reason = models.TextField(null = True, max_length = 1000, blank = True)
     file_attachment = models.FileField(null = True, upload_to = "student&group/files/%Y %m %d %H:%M:%S'", blank=True)#TODO: need to add student name or group name to the path  
     
-    created_at = models.DateTimeField(auto_now_add=True)     
+    created_at = models.DateTimeField(auto_now_add=True)
+    # For the purpose of keeping a history,
+    # need the copy of the mark here in case that 
+    # the 'value' field in the related numeric grades gets overridden
+    mark = models.DecimalField(max_digits=5, decimal_places=2)     
     
     def __unicode__(self):
         return "Supper object containing additional info for marking"
@@ -61,7 +65,7 @@ class ActivityMark(models.Model):
         self.file_attachment = obj.file_attachment
     
     def setMark(self, grade):
-        pass
+        self.mark = grade
     
 
 class StudentActivityMark(ActivityMark):
@@ -80,6 +84,7 @@ class StudentActivityMark(ActivityMark):
         """         
         Set the mark
         """
+        super(StudentActivityMark, self).setMark(grade) 
         self.numeric_grade.value = grade
         self.numeric_grade.flag = 'GRAD'
         self.numeric_grade.save()            
@@ -91,10 +96,7 @@ class GroupActivityMark(ActivityMark):
     """
     group = models.ForeignKey(Group, null = False) 
     numeric_activity = models.ForeignKey(NumericActivity, null = False)
-    # The grade can be also found through any group memeber's numeric_grade object
-    # Keep a copy here just for fast query for the grade given the group and the activity
-    grade = models.DecimalField(max_digits=5, decimal_places=2)
-    
+        
     class Meta:
         unique_together = (('group', 'numeric_activity'),)
     
@@ -102,7 +104,7 @@ class GroupActivityMark(ActivityMark):
         return "Marking for group [%s] for activity [%s]" %(self.group,)#TODO: need some way to find the activity
     
     def setMark(self, grade):
-        self.grade = grade        
+        super(GroupActivityMark, self).setMark(grade)    
         #assign mark for each member in the group
         group_members = self.group.groupmember_set.filter(confirmed = True)
         for g_member in group_members:
