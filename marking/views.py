@@ -204,27 +204,20 @@ def marking(request, course_slug, activity_short_name):
         # no error, save the result
         if not error_info:             
             if is_student: #get the student
-                student = receiver_form.cleaned_data['student']
-                membership = course.member_set.get_object_or_404(person = student)                     
+                student = student_receiver_form.cleaned_data['student']
+                membership = course.member_set.get(person = student)                     
                 #get the corresponding NumericGrade object
                 try: 
                     ngrade = NumericGrade.objects.get(activity = activity, member = membership)                  
                 except NumericGrade.DoesNotExist: #if the  NumericalGrade does not exist yet, create a new one
                     ngrade = NumericGrade(activity = activity, member = membership)                  
                     ngrade.save()                            
-                    activity_mark = StudentActivityMark(numeric_grade = ngrade)            
-                else:
-                    #get the corresponding StudentActivityMark object
-                    try:                     
-                        activity_mark = StudentActivityMark.objects.get(numeric_grade = ngrade)   
-                    except StudentActivityMark.DoesNotExist: #if the  StudentActivityMark does not exist yet, create a new one               
-                        activity_mark = StudentActivityMark(numeric_grade = ngrade)
+                
+                activity_mark = StudentActivityMark(numeric_grade = ngrade)            
+              
             else:#get the group
-                group = receiver_form.cleaned_data['group']
-                try: 
-                    activity_mark = GroupActivityMark.objects.get(group = group, numeric_activity = activity)
-                except GroupActivityMark.DoesNotExist:
-                    activity_mark = GroupActivityMark(group = group, numeric_activity = activity)
+                group = group_receiver_form.cleaned_data['group']             
+                activity_mark = GroupActivityMark(group = group, numeric_activity = activity)
                         
             #get the additional info
             additional = additional_info_form.save(commit = False)             
@@ -233,9 +226,10 @@ def marking(request, course_slug, activity_short_name):
             #assign the mark
             activity_mark.setMark(total_mark - additional.late_penalty + additional.mark_adjustment)           
             activity_mark.save()
+            print "activity_mark %s saved" % activity_mark.id
             
             #save the individual ComponentMarks
-            for cmp_mark in cmp_marks:
+            for cmp_mark in cmp_marks:                
                 cmp_mark.activity_mark = activity_mark
                 cmp_mark.save()
                  
@@ -245,7 +239,7 @@ def marking(request, course_slug, activity_short_name):
               description="edited grade on %s for %s changed to %s" % \
               (activity, receiver, total_mark), related_object=activity_mark)                     
             l.save()                         
-            messages.add_message(request, messages.SUCCESS, 'Marking for %s on activity %s finished' %s (receiver, activity.name,))                      
+            messages.add_message(request, messages.SUCCESS, 'Marking for %s on activity %s finished' % (receiver, activity.name,))                      
             return HttpResponseRedirect(reverse('marking.views.list_activities', \
                                                 args=(course_slug,)))       
     else: # for PUT request                 

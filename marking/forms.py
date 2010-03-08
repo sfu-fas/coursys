@@ -7,8 +7,7 @@ class ActivityComponentMarkForm(ModelForm):
     class Meta:
         model = ActivityComponentMark            
         fields = ['comment', 'value']
-        exclude = ['activity_mark', 'activity_component']
-   
+           
     def clean_value(self):
         value = self.cleaned_data['value']
         if value and value < 0:          
@@ -115,7 +114,7 @@ class BaseCommonProblemFormSet(BaseModelFormSet):
             
             penalty = form.cleaned_data['penalty']                      
             if penalty:           
-                if penalty and penalty < 0:
+                if penalty < 0:
                     raise forms.ValidationError(u"Penalty of a common problem must not be negative")
                 if penalty > component.max_mark:
                     raise forms.ValidationError(u"Penalty of a common problem must not exceed its corresponding component")

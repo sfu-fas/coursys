@@ -42,9 +42,13 @@ class ActivityMark(models.Model):
     mark_adjustment = models.IntegerField(null = True, default = 0, blank = True)
     mark_adjustment_reason = models.TextField(null = True, max_length = 1000, blank = True)
     file_attachment = models.FileField(null = True, upload_to = "student&group/files/%Y %m %d %H:%M:%S'", blank=True)#TODO: need to add student name or group name to the path  
-     
+    
+    created_at = models.DateTimeField(auto_now_add=True)     
+    
     def __unicode__(self):
         return "Supper object containing additional info for marking"
+    class Meta:
+        ordering = ['created_at']
     
     def copyFrom(self, obj):
         """
@@ -58,13 +62,13 @@ class ActivityMark(models.Model):
     
     def setMark(self, grade):
         pass
-
+    
 
 class StudentActivityMark(ActivityMark):
     """
     Marking of one student on one numeric activity 
     """        
-    numeric_grade = models.OneToOneField(NumericGrade, null = False)
+    numeric_grade = models.ForeignKey(NumericGrade, null = False)
        
     def __unicode__(self):
         # get the student and the activity
