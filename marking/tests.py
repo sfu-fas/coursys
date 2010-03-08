@@ -12,11 +12,6 @@ from models import *
 from settings import CAS_SERVER_URL
 from courselib.testing import *
 from datetime import *
-from django.forms.models import modelformset_factory   
-from django.template import Context, loader
-from django.test.client import MULTIPART_CONTENT
-from StringIO import *
-
 
 class BasicTest(TestCase):
     fixtures = ['test_data']    
@@ -151,7 +146,7 @@ class BasicTest(TestCase):
     def test_group_setMark(self):
         c = CourseOffering.objects.get(slug = '1101-cmpt-165-d100')
        
-        #add an numeric activity and its components
+        #add an numeric activity
         a = NumericActivity(offering = c, name = 'assignment_1', \
                             short_name = 'a1', status = 'released', \
                             due_date = datetime.now(), max_grade = 100, position = 0)
