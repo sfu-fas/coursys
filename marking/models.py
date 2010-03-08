@@ -27,7 +27,7 @@ class CommonProblem(models.Model):
     """
     activity_component = models.ForeignKey(ActivityComponent, null = False)
     title = models.CharField(max_length=30, null = False)
-    penalty = models.IntegerField(null = True, default = 0, blank = True)
+    penalty = models.IntegerField(null = True, blank = True)
     description = models.TextField(max_length = 200, null = True, blank = True)
     deleted = models.BooleanField(null = False, db_index = True, default = False)
     def __unicode__(self):

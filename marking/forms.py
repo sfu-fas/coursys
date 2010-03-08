@@ -64,7 +64,6 @@ class BaseActivityComponentFormSet(BaseModelFormSet):
             except KeyError:
                 continue                        
             max_mark = form.cleaned_data['max_mark']
-            print max_mark
             if max_mark < 0:
                 raise forms.ValidationError(u"Max mark of a component can not be negative")                    
             total += max_mark

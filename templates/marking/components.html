@@ -6,7 +6,8 @@
     $(document).ready(function() {
 	oTable = $('#activity_components').dataTable({
 		"bJQueryUI": true,
-		"sPaginationType": "full_numbers"
+		"sPaginationType": "full_numbers",
+		"aaSorting": [[ 3, "asc" ]]	
 	});
     });
 </script>
@@ -16,8 +17,9 @@
 
 {% block h1 %}{{course.name}}: {{activity.name}} Components{% endblock %}
 
-{% block content %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url marking.views.list_activities course_slug=course.slug %}">{{course}}</a></li>{% endblock %}
 
+{% block content %}
 
 <form action="{% url marking.views.manage_activity_components course_slug=course.slug, activity_short_name=activity.short_name %}" method="POST">  
      {{ formset.management_form }} 

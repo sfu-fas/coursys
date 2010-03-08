@@ -87,7 +87,7 @@ def manage_activity_components(request, course_slug, activity_short_name):
         formset = ComponentsFormSet(activity, request.POST, queryset = qset)
         
         if not formset.is_valid():
-              if formset.non_form_errors():
+              if not any(formset.errors): # not caused by error of an individual form
                   error_info = formset.non_form_errors()[0] 
         else:          
             # save the formset  
@@ -126,7 +126,7 @@ def manage_common_problems(request, course_slug, activity_short_name):
         formset = CommonProblemFormSet(request.POST, queryset = qset)
         
         if not formset.is_valid():
-             if formset.non_form_errors():
+             if not any(formset.errors): # not caused by error of an individual form
                   error_info = formset.non_form_errors()[0] 
         else:       
             # save the formset  
