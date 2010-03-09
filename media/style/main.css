@@ -608,6 +608,13 @@ fieldset .hidden {
     font-weight: bold;
     margin-right: 1em;
 }
+#main #time_block, #main #time_block tr, #main #time_block td{
+    border-width: 0px;
+}
+#time_block #late_for, #time_block #late_for h3{
+    background-color: red;
+    color: white;
+}
 
 
 /* Override jquery UI style, otherwise the datepicker will be displayed too large */

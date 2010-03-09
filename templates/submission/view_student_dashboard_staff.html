@@ -1,0 +1,19 @@
+{% extends "submission/component_view.html" %}
+
+{% block studentinfo %}
+<h3>student info goes here</h3> <br/>
+{% endblock %}
+
+{% block current_time %}
+{% endblock %}
+
+{% block navbutton %}
+<div id="my_submission_dashboard">
+<ul class="add_nav">
+    {% if submit_time %}
+        <li><a href ="history/" class="button">View History</a></li>
+        <li><a href ="../../download/?user-id={{userid}}" class="button" >Download All</a></li>
+    {% endif %}
+</ul>
+</div>
+{% endblock %}

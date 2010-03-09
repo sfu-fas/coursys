@@ -11,4 +11,6 @@ urlpatterns = patterns('',
     url(r'^(?P<course_slug>' + COURSE_SLUG_RE + ')/(?P<activity_slug>\w+)/remove/$', 'submission.views.confirm_remove'),
     url(r'^(?P<course_slug>' + COURSE_SLUG_RE + ')/(?P<activity_slug>\w+)/edit/$', 'submission.views.edit_single'),
     url(r'^(?P<course_slug>' + COURSE_SLUG_RE + ')/(?P<activity_slug>\w+)/download/$', 'submission.views.download_file'),
+    url(r'^(?P<course_slug>' + COURSE_SLUG_RE + ')/(?P<activity_slug>\w+)/view/(?P<userid>\w+)/$', 'submission.views.show_student_submission_staff'),
+    url(r'^(?P<course_slug>' + COURSE_SLUG_RE + ')/(?P<activity_slug>\w+)/view/(?P<userid>\w+)/history/$', 'submission.views.show_student_history_staff'),
 )
