@@ -7,7 +7,7 @@ from courselib.auth import requires_course_by_slug,requires_course_staff_by_slug
 from submission.forms import *
 from dashboard.templatetags.course_display import display_form
 from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug
-from submission.models import select_all_components
+from submission.models import *
 from django.core.urlresolvers import reverse
 from contrib import messages
 from django.template.defaultfilters import slugify
@@ -130,17 +130,56 @@ def add_submission(request, course_slug, activity_slug):
             pair.append(component)
             pair.append(SubmittedPlainTextForm(prefix = component.id))
             component_form_list.append(pair)
-    if request.method == 'POST':
-        for component in component_list:
-            get(component.id+form.field)
-            url.component = component
-            pass
 
-        return HttpResponse("uploded")
-        #form = Submission.ContactForm(request.POST, request.FILE)
-        #if form.is_valid():
-#            pass
-#        pass
+    if request.method == 'POST':
+        submission_list = []    # list all the submittedComponent submitted in the POST
+        not_submitted_comp = []
+        new_sub = StudentSubmission()   # the submission foreign key
+        new_sub.activity = activity
+        #TODO: test if the submission is a group or student submission then adit accordingly
+        #new_sub.member = get_object_or_404(Member, {'person__userid':request.user.username, 'offering__slug': course_slug})
+        member = Member.objects.filter(person__userid = request.user.username)
+        new_sub.member = get_object_or_404(member, offering__slug = course_slug)
+        for component in component_list:
+
+            if component.get_type() == 'URL' :
+                file = request.POST.get(str(component.id) + '-' + component.get_type().lower())
+            elif component.get_type() == 'PlainText':
+                file = request.POST.get(str(component.id) + '-' + 'text')
+            else:
+                file = request.FILES.get(str(component.id) + '-' + component.get_type().lower())
+                print request.FILES
+            print file
+            if file == None:
+                not_submitted_comp.append(component)
+            else:
+                if component.get_type() == 'URL':
+                    sub = SubmittedURL()
+                    sub.url = file
+                elif component.get_type() == 'Archive':
+                    sub = SubmittedArchive()
+                    sub.archive = file
+                elif component.get_type() == 'Cpp':
+                    sub = SubmittedCpp()
+                    sub.cpp = file
+                elif component.get_type =='Java':
+                    sub = SubmittedJava()
+                    sub.java = file
+                elif component.get_type() == 'PlainText':
+                    sub = SubmittedPlainText()
+                    sub.text = file
+                new_sub.save()
+                sub.submission = new_sub    #point to the submission foreign key
+                sub.component = component
+                submission_list.append(sub)
+        #TODO: enable the file type tester!
+        #print submission_list
+        if submission_list != []:
+           for submission in submission_list:
+                submission.save()
+        return HttpResponse("OK!")
+        #return _submission_test(request, course_slug, activity_slug,submission_list, not_submitted_component)
+        #)
     else:
         component_list = select_all_components(activity)
         return render_to_response("submission/submission_add.html",
@@ -148,6 +187,8 @@ def add_submission(request, course_slug, activity_slug):
         context_instance = RequestContext(request))
 
 #student submission history page
+
+
 @login_required
 def show_components_submission_history(request, course_slug, activity_slug, userid=None):
     if userid==None:

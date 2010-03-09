@@ -94,7 +94,7 @@ class Submission(models.Model):
     activity = models.ForeignKey(Activity)
     created_at = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(Member, null=True, help_text = "TA or instructor that will mark this submission")
-    status = models.CharField(max_length=3, null=False, choices=STATUS_CHOICES)
+    status = models.CharField(max_length=3, null=False,choices=STATUS_CHOICES, default = "NEW")
 
 class StudentSubmission(Submission):
     member = models.ForeignKey(Member, null=False)
@@ -200,6 +200,6 @@ def select_students_submission_by_component(component, userid):
     new_submitted_component.sort()
     return new_submitted_component
 
-def select_students_newest_submission_by_component(component, userid):
-    component_list = select_students_submission_by_component(component, userid)
-    component_list.get()
+#def select_students_newest_submission_by_component(component, userid):
+#    component_list = select_students_submission_by_component(component, userid)
+#    component_list.get()

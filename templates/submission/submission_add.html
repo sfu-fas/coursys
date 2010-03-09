@@ -11,7 +11,7 @@
 <a href ="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug%}">Back</a>
 
 
-<form action ="" method ="POST">
+<form action ="" method ="POST" enctype="multipart/form-data">
     {% for sub_list in component_form_list %}
         <div>
             component {{sub_list.0.title}}
@@ -19,7 +19,7 @@
         </div>
     {% endfor %}
 
-    <input type ="submit" value ="Submit">
+    <input type ="submit" value ="Submit" />
 </form>
 
 {% endblock%}

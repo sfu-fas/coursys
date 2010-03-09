@@ -20,10 +20,10 @@
             <li>{{empty_item.title}}</li>
         {% endfor %}
     </ul>
-    <a href ="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug%}">Submit now</a>
+    <a href ="{% url submission.views.add_submission course_slug=course.slug activity_slug=activity.slug%}">Submit now</a>
 {% endif %}
 
-{% regroup submitted_component by component as by_component %}
+{% regroup submitted_component|dictsort:"component" by component as by_component %}
 {% for component in by_component %}
 <h2>{{component.grouper.title}}</h2>
 {% for item in component.list %}
