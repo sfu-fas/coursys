@@ -1,6 +1,7 @@
 import copy
 from django.db import models
 from grades.models import NumericActivity, NumericGrade, LetterGrade 
+from submission.models import SubmissionComponent
 from coredata.models import Semester
 from groups.models import Group, GroupMember
 
@@ -143,7 +144,7 @@ def copyCourseSetup(course_copy_from, course_copy_to):
         new_numeric_activity.pk = None
         new_numeric_activity.offering = course_copy_to
         week, wkday = course_copy_from.semester.week_weekday(numeric_activity.due_date)
-        new_due_date = course_copy_from.semester.duedate(week, wkday, numeric_activity.due_date)
+        new_due_date = course_copy_to.semester.duedate(week, wkday, numeric_activity.due_date)
         new_numeric_activity.due_date = new_due_date
         new_numeric_activity.save()
         print "Activity %s is copied" % new_numeric_activity

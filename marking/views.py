@@ -33,12 +33,36 @@ def list_activities(request, course_slug):
     # only show the numeric activities for marking
     for act in all_activities:
         if hasattr(act, 'numericactivity'):
-            target_activities.append(act)            
-            
-    return render_to_response("marking/activities.html", {'course_slug': course_slug, 'activities' : target_activities}, context_instance=RequestContext(request))
+            target_activities.append(act) 
+    
+    from django import forms
+    target_userid = request.user.username
+    person = get_object_or_404(Person, userid = target_userid)
+    # get the course offerings of this user
+    courses_qset = Member.objects.exclude(role="DROP").filter(offering__graded=True).filter(person__userid=target_userid) \
+            .select_related('offering','offering__semester') 
+    class CourseReceiverForm(forms.Form):
+        course = forms.ModelChoiceField(queryset = courses_qset) 
+        
+    if request.method == "POST": 
+        course_receiver_form = CourseReceiverForm(request.POST, prefix = "course-receiver-form")
+        if course_receiver_form.is_valid():
+            #print 'valid'
+            course_copy_from = course_receiver_form.cleaned_data['course'].offering
+            course_copy_to = course
+            copyCourseSetup(course_copy_from, course_copy_to)
+            #print course_copy_from
+            #print course_copy_to
+            #print 'copied'                              
+            return HttpResponseRedirect(reverse('marking.views.list_activities', \
+                                                args=(course_slug,)))
+    else:      
+        course_receiver_form = CourseReceiverForm(prefix = "course-receiver-form")  
+        return render_to_response("marking/activities.html", {'course_slug': course_slug, 'course_receiver_form': course_receiver_form, \
+                                                              'activities' : target_activities}, context_instance=RequestContext(request))
 
 def _save_common_problems(formset):
-      for form in formset.forms:
+    for form in formset.forms:
         try:  # component is required, empty component triggers KeyError and don't consider this row
             form.cleaned_data['activity_component']
         except KeyError:       
@@ -51,8 +75,8 @@ def _save_common_problems(formset):
             instance = form.save()
 
 def _save_components(formset, activity):
-      position = 1;
-      for form in formset.forms:
+    position = 1;
+    for form in formset.forms:
         try:  # title is required, empty title triggers KeyError and don't consider this row
             form.cleaned_data['title']
         except KeyError:
@@ -87,8 +111,8 @@ def manage_activity_components(request, course_slug, activity_short_name):
         formset = ComponentsFormSet(activity, request.POST, queryset = qset)
         
         if not formset.is_valid():
-              if not any(formset.errors): # not caused by error of an individual form
-                  error_info = formset.non_form_errors()[0] 
+            if not any(formset.errors): # not caused by error of an individual form
+                error_info = formset.non_form_errors()[0] 
         else:          
             # save the formset  
             _save_components(formset, activity)
@@ -126,8 +150,8 @@ def manage_common_problems(request, course_slug, activity_short_name):
         formset = CommonProblemFormSet(request.POST, queryset = qset)
         
         if not formset.is_valid():
-             if not any(formset.errors): # not caused by error of an individual form
-                  error_info = formset.non_form_errors()[0] 
+            if not any(formset.errors): # not caused by error of an individual form
+                error_info = formset.non_form_errors()[0] 
         else:       
             # save the formset  
             _save_common_problems(formset)
