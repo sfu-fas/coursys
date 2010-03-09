@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from coredata.models import Member, CourseOffering
+from coredata.models import Member, CourseOffering, Person
 from django.shortcuts import render_to_response, get_object_or_404#, redirect
 from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, Http404
@@ -42,25 +42,34 @@ def _show_components_student(request, course_slug, activity_slug):
     """
     course = get_object_or_404(CourseOffering, slug = course_slug)
     activity = get_object_or_404(course.activity_set,slug = activity_slug)
-    component_list = select_all_components(activity)
-    all_submitted = select_students_submitted_components(activity, request.user.username)
 
-    # pair<component, latest_submission>
+    submitted_pair_list = _get_current_submission(request.user.username, activity)
+
+    return render_to_response("submission/component_view.html",
+        {"course":course, "activity":activity, "submitted_pair":submitted_pair_list},
+        context_instance=RequestContext(request))
+
+def _get_current_submission(userid, activity):
+    """
+    return a list of pair[component, latest_submission(could be None)]
+    """
+    component_list = select_all_components(activity)
+    all_submitted = select_students_submitted_components(activity, userid)
+    #TODO: group submission
+    
     submitted_pair_list = []
     for component in component_list:
         pair = []
         pair.append(component)
         c = [sub for sub in all_submitted if sub.component == component]
+        c.sort()
         if len(c) == 0:
             pair.append(None)
         else:
             pair.append(c[0])
         submitted_pair_list.append(pair)
+    return submitted_pair_list
 
-    return render_to_response("submission/component_view.html",
-        {"course":course, "activity":activity, "submitted_pair":submitted_pair_list},
-        context_instance=RequestContext(request))
-        
 #student's submission page
 @requires_course_by_slug
 def add_submission(request, course_slug, activity_slug):
@@ -203,7 +212,6 @@ def edit_single(request, course_slug, activity_slug):
 
     #get component
     edit_id = request.GET.get('id')
-    #TODO: if id is unique, probably don't need to pass type in URL
     edit_type = request.GET.get('type')
     component = None
     if edit_id == None or edit_type == None:
@@ -347,21 +355,102 @@ def add_component(request, course_slug, activity_slug):
         context_instance=RequestContext(request))
 
 @login_required
-def download_txt(request, course_slug, activity_slug):
-    id = request.GET.get('id')
-    t = get_object_or_404(SubmittedPlainText, id = id)
+def download_file(request, course_slug, activity_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(course.activity_set, slug = activity_slug)
+    
+    type = request.GET.get('type') #targeted file type
+    id = request.GET.get('id') #targeted submitted component id
+    student_id = request.GET.get('user-id') #targeted student
+    group_id = request.GET.get('group-id') #targeted group
+
     #if not course_staff
     if not is_course_staff_by_slug(request.user, course_slug):
         #if not myself
-        if not request.user.username == t.submission.get_userid():
-#            #return HttpResponseForbidden()
-#            resp = render_to_response('403.html', context_instance=RequestContext(request))
-#            resp.status_code = 403
-#            return resp
-            messages.add_message(request, messages.WARNING, "Your don't have permission to the resource you just requested.")
-            return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
+        if not student_id == request.user.username:
+            _return_403_dashboard(request, course_slug, activity_slug)
         #TODO: for group submission, allow the member in the same group to download
-        
-    response = HttpResponse(t.text, mimetype='text/plain')
-    response['Content-Disposition'] = 'attachment; filename=%s' % t.submission.get_userid() + "_" + slugify(t.component.title) + ".txt"
+
+    # download as (file type + submitted id)
+    if type == 'PlainText':
+        text_component = get_object_or_404(SubmittedPlainText, id = id)
+        return _download_text_file(text_component)
+    if type == 'URL':
+        url_component = get_object_or_404(SubmittedURL, id=id)
+        return _download_url_file(url_component)
+    if type == 'Archive':
+        archive_component = get_object_or_404(SubmittedArchive, id=id)
+        return _download_archive_file(archive_component)
+    if type == 'Cpp':
+        cpp_component = get_object_or_404(SubmittedCpp, id=id)
+        return _download_cpp_file(cpp_component)
+    if type == 'Java':
+        java_component = get_object_or_404(SubmittedJava, id=id)
+        return _download_java_file(java_component)
+
+    #download current submission as a zip file for userid='id'
+    if student_id != None:
+        #make sure student exists
+        get_object_or_404(Person, userid=student_id)
+    else:
+        get_object_or_404(Group, group_id)
+        #TODO: group submission
+
+    #TODO: modify the function to work for group submission
+    submitted_pair_list = _get_current_submission(student_id, activity)
+    #TODO: download as a big zip file
+    return HttpResponse("DOWNLOAD ALL AS ZIP FILE")
+
+def _download_text_file(submission):
+    """
+    return a txt file attachment, the request contains a GET field 'id'
+    """
+    response = HttpResponse(submission.text, mimetype='text/plain')
+    response['Content-Disposition'] = 'attachment; filename=%s' %\
+        submission.submission.get_userid() + "_" + slugify(submission.component.title) + ".txt"
+    return response
+
+def _download_url_file(submission):
+    """
+    return a .html file with redirect information
+    """
+    content = '<html><head><META HTTP-EQUIV="Refresh" CONTENT="0; URL=' \
+        + submission.url + '"></head><body>' \
+        + 'If redirecting doesn\' work, click the link <a href="' \
+        + submission.url + '">' + submission.url + '</a>' \
+        + '</body></html> '
+    response = HttpResponse(content, mimetype='text/html')
+    response['Content-Disposition'] = 'attachment; filename=%s' %\
+        submission.submission.get_userid() + "_" + slugify(submission.component.title) + ".html"
+    return response
+
+def _download_archive_file(submission):
+    response = HttpResponse(submission.archive, mimetype='application/octet-stream')
+    filename = submission.archive.name
+    filename = filename[filename.rfind('/')+1:]
+    response['Content-Disposition'] = 'attachment; filename=%s' %\
+        submission.submission.get_userid() + "_" + slugify(submission.component.title) + "_" + filename
+    return response
+
+def _download_cpp_file(submission):
+    response = HttpResponse(submission.cpp, mimetype='text/plain')
+    filename = submission.cpp.name
+    filename = filename[filename.rfind('/')+1:]
+    response['Content-Disposition'] = 'attachment; filename=%s' %\
+        submission.submission.get_userid() + "_" + slugify(submission.component.title) + "_" + filename
+    return response
+
+def _download_java_file(submission):
+    response = HttpResponse(submission.java, mimetype='text/plain')
+    filename = submission.java.name
+    filename = filename[filename.rfind('/')+1:]
+    response['Content-Disposition'] = 'attachment; filename=%s' %\
+        submission.submission.get_userid() + "_" + slugify(submission.component.title) + "_" + filename
+    return response
+
+
+def _return_403_dashboard(request, course_slug, activity_slug):
+    messages.add_message(request, messages.WARNING, "Your don't have permission to the resource you just requested.")
+    response = HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
+    response.status_code = 403
     return response

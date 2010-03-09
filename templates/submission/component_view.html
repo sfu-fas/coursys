@@ -22,14 +22,14 @@
 <ul class="add_nav">
     <li><a href ="submit/" class="button">New Submission</a></li>
     <li><a href ="history/" class="button">View History</a></li>
-    <li><a href ="" class="button" title="not implemented yet">Download All</a></li>
+    <li><a href ="download/?user-id={{user}}" class="button" >Download All</a></li>
 </ul>
 </div>
 
 <div id="form_container">
 <div id="component_view_student_container">
     
-{# <!-- pair<component, it's latest submission> --> #}
+{# <!-- pair<component, its latest submission> --> #}
 {% for pair in submitted_pair %}
 <h2>{{forloop.counter}}. {{pair.0.title}}</h2>
 <h3>{{pair.0.get_type}} Component</h3>
@@ -58,11 +58,9 @@
             {% else%}
             {% ifequal pair.1.get_type 'PlainText' %}
                 <li><label>Text:</label><pre>{{pair.1.text}}</pre></li>
-                <li><a href="download_txt/?id={{pair.1.id}}" target="_blank">Download Txt File</a></li>
-            {% else %}
-                <li><a href ={{pair.1.get_url}}>Download</a></li>
             {% endifequal %}
             {% endifequal %}
+            <li><a href="download/?type={{pair.1.get_type}}&user-id={{user}}&id={{pair.1.id}}" target="_blank">Download File</a></li>
         </ul>   
     </div>
     

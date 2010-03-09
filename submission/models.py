@@ -125,7 +125,7 @@ class SubmittedComponent(models.Model):
         else:
             return time
     def __cmp__(self, other):
-        return cmp(self.submit_time, other.submit_time)
+        return cmp(other.submit_time, self.submit_time)
     class Meta:
         ordering = ['submit_time']
     def get_type(self):
