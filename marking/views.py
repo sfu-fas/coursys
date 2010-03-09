@@ -287,7 +287,7 @@ def marking(request, course_slug, activity_short_name):
                               'additional_info_form' : additional_info_form, 'mark_components': mark_components }, \
                               context_instance=RequestContext(request))
     
-from django.db.models import Max
+from django.db.models import Max, Count
 @requires_course_staff_by_slug
 def mark_summary(request, course_slug, activity_short_name):
      student_id = request.GET.get('student')
@@ -299,18 +299,25 @@ def mark_summary(request, course_slug, activity_short_name):
      num_grade = NumericGrade.objects.get(activity = activity, member = membership)
      activity_marks = StudentActivityMark.objects.filter(numeric_grade = num_grade)     
           
-     #get the latest one
-     latest = activity_marks.aggregate(Max('created_at'))['created_at__max']
-     act_mark = activity_marks.get(created_at = latest)     
-     component_marks = ActivityComponentMark.objects.filter(activity_mark = act_mark)
-         
-     #TODO: handle the case that when the mark was assigned through the group that the student participates
      
+     if activity_marks.count() != 0 : # the mark is assigned individually
+         #get the latest one
+        latest = activity_marks.aggregate(Max('created_at'))['created_at__max']
+        act_mark = activity_marks.get(created_at = latest)     
+     else:        
+        #find the group that this student participates
+        group = GroupMember.get(student = membership).group 
+        activity_marks = GroupActivityMark.objects.filter(group = group)        
+        latest = activity_marks.aggregate(Max('created_at'))['created_at__max']
+        act_mark = activity_marks.get(created_at = latest)
+                    
+     component_marks = ActivityComponentMark.objects.filter(activity_mark = act_mark)
+
      return render_to_response("marking/mark_summary.html", 
                                {'course':course, 'activity' : activity, 'student' : student, \
                                 'activity_mark': act_mark, 'component_marks': component_marks, \
                                }, context_instance = RequestContext(request))
-
+     
 from os import path, getcwd
 @requires_course_staff_by_slug
 def download_marking_attachment(request, course_slug, activity_short_name, filepath):       
