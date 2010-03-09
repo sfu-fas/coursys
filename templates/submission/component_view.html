@@ -52,7 +52,7 @@
             <li><a href ="submit/" class="button">New Submission</a></li>
             {% if submit_time %}
             <li><a href ="history/" class="button">View History</a></li>
-            <li><a href ="download/?user-id={{userid}}" class="button" >Download All</a></li>
+            <li><a href ="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug %}?user-id={{userid}}" class="button" >Download All</a></li>
             {% endif %}
         </ul>
         </div>
@@ -92,7 +92,7 @@
                         <li><label>Text:</label><pre>{{pair.1.text}}</pre></li>
                     {% endifequal %}
                     {% endifequal %}
-                    <li><img src="{{MEDIA_URL}}icons/attach.png" alt="download" /><a href="download/?type={{pair.1.get_type}}&user-id={{userid}}&id={{pair.1.id}}" target="_blank">Download File</a></li>
+                    <li><img src="{{MEDIA_URL}}icons/attach.png" alt="download" /><a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug %}?type={{pair.1.get_type}}&user-id={{userid}}&id={{pair.1.id}}" target="_blank">Download File</a></li>
                 </ul>
             </div>
 
