@@ -1,7 +1,15 @@
 {% extends "submission/component_view.html" %}
 
 {% block studentinfo %}
-<h3>student info goes here</h3> <br/>
+<div id="student_info_submission_dashboard">
+<h3>Student Information</h3>
+<ul>
+    <li><label>Name:</label>{{student.name}}</li>
+    <li><label>Student ID:</label>{{student.emplid}}</li>
+    <li><label>Email:</label>{{student.email}}</li>
+</ul>
+</div>
+
 {% endblock %}
 
 {% block current_time %}

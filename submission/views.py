@@ -45,6 +45,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
         userid = request.user.username
     course = get_object_or_404(CourseOffering, slug = course_slug)
     activity = get_object_or_404(course.activity_set,slug = activity_slug)
+    student = get_object_or_404(Person, userid=userid)
 
     submitted_pair_list = _get_current_submission(userid, activity)
 
@@ -69,7 +70,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
         messages.add_message(request, messages.WARNING, 'There is no submittable component of this activity.')
 
     return render_to_response("submission/" + template,
-        {"course":course, "activity":activity, "submitted_pair":submitted_pair_list, "userid":userid, "submit_time":submit_time, "late":late},
+        {"course":course, "activity":activity, "submitted_pair":submitted_pair_list, "userid":userid, "submit_time":submit_time, "late":late, "student":student},
         context_instance=RequestContext(request))
 
 def _get_current_submission(userid, activity):

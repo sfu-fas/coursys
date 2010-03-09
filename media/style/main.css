@@ -614,8 +614,28 @@ fieldset .hidden {
 #time_block #late_for, #time_block #late_for h3{
     background-color: red;
     color: white;
+    font-weight: bold;
+}
+#student_info_submission_dashboard{
+    float: right;
+    text-align: right;
+    margin-right: 10em;
+}
+#student_info_submission_dashboard ul {
+    list-style: none;
+    margin-top: 0.2em;
+}
+#student_info_submission_dashboard ul li {
+    float:right;
+    clear: right;
+    width: 13em;
 }
 
+#student_info_submission_dashboard ul label {
+    float: left;
+    clear: left;
+    font-weight: bold;
+}
 
 /* Override jquery UI style, otherwise the datepicker will be displayed too large */
 #ui-datepicker-div {font-size:0.8em}
