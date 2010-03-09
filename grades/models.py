@@ -184,6 +184,12 @@ class NumericGrade(models.Model):
     def __unicode__(self):
         return "Member[%s]'s grade[%s] for [%s]" % (self.member.person.userid, self.value, self.activity)
     
+    def save(self):
+        super(NumericGrade, self).save()
+        #if self.activity.status='RLS':
+        #    n = NewsItem(...)
+        #    n.save()
+    
     class Meta:
         unique_together = (('activity', 'member'),)
     

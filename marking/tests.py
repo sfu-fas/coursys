@@ -37,7 +37,7 @@ class BasicTest(TestCase):
         url = '/marking/1101-cmpt-165-d100/a1/components/';
         response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
-        #validate_content(self, response.content, 'activity components') ? error
+        validate_content(self, response.content, 'activity components') #? error
           
         forms = response.context['formset'].forms
         self.assertEquals(forms[0].instance.title, 'part1')
