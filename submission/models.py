@@ -100,11 +100,15 @@ class StudentSubmission(Submission):
     member = models.ForeignKey(Member, null=False)
     def get_userid(self):
         return self.member.person.userid
+    def __unicode__(self):
+        return "%s->%s@%s" % (self.member.person.userid, self.activity, self.created_at)
     
 class GroupSubmission(Submission):
     group = models.ForeignKey(Group, null=False)
     def get_userid(self):
         return self.group.manager.userid
+    def __unicode__(self):
+        return "%s->%s@%s" % (self.group.manager.userid, self.activity, self.created_at)
 
 # parts of a submission, created as part of a student/group submission
 
@@ -135,6 +139,8 @@ class SubmittedComponent(models.Model):
     def get_size_in_kb(self):
         res = int(self.get_size())/1024
         return res
+    def __unicode__(self):
+        return "[%s] %s->%s@%s" % (self.get_type(), self.submission.get_userid(), self.submission.activity, self.submission.created_at)
 
     
 
