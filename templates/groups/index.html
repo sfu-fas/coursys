@@ -5,11 +5,13 @@
 {% block h1 %}Group Management{% endblock %}
 
 {% block content %}
-<div id="groupindex">
-	<ul>
-		{% for entry in courselist %}
-		<li><a href="{% url groups.views.groupmanage course_slug=entry.offering.slug %}">{{ entry.offering }}</a></li>
-		{% endfor %}
-	</ul>
-</div>
+{% regroup courselist by offering.semester as by_semester %}
+{% for semester in by_semester %}
+  <h2 id="semester-{{semester.grouper.name}}">{{semester.grouper.label}}</h2>
+  <ul>
+    {% for membership in semester.list %}
+    <li><a href="{% url grades.views.course course_slug=membership.offering.slug %}">{{membership.offering.name}}</a></li>
+    {% endfor %}
+  </ul>
+{% endfor %}
 {% endblock %}

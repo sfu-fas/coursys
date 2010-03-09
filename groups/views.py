@@ -10,7 +10,8 @@ from django.http import HttpResponse, HttpResponseRedirect
 @login_required
 def index(request):
 	p = get_object_or_404(Person, userid = request.user.username)
-	courselist = Member.objects.filter(person = p)
+	courselist = Member.objects.exclude(role="DROP").filter(offering__graded=True).filter(person = p)\
+	           .select_related('offering','offering__semester')
 	return render_to_response('groups/index.html', {'courselist':courselist}, context_instance = RequestContext(request))
 
 @login_required
@@ -48,15 +49,15 @@ def create(request,course_slug):
 
 @login_required
 def create_result(request,course_slug):
-        if request.method=='POST':
-             form=GroupForm(request.POST)
-             if form.is_valid():
-                     p = get_object_or_404(Person,userid=request.user.username)
-                     c = get_object_or_404(CourseOffering, slug = course_slug)
-                     gm= Member.objects.get(person = p, offering = c)
-                     g = form.cleaned.data
-                     Group.objects.create(name=g['name'],manager=g['manager'])
-                     return HttpResponseRedirect('groups/index.html',context_instance = RequestContext(request))
+	if request.method=='POST':
+		form=GroupForm(request.POST)
+		if form.is_valid():
+			p = get_object_or_404(Person,userid=request.user.username)
+			c = get_object_or_404(CourseOffering, slug = course_slug)
+			gm= Member.objects.get(person = p, offering = c)
+			g = form.cleaned.data
+			Group.objects.create(name=g['name'],manager=g['manager'])
+			return HttpResponseRedirect('groups/index.html',context_instance = RequestContext(request))
         else:
                 form=GroupForm()
         #context = {'course': c,'form': form}
