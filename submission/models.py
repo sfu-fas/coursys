@@ -4,6 +4,7 @@ from coredata.models import Member
 #from courses.grades.models import slug
 from groups.models import Group
 from datetime import datetime
+from autoslug import AutoSlugField
 
 
 STATUS_CHOICES = [
@@ -29,7 +30,7 @@ class SubmissionComponent(models.Model):
     title = models.CharField(max_length=100, help_text='Name for this component (e.g. "Part 1" or "Programming Section")')
     description = models.CharField(max_length=1000, help_text="Short explanation for this component.", null=True,blank=True)
     position = models.PositiveSmallIntegerField(help_text="The order of display for listing components.", null=True,blank=True)
-    #slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with='activity')
+    slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with='activity')
 
     def __cmp__(self, other):
         return cmp(self.position, other.position)

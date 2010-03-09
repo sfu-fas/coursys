@@ -475,7 +475,7 @@ def _download_text_file(submission):
     """
     response = HttpResponse(submission.text, mimetype='text/plain')
     response['Content-Disposition'] = 'attachment; filename=%s' %\
-        submission.submission.get_userid() + "_" + slugify(submission.component.title) + ".txt"
+        submission.submission.get_userid() + "_" + submission.component.slug + ".txt"
     return response
 
 def _download_url_file(submission):
@@ -489,7 +489,7 @@ def _download_url_file(submission):
         + '</body></html> '
     response = HttpResponse(content, mimetype='text/html')
     response['Content-Disposition'] = 'attachment; filename=%s' %\
-        submission.submission.get_userid() + "_" + slugify(submission.component.title) + ".html"
+        submission.submission.get_userid() + "_" + submission.component.slug + ".html"
     return response
 
 def _download_archive_file(submission):
@@ -497,7 +497,7 @@ def _download_archive_file(submission):
     filename = submission.archive.name
     filename = filename[filename.rfind('/')+1:]
     response['Content-Disposition'] = 'attachment; filename=%s' %\
-        submission.submission.get_userid() + "_" + slugify(submission.component.title) + "_" + filename
+        submission.submission.get_userid() + "_" + submission.component.slug + "_" + filename
     return response
 
 def _download_cpp_file(submission):
@@ -505,7 +505,7 @@ def _download_cpp_file(submission):
     filename = submission.cpp.name
     filename = filename[filename.rfind('/')+1:]
     response['Content-Disposition'] = 'attachment; filename=%s' %\
-        submission.submission.get_userid() + "_" + slugify(submission.component.title) + "_" + filename
+        submission.submission.get_userid() + "_" + submission.component.slug + "_" + filename
     return response
 
 def _download_java_file(submission):
@@ -513,7 +513,7 @@ def _download_java_file(submission):
     filename = submission.java.name
     filename = filename[filename.rfind('/')+1:]
     response['Content-Disposition'] = 'attachment; filename=%s' %\
-        submission.submission.get_userid() + "_" + slugify(submission.component.title) + "_" + filename
+        submission.submission.get_userid() + "_" + submission.component.slug + "_" + filename
     return response
 
 
