@@ -9,4 +9,5 @@ urlpatterns = patterns('',
     url(r'^(?P<course_slug>' + COURSE_SLUG_RE + ')/(?P<activity_short_name>.*)/common_problems/$', 'marking.views.manage_common_problems'),
     url(r'^(?P<course_slug>' + COURSE_SLUG_RE + ')/(?P<activity_short_name>.*)/marking/$', 'marking.views.marking'),        
     url(r'^(?P<course_slug>' + COURSE_SLUG_RE + ')/(?P<activity_short_name>.*)/mark_summary/$', 'marking.views.mark_summary'),
+    url(r'^(?P<course_slug>' + COURSE_SLUG_RE + ')/(?P<activity_short_name>.*)/mark_summary/(?P<filepath>.*)$', 'marking.views.download_marking_attachment'),
 )

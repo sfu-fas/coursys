@@ -41,7 +41,7 @@ class ActivityMark(models.Model):
     late_penalty = models.IntegerField(null = True, default = 0, blank = True)
     mark_adjustment = models.IntegerField(null = True, default = 0, blank = True)
     mark_adjustment_reason = models.TextField(null = True, max_length = 1000, blank = True)
-    file_attachment = models.FileField(null = True, upload_to = "student&group/files/%Y %m %d %H:%M:%S'", blank=True)#TODO: need to add student name or group name to the path  
+    file_attachment = models.FileField(null = True, upload_to = "marking/files/%Y/%m/%d'", blank=True)#TODO: need to add student name or group name to the path  
     
     created_at = models.DateTimeField(auto_now_add=True)
     # For the purpose of keeping a history,

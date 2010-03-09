@@ -264,6 +264,7 @@ def marking(request, course_slug, activity_short_name):
                               context_instance=RequestContext(request))
     
 from django.db.models import Max
+@requires_course_staff_by_slug
 def mark_summary(request, course_slug, activity_short_name):
      student_id = request.GET.get('student')
      student = get_object_or_404(Person, id = student_id)
@@ -273,17 +274,32 @@ def mark_summary(request, course_slug, activity_short_name):
      membership = course.member_set.get(person = student) 
      num_grade = NumericGrade.objects.get(activity = activity, member = membership)
      activity_marks = StudentActivityMark.objects.filter(numeric_grade = num_grade)     
+          
      #get the latest one
      latest = activity_marks.aggregate(Max('created_at'))['created_at__max']
      act_mark = activity_marks.get(created_at = latest)     
      component_marks = ActivityComponentMark.objects.filter(activity_mark = act_mark)
          
-     #TODO: if the mark is assigned through the group that the student participates
+     #TODO: handle the case that when the mark was assigned through the group that the student participates
      
      return render_to_response("marking/mark_summary.html", 
                                {'course':course, 'activity' : activity, 'student' : student, \
                                 'activity_mark': act_mark, 'component_marks': component_marks, \
                                }, context_instance = RequestContext(request))
+
+from os import path, getcwd
+@requires_course_staff_by_slug
+def download_marking_attachment(request, course_slug, activity_short_name, filepath):       
+    filepath = path.join(getcwd(), "media", filepath)
+    filepath = filepath.replace("\\", "/")
+    print filepath
+    bytes = path.getsize(filepath)
+    download_file = file(filepath, 'r')
+    response = HttpResponse(download_file.read())
+    response['Content-Disposition'] = 'attachment;'
+    response['Content-Length'] = bytes
+    return response
+
      
      
       

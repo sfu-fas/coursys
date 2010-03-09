@@ -1,6 +1,6 @@
 {% extends "marking/base.html" %}
 
-{% block h1 %} Mark for: {{activity.name}} of {{course.name}} {% endblock %}
+{% block h1 %} {{activity.name}} of {{course.name}} {% endblock %}
 
 {% block content %}
 <h2>
@@ -60,6 +60,14 @@ Summary: Student {{student.userid}} got {{activity_mark.mark}} out of {{activity
 		  <td> 
 			 {{ activity_mark.mark_adjustment_reason }}	
 	      </td>
+	    </tr>
+	    <tr>
+		  <th class="ui-state-default">File Attachment</th>
+		  {% if activity_mark.file_attachment %}
+		    <td><a href = {{activity_mark.file_attachment}}>download</a></td>
+		  {% else %}
+		  	<td>no attachment</td>
+	      {% endif %}
 	    </tr>
     </table>
 </div>   
