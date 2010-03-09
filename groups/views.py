@@ -48,20 +48,15 @@ def create(request,course_slug):
 	return render_to_response('groups/create.html', {'manager':group_manager, 'course':c},context_instance = RequestContext(request)) 
 
 @login_required
-def create_result(request,course_slug):
-	if request.method=='POST':
-		form=GroupForm(request.POST)
-		if form.is_valid():
-			p = get_object_or_404(Person,userid=request.user.username)
-			c = get_object_or_404(CourseOffering, slug = course_slug)
-			gm= Member.objects.get(person = p, offering = c)
-			g = form.cleaned.data
-			Group.objects.create(name=g['name'],manager=g['manager'])
-			return HttpResponseRedirect('groups/index.html',context_instance = RequestContext(request))
-        else:
-                form=GroupForm()
-        #context = {'course': c,'form': form}
-        return render_to_response('groups/create_form.html',{'form':form})
+def submit(request,course_slug):
+	p = get_object_or_404(Person,userid=request.user.username)
+	c = get_object_or_404(CourseOffering, slug = course_slug)
+	gm=Member.objects.get(person = p, offering = c)
+	con = request.POST['GroupName']
+	g = Group(name = con, manager = gm, courseoffering=c)
+	g.save(); 
+	
+        return render_to_response('groups/succeed.html',context_instance=RequestContext(request))
 
 @login_required
 def join(request, course_slug, groupname):
