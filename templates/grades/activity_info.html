@@ -79,7 +79,7 @@
                 <th>Student Name</th>
 		<th>Student Number</th>
 		<th>Grade Status</th>
-		<th>Grade</th>
+		<th>Grade</th>		
             </tr>
 	</thead>
         <tbody>
@@ -92,7 +92,12 @@
 		</td>
 		<td>{{ student_grade_info.emplid }}</td>
 		<td>{{ student_grade_info.grade_status }}</td>
-		<td>{{ student_grade_info.grade }}</td>
+		<td>
+			{{ student_grade_info.grade }}
+			{% ifequal student_grade_info.grade_status 'graded'%} 
+				<a href="{% url marking.views.mark_summary course_slug=course.slug activity_short_name=activity.short_name%}?student={{ student_grade_info.id }}">details...</a>
+			{% endifequal %}
+		</td>
 	    </tr>
 	    {% endfor %}
         </tbody>

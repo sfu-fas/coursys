@@ -1,0 +1,66 @@
+{% extends "marking/base.html" %}
+
+{% block h1 %} Mark for: {{activity.name}} of {{course.name}} {% endblock %}
+
+{% block content %}
+<h2>
+Summary: Student {{student.userid}} got {{activity_mark.mark}} out of {{activity.max_grade}}
+</h2>
+
+<h2> Components Details </h2>
+{% for component_mark in component_marks %}
+<div id="table_container">
+    <table class="info">
+    <tr>
+    	<th class="ui-state-default">Component</th>
+        <td>
+            {{ component_mark.activity_component.title }}
+        </td>
+    </tr>
+    <tr>
+    	<th  class="ui-state-default">Comment</th>
+        <td>
+            {{ component_mark.comment }}
+        </td>
+    </tr>
+    <tr>
+    	<th  class="ui-state-default">Mark</th>
+        <td>
+            {{ component_mark.value }} out of {{ component_mark.activity_component.max_mark }}
+        </td>
+    </tr>    
+    </table>
+</div>
+{% endfor %}
+
+
+<h2> Additional </h2>
+<div id = "table_container">
+	<table class="info">
+	    <tr>
+	       <th class="ui-state-default">Overall comment</th>
+	       <td> 
+		      {{ activity_mark.overall_comment }}	
+           </td>
+        </tr>    
+		<tr>
+		  <th class="ui-state-default">Late Penalty</th>
+		  <td> 
+			 {{ activity_mark.late_penalty }}	
+	      </td>
+	    </tr>
+	    <tr>
+		  <th class="ui-state-default">Adjustment Mark</th>
+		  <td> 
+			 {{ activity_mark.mark_adjustment }}
+	      </td>
+	    </tr>
+	    <tr>
+		  <th class="ui-state-default">Adjustment Mark Reason</th>
+		  <td> 
+			 {{ activity_mark.mark_adjustment_reason }}	
+	      </td>
+	    </tr>
+    </table>
+</div>   
+{% endblock %}

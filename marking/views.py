@@ -242,7 +242,7 @@ def marking(request, course_slug, activity_short_name):
             messages.add_message(request, messages.SUCCESS, 'Marking for %s on activity %s finished' % (receiver, activity.name,))                      
             return HttpResponseRedirect(reverse('marking.views.list_activities', \
                                                 args=(course_slug,)))       
-    else: # for PUT request                 
+    else: # for GET request                 
         student_receiver_form = MarkStudentReceiverForm(prefix = "student-receiver-form")
         group_receiver_form = MarkGroupReceiverForm(prefix = "group-receiver-form")
         for i in range(leng):
@@ -262,5 +262,31 @@ def marking(request, course_slug, activity_short_name):
                               'student_receiver_form' : student_receiver_form, 'group_receiver_form' : group_receiver_form,
                               'additional_info_form' : additional_info_form, 'mark_components': mark_components }, \
                               context_instance=RequestContext(request))
+    
+from django.db.models import Max
+def mark_summary(request, course_slug, activity_short_name):
+     student_id = request.GET.get('student')
+     student = get_object_or_404(Person, id = student_id)
+     course = get_object_or_404(CourseOffering, slug = course_slug)    
+     activity = get_object_or_404(NumericActivity, offering = course, short_name = activity_short_name)
+     
+     membership = course.member_set.get(person = student) 
+     num_grade = NumericGrade.objects.get(activity = activity, member = membership)
+     activity_marks = StudentActivityMark.objects.filter(numeric_grade = num_grade)     
+     #get the latest one
+     latest = activity_marks.aggregate(Max('created_at'))['created_at__max']
+     act_mark = activity_marks.get(created_at = latest)     
+     component_marks = ActivityComponentMark.objects.filter(activity_mark = act_mark)
+         
+     #TODO: if the mark is assigned through the group that the student participates
+     
+     return render_to_response("marking/mark_summary.html", 
+                               {'course':course, 'activity' : activity, 'student' : student, \
+                                'activity_mark': act_mark, 'component_marks': component_marks, \
+                               }, context_instance = RequestContext(request))
+     
+     
+      
+     
     
         
