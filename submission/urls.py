@@ -14,4 +14,5 @@ urlpatterns = patterns('submission.views',
     url(r'^' + prefix + '/download/$', 'download_file'),
     url(r'^' + prefix + '/view/(?P<userid>\w+)/$', 'show_student_submission_staff'),
     url(r'^' + prefix + '/view/(?P<userid>\w+)/history/$', 'show_student_history_staff'),
+    url(r'^' + prefix + '/mark/(?P<userid>\w+)/$', 'redirect_to_mark_submission'),
 )

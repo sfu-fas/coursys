@@ -1,3 +1,4 @@
+import courses.marking.views
 from django.contrib.auth.decorators import login_required
 from coredata.models import Member, CourseOffering, Person
 from django.shortcuts import render_to_response, get_object_or_404#, redirect
@@ -12,6 +13,7 @@ from django.core.urlresolvers import reverse
 from contrib import messages
 from django.template.defaultfilters import slugify
 from datetime import *
+from marking.views import marking
 
 @login_required
 def index(request):
@@ -516,7 +518,6 @@ def _download_java_file(submission):
         submission.submission.get_userid() + "_" + submission.component.slug + "_" + filename
     return response
 
-
 def _return_403_dashboard(request, course_slug, activity_slug):
     messages.add_message(request, messages.WARNING, "Your don't have permission to the resource you just requested.")
     response = HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
@@ -529,3 +530,16 @@ def show_student_submission_staff(request, course_slug, activity_slug, userid):
 @requires_course_staff_by_slug
 def show_student_history_staff(request, course_slug, activity_slug, userid):
     return show_components_submission_history(request, course_slug, activity_slug, userid)
+
+@requires_course_staff_by_slug
+def redirect_to_mark_submission(request, course_slug, activity_slug, userid):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(course.activity_set, slug = activity_slug)
+
+    #TODO: link to marking
+    response = HttpResponseRedirect(reverse(marking, args=[course_slug, activity_slug]))
+    
+    component = select_students_submitted_components(activity, userid)
+    for c in component:
+        c.submission.set_owner(course, request.user.username)
+    return response

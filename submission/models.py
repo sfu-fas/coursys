@@ -1,10 +1,11 @@
 from django.db import models
 from grades.models import Activity
-from coredata.models import Member
+from coredata.models import Member, Person
 #from courses.grades.models import slug
 from groups.models import Group
 from datetime import datetime
 from autoslug import AutoSlugField
+from django.shortcuts import get_object_or_404
 
 
 STATUS_CHOICES = [
@@ -97,6 +98,14 @@ class Submission(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(Member, null=True, help_text = "TA or instructor that will mark this submission")
     status = models.CharField(max_length=3, null=False,choices=STATUS_CHOICES, default = "NEW")
+
+    "Set ownership, and make state = in progree "
+    def set_owner(self, course, userid):
+        member = Member.objects.filter(person__userid = userid).filter(offering = course)
+        if member != []:
+            self.owner = member[0]
+            self.status = "INP"
+            self.save()
 
 class StudentSubmission(Submission):
     member = models.ForeignKey(Member, null=False)

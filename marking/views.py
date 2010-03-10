@@ -173,8 +173,8 @@ def marking(request, course_slug, activity_short_name):
     
     error_info = ""
     course = get_object_or_404(CourseOffering, slug = course_slug)    
-    activity = get_object_or_404(NumericActivity, offering = course, short_name = activity_short_name)    
-     
+    activity = get_object_or_404(NumericActivity, offering = course, short_name = activity_short_name)
+    
     students_qset = course.members.filter(person__offering = course, person__role = "STUD")
     groups_qset = Group.objects.filter(courseoffering = course)
     
