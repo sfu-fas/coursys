@@ -15,7 +15,8 @@
 		    { "sType": "html" },
 		    null,
 		    null,
-		    null
+		    null,
+            { "sWidth": "3em" }
 		]
 	});
     });
@@ -79,7 +80,8 @@
                 <th>Student Name</th>
 		<th>Student Number</th>
 		<th>Grade Status</th>
-		<th>Grade</th>		
+		<th>Grade</th>
+        <th><img src="{{MEDIA_URL}}icons/disk_multiple.png" title="Submission" alt="Submission" /></th>
             </tr>
 	</thead>
         <tbody>
@@ -98,6 +100,10 @@
 				<a href="{% url marking.views.mark_summary course_slug=course.slug activity_short_name=activity.short_name%}?student={{ student_grade_info.id }}">details...</a>
 			{% endifequal %}
 		</td>
+        <td>
+            <a href="{% url submission.views.show_student_submission_staff course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View" alt="View" /></a>
+            <a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug %}?user-id={{student_grade_info.userid}}"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="Download" alt="Download" /></a>
+        </td>
 	    </tr>
 	    {% endfor %}
         </tbody>

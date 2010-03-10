@@ -100,9 +100,10 @@ class _StudentGradeInfo:
     """
     Object holding student grade info for the display in 'activity_info' page 
     """
-    def __init__(self, id, name, emplid, email, grade_status, grade):
+    def __init__(self, id, name, userid, emplid, email, grade_status, grade):
         self.id = id
         self.name = name
+        self.userid = userid
         self.emplid = emplid
         self.email = email
         self.grade_status = grade_status
@@ -142,7 +143,7 @@ def _create_StudentGradeInfo_list(course, activity, student=None):
             if not student_grade_status:
                 student_grade_status = FLAGS['NOGR']
                 student_grade = '--'
-            student_grade_info_list.append(_StudentGradeInfo(student.id, student.name(), student.emplid, student.email(),
+            student_grade_info_list.append(_StudentGradeInfo(student.id, student.name(), student.userid, student.emplid, student.email(),
                                                             student_grade_status, student_grade))
     elif isinstance(activity, LetterActivity):
         letter_grade_list = LetterGrade.objects.filter(activity=activity)
@@ -156,7 +157,7 @@ def _create_StudentGradeInfo_list(course, activity, student=None):
             if not student_grade_status:
                 student_grade_status = FLAGS['NOGR']
                 student_grade = '--'
-            student_grade_info_list.append(_StudentGradeInfo(student.id, student.name(), student.emplid, student.email(),
+            student_grade_info_list.append(_StudentGradeInfo(student.id, student.name(), student.userid, student.emplid, student.email(),
                                                             student_grade_status, student_grade))
     return student_grade_info_list
 
