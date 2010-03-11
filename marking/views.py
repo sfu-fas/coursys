@@ -195,11 +195,11 @@ def marking(request, course_slug, activity_slug):
         
     if request.method == "POST":         
         # the mark receiver(either a student or a group) may included in the url's query part
-        std_userid = request.POST.get('student')
-        group_id = request.POST.get('group')
+        std_userid = request.GET.get('student')
+        group_id = request.GET.get('group')
         receiver_in_url = (std_userid != None or group_id != None)    
         
-        if receiver_in_url == False :           
+        if receiver_in_url == False :
             student_receiver_form = MarkStudentReceiverForm(request.POST, prefix = "student-receiver-form")
             group_receiver_form = MarkGroupReceiverForm(request.POST, prefix = "group-receiver-form")            
             is_student = student_receiver_form.is_valid()
@@ -241,15 +241,20 @@ def marking(request, course_slug, activity_slug):
         if (not additional_info_form.is_valid()) and (not error_info):
             error_info = "Error found in additional information"
             
-        student = None
-        group = None
+        if is_student: #get the student
+            if receiver_in_url:
+                student = Person.objects.get(userid = std_userid)
+            else:
+                student = student_receiver_form.cleaned_data['student']
+        else:#get the group
+            if receiver_in_url:
+                group = Group.objects.get(id = group_id)
+            else:
+                group = group_receiver_form.cleaned_data['group']
+
         # no error, save the result
         if not error_info:             
             if is_student: #get the student
-                if receiver_in_url:
-                    student = Person.objects.get(userid = std_userid)
-                else:
-                    student = student_receiver_form.cleaned_data['student']
                 membership = course.member_set.get(person = student)                     
                 #get the corresponding NumericGrade object
                 try: 
@@ -261,10 +266,6 @@ def marking(request, course_slug, activity_slug):
                 activity_mark = StudentActivityMark(numeric_grade = ngrade)            
               
             else:#get the group
-                if receiver_in_url:
-                    group = Group.objects.get(id = group_id)
-                else:
-                    group = group_receiver_form.cleaned_data['group']             
                 activity_mark = GroupActivityMark(group = group, numeric_activity = activity)
                         
             #get the additional info
@@ -302,6 +303,7 @@ def marking(request, course_slug, activity_slug):
             student = None
             group = None
         elif std_userid:
+            # consider using get_object_or_404()? user may type anything in the url, using get() may produce a 500 page rather than 404.
             student = Person.objects.get(userid = std_userid)
         else:
             group = Group.objects.get(id = group_id)
