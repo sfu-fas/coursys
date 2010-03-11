@@ -241,20 +241,13 @@ def marking(request, course_slug, activity_slug):
         if (not additional_info_form.is_valid()) and (not error_info):
             error_info = "Error found in additional information"
             
-        if is_student: #get the student
-            if receiver_in_url:
-                student = get_object_or_404(Person, userid = std_userid)
-            else:
-                student = student_receiver_form.cleaned_data['student']
-        else:#get the group
-            if receiver_in_url:
-                group = objects.get_object_or_404(Group, id = group_id)
-            else:
-                group = group_receiver_form.cleaned_data['group']
-
         # no error, save the result
         if not error_info:             
             if is_student: #get the student
+                if receiver_in_url:
+                    student = get_object_or_404(Person, userid = std_userid)
+                else:
+                    student = student_receiver_form.cleaned_data['student']
                 membership = course.member_set.get(person = student)                     
                 #get the corresponding NumericGrade object
                 try: 
@@ -266,6 +259,10 @@ def marking(request, course_slug, activity_slug):
                 activity_mark = StudentActivityMark(numeric_grade = ngrade)            
               
             else:#get the group
+                if receiver_in_url:
+                    group = objects.get_object_or_404(Group, id = group_id)
+                else:
+                    group = group_receiver_form.cleaned_data['group']
                 activity_mark = GroupActivityMark(group = group, numeric_activity = activity)
                         
             #get the additional info
