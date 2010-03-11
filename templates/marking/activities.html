@@ -13,9 +13,9 @@
    <h3>{{activity}}</h3>	 
    <div class = "marking_a">
 	  <ul> 
-	  <li><a href="{% url marking.views.marking course_slug=course_slug, activity_short_name=activity.short_name %}">Mark</a></li>
-	  <li><a href="{% url marking.views.manage_activity_components course_slug=course_slug, activity_short_name=activity.short_name %}">Components</a></li>
-	  <li><a href="{% url marking.views.manage_common_problems course_slug=course_slug, activity_short_name=activity.short_name %}">Common Problems</a></li>
+	  <li><a href="{% url marking.views.marking course_slug=course_slug, activity_slug=activity.slug %}">Mark</a></li>
+	  <li><a href="{% url marking.views.manage_activity_components course_slug=course_slug, activity_slug=activity.slug %}">Components</a></li>
+	  <li><a href="{% url marking.views.manage_common_problems course_slug=course_slug, activity_slug=activity.slug %}">Common Problems</a></li>
 	  </ul>	  
    </div>    
 {% empty %}

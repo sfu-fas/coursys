@@ -21,7 +21,7 @@
 
 {% block content %}
 
-<form action="{% url marking.views.manage_common_problems course_slug=course.slug, activity_short_name=activity.short_name %}" method="post">
+<form action="" method="post">
     {{ formset.management_form }} 
      <div class = "table_container">
        <table class="display" id="common_problems">
@@ -47,7 +47,7 @@
       </table>
    </div>
    <input type="submit" value="Save" />  
-   <input type="button" value="Reset" onClick="location.href='{% url marking.views.manage_common_problems course_slug=course.slug, activity_short_name=activity.short_name %}'">
+   <input type="button" value="Reset" onClick="location.href='{% url marking.views.manage_common_problems course_slug=course.slug, activity_slug=activity.slug %}'">
 </form>
 
 {% endblock %}

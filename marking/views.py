@@ -93,11 +93,11 @@ def _save_components(formset, activity):
            
 
 @requires_course_staff_by_slug
-def manage_activity_components(request, course_slug, activity_short_name):    
+def manage_activity_components(request, course_slug, activity_slug):    
             
     error_info = None
     course = get_object_or_404(CourseOffering, slug = course_slug)
-    activity = get_object_or_404(NumericActivity, offering = course, short_name = activity_short_name) 
+    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug) 
    
     fields = ('title', 'description', 'max_mark', 'deleted',)
     
@@ -130,11 +130,11 @@ def manage_activity_components(request, course_slug, activity_short_name):
                                context_instance=RequestContext(request))
     
 @requires_course_staff_by_slug
-def manage_common_problems(request, course_slug, activity_short_name):    
+def manage_common_problems(request, course_slug, activity_slug):    
        
     error_info = None
     course = get_object_or_404(CourseOffering, slug = course_slug)
-    activity = get_object_or_404(NumericActivity, offering = course, short_name = activity_short_name) 
+    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug) 
    
     fields = ('activity_component', 'title', 'description', 'penalty', 'deleted',)
     
@@ -169,11 +169,11 @@ def manage_common_problems(request, course_slug, activity_short_name):
                               context_instance=RequestContext(request))
     
 @requires_course_staff_by_slug
-def marking(request, course_slug, activity_short_name):
+def marking(request, course_slug, activity_slug):
     
     error_info = ""
     course = get_object_or_404(CourseOffering, slug = course_slug)    
-    activity = get_object_or_404(NumericActivity, offering = course, short_name = activity_short_name)
+    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)
     
     students_qset = course.members.filter(person__offering = course, person__role = "STUD")
     groups_qset = Group.objects.filter(courseoffering = course)
@@ -289,11 +289,11 @@ def marking(request, course_slug, activity_short_name):
     
 from django.db.models import Max, Count
 @requires_course_staff_by_slug
-def mark_summary(request, course_slug, activity_short_name):
+def mark_summary(request, course_slug, activity_slug):
      student_id = request.GET.get('student')
      student = get_object_or_404(Person, id = student_id)
      course = get_object_or_404(CourseOffering, slug = course_slug)    
-     activity = get_object_or_404(NumericActivity, offering = course, short_name = activity_short_name)
+     activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)
      
      membership = course.member_set.get(person = student) 
      num_grade = NumericGrade.objects.get(activity = activity, member = membership)
@@ -320,7 +320,7 @@ def mark_summary(request, course_slug, activity_short_name):
      
 from os import path, getcwd
 @requires_course_staff_by_slug
-def download_marking_attachment(request, course_slug, activity_short_name, filepath):       
+def download_marking_attachment(request, course_slug, activity_slug, filepath):       
     filepath = path.join(getcwd(), "media", filepath)
     filepath = filepath.replace("\\", "/")
     print filepath
