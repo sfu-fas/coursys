@@ -536,10 +536,23 @@ def redirect_to_mark_submission(request, course_slug, activity_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set, slug = activity_slug)
 
-    #TODO: link to marking
-    response = HttpResponseRedirect(reverse(marking, args=[course_slug, activity_slug]))
+    #TODO: group, ?group=group.id
+    response = HttpResponseRedirect(reverse(marking, args=[course_slug, activity_slug]) + "?student=" + userid)
     
     component = select_students_submitted_components(activity, userid)
+    #if it is taken by someone not me, show a confirm dialog
+    if request.GET.get('confirm') == None:
+        for c in component:
+            if c.submission.owner != None and c.submission.owner.person.userid != request.user.username:
+                return _override_ownership_confirm(request, course, activity, userid, c.submission.owner.person)
+            
     for c in component:
         c.submission.set_owner(course, request.user.username)
     return response
+
+def _override_ownership_confirm(request, course, activity, userid, old_owner):
+    student = get_object_or_404(Person, userid=userid)
+    
+    return render_to_response("submission/override_ownership_confirm.html",
+        {"course":course, "activity":activity, "student":student, "old_owner":old_owner, "true":True},
+        context_instance=RequestContext(request))

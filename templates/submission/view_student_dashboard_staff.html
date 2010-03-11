@@ -22,7 +22,7 @@
     {% if submit_time %}
         <li><a href ="history/" class="button">View History</a></li>
         <li><a href ="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug %}?user-id={{userid}}" class="button" >Download All</a></li>
-        <li><a href ="{% url submission.views.redirect_to_mark_submission course_slug=course.slug activity_slug=activity.slug userid=userid%}?student={{student.userid}}" class="button" >Mark This</a></li>
+        <li><a href ="{% url submission.views.redirect_to_mark_submission course_slug=course.slug activity_slug=activity.slug userid=userid%}" class="button" >Mark This</a></li>
     {% endif %}
 </ul>
 </div>

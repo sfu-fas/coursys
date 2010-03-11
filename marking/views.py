@@ -170,7 +170,12 @@ def manage_common_problems(request, course_slug, activity_slug):
     
 @requires_course_staff_by_slug
 def marking(request, course_slug, activity_slug):
-    
+    #init
+    student = None
+    group = None
+    student_receiver_form = None
+    group_receiver_form = None
+
     error_info = ""
     course = get_object_or_404(CourseOffering, slug = course_slug)    
     activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)
@@ -297,9 +302,9 @@ def marking(request, course_slug, activity_slug):
             student = None
             group = None
         elif std_userid:
-            student = Person.Objects.get(userid = std_userid)
+            student = Person.objects.get(userid = std_userid)
         else:
-            group = Group.Objects.get(id = group_id)
+            group = Group.objects.get(id = group_id)
        
         for i in range(leng):
             forms.append(ActivityComponentMarkForm(prefix = "cmp-form-%s" % (i+1)))
