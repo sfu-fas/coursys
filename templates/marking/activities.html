@@ -5,17 +5,18 @@
 
 {% block h1 %}Marking Activities{% endblock %}
 
-{% block content %}
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url marking.views.list_activities course_slug=course.slug %}">{{ course }}</a></li>
+{% endblock %}
 
-<h2>Activities</h2> 
- 
+{% block content %}
  {% for activity in activities %}          
-   <h3>{{activity}}</h3>	 
+   <h3>{{activity.name }}</h3>	 
    <div class = "marking_a">
 	  <ul> 
-	  <li><a href="{% url marking.views.marking course_slug=course_slug, activity_slug=activity.slug %}">Mark</a></li>
-	  <li><a href="{% url marking.views.manage_activity_components course_slug=course_slug, activity_slug=activity.slug %}">Components</a></li>
-	  <li><a href="{% url marking.views.manage_common_problems course_slug=course_slug, activity_slug=activity.slug %}">Common Problems</a></li>
+	  <li><a href="{% url marking.views.marking course_slug=course.slug, activity_slug=activity.slug %}">Mark</a></li>
+	  <li><a href="{% url marking.views.manage_activity_components course_slug=course.slug, activity_slug=activity.slug %}">Components</a></li>
+	  <li><a href="{% url marking.views.manage_common_problems course_slug=course.slug, activity_slug=activity.slug %}">Common Problems</a></li>
 	  </ul>	  
    </div>    
 {% empty %}

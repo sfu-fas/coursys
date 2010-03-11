@@ -1,46 +1,12 @@
 {% extends "marking/base.html" %}
 
-{% block h1 %} Marking Summary for {{activity.name}} {% endblock %}
-
-{% block subbreadcrumbs %}
-<li>&gt; <a href="{% url marking.views.list_activities course_slug=course.slug %}">{{course}}</a></li>
-{% endblock %}
+{% block h1 %} Marking History {% endblock %}
 
 {% block content %}
 <h2>
-Student "{{student.userid}}" got {{activity_mark.mark}} out of {{activity.max_grade}}
+For Student {{student.userid}} on  {{activity.name}} of {{course.name}}
 </h2>
 
-<h2> Components Details </h2>
-{% for component_mark in component_marks %}
-<div id="table_container">
-    <table class="info">
-    <tbody>
-	    <tr>
-	    	<th class="ui-state-default">Component</th>
-	        <td>
-	            {{ component_mark.activity_component.title }}
-	        </td>
-	    </tr>
-	    <tr>
-	    	<th  class="ui-state-default">Comment</th>
-	        <td>
-	            {{ component_mark.comment }}
-	        </td>
-	    </tr>
-	    <tr>
-	    	<th  class="ui-state-default">Mark</th>
-	        <td>
-	            {{ component_mark.value }} out of {{ component_mark.activity_component.max_mark }}
-	        </td>
-	    </tr>    
-    </tbody>
-    </table>
-</div>
-{% endfor %}
-
-
-<h2> Additional </h2>
 <div id = "table_container">
 	<table class="info">
 	<tbody>

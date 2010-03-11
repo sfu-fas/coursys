@@ -13,11 +13,13 @@
 </script>
 {% endblock %}
 
-{% block title %}{{course.name}}: {{activity.name}} Common Problems {% endblock %}
+{% block title %}{{activity.name}} Common Problems {% endblock %}
 
 {% block h1 %}{{course.name}}: {{activity.name}} Common Problems {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url marking.views.list_activities course_slug=course.slug %}">{{course}}</a></li>{% endblock %}
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url marking.views.list_activities course_slug=course.slug %}">{{course}}</a></li>
+{% endblock %}
 
 {% block content %}
 
