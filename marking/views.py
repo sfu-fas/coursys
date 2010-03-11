@@ -188,12 +188,23 @@ def marking(request, course_slug, activity_slug):
     leng = len(components)    
     forms = []    
         
-    if request.method == "POST":                
-        student_receiver_form = MarkStudentReceiverForm(request.POST, prefix = "student-receiver-form")
-        group_receiver_form = MarkGroupReceiverForm(request.POST, prefix = "group-receiver-form")
+    if request.method == "POST":         
+        # the mark receiver(either a student or a group) may included in the url's query part
+        std_userid = request.POST.get('student')
+        group_id = request.POST.get('group')
+        receiver_in_url = (std_userid != None or group_id != None)    
         
-        is_student = student_receiver_form.is_valid()
-        is_group = group_receiver_form.is_valid()
+        if receiver_in_url == False :           
+            student_receiver_form = MarkStudentReceiverForm(request.POST, prefix = "student-receiver-form")
+            group_receiver_form = MarkGroupReceiverForm(request.POST, prefix = "group-receiver-form")            
+            is_student = student_receiver_form.is_valid()
+            is_group = group_receiver_form.is_valid()
+        elif std_userid:
+            is_student = True
+            is_group = False
+        else:
+            is_student = False
+            is_group = True
         
         # this should be ensured on the client side
         if is_student and is_group: 
@@ -215,9 +226,9 @@ def marking(request, course_slug, activity_slug):
                 cmp_mark = forms[i].save(commit = False)
                 cmp_mark.activity_component = components[i]                
                 cmp_marks.append(cmp_mark)            
-                if cmp_mark.value > components[i].max_mark or cmp_mark.value < 0:
-                    error_info = "Invalid mark for %s" % components[i].title
-                    break;  
+#                if cmp_mark.value > components[i].max_mark or cmp_mark.value < 0:
+#                    error_info = "Invalid mark for %s" % components[i].title
+#                    break;  
                 total_mark += cmp_mark.value
                 
         additional_info_form = ActivityMarkForm(request.POST, request.FILES, prefix = "additional-form")
@@ -225,10 +236,15 @@ def marking(request, course_slug, activity_slug):
         if (not additional_info_form.is_valid()) and (not error_info):
             error_info = "Error found in additional information"
             
+        student = None
+        group = None
         # no error, save the result
         if not error_info:             
             if is_student: #get the student
-                student = student_receiver_form.cleaned_data['student']
+                if receiver_in_url:
+                    student = Person.objects.get(userid = std_userid)
+                else:
+                    student = student_receiver_form.cleaned_data['student']
                 membership = course.member_set.get(person = student)                     
                 #get the corresponding NumericGrade object
                 try: 
@@ -240,7 +256,10 @@ def marking(request, course_slug, activity_slug):
                 activity_mark = StudentActivityMark(numeric_grade = ngrade)            
               
             else:#get the group
-                group = group_receiver_form.cleaned_data['group']             
+                if receiver_in_url:
+                    group = Group.objects.get(id = group_id)
+                else:
+                    group = group_receiver_form.cleaned_data['group']             
                 activity_mark = GroupActivityMark(group = group, numeric_activity = activity)
                         
             #get the additional info
@@ -266,11 +285,25 @@ def marking(request, course_slug, activity_slug):
             messages.add_message(request, messages.SUCCESS, 'Marking for %s on activity %s finished' % (receiver, activity.name,))                      
             return HttpResponseRedirect(reverse('marking.views.list_activities', \
                                                 args=(course_slug,)))       
-    else: # for GET request                 
-        student_receiver_form = MarkStudentReceiverForm(prefix = "student-receiver-form")
-        group_receiver_form = MarkGroupReceiverForm(prefix = "group-receiver-form")
+    else: # for GET request  
+        # the mark receiver(either a student or a group) may included in the url's query part
+        std_userid = request.GET.get('student')
+        group_id = request.GET.get('group')
+        receiver_in_url = (std_userid != None or group_id != None)        
+       
+        if receiver_in_url == False :                          
+            student_receiver_form = MarkStudentReceiverForm(prefix = "student-receiver-form")
+            group_receiver_form = MarkGroupReceiverForm(prefix = "group-receiver-form")
+            student = None
+            group = None
+        elif std_userid:
+            student = Person.Objects.get(userid = std_userid)
+        else:
+            group = Group.Objects.get(id = group_id)
+       
         for i in range(leng):
             forms.append(ActivityComponentMarkForm(prefix = "cmp-form-%s" % (i+1)))
+        
         additional_info_form = ActivityMarkForm(prefix = "additional-form") 
            
     mark_components = []
@@ -282,7 +315,8 @@ def marking(request, course_slug, activity_slug):
     if error_info:
         messages.add_message(request, messages.ERROR, error_info)
     return render_to_response("marking/marking.html",
-                             {'course':course, 'activity' : activity, \
+                             {'course':course, 'activity' : activity,
+                              'student' : student, 'group' : group, \
                               'student_receiver_form' : student_receiver_form, 'group_receiver_form' : group_receiver_form,
                               'additional_info_form' : additional_info_form, 'mark_components': mark_components }, \
                               context_instance=RequestContext(request))
@@ -301,13 +335,14 @@ def mark_summary(request, course_slug, activity_slug):
           
      
      if activity_marks.count() != 0 : # the mark is assigned individually
-         #get the latest one
+        #get the latest one
         latest = activity_marks.aggregate(Max('created_at'))['created_at__max']
         act_mark = activity_marks.get(created_at = latest)     
-     else:        
-        #find the group that this student participates
+     else: # the mark is assigned through the group this student participates     
+        #find the group  
         group = GroupMember.get(student = membership).group 
-        activity_marks = GroupActivityMark.objects.filter(group = group)        
+        activity_marks = GroupActivityMark.objects.filter(group = group)    
+        #get the latest one    
         latest = activity_marks.aggregate(Max('created_at'))['created_at__max']
         act_mark = activity_marks.get(created_at = latest)
                     

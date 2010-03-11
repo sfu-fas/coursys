@@ -97,7 +97,7 @@
 		<td>
 			{{ student_grade_info.grade }}
 			{% ifequal student_grade_info.grade_status 'graded'%} 
-				<a href="{% url marking.views.mark_summary course_slug=course.slug activity_slug=activity.slug%}?student={{ student_grade_info.id }}">details...</a>
+				<a href="{% url marking.views.mark_summary course_slug=course.slug activity_slug=activity.slug%}?student={{ student_grade_info.id }}" target="_blank">details...</a>
 			{% endifequal %}
 		</td>
         <td>

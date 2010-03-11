@@ -23,10 +23,18 @@ function append_problem(n, content)
 <div id = "form_container">
 <div id = "marking_container">
 <form action="" method="post" enctype="multipart/form-data">  
-     <h2> Mark for: </h2>
-     <div class = "receiver"> {{student_receiver_form}} </div>
-     <b> OR </b>
-     <div class = "receiver"> {{group_receiver_form}} </div>
+     <h2> Mark for: </h2>     
+     {% if student %}
+         <h3> {{student}} </h3>
+     {% else %}
+        {% if group %}
+          <h3> {{group}} </h3>
+        {% else %}
+	      <div class = "receiver"> {{student_receiver_form}} </div>
+	      <b> OR </b>
+	      <div class = "receiver"> {{group_receiver_form}} </div> 
+	    {% endif %}
+	 {% endif %}
 	 {% for entry in mark_components %}  	     
 	     <fieldset>
 	     <legend>{{entry.component.title}}</legend> 

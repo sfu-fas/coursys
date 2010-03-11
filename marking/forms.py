@@ -8,11 +8,11 @@ class ActivityComponentMarkForm(ModelForm):
         model = ActivityComponentMark            
         fields = ['comment', 'value']
            
-    def clean_value(self):
-        value = self.cleaned_data['value']
-        if value and value < 0:          
-                raise forms.ValidationError(u'The mark can not be negative')
-        return value
+#    def clean_value(self):
+#        value = self.cleaned_data['value']
+#        if value and value < 0:          
+#                raise forms.ValidationError(u'The mark can not be negative')
+#        return value
 
         
 class ActivityMarkForm(ModelForm):
