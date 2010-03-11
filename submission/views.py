@@ -365,6 +365,7 @@ def edit_single(request, course_slug, activity_slug):
                 count = len(select_all_components(activity))
                 new_component.position = count*10 + 10
             new_component.save()
+            messages.add_message(request, messages.SUCCESS, 'Component "' + new_component.title + '" successfully updated.')
             return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
         else:
             form = new_form

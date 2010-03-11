@@ -652,3 +652,6 @@ fieldset .hidden {
     margin: 0;
     padding: 0;
 }
+a img {
+    border-style: none;
+}
