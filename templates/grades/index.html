@@ -9,7 +9,7 @@
   <h2 id="semester-{{semester.grouper.name}}">{{semester.grouper.label}}</h2>
   <ul>
   {% for membership in semester.list %}
-    <li><a href="{% url grades.views.course course_slug=membership.offering.slug %}">{{membership.offering.name}}</a></li>
+    <li><a href="{% url grades.views.course_info course_slug=membership.offering.slug %}">{{membership.offering.name}}</a></li>
   {% endfor %}
   </ul>
 {% endfor %}

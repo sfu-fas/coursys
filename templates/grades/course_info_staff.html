@@ -19,28 +19,28 @@
 {% endblock %}
 
 {% block breadcrumbs_extra %}
-<li>&gt; <a href="{% url grades.views.course course_slug=course.slug %}">{{ course.name }}</a></li>
+<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
 {% endblock %}
 
 
 {% block content %}
-<div id="table_container">
+<div class="table_container">
     <table class="info">
         <tbody>
             <tr>
-                <th  class="ui-state-default">Subject</th>
+                <th class="ui-state-default">Subject</th>
                 <td>
                     {{ course_info.subject }}
                 </td>
             </tr>
             <tr>
-                <th  class="ui-state-default">Catalog Number</th>
+                <th class="ui-state-default">Catalog Number</th>
                 <td>
                     {{ course_info.number }}
                 </td>
             </tr>
             <tr>
-                <th  class="ui-state-default">Section</th>
+                <th class="ui-state-default">Section</th>
                 <td>
                     {{ course_info.section }}
                 </td>
@@ -87,10 +87,16 @@
                     {% endfor %}
                 </td>
             </tr>
+            <tr>
+                <th class="ui-state-default">Number of Students</th>
+                <td>
+                    {{ course_info.number_of_students }}
+                </td>
+            </tr>
         </tbody>
     </table>
 </div>
-<div id="activity_container">
+<div class="activity_container">
     <h2>Course Activities</h2>
     <a class="redbutton" href="{% url grades.views.add_numeric_activity course_slug=course.slug %}">Add Activity</a>
     <br/>
@@ -99,6 +105,7 @@
             <tr>
                 <th class="ui-state-default">Order</th>
                 <th class="ui-state-default">Activity</th>
+                <th class="ui-state-default">Max Grade</th>
                 <th class="ui-state-default">Percentage</th>
                 <th class="ui-state-default">Status</th>
                 <th class="ui-state-default">Due Date</th>
@@ -109,7 +116,7 @@
             <tr>
                 <td>
                     {% if not forloop.first %}
-                    <a href="{% url grades.views.course course_slug=course.slug %}?order={{ order_type.UP }}&act={{ activity.slug }}">
+                    <a href="{% url grades.views.course_info course_slug=course.slug %}?order=up&act={{ activity.slug }}">
                         <span class="position_button ui-state-default ui-icon ui-icon-arrowthick-1-n"></span>
                     </a>
                     {% endif %}
@@ -117,7 +124,7 @@
                     <span class="position_placeholder"></span>
                     {% endif %}
                     {% if not forloop.last %}
-                    <a href="{% url grades.views.course course_slug=course.slug %}?order={{ order_type.DN }}&act={{ activity.slug }}">
+                    <a href="{% url grades.views.course_info course_slug=course.slug %}?order=down&act={{ activity.slug }}">
                         <span class="position_button ui-state-default ui-icon ui-icon-arrowthick-1-s"></span>
                     </a>
                     {% endif %}
@@ -133,6 +140,13 @@
                         <span><a href="{% url grades.views.delete_activity_review course_slug=course.slug activity_slug=activity.slug %}">Delete</a></span>
                     </div>
                 </td>
+                {% if activity.max_grade %}
+                <td>
+                    {{ activity.max_grade }}
+                </td>
+                {% else %}
+                <td>--</td>
+                {% endif %}
                 <td>
                     {{ activity.percent }}
                 </td>

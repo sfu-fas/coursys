@@ -96,6 +96,24 @@ def requires_course_by_slug(function=None, login_url=None):
     else:
         return actual_decorator
 
+def is_course_student_by_slug(u, course_slug, **kwargs):
+    """
+    Return True if user is student from course indicated by 'course_slug' keyword.
+    """
+    memberships = Member.objects.filter(offering__slug=course_slug, person__userid=u.username, role="STUD")
+    count = memberships.aggregate(Count('person'))['person__count']
+    return count>0
+
+def requires_course_student_by_slug(function=None, login_url=None):
+    """
+    Allows access if user is student from course indicated by 'course_slug'.
+    """
+    actual_decorator = user_passes_test(is_course_student_by_slug, login_url=login_url)
+    if function:
+        return actual_decorator(function)
+    else:
+        return actual_decorator
+
 def is_course_staff_by_slug(u, course_slug, **kwargs):
     """
     Return True if user is a staff member (instructor, TA, approver) from course indicated by 'course_slug' keyword.

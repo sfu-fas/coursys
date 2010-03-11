@@ -1,17 +1,22 @@
 from django.shortcuts import render_to_response, get_object_or_404
-from django.http import HttpResponseRedirect, Http404
+from django.http import HttpResponseRedirect, Http404, HttpResponseForbidden
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
 from django.db.models.aggregates import Max
 from coredata.models import Member, CourseOffering, Person, Role
-from courselib.auth import requires_course_by_slug, requires_course_staff_by_slug, is_course_staff_by_slug
-from grades.models import ACTIVITY_STATUS, FLAGS, all_activities_filter, Activity, \
-                        NumericActivity, LetterActivity, NumericGrade, LetterGrade, ACTIVITY_TYPES
+from courselib.auth import requires_course_by_slug, requires_course_staff_by_slug, is_course_staff_by_slug, is_course_student_by_slug
+from grades.models import ACTIVITY_STATUS, all_activities_filter, Activity, \
+                        NumericActivity, LetterActivity, ACTIVITY_TYPES
 from grades.forms import NumericActivityForm, LetterActivityForm, FORMTYPE
 from grades.models import *
+from grades.utils import CourseInfo, StudentGradeInfo, reorder_course_activities, create_StudentGradeInfo_list, \
+                        ORDER_TYPE
 from django.forms.util import ErrorList
 
+
+FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo'}
+ACTIVITY_TYPE = {'NG': 'Numeric Graded', 'LG': 'Letter Graded'} # for display purpose
 
 @login_required
 def index(request):
@@ -20,61 +25,26 @@ def index(request):
     memberships = Member.objects.exclude(role="DROP").filter(offering__graded=True).filter(person__userid=userid) \
             .select_related('offering','person','offering__semester')
     return render_to_response("grades/index.html", {'memberships': memberships}, context_instance=RequestContext(request))
-    
-_FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo'}
-_ORDER_TYPE = {'UP': 'up', 'DN': 'down'}
-_ACTIVITY_TYPE = {'NG': 'Numeric Graded', 'LG': 'Letter Graded'}
 
-class _CourseInfo:
-    """
-    Object holding course info for the display in 'course' page 
-    """
-    def __init__(self, subject, number, section, semester, title, campus, instructor_list, ta_list, grade_approver_list):
-        self.subject = subject
-        self.number = number
-        self.section = section
-        self.semester = semester
-        self.title = title
-        self.campus = campus
-        self.instructor_list = instructor_list
-        self.ta_list = ta_list
-        self.grade_approver_list = grade_approver_list
-
-def _reorder_course_activities(ordered_activities, activity_slug, order):
-    """
-    Reorder the activity in the Activity list of a course. Please make
-    sure the Activity list belongs to the same course.
-    """
-    if not isinstance(ordered_activities, list):
-        return
-    for activity in ordered_activities:
-        if not isinstance(activity, Activity):
-            return
-    for i in range(0, len(ordered_activities)):
-        if ordered_activities[i].slug == activity_slug:
-            if (order == _ORDER_TYPE['UP']) and (not i == 0):
-                # swap position
-                temp = ordered_activities[i-1].position
-                ordered_activities[i-1].position = ordered_activities[i].position
-                ordered_activities[i].position = temp
-                ordered_activities[i-1].save()
-                ordered_activities[i].save()
-            elif (order == _ORDER_TYPE['DN']) and (not i == len(ordered_activities) - 1):
-                # swap position
-                temp = ordered_activities[i+1].position
-                ordered_activities[i+1].position = ordered_activities[i].position
-                ordered_activities[i].position = temp
-                ordered_activities[i+1].save()
-                ordered_activities[i].save()
-            break
+@login_required
+def course_info(request, course_slug):
+    #if course staff
+    if is_course_staff_by_slug(request.user, course_slug):
+        return _course_info_staff(request, course_slug)
+    #else course member
+    elif is_course_student_by_slug(request.user, course_slug):
+        return _course_info_student(request, course_slug)
+    #else not found, return 403
+    else:
+        return render_to_response('403.html', context_instance=RequestContext(request))
     
-@requires_course_staff_by_slug
-def course(request, course_slug):
+#@requires_course_staff_by_slug
+def _course_info_staff(request, course_slug):
     """
     Course front page
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    activities = list(course.activity_set.all())
+    activities = all_activities_filter(offering=course)
     
     order = None
     act = None
@@ -83,83 +53,39 @@ def course(request, course_slug):
     if request.GET.has_key('act'):
         act = request.GET['act']
     if order:
-        _reorder_course_activities(activities, act, order)
-        return HttpResponseRedirect(reverse('grades.views.course', kwargs={'course_slug': course_slug}))
+        reorder_course_activities(activities, act, order)
+        return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
     course_instructor_list = course.members.filter(person__role='INST')
     course_ta_list = course.members.filter(person__role='TA')
     course_grade_approver_list = course.members.filter(person__role='APPR')
-    course_info = _CourseInfo(course.subject, course.number, course.section,
+    course_student_count = course.members.filter(person__role='STUD').count()
+    course_info = CourseInfo(course.subject, course.number, course.section,
                               course.semester.label() + ' (' + course.semester.name + ')',
                               course.title, course.get_campus_display(), course_instructor_list,
-                              course_ta_list, course_grade_approver_list)
-    context = {'course': course, 'activities': activities, 'course_info': course_info, 'from_page': _FROMPAGE['course']}
-    return render_to_response("grades/course.html", context,
+                              course_ta_list, course_grade_approver_list, course_student_count)
+    
+    context = {'course': course, 'activities': activities, 'course_info': course_info, 'from_page': FROMPAGE['course'],
+               'order_type': ORDER_TYPE}
+    return render_to_response("grades/course_info_staff.html", context,
                               context_instance=RequestContext(request))
+    
 
-class _StudentGradeInfo:
-    """
-    Object holding student grade info for the display in 'activity_info' page 
-    """
-    def __init__(self, id, name, userid, emplid, email, grade_status, grade):
-        self.id = id
-        self.name = name
-        self.userid = userid
-        self.emplid = emplid
-        self.email = email
-        self.grade_status = grade_status
-        self.grade = grade
-        
-def _create_StudentGradeInfo_list(course, activity, student=None):
-    """
-    Return a _StudentGradeInfo list which either contains all the enrolled students'
-    grade information in a course activity when student is not specified, or contains
-    the specified student's grade information in a course activity
-    """
-    if not course or not activity:
-        return
-    if not [activity for activity_type in ACTIVITY_TYPES if isinstance(activity, activity_type)]:
-        return
-    if not isinstance(course, CourseOffering):
-        return
-    # verify if the course contains the activity
-    if not all_activities_filter(slug=activity.slug, offering=course):
-        return
-    if not student:
-        student_list = course.members.filter(person__role='STUD')
-    else:
-        if not isinstance(student, Person):
-            return
-        student_list = [student]
-    student_grade_info_list = []
-    if isinstance(activity, NumericActivity):
-        numeric_grade_list = NumericGrade.objects.filter(activity=activity)
-        for student in student_list:
-            student_grade_status = None
-            for numeric_grade in numeric_grade_list:
-                if numeric_grade.member.person == student:
-                    student_grade_status = numeric_grade.get_flag_display()
-                    student_grade = str(numeric_grade.value) + '/' + str(activity.max_grade)
-                    break
-            if not student_grade_status:
-                student_grade_status = FLAGS['NOGR']
-                student_grade = '--'
-            student_grade_info_list.append(_StudentGradeInfo(student.id, student.name(), student.userid, student.emplid, student.email(),
-                                                            student_grade_status, student_grade))
-    elif isinstance(activity, LetterActivity):
-        letter_grade_list = LetterGrade.objects.filter(activity=activity)
-        for student in student_list:
-            student_grade_status = None
-            for letter_grade in letter_grade_list:
-                if letter_grade.member.person == student:
-                    student_grade_status = letter_grade.get_flag_display()
-                    student_grade = letter_grade.letter_grade
-                    break
-            if not student_grade_status:
-                student_grade_status = FLAGS['NOGR']
-                student_grade = '--'
-            student_grade_info_list.append(_StudentGradeInfo(student.id, student.name(), student.userid, student.emplid, student.email(),
-                                                            student_grade_status, student_grade))
-    return student_grade_info_list
+#@requires_course_staff_by_slug
+def _course_info_student(request, course_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activities = all_activities_filter(offering=course, status__in=['RLS', 'URLS'])
+    
+    course_instructor_list = course.members.filter(person__role='INST')
+    course_ta_list = course.members.filter(person__role='TA')
+    course_grade_approver_list = course.members.filter(person__role='APPR')
+    course_student_count = course.members.filter(person__role='STUD').count()
+    course_info = CourseInfo(course.subject, course.number, course.section,
+                              course.semester.label() + ' (' + course.semester.name + ')',
+                              course.title, course.get_campus_display(), course_instructor_list,
+                              course_ta_list, course_grade_approver_list, course_student_count)
+    context = {'course': course, 'activities': activities, 'course_info': course_info, 'from_page': FROMPAGE['course']}
+    return render_to_response("grades/course_info_student.html", context,
+                              context_instance=RequestContext(request))
 
 @requires_course_staff_by_slug
 def activity_info(request, course_slug, activity_slug):
@@ -171,16 +97,16 @@ def activity_info(request, course_slug, activity_slug):
         if request.GET.has_key('id'):
             id = request.GET['id']
         if not id:
-            student_grade_info_list = _create_StudentGradeInfo_list(course, activity)
+            student_grade_info_list = create_StudentGradeInfo_list(course, activity)
             if isinstance(activity, NumericActivity):
-                activity_type = _ACTIVITY_TYPE['NG']
+                activity_type = ACTIVITY_TYPE['NG']
             elif isinstance(activity, LetterActivity):
-                activity_type = _ACTIVITY_TYPE['LG']
-            context = {'course': course, 'activity_type': activity_type, 'activity': activity, 'student_grade_info_list': student_grade_info_list, 'from_page': _FROMPAGE['activityinfo']}
+                activity_type = ACTIVITY_TYPE['LG']
+            context = {'course': course, 'activity_type': activity_type, 'activity': activity, 'student_grade_info_list': student_grade_info_list, 'from_page': FROMPAGE['activityinfo']}
             return render_to_response('grades/activity_info.html', context, context_instance=RequestContext(request))
         else:
             student = get_object_or_404(Person, id=id)
-            student_grade_info = _create_StudentGradeInfo_list(course, activity, student)[0]
+            student_grade_info = create_StudentGradeInfo_list(course, activity, student)[0]
             context = {'course': course, 'activity': activity, 'student_grade_info': student_grade_info}
             return render_to_response('grades/student_grade_info.html', context, context_instance=RequestContext(request))
     else:
@@ -209,7 +135,7 @@ def add_numeric_activity(request, course_slug):
                                                 offering=course, position=position)
             except Exception:
                 raise Http404
-            return HttpResponseRedirect(reverse('grades.views.course', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
     else:
         form = NumericActivityForm()
     context = {'course': course, 'form': form, 'form_type': FORMTYPE['add']}
@@ -254,7 +180,7 @@ def edit_activity(request, course_slug, activity_slug):
         
         from_page = request.GET['from_page']
         if from_page == None:
-            from_page = _FROMPAGE['course']
+            from_page = FROMPAGE['course']
         
         if request.method == 'POST': # If the form has been submitted...
             if isinstance(activity, NumericActivity):
@@ -267,9 +193,9 @@ def edit_activity(request, course_slug, activity_slug):
                 _populate_activity_from_formdata(activity, form.cleaned_data)
                 activity.save()
                 print from_page
-                if from_page == _FROMPAGE['course']:
-                    return HttpResponseRedirect(reverse('grades.views.course', kwargs={'course_slug': course_slug}))
-                elif from_page == _FROMPAGE['activityinfo']:
+                if from_page == FROMPAGE['course']:
+                    return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
+                elif from_page == FROMPAGE['activityinfo']:
                     return HttpResponseRedirect(reverse('grades.views.activity_info',
                                                         kwargs={'course_slug': course_slug, 'activity_slug': activity_slug}))
         else:
@@ -312,7 +238,7 @@ def add_letter_activity(request, course_slug):
                                                 offering=course, position=position)
             except Exception:
                 raise Http404
-            return HttpResponseRedirect(reverse('grades.views.course',
+            return HttpResponseRedirect(reverse('grades.views.course_info',
                                                 kwargs={'course_slug': course_slug}))
     else:
         form = LetterActivityForm()
@@ -327,9 +253,9 @@ def delete_activity_review(request, course_slug, activity_slug):
     if (len(activities) == 1):
         activity = activities[0]
         if isinstance(activity, NumericActivity):
-                activity_type = _ACTIVITY_TYPE['NG']
+                activity_type = ACTIVITY_TYPE['NG']
         elif isinstance(activity, LetterActivity):
-            activity_type = _ACTIVITY_TYPE['LG']
+            activity_type = ACTIVITY_TYPE['LG']
         context = {'course': course, 'activity_type': activity_type, 'activity': activities[0]}
         return render_to_response('grades/delete_activity_review.html', context, context_instance=RequestContext(request))
     else:
@@ -353,7 +279,7 @@ def delete_activity_confirm(request, course_slug, activity_slug):
             break
     if not activity_found:
         raise Http404
-    return HttpResponseRedirect(reverse('grades.views.course', kwargs={'course_slug': course_slug}))
+    return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
 
 @login_required
 def student_view(request):

@@ -302,11 +302,11 @@ table.info {
   border-color: #ccc;
   width: 100%;
 }
-#table_container {
+.table_container {
   width: 600px;
 }
 
-#table_container p.errorindicator {
+.table_container p.errorindicator {
 	border: 2px solid red;
     padding: 0.5em;
     background-color: #fffead;

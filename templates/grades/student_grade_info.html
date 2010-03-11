@@ -11,14 +11,14 @@
 {% endblock %}
 
 {% block breadcrumbs_extra %}
-<li>&gt; <a href="{% url grades.views.course course_slug=course.slug %}">{{ course.name }}</a></li>
+<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
 <li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li>
 <li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}?id={{ student_grade_info.id }}">{{ student_grade_info.name }}</a></li>
 {% endblock %}
 
 
 {% block content %}
-<div id="table_container">
+<div class="table_container">
     <table class="info">
         <tbody>
             <tr>

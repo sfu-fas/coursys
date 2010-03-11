@@ -24,13 +24,13 @@
 {% endblock %}
 
 {% block breadcrumbs_extra %}
-<li>&gt; <a href="{% url grades.views.course course_slug=course.slug %}">{{ course.name }}</a></li>
+<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
 <li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li>
 {% endblock %}
 
 
 {% block content %}
-<div id="table_container">
+<div class="table_container">
     <table class="info">
         <tbody>
 	    <tr>
@@ -70,7 +70,7 @@
         </tbody>
     </table>
 </div>
-<div id="grades_container">
+<div class="grades_container">
     <h2>Student Grades</h2>
     <a class="redbutton" href="#">Mark All</a>
     <br/>

@@ -1,0 +1,101 @@
+{% extends "grades/base.html" %}
+
+{% block h1 %}Course Information{% endblock %}
+
+{% block grades_headextra %}
+<script type="text/javascript">
+</script>
+{% endblock %}
+
+{% block breadcrumbs_extra %}
+<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
+{% endblock %}
+
+
+{% block content %}
+<div class="table_container">
+    <table class="info">
+        <tbody>
+            <tr>
+                <th class="ui-state-default">Subject</th>
+                <td>
+                    {{ course_info.subject }}
+                </td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Catalog Number</th>
+                <td>
+                    {{ course_info.number }}
+                </td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Section</th>
+                <td>
+                    {{ course_info.section }}
+                </td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Semester</th>
+                <td>
+                    {{ course_info.semester }}
+                </td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Title</th>
+                <td>
+                    {{ course_info.title }}
+                </td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Campus</th>
+                <td>
+                    {{ course_info.campus }}
+                </td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Instructor(s)</th>
+                <td>
+                    {% for instructor in course_info.instructor_list %}
+                    {{ instructor.name }} (<a href="mailto:{{ instructor.email }}">{{ instructor.email }}</a>){% if not forloop.first %},{% endif %}
+                    {% endfor %}
+                </td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">TA(s)</th>
+                <td>
+                    {% for ta in course_info.ta_list %}
+                    {{ ta.name }} (<a href="mailto:{{ ta.email }}">{{ ta.email }}</a>){% if not forloop.first %},{% endif %}
+                    {% endfor %}
+                </td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Grade Approver(s)</th>
+                <td>
+                    {% for grade_approver in course_info.grade_approver_list %}
+                    {{ grade_approver.name }} (<a href="mailto:{{ grade_approver.email }}">{{ grade_approver.email }}</a>){% if not forloop.first %},{% endif %}
+                    {% endfor %}
+                </td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Number of Students</th>
+                <td>
+                    {{ course_info.number_of_students }}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<h2>Course Activities</h2>
+<div class="table_container">
+    <table class="info">
+        <tbody>
+	    {% for activity in activities %}
+            <tr>
+		<th class="ui-state-default">{{ activity.name }}</th>
+		<td></td>
+            </tr>
+	    {% endfor %}
+	</tbody>
+    </table>
+</div>
+{% endblock %}

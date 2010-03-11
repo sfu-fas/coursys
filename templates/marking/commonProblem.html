@@ -23,7 +23,7 @@
 
 <form action="{% url marking.views.manage_common_problems course_slug=course.slug, activity_short_name=activity.short_name %}" method="post">
     {{ formset.management_form }} 
-     <div id = "table_container">
+     <div class = "table_container">
        <table class="display" id="common_problems">
         <thead>
           <tr>             
