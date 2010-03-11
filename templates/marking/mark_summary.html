@@ -64,7 +64,11 @@ Summary: Student {{student.userid}} got {{activity_mark.mark}} out of {{activity
 	    <tr>
 		  <th class="ui-state-default">File Attachment</th>
 		  {% if activity_mark.file_attachment %}
-		    <td><a href = {{activity_mark.file_attachment}}>download</a></td>
+		    <td>
+		    <a href = {{activity_mark.file_attachment}}>
+		    	<img src="{{MEDIA_URL}}icons/download.png" title="Download File" alt="Download File" />
+		    </a>
+		    </td>
 		  {% else %}
 		  	<td>no attachment</td>
 	      {% endif %}

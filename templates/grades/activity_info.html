@@ -94,11 +94,14 @@
 		</td>
 		<td>{{ student_grade_info.emplid }}</td>
 		<td>{{ student_grade_info.grade_status }}</td>
-		<td>
-			{{ student_grade_info.grade }}
+		<td>			
 			{% ifequal student_grade_info.grade_status 'graded'%} 
-				<a href="{% url marking.views.mark_summary course_slug=course.slug activity_slug=activity.slug%}?student={{ student_grade_info.id }}" target="_blank">details...</a>
+			    {{ student_grade_info.grade }}
+				<a href="{% url marking.views.mark_summary course_slug=course.slug activity_slug=activity.slug%}?student={{ student_grade_info.userid }}" target="_blank"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
+			{% else %}
+				<a href="{% url marking.views.marking course_slug=course.slug activity_slug=activity.slug%}?student={{ student_grade_info.userid }}" target="_blank">mark this...</a>
 			{% endifequal %}
+			
 		</td>
         <td>
             <a href="{% url submission.views.show_student_submission_staff course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid %}" target="_blank"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View" alt="View" /></a>

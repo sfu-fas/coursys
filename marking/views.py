@@ -231,9 +231,9 @@ def marking(request, course_slug, activity_slug):
                 cmp_mark = forms[i].save(commit = False)
                 cmp_mark.activity_component = components[i]                
                 cmp_marks.append(cmp_mark)            
-#                if cmp_mark.value > components[i].max_mark or cmp_mark.value < 0:
-#                    error_info = "Invalid mark for %s" % components[i].title
-#                    break;  
+                if cmp_mark.value > components[i].max_mark:
+                    error_info = "Mark too high for %s" % components[i].title
+                    break;  
                 total_mark += cmp_mark.value
                 
         additional_info_form = ActivityMarkForm(request.POST, request.FILES, prefix = "additional-form")
@@ -243,12 +243,12 @@ def marking(request, course_slug, activity_slug):
             
         if is_student: #get the student
             if receiver_in_url:
-                student = Person.objects.get(userid = std_userid)
+                student = get_object_or_404(Person, userid = std_userid)
             else:
                 student = student_receiver_form.cleaned_data['student']
         else:#get the group
             if receiver_in_url:
-                group = Group.objects.get(id = group_id)
+                group = objects.get_object_or_404(Group, id = group_id)
             else:
                 group = group_receiver_form.cleaned_data['group']
 
@@ -303,10 +303,9 @@ def marking(request, course_slug, activity_slug):
             student = None
             group = None
         elif std_userid:
-            # consider using get_object_or_404()? user may type anything in the url, using get() may produce a 500 page rather than 404.
-            student = Person.objects.get(userid = std_userid)
+            student = get_object_or_404(Person, userid = std_userid)
         else:
-            group = Group.objects.get(id = group_id)
+            group = get_object_or_404(Group, id = group_id)
        
         for i in range(leng):
             forms.append(ActivityComponentMarkForm(prefix = "cmp-form-%s" % (i+1)))
@@ -332,7 +331,7 @@ from django.db.models import Max, Count
 @requires_course_staff_by_slug
 def mark_summary(request, course_slug, activity_slug):
      student_id = request.GET.get('student')
-     student = get_object_or_404(Person, id = student_id)
+     student = get_object_or_404(Person, userid = student_id)
      course = get_object_or_404(CourseOffering, slug = course_slug)    
      activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)
      
