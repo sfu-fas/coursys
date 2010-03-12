@@ -83,7 +83,7 @@ Student "{{student.userid}}" got {{activity_mark.mark}}/{{activity.max_grade}}
     </table>
 </div>   
 
-{% if view_hisotry %}
+{% if view_history %}
 	<a href = "{% url marking.views.mark_history course_slug=course.slug, activity_slug=activity.slug %}?student={{student.userid}}" target="_blank"> --> View Marking History </a>
 {% endif %}
 {% endblock %}

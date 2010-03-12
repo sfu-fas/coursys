@@ -416,7 +416,7 @@ def mark_summary(request, course_slug, activity_slug):
      return render_to_response("marking/mark_summary.html", 
                                {'course':course, 'activity' : activity, 'student' : student, \
                                 'activity_mark': act_mark, 'component_marks': component_marks, \
-                                'view_hisotry': act_mark_id == None}, context_instance = RequestContext(request))
+                                'view_history': act_mark_id == None}, context_instance = RequestContext(request))
      
 from os import path, getcwd
 @requires_course_staff_by_slug
