@@ -94,21 +94,20 @@ def _save_components(formset, activity):
 from django.db.models import Max
 def _get_activity_mark(activity, student_membership, activity_mark_id = None, include_all = False):
      """
-     this function returns the mark of the student on the activity
+     this function returns the mark for the student on the activity
      
      if activity_mark_id is specified, return that activity_mark if it 
      exists for the student on the activity(return None otherwise). And here 
      we don't consider the include_all.
     
-     if include_all is False, only return the current mark which is latest created 
-     and thus currently valid; otherwise not only return the current mark but also the 
+     if include_all is False, only return the current mark which was most lately created 
+     and thus is currently valid. Otherwise not only return the current mark but also 
      all the history marks for the student on the activity        
      """  
      current_act_mark = None
      std_act_marks = None
      grp_act_marks = None     
      
-     print "activity_mark_id %s" % activity_mark_id
      # the mark maybe assigned directly to this student 
      num_grade = get_object_or_404(NumericGrade, activity = activity, member = student_membership)
      std_act_marks = StudentActivityMark.objects.filter(numeric_grade = num_grade)
@@ -436,7 +435,7 @@ def download_marking_attachment(request, course_slug, activity_slug, filepath):
 @requires_course_staff_by_slug
 def mark_history(request, course_slug, activity_slug):
     """
-    show the marking history for a student on an activity
+    show the marking history for the student on the activity
     """
     student_id = request.GET.get('student')
     student = get_object_or_404(Person, userid = student_id)
