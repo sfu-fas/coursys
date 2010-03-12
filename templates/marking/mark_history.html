@@ -1,54 +1,50 @@
 {% extends "marking/base.html" %}
 
+{% block marking_header_extra %}
+<script type="text/javascript">
+    $(document).ready(function() {
+	oTable = $('#mark_history').dataTable({
+		"bJQueryUI": true,
+		"aaSorting": [[ 0, "asc" ]]	
+	});
+    });
+</script>
+{% endblock %}
+
 {% block h1 %} Marking History {% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url marking.views.list_activities course_slug=course.slug %}">{{course}}</a></li>
+{% endblock %}
 
 {% block content %}
 <h2>
 For Student {{student.userid}} on  {{activity.name}} of {{course.name}}
 </h2>
-
 <div id = "table_container">
-	<table class="info">
-	<tbody>
-	    <tr>
-	       <th class="ui-state-default">Overall comment</th>
-	       <td> 
-		      {{ activity_mark.overall_comment }}	
-           </td>
-        </tr>    
+  <table class="display" id="mark_history">
+	<thead>
 		<tr>
-		  <th class="ui-state-default">Late Penalty</th>
-		  <td> 
-			 {{ activity_mark.late_penalty }}	
-	      </td>
-	    </tr>
-	    <tr>
-		  <th class="ui-state-default">Adjustment Mark</th>
-		  <td> 
-			 {{ activity_mark.mark_adjustment }}
-	      </td>
-	    </tr>
-	    <tr>
-		  <th class="ui-state-default">Adjustment Mark Reason</th>
-		  <td> 
-			 {{ activity_mark.mark_adjustment_reason }}	
-	      </td>
-	    </tr>
-	    <tr>
-		  <th class="ui-state-default">File Attachment</th>
-		  {% if activity_mark.file_attachment %}
-		    <td>
-		    <a href = "{{activity_mark.file_attachment}}"><img src="{{MEDIA_URL}}icons/download.png" title="Download" alt="Download" /></a>
-		    </td>
-		  {% else %}
-		  	<td>no attachment</td>
-	      {% endif %}
-	    </tr>
+			<th>Time</th>
+			<th>Marker</th>
+			<th>Mark Given</th>		
+		</tr>
+	</thead>
+	<tbody>
+	    {% for act_mark in all_activity_marks %}
+		      <td>
+		      {{ act_mark.created_at }}
+		       {% ifequal act_mark current_activity_mark %}
+		       <img src = "{{MEDIA_URL}}icons/tick.png" title="Currently Valid" alt="Currently Valid" />
+		       {% endifequal %}		       
+		      </td>
+	          <td>{{ act_mark.created_by }}</td>           
+	          <td>{{ act_mark.mark }}/{{ activity.max_grade }}
+	          	<a href="{% url marking.views.mark_summary course_slug=course.slug activity_slug=activity.slug%}?student={{ student.userid }}&activity_mark={{act_mark.id}}" target="_blank"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
+	          </td>
+	        </tr>	
+	    {% endfor %}
     </tbody>
-    </table>
-</div>   
-
-{% if view_history %}
-	<a href = "#"> --> View Marking History </a>
-{% endif %}
+  </table>
+</div> 
 {% endblock %}

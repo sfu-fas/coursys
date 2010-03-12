@@ -44,6 +44,7 @@ class ActivityMark(models.Model):
     mark_adjustment_reason = models.TextField(null = True, max_length = 1000, blank = True)
     file_attachment = models.FileField(null = True, upload_to = "marking/files/%Y/%m/%d'", blank=True)#TODO: need to add student name or group name to the path  
     
+    created_by = models.CharField(max_length=8, null=False, help_text='Userid who gives the mark')
     created_at = models.DateTimeField(auto_now_add=True)
     # For the purpose of keeping a history,
     # need the copy of the mark here in case that 

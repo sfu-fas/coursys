@@ -1,7 +1,7 @@
 from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.core.urlresolvers import reverse
 from coredata.models import *
 from courselib.auth import requires_faculty_member, requires_course_staff_by_slug
@@ -89,8 +89,78 @@ def _save_components(formset, activity):
                 position += 1
             else:
                 instance.position = None
-            instance.save()            
+            instance.save()      
+
+from django.db.models import Max
+def _get_activity_mark(activity, student_membership, activity_mark_id = None, include_all = False):
+     """
+     this function returns the mark of the student on the activity
+     
+     if activity_mark_id is specified, return that activity_mark if it 
+     exists for the student on the activity(return None otherwise). And here 
+     we don't consider the include_all.
+    
+     if include_all is False, only return the current mark which is latest created 
+     and thus currently valid; otherwise not only return the current mark but also the 
+     all the history marks for the student on the activity        
+     """  
+     current_act_mark = None
+     std_act_marks = None
+     grp_act_marks = None     
+     
+     print "activity_mark_id %s" % activity_mark_id
+     # the mark maybe assigned directly to this student 
+     num_grade = get_object_or_404(NumericGrade, activity = activity, member = student_membership)
+     std_act_marks = StudentActivityMark.objects.filter(numeric_grade = num_grade)
+     latest = None
+     if std_act_marks.count() != 0 :
+        
+        if activity_mark_id != None:
+           for act in std_act_marks:             
+               if act.id == int(activity_mark_id):
+                   print "found"
+                   return act    
+        
+        #get the latest one
+        latest = std_act_marks.aggregate(Max('created_at'))['created_at__max']
+        current_act_mark = std_act_marks.get(created_at = latest)
+        
+     # the mark maybe assigned to this student via the group this student participates
+     try:   
+        group_mem = GroupMember.objects.get(student = student_membership)
+     except GroupMember.DoesNotExist:
+        pass
+     else:
+        group = group_mem.group
+        grp_act_marks = GroupActivityMark.objects.filter(group = group)    
+        if grp_act_marks.count() != 0 : 
            
+            if activity_mark_id != None:
+                for act in grp_act_marks:
+                    if act.id == int(activity_mark_id):
+                        print "found"
+                        return act
+                return None
+             
+            latest2 = grp_act_marks.aggregate(Max('created_at'))['created_at__max']
+            if lateset == None or latest2 > lateset:
+                current_act_mark = grp_act_marks.get(created_at = latest2)
+        
+     if activity_mark_id != None:
+         print "not found"
+         raise Http404('No such ActivityMark for student %s on %s found.' % (student_membership.person), activity)
+    
+     if not include_all:
+         return current_act_mark
+     else:
+        all_act_mark = []
+        if std_act_marks:
+            all_act_mark.extend(std_act_marks)
+        if grp_act_marks:
+            all_act_mark.extend(grp_act_marks)
+        return {'current_activity_mark' : current_act_mark, 
+                'all_activity_marks' : all_act_mark,}
+     
 
 @requires_course_staff_by_slug
 def manage_activity_components(request, course_slug, activity_slug):    
@@ -170,18 +240,19 @@ def manage_common_problems(request, course_slug, activity_slug):
     
 @requires_course_staff_by_slug
 def marking(request, course_slug, activity_slug):
+        
+    course = get_object_or_404(CourseOffering, slug = course_slug)    
+    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)
+    
+    students_qset = course.members.filter(person__role = 'STUD')
+    groups_qset = Group.objects.filter(courseoffering = course)
+    
     #init
     student = None
     group = None
     student_receiver_form = None
     group_receiver_form = None
-
     error_info = ""
-    course = get_object_or_404(CourseOffering, slug = course_slug)    
-    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)
-    
-    students_qset = course.members.filter(person__role = "STUD")
-    groups_qset = Group.objects.filter(courseoffering = course)
     
     from django import forms 
     class MarkStudentReceiverForm(forms.Form):
@@ -248,7 +319,7 @@ def marking(request, course_slug, activity_slug):
                     student = get_object_or_404(Person, userid = std_userid)
                 else:
                     student = student_receiver_form.cleaned_data['student']
-                membership = course.member_set.get(person = student)                     
+                membership = get_object_or_404(Member, offering = course, person = student, role = 'STUD')                     
                 #get the corresponding NumericGrade object
                 try: 
                     ngrade = NumericGrade.objects.get(activity = activity, member = membership)                  
@@ -260,7 +331,7 @@ def marking(request, course_slug, activity_slug):
               
             else:#get the group
                 if receiver_in_url:
-                    group = objects.get_object_or_404(Group, id = group_id)
+                    group = objects.get_object_or_404(Group, courseoffering = course, id = group_id)
                 else:
                     group = group_receiver_form.cleaned_data['group']
                 activity_mark = GroupActivityMark(group = group, numeric_activity = activity)
@@ -269,10 +340,10 @@ def marking(request, course_slug, activity_slug):
             additional = additional_info_form.save(commit = False)             
             #copy the additional info        
             activity_mark.copyFrom(additional)            
-            #assign the mark
+            #assign the mark            
             activity_mark.setMark(total_mark - additional.late_penalty + additional.mark_adjustment)           
+            activity_mark.created_by = request.user.username
             activity_mark.save()
-            print "activity_mark %s saved" % activity_mark.id
             
             #save the individual ComponentMarks
             for cmp_mark in cmp_marks:                
@@ -324,39 +395,6 @@ def marking(request, course_slug, activity_slug):
                               'additional_info_form' : additional_info_form, 'mark_components': mark_components }, \
                               context_instance=RequestContext(request))
     
-from django.db.models import Max
-def _get_activity_marks_history(activity, student_membership):
-       
-     current_act_mark = None
-     std_act_marks = None
-     grp_act_marks = None     
-     
-     # the mark maybe assigned directly to this student 
-     num_grade = NumericGrade.objects.get(activity = activity, member = student_membership)
-     std_act_marks = StudentActivityMark.objects.filter(numeric_grade = num_grade)
-     latest = None
-     if std_act_marks.count() != 0 :
-        #get the latest one
-        latest = std_act_marks.aggregate(Max('created_at'))['created_at__max']
-        current_act_mark = std_act_marks.get(created_at = latest)     
-    
-     # the mark maybe assigned to this student via the group this student participates
-     try:   
-        group_mem = GroupMember.objects.get(student = student_membership)
-     except GroupMember.DoesNotExist:
-        pass
-     else:
-        group = group_mem.group
-        grp_act_marks = GroupActivityMark.objects.filter(group = group)    
-        if grp_act_marks.count() != 0 :  
-            latest2 = grp_act_marks.aggregate(Max('created_at'))['created_at__max']
-            if lateset == None or latest2 > lateset:
-                current_act_mark = grp_act_marks.get(created_at = latest2)
-    
-     return {'current_mark' : current_act_mark, 
-             'marks_direct' : std_act_marks,
-             'marks_via_group': grp_act_marks}
-
 
 @requires_course_staff_by_slug
 def mark_summary(request, course_slug, activity_slug):
@@ -364,14 +402,15 @@ def mark_summary(request, course_slug, activity_slug):
      student = get_object_or_404(Person, userid = student_id)
      course = get_object_or_404(CourseOffering, slug = course_slug)    
      activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)     
-     membership = course.member_set.get(person = student, role = 'STUD') 
+     membership = get_object_or_404(Member, offering = course, person = student, role = 'STUD') 
      
      act_mark_id = request.GET.get('activity_mark')
-     if act_mark_id != None:
-         act_mark = get_object_or_404(ActivityMark, id = act_mark_id)
+     print act_mark_id
+     if act_mark_id != None: # if act_mark_id specified in the url
+         act_mark = _get_activity_mark(activity, membership, act_mark_id)         
      else:
-         act_mark = _get_activity_marks_history(activity, membership)['current_mark']
-                    
+         act_mark = _get_activity_mark(activity, membership)
+                         
      component_marks = ActivityComponentMark.objects.filter(activity_mark = act_mark)
     
      return render_to_response("marking/mark_summary.html", 
@@ -381,7 +420,9 @@ def mark_summary(request, course_slug, activity_slug):
      
 from os import path, getcwd
 @requires_course_staff_by_slug
-def download_marking_attachment(request, course_slug, activity_slug, filepath):       
+def download_marking_attachment(request, course_slug, activity_slug, filepath):
+    course = get_object_or_404(CourseOffering, slug = course_slug)    
+    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)       
     filepath = path.join(getcwd(), "media", filepath)
     filepath = filepath.replace("\\", "/")
     print filepath
@@ -395,23 +436,17 @@ def download_marking_attachment(request, course_slug, activity_slug, filepath):
 @requires_course_staff_by_slug
 def mark_history(request, course_slug, activity_slug):
     """
-    show the marking history of a student on an activity
+    show the marking history for a student on an activity
     """
     student_id = request.GET.get('student')
     student = get_object_or_404(Person, userid = student_id)
     course = get_object_or_404(CourseOffering, slug = course_slug)    
-    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)
-     
-    membership = course.member_set.get(person = student, role = 'STUD') 
+    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)     
+    membership = get_object_or_404(Member, offering = course, person = student, role = 'STUD') 
     
-    context = {'course':course, 'activity' : activity, 'student' : student}
-    context.update(_get_activity_marks_history(activity, membership))
+    context = {'course': course, 'activity' : activity, 'student' : student,}
+    context.update(_get_activity_mark(activity = activity, student_membership = membership, include_all = True))
     
     return render_to_response("marking/mark_history.html", context, context_instance = RequestContext(request))
     
     
-    
-      
-     
-    
-        
