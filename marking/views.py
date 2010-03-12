@@ -406,16 +406,17 @@ def mark_summary(request, course_slug, activity_slug):
      act_mark_id = request.GET.get('activity_mark')
      print act_mark_id
      if act_mark_id != None: # if act_mark_id specified in the url
-         act_mark = _get_activity_mark(activity, membership, act_mark_id)         
+         act_mark = _get_activity_mark(activity, membership, act_mark_id) 
      else:
          act_mark = _get_activity_mark(activity, membership)
-                         
+         
      component_marks = ActivityComponentMark.objects.filter(activity_mark = act_mark)
+        
     
      return render_to_response("marking/mark_summary.html", 
                                {'course':course, 'activity' : activity, 'student' : student, \
                                 'activity_mark': act_mark, 'component_marks': component_marks, \
-                                'view_history': act_mark_id == None}, context_instance = RequestContext(request))
+                                'view_hisotry': act_mark_id == None}, context_instance = RequestContext(request))
      
 from os import path, getcwd
 @requires_course_staff_by_slug
@@ -448,4 +449,32 @@ def mark_history(request, course_slug, activity_slug):
     
     return render_to_response("marking/mark_history.html", context, context_instance = RequestContext(request))
     
+
+import csv
+def export_csv(request, course_slug, activity_slug):
+    # Create the HttpResponse object with the appropriate CSV header.    
+    course = get_object_or_404(CourseOffering, slug = course_slug)    
+    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)  
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=%s_%s.csv' % (course_slug, activity_slug,)
+
+    writer = csv.writer(response)    
+    
+    student_members = Member.objects.filter(offering = course, role = 'STUD')
+    
+    writer.writerow(['Studen ID', 'Student Name', 'Status', 'Mark'])
+    for std in student_members:
+        row = [std.person.emplid, std.person.name()]
+        try: 
+            ngrade = NumericGrade.objects.get(activity = activity, member = std)                  
+        except NumericGrade.DoesNotExist: #if the  NumericalGrade does not exist yet,
+            row.append('NGRAD')
+            row.append('--')
+        else:
+            row.append(ngrade.flag)
+            row.append(ngrade.value)   
+        writer.writerow(row)
+
+    return response
+
     

@@ -8,7 +8,8 @@
 
 {% block content %}
 <h2>
-Student "{{student.userid}}" got {{activity_mark.mark}} out of {{activity.max_grade}}
+Student "{{student.userid}}" got {{activity_mark.mark}}/{{activity.max_grade}}
+(Marked by "{{activity_mark.created_by}}" on {{activity_mark.created_at|date:"D d M Y h:m:s"}})
 </h2>
 
 <h2> Components Details </h2>
@@ -82,7 +83,7 @@ Student "{{student.userid}}" got {{activity_mark.mark}} out of {{activity.max_gr
     </table>
 </div>   
 
-{% if view_history %}
+{% if view_hisotry %}
 	<a href = "{% url marking.views.mark_history course_slug=course.slug, activity_slug=activity.slug %}?student={{student.userid}}" target="_blank"> --> View Marking History </a>
 {% endif %}
 {% endblock %}
