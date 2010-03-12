@@ -9,7 +9,7 @@ Someone is marking this submission
 <h2>Are you sure to override?</h2>
 <ul class="add_nav">
     <li><a href="{% url submission.views.show_student_submission_staff course.slug, activity.slug, student.userid %}" class="button">No</a></li>
-    <li><a href="{% url submission.views.redirect_to_mark_submission course.slug, activity.slug, student.userid %}?confirm=OK" class="button">Yes, override!</a></li>
+    <li><a href="{% url submission.views.take_ownership_and_mark course.slug, activity.slug, student.userid %}?confirm=OK" class="button">Yes, override!</a></li>
 </ul>
 
 {% endblock %}

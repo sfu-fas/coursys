@@ -50,6 +50,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
     student = get_object_or_404(Person, userid=userid)
 
     submitted_pair_list = _get_current_submission(userid, activity)
+    owner = None
 
     #calculate latest submission
     submit_time = None
@@ -60,6 +61,8 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
                     submit_time = datetime.now()
             except:
                 pass
+            if pair[1].submission.owner != None:
+                owner = pair[1].submission.owner.person
             if submit_time > pair[1].submission.created_at:
                 submit_time = pair[1].submission.created_at
 
@@ -72,7 +75,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
         messages.add_message(request, messages.WARNING, 'There is no submittable component of this activity.')
 
     return render_to_response("submission/" + template,
-        {"course":course, "activity":activity, "submitted_pair":submitted_pair_list, "userid":userid, "submit_time":submit_time, "late":late, "student":student},
+        {"course":course, "activity":activity, "submitted_pair":submitted_pair_list, "userid":userid, "submit_time":submit_time, "late":late, "student":student, "owner":owner},
         context_instance=RequestContext(request))
 
 def _get_current_submission(userid, activity):
@@ -533,7 +536,7 @@ def show_student_history_staff(request, course_slug, activity_slug, userid):
     return show_components_submission_history(request, course_slug, activity_slug, userid)
 
 @requires_course_staff_by_slug
-def redirect_to_mark_submission(request, course_slug, activity_slug, userid):
+def take_ownership_and_mark(request, course_slug, activity_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set, slug = activity_slug)
 

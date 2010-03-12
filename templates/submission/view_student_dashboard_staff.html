@@ -10,7 +10,15 @@
     <li><label>Email:</label><a href="mailto:{{student.email}}">{{student.email}}</a></li>
 </ul>
 </div>
+{% endblock %}
 
+{% block owner %}
+    {% if owner %}
+        <tr>
+            <td><h3>Ownership:</h3></td>
+            <td>{{owner.name}}</td>
+        </tr>
+    {% endif %}
 {% endblock %}
 
 {% block current_time %}
@@ -22,8 +30,8 @@
     {% if submit_time %}
         <li><a href ="history/" class="button">View History</a></li>
         <li><a href ="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug %}?user-id={{userid}}" class="button" >Download All</a></li>
-        <li><a href ="{% url submission.views.redirect_to_mark_submission course_slug=course.slug activity_slug=activity.slug userid=userid%}" class="button" >Mark This</a></li>
     {% endif %}
+    <li><a href ="{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug userid=userid%}" class="button" >Mark This</a></li>
 </ul>
 </div>
 {% endblock %}
