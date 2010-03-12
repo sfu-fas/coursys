@@ -20,7 +20,7 @@ def groupmanage(request, course_slug):
 	p = get_object_or_404(Person, userid = request.user.username)
 	m = get_object_or_404(Member, person = p, offering=course)
 	try:
-		grouplist = Group.objects.get(courseoffering = course)
+		grouplist = Group.objects.filter(courseoffering = course)
 	except:
 		grouplist = None
 	memberlist = GroupMember.objects.none()
