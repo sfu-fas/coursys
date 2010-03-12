@@ -539,9 +539,11 @@ def show_student_history_staff(request, course_slug, activity_slug, userid):
 def take_ownership_and_mark(request, course_slug, activity_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set, slug = activity_slug)
-
+    
+    #TODO: factor out
+    from_page = 'activityinfo'
     #TODO: group, ?group=group.id
-    response = HttpResponseRedirect(reverse(marking, args=[course_slug, activity_slug]) + "?student=" + userid)
+    response = HttpResponseRedirect(reverse(marking, args=[course_slug, activity_slug]) + "?student=" + userid + '&from_page=' + from_page)
     
     component = select_students_submitted_components(activity, userid)
     #if it is taken by someone not me, show a confirm dialog

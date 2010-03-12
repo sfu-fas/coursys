@@ -237,6 +237,8 @@ def manage_common_problems(request, course_slug, activity_slug):
                               'formset' : formset },\
                               context_instance=RequestContext(request))
     
+# request to marking view may comes from different pages
+FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo'}   
 @requires_course_staff_by_slug
 def marking(request, course_slug, activity_slug):
         
@@ -356,8 +358,17 @@ def marking(request, course_slug, activity_slug):
               (activity, receiver, total_mark), related_object=activity_mark)                     
             l.save()                         
             messages.add_message(request, messages.SUCCESS, 'Marking for %s on activity %s finished' % (receiver, activity.name,))                      
-            return HttpResponseRedirect(reverse('marking.views.list_activities', \
-                                                args=(course_slug,)))       
+            
+            from_page = request.GET.get('from_page')
+            if from_page == FROMPAGE['course']:
+                redirect_url = reverse('grades.views.course_info', args=(course_slug,))
+            elif from_page == FROMPAGE['activityinfo']:
+                redirect_url = reverse('grades.views.activity_info', args=(course_slug, activity_slug))
+            else: #default
+                redirect_url = reverse('marking.views.list_activities', args=(course_slug,))
+            
+            return HttpResponseRedirect(redirect_url)      
+         
     else: # for GET request  
         # the mark receiver(either a student or a group) may included in the url's query part
         std_userid = request.GET.get('student')
