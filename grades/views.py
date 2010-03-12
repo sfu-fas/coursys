@@ -63,8 +63,14 @@ def _course_info_staff(request, course_slug):
                               course.semester.label() + ' (' + course.semester.name + ')',
                               course.title, course.get_campus_display(), course_instructor_list,
                               course_ta_list, course_grade_approver_list, course_student_count)
+    activities_info = []
+    for activity in activities:
+        if isinstance(activity, NumericActivity):
+            activities_info.append({'activity':activity, 'type':ACTIVITY_TYPE['NG']})            
+        elif isinstance(activity, LetterActivity):
+            activities_info.append({'activity':activity, 'type':ACTIVITY_TYPE['LG']})
     
-    context = {'course': course, 'activities': activities, 'course_info': course_info, 'from_page': FROMPAGE['course'],
+    context = {'course': course, 'activities_info': activities_info, 'course_info': course_info, 'from_page': FROMPAGE['course'],
                'order_type': ORDER_TYPE}
     return render_to_response("grades/course_info_staff.html", context,
                               context_instance=RequestContext(request))

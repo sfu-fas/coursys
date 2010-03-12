@@ -588,6 +588,11 @@ fieldset .hidden {
 	padding: 20px;
 }
 
+#marking_container .receiver .errorlist
+{
+	display: none;
+}
+
 #marking_container input[type="text"]{
  	width: 120px;
 }

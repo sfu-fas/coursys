@@ -53,20 +53,16 @@ function append_problem(n, content)
 		        <li class = "view">
 		      		<div class="inputfield">		      		 
 		        	Comment {{ entry.form.comment }}
-		      		{% if entry.form.comment.errors %}
-		      		<div class="errortext">
-		      		<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>&nbsp;{{entry.form.comment.errors.0}}
-		      		</div>
+		      		{% if entry.form.comment.errors %}		      		
+		      		<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>&nbsp;{{entry.form.comment.errors}}		      		
 		      		{% endif %}
 		      		</div>			      	  	
 				</li>
 				<li class = "view"> 
 		            <div class = "inputfield">
 		        	Mark {{entry.form.value}} Out of {{entry.component.max_mark}}
-		        	{% if entry.form.value.errors %}
-		        	<div class="errortext">
-		        	<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>&nbsp;{{entry.form.value.errors.0}}
-		        	</div>
+		        	{% if entry.form.value.errors %}		        	
+		        	<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>&nbsp;{{entry.form.value.errors}}		        	
 		        	{% endif %}
 		       		</div>
 		        </li>				
