@@ -7,12 +7,12 @@ from django.template import RequestContext
 from groups.forms import GroupForm
 from django.http import HttpResponse, HttpResponseRedirect
 
-@login_required
-def index(request):
-	p = get_object_or_404(Person, userid = request.user.username)
-	courselist = Member.objects.exclude(role="DROP").filter(offering__graded=True).filter(person = p)\
-	           .select_related('offering','offering__semester')
-	return render_to_response('groups/index.html', {'courselist':courselist}, context_instance = RequestContext(request))
+#@login_required
+#def index(request):
+#	p = get_object_or_404(Person, userid = request.user.username)
+#	courselist = Member.objects.exclude(role="DROP").filter(offering__graded=True).filter(person = p)\
+#	           .select_related('offering','offering__semester')
+#	return render_to_response('groups/index.html', {'courselist':courselist}, context_instance = RequestContext(request))
 
 @login_required
 def groupmanage(request, course_slug):

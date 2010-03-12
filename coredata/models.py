@@ -188,6 +188,13 @@ class CourseOffering(models.Model):
         
     def get_absolute_url(self):
         return "/%s/" % (self.slug)
+    
+    def instructors(self):
+        return (m.person for m in self.member_set.filter(role="INST"))
+    def tas(self):
+        return (m.person for m in self.member_set.filter(role="TA"))
+    def student_count(self):
+        return self.members.filter(person__role='STUD').count()
 
     # TODO: week number -> date (of the Monday)
     # TODO: date -> week number

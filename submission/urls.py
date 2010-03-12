@@ -1,5 +1,5 @@
 from django.conf.urls.defaults import *
-from grades.urls import COURSE_SLUG_RE, ACTIVITY_SLUG_RE
+from courselib.urlparts import *
 
 prefix = "(?P<course_slug>" + COURSE_SLUG_RE + ")/(?P<activity_slug>" + ACTIVITY_SLUG_RE + ")"
 

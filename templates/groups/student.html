@@ -13,17 +13,17 @@
 	{% for entry in grouplist %}
 		<p>{{ entry }}</p>&nbsp;
 		{% if group %}
-		<a href="join/{{ entry }}" onclick="return firm()">
+		<a href="{% url groups.views.join course_slug=course_slug,group_slug=entry.slug %}" onclick="return firm()">
 		{% else %}
-		<a href="join/{{ entry }}">
+		<a href="{% url groups.views.join course_slug=course_slug,group_slug=entry.slug %}">
 		{% endif %}
 		Join</a>
 	{% endfor %}
 	
 	{% if group %}
-	<a href="create/" onclick="return firm()">
+	<a href="{% url groups.views.create course_slug=course_slug %}" onclick="return firm()">
 	{% else %}
-	<a href="create/">
+	<a href="{% url groups.views.create course_slug=course_slug %}">
 	{% endif %}
 	Create a group</a><br />
 	

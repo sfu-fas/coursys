@@ -1,8 +1,5 @@
 from django.conf.urls.defaults import *
-#from courses.urls import COURSE_SLUG_RE
-
-COURSE_SLUG_RE = '\d{4}-[a-z]{2,4}-\w{3,4}-[a-z]\d{3}'
-ACTIVITY_SLUG_RE = '[\w-]+'
+from courselib.urlparts import *
 
 urlpatterns = patterns('',
     url(r'^$', 'marking.views.index'),

@@ -12,21 +12,21 @@ ORDER_TYPE = {'UP': 'up', 'DN': 'down'}
 _NO_GRADE = '--'
 _DECIMAL_PLACE = 2
 
-class CourseInfo:
-    """
-    Object holding course info for the display
-    """
-    def __init__(self, subject, number, section, semester, title, campus, instructor_list, ta_list, grade_approver_list, number_of_students):
-        self.subject = subject
-        self.number = number
-        self.section = section
-        self.semester = semester
-        self.title = title
-        self.campus = campus
-        self.instructor_list = instructor_list
-        self.ta_list = ta_list
-        self.grade_approver_list = grade_approver_list
-        self.number_of_students = number_of_students
+#class CourseInfo:
+#    """
+#    Object holding course info for the display
+#    """
+#    def __init__(self, subject, number, section, semester, title, campus, instructor_list, ta_list, grade_approver_list, number_of_students):
+#        self.subject = subject
+#        self.number = number
+#        self.section = section
+#        self.semester = semester
+#        self.title = title
+#        self.campus = campus
+#        self.instructor_list = instructor_list
+#        self.ta_list = ta_list
+#        self.grade_approver_list = grade_approver_list
+#        self.number_of_students = number_of_students
         
 class ActivityStat:
     """

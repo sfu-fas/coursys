@@ -1,8 +1,7 @@
 from django.db import models
 from coredata.models import Member, CourseOffering
+from autoslug import AutoSlugField
 
-
-# Create your models here.
 class Group(models.Model):
     """
     General group information in the courses
@@ -10,6 +9,7 @@ class Group(models.Model):
     name = models.CharField(max_length=30, help_text='Group name')
     manager = models.OneToOneField(Member, blank = True)
     courseoffering = models.ForeignKey(CourseOffering)
+    slug = AutoSlugField(populate_from='name', null=False, editable=False, unique_with='courseoffering')
 
     def __unicode__(self):  
         return '%s' % (self.name)

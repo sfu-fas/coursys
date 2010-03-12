@@ -3,17 +3,6 @@
 {% block title %}{{course}}{% endblock %}
 {% block h1 %}{{course}}{% endblock %}
 {% block content %}
-<!--<p>The links below should work at some point (once there is something to display).  For now, feel free to add links to make testing easier to <code>templates/dashboard/index.html</code>.</p>
-<p><a href="/advisors_A">Advisors A</a></p>-->
-<p><a href="/marking">Marking</a></p>
-<p><a href="/grades">Grades</a></p>
-<p><a href="/groups">Groups</a></p>
-<p>
-    <a href="/submission/1101-cmpt-165-d100/a1/">Dashboard of submission</a> for an activity with slug 'a1' for cmpt165 d100, 2010 spring. <br/>
-    Staff can view student's submission (and history) <a href="/submission/1101-cmpt-165-d100/a1/view/0aaa0/">link</a><br/>
-    <a href="/submission">Submission</a> Lists course links which go to course pages.<br/>
-</p>
-
 
 {% regroup memberships by offering.semester as by_semester %}
 {% for semester in by_semester %}
@@ -24,5 +13,16 @@
   {% endfor %}
   </ul>
 {% endfor %}
+
+<hr/>
+<p><a href="/marking">Marking</a></p>
+<!--<p><a href="/grades">Grades</a></p>-->
+<p><a href="/groups">Groups</a></p>
+<p>
+    <a href="/submission/1101-cmpt-165-d100/a1/">Dashboard of submission</a> for an activity with slug 'a1' for cmpt165 d100, 2010 spring. <br/>
+    Staff can view student's submission (and history) <a href="/submission/1101-cmpt-165-d100/a1/view/0aaa0/">link</a><br/>
+    <a href="/submission">Submission</a> Lists course links which go to course pages.<br/>
+</p>
+
 
 {% endblock %}
