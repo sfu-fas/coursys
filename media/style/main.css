@@ -213,6 +213,55 @@ tr:hover .row-actions {
   vertical-align: top;
 }
 
+/* individual activity box style for student view */
+.activity_box {
+  -moz-border-radius: 6px 6px 6px 6px;
+  border: 1px solid #ccc;
+  margin-bottom: 20px;
+  width: 600px;
+  margin-left: 0.5em;
+}
+.activity_box .grade {
+  float: right;
+  font-weight: bold;
+  font-size: 1.2em;
+  padding: 5px 20px 5px 0px;
+  color: #555555;
+}
+.activity_box .heading {
+  background: url("/media/images/grades/gray-grad.png") repeat-x left top #DFDFDF;
+  color: #555555;
+  font-weight: bold;
+  font-size: 1.2em;
+  padding: 5px;
+}
+.activity_box .inside {
+  margin: 10px;
+}
+table.activity_box_info tbody th {
+  font-weight: bold;
+  text-align: left;
+  width: 20%;
+  /* Override default table style */
+  background-color: transparent;
+}
+table.activity_box_info th, table.activity_box_info td {
+  /* Override default table style */
+  border-width: 0px;
+}
+table.activity_box_info {
+  width: 100%;
+  color: #555555;
+  /* Override default table style */
+  border-width: 0px;
+}
+
+/* visualize plugin chart style */
+.visualize {
+  margin: 60px 0 20px 30px;
+  font-size: 0.8em;
+}
+
 /* CSS for group */
 #groupcontainer {
     padding:0 0 0 0;
@@ -287,7 +336,9 @@ tr:hover .row-actions {
 .buttongroup {
   margin: 0.5em;
 }
-
+table.info thead th {
+  font-weight: bold;
+}
 table.info tbody th {
   font-weight: bold;
   text-align: left;

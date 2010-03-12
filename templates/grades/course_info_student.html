@@ -3,7 +3,14 @@
 {% block h1 %}Course Information{% endblock %}
 
 {% block grades_headextra %}
+<link rel="stylesheet" href="{{MEDIA_URL}}visualize/visualize.jQuery.css" type="text/css" />
+<!--[if IE]><script type="text/javascript" src="{{MEDIA_URL}}visualize/excanvas.compiled.js"></script><![endif]-->
+<script type="text/javascript" src="{{MEDIA_URL}}visualize/visualize.jQuery.js"></script>
 <script type="text/javascript">
+    $(document).ready(function() {
+	$("table.data").hide();
+        $("table.data").visualize({'height': '200px'});
+    });
 </script>
 {% endblock %}
 
@@ -88,14 +95,89 @@
 <h2>Course Activities</h2>
 <div class="table_container">
     <table class="info">
+	<thead>
+	    <tr>
+		<th class="ui-state-default">Activity</th>
+		<th class="ui-state-default">Status</th>
+		<th class="ui-state-default">Grade</th>
+	    </tr>
+	</thead>
         <tbody>
-	    {% for activity in activities %}
+	    {% for activityinfo in activityinfo_list %}
             <tr>
-		<th class="ui-state-default">{{ activity.name }}</th>
-		<td></td>
+		<td>{{ activityinfo.activity.display_label }}</td>
+		<td>{{ activityinfo.grade_status }}</td>
+		<td>{{ activityinfo.display_grade_student }}</td>
             </tr>
 	    {% endfor %}
 	</tbody>
     </table>
 </div>
+<br/>
+<br/>
+<br/>
+{% for activityinfo in activityinfo_list %}
+<div class="activity_box">
+    <div class="grade">Grade: {{ activityinfo.display_grade_student }}</div>
+    <div class="heading">{{ activityinfo.activity.display_label }}</div>
+    <div class="inside">
+	<table class="activity_box_info">
+	    <tbody>
+		<tr>
+		    <th>Due Date</th>
+		    <td>{{ activityinfo.activity.due_date }}</td>
+		</tr>
+		{% ifequal activityinfo.activity.status 'RLS' %}
+		{% if activityinfo.activity_stat %}
+		<tr>
+		    <th>Statistic</th>
+		    <td>Average Grade={{ activityinfo.activity_stat.average }}</td>
+		</tr>
+		<tr>
+		    <td></td>
+		    <td>
+			Min={{ activityinfo.activity_stat.min }}, Max={{ activityinfo.activity_stat.max }},
+			Median={{ activityinfo.activity_stat.median }}, StdDev={{ activityinfo.activity_stat.stddev }}
+		    </td>
+		</tr>
+		{% endif %}
+		{% endifequal %}
+	    </tbody>
+	</table>
+	<table class="data" style="width: 500px; border-collapse: collapse;">
+	    <caption>Test Data</caption>
+	    <thead>
+		<tr>
+		    <td></td>
+		    <th>0-10</th>
+		    <th>11-20</th>
+		    <th>21-30</th>
+		    <th>31-40</th>
+		    <th>41-50</th>
+		    <th>51-60</th>
+		    <th>61-70</th>
+		    <th>71-80</th>
+		    <th>81-90</th>
+		    <th>91-100</th>
+		</tr>
+	    </thead>
+	    <tbody>
+		<tr>
+		    <th>Assignment 1</th>
+		    <td>1</td>
+		    <td>0</td>
+		    <td>5</td>
+		    <td>5</td>
+		    <td>8</td>
+		    <td>60</td>
+		    <td>50</td>
+		    <td>20</td>
+		    <td>4</td>
+		    <td>5</td>
+		</tr>
+	    </tbody>
+	</table>
+    </div>
+</div>
+{% endfor %}
 {% endblock %}

@@ -147,9 +147,11 @@
                 {% else %}
                 <td>--</td>
                 {% endif %}
-                <td>
-                    {{ activity.percent }}
-                </td>
+		{% if activity.percent %}
+                <td>{{ activity.percent }}%</td>
+		{% else %}
+                <td>--</td>
+                {% endif %}
                 {% ifequal activity.status 'RLS' %}
                 <td class="green">
                     {{ activity.get_status_display }}

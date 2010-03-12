@@ -71,7 +71,13 @@ class Activity(models.Model):
         verbose_name_plural = "activities"
         unique_together = (("offering", "name"), ("offering", "short_name"))
         ordering = ['position']
-
+    
+    def display_label(self):
+        if self.percent:
+            return "%s (%s%%)" % (self.name, self.percent)
+        else:
+            return "%s" % (self.name)
+        
     def display_grade_student(self, student):
         """
         String representing grade for this student

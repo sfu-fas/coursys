@@ -10,7 +10,7 @@ from grades.models import ACTIVITY_STATUS, all_activities_filter, Activity, \
                         NumericActivity, LetterActivity, ACTIVITY_TYPES
 from grades.forms import NumericActivityForm, LetterActivityForm, FORMTYPE
 from grades.models import *
-from grades.utils import CourseInfo, StudentGradeInfo, reorder_course_activities, create_StudentGradeInfo_list, \
+from grades.utils import CourseInfo, StudentActivityInfo, reorder_course_activities, create_StudentActivityInfo_list, \
                         ORDER_TYPE
 from django.forms.util import ErrorList
 
@@ -70,7 +70,7 @@ def _course_info_staff(request, course_slug):
                               context_instance=RequestContext(request))
     
 
-#@requires_course_staff_by_slug
+#@requires_course_student_by_slug
 def _course_info_student(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activities = all_activities_filter(offering=course, status__in=['RLS', 'URLS'])
@@ -83,7 +83,12 @@ def _course_info_student(request, course_slug):
                               course.semester.label() + ' (' + course.semester.name + ')',
                               course.title, course.get_campus_display(), course_instructor_list,
                               course_ta_list, course_grade_approver_list, course_student_count)
-    context = {'course': course, 'activities': activities, 'course_info': course_info, 'from_page': FROMPAGE['course']}
+    
+    activityinfo_list = []
+    for activity in activities:
+        activityinfo_list.append(create_StudentActivityInfo_list(course, activity,
+                                                                student=Person.objects.get(userid=request.user.username))[0].append_activity_stat())
+    context = {'course': course, 'activityinfo_list': activityinfo_list, 'course_info': course_info, 'from_page': FROMPAGE['course']}
     return render_to_response("grades/course_info_student.html", context,
                               context_instance=RequestContext(request))
 
@@ -97,7 +102,7 @@ def activity_info(request, course_slug, activity_slug):
         if request.GET.has_key('id'):
             id = request.GET['id']
         if not id:
-            student_grade_info_list = create_StudentGradeInfo_list(course, activity)
+            student_grade_info_list = create_StudentActivityInfo_list(course, activity)
             if isinstance(activity, NumericActivity):
                 activity_type = ACTIVITY_TYPE['NG']
             elif isinstance(activity, LetterActivity):
@@ -106,7 +111,7 @@ def activity_info(request, course_slug, activity_slug):
             return render_to_response('grades/activity_info.html', context, context_instance=RequestContext(request))
         else:
             student = get_object_or_404(Person, id=id)
-            student_grade_info = create_StudentGradeInfo_list(course, activity, student)[0]
+            student_grade_info = create_StudentActivityInfo_list(course, activity, student)[0]
             context = {'course': course, 'activity': activity, 'student_grade_info': student_grade_info}
             return render_to_response('grades/student_grade_info.html', context, context_instance=RequestContext(request))
     else:

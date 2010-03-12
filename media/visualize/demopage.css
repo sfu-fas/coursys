@@ -1,0 +1,33 @@
+body { font-size: 62.5%; font-family: Verdana, sans-serif; }
+/*demo styles*/
+table {width: 500px; height: 200px; border-collapse: collapse; margin-left: 30px; font-size: 1em;}
+table.accessHide { position: absolute; left: -999999px; }
+td, th { 
+   text-align: center; 
+   border: 1px solid #ddd; 
+   padding:2px 5px; 
+    font-size: 1.2em; padding: 2px; width: 13%;
+   }
+th { background-color:#f4f4f4; }  
+td.hover { color: orange; }
+td.input { padding: 0; }
+td input, td input:focus { border: 1px solid orange; outline: none; padding: 2px; margin: 1px; width: 20px; }
+caption {margin: 0 0 .5em; font-size: 1.5em; font-weight: bold; }
+.visualize { margin: 60px 0 0 30px; }
+
+.editableNote { background: #FEFBE2; border: 1px solid #8CC264; padding: 10px; margin: 1.5em 0; font-size: 1.2em; }
+
+/*sample alternate styling for info block on Pie Chart */
+.visualize-pie .visualize-info { top: 10px; border: 0; right: auto; left: 10px; padding: 0; background: none; }
+.visualize-pie ul.visualize-title { font-weight: bold; border: 0; }
+.visualize-pie ul.visualize-key li { float: none; }
+
+
+
+/*option configurator thingy*/
+.chartConfiguratorThingy { border: 1px solid #ddd; padding: 10px; overflow: auto; display: none; }
+.chartConfiguratorThingy h2 { font-size: 1.4em; color: #666; }
+fieldset { margin: 5px 5px 5px 0; width: 45%; float: left; }
+legend { font-size: 1.2em; }
+.dependencies { padding: 15px; }
+label { width: 90px; display: inline-block; }
