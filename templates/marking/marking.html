@@ -44,7 +44,7 @@ function append_problem(n, content)
 			    {% with forloop.counter as pos %}
 			    <b>Common problems:</b>     
 			    {% for problem in entry.common_problems %}
-			        <input type = "button" value = {{problem.title}} OnClick = "append_problem({{pos}}, '{{problem.description}}');"/>	 
+			        <input type = "button" value = {{problem.title}} OnClick = "append_problem({{pos}}, '{{problem.description|escapejs}}');"/>	 
 			    {% empty %}	     
 			    None    	     
 			    {% endfor %}

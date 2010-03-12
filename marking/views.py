@@ -142,12 +142,12 @@ def _get_activity_mark(activity, student_membership, activity_mark_id = None, in
                 return None
              
             latest2 = grp_act_marks.aggregate(Max('created_at'))['created_at__max']
-            if lateset == None or latest2 > lateset:
+            if latest == None or latest2 > latest:
                 current_act_mark = grp_act_marks.get(created_at = latest2)
         
      if activity_mark_id != None:
          print "not found"
-         raise Http404('No such ActivityMark for student %s on %s found.' % (student_membership.person), activity)
+         raise Http404('No such ActivityMark for student %s on %s found.' % (student_membership.person.userid, activity))
     
      if not include_all:
          return current_act_mark
@@ -462,7 +462,7 @@ def export_csv(request, course_slug, activity_slug):
     
     student_members = Member.objects.filter(offering = course, role = 'STUD')
     
-    writer.writerow(['Studen ID', 'Student Name', 'Status', 'Mark'])
+    writer.writerow(['Student ID', 'Student Name', 'Status', 'Mark'])
     for std in student_members:
         row = [std.person.emplid, std.person.name()]
         try: 

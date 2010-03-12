@@ -98,12 +98,9 @@ class GroupActivityMark(ActivityMark):
     """
     group = models.ForeignKey(Group, null = False) 
     numeric_activity = models.ForeignKey(NumericActivity, null = False)
-        
-    class Meta:
-        unique_together = (('group', 'numeric_activity'),)
-    
+         
     def __unicode__(self):
-        return "Marking for group [%s] for activity [%s]" %(self.group,)#TODO: need some way to find the activity
+        return "Marking for group [%s] for activity [%s]" %(self.group, self.numeric_activity)
     
     def setMark(self, grade):
         super(GroupActivityMark, self).setMark(grade)    
