@@ -309,8 +309,6 @@ def marking(request, course_slug, activity_slug):
         if receiver_in_url == False :                          
             student_receiver_form = MarkStudentReceiverForm(prefix = "student-receiver-form")
             group_receiver_form = MarkGroupReceiverForm(prefix = "group-receiver-form")
-            student = None
-            gorup = None
         elif std_userid:
             student = get_object_or_404(Person, userid = std_userid)
             # check this student is indeed a member of this course

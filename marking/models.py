@@ -179,8 +179,8 @@ def get_activity_mark(activity, student_membership, activity_mark_id = None, inc
                         return act
                 return None
              
-            latest_act = grp_act_marks.latest['created_at']
-            if current_act_mark  == None or latest_act.created_at > curent_act_mark.created_at:
+            latest_act = grp_act_marks.latest('created_at')
+            if current_act_mark  == None or latest_act.created_at > current_act_mark.created_at:
                 current_act_mark = latest_act
         
      if activity_mark_id != None:

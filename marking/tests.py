@@ -199,7 +199,7 @@ class BasicTest(TestCase):
         std_mark = StudentActivityMark(numeric_grade = ngrade, created_by = 'ggbaker')           
         std_mark.setMark(20)
         std_mark.save()
-        print std_mark.created_at
+        #print std_mark.created_at
         
         for i in range(100000):
             pass       
@@ -207,7 +207,7 @@ class BasicTest(TestCase):
         group_mark = GroupActivityMark(group = group, numeric_activity = a, created_by = 'ggbaker')  
         group_mark.setMark(30)
         group_mark.save()
-        print group_mark.created_at
+        #print group_mark.created_at
         
         for i in range(100000):
            pass  
@@ -215,7 +215,7 @@ class BasicTest(TestCase):
         std_mark = StudentActivityMark(numeric_grade = ngrade, created_by = 'ggbaker')
         std_mark.setMark(40)
         std_mark.save()
-        print std_mark.created_at
+        #print std_mark.created_at
         
         for i in range(100000):
            pass  
@@ -223,16 +223,16 @@ class BasicTest(TestCase):
         group_mark = GroupActivityMark(group = group, numeric_activity = a,  created_by = 'ggbaker')
         group_mark.setMark(50)               
         group_mark.save()
-        print group_mark.created_at
+        #print group_mark.created_at
         
         self.client.login(ticket = 'ggbaker', service=CAS_SERVER_URL)
         url = '/marking/1101-cmpt-165-d100/' + a.slug + '/mark_history/' + '?student=0aaa1'
         response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
         
-        latest_act_mark = response.context['current_activity_mark']
-        all_act_mark = response.context['all_activity_marks']
-        self.assertEquals(len(all_act_mark), 4)
+        latest_act_mark = response.context['current_mark']
+        self.assertEquals(len(response.context['marks_individual']), 2)
+        self.assertEquals(len(response.context['marks_via_group']), 2)
         self.assertEquals(group_mark, latest_act_mark)
 
         
