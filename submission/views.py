@@ -541,15 +541,18 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid):
     activity = get_object_or_404(course.activity_set, slug = activity_slug)
     
     #TODO: factor out
-    from_page = 'activityinfo'
+    from_page = request.GET.get('from_page')
+    print from_page
+    
     #TODO: group, ?group=group.id
-    response = HttpResponseRedirect(reverse(marking, args=[course_slug, activity_slug]) + "?student=" + userid + '&from_page=' + from_page)
+    response = HttpResponseRedirect(reverse(marking, args=[course_slug, activity_slug]) + "?student=" + userid + '&from_page=' + str(from_page))
     
     component = select_students_submitted_components(activity, userid)
     #if it is taken by someone not me, show a confirm dialog
     if request.GET.get('confirm') == None:
         for c in component:
             if c.submission.owner != None and c.submission.owner.person.userid != request.user.username:
+            	print "override!"
                 return _override_ownership_confirm(request, course, activity, userid, c.submission.owner.person)
             
     for c in component:
