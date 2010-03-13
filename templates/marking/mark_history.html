@@ -37,7 +37,7 @@
 	<tbody>
 	    {% for act_mark in marks_individual %}
 		      <td>
-		       {{created_at|date:"Y-m-d"}} {{created_at|time:"H:i:s"}}
+		       {{act_mark.created_at|date:"Y-M-d D"}} {{act_mark.created_at|time:"H:i:s"}}
 		       {% ifequal act_mark current_mark %}
 		       <img src = "{{MEDIA_URL}}icons/tick.png" title="Currently Valid" alt="Currently Valid" />
 		       {% endifequal %}		       
