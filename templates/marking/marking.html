@@ -44,13 +44,13 @@ function append_problem(n, content)
 			    {% with forloop.counter as pos %}
 			    <b>Common problems:</b>     
 			    {% for problem in entry.common_problems %}
-			        <input type = "button" value = {{problem.title}} OnClick = "append_problem({{pos}}, '{{problem.description|escapejs}}');"/>	 
+			        <input type = "button" value = "{{problem.title|escape}}" title = "{{problem.description|escape}}" OnClick = "append_problem({{pos}}, '{{problem.description|escapejs}}');"/>	 
 			    {% empty %}	     
 			    None    	     
 			    {% endfor %}
 			    {% endwith %}
 			    </li>	     		       
-		        <li class = "view">
+		        <li class = "view">		            
 		      		<div class="inputfield">		      		 
 		        	Comment {{ entry.form.comment }}
 		      		{% if entry.form.comment.errors %}		      		
@@ -72,7 +72,7 @@ function append_problem(n, content)
 	   	<h3> No Components to Mark</h3>
 	 {% endfor %}	 
 	 <fieldset>
-	 <legend>Additional Information</legend>  
+	 <legend>Additional Information</legend>
 	 {{additional_info_form|display_form}}
 	 </fieldset>     
 </form>

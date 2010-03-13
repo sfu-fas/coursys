@@ -133,6 +133,66 @@ class ActivityComponentMark(models.Model):
     class Meta:
         unique_together = (('activity_mark', 'activity_component'),)
         
+from django.db.models import Max
+def get_activity_mark(activity, student_membership, activity_mark_id = None, include_all = False):
+     """
+     this function returns the mark for the student on the activity
+     
+     if activity_mark_id is specified, return that activity_mark if it 
+     exists for the student on the activity(return None otherwise). And here 
+     we don't consider the include_all.
+    
+     if include_all is False, only return the current mark which was most lately created 
+     and thus is currently valid. Otherwise not only return the current mark but also 
+     all the history marks for the student on the activity        
+     """  
+     current_act_mark = None
+     std_act_marks = None
+     grp_act_marks = None     
+     
+     # the mark maybe assigned directly to this student 
+     num_grade = NumericGrade.objects.get(activity = activity, member = student_membership)
+     std_act_marks = StudentActivityMark.objects.filter(numeric_grade = num_grade)
+     
+     if std_act_marks.count() != 0 :
+        
+        if activity_mark_id != None:
+           for act in std_act_marks:             
+               if act.id == int(activity_mark_id):
+                   return act    
+        
+        #get the latest one
+        current_act_mark = std_act_marks.latest('created_at')
+        
+     # the mark maybe assigned to this student via the group this student participates
+     try:   
+        group_mem = GroupMember.objects.get(student = student_membership)
+     except GroupMember.DoesNotExist: 
+        pass
+     else:
+        grp_act_marks = GroupActivityMark.objects.filter(group = group_mem.group)    
+        if grp_act_marks.count() != 0 : 
+           
+            if activity_mark_id != None:
+                for act in grp_act_marks:
+                    if act.id == int(activity_mark_id):                        
+                        return act
+                return None
+             
+            latest_act = grp_act_marks.latest['created_at']
+            if current_act_mark  == None or latest_act.created_at > curent_act_mark.created_at:
+                current_act_mark = latest_act
+        
+     if activity_mark_id != None:
+         return None
+     
+     if not include_all:
+         return current_act_mark
+     else:
+        return {'current_mark' : current_act_mark, 
+                'marks_individual' : std_act_marks,
+                'marks_via_group' : grp_act_marks,}
+
 def copyCourseSetup(course_copy_from, course_copy_to):
     # copy course setup from one to another
     # TODO: code for copying other kinds of activity can be added on demand

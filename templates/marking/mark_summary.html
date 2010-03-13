@@ -1,5 +1,7 @@
 {% extends "marking/base.html" %}
 
+{% block title %}Marking Summary{% endblock %}
+
 {% block h1 %} Marking Summary for {{activity.name}} {% endblock %}
 
 {% block subbreadcrumbs %}
@@ -9,7 +11,7 @@
 {% block content %}
 <h2>
 Student "{{student.userid}}" got {{activity_mark.mark}}/{{activity.max_grade}}
-(Marked by "{{activity_mark.created_by}}" on {{activity_mark.created_at|date:"D d M Y h:m:s"}})
+(Marked by "{{activity_mark.created_by}}" on {{activity_mark.created_at|date:"d M Y"}} {{activity_mark.created_at|time:"H:i:s"}})
 </h2>
 
 <h2> Components Details </h2>
@@ -84,6 +86,6 @@ Student "{{student.userid}}" got {{activity_mark.mark}}/{{activity.max_grade}}
 </div>   
 
 {% if view_history %}
-	<a href = "{% url marking.views.mark_history course_slug=course.slug, activity_slug=activity.slug %}?student={{student.userid}}" target="_blank"> --> View Marking History </a>
+	<a class="button" href = "{% url marking.views.mark_history course_slug=course.slug, activity_slug=activity.slug %}?student={{student.userid}}" target="_blank">Marking History</a>
 {% endif %}
 {% endblock %}
