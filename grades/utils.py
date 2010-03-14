@@ -267,8 +267,8 @@ def generate_grade_range_stat(student_grade_list, grade_range=10):
 
 def fetch_students_numeric_grade(activity):
     """
-    This function return a list of all students' grade in a course activity. If grade flag is not 'GRAD',
-    the numeric grade is default to 0
+    This function return a list of all students' grade in a course activity. If student does not
+    have any grade yet, the numeric grade is default to 0.
     """
     _DEFAULT_NUMERIC_GRADE = 0
     if not isinstance(activity, NumericActivity):
@@ -283,10 +283,7 @@ def fetch_students_numeric_grade(activity):
         for numeric_grade in numeric_grade_list:
             if numeric_grade.member.person == student:
                 student_found = True
-                if numeric_grade.flag == 'GRAD':
-                    student_grade_list.append(numeric_grade.value)
-                else:
-                    student_grade_list.append(_DEFAULT_NUMERIC_GRADE)
+                student_grade_list.append(numeric_grade.value)
                 break
         if not student_found:
             student_grade_list.append(_DEFAULT_NUMERIC_GRADE)
