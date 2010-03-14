@@ -113,7 +113,7 @@ class StudentActivityInfo:
         grade range statistics.
         """
         if isinstance(self.activity, NumericActivity):
-            self.activity_stat = fetch_numeric_activity_stat(self.activity)
+            self.activity_stat = generate_numeric_activity_stat(self.activity)
         else:
             self.activity_stat = None
             
@@ -203,7 +203,7 @@ def create_StudentActivityInfo_list(course, activity, student=None):
                                                             activity, student_grade_status, None, student_grade))
     return student_activity_info_list
 
-def fetch_numeric_activity_stat(activity):
+def generate_numeric_activity_stat(activity):
     """
     This function fetch statistics of the numeric activity.
     """
