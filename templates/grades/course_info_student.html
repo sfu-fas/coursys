@@ -137,19 +137,19 @@
 	</table>
 	{% ifequal activityinfo.activity.status 'RLS' %}
 	{% if activityinfo.activity_stat %}
-	<table class="data" style="width: 500px; border-collapse: collapse;">
+	<table class="data info" style="width: 500px; border-collapse: collapse;">
 	    <caption>Grade Range</caption>
 	    <thead>
 		<tr>
 		    <td></td>
 		    {% for grade_range_stat in activityinfo.activity_stat.grade_range_stat_list %}
-		    <th>{{ grade_range_stat.grade_range }}</th>
+		    <th class="ui-state-default">{{ grade_range_stat.grade_range }}</th>
 		    {% endfor %}
 		</tr>
 	    </thead>
 	    <tbody>
 		<tr>
-		    <th>{{ activityinfo.activity.name }}</th>
+		    <th class="ui-state-default">{{ activityinfo.activity.name }}</th>
 		    {% for grade_range_stat in activityinfo.activity_stat.grade_range_stat_list %}
 		    <td>{{ grade_range_stat.stud_count }}</td>
 		    {% endfor %}

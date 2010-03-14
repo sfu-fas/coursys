@@ -345,7 +345,7 @@ table.info tbody th {
 table.info tbody th {
   width: 30%;
 }
-table.info tbody th, table.info tbody td{
+table.info thead th, table.info thead td, table.info tbody th, table.info tbody td{
   border-color:#ccc;
 }
 table.info {
