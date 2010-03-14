@@ -18,13 +18,6 @@ from django.forms.util import ErrorList
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo'}
 ACTIVITY_TYPE = {'NG': 'Numeric Graded', 'LG': 'Letter Graded'} # for display purpose
 
-#@login_required
-#def index(request):
-#    userid = request.user.username
-#    memberships = Member.objects.exclude(role="DROP").filter(offering__graded=True).filter(person__userid=userid) \
-#            .select_related('offering','person','offering__semester')
-#    return render_to_response("grades/index.html", {'memberships': memberships}, context_instance=RequestContext(request))
-
 @login_required
 def course_info(request, course_slug):
     #if course staff
@@ -54,14 +47,7 @@ def _course_info_staff(request, course_slug):
     if order:
         reorder_course_activities(activities, act, order)
         return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
-    #course_instructor_list = course.members.filter(person__role='INST')
-    #course_ta_list = course.members.filter(person__role='TA')
-    #course_grade_approver_list = course.members.filter(person__role='APPR')
-    #course_student_count = course.members.filter(person__role='STUD').count()
-    #course_info = CourseInfo(course.subject, course.number, course.section,
-    #                          course.semester.label() + ' (' + course.semester.name + ')',
-    #                          course.title, course.get_campus_display(), course_instructor_list,
-    #                          course_ta_list, course_grade_approver_list, course_student_count)
+
     activities_info = []
     for activity in activities:
         if isinstance(activity, NumericActivity):
@@ -79,15 +65,6 @@ def _course_info_staff(request, course_slug):
 def _course_info_student(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activities = all_activities_filter(offering=course, status__in=['RLS', 'URLS'])
-    
-    #course_instructor_list = course.members.filter(person__role='INST')
-    #course_ta_list = course.members.filter(person__role='TA')
-    #course_grade_approver_list = course.members.filter(person__role='APPR')
-    #course_student_count = course.members.filter(person__role='STUD').count()
-    #course_info = CourseInfo(course.subject, course.number, course.section,
-    #                          course.semester.label() + ' (' + course.semester.name + ')',
-    #                          course.title, course.get_campus_display(), course_instructor_list,
-    #                          course_ta_list, course_grade_approver_list, course_student_count)
     
     activityinfo_list = []
     for activity in activities:
