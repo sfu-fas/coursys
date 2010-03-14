@@ -90,8 +90,8 @@
         <tbody>
 	    {% for activityinfo in activityinfo_list %}
             <tr>
-		<td>{{ activityinfo.activity.display_label }}</td>
-		<td>{{ activityinfo.grade_status }}</td>
+		<td><a href="#{{ activityinfo.activity.slug }}">{{ activityinfo.activity.display_label }}</a></td>
+		<td>{{ activityinfo.display_grade_status_student }}</td>
 		<td>{{ activityinfo.display_grade_student }}</td>
             </tr>
 	    {% endfor %}
@@ -103,8 +103,10 @@
 <br/>
 {% for activityinfo in activityinfo_list %}
 <div class="activity_box">
-    <div class="grade">Grade: {{ activityinfo.display_grade_student }}</div>
-    <div class="heading">{{ activityinfo.activity.display_label }}</div>
+    <div class="grade">Grade: {{ activityinfo.display_grade_with_percentage_student }}</div>
+    <div class="heading">
+	{{ activityinfo.activity.display_label }}<a name="{{ activityinfo.activity.slug }}"></a>
+    </div>
     <div class="inside">
 	<table class="activity_box_info">
 	    <tbody>
@@ -115,7 +117,7 @@
 		{% ifequal activityinfo.activity.status 'RLS' %}
 		{% if activityinfo.activity_stat %}
 		<tr>
-		    <th>Statistic</th>
+		    <th>Statistics</th>
 		    <td>Average Grade={{ activityinfo.activity_stat.average }}</td>
 		</tr>
 		<tr>
@@ -129,39 +131,29 @@
 		{% endifequal %}
 	    </tbody>
 	</table>
+	{% ifequal activityinfo.activity.status 'RLS' %}
+	{% if activityinfo.activity_stat %}
 	<table class="data" style="width: 500px; border-collapse: collapse;">
-	    <caption>Test Data</caption>
+	    <caption>Grade Range</caption>
 	    <thead>
 		<tr>
 		    <td></td>
-		    <th>0-10</th>
-		    <th>11-20</th>
-		    <th>21-30</th>
-		    <th>31-40</th>
-		    <th>41-50</th>
-		    <th>51-60</th>
-		    <th>61-70</th>
-		    <th>71-80</th>
-		    <th>81-90</th>
-		    <th>91-100</th>
+		    {% for grade_range_stat in activityinfo.activity_stat.grade_range_stat_list %}
+		    <th>{{ grade_range_stat.grade_range }}</th>
+		    {% endfor %}
 		</tr>
 	    </thead>
 	    <tbody>
 		<tr>
-		    <th>Assignment 1</th>
-		    <td>1</td>
-		    <td>0</td>
-		    <td>5</td>
-		    <td>5</td>
-		    <td>8</td>
-		    <td>60</td>
-		    <td>50</td>
-		    <td>20</td>
-		    <td>4</td>
-		    <td>5</td>
+		    <th>{{ activityinfo.activity.name }}</th>
+		    {% for grade_range_stat in activityinfo.activity_stat.grade_range_stat_list %}
+		    <td>{{ grade_range_stat.stud_count }}</td>
+		    {% endfor %}
 		</tr>
 	    </tbody>
 	</table>
+	{% endif %}
+	{% endifequal %}
     </div>
 </div>
 {% endfor %}

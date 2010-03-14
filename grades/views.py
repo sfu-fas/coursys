@@ -290,24 +290,3 @@ def delete_activity_confirm(request, course_slug, activity_slug):
     if not activity_found:
         raise Http404
     return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
-
-@login_required
-def student_view(request):
-    student_id = request.user.username
-    student = Person.objects.get(userid = student_id )
-    enrollment= Member.objects.filter(person=student).exclude(role="DROP").filter(offering__graded=True)
-    context ={'enrollment':enrollment,'student':student}    
-    return render_to_response('grades/student_view.html', context,
-                                  context_instance=RequestContext(request))
-
-@requires_course_by_slug
-def student_grade(request,course_slug):
-    student_id = request.user.username
-    student = Person.objects.get(userid = student_id )
-    course = CourseOffering.objects.get(slug=course_slug)
-    numerics = NumericActivity.objects.filter(offering = course)
-    letters = LetterActivity.objects.filter(offering = course)
-    context = {'student':student,'course': course, 'numerics': numerics,'letters':letters}
-    return render_to_response("grades/student_grade.html", context,
-                              context_instance=RequestContext(request))
-

@@ -102,7 +102,6 @@ th.sorting_asc, th.sorting_desc {
  
 /* DataTables features */
 .dataTables_wrapper {
-    width: 700px;
     clear: both;
     
     /* Override style in "media/style/main.css" */
@@ -355,6 +354,9 @@ table.info {
 }
 .table_container {
   width: 600px;
+}
+.datatable_container {
+  width: 700px;
 }
 
 .table_container p.errorindicator {
