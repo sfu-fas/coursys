@@ -164,6 +164,15 @@
                 <td>{{ activity.due_date }}</td>
             </tr>
             {% endwith %}
+	    {% empty %}
+	    <tr>
+		<td>No activity</td>
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+		<td></td>
+	    </tr>
             {% endfor %}
         </tbody>
     </table>
