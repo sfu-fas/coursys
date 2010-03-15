@@ -214,6 +214,13 @@ def generate_numeric_activity_stat(activity):
     student_grade_list_count = len(student_grade_list)
     average = sum(student_grade_list)
     average = float(average) / student_grade_list_count
+    
+    if student_grade_list_count % 2 == 0:
+        median = (student_grade_list[(student_grade_list_count - 1) / 2] +
+                    student_grade_list[(student_grade_list_count) / 2]) / 2
+    else:
+        median = student_grade_list[(student_grade_list_count - 1) / 2]
+
     stddev = math.sqrt(sum([(float(student_grade) - average) ** 2 for student_grade in student_grade_list]) / student_grade_list_count)
     
     # normalize the grade into 100 based in order to generate the grade range stat
@@ -223,7 +230,7 @@ def generate_numeric_activity_stat(activity):
     
     return ActivityStat(format_number(average, _DECIMAL_PLACE), format_number(student_grade_list[0], _DECIMAL_PLACE),
                         format_number(student_grade_list[student_grade_list_count - 1], _DECIMAL_PLACE),
-                        format_number(student_grade_list[(student_grade_list_count - 1) / 2], _DECIMAL_PLACE),
+                        format_number(median, _DECIMAL_PLACE),
                         format_number(stddev, _DECIMAL_PLACE), grade_range_stat_list)
     
 def generate_grade_range_stat(student_grade_list, grade_range=10):
