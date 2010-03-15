@@ -310,7 +310,6 @@ table.activity_box_info {
 
 /* red button */
 #main a.redbutton#submit_button {
-    font-size: 0.2em;
     margin: 0.5em;
     float: right;
     clear: both;
