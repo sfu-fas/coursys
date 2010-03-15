@@ -18,9 +18,7 @@
 
 {% block h1 %} Marking History {% endblock %}
 
-{% block subbreadcrumbs %}
-<li>&gt; <a href="{% url marking.views.list_activities course_slug=course.slug %}">{{course}}</a></li>
-{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{course}}</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug, activity_slug=activity.slug %}">{{activity.name}}</a></li>{% endblock %}
 
 {% block content %}
 <h2> For Student {{student.userid}} on {{activity.name}} of {{course.name}} </h2>
@@ -44,7 +42,7 @@
 		      </td>
 	          <td>{{ act_mark.created_by }}</td>           
 	          <td>{{ act_mark.mark }}/{{ activity.max_grade }}
-	          	<a href="{% url marking.views.mark_summary course_slug=course.slug activity_slug=activity.slug%}?student={{ student.userid }}&activity_mark={{act_mark.id}}" target="_blank"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
+	          	<a href="{% url marking.views.mark_summary course_slug=course.slug activity_slug=activity.slug, userid=student.userid %}?activity_mark={{act_mark.id}}" target="_blank"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
 	          </td>
 	        </tr>	
 	    {% endfor %}

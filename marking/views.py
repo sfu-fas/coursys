@@ -50,7 +50,7 @@ def list_activities(request, course_slug):
             course_copy_from = course_receiver_form.cleaned_data['course'].offering
             course_copy_to = course
             copyCourseSetup(course_copy_from, course_copy_to)
-            return HttpResponseRedirect(reverse('marking.views.list_activities', \
+            return HttpResponseRedirect(reverse('grades.views.course_info', \
                                                 args=(course_slug,)))
     else:      
         course_receiver_form = CourseReceiverForm(prefix = "course-receiver-form")  
@@ -115,7 +115,7 @@ def manage_activity_components(request, course_slug, activity_slug):
             # save the formset  
             _save_components(formset, activity)
             messages.add_message(request, messages.SUCCESS, 'Activity Components Saved')
-            return HttpResponseRedirect(reverse('marking.views.list_activities', \
+            return HttpResponseRedirect(reverse('grades.views.course_info', \
                                                 args=(course_slug,)))                   
     else: # for GET
         formset = ComponentsFormSet(queryset = qset) 
@@ -154,7 +154,7 @@ def manage_common_problems(request, course_slug, activity_slug):
             # save the formset  
             _save_common_problems(formset)
             messages.add_message(request, messages.SUCCESS, 'Common problems Saved')
-            return HttpResponseRedirect(reverse('marking.views.list_activities', \
+            return HttpResponseRedirect(reverse('grades.views.course_info', \
                                                 args=(course_slug,)))                   
     else: # for GET        
         formset = CommonProblemFormSet(queryset = qset) 
@@ -297,7 +297,7 @@ def marking(request, course_slug, activity_slug):
             elif from_page == FROMPAGE['activityinfo']:
                 redirect_url = reverse('grades.views.activity_info', args=(course_slug, activity_slug))
             else: #default
-                redirect_url = reverse('marking.views.list_activities', args=(course_slug,))
+                redirect_url = reverse('grades.views.course_info', args=(course_slug,))
             
             return HttpResponseRedirect(redirect_url)      
          
@@ -339,9 +339,9 @@ def marking(request, course_slug, activity_slug):
     
 
 @requires_course_staff_by_slug
-def mark_summary(request, course_slug, activity_slug):
-     student_id = request.GET.get('student')
-     student = get_object_or_404(Person, userid = student_id)
+def mark_summary(request, course_slug, activity_slug, userid):
+     #student_id = request.GET.get('student')
+     student = get_object_or_404(Person, userid = userid)
      course = get_object_or_404(CourseOffering, slug = course_slug)    
      activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)     
      membership = get_object_or_404(Member, offering = course, person = student, role = 'STUD') 
@@ -378,12 +378,12 @@ def download_marking_attachment(request, course_slug, activity_slug, filepath):
     return response
 
 @requires_course_staff_by_slug
-def mark_history(request, course_slug, activity_slug):
+def mark_history(request, course_slug, activity_slug, userid):
     """
     show the marking history for the student on the activity
     """
-    student_id = request.GET.get('student')
-    student = get_object_or_404(Person, userid = student_id)
+    #student_id = request.GET.get('student')
+    student = get_object_or_404(Person, userid=userid)
     course = get_object_or_404(CourseOffering, slug = course_slug)    
     activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)     
     membership = get_object_or_404(Member, offering = course, person = student, role = 'STUD') 

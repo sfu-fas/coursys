@@ -38,6 +38,16 @@ urlpatterns = patterns('',
     url(r'^' + COURSE_SLUG + '/submission/' + ACTIVITY_SLUG + '/edit/$', 'submission.views.edit_single'),
     url(r'^' + COURSE_SLUG + '/submission/' + ACTIVITY_SLUG + '/download/$', 'submission.views.download_file'),
     url(r'^' + COURSE_SLUG + '/submission/' + ACTIVITY_SLUG + '/mark/' + USERID_SLUG + '/$', 'submission.views.take_ownership_and_mark'),
+
+    #url(r'^(?P<course_slug>' + COURSE_SLUG_RE + ')/$', 'marking.views.list_activities'),        
+    url(r'^' + COURSE_SLUG + '/marking/' + ACTIVITY_SLUG + '/$', 'marking.views.manage_activity_components'),
+    url(r'^' + COURSE_SLUG + '/marking/' + ACTIVITY_SLUG + '/common$', 'marking.views.manage_common_problems'),
+    url(r'^' + COURSE_SLUG + '/marking/' + ACTIVITY_SLUG + '/new$', 'marking.views.marking'),        
+    url(r'^' + COURSE_SLUG + '/marking/' + ACTIVITY_SLUG + '/userid/' + USERID_SLUG + '/$', 'marking.views.mark_summary'),
+    url(r'^' + COURSE_SLUG + '/marking/' + ACTIVITY_SLUG + '/userid/' + USERID_SLUG + '/history', 'marking.views.mark_history'),
+
+    #url(r'^(?P<course_slug>' + COURSE_SLUG_RE + ')/(?P<activity_slug>' + ACTIVITY_SLUG_RE + ')/mark_summary/(?P<filepath>.*)$', 'marking.views.download_marking_attachment'),
+    url(r'^' + COURSE_SLUG + '/activities/' + ACTIVITY_SLUG + '/csv$', 'marking.views.export_csv'),
     
     
     url(r'^roles/$', 'courses.coredata.views.role_list'),
@@ -49,13 +59,13 @@ urlpatterns = patterns('',
     #(r'^advisors_B/', include('advisors_B.urls')),
     
     # for Marking
-    (r'^marking/', include('marking.urls')),
+    #(r'^marking/', include('marking.urls')),
 
     # for Grades
     (r'^grades/', include('grades.urls')),
 
     # for groups
-    (r'^groups/', include('groups.urls')),
+    #(r'^groups/', include('groups.urls')),
 
     #submission
     #(r'^submission/', include('submission.urls')),

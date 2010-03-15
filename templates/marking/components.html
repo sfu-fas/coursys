@@ -17,9 +17,7 @@
 
 {% block h1 %}{{activity.name}} Components{% endblock %}
 
-{% block subbreadcrumbs %}
-<li>&gt; <a href="{% url marking.views.list_activities course_slug=course.slug %}">{{course}}</a></li>
-{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{course}}</a></li>{% endblock %}
 
 {% block content %}
 

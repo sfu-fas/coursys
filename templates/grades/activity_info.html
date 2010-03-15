@@ -23,10 +23,7 @@
 </script>
 {% endblock %}
 
-{% block breadcrumbs_extra %}
-<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
-<li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li>
-{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li>{% endblock %}
 
 
 {% block content %}
@@ -72,7 +69,10 @@
 </div>
 <div class="datatable_container">
     <h2>Submission</h2>
-    <a class="redbutton" href="{% url submission.views.show_components course.slug, activity.slug%}">Configure Submission</a>
+    <a class="redbutton" href="{% url submission.views.show_components course_slug=course.slug, activity_slug=activity.slug%}">Configure Submission</a>
+    <h2>Marking</h2>
+    <a class="redbutton" href="{% url marking.views.manage_activity_components course_slug=course.slug,activity_slug=activity.slug%}">Configure</a>
+    <a class="redbutton" href="{% url marking.views.manage_common_problems course_slug=course.slug,activity_slug=activity.slug%}">Common</a>
     <h2>Student Grades</h2>
     <a class="redbutton" href="{% url marking.views.export_csv course_slug=course.slug, activity_slug=activity.slug%}">Export all</a>
     <br/>
@@ -98,7 +98,7 @@
 		<td>{{ student_grade_info.grade_status }}</td>
 		<td>			
 		{% ifequal student_grade_info.grade_status 'graded'%} 
-		    <a href="{% url marking.views.mark_summary course_slug=course.slug activity_slug=activity.slug%}?student={{ student_grade_info.userid }}" target="_blank"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
+		    <a href="{% url marking.views.mark_summary course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid %}" target="_blank"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
 		    {{ student_grade_info.display_grade_staff }}
 		{% else %}
 		    <a href="{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid %}?from_page={{from_page}}" target="_blank"><img src="{{MEDIA_URL}}icons/page_white_edit.png" title="Mark This" alt="Mark This"/></a>
