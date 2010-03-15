@@ -71,6 +71,8 @@
     </table>
 </div>
 <div class="datatable_container">
+    <h2>Submission</h2>
+    <a class="redbutton" href="{% url submission.views.show_components course.slug, activity.slug%}">Configure Submission</a>
     <h2>Student Grades</h2>
     <a class="redbutton" href="{% url marking.views.export_csv course_slug=course.slug, activity_slug=activity.slug%}">Export all</a>
     <br/>

@@ -309,6 +309,12 @@ table.activity_box_info {
 }
 
 /* red button */
+#main a.redbutton#submit_button {
+    font-size: 0.2em;
+    margin: 0.5em;
+    float: right;
+    clear: both;
+}
 #main a.redbutton {
 /* need to add '#main' as selector in order to override SFU template style */
   display: block;

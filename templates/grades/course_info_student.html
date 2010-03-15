@@ -111,6 +111,7 @@
     <div class="heading">
 	{{ activityinfo.activity.display_label }}<a name="{{ activityinfo.activity.slug }}"></a>
     </div>
+    <div><a class="redbutton" id="submit_button" href="{% url submission.views.show_components course.slug, activityinfo.activity.slug%}">Submit</a></div>
     <div class="inside">
 	<table class="activity_box_info">
 	    <tbody>
