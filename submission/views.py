@@ -429,19 +429,19 @@ def add_component(request, course_slug, activity_slug):
         context_instance=RequestContext(request))
 
 @login_required
-def download_file(request, course_slug, activity_slug):
+def download_file(request, course_slug, activity_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set, slug = activity_slug)
     
     type = request.GET.get('type') #targeted file type
     id = request.GET.get('id') #targeted submitted component id
-    student_id = request.GET.get('user-id') #targeted student
+    #student_id = request.GET.get('user-id') #targeted student
     group_id = request.GET.get('group-id') #targeted group
 
     #if not course_staff
     if not is_course_staff_by_slug(request.user, course_slug):
         #if not myself
-        if not student_id == request.user.username:
+        if not userid == request.user.username:
             return _return_403_dashboard(request, course_slug, activity_slug)
         #TODO: for group submission, allow the member in the same group to download
 
@@ -463,15 +463,15 @@ def download_file(request, course_slug, activity_slug):
         return _download_java_file(java_component)
 
     #download current submission as a zip file for userid='id'
-    if student_id != None:
+    if userid != None:
         #make sure student exists
-        get_object_or_404(Person, userid=student_id)
+        get_object_or_404(Person, userid=userid)
     else:
         get_object_or_404(Group, group_id)
         #TODO: group submission
 
     #TODO: modify the function to work for group submission
-    submitted_pair_list = _get_current_submission(student_id, activity)
+    submitted_pair_list = _get_current_submission(userid, activity)
     #TODO: download as a big zip file
     return HttpResponse("DOWNLOAD ALL AS ZIP FILE")
 

@@ -69,12 +69,12 @@
 </div>
 <div class="datatable_container">
     <h2>Submission</h2>
-    <a class="redbutton" href="{% url submission.views.show_components course_slug=course.slug, activity_slug=activity.slug%}">Configure Submission</a>
+    <a class="button" href="{% url submission.views.show_components course_slug=course.slug, activity_slug=activity.slug%}">Configure Submission</a>
     <h2>Marking</h2>
-    <a class="redbutton" href="{% url marking.views.manage_activity_components course_slug=course.slug,activity_slug=activity.slug%}">Configure</a>
-    <a class="redbutton" href="{% url marking.views.manage_common_problems course_slug=course.slug,activity_slug=activity.slug%}">Common</a>
+    <a class="button" href="{% url marking.views.manage_activity_components course_slug=course.slug,activity_slug=activity.slug%}">Configure</a>
+    <a class="button" href="{% url marking.views.manage_common_problems course_slug=course.slug,activity_slug=activity.slug%}">Common Problems</a>
     <h2>Student Grades</h2>
-    <a class="redbutton" href="{% url marking.views.export_csv course_slug=course.slug, activity_slug=activity.slug%}">Export all</a>
+    <a class="button" href="{% url marking.views.export_csv course_slug=course.slug, activity_slug=activity.slug%}">Export all</a>
     <br/>
     <table class="display" id="student_grades">
         <thead>
@@ -106,7 +106,7 @@
 		</td>
 		<td>
 		    <a href="{% url submission.views.show_student_submission_staff course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid %}" target="_blank"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View" alt="View" /></a>
-		    <a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug %}?user-id={{student_grade_info.userid}}" target="_blank"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="Download" alt="Download" /></a>
+		    <a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid %}" target="_blank"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="Download" alt="Download" /></a>
 		</td>
 	    </tr>
 	    {% empty %}

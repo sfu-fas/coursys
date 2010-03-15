@@ -298,6 +298,7 @@ table.activity_box_info {
     text-decoration: none;
     font-weight: bold;
     border-right: 1px solid white;
+    border-bottom: 5px solid #fff;
 }
 #main #current_type {
     background-color: #B5111B;
