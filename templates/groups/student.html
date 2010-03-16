@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 
 {% block title %}{{course.name}} Groups{% endblock %}
@@ -10,15 +11,18 @@
 {% if members %}
 <dl>
 	{% for m in members %}
-		<dt>{{ m.group.name }}</dt><dd>
+		<dt><h2>{{ m.group.name }}</h2></dt><dd>
 		{% if m.confirmed %}
 		<ul>
 		  {% for mm in m.group.groupmember_set.all %}
-		    <li>{{mm.student.person.name}} ({{mm.student.person.userid}})</li>
-            <p>
-            <a class="button" href="{% url groups.views.invite course_slug=course.slug,group_slug=m.group.slug %}">>Invite a member</a>
-            </p>
+		    {% if mm.confirmed %}
+		      <li>{{mm.student.person.name}} ({{mm.student.person.userid}})</li>
+		    {% else %}
+		      <li>{{mm.student.person.name}} ({{mm.student.person.userid}}) (not yet confirmed)</li>
+		    {% endif %}  
 		  {% endfor %}
+		  <br />
+		  <a class="button" href="{% url groups.views.invite course_slug=course.slug group_slug=m.group.slug %}">Invite</a>
 		</ul>
 		{% else %}
 		You have not confirmed membership in this group. <a class="button" href="{% url groups.views.join course_slug=course.slug,group_slug=m.group.slug %}">Join Group</a>
@@ -28,9 +32,10 @@
 </dl>
 {% else %}
 <p>You don't belong to any groups in this course.</p>
+{% endif %}
 <p>
 <a class="button" href="{% url groups.views.create course_slug=course.slug %}">New Group</a>
 </p>
-{% endif %}
 
 {% endblock %}
+

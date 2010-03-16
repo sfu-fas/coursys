@@ -88,14 +88,40 @@ def join(request, course_slug, group_slug):
     
     messages.add_message(request, messages.SUCCESS, 'You have joined the group "%s".' % (g.name))
     return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
-    
-#def joinconfirm(request):
-#    return render_to_response('groups/create.html', context_instance = RequestContext(request)) 
+
 @requires_course_by_slug
 def invite(request, course_slug, group_slug):
+    course = get_object_or_404(CourseOffering, slug = course_slug)
+    group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
+    
+    students_qset = course.members.filter(person__role = 'STUD')   
+    from django import forms 
+    class StudentReceiverForm(forms.Form):
+        student = forms.ModelChoiceField(queryset = students_qset) 
+        
+    if request.method == "POST": 
+        student_receiver_form = StudentReceiverForm(request.POST)
+        if student_receiver_form.is_valid():
+            student = student_receiver_form.cleaned_data["student"]
+            print student
+            member = Member.objects.get(person = student, offering = course)
+            groupMember = GroupMember(group = group, student = member, confirmed = False) 
+            groupMember.save()
+            
+            messages.add_message(request, messages.SUCCESS, 'Your invitation to "%s" has been sent out.' % (student))
+            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+    else:
+        student_receiver_form = StudentReceiverForm()
+        return render_to_response("groups/invite.html", {'student_receiver_form': student_receiver_form}, context_instance=RequestContext(request))
+                                  
+
+#def joinconfirm(request):
+#    return render_to_response('groups/create.html', context_instance = RequestContext(request)) 
+#@requires_course_by_slug
+#def invite(request, course_slug, group_slug):
     #p = get_object_or_404(Person,userid=request.user.username)
     #c = get_object_or_404(CourseOffering, slug = course_slug)
     #g = get_object_or_404(Group, courseoffering = c, slug = group_slug)
     #m = Member.objects.get(person = p, offering = c)
     #memberlist = GroupMember.objects.filter(group = g,student=m)
-    return render_to_response('groups/invite.html',context_instance = RequestContext(request))
+    #return render_to_response('groups/invite.html',context_instance = RequestContext(request))
