@@ -18010,7 +18010,7 @@
  }, 
  {
   "fields": {
-   "max_grade": "15"
+   "max_grade": "25"
   }, 
   "model": "grades.numericactivity", 
   "pk": 1

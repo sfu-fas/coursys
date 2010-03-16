@@ -167,6 +167,26 @@ def manage_common_problems(request, course_slug, activity_slug):
                               'formset' : formset },\
                               context_instance=RequestContext(request))
     
+def _initialize_marking_forms(components, component_mark_forms, additional_form, base_activity_mark=None):
+    
+    leng = len(components)
+    if base_activity_mark == None:
+        for i in range(leng):
+            component_mark_forms.append(ActivityComponentMarkForm(prefix = "cmp-form-%s" % (i+1)))    
+    else:    
+        component_mark_dict = {}
+        component_marks = ActivityComponentMark.objects.filter(activity_mark = base_activity_mark) 
+        for c_mark in component_marks:
+            component_mark_dict[c_mark.activity_component.title] = c_mark    
+        i = 0
+        for i in range(leng):
+            c_mark = component_mark_dict[components[i].title]
+            data = {'comment':c_mark.comment, 'value':c_mark.value,}
+            component_mark_forms.append(ActivityComponentMarkForm(prefix = "cmp-form-%s" % (i+1),\
+                          instance = c_mark))            
+        additional_form.instance = base_activity_mark
+        
+    
 # request to marking view may comes from different pages
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo'}   
 @requires_course_staff_by_slug
@@ -208,14 +228,16 @@ def marking(request, course_slug, activity_slug):
             group_receiver_form = MarkGroupReceiverForm(request.POST, prefix = "group-receiver-form")            
             is_student = student_receiver_form.is_valid()
             is_group = group_receiver_form.is_valid()
-        elif std_userid:
-            is_student = True
-            is_group = False
-        else:
+        elif group_id:# group takes the precedence over student, if group_id is present, regardless of the student userid 
             is_student = False
             is_group = True
+        else:
+            is_student = True
+            is_group = False
         
-        # this should be ensured on the client side
+        #TODO: this should be ensured on the client side 
+        #when selecting from one drop down box(for student/group)
+        #and clear the other drop down box
         if is_student and is_group: 
             error_info = "You can only give mark to a student or a group but not both at the same time"               
                         
@@ -274,7 +296,7 @@ def marking(request, course_slug, activity_slug):
             #copy the additional info        
             activity_mark.copyFrom(additional)            
             #assign the mark            
-            activity_mark.setMark(total_mark - additional.late_penalty + additional.mark_adjustment)           
+            activity_mark.setMark(total_mark - additional.late_penalty*activity.max_grade/100 + additional.mark_adjustment)           
             activity_mark.created_by = request.user.username
             activity_mark.save()
             
@@ -297,8 +319,8 @@ def marking(request, course_slug, activity_slug):
                 redirect_url = reverse('grades.views.course_info', args=(course_slug,))
             elif from_page == FROMPAGE['activityinfo']:
                 redirect_url = reverse('grades.views.activity_info', args=(course_slug, activity_slug))
-            else: #default
-                redirect_url = reverse('grades.views.course_info', args=(course_slug,))
+            else: #default to the activity_info page
+                redirect_url = reverse('grades.views.activity_info', args=(course_slug, activity_slug))
             
             return HttpResponseRedirect(redirect_url)      
          
@@ -317,11 +339,20 @@ def marking(request, course_slug, activity_slug):
         else:
             group = get_object_or_404(Group, courseoffering = course, id = group_id)
        
-        for i in range(leng):
-            forms.append(ActivityComponentMarkForm(prefix = "cmp-form-%s" % (i+1)))
-        
+        # if this marking is based on the content of a previous activity mark           
+        base_act_mark = None
+        if student:
+            act_mark_id = request.GET.get('base_activity_mark')   
+            if act_mark_id != None: # if the mark is initiated from the content of a previously mark 
+                base_act_mark = get_activity_mark(activity, membership, act_mark_id) 
+                if base_act_mark == None:
+                    raise Http404('No such ActivityMark for student %s on %s found.' % (student.userid, activity))
+                elif hasattr(base_act_mark, 'group'):# the base activity mark is GroupActiviyMark
+                    group = act_mark.group                    
+               
         additional_info_form = ActivityMarkForm(prefix = "additional-form") 
-           
+        _initialize_marking_forms(components, forms, additional_info_form, base_act_mark)          
+    
     mark_components = []
     for i in range(leng):
         # select common problems belong to each component
@@ -356,11 +387,15 @@ def mark_summary(request, course_slug, activity_slug, userid):
      if act_mark == None:
         #print "not found"
         raise Http404('No such ActivityMark for student %s on %s found.' % (student.userid, activity))
-                 
+    
+     group = None
+     if hasattr(act_mark, 'group'):
+        group = act_mark.group
+                      
      component_marks = ActivityComponentMark.objects.filter(activity_mark = act_mark)        
     
      return render_to_response("marking/mark_summary.html", 
-                               {'course':course, 'activity' : activity, 'student' : student, \
+                               {'course':course, 'activity' : activity, 'student' : student, 'group' : group, \
                                 'activity_mark': act_mark, 'component_marks': component_marks, \
                                 'view_history': act_mark_id == None}, context_instance = RequestContext(request))
      

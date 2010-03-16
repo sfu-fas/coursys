@@ -39,8 +39,9 @@ class CommonProblem(models.Model):
 def attachment_upload_to(instance, filename):
         """
         append activity_slug/group_slug/ or
-               activity_slug/student/ as the parent folder path   
-        filename is already in the form of activity_slug/group_slug/orignial_filename   
+               activity_slug/student_userid/ as the parent folder path   
+        filename is already in the form of activity_slug/group_slug/orignial_filename or
+                                           activity_slug/student_userid/orignial_filename
         """
         marking_files_root = 'marking/files/'
         now = datetime.now()
@@ -104,10 +105,12 @@ class StudentActivityMark(ActivityMark):
         super(StudentActivityMark, self).setMark(grade) 
         
         # append folder structure to the file name
-        if self.file_attachment:    
+        if self.file_attachment:                
             activity = self.numeric_grade.activity
+            course = activity.offering
             student = self.numeric_grade.member.person           
-            self.file_attachment.name = '/' + activity.slug + \
+            self.file_attachment.name = '/' + course.slug + \
+                                        '/' + activity.slug + \
                                         '/' + student.userid + \
                                         '/' + self.file_attachment.name
         
@@ -129,8 +132,10 @@ class GroupActivityMark(ActivityMark):
     def setMark(self, grade):
         super(GroupActivityMark, self).setMark(grade)    
          # append folder structure to the file name
-        if self.file_attachment:               
-            self.file_attachment.name = '/' + self.numeric_activity.slug + \
+        if self.file_attachment: 
+            course = self.numeric_activity.offering              
+            self.file_attachment.name = '/' + course.slug + \
+                                        '/' + self.numeric_activity.slug + \
                                         '/' + self.group.slug + \
                                         '/' + self.file_attachment.name
         #assign mark for each member in the group

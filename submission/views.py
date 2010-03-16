@@ -594,11 +594,13 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set, slug = activity_slug)
     
-    #TODO: factor out
     from_page = request.GET.get('from_page')
-    
+    activity_mark = request.GET.get('base_activity_mark')
+    from_page_suffix = from_page and '&from_page=' + str(from_page) or ''
+    activity_mark_suffix = activity_mark and '&base_activity_mark=' + str(activity_mark) or ''
+    print activity_mark_suffix
     #TODO: group, ?group=group.id
-    response = HttpResponseRedirect(reverse(marking, args=[course_slug, activity_slug]) + "?student=" + userid + '&from_page=' + str(from_page))
+    response = HttpResponseRedirect(reverse(marking, args=[course_slug, activity_slug]) + "?student=" + userid + activity_mark_suffix + from_page_suffix)
     
     component = select_students_submitted_components(activity, userid)
     #if it is taken by someone not me, show a confirm dialog

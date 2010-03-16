@@ -2,15 +2,51 @@
 
 {% block title %}Marking Summary{% endblock %}
 
-{% block h1 %} Marking Summary for {{activity.name}} {% endblock %}
+{% block h1 %} Marking Summary {% endblock %}
 
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{course}}</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">{{activity.name}}</a></li>{% endblock %}
 
 {% block content %}
 <h2>
-Student "{{student.userid}}" got {{activity_mark.mark}}/{{activity.max_grade}}
-(Marked by "{{activity_mark.created_by}}" on {{activity_mark.created_at|date:"d M Y"}} {{activity_mark.created_at|time:"H:i:s"}})
+Student {{student.userid}} marked on {{activity.name}} 
 </h2>
+
+<h2>Basic Information</h2>
+<div class="table_container">
+	<table class="info">
+	<tbody> 
+		 <tr>
+	    	<th class="ui-state-default">Marked by</th>
+	        <td>
+	            {{ activity_mark.created_by }}
+	        </td>
+	    </tr>
+	    <tr>
+	    	<th  class="ui-state-default">Time</th>
+	        <td>
+	            {{activity_mark.created_at|date:"d M Y"}} {{activity_mark.created_at|time:"H:i:s"}}
+	        </td>
+	    </tr>
+	    <tr>
+	    	<th  class="ui-state-default">Total Mark</th>
+	        <td>
+	            {{ activity_mark.mark }} out of {{activity.max_grade}}
+	        </td>
+	    </tr>   
+	    <tr>
+	    	<th  class="ui-state-default">Mark Approach</th>
+	        <td>
+	            {% if group %}
+	            Via group <a href="#">group.name</a>
+	            {% else %}
+	            Directly to individual
+	            {% endif %}
+	        </td>
+	    </tr>     
+	</tbody>
+	</table>
+</div>
+
 
 <h2> Components Details </h2>
 {% for component_mark in component_marks %}
@@ -83,7 +119,9 @@ Student "{{student.userid}}" got {{activity_mark.mark}}/{{activity.max_grade}}
     </table>
 </div>   
 
+<a class="button" href= "{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug userid=student.userid %}?base_activity_mark={{activity_mark.id}}">Mark based on this</a>
+
 {% if view_history %}
 	<a class="button" href = "{% url marking.views.mark_history course_slug=course.slug, activity_slug=activity.slug, userid=student.userid %}">Marking History</a>
-{% endif %}
+{% endif %}	
 {% endblock %}
