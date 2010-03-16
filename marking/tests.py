@@ -9,16 +9,22 @@ from django.test import TestCase
 from coredata.models import *
 from grades.models import *
 from models import *
+from views import manage_activity_components, manage_common_problems, marking, mark_history
 from settings import CAS_SERVER_URL
 from courselib.testing import *
 from datetime import *
+from django.core.urlresolvers import reverse
+
 
 
 class BasicTest(TestCase):
     fixtures = ['test_data']    
+    def setUp(self):
+        self.c_slug = '1101-cmpt-165-d100'
     
     def test_add_activity_components(self):
-        c = CourseOffering.objects.get(slug = '1101-cmpt-165-d100')
+        
+        c = CourseOffering.objects.get(slug = self.c_slug)
        
         #add an numeric activity and its components
         a = NumericActivity(offering = c, name = 'test_assignment_1', \
@@ -35,7 +41,9 @@ class BasicTest(TestCase):
         co3.save()
         
         self.client.login(ticket = 'ggbaker', service=CAS_SERVER_URL)
-        url = '/1101-cmpt-165-d100/' + a.slug + '/marking/'
+
+        url = reverse(manage_activity_components, args=(self.c_slug,a.slug))
+
         response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
         #validate_content(self, response.content, 'activity components') #? error
@@ -46,7 +54,7 @@ class BasicTest(TestCase):
         self.assertEquals(forms[2].instance.title, 'part3') 
         
     def test_add_common_problems(self):
-        c = CourseOffering.objects.get(slug = '1101-cmpt-165-d100')
+        c = CourseOffering.objects.get(slug =  self.c_slug)
         a = NumericActivity(offering = c, name = 'test_assignment_1', \
                             short_name = 'ta1', status = 'released', \
                             due_date = datetime.now(), max_grade = 100, position = 0)
@@ -65,9 +73,10 @@ class BasicTest(TestCase):
         cp2.save()
         cp3.save()
         
-        self.client.login(ticket = 'ggbaker', service=CAS_SERVER_URL)
-        
-        url = '/1101-cmpt-165-d100/' + a.slug + '/marking/common'
+        self.client.login(ticket = 'ggbaker', service=CAS_SERVER_URL)        
+
+        url = reverse(manage_common_problems, args=(self.c_slug,a.slug))
+
         response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
         
@@ -84,8 +93,8 @@ class BasicTest(TestCase):
         self.assertEquals(ins2.title, 'cp3')
         self.assertEquals(ins2.activity_component, co2)
         
-        #test the marking page as well
-        url = '/marking/1101-cmpt-165-d100/' + a.slug + '/marking/'
+        #test the marking page as well        
+        url = reverse(marking, args=(self.c_slug,a.slug))
         response = self.client.get(url)
         
         # tests refer to missing context item: commenting out -GB
@@ -99,7 +108,8 @@ class BasicTest(TestCase):
         #self.assertEquals(len(com2['common_problems']), 1)
        
     def test_post_activity_components(self):
-        c = CourseOffering.objects.get(slug = '1101-cmpt-165-d100')
+        
+        c = CourseOffering.objects.get(slug = self.c_slug)
        
         #add an numeric activity and its components
         a = NumericActivity(offering = c, name = 'test_assignment_1', \
@@ -108,7 +118,9 @@ class BasicTest(TestCase):
         a.save()
                                     
         self.client.login(ticket = 'ggbaker', service=CAS_SERVER_URL)
-        url = '/1101-cmpt-165-d100/' + a.slug + '/marking/'
+
+        url = reverse(manage_activity_components, args=(self.c_slug, a.slug))
+
         # 2 forms for the first 2 components to add
         post_data = {'form-0-id' : ['', ''], 'form-1-id' : ['', ''],
                      'form-0-title': ['part1'], 'form-1-title': ['part2'], 
@@ -146,7 +158,7 @@ class BasicTest(TestCase):
         self.assertEquals(cps[3].title, 'part4')
     
     def test_group_setMark(self):
-        c = CourseOffering.objects.get(slug = '1101-cmpt-165-d100')
+        c = CourseOffering.objects.get(slug = self.c_slug)
        
         #add an numeric activity
         a = NumericActivity(offering = c, name = 'test_assignment_1', \
@@ -176,7 +188,7 @@ class BasicTest(TestCase):
         self.assertEquals(num_grades[1].flag, 'GRAD')
     
     def test_mark_history(self):
-        c = CourseOffering.objects.get(slug = '1101-cmpt-165-d100')
+        c = CourseOffering.objects.get(slug = self.c_slug)
        
         #add an numeric activity
         a = NumericActivity(offering = c, name = 'test_assignment_1', \
@@ -227,7 +239,9 @@ class BasicTest(TestCase):
         #print group_mark.created_at
         
         self.client.login(ticket = 'ggbaker', service=CAS_SERVER_URL)
-        url = '/1101-cmpt-165-d100/' + a.slug + '/marking/student/0aaa1/history'
+
+        url = reverse(mark_history, args=(self.c_slug, a.slug, '0aaa1')) 
+
         response = self.client.get(url)
         self.assertEquals(response.status_code, 200)
         
