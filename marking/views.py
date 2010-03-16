@@ -167,7 +167,7 @@ def manage_common_problems(request, course_slug, activity_slug):
                               'formset' : formset },\
                               context_instance=RequestContext(request))
     
-def _initialize_marking_forms(components, component_mark_forms, additional_form, base_activity_mark=None):
+def _initialize_component_mark_forms(components, component_mark_forms, base_activity_mark):
     
     leng = len(components)
     if base_activity_mark == None:
@@ -184,7 +184,7 @@ def _initialize_marking_forms(components, component_mark_forms, additional_form,
             data = {'comment':c_mark.comment, 'value':c_mark.value,}
             component_mark_forms.append(ActivityComponentMarkForm(prefix = "cmp-form-%s" % (i+1),\
                           instance = c_mark))            
-        additional_form.instance = base_activity_mark
+        
         
     
 # request to marking view may comes from different pages
@@ -350,8 +350,8 @@ def marking(request, course_slug, activity_slug):
                 elif hasattr(base_act_mark, 'group'):# the base activity mark is GroupActiviyMark
                     group = act_mark.group                    
                
-        additional_info_form = ActivityMarkForm(prefix = "additional-form") 
-        _initialize_marking_forms(components, forms, additional_info_form, base_act_mark)          
+        _initialize_component_mark_forms(components, forms, base_act_mark)
+        additional_info_form = ActivityMarkForm(prefix = "additional-form", instance = base_act_mark)                   
     
     mark_components = []
     for i in range(leng):
