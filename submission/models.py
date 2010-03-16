@@ -120,6 +120,17 @@ class GroupSubmission(Submission):
         return self.group.manager.userid
     def __unicode__(self):
         return "%s->%s@%s" % (self.group.manager.userid, self.activity, self.created_at)
+    def save(self):
+        super(GroupSubmission, self).save()
+        member_list = GroupMember.objects.filter(group = self.group).exclude(student = request.userid)
+        for member in member_list:
+            n = NewsItem(user = member.student, author=request.userid, course=member.courseoffering,
+                source_app="group submission", title="group assignment submitted by %s" % (member.student.name), 
+                content="...",
+                url=reverse('submission.views.index', course_slug=course.slug)
+                )
+            n.save()
+            
 
 # parts of a submission, created as part of a student/group submission
 
