@@ -7,15 +7,15 @@ class Group(models.Model):
     General group information in the courses
     """
     name = models.CharField(max_length=30, help_text='Group name')
-    manager = models.OneToOneField(Member, blank = True)
+    manager = models.ForeignKey(Member, blank=False, null=False)
     courseoffering = models.ForeignKey(CourseOffering)
     slug = AutoSlugField(populate_from='name', null=False, editable=False, unique_with='courseoffering')
 
     def __unicode__(self):  
         return '%s' % (self.name)
 
-    def get_absolute_url(self):
-	    return '/%s/' % (self.courseoffering.slug)
+    class Meta:
+        unique_together = ("name", "courseoffering")
 
 class GroupMember(models.Model):
     """
@@ -29,4 +29,4 @@ class GroupMember(models.Model):
 	    return '%s %s' % (self.student.person, self.group)
 	
     class Meta:
-        unique_together = ("group", "student", "confirmed")
+        unique_together = ("group", "student")
