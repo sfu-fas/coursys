@@ -15,6 +15,9 @@
 		<ul>
 		  {% for mm in m.group.groupmember_set.all %}
 		    <li>{{mm.student.person.name}} ({{mm.student.person.userid}})</li>
+            <p>
+            <a class="button" href="{% url groups.views.invite course_slug=course.slug,group_slug=m.group.slug %}">>Invite a member</a>
+            </p>
 		  {% endfor %}
 		</ul>
 		{% else %}
@@ -25,9 +28,9 @@
 </dl>
 {% else %}
 <p>You don't belong to any groups in this course.</p>
-{% endif %}
 <p>
 <a class="button" href="{% url groups.views.create course_slug=course.slug %}">New Group</a>
 </p>
+{% endif %}
 
 {% endblock %}
