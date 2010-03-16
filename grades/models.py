@@ -3,6 +3,7 @@ from autoslug import AutoSlugField
 from timezones.fields import TimeZoneField
 from coredata.models import Member, CourseOffering
 from dashboard.models import *
+from django.core.urlresolvers import reverse
 
 FLAG_CHOICES = [
     ('NOGR', 'no grade'),
@@ -194,11 +195,12 @@ class NumericGrade(models.Model):
 
     def save(self):
         super(NumericGrade, self).save()
-        if activity.status == "RLS":
-            n = NewsItem(user=self.member.person, author=request.userid, course=activity.offering,
-                source_app="grades", title="%s grade available" % (activity.name), 
+        if self.activity.status == "RLS":
+            # generate news item
+            n = NewsItem(user=self.member.person, author=None, course=self.activity.offering,
+                source_app="grades", title="%s grade available" % (self.activity.offering), 
                 content="...",
-                url=reverse('grades.views.student', course_slug=course.slug)
+                url=reverse('grades.views.course_info', kwargs={'course_slug':self.activity.offering.slug})
                 )
             n.save()
 
