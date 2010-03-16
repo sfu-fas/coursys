@@ -6,4 +6,4 @@ ACTIVITY_SLUG = '(?P<activity_slug>' + ACTIVITY_SLUG_RE + ')'
 
 COURSE_ACTIVITY_SLUG = COURSE_SLUG + '/' + ACTIVITY_SLUG
 
-USERID_SLUG = '(?P<userid>\w+)'
+USERID_SLUG = '(?P<userid>[\w\-]+)'

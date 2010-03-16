@@ -9,7 +9,11 @@ class Group(models.Model):
     name = models.CharField(max_length=30, help_text='Group name')
     manager = models.ForeignKey(Member, blank=False, null=False)
     courseoffering = models.ForeignKey(CourseOffering)
-    slug = AutoSlugField(populate_from='name', null=False, editable=False, unique_with='courseoffering')
+    
+    # preface slug with "g-" to avoid conflict with userids (so they can be used in same places in URLs)
+    def autoslug(self):
+        return 'g-' + str(self.name)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='courseoffering')
 
     def __unicode__(self):  
         return '%s' % (self.name)
