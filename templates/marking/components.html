@@ -35,11 +35,9 @@
         </thead>  
         <tbody>
 	      {% for form in formset.forms|slice:":-3" %} 	      
-			  {#form.id#}  {# important here !!! #}  
 			  {{ form|display_form_as_row:"deleted_flag"}}
 	      {% endfor %}
 	      {% for form in formset.forms|slice:"-3:" %} {# you can add 3 more components #}	      
-	     	  {#form.id#} {# important here !!! #}  	   
 	          {{ form|display_form_as_row }}
           {% endfor %}
         </tbody>
