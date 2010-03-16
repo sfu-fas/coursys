@@ -197,10 +197,18 @@ def add_submission(request, course_slug, activity_slug):
 
 
 @login_required
-def show_components_submission_history(request, course_slug, activity_slug, userid=None):
+def show_components_submission_history(request, course_slug, activity_slug):
+    userid = request.GET.get('userid')
     if userid==None:
         userid = request.user.username
-    
+    student = get_object_or_404(Person, userid=userid)
+    #if not course_staff
+    if not is_course_staff_by_slug(request.user, course_slug):
+        #if not myself
+        if not userid == request.user.username:
+            return _return_403_dashboard(request, course_slug, activity_slug)
+        #TODO: for group submission, allow the member in the same group to download
+        
     course = get_object_or_404(CourseOffering, slug = course_slug)
     activity = get_object_or_404(course.activity_set,slug = activity_slug)
     all_submitted_components = select_students_submitted_components(activity, userid)
