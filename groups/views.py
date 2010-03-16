@@ -91,3 +91,11 @@ def join(request, course_slug, group_slug):
     
 #def joinconfirm(request):
 #    return render_to_response('groups/create.html', context_instance = RequestContext(request)) 
+@requires_course_by_slug
+def invite(request, course_slug, group_slug):
+    #p = get_object_or_404(Person,userid=request.user.username)
+    #c = get_object_or_404(CourseOffering, slug = course_slug)
+    #g = get_object_or_404(Group, courseoffering = c, slug = group_slug)
+    #m = Member.objects.get(person = p, offering = c)
+    #memberlist = GroupMember.objects.filter(group = g,student=m)
+    return render_to_response('groups/invite.html',context_instance = RequestContext(request))
