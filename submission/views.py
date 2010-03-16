@@ -1,19 +1,20 @@
-import courses.marking.views
 from django.contrib.auth.decorators import login_required
 from coredata.models import Member, CourseOffering, Person
 from django.shortcuts import render_to_response, get_object_or_404#, redirect
 from django.template import RequestContext
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, Http404
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from courselib.auth import requires_course_by_slug,requires_course_staff_by_slug
 from submission.forms import *
-from dashboard.templatetags.course_display import display_form
 from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug
 from submission.models import *
 from django.core.urlresolvers import reverse
 from contrib import messages
-from django.template.defaultfilters import slugify
 from datetime import *
 from marking.views import marking
+from django.core.servers.basehttp import FileWrapper
+import zipfile
+import tempfile
+import os
 
 @login_required
 def index(request):
@@ -465,15 +466,68 @@ def download_file(request, course_slug, activity_slug, userid):
     #download current submission as a zip file for userid='id'
     if userid != None:
         #make sure student exists
-        get_object_or_404(Person, userid=userid)
+        student = get_object_or_404(Person, userid=userid)
     else:
         get_object_or_404(Group, group_id)
         #TODO: group submission
 
     #TODO: modify the function to work for group submission
     submitted_pair_list = _get_current_submission(userid, activity)
-    #TODO: download as a big zip file
-    return HttpResponse("DOWNLOAD ALL AS ZIP FILE")
+    # if no submission, jump to the other page
+    no_submission = True
+    for pair in submitted_pair_list:
+        if pair[1] != None:
+            no_submission = False
+            break
+    if no_submission == True:
+        return render_to_response("submission/download_error_no_submission.html",
+        {"course":course, "activity":activity, "student":student},
+        context_instance=RequestContext(request))
+
+    return _generate_zip_file(submitted_pair_list, userid, activity_slug)
+
+
+def _generate_zip_file(pair_list, userid, activity_slug):
+    handle, filename = tempfile.mkstemp('.zip')
+    os.close(handle)
+    z = zipfile.ZipFile(filename, 'w', zipfile.ZIP_STORED)
+
+    for pair in pair_list:
+        type = pair[0].get_type()
+        if type == 'PlainText':
+            z.writestr(pair[0].slug+".txt", pair[1].text)
+        if type == 'URL':
+            content = '<html><head><META HTTP-EQUIV="Refresh" CONTENT="0; URL=' \
+                        + pair[1].url + '"></head><body>' \
+                        + 'If redirecting doesn\' work, click the link <a href="' \
+                        + pair[1].url + '">' + pair[1].url + '</a>' \
+                        + '</body></html> '
+            z.writestr(pair[0].slug+".html", content)
+        if type == 'Archive':
+            name = pair[1].archive.name
+            name = name[name.rfind('/')+1:]
+            name = pair[0].slug + "_" + name
+            z.write(pair[1].archive.path, name)
+        if type == 'Cpp':
+            name = pair[1].cpp.name
+            name = name[name.rfind('/')+1:]
+            name = pair[0].slug + "_" + name
+            z.write(pair[1].cpp.path, name)
+        if type == 'Java':
+            name = pair[1].java.name
+            name = name[name.rfind('/')+1:]
+            name = pair[0].slug + "_" + name
+            z.write(pair[1].java.path, name)
+    z.close()
+
+    file = open(filename, 'rb')
+    response = HttpResponse(FileWrapper(file), mimetype='application/zip')
+    response['Content-Disposition'] = 'attachment; filename=%s'% userid + "_" + activity_slug + ".zip"
+    try:
+        os.remove(filename)
+    except OSError:
+        print "HA!"
+    return response
 
 def _download_text_file(submission):
     """

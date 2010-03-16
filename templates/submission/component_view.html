@@ -48,7 +48,7 @@
             <li><a href="{% url submission.views.add_submission course_slug=course.slug, activity_slug=activity.slug %}" class="button">New Submission</a></li>
             {% if submit_time %}
             <li><a href="{% url submission.views.show_components_submission_history course_slug=course.slug activity_slug=activity.slug %}" class="button">View History</a></li>
-            <li><a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=userid %}" class="button" >Download All</a></li>
+            <li><a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=userid %}" class="button" target="_blank">Download All</a></li>
             {% endif %}
         </ul>
         </div>
@@ -88,7 +88,7 @@
                         <li><label>Text:</label><pre>{{pair.1.text}}</pre></li>
                     {% endifequal %}
                     {% endifequal %}
-                    <li><img src="{{MEDIA_URL}}icons/attach.png" alt="download" /><a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=userid %}?type={{pair.1.get_type}}&id={{pair.1.id}}">Download File</a></li>
+                    <li><img src="{{MEDIA_URL}}icons/attach.png" alt="download" /><a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=userid %}?type={{pair.1.get_type}}&id={{pair.1.id}}" target="_blank">Download File</a></li>
                 </ul>
             </div>
 

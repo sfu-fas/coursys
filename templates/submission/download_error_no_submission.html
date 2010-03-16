@@ -1,0 +1,27 @@
+{% extends "submission/base.html" %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li><li>&gt; <a href="">Submission</a></li>{% endblock %}
+
+{% block h1 %}
+No submission found
+{% endblock %}
+
+{% block content %}
+<div id="student_info_submission_dashboard">
+<h3>Student Information</h3>
+<ul>
+    <li><label>Name:</label>{{student.name}}</li>
+    <li><label>Student ID:</label>{{student.emplid}}</li>
+    <li><label>Computing ID:</label>{{student.userid}}</li>
+    <li><label>Email:</label><a href="mailto:{{student.email}}">{{student.email}}</a></li>
+</ul>
+</div>
+
+<h2>It seems that {{student.name}} didn't submit for {{activity.name}}.</h2>
+<br/>
+<h3>Click OK to close this window.</h3>
+<ul class="add_nav">
+    <li><a href="javascript:window.opener='x';window.close();" class="button">OK</a></li>
+</ul>
+
+{% endblock %}
