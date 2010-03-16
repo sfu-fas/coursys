@@ -22,8 +22,8 @@
 {% block content %}
 
 <form action="" method="post">  
-     {{ formset.management_form }} 
      <div class = "datatable_container"> 
+     {{ formset.management_form }} 
       <table class="display" id="activity_components">
       	<thead>
           <tr>
@@ -35,18 +35,20 @@
         </thead>  
         <tbody>
 	      {% for form in formset.forms|slice:":-3" %} 	      
-			  {{form.id}}  {# important here !!! #}  
+			  {#form.id#}  {# important here !!! #}  
 			  {{ form|display_form_as_row:"deleted_flag"}}
 	      {% endfor %}
 	      {% for form in formset.forms|slice:"-3:" %} {# you can add 3 more components #}	      
-	     	  {{form.id}} {# important here !!! #}  	   
+	     	  {#form.id#} {# important here !!! #}  	   
 	          {{ form|display_form_as_row }}
           {% endfor %}
         </tbody>
       </table>
    </div>
+   <p>
    <input type="submit" value="Save" />  
-   <input type="button" value="Reset" onClick="location.href='{% url marking.views.manage_activity_components course_slug=course.slug, activity_slug=activity.slug %}'">
+   <input type="button" value="Reset" onclick="location.href='{% url marking.views.manage_activity_components course_slug=course.slug, activity_slug=activity.slug %}'" />
+   </p>
 </form>
 
 {% endblock %}

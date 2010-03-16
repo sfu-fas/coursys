@@ -74,7 +74,7 @@ def requires_role(role, login_url=None):
         return has_role(role, u, **kwargs)
         
     actual_decorator = user_passes_test(has_this_role, login_url=login_url)
-    print has_this_role
+    #print has_this_role
     return actual_decorator
 
 def is_course_member_by_slug(u, course_slug, **kwargs):
@@ -147,8 +147,8 @@ def requires_faculty_member(function=None, login_url=None):
     """
     Allows access if user is a faculty member.
     """
-    print function
-    print login_url
+    #print function
+    #print login_url
     actual_decorator = user_passes_test(is_faculty_member, login_url=login_url)
     if function:
         return  actual_decorator(function)

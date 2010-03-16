@@ -352,7 +352,7 @@ def mark_summary(request, course_slug, activity_slug, userid):
      else:
          act_mark = get_activity_mark(activity, membership)
          if act_mark == None:
-             print "not found"
+             #print "not found"
              raise Http404('No such ActivityMark for student %s on %s found.' % (student.userid, activity))
                  
      component_marks = ActivityComponentMark.objects.filter(activity_mark = act_mark)        

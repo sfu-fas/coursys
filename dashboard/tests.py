@@ -64,7 +64,7 @@ class DashboardTest(TestCase):
         Check the requires_course_staff_by_slug decorator.
         """
         # a URL and some members/non-members
-        url = "/marking/1101-cmpt-165-d100/"
+        url = "/1101-cmpt-165-d100/a1/marking/"
         instr = "ggbaker"
         ta = "0grad"
         student = "0aaa0"

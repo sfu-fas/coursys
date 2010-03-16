@@ -179,7 +179,7 @@ def edit_activity(request, course_slug, activity_slug):
             if form.is_valid(): # All validation rules pass
                 _populate_activity_from_formdata(activity, form.cleaned_data)
                 activity.save()
-                print from_page
+                #print from_page
                 if from_page == FROMPAGE['course']:
                     return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
                 elif from_page == FROMPAGE['activityinfo']:

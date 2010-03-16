@@ -4,7 +4,7 @@
 
 {% block h1 %} Marking Summary for {{activity.name}} {% endblock %}
 
-{% block subbreadcrumbs %}<a href="{% url grades.views.course_info course_slug=course.slug %}">{{course}}</a>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{course}}</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">{{activity.name}}</a></li>{% endblock %}
 
 {% block content %}
 <h2>
@@ -84,6 +84,6 @@ Student "{{student.userid}}" got {{activity_mark.mark}}/{{activity.max_grade}}
 </div>   
 
 {% if view_history %}
-	<a class="button" href = "{% url marking.views.mark_history course_slug=course.slug, activity_slug=activity.slug, userid=student.userid %}" target="_blank">Marking History</a>
+	<a class="button" href = "{% url marking.views.mark_history course_slug=course.slug, activity_slug=activity.slug, userid=student.userid %}">Marking History</a>
 {% endif %}
 {% endblock %}

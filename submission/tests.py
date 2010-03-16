@@ -47,7 +47,7 @@ class SubmissionTest(TestCase):
         client.login(ticket="ggbaker", service=CAS_SERVER_URL)
         
         # When no component, should display error message
-        response = client.get("/submission" + c.get_absolute_url()+"a1/")
+        response = client.get('/'+c.slug+"/a1/submission/")
         self.assertContains(response, "No component found")
         
         #add component and test
@@ -62,7 +62,7 @@ class SubmissionTest(TestCase):
         component = JavaComponent(activity=a, title="JavaComponent")
         component.save()
         #should all appear
-        response = client.response = client.get("/submission" + c.get_absolute_url()+"a1/")
+        response = client.response = client.get('/'+c.slug+"/a1/submission/")
         self.assertContains(response, "URLComponent")
         self.assertContains(response, "ArchiveComponent")
         self.assertContains(response, "CppComponent")
@@ -73,7 +73,7 @@ class SubmissionTest(TestCase):
 
         #delete component and test
         component.delete()
-        response = client.response = client.get("/submission" + c.get_absolute_url()+"a1/")
+        response = client.response = client.get('/'+c.slug+"/a1/submission/")
         self.assertNotContains(response, "JavaComponent")
 
         

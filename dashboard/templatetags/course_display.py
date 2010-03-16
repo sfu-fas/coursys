@@ -53,7 +53,7 @@ FIELD_AS_TD_TEMPLATE = Template('''<td>
                                {{ field.errors.0 }}    
                                </p>  
                            {% endif %}
-                        {{ field }}                   
+                        {{ field }}
                 </td>''')
 
 @register.filter

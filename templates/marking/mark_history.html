@@ -42,7 +42,7 @@
 		      </td>
 	          <td>{{ act_mark.created_by }}</td>           
 	          <td>{{ act_mark.mark }}/{{ activity.max_grade }}
-	          	<a href="{% url marking.views.mark_summary course_slug=course.slug activity_slug=activity.slug, userid=student.userid %}?activity_mark={{act_mark.id}}" target="_blank"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
+	          	<a href="{% url marking.views.mark_summary course_slug=course.slug activity_slug=activity.slug, userid=student.userid %}?activity_mark={{act_mark.id}}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
 	          </td>
 	        </tr>	
 	    {% endfor %}
@@ -72,7 +72,7 @@
 	          <td>{{ act_mark.created_by }}</td>
 	          <td>{{ act_mark.group.name }}</td>           
 	          <td>{{ act_mark.mark }}/{{ activity.max_grade }}
-	          	<a href="{% url marking.views.mark_summary course_slug=course.slug activity_slug=activity.slug%}?student={{ student.userid }}&activity_mark={{act_mark.id}}" target="_blank"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
+	          	<a href="{% url marking.views.mark_summary course_slug=course.slug activity_slug=activity.slug userid=student.userid%}?activity_mark={{act_mark.id}}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
 	          </td>
 	        </tr>	
 	    {% endfor %}

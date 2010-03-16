@@ -81,7 +81,7 @@ class GradesTest(TestCase):
         a = CalNumericActivity(name="Total", short_name="Total", status="URLS", offering=c, position=42, max_grade=30, formula="[A1]+[A2]")
         a.save()
        
-        allact = AllActivities_filter(offering=c)
+        allact = all_activities_filter(offering=c)
         self.assertEqual(len(allact), 4)
         self.assertEqual(allact[0].slug, 'proj') # make sure position=1 is first
         self.assertEqual(type(allact[1]), NumericActivity)
