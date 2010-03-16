@@ -2,6 +2,7 @@ from django.db import models
 from autoslug import AutoSlugField
 from timezones.fields import TimeZoneField
 from coredata.models import Member, CourseOffering
+from dashboard.models import *
 
 FLAG_CHOICES = [
     ('NOGR', 'no grade'),
@@ -189,12 +190,18 @@ class NumericGrade(models.Model):
     
     def __unicode__(self):
         return "Member[%s]'s grade[%s] for [%s]" % (self.member.person.userid, self.value, self.activity)
-    
+
+
     def save(self):
         super(NumericGrade, self).save()
-        #if self.activity.status='RLS':
-        #    n = NewsItem(...)
-        #    n.save()
+        if activity.status == "RLS":
+            n = NewsItem(user=self.member.person, author=request.userid, course=activity.offering,
+                source_app="grades", title="%s grade available" % (activity.name), 
+                content="...",
+                url=reverse('grades.views.student', course_slug=course.slug)
+                )
+            n.save()
+
     
     class Meta:
         unique_together = (('activity', 'member'),)
@@ -211,6 +218,17 @@ class LetterGrade(models.Model):
     
     def __unicode__(self):
         return "Member[%s]'s letter grade[%s] for [%s]" % (self.member.person.userid, self.letter_grade, self.activity)
+
+    
+    def save(self):
+        super(NumericGrade, self).save()
+        if activity.status == "RLS":
+            n = NewsItem(user=self.member.person, author=request.userid, course=activity.offering,
+                source_app="grades", title="%s grade available" % (activity.name), 
+                content="...",
+                url=reverse('grades.views.student', course_slug=course.slug)
+                )
+            n.save()
     
     class Meta:
         unique_together = (('activity', 'member'), )
