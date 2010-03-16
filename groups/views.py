@@ -19,40 +19,24 @@ from courselib.auth import requires_course_by_slug, requires_course_staff_by_slu
 
 @login_required
 def groupmanage(request, course_slug):
-    #course = CourseOffering.objects.get(slug=course_slug)
-    #p = get_object_or_404(Person, userid = request.user.username)
-    #m = get_object_or_404(Member, person = p, offering=course)
-    #try:
-    #    grouplist = Group.objects.filter(courseoffering = course)
-    #except:
-    #    grouplist = None
-    #memberlist = GroupMember.objects.none()
     if is_course_student_by_slug(request.user, course_slug):
-        #gs = Group.objects.filter(courseoffering=course, groupmember__student=m)
-        #g = None
-        #if gs is not None:
-        #    try:
-        #        g = gs.get(confirmed=True)
-        #    except:
-        #        g = None
-        #if g is not None:
-        #    memberlist = GroupMember.objects.filter(group = g)
-        #else:
-        #    memberlist = None
         return _groupmanage_student(request, course_slug)
     elif is_course_staff_by_slug(request.user, course_slug):
-        return render_to_response('groups/instructor.html', {'course_slug':course_slug, 'grouplist':grouplist}, context_instance = RequestContext(request))
+        return _groupmanage_staff(request, course_slug)
     else:
         return HttpResponseForbidden()
-
 
 def _groupmanage_student(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     members = GroupMember.objects.filter(group__courseoffering=course, student__person__userid=request.user.username)
     
-    print members
-    
     return render_to_response('groups/student.html', {'course':course, 'members':members}, context_instance = RequestContext(request))
+
+def _groupmanage_staff(request, course_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    members = GroupMember.objects.filter(group__courseoffering=course)
+    
+    return render_to_response('groups/instructor.html', {'course':course, 'members':members}, context_instance = RequestContext(request))
 
 @requires_course_by_slug
 def create(request,course_slug):
