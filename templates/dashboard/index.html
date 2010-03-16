@@ -1,17 +1,19 @@
 {% extends "base.html" %}
+{% load markup %}
 
 {% block title %}{{course}}{% endblock %}
 {% block h1 %}{{course}}{% endblock %}
 {% block content %}
 
 {% if news_list%}
-<p>
-    latest news
-    {% for news in news_list %}
-        <li>{{news.title}}<a href={{news_url}}>Click to view details</a></li>
-    {% endfor %}
-    <hr/>
-</p>
+<div id="newsitems">
+<h2>Latest news</h2>
+  {% for news in news_list %}
+    <h3><a href="{{news.url}}">{{news.title}}</a></h3>
+    <div class="newscontent">{{news.published|date:'r'}}</div>
+    <div class="newscontent">{{news.content}}</div>
+  {% endfor %}
+</div>
 {% endif %}
 
 {% regroup memberships by offering.semester as by_semester %}
@@ -23,16 +25,5 @@
   {% endfor %}
   </ul>
 {% endfor %}
-
-<hr/>
-<!--<p><a href="/marking">Marking</a></p>-->
-<!--<p><a href="/grades">Grades</a></p>-->
-<p><a href="/groups">Groups</a></p>
-<!--<p>
-    <a href="/submission/1101-cmpt-165-d100/a1/">Dashboard of submission</a> for an activity with slug 'a1' for cmpt165 d100, 2010 spring. <br/>
-    Staff can view student's submission (and history) <a href="/submission/1101-cmpt-165-d100/a1/view/0aaa0/">link</a><br/>
-    <a href="/submission">Submission</a> Lists course links which go to course pages.<br/>
-</p>-->
-
 
 {% endblock %}

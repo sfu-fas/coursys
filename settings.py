@@ -97,6 +97,7 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
+    'django.contrib.markup',
     #'django.contrib.messages',
     'contrib.messages', # temp: replace with above after 1.2 release
     'coredata',

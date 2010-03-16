@@ -198,8 +198,9 @@ class NumericGrade(models.Model):
         if self.activity.status == "RLS":
             # generate news item
             n = NewsItem(user=self.member.person, author=None, course=self.activity.offering,
-                source_app="grades", title="%s grade available" % (self.activity.offering), 
-                content="...",
+                source_app="grades", title="%s %s grade available" % (self.activity.offering.name(), self.activity.name), 
+                content="New grade for %s in %s is available: %s/%s." 
+                  % (self.activity.name, self.activity.offering.name(), self.value, self.activity.max_grade),
                 url=reverse('grades.views.course_info', kwargs={'course_slug':self.activity.offering.slug})
                 )
             n.save()
