@@ -12,6 +12,7 @@ from models import *
 from forms import *
 from django.forms.models import modelformset_factory
 from contrib import messages
+from django.db.models.fields.files import FileField
 
 
 @login_required
@@ -269,7 +270,7 @@ def marking(request, course_slug, activity_slug):
                 activity_mark = GroupActivityMark(group = group, numeric_activity = activity)
                         
             #get the additional info
-            additional = additional_info_form.save(commit = False)             
+            additional = additional_info_form.save(commit = False)
             #copy the additional info        
             activity_mark.copyFrom(additional)            
             #assign the mark            
@@ -351,9 +352,10 @@ def mark_summary(request, course_slug, activity_slug, userid):
          act_mark = get_activity_mark(activity, membership, act_mark_id) 
      else:
          act_mark = get_activity_mark(activity, membership)
-         if act_mark == None:
-             #print "not found"
-             raise Http404('No such ActivityMark for student %s on %s found.' % (student.userid, activity))
+     
+     if act_mark == None:
+        #print "not found"
+        raise Http404('No such ActivityMark for student %s on %s found.' % (student.userid, activity))
                  
      component_marks = ActivityComponentMark.objects.filter(activity_mark = act_mark)        
     

@@ -73,7 +73,7 @@ Student "{{student.userid}}" got {{activity_mark.mark}}/{{activity.max_grade}}
 		  <th class="ui-state-default">File Attachment</th>
 		  {% if activity_mark.file_attachment %}
 		    <td>
-		    <a href = "{{activity_mark.file_attachment}}"><img src="{{MEDIA_URL}}icons/download.png" title="Download" alt="Download" /></a>
+		    <a href = "{% url marking.views.download_marking_attachment course_slug=course.slug, activity_slug=activity.slug, filepath=activity_mark.file_attachment%}"><img src="{{MEDIA_URL}}icons/download.png" title="Download" alt="Download" /></a>		    
 		    </td>
 		  {% else %}
 		  	<td>no attachment</td>

@@ -4,6 +4,7 @@ from grades.models import NumericActivity, NumericGrade, LetterGrade
 from submission.models import SubmissionComponent
 from coredata.models import Semester
 from groups.models import Group, GroupMember
+from datetime import datetime
 
 class ActivityComponent(models.Model):
     """    
@@ -34,15 +35,29 @@ class CommonProblem(models.Model):
     def __unicode__(self):
         return "common problem %s for %s" % (self.title, self.activity_component)
      
+# a callback to avoid path in the filename(that we have append folder structure to) be striped 
+def attachment_upload_to(instance, filename):
+        """
+        append activity_slug/group_slug/ or
+               activity_slug/student/ as the parent folder path   
+        filename is already in the form of activity_slug/group_slug/orignial_filename   
+        """
+        marking_files_root = 'marking/files/'
+        now = datetime.now()
+        time_path = '/'.join([str(now.year), str(now.month), str(now.day)])
+        print marking_files_root + time_path + filename        
+        return marking_files_root + time_path + filename
+         
 class ActivityMark(models.Model):
     """
     General Marking class for one numeric activity 
     """    
+      
     overall_comment = models.TextField(null = True, max_length = 1000, blank = True)
     late_penalty = models.IntegerField(null = True, default = 0, blank = True)
     mark_adjustment = models.IntegerField(null = True, default = 0, blank = True)
     mark_adjustment_reason = models.TextField(null = True, max_length = 1000, blank = True)
-    file_attachment = models.FileField(null = True, upload_to = "marking/files/%Y/%m/%d'", blank=True)#TODO: need to add student name or group name to the path  
+    file_attachment = models.FileField(null = True, upload_to = attachment_upload_to, blank=True)#TODO: need to add student name or group name to the path  
     
     created_by = models.CharField(max_length=8, null=False, help_text='Userid who gives the mark')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -68,7 +83,7 @@ class ActivityMark(models.Model):
     
     def setMark(self, grade):
         self.mark = grade
-    
+  
 
 class StudentActivityMark(ActivityMark):
     """
@@ -87,6 +102,15 @@ class StudentActivityMark(ActivityMark):
         Set the mark
         """
         super(StudentActivityMark, self).setMark(grade) 
+        
+        # append folder structure to the file name
+        if self.file_attachment:    
+            activity = self.numeric_grade.activity
+            student = self.numeric_grade.member.person           
+            self.file_attachment.name = '/' + activity.slug + \
+                                        '/' + student.userid + \
+                                        '/' + self.file_attachment.name
+        
         self.numeric_grade.value = grade
         self.numeric_grade.flag = 'GRAD'
         self.numeric_grade.save()            
@@ -104,6 +128,11 @@ class GroupActivityMark(ActivityMark):
     
     def setMark(self, grade):
         super(GroupActivityMark, self).setMark(grade)    
+         # append folder structure to the file name
+        if self.file_attachment:               
+            self.file_attachment.name = '/' + self.numeric_activity.slug + \
+                                        '/' + self.group.slug + \
+                                        '/' + self.file_attachment.name
         #assign mark for each member in the group
         group_members = self.group.groupmember_set.filter(confirmed = True)
         for g_member in group_members:
