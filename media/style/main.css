@@ -687,6 +687,10 @@ thead.form_head th{
 }
 #main #time_block, #main #time_block tr, #main #time_block td{
     border-width: 0px;
+    padding: 0 1em 0 1em;
+}
+#time_block tr h3, #time_block td h3 {
+    margin: 0;
 }
 #time_block #late_for, #time_block #late_for h3{
     background-color: red;
