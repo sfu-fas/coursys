@@ -115,80 +115,83 @@ def add_submission(request, course_slug, activity_slug):
         if component.get_type() == 'URL':
             pair = []
             pair.append(component)
-            pair.append(SubmittedURLForm(prefix=component.id))
+            pair.append(SubmittedURLForm(request.POST, prefix=component.id))
             component_form_list.append(pair)
         elif component.get_type() == 'Archive':
             pair = []
             pair.append(component)
-            pair.append(SubmittedArchiveForm(prefix = component.id))
+            pair.append(SubmittedArchiveForm(request.POST, request.FILES,prefix = component.id))
             component_form_list.append(pair)
         elif component.get_type() == 'Cpp':
             pair = []
             pair.append(component)
-            pair.append(SubmittedCppForm(prefix = component.id))
+            pair.append(SubmittedCppForm(request.POST, request.FILES, prefix = component.id))
             component_form_list.append(pair)
         elif component.get_type() == 'Java':
             pair = []
             pair.append(component)
-            pair.append(SubmittedJavaForm(prefix = component.id))
+            pair.append(SubmittedJavaForm(request.POST, request.FILES, prefix = component.id))
             component_form_list.append(pair)
         elif component.get_type() == 'PlainText':
             pair = []
             pair.append(component)
-            pair.append(SubmittedPlainTextForm(prefix = component.id))
+            pair.append(SubmittedPlainTextForm(request.POST, prefix = component.id))
             component_form_list.append(pair)
-
     if request.method == 'POST':
-        submission_list = []    # list all the submittedComponent submitted in the POST
-        not_submitted_comp = []
-        new_sub = StudentSubmission()   # the submission foreign key
+        submitted_comp = []    # list all components which has content submitted in the POST
+        not_submitted_comp = [] #list allcomponents which has no content submitted in the POST
+        new_sub = StudentSubmission()   # the submission foreign key for newly submitted components
         new_sub.activity = activity
-        #TODO: test if the submission is a group or student submission then adit accordingly
-        #new_sub.member = get_object_or_404(Member, {'person__userid':request.user.username, 'offering__slug': course_slug})
         member = Member.objects.filter(person__userid = request.user.username)
         new_sub.member = get_object_or_404(member, offering__slug = course_slug)
-        for component in component_list:
-
-            if component.get_type() == 'URL' :
-                file = request.POST.get(str(component.id) + '-' + component.get_type().lower())
-            elif component.get_type() == 'PlainText':
-                file = request.POST.get(str(component.id) + '-' + 'text')
-            else:
-                file = request.FILES.get(str(component.id) + '-' + component.get_type().lower())
-                print request.FILES
-            print file
-            if file == None:
-                not_submitted_comp.append(component)
-            else:
-                if component.get_type() == 'URL':
-                    sub = SubmittedURL()
+        new_sub_saved = False
+        #TODO: test if the submission is a group or student submission then adit accordingly
+        for form in component_form_list:
+            form[1].component = form[0]
+            if form[1].is_valid():
+                #save the froeign submission first at the first time a submission conponent is read in
+                if new_sub_saved == False:
+                    # save the submission forgein key
+                    new_sub_saved = True
+                    new_sub.save()
+                if form[0].get_type() == 'URL' :
+                    file = request.POST.get(str(form[0].id) + '-' + form[0].get_type().lower())
+                    sub = SubmittedURL()        #submitted component
                     sub.url = file
-                elif component.get_type() == 'Archive':
-                    sub = SubmittedArchive()
-                    sub.archive = file
-                elif component.get_type() == 'Cpp':
-                    sub = SubmittedCpp()
-                    sub.cpp = file
-                elif component.get_type =='Java':
-                    sub = SubmittedJava()
-                    sub.java = file
-                elif component.get_type() == 'PlainText':
+                elif form[0].get_type() == 'PlainText':
+                    file = request.POST.get(str(form[0].id) + '-' + 'text')
                     sub = SubmittedPlainText()
                     sub.text = file
-                new_sub.save()
+                else:
+                    file = request.FILES.get(str(form[0].id) + '-' + form[0].get_type().lower())
+                    if form[0].get_type() == 'Archive':
+                        sub = SubmittedArchive()
+                        sub.archive = file
+                    if form[0].get_type() == 'Cpp':
+                        sub = SubmittedCpp()
+                        sub.cpp = file
+                    if form[0].get_type() =='Java':
+
+                        sub = SubmittedJava()
+                        sub.java = file
                 sub.submission = new_sub    #point to the submission foreign key
-                sub.component = component
-                submission_list.append(sub)
-        #TODO: enable the file type tester!
-        #print submission_list
-        if submission_list != []:
-           for submission in submission_list:
-                submission.save()
-        return HttpResponse("OK!")
-        #return _submission_test(request, course_slug, activity_slug,submission_list, not_submitted_component)
-        #)
+                sub.component = form[0]
+                sub.save()
+                submitted_comp.append(form[0])
+            else:
+                not_submitted_comp.append(form[0])
+
+# if any component submission has a error
+#            return render_to_response("submission/submission_error.html",
+#            {"course":course, "activity":activity, "component_list":component_form_list},
+#            context_instance=RequestContext(request))
+
+
+        return render_to_response("submission/submission_error.html",
+            {"course":course, "activity":activity, "component_list":component_form_list,
+            "submitted_comp":submitted_comp, "not_submitted_comp":not_submitted_comp},
+            context_instance=RequestContext(request))
     else:
-        component_list = select_all_components(activity)
         return render_to_response("submission/submission_add.html",
         {'component_form_list': component_form_list, "course": course, "activity": activity},
         context_instance = RequestContext(request))

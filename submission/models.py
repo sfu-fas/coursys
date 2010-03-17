@@ -53,6 +53,7 @@ class URLComponent(SubmissionComponent):
 class ArchiveComponent(SubmissionComponent):
     "An archive file (TGZ/ZIP/RAR) submission component"
     max_size = models.PositiveIntegerField(help_text="Maximum size of the archive file, in KB.", null=True, default=10000)
+    extension = [".zip", ".rar", ".gzip", ".tar"]
 class CppComponent(SubmissionComponent):
     "C/C++ file submission component"
     extension = [".c", ".cpp", ".cxx"]
@@ -116,6 +117,7 @@ class StudentSubmission(Submission):
     
 class GroupSubmission(Submission):
     group = models.ForeignKey(Group, null=False)
+    #TODO: add a item indicate who submit the assignment
     def get_userid(self):
         return self.group.manager.userid
     def __unicode__(self):
@@ -145,7 +147,7 @@ class SubmittedComponent(models.Model):
         return self.submit_time.strftime("%Y-%m-%d %H:%M:%S")
     def get_late_time(self):
         "return how late the submission is"
-        time = submit_time - activity.due_date
+        time = self.submission.create_at - self.activity.due_date
         if time < datetime.datedelta():
             return 0
         else:
@@ -168,25 +170,27 @@ class SubmittedComponent(models.Model):
 
 class SubmittedURL(SubmittedComponent):
     component = models.ForeignKey(URLComponent, null=False)
-    url = models.URLField(verify_exists=True)
+    url = models.URLField(verify_exists=True,blank = True)
     def get_url(self):
         return self.url
     def get_size(self):
         return None
 class SubmittedArchive(SubmittedComponent):
     component = models.ForeignKey(ArchiveComponent, null=False)
-    archive = models.FileField(upload_to="submittedarchive") # TODO: change to a more secure directory
+    archive = models.FileField(upload_to="submittedarchive", blank = True) # TODO: change to a more secure directory
     def get_url(self):
         return self.archive.url
     def get_size(self):
         return self.archive.size
+
 class SubmittedCpp(SubmittedComponent):
     component = models.ForeignKey(CppComponent, null=False)
-    cpp = models.FileField(upload_to="submittedcpp") # TODO: change to a more secure directory
+    cpp = models.FileField(upload_to="submittedcpp", blank = True) # TODO: change to a more secure directory
     def get_url(self):
         return self.cpp.url
     def get_size(self):
         return self.cpp.size
+
 class SubmittedPlainText(SubmittedComponent):
     component = models.ForeignKey(PlainTextComponent, null=False)
     text = models.TextField(max_length=3000)
@@ -194,9 +198,10 @@ class SubmittedPlainText(SubmittedComponent):
         return self.text.url
     def get_size(self):
         return self.text.size
+
 class SubmittedJava(SubmittedComponent):
     component = models.ForeignKey(JavaComponent, null=False)
-    java = models.FileField(upload_to="submittedjava") # TODO: change to a more secure directory
+    java = models.FileField(upload_to="submittedjava", blank = True) # TODO: change to a more secure directory
     def get_url(self):
         return self.java.url
     def get_size(self):
@@ -228,6 +233,23 @@ def select_students_submission_by_component(component, userid):
     new_submitted_component.sort()
     return new_submitted_component
 
-#def select_students_newest_submission_by_component(component, userid):
-#    component_list = select_students_submission_by_component(component, userid)
-#    component_list.get()
+def filetype(file):
+  """
+  Do some magic to guess the filetype.
+  """
+  # methods extracted from the magic file (/usr/share/file/magic)
+  # why not just check the filename?  Students seem to randomly rename.
+  file.seek(0)
+  magic = file.read(4)
+  if magic=="PK\003\004" or magic=="PK00":
+      return ".ZIP"
+  elif magic=="Rar!":
+      return ".RAR"
+  elif magic[0:2]=="\037\213":
+      return ".GZIP"
+
+  file.seek(257)
+  if file.read(5)=="ustar":
+      return ".TAR"
+
+  return file.name[file.name.rfind('.'):]

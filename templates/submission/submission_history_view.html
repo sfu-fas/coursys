@@ -8,6 +8,7 @@
 {% endblock %}
 
 {% block content %}
+ <a href="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug%}" class="button">back</a>
 <!--{% regroup submitted_component|dictsort:"component" by component as by_component %}-->
 {% ifequal submitted_component None %}
     <h2>Currently you have no submission for this activity.</h2>
