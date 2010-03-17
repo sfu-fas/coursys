@@ -1,8 +1,3 @@
-/* Override SFU template style */
-#container {
-  z-index: auto;
-}
-
 /* some mods to SFU template CSS */
 div#main p {
   margin-top: 1em;
@@ -14,6 +9,21 @@ div#main p {
 div#main h3 {
   margin-top: 1em;
 }
+/* uncomment the following to remove menu for more screen space */
+ul#main_nav {
+  display: none;
+}
+#container {
+  z-index: auto;
+  background-image:url(bgImageWhiteRight.gif);
+  padding-left: 40px;
+  right: auto;
+  width: 940px;
+}
+div#header, div#footer {
+  padding-left: 205px;
+}
+
 
 /* CSS for system elements */
 /* SFU colours: (as found at http://www.sfu.ca/clf/web/index.html)
@@ -368,11 +378,12 @@ table.info {
   width: 600px;
 }
 .datatable_container {
-  width: 700px;
+  /*width: 700px;*/
+  margin: 0 1em 0 0;
 }
 
 .table_container p.errorindicator {
-	border: 2px solid red;
+    border: 2px solid red;
     padding: 0.5em;
     background-color: #fffead;
     color: red;
