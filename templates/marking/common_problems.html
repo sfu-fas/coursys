@@ -6,8 +6,9 @@
     $(document).ready(function() {
 	oTable = $('#common_problems').dataTable({
 		"bJQueryUI": true,
-		"sPaginationType": "full_numbers",
-		"aaSorting": [[ 4, "asc" ]]		
+		"bSort": false,
+		"bInfo": false,
+		"bPaginate": false,	
 	});
     });
 </script>
@@ -25,7 +26,7 @@
     {{ formset.management_form }} 
      <div class = "datatable_container">
        <table class="display" id="common_problems">
-        <thead>
+        <thead class="form_head">
           <tr>             
              <th>Associated Component</th>
              <th>Title</th>

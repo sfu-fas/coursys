@@ -24,7 +24,7 @@ Student {{student.userid}} marked on {{activity.name}}
 	    <tr>
 	    	<th  class="ui-state-default">Time</th>
 	        <td>
-	            {{activity_mark.created_at|date:"d M Y"}} {{activity_mark.created_at|time:"H:i:s"}}
+	            {{activity_mark.created_at|date:"Y M d D"}} {{activity_mark.created_at|time:"H:i:s"}}
 	        </td>
 	    </tr>
 	    <tr>
@@ -74,6 +74,8 @@ Student {{student.userid}} marked on {{activity.name}}
     </tbody>
     </table>
 </div>
+{% empty %}
+<h3>No records on component marks found</h3>
 {% endfor %}
 
 

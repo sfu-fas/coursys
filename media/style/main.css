@@ -630,6 +630,12 @@ fieldset .hidden {
 	display: none;
 }
 
+thead.form_head th{
+	border:1px solid white;
+	color:#555555;
+	outline:medium none;
+}
+
 /* navigator style for selecting different form */
 #form_nav {
     margin: 0 0 1em 0;

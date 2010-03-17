@@ -1,6 +1,6 @@
 from models import *
 from django.forms import ModelForm
-from django.forms import forms
+from django import forms
 from django.forms.models import BaseModelFormSet
 
 class ActivityComponentMarkForm(ModelForm):
@@ -82,7 +82,7 @@ class BaseCommonProblemFormSet(BaseModelFormSet):
     
     def clean(self):
         """Checks the following:
-        1. no two common problems fro a same component have the same title  
+        1. no two common problems in a same component have the same title  
         2. penalty of each common problem is non-negative
         3. penalty of each common problem does not exceed the max mark of its corresponding component
         """   
@@ -122,4 +122,25 @@ class BaseCommonProblemFormSet(BaseModelFormSet):
                 if penalty > component.max_mark:
                     raise forms.ValidationError(u"Penalty of a common problem must not exceed its corresponding component")
                           
+
+class MarkEntryForm(forms.Form):
+    STATUS_CHOICES = [  ('GRAD', 'Graded'), 
+                        ('EXCU', 'Excused'), 
+                        ('DISH', 'Dishonest') ] 
+    value = forms.DecimalField(max_digits=5, decimal_places=2, required=False)
+    status = forms.ChoiceField(choices=STATUS_CHOICES, initial = 'GRAD', required=False)
+    
+    def __init__(self, max_grade, *args, **kwargs):
+        super(MarkEntryForm, self).__init__(*args, **kwargs)
+        self.max_grade = max_grade
+    
+    def clean_value(self):
+        value = self.cleaned_data['value']
+        if value:
+            if value < 0:
+                raise forms.ValidationError(u"Mark cannot be negative")
+            elif value > self.max_grade:
+                raise forms.ValidationError(u"Mark too high")
+        return value
         
+                          

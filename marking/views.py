@@ -181,7 +181,6 @@ def _initialize_component_mark_forms(components, component_mark_forms, base_acti
         i = 0
         for i in range(leng):
             c_mark = component_mark_dict[components[i].title]
-            data = {'comment':c_mark.comment, 'value':c_mark.value,}
             component_mark_forms.append(ActivityComponentMarkForm(prefix = "cmp-form-%s" % (i+1),\
                           instance = c_mark))            
         
@@ -432,6 +431,7 @@ def mark_history(request, course_slug, activity_slug, userid):
     
 
 import csv
+@requires_course_staff_by_slug
 def export_csv(request, course_slug, activity_slug):
     # Create the HttpResponse object with the appropriate CSV header.    
     course = get_object_or_404(CourseOffering, slug = course_slug)    
@@ -457,5 +457,80 @@ def export_csv(request, course_slug, activity_slug):
         writer.writerow(row)
 
     return response
+
+@requires_course_staff_by_slug
+def mark_all_students(request, course_slug, activity_slug):
+    course = get_object_or_404(CourseOffering, slug = course_slug)
+    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)
+    memberships = Member.objects.filter(offering = course, role = 'STUD')    
+    
+    rows = []
+    error_info = None 
+    if request.method == 'POST':
+        forms = []   
+        ngrades = []   
+        for member in memberships: 
+            student = member.person  
+            entry_form = MarkEntryForm(max_grade = activity.max_grade, data = request.POST, prefix = student.userid)
+            if entry_form.is_valid() == False:
+                error_info = 'Invalid mark found'
+            forms.append(entry_form)
+            ngrade = None
+            try:
+                ngrade = NumericGrade.objects.get(activity = activity, member = member)
+            except NumericGrade.DoesNotExist:
+                current_grade = 'Not Graded'
+            else:
+                current_grade =  ngrade.flag == 'GRAD' and ngrade.value or ngrade.flag
+            ngrades.append(ngrade)
+            rows.append({'student': student, 'current_grade' : current_grade, 'form' : entry_form})    
+   
+    if not error_info:                    
+        for i in range(len(memberships)): 
+           ngrade = ngrades[i]
+           new_value = forms[i].cleaned_data['value'] 
+           if new_value == None:
+               continue 
+           if ngrade and ngrade.value == new_value:
+                print "do not need to update"
+           else:# save data 
+                if ngrade == None:
+                    ngrade = NumericGrade(activity = activity, member = memberships[i]);
+                    ngrade.save()
+                # created a new activity_mark as well
+                activity_mark = StudentActivityMark(numeric_grade = ngrade, created_by = request.user.username)
+                activity_mark.setMark(new_value)
+                activity_mark.save()
+                #add to log           
+                l = LogEntry(userid=request.user.username, \
+                             description="edited grade on %s for student %s changed to %s" % \
+                            (activity, student.userid, new_value), related_object=activity_mark)                     
+                l.save()                         
+         
+        messages.add_message(request, messages.SUCCESS, 'Marking for all students on activity %s saved' % activity.name)
+        return HttpResponseRedirect(reverse('grades.views.activity_info', args=(course_slug, activity_slug)))  
+                
+    else: # for GET request       
+        for member in memberships: 
+            student = member.person              
+            try:
+                ngrade = NumericGrade.objects.get(activity = activity, member = member)
+            except NumericGrade.DoesNotExist:
+                current_grade = 'Not Graded'
+            else:
+                current_grade =  ngrade.flag == 'GRAD' and ngrade.value or ngrade.flag        
+            
+            entry_form = MarkEntryForm(max_grade = activity.max_grade, prefix = student.userid)       
+            rows.append({'student': student, 'current_grade' : current_grade, 'form' : entry_form})   
+               
+    if error_info:
+        messages.add_message(request, messages.ERROR, error_info)   
+    
+    return render_to_response("marking/mark_all.html", 
+                              {'course': course, 'activity': activity, 'mark_all_rows': rows},                              
+                              context_instance = RequestContext(request))
+     
+     
+            
 
     
