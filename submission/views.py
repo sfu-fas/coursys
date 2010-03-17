@@ -615,15 +615,16 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid):
     if request.GET.get('confirm') == None:
         for c in component:
             if c.submission.owner != None and c.submission.owner.person.userid != request.user.username:
-                return _override_ownership_confirm(request, course, activity, userid, c.submission.owner.person)
+                return _override_ownership_confirm(request, course, activity, userid, c.submission.owner.person, activity_mark_suffix, from_page_suffix)
             
     for c in component:
         c.submission.set_owner(course, request.user.username)
     return response
 
-def _override_ownership_confirm(request, course, activity, userid, old_owner):
+def _override_ownership_confirm(request, course, activity, userid, old_owner, activity_suffix, from_suffix):
     student = get_object_or_404(Person, userid=userid)
     
     return render_to_response("submission/override_ownership_confirm.html",
-        {"course":course, "activity":activity, "student":student, "old_owner":old_owner, "true":True},
+        {"course":course, "activity":activity, "student":student, "old_owner":old_owner, "true":True,
+        "activity_suffix":activity_suffix, "from_suffix":from_suffix},
         context_instance=RequestContext(request))
