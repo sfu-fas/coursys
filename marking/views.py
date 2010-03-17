@@ -180,11 +180,13 @@ def _initialize_component_mark_forms(components, component_mark_forms, base_acti
             component_mark_dict[c_mark.activity_component.title] = c_mark    
         i = 0
         for i in range(leng):
-            c_mark = component_mark_dict[components[i].title]
-            component_mark_forms.append(ActivityComponentMarkForm(prefix = "cmp-form-%s" % (i+1),\
-                          instance = c_mark))            
-        
-        
+            if component_mark_dict.has_key(components[i].title):
+                c_mark = component_mark_dict[components[i].title]            
+                component_mark_forms.append(ActivityComponentMarkForm(prefix = "cmp-form-%s" % (i+1),\
+                              instance = c_mark))            
+            else:
+                component_mark_forms.append(ActivityComponentMarkForm(prefix = "cmp-form-%s" % (i+1))) 
+          
     
 # request to marking view may comes from different pages
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo'}   
