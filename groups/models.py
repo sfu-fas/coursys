@@ -1,6 +1,7 @@
 from django.db import models
 from coredata.models import Member, CourseOffering
 from autoslug import AutoSlugField
+from grades.models import Activity
 
 class Group(models.Model):
     """
@@ -25,12 +26,13 @@ class GroupMember(models.Model):
     """
     Member information of each group
     """
-    group=models.ForeignKey(Group)
-    student= models.ForeignKey(Member)
-    confirmed= models.BooleanField(default = False)
+    group = models.ForeignKey(Group)
+    student = models.ForeignKey(Member)
+    confirmed = models.BooleanField(default = False)
+    activity = models.ForeignKey(Activity) 
 
     def __unicode__(self):
 	    return '%s %s' % (self.student.person, self.group)
 	
     class Meta:
-        unique_together = ("group", "student")
+        unique_together = ("group", "student", "activity")

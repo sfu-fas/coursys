@@ -2,9 +2,12 @@
 from django.contrib.auth.decorators import login_required
 from coredata.models import Member, Person, CourseOffering
 from groups.models import *
+from grades.models import Activity
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext
-from groups.forms import GroupForm
+from groups.forms import *
+from django.forms.models import modelformset_factory
+from django.forms.formsets import formset_factory
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from contrib import messages
@@ -40,22 +43,46 @@ def _groupmanage_staff(request, course_slug):
 
 @requires_course_by_slug
 def create(request,course_slug):
-    p = get_object_or_404(Person,userid=request.user.username)
-    c = get_object_or_404(CourseOffering, slug = course_slug)
-    group_manager=Member.objects.get(person = p, offering = c)
-    return render_to_response('groups/create.html', {'manager':group_manager, 'course':c},context_instance = RequestContext(request)) 
+    person = get_object_or_404(Person,userid=request.user.username)
+    course = get_object_or_404(CourseOffering, slug = course_slug)
+    group_manager=Member.objects.get(person = person, offering = course)
+    
+    #TODO can instructor create group based on unreleased activities?
+    activities = Activity.objects.filter(offering = course, status = 'RLS')
+    #activities = Activity.objects.filter(offering = course)
+    initialData = []
+    for i in range(len(activities)):
+        activity = dict(selected = False, name = activities[i].name, \
+                        percent = activities[i].percent, due_date = activities[i].due_date)
+        print "act: %s", activity
+        initialData.append(activity)
+        
+    Formset = formset_factory(ActivityForm, extra = 0)
+    formset = Formset(initial = initialData)
+    
+    return render_to_response('groups/create.html', {'manager':group_manager, 'course':course, 'formset':formset},context_instance = RequestContext(request)) 
 
 @requires_course_by_slug
 def submit(request,course_slug):
-    p = get_object_or_404(Person,userid=request.user.username)
-    c = get_object_or_404(CourseOffering, slug = course_slug)
-    m = Member.objects.get(person = p, offering = c)
+    #TODO: validate group name and activity
+    person = get_object_or_404(Person,userid=request.user.username)
+    course = get_object_or_404(CourseOffering, slug = course_slug)
+    member = Member.objects.get(person = person, offering = course)
     name = request.POST['GroupName']
-    g = Group(name = name, manager = m, courseoffering=c)
-    g.save()
+    group = Group(name = name, manager = member, courseoffering=course)
+    group.save()
     
-    gm = GroupMember(group=g, student=m, confirmed=True)
-    gm.save()
+    #Deal with creating the membership
+    ActivityFormset = formset_factory(ActivityForm)
+    formset = ActivityFormset(request.POST)
+    
+    if formset.is_valid():      
+        print formset.cleaned_data
+        for i in range(len(formset.cleaned_data)):
+            if formset.cleaned_data[i]['selected'] == True:
+                activity = Activity.objects.get(offering = course, name = formset.cleaned_data[i]['name'])
+                groupMember = GroupMember(group=group, student=member, confirmed=True, activity = activity)
+                groupMember.save()
     
     messages.add_message(request, messages.SUCCESS, 'Group Created')
     return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
