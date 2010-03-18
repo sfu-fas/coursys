@@ -25,5 +25,8 @@ def validate_content(testcase, data, page_descr="unknown page"):
         #print "-"*40
         #print data
         #print "-"*40
+        #fh = open("/tmp/validation.html", "w")
+        #fh.write(data)
+        #fh.close()
         testcase.fail("Invalid XHTML produced in %s:\n  %s" % (page_descr, str(e)))
 

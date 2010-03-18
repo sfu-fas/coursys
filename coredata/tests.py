@@ -14,7 +14,7 @@ def create_semester():
 def create_offering():
     s = create_semester()
     c = CourseOffering(subject="CMPT", number="120", section="D100", semester=s, component="LEC",
-                graded=True, crse_id=11111, class_nbr=22222, campus='BRNBY',
+                graded=True, crse_id=11111, class_nbr=22222, campus='BRNBY', title="Computer Stuff",
                 enrl_cap=100, enrl_tot=99, wait_tot=2)
     c.save()
     return s, c

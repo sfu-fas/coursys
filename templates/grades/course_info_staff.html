@@ -1,6 +1,7 @@
 {% extends "grades/base.html" %}
 
-{% block h1 %}Course Information{% endblock %}
+{% block title %}{{ course.subject }} {{ course.number }} Course Information{% endblock %}
+{% block h1 %}{{ course.subject }} {{ course.number }} Course Information{% endblock %}
 
 {% block grades_headextra %}
 <script type="text/javascript">
@@ -18,66 +19,47 @@
 </script>
 {% endblock %}
 
-{% block breadcrumbs_extra %}
-<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
-{% endblock %}
-
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }} ({{course.semester.label}})</a></li>{% endblock %}
 
 {% block content %}
 <div class="table_container">
     <table class="info">
         <tbody>
             <tr>
-                <th class="ui-state-default">Course Number</th>
-                <td>
-                    {{ course.subject }} {{ course.number }}
-                </td>
+                <th scope="row">Course Number</th>
+                <td>{{ course.subject }} {{ course.number }}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">Section</th>
-                <td>
-                    {{ course.section }}
-                </td>
+                <th scope="row">Section</th>
+                <td>{{ course.section }}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">Semester</th>
-                <td>
-                    {{ course.semester.label }}
-                </td>
+                <th scope="row">Semester</th>
+                <td>{{ course.semester.label }}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">Title</th>
-                <td>
-                    {{ course.title }}
-                </td>
+                <th scope="row">Title</th>
+                <td>{{ course.title }}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">Campus</th>
-                <td>
-                    {{ course.get_campus_display }}
-                </td>
+                <th scope="row">Campus</th>
+                <td>{{ course.get_campus_display }}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">Instructor(s)</th>
-                <td>
-                    {% for instructor in course.instructors %}
+                <th scope="row">Instructor(s)</th>
+                <td>{% for instructor in course.instructors %}
                     {{ instructor.name }} (<a href="mailto:{{ instructor.email }}">{{ instructor.email }}</a>){% if not forloop.first %},{% endif %}
-                    {% endfor %}
-                </td>
+                    {% endfor %}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">TA(s)</th>
-                <td>
-                    {% for ta in course.tas %}
+                <th scope="row">TA(s)</th>
+                <td>{% for ta in course.tas %}
                     {{ ta.name }} (<a href="mailto:{{ ta.email }}">{{ ta.email }}</a>){% if not forloop.first %},{% endif %}
-                    {% endfor %}
-                </td>
+                    {% endfor %}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">Number of Students</th>
-                <td>
-                    {{ course.student_count }}
-                </td>
+                <th scope="row">Number of Students</th>
+                <td>{{ course.student_count }}</td>
             </tr>
         </tbody>
     </table>
@@ -90,16 +72,16 @@
 <div class="datatable_container">
     <h2>Course Activities</h2>
     <a class="redbutton" href="{% url grades.views.add_numeric_activity course_slug=course.slug %}">Add Activity</a>
-    <br/>
+
     <table class="display" id="activities">
         <thead>
             <tr>
-                <th class="ui-state-default">Order</th>
-                <th class="ui-state-default">Activity</th>
-                <th class="ui-state-default">Max Grade</th>
-                <th class="ui-state-default">Percentage</th>
-                <th class="ui-state-default">Status</th>
-                <th class="ui-state-default">Due Date</th>
+                <th scope="col">Order</th>
+                <th scope="col">Activity</th>
+                <th scope="col">Max Grade</th>
+                <th scope="col">Percentage</th>
+                <th scope="col">Status</th>
+                <th scope="col">Due Date</th>
             </tr>
         </thead>
         <tbody>
@@ -108,23 +90,21 @@
             <tr>
                 <td>
                     {% if not forloop.first %}
-                    <a href="{% url grades.views.course_info course_slug=course.slug %}?order=up&act={{ activity.slug }}">
-                        <span class="position_button ui-state-default ui-icon ui-icon-arrowthick-1-n"></span>
+                    <a href="{% url grades.views.course_info course_slug=course.slug %}?order=up&amp;act={{ activity.slug }}">
+                        <span class="position_button ui-state-default ui-icon ui-icon-arrowthick-1-n">&uarr;</span>
                     </a>
                     {% endif %}
                     {% if forloop.first %}
-                    <span class="position_placeholder"></span>
+                    <span class="position_placeholder"> </span>
                     {% endif %}
                     {% if not forloop.last %}
-                    <a href="{% url grades.views.course_info course_slug=course.slug %}?order=down&act={{ activity.slug }}">
-                        <span class="position_button ui-state-default ui-icon ui-icon-arrowthick-1-s"></span>
+                    <a href="{% url grades.views.course_info course_slug=course.slug %}?order=down&amp;act={{ activity.slug }}">
+                        <span class="position_button ui-state-default ui-icon ui-icon-arrowthick-1-s">&darr;</span>
                     </a>
                     {% endif %}
                 </td>
-                <td>
-                    <strong>
+                <td scope="row">
                         <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">{{ activity.name }}</a>
-                    </strong>
                     <div class="row-actions">
                         <span><a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">Info</a> | </span>
                         {% ifequal activity_info.type 'Numeric Graded' %}
@@ -135,38 +115,22 @@
                     </div>
                 </td>
                 {% if activity.max_grade %}
-                <td>
-                    {{ activity.max_grade }}
-                </td>
+                <td>{{ activity.max_grade }}</td>
                 {% else %}
-                <td>--</td>
+                <td>&mdash;</td>
                 {% endif %}
 		{% if activity.percent %}
                 <td>{{ activity.percent }}%</td>
 		{% else %}
-                <td>--</td>
+                <td>&mdash;</td>
                 {% endif %}
-                {% ifequal activity.status 'RLS' %}
-                <td class="green">
-                    {{ activity.get_status_display }}
-                </td>
-                {% endifequal %}
-                {% ifequal activity.status 'URLS' %}
-                <td class="red">
-                    {{ activity.get_status_display }}
-                </td>
-                {% endifequal %}
-                {% ifequal activity.status 'INVI' %}
-                <td class="grey">
-                    {{ activity.get_status_display }}
-                </td>
-                {% endifequal %}
+                <td class="{{activity.status|lower}}">{{ activity.get_status_display }}</td>
                 <td>{{ activity.due_date }}</td>
             </tr>
             {% endwith %}
 	    {% empty %}
 	    <tr>
-		<td>No activity</td>
+		<td class="empty">No activity</td>
 		<td></td>
 		<td></td>
 		<td></td>

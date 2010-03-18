@@ -4,6 +4,10 @@ from grades.models import *
 from coredata.tests import create_offering
 import pickle
 
+from django.test.client import Client
+from settings import CAS_SERVER_URL
+from courselib.testing import *
+
 expr_vals = { # dictionary of assignment marks for formula testing
     'A1': 10,
     'A2': 30,
@@ -30,6 +34,8 @@ test_formulas = [ # expression, correct-result pairs
         ]
 
 class GradesTest(TestCase):
+    fixtures = ['test_data']
+    
     def setUp(self):
         pass
 
@@ -86,7 +92,63 @@ class GradesTest(TestCase):
         self.assertEqual(allact[0].slug, 'proj') # make sure position=1 is first
         self.assertEqual(type(allact[1]), NumericActivity)
         self.assertEqual(type(allact[3]), CalNumericActivity)
+        
+    def test_activity_pages(self):
+        """
+        Test pages around activities
+        """
+        s, c = create_offering()
+
+        # add some assignments and members
+        a = NumericActivity(name="Assignment 1", short_name="A1", status="RLS", offering=c, position=2, max_grade=15, percent=10)
+        a.save()
+        a = NumericActivity(name="Assignment 2", short_name="A2", status="URLS", offering=c, position=6, max_grade=20)
+        a.save()
+        p = Person.objects.get(userid="ggbaker")
+        m = Member(person=p, offering=c, role="INST", added_reason="UNK")
+        m.save()
+        p = Person.objects.get(userid="0kvm")
+        m = Member(person=p, offering=c, role="STUD", added_reason="UNK")
+        m.save()
+        
+        # test instructor pages
+        client = Client()
+        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+
+        url = '/' + c.slug + '/'
+        response = client.get(url)
+        self.assertEquals(response.status_code, 200)
+        validate_content(self, response.content, url)
+        self.assertContains(response, 'href="/' + c.slug + '/groups"')
+
+        url = '/' + c.slug + '/a1'
+        response = client.get(url)
+        self.assertEquals(response.status_code, 200)
+        validate_content(self, response.content, url)
+
+        url = '/' + c.slug + '/a1/students/0kvm'
+        response = client.get(url)
+        self.assertEquals(response.status_code, 200)
+        validate_content(self, response.content, url)
+
+        url = '/' + c.slug + '/new_numeric'
+        response = client.get(url)
+        self.assertEquals(response.status_code, 200)
+        validate_content(self, response.content, url)
+        url = '/' + c.slug + '/new_letter'
+        response = client.get(url)
+        self.assertEquals(response.status_code, 200)
+        validate_content(self, response.content, url)
 
 
+        # test student pages
+        client = Client()
+        client.login(ticket="0kvm", service=CAS_SERVER_URL)
+        url = '/' + c.slug + '/'
+        response = client.get(url)
+        self.assertEquals(response.status_code, 200)
+        validate_content(self, response.content, url)
+        self.assertContains(response, "Gregory Garnet Baker")
+        self.assertContains(response, 'href="/' + c.slug + '/groups"')
 
 

@@ -100,10 +100,15 @@ table {
 table td, table th {
   border: 1px solid black;
   padding: 0.1em 0.25em;
+  vertical-align: top;
 }
 table th {
-  background-color: #ddd;
   font-size: 110%;
+  /* from jqueryui .ui-state-default */
+  border: 1px solid #d3d3d3; background: #e6e6e6 url(images/ui-bg_glass_75_e6e6e6_1x400.png) 50% 50% repeat-x; font-weight: normal; color: #555555; outline: none;
+}
+td[scope] {
+  font-weight: bold;
 }
 .dataTables_wrapper {
   margin: 1em 0;
@@ -121,7 +126,7 @@ th.sorting_asc, th.sorting_desc {
     clear: both;
     
     /* Override style in "media/style/main.css" */
-    margin: 0;
+    margin: 1em 0 0 0;
     zoom: 1; /* Feeling sorry for IE */
 }
 .dataTables_length {
@@ -220,6 +225,7 @@ tr.even {
 /* Row action in course activity page  */
 .row-actions {
   visibility: hidden;
+  font-weight: normal;
 }
 tr:hover .row-actions {
   visibility: visible;
@@ -232,7 +238,7 @@ tr:hover .row-actions {
 .activity_box {
   -moz-border-radius: 6px 6px 6px 6px;
   border: 1px solid #ccc;
-  margin-bottom: 20px;
+  margin: 1em 0 20px 0.5em;;
   width: 600px;
   margin-left: 0.5em;
 }
@@ -243,12 +249,13 @@ tr:hover .row-actions {
   padding: 5px 20px 5px 0px;
   color: #555555;
 }
-.activity_box .heading {
+.activity_box h3 {
   background: url("/media/images/grades/gray-grad.png") repeat-x left top #DFDFDF;
   color: #555555;
   font-weight: bold;
   font-size: 1.2em;
-  padding: 5px;
+  padding: 5px!important;
+  margin: 0!important;
 }
 .activity_box .inside {
   margin: 10px;
@@ -326,7 +333,7 @@ table.activity_box_info {
 }
 
 /* red button */
-#main a.redbutton#submit_button {
+#main a.redbutton.submit_button {
     margin: 0.5em;
     float: right;
     clear: both;

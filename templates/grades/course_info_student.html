@@ -1,6 +1,7 @@
 {% extends "grades/base.html" %}
 
-{% block h1 %}{{course.name}}, {{ course.semester.label }}{% endblock %}
+{% block title %}{{ course.subject }} {{ course.number }} Course Information{% endblock %}
+{% block h1 %}{{ course.subject }} {{ course.number }} Course Information{% endblock %}
 
 {% block grades_headextra %}
 <link rel="stylesheet" href="{{MEDIA_URL}}visualize/visualize.jQuery.css" type="text/css" />
@@ -14,60 +15,43 @@
 </script>
 {% endblock %}
 
-{% block breadcrumbs_extra %}
-<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
-{% endblock %}
-
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }} ({{course.semester.label}})</a></li>{% endblock %}
 
 {% block content %}
 <div class="table_container">
     <table class="info">
         <tbody>
             <tr>
-                <th class="ui-state-default">Course Number</th>
-                <td>
-                    {{ course.subject }} {{ course.number }}
-                </td>
+                <th scope="row">Course Number</th>
+                <td>{{ course.subject }} {{ course.number }}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">Section</th>
-                <td>
-                    {{ course.section }}
-                </td>
+                <th scope="row">Section</th>
+                <td>{{ course.section }}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">Semester</th>
-                <td>
-                    {{ course.semester.label }}
-                </td>
+                <th scope="row">Semester</th>
+                <td>{{ course.semester.label }}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">Title</th>
-                <td>
-                    {{ course.title }}
-                </td>
+                <th scope="row">Title</th>
+                <td>{{ course.title }}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">Campus</th>
-                <td>
-                    {{ course.get_campus_display }}
-                </td>
+                <th scope="row">Campus</th>
+                <td>{{ course.get_campus_display }}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">Instructor(s)</th>
-                <td>
-                    {% for instructor in course.instructors %}
+                <th scope="row">Instructor(s)</th>
+                <td>{% for instructor in course.instructors %}
                     {{ instructor.name }} (<a href="mailto:{{ instructor.email }}">{{ instructor.email }}</a>){% if not forloop.first %},{% endif %}
-                    {% endfor %}
-                </td>
+                    {% endfor %}</td>
             </tr>
             <tr>
-                <th class="ui-state-default">TA(s)</th>
-                <td>
-                    {% for ta in course.tas %}
+                <th scope="row">TA(s)</th>
+                <td>{% for ta in course.tas %}
                     {{ ta.name }} (<a href="mailto:{{ ta.email }}">{{ ta.email }}</a>){% if not forloop.first %},{% endif %}
-                    {% endfor %}
-                </td>
+                    {% endfor %}</td>
             </tr>
         </tbody>
     </table>
@@ -82,51 +66,47 @@
     <table class="info">
 	<thead>
 	    <tr>
-		<th class="ui-state-default">Activity</th>
-		<th class="ui-state-default">Status</th>
-		<th class="ui-state-default">Grade</th>
+		<th scope="col">Activity</th>
+		<th scope="col">Status</th>
+		<th scope="col">Grade</th>
 	    </tr>
 	</thead>
         <tbody>
 	    {% for activityinfo in activityinfo_list %}
             <tr>
-		<td><a href="#{{ activityinfo.activity.slug }}">{{ activityinfo.activity.display_label }}</a></td>
+		<td scope="row"><a href="#act-{{ activityinfo.activity.slug }}">{{ activityinfo.activity.display_label }}</a></td>
 		<td>{{ activityinfo.display_grade_status_student }}</td>
 		<td>{{ activityinfo.display_grade_student }}</td>
             </tr>
 	    {% empty %}
 	    <tr>
-		<td colspan="3">No activity</td>
+		<td colspan="3" class="empty">No activities</td>
 	    </tr>
 	    {% endfor %}
 	</tbody>
     </table>
 </div>
-<br/>
-<br/>
-<br/>
+
+<h2>Activity Details</h2>
 {% for activityinfo in activityinfo_list %}
 <div class="activity_box">
     <div class="grade">Grade: {{ activityinfo.display_grade_with_percentage_student }}</div>
-    <div class="heading">
-	{{ activityinfo.activity.display_label }}<a name="{{ activityinfo.activity.slug }}"></a>
-    </div>
-    <div><a class="redbutton" id="submit_button" href="{% url submission.views.show_components course.slug, activityinfo.activity.slug%}">Submit</a></div>
+    <h3 class="heading" id="act-{{ activityinfo.activity.slug }}">{{ activityinfo.activity.display_label }}</h3>
+    <div><a class="redbutton submit_button" href="{% url submission.views.show_components course.slug, activityinfo.activity.slug%}">Submit</a></div>
     <div class="inside">
 	<table class="activity_box_info">
 	    <tbody>
 		<tr>
-		    <th>Due Date</th>
+		    <th scope="col">Due Date</th>
 		    <td>{{ activityinfo.activity.due_date }}</td>
 		</tr>
 		{% ifequal activityinfo.activity.status 'RLS' %}
 		{% if activityinfo.activity_stat %}
 		<tr>
-		    <th>Statistics</th>
+		    <th scope="col" rowspan="2">Statistics</th>
 		    <td>Average Grade={{ activityinfo.activity_stat.average }}</td>
 		</tr>
 		<tr>
-		    <td></td>
 		    <td>
 			Min={{ activityinfo.activity_stat.min }}, Max={{ activityinfo.activity_stat.max }},
 			Median={{ activityinfo.activity_stat.median }}, StdDev={{ activityinfo.activity_stat.stddev }}
@@ -144,13 +124,13 @@
 		<tr>
 		    <td></td>
 		    {% for grade_range_stat in activityinfo.activity_stat.grade_range_stat_list %}
-		    <th class="ui-state-default">{{ grade_range_stat.grade_range }}</th>
+		    <th scope="col">{{ grade_range_stat.grade_range }}</th>
 		    {% endfor %}
 		</tr>
 	    </thead>
 	    <tbody>
 		<tr>
-		    <th class="ui-state-default">{{ activityinfo.activity.name }}</th>
+		    <th scope="row">{{ activityinfo.activity.name }}</th>
 		    {% for grade_range_stat in activityinfo.activity_stat.grade_range_stat_list %}
 		    <td>{{ grade_range_stat.stud_count }}</td>
 		    {% endfor %}

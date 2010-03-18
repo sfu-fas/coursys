@@ -90,10 +90,8 @@
         <tbody>
 	    {% for student_grade_info in student_grade_info_list %}
 	    <tr>
-		<td>
-		    <strong>
-			<a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}?id={{ student_grade_info.id }}">{{ student_grade_info.name }}</a>
-		    </strong>
+		<td scope="row">
+			<a href="{% url grades.views.activity_info_student course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid%}">{{ student_grade_info.name }}</a>
 		</td>
 		<td>{{ student_grade_info.emplid }}</td>
 		<td>{{ student_grade_info.grade_status }}</td>
@@ -107,7 +105,7 @@
 		</td>
 		<td>
 		    <a href="{% url submission.views.show_student_submission_staff course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View" alt="View" /></a>
-            <a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid %}" target="_blank"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="Download" alt="Download" /></a>
+            <a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid %}"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="Download" alt="Download" /></a>
 		</td>
 	    </tr>
 	    {% empty %}

@@ -78,26 +78,31 @@ def _course_info_student(request, course_slug):
 def activity_info(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activities = all_activities_filter(slug=activity_slug, offering=course)
-    if (len(activities) == 1):
-        activity = activities[0]
-        id = None
-        if request.GET.has_key('id'):
-            id = request.GET['id']
-        if not id:
-            student_grade_info_list = create_StudentActivityInfo_list(course, activity)
-            if isinstance(activity, NumericActivity):
-                activity_type = ACTIVITY_TYPE['NG']
-            elif isinstance(activity, LetterActivity):
-                activity_type = ACTIVITY_TYPE['LG']
-            context = {'course': course, 'activity_type': activity_type, 'activity': activity, 'student_grade_info_list': student_grade_info_list, 'from_page': FROMPAGE['activityinfo']}
-            return render_to_response('grades/activity_info.html', context, context_instance=RequestContext(request))
-        else:
-            student = get_object_or_404(Person, id=id)
-            student_grade_info = create_StudentActivityInfo_list(course, activity, student)[0]
-            context = {'course': course, 'activity': activity, 'student_grade_info': student_grade_info}
-            return render_to_response('grades/student_grade_info.html', context, context_instance=RequestContext(request))
-    else:
+    if len(activities) != 1:
         raise Http404
+        
+    activity = activities[0]
+    student_grade_info_list = create_StudentActivityInfo_list(course, activity)
+    if isinstance(activity, NumericActivity):
+        activity_type = ACTIVITY_TYPE['NG']
+    elif isinstance(activity, LetterActivity):
+        activity_type = ACTIVITY_TYPE['LG']
+    context = {'course': course, 'activity_type': activity_type, 'activity': activity, 'student_grade_info_list': student_grade_info_list, 'from_page': FROMPAGE['activityinfo']}
+    return render_to_response('grades/activity_info.html', context, context_instance=RequestContext(request))
+
+@requires_course_staff_by_slug
+def activity_info_student(request, course_slug, activity_slug, userid):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activities = all_activities_filter(slug=activity_slug, offering=course)
+    if len(activities) != 1:
+        raise Http404
+        
+    activity = activities[0]
+    student = get_object_or_404(Person, userid=userid)
+    student_grade_info = create_StudentActivityInfo_list(course, activity, student)[0]
+    context = {'course': course, 'activity': activity, 'student_grade_info': student_grade_info}
+    return render_to_response('grades/student_grade_info.html', context, context_instance=RequestContext(request))
+
 
 @requires_course_staff_by_slug
 def add_numeric_activity(request, course_slug):
