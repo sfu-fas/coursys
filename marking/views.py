@@ -142,11 +142,11 @@ def manage_common_problems(request, course_slug, activity_slug):
                                               can_delete = False, extra = 3) 
     
     # only filter out the common problems associated with components of this activity
-    components = activity.activitycomponent_set.filter(deleted = False)    
-    qset =  CommonProblem.objects.filter(activity_component__in=components, deleted=False);
+    components = activity.activitycomponent_set.filter(deleted = False) 
+    qset =  CommonProblem.objects.filter(activity_component__in=components, deleted=False);   
                  
     if request.method == "POST":     
-        formset = CommonProblemFormSet(request.POST, queryset = qset)
+        formset = CommonProblemFormSet(components, request.POST, queryset = qset)
         
         if not formset.is_valid():
             if not any(formset.errors): # not caused by error of an individual form
@@ -158,7 +158,7 @@ def manage_common_problems(request, course_slug, activity_slug):
             return HttpResponseRedirect(reverse('grades.views.activity_info', \
                                                 args=(course_slug, activity_slug)))                   
     else: # for GET        
-        formset = CommonProblemFormSet(queryset = qset) 
+        formset = CommonProblemFormSet(components, queryset = qset) 
     
     if error_info:
         messages.add_message(request, messages.ERROR, error_info)    
@@ -493,7 +493,6 @@ def mark_all_students(request, course_slug, activity_slug):
                ngrade = ngrades[i]
                new_value = forms[i].cleaned_data['value'] 
                new_status = forms[i].cleaned_data['status']
-               print new_status
                if new_value == None:
                    continue 
                if ngrade and ngrade.value == new_value and new_status == ngrade.flag:                    

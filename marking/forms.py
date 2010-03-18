@@ -32,8 +32,8 @@ class ActivityMarkForm(ModelForm):
     
 class BaseActivityComponentFormSet(BaseModelFormSet):
     
-    def __init__(self, associtated_activity = None, *args, **kwargs):
-        self.activity =  associtated_activity
+    def __init__(self, activity = None, *args, **kwargs):
+        self.activity =  activity
         super(BaseActivityComponentFormSet, self).__init__(*args, **kwargs)
         
     def clean(self):
@@ -77,8 +77,12 @@ class BaseActivityComponentFormSet(BaseModelFormSet):
             
 class BaseCommonProblemFormSet(BaseModelFormSet):
     
-    def __init__(self, *args, **kwargs):
+    def __init__(self, activity_components = None, *args, **kwargs):
         super(BaseCommonProblemFormSet, self).__init__(*args, **kwargs)
+        if activity_components:
+            for form in self.forms:
+                # limit the choices of activity components
+                form.fields['activity_component'].queryset = activity_components
     
     def clean(self):
         """Checks the following:
