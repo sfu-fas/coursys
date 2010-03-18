@@ -102,5 +102,5 @@ $(document).ready(function() {
 </div>
 <input class="submit" type="submit" value="Submit" />
 </form>
-<a class="button" id ="reset_button" href="{% url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug %}">reset</a>
+<a class="redbutton reset_button" href="{% url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug %}">Reset</a>
 {% endblock %}

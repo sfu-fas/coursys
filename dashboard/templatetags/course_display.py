@@ -52,6 +52,7 @@ FIELD_AS_TD_TEMPLATE = Template('''<td>
                            {% endif %}
                         {{ field }}
                 </td>''')
+FIELD_AS_TD_TEMPLATE_HIDDEN = Template('<td class ="hidden">{{ field }}</td>')
 
 @register.filter
 def display_form_as_row(form, arg=None):
@@ -60,11 +61,15 @@ def display_form_as_row(form, arg=None):
     set arg to be "deleted_flag" to include the deleted field
     """    
     output = ["<tr>"]
-    for field in form:
+    for field in form.visible_fields():
         if field.name == "deleted" and (arg != "deleted_flag"):
             continue
         c = Context({"field":field})
         output.append( FIELD_AS_TD_TEMPLATE.render(c))
+    
+    for field in form.hidden_fields():
+        c = Context({"field":field})
+        output.append( FIELD_AS_TD_TEMPLATE_HIDDEN.render(c))
     
     output.append("</tr>")    
     

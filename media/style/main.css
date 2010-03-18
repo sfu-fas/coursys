@@ -110,6 +110,7 @@ table th {
   /* from jqueryui .ui-state-default */
   border: 1px solid #d3d3d3; background: #e6e6e6 url(images/ui-bg_glass_75_e6e6e6_1x400.png) 50% 50% repeat-x; font-weight: normal; color: #555555; outline: none;
 }
+
 td[scope] {
   font-weight: bold;
 }
@@ -189,6 +190,11 @@ table.display td textarea{
 table.display td select{
 	width: 100px;
 }
+
+table td.hidden {
+	display: none;
+}
+
 
 /* DataTables row classes */
 tr.odd {
@@ -341,6 +347,12 @@ table.activity_box_info {
     float: right;
     clear: both;
 }
+
+#main a.redbutton.reset_button {
+    margin: 0.5em;
+    float: right;
+}
+
 #main a.redbutton {
 /* need to add '#main' as selector in order to override SFU template style */
   display: block;
@@ -468,7 +480,7 @@ fieldset .inputfield label {
 fieldset .inputfield input[type='text'] {
     width: 30em;
 }
-*/
+
 fieldset .submit, form .submit {
   min-width: 6em;
   margin: 0 0 0 11em;
@@ -478,6 +490,11 @@ fieldset .submit, form .submit {
   float: right;
   padding: 0.3em 0.5em 0.3em 0.5em;
 }
+
+form .submit {
+  margin: 0.5em;
+}
+
 fieldset .submit:hover, form .submit:hover {
   border-color: #BCBCB4;
   color: #eaf2fa;
