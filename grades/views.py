@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
 from django.db.models.aggregates import Max
 from coredata.models import Member, CourseOffering, Person, Role
-from courselib.auth import requires_course_by_slug, requires_course_staff_by_slug, is_course_staff_by_slug, is_course_student_by_slug
+from courselib.auth import *
 from grades.models import ACTIVITY_STATUS, all_activities_filter, Activity, \
                         NumericActivity, LetterActivity, ACTIVITY_TYPES
 from grades.forms import NumericActivityForm, LetterActivityForm, FORMTYPE
@@ -28,7 +28,7 @@ def course_info(request, course_slug):
         return _course_info_student(request, course_slug)
     #else not found, return 403
     else:
-        return HttpResponseForbidden()
+        return ForbiddenResponse(request)
     
 #@requires_course_staff_by_slug
 def _course_info_staff(request, course_slug):

@@ -40,6 +40,11 @@ def user_passes_test(test_func, login_url=None,
     return decorator
 
 
+def ForbiddenResponse(request):
+    resp = render_to_response('403.html', context_instance=RequestContext(request))
+    resp.status_code = 403
+    return resp
+
 def is_advisor(u, **kwargs):
     """
     Return True is the given user is an advisor

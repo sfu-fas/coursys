@@ -62,6 +62,9 @@
 </p>
 
 <h2>Course Activities</h2>
+{% if not activityinfo_list %}
+<p class="empty">No activities defined for this course: it is likely is not using this system.</p>
+{% else %}
 <div class="table_container">
     <table class="info">
 	<thead>
@@ -78,10 +81,6 @@
 		<td>{{ activityinfo.display_grade_status_student }}</td>
 		<td>{{ activityinfo.display_grade_student }}</td>
             </tr>
-	    {% empty %}
-	    <tr>
-		<td colspan="3" class="empty">No activities</td>
-	    </tr>
 	    {% endfor %}
 	</tbody>
     </table>
@@ -142,4 +141,5 @@
     </div>
 </div>
 {% endfor %}
+{% endif %}
 {% endblock %}

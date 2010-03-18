@@ -9,7 +9,7 @@ div#main p {
 div#main h3 {
   margin-top: 1em;
 }
-/* uncomment the following to remove menu for more screen space */
+/* remove left-side menu for more screen space */
 ul#main_nav {
   display: none;
 }
@@ -41,6 +41,9 @@ div#main {
   text-align: right;
   margin: 0.2em 1em 0 0;
   font-size: 0.81em;
+}
+.empty {
+  font-style: italic;
 }
 /*
 .debug {
@@ -409,7 +412,7 @@ table.info {
 
 
 #form_container {
-    width: 650px;
+    margin: 0 1em 0 0;
 }
 #form_container .errorindicator, #form_container .successindicator, #form_container .warningindicator {
     border: 1px solid;
@@ -461,9 +464,11 @@ fieldset .inputfield li {
 fieldset .inputfield label {
     width: 30em;
 }
+/*
 fieldset .inputfield input[type='text'] {
     width: 30em;
 }
+*/
 fieldset .submit, form .submit {
   min-width: 6em;
   margin: 0 0 0 11em;
@@ -546,7 +551,7 @@ fieldset label {
     background-color: #0054a6;
 }
 /* requried_star style in the label */
-fieldset label em {
+fieldset label span {
     position: absolute;
     left: 10em;
 }

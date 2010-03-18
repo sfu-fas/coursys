@@ -1,4 +1,5 @@
 {% extends "grades/base.html" %}
+{% load grade_student %}
 
 {% block h1 %}
 {% ifequal form_type 'add' %}
@@ -25,7 +26,10 @@ $(document).ready(function() {
 </script>
 {% endblock %}
 
-{% block breadcrumbs_extra %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>{% ifequal form_type 'add' %}<li>&gt; Add Activity</li>{% endifequal %}{% if activity %}<li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li>{% endif %}{% ifequal form_type 'edit' %}<li>&gt; Edit</li>{% endifequal %}{% endblock %}
+
+
+{% block subbreadcrumbs_extra %}
 <li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
 {% ifequal form_type 'add' %}
 <li>&gt; <a href="{% url grades.views.add_numeric_activity course_slug=course.slug %}">Add Activity</a></li>
@@ -65,48 +69,18 @@ $(document).ready(function() {
             <legend>Activity Info</legend>
             <p class="requireindicator"><img src="{{MEDIA_URL}}/icons/required_star.gif" alt="required" />&nbsp;Indicates required field</p>
             <ul>
-                <li>
-                    {{ form.name.label_tag }}
-                    <div class="inputfield">
-                        {{ form.name }}{% if form.name.errors %}<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>{% endif %}
-                        {{form.name.errors}}
-                    </div>
-                </li>
-                <li>
-                    {{ form.short_name.label_tag }}
-                    <div class="inputfield">
-                        {{ form.short_name }}{% if form.short_name.errors %}<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>{% endif %}
-                        {{ form.short_name.errors }}
-                    </div>
-                </li>
-                <li>
-                    {{ form.status.label_tag }}
-                    <div class="inputfield">
-                        {{ form.status }}{% if form.status.errors %}<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>{% endif %}
-                        {{ form.status.errors }}
-                    </div>
-                </li>
-                <li>
-                    {{ form.due_date.label_tag }}
-                    <div class="inputfield">
-                        {{ form.due_date }}{% if form.due_date.errors %}<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>{% endif %}
-                        {{ form.due_date.errors }}
-                    </div>
-                </li>
-                <li>
-                    {{ form.percent.label_tag }}
-                    <div class="inputfield">
-                        {{ form.percent }}{% if form.percent.errors %}<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>{% endif %}
-                        {{ form.percent.errors }}
-                    </div>
-                </li>
-                <li>
+                {{form.name|activity_field}}
+                {{form.short_name|activity_field}}
+                {{form.status|activity_field}}
+                {{form.due_date|activity_field}}
+                {{form.percent|activity_field}}
+                <!--<li>
                     {{ form.specify_letter_formula.label_tag }}
                     {{ form.specify_letter_formula }}
                 </li>
                 <li id="letter_formula_box" class="fomula_box">
                     To be added
-                </li>
+                </li>-->
                 <li>
                     <input class="submit" type="submit" value="Submit" />
                 </li>

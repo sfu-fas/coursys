@@ -3,18 +3,22 @@ from django.conf import settings
 from grades.models import ACTIVITY_STATUS_CHOICES, NumericActivity, Activity
 from django.utils.safestring import mark_safe
 
-_required_star = '<em><img src="'+settings.MEDIA_URL+'icons/required_star.gif" alt="required"/></em>'
+_required_star = '<span><img src="'+settings.MEDIA_URL+'icons/required_star.gif" alt="required"/></span>'
 
 FORMTYPE = {'add': 'add', 'edit': 'edit'}
 
 class NumericActivityForm(forms.Form):
-    name = forms.CharField(max_length=30, label=mark_safe('Name:'+_required_star))
-    short_name = forms.CharField(max_length=15, label=mark_safe('Short name:' + _required_star))
-    status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS', label=mark_safe('Status:' + _required_star))
-    due_date = forms.DateTimeField(label=mark_safe('Due date:' + _required_star))
-    percent = forms.DecimalField(max_digits=5, decimal_places=2, required=False, label='Percentage:')
-    max_grade = forms.DecimalField(max_digits=5, decimal_places=2, label=mark_safe('Maximum grade:' + _required_star))
-    specify_numeric_formula = forms.BooleanField(label='Specify formula:', required=False)
+    name = forms.CharField(max_length=30, label=mark_safe('Name:'+_required_star), help_text='e.g. "Assignment 1" or "Midterm"',
+            widget=forms.TextInput(attrs={'size':'30'}))
+    short_name = forms.CharField(max_length=15, label=mark_safe('Short name:' + _required_star), help_text='short version of the name for column headings, e.g. "A1" or "MT"',
+            widget=forms.TextInput(attrs={'size':'8'}))
+    status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS', label=mark_safe('Status:' + _required_star), help_text='visibility of grades/activity to students')
+    due_date = forms.DateTimeField(label=mark_safe('Due date:'), required=False)
+    percent = forms.DecimalField(max_digits=5, decimal_places=2, required=False, label='Percentage:', help_text='percent of final mark',
+            widget=forms.TextInput(attrs={'size':'2'}))
+    max_grade = forms.DecimalField(max_digits=5, decimal_places=2, label=mark_safe('Maximum grade:' + _required_star), help_text='maximum grade for the activity',
+            widget=forms.TextInput(attrs={'size':'3'}))
+    #specify_numeric_formula = forms.BooleanField(label='Specify formula:', required=False)
     
     def __init__(self, *args, **kwargs):
         super(NumericActivityForm, self).__init__(*args, **kwargs)
@@ -54,12 +58,15 @@ class NumericActivityForm(forms.Form):
     
     
 class LetterActivityForm(forms.Form):
-    name = forms.CharField(max_length=30, label=mark_safe('Name:'+_required_star))
-    short_name = forms.CharField(max_length=15, label=mark_safe('Short name:'+_required_star))
-    status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS', label=mark_safe('Status:'+_required_star))
-    due_date = forms.DateTimeField(label=mark_safe('Due date:' + _required_star))
-    percent = forms.DecimalField(max_digits=5, decimal_places=2, required=False, label='Percentage:')
-    specify_letter_formula = forms.BooleanField(label='Specify formula:', required=False)
+    name = forms.CharField(max_length=30, label=mark_safe('Name:'+_required_star), help_text='e.g. "Assignment 1" or "Midterm"',
+            widget=forms.TextInput(attrs={'size':'30'}))
+    short_name = forms.CharField(max_length=15, label=mark_safe('Short name:' + _required_star), help_text='short version of the name for column headings, e.g. "A1" or "MT"',
+            widget=forms.TextInput(attrs={'size':'8'}))
+    status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS', label=mark_safe('Status:' + _required_star), help_text='visibility of grades/activity to students')
+    due_date = forms.DateTimeField(label=mark_safe('Due date:'), required=False)
+    percent = forms.DecimalField(max_digits=5, decimal_places=2, required=False, label='Percentage:', help_text='percent of final mark',
+            widget=forms.TextInput(attrs={'size':'2'}))
+    #specify_letter_formula = forms.BooleanField(label='Specify formula:', required=False)
     
     def __init__(self, *args, **kwargs):
         super(LetterActivityForm, self).__init__(*args, **kwargs)
