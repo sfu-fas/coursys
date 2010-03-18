@@ -45,6 +45,11 @@ def ForbiddenResponse(request):
     resp.status_code = 403
     return resp
 
+def NotFoundResponse(request):
+    resp = render_to_response('404.html')
+    resp.status_code = 404
+    return resp
+
 def is_advisor(u, **kwargs):
     """
     Return True is the given user is an advisor

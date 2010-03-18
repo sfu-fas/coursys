@@ -7,6 +7,8 @@ if settings.DEBUG:
 
 from courselib.urlparts import *
 
+handler404 = 'courselib.auth.NotFoundResponse'
+
 urlpatterns = patterns('',
     url(r'^login/$', 'django_cas.views.login'),
     url(r'^logout/$', 'django_cas.views.logout'),

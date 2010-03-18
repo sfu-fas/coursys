@@ -29,8 +29,7 @@ def course_info(request, course_slug):
     #else not found, return 403
     else:
         return ForbiddenResponse(request)
-    
-#@requires_course_staff_by_slug
+
 def _course_info_staff(request, course_slug):
     """
     Course front page
@@ -79,14 +78,16 @@ def activity_info(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activities = all_activities_filter(slug=activity_slug, offering=course)
     if len(activities) != 1:
-        raise Http404
-        
+        return NotFoundResponse(request)
+    
     activity = activities[0]
+    # build list of activities with metainfo
     student_grade_info_list = create_StudentActivityInfo_list(course, activity)
     if isinstance(activity, NumericActivity):
         activity_type = ACTIVITY_TYPE['NG']
     elif isinstance(activity, LetterActivity):
         activity_type = ACTIVITY_TYPE['LG']
+
     context = {'course': course, 'activity_type': activity_type, 'activity': activity, 'student_grade_info_list': student_grade_info_list, 'from_page': FROMPAGE['activityinfo']}
     return render_to_response('grades/activity_info.html', context, context_instance=RequestContext(request))
 
@@ -95,7 +96,7 @@ def activity_info_student(request, course_slug, activity_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activities = all_activities_filter(slug=activity_slug, offering=course)
     if len(activities) != 1:
-        raise Http404
+        return NotFoundResponse(request)
         
     activity = activities[0]
     student = get_object_or_404(Person, userid=userid)
@@ -125,8 +126,8 @@ def add_numeric_activity(request, course_slug):
                                                 percent=form.cleaned_data['percent'],
                                                 max_grade=form.cleaned_data['max_grade'],
                                                 offering=course, position=position)
-            except Exception:
-                raise Http404
+            except NotImplementedError:
+                return NotFoundResponse(request)
             return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
     else:
         form = NumericActivityForm()
@@ -216,7 +217,7 @@ def add_letter_activity(request, course_slug):
         form = LetterActivityForm(request.POST) # A form bound to the POST data
         form.activate_addform_validation(course_slug)
         if form.is_valid(): # All validation rules pass
-            try:
+            #try:
                 aggr_dict = Activity.objects.filter(offering=course).aggregate(Max('position'))
                 if not aggr_dict['position__max']:
                     position = 1
@@ -228,9 +229,9 @@ def add_letter_activity(request, course_slug):
                                                 due_date=form.cleaned_data['due_date'],
                                                 percent=form.cleaned_data['percent'],
                                                 offering=course, position=position)
-            except Exception:
-                raise Http404
-            return HttpResponseRedirect(reverse('grades.views.course_info',
+            #except Exception:
+            #    raise Http404
+                return HttpResponseRedirect(reverse('grades.views.course_info',
                                                 kwargs={'course_slug': course_slug}))
     else:
         form = LetterActivityForm()

@@ -2,12 +2,12 @@
 {% load grade_student %}
 
 {% block h1 %}
-{% ifequal form_type 'add' %}
-Add Numeric Graded Activity
-{% endifequal %}
-{% ifequal form_type 'edit' %}
-Edit Numeric Graded Activity
-{% endifequal %}
+{% ifequal form_type 'add' %}Add Numeric Graded Activity{% endifequal %}
+{% ifequal form_type 'edit' %}Edit Numeric Graded Activity{% endifequal %}
+{% endblock %}
+{% block title %}
+{% ifequal form_type 'add' %}{{ course.name }} - Add Numeric Graded Activity{% endifequal %}
+{% ifequal form_type 'edit' %}{{ course.name }} - Edit Numeric Graded Activity{% endifequal %}
 {% endblock %}
 
 {% block grades_headextra %}
