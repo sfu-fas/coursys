@@ -42,11 +42,7 @@ class BasicTest(TestCase):
         
         self.client.login(ticket = 'ggbaker', service=CAS_SERVER_URL)
 
-        url = reverse(manage_activity_components, args=(self.c_slug,a.slug))
-
-        response = self.client.get(url)
-        self.assertEquals(response.status_code, 200)
-        #validate_content(self, response.content, 'activity components') #? error
+        response = basic_page_tests(self, self.client, reverse(manage_activity_components, args=(self.c_slug,a.slug)))
           
         forms = response.context['formset'].forms
         self.assertEquals(forms[0].instance.title, 'part1')
@@ -75,10 +71,7 @@ class BasicTest(TestCase):
         
         self.client.login(ticket = 'ggbaker', service=CAS_SERVER_URL)        
 
-        url = reverse(manage_common_problems, args=(self.c_slug,a.slug))
-
-        response = self.client.get(url)
-        self.assertEquals(response.status_code, 200)
+        response = basic_page_tests(self, self.client, reverse(manage_common_problems, args=(self.c_slug,a.slug)))
         
         forms = response.context['formset'].forms
  
@@ -95,17 +88,16 @@ class BasicTest(TestCase):
         
         #test the marking page as well        
         url = reverse(marking, args=(self.c_slug,a.slug))
-        response = self.client.get(url)
+        response = basic_page_tests(self, self.client, url)
         
-        # tests refer to missing context item: commenting out -GB
-        #mark_components = response.context['mark_components']
-        #com1 = mark_components[0]
-        #com2 = mark_components[1]
+        mark_components = response.context['mark_components']
+        com1 = mark_components[0]
+        com2 = mark_components[1]
         
-        #self.assertEquals(com1['component'], co1)
-        #self.assertEquals(len(com1['common_problems']), 2)
-        #self.assertEquals(com2['component'], co2)
-        #self.assertEquals(len(com2['common_problems']), 1)
+        self.assertEquals(com1['component'], co1)
+        self.assertEquals(len(com1['common_problems']), 2)
+        self.assertEquals(com2['component'], co2)
+        self.assertEquals(len(com2['common_problems']), 1)
        
     def test_post_activity_components(self):
         
@@ -171,8 +163,8 @@ class BasicTest(TestCase):
         stud2 = Member.objects.get(person = Person.objects.get(userid = '0aaa1'), offering = c)
                 
         group = Group.objects.create(courseoffering = c, name = 'hello', manager = stud1)
-        member1 = GroupMember.objects.create(group = group, student = stud1, confirmed = True)
-        member2 = GroupMember.objects.create(group = group, student = stud2, confirmed = True)
+        member1 = GroupMember.objects.create(group = group, student = stud1, confirmed = True, activity=a)
+        member2 = GroupMember.objects.create(group = group, student = stud2, confirmed = True, activity=a)
         
         group_mark = GroupActivityMark(group = group, numeric_activity = a)
         group_mark.setMark(30)
@@ -201,8 +193,8 @@ class BasicTest(TestCase):
         stud2 = Member.objects.get(person = Person.objects.get(userid = '0aaa1'), offering = c)
                 
         group = Group.objects.create(courseoffering = c, name = 'hello', manager = stud1)
-        member1 = GroupMember.objects.create(group = group, student = stud1, confirmed = True)
-        member2 = GroupMember.objects.create(group = group, student = stud2, confirmed = True)
+        member1 = GroupMember.objects.create(group = group, student = stud1, confirmed = True, activity=a)
+        member2 = GroupMember.objects.create(group = group, student = stud2, confirmed = True, activity=a)
         
         ngrade = NumericGrade(activity = a, member = stud2)                  
         ngrade.save()

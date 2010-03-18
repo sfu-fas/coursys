@@ -115,39 +115,18 @@ class GradesTest(TestCase):
         client = Client()
         client.login(ticket="ggbaker", service=CAS_SERVER_URL)
 
-        url = '/' + c.slug + '/'
-        response = client.get(url)
-        self.assertEquals(response.status_code, 200)
-        validate_content(self, response.content, url)
+        response = basic_page_tests(self, client, '/' + c.slug + '/')
         self.assertContains(response, 'href="/' + c.slug + '/groups"')
 
-        url = '/' + c.slug + '/a1'
-        response = client.get(url)
-        self.assertEquals(response.status_code, 200)
-        validate_content(self, response.content, url)
-
-        url = '/' + c.slug + '/a1/students/0kvm'
-        response = client.get(url)
-        self.assertEquals(response.status_code, 200)
-        validate_content(self, response.content, url)
-
-        url = '/' + c.slug + '/new_numeric'
-        response = client.get(url)
-        self.assertEquals(response.status_code, 200)
-        validate_content(self, response.content, url)
-        url = '/' + c.slug + '/new_letter'
-        response = client.get(url)
-        self.assertEquals(response.status_code, 200)
-        validate_content(self, response.content, url)
-
+        basic_page_tests(self, client, '/' + c.slug + '/a1')
+        basic_page_tests(self, client, '/' + c.slug + '/a1/students/0kvm')
+        basic_page_tests(self, client, '/' + c.slug + '/new_numeric')
+        basic_page_tests(self, client, '/' + c.slug + '/new_letter')
 
         # test student pages
         client = Client()
         client.login(ticket="0kvm", service=CAS_SERVER_URL)
-        url = '/' + c.slug + '/'
-        response = client.get(url)
-        self.assertEquals(response.status_code, 200)
-        validate_content(self, response.content, url)
+        response = basic_page_tests(self, client, '/' + c.slug + '/')
         self.assertContains(response, "Gregory Garnet Baker")
         self.assertContains(response, 'href="/' + c.slug + '/groups"')
 

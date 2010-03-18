@@ -14,17 +14,16 @@
 </script>
 {% endblock %}
 
-{% block title %}Marking Common Problems{% endblock %}
+{% block title %}{{activity.name}} Common Problems{% endblock %}
+{% block h1 %}{{activity.name}} Common Problems{% endblock %}
 
-{% block h1 %}{{course.name}}: {{activity.name}} Common Problems {% endblock %}
-
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{course}}</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug, activity_slug=activity.slug %}">{{activity.name}}</a></li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{course.name}}</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug, activity_slug=activity.slug %}">{{activity.name}}</a></li><li>&gt; Common Problems</li>{% endblock %}
 
 {% block content %}
 
 <form action="" method="post">
-    {{ formset.management_form }} 
      <div class = "datatable_container">
+       {{ formset.management_form }} 
        <table class="display" id="common_problems">
         <thead class="form_head">
           <tr>             
@@ -45,7 +44,9 @@
          </tbody>
       </table>
    </div>
+   <div>
    <input class="submit" type="submit" value="Submit" />
+   </div>
 </form>  
 <a class="redbutton reset_button" href="{% url marking.views.manage_common_problems course_slug=course.slug, activity_slug=activity.slug %}">Reset</a>
 

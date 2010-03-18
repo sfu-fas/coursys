@@ -368,6 +368,25 @@ table.activity_box_info {
   padding: 0.3em 0.5em 0.3em 0.5em;
 }
 
+#main span.disabledbutton {
+  display: block;
+  width: 6em;
+  height: 1.4em;
+  color: #FFFFFF;
+  text-align: center;
+  line-height: 1.5em;
+  background-color: #bba;
+  border: 1px solid #FFF;
+  text-decoration: none;
+  font-weight: bold;
+  padding: 0.3em 0.5em 0.3em 0.5em;
+}
+#main span.disabledbutton.submit_button {
+    margin: 0.5em;
+    float: right;
+    clear: both;
+}
+
 #main a.redbutton:hover {
   border-color: #BCBCB4;
   text-decoration: none;
@@ -637,9 +656,9 @@ fieldset .hidden {
   margin: 10;
 }
 
-#marking_container .receiver
+#marking_container .receiver p
 {
-	padding: 20px;
+	padding: 0 0 1em 1em;
 }
 
 #marking_container .receiver .errorlist

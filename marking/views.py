@@ -15,14 +15,14 @@ from contrib import messages
 from django.db.models.fields.files import FileField
 
 
-@login_required
-def index(request):
-    target_userid = request.user.username
-    person = get_object_or_404(Person, userid = target_userid)
-    # get the course offerings of this user
-    courses = Member.objects.exclude(role="DROP").filter(offering__graded=True).filter(person__userid=target_userid) \
-            .select_related('offering','offering__semester')
-    return render_to_response("marking/index.html", {'person':person, 'course_memberships':courses}, context_instance=RequestContext(request))
+#@login_required
+#def index(request):
+#    target_userid = request.user.username
+#    person = get_object_or_404(Person, userid = target_userid)
+#    # get the course offerings of this user
+#    courses = Member.objects.exclude(role="DROP").filter(offering__graded=True).filter(person__userid=target_userid) \
+#            .select_related('offering','offering__semester')
+#    return render_to_response("marking/index.html", {'person':person, 'course_memberships':courses}, context_instance=RequestContext(request))
 
 @requires_course_staff_by_slug
 def list_activities(request, course_slug):

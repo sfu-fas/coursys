@@ -25,8 +25,16 @@ def validate_content(testcase, data, page_descr="unknown page"):
         #print "-"*40
         #print data
         #print "-"*40
-        #fh = open("/tmp/validation.html", "w")
-        #fh.write(data)
-        #fh.close()
+        fh = open("/tmp/validation.html", "w")
+        fh.write(data)
+        fh.close()
         testcase.fail("Invalid XHTML produced in %s:\n  %s" % (page_descr, str(e)))
 
+def basic_page_tests(testcase, client, url):
+    """
+    Run basic tests on the page: 200 OK, validity.
+    """
+    response = client.get(url)
+    testcase.assertEquals(response.status_code, 200)
+    validate_content(testcase, response.content, url)
+    return response

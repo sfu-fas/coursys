@@ -31,7 +31,7 @@ def display_form(form, text="Submit"):
         c = Context({"field":field})
         output.append( FIELD_TEMPLATE.render(c) )
     
-    output.append('<li><input class="submit" type="submit" value='+text+' /></li>\n</ul>')
+    output.append('<li><input class="submit" type="submit" value="'+text+'" /></li>\n</ul>')
     return mark_safe('\n'.join(output))
 
 @register.filter
@@ -63,6 +63,7 @@ def display_form_as_row(form, arg=None):
     output = ["<tr>"]
     for field in form.visible_fields():
         if field.name == "deleted" and (arg != "deleted_flag"):
+            output.append("<td></td>")
             continue
         c = Context({"field":field})
         output.append( FIELD_AS_TD_TEMPLATE.render(c))

@@ -91,7 +91,11 @@
 <div class="activity_box">
     <div class="grade">Grade: {{ activityinfo.display_grade_with_percentage_student }}</div>
     <h3 class="heading" id="act-{{ activityinfo.activity.slug }}">{{ activityinfo.activity.display_label }}</h3>
-    <div><a class="redbutton submit_button" href="{% url submission.views.show_components course.slug, activityinfo.activity.slug%}">Submit</a></div>
+    {% if activityinfo.activity.submitable %}
+      <div><a class="redbutton submit_button" href="{% url submission.views.show_components course.slug, activityinfo.activity.slug%}">Submit</a></div>
+    {% else %}
+      <div><span class="disabledbutton submit_button">Submit</span></div>
+    {% endif %}
     <div class="inside">
 	<table class="activity_box_info">
 	    <tbody>

@@ -95,6 +95,18 @@ class Activity(models.Model):
         """
         return self.display_grade_visible(student)
 
+    def markable(self):
+        """
+        Returns True if this activity is "markable".  i.e. has any marking components defined.
+        """
+        return self.activitycomponent_set.all().count() != 0
+
+    def submitable(self):
+        """
+        Returns True if this activity is "submittable".  i.e. has any submission components defined.
+        """
+        return self.submissioncomponent_set.all().count() != 0
+
 class NumericActivity(Activity):
     """
     Activity with a numeric mark
