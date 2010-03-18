@@ -116,8 +116,8 @@ def manage_activity_components(request, course_slug, activity_slug):
             # save the formset  
             _save_components(formset, activity)
             messages.add_message(request, messages.SUCCESS, 'Activity Components Saved')
-            return HttpResponseRedirect(reverse('grades.views.course_info', \
-                                                args=(course_slug,)))                   
+            return HttpResponseRedirect(reverse('grades.views.activity_info', \
+                                                args=(course_slug, activity_slug)))                   
     else: # for GET
         formset = ComponentsFormSet(queryset = qset) 
     
@@ -155,8 +155,8 @@ def manage_common_problems(request, course_slug, activity_slug):
             # save the formset  
             _save_common_problems(formset)
             messages.add_message(request, messages.SUCCESS, 'Common problems Saved')
-            return HttpResponseRedirect(reverse('grades.views.course_info', \
-                                                args=(course_slug,)))                   
+            return HttpResponseRedirect(reverse('grades.views.activity_info', \
+                                                args=(course_slug, activity_slug)))                   
     else: # for GET        
         formset = CommonProblemFormSet(queryset = qset) 
     
@@ -393,7 +393,7 @@ def mark_summary(request, course_slug, activity_slug, userid):
      if hasattr(act_mark, 'group'):
         group = act_mark.group
                       
-     component_marks = ActivityComponentMark.objects.filter(activity_mark = act_mark)        
+     component_marks = ActivityComponentMark.objects.filter(activity_mark = act_mark)      
     
      return render_to_response("marking/mark_summary.html", 
                                {'course':course, 'activity' : activity, 'student' : student, 'group' : group, \
@@ -487,29 +487,37 @@ def mark_all_students(request, course_slug, activity_slug):
             ngrades.append(ngrade)
             rows.append({'student': student, 'current_grade' : current_grade, 'form' : entry_form})    
    
-        if not error_info:                    
+        if not error_info:
+            updated = 0                 
             for i in range(len(memberships)): 
                ngrade = ngrades[i]
                new_value = forms[i].cleaned_data['value'] 
+               new_status = forms[i].cleaned_data['status']
+               print new_status
                if new_value == None:
                    continue 
-               if ngrade and ngrade.value == new_value:
-                    print "do not need to update"
-               else:# save data 
-                    if ngrade == None:
-                        ngrade = NumericGrade(activity = activity, member = memberships[i]);
-                        ngrade.save()
-                    # created a new activity_mark as well
-                    activity_mark = StudentActivityMark(numeric_grade = ngrade, created_by = request.user.username)
-                    activity_mark.setMark(new_value)
-                    activity_mark.save()
-                    #add to log           
-                    l = LogEntry(userid=request.user.username, \
-                                 description="edited grade on %s for student %s changed to %s" % \
-                                (activity, student.userid, new_value), related_object=activity_mark)                     
-                    l.save()                         
-             
-            messages.add_message(request, messages.SUCCESS, 'Marking for all students on activity %s saved' % activity.name)
+               if ngrade and ngrade.value == new_value and new_status == ngrade.flag:                    
+                   continue
+               # save data 
+               if ngrade == None:
+                    ngrade = NumericGrade(activity = activity, member = memberships[i]);
+                    ngrade.save()
+                # created a new activity_mark as well
+               activity_mark = StudentActivityMark(numeric_grade = ngrade, created_by = request.user.username)               
+               activity_mark.setMark(new_value)
+               activity_mark.save()
+               if new_status != 'GRAD':
+                    ngrade.flag = new_status
+                    ngrade.save()
+               #add to log           
+               l = LogEntry(userid=request.user.username, \
+                             description="edited grade on %s for student %s changed to %s" % \
+                            (activity, student.userid, new_value), related_object=activity_mark)                     
+               l.save() 
+               updated += 1                        
+           
+            if updated > 0:
+                messages.add_message(request, messages.SUCCESS, "Marking for all students on activity %s saved(%s students' marks updated)" % (activity.name, updated))
             return HttpResponseRedirect(reverse('grades.views.activity_info', args=(course_slug, activity_slug)))  
                 
     else: # for GET request       
@@ -519,10 +527,12 @@ def mark_all_students(request, course_slug, activity_slug):
                 ngrade = NumericGrade.objects.get(activity = activity, member = member)
             except NumericGrade.DoesNotExist:
                 current_grade = 'Not Graded'
+                entry_form = MarkEntryForm(max_grade = activity.max_grade, prefix = student.userid)
             else:
-                current_grade =  ngrade.flag == 'GRAD' and ngrade.value or ngrade.flag        
-            
-            entry_form = MarkEntryForm(max_grade = activity.max_grade, prefix = student.userid)       
+                current_grade = ngrade.value 
+                entry_form = MarkEntryForm(max_grade = activity.max_grade, prefix = student.userid,\
+                                          data = {'status': ngrade.flag})        
+                            
             rows.append({'student': student, 'current_grade' : current_grade, 'form' : entry_form})   
                
     if error_info:

@@ -6,7 +6,7 @@
 var oTable;
 var heading = "<div class=\"datatable_container\">" +
      	"<table class=\"display\" id=\"all_marks\">" +
-        "<thead><tr>" +
+        "<thead class="form_head"><tr>" +
                 "<th>Student Name</th>" +
 				"<th>Student Number</th>" + 
 				"<th>Current Grade</th>" + 
@@ -52,7 +52,9 @@ $(document).ready(function() {
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{course}}</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">{{activity.name}}</a></li>{% endblock %}
 
 {% block content %}
-
+<div>
+<p><strong>Note: leave the entry blank if you don't want to give a mark or override the current one</strong></p>
+</div>
 <form id = "my_form" action="" method="post">
 <div class="datatable_container">
      <table class="display" id="all_marks">
