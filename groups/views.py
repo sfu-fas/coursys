@@ -48,6 +48,7 @@ def create(request,course_slug):
     group_manager=Member.objects.get(person = person, offering = course)
     
     #TODO can instructor create group based on unreleased activities?
+    #TODO need to make the form of activities uneditable
     activities = Activity.objects.filter(offering = course, status = 'RLS')
     #activities = Activity.objects.filter(offering = course)
     initialData = []
@@ -89,22 +90,27 @@ def submit(request,course_slug):
 
 @requires_course_by_slug
 def join(request, course_slug, group_slug):
-    c = get_object_or_404(CourseOffering, slug=course_slug)
-    g = get_object_or_404(Group, courseoffering = c, slug = group_slug)
-    p = get_object_or_404(Person, userid = request.user.username)
-    m = get_object_or_404(Member, person = p, offering=c)
-    gm = get_object_or_404(GroupMember, group=g, student=m)
-    gm.confirmed = True
-    gm.save();
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
+    person = get_object_or_404(Person, userid = request.user.username)
+    member = get_object_or_404(Member, person = person, offering=course)
     
-    messages.add_message(request, messages.SUCCESS, 'You have joined the group "%s".' % (g.name))
+    for groupMember in GroupMember.objects.filter(group = group, student = member):
+        groupMember.confirmed = True
+        groupMember.save()
+    
+    messages.add_message(request, messages.SUCCESS, 'You have joined the group "%s".' % (group.name))
     return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
 
 @requires_course_by_slug
 def invite(request, course_slug, group_slug):
+    #TODO need to check if the invitation for the student has already been sent by other members in the team
+    #TODO need to validate the student who is invited, cannot be the invitor him/herself.
     course = get_object_or_404(CourseOffering, slug = course_slug)
     group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
-    
+    person = get_object_or_404(Person, userid = request.user.username)
+    invitor = get_object_or_404(Member, person = person, offering=course)  
+
     students_qset = course.members.filter(person__role = 'STUD')   
     from django import forms 
     class StudentReceiverForm(forms.Form):
@@ -116,8 +122,10 @@ def invite(request, course_slug, group_slug):
             student = student_receiver_form.cleaned_data["student"]
             print student
             member = Member.objects.get(person = student, offering = course)
-            groupMember = GroupMember(group = group, student = member, confirmed = False) 
-            groupMember.save()
+            for invitorMembership in GroupMember.objects.filter(group = group, student = invitor):
+                newGroupMember = GroupMember(group = group, student = member, \
+                                             activity = invitorMembership.activity, confirmed = False) 
+                newGroupMember.save()
             
             messages.add_message(request, messages.SUCCESS, 'Your invitation to "%s" has been sent out.' % (student))
             return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
