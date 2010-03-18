@@ -108,7 +108,7 @@ table td, table th {
 table th {
   font-size: 110%;
   /* from jqueryui .ui-state-default */
-  border: 1px solid #d3d3d3; background: #e6e6e6 url(images/ui-bg_glass_75_e6e6e6_1x400.png) 50% 50% repeat-x; font-weight: normal; color: #555555; outline: none;
+  border: 1px solid #d3d3d3; background: #e6e6e6 url(../jquery-ui-1.7.2.custom/css/smoothness/images/ui-bg_glass_75_e6e6e6_1x400.png) 50% 50% repeat-x; font-weight: normal; color: #555555; outline: none;
 }
 
 td[scope] {
