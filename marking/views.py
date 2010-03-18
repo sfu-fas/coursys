@@ -140,9 +140,9 @@ def manage_common_problems(request, course_slug, activity_slug):
     CommonProblemFormSet = modelformset_factory(CommonProblem, fields=fields, \
                                               formset=BaseCommonProblemFormSet, \
                                               can_delete = False, extra = 3) 
-    
-    # only filter out the common problems associated with components of this activity
-    components = activity.activitycomponent_set.filter(deleted = False) 
+    # get the components of this activity
+    components = activity.activitycomponent_set.filter(deleted = False)     
+    # only filter out the common problems associated with these components 
     qset =  CommonProblem.objects.filter(activity_component__in=components, deleted=False);   
                  
     if request.method == "POST":     
@@ -264,7 +264,7 @@ def marking(request, course_slug, activity_slug):
                     break;  
                 total_mark += cmp_mark.value
                 
-        # check form for the addtional info
+        # check form for the additional info
         additional_info_form = ActivityMarkForm(request.POST, request.FILES, prefix = "additional-form")                
         if (not additional_info_form.is_valid()) and (not error_info):
             error_info = "Error found in additional information"
@@ -468,44 +468,52 @@ def mark_all_students(request, course_slug, activity_slug):
     
     rows = []
     error_info = None 
+   
     if request.method == 'POST':
         forms = []   
         ngrades = []   
+        # get data from the mark entry forms
         for member in memberships: 
             student = member.person  
             entry_form = MarkEntryForm(max_grade = activity.max_grade, data = request.POST, prefix = student.userid)
             if entry_form.is_valid() == False:
                 error_info = 'Invalid mark found'
             forms.append(entry_form)
+            
             ngrade = None
             try:
                 ngrade = NumericGrade.objects.get(activity = activity, member = member)
             except NumericGrade.DoesNotExist:
                 current_grade = 'Not Graded'
             else:
-                current_grade =  ngrade.flag == 'GRAD' and ngrade.value or ngrade.flag
+                current_grade = (ngrade.flag == 'GRAD' and ngrade.value or ngrade.flag)
             ngrades.append(ngrade)
+            
             rows.append({'student': student, 'current_grade' : current_grade, 'form' : entry_form})    
-   
+       
+        # try to save if needed 
         if not error_info:
             updated = 0                 
             for i in range(len(memberships)): 
                ngrade = ngrades[i]
                new_value = forms[i].cleaned_data['value'] 
                new_status = forms[i].cleaned_data['status']
-               if new_value == None:
+               # the new mark is blank, do nothing
+               if new_value == None: 
                    continue 
+               # the new mark and new status is the same as the old ones, do nothing
                if ngrade and ngrade.value == new_value and new_status == ngrade.flag:                    
                    continue
                # save data 
                if ngrade == None:
                     ngrade = NumericGrade(activity = activity, member = memberships[i]);
                     ngrade.save()
-                # created a new activity_mark as well
+               # created a new activity_mark as well
                activity_mark = StudentActivityMark(numeric_grade = ngrade, created_by = request.user.username)               
                activity_mark.setMark(new_value)
                activity_mark.save()
-               if new_status != 'GRAD':
+               # by default it's set to 'GRAD', if that's not the new status save it again
+               if new_status != 'GRAD': 
                     ngrade.flag = new_status
                     ngrade.save()
                #add to log           
@@ -528,7 +536,7 @@ def mark_all_students(request, course_slug, activity_slug):
                 current_grade = 'Not Graded'
                 entry_form = MarkEntryForm(max_grade = activity.max_grade, prefix = student.userid)
             else:
-                current_grade = ngrade.value 
+                current_grade = (ngrade.flag == 'GRAD' and ngrade.value or ngrade.flag)
                 entry_form = MarkEntryForm(max_grade = activity.max_grade, prefix = student.userid,\
                                           data = {'status': ngrade.flag})        
                             
