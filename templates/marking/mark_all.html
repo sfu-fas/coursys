@@ -14,7 +14,7 @@ var heading = "<div class=\"datatable_container\">" +
 				"<th>New Status</th>" +
 		"</thead><tbody>";
 var tail = "</tbody></table></div>" +
-           "<input type=\"submit\" value=\"Submit\" /><input type=\"button\" value=\"Reset\">";
+           "<input class=\"submit\" type=\"submit\" value=\"Submit\" />";
 
 $(document).ready(function() {
 	$('#my_form').submit( function() {	    
@@ -100,7 +100,7 @@ $(document).ready(function() {
         </tbody>
     </table>
 </div>
-<input type="submit" value="Submit" />  
-<input type="button" value="Reset" onclick="location.href='{% url marking.views.mark_all_students course_slug=course.slug, activity_slug=activity.slug %}'" />
+<input class="submit" type="submit" value="Submit" />
 </form>
+<a class="button" id ="reset_button" href="{% url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug %}">reset</a>
 {% endblock %}

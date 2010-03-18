@@ -43,11 +43,9 @@
           {% endfor %}
         </tbody>
       </table>
-   </div>
-   <p>
-   <input type="submit" value="Save" />  
-   <input type="button" value="Reset" onclick="location.href='{% url marking.views.manage_activity_components course_slug=course.slug, activity_slug=activity.slug %}'" />
-   </p>
-</form>
+   </div>   
+   <input class ="submit" type="submit" value="Submit" />   
+</form>  
+<a class="button" href="{% url marking.views.manage_activity_components course_slug=course.slug, activity_slug=activity.slug %}" >Reset</a>
 
 {% endblock %}

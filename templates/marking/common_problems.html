@@ -34,21 +34,19 @@
              <th>Penalty</th>
              <th>Deleted?</th>
           </tr>    
-        </thead>     
+         </thead>     
          <tbody>
-	      {% for form in formset.forms|slice:":-3" %} 	      
-			  {{form.id}}  {# important here !!! #}  
+	      {% for form in formset.forms|slice:":-3" %} 	 
 			  {{form|display_form_as_row:"deleted_flag"}}
 	      {% endfor %}
-	      {% for form in formset.forms|slice:"-3:" %} {# you can add 3 more common problems #}	      
-		      {{form.id}} {# important here !!! #}  	   
+	      {% for form in formset.forms|slice:"-3:" %} {# you can add 3 more common problems #}	
 		      {{form|display_form_as_row}}
           {% endfor %}
          </tbody>
       </table>
    </div>
-   <input type="submit" value="Save" />  
-   <input type="button" value="Reset" onClick="location.href='{% url marking.views.manage_common_problems course_slug=course.slug, activity_slug=activity.slug %}'">
-</form>
+   <input class="submit" type="submit" value="Submit" />
+</form>  
+<a class="button" href="{% url marking.views.manage_common_problems course_slug=course.slug, activity_slug=activity.slug %}">Reset</a>
 
 {% endblock %}
