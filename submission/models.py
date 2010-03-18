@@ -1,8 +1,8 @@
 from django.db import models
 from grades.models import Activity
-from coredata.models import Member, Person
+from coredata.models import Member, Person,CourseOffering
 #from courses.grades.models import slug
-from groups.models import Group
+from groups.models import Group,GroupMember
 from datetime import datetime
 from autoslug import AutoSlugField
 from django.shortcuts import get_object_or_404
@@ -117,19 +117,24 @@ class StudentSubmission(Submission):
     
 class GroupSubmission(Submission):
     group = models.ForeignKey(Group, null=False)
+    submitter = models.ForeignKey(GroupMember, null = False)
+
     #TODO: add a item indicate who submit the assignment
+
     def get_userid(self):
         return self.group.manager.userid
     def __unicode__(self):
         return "%s->%s@%s" % (self.group.manager.userid, self.activity, self.created_at)
+
     def save(self):
         super(GroupSubmission, self).save()
-        member_list = GroupMember.objects.filter(group = self.group).exclude(student = request.userid)
+        member_list = GroupMember.objects.filter(group = self.group).exclude(student = self.submitter)
         for member in member_list:
-            n = NewsItem(user = member.student, author=request.userid, course=member.courseoffering,
-                source_app="group submission", title="group assignment submitted by %s" % (member.student.name), 
-                content="...",
-                url=reverse('submission.views.index', course_slug=course.slug)
+            n = NewsItem(user = member.student.person, author=submitter.student.person, course=member.courseoffering,
+                source_app="group submission", title="New Group Submission", 
+                content="%s has submitted new files for %s."
+                    % (submitter.person,self.activity),
+                url=reverse('submission.views.show_components', kwargs={'course_slug': group.courseoffering.slug, 'activity_slug': member.activity.slug})
                 )
             n.save()
             
