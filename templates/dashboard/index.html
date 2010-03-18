@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 {% load markup %}
 
-{% block title %}{{course}}{% endblock %}
-{% block h1 %}{{course}}{% endblock %}
-{% block content %}
+{% block title %}Course Management System{% endblock %}
+{% block h1 %}Course Management System{% endblock %}
 
+{% block breadcrumbs %}<li><a href="http://www.sfu.ca/">SFU</a></li><li>&gt; Course Management System</li>{% endblock %}
+
+{% block content %}
 {% if news_list%}
 <div id="newsitems">
 <h2>Latest news</h2>

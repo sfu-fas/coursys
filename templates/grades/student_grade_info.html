@@ -10,9 +10,7 @@
 </script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
-<li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li>
-<li>&gt; <a href="{% url grades.views.activity_info_student course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid%}">{{ student_grade_info.name }}</a></li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li><li>&gt; {{ student_grade_info.name }}</li>{% endblock %}
 
 
 {% block content %}
