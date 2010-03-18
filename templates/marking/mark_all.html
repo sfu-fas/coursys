@@ -73,10 +73,17 @@ $(document).ready(function() {
 			<a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}?id={{ student.id }}">{{ student.name }}</a>
 		    </strong>
 		</td>
+		{% with mark_row.form as form %}
 		<td>{{ student.emplid }}</td>
 		<td>{{ mark_row.current_grade }}</td>
-		<td>{{ mark_row.form.value }} / {{activity.max_grade}}</td>	
-		<td>{{ mark_row.form.status }}</td>
+		<td>
+		{{ form.value }} / {{activity.max_grade}}
+		{% if form.value.errors %}
+		<div class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/>&nbsp;{{form.value.errors.0}}</div>
+		{% endif %} 
+		</td>	
+		<td>{{ form.status }}</td>
+		{% endwith %}
 	    </tr>
 	    {%endwith%}
 	    {% empty %}

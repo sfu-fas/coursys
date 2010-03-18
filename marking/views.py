@@ -487,30 +487,30 @@ def mark_all_students(request, course_slug, activity_slug):
             ngrades.append(ngrade)
             rows.append({'student': student, 'current_grade' : current_grade, 'form' : entry_form})    
    
-    if not error_info:                    
-        for i in range(len(memberships)): 
-           ngrade = ngrades[i]
-           new_value = forms[i].cleaned_data['value'] 
-           if new_value == None:
-               continue 
-           if ngrade and ngrade.value == new_value:
-                print "do not need to update"
-           else:# save data 
-                if ngrade == None:
-                    ngrade = NumericGrade(activity = activity, member = memberships[i]);
-                    ngrade.save()
-                # created a new activity_mark as well
-                activity_mark = StudentActivityMark(numeric_grade = ngrade, created_by = request.user.username)
-                activity_mark.setMark(new_value)
-                activity_mark.save()
-                #add to log           
-                l = LogEntry(userid=request.user.username, \
-                             description="edited grade on %s for student %s changed to %s" % \
-                            (activity, student.userid, new_value), related_object=activity_mark)                     
-                l.save()                         
-         
-        messages.add_message(request, messages.SUCCESS, 'Marking for all students on activity %s saved' % activity.name)
-        return HttpResponseRedirect(reverse('grades.views.activity_info', args=(course_slug, activity_slug)))  
+        if not error_info:                    
+            for i in range(len(memberships)): 
+               ngrade = ngrades[i]
+               new_value = forms[i].cleaned_data['value'] 
+               if new_value == None:
+                   continue 
+               if ngrade and ngrade.value == new_value:
+                    print "do not need to update"
+               else:# save data 
+                    if ngrade == None:
+                        ngrade = NumericGrade(activity = activity, member = memberships[i]);
+                        ngrade.save()
+                    # created a new activity_mark as well
+                    activity_mark = StudentActivityMark(numeric_grade = ngrade, created_by = request.user.username)
+                    activity_mark.setMark(new_value)
+                    activity_mark.save()
+                    #add to log           
+                    l = LogEntry(userid=request.user.username, \
+                                 description="edited grade on %s for student %s changed to %s" % \
+                                (activity, student.userid, new_value), related_object=activity_mark)                     
+                    l.save()                         
+             
+            messages.add_message(request, messages.SUCCESS, 'Marking for all students on activity %s saved' % activity.name)
+            return HttpResponseRedirect(reverse('grades.views.activity_info', args=(course_slug, activity_slug)))  
                 
     else: # for GET request       
         for member in memberships: 

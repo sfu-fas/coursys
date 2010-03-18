@@ -48,10 +48,7 @@ def error_note(form):
 
 FIELD_AS_TD_TEMPLATE = Template('''<td>
                            {% if field.errors %}
-                               <p class="errorindicator">
-                                <img src="''' + MEDIA_URL + '''icons/error.png" alt="error" />
-                               {{ field.errors.0 }}    
-                               </p>  
+                           <div class="errortext"><img src="''' + MEDIA_URL + '''icons/error.png" alt="error"/>&nbsp;{{field.errors.0}}</div>
                            {% endif %}
                         {{ field }}
                 </td>''')
