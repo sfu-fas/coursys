@@ -90,7 +90,9 @@ class SubmittedURLForm(SubmissionForm):
     class Meta:
         model = SubmittedURL
         fields = ['url']
-        widgets = {'url': TextInput(attrs = {'style':'width:25em'})}
+        widgets = {
+            'url': TextInput(attrs={'style':'width:25em'}),
+        }
     def clean_url(self):
         url = self.cleaned_data['url']
         if self.check_is_empty(url):

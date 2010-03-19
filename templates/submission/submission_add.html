@@ -8,18 +8,20 @@
 
 <h2>Add new submission for {{activity.name}}</h2>
 
-<a href ="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug%}">Back</a>
+<a href ="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug%}", class = 'button'>Back</a>
 
-
+<div id="form_container">
 <form action ="" method ="post" enctype="multipart/form-data">
-    {% for sub_list in component_form_list %}
-        <div>
-            component {{sub_list.0.title}}
-            {{sub_list.1.as_p}}
-        </div>
-    {% endfor %}
-
-    <input type ="submit" value ="Submit" />
+    <fieldset>
+        <legend>Submission List</legend>
+        {% for sub_list in component_form_list %}
+            <ul>
+                <li class="view"><label>{{sub_list.0.title}}</label>{{sub_list.1.url}}{{sub_list.1.cpp}}{{sub_list.1.text}}{{sub_list.1.java}}{{sub_list.1.archive}}</li>
+            </ul>
+        {% endfor %}
+    <input type ="submit" value ="Submit" class ="submit"/>
+    </fieldset>
+    
 </form>
-
+</div>
 {% endblock%}

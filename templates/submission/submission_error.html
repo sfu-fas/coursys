@@ -14,27 +14,49 @@
 {% endblock %}
 
 {% block content %}
-    {%ifequal not_submitted_comp|length 0%}
-        <a href="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug%}" class="button">continue</a>
-    {%else%}
-        <h2>Warning List:</h2>
-        {% for pair in component_list %}
-            {{pair.1.errors}}
-            {%if pair.1.error%}
-                <h3>{{pair.1.error}}</h3>
-            {%endif%}
-        {%endfor%}
-        {% ifequal submitted_comp|length 0 %}
-        {% else %}
-            <h2>Successful submission</h2>
-                {% for component in submitted_comp %}
-                    <h3>{{component}}</h3>
-                {% endfor %}
-        {% endifequal %}
-        <h2>Do you want to continue?</h2>
-        <ul class="add_nav">
-        <li><a href="{% url submission.views.add_submission course_slug=course.slug activity_slug=activity.slug%}" class="button">No.</a></li>
-        <li><a href="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug%}" class="button">Yes</a></li>
-        </ul>
-    {%endifequal%}
+    <div id ="submission_error_container">
+        {# If every component is submitted and has no error #}
+        {%ifequal not_submitted_comp|length 0%}
+            <a href="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug%}" class="button">continue</a>
+        {# if there are errors in several submitted component#}
+        {%else%}
+            <h2>Error List:</h2>
+            <table>
+            {% for pair in component_list %}
+                {%if pair.1.errors%}
+                    <tr>
+                        <td class="column1">
+                            {{pair.0.title}}
+                        </td>
+                        <td class="column2">
+                            {{pair.1.url.errors|striptags}}
+                            {{pair.1.text.errors|striptags}}
+                            {{pair.1.cpp.errors|striptags}}
+                            {{pair.1.java.errors|striptags}}
+                            {{pair.1.archive.errors|striptags}}
+                        </td>
+                    </tr>
+                {%endif%}
+            {%endfor%}
+            </table>
+            {# if no component is submitted successfully #}
+            {% ifequal submitted_comp|length 0 %}
+            {% else %}
+                <h2>Successful submission</h2>
+                    <table>
+                        {% for component in submitted_comp %}
+                            <tr>
+                                <td class ="column1">
+                                    {{component.title}}
+                                </td>
+                                <td class="column3">Submitted!</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+            {% endifequal %}
+            <h2 class ="text">All components with error will not be submitted!</h2>
+            <br>
+            <a href="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug%}" class="button">OK</a>
+        {%endifequal%}
+    </div>
 {% endblock %}

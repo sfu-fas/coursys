@@ -111,33 +111,33 @@ def add_submission(request, course_slug, activity_slug):
     component_list = select_all_components(activity)
     component_list.sort()
     component_form_list=[]
-    for component in component_list:
-        if component.get_type() == 'URL':
-            pair = []
-            pair.append(component)
-            pair.append(SubmittedURLForm(request.POST, prefix=component.id))
-            component_form_list.append(pair)
-        elif component.get_type() == 'Archive':
-            pair = []
-            pair.append(component)
-            pair.append(SubmittedArchiveForm(request.POST, request.FILES,prefix = component.id))
-            component_form_list.append(pair)
-        elif component.get_type() == 'Cpp':
-            pair = []
-            pair.append(component)
-            pair.append(SubmittedCppForm(request.POST, request.FILES, prefix = component.id))
-            component_form_list.append(pair)
-        elif component.get_type() == 'Java':
-            pair = []
-            pair.append(component)
-            pair.append(SubmittedJavaForm(request.POST, request.FILES, prefix = component.id))
-            component_form_list.append(pair)
-        elif component.get_type() == 'PlainText':
-            pair = []
-            pair.append(component)
-            pair.append(SubmittedPlainTextForm(request.POST, prefix = component.id))
-            component_form_list.append(pair)
     if request.method == 'POST':
+        for component in component_list:
+            if component.get_type() == 'URL':
+                pair = []
+                pair.append(component)
+                pair.append(SubmittedURLForm(request.POST, prefix=component.id))
+                component_form_list.append(pair)
+            elif component.get_type() == 'Archive':
+                pair = []
+                pair.append(component)
+                pair.append(SubmittedArchiveForm(request.POST, request.FILES,prefix = component.id))
+                component_form_list.append(pair)
+            elif component.get_type() == 'Cpp':
+                pair = []
+                pair.append(component)
+                pair.append(SubmittedCppForm(request.POST, request.FILES, prefix = component.id))
+                component_form_list.append(pair)
+            elif component.get_type() == 'Java':
+                pair = []
+                pair.append(component)
+                pair.append(SubmittedJavaForm(request.POST, request.FILES, prefix = component.id))
+                component_form_list.append(pair)
+            elif component.get_type() == 'PlainText':
+                pair = []
+                pair.append(component)
+                pair.append(SubmittedPlainTextForm(request.POST, prefix = component.id))
+                component_form_list.append(pair)
         submitted_comp = []    # list all components which has content submitted in the POST
         not_submitted_comp = [] #list allcomponents which has no content submitted in the POST
         new_sub = StudentSubmission()   # the submission foreign key for newly submitted components
@@ -192,6 +192,32 @@ def add_submission(request, course_slug, activity_slug):
             "submitted_comp":submitted_comp, "not_submitted_comp":not_submitted_comp},
             context_instance=RequestContext(request))
     else:
+        for component in component_list:
+            if component.get_type() == 'URL':
+                pair = []
+                pair.append(component)
+                pair.append(SubmittedURLForm(prefix=component.id))
+                component_form_list.append(pair)
+            elif component.get_type() == 'Archive':
+                pair = []
+                pair.append(component)
+                pair.append(SubmittedArchiveForm(prefix = component.id))
+                component_form_list.append(pair)
+            elif component.get_type() == 'Cpp':
+                pair = []
+                pair.append(component)
+                pair.append(SubmittedCppForm(prefix = component.id))
+                component_form_list.append(pair)
+            elif component.get_type() == 'Java':
+                pair = []
+                pair.append(component)
+                pair.append(SubmittedJavaForm(prefix = component.id))
+                component_form_list.append(pair)
+            elif component.get_type() == 'PlainText':
+                pair = []
+                pair.append(component)
+                pair.append(SubmittedPlainTextForm(prefix = component.id))
+                component_form_list.append(pair)
         return render_to_response("submission/submission_add.html",
         {'component_form_list': component_form_list, "course": course, "activity": activity},
         context_instance = RequestContext(request))
@@ -220,8 +246,9 @@ def show_components_submission_history(request, course_slug, activity_slug):
     for component in component_list:
         if select_students_submission_by_component(component, userid) == []:
             empty_component.append(component)
+            messages.add_message(request, messages.WARNING, "You have no submission for "+component.title+".")
     return render_to_response("submission/submission_history_view.html", 
-        {'submitted_component': all_submitted_components,'empty_component': empty_component, 'course':course, 'activity':activity},
+        {"course":course, "activity":activity,'userid':userid,'submitted_component': all_submitted_components,'empty_component': empty_component, 'course':course, 'activity':activity},
         context_instance = RequestContext(request))
 
 #staff submission configuratiton

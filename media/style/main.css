@@ -626,7 +626,43 @@ fieldset .hidden {
 /*
  *  containers
  */
-
+ /*view submission error*/
+ #submission_error_container{
+    margin: 1em;
+    width: 50em;
+ }
+ #submission_error_container .button{
+    float:right;
+    clear:right;
+ }
+ 
+ #submission_error_container .text{
+    text-align: right;
+ }
+ #submission_error_container table {
+    border: 1px;
+    width: 40em;
+ }
+ #submission_error_container table td{
+    border: 1px solid #DBDBDB;
+ }
+ #submission_error_container table td.column1 {
+    background: #E8E8E8;
+    font-weight:bold;
+    padding: 0.1em 2em;
+    text-align: right;
+    width: 10em;
+ }
+  #submission_error_container table td.column2 {
+       color:red;
+       padding: 0.1em 4em;      
+ }
+  #submission_error_container table td.column3 {
+       color:green;
+       padding: 0.1em 4em;      
+ }
+  
+/* view submission history */
 #add_submission_component_container {
     clear: left;
 }
@@ -639,7 +675,39 @@ fieldset .hidden {
 #component_view_student_container {
     clear: left;
 }
+#submission_history_view_container{
+    clear: left;
+}
 
+#submission_history_view_container h2{
+    color: 
+}
+#submission_history_view_container table{
+    border: 0px;
+    
+}
+#submission_history_view_container table tr {
+    margin: 1em 10em;
+    
+}
+#submission_history_view_container table th {
+    background-color:#e9eef7;
+    padding: 0.3em 5em;
+    border: 0px;
+}
+
+#submission_history_view_container table td {
+    border: 0px;
+    padding: 0.3em 5em;
+    text-align: center;
+}
+
+#submission_history_view_container table tr.row1 {
+    background-color: white;
+}
+#submission_history_view_container table tr.row2 {
+    background-color: #e9eef7;
+}
 /* marking style */
 .marking_a
 {

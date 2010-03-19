@@ -7,38 +7,52 @@
 <li>&gt; <a href="">Submission History</a></li>
 {% endblock %}
 
-{% block content %}
- <a href="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug%}" class="button">back</a>
-<!--{% regroup submitted_component|dictsort:"component" by component as by_component %}-->
-{% ifequal submitted_component None %}
-    <h2>Currently you have no submission for this activity.</h2>
-{% endifequal %}
 
+{% block content %}
+
+<div>
+ <ul class="add_nav">
+ <li><a href="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug%}" class="button">back</a></li>
 {% if empty_component %}
-    You have no submission for:
-    <ul>
-        {% for empty_item in empty_component %}
-            <li>{{empty_item.title}}</li>
-        {% endfor %}
-    </ul>
-    <a href ="{% url submission.views.add_submission course_slug=course.slug activity_slug=activity.slug%}">Submit now</a>
+    <li><a href ="{% url submission.views.add_submission course_slug=course.slug activity_slug=activity.slug%}" class="button">Submit now</a></li>
 {% endif %}
+</ul>
+</div>
+
+
 
 {% regroup submitted_component|dictsort:"component" by component as by_component %}
-{% for component in by_component %}
-<h2>{{component.grouper.title}}</h2>
-{% for item in component.list %}
-<ul>
-    <li><label>time:</label>{{item.get_time}}</li>
-    {% ifequal item.get_type 'URL' %}
-        <li><a href="{{iten.get_url}}">{{item.get_url}}</a></li>
-    {% else%}
-        <li><label>download:</label><a href ={{item.get_url}}>down</a></li>
-    {% endifequal %}
-    {% if item.get_size %}<li><label>size:</label>{{item.get_size_in_kb}} KB</li>{% endif %}
-</ul>
-{% endfor %}
-{% endfor %}
+<div id="submission_history_view_container">
+    {% for component in by_component %}
+        <h2>{{component.grouper.title}}</h2>
+        <table>
+            <tr>
+                <th>TIME</th>
+                <th>DOWNLOAD</th>
+                <th>SIZE</th>
+            </tr>
+        {% for item in component.list %}
+            <tr class="{% if forloop.counter0|divisibleby:2 %}row1{%else%}row2{%endif%}">
+                <td>{{item.get_time}}</td>
+                <td>
+                    {% ifequal item.get_type 'URL' %}
+                        <a href="{{item.get_url}}">{{item.get_url}}</a>
+                    {% else%}
+                        <img src="{{MEDIA_URL}}icons/attach.png" alt="download" /><a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=userid %}?type={{item.get_type}}&id={{item.id}}" target="_blank">Download File</a>
+                    {% endifequal %}
+                </td>
+                <td>
+                    {% if item.get_size %}
+                        {{item.get_size_in_kb}} KB
+                    {% else %}
+                        --
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </table>
+    {% endfor %}
+</div>
 
 
 
