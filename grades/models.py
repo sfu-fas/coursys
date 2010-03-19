@@ -234,11 +234,12 @@ class LetterGrade(models.Model):
 
     
     def save(self):
-        super(NumericGrade, self).save()
+        super(LetterGrade, self).save()
         if activity.status == "RLS":
             n = NewsItem(user=self.member.person, author=request.userid, course=activity.offering,
-                source_app="grades", title="%s grade available" % (activity.name), 
-                content="...",
+                source_app="grades", title="%s %s grade available" % (self.activity.offering.name(), self.activity.name), 
+                 content="New grade for %s in %s is available: %s." 
+                  % (self.activity.name, self.activity.offering.name(), self.letter_grade),
                 url=reverse('grades.views.student', course_slug=course.slug)
                 )
             n.save()
