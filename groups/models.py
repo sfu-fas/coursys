@@ -33,6 +33,17 @@ class GroupMember(models.Model):
 
     def __unicode__(self):
 	    return '%s %s' % (self.student.person, self.group)
+
+    #def save(self):
+     #   super(GroupMember, self).save()
+      #  member = get_object_or_404(Member, person = person)
+       # n = NewsItem(user = student.person, author=Null, course=member.offering,
+        #    source_app="Group Join", title="Group Conformation", 
+         #   content="You have joined in group %s."
+          #      % (group),
+           # url=reverse('group.views.groupmanage', kwargs={'course_slug':member.offering.slug})
+            #)
+        #n.save()
 	
     class Meta:
         unique_together = ("group", "student", "activity")
