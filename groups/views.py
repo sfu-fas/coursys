@@ -8,9 +8,11 @@ from django.template import RequestContext
 from groups.forms import *
 from django.forms.models import modelformset_factory
 from django.forms.formsets import formset_factory
+from django.forms.util import ErrorList
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from contrib import messages
+from django.conf import settings
 from courselib.auth import requires_course_by_slug, requires_course_staff_by_slug, is_course_staff_by_slug, is_course_student_by_slug
 
 #@login_required
@@ -104,34 +106,44 @@ def join(request, course_slug, group_slug):
 
 @requires_course_by_slug
 def invite(request, course_slug, group_slug):
-    #TODO need to check if the invitation for the student has already been sent by other members in the team
+    
     #TODO need to validate the student who is invited, cannot be the invitor him/herself.
     course = get_object_or_404(CourseOffering, slug = course_slug)
     group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
     person = get_object_or_404(Person, userid = request.user.username)
-    invitor = get_object_or_404(Member, person = person, offering=course)  
-
-    students_qset = course.members.filter(person__role = 'STUD')   
+    invitor = get_object_or_404(Member, person = person, offering=course)     
+    error_info=None
     from django import forms 
     class StudentReceiverForm(forms.Form):
-        student = forms.ModelChoiceField(queryset = students_qset) 
+        name = forms.CharField()
+
+    
         
     if request.method == "POST": 
         student_receiver_form = StudentReceiverForm(request.POST)
+        #student_receiver_form.activate_addform_validation(course_slug,group_slug)
         if student_receiver_form.is_valid():
-            student = student_receiver_form.cleaned_data["student"]
-            print student
-            member = Member.objects.get(person = student, offering = course)
-            for invitorMembership in GroupMember.objects.filter(group = group, student = invitor):
-                newGroupMember = GroupMember(group = group, student = member, \
-                                             activity = invitorMembership.activity, confirmed = False) 
-                newGroupMember.save()
-            
-            messages.add_message(request, messages.SUCCESS, 'Your invitation to "%s" has been sent out.' % (student))
+            name = student_receiver_form.cleaned_data['name']
+            newPerson = get_object_or_404(Person, userid=name)
+            member = Member.objects.get(person = newPerson, offering = course)
+            if GroupMember.objects.filter(student=member,group=group):
+                error_info="Student %s has already exists" % (newPerson)
+            else:
+                #member = Member.objects.get(person = newPerson, offering = course)
+                   for invitorMembership in GroupMember.objects.filter(group = group, student = invitor):
+                       newGroupMember = GroupMember(group = group, student = member, \
+                                             activity = invitorMembership.activity, confirmed = False)
+                       newGroupMember.save()
+
+            if error_info:
+                messages.add_message(request, messages.ERROR, error_info)
+            else:
+                messages.add_message(request, messages.SUCCESS, 'Your invitation to "%s" has been sent out.' % (newPerson))
             return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
     else:
         student_receiver_form = StudentReceiverForm()
-        return render_to_response("groups/invite.html", {'student_receiver_form': student_receiver_form}, context_instance=RequestContext(request))
+        context = {'course': course, 'form': student_receiver_form}
+        return render_to_response("groups/invite.html", context, context_instance=RequestContext(request))
                                   
 
 #def joinconfirm(request):
