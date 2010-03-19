@@ -161,4 +161,62 @@ class SubmittedPlainTextForm(SubmissionForm):
             raise forms.ValidationError("Text Length exceeded max length, text can not be uploaded!")
         return data
 
+def make_form_from_list(component_list):
+    component_form_list = []
+    for component in component_list:
+        if component.get_type() == 'URL':
+            pair = []
+            pair.append(component)
+            pair.append(SubmittedURLForm(prefix=component.id))
+            component_form_list.append(pair)
+        elif component.get_type() == 'Archive':
+            pair = []
+            pair.append(component)
+            pair.append(SubmittedArchiveForm(prefix = component.id))
+            component_form_list.append(pair)
+        elif component.get_type() == 'Cpp':
+            pair = []
+            pair.append(component)
+            pair.append(SubmittedCppForm(prefix = component.id))
+            component_form_list.append(pair)
+        elif component.get_type() == 'Java':
+            pair = []
+            pair.append(component)
+            pair.append(SubmittedJavaForm(prefix = component.id))
+            component_form_list.append(pair)
+        elif component.get_type() == 'PlainText':
+            pair = []
+            pair.append(component)
+            pair.append(SubmittedPlainTextForm(prefix = component.id))
+            component_form_list.append(pair)
+    return component_form_list;
 
+def make_form_from_data_and_list(request, component_list):
+    component_form_list = []
+    for component in component_list:
+        if component.get_type() == 'URL':
+            pair = []
+            pair.append(component)
+            pair.append(SubmittedURLForm(request.POST, prefix=component.id))
+            component_form_list.append(pair)
+        elif component.get_type() == 'Archive':
+            pair = []
+            pair.append(component)
+            pair.append(SubmittedArchiveForm(request.POST, request.FILES,prefix = component.id))
+            component_form_list.append(pair)
+        elif component.get_type() == 'Cpp':
+            pair = []
+            pair.append(component)
+            pair.append(SubmittedCppForm(request.POST, request.FILES, prefix = component.id))
+            component_form_list.append(pair)
+        elif component.get_type() == 'Java':
+            pair = []
+            pair.append(component)
+            pair.append(SubmittedJavaForm(request.POST, request.FILES, prefix = component.id))
+            component_form_list.append(pair)
+        elif component.get_type() == 'PlainText':
+            pair = []
+            pair.append(component)
+            pair.append(SubmittedPlainTextForm(request.POST, prefix = component.id))
+            component_form_list.append(pair)
+    return component_form_list;

@@ -1,4 +1,4 @@
-{% extends "submission/component_view.html" %}
+{% extends "submission/dashboard_student.html" %}
 {% load submission_filters %}
 
 {% block h1 %}Submission history for {{activity.name}}{% endblock %}
@@ -27,9 +27,9 @@
         <h2>{{component.grouper.title}}</h2>
         <table>
             <tr>
-                <th>TIME</th>
-                <th>DOWNLOAD</th>
-                <th>SIZE</th>
+                <th>Time</th>
+                <th>Download</th>
+                <th>Size</th>
             </tr>
         {% for item in component.list %}
             <tr class="{% if forloop.counter0|divisibleby:2 %}row1{%else%}row2{%endif%}">

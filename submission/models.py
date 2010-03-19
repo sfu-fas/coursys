@@ -6,6 +6,11 @@ from groups.models import Group,GroupMember
 from datetime import datetime
 from autoslug import AutoSlugField
 from django.shortcuts import get_object_or_404
+from django.core.servers.basehttp import FileWrapper
+import zipfile
+import tempfile
+import os
+from django.http import HttpResponse
 
 
 STATUS_CHOICES = [
@@ -82,7 +87,7 @@ def select_all_components(activity):
     components.sort()
     count = 1;
     for component in components:
-        component.position = count*10
+        component.position = count
         count = count + 1
         component.save()
     return components
@@ -258,3 +263,176 @@ def filetype(file):
       return ".TAR"
 
   return file.name[file.name.rfind('.'):]
+
+
+
+def check_component_id_type_activity(list, id, type, activity):
+    """
+    check if id/type/activity matches for some component in the list.
+    if they match, return that component
+    """
+    if id == None or type == None:
+        return None
+    for c in list:
+        if str(c.get_type()) == type and str(c.id) == id and c.activity == activity:
+            return c
+    return None
+
+def get_current_submission(userid, activity):
+    """
+    return a list of pair[component, latest_submission(could be None)]
+    """
+    component_list = select_all_components(activity)
+    all_submitted = select_students_submitted_components(activity, userid)
+    #TODO: group submission
+
+    submitted_pair_list = []
+    for component in component_list:
+        pair = []
+        pair.append(component)
+        c = [sub for sub in all_submitted if sub.component == component]
+        c.sort()
+        if len(c) == 0:
+            pair.append(None)
+        else:
+            pair.append(c[0])
+        submitted_pair_list.append(pair)
+    return submitted_pair_list
+
+def get_submit_time_and_owner(activity, pair_list):
+    """
+    returns (late time, latest submit_time, ownership)
+    """
+    #calculate latest submission
+    submit_time = None
+    owner = None
+    for pair in pair_list:
+        if pair[1] != None:
+            try:
+                if submit_time == None:
+                    submit_time = datetime.min
+            except:
+                pass
+            if pair[1].submission.owner != None:
+                owner = pair[1].submission.owner.person
+            if submit_time < pair[1].submission.created_at:
+                submit_time = pair[1].submission.created_at
+    late = None
+    if submit_time != None and submit_time > activity.due_date:
+        late = submit_time - activity.due_date
+    return late, submit_time, owner
+
+def download_single_component(type, id):
+    """
+    identified by component.type and component.id
+    """
+    if type == 'PlainText':
+        text_component = get_object_or_404(SubmittedPlainText, id = id)
+        return _download_text_file(text_component)
+    if type == 'URL':
+        url_component = get_object_or_404(SubmittedURL, id=id)
+        return _download_url_file(url_component)
+    if type == 'Archive':
+        archive_component = get_object_or_404(SubmittedArchive, id=id)
+        return _download_archive_file(archive_component)
+    if type == 'Cpp':
+        cpp_component = get_object_or_404(SubmittedCpp, id=id)
+        return _download_cpp_file(cpp_component)
+    if type == 'Java':
+        java_component = get_object_or_404(SubmittedJava, id=id)
+        return _download_java_file(java_component)
+    return NotFoundResponse(request)
+
+def generate_zip_file(pair_list, userid, activity_slug):
+    """
+    return a zip file containing latest submission from userid for activity
+    """
+    handle, filename = tempfile.mkstemp('.zip')
+    os.close(handle)
+    z = zipfile.ZipFile(filename, 'w', zipfile.ZIP_STORED)
+
+    for pair in pair_list:
+        if pair[1] == None:
+            continue
+        type = pair[0].get_type()
+        if type == 'PlainText':
+            z.writestr(pair[0].slug+".txt", pair[1].text)
+        if type == 'URL':
+            content = '<html><head><META HTTP-EQUIV="Refresh" CONTENT="0; URL=' \
+                        + pair[1].url + '"></head><body>' \
+                        + 'If redirecting doesn\' work, click the link <a href="' \
+                        + pair[1].url + '">' + pair[1].url + '</a>' \
+                        + '</body></html> '
+            z.writestr(pair[0].slug+".html", content)
+        if type == 'Archive':
+            name = pair[1].archive.name
+            name = name[name.rfind('/')+1:]
+            name = pair[0].slug + "_" + name
+            z.write(pair[1].archive.path, name)
+        if type == 'Cpp':
+            name = pair[1].cpp.name
+            name = name[name.rfind('/')+1:]
+            name = pair[0].slug + "_" + name
+            z.write(pair[1].cpp.path, name)
+        if type == 'Java':
+            name = pair[1].java.name
+            name = name[name.rfind('/')+1:]
+            name = pair[0].slug + "_" + name
+            z.write(pair[1].java.path, name)
+    z.close()
+
+    file = open(filename, 'rb')
+    response = HttpResponse(FileWrapper(file), mimetype='application/zip')
+    response['Content-Disposition'] = 'attachment; filename=%s'% userid + "_" + activity_slug + ".zip"
+    try:
+        os.remove(filename)
+    except OSError:
+        print "Warning: error removing temporary file."
+    return response
+
+def _download_text_file(submission):
+    """
+    return a txt file attachment
+    """
+    response = HttpResponse(submission.text, mimetype='text/plain')
+    response['Content-Disposition'] = 'attachment; filename=%s' %\
+        submission.submission.get_userid() + "_" + submission.component.slug + ".txt"
+    return response
+
+def _download_url_file(submission):
+    """
+    return a .html file with redirect information
+    """
+    content = '<html><head><META HTTP-EQUIV="Refresh" CONTENT="0; URL=' \
+        + submission.url + '"></head><body>' \
+        + 'If redirecting doesn\' work, click the link <a href="' \
+        + submission.url + '">' + submission.url + '</a>' \
+        + '</body></html> '
+    response = HttpResponse(content, mimetype='text/html')
+    response['Content-Disposition'] = 'attachment; filename=%s' %\
+        submission.submission.get_userid() + "_" + submission.component.slug + ".html"
+    return response
+
+def _download_archive_file(submission):
+    response = HttpResponse(submission.archive, mimetype='application/octet-stream')
+    filename = submission.archive.name
+    filename = filename[filename.rfind('/')+1:]
+    response['Content-Disposition'] = 'attachment; filename=%s' %\
+        submission.submission.get_userid() + "_" + submission.component.slug + "_" + filename
+    return response
+
+def _download_cpp_file(submission):
+    response = HttpResponse(submission.cpp, mimetype='text/plain')
+    filename = submission.cpp.name
+    filename = filename[filename.rfind('/')+1:]
+    response['Content-Disposition'] = 'attachment; filename=%s' %\
+        submission.submission.get_userid() + "_" + submission.component.slug + "_" + filename
+    return response
+
+def _download_java_file(submission):
+    response = HttpResponse(submission.java, mimetype='text/plain')
+    filename = submission.java.name
+    filename = filename[filename.rfind('/')+1:]
+    response['Content-Disposition'] = 'attachment; filename=%s' %\
+        submission.submission.get_userid() + "_" + submission.component.slug + "_" + filename
+    return response
