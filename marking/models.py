@@ -240,10 +240,10 @@ def get_activity_mark_for_student(activity, student_membership, include_all = Fa
         
      # the mark maybe assigned to this student via the group this student participates for this activity       
      group_mems = GroupMember.objects.select_related().filter(student = student_membership, activity = activity, confirmed = True)
+     
      if group_mems.count() > 0:
-        group = group_mems[0].group # there should be only one group this student is in      
-        
-        grp_mark_info = get_activity_mark_for_group(group, activity, True)        
+        group = group_mems[0].group # there should be only one group this student is in
+        grp_mark_info = get_activity_mark_for_group(activity, group, True)        
         latest_grp_mark = grp_mark_info['current_mark']
         grp_marks = grp_mark_info['all_marks']
         
