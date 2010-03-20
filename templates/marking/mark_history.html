@@ -7,8 +7,7 @@
 		"bJQueryUI": true,
 		"bFilter": false,
 		"bPaginate": false,
-		"bInfo": false,
-		"aaSorting": [[ 0, "asc" ]]	
+		"aaSorting": [[ 0, "desc" ]] /*as default sorted by created time: from latest to earliest*/	
 	});
     });
 </script>
@@ -23,7 +22,7 @@
 {% block content %}
 <h2> For Student {{student.userid}} on {{activity.name}} of {{course.name}} </h2>
 <div class = "datatable_container">
-  <h3>Assigned directly:</h3>
+  <h3>Assigned directly to this individual:</h3>
   <table class="display">
 	<thead>
 		<tr>

@@ -203,38 +203,23 @@ class BasicTest(TestCase):
         #assign mark to 0aaa1 individually twice and via the group twice, make some interval between saves     
         std_mark = StudentActivityMark(numeric_grade = ngrade, created_by = 'ggbaker')           
         std_mark.setMark(20)
-        std_mark.save()
-        #print std_mark.created_at
-        
-        #for i in range(100000):
-        #    pass       
+        std_mark.save()  
                
         group_mark = GroupActivityMark(group = group, numeric_activity = a, created_by = 'ggbaker')  
         group_mark.setMark(30)
         group_mark.save()
-        #print group_mark.created_at
-        
-        #for i in range(100000):
-        #   pass  
         
         std_mark = StudentActivityMark(numeric_grade = ngrade, created_by = 'ggbaker')
         std_mark.setMark(40)
-        std_mark.save()
-        #print std_mark.created_at
-        
-        #for i in range(100000):
-        #   pass  
+        std_mark.save()   
         
         group_mark = GroupActivityMark(group = group, numeric_activity = a,  created_by = 'ggbaker')
         group_mark.setMark(50)               
         group_mark.save()
-        #print group_mark.created_at
         
         self.client.login(ticket = 'ggbaker', service=CAS_SERVER_URL)
 
-        url = reverse(mark_history, args=(self.c_slug, a.slug, '0aaa1')) 
-
-        response = self.client.get(url)
+        response = self.client.get(reverse(mark_history, args=(self.c_slug, a.slug, '0aaa1')))
         self.assertEquals(response.status_code, 200)
         
         latest_act_mark = response.context['current_mark']

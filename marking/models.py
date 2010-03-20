@@ -46,7 +46,6 @@ def attachment_upload_to(instance, filename):
         marking_files_root = 'marking/files/'
         now = datetime.now()
         time_path = '/'.join([str(now.year), str(now.month), str(now.day)])
-        print marking_files_root + time_path + filename        
         return marking_files_root + time_path + filename
          
 class ActivityMark(models.Model):
@@ -139,7 +138,7 @@ class GroupActivityMark(ActivityMark):
                                         '/' + self.group.slug + \
                                         '/' + self.file_attachment.name
         #assign mark for each member in the group
-        group_members = self.group.groupmember_set.filter(confirmed = True)
+        group_members = GroupMember.objects.filter(group = self.group, activity = self.numeric_activity, confirmed = True)
         for g_member in group_members:
             try: 
                 ngrade = NumericGrade.objects.get(activity = self.numeric_activity, member = g_member.student)                  
@@ -167,65 +166,95 @@ class ActivityComponentMark(models.Model):
     class Meta:
         unique_together = (('activity_mark', 'activity_component'),)
         
-from django.db.models import Max
-def get_activity_mark(activity, student_membership, activity_mark_id = None, include_all = False):
+def get_activity_mark_by_id(activity, student_membership, activity_mark_id): 
      """
-     this function returns the mark for the student on the activity
+     Find the activity_mark with that id if it exists for the student on the activity
+     it could be in the StudentActivityMark or GroupActivityMark
+     return None if not found.
+     """   
+    # try StudentActivityMark first 
+     try:
+         act_mark = StudentActivityMark.objects.select_related().get(id = activity_mark_id)
+     except StudentActivityMark.DoesNotExist:
+         pass
+     else:
+         # check consistency with against activity and membership
+         # prevent an id query by malicious users 
+         num_grade = act_mark.numeric_grade 
+         if num_grade.activity == activity and num_grade.member == student_membership:
+            return act_mark
+        
+     # not found, then try GroupActivityMark          
+     try:
+         act_mark = GroupActivityMark.objects.select_related().get(id = activity_mark_id)
+     except GroupActivityMark.DoesNotExist:
+         pass
+     else:                
+         # check the activity_mark consistent with the activity and membership
+         # prevent an id query by malicious users 
+         if act_mark.numeric_activity == activity:
+             group = act_mark.group
+             try:
+                 group_mem = GroupMember.objects.get(group = group, activity = activity, student = student_membership)
+             except GroupMember.DoesNotExist:
+                 pass
+             else:
+                 if group_mem.confirmed == True:
+                    return act_mark         
      
-     if activity_mark_id is specified, return that activity_mark if it 
-     exists for the student on the activity(return None otherwise). And here 
-     we don't consider the include_all.
+     return None
+
+def get_activity_mark_for_group(activity, group, include_all = False):
     
+    current_mark = None
+    all_marks = GroupActivityMark.objects.filter(group = group, numeric_activity = activity)    
+    
+    if all_marks.count() != 0 : 
+        current_mark = all_marks.latest('created_at')
+   
+    if not include_all:
+        return current_mark
+    else:
+        return {'current_mark': current_mark, 'all_marks': all_marks}
+
+
+def get_activity_mark_for_student(activity, student_membership, include_all = False):
+     """
+     Return the mark for the student on the activity.     
      if include_all is False, only return the current mark which was most lately created 
      and thus is currently valid. Otherwise not only return the current mark but also 
      all the history marks for the student on the activity        
      """  
-     current_act_mark = None
-     std_act_marks = None
-     grp_act_marks = None     
+     current_mark = None
+     std_marks = None
+     grp_marks = None     
      
      # the mark maybe assigned directly to this student 
      num_grade = NumericGrade.objects.get(activity = activity, member = student_membership)
-     std_act_marks = StudentActivityMark.objects.filter(numeric_grade = num_grade)
-     
-     if std_act_marks.count() != 0 :
-        
-        if activity_mark_id != None:
-           for act in std_act_marks:             
-               if act.id == int(activity_mark_id):
-                   return act    
-        
+     std_marks = StudentActivityMark.objects.filter(numeric_grade = num_grade)     
+     if std_marks.count() != 0 :
         #get the latest one
-        current_act_mark = std_act_marks.latest('created_at')
+        current_mark = std_marks.latest('created_at')
         
-     # the mark maybe assigned to this student via the group this student participates
-     try:   
-        group_mem = GroupMember.objects.get(student = student_membership)
-     except GroupMember.DoesNotExist: 
-        pass
-     else:
-        grp_act_marks = GroupActivityMark.objects.filter(group = group_mem.group)    
-        if grp_act_marks.count() != 0 : 
-           
-            if activity_mark_id != None:
-                for act in grp_act_marks:
-                    if act.id == int(activity_mark_id):                        
-                        return act
-                return None
-             
-            latest_act = grp_act_marks.latest('created_at')
-            if current_act_mark  == None or latest_act.created_at > current_act_mark.created_at:
-                current_act_mark = latest_act
+     # the mark maybe assigned to this student via the group this student participates for this activity       
+     group_mems = GroupMember.objects.select_related().filter(student = student_membership, activity = activity, confirmed = True)
+     if group_mems.count() > 0:
+        group = group_mems[0].group # there should be only one group this student is in      
         
-     if activity_mark_id != None:
-         return None
-     
+        grp_mark_info = get_activity_mark_for_group(group, activity, True)        
+        latest_grp_mark = grp_mark_info['current_mark']
+        grp_marks = grp_mark_info['all_marks']
+        
+        if (current_mark  == None) or \
+           (latest_grp_mark != None and latest_grp_mark.created_at > current_mark.created_at):
+            current_mark = latest_grp_mark
+        
      if not include_all:
-         return current_act_mark
+         return current_mark
      else:
-        return {'current_mark' : current_act_mark, 
-                'marks_individual' : std_act_marks,
-                'marks_via_group' : grp_act_marks,}
+        return {'current_mark' : current_mark, 
+                'marks_individual' : std_marks,
+                'marks_via_group' : grp_marks}
 
 def copyCourseSetup(course_copy_from, course_copy_to):
     # copy course setup from one to another

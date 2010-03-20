@@ -11,7 +11,7 @@ from submission.models import *
 from django.core.urlresolvers import reverse
 from contrib import messages
 from datetime import *
-from marking.views import marking
+from marking.views import marking_student, marking_group
 from groups.models import Group, GroupMember
 
 @login_required
@@ -411,11 +411,11 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid):
     
     from_page = request.GET.get('from_page')
     activity_mark = request.GET.get('base_activity_mark')
+    activity_mark_suffix = activity_mark and '?base_activity_mark=' + str(activity_mark) or ''    
     from_page_suffix = from_page and '&from_page=' + str(from_page) or ''
-    activity_mark_suffix = activity_mark and '&base_activity_mark=' + str(activity_mark) or ''
     print activity_mark_suffix
-    #TODO: group, ?group=group.id
-    response = HttpResponseRedirect(reverse(marking, args=[course_slug, activity_slug]) + "?student=" + userid + activity_mark_suffix + from_page_suffix)
+    #TODO: for group marking ?
+    response = HttpResponseRedirect(reverse(marking_student, args=[course_slug, activity_slug, userid]) + activity_mark_suffix + from_page_suffix)
     
     component = select_students_submitted_components(activity, userid)
     #if it is taken by someone not me, show a confirm dialog

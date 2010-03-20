@@ -4,15 +4,22 @@ from django import forms
 from django.forms.models import BaseModelFormSet
 
 class ActivityComponentMarkForm(ModelForm):
+    
+    def __init__(self, max_mark, *args, **kwargs):
+        super(ActivityComponentMarkForm, self).__init__(*args, **kwargs)
+        self.max_mark = max_mark
+    
     class Meta:
         model = ActivityComponentMark            
         fields = ['comment', 'value']
            
-#    def clean_value(self):
-#        value = self.cleaned_data['value']
-#        if value and value < 0:          
-#                raise forms.ValidationError(u'The mark can not be negative')
-#        return value
+    def clean_value(self):
+        value = self.cleaned_data['value']
+        print "check value" 
+        if value and (self.max_mark != None and value > self.max_mark):   
+            print "Mark too high"     
+            raise forms.ValidationError(u'Mark too high')
+        return value
 
         
 class ActivityMarkForm(ModelForm):
@@ -32,7 +39,7 @@ class ActivityMarkForm(ModelForm):
     
 class BaseActivityComponentFormSet(BaseModelFormSet):
     
-    def __init__(self, activity = None, *args, **kwargs):
+    def __init__(self, activity, *args, **kwargs):
         self.activity =  activity
         super(BaseActivityComponentFormSet, self).__init__(*args, **kwargs)
         
@@ -77,7 +84,7 @@ class BaseActivityComponentFormSet(BaseModelFormSet):
             
 class BaseCommonProblemFormSet(BaseModelFormSet):
     
-    def __init__(self, activity_components = None, *args, **kwargs):
+    def __init__(self, activity_components, *args, **kwargs):
         super(BaseCommonProblemFormSet, self).__init__(*args, **kwargs)
         if activity_components:
             for form in self.forms:
@@ -128,23 +135,19 @@ class BaseCommonProblemFormSet(BaseModelFormSet):
                           
 
 class MarkEntryForm(forms.Form):
-    STATUS_CHOICES = [  ('GRAD', 'Graded'), 
-                        ('EXCU', 'Excused'), 
-                        ('DISH', 'Dishonest') ] 
     value = forms.DecimalField(max_digits=5, decimal_places=2, required=False)
-    status = forms.ChoiceField(choices=STATUS_CHOICES, initial = 'GRAD', required=False)
     
-    def __init__(self, max_grade, *args, **kwargs):
+    def __init__(self, max_value, *args, **kwargs):
         super(MarkEntryForm, self).__init__(*args, **kwargs)
-        self.max_grade = max_grade
+        self.max_value = max_value
     
     def clean_value(self):
         value = self.cleaned_data['value']
         if value:
             if value < 0:
-                raise forms.ValidationError(u"Mark cannot be negative")
-            elif value > self.max_grade:
-                raise forms.ValidationError(u"Mark too high")
+                raise forms.ValidationError(u"Grade cannot be negative")
+            elif value > self.max_value:
+                raise forms.ValidationError(u"Grade too high")
         return value
         
                           

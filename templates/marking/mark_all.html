@@ -6,6 +6,7 @@ $(document).ready(function() {
 
 	var oTable = $('#all_marks').dataTable({
 		"bJQueryUI": true,
+		"bSort": false,
 		"bPaginate": false,	/* turn off the pagination */
 	});		
 		
@@ -41,7 +42,6 @@ $(document).ready(function() {
 				<th>Student Number</th>
 				<th>Current Grade</th>
 				<th>New Grade</th>
-				<th>New Status</th>
 		</thead>
         <tbody>
 	    {% for mark_row in mark_all_rows %}
@@ -60,15 +60,13 @@ $(document).ready(function() {
 		{% if form.value.errors %}
 		<div class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/>&nbsp;{{form.value.errors.0}}</div>
 		{% endif %} 
-		</td>	
-		<td>{{ form.status }}</td>
-		{% endwith %}
+		</td>
+		{% endwith %}	    
 	    </tr>
 	    {%endwith%}
 	    {% empty %}
 	    <tr>
 		<td>No student</td>
-		<td></td>
 		<td></td>
 		<td></td>
 		<td></td>

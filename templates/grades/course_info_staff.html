@@ -108,7 +108,7 @@
                     <div class="row-actions">
                         <span><a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">Info</a> | </span>
                         {% ifequal activity_info.type 'Numeric Graded' %}
-                        <span><a href="{% url marking.views.marking course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}">Mark</a> | </span>
+                        <span><a href="{% url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}">Mark</a> | </span>
                         {% endifequal %}
                         <span><a href="{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}">Edit</a> | </span>
                         <span><a href="{% url grades.views.delete_activity_review course_slug=course.slug activity_slug=activity.slug %}">Delete</a></span>
