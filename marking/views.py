@@ -486,7 +486,10 @@ def mark_all_students(request, course_slug, activity_slug):
             except NumericGrade.DoesNotExist:
                 current_grade = 'Not Graded'
             else:
-                current_grade = (ngrade.flag == 'GRAD' and ngrade.value or ngrade.flag)
+                if ngrade.flag =='GRAD':
+                    current_grade = ngrade.value
+                else:
+                    current_grade = ngrade.flag
             ngrades.append(ngrade)
             
             rows.append({'student': student, 'current_grade' : current_grade, 'form' : entry_form})    
@@ -536,7 +539,10 @@ def mark_all_students(request, course_slug, activity_slug):
                 current_grade = 'Not Graded'
                 entry_form = MarkEntryForm(max_grade = activity.max_grade, prefix = student.userid)
             else:
-                current_grade = (ngrade.flag == 'GRAD' and ngrade.value or ngrade.flag)
+                if ngrade.flag =='GRAD':
+                    current_grade = ngrade.value
+                else:
+                    current_grade = ngrade.flag
                 entry_form = MarkEntryForm(max_grade = activity.max_grade, prefix = student.userid,\
                                           data = {'status': ngrade.flag})        
                             
@@ -545,8 +551,8 @@ def mark_all_students(request, course_slug, activity_slug):
     if error_info:
         messages.add_message(request, messages.ERROR, error_info)   
     
-    return render_to_response("marking/mark_all.html", 
-                              {'course': course, 'activity': activity, 'mark_all_rows': rows},                              
+    return render_to_response("marking/mark_all.html",{'course': course, 'activity': activity, 
+                              'too_many': len(rows) >= 100, 'mark_all_rows': rows},                              
                               context_instance = RequestContext(request))
      
      

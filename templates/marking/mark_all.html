@@ -2,47 +2,21 @@
 
 {% block marking_header_extra %}
 <script type="text/javascript">
-
-var oTable;
-var heading = "<div class=\"datatable_container\">" +
-     	"<table class=\"display\" id=\"all_marks\">" +
-        "<thead class=\"form_head\"><tr>" +
-                "<th>Student Name</th>" +
-				"<th>Student Number</th>" + 
-				"<th>Current Grade</th>" + 
-				"<th>New Grade</th>" +
-				"<th>New Status</th>" +
-		"</thead><tbody>";
-var tail = "</tbody></table></div>" +
-           "<input class=\"submit\" type=\"submit\" value=\"Submit\" />";
-
 $(document).ready(function() {
-	$('#my_form').submit( function() {	    
-	    /* because DataTable does not include the DOM elements which are not currently being displayed */
-	    /* here, we have to include all the into the content of the form */		
-		var content = heading;				
-	    var oRows = oTable.fnGetNodes();/* get all the rows */
-		for(var i = 0; i < oRows.length; i = i+1)
-	    {
-			content = content + "<tr>" + oRows[i].innerHTML + "</tr>";
-		}			
-		content = content + tail;		
-		this.innerHTML = content;
-		/* redraw the datatable */
-		oTable = $('#all_marks').dataTable({
-			"bJQueryUI": true,
-			"bSort": false,
-			"sPaginationType": "full_numbers",
-			"iDisplayLength" : 50,
-	    });				
-    });
-	
-	oTable = $('#all_marks').dataTable({
+
+	var oTable = $('#all_marks').dataTable({
 		"bJQueryUI": true,
-		"bSort": false,
-		"sPaginationType": "full_numbers",
-		"iDisplayLength" : 50,
-	});	
+		"bPaginate": false,	/* turn off the pagination */
+	});		
+		
+	var oRows = oTable.fnGetNodes();
+	
+	/* set the tab indices of all the text boxes*/
+	for(var r = 0; r < oRows.length; r++)
+	{
+		var mark_entry = oRows[r].getElementsByTagName('input');
+		mark_entry[0].tabIndex = r+1;
+	}	
 } );
 </script>
 {% endblock %}
@@ -52,10 +26,13 @@ $(document).ready(function() {
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{course}}</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">{{activity.name}}</a></li>{% endblock %}
 
 {% block content %}
-<div>
-<p><strong>Note: leave the entry blank if you don't want to give a mark or override the current one</strong></p>
-</div>
+{% if too_many %}
+<a class="redbutton reset_button" href="{% url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug %}">Reset</a>
+{% endif %}
 <form id = "my_form" action="" method="post">
+{%if too_many %}
+<input class="submit" type="submit" value="Submit" />
+{% endif %}
 <div class="datatable_container">
      <table class="display" id="all_marks">
         <thead class="form_head">
