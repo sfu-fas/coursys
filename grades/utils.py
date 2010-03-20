@@ -9,7 +9,7 @@ import math
 import decimal
 
 ORDER_TYPE = {'UP': 'up', 'DN': 'down'}
-_NO_GRADE = '--'
+_NO_GRADE = u'\u2014'
 _DECIMAL_PLACE = 2
 _SUPPORTED_GRADE_RANGE = [10]
 
@@ -53,7 +53,7 @@ class StudentActivityInfo:
         Display student grade status from student view
         """
         if self.activity.status == 'URLS':
-            return '--'
+            return _NO_GRADE
         elif self.activity.status=="INVI":
             raise RuntimeError, "Can't display invisible grade status."
         else:
