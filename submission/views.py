@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from coredata.models import Member, CourseOffering, Person
 from django.shortcuts import render_to_response, get_object_or_404#, redirect
 from django.template import RequestContext
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, QueryDict
 from courselib.auth import requires_course_by_slug,requires_course_staff_by_slug, ForbiddenResponse, NotFoundResponse
 from courses.submission.forms import make_form_from_data_and_list
 from submission.forms import *
@@ -409,13 +409,14 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set, slug = activity_slug)
     
-    from_page = request.GET.get('from_page')
-    activity_mark = request.GET.get('base_activity_mark')
-    activity_mark_suffix = activity_mark and '?base_activity_mark=' + str(activity_mark) or ''    
-    from_page_suffix = from_page and '&from_page=' + str(from_page) or ''
-    print activity_mark_suffix
+    # get the urlencode
+    qDict = request.GET
+    urlencode = ''
+    if qDict.items():
+        urlencode = '?' +  qDict.urlencode()
+        
     #TODO: for group marking ?
-    response = HttpResponseRedirect(reverse(marking_student, args=[course_slug, activity_slug, userid]) + activity_mark_suffix + from_page_suffix)
+    response = HttpResponseRedirect(reverse(marking_student, args=[course_slug, activity_slug, userid]) + urlencode)
     
     component = select_students_submitted_components(activity, userid)
     #if it is taken by someone not me, show a confirm dialog

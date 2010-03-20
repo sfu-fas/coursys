@@ -9,7 +9,7 @@ from django.test import TestCase
 from coredata.models import *
 from grades.models import *
 from models import *
-from views import manage_activity_components, manage_common_problems, marking, mark_history
+from views import manage_activity_components, manage_common_problems, marking_student, mark_history
 from settings import CAS_SERVER_URL
 from courselib.testing import *
 from datetime import *
@@ -87,7 +87,7 @@ class BasicTest(TestCase):
         self.assertEquals(ins2.activity_component, co2)
         
         #test the marking page as well        
-        url = reverse(marking, args=(self.c_slug,a.slug))
+        url = reverse(marking_student, args=(self.c_slug,a.slug, '0aaa0'))
         response = basic_page_tests(self, self.client, url)
         
         mark_components = response.context['mark_components']

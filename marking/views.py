@@ -100,7 +100,7 @@ def manage_activity_components(request, course_slug, activity_slug):
             return HttpResponseRedirect(reverse('grades.views.activity_info', \
                                                 args=(course_slug, activity_slug)))                   
     else: # for GET request
-        formset = ComponentsFormSet(queryset = qset) 
+        formset = ComponentsFormSet(activity, queryset = qset) 
     
     if error_info:
         messages.add_message(request, messages.ERROR, error_info)
@@ -279,7 +279,11 @@ def marking_student(request, course_slug, activity_slug, userid):
         additional_info = _check_additional_info_form(additional_info_form)
         
         if component_marks != None and additional_info != None:      
-            ngrade, created = NumericGrade.objects.get_or_create(activity = activity, member = membership)    
+            try:            
+                ngrade = NumericGrade.objects.get(activity = activity, member = membership)
+            except NumericGrade.DoesNotExist: 
+                ngrade = NumericGrade(activity = activity, member = membership)
+                ngrade.save()    
             activity_mark = StudentActivityMark(numeric_grade = ngrade)  
             final_grade =  _compute_final_mark(component_marks, activity.max_grade, additional_info) 
             _save_marking_results(activity, activity_mark, final_grade, 
@@ -436,7 +440,7 @@ def mark_all_students(request, course_slug, activity_slug):
     activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)
    
     rows = []
-    error_info = None 
+    error_found = False 
     memberships = Member.objects.select_related('student').filter(offering = course, role = 'STUD')    
     if request.method == 'POST':
         forms = []   
@@ -446,7 +450,7 @@ def mark_all_students(request, course_slug, activity_slug):
             student = member.person  
             entry_form = MarkEntryForm(max_value = activity.max_grade, data = request.POST, prefix = student.userid)
             if entry_form.is_valid() == False:
-                error_info = 'Invalid grade found'            
+                error_found = True           
             ngrade = None
             try:
                 ngrade = NumericGrade.objects.get(activity = activity, member = member)
@@ -460,9 +464,10 @@ def mark_all_students(request, course_slug, activity_slug):
             rows.append({'student': student, 'current_grade' : current_grade, 'form' : entry_form})    
        
         # try to save if needed 
-        if not error_info:
+        if not error_found:
             updated = 0                 
-            for i in range(len(memberships)): 
+            for i in range(len(memberships)):
+               student = memberships[i].person  
                ngrade = ngrades[i]
                new_value = forms[i].cleaned_data['value'] 
                # the new mark is blank, do nothing
@@ -476,15 +481,9 @@ def mark_all_students(request, course_slug, activity_slug):
                     ngrade = NumericGrade(activity = activity, member = memberships[i]);
                     ngrade.save()
                # created a new activity_mark as well
-               activity_mark = StudentActivityMark(numeric_grade = ngrade, created_by = request.user.username)               
-               activity_mark.setMark(new_value)
-               activity_mark.save()
-               
-               #add to log           
-               l = LogEntry(userid=request.user.username, \
-                             description="edited grade on %s for student %s changed to %s" % \
-                            (activity, student.userid, new_value), related_object=activity_mark)                     
-               l.save() 
+               activity_mark = StudentActivityMark(numeric_grade = ngrade)              
+               _save_marking_results(activity, activity_mark, new_value, request.user.username,\
+                                     ("student %s" % student.userid))
                updated += 1                        
            
             if updated > 0:
@@ -504,8 +503,8 @@ def mark_all_students(request, course_slug, activity_slug):
             entry_form = MarkEntryForm(max_value = activity.max_grade, prefix = student.userid)                           
             rows.append({'student': student, 'current_grade' : current_grade, 'form' : entry_form})   
                
-    if error_info:
-        messages.add_message(request, messages.ERROR, error_info)   
+    if error_found:
+        messages.add_message(request, messages.ERROR, 'Invalid grade found')   
     
     return render_to_response("marking/mark_all.html",{'course': course, 'activity': activity, 
                               'too_many': len(rows) >= 100, 'mark_all_rows': rows},                              

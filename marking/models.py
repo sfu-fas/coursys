@@ -101,8 +101,7 @@ class StudentActivityMark(ActivityMark):
         """         
         Set the mark
         """
-        super(StudentActivityMark, self).setMark(grade) 
-        
+        super(StudentActivityMark, self).setMark(grade)       
         # append folder structure to the file name
         if self.file_attachment:                
             activity = self.numeric_grade.activity
@@ -129,8 +128,11 @@ class GroupActivityMark(ActivityMark):
         return "Marking for group [%s] for activity [%s]" %(self.group, self.numeric_activity)
     
     def setMark(self, grade):
+        """         
+        Set the mark of the group members
+        """
         super(GroupActivityMark, self).setMark(grade)    
-         # append folder structure to the file name
+        # append folder structure to the file name
         if self.file_attachment: 
             course = self.numeric_activity.offering              
             self.file_attachment.name = '/' + course.slug + \
@@ -140,9 +142,9 @@ class GroupActivityMark(ActivityMark):
         #assign mark for each member in the group
         group_members = GroupMember.objects.filter(group = self.group, activity = self.numeric_activity, confirmed = True)
         for g_member in group_members:
-            try: 
-                ngrade = NumericGrade.objects.get(activity = self.numeric_activity, member = g_member.student)                  
-            except NumericGrade.DoesNotExist: #if the  NumericalGrade does not exist yet, create a new one
+            try:            
+                ngrade = NumericGrade.objects.get(activity = self.numeric_activity, member = g_member.student)
+            except NumericGrade.DoesNotExist: 
                 ngrade = NumericGrade(activity = self.numeric_activity, member = g_member.student)
             ngrade.value = grade
             ngrade.flag = 'GRAD'
