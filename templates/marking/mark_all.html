@@ -13,12 +13,14 @@ $(document).ready(function() {
 	var oRows = oTable.fnGetNodes();
 	
 	/* set the tab indices of all the text boxes*/
+	var tabi = 1;
 	for(var r = 0; r < oRows.length; r++)
 	{
 		var mark_entry = oRows[r].getElementsByTagName('input');
-		mark_entry[0].tabIndex = r+1;
+		if(mark_entry.length > 0)
+			mark_entry[0].tabIndex = tabi ++;
 	}	
-} );
+});
 </script>
 {% endblock %}
 
@@ -27,10 +29,17 @@ $(document).ready(function() {
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{course}}</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">{{activity.name}}</a></li>{% endblock %}
 
 {% block content %}
+<form id= "import_file_form" action="{%url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug%}?import=true" method="post" enctype="multipart/form-data"> 
+{% if fileform.file.errors %}
+<div class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/>&nbsp;{{fileform.file.errors.0}}</div>
+{% endif %} 
+{{fileform.file}}
+<input type="submit" value="import"/>
+</form>
 {% if too_many %}
 <a class="redbutton reset_button" href="{% url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug %}">Reset</a>
 {% endif %}
-<form id = "my_form" action="" method="post">
+<form id = "grades_form" action="{%url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug%}" method="post">
 {%if too_many %}
 <input class="submit" type="submit" value="Submit" />
 {% endif %}
@@ -43,7 +52,7 @@ $(document).ready(function() {
 				<th>Current Grade</th>
 				<th>New Grade</th>
 		</thead>
-        <tbody>
+        <tbody id ="tttb">
 	    {% for mark_row in mark_all_rows %}
 	    {% with mark_row.student as student %}
 	    <tr>

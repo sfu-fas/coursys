@@ -24,9 +24,14 @@ div#header, div#footer {
   padding-left: 205px;
 }
 
-div .info_area{
+
+div .group_info_area{
     background-image: url('/media/images/grades/bluep.png');
 }
+
+div ul.group_member_list{
+	list-style-image: url('/media/icons/bullet.png');
+} 
 
 
 /* CSS for system elements */

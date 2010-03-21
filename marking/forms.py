@@ -149,5 +149,15 @@ class MarkEntryForm(forms.Form):
             elif value > self.max_value:
                 raise forms.ValidationError(u"Grade too high")
         return value
-        
+
+class UploadGradeFileForm(forms.Form):
+    file = forms.FileField(required=False)
+    
+    def clean_file(self):        
+        file = self.cleaned_data['file']
+        if file != None and (not file.name.endswith('csv')) and\
+           (not file.name.endswith('CSV')):
+            raise forms.ValidationError(u"Only .txt or .csv files are permitted")
+        return file
+            
                           

@@ -12,6 +12,7 @@ from models import *
 from forms import *
 from django.forms.models import modelformset_factory
 from contrib import messages
+from django.db.models import Q
 
 @requires_course_staff_by_slug
 def list_activities(request, course_slug):
@@ -420,7 +421,7 @@ def export_csv(request, course_slug, activity_slug):
     response['Content-Disposition'] = 'attachment; filename=%s_%s.csv' % (course_slug, activity_slug,)
 
     writer = csv.writer(response)   
-    writer.writerow(['Student ID', 'Student Name', 'Status', 'Grade'])
+    writer.writerow(['Student ID', 'Student Name', 'Grade'])
     
     student_members = Member.objects.filter(offering = course, role = 'STUD')
     for std in student_members:
@@ -428,11 +429,12 @@ def export_csv(request, course_slug, activity_slug):
         try: 
             ngrade = NumericGrade.objects.get(activity = activity, member = std)                  
         except NumericGrade.DoesNotExist: #if the  NumericalGrade does not exist yet,
-            row.append('Not Graded')
-            row.append('--')
+            row.append('no grade')
         else:
-            row.append(ngrade.flag)
-            row.append(ngrade.value)   
+            if ngrade.flag == 'GRAD':
+               row.append(ngrade.value)   
+            else:
+               row.append(ngrade.flag)
         writer.writerow(row)
 
     return response
@@ -443,22 +445,25 @@ def mark_all_students(request, course_slug, activity_slug):
     activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)
    
     rows = []
-    error_found = False 
+    fileform = None
+    imported_data = {} #may get filled with data from an imported file, a student userid to grade mapping
+    error_info = None 
     memberships = Member.objects.select_related('person').filter(offering = course, role = 'STUD')    
-    if request.method == 'POST':
-        forms = []   
+    
+    if request.method == 'POST' and request.GET.get('import') != 'true':      
+        forms = []           
         ngrades = []   
         # get data from the mark entry forms
         for member in memberships: 
             student = member.person  
             entry_form = MarkEntryForm(max_value = activity.max_grade, data = request.POST, prefix = student.userid)
             if entry_form.is_valid() == False:
-                error_found = True           
+                error_info = "Error found"           
             ngrade = None
             try:
                 ngrade = NumericGrade.objects.get(activity = activity, member = member)
             except NumericGrade.DoesNotExist:
-                current_grade = 'Not Graded'
+                current_grade = 'no grade'
             else:
                 current_grade = ngrade.value
                     
@@ -467,7 +472,7 @@ def mark_all_students(request, course_slug, activity_slug):
             rows.append({'student': student, 'current_grade' : current_grade, 'form' : entry_form})    
        
         # try to save if needed 
-        if not error_found:
+        if error_info == None:
             updated = 0                 
             for i in range(len(memberships)):
                student = memberships[i].person  
@@ -492,27 +497,64 @@ def mark_all_students(request, course_slug, activity_slug):
             if updated > 0:
                 messages.add_message(request, messages.SUCCESS, "Marking for all students on activity %s saved (%s students' grades updated)!" % (activity.name, updated))
             return HttpResponseRedirect(reverse('grades.views.activity_info', args=(course_slug, activity_slug)))  
-                
-    else: # for GET request       
+    
+    else: 
+        if request.method == 'POST': # for import
+            fileform = UploadGradeFileForm(request.POST, request.FILES, prefix = 'import-file');
+            if fileform.is_valid() and fileform.cleaned_data['file'] != None:
+                students = course.members.filter(person__role='STUD')
+                error_info = compose_imported_grades(fileform.cleaned_data['file'], students, imported_data)
+                if error_info == None:
+                    messages.add_message(request, messages.INFO,\
+                                "%s students' grades has been imported, please review before submitting" % len(imported_data.keys()))
+        # may use the imported file data to fill in the forms       
         for member in memberships: 
             student = member.person              
             try:
                 ngrade = NumericGrade.objects.get(activity = activity, member = member)
             except NumericGrade.DoesNotExist:
-                current_grade = 'Not Graded'
+                current_grade = 'no grade'
             else:
-                current_grade = ngrade.value
-                    
-            entry_form = MarkEntryForm(max_value = activity.max_grade, prefix = student.userid)                           
-            rows.append({'student': student, 'current_grade' : current_grade, 'form' : entry_form})   
+                current_grade = ngrade.value            
+            initial_value = imported_data.get(student.userid) 
+            if initial_value != None:
+                entry_form = MarkEntryForm(initial = {'value': initial_value}, max_value = activity.max_grade,
+                                            prefix = student.userid)
+            else:
+                entry_form = MarkEntryForm(max_value = activity.max_grade, prefix = student.userid)
+                                    
+            rows.append({'student': student, 'current_grade' : current_grade, 'form' : entry_form}) 
                
-    if error_found:
-        messages.add_message(request, messages.ERROR, 'Invalid grade found')   
+    if error_info:
+        messages.add_message(request, messages.ERROR, error_info) 
+    if fileform == None:
+        fileform = UploadGradeFileForm(prefix = 'import-file')   
     
-    return render_to_response("marking/mark_all.html",{'course': course, 'activity': activity, 
-                              'too_many': len(rows) >= 100, 'mark_all_rows': rows},                              
-                              context_instance = RequestContext(request))
-     
+    return render_to_response("marking/mark_all.html",{'course': course, 'activity': activity,\
+                              'fileform' : fileform,'too_many': len(rows) >= 100,\
+                              'mark_all_rows': rows }, context_instance = RequestContext(request))
+ 
+def compose_imported_grades(file, students_qset, data_to_return):
+    
+    reader = csv.reader(file)  
+    try:  
+        for row in reader:  
+            print row 
+            target = students_qset.filter(Q(userid = row[0]) | Q(emplid = row[0]))
+            if target.count() == 0:                
+                data_to_return.clear()
+                return "Error found in the file: Unmatched student number or userid (%s)." % row[0]            
+            # try to parse the second row as a float
+            value = float(row[1])
+            data_to_return[target[0].userid] = value                
+    except:
+        data_to_return.clear()
+        return "Error found in the file just : The format of each row should be: " +\
+               "[student userid or student number,  grade, ]. " + \
+               "Only the first two fields are used. Use ',' to separate fields."  
+    return None   
+        
+        
      
             
 

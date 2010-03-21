@@ -26,12 +26,7 @@ function append_problem(n, content)
         <h2> Mark for Group: {{group}} </h2> 
      {% else %}
        {% if student %}           
-        	<h2> Mark for Student: {{student.userid}} </h2>
-       {% else %}
-          <h2> Mark for: </h2>
-	      <div class="receiver"> {{student_receiver_form.as_p}}
-	      OR
-	      {{group_receiver_form.as_p}} </div> 
+        	<h2> Mark for Student: {{student.userid}} </h2>       
        {% endif %}
      {% endif %}
 	 {% for entry in mark_components %}  	     
