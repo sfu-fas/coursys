@@ -17,18 +17,8 @@ $(document).ready(function() {
 	{
 		var mark_entry = oRows[r].getElementsByTagName('input');
 		mark_entry[0].tabIndex = r+1;
-	}
-	
-	$('#toggle_hide_2').click(
-	    function() {
-		$('#area_2').slideToggle(200);
-		if(this.innerHTML == 'show')
-			this.innerHTML = 'hide';
-		else
-			this.innerHTML = 'show';
-	    });
-			    
-});
+	}	
+} );
 </script>
 {% endblock %}
 
@@ -52,7 +42,6 @@ $(document).ready(function() {
 				<th>Student Number</th>
 				<th>Current Grade</th>
 				<th>New Grade</th>
-				<th>toggle</th>
 		</thead>
         <tbody>
 	    {% for mark_row in mark_all_rows %}
@@ -72,20 +61,7 @@ $(document).ready(function() {
 		<div class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/>&nbsp;{{form.value.errors.0}}</div>
 		{% endif %} 
 		</td>
-		{% endwith %}
-		 
-	    <td>
-	        {% if forloop.counter|divisibleby:"2" %}  
-	    	<div id="toggle_hide_{{forloop.counter}}" style="background-color:#FFCC33"> hidden </div>
-	    	<div id="area_{{forloop.counter}}" style="background-color:#AACC33">
-	    		<ul>
-	    			<li>aa</li>
-	    			<li>bb</li>
-	    			<li>cc</li>
-	    		</ul>
-	    	</div>	
-	    	{% endif %}
-	    </td>
+		{% endwith %}	    
 	    </tr>
 	    {%endwith%}
 	    {% empty %}
