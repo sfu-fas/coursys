@@ -1,0 +1,88 @@
+<p>
+In the examples, assume a student who received 12 marks on &ldquo;Assignment 1&rdquo; (which has short name &ldquo;A1&rdquo;),
+ 18 on &ldquo;Assignment 2&rdquo; (short name &ldquo;A2&rdquo;),
+and 16 on &ldquo;Assignment 3&rdquo; (&ldquo;A3&rdquo;).
+</p>
+
+<h3 id="using-formulas">Using Formulas</h3>
+
+<dl>
+<dt>Basic Arithmetic</dt>
+  <dd>
+  <p>The <code>+</code>, <code>-</code>, <code>*</code>, and <code>/</code> operators are used for basic arithmetic are you might expect.
+  Parentheses can also be used.</p>
+  <ul class="formula-eg">
+  <li><code>7 * -2</code> &rarr; -14</li>
+  <li><code>8+3/2</code> &rarr; 9.5</li>
+  <li><code>(8+3)/2</code> &rarr; 5.5</li>
+  </ul>
+  </dd>
+<dt>Activity Values</dt>
+  <dd>
+  <p>You can refer to a student's grade for an activity by putting its name (or short name) in square brackets.
+  </p>
+  <ul class="formula-eg">
+  <li><code>[Assignment 1]/10</code> &rarr; 1.2</li>
+  <li><code>([A1] + [A2])/3*20</code> &rarr; 200</li>
+  <li><code>[A1]/[Assignment 2]*3</code> &rarr; 2</li>
+  <li><code>-[A1] + [Assignment 3]</code> &rarr; 4</li>
+  </ul>
+  </dd>
+<dt>SUM Function</dt>
+  <dd>
+  <p>
+  The <code>SUM</code> function can be used to add a series of values.
+  </p>
+  <ul class="formula-eg">
+  <li><code>SUM(1,2,3,4,5)</code> &rarr; 15</li>
+  <li><code>SUM([A1], [A2], [A3])</code> &rarr; 46</li>
+  <li><code>SUM([A3],14)/5</code> &rarr; 6</li>
+  </ul>
+  </dd>
+<dt>AVG Function</dt>
+  <dd>
+  <p>
+  The <code>AVG</code> function can be used to find the (arithmetic) average of a series of values.
+  </p>
+  <ul class="formula-eg">
+  <li><code>AVG(1,2,3,4,5)</code> &rarr; 3</li>
+  <li><code>AVG(5,4,3,2,1) + 4</code> &rarr; 7</li>
+  <li><code>AVG([Assignment 1], [Assignment 2])</code> &rarr; 15</li>
+  </ul>
+  </dd>
+<dt>MAX Function</dt>
+  <dd>
+  <p>
+  The <code>MAX</code> function can be used to find the largest of a series of values.
+  </p>
+  <ul class="formula-eg">
+  <li><code>MAX(1,2,5,4,3)</code> &rarr; 3</li>
+  <li><code>MAX([A1],[A2],[A3])</code> &rarr; 18</li>
+  </ul>
+  </dd>
+<dt>MIN Function</dt>
+  <dd>
+  <p>
+  The <code>MIN</code> function can be used to find the smallest of a series of values.
+  </p>
+  <ul class="formula-eg">
+  <li><code>MAX(1,2,5,4,3)</code> &rarr; 1</li>
+  <li><code>MAX([A1],[A2],[A3])</code> &rarr; 12</li>
+  </ul>
+  </dd>
+<dt>BEST Function</dt>
+  <dd>
+  <p>
+  The <code>BEST</code> function is used to find the sum of the best <i>n</i> values from a series.
+  The number of values to use, <i>n</i> is given as the first argument; the values are given as the remaining arguments.
+  </p>
+  <ul class="formula-eg">
+  <li><code>BEST(3, 6,7,8,9,10)</code> &rarr; 27 (The best three values are 8, 9, and 10 and 8+9+10 = 27.)</li>
+  <li><code>BEST(2, [A1], [A2], [A3])</code> &rarr; 34 (The best two values are 16 (from A3) and 18 (from A2).)</li>
+  </ul>
+  </dd>
+</dl>
+
+<h3 id="common-formulas">Common Formula Patterns</h3>
+
+<p>To be added.</p>
