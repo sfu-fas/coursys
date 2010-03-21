@@ -56,7 +56,7 @@
 </div> 
 {% if marks_via_group %}
 <div class = "datatable_container">
-  <h3>Assigned via group:<h3>
+  <h3>Assigned via group:</h3>
   <table class="display">
 	<thead>
 		<tr>
@@ -69,7 +69,7 @@
 	<tbody>
 	    {% for act_mark in marks_via_group %}
 		      <td>
-		      {{ act_mark.created_at }}
+		       {{act_mark.created_at|date:"Y M d D"}} {{act_mark.created_at|time:"H:i:s"}}
 		       {% ifequal act_mark current_mark %}
 		       <img src = "{{MEDIA_URL}}icons/tick.png" title="Currently Valid" alt="Currently Valid" />
 		       {% endifequal %}		       
