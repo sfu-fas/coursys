@@ -521,8 +521,7 @@ def mark_all_students(request, course_slug, activity_slug):
                 entry_form = MarkEntryForm(initial = {'value': initial_value}, max_value = activity.max_grade,
                                             prefix = student.userid)
             else:
-                entry_form = MarkEntryForm(max_value = activity.max_grade, prefix = student.userid)
-                                    
+                entry_form = MarkEntryForm(max_value = activity.max_grade, prefix = student.userid)                                    
             rows.append({'student': student, 'current_grade' : current_grade, 'form' : entry_form}) 
                
     if error_info:
@@ -539,7 +538,6 @@ def compose_imported_grades(file, students_qset, data_to_return):
     reader = csv.reader(file)  
     try:  
         for row in reader:  
-            print row 
             target = students_qset.filter(Q(userid = row[0]) | Q(emplid = row[0]))
             if target.count() == 0:                
                 data_to_return.clear()
