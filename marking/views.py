@@ -247,13 +247,15 @@ def _save_marking_results(activity, activity_mark, final_mark, marker_ident, mar
      
    
 # request to marking view may comes from different pages
-FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo'}
+FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
 def _marking_redirct_response(request, course_slug, activity_slug):   
     from_page = request.GET.get('from_page')
     if from_page == FROMPAGE['course']:
         redirect_url = reverse('grades.views.course_info', args=(course_slug,))
     elif from_page == FROMPAGE['activityinfo']:
         redirect_url = reverse('grades.views.activity_info', args=(course_slug, activity_slug))
+    elif from_page == FROMPAGE['activityinfo_group']:
+        redirect_url = reverse('grades.views.activity_info_with_groups', args=(course_slug, activity_slug))
     else: #default to the activity_info page
         redirect_url = reverse('grades.views.activity_info', args=(course_slug, activity_slug))
     
@@ -311,10 +313,10 @@ def marking_student(request, course_slug, activity_slug, userid):
                        context_instance=RequestContext(request))  
 
 @requires_course_staff_by_slug
-def marking_group(request, courser_slug, activity_slug, group_slug):    
+def marking_group(request, course_slug, activity_slug, group_slug):    
     course = get_object_or_404(CourseOffering, slug = course_slug)    
     activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)
-    gourp = get_object_or_404(Group, courseoffering = course, slug = group_slug)
+    group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
     
     components = ActivityComponent.objects.filter(numeric_activity = activity, deleted = False)
     component_forms = []
@@ -338,7 +340,8 @@ def marking_group(request, courser_slug, activity_slug, group_slug):
             return _marking_redirct_response(request, course_slug, activity_slug)
         else:
             messages.add_message(request, messages.ERROR, 'Error found')            
-        
+    
+    else: # for GET request 
         component_forms = _initialize_component_mark_forms(components)
         additional_info_form = ActivityMarkForm(prefix = "additional-form")  
     
@@ -441,7 +444,7 @@ def mark_all_students(request, course_slug, activity_slug):
    
     rows = []
     error_found = False 
-    memberships = Member.objects.select_related('student').filter(offering = course, role = 'STUD')    
+    memberships = Member.objects.select_related('person').filter(offering = course, role = 'STUD')    
     if request.method == 'POST':
         forms = []   
         ngrades = []   

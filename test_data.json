@@ -18118,6 +18118,115 @@
   }, 
   "model": "submission.plaintextcomponent", 
   "pk": 2
- }
-
+ },
+ {
+  "fields": {
+   "courseoffering": 184,
+   "manager": 162,
+   "name": "Win!",
+   "slug": "g-win"
+  },
+  "model": "groups.group",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "courseoffering": 184,
+   "manager": 162,
+   "name": "Course Men",
+   "slug": "g-course-men"
+  },
+  "model": "groups.group",
+  "pk": 2
+ },
+ {
+  "fields": {
+   "courseoffering": 184,
+   "manager": 452,
+   "name": "ddp",
+   "slug": "g-ddp"
+  },
+  "model": "groups.group",
+  "pk": 3
+ },
+ {
+ "fields": {
+  "activity": 1,
+  "confirmed": true,
+  "group": 1,
+  "student": 432
+ },
+ "model": "groups.groupmember",
+ "pk": 1
+},
+{
+ "fields": {
+  "activity": 1,
+  "confirmed": true,
+  "group": 1,
+  "student": 436
+ },
+ "model": "groups.groupmember",
+ "pk": 2
+},
+{
+ "fields": {
+  "activity": 1,
+  "confirmed": true,
+  "group": 1,
+  "student": 438
+ },
+ "model": "groups.groupmember",
+ "pk": 3
+},
+{
+ "fields": {
+  "activity": 1,
+  "confirmed": true,
+  "group": 2,
+  "student": 448
+ },
+ "model": "groups.groupmember",
+ "pk": 4
+},
+{
+ "fields": {
+  "activity": 1,
+  "confirmed": true,
+  "group": 2,
+  "student": 444
+ },
+ "model": "groups.groupmember",
+ "pk": 5
+},
+{
+ "fields": {
+  "activity": 1,
+  "confirmed": true,
+  "group": 3,
+  "student": 452
+ },
+ "model": "groups.groupmember",
+ "pk": 6
+},
+{
+ "fields": {
+  "activity": 1,
+  "confirmed": true,
+  "group": 3,
+  "student": 454
+ },
+ "model": "groups.groupmember",
+ "pk": 7
+},
+{
+ "fields": {
+  "activity": 1,
+  "confirmed": true,
+  "group": 3,
+  "student": 457
+ },
+ "model": "groups.groupmember",
+ "pk": 8
+}
 ]

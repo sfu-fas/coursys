@@ -1,0 +1,87 @@
+{% extends "grades/activity_info.html" %}
+
+{% block grades_headextra %}
+<script type="text/javascript">
+    $(document).ready(function() {
+		// activate dataTable ui
+		oTable = $('#group_grades').dataTable({
+			"bJQueryUI": true,
+			"sPaginationType": "full_numbers",
+			"iDisplayLength" : 50,
+		});
+		
+		{% for info in group_grade_info_list %}		
+	    $('#group_area_{{forloop.counter}}').hide();/* hidden initially */
+    	$('#group_toggle_{{forloop.counter}}').click(
+		    function() {
+			$('#group_area_{{forloop.counter}}').slideToggle(100);
+			if (this.innerHTML == "&lt;&nbsp;")					    
+				this.innerHTML = "&gt;&nbsp;";						
+		    else
+		       this.innerHTML = "&lt;&nbsp;";
+	     });
+    {% endfor%}    
+    });
+   
+</script>
+{% endblock %}
+
+{% block activity_info_grades_block %}
+<a class="button" href="{% url grades.views.activity_info course_slug=course.slug, activity_slug=activity.slug%}">View By Student</a>    
+<div class="datatable_container">
+    <table class="display" id="group_grades">
+        <thead>
+           <tr>
+            <th>Group Name</th>
+			<th>Grade</th>
+			<th><img src="{{MEDIA_URL}}icons/disk_multiple.png" title="Submission" alt="Submission" /></th>
+            </tr>
+	    </thead>
+        <tbody>
+	    {% for group_grade_info in group_grade_info_list %}
+	    {% with group_grade_info.group as group %}
+		    <tr>
+			<td scope="row">				    
+		    	<div>
+		    	<b id="group_toggle_{{forloop.counter}}">&lt;&nbsp;</b>
+		    	<a href="#">{{ group.name }}</a> 
+		    	</div>
+		    	<div class="info_area" id="group_area_{{forloop.counter}}">
+		    	    <ul>
+			    		{% for group_member in group_grade_info.members %}
+			    		<li>
+			    		<a href="{% url grades.views.activity_info_student course_slug=course.slug activity_slug=activity.slug userid=group_member.userid%}">{{group_member.name}}</a>
+			    		&nbsp;&nbsp;&nbsp;&nbsp;<a href="mailto:{{ student_grade_info.email }}">{{ group_member.email }}</a>
+			    		</li>
+		    		{% endfor %}
+		    		</ul>		    		
+		    	</div>	    	   	   
+			</td>
+			<td>
+			{% ifequal group_grade_info.grade 'no grade'%} 
+				<a href="{% url marking.views.marking_group course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}?from_page={{from_page}}"><img src="{{MEDIA_URL}}icons/page_white_edit.png" title="Mark This" alt="Mark This"/></a>		   
+			{% else %}
+			    <a href="#"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
+			    {{ group_grade_info.grade }}		   
+			{% endifequal %}	
+			</td>
+			<td>
+			    <a href="#"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View" alt="View" /></a>
+	            <a href="#"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="Download" alt="Download" /></a>
+			</td>
+			{% endwith %}
+		    </tr>
+	    {% empty %}
+	    <tr>
+		<td>No group</td>
+		<td></td>
+		<td></td>
+	    </tr>
+	    {% endfor %}
+        </tbody>
+    </table>
+</div>
+<h2>
+There are still {{ungrouped_students}} students left who is in no group!
+<h2>
+{% endblock %}

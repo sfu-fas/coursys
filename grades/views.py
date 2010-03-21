@@ -13,9 +13,11 @@ from grades.models import *
 from grades.utils import StudentActivityInfo, reorder_course_activities, create_StudentActivityInfo_list, \
                         ORDER_TYPE
 from django.forms.util import ErrorList
+from marking.models import get_activity_mark_for_group
+from groups.models import *
 
 
-FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo'}
+FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
 ACTIVITY_TYPE = {'NG': 'Numeric Graded', 'LG': 'Letter Graded'} # for display purpose
 
 @login_required
@@ -91,6 +93,47 @@ def activity_info(request, course_slug, activity_slug):
     context = {'course': course, 'activity_type': activity_type, 'activity': activity, 'student_grade_info_list': student_grade_info_list, 'from_page': FROMPAGE['activityinfo']}
     return render_to_response('grades/activity_info.html', context, context_instance=RequestContext(request))
 
+@requires_course_staff_by_slug
+def activity_info_with_groups(request, course_slug, activity_slug):
+    course = get_object_or_404(CourseOffering, slug = course_slug)
+    activities = all_activities_filter(slug=activity_slug, offering=course)
+    if len(activities) != 1:
+        return NotFoundResponse(request)
+    
+    activity = activities[0]
+    # build list of group grades information
+    all_members = GroupMember.objects.select_related('group', 'student__person').filter(activity = activity, confirmed = True)
+    groups_found = {}
+    grouped_students = 0
+    for member in all_members:
+        grouped_students += 1
+        group = member.group
+        student = member.student.person
+        if not groups_found.has_key(group.id):
+            # a new group discovered by its first member
+            # get the current grade of the group 
+            current_mark = get_activity_mark_for_group(activity, group)
+            value = (current_mark == None and 'no grade' or current_mark.mark)
+            new_group_grade_info = {'group': group, 'members': [student], 'grade': value}            
+            groups_found[group.id] = new_group_grade_info
+        else:   
+            # add this member to its corresponding group info          
+            group_grade_info = groups_found[group.id]
+            group_grade_info['members'].append(student)
+    
+    ungrouped_students = Member.objects.filter(offering = course, role = 'STUD').count() - grouped_students 
+    
+    if isinstance(activity, NumericActivity):
+        activity_type = ACTIVITY_TYPE['NG']
+    elif isinstance(activity, LetterActivity):
+        activity_type = ACTIVITY_TYPE['LG']
+
+    context = {'course': course, 'activity_type': activity_type, 
+               'activity': activity, 'ungrouped_students': ungrouped_students, \
+               'group_grade_info_list': groups_found.values(), 'from_page': FROMPAGE['activityinfo_group']}
+    return render_to_response('grades/activity_info_with_groups.html', context, context_instance=RequestContext(request))
+   
+            
 @requires_course_staff_by_slug
 def activity_info_student(request, course_slug, activity_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)

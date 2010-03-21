@@ -28,6 +28,7 @@ urlpatterns = patterns('',
     url(r'^' + COURSE_ACTIVITY_SLUG + '/delete_confirm$', 'grades.views.delete_activity_confirm'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/edit$', 'grades.views.edit_activity'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '$', 'grades.views.activity_info'),
+    url(r'^' + COURSE_ACTIVITY_SLUG + '/groups$', 'grades.views.activity_info_with_groups'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/students/' + USERID_SLUG + '$', 'grades.views.activity_info_student'),
     
     #url(r'^' + COURSE_SLUG + '/submission/$', 'submission.views.index'),

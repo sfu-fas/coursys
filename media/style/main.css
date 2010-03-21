@@ -24,6 +24,10 @@ div#header, div#footer {
   padding-left: 205px;
 }
 
+div .info_area{
+    background-image: url('/media/images/grades/bluep.png');
+}
+
 
 /* CSS for system elements */
 /* SFU colours: (as found at http://www.sfu.ca/clf/web/index.html)

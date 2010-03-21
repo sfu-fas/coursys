@@ -25,7 +25,6 @@
 
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; {{ activity.name }}</li>{% endblock %}
 
-
 {% block content %}
 <div class="table_container">
     <table class="info">
@@ -79,6 +78,8 @@
 <a class="button" href="{% url marking.views.export_csv course_slug=course.slug, activity_slug=activity.slug%}">Export all</a>    
 </div>
 
+{% block activity_info_grades_block %}
+<a class="button" href="{% url grades.views.activity_info_with_groups course_slug=course.slug, activity_slug=activity.slug%}">View By Group</a>    
 <div class="datatable_container">
     <table class="display" id="student_grades">
         <thead>
@@ -123,4 +124,5 @@
         </tbody>
     </table>
 </div>
+{% endblock %}
 {% endblock %}
