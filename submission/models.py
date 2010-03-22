@@ -358,11 +358,14 @@ def generate_zip_file(pair_list, userid, activity_slug):
         if type == 'PlainText':
             z.writestr(pair[0].slug+".txt", pair[1].text)
         if type == 'URL':
-            content = '<html><head><META HTTP-EQUIV="Refresh" CONTENT="0; URL=' \
-                        + pair[1].url + '"></head><body>' \
-                        + 'If redirecting doesn\' work, click the link <a href="' \
-                        + pair[1].url + '">' + pair[1].url + '</a>' \
-                        + '</body></html> '
+            content = '<html><head><META HTTP-EQUIV="Refresh" CONTENT="0; URL='
+            if str(pair[1].url).find("://") == -1:
+                content += "http://"
+            content += pair[1].url
+            content += '"></head><body>' \
+                + 'If redirecting doesn\' work, click the link <a href="' \
+                + pair[1].url + '">' + pair[1].url + '</a>' \
+                + '</body></html> '
             z.writestr(pair[0].slug+".html", content)
         if type == 'Archive':
             name = pair[1].archive.name
@@ -403,8 +406,11 @@ def _download_url_file(submission):
     """
     return a .html file with redirect information
     """
-    content = '<html><head><META HTTP-EQUIV="Refresh" CONTENT="0; URL=' \
-        + submission.url + '"></head><body>' \
+    content = '<html><head><META HTTP-EQUIV="Refresh" CONTENT="0; URL='
+    if str(submission.url).find("://") == -1:
+        content += "http://"
+    content += submission.url
+    content += '"></head><body>' \
         + 'If redirecting doesn\' work, click the link <a href="' \
         + submission.url + '">' + submission.url + '</a>' \
         + '</body></html> '
