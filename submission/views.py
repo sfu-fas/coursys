@@ -1,3 +1,4 @@
+from courses.submission.models import GroupSubmission
 from django.contrib.auth.decorators import login_required
 from coredata.models import Member, CourseOffering, Person
 from django.shortcuts import render_to_response, get_object_or_404#, redirect
@@ -68,15 +69,32 @@ def add_submission(request, course_slug, activity_slug):
     component_list = select_all_components(activity)
     component_list.sort()
     component_form_list=[]
+
+    group_member = GroupMember.objects.all().filter(student__person__userid=request.user.username)\
+                                            .filter(confirmed=True)\
+                                            .filter(activity=activity)
+    if len(group_member) > 0:
+        group = group_member[0]
+    else:
+        group = None
+    if group != None:
+        messages.add_message(request, messages.WARNING, "This is a group submission. Your will submit on behalf of all your group members.")
+
     if request.method == 'POST':
         component_form_list = make_form_from_data_and_list(request, component_list)
         submitted_comp = []    # list all components which has content submitted in the POST
         not_submitted_comp = [] #list allcomponents which has no content submitted in the POST
-        new_sub = StudentSubmission()   # the submission foreign key for newly submitted components
+        if group == None:
+            new_sub = StudentSubmission()   # the submission foreign key for newly submitted components
+            member = Member.objects.filter(person__userid = request.user.username)
+            new_sub.member = get_object_or_404(member, offering__slug = course_slug)
+        else:
+            new_sub = GroupSubmission()
+            new_sub.group = group.group
+            new_sub.creator = group
         new_sub.activity = activity
-        member = Member.objects.filter(person__userid = request.user.username)
-        new_sub.member = get_object_or_404(member, offering__slug = course_slug)
         new_sub_saved = False
+        
         #TODO: test if the submission is a group or student submission then adit accordingly
         for form in component_form_list:
             form[1].component = form[0]
