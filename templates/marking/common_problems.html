@@ -3,12 +3,36 @@
 
 {% block marking_header_extra %}
 <script type="text/javascript">
+	var component_max_marks = new Array();
     $(document).ready(function() {
-	oTable = $('#common_problems').dataTable({
-		"bJQueryUI": true,
-		"bSort": false,
-		"bPaginate": false, /* turn off the pagination */	
-	});
+		oTable = $('#common_problems').dataTable({
+			"bJQueryUI": true,
+			"bSort": false,
+			"bPaginate": false, /* turn off the pagination */	
+		});		
+		
+		{%for component in components%}
+			component_max_marks[{{forloop.counter}}] = {{component.max_mark}};
+		{%endfor%}
+		
+		$('select').after("<p class=\"component_info\"></p>");
+		
+		$('select').each(function(index){
+		    var selected = $(this).val();
+			if(selected != 0){
+				$(this).parent().children('p').html("total: " + component_max_marks[selected]);
+			}
+		});
+				
+		$('select').change(function(){			
+		    var selected = $(this).val();
+		    var info = $(this).parent().children('p');	 
+		    info.hide();
+		    if(selected != 0){ /*some component selected*/
+				info.html("total: " + component_max_marks[selected]);				
+				info.show();				
+			}
+		});
     });
 </script>
 {% endblock %}

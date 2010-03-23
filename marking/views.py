@@ -58,6 +58,7 @@ def _save_common_problems(formset):
 
 def _save_components(formset, activity):
     position = 1;
+    total_mark = 0;
     for form in formset.forms:
         try:  # title is required, empty title triggers KeyError and don't consider this row
             form.cleaned_data['title']
@@ -67,11 +68,13 @@ def _save_components(formset, activity):
             instance = form.save(commit = False)
             instance.numeric_activity = activity
             if not instance.deleted:
+                total_mark += instance.max_mark
                 instance.position = position
-                position += 1
+                position += 1                
             else:
                 instance.position = None
-            instance.save()      
+            instance.save()
+    return total_mark      
 
 @requires_course_staff_by_slug
 def manage_activity_components(request, course_slug, activity_slug):    
@@ -91,13 +94,16 @@ def manage_activity_components(request, course_slug, activity_slug):
     if request.method == "POST":     
         formset = ComponentsFormSet(activity, request.POST, queryset = qset)
         
-        if not formset.is_valid():
-            if not any(formset.errors): # not caused by error of an individual form
+        if not formset.is_valid() and formset.non_form_errors(): # not caused by error of an individual form
                 error_info = formset.non_form_errors()[0] 
         else:          
             # save the formset  
-            _save_components(formset, activity)
-            messages.add_message(request, messages.SUCCESS, 'Activity Components Saved')
+            total_mark = _save_components(formset, activity)
+            if total_mark != activity.max_grade:                
+                messages.add_message(request, messages.WARNING,\
+                                   'Activity Components Saved. Note: their marks do not add up to %s' % activity.max_grade)
+            else:
+                messages.add_message(request, messages.SUCCESS, 'Activity Components Saved')
             return HttpResponseRedirect(reverse('grades.views.activity_info', \
                                                 args=(course_slug, activity_slug)))                   
     else: # for GET request
@@ -130,8 +136,7 @@ def manage_common_problems(request, course_slug, activity_slug):
     if request.method == "POST":     
         formset = CommonProblemFormSet(components, request.POST, queryset = qset)
         
-        if not formset.is_valid():
-            if not any(formset.errors): # not caused by error of an individual form
+        if not formset.is_valid() and formset.non_form_errors(): # not caused by error of an individual form
                 error_info = formset.non_form_errors()[0] 
         else:       
             # save the formset  
@@ -146,7 +151,7 @@ def manage_common_problems(request, course_slug, activity_slug):
         messages.add_message(request, messages.ERROR, error_info)    
     return render_to_response("marking/common_problems.html", 
                               {'course' : course, 'activity' : activity, 
-                              'formset' : formset },\
+                              'components': components, 'formset' : formset },\
                               context_instance=RequestContext(request))
     
 def _initialize_component_mark_forms(components, base_activity_mark=None):
@@ -505,8 +510,8 @@ def mark_all_students(request, course_slug, activity_slug):
                 students = course.members.filter(person__role='STUD')
                 error_info = compose_imported_grades(fileform.cleaned_data['file'], students, imported_data)
                 if error_info == None:
-                    messages.add_message(request, messages.INFO,\
-                                "%s students' grades has been imported, please review before submitting" % len(imported_data.keys()))
+                    messages.add_message(request, messages.SUCCESS,\
+                                "%s students' grades imported. Please review before submitting!" % len(imported_data.keys()))
         # may use the imported file data to fill in the forms       
         for member in memberships: 
             student = member.person              
@@ -535,21 +540,31 @@ def mark_all_students(request, course_slug, activity_slug):
  
 def compose_imported_grades(file, students_qset, data_to_return):
     
-    reader = csv.reader(file)  
+    reader = csv.reader(file)   
     try:  
-        for row in reader:  
-            target = students_qset.filter(Q(userid = row[0]) | Q(emplid = row[0]))
+        read = 1;
+        for row in reader:            
+            try: #if the first row is not an integer, cannot be emplid
+                num = int(row[0])                
+            except:
+                target = students_qset.filter(userid = row[0])
+            else:        
+                target = students_qset.filter(Q(userid = row[0]) | Q(emplid = num))
             if target.count() == 0:                
                 data_to_return.clear()
-                return "Error found in the file: Unmatched student number or userid (%s)." % row[0]            
-            # try to parse the second row as a float
+                return "Error found in file (row %s): Unmatched student number or user-id (%s)." % (read, row[0],)            
+            # try to parse the second row as a float           
             value = float(row[1])
-            data_to_return[target[0].userid] = value                
+            if(data_to_return.has_key(target[0].userid)):
+                data_to_return.clear()
+                return "Error found in file (row %s): multiple entries found for student (%s)." % (read, row[0],) 
+            data_to_return[target[0].userid] = value 
+            read += 1               
     except:
         data_to_return.clear()
-        return "Error found in the file just : The format of each row should be: " +\
-               "[student userid or student number,  grade, ]. " + \
-               "Only the first two fields are used. Use ',' to separate fields."  
+        return ("Error found in the file (row %s): The format should be " % read) +\
+               "\"[student user-id or student number,  grade, ]\" and " + \
+               "only the first two columns are used."   
     return None   
         
         

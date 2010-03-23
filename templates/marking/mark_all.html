@@ -58,7 +58,7 @@ $(document).ready(function() {
 	    <tr>
 		<td>
 		    <strong>
-			<a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}?id={{ student.id }}">{{ student.name }}</a>
+			<a href="{% url grades.views.activity_info_student course_slug=course.slug activity_slug=activity.slug userid=student.userid %}">{{ student.name }}</a>
 		    </strong>
 		</td>
 		{% with mark_row.form as form %}

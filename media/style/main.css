@@ -733,34 +733,47 @@ fieldset .hidden {
   margin: 10;
 }
 
-#marking_container .receiver p
-{
-	padding: 0 0 1em 1em;
-}
-
-#marking_container .receiver .errorlist
-{
-	display: none;
+table#common_problems p.component_info{
+	font-size: 0.9em;
+    text-align: right;
+    color: #0054A6;
 }
 
 #marking_container input[type="text"]{
  	width: 120px;
 }
 
+#marking_container .component input[type="button"]{
+	background-color: #036;
+	color: #fff;
+	padding: 0.2em 1em;
+	border-right: 1px solid #fff;
+	margin: 0.5em 0.2em 0em 0.2em;
+}
+
 #marking_container textarea{
-	width: 400px;
+	width: 600px;
 	height: 80px;
 }
 
-#marking_container .common_problems{
-	float: right;
-	background-color: #D0D0D0;
-	width: auto;
-	height: 25px;
-	padding: 4px;
-	margin: 10px;
+#marking_container .component li{
+	display: inline;
+	clear: right;	
 }
 
+#marking_container li.component_mark{
+	width: auto;	
+	margin-left: 5.5em;
+} 
+
+#marking_container li.common_problems{
+	background-image: url('/media/images/grades/bluep.png');	
+	padding: 0.2em 1em;
+	float: right;
+	margin: 10px;
+	width: auto;	
+	margin: 0.2em 5em 0.2em 5em;
+}
 
 #marking_container .requireindicator{
 	display: none;

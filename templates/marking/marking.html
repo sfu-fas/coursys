@@ -5,7 +5,7 @@
 <script type="text/javascript">
 function append_problem(n, content)
 {       
-    var comments = document.querySelectorAll("textarea");    
+    var comments = document.getElementsByTagName("textarea");    
 	var oldconent = comments[n-1].value;	
 	comments[n-1].value += (oldconent == '' ? '' : '; ') + content;
 }
@@ -31,34 +31,32 @@ function append_problem(n, content)
      {% endif %}
 	 {% for entry in mark_components %}  	     
 	     <fieldset>
-	     <legend>{{entry.component.title}}</legend> 
-		     <ul>
-		        <li class = "common_problems">
-			    {% with forloop.counter as pos %}
-			    <b>Common problems:</b>     
-			    {% for problem in entry.common_problems %}
-			        <input type="button" value="{{problem.title|escape}}" title="{{problem.description|escape}}" onclick="append_problem({{pos}}, '{{problem.description|escapejs}}');"/>	 
-			    {% empty %}	     
-			    None    	     
-			    {% endfor %}
-			    {% endwith %}
-			    </li>	     		       
-		        <li class = "view">		            
-		      		<div class="inputfield">		      		 
-		        	Comment {{ entry.form.comment }}
-		      		{% if entry.form.comment.errors %}		      		
-		      		<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>&nbsp;{{entry.form.comment.errors}}		      		
-		      		{% endif %}
-		      		</div>			      	  	
-				</li>
-				<li class = "view"> 
-		            <div class = "inputfield">
+	     <legend><a href="{% url marking.views.manage_activity_components course_slug=course.slug activity_slug=activity.slug %}" title="View components">{{entry.component.title}}</a></legend> 
+		     <ul class = "component">
+		        <li class="component_mark"> 
 		        	Mark {{entry.form.value}} Out of {{entry.component.max_mark}}
 		        	{% if entry.form.value.errors %}		        	
-		        	<img src="{{MEDIA_URL}}/icons/error.png" alt="error"/>&nbsp;{{entry.form.value.errors}}		        	
+		        	<div class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/>&nbsp;{{entry.form.value.errors.0}}</div>	        	
 		        	{% endif %}
-		       		</div>
-		        </li>				
+		        </li>
+		        <li class = "common_problems">
+			    {% with forloop.counter as pos %}
+			    Common problems:    
+			    <div>
+			    {% for problem in entry.common_problems %}			    	
+			        <input class="common_problem" type="button" value="{{problem.title|escape}}" title="{{problem.description|escape}}{%if problem.penalty%} (penalty: {{problem.penalty}} points){%endif%}" 
+			        onclick="append_problem({{pos}}, '{{problem.description|escapejs}}{%if problem.penalty%}(penalty: {{problem.penalty}} points){%endif%}');"/>
+			    {% endfor %}
+			    <a href="{% url marking.views.manage_common_problems course_slug=course.slug activity_slug=activity.slug%}" title = "Manage common problems">Manage...</a>
+			    </div>			    
+			    {% endwith %}			    
+			    </li>
+		        <li class="component_comment">		    		      		 
+		        	{{entry.form.comment.label_tag}} {{ entry.form.comment }}
+		      		{% if entry.form.comment.errors %}		      		
+		      		<div class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/>&nbsp;{{entry.form.comment.errors.0}}</div>	        			      		
+		      		{% endif %}		      				      	  	
+				</li>			
 		 	</ul>   	 
 	  </fieldset>
      {% empty %}
