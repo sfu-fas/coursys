@@ -14,6 +14,7 @@ from contrib import messages
 from datetime import *
 from marking.views import marking_student, marking_group
 from groups.models import Group, GroupMember
+from log.models import LogEntry
 
 @login_required
 def index(request):
@@ -101,7 +102,6 @@ def add_submission(request, course_slug, activity_slug):
         new_sub.activity = activity
         new_sub_saved = False
         
-        #TODO: test if the submission is a group or student submission then adit accordingly
         for form in component_form_list:
             form[1].component = form[0]
             if form[1].is_valid():
@@ -133,6 +133,11 @@ def add_submission(request, course_slug, activity_slug):
                 sub.component = form[0]
                 sub.save()
                 submitted_comp.append(form[0])
+                #LOG EVENT#
+                l = LogEntry(userid=request.user.username,
+                      description="submitted for %s %s" % (activity, sub.component.title),
+                      related_object=sub)
+                l.save()
             else:
                 not_submitted_comp.append(form[0])
         return render_to_response("submission/submission_error.html",
