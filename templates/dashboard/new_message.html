@@ -1,0 +1,13 @@
+{% extends "grades/base.html" %}
+
+{% block title %}Create a new message{% endblock %}
+
+{% block h1 %}Add a new message{% endblock %}
+
+{% block content %}
+<form action="{% url dashboard.views.new_message course_slug=course_slug %}" method="POST", enctype="multipart/form-data">
+{{ form.as_p }}
+<input type="submit" value="Save" />
+</form>
+
+{% endblock %}
