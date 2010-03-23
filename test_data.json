@@ -18224,7 +18224,7 @@
   "activity": 1,
   "confirmed": true,
   "group": 3,
-  "student": 457
+  "student": 456
  },
  "model": "groups.groupmember",
  "pk": 8

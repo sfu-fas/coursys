@@ -40,8 +40,20 @@ def _groupmanage_student(request, course_slug):
 def _groupmanage_staff(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     members = GroupMember.objects.filter(group__courseoffering=course)
+    #find the students not in any group
+    students = Member.objects.select_related('person').filter(offering = course, role = 'STUD')
+    studentsNotInGroup = []
+    for student in students:
+        studentNotInGroupFlag = True
+        for groupMember in members:
+            if student == groupMember.student:
+                studentNotInGroupFlag = False
+        if studentNotInGroupFlag == True:
+            studentsNotInGroup.append(student)    
     
-    return render_to_response('groups/instructor.html', {'course':course, 'members':members}, context_instance = RequestContext(request))
+    return render_to_response('groups/instructor.html', \
+                              {'course':course, 'members':members, 'studentsNotInGroup':studentsNotInGroup}, \
+                              context_instance = RequestContext(request))
 
 @requires_course_by_slug
 def create(request,course_slug):
@@ -51,7 +63,7 @@ def create(request,course_slug):
     
     #TODO can instructor create group based on unreleased activities?
     #TODO need to make the form of activities uneditable
-    activities = Activity.objects.filter(offering = course, status = 'RLS')
+    activities = Activity.objects.filter(offering = course, status = 'URLS')
     #activities = Activity.objects.filter(offering = course)
     initialData = []
     for i in range(len(activities)):
@@ -130,10 +142,10 @@ def invite(request, course_slug, group_slug):
                 error_info="Student %s has already exists" % (newPerson)
             else:
                 #member = Member.objects.get(person = newPerson, offering = course)
-                   for invitorMembership in GroupMember.objects.filter(group = group, student = invitor):
-                       newGroupMember = GroupMember(group = group, student = member, \
-                                             activity = invitorMembership.activity, confirmed = False)
-                       newGroupMember.save()
+                for invitorMembership in GroupMember.objects.filter(group = group, student = invitor):
+                    newGroupMember = GroupMember(group = group, student = member, \
+                                          activity = invitorMembership.activity, confirmed = False)
+                    newGroupMember.save()
 
             if error_info:
                 messages.add_message(request, messages.ERROR, error_info)
