@@ -1,0 +1,18 @@
+{% ifequal keywords|length 0 %}
+    You searched for all log entries.
+{% else %}
+    You searched for:
+    <ul class="keyword">
+    {% for key in keywords %}
+        {% if key|length %}
+            <li>{{key}}</li>
+        {% endif %}
+    {% endfor %}
+    </ul>
+{% endifequal %}
+<hr>
+<ul class="log">
+{% for log in log_list %}
+    <li>{{log.display}}</li>
+{% endfor %}
+</ul>

@@ -30,3 +30,6 @@ class LogEntry(models.Model):
     object_id = models.PositiveIntegerField(null=True)
     related_object = generic.GenericForeignKey('content_type', 'object_id')
 
+    def display(self):
+        return "[%s] %s %s" % (self.datetime.ctime(), self.userid, self.description)
+

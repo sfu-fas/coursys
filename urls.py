@@ -12,6 +12,8 @@ handler404 = 'courselib.auth.NotFoundResponse'
 urlpatterns = patterns('',
     url(r'^login/$', 'django_cas.views.login'),
     url(r'^logout/$', 'django_cas.views.logout'),
+    
+    url(r'^log/$', 'log.views.index'),
 
     url(r'^$', 'courses.dashboard.views.index'),
     url(r'^' + COURSE_SLUG + '/$', 'grades.views.course_info'),
