@@ -52,9 +52,15 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
 
     if len(submitted_pair_list) == 0:
         messages.add_message(request, messages.WARNING, 'There is no submittable component of this activity.')
+    else:
+        group_member = GroupMember.objects.all().filter(student__person__userid=userid)\
+                                            .filter(confirmed=True)\
+                                            .filter(activity=activity)
+        if len(group_member) > 0:
+            messages.add_message(request, messages.WARNING, "This is a group submission. Your will submit on behalf of all your group members.")
 
     return render_to_response("submission/" + template,
-        {"course":course, "activity":activity, "submitted_pair":submitted_pair_list, "userid":userid, "submit_time":submit_time, "late":late, "student":student, "owner":owner},
+        {"course":course, "activity":activity, "submitted_pair":submitted_pair_list, "userid":userid, "submit_time":submit_time, "late":late, "student":student, "owner":owner, "group_member":group_member},
         context_instance=RequestContext(request))
 
 
@@ -162,19 +168,22 @@ def show_components_submission_history(request, course_slug, activity_slug):
     userid = request.GET.get('userid')
     course = get_object_or_404(CourseOffering, slug = course_slug)
     activity = get_object_or_404(course.activity_set,slug = activity_slug)
-    """test if the submission is a group submission"""
-    group_member = GroupMember.objects.all().filter(student__person__userid=request.user.username)\
-                                            .filter(confirmed=True)\
-                                            .filter(activity=activity)
-    if len(group_member) > 0:
-        is_group = True
-    else:
-        is_group = False
 
     if userid==None:
         userid = request.user.username
     if not check_me_or_member(request, userid, course, activity):
         return ForbiddenResponse(request)
+
+    group_member = GroupMember.objects.all().filter(student__person__userid=userid)\
+                                            .filter(confirmed=True)\
+                                            .filter(activity=activity)
+    if len(group_member) > 0:
+        is_group = True
+        messages.add_message(request, messages.WARNING, "This is a group submission. This history is based on submissions from all your group members.")
+    else:
+        is_group = False
+
+    
     
     all_submitted_components = select_students_submitted_components(activity, userid)
     component_list = select_all_components(activity)
