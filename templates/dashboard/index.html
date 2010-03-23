@@ -11,7 +11,11 @@
 <div id="newsitems">
 <h2>Latest news</h2>
   {% for news in news_list %}
-    <h3><a href="{{news.url}}">{{news.title}}</a></h3>
+   	{%if news.url%}
+   	 	<h3><a href="{{news.url}}">{{news.title}}</a></h3>
+   	{%else%}
+   		<h3>{{news.title}}</h3>
+   	{% endif %}
     <div class="newscontent">{{news.published|date:'r'}}</div>
     <div class="newscontent">{{news.content}}</div>
   {% endfor %}
