@@ -440,7 +440,7 @@ def show_student_history_staff(request, course_slug, activity_slug, userid):
     return show_components_submission_history(request, course_slug, activity_slug, userid)
 
 @requires_course_staff_by_slug
-def take_ownership_and_mark(request, course_slug, activity_slug, userid):
+def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, group_slug=None):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set, slug = activity_slug)
     
@@ -449,25 +449,53 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid):
     urlencode = ''
     if qDict.items():
         urlencode = '?' +  qDict.urlencode()
-        
+
+    print userid, group_slug
     #TODO: for group marking ?
-    response = HttpResponseRedirect(reverse(marking_student, args=[course_slug, activity_slug, userid]) + urlencode)
-    
+    if group_slug == None:
+        response = HttpResponseRedirect(reverse(marking_student, args=[course_slug, activity_slug, userid]) + urlencode)
+    else:
+        response = HttpResponseRedirect(reverse(marking_group, args=[course_slug, activity_slug, group_slug]) + urlencode)
+        print response
     component = select_students_submitted_components(activity, userid)
     #if it is taken by someone not me, show a confirm dialog
     if request.GET.get('confirm') == None:
         for c in component:
             if c.submission.owner != None and c.submission.owner.person.userid != request.user.username:
-                return _override_ownership_confirm(request, course, activity, userid, c.submission.owner.person, activity_mark_suffix, from_page_suffix)
-            
+                return _override_ownership_confirm(request, course, activity, userid, None, c.submission.owner.person, urlencode)
     for c in component:
         c.submission.set_owner(course, request.user.username)
     return response
 
-def _override_ownership_confirm(request, course, activity, userid, old_owner, activity_suffix, from_suffix):
-    student = get_object_or_404(Person, userid=userid)
+@requires_course_staff_by_slug
+def take_ownership_and_mark_group(request, course_slug, activity_slug, group_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(course.activity_set, slug = activity_slug)
+
+    # get the urlencode
+    qDict = request.GET
+    urlencode = ''
+    if qDict.items():
+        urlencode = '?' +  qDict.urlencode()
+
+    group_member = GroupMember.objects.all().filter(group__slug=group_slug)
+    response = HttpResponseRedirect(reverse(marking_group, args=[course_slug, activity_slug, group_slug]) + urlencode)
+    component = select_students_submitted_components(activity, group_member[0].student.person.userid)
+    #if it is taken by someone not me, show a confirm dialog
+    if request.GET.get('confirm') == None:
+        for c in component:
+            if c.submission.owner != None and c.submission.owner.person.userid != request.user.username:
+                return _override_ownership_confirm(request, course, activity, group_member[0].student.person.userid, group_slug, c.submission.owner.person, urlencode)
+    for c in component:
+        c.submission.set_owner(course, request.user.username)
+    return response
+
+def _override_ownership_confirm(request, course, activity, userid, group_slug, old_owner, urlencode):
+    if group_slug == None:
+        student = get_object_or_404(Person, userid=userid)
+    else:
+        student = None
     
     return render_to_response("submission/override_ownership_confirm.html",
-        {"course":course, "activity":activity, "student":student, "old_owner":old_owner, "true":True,
-        "activity_suffix":activity_suffix, "from_suffix":from_suffix},
+        {"course":course, "activity":activity, "student":student, "group_slug":group_slug, "old_owner":old_owner, "true":True, "urlencode":urlencode, "userid":userid},
         context_instance=RequestContext(request))
