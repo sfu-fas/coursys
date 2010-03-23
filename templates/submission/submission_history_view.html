@@ -41,11 +41,7 @@
                     <td>{{item.submission.get_derived_class.creator}}</td>
                 {%endif%}
                 <td>
-                    {% ifequal item.get_type 'URL' %}
-                        <img src="{{MEDIA_URL}}icons/attach.png" alt="download" /><a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=userid %}?type={{item.get_type}}&id={{item.id}}">Download File</a>
-                    {% else%}
                         <img src="{{MEDIA_URL}}icons/attach.png" alt="download" /><a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=userid %}?type={{item.get_type}}&id={{item.id}}" target="_blank">Download File</a>
-                    {% endifequal %}
                 </td>
                 <td>
                     {% if item.get_size %}
