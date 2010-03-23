@@ -162,7 +162,15 @@ def show_components_submission_history(request, course_slug, activity_slug):
     userid = request.GET.get('userid')
     course = get_object_or_404(CourseOffering, slug = course_slug)
     activity = get_object_or_404(course.activity_set,slug = activity_slug)
-    
+    """test if the submission is a group submission"""
+    group_member = GroupMember.objects.all().filter(student__person__userid=request.user.username)\
+                                            .filter(confirmed=True)\
+                                            .filter(activity=activity)
+    if len(group_member) > 0:
+        is_group = True
+    else:
+        is_group = False
+
     if userid==None:
         userid = request.user.username
     if not check_me_or_member(request, userid, course, activity):
@@ -176,7 +184,7 @@ def show_components_submission_history(request, course_slug, activity_slug):
             empty_component.append(component)
             messages.add_message(request, messages.WARNING, "You have no submission for "+component.title+".")
     return render_to_response("submission/submission_history_view.html", 
-        {"course":course, "activity":activity,'userid':userid,'submitted_component': all_submitted_components,'empty_component': empty_component, 'course':course, 'activity':activity},
+        {"course":course, "activity":activity,'userid':userid,'submitted_component': all_submitted_components,'empty_component': empty_component, 'course':course, 'activity':activity,'is_group':is_group},
         context_instance = RequestContext(request))
 
 #staff submission configuratiton

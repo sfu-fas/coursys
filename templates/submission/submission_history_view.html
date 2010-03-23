@@ -28,15 +28,21 @@
         <table>
             <tr>
                 <th>Time</th>
+                {%if is_group%}
+                    <th>Creator</th>
+                {% endif %}
                 <th>Download</th>
                 <th>Size</th>
             </tr>
         {% for item in component.list %}
             <tr class="{% if forloop.counter0|divisibleby:2 %}row1{%else%}row2{%endif%}">
                 <td>{{item.get_time}}</td>
+                {%if is_group%}
+                    <td>{{item.submission.get_derived_class.creator}}</td>
+                {%endif%}
                 <td>
                     {% ifequal item.get_type 'URL' %}
-                        <a href="{{item.get_url}}">{{item.get_url}}</a>
+                        <img src="{{MEDIA_URL}}icons/attach.png" alt="download" /><a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=userid %}?type={{item.get_type}}&id={{item.id}}">Download File</a>
                     {% else%}
                         <img src="{{MEDIA_URL}}icons/attach.png" alt="download" /><a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=userid %}?type={{item.get_type}}&id={{item.id}}" target="_blank">Download File</a>
                     {% endifequal %}

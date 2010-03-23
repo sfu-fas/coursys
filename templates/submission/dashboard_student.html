@@ -78,6 +78,9 @@
                 You have made submission to this component.
                 <ul class="component_description">
                     <li><label>Latest Submission: </label>{{pair.1.get_time}}</li>
+                    {% ifequal pair.1.submission.get_type 'Group'%}
+                        <li><label>Creator:</label>{{pair.1.submission.get_derived_class.creator}}</li>
+                    {% endifequal %}
                     {% if pair.1.get_size %}
                         <li><label>File Size:</label>{{pair.1.get_size_in_kb}} KB</li>
                     {% endif %}

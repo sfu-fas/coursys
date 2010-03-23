@@ -113,6 +113,18 @@ class Submission(models.Model):
             self.owner = member[0]
             self.status = "INP"
             self.save()
+    def get_type(self):
+        g = GroupSubmission.objects.filter(pk = self.pk)
+        if len(g) > 0:
+            return "Group"
+        return "student"
+    def get_derived_class(self):
+        if self.get_type() == "Group":
+            return GroupSubmission.objects.all().get(pk = self.pk)
+        else:
+            return StudentSubmission.objects.all().get(pk = self.pk)
+    def get_userid(self):
+        return self.get_derived_class().get_userid()
 
 class StudentSubmission(Submission):
     member = models.ForeignKey(Member, null=False)
@@ -128,7 +140,7 @@ class GroupSubmission(Submission):
     #TODO: add a item indicate who submit the assignment
 
     def get_userid(self):
-        return self.group.manager.userid
+        return self.group.manager.person.userid
     def __unicode__(self):
         return "%s->%s@%s" % (self.group.manager.person.userid, self.activity, self.created_at)
 
@@ -227,15 +239,32 @@ def select_all_submitted_components(activity):
         subs = list(SubmittedType.objects.filter(submission__activity = activity))
         submitted_component.extend(s for s in subs if s.id not in found)
         found.update( (s.id for s in subs) )
-
     submitted_component.sort()
+    print "=============select_all_submitted_components" ,submitted_component
     return submitted_component
 
 # TODO: group submission selector
 def select_students_submitted_components(activity, userid):
     submitted_component = select_all_submitted_components(activity)
-    new_submitted_component = [comp for comp in submitted_component if comp.submission.member.person.userid == userid]# [comp for comp in submitted_component if comp.submission.member.person.userid == userid]
+    new_submitted_component = []
+    print "in side the selection"
+    for comp in submitted_component:
+        if comp.submission.get_type() == 'Group':
+            print "inside the Group"
+            group_submission = GroupSubmission.objects.all().get(pk = comp.submission.pk)
+            member = GroupMember.objects.all().filter(group = group_submission.group)\
+            .filter(student__person__userid=userid)\
+            .filter(activity = activity)\
+            .filter(confirmed = True)
+            if len(member)>0:
+                new_submitted_component.append(comp)
+                print "inside append"
+        else:
+            student_submission = StudentSubmission.objects.all().get(pk = comp.submission.pk)
+            if student_submission.member.person.userid == userid:
+                new_submitted_component.append(comp)
     new_submitted_component.sort()
+    print "=============select_students_submitted_components" , new_submitted_component
     return new_submitted_component
 
 def select_students_submission_by_component(component, userid):
@@ -286,7 +315,6 @@ def get_current_submission(userid, activity):
     component_list = select_all_components(activity)
     all_submitted = select_students_submitted_components(activity, userid)
     #TODO: group submission
-
     submitted_pair_list = []
     for component in component_list:
         pair = []
