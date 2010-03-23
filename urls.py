@@ -18,6 +18,7 @@ urlpatterns = patterns('',
     url(r'^$', 'courses.dashboard.views.index'),
     url(r'^' + COURSE_SLUG + '/$', 'grades.views.course_info'),
 
+    url(r'^' + 'dashboard/all_news/$', 'dashboard.views.news_list'),
     url(r'^' + COURSE_SLUG + '/new_message$', 'dashboard.views.new_message'),
 
     url(r'^' + COURSE_SLUG + '/groups$', 'groups.views.groupmanage'),
