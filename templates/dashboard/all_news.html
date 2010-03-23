@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load markup %}
+
+{% block title %}Course Management System{% endblock %}
+{% block h1 %}Course Management System{% endblock %}
+
+{% block subbreadcrumbs %}&gt; All News</li>{% endblock %}
+
+{% block content %}
+{% if news_list%}
+<div id="newsitems">
+<h2>All News</h2>
+  {% for news in news_list %}
+   	{%if news.url%}
+   	 	<h3><a href="{{news.url}}">{{news.title}}</a></h3>
+   	{%else%}
+   		<h3>{{news.title}}</h3>
+   	{% endif %}
+    <div class="newscontent">{{news.published|date:'r'}}</div>
+    <div class="newscontent">{{news.content}}</div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
