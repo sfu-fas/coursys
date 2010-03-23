@@ -15,9 +15,10 @@
                 "iDisplayLength" : 50,
                 "bSort": false,
 	});
-    });
+	});
 </script>
 {% endblock %}
+
 
 {% block subbreadcrumbs %}<li>&gt; {{ course.name }} ({{course.semester.label}})</li>{% endblock %}
 
@@ -67,6 +68,10 @@
 
 <p>
 <a class="button" href="{% url groups.views.groupmanage course_slug=course.slug %}">Groups</a>
+</p>
+
+<p>
+<a class="button" href="{% url dashboard.views.new_message course_slug=course.slug %}">Message</a>
 </p>
 
 <div class="datatable_container">
