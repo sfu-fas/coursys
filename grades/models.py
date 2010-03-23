@@ -8,6 +8,7 @@ from django.core.urlresolvers import reverse
 FLAG_CHOICES = [
     ('NOGR', 'no grade'),
     ('GRAD', 'graded'), 
+    ('CALC', 'calculated'), 
     ('EXCU', 'excused'), 
     ('DISH', 'academic dishonesty') ]
 FLAGS = dict(FLAG_CHOICES)
@@ -146,6 +147,11 @@ class CalNumericActivity(NumericActivity):
     """
     formula = models.CharField(max_length=250, help_text='parsed formula to calculate final numeric grade')
 
+    def calculate_for(self, member):
+        pass
+    def calculate_all(self):
+        pass
+
     class Meta:
         verbose_name_plural = "cal numeric activities"
 
@@ -203,9 +209,9 @@ class NumericGrade(models.Model):
         return "Member[%s]'s grade[%s] for [%s]" % (self.member.person.userid, self.value, self.activity)
 
 
-    def save(self):
+    def save(self, newsitem=True):
         super(NumericGrade, self).save()
-        if self.activity.status == "RLS":
+        if self.activity.status == "RLS" and newsitem:
             # generate news item
             n = NewsItem(user=self.member.person, author=None, course=self.activity.offering,
                 source_app="grades", title="%s %s grade available" % (self.activity.offering.name(), self.activity.name), 

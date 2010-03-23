@@ -68,13 +68,14 @@ def create(request,course_slug):
     for i in range(len(activities)):
         activity = dict(selected = False, name = activities[i].name, \
                         percent = activities[i].percent, due_date = activities[i].due_date)
-        print "act: %s", activity
+        #print "act: %s", activity
         initialActivitiesData.append(activity)
         
     ActivityFormset = formset_factory(ActivityForm, extra = 0)
     Activities_formset = ActivityFormset(initial = initialActivitiesData, prefix = 'activities')
     #why this is not valid?
-    print 'act:', Activities_formset.is_valid()
+    #print 'act:', Activities_formset.is_valid()
+    #print Activities_formset.errors
     if is_course_student_by_slug(request.user, course_slug):
         return render_to_response('groups/create_student.html', \
                                   {'manager':group_manager, 'course':course, 'formset':Activities_formset},\

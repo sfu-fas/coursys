@@ -291,7 +291,7 @@ def marking_student(request, course_slug, activity_slug, userid):
                 ngrade = NumericGrade.objects.get(activity = activity, member = membership)
             except NumericGrade.DoesNotExist: 
                 ngrade = NumericGrade(activity = activity, member = membership)
-                ngrade.save()    
+                ngrade.save(newsitem=False)    
             activity_mark = StudentActivityMark(numeric_grade = ngrade)  
             final_grade =  _compute_final_mark(component_marks, activity.max_grade, additional_info) 
             _save_marking_results(activity, activity_mark, final_grade, 
@@ -492,7 +492,7 @@ def mark_all_students(request, course_slug, activity_slug):
                # save data 
                if ngrade == None:
                     ngrade = NumericGrade(activity = activity, member = memberships[i]);
-                    ngrade.save()
+                    ngrade.save(newsitem=False)
                # created a new activity_mark as well
                activity_mark = StudentActivityMark(numeric_grade = ngrade)              
                _save_marking_results(activity, activity_mark, new_value, request.user.username,\
