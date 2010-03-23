@@ -1,6 +1,7 @@
 from django.test import TestCase
 from grades.formulas import *
 from grades.models import *
+from coredata.models import *
 from coredata.tests import create_offering
 import pickle
 
@@ -8,17 +9,11 @@ from django.test.client import Client
 from settings import CAS_SERVER_URL
 from courselib.testing import *
 
-expr_vals = { # dictionary of assignment marks for formula testing
-    'A1': 10,
-    'A2': 30,
-    'Assignment #1': 10,
-    u"\u00b6": 4.5
-    }
 test_formulas = [ # expression, correct-result pairs
+        ("-[A1] + +2", -8),
         ("9 + 2 - 3", 8),
         ("9 + 2 * 3", 15),
         ("(9 + 2) * 3", 33),
-        ("-[A1] + +2", -8),
         ("[A1]/20+-3", -2.5),
         ("[Assignment #1]/20+-3", -2.5),
         ("SUM(1, 12.5, 3.4e2)", 353.5),
@@ -43,6 +38,28 @@ class GradesTest(TestCase):
         """
         Test the formula parsing & evaluation.
         """
+        # set up course and related data
+        s, c = create_offering()
+        p = Person.objects.get(userid="0kvm")
+        m = Member(person=p, offering=c, role="STUD", credits=3, added_reason="UNK")
+        m.save()
+       
+        a = NumericActivity(name="Paragraph", short_name=u"\u00b6", status="RLS", offering=c, position=3, max_grade=40)
+        a.save()
+        g = NumericGrade(activity=a, member=m, value="4.5", flag="CALC")
+        g.save()
+        a = NumericActivity(name="Assignment #1", short_name="A1", status="RLS", offering=c, position=1, max_grade=15)
+        a.save()
+        g = NumericGrade(activity=a, member=m, value=10, flag="GRAD")
+        g.save()
+        a = NumericActivity(name="Assignment #2", short_name="A2", status="RLS", offering=c, position=2, max_grade=40)
+        a.save()
+        g = NumericGrade(activity=a, member=m, value=30, flag="GRAD")
+        g.save()
+        
+        activities = NumericActivity.objects.filter(offering=c)
+        act_dict = activities_dictionary(activities)
+        
         # make sure a formula can be pickled and unpickled safely (i.e. can be cached)
         tree = parse("sum([Assignment #1], [A1], [A2])/20*-3")
         p = pickle.dumps(tree)
@@ -54,23 +71,52 @@ class GradesTest(TestCase):
         # test parsing and evaluation to make sure we get the right values out
         for expr, correct in test_formulas:
             tree = parse(expr)
-            res = eval_parse(tree, expr_vals)
+            res = eval_parse(tree, act_dict, m)
             self.assertAlmostEqual(correct, res, msg=u"Incorrect result for %s"%(expr,))
 
         # test some badly-formed stuff for appropriate exceptions
         tree = parse("1 + BEST(3, [A1], [A2])")
-        self.assertRaises(EvalException, eval_parse, tree, expr_vals)
+        self.assertRaises(EvalException, eval_parse, tree, act_dict, m)
         tree = parse("1 + BEST(0, [A1], [A2])")
-        self.assertRaises(EvalException, eval_parse, tree, expr_vals)
+        self.assertRaises(EvalException, eval_parse, tree, act_dict, m)
         tree = parse("[Foo] /2")
-        self.assertRaises(KeyError, eval_parse, tree, expr_vals)
+        self.assertRaises(KeyError, eval_parse, tree, act_dict, m)
         tree = parse("[a1] /2")
-        self.assertRaises(KeyError, eval_parse, tree, expr_vals)
+        self.assertRaises(KeyError, eval_parse, tree, act_dict, m)
         
         self.assertRaises(ParseException, parse, "AVG()")
         self.assertRaises(ParseException, parse, "(2+3*84")
         self.assertRaises(ParseException, parse, "2+3**84")
         self.assertRaises(ParseException, parse, "AVG(2,3,4")
+        
+        # test unreleased/missing grade conditions
+        expr = "[Assignment #2]"
+        tree = parse(expr)
+        
+        # unrelased assignment (with grade)
+        a.status='URLS'
+        a.save()
+        activities = NumericActivity.objects.filter(offering=c)
+        act_dict = activities_dictionary(activities)
+        res = eval_parse(tree, act_dict, m)
+        self.assertAlmostEqual(res, 0.0)
+        
+        # explicit no grade (relased assignment)
+        g.flag="NOGR"
+        g.save()
+        a.status='RLS'
+        a.save()
+        activities = NumericActivity.objects.filter(offering=c)
+        act_dict = activities_dictionary(activities)
+        res = eval_parse(tree, act_dict, m)
+        self.assertAlmostEqual(res, 0.0)
+
+        # no grade in database (relased assignment)
+        g.delete()
+        activities = NumericActivity.objects.filter(offering=c)
+        act_dict = activities_dictionary(activities)
+        res = eval_parse(tree, act_dict, m)
+        self.assertAlmostEqual(res, 0.0)
 
     def test_activities(self):
         """

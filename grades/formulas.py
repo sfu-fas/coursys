@@ -5,12 +5,14 @@
 #   from grades.formulas import *
 # for each calculated grade:
 #   parsed_expr = parse(formula)
-# for each student, create a dictionary of assignment values:
-#   vals = {'Assign 1': 23, 'Midterm': 89}
-# then pass it into the evaluator:
-#   result = eval_parse(parsed_expr, vals):
+# find all NumericActivities for the course and process into format for evaluator:
+#   activities = NumericActivity.objects.filter(offering=c)
+#   act_dict = activities_dictionary(activities)        
+# then pass it into the evaluator along with a Member object for the student:
+#   result = eval_parse(parsed_expr, act_dict, member)
 
 from external.pyparsing import ParseException
+import itertools
 
 class EvalException(Exception):
     pass
@@ -96,7 +98,16 @@ def cols_used(tree):
     """
     return tree[1]
 
-def eval_parse(tree, vals):
+def activities_dictionary(activities):
+    """
+    Process the collection of activities into a dictionary for faster lookup later.
+    """
+    return dict( itertools.chain(
+            ((a.name,a) for a in activities),
+            ((a.short_name,a) for a in activities)
+            ))
+
+def eval_parse(tree, act_dict, member):
     """
     Evaluate an expression given its parse tree and dictionary of column values.
     
@@ -106,11 +117,22 @@ def eval_parse(tree, vals):
     """
     t = tree[0]
     if t == 'sign' and tree[2] == '+':
-        return eval_parse(tree[3], vals)
+        return eval_parse(tree[3], act_dict, member)
     elif t == 'sign' and tree[2] == '-':
-        return -eval_parse(tree[3], vals)
+        return -eval_parse(tree[3], act_dict, member)
     elif t == 'col':
-        return float(vals[tree[2]])
+        act = act_dict[tree[2]]
+        if act.status != 'RLS':
+            return 0.0
+        grades = act.numericgrade_set.filter(member=member)
+        if len(grades)==0:
+            return 0.0
+        grade = grades[0]
+        if grade.flag == 'NOGR':
+            return 0.0
+        else:
+            return float(grade.value)
+
     elif t == 'num':
         return tree[2]
     elif t == 'expr':
@@ -119,11 +141,11 @@ def eval_parse(tree, vals):
         expr.pop() # remove the 'expr' marker
         expr.pop() # remove the column set
         # extract first term
-        val = eval_parse(expr.pop(), vals)
+        val = eval_parse(expr.pop(), act_dict, member)
         while expr:
             # extract operator/operand pairs until they're all gone
             operator = expr.pop()
-            operand = eval_parse(expr.pop(), vals)
+            operand = eval_parse(expr.pop(), act_dict, member)
             if operator == "+":
                 val += operand
             elif operator == "-":
@@ -138,23 +160,23 @@ def eval_parse(tree, vals):
     elif t == 'func':
         func = tree[2]
         if func == 'SUM':
-            return sum(eval_parse(t, vals) for t in tree[3:])
+            return sum(eval_parse(t, act_dict, member) for t in tree[3:])
         elif func == 'MAX':
-            return max(eval_parse(t, vals) for t in tree[3:])
+            return max(eval_parse(t, act_dict, member) for t in tree[3:])
         elif func == 'MIN':
-            return min(eval_parse(t, vals) for t in tree[3:])
+            return min(eval_parse(t, act_dict, member) for t in tree[3:])
         elif func == 'AVG':
-            return sum(eval_parse(t, vals) for t in tree[3:]) / (len(tree)-3)
+            return sum(eval_parse(t, act_dict, member) for t in tree[3:]) / (len(tree)-3)
         elif func == 'BEST':
             # round first argument to an int: it's the number of best items to pick
-            n = int(round( eval_parse(tree[3], vals) ) + 0.1)
+            n = int(round( eval_parse(tree[3], act_dict, member) ) + 0.1)
             if n < 1:
                 raise EvalException, 'Bad number of "best" selected, %i.'%(n,)
             if n > len(tree)-4:
                 raise EvalException, "Not enough arguments to choose %i best."%(n,)
-            vals = [eval_parse(t, vals) for t in tree[4:]]
-            vals.sort()
-            return sum(vals[-n:])
+            marks = [eval_parse(t, act_dict, member) for t in tree[4:]]
+            marks.sort()
+            return sum(marks[-n:])
         else:
             raise EvalException, "Unknown function in parse tree: %s"%(func,)
     else:
