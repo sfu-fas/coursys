@@ -127,23 +127,15 @@ def submit(request,course_slug):
         return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
     
     elif is_course_staff_by_slug(request.user, course_slug):
-        print 'I am in the staff block'
         ActivityFormset = formset_factory(ActivityForm)
         Activities_formset = ActivityFormset(request.POST, prefix = 'activities')
         StudentFormset = formset_factory(StudentForm)
         Students_formset = StudentFormset(request.POST, prefix = 'students')
-        print Activities_formset
-        print Students_formset
-        print Activities_formset.is_valid()
-        print Students_formset.is_valid()
+
         if Activities_formset.is_valid()  and Students_formset.is_valid():      
-            print Activities_formset.cleaned_data
-            print Students_formset.cleaned_data
-            print '================'
             for i in range(len(Activities_formset.cleaned_data)):
                 if Activities_formset.cleaned_data[i]['selected'] == True:
                     activity = Activity.objects.get(offering = course, name = Activities_formset.cleaned_data[i]['name'])
-                    print activity
                     for j in range(len(Students_formset.cleaned_data)):
                         if Students_formset.cleaned_data[j]['selected'] == True:
                             std_person = Person.objects.get(userid = Students_formset.cleaned_data[j]['userid'])
