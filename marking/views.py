@@ -295,7 +295,7 @@ def marking_student(request, course_slug, activity_slug, userid):
             activity_mark = StudentActivityMark(numeric_grade = ngrade)  
             final_grade =  _compute_final_mark(component_marks, activity.max_grade, additional_info) 
             _save_marking_results(activity, activity_mark, final_grade, 
-                                  request.user.username, ('student %s', userid), 
+                                  request.user.username, ('student %s'% userid),
                                   component_marks, additional_info)
             
             messages.add_message(request, messages.SUCCESS, 'Marking for student %s on activity %s finished' % (userid, activity.name,))                      
@@ -339,7 +339,7 @@ def marking_group(request, course_slug, activity_slug, group_slug):
             activity_mark = GroupActivityMark(group = group, numeric_activity = activity)  
             final_grade =  _compute_final_mark(component_marks, activity.max_grade, additional_info) 
             _save_marking_results(activity, activity_mark, final_grade, 
-                                  request.user.username, ('group %s', group.name), 
+                                  request.user.username, ('group %s'% group.name),
                                   component_marks, additional_info)
             
             messages.add_message(request, messages.SUCCESS, 'Marking for group %s on activity %s finished' % (group.name, activity.name,))                      
