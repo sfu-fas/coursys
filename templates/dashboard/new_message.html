@@ -1,11 +1,15 @@
 {% extends "grades/base.html" %}
 
-{% block title %}Create a new message{% endblock %}
+{% block title %}Create a News Item{% endblock %}
+{% block h1 %}Create a News Item{% endblock %}
 
-{% block h1 %}Add a new message{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; New News Item</li>{% endblock %}
 
 {% block content %}
-<form action="{% url dashboard.views.new_message course_slug=course_slug %}" method="POST", enctype="multipart/form-data">
+<p>
+This news item will be sent to all members of {{course.name}} ({{course.semester.label}}).
+</p>
+<form action="{% url dashboard.views.new_message course_slug=course.slug %}" method="POST", enctype="multipart/form-data">
 {{ form.as_p }}
 <input type="submit" value="Save" />
 </form>

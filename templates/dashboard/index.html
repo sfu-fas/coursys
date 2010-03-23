@@ -17,7 +17,7 @@
    		<h3>{{news.title}}</h3>
    	{% endif %}
     <div class="newscontent">{{news.published|date:'r'}}</div>
-    <div class="newscontent">{{news.content}}</div>
+    <div class="newscontent">{{news.content_xhtml}}</div>
   {% endfor %}
 </div>
 {% endif %}

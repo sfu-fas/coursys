@@ -1,9 +1,9 @@
 from django.db import models
 from coredata.models import Person, CourseOffering
-from django.utils.html import escape
+from django.utils.safestring import mark_safe
 
-#import textile
-#Textile = textile.Textile(restricted=True)
+import external.textile as textile
+Textile = textile.Textile(restricted=True)
 
 class NewsItem(models.Model):
     """
@@ -20,8 +20,8 @@ class NewsItem(models.Model):
     updated = models.DateTimeField(auto_now=True)
     url = models.URLField(blank=True,verify_exists=False, help_text='absolute URL for the item: starts with "http://" or "/"')
 
-    #def content_xhtml(self):
-    #    return Textile.textile(str(self.content))
+    def content_xhtml(self):
+        return mark_safe(Textile.textile(str(self.content)))
 
 from django.forms import ModelForm
 class MessageForm(ModelForm):
