@@ -2,9 +2,8 @@
 {% extends "base.html" %}
 
 {% block title %}{{course.name}} Groups{% endblock %}
-{% block h1 %}{{course.name}} Groups{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; Groups</li>{% endblock %}
+{% block h1 %}{{course.name}} Groups{% endblock %}
 
 {% block content %}
 <script language="javascript" type="text/javascript" src="/media/js/groups/main.js">
@@ -13,7 +12,7 @@
 <dl>
 	{% for m in members %}
 		<dt><h2>{{ m.group.name }}</h2></dt><dd>
-		{% if m.confirmed %}
+		{% if m.group.manager.person.name == m.student.person.name %}
 		<ul>
 		  {% for mm in m.group.groupmember_set.all %}
 		    {% if mm.confirmed %}
@@ -26,8 +25,20 @@
 		  <a class="button" href="{% url groups.views.invite course_slug=course.slug group_slug=m.group.slug %}">Invite</a>
 		</ul>
 		{% else %}
+        <ul>
+           {% if m.confirmed %}<ul>
+           {% for mm in m.group.groupmember_set.all %}
+		    {% if mm.confirmed %}
+		      <li>{{mm.student.person.name}} ({{mm.student.person.userid}})</li>
+		    {% else %}
+		      <li>{{mm.student.person.name}} ({{mm.student.person.userid}}) (not yet confirmed)</li>
+		    {% endif %}  
+		  {% endfor %}
+		   <br /></ul>
+           {% else %}
 		You have not confirmed membership in this group. <a class="button" href="{% url groups.views.join course_slug=course.slug,group_slug=m.group.slug %}">Join Group</a>
-		{% endif %}
+		{% endif %}<br /></ul>
+        {% endif %}
 		</dd>
 	{% endfor %}
 </dl>
