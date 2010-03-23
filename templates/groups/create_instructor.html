@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load course_display %}
+{% block content %}
+	<h1>Create Group</h1>
+	{% if user %}
+		<form action="{% url groups.views.submit course_slug=course.slug  %}" method="POST">
+			  <div class = "datatable_container"> 
+			  <h2>Select students for the new group</h2>
+			  <br>
+			  {{ Students_formset.management_form }} 
+			   <table class="display" id="students">
+			     <thead>
+			       <tr>
+				     <th>Selected</th> 
+				     <th>User ID</th>
+				     <th>First Name</th>
+				     <th>Last Name</th>   
+			       </tr>         
+			     </thead>  
+			     <tbody>
+				   {% for form in Students_formset.forms %} 	      
+					       {{ form|display_form_as_row:"selected"}}
+				   {% endfor %}
+			     </tbody>
+			   </table>
+			</div>
+			<br>
+			<br>
+			<div class = "datatable_container"> 
+			<h2>Select activities for the new group</h2>
+			<br>
+			{{ Activities_formset.management_form }} 
+			 <table class="display" id="activities">
+			   <thead>
+			     <tr>
+				   <th>Selected</th> 
+				   <th>Title</th>
+				   <th>Percent</th>
+				   <th>Due Date</th>              
+			     </tr>         
+			   </thead>  
+			   <tbody>
+				 {% for form in Activities_formset.forms %} 	      
+					     {{ form|display_form_as_row:"selected"}}
+				 {% endfor %}
+			   </tbody>
+			 </table>
+		      </div>
+		      <br>
+		      <br>
+			<label for="name">Group Name </label>
+                        <input type="text" name="GroupName">
+			<input type="submit" value="create">
+                </form>
+        {% else %}
+		<p> Student does not exist </p>
+	{% endif %}
+{% endblock content %}

@@ -34,4 +34,7 @@
     </ul>
   {% endif %}
   </div>
+  <p>
+    <a class="button" href="{% url groups.views.create course_slug=course.slug %}">New Group</a>
+  </p>
 {% endblock %}

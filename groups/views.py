@@ -64,19 +64,42 @@ def create(request,course_slug):
     #TODO can instructor create group based on unreleased activities?
     #TODO need to make the form of activities uneditable
     activities = Activity.objects.filter(offering = course, status = 'URLS')
-    #activities = Activity.objects.filter(offering = course)
-    initialData = []
+    initialActivitiesData = []
     for i in range(len(activities)):
         activity = dict(selected = False, name = activities[i].name, \
                         percent = activities[i].percent, due_date = activities[i].due_date)
         print "act: %s", activity
-        initialData.append(activity)
+        initialActivitiesData.append(activity)
         
-    Formset = formset_factory(ActivityForm, extra = 0)
-    formset = Formset(initial = initialData)
+    ActivityFormset = formset_factory(ActivityForm, extra = 0)
+    Activities_formset = ActivityFormset(initial = initialActivitiesData, prefix = 'activities')
+    #why this is not valid?
+    print 'act:', Activities_formset.is_valid()
+    if is_course_student_by_slug(request.user, course_slug):
+        return render_to_response('groups/create_student.html', \
+                                  {'manager':group_manager, 'course':course, 'formset':Activities_formset},\
+                                  context_instance = RequestContext(request))
     
-    return render_to_response('groups/create.html', {'manager':group_manager, 'course':course, 'formset':formset},context_instance = RequestContext(request)) 
-
+    elif is_course_staff_by_slug(request.user, course_slug):
+        #For instructor page, there is a student table for him/her to choose the students who belong to the new group
+        students = Member.objects.select_related('person').filter(offering = course, role = 'STUD')
+        initialStudentsData = []
+        for j in range(len(students)):
+            student = dict(selected = False, userid = students[j].person.userid, \
+                        first_name = students[j].person.first_name, last_name = students[j].person.last_name)
+            print "std:", student
+            initialStudentsData.append(student)
+        
+        StudentFormset = formset_factory(StudentForm, extra = 0)
+        Students_formset = StudentFormset(initial = initialStudentsData, prefix = 'students')
+        #why this is not valid?
+        print 'std:', Students_formset.is_valid()
+        return render_to_response('groups/create_instructor.html', \
+                          {'manager':group_manager, 'course':course, 'Activities_formset':Activities_formset, \
+                           'Students_formset':Students_formset}, context_instance = RequestContext(request))
+    else:
+        return HttpResponseForbidden()    
+    
 @requires_course_by_slug
 def submit(request,course_slug):
     #TODO: validate group name and activity
@@ -88,19 +111,52 @@ def submit(request,course_slug):
     group.save()
     
     #Deal with creating the membership
-    ActivityFormset = formset_factory(ActivityForm)
-    formset = ActivityFormset(request.POST)
+    if is_course_student_by_slug(request.user, course_slug):
+        ActivityFormset = formset_factory(ActivityForm)
+        Activities_formset = ActivityFormset(request.POST, prefix = 'activities')
     
-    if formset.is_valid():      
-        print formset.cleaned_data
-        for i in range(len(formset.cleaned_data)):
-            if formset.cleaned_data[i]['selected'] == True:
-                activity = Activity.objects.get(offering = course, name = formset.cleaned_data[i]['name'])
-                groupMember = GroupMember(group=group, student=member, confirmed=True, activity = activity)
-                groupMember.save()
+        if Activities_formset.is_valid():      
+            print Activities_formset.cleaned_data
+            for i in range(len(Activities_formset.cleaned_data)):
+                if Activities_formset.cleaned_data[i]['selected'] == True:
+                    activity = Activity.objects.get(offering = course, name = Activities_formset.cleaned_data[i]['name'])
+                    groupMember = GroupMember(group=group, student=member, confirmed=True, activity = activity)
+                    groupMember.save()
     
-    messages.add_message(request, messages.SUCCESS, 'Group Created')
-    return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+        messages.add_message(request, messages.SUCCESS, 'Group Created')
+        return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+    
+    elif is_course_staff_by_slug(request.user, course_slug):
+        print 'I am in the staff block'
+        ActivityFormset = formset_factory(ActivityForm)
+        Activities_formset = ActivityFormset(request.POST, prefix = 'activities')
+        StudentFormset = formset_factory(StudentForm)
+        Students_formset = StudentFormset(request.POST, prefix = 'students')
+        print Activities_formset
+        print Students_formset
+        print Activities_formset.is_valid()
+        print Students_formset.is_valid()
+        if Activities_formset.is_valid()  and Students_formset.is_valid():      
+            print Activities_formset.cleaned_data
+            print Students_formset.cleaned_data
+            print '================'
+            for i in range(len(Activities_formset.cleaned_data)):
+                if Activities_formset.cleaned_data[i]['selected'] == True:
+                    activity = Activity.objects.get(offering = course, name = Activities_formset.cleaned_data[i]['name'])
+                    print activity
+                    for j in range(len(Students_formset.cleaned_data)):
+                        if Students_formset.cleaned_data[j]['selected'] == True:
+                            std_person = Person.objects.get(userid = Students_formset.cleaned_data[j]['userid'])
+                            std_member = Member.objects.get(person = std_person, offering = course)
+                            groupMember = GroupMember(group=group, student=std_member, confirmed=True, activity = activity)
+                            groupMember.save()
+                    
+        messages.add_message(request, messages.SUCCESS, 'Group Created')
+        return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+    else:
+        return HttpResponseForbidden()
+    
+
 
 @requires_course_by_slug
 def join(request, course_slug, group_slug):
