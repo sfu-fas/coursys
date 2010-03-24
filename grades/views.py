@@ -346,8 +346,20 @@ def all_grades(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activities = all_activities_filter(offering=course)
     students = Member.objects.filter(offering=course, role="STUD")
-            
-    context = {'course': course, 'students': students, 'activities': activities}
+    
+    # get grade data into a format we can work with
+    grades = {}
+    for a in activities:
+        grades[a.slug] = {}
+        if hasattr(a, 'numericgrade_set'):
+            gs = a.numericgrade_set.all()
+        else:
+            gs = a.lettergrade_set.all()
+        for g in gs:
+            grades[a.slug][g.member.person.userid] = g
+    
+    #print grades
+    context = {'course': course, 'students': students, 'activities': activities, 'grades': grades}
     return render_to_response('grades/all_grades.html', context, context_instance=RequestContext(request))
 
 

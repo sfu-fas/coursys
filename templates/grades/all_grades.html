@@ -1,4 +1,5 @@
 {% extends "grades/base.html" %}
+{% load grade_student %}
 
 {% block title %}{{ course.name }} Grades{% endblock %}
 {% block h1 %}{{ course.name }} Grades{% endblock %}
@@ -23,9 +24,10 @@
     <table class="display" id="student_grades">
         <thead>
             <tr>
-                <th scope="col">Last Name</th>
-                <th scope="col">First Name</th>
-		<th scope="col">Student Number</th>
+                <th scope="col">Last</th>
+                <th scope="col">First</th>
+		<th scope="col">User ID</th>
+		<th scope="col">Stu #</th>
 		{% for a in activities %}
 		<th scope="col">{{a.short_name}}</th>
 		{% endfor %}
@@ -36,9 +38,10 @@
         <tr>
             <td scope="row">{{s.person.last_name}}</td>
             <td scope="row">{{s.person.first_name}}</td>
+            <td>{{s.person.userid}}</td>
             <td>{{s.person.emplid}}</td>
             {% for a in activities %}
-              <td></td>
+              <td>{% select_grade grades a.slug s.person.userid %}</td>
             {% endfor %}
         </tr>
         {% endfor %}

@@ -124,7 +124,7 @@ class NumericActivity(Activity):
     def display_grade_visible(self, student):
         grades = NumericGrade.objects.filter(activity=self, member__person=student)
         if len(grades)==0:
-            grade = "--"
+            grade = u'\u2014'
         else:
             grade = grades[0].value
         return "%s/%s" % (grade, self.max_grade)
@@ -274,6 +274,11 @@ class NumericGrade(models.Model):
     def __unicode__(self):
         return "Member[%s]'s grade[%s] for [%s]" % (self.member.person.userid, self.value, self.activity)
 
+    def display_staff(self):
+        if self.flag == 'NOGR':
+            return u'\u2014'
+        else:
+            return "%s/%s" % (self.value, self.activity.max_grade)
 
     def save(self, newsitem=True):
         super(NumericGrade, self).save()
@@ -304,6 +309,11 @@ class LetterGrade(models.Model):
     def __unicode__(self):
         return "Member[%s]'s letter grade[%s] for [%s]" % (self.member.person.userid, self.letter_grade, self.activity)
 
+    def display_staff(self):
+        if self.flag == 'NOGR':
+            return u'\u2014'
+        else:
+            return "%s" % (self.letter_grade)
     
     def save(self):
         super(LetterGrade, self).save()

@@ -4,6 +4,7 @@ from autoslug import AutoSlugField
 from timezones.fields import TimeZoneField
 from django.conf import settings
 import datetime
+from django.core.urlresolvers import reverse
 
 class Person(models.Model):
     """
@@ -187,7 +188,7 @@ class CourseOffering(models.Model):
             return "%s %s %s" % (self.subject, self.number, self.section)
         
     def get_absolute_url(self):
-        return "/%s/" % (self.slug)
+        return reverse('grades.views.course_info', kwargs={'course_slug': self.slug})
     
     def instructors(self):
         return (m.person for m in self.member_set.filter(role="INST"))
