@@ -101,8 +101,32 @@ div#messages .warning {
     font-weight: bold;
 }
 div#newsitems div {
-  margin: 0 2em;
+  /*margin: 0 2em;*/
 }
+div#newsitems .newsitem {
+    background-color: #e1f3f7;
+    margin: 6px 1em;
+    padding: 0.5em 1em;
+    border-bottom: 5px solid #69B8D6;
+    line-height: 1.4em;
+}
+div#newsitems .newsitem h3 {
+    color: #444;
+    margin: 0;
+    font-size: 1.3em;
+    font-weight: bold;
+}
+div#newsitems .newsitem p {
+    color: #111;
+    font-size: 1em;
+    margin: 0px;
+    text-decoration: none;
+}
+div#newsitems .newsitem .newsdate {
+    color: #666;
+    font-size: 0.8em;
+}
+
 
 table {
   border-collapse: collapse;
