@@ -1,0 +1,51 @@
+{% extends "grades/base.html" %}
+
+{% block title %}{{ course.name }} Grades{% endblock %}
+{% block h1 %}{{ course.name }} Grades{% endblock %}
+
+{% block grades_headextra %}
+<script type="text/javascript">
+    $(document).ready(function() {
+	// activate dataTable ui
+	oTable = $('#student_grades').dataTable({
+	    "bJQueryUI": true,
+	    "bPaginate": false,
+	});
+    });
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; All Grades</li>{% endblock %}
+
+{% block content %}
+
+<div class="datatable_container">
+    <table class="display" id="student_grades">
+        <thead>
+            <tr>
+                <th scope="col">Last Name</th>
+                <th scope="col">First Name</th>
+		<th scope="col">Student Number</th>
+		{% for a in activities %}
+		<th scope="col">{{a.short_name}}</th>
+		{% endfor %}
+            </tr>
+	</thead>
+        <tbody>
+        {% for s in students %}
+        <tr>
+            <td scope="row">{{s.person.last_name}}</td>
+            <td scope="row">{{s.person.first_name}}</td>
+            <td>{{s.person.emplid}}</td>
+            {% for a in activities %}
+              <td></td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+
+{% endblock %}

@@ -316,3 +316,14 @@ def delete_activity_confirm(request, course_slug, activity_slug):
     if not activity_found:
         raise Http404
     return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
+
+@requires_course_staff_by_slug
+def all_grades(request, course_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activities = all_activities_filter(offering=course)
+    students = Member.objects.filter(offering=course, role="STUD")
+            
+    context = {'course': course, 'students': students, 'activities': activities}
+    return render_to_response('grades/all_grades.html', context, context_instance=RequestContext(request))
+
+
