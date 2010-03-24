@@ -12,14 +12,14 @@
 <dl>
 	{% for m in members %}
 		<dt><h2>{{ m.group.name }}</h2></dt><dd>
-		{% if m.group.manager.person.name == m.student.person.name %}
+		{% ifequal m.group.manager.person.name  m.student.person.name %}
 		<ul>
 		  {% for mm in m.group.groupmember_set.all %}
 		    {% if mm.confirmed %}
 		      <li>{{mm.student.person.name}} ({{mm.student.person.userid}})</li>
 		    {% else %}
 		      <li>{{mm.student.person.name}} ({{mm.student.person.userid}}) (not yet confirmed)</li>
-		    {% endif %}  
+		    {% endif %}
 		  {% endfor %}
 		  <br />
 		  <a class="button" href="{% url groups.views.invite course_slug=course.slug group_slug=m.group.slug %}">Invite</a>
@@ -32,13 +32,13 @@
 		      <li>{{mm.student.person.name}} ({{mm.student.person.userid}})</li>
 		    {% else %}
 		      <li>{{mm.student.person.name}} ({{mm.student.person.userid}}) (not yet confirmed)</li>
-		    {% endif %}  
+		    {% endif %}
 		  {% endfor %}
 		   <br /></ul>
            {% else %}
 		You have not confirmed membership in this group. <a class="button" href="{% url groups.views.join course_slug=course.slug,group_slug=m.group.slug %}">Join Group</a>
 		{% endif %}<br /></ul>
-        {% endif %}
+        {% endifequal %}
 		</dd>
 	{% endfor %}
 </dl>
