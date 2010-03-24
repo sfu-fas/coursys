@@ -47,8 +47,9 @@ urlpatterns = patterns('',
     url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/components/edit$', 'submission.views.edit_single'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/' + USERID_SLUG + '/get$', 'submission.views.download_file'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/' + USERID_SLUG + '/view$', 'submission.views.show_student_submission_staff'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/students/' + USERID_SLUG + '/mark$', 'submission.views.take_ownership_and_mark'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/groups/' + GROUP_SLUG + '/mark$', 'submission.views.take_ownership_and_mark_group'),
+    url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/' + GROUP_SLUG + '/mark$', 'submission.views.take_ownership_and_mark_group'),
+    url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/' + USERID_SLUG + '/mark$', 'submission.views.take_ownership_and_mark'),
+    
 
     #url(r'^(?P<course_slug>' + COURSE_SLUG_RE + ')/$', 'marking.views.list_activities'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/$', 'marking.views.manage_activity_components'),
