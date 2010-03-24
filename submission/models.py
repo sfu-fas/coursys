@@ -12,6 +12,7 @@ import tempfile
 import os
 from django.http import HttpResponse
 from dashboard.models import NewsItem
+from django.core.urlresolvers import reverse
 
 
 STATUS_CHOICES = [
@@ -132,7 +133,7 @@ class StudentSubmission(Submission):
         return self.member.person.userid
     def __unicode__(self):
         return "%s->%s@%s" % (self.member.person.userid, self.activity, self.created_at)
-    
+
 class GroupSubmission(Submission):
     group = models.ForeignKey(Group, null=False)
     creator = models.ForeignKey(GroupMember, null = False)
@@ -144,18 +145,18 @@ class GroupSubmission(Submission):
     def __unicode__(self):
         return "%s->%s@%s" % (self.group.manager.person.userid, self.activity, self.created_at)
 
-#    def save(self):
-#        super(GroupSubmission, self).save()
-#        member_list = GroupMember.objects.filter(group = self.group).exclude(student = self.submitter)
-#        for member in member_list:
-#            n = NewsItem(user = member.student.person, author=submitter.student.person, course=member.courseoffering,
-#                source_app="group submission", title="New Group Submission",
-#                content="%s has submitted new files for %s."
-#                    % (submitter.person,self.activity),
-#                url=reverse('submission.views.show_components', kwargs={'course_slug': group.courseoffering.slug, 'activity_slug': member.activity.slug})
-#                )
-#            n.save()
-            
+    def save(self):
+        super(GroupSubmission, self).save()
+        member_list = GroupMember.objects.exclude(student = self.creator).filter(group = self.group)
+        for member in member_list:
+            n = NewsItem(user = member.student.person, author=self.creator.student.person, course=member.group.courseoffering,
+                source_app="group submission", title="New Group Submission",
+                content="Your group member %s has new submission for %s."
+                    % (self.creator.student.person,self.activity),
+                url=reverse('submission.views.show_components', kwargs={'course_slug': self.group.courseoffering.slug, 'activity_slug': member.activity.slug})
+                )
+            n.save()
+
 
 # parts of a submission, created as part of a student/group submission
 
@@ -189,7 +190,7 @@ class SubmittedComponent(models.Model):
     def __unicode__(self):
         return "[%s] %s->%s@%s" % (self.get_type(), self.submission.get_userid(), self.submission.activity, self.submission.created_at)
 
-    
+
 
 class SubmittedURL(SubmittedComponent):
     component = models.ForeignKey(URLComponent, null=False)
