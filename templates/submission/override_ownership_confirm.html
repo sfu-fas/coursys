@@ -11,10 +11,10 @@ Someone is marking this submission
     
     {% if student %}
     <li><a href="{% url submission.views.show_student_submission_staff course.slug, activity.slug, userid %}" class="button">No</a></li>
-    <li><a href="{% url submission.views.take_ownership_and_mark course.slug, activity.slug, student.userid %}?confirm=OK{%if activity_suffix%}&base_activity_mark={{activity_suffix}}{%endif%}{%if from_suffix%}&from_page={{from_suffix}}{%endif%}" class="button">Yes, override!</a></li>
+    <li><a href="{% url submission.views.take_ownership_and_mark course.slug, activity.slug, student.userid %}{{urlencode}}&confirm=OK" class="button">Yes, override!</a></li>
     {% else %}
     <li><a href="{% url submission.views.show_student_submission_staff course.slug, activity.slug, userid %}" class="button">No</a></li>
-    <li><a href="{% url submission.views.take_ownership_and_mark_group course.slug, activity.slug, group_slug %}?confirm=OK{%if activity_suffix%}&base_activity_mark={{activity_suffix}}{%endif%}{%if from_suffix%}&from_page={{from_suffix}}{%endif%}" class="button">Yes, override!</a></li>
+    <li><a href="{% url submission.views.take_ownership_and_mark_group course.slug, activity.slug, group_slug %}{{urlencode}}&confirm=OK" class="button">Yes, override!</a></li>
     {% endif %}
 </ul>
 

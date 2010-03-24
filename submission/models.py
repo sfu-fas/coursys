@@ -241,17 +241,14 @@ def select_all_submitted_components(activity):
         submitted_component.extend(s for s in subs if s.id not in found)
         found.update( (s.id for s in subs) )
     submitted_component.sort()
-    print "=============select_all_submitted_components" ,submitted_component
     return submitted_component
 
 # TODO: group submission selector
 def select_students_submitted_components(activity, userid):
     submitted_component = select_all_submitted_components(activity)
     new_submitted_component = []
-    print "in side the selection"
     for comp in submitted_component:
         if comp.submission.get_type() == 'Group':
-            print "inside the Group"
             group_submission = GroupSubmission.objects.all().get(pk = comp.submission.pk)
             member = GroupMember.objects.all().filter(group = group_submission.group)\
             .filter(student__person__userid=userid)\
@@ -259,13 +256,11 @@ def select_students_submitted_components(activity, userid):
             .filter(confirmed = True)
             if len(member)>0:
                 new_submitted_component.append(comp)
-                print "inside append"
         else:
             student_submission = StudentSubmission.objects.all().get(pk = comp.submission.pk)
             if student_submission.member.person.userid == userid:
                 new_submitted_component.append(comp)
     new_submitted_component.sort()
-    print "=============select_students_submitted_components" , new_submitted_component
     return new_submitted_component
 
 def select_students_submission_by_component(component, userid):

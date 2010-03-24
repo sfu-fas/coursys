@@ -134,8 +134,12 @@ def add_submission(request, course_slug, activity_slug):
                 sub.save()
                 submitted_comp.append(form[0])
                 #LOG EVENT#
+                if group != None:
+                    group_str = " as a member of group %s" % new_sub.group.name
+                else:
+                    group_str = ""
                 l = LogEntry(userid=request.user.username,
-                      description="submitted for %s %s" % (activity, sub.component.title),
+                      description=("submitted for %s %s" + group_str) % (activity, sub.component.title),
                       related_object=sub)
                 l.save()
             else:
@@ -247,6 +251,11 @@ def confirm_remove(request, course_slug, activity_slug):
     #if confirmed
     if request.method == 'POST' and component != None:
         component.delete()
+        #LOG EVENT#
+        l = LogEntry(userid=request.user.username,
+              description=("deleted %s component %s") % (activity, component.title),
+              related_object=component)
+        l.save()
         messages.add_message(request, messages.SUCCESS, 'Component "' +  component.title + '" removed.')
         return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
 
@@ -303,6 +312,11 @@ def edit_single(request, course_slug, activity_slug):
         #save new component
         component.delete()
         new_component.save()
+        #LOG EVENT#
+        l = LogEntry(userid=request.user.username,
+              description=("changed type of component %s of %s from %s to %s") % (component.title, activity, component.get_type(), new_component.get_type()),
+              related_object=new_component)
+        l.save()
         #refresh the form
         return HttpResponseRedirect("?type="+new_component.get_type()+"&id="+str(new_component.id))
         
@@ -336,6 +350,11 @@ def edit_single(request, course_slug, activity_slug):
                 count = len(select_all_components(activity))
                 new_component.position = count + 1
             new_component.save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("edited component %s of %s") % (component.title, activity),
+                  related_object=new_component)
+            l.save()
             messages.add_message(request, messages.SUCCESS, 'Component "' + new_component.title + '" successfully updated.')
             return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
         else:
@@ -387,6 +406,11 @@ def add_component(request, course_slug, activity_slug):
                 count = len(select_all_components(activity))
                 new_component.position = count + 1
             new_component.save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("added %s component %s for %s") % (new_component.get_type(), new_component.title, activity),
+                  related_object=new_component)
+            l.save()
             messages.add_message(request, messages.SUCCESS, 'New component "' + new_component.title + '" successfully added.')
             return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
         else:
@@ -455,13 +479,7 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
     if qDict.items():
         urlencode = '?' +  qDict.urlencode()
 
-    print userid, group_slug
-    #TODO: for group marking ?
-    if group_slug == None:
-        response = HttpResponseRedirect(reverse(marking_student, args=[course_slug, activity_slug, userid]) + urlencode)
-    else:
-        response = HttpResponseRedirect(reverse(marking_group, args=[course_slug, activity_slug, group_slug]) + urlencode)
-        print response
+    response = HttpResponseRedirect(reverse(marking_student, args=[course_slug, activity_slug, userid]) + urlencode)
     component = select_students_submitted_components(activity, userid)
     #if it is taken by someone not me, show a confirm dialog
     if request.GET.get('confirm') == None:
@@ -470,6 +488,14 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
                 return _override_ownership_confirm(request, course, activity, userid, None, c.submission.owner.person, urlencode)
     for c in component:
         c.submission.set_owner(course, request.user.username)
+    
+    #LOG EVENT#
+    student = get_object_or_404(Person, userid=userid)
+    l = LogEntry(userid=request.user.username,
+          description=("took ownership on %s of submission by student %s") % (activity, userid),
+          related_object=student)
+    l.save()
+        
     return response
 
 @requires_course_staff_by_slug
@@ -483,7 +509,7 @@ def take_ownership_and_mark_group(request, course_slug, activity_slug, group_slu
     if qDict.items():
         urlencode = '?' +  qDict.urlencode()
 
-    group_member = GroupMember.objects.all().filter(group__slug=group_slug)
+    group_member = GroupMember.objects.all().filter(activity__slug=activity_slug).filter(group__slug=group_slug)
     response = HttpResponseRedirect(reverse(marking_group, args=[course_slug, activity_slug, group_slug]) + urlencode)
     component = select_students_submitted_components(activity, group_member[0].student.person.userid)
     #if it is taken by someone not me, show a confirm dialog
@@ -493,6 +519,12 @@ def take_ownership_and_mark_group(request, course_slug, activity_slug, group_slu
                 return _override_ownership_confirm(request, course, activity, group_member[0].student.person.userid, group_slug, c.submission.owner.person, urlencode)
     for c in component:
         c.submission.set_owner(course, request.user.username)
+
+    group = group_member[0].group
+    l = LogEntry(userid=request.user.username,
+          description=("took ownership on %s of submission by group %s") % (activity, group.name),
+          related_object=group)
+    l.save()
     return response
 
 def _override_ownership_confirm(request, course, activity, userid, group_slug, old_owner, urlencode):
