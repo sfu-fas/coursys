@@ -47,6 +47,9 @@ def new_message(request,course_slug):
         form = MessageForm()
     return render_to_response("dashboard/new_message.html", {"form" : form,'course': offering}, context_instance=RequestContext(request))
 
+def news_list(request):
+    pass
+
 #@requires_course_by_slug
 #def course(request, course_slug):
 #    """
