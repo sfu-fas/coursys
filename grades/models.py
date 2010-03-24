@@ -4,6 +4,7 @@ from timezones.fields import TimeZoneField
 from coredata.models import Member, CourseOffering
 from dashboard.models import *
 from django.core.urlresolvers import reverse
+from contrib import messages
 
 FLAG_CHOICES = [
     ('NOGR', 'no grade'),
@@ -108,6 +109,8 @@ class Activity(models.Model):
         """
         return self.submissioncomponent_set.all().count() != 0
 
+
+
 class NumericActivity(Activity):
     """
     Activity with a numeric mark
@@ -126,6 +129,34 @@ class NumericActivity(Activity):
             grade = grades[0].value
         return "%s/%s" % (grade, self.max_grade)
 
+    def save(self, force_insert=False, force_update=False, newsitem=True):
+        # get old status so we can see if it's newly-released
+        old = Activity.objects.get(id=self.id)
+        super(Activity, self).save()
+
+        if newsitem and self.status == 'RLS' and old.status != 'RLS':
+            # newly-released grades: create news items
+            class_list = Member.objects.exclude(role="DROP").filter(offering=self.offering)
+            for m in class_list:
+                content = "Grades have been released for %s in %s. " \
+                      % (self.name, self.offering.name())
+                
+                # find the student's grade (if it exists)
+                grades = self.numericgrade_set.filter(member=m)
+                if grades and grades[0].flag != "NOGR":
+                    grade = grades[0]
+                    content += "Your mark is %s/%s." % (grade.value, self.numericactivity.max_grade)
+                else:
+                    content += "You have no grade."
+
+                n = NewsItem(user=m.person, author=None, course=self.offering,
+                    source_app="grades", title="%s grade released" % (self.name), 
+                    content=content,
+                    url=reverse('grades.views.course_info', kwargs={'course_slug':self.offering.slug})
+                    )
+                n.save()
+
+
 class LetterActivity(Activity):
     """
     Activity with a letter grade
@@ -140,6 +171,38 @@ class LetterActivity(Activity):
         else:
             grade = grades[0].letter_grade
         return "%s" % grade
+
+    def save(self, force_insert=False, force_update=False, newsitem=True):
+        # get old status so we can see if it's newly-released
+        old = Activity.objects.filter(id=self.id)
+        if old:
+            old = old[0]
+        else:
+            old = None
+        super(Activity, self).save()
+
+        if newsitem and old and self.status == 'RLS' and old.status != 'RLS':
+            # newly-released grades: create news items
+            class_list = Member.objects.exclude(role="DROP").filter(offering=self.offering)
+            for m in class_list:
+                content = "Grades have been released for %s in %s. " \
+                      % (self.name, self.offering.name())
+                
+                # find the student's grade (if it exists)
+                grades = self.lettergrade_set.filter(member=m)
+                if grades and grades[0].flag != "NOGR":
+                    grade = grades[0]
+                    content += "Your mark is %s." % (grade.letter_grade)
+                else:
+                    content += "You have no grade."
+
+                n = NewsItem(user=m.person, author=None, course=self.offering,
+                    source_app="grades", title="%s grade released" % (self.name), 
+                    content=content,
+                    url=reverse('grades.views.course_info', kwargs={'course_slug':self.offering.slug})
+                    )
+                n.save()
+
 
 class CalNumericActivity(NumericActivity):
     """
@@ -211,10 +274,10 @@ class NumericGrade(models.Model):
 
     def save(self, newsitem=True):
         super(NumericGrade, self).save()
-        if self.activity.status == "RLS" and newsitem:
+        if self.activity.status == "RLS" and newsitem and self.flag != "NOGR":
             # generate news item
             n = NewsItem(user=self.member.person, author=None, course=self.activity.offering,
-                source_app="grades", title="%s %s grade available" % (self.activity.offering.name(), self.activity.name), 
+                source_app="grades", title="%s grade available" % (self.activity.name), 
                 content="New grade for %s in %s is available: %s/%s." 
                   % (self.activity.name, self.activity.offering.name(), self.value, self.activity.max_grade),
                 url=reverse('grades.views.course_info', kwargs={'course_slug':self.activity.offering.slug})
@@ -241,12 +304,12 @@ class LetterGrade(models.Model):
     
     def save(self):
         super(LetterGrade, self).save()
-        if activity.status == "RLS":
-            n = NewsItem(user=self.member.person, author=request.userid, course=activity.offering,
-                source_app="grades", title="%s %s grade available" % (self.activity.offering.name(), self.activity.name), 
-                 content="New grade for %s in %s is available: %s." 
+        if self.activity.status == "RLS" and newsitem and self.flag != "NOGR":
+            n = NewsItem(user=self.member.person, author=None, course=self.activity.offering,
+                source_app="grades", title="%s grade available" % (self.activity.name), 
+                content="New grade for %s in %s is available: %s." 
                   % (self.activity.name, self.activity.offering.name(), self.letter_grade),
-                url=reverse('grades.views.student', course_slug=course.slug)
+                url=reverse('grades.views.course_info', kwargs={'course_slug':self.activity.offering.slug})
                 )
             n.save()
     

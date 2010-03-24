@@ -29,7 +29,7 @@ def new_message(request,course_slug):
         form = MessageForm(request.POST, instance=default_message)
         if form.is_valid()==True:
             form.save()
-            class_list = Member.objects.filter(offering = offering).exclude(person=staff)
+            class_list = Member.objects.exclude(role="DROP").filter(offering=offering).exclude(person=staff)
             for p in class_list:
                 #new_message = form.save(commit=False)
                 #new_message.user = p.person

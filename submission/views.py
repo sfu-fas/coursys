@@ -16,12 +16,12 @@ from marking.views import marking_student, marking_group
 from groups.models import Group, GroupMember
 from log.models import LogEntry
 
-@login_required
-def index(request):
-    userid = request.user.username
-    memberships = Member.objects.exclude(role="DROP").filter(offering__graded=True).filter(person__userid=userid) \
-            .select_related('offering','person','offering__semester')
-    return render_to_response("submission/index.html", {'memberships': memberships}, context_instance=RequestContext(request))
+#@login_required
+#def index(request):
+#    userid = request.user.username
+#    memberships = Member.objects.exclude(role="DROP").filter(offering__graded=True).filter(person__userid=userid) \
+#            .select_related('offering','person','offering__semester')
+#    return render_to_response("submission/index.html", {'memberships': memberships}, context_instance=RequestContext(request))
 
 
 @login_required
