@@ -129,12 +129,15 @@ class NumericActivity(Activity):
             grade = grades[0].value
         return "%s/%s" % (grade, self.max_grade)
 
-    def save(self, force_insert=False, force_update=False, newsitem=True):
+    def save(self, force_insert=False, force_update=False, newsitem=True, *args, **kwargs):
         # get old status so we can see if it's newly-released
-        old = Activity.objects.get(id=self.id)
-        super(Activity, self).save()
+        try:
+            old = Activity.objects.get(id=self.id)
+        except Activity.DoesNotExist:
+            old = None
+        super(Activity, self).save(*args, **kwargs)
 
-        if newsitem and self.status == 'RLS' and old.status != 'RLS':
+        if newsitem and self.status == 'RLS' and old != None and old.status != 'RLS':
             # newly-released grades: create news items
             class_list = Member.objects.exclude(role="DROP").filter(offering=self.offering)
             for m in class_list:
@@ -172,14 +175,14 @@ class LetterActivity(Activity):
             grade = grades[0].letter_grade
         return "%s" % grade
 
-    def save(self, force_insert=False, force_update=False, newsitem=True):
+    def save(self, force_insert=False, force_update=False, newsitem=True, *args, **kwargs):
         # get old status so we can see if it's newly-released
         old = Activity.objects.filter(id=self.id)
         if old:
             old = old[0]
         else:
             old = None
-        super(Activity, self).save()
+        super(Activity, self).save(*args, **kwargs)
 
         if newsitem and old and self.status == 'RLS' and old.status != 'RLS':
             # newly-released grades: create news items

@@ -8,6 +8,7 @@ from coredata.models import Member, CourseOffering, Person
 from courselib.auth import requires_course_staff_by_slug, requires_course_by_slug
 from dashboard.models import NewsItem, MessageForm
 from contrib import messages
+from log.models import LogEntry
 
 @login_required
 def index(request):
@@ -40,7 +41,12 @@ def new_message(request,course_slug):
                 stu_message.content = form.cleaned_data['content']
                 stu_message.url = form.cleaned_data['url']
                 stu_message.save()
-
+                
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("created a message for every student in %s") % (offering),
+                  related_object=offering)
+            l.save()
             messages.add_message(request, messages.SUCCESS, 'News item created.')
             return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': offering.slug}))
     else:
