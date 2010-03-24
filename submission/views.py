@@ -502,14 +502,15 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
 def take_ownership_and_mark_group(request, course_slug, activity_slug, group_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set, slug = activity_slug)
+    group = get_object_or_404(Group, slug = group_slug)
 
     # get the urlencode
     qDict = request.GET
     urlencode = ''
     if qDict.items():
         urlencode = '?' +  qDict.urlencode()
-
-    group_member = GroupMember.objects.all().filter(activity__slug=activity_slug).filter(group__slug=group_slug)
+    
+    group_member = GroupMember.objects.filter(activity__slug=activity_slug, group=group, confirmed = True)   
     response = HttpResponseRedirect(reverse(marking_group, args=[course_slug, activity_slug, group_slug]) + urlencode)
     component = select_students_submitted_components(activity, group_member[0].student.person.userid)
     #if it is taken by someone not me, show a confirm dialog

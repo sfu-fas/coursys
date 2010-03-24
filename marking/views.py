@@ -98,13 +98,17 @@ def manage_activity_components(request, course_slug, activity_slug):
                 error_info = formset.non_form_errors()[0] 
         else:          
             # save the formset  
-            total_mark = _save_components(formset, activity)
-            if total_mark != activity.max_grade:                
-                messages.add_message(request, messages.WARNING,\
-                                   'Activity Components Saved. Note: their marks do not add up to %s' % activity.max_grade)
-            else:
-                messages.add_message(request, messages.SUCCESS, 'Activity Components Saved')
-            return HttpResponseRedirect(reverse('grades.views.activity_info', \
+            now_max = _save_components(formset, activity)
+            messages.add_message(request, messages.SUCCESS, 'Components of %s Saved!' % activity.name)
+            # if the max grade changed
+            if now_max != activity.max_grade: 
+                old_max = activity.max_grade
+                activity.max_grade = now_max
+                activity.save()               
+                messages.add_message(request, messages.WARNING, \
+                                     "The max grade of %s updated from %s to %s" % (activity.name, old_max, now_max))
+           
+        return HttpResponseRedirect(reverse('grades.views.activity_info', \
                                                 args=(course_slug, activity_slug)))                   
     else: # for GET request
         formset = ComponentsFormSet(activity, queryset = qset) 
@@ -161,8 +165,7 @@ def _initialize_component_mark_forms(components, base_activity_mark=None):
     
     if base_activity_mark == None:
         for i in range(leng):
-            component_mark_forms.append(ActivityComponentMarkForm(max_mark = components[i].max_mark, \
-                                  prefix = "cmp-form-%s" % (i+1)))    
+            component_mark_forms.append(ActivityComponentMarkForm(prefix = "cmp-form-%s" % (i+1)))    
     else:    
         component_mark_dict = {}
         component_marks = ActivityComponentMark.objects.select_related().filter(activity_mark = base_activity_mark) 
@@ -173,10 +176,10 @@ def _initialize_component_mark_forms(components, base_activity_mark=None):
             component = components[i]
             if component_mark_dict.has_key(component.title):
                 c_mark = component_mark_dict[component.title]            
-                component_mark_forms.append(ActivityComponentMarkForm(max_mark = component.max_mark, \
+                component_mark_forms.append(ActivityComponentMarkForm(\
                               prefix = "cmp-form-%s" % (i+1), instance = c_mark))            
             else:
-                component_mark_forms.append(ActivityComponentMarkForm(max_mark = component.max_mark, \
+                component_mark_forms.append(ActivityComponentMarkForm(\
                               prefix = "cmp-form-%s" % (i+1))) 
    
     return component_mark_forms 
@@ -192,7 +195,7 @@ def _construct_mark_components(components, component_mark_forms):
     
     return mark_components              
     
-def _check_component_marks_forms(components, component_mark_forms):
+def _check_component_marks_forms(components, component_mark_forms, warnings_to_return):
     """
     return a list of ActivityComponentMark objects generated from the forms 
     if error found in any of the forms, return None
@@ -202,22 +205,24 @@ def _check_component_marks_forms(components, component_mark_forms):
     for i in range(len(components)):  
         form = component_mark_forms[i]     
         if not form.is_valid():
-            print form.errors
             return None
         cmp_mark = form.save(commit = False)
         cmp_mark.activity_component = components[i]                
         cmp_marks.append(cmp_mark)
+        if cmp_mark.value < 0:
+            warnings_to_return.append("Negative mark given on %s" % components[i].title)
+        elif cmp_mark.value > components[i].max_mark:
+            warnings_to_return.append("Bonus mark given on %s" % components[i].title)
                 
     return cmp_marks
 
-def _check_additional_info_form(addtional_info_form):
+def _check_additional_info_form(addtional_info_form, warnings_to_return):
     """ 
     Return the ActivityMark object containing additional information
     if error found return None
     """
     if addtional_info_form.is_valid():        
-        return addtional_info_form.save(commit = False)    
-    print addtional_info_form.as_p()
+        return addtional_info_form.save(commit = False)   
     return None
     
 def _compute_final_mark(component_marks, max_grade, additional_info):
@@ -279,12 +284,13 @@ def marking_student(request, course_slug, activity_slug, userid):
     component_forms = []
         
     if request.method == 'POST': 
+        warning_messages = []
         for i in range(len(components)):
-            component_forms.append(ActivityComponentMarkForm(components[i].max_mark, request.POST, prefix = "cmp-form-%s" % (i+1)))        
+            component_forms.append(ActivityComponentMarkForm(request.POST, prefix = "cmp-form-%s" % (i+1)))        
         additional_info_form = ActivityMarkForm(request.POST, request.FILES, prefix = "additional-form")
         
-        component_marks = _check_component_marks_forms(components, component_forms)                
-        additional_info = _check_additional_info_form(additional_info_form)
+        component_marks = _check_component_marks_forms(components, component_forms, warning_messages)                
+        additional_info = _check_additional_info_form(additional_info_form, warning_messages)
         
         if component_marks != None and additional_info != None:      
             try:            
@@ -293,12 +299,14 @@ def marking_student(request, course_slug, activity_slug, userid):
                 ngrade = NumericGrade(activity = activity, member = membership)
                 ngrade.save(newsitem=False)    
             activity_mark = StudentActivityMark(numeric_grade = ngrade)  
-            final_grade =  _compute_final_mark(component_marks, activity.max_grade, additional_info) 
+            final_grade = _compute_final_mark(component_marks, activity.max_grade, additional_info) 
             _save_marking_results(activity, activity_mark, final_grade, 
                                   request.user.username, ('student %s'% userid),
                                   component_marks, additional_info)
             
-            messages.add_message(request, messages.SUCCESS, 'Marking for student %s on activity %s finished' % (userid, activity.name,))                      
+            messages.add_message(request, messages.SUCCESS, 'Mark for student %s on %s saved!' % (userid, activity.name,))
+            for warning in warning_messages:
+                messages.add_message(request, messages.WARNING, warning)                      
             return _marking_redirct_response(request, course_slug, activity_slug)
         else:
             messages.add_message(request, messages.ERROR, 'Error found')            
@@ -328,12 +336,13 @@ def marking_group(request, course_slug, activity_slug, group_slug):
     component_forms = []
         
     if request.method == 'POST': 
+        warning_messages = []
         for i in range(len(components)):
-            component_forms.append(ActivityComponentMarkForm(components[i].max_mark, request.POST, prefix = "cmp-form-%s" % (i+1)))        
+            component_forms.append(ActivityComponentMarkForm(request.POST, prefix = "cmp-form-%s" % (i+1)))        
         additional_info_form = ActivityMarkForm(request.POST, request.FILES, prefix = "additional-form")
         
-        component_marks = _check_component_marks_forms(components, component_forms)                
-        additional_info = _check_additional_info_form(additional_info_form)
+        component_marks = _check_component_marks_forms(components, component_forms, warning_messages)                
+        additional_info = _check_additional_info_form(additional_info_form, warning_messages)
         
         if component_marks != None and additional_info != None:          
             activity_mark = GroupActivityMark(group = group, numeric_activity = activity)  
@@ -342,7 +351,9 @@ def marking_group(request, course_slug, activity_slug, group_slug):
                                   request.user.username, ('group %s'% group.name),
                                   component_marks, additional_info)
             
-            messages.add_message(request, messages.SUCCESS, 'Marking for group %s on activity %s finished' % (group.name, activity.name,))                      
+            messages.add_message(request, messages.SUCCESS, 'Mark for group %s on %s saved!' % (group.name, activity.name,))                      
+            for warning in warning_messages:
+                messages.add_message(request, messages.WARNING, warning)
             return _marking_redirct_response(request, course_slug, activity_slug)
         else:
             messages.add_message(request, messages.ERROR, 'Error found')            
@@ -453,6 +464,7 @@ def mark_all_students(request, course_slug, activity_slug):
     fileform = None
     imported_data = {} #may get filled with data from an imported file, a student userid to grade mapping
     error_info = None 
+    warning_info = []
     memberships = Member.objects.select_related('person').filter(offering = course, role = 'STUD')    
     
     if request.method == 'POST' and request.GET.get('import') != 'true':      
@@ -461,7 +473,7 @@ def mark_all_students(request, course_slug, activity_slug):
         # get data from the mark entry forms
         for member in memberships: 
             student = member.person  
-            entry_form = MarkEntryForm(max_value = activity.max_grade, data = request.POST, prefix = student.userid)
+            entry_form = MarkEntryForm(data = request.POST, prefix = student.userid)
             if entry_form.is_valid() == False:
                 error_info = "Error found"           
             ngrade = None
@@ -470,8 +482,7 @@ def mark_all_students(request, course_slug, activity_slug):
             except NumericGrade.DoesNotExist:
                 current_grade = 'no grade'
             else:
-                current_grade = ngrade.value
-                    
+                current_grade = ngrade.value                    
             ngrades.append(ngrade)            
             forms.append(entry_form)
             rows.append({'student': student, 'current_grade' : current_grade, 'form' : entry_form})    
@@ -483,12 +494,9 @@ def mark_all_students(request, course_slug, activity_slug):
                student = memberships[i].person  
                ngrade = ngrades[i]
                new_value = forms[i].cleaned_data['value'] 
-               # the new mark is blank, do nothing
-               if new_value == None:
+               # the new mark is blank or the new mark is the same as the old one, do nothing
+               if (new_value == None) or (ngrade and ngrade.value == new_value):
                    continue 
-               # the new mark is the same as the old one, do nothing
-               if ngrade and ngrade.value == new_value:                 
-                   continue
                # save data 
                if ngrade == None:
                     ngrade = NumericGrade(activity = activity, member = memberships[i]);
@@ -497,10 +505,17 @@ def mark_all_students(request, course_slug, activity_slug):
                activity_mark = StudentActivityMark(numeric_grade = ngrade)              
                _save_marking_results(activity, activity_mark, new_value, request.user.username,\
                                      ("student %s" % student.userid))
-               updated += 1                        
+               updated += 1     
+               if new_value < 0:
+                   warning_info.append("Negative mark given to %s on %s" %(student.userid, activity.name))
+               elif new_value > activity.max_grade:
+                   warning_info.append("Bonus mark given to %s on %s" %(student.userid, activity.name))                  
            
             if updated > 0:
-                messages.add_message(request, messages.SUCCESS, "Marking for all students on activity %s saved (%s students' grades updated)!" % (activity.name, updated))
+                messages.add_message(request, messages.SUCCESS, "Marks for all students on %s saved (%s students' grades updated)!" % (activity.name, updated))
+                for warning in warning_info:
+                    messages.add_message(request, messages.WARNING, warning)
+                    
             return HttpResponseRedirect(reverse('grades.views.activity_info', args=(course_slug, activity_slug)))  
     
     else: 
@@ -511,7 +526,7 @@ def mark_all_students(request, course_slug, activity_slug):
                 error_info = compose_imported_grades(fileform.cleaned_data['file'], students, imported_data)
                 if error_info == None:
                     messages.add_message(request, messages.SUCCESS,\
-                                "%s students' grades imported. Please review before submitting!" % len(imported_data.keys()))
+                                "%s students' grades imported. Please review before submitting." % len(imported_data.keys()))
         # may use the imported file data to fill in the forms       
         for member in memberships: 
             student = member.person              
@@ -523,10 +538,9 @@ def mark_all_students(request, course_slug, activity_slug):
                 current_grade = ngrade.value            
             initial_value = imported_data.get(student.userid) 
             if initial_value != None:
-                entry_form = MarkEntryForm(initial = {'value': initial_value}, max_value = activity.max_grade,
-                                            prefix = student.userid)
+                entry_form = MarkEntryForm(initial = {'value': initial_value}, prefix = student.userid)
             else:
-                entry_form = MarkEntryForm(max_value = activity.max_grade, prefix = student.userid)                                    
+                entry_form = MarkEntryForm(prefix = student.userid)                                    
             rows.append({'student': student, 'current_grade' : current_grade, 'form' : entry_form}) 
                
     if error_info:

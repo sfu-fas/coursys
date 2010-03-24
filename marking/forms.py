@@ -5,23 +5,11 @@ from django.forms.models import BaseModelFormSet
 
 class ActivityComponentMarkForm(ModelForm):
     
-    def __init__(self, max_mark, *args, **kwargs):
-        super(ActivityComponentMarkForm, self).__init__(*args, **kwargs)
-        self.max_mark = max_mark
-    
     class Meta:
         model = ActivityComponentMark            
         fields = ['comment', 'value']
+    
            
-    def clean_value(self):
-        value = self.cleaned_data['value']
-        print "check value" 
-        if value and (self.max_mark != None and value > self.max_mark):   
-            print "Mark too high"     
-            raise forms.ValidationError(u'Mark too high')
-        return value
-
-        
 class ActivityMarkForm(ModelForm):
     class Meta:
         model = ActivityMark
@@ -47,7 +35,6 @@ class BaseActivityComponentFormSet(BaseModelFormSet):
         """Checks the following:
         1. no two component have the same title  
         2. max mark of each component is non-negative 
-        3. Sum of max mark of each component does not exceed the max mark of the associated activity 
         """
         if any(self.errors):
             # Don't bother validating the formset unless each form is valid on its own
@@ -66,7 +53,6 @@ class BaseActivityComponentFormSet(BaseModelFormSet):
                 titles.append(title)  
         
         # check max marks
-        total = 0
         for form in self.forms:
             try:
                 form.cleaned_data['title']
@@ -74,12 +60,7 @@ class BaseActivityComponentFormSet(BaseModelFormSet):
                 continue                        
             max_mark = form.cleaned_data['max_mark']
             if max_mark < 0:
-                raise forms.ValidationError(u"Max mark of a component can not be negative")                    
-            total += max_mark
-                
-        if total > self.activity.max_grade:
-            raise forms.ValidationError(u"Sum of max mark of components must not exceed the max mark of the activity")
-
+                raise forms.ValidationError(u"Max mark of a component can not be negative")
             
             
 class BaseCommonProblemFormSet(BaseModelFormSet):
@@ -137,26 +118,13 @@ class BaseCommonProblemFormSet(BaseModelFormSet):
 class MarkEntryForm(forms.Form):
     value = forms.DecimalField(max_digits=5, decimal_places=2, required=False)
     
-    def __init__(self, max_value, *args, **kwargs):
-        super(MarkEntryForm, self).__init__(*args, **kwargs)
-        self.max_value = max_value
-    
-    def clean_value(self):
-        value = self.cleaned_data['value']
-        if value:
-            if value < 0:
-                raise forms.ValidationError(u"Grade cannot be negative")
-            elif value > self.max_value:
-                raise forms.ValidationError(u"Grade too high")
-        return value
-
 class UploadGradeFileForm(forms.Form):
     file = forms.FileField(required=False)
     
     def clean_file(self):        
         file = self.cleaned_data['file']
-        if file != None and (not file.name.endswith('csv')) and\
-           (not file.name.endswith('CSV')):
+        if file != None and (not file.name.endswith('.csv')) and\
+           (not file.name.endswith('.CSV')):
             raise forms.ValidationError(u"Only .csv files are permitted")
         return file
             
