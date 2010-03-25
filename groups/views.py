@@ -200,6 +200,24 @@ def delete_group(request, course_slug, group_slug):
     else:
         return render_to_response("groups/delete.html", {'course' : course, 'group' : group}, \
                               context_instance=RequestContext(request))
+    
+@requires_course_by_slug
+def change_name(request, course_slug, group_slug):   
+    #Change the group's name
+    course = get_object_or_404(CourseOffering, slug = course_slug)
+    group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
+    if request.method == "POST": 
+        groupForm = GroupForm(request.POST)
+        if groupForm.is_valid():
+            group.name = groupForm.cleaned_data['name']
+            group.save()
+        return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+        
+    else:
+        groupForm = GroupForm(instance = group)
+        return render_to_response("groups/change_name.html", \
+                                  {'groupForm' : groupForm, 'course' : course, 'group' : group}, \
+                                  context_instance=RequestContext(request))
                                   
 
 #def joinconfirm(request):

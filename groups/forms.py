@@ -3,10 +3,12 @@ from django import forms
 from grades.models import Activity
 from coredata.models import Person
 from django.forms.util import flatatt
+from groups.models import Group
 
-class GroupForm(forms.Form):
-    name=forms.CharField(max_length=30, label='Name:')
-    manager=forms.CharField(max_length=20, label='Group Manager:')
+class GroupForm(ModelForm):
+    class Meta:
+        model = Group
+        fields = ['name']
 
 
 class ActivityForm(forms.Form):
