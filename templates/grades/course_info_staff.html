@@ -75,6 +75,9 @@
 <p>
 <a class="button" href="{% url dashboard.views.new_message course_slug=course.slug %}">Message</a>
 </p>
+<p>
+<a class="button" href="{% url marking.views.copy_course_setup course_slug=course.slug %}">Copy Setup</a>
+</p>
 
 <div class="datatable_container">
     <h2>Course Activities</h2>

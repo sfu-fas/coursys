@@ -117,7 +117,7 @@ class BaseCommonProblemFormSet(BaseModelFormSet):
 
 class MarkEntryForm(forms.Form):
     value = forms.DecimalField(max_digits=5, decimal_places=2, required=False)
-    
+
 class UploadGradeFileForm(forms.Form):
     file = forms.FileField(required=False)
     

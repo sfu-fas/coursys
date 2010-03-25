@@ -219,8 +219,8 @@ def edit_activity(request, course_slug, activity_slug):
     activities = all_activities_filter(slug=activity_slug, offering=course)
     if (len(activities) == 1):
         activity = activities[0]
-        
-        from_page = request.GET['from_page']
+                
+        from_page = request.GET.get('from_page')
         if from_page == None:
             from_page = FROMPAGE['course']
         

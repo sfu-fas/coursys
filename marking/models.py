@@ -1,10 +1,12 @@
 import copy
 from django.db import models
-from grades.models import NumericActivity, NumericGrade, LetterGrade 
-from submission.models import SubmissionComponent
+from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, NumericGrade
+from grades.models import ACTIVITY_TYPES 
+from submission.models import SubmissionComponent, COMPONENT_TYPES
 from coredata.models import Semester
 from groups.models import Group, GroupMember
 from datetime import datetime
+
 
 class ActivityComponent(models.Model):
     """    
@@ -37,16 +39,16 @@ class CommonProblem(models.Model):
      
 # a callback to avoid path in the filename(that we have append folder structure to) be striped 
 def attachment_upload_to(instance, filename):
-        """
-        append activity_slug/group_slug/ or
-               activity_slug/student_userid/ as the parent folder path   
-        filename is already in the form of activity_slug/group_slug/orignial_filename or
-                                           activity_slug/student_userid/orignial_filename
-        """
-        marking_files_root = 'marking/files/'
-        now = datetime.now()
-        time_path = '/'.join([str(now.year), str(now.month), str(now.day)])
-        return marking_files_root + time_path + filename
+    """
+    append activity_slug/group_slug/ or
+           activity_slug/student_userid/ as the parent folder path   
+    filename is already in the form of activity_slug/group_slug/orignial_filename or
+                                       activity_slug/student_userid/orignial_filename
+    """
+    marking_files_root = 'marking/files/'
+    now = datetime.now()
+    time_path = '/'.join([str(now.year), str(now.month), str(now.day)])
+    return marking_files_root + time_path + filename
          
 class ActivityMark(models.Model):
     """
@@ -197,12 +199,11 @@ def get_activity_mark_by_id(activity, student_membership, activity_mark_id):
          if act_mark.numeric_activity == activity:
              group = act_mark.group
              try:
-                 group_mem = GroupMember.objects.get(group = group, activity = activity, student = student_membership)
+                 group_mem = GroupMember.objects.get(group = group, activity = activity, student = student_membership, confirmed = True)
              except GroupMember.DoesNotExist:
                  pass
              else:
-                 if group_mem.confirmed == True:
-                    return act_mark         
+                 return act_mark         
      
      return None
 
@@ -258,32 +259,88 @@ def get_activity_mark_for_student(activity, student_membership, include_all = Fa
                 'marks_individual' : std_marks,
                 'marks_via_group' : grp_marks}
 
+def copy_activity(source_activity, source_course_offering, target_course_offering):
+    new_activity = copy.deepcopy(source_activity)
+    new_activity.id = None
+    new_activity.pk = None
+    new_activity.offering = target_course_offering
+    if source_activity.due_date != None:
+        week, wkday = source_course_offering.semester.week_weekday(source_activity.due_date)
+        new_due_date = target_course_offering.semester.duedate(week, wkday, source_activity.due_date)
+        new_activity.due_date = new_due_date
+    return new_activity
+
+from django.db.models import Q
+def save_copied_activity(target_activity, model, target_course_offering):
+    """
+    to ensure the uniqueness of name and short name of activities, 
+    we have to resolve the conflicts by deleting the old activity that conflicts with the new one
+    """
+    try:
+        old_activity = model.objects.get(Q(name=target_activity.name) | Q(short_name=target_activity.short_name), 
+            offering = target_course_offering)
+    except model.DoesNotExist:
+        target_activity.save()
+    else:    
+        old_activity.delete()
+        target_activity.save()            
+
+from submission.models import COMPONENT_TYPES
 def copyCourseSetup(course_copy_from, course_copy_to):
-    # copy course setup from one to another
-    # TODO: code for copying other kinds of activity can be added on demand
+    """
+    copy all the activities setup from one course to another
+    copy numeric activities with their marking components and common problems, submission components
+    """
+    print "copying numeric activities ..."
     for numeric_activity in NumericActivity.objects.filter(offering = course_copy_from):
-        new_numeric_activity = copy.deepcopy(numeric_activity)
-        new_numeric_activity.id = None
-        new_numeric_activity.pk = None
-        new_numeric_activity.offering = course_copy_to
-        week, wkday = course_copy_from.semester.week_weekday(numeric_activity.due_date)
-        new_due_date = course_copy_to.semester.duedate(week, wkday, numeric_activity.due_date)
-        new_numeric_activity.due_date = new_due_date
-        new_numeric_activity.save()
-        print "Activity %s is copied" % new_numeric_activity
-        for activity_component in ActivityComponent.objects.filter(numeric_activity = numeric_activity):
+        new_numeric_activity = copy_activity(numeric_activity,course_copy_from, course_copy_to)
+        save_copied_activity(new_numeric_activity, NumericActivity, course_copy_to)
+        print "- Activity %s is copied" % new_numeric_activity
+        
+        for activity_component in ActivityComponent.objects.filter(numeric_activity = numeric_activity, deleted = False):
             new_activity_component = copy.deepcopy(activity_component)
             new_activity_component.id = None
             new_activity_component.pk = None
             new_activity_component.numeric_activity = new_numeric_activity
             new_activity_component.save()
-            print "component %s is copied" % new_activity_component
-        for submission_component in SubmissionComponent.objects.filter(activity = numeric_activity):
-            new_submission_component = copy.deepcopy(submission_component)
-            new_submission_component.id = None
-            new_submission_component.pk = None
-            new_submission_component.activity = new_numeric_activity
-            new_submission_component.save()
-            print "component %s is copied" % new_submission_component
+            print "-- marking component %s is copied" % new_activity_component
+            
+            for common_problem in CommonProblem.objects.filter(activity_component = activity_component, deleted = False):
+                new_common_problem = copy.deepcopy(common_problem)
+                new_common_problem.id = None
+                new_common_problem.pk = None
+                new_common_problem.activity_component = new_activity_component
+                new_common_problem.save()
+                print "--- common problem %s is copied" % new_common_problem
+        
+        for ComponentType in COMPONENT_TYPES:
+            for submission_component in ComponentType.objects.filter(activity = numeric_activity):
+                    new_submission_component = copy.deepcopy(submission_component)
+                    new_submission_component.id = None
+                    new_submission_component.pk = None
+                    new_submission_component.activity = new_numeric_activity
+                    new_submission_component.save()
+                    print "--- submission component %s is copied" % new_submission_component
+        
+    print "copying letter activities ..."
+    for activity in LetterActivity.objects.filter(offering = course_copy_from):
+        new_activity = copy_activity(activity, course_copy_from, course_copy_to)
+        save_copied_activity(new_activity, LetterActivity, course_copy_to)
+        print "- Activity %s is copied" % new_activity
     
+    print "copying calculate numeric activities ..."
+    for activity in CalNumericActivity.objects.filter(offering = course_copy_from):
+        new_activity = copy_activity(activity, course_copy_from, course_copy_to)
+        save_copied_activity(new_activity, CalNumericActivity, course_copy_to)
+        print "- Activity %s is copied" % new_activity
+    
+    print "copying calculate letter activities ..."
+    for activity in CalLetterActivity.objects.filter(offering = course_copy_from):
+        new_activity = copy_activity(activity, course_copy_from, course_copy_to)      
+        related_num_act =  activity.numeric_activity
+        related_exam = activity.exam_activity
+        new_activity.numeric_activity = NumericActivity.objects.get(offering = course_copy_to, name = related_num_act.name)
+        new_activity.exam_activity = Activity.objects.get(offering = course_copy_to, name = related_exam.name)
+        save_copied_activity(new_activity, CalLetterActivity, course_copy_to)
+        print "- Activity %s is copied" % new_activity
     

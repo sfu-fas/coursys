@@ -60,9 +60,9 @@ urlpatterns = patterns('',
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/students/' + USERID_SLUG + '/$', 'marking.views.mark_summary'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/students/' + USERID_SLUG + '/history', 'marking.views.mark_history'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/attachments/' + '(?P<filepath>.*)$', 'marking.views.download_marking_attachment'),
-
     #url(r'^(?P<course_slug>' + COURSE_SLUG_RE + ')/(?P<activity_slug>' + ACTIVITY_SLUG_RE + ')/mark_summary/(?P<filepath>.*)$', 'marking.views.download_marking_attachment'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/csv$', 'marking.views.export_csv'),
+    url(r'^' + COURSE_SLUG + '/copysetup/$', 'marking.views.copy_course_setup'),
 
 
     url(r'^roles/$', 'courses.coredata.views.role_list'),

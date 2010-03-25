@@ -14,34 +14,62 @@ from django.forms.models import modelformset_factory
 from contrib import messages
 from django.db.models import Q
 
-@requires_course_staff_by_slug
-def list_activities(request, course_slug):
-    target_userid = request.user.username  
-    course = get_object_or_404(CourseOffering, slug = course_slug)    
-    # get the numeric activities for this course_offering 
-    activities = NumericActivity.objects.filter(offering = course)
-      
-    person = get_object_or_404(Person, userid = request.user.username)
-    # get the course offerings of this user
-    courses_qset = Member.objects.exclude(role="DROP").filter(offering__graded=True).filter(person__userid=target_userid) \
-            .select_related('offering','offering__semester')     
+def _find_setup_conflicts(source_setup, target_setup):
     
+    names_found = set()
+    short_names_found = set()
+    names_found.update((activity.name for activity in source_setup))
+    short_names_found.update((activity.short_name for activity in source_setup))
+    conflicting_activities = set()
+    
+    for activity in target_setup:
+        if (activity.name in names_found) or (activity.short_name in short_names_found):
+            if(activity not in conflicting_activities):
+                conflicting_activities.add(activity)
+    
+    return conflicting_activities
+
+@requires_course_staff_by_slug
+def copy_course_setup(request, course_slug):
+    userid = request.user.username  
+    course = get_object_or_404(CourseOffering, slug = course_slug)    
+    # get the course offerings of this user except for this course
+    courses_qset = Member.objects.exclude(role="DROP").filter(offering__graded=True).filter(person__userid=userid) \
+            .select_related('offering','offering__semester').exclude(offering=course)
+   
     from django import forms
-    class CourseReceiverForm(forms.Form):
+    class CourseSourceForm(forms.Form):
         course = forms.ModelChoiceField(queryset = courses_qset) 
         
-    if request.method == "POST": 
-        course_receiver_form = CourseReceiverForm(request.POST, prefix = "course-receiver-form")
-        if course_receiver_form.is_valid():
-            course_copy_from = course_receiver_form.cleaned_data['course'].offering
-            course_copy_to = course
-            copyCourseSetup(course_copy_from, course_copy_to)
-            return HttpResponseRedirect(reverse('grades.views.course_info', \
-                                                args=(course_slug,)))
-    else:      
-        course_receiver_form = CourseReceiverForm(prefix = "course-receiver-form")  
-        return render_to_response("marking/activities.html", {'course': course, 'course_receiver_form': course_receiver_form, \
-                                                              'activities' : activities}, context_instance=RequestContext(request))
+    if request.method == "POST":         
+        target_setup = Activity.objects.filter(offering = course)
+        rename_forms = [] 
+        error_info = None
+        
+        source_slug = request.GET.get('copy_from')
+        if source_slug == None: # the source course selected
+            select_form = CourseSourceForm(request.POST, prefix = "select-form")
+            if select_form.is_valid():
+                source_course = select_form.cleaned_data['course'].offering
+                source_setup = Activity.objects.filter(offering = source_course) 
+                conflicting_acts = _find_setup_conflicts(source_setup, target_setup)
+                return render_to_response("marking/copy_course_setup.html",\
+                    {'course' : course, 'source_course' : source_course,\
+                    'source_setup' : source_setup, 'conflicting_activities' : conflicting_acts},\
+                    context_instance=RequestContext(request))
+        else: # do the renaming(if needed) and copy   
+            source_course = get_object_or_404(CourseOffering, slug = source_slug)
+            source_setup = Activity.objects.filter(offering = source_course)                     
+            copyCourseSetup(source_course, course)
+            messages.add_message(request, messages.SUCCESS, \
+                    "Course Setup copied from %s(%s)" % (source_course.name(), source_course.semester.label(),))
+            return HttpResponseRedirect(reverse('grades.views.course_info', args=(course_slug,)))
+    else:     
+        select_form = CourseSourceForm(prefix = "select-form")  
+    
+    return render_to_response("marking/select_course_setup.html", 
+                             {'course': course, 'select_form': select_form},\
+                             context_instance=RequestContext(request))
 
 def _save_common_problems(formset):
     for form in formset.forms:
@@ -133,7 +161,7 @@ def manage_common_problems(request, course_slug, activity_slug):
                                               formset=BaseCommonProblemFormSet, \
                                               can_delete = False, extra = 3) 
     # get the components of this activity
-    components = activity.activitycomponent_set.filter(deleted = False)     
+    components = activity.activitycomponent_set.filter(deleted = False)
     # only need the common problems associated with these components 
     qset =  CommonProblem.objects.filter(activity_component__in=components, deleted=False);   
                  
@@ -168,9 +196,10 @@ def _initialize_component_mark_forms(components, base_activity_mark=None):
             component_mark_forms.append(ActivityComponentMarkForm(prefix = "cmp-form-%s" % (i+1)))    
     else:    
         component_mark_dict = {}
-        component_marks = ActivityComponentMark.objects.select_related().filter(activity_mark = base_activity_mark) 
+        component_marks = ActivityComponentMark.objects.filter(activity_mark = base_activity_mark) 
         for c_mark in component_marks:
             component_mark_dict[c_mark.activity_component.title] = c_mark    
+       
         i = 0
         for i in range(leng):
             component = components[i]
@@ -582,7 +611,3 @@ def compose_imported_grades(file, students_qset, data_to_return):
     return None   
         
         
-     
-            
-
-    

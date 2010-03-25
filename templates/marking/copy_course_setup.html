@@ -1,0 +1,49 @@
+{% extends "marking/base.html" %}
+
+{% block title %}Copy Course Setup{% endblock %}
+{% block h1 %}Copy Course Setup{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }} ({{course.semester.label}})</a></li><li>&gt; Copy Course Setup</li>
+{% endblock %}
+
+{% block content %}
+{% if source_setup %}
+<h2>Setup will be copied from {{source_course}}:</h2>
+	<ul>
+	{% for activity in source_setup %}
+		<li>{{activity.name}} ({{activity.short_name}})</li>
+	{% endfor %}
+	</ul> 
+{% else %}
+	<h2>Empty Setup </h2>
+{% endif %}
+
+<form action="{%url marking.views.copy_course_setup course_slug=course.slug%}?copy_from={{source_course.slug}}" method="post">
+{% if conflicting_activities %}
+<h2> Current Conflicting Setup of this course: </h2>
+<div id="form_container">	
+	<p class = "warningindicator" id="setupcopy">	
+	<img alt="warning" src="{{MEDIA_URL}}/icons/exclamation.png"/>
+	<b>
+	It's recommended that you change the name/short name of the following activities 
+	to avoid them being overridden by the activities with the same name/short name in the above setup
+	</b>
+	</p>
+</div>
+<ul>
+{% for activity in conflicting_activities %}
+	<li>
+	{{activity.name}} ({{activity.short_name}})
+	<span>(<a href="{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}">Edit</a>)</span>
+	</li>
+{% endfor %}
+</ul> 
+{% endif %}
+
+{% if source_setup %}
+<input class="submit" type="submit" value="Confirm Copy">
+{% endif %}
+</form>
+{% endblock %}
+
