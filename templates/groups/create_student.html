@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load course_display %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url groups.views.groupmanage course_slug=course.slug %}">groups</a></li><li>&gt; Create group</li>{% endblock %}
 {% block content %}
 	<h1>Create Group</h1>
 	{% if user %}
@@ -38,7 +39,7 @@
 			 <br>
 		      </div>
 			<br>
-			<input type="submit" value="create">
+			<input class = 'submit' type="submit" value="create">
                 </form>
         {% else %}
 		<p> Student does not exist </p>
