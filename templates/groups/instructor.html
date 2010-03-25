@@ -17,6 +17,8 @@
           {% if not m.confirmed %}(unconfirmed){% endif %}
           </li>
         {% endfor %}
+        <br>
+        <a class="button" href="{% url groups.views.delete_group course_slug=course.slug group_slug=entry.grouper.slug %}">Delete</a>
       </ul></li>
     {% endfor %}
     </ul>

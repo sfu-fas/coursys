@@ -149,7 +149,6 @@ def join(request, course_slug, group_slug):
 
 @requires_course_by_slug
 def invite(request, course_slug, group_slug):
-    
     #TODO need to validate the student who is invited, cannot be the invitor him/herself.
     course = get_object_or_404(CourseOffering, slug = course_slug)
     group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
@@ -187,6 +186,20 @@ def invite(request, course_slug, group_slug):
         student_receiver_form = StudentReceiverForm()
         context = {'course': course, 'form': student_receiver_form}
         return render_to_response("groups/invite.html", context, context_instance=RequestContext(request))
+
+@requires_course_by_slug
+def delete_group(request, course_slug, group_slug):   
+    course = get_object_or_404(CourseOffering, slug = course_slug)
+    group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
+    if request.method == "POST": 
+        groupMembers = GroupMember.objects.filter(group=group)
+        groupMembers.delete()
+        group.delete()
+        return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+        
+    else:
+        return render_to_response("groups/delete.html", {'course' : course, 'group' : group}, \
+                              context_instance=RequestContext(request))
                                   
 
 #def joinconfirm(request):

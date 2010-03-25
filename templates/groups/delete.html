@@ -1,0 +1,20 @@
+
+{% extends "base.html" %}
+
+{% block title %}{{course.name}} Groups{% endblock %}
+
+{% block h1 %}{{course.name}} Groups{% endblock %}
+
+{% block content %}
+	{% if user %}
+		<form action="{% url groups.views.delete_group course_slug=course.slug, group_slug=group.slug  %}" method="POST">
+			<p>Do you really want to delete Group: {{ group.name }}?</p>
+			<br>
+			<br>
+			<input class = 'submit' type="submit" value="Yes">	
+		</form>
+		<a class="button" href="{% url groups.views.groupmanage course_slug=course.slug %}">No</a>
+	{% endif %}
+
+{% endblock %}
+

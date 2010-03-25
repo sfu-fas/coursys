@@ -25,7 +25,7 @@
 		  <a class="button" href="{% url groups.views.invite course_slug=course.slug group_slug=m.group.slug %}">Invite</a>
 		</ul>
 		{% else %}
-        <ul>
+      
            {% if m.confirmed %}<ul>
            {% for mm in m.group.groupmember_set.all %}
 		    {% if mm.confirmed %}
@@ -37,7 +37,7 @@
 		   <br /></ul>
            {% else %}
 		You have not confirmed membership in this group. <a class="button" href="{% url groups.views.join course_slug=course.slug,group_slug=m.group.slug %}">Join Group</a>
-		{% endif %}<br /></ul>
+		{% endif %}<br />
         {% endifequal %}
 		</dd>
 	{% endfor %}
