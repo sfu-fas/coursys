@@ -21,9 +21,7 @@ class ActivityForm(forms.Form):
         
 class StudentForm(forms.Form):
     selected = forms.BooleanField(label = 'Selected Student:', required = False)
-    userid = forms.CharField(max_length = 8)
-    first_name = forms.CharField(max_length = 32)
-    last_name = forms.CharField(max_length = 32)
+
 
     
 

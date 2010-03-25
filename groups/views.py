@@ -63,36 +63,31 @@ def create(request,course_slug):
     
     #TODO can instructor create group based on unreleased activities?
     activities = Activity.objects.filter(offering = course, status = 'URLS') 
-    ActivityList = []
-    print activities
+    activityList = []
     for activity in activities:
         activityForm = ActivityForm(prefix = activity.slug)
         print "act:", activity
-        ActivityList.append({'activityForm': activityForm, 'name' : activity.name,\
+        activityList.append({'activityForm': activityForm, 'name' : activity.name,\
                              'percent' : activity.percent, 'due_date' : activity.due_date})
 
     if is_course_student_by_slug(request.user, course_slug):
         return render_to_response('groups/create_student.html', \
-                                  {'manager':group_manager, 'course':course, 'activityList':ActivityList},\
+                                  {'manager':group_manager, 'course':course, 'activityList':activityList},\
                                   context_instance = RequestContext(request))
     
     elif is_course_staff_by_slug(request.user, course_slug):
         #For instructor page, there is a student table for him/her to choose the students who belong to the new group
-        students = Member.objects.select_related('person').filter(offering = course, role = 'STUD')
-        initialStudentsData = []
-        for j in range(len(students)):
-            student = dict(selected = False, userid = students[j].person.userid, \
-                        first_name = students[j].person.first_name, last_name = students[j].person.last_name)
-            print "std:", student
-            initialStudentsData.append(student)
-        
-        StudentFormset = formset_factory(StudentForm, extra = 0)
-        Students_formset = StudentFormset(initial = initialStudentsData, prefix = 'students')
-        #why this is not valid?
-        print 'std:', Students_formset.is_valid()
+        students = Member.objects.select_related('person').filter(offering = course, role = 'STUD')       
+        studentList = []       
+        for student in students:
+            studentForm = StudentForm(prefix = student.person.userid)
+            studentList.append({'studentForm': studentForm, 'first_name' : student.person.first_name,\
+                                 'last_name' : student.person.last_name, 'userid' : student.person.userid,\
+                                 'emplid' : student.person.emplid})
+
         return render_to_response('groups/create_instructor.html', \
-                          {'manager':group_manager, 'course':course, 'activityList':ActivityList, \
-                           'Students_formset':Students_formset}, context_instance = RequestContext(request))
+                          {'manager':group_manager, 'course':course, 'activityList':activityList, \
+                           'studentList':studentList}, context_instance = RequestContext(request))
     else:
         return HttpResponseForbidden()    
     
