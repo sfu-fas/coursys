@@ -163,7 +163,6 @@ def add_numeric_activity(request, course_slug):
                     position = 1
                 else:
                     position = aggr_dict['position__max'] + 1
-                print form.cleaned_data['name'], form.cleaned_data['short_name'], form.cleaned_data['status'], form.cleaned_data['due_date'], form.cleaned_data['percent'], form.cleaned_data['max_grade'], course, position
                 a = NumericActivity.objects.create(name=form.cleaned_data['name'],
                                                 short_name=form.cleaned_data['short_name'],
                                                 status=form.cleaned_data['status'],
@@ -319,13 +318,11 @@ def delete_activity_confirm(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activities = list(course.activity_set.all())
     activity_found = False
-    print activity_slug, activities
     for i in range(0, len(activities)):
         if activities[i].slug == activity_slug:
             activity_found = True
             try:
                 activities[i].delete()
-                print "OK"
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
                       description=("deleted %s") % (activities[i]),

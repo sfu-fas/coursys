@@ -12,8 +12,9 @@
                 var code = (e.keyCode ? e.keyCode : e.which);
                 if(code == 13) {
                     var q = $('#q').val();
+                    var reg = $('#reg').val();
                     q = $.trim(q);
-                    $.post("{% url log.views.index %}", {"q":q}, function(data) {$('#results').html(data);})
+                    $.post("{% url log.views.index %}", {"q":q, "reg":reg}, function(data) {$('#results').html(data);})
                 }
                 }
             );
@@ -28,6 +29,7 @@
 
         <style type="text/css">
             #q {
+                float: left;
                 width: 100%;
                 color: gray;
             }
@@ -38,6 +40,10 @@
                 color: white;
                 padding: 0.2em 0.5em;
             }
+            #reg_wrapper {
+                float: right;
+                font-size: 0.8em;
+            }
             #title {
                 float: left;
                 margin: 0;
@@ -46,8 +52,8 @@
                 padding: 0.2em 0.5em;
             }
             #results {
-                margin-top: 1em;
-                clear: both;
+                margin-top: 2em;
+                clear: left;
                 font-family: Courier;
                 font-size: small;
             }
@@ -61,10 +67,12 @@
   </head>
   <body>
     <div id="title">Log Entries of Course Management System</div>
+    
     <div id="spinner">Loading...</div>
     <div>
         <input id="q" type="text" value='enter keyword or "key phrase" here' onFocus="javascript:this.select()" />
-    <div id="results"></div>
+        <div id="reg_wrapper"><input id="reg" type="checkbox" />as regex</div>
+        <div id="results"></div>
     </div>
   </body>
 </html>

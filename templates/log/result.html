@@ -1,7 +1,11 @@
 {% ifequal keywords|length 0 %}
-    You searched for all log entries.
+    {% if not reg %}
+    You searched for all {{log_list|length}} log entries.
+    {% else %}
+    Found {{log_list|length}} entries.
+    {% endif %}
 {% else %}
-    You searched for:
+    Found {{log_list|length}} entries for:
     <ul class="keyword">
     {% for key in keywords %}
         {% if key|length %}
