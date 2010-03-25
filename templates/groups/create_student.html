@@ -5,7 +5,6 @@
 	{% if user %}
 		<form action="{% url groups.views.submit course_slug=course.slug  %}" method="POST">
 			<div class = "datatable_container"> 
-			{{ formset.management_form }} 
 			 <table class="display" id="activities">
 			   <thead>
 			     <tr>
@@ -16,11 +15,17 @@
 			     </tr>         
 			   </thead>  
 			   <tbody>
-				 {% for form in formset.forms %} 	      
-					     {{ form|display_form_as_row:"selected"}}
-				 {% endfor %}
+			   {% for act in activityList %}
+			     <tr>
+				   <td><center>{{ act.activityForm.selected }}</center></td> 
+				   <td><center>{{ act.name }}</center></td>
+				   <td><center>{{ act.percent }}</center></td>
+				   <td><center>{{ act.due_date }}</center></td>              
+			     </tr> 
 			   </tbody>
+			   {% endfor %}
 			 </table>
+			 <br>
 		      </div>
 			<label for="name">Group Name </label>
                         <input type="text" name="GroupName">

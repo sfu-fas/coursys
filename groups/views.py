@@ -62,23 +62,18 @@ def create(request,course_slug):
     group_manager=Member.objects.get(person = person, offering = course)
     
     #TODO can instructor create group based on unreleased activities?
-    #TODO need to make the form of activities uneditable
-    activities = Activity.objects.filter(offering = course, status = 'URLS')
-    initialActivitiesData = []
-    for i in range(len(activities)):
-        activity = dict(selected = False, name = activities[i].name, \
-                        percent = activities[i].percent, due_date = activities[i].due_date)
-        #print "act: %s", activity
-        initialActivitiesData.append(activity)
-        
-    ActivityFormset = formset_factory(ActivityForm, extra = 0)
-    Activities_formset = ActivityFormset(initial = initialActivitiesData, prefix = 'activities')
-    #why this is not valid?
-    #print 'act:', Activities_formset.is_valid()
-    #print Activities_formset.errors
+    activities = Activity.objects.filter(offering = course, status = 'URLS') 
+    ActivityList = []
+    print activities
+    for activity in activities:
+        activityForm = ActivityForm(prefix = activity.slug)
+        print "act:", activity
+        ActivityList.append({'activityForm': activityForm, 'name' : activity.name,\
+                             'percent' : activity.percent, 'due_date' : activity.due_date})
+
     if is_course_student_by_slug(request.user, course_slug):
         return render_to_response('groups/create_student.html', \
-                                  {'manager':group_manager, 'course':course, 'formset':Activities_formset},\
+                                  {'manager':group_manager, 'course':course, 'activityList':ActivityList},\
                                   context_instance = RequestContext(request))
     
     elif is_course_staff_by_slug(request.user, course_slug):
@@ -96,7 +91,7 @@ def create(request,course_slug):
         #why this is not valid?
         print 'std:', Students_formset.is_valid()
         return render_to_response('groups/create_instructor.html', \
-                          {'manager':group_manager, 'course':course, 'Activities_formset':Activities_formset, \
+                          {'manager':group_manager, 'course':course, 'activityList':ActivityList, \
                            'Students_formset':Students_formset}, context_instance = RequestContext(request))
     else:
         return HttpResponseForbidden()    
