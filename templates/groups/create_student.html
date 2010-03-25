@@ -4,7 +4,17 @@
 	<h1>Create Group</h1>
 	{% if user %}
 		<form action="{% url groups.views.submit course_slug=course.slug  %}" method="POST">
+		        <div class = "group_name">
+				<h2>Please input the Group Name</h2>
+				<br>
+				<label for="name">Group Name </label>
+				<input type="text" name="GroupName">
+			</div>
+			<br>
+			<br>
 			<div class = "datatable_container"> 
+			<h2>Select activities for the new group</h2>
+			<br>
 			 <table class="display" id="activities">
 			   <thead>
 			     <tr>
@@ -27,8 +37,7 @@
 			 </table>
 			 <br>
 		      </div>
-			<label for="name">Group Name </label>
-                        <input type="text" name="GroupName">
+			<br>
 			<input type="submit" value="create">
                 </form>
         {% else %}

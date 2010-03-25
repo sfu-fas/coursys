@@ -4,31 +4,11 @@
 	<h1>Create Group</h1>
 	{% if user %}
 		<form action="{% url groups.views.submit course_slug=course.slug  %}" method="POST">
-			  <div class = "datatable_container"> 
-			  <h2>Select students for the new group</h2>
+			<div class = "group_name">
+			  <h2>Please input the Group Name</h2>
 			  <br>
-			   <table class="display" id="students">
-			     <thead>
-			       <tr>
-				     <th>Selected</th> 
-				     <th>User ID</th>
-				     <th>First Name</th>
-				     <th>Last Name</th>
-				     <th>Student ID</th>
-			       </tr>         
-			     </thead>  
-			     <tbody>
-			    {% for std in studentList %}
-			     <tr>
-				   <td><center>{{ std.studentForm.selected }}</center></td> 
-				   <td><center>{{ std.userid }}</center></td>
-				   <td><center>{{ std.first_name }}</center></td>
-				   <td><center>{{ std.last_name }}</center></td>  
-				   <td><center>{{ std.emplid }}</center></td> 
-			     </tr> 
-			   </tbody>
-			   {% endfor %}
-			   </table>
+			  <label for="name">Group Name </label>
+			  <input type="text" name="GroupName">
 			</div>
 			<br>
 			<br>
@@ -58,8 +38,33 @@
 		      </div>
 		      <br>
 		      <br>
-			<label for="name">Group Name </label>
-                        <input type="text" name="GroupName">
+			  <div class = "datatable_container"> 
+			  <h2>Select students for the new group</h2>
+			  <br>
+			   <table class="display" id="students">
+			     <thead>
+			       <tr>
+				     <th>Selected</th> 
+				     <th>User ID</th>
+				     <th>First Name</th>
+				     <th>Last Name</th>
+				     <th>Student ID</th>
+			       </tr>         
+			     </thead>  
+			     <tbody>
+			    {% for std in studentList %}
+			     <tr>
+				   <td><center>{{ std.studentForm.selected }}</center></td> 
+				   <td><center>{{ std.userid }}</center></td>
+				   <td><center>{{ std.first_name }}</center></td>
+				   <td><center>{{ std.last_name }}</center></td>  
+				   <td><center>{{ std.emplid }}</center></td> 
+			     </tr> 
+			   </tbody>
+			   {% endfor %}
+			   </table>
+			</div>
+			<br>
 			<input type="submit" value="create">
                 </form>
         {% else %}
