@@ -103,36 +103,28 @@ def submit(request,course_slug):
     
     #Deal with creating the membership
     if is_course_student_by_slug(request.user, course_slug):
-        ActivityFormset = formset_factory(ActivityForm)
-        Activities_formset = ActivityFormset(request.POST, prefix = 'activities')
-    
-        if Activities_formset.is_valid():      
-            print Activities_formset.cleaned_data
-            for i in range(len(Activities_formset.cleaned_data)):
-                if Activities_formset.cleaned_data[i]['selected'] == True:
-                    activity = Activity.objects.get(offering = course, name = Activities_formset.cleaned_data[i]['name'])
-                    groupMember = GroupMember(group=group, student=member, confirmed=True, activity = activity)
-                    groupMember.save()
+        activities = Activity.objects.filter(offering = course, status = 'URLS') 
+        for activity in activities:
+            activityForm = ActivityForm(request.POST, prefix = activity.slug)
+            if activityForm.is_valid() and activityForm.cleaned_data['selected'] == True:
+                groupMember = GroupMember(group=group, student=member, confirmed=True, activity = activity)
+                groupMember.save()        
     
         messages.add_message(request, messages.SUCCESS, 'Group Created')
         return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
     
     elif is_course_staff_by_slug(request.user, course_slug):
-        ActivityFormset = formset_factory(ActivityForm)
-        Activities_formset = ActivityFormset(request.POST, prefix = 'activities')
-        StudentFormset = formset_factory(StudentForm)
-        Students_formset = StudentFormset(request.POST, prefix = 'students')
+        activities = Activity.objects.filter(offering = course, status = 'URLS') 
+        students = Member.objects.select_related('person').filter(offering = course, role = 'STUD')  
 
-        if Activities_formset.is_valid()  and Students_formset.is_valid():      
-            for i in range(len(Activities_formset.cleaned_data)):
-                if Activities_formset.cleaned_data[i]['selected'] == True:
-                    activity = Activity.objects.get(offering = course, name = Activities_formset.cleaned_data[i]['name'])
-                    for j in range(len(Students_formset.cleaned_data)):
-                        if Students_formset.cleaned_data[j]['selected'] == True:
-                            std_person = Person.objects.get(userid = Students_formset.cleaned_data[j]['userid'])
-                            std_member = Member.objects.get(person = std_person, offering = course)
-                            groupMember = GroupMember(group=group, student=std_member, confirmed=True, activity = activity)
-                            groupMember.save()
+        for activity in activities:
+            activityForm = ActivityForm(request.POST, prefix = activity.slug)
+            if activityForm.is_valid() and activityForm.cleaned_data['selected'] == True:
+                for student in students:
+                    studentForm = StudentForm(request.POST, prefix = student.person.userid)
+                    if studentForm.is_valid() and studentForm.cleaned_data['selected'] == True:
+                        groupMember = GroupMember(group=group, student=student, confirmed=True, activity = activity)
+                        groupMember.save()
                     
         messages.add_message(request, messages.SUCCESS, 'Group Created')
         return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
