@@ -2,7 +2,7 @@ import copy
 from django.db import models
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, NumericGrade
 from grades.models import ACTIVITY_TYPES 
-from submission.models import SubmissionComponent, COMPONENT_TYPES
+#from submission.models import SubmissionComponent, COMPONENT_TYPES
 from coredata.models import Semester
 from groups.models import Group, GroupMember
 from datetime import datetime
@@ -286,7 +286,6 @@ def save_copied_activity(target_activity, model, target_course_offering):
         old_activity.delete()
         target_activity.save()            
 
-from submission.models import COMPONENT_TYPES
 def copyCourseSetup(course_copy_from, course_copy_to):
     """
     copy all the activities setup from one course to another
@@ -314,14 +313,14 @@ def copyCourseSetup(course_copy_from, course_copy_to):
                 new_common_problem.save()
                 print "--- common problem %s is copied" % new_common_problem
         
-        for ComponentType in COMPONENT_TYPES:
-            for submission_component in ComponentType.objects.filter(activity = numeric_activity):
-                    new_submission_component = copy.deepcopy(submission_component)
-                    new_submission_component.id = None
-                    new_submission_component.pk = None
-                    new_submission_component.activity = new_numeric_activity
-                    new_submission_component.save()
-                    print "--- submission component %s is copied" % new_submission_component
+        #for ComponentType in COMPONENT_TYPES:
+        #    for submission_component in ComponentType.objects.filter(activity = numeric_activity):
+        #            new_submission_component = copy.deepcopy(submission_component)
+        #            new_submission_component.id = None
+        #            new_submission_component.pk = None
+        #            new_submission_component.activity = new_numeric_activity
+        #            new_submission_component.save()
+        #            print "--- submission component %s is copied" % new_submission_component
         
     print "copying letter activities ..."
     for activity in LetterActivity.objects.filter(offering = course_copy_from):

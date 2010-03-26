@@ -24,7 +24,7 @@
             <li class="view"><label>Description:</label>{{component.description}}</li>
             {% if component.max_size %}<li class="view"><label>Maximum Size:</label>{{component.max_size}} KB</li>{% endif %}
             {% if component.max_length %}<li class="view"><label>Maximum Length:</label>{{component.max_length}}</li>{% endif %}
-            <li id="editbutton"><a class="button" href="{% url submission.views.confirm_remove course_slug=course.slug, activity_slug=activity.slug %}?type={{component.get_type}}&id={{component.id}}">Remove</a><a class="button" href="{% url submission.views.edit_single course_slug=course.slug, activity_slug=activity.slug %}?type={{component.get_type}}&id={{component.id}}">Edit</a></li>
+            <li id="editbutton"><a class="button" href="{% url submission.views.confirm_remove course_slug=course.slug, activity_slug=activity.slug %}?type={{component.get_type}}&id={{component.id}}">Remove</a><a class="button" href="{% url submission.views.edit_single course_slug=course.slug, activity_slug=activity.slug %}?id={{component.id}}">Edit</a></li>
         </ul>
     </fieldset>
     {% endfor %}

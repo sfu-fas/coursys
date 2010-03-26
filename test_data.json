@@ -18114,13 +18114,6 @@
  }, 
  {
   "fields": {
-   "max_length": 5000
-  }, 
-  "model": "submission.plaintextcomponent", 
-  "pk": 2
- },
- {
-  "fields": {
    "courseoffering": 184,
    "manager": 162,
    "name": "Win!",

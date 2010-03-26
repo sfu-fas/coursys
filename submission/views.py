@@ -82,10 +82,9 @@ def add_submission(request, course_slug, activity_slug):
                                             .filter(activity=activity)
     if len(group_member) > 0:
         group = group_member[0]
+        messages.add_message(request, messages.WARNING, "This is a group submission. Your will submit on behalf of all your group members.")
     else:
         group = None
-    if group != None:
-        messages.add_message(request, messages.WARNING, "This is a group submission. Your will submit on behalf of all your group members.")
 
     if request.method == 'POST':
         component_form_list = make_form_from_data_and_list(request, component_list)
@@ -153,6 +152,7 @@ def add_submission(request, course_slug, activity_slug):
             context_instance=RequestContext(request))
     else: #not POST
         component_form_list = make_form_from_list(component_list)
+        c = component_form_list[0]
         return render_to_response("submission/submission_add.html",
         {'component_form_list': component_form_list, "course": course, "activity": activity},
         context_instance = RequestContext(request))
@@ -274,13 +274,11 @@ def edit_single(request, course_slug, activity_slug):
 
     #get component
     edit_id = request.GET.get('id')
-    edit_type = request.GET.get('type')
-    component = check_component_id_type_activity(component_list, edit_id, edit_type, activity)
+    component = get_component(activity=activity, id=edit_id)
     if component == None:
-        messages.add_message(request, messages.ERROR, 'The component you specified is invalid.')
-        return render_to_response("submission/component_edit_single.html",
-            {"course":course, "activity":activity, "component":component},
-            context_instance=RequestContext(request))
+        return NotFoundResponse(request)
+
+    form = component.Type.ComponentForm(instance=component)
 
     #get type change
     #type = request.GET.get('to_type')
@@ -322,28 +320,10 @@ def edit_single(request, course_slug, activity_slug):
     #    #refresh the form
     #    return HttpResponseRedirect("?type="+new_component.get_type()+"&id="+str(new_component.id))
         
-    
-    #make form
-    form = None
-    new_form = None
-    if edit_type == 'Archive':
-        form = ArchiveComponentForm(instance=component)
-        new_form = ArchiveComponentForm(request.POST)
-    elif edit_type == 'URL':
-        form = URLComponentForm(instance=component)
-        new_form = URLComponentForm(request.POST)
-    elif edit_type == 'Cpp':
-        form = CppComponentForm(instance=component)
-        new_form = CppComponentForm(request.POST)
-    elif edit_type == 'PlainText':
-        form = PlainTextComponentForm(instance=component)
-        new_form = PlainTextComponentForm(request.POST)
-    elif edit_type == 'Java':
-        form = JavaComponentForm(instance=component)
-        new_form = JavaComponentForm(request.POST)
-        
+            
     #if form submitted
     if request.method == 'POST':
+        new_form = component.Type.ComponentForm(request.POST)
         if new_form.is_valid():
             new_component = new_form.save(commit=False)
             new_component.activity = activity
@@ -365,8 +345,7 @@ def edit_single(request, course_slug, activity_slug):
 
     #render the page
     return render_to_response("submission/component_edit_single.html",
-            {"course":course, "activity":activity, "component":component, "edit_id":edit_id,
-             "type":edit_type, "form":form},
+            {"course":course, "activity":activity, "component":component, "edit_id":edit_id, "form":form},
             context_instance=RequestContext(request))
 
 @requires_course_staff_by_slug
@@ -375,31 +354,20 @@ def add_component(request, course_slug, activity_slug):
     activity = get_object_or_404(course.activity_set, slug = activity_slug)
 
     #default, Archive
-    type = request.GET.get('type')
-    if type == None:
-        type = 'Archive'
-
-    if type == 'Archive':
-        form = ArchiveComponentForm()
-        new_form = ArchiveComponentForm(request.POST)
-    elif type == 'URL':
-        form = URLComponentForm()
-        new_form = URLComponentForm(request.POST)
-    elif type == 'Cpp':
-        form = CppComponentForm()
-        new_form = CppComponentForm(request.POST)
-    elif type == 'PlainText':
-        form = PlainTextComponentForm()
-        new_form = PlainTextComponentForm(request.POST)
-    elif type == 'Java':
-        form = JavaComponentForm()
-        new_form = JavaComponentForm(request.POST)
+    typelabel = request.GET.get('type')
+    if typelabel == None:
+        Type = Archive
     else:
+        Type = find_type_by_label(typelabel)
+    
+    if Type is None:
         return NotFoundResponse(request)
+    
+    form = Type.ComponentForm()
 
     #if form is submitted, validate / add component
     if request.method == 'POST':
-	#incoming_form = AddComponentForm(request.POST)
+        new_form = Type.ComponentForm(request.POST)
         if new_form.is_valid():
             #add component
             new_component = new_form.save(commit=False)
@@ -416,7 +384,7 @@ def add_component(request, course_slug, activity_slug):
             messages.add_message(request, messages.ERROR, 'Please correct the errors in the form.')
             form = new_form
     return render_to_response("submission/component_add.html", 
-        {"course":course, "activity":activity, "form":form, "type":type},
+        {"course":course, "activity":activity, "form":form, "type":Type, "types": ALL_TYPE_CLASSES},
         context_instance=RequestContext(request))
 
 @requires_course_by_slug

@@ -13,11 +13,9 @@
 <h2>Select Component Type:</h2>
 
 <ul class="add_nav">
-    <li><a href="?type=Archive" class="button"	{% ifequal type 'Archive' %}id="current_type"{% endifequal %}>Archive</a></li>
-    <li><a href="?type=URL" class="button"	{% ifequal type 'URL' %}id="current_type"{% endifequal %}>URL</a></li>
-    <li><a href="?type=Cpp" class="button"	{% ifequal type 'Cpp' %}id="current_type"{% endifequal %}>C/C++</a></li>
-    <li><a href="?type=Java" class="button"	{% ifequal type 'Java' %}id="current_type"{% endifequal %}>Java</a></li>
-    <li><a href="?type=PlainText" class="button"{% ifequal type 'PlainText' %}id="current_type"{% endifequal %}>Plain Text</a></li>
+{% for t in types %}
+  <li><a href="?type={{t.label}}" class="button"{% ifequal t.label type.label %}id="current_type"{% endifequal %}>{{t.name}}</a></li>
+{% endfor %}
 </ul>
 
 <div id="form_container">

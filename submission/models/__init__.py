@@ -1,10 +1,12 @@
 from django.db import models
-from grades.models import Activity
-from coredata.models import Member, Person,CourseOffering
+#from grades.models import Activity
+#from coredata.models import Member, Person,CourseOffering
 #from courses.grades.models import slug
 from groups.models import Group,GroupMember
 from datetime import datetime
 from autoslug import AutoSlugField
+
+
 from django.shortcuts import get_object_or_404
 from django.core.servers.basehttp import FileWrapper
 import zipfile
@@ -13,76 +15,47 @@ import os
 from django.http import HttpResponse
 from dashboard.models import NewsItem
 from django.core.urlresolvers import reverse
-from django.db.models import Max
 
-STATUS_CHOICES = [
-    ('NEW', 'New'),
-    ('INP', 'In-Progress'),
-    ('DON', 'Marked') ]
+from base import SubmissionComponent, Submission, StudentSubmission, GroupSubmission, SubmittedComponent
+from url import *
+from archive import *
 
-TYPE_CHOICES = [
-    ('Archive', 'Archive Component'),
-    ('URL', 'URL Component'),
-    ('Cpp', 'C/C++ Component'),
-    ('PlainText', 'Plain Text Component'),
-    ('Java', 'Java Component'),
-]
+ALL_TYPE_CLASSES = [Archive, URL]
 
-# per-activity models, defined by instructor:
-
-class SubmissionComponent(models.Model):
+def find_type_by_label(label):
     """
-    A component of the activity that will be submitted by students
+    Find the submission component class based on the label.  Returns None if not found.
     """
-    activity = models.ForeignKey(Activity)
-    title = models.CharField(max_length=100, help_text='Name for this component (e.g. "Part 1" or "Programming Section")')
-    description = models.CharField(max_length=1000, help_text="Short explanation for this component.", null=True,blank=True)
-    position = models.PositiveSmallIntegerField(help_text="The order of display for listing components.", null=True,blank=True)
-    slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with='activity')
+    for Type in ALL_TYPE_CLASSES:
+        if Type.label == label:
+            return Type
+    return None
 
-    def __cmp__(self, other):
-        return cmp(self.position, other.position)
-    class Meta:
-        ordering = ['position']
-    def __unicode__(self):
-        return "%s[%s]%s"%(self.title, self.get_type(), self.description)
-    def get_type(self):
-        "Return xxx of xxxComponent as type"
-        class_name = self.__class__.__name__
-        return class_name[:class_name.index("Component")]
-        
-    def save(self):
-        if self.position == None:
-            lastpos = SubmissionComponent.objects.filter(activity=self.activity) \
-                    .aggregate(Max('position'))['position__max']
-            if lastpos is None:
-                lastpos = 0
-            self.position = lastpos+1
-        super(SubmissionComponent, self).save()
+
 
 """
 All the subclasses follow the convention that
 its name is xxxComponent where xxx will be used as type identification
 """
-class URLComponent(SubmissionComponent):
-    "A URL submission component"
-class ArchiveComponent(SubmissionComponent):
-    "An archive file (TGZ/ZIP/RAR) submission component"
-    max_size = models.PositiveIntegerField(help_text="Maximum size of the archive file, in KB.", null=True, default=10000)
-    extension = [".zip", ".rar", ".gzip", ".tar"]
-class CppComponent(SubmissionComponent):
-    "C/C++ file submission component"
-    extension = [".c", ".cpp", ".cxx"]
-class PlainTextComponent(SubmissionComponent):
-    "Text file submission component"
-    max_length = models.PositiveIntegerField(help_text="Maximum number of characters for plain text.", null=True, default=5000)
-class JavaComponent(SubmissionComponent):
-    "Java file submission component"
-    extension = [".java"]
+#class URLComponent(SubmissionComponent):
+#    "A URL submission component"
+#class ArchiveComponent(SubmissionComponent):
+#    "An archive file (TGZ/ZIP/RAR) submission component"
+#    max_size = models.PositiveIntegerField(help_text="Maximum size of the archive file, in KB.", null=True, default=10000)
+#    extension = [".zip", ".rar", ".gzip", ".tar"]
+#class CppComponent(SubmissionComponent):
+#    "C/C++ file submission component"
+#    extension = [".c", ".cpp", ".cxx"]
+#class PlainTextComponent(SubmissionComponent):
+#    "Text file submission component"
+#    max_length = models.PositiveIntegerField(help_text="Maximum number of characters for plain text.", null=True, default=5000)
+#class JavaComponent(SubmissionComponent):
+#    "Java file submission component"
+#    extension = [".java"]
 
 # list of all subclasses of SubmissionComponent:
 # MUST have deepest subclasses first (i.e. nothing *after* a class is one of its subclasses)
-COMPONENT_TYPES = [URLComponent, ArchiveComponent, CppComponent, PlainTextComponent, JavaComponent]
+#COMPONENT_TYPES = [URLComponent, ArchiveComponent, CppComponent, PlainTextComponent, JavaComponent]
 
 def select_all_components(activity):
     """
@@ -90,163 +63,63 @@ def select_all_components(activity):
     """
     components = [] # list of components
     found = set() # keep track of what has been found so we can exclude less-specific duplicates.
-    for ComponentType in COMPONENT_TYPES:
-        comps = list(ComponentType.objects.filter(activity=activity))
+    for Type in ALL_TYPE_CLASSES:
+        comps = list(Type.Component.objects.filter(activity=activity))
         components.extend( (c for c in comps if c.id not in found) )
         found.update( (c.id for c in comps) )
 
     components.sort()
-    count = 1;
-    for component in components:
-        component.position = count
-        count = count + 1
-        component.save()
     return components
 
 
 
-# per-submission models, created when a student/group submits an assignment:
 
-class Submission(models.Model):
-    """
-    A student's or group's submission for an activity
-    """
-    activity = models.ForeignKey(Activity)
-    created_at = models.DateTimeField(auto_now_add=True)
-    owner = models.ForeignKey(Member, null=True, help_text = "TA or instructor that will mark this submission")
-    status = models.CharField(max_length=3, null=False,choices=STATUS_CHOICES, default = "NEW")
+#class SubmittedURL(SubmittedComponent):
+#    component = models.ForeignKey(URL.SubmissionComponent, null=False)
+#    url = models.URLField(verify_exists=True,blank = True)
+#    def get_url(self):
+#        return self.url
+#    def get_size(self):
+#        return None
+#class SubmittedArchive(SubmittedComponent):
+#    component = models.ForeignKey(ArchiveComponent, null=False)
+#    archive = models.FileField(upload_to="submittedarchive", blank = True) # TODO: change to a more secure directory
+#    def get_url(self):
+#        return self.archive.url
+#    def get_size(self):
+#        return self.archive.size
 
-    "Set ownership, and make state = in progree "
-    def set_owner(self, course, userid):
-        member = Member.objects.filter(person__userid = userid).filter(offering = course)
-        if member != []:
-            self.owner = member[0]
-            self.status = "INP"
-            self.save()
-    def get_type(self):
-        g = GroupSubmission.objects.filter(pk = self.pk)
-        if len(g) > 0:
-            return "Group"
-        return "student"
-    def get_derived_class(self):
-        if self.get_type() == "Group":
-            return GroupSubmission.objects.all().get(pk = self.pk)
-        else:
-            return StudentSubmission.objects.all().get(pk = self.pk)
-    def get_userid(self):
-        return self.get_derived_class().get_userid()
+#class SubmittedCpp(SubmittedComponent):
+#    component = models.ForeignKey(CppComponent, null=False)
+#    cpp = models.FileField(upload_to="submittedcpp", blank = True) # TODO: change to a more secure directory
+#    def get_url(self):
+#        return self.cpp.url
+#    def get_size(self):
+#        return self.cpp.size
 
-class StudentSubmission(Submission):
-    member = models.ForeignKey(Member, null=False)
-    def get_userid(self):
-        return self.member.person.userid
-    def __unicode__(self):
-        return "%s->%s@%s" % (self.member.person.userid, self.activity, self.created_at)
+#class SubmittedPlainText(SubmittedComponent):
+#    component = models.ForeignKey(PlainTextComponent, null=False)
+#    text = models.TextField(max_length=3000)
+#    def get_url(self):
+#        return self.text.url
+#    def get_size(self):
+#        return self.text.size
 
-class GroupSubmission(Submission):
-    group = models.ForeignKey(Group, null=False)
-    creator = models.ForeignKey(GroupMember, null = False)
-
-    #TODO: add a item indicate who submit the assignment
-
-    def get_userid(self):
-        return self.group.slug[2:]
-    def __unicode__(self):
-        return "%s->%s@%s" % (self.creator.student.person.userid, self.activity, self.created_at)
-
-    def save(self):
-        super(GroupSubmission, self).save()
-        member_list = GroupMember.objects.exclude(student = self.creator).filter(group = self.group)
-        for member in member_list:
-            n = NewsItem(user = member.student.person, author=self.creator.student.person, course=member.group.courseoffering,
-                source_app="group submission", title="New Group Submission",
-                content="Your group member %s has new submission for %s."
-                    % (self.creator.student.person,self.activity),
-                url=reverse('submission.views.show_components', kwargs={'course_slug': self.group.courseoffering.slug, 'activity_slug': member.activity.slug})
-                )
-            n.save()
+#class SubmittedJava(SubmittedComponent):
+#    component = models.ForeignKey(JavaComponent, null=False)
+#    java = models.FileField(upload_to="submittedjava", blank = True) # TODO: change to a more secure directory
+#    def get_url(self):
+#        return self.java.url
+#    def get_size(self):
+#        return self.java.size
 
 
-# parts of a submission, created as part of a student/group submission
-
-class SubmittedComponent(models.Model):
-    """
-    Part of a student's/group's submission
-    """
-    submission = models.ForeignKey(Submission)
-    submit_time = models.DateTimeField(auto_now_add = True)
-    def get_time(self):
-        "return the submit time of the component"
-        return self.submit_time.strftime("%Y-%m-%d %H:%M:%S")
-    def get_late_time(self):
-        "return how late the submission is"
-        time = self.submission.create_at - self.activity.due_date
-        if time < datetime.datedelta():
-            return 0
-        else:
-            return time
-    def __cmp__(self, other):
-        return cmp(other.submit_time, self.submit_time)
-    class Meta:
-        ordering = ['submit_time']
-    def get_type(self):
-        "Return xxx of Submittedxxx as type"
-        class_name = self.__class__.__name__
-        return class_name[9:]
-    def get_size_in_kb(self):
-        res = int(self.get_size())/1024
-        return res
-    def __unicode__(self):
-        return "[%s] %s->%s@%s" % (self.get_type(), self.submission.get_userid(), self.submission.activity, self.submission.created_at)
-
-
-
-class SubmittedURL(SubmittedComponent):
-    component = models.ForeignKey(URLComponent, null=False)
-    url = models.URLField(verify_exists=True,blank = True)
-    def get_url(self):
-        return self.url
-    def get_size(self):
-        return None
-class SubmittedArchive(SubmittedComponent):
-    component = models.ForeignKey(ArchiveComponent, null=False)
-    archive = models.FileField(upload_to="submission/submittedarchive", blank = True) # TODO: change to a more secure directory
-    def get_url(self):
-        return self.archive.url
-    def get_size(self):
-        return self.archive.size
-
-class SubmittedCpp(SubmittedComponent):
-    component = models.ForeignKey(CppComponent, null=False)
-    cpp = models.FileField(upload_to="submission/submittedcpp", blank = True) # TODO: change to a more secure directory
-    def get_url(self):
-        return self.cpp.url
-    def get_size(self):
-        return self.cpp.size
-
-class SubmittedPlainText(SubmittedComponent):
-    component = models.ForeignKey(PlainTextComponent, null=False)
-    text = models.TextField(max_length=3000)
-    def get_url(self):
-        return self.text.url
-    def get_size(self):
-        return self.text.size
-
-class SubmittedJava(SubmittedComponent):
-    component = models.ForeignKey(JavaComponent, null=False)
-    java = models.FileField(upload_to="submission/submittedjava", blank = True) # TODO: change to a more secure directory
-    def get_url(self):
-        return self.java.url
-    def get_size(self):
-        return self.java.size
-
-
-SUBMITTED_TYPES = [SubmittedURL, SubmittedArchive, SubmittedCpp, SubmittedPlainText, SubmittedJava]
+#SUBMITTED_TYPES = [SubmittedURL, SubmittedArchive, SubmittedCpp, SubmittedPlainText, SubmittedJava]
 def select_all_submitted_components(activity):
     submitted_component = [] # list of submitted component
     found = set() # keep track of what has been found so we can exclude less-specific duplicates.
-    for SubmittedType in SUBMITTED_TYPES:
-        subs = list(SubmittedType.objects.filter(submission__activity = activity))
+    for Type in ALL_TYPE_CLASSES:
+        subs = list(Type.SubmittedComponent.objects.filter(submission__activity = activity))
         submitted_component.extend(s for s in subs if s.id not in found)
         found.update( (s.id for s in subs) )
     submitted_component.sort()
@@ -300,18 +173,33 @@ def filetype(file):
   return file.name[file.name.rfind('.'):]
 
 
+def get_component(**kwargs):
+    """
+    Find the submission component (with the most specific type).  Returns None if doesn't exist.
+    """
+    for Type in ALL_TYPE_CLASSES:
+        res = Type.Component.objects.filter(**kwargs)
+        res = list(res)
+        if len(res) > 1:
+            raise ValueError, "Search returned multiple values."
+        elif len(res) == 1:
+            return res[0]
 
-def check_component_id_type_activity(list, id, type, activity):
-    """
-    check if id/type/activity matches for some component in the list.
-    if they match, return that component
-    """
-    if id == None or type == None:
-        return None
-    for c in list:
-        if str(c.get_type()) == type and str(c.id) == id and c.activity == activity:
-            return c
     return None
+        
+        
+
+#def check_component_id_type_activity(list, id, type, activity):
+#    """
+#    check if id/type/activity matches for some component in the list.
+#    if they match, return that component
+#    """
+#    if id == None or type == None:
+#        return None
+#    for c in list:
+#        if str(c.get_type()) == type and str(c.id) == id and c.activity == activity:
+#            return c
+#    return None
 
 def get_current_submission(userid, activity):
     """

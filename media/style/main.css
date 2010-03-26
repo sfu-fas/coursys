@@ -550,6 +550,12 @@ div.collapsible {
     padding: 0 0 0 1em;
     color: #D52E2D;
 }
+#main #form_container h3 {
+  margin-left: 1em;
+}
+#main #form_container p {
+  margin-left: 1em;
+}
 /*
  * field set
  */
