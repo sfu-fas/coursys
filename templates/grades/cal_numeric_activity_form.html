@@ -1,0 +1,126 @@
+{% extends "grades/base.html" %}
+{% load grade_student %}
+
+{% block h1 %}
+{% ifequal form_type 'add' %}Add Calculated Numeric Activity{% endifequal %}
+{% ifequal form_type 'edit' %}Edit Calculated Numeric Activity{% endifequal %}
+{% endblock %}
+{% block title %}
+{% ifequal form_type 'add' %}{{ course.name }} - Add Calculated Numeric Activity{% endifequal %}
+{% ifequal form_type 'edit' %}{{ course.name }} - Edit Calculated Numeric Activity{% endifequal %}
+{% endblock %}
+
+{% block grades_headextra %}
+<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
+<script type="text/javascript" src="{{MEDIA_URL}}dialog/js/jQuery.dialog.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    addLinkClickStyleClass('a.redbutton', 'redbutton_onclick');
+    $("#id_due_date").datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.png',
+                                changeMonth: true, changeYear: true, showOn: 'button'});
+    $('div.collapsible').collapsible();
+});
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
+{% ifequal form_type 'add' %}
+<li>&gt; Add Activity</li>
+{% endifequal %}
+{% if activity %}
+<li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li>
+{% endif %}
+{% ifequal form_type 'edit' %}
+<li>&gt; Edit</li>
+{% endifequal %}
+{% endblock %}
+
+
+{% block content %}
+<br/>
+{% ifequal form_type 'add' %}
+<ul id="form_nav">
+    <li><a href="{% url grades.views.add_numeric_activity course_slug=course.slug %}">Numeric Graded Activity</a></li>
+    <li><a href="{% url grades.views.add_letter_activity course_slug=course.slug %}">Letter Graded Activity</a></li>
+    <li class="current"><a href="{% url grades.views.add_cal_numeric_activity course_slug=course.slug %}">Calculated Numeric Activity</a></li>
+</ul>
+{% endifequal %}
+<div id="form_container">
+    {% if form.errors %}
+    <p class="errorindicator">
+        <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
+        Please correct the error below.
+    </p>
+    {% endif %}
+    {% if form.non_field_errors %}
+    <p class="errorindicator">
+        <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
+        {{ form.non_field_errors }}
+    </p>
+    {% endif %}
+    <form action="{% ifequal form_type 'add' %}{% url grades.views.add_cal_numeric_activity course_slug=course.slug %}{% endifequal %}
+                {% ifequal form_type 'edit' %}{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}{% endifequal %}"
+                method="post">
+        <fieldset>
+            <legend>Activity Info</legend>
+            <p class="requireindicator"><img src="{{MEDIA_URL}}/icons/required_star.gif" alt="required" />&nbsp;Indicates required field</p>
+            <ul>
+                {{form.name|activity_field}}
+                {{form.short_name|activity_field}}
+                {{form.status|activity_field}}
+                {{form.due_date|activity_field}}
+                {{form.percent|activity_field}}
+                {{form.max_grade|activity_field}}
+                <li>
+                    {{ form.formula.label_tag }}
+                    <div class="inputfield">
+                        {{ form.formula }}
+                        {% if form.formula.errors %}<span class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/> {{form.formula.errors.0}}</span>{% endif %}
+                        {% if form.formula.help_text %}<div class="helptext">({{form.formula.help_text}})</div>{% endif %}
+                        <div class="buttongroup">
+                            <a href="{% url grades.views.formula_tester course_slug=course.slug %}" target="_blank" class="redbutton">Formula Tester</a>
+                        </div>
+                        <div class="collapsible">the list of applicable numeric activities:</div>
+                        <div class="activity_reference_container">
+                            <table class="info">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Name</th>
+                                        <th scope="col">Short Name</th>
+                                        <th scope="col">Max Grade</th>
+                                        <th scope="col">Percentage</th>
+                                        <th scope="col">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for numeric_activity in numeric_activities %}
+                                    <tr>
+                                        <td>{{ numeric_activity.name }}</td>
+                                        <td>{{ numeric_activity.short_name }}</td>
+                                        <td>{{ numeric_activity.max_grade }}</td>
+                                        {% if numeric_activity.percent %}
+                                        <td>{{ numeric_activity.percent }}%</td>
+                                        {% else %}
+                                        <td>&mdash;</td>
+                                        {% endif %}
+                                        <td>{{ numeric_activity.get_status_display }}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td class="empty" colspan="5">No numeric activities defined</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </li>
+                <li>
+                    <input class="submit" type="submit" value="Submit" />
+                </li>
+            </ul>
+        </fieldset>
+    </form>
+</div>
+{% endblock %}

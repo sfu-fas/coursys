@@ -81,8 +81,9 @@
 
 <div class="datatable_container">
     <h2>Course Activities</h2>
-    <a class="redbutton" href="{% url grades.views.add_numeric_activity course_slug=course.slug %}">Add Activity</a>
-
+    <div class="buttongroup">
+	<a class="redbutton" href="{% url grades.views.add_numeric_activity course_slug=course.slug %}">Add Activity</a>
+    </div>
     <table class="display" id="activities">
         <thead>
             <tr>

@@ -1,0 +1,103 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>Course Management System</title>
+<link rel="stylesheet" href="/media/style/main.css" media="all" />
+<script type="text/javascript" src="/media/js/jquery.js"></script>
+<link type="text/css" href="/media/jquery-ui-1.7.2.custom/css/smoothness/jquery-ui-1.7.2.custom.css" rel="stylesheet" />
+<script type="text/javascript" src="/media/jquery-ui-1.7.2.custom/js/jquery-ui-1.7.2.custom.min.js"></script>
+</head>
+
+<body id="formula_tester"">
+<div class="formula_tester_container">
+    <h1>Formula Tester</h1>
+    <div id="form_container">
+        <form action="{% url grades.views.formula_tester course_slug=course.slug %}" method="post">
+            {% if messages %}
+            <div id="messages">
+            <!--<h3>Messages</h3>-->
+            <ul>
+                {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+            </div>
+            {% endif %}
+            <p class="requireindicator"><img src="{{MEDIA_URL}}/icons/required_star.gif" alt="required" />&nbsp;Indicates required field</p>
+            <fieldset>
+                <legend><span>Activity Info</span></legend>
+                <ul>
+                    <li>
+                        <p>Give status and grade to the numeric activities to test formula</p>
+                        <div class="activity_reference_container">
+                            <table class="info">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Name</th>
+                                        <th scope="col">Short Name</th>
+                                        <th scope="col">Percentage</th>
+                                        <th scope="col">Status</th>
+                                        <th scope="col">Grade</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for activity_entry in activity_entries %}
+                                    {% with activity_entry.activity as activity %}
+                                    {% with activity_entry.activity_form_entry as activity_form_entry %}
+                                    <tr>
+                                        <td>{{ activity.name }}</td>
+                                        <td>{{ activity.short_name }}</td>
+                                        {% if activity.percent %}
+                                        <td>{{ activity.percent }}%</td>
+                                        {% else %}
+                                        <td>&mdash;</td>
+                                        {% endif %}
+                                        <td>{{ activity_form_entry.status }}</td>
+                                        <td>
+                                            {{ activity_form_entry.value }}/{{ activity.max_grade }}
+                                            {% if activity_form_entry.value.errors %}<span class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/> {{activity_form_entry.value.errors.0}}</span>{% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endwith %}
+                                    {% endwith %}
+                                    {% empty %}
+                                    <tr>
+                                        <td class="empty" colspan="5">No numeric activities defined</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </li>
+                </ul>
+            </fieldset>
+            <fieldset>
+                <legend><span>Specify Formula</span></legend>
+                <ul>
+                    <li>
+                        {{ formula_form_entry.formula.label_tag }}
+                        <div class="inputfield">
+                            {{ formula_form_entry.formula }}
+                            {% if formula_form_entry.formula.errors %}<span class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/> {{formula_form_entry.formula.errors.0}}</span>{% endif %}
+                            {% if formula_form_entry.formula.help_text %}<div class="helptext">({{formula_form_entry.formula.help_text}})</div>{% endif %}
+                        </div>
+                    </li>
+                </ul>
+            </fieldset>
+            <fieldset>
+                <legend><span>Result</span></legend>
+                <ul>
+                    <li>
+                        <div id="formula_result">{{ result }}</div>
+                    </li>
+                    <li>
+                        <input class="submit" type="submit" value="Test" />
+                    </li>
+                </ul>
+            </fieldset>
+        </form>
+    </div>
+</div>
+</body>
+</html>

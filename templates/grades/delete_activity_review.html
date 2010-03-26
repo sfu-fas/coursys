@@ -44,10 +44,16 @@
                 <th class="ui-state-default">Percentage</th>
                 <td>{{activity.percent}}</td>
             </tr>
-            {% if activity.max_grade %}
+            {% if activity.numericactivity %}
             <tr>
                 <th class="ui-state-default">Maximum grade</th>
                 <td>{{activity.max_grade}}</td>
+            </tr>
+            {% endif %}
+            {% if activity.calnumericactivity %}
+            <tr>
+                <th class="ui-state-default">Formula</th>
+                <td>{{activity.formula}}</td>
             </tr>
             {% endif %}
         </tbody>

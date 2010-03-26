@@ -118,6 +118,31 @@ class StudentActivityInfo:
             self.activity_stat = None
             
         return self
+    
+class FormulaTesterActivityEntry:
+    def __init__(self, activity, activity_form_entry):
+        self.activity = activity
+        self.activity_form_entry = activity_form_entry
+        
+
+# The following fake objects are used in the formula tester
+class FakeGrade(object):
+     def __init__(self, value):
+        self.flag = "GRAD"
+        self.value = value
+class FakeGradeSet(object):
+     def __init__(self, grade):
+        self.grade = grade
+     def filter(self, **kwargs):
+        return [self.grade]
+class FakeActivity(object):
+     def __init__(self, name, short_name, status, value):
+        self.name = name
+        self.short_name = short_name
+        self.status = status
+        grade = FakeGrade(value)
+        self.numericgrade_set = FakeGradeSet(grade)
+
 
 def reorder_course_activities(ordered_activities, activity_slug, order):
     """

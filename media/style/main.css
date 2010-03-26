@@ -276,6 +276,7 @@ tr:hover .row-actions {
   vertical-align: top;
 }
 
+
 /* individual activity box style for student view */
 .activity_box {
   -moz-border-radius: 6px 6px 6px 6px;
@@ -387,13 +388,13 @@ table.activity_box_info {
 }
 
 #main a.redbutton {
-/* need to add '#main' as selector in order to override SFU template style */
-  display: block;
-  width: 6em;
+  /* need to add '#main' as selector in order to override SFU template style */
+  width: auto;
+  margin: 0.2em 0 0.2em 0;
   height: 1.4em;
   color: #FFFFFF;
   text-align: center;
-  line-height: 1.5em;
+  line-height: 1.4em;
   background-color: #B5111A;
   border: 1px solid #FFF;
   text-decoration: none;
@@ -429,7 +430,7 @@ table.activity_box_info {
 }
 
 .buttongroup {
-  margin: 0.5em;
+  margin: 0.5em 0em 0.5em 0em;
 }
 table.info thead th {
   font-weight: bold;
@@ -455,6 +456,28 @@ table.info {
   /*width: 700px;*/
   margin: 0 1em 0 0;
 }
+.activity_reference_container {
+  width: 500px;
+}
+body#formula_tester {
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:13px;
+  margin:0;
+  padding:0;
+}
+#formula_tester h1 {
+  text-align: center;
+  color: #B5111A;
+}
+.formula_tester_container {
+  -moz-border-radius:5px 5px 5px 5px;
+  background:none repeat scroll 0 0 #FAFAFA;
+  border:2px solid #AAAAAA;
+  margin:20px auto;
+  padding:1em 20px;
+  width:630px;
+}
+
 
 .table_container p.errorindicator {
     border: 2px solid red;
@@ -472,6 +495,29 @@ table.info {
   display: block;
   width: 16px;
   height: 16px;
+}
+
+
+/* Collapsible style */
+div.collapsible {
+  color: grey;
+  font-size: 1.0em;
+  font-weight:normal;
+}
+#main .collapsible-heading {
+  padding-left:15px;
+  background:url('/media/images/icon-triangle.png') 0 6px no-repeat;
+}
+#main .collapsible-heading-collapsed {
+  background-position:0 -84px;
+}
+#main .collapsible-heading-toggle, #main .collapsible-heading-toggle:hover {
+  text-decoration:none;
+  color: grey;
+  line-height: 1.6em;
+}
+#main .collapsible-content-collapsed {
+  display:none;
 }
 
 
@@ -526,8 +572,9 @@ fieldset .inputfield li {
     margin: 0;
 }
 fieldset .inputfield label {
-    width: 30em;
+  width: 30em;
 }
+
 /*
 fieldset .inputfield input[type='text'] {
     width: 30em;
@@ -597,39 +644,53 @@ fieldset label {
     line-height: 1.5em;
     text-align: right;
 }
-.add_nav {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    float: left;
+#formula_tester fieldset label {
+    float: none;
+    text-align: left;
 }
-.add_nav li {
-    float: left;
-}
-.add_nav .warning {
-    margin-bottom: 0.2em;
-    width:100%;
-    clear:both;
-    color: gray;
-}
-#main .add_nav .button {
-    background-color: #b4b4aa;
-    width: 9em;
-}
-#main .add_nav #current_type {
-    background-color: #0054a6;
-}
+
 /* requried_star style in the label */
 fieldset label span {
     position: absolute;
     left: 10em;
 }
-fieldset .fomula_box {
-    margin-bottom: 1em;
-    background-color: #BCBCB4;
+
+/* Formula tester style */
+#formula_tester fieldset label span {
+    position: absolute;
+    left: auto;
 }
-fieldset input#id_specify_numeric_formula,  fieldset input#id_specify_letter_formula{
-    width: auto;
+
+#formula_tester fieldset {
+  border-color:#AAAAAA -moz-use-text-color -moz-use-text-color;
+  border-right:0 none;
+  border-style:dotted none none;
+  border-width:1px 0 0;
+  margin:1em 0 0;
+  /* Override style */
+  padding: inherit;
+  background: none;
+}
+/* Override style */
+#formula_tester fieldset legend {
+  font-size:1.5em;
+  margin:0;
+}
+#formula_tester fieldset legend span {
+  background:none repeat scroll 0 0 #FAFAFA;
+  left:0px;
+  padding-right:10px;
+  position:relative;
+  top:-0.1em;
+}
+#formula_tester .requireindicator {
+  /* Override style */
+  padding:0;
+}
+#formula_result {
+  font-weight: bold;
+  font-size: 2em;
+  color: grey;
 }
 
 fieldset .position {
@@ -654,6 +715,30 @@ fieldset #editbutton a.button:hover{
 }
 fieldset .hidden {
     display: none;
+}
+
+
+.add_nav {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    float: left;
+}
+.add_nav li {
+    float: left;
+}
+.add_nav .warning {
+    margin-bottom: 0.2em;
+    width:100%;
+    clear:both;
+    color: gray;
+}
+#main .add_nav .button {
+    background-color: #b4b4aa;
+    width: 9em;
+}
+#main .add_nav #current_type {
+    background-color: #0054a6;
 }
 
 /*
@@ -814,7 +899,7 @@ thead.form_head th{
     margin: 0 0 1em 0;
     padding: 0;
     list-style-type: none;
-    width: 402px;
+    width: 603px;
     height: 28px;
 }
 #form_nav li {

@@ -11,11 +11,11 @@ def stu_grade(Activity,Person):
 ACTIVITY_FIELD_TEMPLATE = Template('''<li>
                     {{ field.label_tag }}
                     <div class="inputfield">
-                        {{ field }} {% if field.help_text %}<span class="helptext">({{field.help_text}})</span>{% endif %}
-                        {% if field.errors %}<img src="'''+MEDIA_URL+'''icons/error.png" alt="error"/> {{field.errors}}{% endif %}
+                        {{ field }}
+                        {% if field.errors %}<span class="errortext"><img src="''' + MEDIA_URL + '''icons/error.png" alt="error"/> {{field.errors.0}}</span>{% endif %}
+                        {% if field.help_text %}<div class="helptext">({{field.help_text}})</div>{% endif %}
                     </div>
-                </li>
-''')
+                    </li>''')
 
 @register.filter
 def activity_field(field):
@@ -32,6 +32,7 @@ def do_select_grade(parser, token):
         tag_name, dictionary, aslug, userid = token.split_contents()
     except ValueError:
         raise template.TemplateSyntaxError, "%r tag requires a three arguments: dictionary, activity slug, userid" % token.contents.split()[0]
+
 
     return SelectGradeNode(dictionary, aslug, userid)
 

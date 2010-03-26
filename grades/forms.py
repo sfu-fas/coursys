@@ -2,6 +2,9 @@ from django import forms
 from django.conf import settings
 from grades.models import ACTIVITY_STATUS_CHOICES, NumericActivity, Activity
 from django.utils.safestring import mark_safe
+import pickle
+from grades.formulas import parse, activities_dictionary, cols_used
+from external.pyparsing import ParseException
 
 _required_star = '<span><img src="'+settings.MEDIA_URL+'icons/required_star.gif" alt="required"/></span>'
 
@@ -9,81 +12,120 @@ FORMTYPE = {'add': 'add', 'edit': 'edit'}
 
 class ActivityForm(forms.Form):
     name = forms.CharField(max_length=30, label=mark_safe('Name:'+_required_star),
-            help_text='e.g. "Assignment 1" or "Midterm"',
-            widget=forms.TextInput(attrs={'size':'30'}))
+                    help_text='name of the activity, e.g "Assignment 1" or "Midterm"',
+                    widget=forms.TextInput(attrs={'size':'30'}))
     short_name = forms.CharField(max_length=15, label=mark_safe('Short name:' + _required_star),
-            help_text='short version of the name for column headings, e.g. "A1" or "MT"',
-            widget=forms.TextInput(attrs={'size':'8'}))
-    status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS', label=mark_safe('Status:' + _required_star),
-            help_text='visibility of grades/activity to students')
+                                help_text='short version of the name for column headings, e.g. "A1" or "MT"',
+                                widget=forms.TextInput(attrs={'size':'8'}))
+    status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS',
+                               label=mark_safe('Status:' + _required_star),
+                               help_text='visibility of grades/activity to students')
     due_date = forms.DateTimeField(label=mark_safe('Due date:'), required=False)
     percent = forms.DecimalField(max_digits=5, decimal_places=2, required=False, label='Percentage:',
-            help_text='percent of final mark',
-            widget=forms.TextInput(attrs={'size':'2'}))
+                                 help_text='percent of final mark',
+                                 widget=forms.TextInput(attrs={'size':'2'}))
 
     def __init__(self, *args, **kwargs):
         super(ActivityForm, self).__init__(*args, **kwargs)
-        self.addform_validate = False
-        self.editform_validate = False
+        self._addform_validate = False
+        self._editform_validate = False
     
     def activate_addform_validation(self, course_slug):
-        self.addform_validate = True
-        self.course_slug = course_slug
+        self._addform_validate = True
+        self._course_activities = Activity.objects.filter(offering__slug=course_slug)
         
     def activate_editform_validation(self, course_slug, activity_slug):
-        self.editform_validate = True
-        self.course_slug = course_slug
-        self.activity_slug = activity_slug
+        self._editform_validate = True
+        self._course_activities = Activity.objects.exclude(slug=activity_slug).filter(offering__slug=course_slug)
 
     def clean_name(self):
         name = self.cleaned_data['name']
         if name:
-            if self.addform_validate:
-                if Activity.objects.filter(offering__slug=self.course_slug, name=name):
-                    raise forms.ValidationError(u'Activity with the same name already exists')
-            elif self.editform_validate:
-                if Activity.objects.exclude(slug=self.activity_slug).filter(offering__slug=self.course_slug, name=name):
-                    raise forms.ValidationError(u'Activity with the same name already exists')
+            if self._addform_validate or self._editform_validate:
+                for activity in self._course_activities:
+                    if name == activity.name:
+                        raise forms.ValidationError(u'Activity with the same name already exists')
         return name
     
     def clean_short_name(self):
         short_name = self.cleaned_data['short_name']
         if short_name:
-            if self.addform_validate:
-                if Activity.objects.filter(offering__slug=self.course_slug, short_name=short_name):
-                    raise forms.ValidationError(u'Activity with the same short name already exists')
-            elif self.editform_validate:
-                if Activity.objects.exclude(slug=self.activity_slug).filter(offering__slug=self.course_slug, short_name=short_name):
-                    raise forms.ValidationError(u'Activity with the same name already exists')
+            if self._addform_validate or self._editform_validate:
+                for activity in self._course_activities:
+                    if short_name == activity.short_name:
+                        raise forms.ValidationError(u'Activity with the same short name already exists')
         return short_name
 
 
 class NumericActivityForm(ActivityForm):
     max_grade = forms.DecimalField(max_digits=5, decimal_places=2, label=mark_safe('Maximum grade:' + _required_star),
-            help_text='maximum grade for the activity',
-            widget=forms.TextInput(attrs={'size':'3'}))
-    #specify_numeric_formula = forms.BooleanField(label='Specify formula:', required=False)
-    
-    
+                                   help_text='maximum grade for the activity',
+                                   widget=forms.TextInput(attrs={'size':'3'}))
     
 class LetterActivityForm(ActivityForm):
     pass
     #specify_letter_formula = forms.BooleanField(label='Specify formula:', required=False)
-
-class _MyModelChoiceField(forms.ModelChoiceField):
-    def label_from_instance(self, obj):
-        return obj.name
     
-#Todo: Not yet complete, to be combined with LetterActivityForm
-class CalLetterActivityForm(forms.Form):
-    name = forms.CharField(max_length=30, label='Name:')
-    short_name = forms.CharField(max_length=15, label='Short name:')
-    status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS', label='Status:')
-    due_date = forms.DateTimeField(required=False, label='Due date:')
-    numeric_activity = _MyModelChoiceField(queryset=NumericActivity.objects.none(), empty_label=None)
+class CalNumericActivityForm(NumericActivityForm):
+    formula = forms.CharField(max_length=250, label=mark_safe('Formula:'+_required_star),
+                    help_text='parsed formula to calculate final numeric grade',
+                    widget=forms.Textarea(attrs={'rows':'6', 'cols':'40'}))
     
-    def __init__(self, course_slug, *args, **kwargs):
-        super(CalLetterActivityForm, self).__init__(*args, **kwargs)
-        self.fields['numeric_activity'].queryset = NumericActivity.objects.filter(offering__slug=course_slug)
+    def activate_addform_validation(self, course_slug):
+        super(CalNumericActivityForm, self).activate_addform_validation(course_slug)
+        self._course_numeric_activities = NumericActivity.objects.filter(offering__slug=course_slug)
+        
+    def activate_editform_validation(self, course_slug, activity_slug):
+        super(CalNumericActivityForm, self).activate_editform_validation(course_slug, activity_slug)
+        self._course_numeric_activities = NumericActivity.objects.exclude(slug=activity_slug).filter(offering__slug=course_slug)
     
-
+    def clean_formula(self):
+        formula = self.cleaned_data['formula']
+        if formula:
+            if self._addform_validate or self._editform_validate:
+                try:
+                    parsed_expr = parse(formula)
+                    activities_dict = activities_dictionary(self._course_numeric_activities)
+                    cols = set([])
+                    cols = cols_used(parsed_expr)
+                    for col in cols:
+                        if not col in activities_dict:
+                            raise forms.ValidationError(u'Invalid activity reference')
+                except ParseException:
+                    raise forms.ValidationError(u'Formula syntax incorrect')
+        return formula
+    
+class ActivityFormEntry(forms.Form):
+    status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES)
+    value = forms.DecimalField(max_digits=5, decimal_places=2, required=False,
+                               widget=forms.TextInput(attrs={'size':'3'}))
+    
+class FormulaFormEntry(forms.Form):
+    formula = forms.CharField(max_length=250, label=mark_safe('Formula:'+_required_star),
+                    help_text='parsed formula to calculate final numeric grade',
+                    widget=forms.Textarea(attrs={'rows':'6', 'cols':'40'}))
+    
+    def __init__(self, *args, **kwargs):
+        super(FormulaFormEntry, self).__init__(*args, **kwargs)
+        self._form_entry_validate = False
+    
+    def activate_form_entry_validation(self, course_slug):
+        self._form_entry_validate = True
+        self._course_numeric_activities = NumericActivity.objects.filter(offering__slug=course_slug)
+    
+    def clean_formula(self):
+        formula = self.cleaned_data['formula']
+        if formula:
+            if self._form_entry_validate:
+                try:
+                    parsed_expr = parse(formula)
+                    activities_dict = activities_dictionary(self._course_numeric_activities)
+                    cols = set([])
+                    cols = cols_used(parsed_expr)
+                    for col in cols:
+                        if not col in activities_dict:
+                            raise forms.ValidationError(u'Invalid activity reference')
+                    self.pickled_formula = pickle.dumps(parsed_expr)
+                except ParseException:
+                    raise forms.ValidationError(u'Formula syntax incorrect')
+        return formula
