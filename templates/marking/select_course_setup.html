@@ -4,17 +4,18 @@
 {% block h1 %}Copy Course Setup{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }} ({{course.semester.label}})</a></li><li>&gt; Copy Course Setup</li>
+<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; Copy Course Setup</li>
 {% endblock %}
 
 {% block content %}
 
 <form action="{%url marking.views.copy_course_setup course_slug=course.slug%}" method="post">
-    <h2> Please select the course setup: </h2>
-    <div>{{select_form.course}}<input type="submit" value="Continue" ></div> 
+    <h2> Please select the course to duplicate:</h2>
+    <div>Source Course: {{select_form.course}} <input type="submit" value="Continue" ></div> 
     {% if select_form.course.errors %}
 	<div class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/>&nbsp;{{select_form.course.errors.0}}</div>
-	{% endif %} 
+    {% endif %} 
+    <p>This will copy all activities, along with their submission and marking configuration to this course.</p>
 </form>
 
 {% endblock %}

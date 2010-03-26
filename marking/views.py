@@ -34,12 +34,17 @@ def copy_course_setup(request, course_slug):
     userid = request.user.username  
     course = get_object_or_404(CourseOffering, slug = course_slug)    
     # get the course offerings of this user except for this course
-    courses_qset = Member.objects.exclude(role="DROP").filter(offering__graded=True).filter(person__userid=userid) \
-            .select_related('offering','offering__semester').exclude(offering=course)
+    courses_qset = Member.objects.exclude(role__in=["DROP","STUD"]).exclude(offering=course) \
+            .filter(offering__graded=True, person__userid=userid) \
+            .select_related('offering','offering__semester')
    
     from django import forms
+    class CourseChoiceField(forms.ModelChoiceField):
+        def label_from_instance(self, obj):
+            return "%s" % (obj.offering)
     class CourseSourceForm(forms.Form):
-        course = forms.ModelChoiceField(queryset = courses_qset) 
+        course = CourseChoiceField(queryset = courses_qset)
+
         
     if request.method == "POST":         
         target_setup = Activity.objects.filter(offering = course)
@@ -62,7 +67,7 @@ def copy_course_setup(request, course_slug):
             source_setup = Activity.objects.filter(offering = source_course)                     
             copyCourseSetup(source_course, course)
             messages.add_message(request, messages.SUCCESS, \
-                    "Course Setup copied from %s(%s)" % (source_course.name(), source_course.semester.label(),))
+                    "Course Setup copied from %s (%s)" % (source_course.name(), source_course.semester.label(),))
             return HttpResponseRedirect(reverse('grades.views.course_info', args=(course_slug,)))
     else:     
         select_form = CourseSourceForm(prefix = "select-form")  

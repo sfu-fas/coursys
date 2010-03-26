@@ -69,6 +69,8 @@ class Activity(models.Model):
         return "%s - %s" % (self.offering, self.name)
     def __cmp__(self, other):
         return cmp(self.position, other.position)
+    def get_absolute_url(self):
+        return reverse('grades.views.activity_info', kwargs={'course_slug': self.offering.slug, 'activity_slug': self.slug})
     class Meta:
         verbose_name_plural = "activities"
         unique_together = (("offering", "name"), ("offering", "short_name"))

@@ -66,28 +66,11 @@ urlpatterns = patterns('',
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/attachments/' + '(?P<filepath>.*)$', 'marking.views.download_marking_attachment'),
     #url(r'^(?P<course_slug>' + COURSE_SLUG_RE + ')/(?P<activity_slug>' + ACTIVITY_SLUG_RE + ')/mark_summary/(?P<filepath>.*)$', 'marking.views.download_marking_attachment'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/csv$', 'marking.views.export_csv'),
-    url(r'^' + COURSE_SLUG + '/copysetup/$', 'marking.views.copy_course_setup'),
+    url(r'^' + COURSE_SLUG + '/_copysetup/$', 'marking.views.copy_course_setup'),
 
 
     url(r'^roles/$', 'courses.coredata.views.role_list'),
     url(r'^roles/new$', 'courses.coredata.views.new_role'),
-
-    # for Advisor_A
-    #(r'^advisors_A/', include('advisors_A.urls')),
-    #for Advisors_B
-    #(r'^advisors_B/', include('advisors_B.urls')),
-
-    # for Marking
-    #(r'^marking/', include('marking.urls')),
-
-    # for Grades
-    #(r'^grades/', include('grades.urls')),
-
-    # for groups
-    #(r'^groups/', include('groups.urls')),
-
-    #submission
-    #(r'^submission/', include('submission.urls')),
 )
 if settings.DEBUG:
     # URLs for development only:

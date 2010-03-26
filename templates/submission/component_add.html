@@ -4,20 +4,12 @@
 {% block headextra %}
 {% endblock %}
 
-{% block h1 %}Add Component for {{activity.name}}{% endblock %}
+{% block title %}Add Submission Component for {{activity.name}}{% endblock %}
+{% block h1 %}Add Submission Component for {{activity.name}}{% endblock %}
 
-{% block breadcrumbs %}
-<li><a href="http://www.sfu.ca/">SFU</a></li>
-<li>&gt; <a href="http://www.cs.sfu.ca/">Computing Science</a></li>
-<li>&gt; <a href="/">Course Management</a></li>
-<li>&gt; <a href="/submission">Submission</a></li>
-<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{course.name}}</a></li>
-<li>&gt; <a href="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug%}">{{activity.short_name}}</a></li>
-{% block breadcrumbs_extra %}{% endblock %}
-{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{{ course.get_absolute_url }}">{{course.name}}</a></li><li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; <a href="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug %}">Submission Components</a></li><li>&gt; New</li>{% endblock %}
 
 {% block content %}
-<a href="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug %}" class="button">Back</a>
 <h2>Select Component Type:</h2>
 
 <ul class="add_nav">

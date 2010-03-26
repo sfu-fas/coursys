@@ -1,19 +1,17 @@
 {% extends "submission/base.html" %}
 {% load submission_filters %}
 
+{% block title %}Configure Submission for {{activity.name}}{% endblock %}
 {% block h1 %}Configure Submission for {{activity.name}}{% endblock %}
 
-{% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{course.name}}</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug, activity_slug=activity.slug %}">{{activity.name}}</a></li><li>&gt; Configure Submission</li>
-{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{{ course.get_absolute_url }}">{{course.name}}</a></li><li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Submission Components</li>{% endblock %}
 
 {% block content %}
 <a class="button" href="{% url submission.views.add_component course_slug=course.slug, activity_slug=activity.slug %}" id="edit_submission_component_add_button">Add Component</a>
 <div id="form_container">
 {% ifequal component_list|length 0 %}
-    <p class="warningindicator">
-        <img src="{{MEDIA_URL}}icons/exclamation.png" alt="warning" />
-        No component found.
+    <p class="empty">
+        No components configured.
     </p>
 {% else %}
     <form action="" method="post">

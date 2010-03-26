@@ -66,7 +66,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
 
 
 #student's submission page
-@requires_course_by_slug
+@requires_course_staff_by_slug
 def add_submission(request, course_slug, activity_slug):
     """
     enable student to upload files to a activity
@@ -154,7 +154,7 @@ def add_submission(request, course_slug, activity_slug):
         {'component_form_list': component_form_list, "course": course, "activity": activity},
         context_instance = RequestContext(request))
 
-def check_me_or_member(request, target_uid, course, activity, staff=True):
+def _check_me_or_member(request, target_uid, course, activity, staff=True):
     """
     if it's me or it's a member of my group, return true; otherwise false;
     staff=True means staff will always return true
@@ -172,7 +172,7 @@ def check_me_or_member(request, target_uid, course, activity, staff=True):
                 return True
     return False
 
-@login_required
+@requires_course_by_slug
 def show_components_submission_history(request, course_slug, activity_slug):
     userid = request.GET.get('userid')
     course = get_object_or_404(CourseOffering, slug = course_slug)
@@ -180,7 +180,7 @@ def show_components_submission_history(request, course_slug, activity_slug):
 
     if userid==None:
         userid = request.user.username
-    if not check_me_or_member(request, userid, course, activity):
+    if not _check_me_or_member(request, userid, course, activity):
         return ForbiddenResponse(request)
 
     group_member = GroupMember.objects.all().filter(student__person__userid=userid)\
@@ -206,7 +206,6 @@ def show_components_submission_history(request, course_slug, activity_slug):
         context_instance = RequestContext(request))
 
 #staff submission configuratiton
-@login_required
 def _show_components_staff(request, course_slug, activity_slug):
     """
     Show all the components of this activity
@@ -281,44 +280,44 @@ def edit_single(request, course_slug, activity_slug):
             context_instance=RequestContext(request))
 
     #get type change
-    type = request.GET.get('to_type')
+    #type = request.GET.get('to_type')
     #if no type change
-    if type == None:
-        pass
-    elif type == component.get_type():
-        #no change
-        return HttpResponseRedirect("?type="+type+"&id="+str(component.id))
-    else:
+    #if type == None:
+    #    pass
+    #elif type == component.get_type():
+    #    #no change
+    #    return HttpResponseRedirect("?type="+type+"&id="+str(component.id))
+    #else:
     #if need to change type
-        if type == 'Archive':
-            new_component = ArchiveComponent()
-        elif type == 'URL':
-            new_component = URLComponent()
-        elif type == 'Cpp':
-            new_component = CppComponent()
-        elif type == 'PlainText':
-            new_component = PlainTextComponent()
-        elif type == 'Java':
-            new_component = JavaComponent()
-        else:
-            #to_type is invalid, just ignore
-            new_component = component
-        #copy a new component
-        new_component.id = component.id
-        new_component.activity = component.activity
-        new_component.title = component.title
-        new_component.description = component.description
-        new_component.position = component.position
-        #save new component
-        component.delete()
-        new_component.save()
-        #LOG EVENT#
-        l = LogEntry(userid=request.user.username,
-              description=("changed type of component %s of %s from %s to %s") % (component.title, activity, component.get_type(), new_component.get_type()),
-              related_object=new_component)
-        l.save()
-        #refresh the form
-        return HttpResponseRedirect("?type="+new_component.get_type()+"&id="+str(new_component.id))
+    #    if type == 'Archive':
+    #        new_component = ArchiveComponent()
+    #    elif type == 'URL':
+    #        new_component = URLComponent()
+    #    elif type == 'Cpp':
+    #        new_component = CppComponent()
+    #    elif type == 'PlainText':
+    #        new_component = PlainTextComponent()
+    #    elif type == 'Java':
+    #        new_component = JavaComponent()
+    #    else:
+    #        #to_type is invalid, just ignore
+    #        new_component = component
+    #    #copy a new component
+    #    new_component.id = component.id
+    #    new_component.activity = component.activity
+    #    new_component.title = component.title
+    #    new_component.description = component.description
+    #    new_component.position = component.position
+    #    #save new component
+    #    component.delete()
+    #    new_component.save()
+    #    #LOG EVENT#
+    #    l = LogEntry(userid=request.user.username,
+    #          description=("changed type of component %s of %s from %s to %s") % (component.title, activity, component.get_type(), new_component.get_type()),
+    #          related_object=new_component)
+    #    l.save()
+    #    #refresh the form
+    #    return HttpResponseRedirect("?type="+new_component.get_type()+"&id="+str(new_component.id))
         
     
     #make form
@@ -417,7 +416,7 @@ def add_component(request, course_slug, activity_slug):
         {"course":course, "activity":activity, "form":form, "type":type},
         context_instance=RequestContext(request))
 
-@login_required
+@requires_course_by_slug
 def download_file(request, course_slug, activity_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set, slug = activity_slug)
@@ -427,7 +426,7 @@ def download_file(request, course_slug, activity_slug, userid):
     #student_id = request.GET.get('user-id') #targeted student
     group_id = request.GET.get('group-id') #targeted group
 
-    if not check_me_or_member(request, userid, course, activity):
+    if not _check_me_or_member(request, userid, course, activity):
         return ForbiddenResponse(request)
 
     # download as (file type + submitted id)

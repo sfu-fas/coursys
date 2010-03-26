@@ -55,6 +55,8 @@ class SubmissionComponent(models.Model):
         if self.position == None:
             lastpos = SubmissionComponent.objects.filter(activity=self.activity) \
                     .aggregate(Max('position'))['position__max']
+            if lastpos is None:
+                lastpos = 0
             self.position = lastpos+1
         super(SubmissionComponent, self).save()
 

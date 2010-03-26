@@ -4,7 +4,7 @@
 {% block h1 %}Copy Course Setup{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }} ({{course.semester.label}})</a></li><li>&gt; Copy Course Setup</li>
+<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; Copy Course Setup</li>
 {% endblock %}
 
 {% block content %}
