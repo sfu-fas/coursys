@@ -150,7 +150,7 @@ class GroupSubmission(Submission):
     #TODO: add a item indicate who submit the assignment
 
     def get_userid(self):
-        return self.creator.student.person.userid
+        return self.group.slug[2:]
     def __unicode__(self):
         return "%s->%s@%s" % (self.creator.student.person.userid, self.activity, self.created_at)
 
@@ -449,7 +449,6 @@ def _download_url_file(submission):
         + submission.url + '">' + submission.url + '</a>' \
         + '</body></html> '
     response = HttpResponse(content, mimetype='text/html')
-    print "%s" % submission.submission.get_userid() + "_" + submission.component.slug + ".html"
     response['Content-Disposition'] = 'attachment; filename=%s' %\
         submission.submission.get_userid() + "_" + submission.component.slug + ".html"
     return response
