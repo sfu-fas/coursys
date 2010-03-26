@@ -123,12 +123,15 @@ def add_submission(request, course_slug, activity_slug):
                     if form[0].get_type() == 'Archive':
                         sub = SubmittedArchive()
                         sub.archive = file
+                        sub._meta.get_field('archive').upload_to = "submission/%s/%s/%s/%s" %(course.slug, activity.slug, request.user.username,new_sub.id)
                     if form[0].get_type() == 'Cpp':
                         sub = SubmittedCpp()
                         sub.cpp = file
+                        sub._meta.get_field('cpp').upload_to = "submission/%s/%s/%s/%s" %(course.slug, activity.slug, request.user.username,new_sub.id)
                     if form[0].get_type() =='Java':
                         sub = SubmittedJava()
                         sub.java = file
+                        sub._meta.get_field('java').upload_to = "submission/%s/%s/%s/%s" %(course.slug, activity.slug, request.user.username,new_sub.id)
                 sub.submission = new_sub    #point to the submission foreign key
                 sub.component = form[0]
                 sub.save()

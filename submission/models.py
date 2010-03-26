@@ -210,7 +210,7 @@ class SubmittedURL(SubmittedComponent):
         return None
 class SubmittedArchive(SubmittedComponent):
     component = models.ForeignKey(ArchiveComponent, null=False)
-    archive = models.FileField(upload_to="submittedarchive", blank = True) # TODO: change to a more secure directory
+    archive = models.FileField(upload_to="submission/submittedarchive", blank = True) # TODO: change to a more secure directory
     def get_url(self):
         return self.archive.url
     def get_size(self):
@@ -218,7 +218,7 @@ class SubmittedArchive(SubmittedComponent):
 
 class SubmittedCpp(SubmittedComponent):
     component = models.ForeignKey(CppComponent, null=False)
-    cpp = models.FileField(upload_to="submittedcpp", blank = True) # TODO: change to a more secure directory
+    cpp = models.FileField(upload_to="submission/submittedcpp", blank = True) # TODO: change to a more secure directory
     def get_url(self):
         return self.cpp.url
     def get_size(self):
@@ -234,7 +234,7 @@ class SubmittedPlainText(SubmittedComponent):
 
 class SubmittedJava(SubmittedComponent):
     component = models.ForeignKey(JavaComponent, null=False)
-    java = models.FileField(upload_to="submittedjava", blank = True) # TODO: change to a more secure directory
+    java = models.FileField(upload_to="submission/submittedjava", blank = True) # TODO: change to a more secure directory
     def get_url(self):
         return self.java.url
     def get_size(self):

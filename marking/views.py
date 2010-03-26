@@ -286,7 +286,7 @@ def _save_marking_results(activity, activity_mark, final_mark, marker_ident, mar
             cmp_mark.activity_mark = activity_mark
             cmp_mark.save()
        
-    #add to log 
+    #LOG EVENT#
     l = LogEntry(userid=marker_ident, \
        description="edited grade on %s for %s changed to %s" % \
       (activity, mark_receiver_ident, final_mark), related_object=activity_mark)                     
@@ -339,7 +339,12 @@ def marking_student(request, course_slug, activity_slug, userid):
             _save_marking_results(activity, activity_mark, final_grade, 
                                   request.user.username, ('student %s'% userid),
                                   component_marks, additional_info)
-            
+            #LOG EVENT#
+            print "go to log event grade"
+            l = LogEntry(userid=request.user.username,
+            description="changed %s's mark for %s to %s " % (userid, activity, final_grade),
+            related_object=ngrade )
+            l.save()
             messages.add_message(request, messages.SUCCESS, 'Mark for student %s on %s saved!' % (userid, activity.name,))
             for warning in warning_messages:
                 messages.add_message(request, messages.WARNING, warning)                      
