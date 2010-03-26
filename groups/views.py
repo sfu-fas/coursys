@@ -14,6 +14,7 @@ from django.core.urlresolvers import reverse
 from contrib import messages
 from django.conf import settings
 from courselib.auth import requires_course_by_slug, requires_course_staff_by_slug, is_course_staff_by_slug, is_course_student_by_slug
+from log.models import *
 
 #@login_required
 #def index(request):
@@ -97,9 +98,15 @@ def submit(request,course_slug):
     person = get_object_or_404(Person,userid=request.user.username)
     course = get_object_or_404(CourseOffering, slug = course_slug)
     member = Member.objects.get(person = person, offering = course)
-    name = request.POST['GroupName']
+    name = request.POST.get('GroupName')
+    #should check if name already exists~~~~~~
     group = Group(name = name, manager = member, courseoffering=course)
     group.save()
+    #LOG EVENT#
+    l = LogEntry(userid=request.user.username,
+    description="created a new group %s for %s." % (group.name, course),
+    related_object=group )
+    l.save()
     
     #Deal with creating the membership
     if is_course_student_by_slug(request.user, course_slug):
@@ -108,7 +115,12 @@ def submit(request,course_slug):
             activityForm = ActivityForm(request.POST, prefix = activity.slug)
             if activityForm.is_valid() and activityForm.cleaned_data['selected'] == True:
                 groupMember = GroupMember(group=group, student=member, confirmed=True, activity = activity)
-                groupMember.save()        
+                groupMember.save()
+                #LOG EVENT#
+                l = LogEntry(userid=request.user.username,
+                description="automatically became a group member of %s for activity %s." % (group.name, groupMember.activity),
+                related_object=groupMember )
+                l.save()
     
         messages.add_message(request, messages.SUCCESS, 'Group Created')
         return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
@@ -125,6 +137,11 @@ def submit(request,course_slug):
                     if studentForm.is_valid() and studentForm.cleaned_data['selected'] == True:
                         groupMember = GroupMember(group=group, student=student, confirmed=True, activity = activity)
                         groupMember.save()
+                        #LOG EVENT#
+                        l = LogEntry(userid=request.user.username,
+                        description="added %s as a group member to %s for activity %s." % (student.person.userid,group.name, groupMember.activity),
+                        related_object=groupMember )
+                        l.save()
                     
         messages.add_message(request, messages.SUCCESS, 'Group Created')
         return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
@@ -143,7 +160,12 @@ def join(request, course_slug, group_slug):
     for groupMember in GroupMember.objects.filter(group = group, student = member):
         groupMember.confirmed = True
         groupMember.save()
-    
+
+     #LOG EVENT#
+    l = LogEntry(userid=request.user.username,
+    description="joined group %s for activity %s." % (group.name, groupMember.activity),
+    related_object=groupMember )
+    l.save()
     messages.add_message(request, messages.SUCCESS, 'You have joined the group "%s".' % (group.name))
     return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
 
@@ -176,6 +198,11 @@ def invite(request, course_slug, group_slug):
                     newGroupMember = GroupMember(group = group, student = member, \
                                           activity = invitorMembership.activity, confirmed = False)
                     newGroupMember.save()
+                    #LOG EVENT#
+                    l = LogEntry(userid=request.user.username,
+                    description="invited %s to join group %s for activity %s." % (newGroupMember.student.person.userid,group.name, newGroupMember.activity),
+                    related_object=newGroupMember )
+                    l.save()
 
             if error_info:
                 messages.add_message(request, messages.ERROR, error_info)
@@ -193,8 +220,21 @@ def delete_group(request, course_slug, group_slug):
     group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
     if request.method == "POST": 
         groupMembers = GroupMember.objects.filter(group=group)
+        #LOG EVENT#
+        for member in groupMembers:
+            l = LogEntry(userid=request.user.username,
+            description="deleted %s in group %s for %s." % (member.student.person.userid,group.name,member.activity),
+            related_object=member)
+            l.save()
         groupMembers.delete()
         group.delete()
+        #LOG EVENT#
+        l = LogEntry(userid=request.user.username,
+        description="deleted group %s for course %s." % (group.name, group.courseoffering),
+        related_object=group )
+        l.save()
+        
+
         return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
         
     else:
@@ -209,8 +249,14 @@ def change_name(request, course_slug, group_slug):
     if request.method == "POST": 
         groupForm = GroupForm(request.POST)
         if groupForm.is_valid():
+            oldname = group.name #used for log information
             group.name = groupForm.cleaned_data['name']
             group.save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+            description="changed name of group %s to %s for course %s." % (oldname, group.name, group.courseoffering),
+            related_object=group)
+            l.save()
         return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
         
     else:
