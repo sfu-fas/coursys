@@ -57,7 +57,7 @@ def copy_course_setup(request, course_slug):
                     {'course' : course, 'source_course' : source_course,\
                     'source_setup' : source_setup, 'conflicting_activities' : conflicting_acts},\
                     context_instance=RequestContext(request))
-        else: # do the renaming(if needed) and copy   
+        else: # copy   
             source_course = get_object_or_404(CourseOffering, slug = source_slug)
             source_setup = Activity.objects.filter(offering = source_course)                     
             copyCourseSetup(source_course, course)
@@ -122,7 +122,8 @@ def manage_activity_components(request, course_slug, activity_slug):
     if request.method == "POST":     
         formset = ComponentsFormSet(activity, request.POST, queryset = qset)
         
-        if not formset.is_valid() and formset.non_form_errors(): # not caused by error of an individual form
+        if not formset.is_valid(): 
+            if formset.non_form_errors(): # not caused by error of an individual form
                 error_info = formset.non_form_errors()[0] 
         else:          
             # save the formset  
@@ -168,7 +169,8 @@ def manage_common_problems(request, course_slug, activity_slug):
     if request.method == "POST":     
         formset = CommonProblemFormSet(components, request.POST, queryset = qset)
         
-        if not formset.is_valid() and formset.non_form_errors(): # not caused by error of an individual form
+        if not formset.is_valid(): 
+            if formset.non_form_errors(): # not caused by error of an individual form
                 error_info = formset.non_form_errors()[0] 
         else:       
             # save the formset  

@@ -263,6 +263,7 @@ def copy_activity(source_activity, source_course_offering, target_course_offerin
     new_activity = copy.deepcopy(source_activity)
     new_activity.id = None
     new_activity.pk = None
+    new_activity.status = 'URLS'
     new_activity.offering = target_course_offering
     if source_activity.due_date != None:
         week, wkday = source_course_offering.semester.week_weekday(source_activity.due_date)
