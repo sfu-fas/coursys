@@ -17,48 +17,43 @@ class ComponentForm(ModelForm):
 class ArchiveComponentForm(ComponentForm):
     class Meta:
         model = ArchiveComponent
-        fields = ['title', 'description', 'max_size', 'position']
+        fields = ['title', 'description', 'max_size']
         widgets = {
             'description': Textarea(attrs={'cols': 50, 'rows': 5}),
             'max_size': TextInput(attrs={'style':'width:5em'}),
-            'position': TextInput(attrs={'maxlength':'3', 'style':'width:2em'}),
         }
 
 class URLComponentForm(ComponentForm):
     class Meta:
         model = URLComponent
-        fields = ['title', 'description', 'position']
+        fields = ['title', 'description']
         widgets = {
             'description': Textarea(attrs={'cols':50, 'rows':5}),
-            'position': TextInput(attrs={'maxlength':'3', 'style':'width:2em'}),
         }
 
 class CppComponentForm(ComponentForm):
     class Meta:
         model = CppComponent
-        fields = ['title', 'description', 'position']
+        fields = ['title', 'description']
         widgets = {
             'description': Textarea(attrs={'cols':50, 'rows':5}),
-            'position': TextInput(attrs={'maxlength':'3', 'style':'width:2em'}),
         }
 
 class JavaComponentForm(ComponentForm):
     class Meta:
         model = JavaComponent
-        fields = ['title', 'description', 'position']
+        fields = ['title', 'description']
         widgets = {
             'description': Textarea(attrs={'cols':50, 'rows':5}),
-            'position': TextInput(attrs={'maxlength':'3', 'style':'width:2em'}),
         }
 
 class PlainTextComponentForm(ComponentForm):
     class Meta:
         model = PlainTextComponent
-        fields = ['title', 'description', 'max_length', 'position']
+        fields = ['title', 'description', 'max_length']
         widgets = {
             'description': Textarea(attrs={'cols':50, 'rows':5}),
             'max_length': TextInput(attrs={'style':'width:5em'}),
-            'position': TextInput(attrs={'maxlength':'3', 'style':'width:2em'}),
         }
 
 class SubmissionForm(ModelForm):
@@ -67,11 +62,11 @@ class SubmissionForm(ModelForm):
         fields = []
         widgets = {}
     def check_type(self, file):
-        print '!!!'
-        print filetype(file).lower()
-        print file.name[file.name.rfind('.'):].lower()
+        #print '!!!'
+        #print filetype(file).lower()
+        #print file.name[file.name.rfind('.'):].lower()
         if file.name[file.name.rfind('.'):].lower()!= filetype(file).lower():
-            print "fail"
+            #print "fail"
             return False
         for extension in self.component.extension:
             if extension.lower() == filetype(file).lower():
@@ -96,7 +91,7 @@ class SubmittedURLForm(SubmissionForm):
     def clean_url(self):
         url = self.cleaned_data['url']
         if self.check_is_empty(url):
-            raise forms.ValidationError("No submission!")
+            raise forms.ValidationError("No URL given.")
         return url;
 
 class SubmittedArchiveForm(SubmissionForm):
@@ -111,11 +106,11 @@ class SubmittedArchiveForm(SubmissionForm):
     def clean_archive(self):
         data = self.cleaned_data['archive']
         if self.check_is_empty(data):
-            raise forms.ValidationError("No submission!")
+            raise forms.ValidationError("No file submitted.")
         if not self.check_type(data):
-            raise forms.ValidationError('Type not match!')
+            raise forms.ValidationError('File type incorrect.')
         if not self.check_size(data):
-            raise forms.ValidationError("File size exceeded max size, component can not be uploaded!")
+            raise forms.ValidationError("File size exceeded max size, component can not be uploaded.")
         return data
 
 class SubmittedCppForm(SubmissionForm):
@@ -126,9 +121,9 @@ class SubmittedCppForm(SubmissionForm):
     def clean_cpp(self):
         data = self.cleaned_data['cpp']
         if self.check_is_empty(data):
-            raise forms.ValidationError("No submission!")
+            raise forms.ValidationError("No file submitted.")
         if not self.check_type(data):
-            raise forms.ValidationError("Type not match!")
+            raise forms.ValidationError("File type incorrect.")
         return data
 
 class SubmittedJavaForm(SubmissionForm):
@@ -139,9 +134,9 @@ class SubmittedJavaForm(SubmissionForm):
     def clean_java(self):
         data = self.cleaned_data['java']
         if self.check_is_empty(data):
-            raise forms.ValidationError("No submission!")
+            raise forms.ValidationError("No file submitted.")
         if not self.check_type(data):
-            raise forms.ValidationError("Type not match!")
+            raise forms.ValidationError("File type incorrect.")
         return data
 
 class SubmittedPlainTextForm(SubmissionForm):
@@ -156,9 +151,9 @@ class SubmittedPlainTextForm(SubmissionForm):
     def clean_text(self):
         data = self.cleaned_data['text']
         if self.check_is_empty(data):
-            raise forms.ValidationError("No submission!")
+            raise forms.ValidationError("No text submitted.")
         if not self.check_length(data):
-            raise forms.ValidationError("Text Length exceeded max length, text can not be uploaded!")
+            raise forms.ValidationError("Text Length exceeded max length, text can not be uploaded.")
         return data
 
 def make_form_from_list(component_list):
@@ -219,4 +214,4 @@ def make_form_from_data_and_list(request, component_list):
             pair.append(component)
             pair.append(SubmittedPlainTextForm(request.POST, prefix = component.id))
             component_form_list.append(pair)
-    return component_form_list;
+    return component_form_list

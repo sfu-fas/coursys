@@ -13,7 +13,7 @@ import os
 from django.http import HttpResponse
 from dashboard.models import NewsItem
 from django.core.urlresolvers import reverse
-
+from django.db.models import Max
 
 STATUS_CHOICES = [
     ('NEW', 'New'),
@@ -50,6 +50,13 @@ class SubmissionComponent(models.Model):
         "Return xxx of xxxComponent as type"
         class_name = self.__class__.__name__
         return class_name[:class_name.index("Component")]
+        
+    def save(self):
+        if self.position == None:
+            lastpos = SubmissionComponent.objects.filter(activity=self.activity) \
+                    .aggregate(Max('position'))['position__max']
+            self.position = lastpos+1
+        super(SubmissionComponent, self).save()
 
 """
 All the subclasses follow the convention that

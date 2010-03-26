@@ -402,9 +402,6 @@ def add_component(request, course_slug, activity_slug):
             #add component
             new_component = new_form.save(commit=False)
             new_component.activity = activity
-            if new_component.position == None:
-                count = len(select_all_components(activity))
-                new_component.position = count + 1
             new_component.save()
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
