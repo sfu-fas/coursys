@@ -66,7 +66,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
 
 
 #student's submission page
-@requires_course_staff_by_slug
+@requires_course_by_slug
 def add_submission(request, course_slug, activity_slug):
     """
     enable student to upload files to a activity
