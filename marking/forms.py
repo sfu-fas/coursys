@@ -119,7 +119,7 @@ class MarkEntryForm(forms.Form):
     value = forms.DecimalField(max_digits=5, decimal_places=2, required=False)
 
 class UploadGradeFileForm(forms.Form):
-    file = forms.FileField(required=False)
+    file = forms.FileField(required=True)
     
     def clean_file(self):        
         file = self.cleaned_data['file']
@@ -127,3 +127,13 @@ class UploadGradeFileForm(forms.Form):
            (not file.name.endswith('.CSV')):
             raise forms.ValidationError(u"Only .csv files are permitted")
         return file    
+
+from django.utils.safestring import mark_safe
+from grades.forms import _required_star 
+class ActivityRenameForm(forms.Form):
+    name = forms.CharField(required=False, max_length=30, label=mark_safe('Name:'+_required_star),
+                    widget=forms.TextInput(attrs={'size':'30'}))
+    short_name = forms.CharField(required=False, max_length=15, label=mark_safe('Short name:' + _required_star),
+                                widget=forms.TextInput(attrs={'size':'8'}))
+    selected = forms.BooleanField(required=False, label='Rename?', initial = True, 
+                    widget=forms.CheckboxInput(attrs={'class':'rename_check'}))

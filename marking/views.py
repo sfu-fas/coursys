@@ -29,6 +29,47 @@ def _find_setup_conflicts(source_setup, target_setup):
     
     return conflicting_activities
 
+def _check_and_save_renamed_activities(all_activities, conflicting_activities, rename_forms):
+    """        
+    this function check that if it's ok to rename the activities(which conflict with ones in
+    the source course setup) using the new names or new short names in the form.
+    if so, update these activities by saving their new name or short names into database    
+    """
+    names_found = set()
+    short_names_found = set()
+    names_found.update((act.name for act in all_activities if act not in conflicting_activities))
+    short_names_found.update((act.short_name for act in all_activities if act not in conflicting_activities))
+    activities_renamed = []
+    
+    for form in rename_forms:
+        if not form.is_valid():
+            return 'Error found'
+        if form.cleaned_data['selected']:# this conflicting activity is to be renamed
+            new_name = form.cleaned_data['name']
+            new_short_name = form.cleaned_data['short_name'] 
+            if new_name =='' or new_short_name == '':
+                return "Name and short name cannot be empty"
+            if new_name in names_found:
+                return 'Conflicts on name "%s" among the activities in this course' % new_name
+            if new_short_name in short_names_found:
+                return 'Conflicts on short name "%s" among the activities in this course' % new_short_name
+            names_found.add(new_name)
+            short_names_found.add(new_short_name)
+            act = all_activities.get(id=form.prefix)
+            act.name = new_name
+            act.short_name = new_short_name
+            act.slug = None #set to None for regeneration
+            activities_renamed.append(act) 
+        else:# this conflicting activity is not to be renamed, add its name and short name to the set 
+            act = all_activities.get(id=form.prefix)
+            names_found.add(act.name)
+            short_names_found.add(act.short_name)             
+            
+    for act in activities_renamed:
+        act.save()
+    return None
+
+
 @requires_course_staff_by_slug
 def copy_course_setup(request, course_slug):
     userid = request.user.username  
@@ -43,38 +84,52 @@ def copy_course_setup(request, course_slug):
         def label_from_instance(self, obj):
             return "%s" % (obj.offering)
     class CourseSourceForm(forms.Form):
-        course = CourseChoiceField(queryset = courses_qset)
-
-        
+        course = CourseChoiceField(queryset = courses_qset)    
+    
     if request.method == "POST":         
         target_setup = Activity.objects.filter(offering = course)
-        rename_forms = [] 
-        error_info = None
-        
-        source_slug = request.GET.get('copy_from')
-        if source_slug == None: # the source course selected
+        error_info = None        
+        source_slug = request.GET.get('copy_from')       
+        if source_slug == None: # POST request for selecting the source course to copy from
             select_form = CourseSourceForm(request.POST, prefix = "select-form")
             if select_form.is_valid():
                 source_course = select_form.cleaned_data['course'].offering
                 source_setup = Activity.objects.filter(offering = source_course) 
                 conflicting_acts = _find_setup_conflicts(source_setup, target_setup)
-                return render_to_response("marking/copy_course_setup.html",\
-                    {'course' : course, 'source_course' : source_course,\
-                    'source_setup' : source_setup, 'conflicting_activities' : conflicting_acts},\
-                    context_instance=RequestContext(request))
-        else: # copy   
-            source_course = get_object_or_404(CourseOffering, slug = source_slug)
-            source_setup = Activity.objects.filter(offering = source_course)                     
-            copyCourseSetup(source_course, course)
-            messages.add_message(request, messages.SUCCESS, \
-                    "Course Setup copied from %s (%s)" % (source_course.name(), source_course.semester.label(),))
-            return HttpResponseRedirect(reverse('grades.views.course_info', args=(course_slug,)))
-    else:     
-        select_form = CourseSourceForm(prefix = "select-form")  
-    
-    return render_to_response("marking/select_course_setup.html", 
+                rename_forms =[ ActivityRenameForm(prefix=act.id) for act in conflicting_acts ]
+            else:
+                 return render_to_response("marking/select_course_setup.html", 
                              {'course': course, 'select_form': select_form},\
-                             context_instance=RequestContext(request))
+                             context_instance=RequestContext(request))                
+            
+        else: # POST request for renaming and copy    
+            source_course = get_object_or_404(CourseOffering, slug = source_slug)
+            source_setup = Activity.objects.filter(offering = source_course)  
+            conflicting_acts = _find_setup_conflicts(source_setup, target_setup)   
+            
+            if conflicting_acts: # check the renamed activities
+                rename_forms = [ ActivityRenameForm(request.POST, prefix=act.id) for act in conflicting_acts ]
+                error_info = _check_and_save_renamed_activities(target_setup, conflicting_acts, rename_forms)
+            
+            if not error_info:# do the copy !
+                copyCourseSetup(source_course, course)
+                messages.add_message(request, messages.SUCCESS, \
+                        "Course Setup copied from %s (%s)" % (source_course.name(), source_course.semester.label(),))
+                return HttpResponseRedirect(reverse('grades.views.course_info', args=(course_slug,)))
+        
+        if error_info:
+            messages.add_message(request, messages.ERROR, error_info)   
+        
+        return render_to_response("marking/copy_course_setup.html",\
+                {'course' : course, 'source_course' : source_course,\
+                'source_setup' : source_setup, 'conflicting_activities' : zip(conflicting_acts, rename_forms)},\
+                context_instance=RequestContext(request))
+            
+    else: # for GET request
+        select_form = CourseSourceForm(prefix = "select-form")   
+        return render_to_response("marking/select_course_setup.html", 
+                                 {'course': course, 'select_form': select_form},\
+                                 context_instance=RequestContext(request))
 
 def _save_common_problems(formset):
     for form in formset.forms:
@@ -193,17 +248,16 @@ def manage_component_positions(request, course_slug, activity_slug):
     activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)
     components =  ActivityComponent.objects.filter(numeric_activity = activity, deleted=False); 
     
-    forms = []
     if request.method == 'POST':
         if request.is_ajax():
             component_ids = request.POST.getlist('ids[]') 
             position = 1;
             for id in component_ids:
                 comp = get_object_or_404(ActivityComponent, id = id)
-                comp.position = int(position)
+                comp.position = position
                 comp.save()
                 position += 1
-            return HttpResponse("Order of components updated!")
+            return HttpResponse("Order of components updated !")
            
     return render_to_response("marking/component_positions.html",
                               {'course' : course, 'activity' : activity,\

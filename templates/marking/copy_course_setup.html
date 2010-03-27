@@ -1,5 +1,21 @@
 {% extends "marking/base.html" %}
 
+{% block marking_header_extra %}
+<script type="text/javascript">
+$(document).ready(function(){
+ $('.rename_check').each(function(index){ 
+ 	if(!$(this).attr('checked')){
+ 		$(".rename_info:eq(" + index + ")").hide();
+ 	}
+ 	$(this).click(function(){
+ 		$(".rename_info:eq(" + index + ")").slideToggle("fast");
+ 		});
+ });
+});
+</script>
+{% endblock %}
+
+
 {% block title %}Copy Course Setup{% endblock %}
 {% block h1 %}Copy Course Setup{% endblock %}
 
@@ -31,18 +47,25 @@
 	</b>
 	</p>
 </div>
+
 <ul>
-{% for activity in conflicting_activities %}
-	<li>
-	{{activity.name}} ({{activity.short_name}})
-	<span>(<a href="{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}">Edit</a>)</span>
-	</li>
+{% for activity in conflicting_activities %}	
+	{% with activity.1 as form %}
+	<li>	
+		{{activity.0.name}} ({{activity.0.short_name}})&nbsp;{{form.selected}}{{form.selected.label_tag}} 
+	<p class = "rename_info">
+		{{form.name.label_tag}}&nbsp;{{form.name}}
+		{% if form.name.errors %}<span class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/> {{form.name.errors.0}}</span>{% endif %}
+		{{form.short_name.label_tag}}&nbsp;{{form.short_name}}
+		{% if form.short_name.errors %}<span class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/> {{form.short_name.errors.0}}</span>{% endif %}		
+	</p>
+	</li>	
+	{% endwith %}
 {% endfor %}
 </ul> 
 {% endif %}
-
 {% if source_setup %}
-<input class="submit" type="submit" value="Confirm Copy">
+<input class="submit" type="submit" value="Copy">
 {% endif %}
 </form>
 {% endblock %}

@@ -3,11 +3,10 @@
 {% block marking_header_extra %}
 <script type="text/javascript">
 $(document).ready(function() {
-
 	var oTable = $('#all_marks').dataTable({
 		"bJQueryUI": true,
 		"bSort": false,
-		"bPaginate": false,	/* turn off the pagination */
+		"bPaginate": false	/* turn off the pagination */
 	});		
 		
 	var oRows = oTable.fnGetNodes();
