@@ -126,6 +126,4 @@ class UploadGradeFileForm(forms.Form):
         if file != None and (not file.name.endswith('.csv')) and\
            (not file.name.endswith('.CSV')):
             raise forms.ValidationError(u"Only .csv files are permitted")
-        return file
-            
-                          
+        return file    

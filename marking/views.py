@@ -90,7 +90,6 @@ def _save_common_problems(formset):
             instance = form.save()
 
 def _save_components(formset, activity):
-    position = 1;
     total_mark = 0;
     for form in formset.forms:
         try:  # title is required, empty title triggers KeyError and don't consider this row
@@ -102,10 +101,6 @@ def _save_components(formset, activity):
             instance.numeric_activity = activity
             if not instance.deleted:
                 total_mark += instance.max_mark
-                instance.position = position
-                position += 1                
-            else:
-                instance.position = None
             instance.save()
     return total_mark      
 
@@ -192,6 +187,29 @@ def manage_common_problems(request, course_slug, activity_slug):
                               {'course' : course, 'activity' : activity, 
                               'components': components, 'formset' : formset },\
                               context_instance=RequestContext(request))
+
+def manage_component_positions(request, course_slug, activity_slug): 
+    course = get_object_or_404(CourseOffering, slug = course_slug)
+    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)
+    components =  ActivityComponent.objects.filter(numeric_activity = activity, deleted=False); 
+    
+    forms = []
+    if request.method == 'POST':
+        if request.is_ajax():
+            component_ids = request.POST.getlist('ids[]') 
+            position = 1;
+            for id in component_ids:
+                comp = get_object_or_404(ActivityComponent, id = id)
+                comp.position = int(position)
+                comp.save()
+                position += 1
+            return HttpResponse("Order of components updated!")
+           
+    return render_to_response("marking/component_positions.html",
+                              {'course' : course, 'activity' : activity,\
+                               'components': components, 'components': components},\
+                               context_instance=RequestContext(request))
+    
     
 def _initialize_component_mark_forms(components, base_activity_mark=None):
     

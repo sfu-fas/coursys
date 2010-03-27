@@ -4,9 +4,8 @@
 {% block marking_header_extra %}
 <script type="text/javascript">
 	var component_ids = new Array();
-	var component_max_marks = new Array();
-	
-	function find_index(id){
+	var component_max_marks = new Array();	
+	function find_component_index(id){
 		for(var i = 1; i< component_ids.length; i++)
 			if(component_ids[i] == id)
 				return i;
@@ -14,10 +13,11 @@
 	}
 	
     $(document).ready(function() {
-		oTable = $('#common_problems').dataTable({
+		var oTable = $('#common_problems').dataTable({
 			"bJQueryUI": true,
-			"bSort": false,
-			"bPaginate": false, /* turn off the pagination */	
+			"bSort": false,			
+			"bFilter": false,
+			"bPaginate": false /* turn off the pagination */	
 		});		
 		
 		{%for component in components%}
@@ -30,7 +30,7 @@
 		$('select').each(function(index){
 		    var selected = $(this).val();
 			if(selected > 0){
-				var index = find_index(selected);
+				var index = find_component_index(selected);
 				$(this).parent().children('p').html("total: " + component_max_marks[index]);
 			}
 		});
@@ -40,7 +40,7 @@
 		    var info = $(this).parent().children('p');	 
 		    info.hide();
 		    if(selected > 0){ /*some component selected*/
-		    	var index = find_index(selected);		    	
+		    	var index = find_component_index(selected);		    	
 				info.html("total: " + component_max_marks[index]);				
 				info.show();				
 			}

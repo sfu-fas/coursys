@@ -4,10 +4,11 @@
 {% block marking_header_extra %}
 <script type="text/javascript">
     $(document).ready(function() {
-	oTable = $('#activity_components').dataTable({
+	var oTable = $('#activity_components').dataTable({
 		"bJQueryUI": true,
 		"bSort": false,
-		"bPaginate": false,/* turn off the pagination */
+		"bFilter": false,
+		"bPaginate": false/* turn off the pagination */
 	});
     });
 </script>
@@ -19,6 +20,10 @@
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }} ({{course.semester.label}})</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug, activity_slug=activity.slug %}">{{activity.name}}</a></li><li>&gt; Marking Components</li>{% endblock %}
 
 {% block content %}
+<ul id="form_nav">
+    <li class="current"><a href="{% url marking.views.manage_activity_components course_slug=course.slug activity_slug=activity.slug %}">Edit Components Content</a></li>  
+    <li><a href="{% url marking.views.manage_component_positions course_slug=course.slug activity_slug=activity.slug %}">Edit Components Order</a></li>  
+</ul>
 <form action="" method="post">  
      <div class="datatable_container"> 
      {{ formset.management_form }} 
@@ -41,10 +46,6 @@
         </tbody>
       </table>
    </div>   
-   <div>
-   <input class ="submit" type="submit" value="Submit" />
-   </div>
+<input class ="submit" type="submit" value="Submit" />
 </form>  
-<a class="redbutton reset_button" href="{% url marking.views.manage_activity_components course_slug=course.slug, activity_slug=activity.slug %}" >Reset</a>
-
 {% endblock %}
