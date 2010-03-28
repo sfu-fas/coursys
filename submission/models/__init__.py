@@ -6,20 +6,17 @@ from groups.models import Group,GroupMember
 from datetime import datetime
 from autoslug import AutoSlugField
 
-
 from django.shortcuts import get_object_or_404
 from django.core.servers.basehttp import FileWrapper
 import zipfile
 import tempfile
 import os
 from django.http import HttpResponse
-from dashboard.models import NewsItem
-from django.core.urlresolvers import reverse
 
 from base import SubmissionComponent, Submission, StudentSubmission, GroupSubmission, SubmittedComponent
+
 from url import *
 from archive import *
-
 ALL_TYPE_CLASSES = [Archive, URL]
 
 def find_type_by_label(label):
@@ -201,25 +198,35 @@ def get_component(**kwargs):
 #            return c
 #    return None
 
-def get_current_submission(userid, activity):
+def get_current_submission(student, activity):
     """
     return a list of pair[component, latest_submission(could be None)]
     """
+    # find most recent submission (individual or group)
+    try:
+        submission = StudentSubmission.objects.filter(activity=activity, member__person=student).latest('created_at')
+    except StudentSubmission.DoesNotExist:
+        groups = Group.objects.filter(groupmember__student__person=student, groupmember__confirmed=True)
+        try:
+            submission = GroupSubmission.objects.filter(activity=activity, group__in=groups).latest('created_at')
+        except GroupSubmission.DoesNotExist:
+            submission = None
+
     component_list = select_all_components(activity)
-    all_submitted = select_students_submitted_components(activity, userid)
-    #TODO: group submission
-    submitted_pair_list = []
+    
+    #all_submitted = select_students_submitted_components(activity, userid)
+    submitted_components = []
     for component in component_list:
-        pair = []
-        pair.append(component)
-        c = [sub for sub in all_submitted if sub.component == component]
-        c.sort()
-        if len(c) == 0:
-            pair.append(None)
+        SubmittedComponent = component.Type.SubmittedComponent
+        submits = SubmittedComponent.objects.filter(component=component, submission=submission)
+        if submits:
+            sub = submits[0]
         else:
-            pair.append(c[0])
-        submitted_pair_list.append(pair)
-    return submitted_pair_list
+            # this component didn't get submitted
+            sub = None
+
+        submitted_components.append((component, sub))
+    return submission, submitted_components
 
 def get_submit_time_and_owner(activity, pair_list):
     """

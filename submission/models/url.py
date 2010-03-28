@@ -1,6 +1,7 @@
 from base import *
 import submission.forms
 from django.forms.widgets import Textarea, TextInput
+from django import forms
 
 # model objects must be defined at top-level so Django notices them for DB creation, etc.
 class URLComponent(SubmissionComponent):
@@ -15,7 +16,7 @@ class SubmittedURL(SubmittedComponent):
     def get_url(self):
         return self.url
     def get_size(self):
-        return None        
+        return None    
 
 # class containing all pieces for this submission type
 class URL:

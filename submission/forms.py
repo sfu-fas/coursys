@@ -57,6 +57,10 @@ class ComponentForm(ModelForm):
 #        }
 
 class SubmissionForm(ModelForm):
+    # Set self.component to the corresponding Component object before doing validation.
+    # e.g. "thisform.component = URLComponent.objects...."
+    # This is automatically lhandled by make_form_from_list
+    component = None
     class Meta:
         model = SubmittedComponent
         fields = []
@@ -65,14 +69,12 @@ class SubmissionForm(ModelForm):
         #print '!!!'
         #print filetype(file).lower()
         #print file.name[file.name.rfind('.'):].lower()
-        if file.name[file.name.rfind('.'):].lower()!= filetype(file).lower():
-            #print "fail"
-            return False
-        for extension in self.component.extension:
-            if extension.lower() == filetype(file).lower():
-                
+        #if file.name[file.name.rfind('.'):].lower()!= filetype(file).lower():
+        #    return False
+        #for extension in self.component.extension:
+        #    if extension.lower() == filetype(file).lower():
                 return True
-        return False
+        #return False
     def check_is_empty(self, data):
         if data == None:
             return True
@@ -156,40 +158,16 @@ class SubmissionForm(ModelForm):
 #            raise forms.ValidationError("Text Length exceeded max length, text can not be uploaded.")
 #        return data
 
-def make_form_from_list(component_list):
+def make_form_from_list(component_list, request=None):
     component_form_list = []
     for component in component_list:
         Type = component.Type
-        data = {'comp':component, 'form':Type.SubmissionForm(prefix=component.id)}
+        if request:
+            form = Type.SubmissionForm(request.POST, request.FILES, prefix=component.id)
+        else:
+            form = Type.SubmissionForm(prefix=component.id)
+        form.component = component
+        data = {'comp':component, 'form':form}
         component_form_list.append(data)
     return component_form_list
 
-def make_form_from_data_and_list(request, component_list):
-    component_form_list = []
-    for component in component_list:
-        if component.get_type() == 'URL':
-            pair = []
-            pair.append(component)
-            pair.append(SubmittedURLForm(request.POST, prefix=component.id))
-            component_form_list.append(pair)
-        elif component.get_type() == 'Archive':
-            pair = []
-            pair.append(component)
-            pair.append(SubmittedArchiveForm(request.POST, request.FILES,prefix = component.id))
-            component_form_list.append(pair)
-        elif component.get_type() == 'Cpp':
-            pair = []
-            pair.append(component)
-            pair.append(SubmittedCppForm(request.POST, request.FILES, prefix = component.id))
-            component_form_list.append(pair)
-        elif component.get_type() == 'Java':
-            pair = []
-            pair.append(component)
-            pair.append(SubmittedJavaForm(request.POST, request.FILES, prefix = component.id))
-            component_form_list.append(pair)
-        elif component.get_type() == 'PlainText':
-            pair = []
-            pair.append(component)
-            pair.append(SubmittedPlainTextForm(request.POST, prefix = component.id))
-            component_form_list.append(pair)
-    return component_form_list

@@ -16,7 +16,7 @@
         <legend>Activity Submission</legend>
         {% for data in component_form_list %}
             <h3>{{data.comp.title}}</h3>
-            <p>{{data.comp.description}}</p>
+            {% if data.comp.description %}<p>{{data.comp.description}}</p>{% endif %}
             {{data.form.as_p}}
         {% endfor %}
     <input type ="submit" value ="Submit" class ="submit"/>

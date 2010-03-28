@@ -1,17 +1,21 @@
 from base import *
 import submission.forms
 from django.forms.widgets import Textarea, TextInput, FileInput
+from django import forms
+
 
 class ArchiveComponent(SubmissionComponent):
     "An archive file (TGZ/ZIP/RAR) submission component"
-    max_size = models.PositiveIntegerField(help_text="Maximum size of the archive file, in KB.", null=True, default=10000)
+    max_size = models.PositiveIntegerField(help_text="Maximum size of the archive file, in kB.", null=False, default=10000)
     extension = [".zip", ".rar", ".gzip", ".tar"]
     class Meta:
         app_label = 'submission'
 
+
 class SubmittedArchive(SubmittedComponent):
     component = models.ForeignKey(ArchiveComponent, null=False)
-    archive = models.FileField(upload_to="submittedarchive", blank = True) # TODO: change to a more secure directory
+    archive = models.FileField(upload_to=submission_upload_path, blank = True, storage=SubmissionSystemStorage) # TODO: change to a more secure directory
+        
     class Meta:
         app_label = 'submission'
     def get_url(self):

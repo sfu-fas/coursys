@@ -39,7 +39,6 @@
                 <td>
                     {{activity.name}}
                     <span>(<a href="{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}">Edit</a>) </span> 
-                    <span>(<a href="{% url grades.views.delete_activity_review course_slug=course.slug activity_slug=activity.slug %}">Delete</a>)</span>
                 </td>
             </tr>
             <tr>

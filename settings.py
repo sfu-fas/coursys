@@ -116,7 +116,9 @@ INSTALLED_APPS = (
 #MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 MESSAGE_STORAGE = 'contrib.messages.storage.session.SessionStorage' # temp: replace with above after 1.2 release
 
+
 if DEBUG:
+    SUBMISSION_PATH = "submitted_files"
     INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.admin',)
 
 CAS_SERVER_URL = "https://cas.sfu.ca/cgi-bin/WebObjects/cas.woa/wa/"

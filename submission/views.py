@@ -5,7 +5,6 @@ from django.shortcuts import render_to_response, get_object_or_404#, redirect
 from django.template import RequestContext
 from django.http import HttpResponseRedirect, QueryDict
 from courselib.auth import requires_course_by_slug,requires_course_staff_by_slug, ForbiddenResponse, NotFoundResponse
-from courses.submission.forms import make_form_from_data_and_list
 from submission.forms import *
 from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug
 from submission.models import *
@@ -48,20 +47,22 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
     activity = get_object_or_404(course.activity_set,slug = activity_slug)
     student = get_object_or_404(Person, userid=userid)
 
-    submitted_pair_list = get_current_submission(userid, activity)
-    late, submit_time, owner = get_submit_time_and_owner(activity, submitted_pair_list)
+    submission, submitted_components = get_current_submission(student, activity)
+    if len(submitted_components) == 0:
+        return NotFoundResponse(request)
 
-    if len(submitted_pair_list) == 0:
-        messages.add_message(request, messages.WARNING, 'There is no submittable component of this activity.')
+    if submission and activity.due_date and activity.due_date < submission.created_at:
+        late = submission.created_at - activity.due_date
     else:
-        group_member = GroupMember.objects.all().filter(student__person__userid=userid)\
-                                            .filter(confirmed=True)\
-                                            .filter(activity=activity)
-        if len(group_member) > 0:
-            messages.add_message(request, messages.WARNING, "This is a group submission. Your will submit on behalf of all your group members.")
+        late = 0
+
+    group = None
+    if isinstance(submission, GroupSubmission):
+        group = submission.group
+        messages.add_message(request, messages.WARNING, "This is a group submission. Your will submit on behalf of all your group members.")
 
     return render_to_response("submission/" + template,
-        {"course":course, "activity":activity, "submitted_pair":submitted_pair_list, "userid":userid, "submit_time":submit_time, "late":late, "student":student, "owner":owner, "group_member":group_member},
+        {"course":course, "activity":activity, "submission": submission, "submitted_components":submitted_components, "userid":userid, "late":late, "student":student, "group":group},
         context_instance=RequestContext(request))
 
 
@@ -81,62 +82,74 @@ def add_submission(request, course_slug, activity_slug):
                                             .filter(confirmed=True)\
                                             .filter(activity=activity)
     if len(group_member) > 0:
-        group = group_member[0]
-        messages.add_message(request, messages.WARNING, "This is a group submission. Your will submit on behalf of all your group members.")
+        group_member = group_member[0]
     else:
-        group = None
+        group_member = None
 
     if request.method == 'POST':
-        component_form_list = make_form_from_data_and_list(request, component_list)
+        component_form_list = make_form_from_list(component_list, request=request)
         submitted_comp = []    # list all components which has content submitted in the POST
         not_submitted_comp = [] #list allcomponents which has no content submitted in the POST
-        if group == None:
+        if group_member is None:
             new_sub = StudentSubmission()   # the submission foreign key for newly submitted components
-            member = Member.objects.filter(person__userid = request.user.username)
-            new_sub.member = get_object_or_404(member, offering__slug = course_slug)
+            new_sub.member = get_object_or_404(Member, offering__slug=course_slug, person__userid=request.user.username)
         else:
             new_sub = GroupSubmission()
-            new_sub.group = group.group
-            new_sub.creator = group
+            new_sub.group = group_member.group
+            new_sub.creator = group_member
         new_sub.activity = activity
         new_sub_saved = False
         
-        for form in component_form_list:
-            form[1].component = form[0]
-            if form[1].is_valid():
+        for data in component_form_list:
+            component = data['comp']
+            form = data['form']
+
+            #form[1].component = form[0]
+            if form.is_valid():
                 #save the froeign submission first at the first time a submission conponent is read in
                 if new_sub_saved == False:
                     # save the submission forgein key
                     new_sub_saved = True
                     new_sub.save()
-                if form[0].get_type() == 'URL' :
-                    file = request.POST.get(str(form[0].id) + '-' + form[0].get_type().lower())
-                    sub = SubmittedURL()        #submitted component
-                    sub.url = file
-                elif form[0].get_type() == 'PlainText':
-                    file = request.POST.get(str(form[0].id) + '-' + 'text')
-                    sub = SubmittedPlainText()
-                    sub.text = file
-                else:
-                    file = request.FILES.get(str(form[0].id) + '-' + form[0].get_type().lower())
-                    if form[0].get_type() == 'Archive':
-                        sub = SubmittedArchive()
-                        sub.archive = file
-                        sub._meta.get_field('archive').upload_to = "submission/%s/%s/%s/%s" %(course.slug, activity.slug, request.user.username,new_sub.id)
-                    if form[0].get_type() == 'Cpp':
-                        sub = SubmittedCpp()
-                        sub.cpp = file
-                        sub._meta.get_field('cpp').upload_to = "submission/%s/%s/%s/%s" %(course.slug, activity.slug, request.user.username,new_sub.id)
-                    if form[0].get_type() =='Java':
-                        sub = SubmittedJava()
-                        sub.java = file
-                        sub._meta.get_field('java').upload_to = "submission/%s/%s/%s/%s" %(course.slug, activity.slug, request.user.username,new_sub.id)
-                sub.submission = new_sub    #point to the submission foreign key
-                sub.component = form[0]
+                
+                #SubmittedComponent = component.Type.SubmittedComponent
+                sub = form.save(commit=False)
+                sub.submission = new_sub
+                sub.component = component
+                
                 sub.save()
-                submitted_comp.append(form[0])
+                
+                #sub = SubmittedComponent()
+                #sub.build_from_submission(request.POST, form)
+                
+                #if form[0].get_type() == 'URL' :
+                #    file = request.POST.get(str(form[0].id) + '-' + form[0].get_type().lower())
+                #    sub = SubmittedURL()        #submitted component
+                #    sub.url = file
+                #elif form[0].get_type() == 'PlainText':
+                #    file = request.POST.get(str(form[0].id) + '-' + 'text')
+                #    sub = SubmittedPlainText()
+                #    sub.text = file
+                #else:
+                #    file = request.FILES.get(str(form[0].id) + '-' + form[0].get_type().lower())
+                #    if form[0].get_type() == 'Archive':
+                #        sub = SubmittedArchive()
+                #        sub.archive = file
+                #        sub._meta.get_field('archive').upload_to = "submission/%s/%s/%s/%s" %(course.slug, activity.slug, request.user.username,new_sub.id)
+                #    if form[0].get_type() == 'Cpp':
+                #        sub = SubmittedCpp()
+                #        sub.cpp = file
+                #        sub._meta.get_field('cpp').upload_to = "submission/%s/%s/%s/%s" %(course.slug, activity.slug, request.user.username,new_sub.id)
+                #    if form[0].get_type() =='Java':
+                #        sub = SubmittedJava()
+                #        sub.java = file
+                #        sub._meta.get_field('java').upload_to = "submission/%s/%s/%s/%s" %(course.slug, activity.slug, request.user.username,new_sub.id)
+                #sub.submission = new_sub    #point to the submission foreign key
+                #sub.component = form[0]
+                #sub.save()
+                submitted_comp.append(sub)
                 #LOG EVENT#
-                if group != None:
+                if group_member != None:
                     group_str = " as a member of group %s" % new_sub.group.name
                 else:
                     group_str = ""
@@ -145,14 +158,22 @@ def add_submission(request, course_slug, activity_slug):
                       related_object=sub)
                 l.save()
             else:
-                not_submitted_comp.append(form[0])
+                not_submitted_comp.append(component)
+        #print component_form_list[1]['form'].errors.keys()
+        #print component_form_list[1]['form'].errors.values()
+        
+        if len(not_submitted_comp) == 0:
+            messages.add_message(request, messages.SUCCESS, "Your submission was successful.")
+            return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
+        
         return render_to_response("submission/submission_error.html",
             {"course":course, "activity":activity, "component_list":component_form_list,
             "submitted_comp":submitted_comp, "not_submitted_comp":not_submitted_comp},
             context_instance=RequestContext(request))
     else: #not POST
+        if group_member:
+            messages.add_message(request, messages.WARNING, "This is a group submission. Your will submit on behalf of all your group members.")
         component_form_list = make_form_from_list(component_list)
-        c = component_form_list[0]
         return render_to_response("submission/submission_add.html",
         {'component_form_list': component_form_list, "course": course, "activity": activity},
         context_instance = RequestContext(request))
@@ -239,31 +260,31 @@ def _show_components_staff(request, course_slug, activity_slug):
         context_instance=RequestContext(request))
 
 
-@requires_course_staff_by_slug
-def confirm_remove(request, course_slug, activity_slug):
-    course = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(course.activity_set, slug = activity_slug)
-    component_list = select_all_components(activity)
+#@requires_course_staff_by_slug
+#def confirm_remove(request, course_slug, activity_slug):
+#    course = get_object_or_404(CourseOffering, slug=course_slug)
+#    activity = get_object_or_404(course.activity_set, slug = activity_slug)
+#    component_list = select_all_components(activity)
     
-    #show confirm message
-    del_id = request.GET.get('id')
-    del_type = request.GET.get('type')
-    component = check_component_id_type_activity(component_list, del_id, del_type, activity)
+#    #show confirm message
+#    del_id = request.GET.get('id')
+#    del_type = request.GET.get('type')
+#    component = check_component_id_type_activity(component_list, del_id, del_type, activity)
 
-    #if confirmed
-    if request.method == 'POST' and component != None:
-        component.delete()
-        #LOG EVENT#
-        l = LogEntry(userid=request.user.username,
-              description=("deleted %s component %s") % (activity, component.title),
-              related_object=component)
-        l.save()
-        messages.add_message(request, messages.SUCCESS, 'Component "' +  component.title + '" removed.')
-        return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
+#    #if confirmed
+#    if request.method == 'POST' and component != None:
+#        component.delete()
+#        #LOG EVENT#
+#        l = LogEntry(userid=request.user.username,
+#              description=("deleted %s component %s") % (activity, component.title),
+#              related_object=component)
+#        l.save()
+#        messages.add_message(request, messages.SUCCESS, 'Component "' +  component.title + '" removed.')
+#        return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
 
-    return render_to_response("submission/component_remove.html",
-            {"course":course, "activity":activity, "component":component, "del_id":del_id},
-            context_instance=RequestContext(request))
+#    return render_to_response("submission/component_remove.html",
+#            {"course":course, "activity":activity, "component":component, "del_id":del_id},
+#            context_instance=RequestContext(request))
 
 
 @requires_course_staff_by_slug

@@ -6,12 +6,19 @@ from groups.models import Group,GroupMember
 from datetime import datetime
 from autoslug import AutoSlugField
 from django.db.models import Max
+from dashboard.models import NewsItem
+from django.core.urlresolvers import reverse
+import os.path
+from django.conf import settings
+
 
 STATUS_CHOICES = [
     ('NEW', 'New'),
     ('INP', 'In-Progress'),
     ('DON', 'Marked') ]
 
+from django.core.files.storage import FileSystemStorage
+SubmissionSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
 # per-activity models, defined by instructor:
 
@@ -38,7 +45,7 @@ class SubmissionComponent(models.Model):
         return class_name[:class_name.index("Component")]
         
     def save(self):
-        if self.position == None:
+        if self.position is None:
             lastpos = SubmissionComponent.objects.filter(activity=self.activity) \
                     .aggregate(Max('position'))['position__max']
             if lastpos is None:
@@ -108,14 +115,36 @@ class GroupSubmission(Submission):
         for member in member_list:
             n = NewsItem(user = member.student.person, author=self.creator.student.person, course=member.group.courseoffering,
                 source_app="group submission", title="New Group Submission",
-                content="Your group member %s has new submission for %s."
-                    % (self.creator.student.person,self.activity),
+                content="Your group member %s has made a submission for %s."
+                    % (self.creator.student.person.name(), self.activity.name),
                 url=reverse('submission.views.show_components', kwargs={'course_slug': self.group.courseoffering.slug, 'activity_slug': member.activity.slug})
                 )
             n.save()
 
 
 # parts of a submission, created as part of a student/group submission
+
+def submission_upload_path(instance, filename):
+    """
+    Return the filename to upload any submitted file.
+    """
+    if hasattr(instance.submission, 'group'):
+        # a group submission: use the group slug to identify
+        usergroup = instance.submission.group.slug
+    else:
+        # an individual submission: use the userid to identify
+        usergroup = instance.submission.member.person.userid
+
+    fullpath = os.path.join(
+            settings.SUBMISSION_PATH,
+            instance.component.activity.offering.slug,
+            instance.component.activity.slug,
+            usergroup,
+            instance.submission.created_at.strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.submission.id),
+            instance.component.slug,
+            filename)
+    return fullpath
+
 
 class SubmittedComponent(models.Model):
     """

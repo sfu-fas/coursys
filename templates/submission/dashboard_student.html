@@ -1,46 +1,43 @@
 {% extends "submission/base.html" %}
 
+{% block title %}Submission for {{activity.name}}{% endblock %}
 {% block h1 %}Submission for {{activity.name}}{% endblock %}
 
-{% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{course.name}}</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug, activity_slug=activity.slug %}">{{activity.name}}</a></li><li>&gt; Submission</li>
-{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{course.name}}</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug, activity_slug=activity.slug %}">{{activity.name}}</a></li><li>&gt; Submission</li>{% endblock %}
 
 {% block content%}
 
 {% ifequal submitted_pair|length 0 %}
     {# there is no component #}
 {% else %}
-
-        {% block studentinfo %}
-        {% endblock %}
-
-        {% block time %}
-        <table id="time_block">
+        <div class="table_container">
+        <table class="info">
             <tr>
-                <td><h3>Due Date:</h3></td>
-                <td>{{activity.due_date}}</td>
+                <th scope="row">Due Date:</th>
+                <td>{{activity.due_date|date:"Y-m-d H:i:s"}}</td>
             </tr>
             <tr>
-                <td><h3>Latest Submission:</h3></td>
-                <td>{% if submit_time%} {{submit_time|date:"Y-m-d"}} {{submit_time|time:"H:i:s"}} {% else %} No Submission {% endif %}</td>
+                <th scope="row">Latest Submission:</th>
+                <td>{% if submission %} {{submission.created_at|date:"Y-m-d H:i:s"}} {% else %} No Submission {% endif %}</td>
             </tr>
             {% if late %}
             <tr id="late_for">
-                <td><h3>Late for:</h3></td>
-                <td>{{activity.due_date|timesince:submit_time}}</td>
+                <th scope="row">Late for:</th>
+                <td>{{late}}</td>
             </tr>
             {% endif %}
-            {% block current_time %}
             <tr>
-                <td><h3>Current Time:</h3></td>
+                <th scope="row">Current Time:</th>
                 <td>{% now "Y-m-d H:i:s" %}</td>
             </tr>
-            {% endblock %}
-            {% block owner %}
-            {% endblock %}
+            {% if group %}
+            <tr>
+                <th scope="row">Group:</th>
+                <td>{{group.name}}</td>
+            </tr>
+            {% endif %}
         </table>
-        {% endblock %}
+        </div>
 
         {% block navbutton %}
         <div id="my_submission_dashboard"><h1>My Submission</h1>
@@ -58,8 +55,8 @@
         <div id="component_view_student_container">
 
         {# <!-- pair<component, its latest submission> --> #}
-        {% for pair in submitted_pair %}
-        <h2>{{forloop.counter}}. {{pair.0.title}}</h2>
+        {% for pair in submitted_components %}
+        <h2>{{pair.0.title}}</h2>
         <h3>{{pair.0.get_type}} Component</h3>
         <ul class="component_description">
             <li class="view"><label>Description:</label>{{pair.0.description}}</li>
@@ -70,7 +67,7 @@
         {% ifequal pair.1 None %}
             <div class="warningindicator">
                 <img src="{{MEDIA_URL}}icons/cancel.png" alt="warning" />
-                You haven't made any submission to this component.
+                You haven't made a submission for this component.
             </div>
         {% else %}
             <div class="successindicator">

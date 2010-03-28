@@ -148,6 +148,7 @@ class GradesTest(TestCase):
         # add some assignments and members
         a = NumericActivity(name="Assignment 1", short_name="A1", status="RLS", offering=c, position=2, max_grade=15, percent=10)
         a.save()
+        a1=a
         a = NumericActivity(name="Assignment 2", short_name="A2", status="URLS", offering=c, position=6, max_grade=20)
         a.save()
         p = Person.objects.get(userid="ggbaker")
@@ -162,18 +163,18 @@ class GradesTest(TestCase):
         client.login(ticket="ggbaker", service=CAS_SERVER_URL)
 
         response = basic_page_tests(self, client, '/' + c.slug + '/')
-        self.assertContains(response, 'href="/' + c.slug + '/groups"')
+        self.assertContains(response, 'href="' + reverse('groups.views.groupmanage', kwargs={'course_slug':c.slug}) +'"')
 
-        basic_page_tests(self, client, '/' + c.slug + '/a1')
-        basic_page_tests(self, client, '/' + c.slug + '/a1/students/0kvm')
-        basic_page_tests(self, client, '/' + c.slug + '/new_numeric')
-        basic_page_tests(self, client, '/' + c.slug + '/new_letter')
+        basic_page_tests(self, client, a1.get_absolute_url())
+        basic_page_tests(self, client, a1.get_absolute_url() + '/students/0kvm')
+        basic_page_tests(self, client, reverse('grades.views.add_numeric_activity', kwargs={'course_slug':c.slug}))
+        basic_page_tests(self, client, reverse('grades.views.add_letter_activity', kwargs={'course_slug':c.slug}))
 
         # test student pages
         client = Client()
         client.login(ticket="0kvm", service=CAS_SERVER_URL)
         response = basic_page_tests(self, client, '/' + c.slug + '/')
         self.assertContains(response, "Gregory Garnet Baker")
-        self.assertContains(response, 'href="/' + c.slug + '/groups"')
+        self.assertContains(response, 'href="' + reverse('groups.views.groupmanage', kwargs={'course_slug':c.slug}) +'"')
 
 
