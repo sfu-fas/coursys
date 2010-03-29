@@ -296,7 +296,7 @@ def edit_single(request, course_slug, activity_slug):
     #get component
     edit_id = request.GET.get('id')
     component = get_component(activity=activity, id=edit_id)
-    if component == None:
+    if component is None:
         return NotFoundResponse(request)
 
     form = component.Type.ComponentForm(instance=component)
@@ -408,45 +408,68 @@ def add_component(request, course_slug, activity_slug):
         {"course":course, "activity":activity, "form":form, "type":Type, "types": ALL_TYPE_CLASSES},
         context_instance=RequestContext(request))
 
+def get_submission(submission_id):
+    try:
+        return StudentSubmission.objects.get(id=submission_id)
+    except StudentSubmission.DoesNotExist:
+        try:
+            return GroupSubmission.objects.get(id=submission_id)
+        except GroupSubmission.DoesNotExist:
+            return None
+    
+
+
 @requires_course_by_slug
-def download_file(request, course_slug, activity_slug, userid):
+def download_file(request, course_slug, activity_slug, component_slug=None, submission_id=None, userid=None):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set, slug = activity_slug)
     
-    type = request.GET.get('type') #targeted file type
-    id = request.GET.get('id') #targeted submitted component id
-    #student_id = request.GET.get('user-id') #targeted student
-    group_id = request.GET.get('group-id') #targeted group
+    # find the appropriate submission object
+    if submission_id:
+        # explicit request: get that one.
+        submission = get_submission(submission_id)
+        if not submission:
+            return NotFoundResponse(request)
+        submitted_components = get_submission_components(submission)
 
-    if not _check_me_or_member(request, userid, course, activity):
-        return ForbiddenResponse(request)
-
-    # download as (file type + submitted id)
-    if type != None:
-        return download_single_component(type, id)
-
-    #download current submission as a zip file for userid='id'
-    if userid != None:
+    elif userid:
+        # userid specified: get their most recent submission
         student = get_object_or_404(Person, userid=userid)
+        submission, submitted_components = get_current_submission(student, activity)
+        if not submission:
+            return NotFoundResponse(request)
+    
     else:
-        get_object_or_404(Group, group_id)
-        #TODO: group submission
+        return NotFoundResponse(request)
 
-    #TODO: modify the function to work for group submission
-    submitted_pair_list = get_current_submission(userid, activity)
-    # if no submission, jump to the other page
-    no_submission = True
-    for pair in submitted_pair_list:
-        if pair[1] != None:
-            no_submission = False
-            break
-    if no_submission == True:
-        return render_to_response("submission/download_error_no_submission.html",
-        {"course":course, "activity":activity, "student":student},
-        context_instance=RequestContext(request))
+    
+    # make sure this user is allowed to see the file
+    if is_course_staff_by_slug(request.user, course_slug):
+        pass
+    elif isinstance(submission, GroupSubmission):
+        membership = submission.group.groupmember_set.filter(student__person__userid=request.user.username, confirmed=True)
+        if not membership:
+            return ForbiddenResponse(request)
+    elif isinstance(submission, StudentSubmission):
+        if submission.member.person.userid != request.user.username:
+            return ForbiddenResponse(request)
 
-    #return a zip file containing all components
-    return generate_zip_file(submitted_pair_list, userid, activity_slug)
+    # create the result
+    if component_slug:
+        # download single component if specified
+        # get the actual component: already did the searching above, so just look in that list
+        components = [sub for comp,sub in submitted_components if sub.component.slug==component_slug]
+        if not components:
+            return NotFoundResponse(request)
+        return components[0].download_response()
+    else:
+        # no component specified: give back the full ZIP file.
+        return generate_zip_file(submission, submitted_components)
+
+    #if no_submission == True:
+    #    return render_to_response("submission/download_error_no_submission.html",
+    #    {"course":course, "activity":activity, "student":student},
+    #    context_instance=RequestContext(request))
 
 @requires_course_staff_by_slug
 def show_student_submission_staff(request, course_slug, activity_slug, userid):

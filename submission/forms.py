@@ -56,6 +56,37 @@ class ComponentForm(ModelForm):
 #            'max_length': TextInput(attrs={'style':'width:5em'}),
 #        }
 
+
+def filetype(fh):
+    """
+    Do some magic to guess the filetype.  Argument must be an open file-like object.
+    """
+    # methods extracted from the magic file (/usr/share/file/magic)
+    # why not just check the filename?  Students seem to randomly rename.
+    fh.seek(0)
+    magic = fh.read(4)
+    if magic=="PK\003\004" or magic=="PK00":
+        return "ZIP"
+    elif magic=="Rar!":
+        return "RAR"
+    elif magic[0:2]=="\037\213":
+        fh.seek(0)
+        gzfh = gzip.GzipFile(filename="filename", fileobj=fh)
+        gzfh.seek(257)
+        if gzfh.read(5)=="ustar":
+            return "TGZ"
+        else:
+            return "GZIP"
+    elif magic=="%PDF":
+        return "PDF"
+  
+    fh.seek(257)
+    if fh.read(5)=="ustar":
+        return "TAR"
+
+    return None
+
+
 class SubmissionForm(ModelForm):
     # Set self.component to the corresponding Component object before doing validation.
     # e.g. "thisform.component = URLComponent.objects...."
@@ -65,16 +96,34 @@ class SubmissionForm(ModelForm):
         model = SubmittedComponent
         fields = []
         widgets = {}
-    def check_type(self, file):
-        #print '!!!'
-        #print filetype(file).lower()
-        #print file.name[file.name.rfind('.'):].lower()
-        #if file.name[file.name.rfind('.'):].lower()!= filetype(file).lower():
-        #    return False
-        #for extension in self.component.extension:
-        #    if extension.lower() == filetype(file).lower():
-                return True
-        #return False
+
+    def check_size(self, upfile):
+        """
+        Check that file size is in allowed range.
+        """
+        if upfile.size / 1024 > self.component.max_size:
+            return False
+        return True
+
+    def check_type(self, upfile):
+        """
+        Guess file type with magic, confirm that it matches file extension and is allowed for this submission type.
+        """
+        upfile.mode = "r" # not set in UploadedFile, so monkey-patch it in.
+        ftype = filetype(upfile)
+        
+        # check that real file type is allowed
+        allowed_types = self.instance.Type.Component.allowed_types
+        if not ftype:
+            raise forms.ValidationError('Unable to determine file type.  Allowed file types are: %s.' % (", ".join(allowed_types.keys())))
+        if ftype not in allowed_types:
+            raise forms.ValidationError('Incorrect file type.  File contents appear to be %s.  Allowed file types are: %s.' % (ftype, ", ".join(allowed_types.keys())))
+        
+        # check that extension matches
+        extensions = allowed_types[ftype]
+        if True not in [upfile.name.lower().endswith( e ) for e in extensions]:
+            raise forms.ValidationError('File extension incorrect.  File appears to be %s data; allowed extensions are: %s.' % (ftype, ", ".join(extensions)))
+
     def check_is_empty(self, data):
         if data == None:
             return True
@@ -82,6 +131,13 @@ class SubmissionForm(ModelForm):
             return True
         return False
 
+    def check_uploaded_data(self, data):
+        if self.check_is_empty(data):
+            raise forms.ValidationError("No file submitted.")
+        self.check_type(data)
+        if not self.check_size(data):
+            raise forms.ValidationError("File size exceeded max size, component can not be uploaded.")
+        return data
 
 #class SubmittedURLForm(SubmissionForm):
 #    class Meta:

@@ -10,3 +10,7 @@ COURSE_ACTIVITY_SLUG = COURSE_SLUG + '/' + ACTIVITY_SLUG
 
 USERID_SLUG = '(?P<userid>[\w\-]+)'
 GROUP_SLUG  = '(?P<group_slug>' + GROUP_SLUG_RE + ')'
+
+COMPONENT_SLUG = '(?P<component_slug>' + SLUG_RE + ')'
+
+SUBMISSION_ID = '(?P<submission_id>\d+)'

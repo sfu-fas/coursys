@@ -444,7 +444,7 @@ def delete_activity_confirm(request, course_slug, activity_slug):
 def all_grades(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activities = all_activities_filter(offering=course)
-    students = Member.objects.filter(offering=course, role="STUD")
+    students = Member.objects.filter(offering=course, role="STUD").select_related('person')
     
     # get grade data into a format we can work with
     grades = {}

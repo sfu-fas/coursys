@@ -5,6 +5,7 @@ from coredata.models import Member, CourseOffering
 from dashboard.models import *
 from django.core.urlresolvers import reverse
 from contrib import messages
+from django.core.cache import cache
 
 FLAG_CHOICES = [
     ('NOGR', 'no grade'),
@@ -248,6 +249,11 @@ def all_activities_filter(**kwargs):
     
     This isn't pretty, but it will do the job.
     """
+    #key = "all_act_filt" +  '_'.join(k + "-" + str(kwargs[k]) for k in kwargs)
+    #data = cache.get(key)
+    #if data:
+    #    return data
+
     activities = [] # list of activities
     found = set() # keep track of what has been found so we can exclude less-specific duplicates.
     for ActivityType in ACTIVITY_TYPES:
@@ -256,6 +262,7 @@ def all_activities_filter(**kwargs):
         found.update( (a.id for a in acts) )
 
     activities.sort()
+    #cache.set(key, activities, 60)
     return activities
 
 

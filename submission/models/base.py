@@ -97,6 +97,8 @@ class StudentSubmission(Submission):
         return self.member.person.userid
     def __unicode__(self):
         return "%s->%s@%s" % (self.member.person.userid, self.activity, self.created_at)
+    def file_slug(self):
+        return self.member.person.userid
 
 class GroupSubmission(Submission):
     group = models.ForeignKey(Group, null=False)
@@ -108,6 +110,8 @@ class GroupSubmission(Submission):
         return self.group.manager.person.userid
     def __unicode__(self):
         return "%s->%s@%s" % (self.group.manager.person.userid, self.activity, self.created_at)
+    def file_slug(self):
+        return self.group.slug
 
     def save(self):
         super(GroupSubmission, self).save()
@@ -177,4 +181,19 @@ class SubmittedComponent(models.Model):
     def __unicode__(self):
         return "[%s] %s->%s@%s" % (self.get_type(), self.submission.get_userid(), self.submission.activity, self.submission.created_at)
 
+    def sendfile(self, upfile, response):
+        """
+        Send the contents of the file as the response, given a FileField object to read from.
+        """
+        path, filename = os.path.split(upfile.name)
+        response['Content-Disposition'] = 'inline; filename=' + filename
+        fh = open(upfile.path, "r")
+        for data in fh:
+            response.write(data)
+    def file_filename(self, upfile):
+        """
+        Come up with a filename for the uploaded file in a ZIP archive.
+        """
+        filename = os.path.split(upfile.name)[1]
+        return self.component.slug + "_" + filename
 

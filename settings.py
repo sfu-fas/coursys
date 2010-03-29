@@ -83,7 +83,7 @@ TEMPLATE_CONTEXT_PROCESSORS = ("django.core.context_processors.auth",
     )
 
 ROOT_URLCONF = 'courses.urls'
-INTERNAL_IPS = ()
+INTERNAL_IPS = []
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -120,6 +120,10 @@ MESSAGE_STORAGE = 'contrib.messages.storage.session.SessionStorage' # temp: repl
 if DEBUG:
     SUBMISSION_PATH = "submitted_files"
     INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.admin',)
+    CACHE_BACKEND = 'locmem://'
+else:
+    CACHE_BACKEND = '?????'
+
 
 CAS_SERVER_URL = "https://cas.sfu.ca/cgi-bin/WebObjects/cas.woa/wa/"
 if DEBUG:
