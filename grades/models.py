@@ -88,7 +88,7 @@ class Activity(models.Model):
         String representing grade for this student
         """
         if self.status=="URLS":
-            return "--"
+            return u'\u2014'
         elif self.status=="INVI":
             raise RuntimeError, "Can't display invisible grade."
         else:
@@ -173,10 +173,10 @@ class LetterActivity(Activity):
     def display_grade_visible(self, student):
         grades = LetterGrade.objects.filter(activity=self, member__person=student)
         if len(grades)==0:
-            grade = "--"
+            grade = u'\u2014'
         else:
-            grade = grades[0].letter_grade
-        return "%s" % grade
+            grade = str(grades[0].letter_grade)
+        return grade
 
     def save(self, force_insert=False, force_update=False, newsitem=True, *args, **kwargs):
         # get old status so we can see if it's newly-released

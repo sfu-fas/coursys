@@ -428,9 +428,9 @@ def download_file(request, course_slug, activity_slug, component_slug=None, subm
     if submission_id:
         # explicit request: get that one.
         submission = get_submission(submission_id)
-        if not submission:
+        if not submission or submission.activity!=activity:
             return NotFoundResponse(request)
-        submitted_components = get_submission_components(submission)
+        submitted_components = get_submission_components(submission, activity)
 
     elif userid:
         # userid specified: get their most recent submission

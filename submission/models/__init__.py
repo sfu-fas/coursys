@@ -193,20 +193,23 @@ def get_submitted_component(**kwargs):
 #            return c
 #    return None
 
-def get_submission_components(submission):
+def get_submission_components(submission, activity):
     """
     return a list of pair[component, latest_submission(could be None)] for this submission
     """
-    component_list = select_all_components(submission.activity)
+    component_list = select_all_components(activity)
     
     submitted_components = []
     for component in component_list:
-        SubmittedComponent = component.Type.SubmittedComponent
-        submits = SubmittedComponent.objects.filter(component=component, submission=submission)
-        if submits:
-            sub = submits[0]
+        if submission:
+            SubmittedComponent = component.Type.SubmittedComponent
+            submits = SubmittedComponent.objects.filter(component=component, submission=submission)
+            if submits:
+                sub = submits[0]
+            else:
+                # this component didn't get submitted
+                sub = None
         else:
-            # this component didn't get submitted
             sub = None
 
         submitted_components.append((component, sub))
@@ -227,9 +230,9 @@ def get_current_submission(student, activity):
             submission = None
 
     if submission:
-        submitted_components = get_submission_components(submission)
+        submitted_components = get_submission_components(submission, activity)
     else:
-        submitted_components = []
+        submitted_components = get_submission_components(None, activity)
 
     return submission, submitted_components
 
