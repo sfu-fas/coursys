@@ -174,7 +174,7 @@ class GradesTest(TestCase):
         client = Client()
         client.login(ticket="0kvm", service=CAS_SERVER_URL)
         response = basic_page_tests(self, client, '/' + c.slug + '/')
-        self.assertContains(response, "Gregory Garnet Baker")
+        self.assertContains(response, "Gregory Baker")
         self.assertContains(response, 'href="' + reverse('groups.views.groupmanage', kwargs={'course_slug':c.slug}) +'"')
 
 

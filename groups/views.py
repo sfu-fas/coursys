@@ -15,7 +15,7 @@ from contrib import messages
 from django.conf import settings
 from courselib.auth import requires_course_by_slug, requires_course_staff_by_slug, is_course_staff_by_slug, is_course_student_by_slug
 from log.models import *
-from sets import Set
+#from sets import Set
 
 #@login_required
 #def index(request):
