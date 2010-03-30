@@ -14,8 +14,7 @@ from django.forms.models import modelformset_factory
 from contrib import messages
 from django.db.models import Q
 
-def _find_setup_conflicts(source_setup, target_setup):
-    
+def _find_setup_conflicts(source_setup, target_setup):    
     names_found = set()
     short_names_found = set()
     names_found.update((activity.name for activity in source_setup))
@@ -427,7 +426,7 @@ def marking_student(request, course_slug, activity_slug, userid):
         base_act_mark = None
         act_mark_id = request.GET.get('base_activity_mark')
         if act_mark_id != None:
-            base_act_mark = get_activity_mark_by_id(activity, membership, act_mark_id) 
+            base_act_mark = get_activity_mark_by_id(activity, membership, act_mark_id)            
             if base_act_mark == None:
                 raise Http404('No such ActivityMark for student %s on %s found.' % (userid, activity))        
         component_forms = _initialize_component_mark_forms(components, base_act_mark)

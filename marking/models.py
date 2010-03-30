@@ -6,7 +6,8 @@ from grades.models import ACTIVITY_TYPES
 from coredata.models import Semester
 from groups.models import Group, GroupMember
 from datetime import datetime
-
+from django.db.models import Q
+from submission.models import select_all_components
 
 class ActivityComponent(models.Model):
     """    
@@ -284,7 +285,6 @@ def copy_activity(source_activity, source_course_offering, target_course_offerin
         new_activity.due_date = new_due_date
     return new_activity
 
-from django.db.models import Q
 def save_copied_activity(target_activity, model, target_course_offering):
     """
     to ensure the uniqueness of name and short name of activities, 
@@ -308,16 +308,14 @@ def copyCourseSetup(course_copy_from, course_copy_to):
     for numeric_activity in NumericActivity.objects.filter(offering = course_copy_from):
         new_numeric_activity = copy_activity(numeric_activity,course_copy_from, course_copy_to)
         save_copied_activity(new_numeric_activity, NumericActivity, course_copy_to)
-        print "- Activity %s is copied" % new_numeric_activity
-        
+    
         for activity_component in ActivityComponent.objects.filter(numeric_activity = numeric_activity, deleted = False):
             new_activity_component = copy.deepcopy(activity_component)
             new_activity_component.id = None
             new_activity_component.pk = None
             new_activity_component.numeric_activity = new_numeric_activity
             new_activity_component.save()
-            print "-- marking component %s is copied" % new_activity_component
-            
+            print "-- marking component %s is copied" % new_activity_component            
             for common_problem in CommonProblem.objects.filter(activity_component = activity_component, deleted = False):
                 new_common_problem = copy.deepcopy(common_problem)
                 new_common_problem.id = None
@@ -325,15 +323,17 @@ def copyCourseSetup(course_copy_from, course_copy_to):
                 new_common_problem.activity_component = new_activity_component
                 new_common_problem.save()
                 print "--- common problem %s is copied" % new_common_problem
+           
+        for submission_component in select_all_components(numeric_activity):
+            new_submission_component = copy.deepcopy(submission_component)
+            new_submission_component.id = None
+            new_submission_component.pk = None
+            new_submission_component.activity = new_numeric_activity
+            new_submission_component.save()
+            print "--- submission component %s is copied" % new_submission_component
         
-        #for ComponentType in COMPONENT_TYPES:
-        #    for submission_component in ComponentType.objects.filter(activity = numeric_activity):
-        #            new_submission_component = copy.deepcopy(submission_component)
-        #            new_submission_component.id = None
-        #            new_submission_component.pk = None
-        #            new_submission_component.activity = new_numeric_activity
-        #            new_submission_component.save()
-        #            print "--- submission component %s is copied" % new_submission_component
+        print "- Activity %s is copied" % new_numeric_activity
+        
         
     print "copying letter activities ..."
     for activity in LetterActivity.objects.filter(offering = course_copy_from):

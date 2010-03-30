@@ -9,9 +9,9 @@
 {% block content %}
 <h2>
 {% if student %}
-Student {{student.userid}}marked on {{activity.name}} 
+Student {{student.userid}} marked on {{activity.name}} 
 {% else %}
-Group {{group.name}}marked on {{activity.name}} 
+Group {{group.name}} marked on {{activity.name}} 
 {% endif %}
 </h2>
 
@@ -52,7 +52,6 @@ Group {{group.name}}marked on {{activity.name}}
 	</tbody>
 	</table>
 </div>
-
 
 <h2> Components Details </h2>
 {% for component_mark in component_marks %}
