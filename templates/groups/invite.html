@@ -1,11 +1,15 @@
 {% extends "base.html" %}
+{% block title %}{{course.name}} Groups: Invite Student{% endblock %}
+{% block h1 %}{{course.name}} Groups: Invite Student{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; Groups</li>{% endblock %}
+
 {% block content %}
-	<h1>Invite Student</h1>
 	<form action="" method="POST">
 		<div class = "receiver"> {{student_receiver_form}} </div>
-        <label for="name">Student Id </label>
-                        <input type="text" name="name">
-        <input type="submit" value="Invite" />
+        <div><label for="name">Student's Userid</label>
+                        <input type="text" name="name"/> <span class="helptext">(i.e. the start of their @sfu.ca email address)</span></div>
+        <div><input type="submit" value="Invite" /></div>
 	</form>
 {% endblock content %}
 

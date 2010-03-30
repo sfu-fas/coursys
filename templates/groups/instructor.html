@@ -27,14 +27,16 @@
     <p>There are currently no groups in this course offering</p>
   {% endif %}  
 	
+<h2 id="nogroup">Students not in any group</h2>
+
   {% if studentsNotInGroup %}
     <ul>
-    <li>Students not in any group<ul>
     {% for student in studentsNotInGroup %}
       <li>{{student.person.name}}, {{student.person.userid}}</li>
       {% endfor %}
-      </ul></li>
     </ul>
+  {% else %}
+  <p class="empty">None.</p>
   {% endif %}
   </div>
   <p>

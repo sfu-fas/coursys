@@ -38,8 +38,8 @@ class SubmissionComponent(models.Model):
         ordering = ['position']
         app_label = 'submission'
     def __unicode__(self):
-        return "%s[%s]%s"%(self.title, self.get_type(), self.description)
-    def get_type(self):
+        return "%s %s"%(self.title, self.description)
+    def XXX_get_type(self):
         "Return xxx of xxxComponent as type"
         class_name = self.__class__.__name__
         return class_name[:class_name.index("Component")]
@@ -72,22 +72,15 @@ class Submission(models.Model):
     "Set ownership, and make state = in progree "
     def set_owner(self, course, userid):
         member = Member.objects.filter(person__userid = userid).filter(offering = course)
-        if member != []:
+        if member:
             self.owner = member[0]
             self.status = "INP"
             self.save()
-    def get_type(self):
-        g = GroupSubmission.objects.filter(pk = self.pk)
-        if len(g) > 0:
-            return "Group"
-        return "student"
-    def get_derived_class(self):
+    def XXX_get_derived_class(self):
         if self.get_type() == "Group":
             return GroupSubmission.objects.all().get(pk = self.pk)
         else:
             return StudentSubmission.objects.all().get(pk = self.pk)
-    def get_userid(self):
-        return self.get_derived_class().get_userid()
 
 class StudentSubmission(Submission):
     member = models.ForeignKey(Member, null=False)
@@ -99,6 +92,8 @@ class StudentSubmission(Submission):
         return "%s->%s@%s" % (self.member.person.userid, self.activity, self.created_at)
     def file_slug(self):
         return self.member.person.userid
+    def XXX_get_type(self):
+        return "student"
 
 class GroupSubmission(Submission):
     group = models.ForeignKey(Group, null=False)
@@ -112,6 +107,8 @@ class GroupSubmission(Submission):
         return "%s->%s@%s" % (self.group.manager.person.userid, self.activity, self.created_at)
     def file_slug(self):
         return self.group.slug
+    def XXX_get_type(self):
+        return "group"
 
     def save(self):
         super(GroupSubmission, self).save()
@@ -132,18 +129,10 @@ def submission_upload_path(instance, filename):
     """
     Return the filename to upload any submitted file.
     """
-    if hasattr(instance.submission, 'group'):
-        # a group submission: use the group slug to identify
-        usergroup = instance.submission.group.slug
-    else:
-        # an individual submission: use the userid to identify
-        usergroup = instance.submission.member.person.userid
-
     fullpath = os.path.join(
-            settings.SUBMISSION_PATH,
             instance.component.activity.offering.slug,
             instance.component.activity.slug,
-            usergroup,
+            instance.submission.file_slug(),
             instance.submission.created_at.strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.submission.id),
             instance.component.slug,
             filename)
@@ -171,7 +160,7 @@ class SubmittedComponent(models.Model):
     class Meta:
         ordering = ['submit_time']
         app_label = 'submission'
-    def get_type(self):
+    def XXX_get_type(self):
         "Return xxx of Submittedxxx as type"
         class_name = self.__class__.__name__
         return class_name[9:]
@@ -179,7 +168,7 @@ class SubmittedComponent(models.Model):
         res = int(self.get_size())/1024
         return res
     def __unicode__(self):
-        return "[%s] %s->%s@%s" % (self.get_type(), self.submission.get_userid(), self.submission.activity, self.submission.created_at)
+        return "%s@%s" % (self.submission.activity, self.submission.created_at)
 
     def sendfile(self, upfile, response):
         """

@@ -124,7 +124,7 @@ def select_all_submitted_components(activity):
     return submitted_component
 
 # TODO: group submission selector
-def select_students_submitted_components(activity, userid):
+def XXX_select_students_submitted_components(activity, userid):
     submitted_component = select_all_submitted_components(activity)
     new_submitted_component = []
     for comp in submitted_component:

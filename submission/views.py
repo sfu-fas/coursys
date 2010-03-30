@@ -396,7 +396,7 @@ def add_component(request, course_slug, activity_slug):
             new_component.save()
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=("added %s component %s for %s") % (new_component.get_type(), new_component.title, activity),
+                  description=("added %s component %s for %s") % (Type.name, new_component.title, activity),
                   related_object=new_component)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'New component "' + new_component.title + '" successfully added.')
@@ -482,8 +482,18 @@ def show_student_history_staff(request, course_slug, activity_slug, userid):
 @requires_course_staff_by_slug
 def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, group_slug=None):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(course.activity_set, slug = activity_slug)
-    
+    activity = get_object_or_404(course.activity_set, slug=activity_slug)
+    if userid:
+        try:
+            submission = StudentSubmission.objects.filter(activity=activity, member__person__userid=userid).latest('created_at')
+        except StudentSubmission.DoesNotExist:
+            submission = None
+    elif group_slug:
+        try:
+            submission = GroupSubmission.objects.filter(group__slug=group_slug).latest('created_at')
+        except StudentSubmission.DoesNotExist:
+            submission = None
+
     # get the urlencode
     qDict = request.GET
     urlencode = ''
@@ -491,21 +501,20 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
         urlencode = '?' +  qDict.urlencode()
 
     response = HttpResponseRedirect(reverse(marking_student, args=[course_slug, activity_slug, userid]) + urlencode)
-    component = select_students_submitted_components(activity, userid)
     #if it is taken by someone not me, show a confirm dialog
     if request.GET.get('confirm') == None:
-        for c in component:
-            if c.submission.owner != None and c.submission.owner.person.userid != request.user.username:
-                return _override_ownership_confirm(request, course, activity, userid, None, c.submission.owner.person, urlencode)
-    for c in component:
-        c.submission.set_owner(course, request.user.username)
+        if submission and submission.owner:
+            return _override_ownership_confirm(request, course, activity, userid, None, c.submission.owner.person, urlencode)
+
+    if submission:
+        submission.set_owner(course, request.user.username)
     
-    #LOG EVENT#
-    student = get_object_or_404(Person, userid=userid)
-    l = LogEntry(userid=request.user.username,
-          description=("took ownership on %s of submission by student %s") % (activity, userid),
-          related_object=student)
-    l.save()
+        #LOG EVENT#
+        student = get_object_or_404(Person, userid=userid)
+        l = LogEntry(userid=request.user.username,
+              description=("took ownership on %s of submission %i by %s") % (activity, submission.id, submission.file_slug),
+              related_object=student)
+        l.save()
         
     return response
 

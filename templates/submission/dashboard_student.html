@@ -35,6 +35,10 @@
                 <th scope="row">Group:</th>
                 <td>{{group.name}}</td>
             </tr>
+            <tr>
+                <th scope="row">Submitter:</th>
+                <td>{{submission.creator.student.person.name}}</td>
+            </tr>
             {% endif %}
         </table>
         </div>
@@ -53,11 +57,11 @@
 
         <div id="form_container">
         <div id="component_view_student_container">
-
         {# <!-- pair<component, its latest submission> --> #}
         {% for pair in submitted_components %}
         <h2>{{pair.0.title}}</h2>
-        <h3>{{pair.0.get_type}} Component</h3>
+        <h3>{{pair.0.name}} Component</h3>
+
         <ul class="component_description">
             <li class="view"><label>Description:</label>{{pair.0.description}}</li>
             {% if pair.0.max_size %}<li class="view"><label>Max File Size:</label>{{pair.0.max_size}} KB</li>{% endif %}
@@ -74,19 +78,9 @@
                 You have made submission to this component.
                 <ul class="component_description">
                     <li><label>Latest Submission: </label>{{pair.1.get_time}}</li>
-                    {% ifequal pair.1.submission.get_type 'Group'%}
-                        <li><label>Creator:</label>{{pair.1.submission.get_derived_class.creator}}</li>
-                    {% endifequal %}
                     {% if pair.1.get_size %}
                         <li><label>File Size:</label>{{pair.1.get_size_in_kb}} KB</li>
                     {% endif %}
-                    {% ifequal pair.1.get_type 'URL' %}
-                        <li><label>URL:</label><a href="{{pair.1.get_url}}">{{pair.1.get_url}}</a></li>
-                    {% else%}
-                    {% ifequal pair.1.get_type 'PlainText' %}
-                        <li><label>Text:</label><pre>{{pair.1.text}}</pre></li>
-                    {% endifequal %}
-                    {% endifequal %}
                     <li><img src="{{MEDIA_URL}}icons/attach.png" alt="download" /><a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug component_slug=pair.0.slug submission_id=pair.1.submission.id %}">Download</a></li>
                 </ul>
             </div>

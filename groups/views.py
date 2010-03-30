@@ -189,7 +189,7 @@ def invite(request, course_slug, group_slug):
         if student_receiver_form.is_valid():
             name = student_receiver_form.cleaned_data['name']
             newPerson = get_object_or_404(Person, userid=name)
-            member = Member.objects.get(person = newPerson, offering = course)
+            member = get_object_or_404(Member, person = newPerson, offering = course, role="STUD")
             if GroupMember.objects.filter(student=member,group=group):
                 error_info="Student %s has already exists" % (newPerson)
             else:
