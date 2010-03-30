@@ -1,7 +1,7 @@
 import copy
 from django.db import models
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, NumericGrade
-from grades.models import ACTIVITY_TYPES 
+from grades.models import all_activities_filter
 #from submission.models import SubmissionComponent, COMPONENT_TYPES
 from coredata.models import Semester
 from groups.models import Group, GroupMember
@@ -305,55 +305,46 @@ def copyCourseSetup(course_copy_from, course_copy_to):
     copy numeric activities with their marking components and common problems, submission components
     """
     print "copying numeric activities ..."
-    for numeric_activity in NumericActivity.objects.filter(offering = course_copy_from):
-        new_numeric_activity = copy_activity(numeric_activity,course_copy_from, course_copy_to)
-        save_copied_activity(new_numeric_activity, NumericActivity, course_copy_to)
+    all_activities = all_activities_filter(offering=course_copy_from)
+
+    for activity in all_activities:
+        Class = activity.__class__
+        new_activity = copy_activity(activity, course_copy_from, course_copy_to)
+        save_copied_activity(new_activity, Class, course_copy_to)
     
-        for activity_component in ActivityComponent.objects.filter(numeric_activity = numeric_activity, deleted = False):
+        # should only apply to NumericActivity: others have no ActivityComponents
+        for activity_component in ActivityComponent.objects.filter(numeric_activity=activity, deleted=False):
             new_activity_component = copy.deepcopy(activity_component)
             new_activity_component.id = None
             new_activity_component.pk = None
-            new_activity_component.numeric_activity = new_numeric_activity
+            new_activity_component.numeric_activity = new_activity
             new_activity_component.save()
             print "-- marking component %s is copied" % new_activity_component            
-            for common_problem in CommonProblem.objects.filter(activity_component = activity_component, deleted = False):
+            for common_problem in CommonProblem.objects.filter(activity_component=activity_component, deleted=False):
                 new_common_problem = copy.deepcopy(common_problem)
                 new_common_problem.id = None
                 new_common_problem.pk = None
                 new_common_problem.activity_component = new_activity_component
                 new_common_problem.save()
                 print "--- common problem %s is copied" % new_common_problem
-           
-        for submission_component in select_all_components(numeric_activity):
+        
+        for submission_component in select_all_components(activity):
             new_submission_component = copy.deepcopy(submission_component)
             new_submission_component.id = None
             new_submission_component.pk = None
-            new_submission_component.activity = new_numeric_activity
+            new_submission_component.activity = new_activity
             new_submission_component.save()
-            print "--- submission component %s is copied" % new_submission_component
+            print "-- submission component %s is copied" % new_submission_component
         
-        print "- Activity %s is copied" % new_numeric_activity
-        
-        
-    print "copying letter activities ..."
-    for activity in LetterActivity.objects.filter(offering = course_copy_from):
-        new_activity = copy_activity(activity, course_copy_from, course_copy_to)
-        save_copied_activity(new_activity, LetterActivity, course_copy_to)
         print "- Activity %s is copied" % new_activity
+        
     
-    print "copying calculate numeric activities ..."
-    for activity in CalNumericActivity.objects.filter(offering = course_copy_from):
-        new_activity = copy_activity(activity, course_copy_from, course_copy_to)
-        save_copied_activity(new_activity, CalNumericActivity, course_copy_to)
-        print "- Activity %s is copied" % new_activity
-    
-    print "copying calculate letter activities ..."
-    for activity in CalLetterActivity.objects.filter(offering = course_copy_from):
-        new_activity = copy_activity(activity, course_copy_from, course_copy_to)      
+    print "fixing calculated letter activities ..."
+    for activity in CalLetterActivity.objects.filter(offering = course_copy_to):
         related_num_act =  activity.numeric_activity
         related_exam = activity.exam_activity
-        new_activity.numeric_activity = NumericActivity.objects.get(offering = course_copy_to, name = related_num_act.name)
-        new_activity.exam_activity = Activity.objects.get(offering = course_copy_to, name = related_exam.name)
-        save_copied_activity(new_activity, CalLetterActivity, course_copy_to)
-        print "- Activity %s is copied" % new_activity
+        
+        activity.numeric_activity = NumericActivity.objects.get(offering=course_copy_to, name=related_num_act.name)
+        activity.exam_activity = Activity.objects.get(offering=course_copy_to, name=related_exam.name)
+        activity.save()
     

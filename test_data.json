@@ -17968,47 +17968,10 @@
  },
  {
   "fields": {
-   "due_date": "2010-03-17 00:00:00", 
-   "name": "Assignment 1", 
-   "offering": 184, 
-   "percent": "10", 
-   "position": 1, 
-   "short_name": "A1", 
-   "slug": "a1", 
-   "status": "RLS",
-   "group": "True"
+   "formula": "[A1] + [A2] + [Midterm Exam]"
   }, 
-  "model": "grades.activity", 
-  "pk": 1
- }, 
- {
-  "fields": {
-   "due_date": "2010-03-31 00:00:00", 
-   "name": "Assignment 2", 
-   "offering": 184, 
-   "percent": "10", 
-   "position": 2, 
-   "short_name": "A2", 
-   "slug": "a2", 
-   "status": "URLS",
-   "group": "False"
-  }, 
-  "model": "grades.activity", 
-  "pk": 2
- }, 
- {
-  "fields": {
-   "due_date": "2010-04-21 00:00:00", 
-   "name": "Midterm Exam", 
-   "offering": 184, 
-   "percent": "20", 
-   "position": 3, 
-   "short_name": "MT", 
-   "slug": "mt", 
-   "status": "URLS"
-  }, 
-  "model": "grades.activity", 
-  "pk": 3
+  "model": "grades.calnumericactivity", 
+  "pk": 10
  }, 
  {
   "fields": {
@@ -18030,6 +17993,98 @@
   }, 
   "model": "grades.numericactivity", 
   "pk": 3
+ }, 
+ {
+  "fields": {
+   "max_grade": "100"
+  }, 
+  "model": "grades.numericactivity", 
+  "pk": 10
+ }, 
+ {
+  "fields": {}, 
+  "model": "grades.letteractivity", 
+  "pk": 4
+ }, 
+ {
+  "fields": {
+   "deleted": false, 
+   "due_date": "2010-03-17 00:00:00", 
+   "group": true, 
+   "name": "Assignment 1", 
+   "offering": 184, 
+   "percent": "10", 
+   "position": 1, 
+   "short_name": "A1", 
+   "slug": "a1", 
+   "status": "RLS"
+  }, 
+  "model": "grades.activity", 
+  "pk": 1
+ }, 
+ {
+  "fields": {
+   "deleted": false, 
+   "due_date": "2010-03-31 00:00:00", 
+   "group": false, 
+   "name": "Assignment 2", 
+   "offering": 184, 
+   "percent": "10", 
+   "position": 2, 
+   "short_name": "A2", 
+   "slug": "a2", 
+   "status": "URLS"
+  }, 
+  "model": "grades.activity", 
+  "pk": 2
+ }, 
+ {
+  "fields": {
+   "deleted": false, 
+   "due_date": "2010-04-21 00:00:00", 
+   "group": false, 
+   "name": "Midterm Exam", 
+   "offering": 184, 
+   "percent": "20", 
+   "position": 3, 
+   "short_name": "MT", 
+   "slug": "mt", 
+   "status": "URLS"
+  }, 
+  "model": "grades.activity", 
+  "pk": 3
+ }, 
+ {
+  "fields": {
+   "deleted": false, 
+   "due_date": null, 
+   "group": false, 
+   "name": "Project", 
+   "offering": 184, 
+   "percent": null, 
+   "position": 4, 
+   "short_name": "Proj", 
+   "slug": "proj", 
+   "status": "URLS"
+  }, 
+  "model": "grades.activity", 
+  "pk": 4
+ }, 
+ {
+  "fields": {
+   "deleted": false, 
+   "due_date": null, 
+   "group": false, 
+   "name": "Final Grade", 
+   "offering": 184, 
+   "percent": null, 
+   "position": 5, 
+   "short_name": "Final", 
+   "slug": "final", 
+   "status": "RLS"
+  }, 
+  "model": "grades.activity", 
+  "pk": 10
  },
  {
   "fields": {
