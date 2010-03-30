@@ -458,7 +458,7 @@ def download_file(request, course_slug, activity_slug, component_slug=None, subm
     if component_slug:
         # download single component if specified
         # get the actual component: already did the searching above, so just look in that list
-        components = [sub for comp,sub in submitted_components if sub.component.slug==component_slug]
+        components = [sub for comp,sub in submitted_components if sub and sub.component.slug==component_slug]
         if not components:
             return NotFoundResponse(request)
         return components[0].download_response()
