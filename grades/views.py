@@ -13,7 +13,7 @@ from grades.forms import NumericActivityForm, LetterActivityForm, CalNumericActi
 from grades.models import *
 from grades.utils import StudentActivityInfo, reorder_course_activities, create_StudentActivityInfo_list, \
                         ORDER_TYPE, FormulaTesterActivityEntry, FakeActivity
-from marking.models import get_activity_mark_for_group
+from marking.models import get_group_mark
 from groups.models import *
 from log.models import LogEntry
 from contrib import messages
@@ -122,7 +122,7 @@ def activity_info_with_groups(request, course_slug, activity_slug):
         if not groups_found.has_key(group.id):
             # a new group discovered by its first member
             # get the current grade of the group 
-            current_mark = get_activity_mark_for_group(activity, group)
+            current_mark = get_group_mark(activity, group)
             value = (current_mark == None and 'no grade' or current_mark.mark)
             new_group_grade_info = {'group': group, 'members': [student], 'grade': value}            
             groups_found[group.id] = new_group_grade_info

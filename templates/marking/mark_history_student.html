@@ -17,7 +17,7 @@
 
 {% block h1 %} Marking History {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug, activity_slug=activity.slug %}">{{activity.name}}</a></li><li>&gt; Mark History</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }} ({{course.semester.label}})</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug, activity_slug=activity.slug %}">{{activity.name}}</a></li>{% endblock %}
 
 {% block content %}
 <h2> For Student {{student.userid}} on {{activity.name}} of {{course.name}} </h2>
@@ -27,6 +27,7 @@
 : Currently Valid
 </br>
 </div>
+{% if marks_individual %}
 <div class = "datatable_container">
   <h3>Assigned directly to this individual:</h3>
   <table class="display">
@@ -39,6 +40,7 @@
 	</thead>
 	<tbody>
 	    {% for act_mark in marks_individual %}
+	     	<tr>
 		      <td>
 		       {{act_mark.created_at|date:"Y M d D"}} {{act_mark.created_at|time:"H:i:s"}}
 		       {% ifequal act_mark current_mark %}
@@ -47,13 +49,14 @@
 		      </td>
 	          <td>{{ act_mark.created_by }}</td>           
 	          <td>{{ act_mark.mark }}/{{ activity.max_grade }}
-	          	<a href="{% url marking.views.mark_summary course_slug=course.slug activity_slug=activity.slug, userid=student.userid %}?activity_mark={{act_mark.id}}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
+	          	<a href="{% url marking.views.mark_summary_student course_slug=course.slug activity_slug=activity.slug userid=student.userid %}?activity_mark={{act_mark.id}}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
 	          </td>
 	        </tr>	
 	    {% endfor %}
     </tbody>
   </table>  
 </div> 
+{% endif %}
 {% if marks_via_group %}
 <div class = "datatable_container">
   <h3>Assigned via group:</h3>
@@ -68,6 +71,7 @@
 	</thead>
 	<tbody>
 	    {% for act_mark in marks_via_group %}
+	    	<tr>
 		      <td>
 		       {{act_mark.created_at|date:"Y M d D"}} {{act_mark.created_at|time:"H:i:s"}}
 		       {% ifequal act_mark current_mark %}
@@ -77,7 +81,7 @@
 	          <td>{{ act_mark.group.name }}</td> 
 	          <td>{{ act_mark.created_by }}</td>          
 	          <td>{{ act_mark.mark }}/{{ activity.max_grade }}
-	          	<a href="{% url marking.views.mark_summary course_slug=course.slug activity_slug=activity.slug userid=student.userid%}?activity_mark={{act_mark.id}}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
+	          	<a href="{% url marking.views.mark_summary_student course_slug=course.slug activity_slug=activity.slug userid=student.userid%}?activity_mark={{act_mark.id}}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
 	          </td>
 	        </tr>	
 	    {% endfor %}

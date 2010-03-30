@@ -1,0 +1,59 @@
+{% extends "marking/base.html" %}
+
+{% block marking_header_extra %}
+<script type="text/javascript">
+    $(document).ready(function() {
+	oTable = $('.display').dataTable({
+		"bJQueryUI": true,
+		"bFilter": false,
+		"bPaginate": false,
+		"aaSorting": [[ 0, "desc" ]] /*as default sorted by created time: from latest to earliest*/	
+	});
+    });
+</script>
+{% endblock %}
+
+{% block title %}Marking History {% endblock %}
+
+{% block h1 %} Marking History {% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }} ({{course.semester.label}})</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug, activity_slug=activity.slug %}">{{activity.name}}</a></li>{% endblock %}
+
+{% block content %}
+<h2> For Student {{student.userid}} on {{activity.name}} of {{course.name}} </h2>
+<div>
+</br>
+<img src = "{{MEDIA_URL}}icons/tick.png" title="Currently Valid" alt="Currently Valid" />
+: Currently Valid
+</br>
+</div>
+<div class = "datatable_container">
+  <table class="display">
+	<thead>
+		<tr>
+			<th>Time</th>
+			<th>Marker</th>
+			<th>Mark Given</th>		
+		</tr>
+	</thead>
+	<tbody>
+	    {% for act_mark in all_marks %}
+	     	<tr>
+		      <td>
+		       {{act_mark.created_at|date:"Y M d D"}} {{act_mark.created_at|time:"H:i:s"}}
+		       {% ifequal act_mark current_mark %}
+		       <img src = "{{MEDIA_URL}}icons/tick.png" title="Currently Valid" alt="Currently Valid" />
+		       {% endifequal %}		       
+		      </td>
+	          <td>{{ act_mark.created_by }}</td>           
+	          <td>{{ act_mark.mark }}/{{ activity.max_grade }}
+	          	<a href="{% url marking.views.mark_summary_group course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}?activity_mark={{act_mark.id}}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
+	          </td>
+	        </tr>	
+	     {% empty %}
+	        No records found.
+	    {% endfor %}
+    </tbody>
+  </table>  
+</div> 
+{% endblock %}

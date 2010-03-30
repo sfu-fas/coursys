@@ -182,8 +182,7 @@ def get_activity_mark_by_id(activity, student_membership, activity_mark_id):
      except StudentActivityMark.DoesNotExist:
          pass
      else:
-         # check consistency with against activity and membership
-         # prevent an id query by malicious users 
+         # check consistency against activity and membership
          num_grade = act_mark.numeric_grade 
          if num_grade.activity == activity and num_grade.member == student_membership:
             return act_mark
@@ -194,8 +193,7 @@ def get_activity_mark_by_id(activity, student_membership, activity_mark_id):
      except GroupActivityMark.DoesNotExist:
          pass
      else:                
-         # check the activity_mark consistent with the activity and membership
-         # prevent an id query by malicious users 
+         # check consistency with the activity and membership
          if act_mark.numeric_activity == activity:
              group = act_mark.group
              try:
@@ -206,8 +204,23 @@ def get_activity_mark_by_id(activity, student_membership, activity_mark_id):
                  return act_mark         
      
      return None
+ 
+def get_group_mark_by_id(activity, group, activity_mark_id): 
+     """
+     Find the activity_mark with that id if it exists for the group on the activity
+     return None if not found.
+     """            
+     try:
+         act_mark = GroupActivityMark.objects.select_related().get(id = activity_mark_id)
+     except GroupActivityMark.DoesNotExist:
+         pass
+     else:                
+         # check consistency with the activity and group_slug
+         if act_mark.numeric_activity == activity and act_mark.group == group:
+                 return act_mark             
+     return None
 
-def get_activity_mark_for_group(activity, group, include_all = False):
+def get_group_mark(activity, group, include_all = False):
     
     current_mark = None
     all_marks = GroupActivityMark.objects.filter(group = group, numeric_activity = activity)    
@@ -244,7 +257,7 @@ def get_activity_mark_for_student(activity, student_membership, include_all = Fa
      
      if group_mems.count() > 0:
         group = group_mems[0].group # there should be only one group this student is in
-        grp_mark_info = get_activity_mark_for_group(activity, group, True)        
+        grp_mark_info = get_group_mark(activity, group, True)        
         latest_grp_mark = grp_mark_info['current_mark']
         grp_marks = grp_mark_info['all_marks']
         

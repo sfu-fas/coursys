@@ -472,8 +472,14 @@ def marking_group(request, course_slug, activity_slug, group_slug):
             messages.add_message(request, messages.ERROR, 'Error found')            
     
     else: # for GET request 
-        component_forms = _initialize_component_mark_forms(components)
-        additional_info_form = ActivityMarkForm(prefix = "additional-form")  
+        base_act_mark = None
+        act_mark_id = request.GET.get('base_activity_mark')
+        if act_mark_id != None:
+            base_act_mark = get_group_mark_by_id(activity, group, act_mark_id) 
+            if base_act_mark == None:
+                raise Http404('No such ActivityMark for group %s on %s found.' % (group.name, activity))   
+        component_forms = _initialize_component_mark_forms(components, base_act_mark)
+        additional_info_form = ActivityMarkForm(prefix = "additional-form", instance = base_act_mark)  
     
     mark_components = _construct_mark_components(components, component_forms)   
     return render_to_response("marking/marking.html",
@@ -482,11 +488,11 @@ def marking_group(request, course_slug, activity_slug, group_slug):
                        context_instance=RequestContext(request))
 
 @requires_course_staff_by_slug
-def mark_summary(request, course_slug, activity_slug, userid):
+def mark_summary_student(request, course_slug, activity_slug, userid):
      student = get_object_or_404(Person, userid = userid)
      course = get_object_or_404(CourseOffering, slug = course_slug)    
      activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)     
-     membership = get_object_or_404(Member, offering = course, person = student, role = 'STUD') 
+     membership = get_object_or_404(Member,offering = course, person = student, role = 'STUD') 
      
      act_mark_id = request.GET.get('activity_mark')
      if act_mark_id != None: # if act_mark_id specified in the url
@@ -507,7 +513,26 @@ def mark_summary(request, course_slug, activity_slug, userid):
                                {'course':course, 'activity' : activity, 'student' : student, 'group' : group, \
                                 'activity_mark': act_mark, 'component_marks': component_marks, \
                                 'view_history': act_mark_id == None}, context_instance = RequestContext(request))
+
+@requires_course_staff_by_slug     
+def mark_summary_group(request, course_slug, activity_slug, group_slug):
+     course = get_object_or_404(CourseOffering, slug = course_slug)    
+     activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)    
+     group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
+     act_mark_id = request.GET.get('activity_mark')
+     if act_mark_id != None: 
+         act_mark = get_group_mark_by_id(activity, group_slug, act_mark_id)
+     else:
+         act_mark = get_group_mark(activity, group)
+     if act_mark == None:
+         raise Http404('No such ActivityMark for group %s on %s found.' % (group.name, activity))
+     component_marks = ActivityComponentMark.objects.filter(activity_mark = act_mark)
      
+     return render_to_response("marking/mark_summary.html", 
+                               {'course':course, 'activity' : activity, 'group' : group, \
+                                'activity_mark': act_mark, 'component_marks': component_marks, \
+                                'view_history': act_mark_id == None}, context_instance = RequestContext(request))
+         
 from os import path
 from courses.settings import MEDIA_ROOT
 @requires_course_staff_by_slug
@@ -525,7 +550,7 @@ def download_marking_attachment(request, course_slug, activity_slug, filepath):
     return response
 
 @requires_course_staff_by_slug
-def mark_history(request, course_slug, activity_slug, userid):
+def mark_history_student(request, course_slug, activity_slug, userid):
     """
     show the marking history for the student on the activity
     """
@@ -537,9 +562,22 @@ def mark_history(request, course_slug, activity_slug, userid):
     context = {'course': course, 'activity' : activity, 'student' : student,}
     mark_history_info = get_activity_mark_for_student(activity, membership, True)
     context.update(mark_history_info)    
-    return render_to_response("marking/mark_history.html", context, context_instance = RequestContext(request))
-    
+    return render_to_response("marking/mark_history_student.html", context, context_instance = RequestContext(request))
 
+@requires_course_staff_by_slug
+def mark_history_group(request, course_slug, activity_slug, group_slug):
+    """
+    show the marking history for the group on the activity
+    """
+    course = get_object_or_404(CourseOffering, slug = course_slug)    
+    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)     
+    group = get_object_or_404(Group, courseoffering = course, slug = group_slug) 
+    
+    context = {'course': course, 'activity' : activity, 'group' : group,}
+    mark_history_info = get_group_mark(activity, group, True)
+    context.update(mark_history_info)    
+    return render_to_response("marking/mark_history_group.html", context, context_instance = RequestContext(request))
+    
 import csv
 @requires_course_staff_by_slug
 def export_csv(request, course_slug, activity_slug):    
@@ -693,5 +731,6 @@ def compose_imported_grades(file, students_qset, data_to_return):
                "\"[student user-id or student number,  grade, ]\" and " + \
                "only the first two columns are used."   
     return None   
+
         
         

@@ -8,7 +8,11 @@
 
 {% block content %}
 <h2>
-Student {{student.userid}} marked on {{activity.name}} 
+{% if student %}
+Student {{student.userid}}marked on {{activity.name}} 
+{% else %}
+Group {{group.name}}marked on {{activity.name}} 
+{% endif %}
 </h2>
 
 <h2>Basic Information</h2>
@@ -33,6 +37,7 @@ Student {{student.userid}} marked on {{activity.name}}
 	            {{ activity_mark.mark }} out of {{activity.max_grade}}
 	        </td>
 	    </tr>   
+	    {% if student %}
 	    <tr>
 	    	<th  class="ui-state-default">Mark Approach</th>
 	        <td>
@@ -42,7 +47,8 @@ Student {{student.userid}} marked on {{activity.name}}
 	            Directly to individual
 	            {% endif %}
 	        </td>
-	    </tr>     
+	    </tr>   
+	    {% endif %}  
 	</tbody>
 	</table>
 </div>
@@ -121,9 +127,18 @@ Student {{student.userid}} marked on {{activity.name}}
     </table>
 </div>   
 
+{% if student %}
 <a class="button" href= "{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug userid=student.userid %}?base_activity_mark={{activity_mark.id}}">Mark based on this</a>
+{% else %}
+<a class="button" href= "{% url submission.views.take_ownership_and_mark_group course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}?base_activity_mark={{activity_mark.id}}">Mark based on this</a>
+{% endif %}
 
 {% if view_history %}
-	<a class="button" href = "{% url marking.views.mark_history course_slug=course.slug, activity_slug=activity.slug, userid=student.userid %}">Marking History</a>
+    {% if student %}
+		<a class="button" href = "{% url marking.views.mark_history_student course_slug=course.slug activity_slug=activity.slug userid=student.userid %}">Marking History</a>
+	{% else %}
+		<a class="button" href = "{% url marking.views.mark_history_group course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}">Marking History</a>
+	{% endif %}
 {% endif %}	
+
 {% endblock %}
