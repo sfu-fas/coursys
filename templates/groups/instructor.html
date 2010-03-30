@@ -18,6 +18,7 @@
           </li>
         {% endfor %}
         <br>
+        <a class="button" href="{% url groups.views.switch_group course_slug=course.slug group_slug=entry.grouper.slug %}">Switch Group</a>
         <a class="button" href="{% url groups.views.change_name course_slug=course.slug group_slug=entry.grouper.slug %}">Change Name</a>
         <a class="button" href="{% url groups.views.delete_group course_slug=course.slug group_slug=entry.grouper.slug %}">Delete</a>
       </ul></li>
