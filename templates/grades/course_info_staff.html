@@ -89,6 +89,7 @@
             <tr>
                 <th scope="col">Order</th>
                 <th scope="col">Activity</th>
+                <th scope="col">Group?</th>
                 <th scope="col">Max Grade</th>
                 <th scope="col">Percentage</th>
                 <th scope="col">Status</th>
@@ -124,6 +125,7 @@
                         <span><a href="{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}">Edit</a> </span>
                     </div>
                 </td>
+                <td>{% if activity.group %}group{% else %}individual{% endif %}</td>
                 {% if activity.max_grade %}
                 <td>{{ activity.max_grade }}</td>
                 {% else %}

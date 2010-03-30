@@ -66,7 +66,10 @@ class Submission(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(Member, null=True, help_text = "TA or instructor that will mark this submission")
     status = models.CharField(max_length=3, null=False,choices=STATUS_CHOICES, default = "NEW")
+    def __cmp__(self, other):
+        return cmp(other.created_at, self.created_at)
     class Meta:
+        ordering = ['-created_at']
         app_label = 'submission'
 
     "Set ownership, and make state = in progree "

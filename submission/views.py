@@ -46,6 +46,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
     course = get_object_or_404(CourseOffering, slug = course_slug)
     activity = get_object_or_404(course.activity_set,slug = activity_slug)
     student = get_object_or_404(Person, userid=userid)
+    cansubmit = True
 
     submission, submitted_components = get_current_submission(student, activity)
     if len(submitted_components) == 0:
@@ -56,13 +57,21 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
     else:
         late = 0
 
-    group = None
-    if isinstance(submission, GroupSubmission):
-        group = submission.group
-        messages.add_message(request, messages.WARNING, "This is a group submission. Your will submit on behalf of all your group members.")
+    if activity.group:
+        gm = GroupMember.objects.filter(student__person=student, activity=activity, confirmed=True)
+        if gm:
+            group = gm[0].group
+            messages.add_message(request, messages.WARNING, "This is a group submission. Your will submit on behalf of the group %s." % group.name)
+        else:
+            group = None
+            cansubmit = False
+            messages.add_message(request, messages.WARNING, "This is a group submission. You cannot submit since you aren't in a group.")
+    else:
+        group = None
+
 
     return render_to_response("submission/" + template,
-        {"course":course, "activity":activity, "submission": submission, "submitted_components":submitted_components, "userid":userid, "late":late, "student":student, "group":group},
+        {"course":course, "activity":activity, "submission": submission, "submitted_components":submitted_components, "userid":userid, "late":late, "student":student, "group":group, "cansubmit":cansubmit},
         context_instance=RequestContext(request))
 
 
@@ -78,25 +87,27 @@ def add_submission(request, course_slug, activity_slug):
     component_list.sort()
     component_form_list=[]
 
-    group_member = GroupMember.objects.all().filter(student__person__userid=request.user.username)\
+    group_member = None
+    if activity.group:
+        group_member = GroupMember.objects.filter(student__person__userid=request.user.username)\
                                             .filter(confirmed=True)\
                                             .filter(activity=activity)
-    if len(group_member) > 0:
-        group_member = group_member[0]
-    else:
-        group_member = None
+        if len(group_member) > 0:
+            group_member = group_member[0]
 
     if request.method == 'POST':
         component_form_list = make_form_from_list(component_list, request=request)
         submitted_comp = []    # list all components which has content submitted in the POST
         not_submitted_comp = [] #list allcomponents which has no content submitted in the POST
-        if group_member is None:
+        if not activity.group:
             new_sub = StudentSubmission()   # the submission foreign key for newly submitted components
             new_sub.member = get_object_or_404(Member, offering__slug=course_slug, person__userid=request.user.username)
-        else:
+        elif group_member:
             new_sub = GroupSubmission()
             new_sub.group = group_member.group
             new_sub.creator = group_member
+        else:
+            return ForbiddenResponse(request)
         new_sub.activity = activity
         new_sub_saved = False
         
@@ -112,44 +123,14 @@ def add_submission(request, course_slug, activity_slug):
                     new_sub_saved = True
                     new_sub.save()
                 
-                #SubmittedComponent = component.Type.SubmittedComponent
                 sub = form.save(commit=False)
                 sub.submission = new_sub
                 sub.component = component
-                
                 sub.save()
                 
-                #sub = SubmittedComponent()
-                #sub.build_from_submission(request.POST, form)
-                
-                #if form[0].get_type() == 'URL' :
-                #    file = request.POST.get(str(form[0].id) + '-' + form[0].get_type().lower())
-                #    sub = SubmittedURL()        #submitted component
-                #    sub.url = file
-                #elif form[0].get_type() == 'PlainText':
-                #    file = request.POST.get(str(form[0].id) + '-' + 'text')
-                #    sub = SubmittedPlainText()
-                #    sub.text = file
-                #else:
-                #    file = request.FILES.get(str(form[0].id) + '-' + form[0].get_type().lower())
-                #    if form[0].get_type() == 'Archive':
-                #        sub = SubmittedArchive()
-                #        sub.archive = file
-                #        sub._meta.get_field('archive').upload_to = "submission/%s/%s/%s/%s" %(course.slug, activity.slug, request.user.username,new_sub.id)
-                #    if form[0].get_type() == 'Cpp':
-                #        sub = SubmittedCpp()
-                #        sub.cpp = file
-                #        sub._meta.get_field('cpp').upload_to = "submission/%s/%s/%s/%s" %(course.slug, activity.slug, request.user.username,new_sub.id)
-                #    if form[0].get_type() =='Java':
-                #        sub = SubmittedJava()
-                #        sub.java = file
-                #        sub._meta.get_field('java').upload_to = "submission/%s/%s/%s/%s" %(course.slug, activity.slug, request.user.username,new_sub.id)
-                #sub.submission = new_sub    #point to the submission foreign key
-                #sub.component = form[0]
-                #sub.save()
                 submitted_comp.append(sub)
                 #LOG EVENT#
-                if group_member != None:
+                if activity.group:
                     group_str = " as a member of group %s" % new_sub.group.name
                 else:
                     group_str = ""
@@ -159,8 +140,6 @@ def add_submission(request, course_slug, activity_slug):
                 l.save()
             else:
                 not_submitted_comp.append(component)
-        #print component_form_list[1]['form'].errors.keys()
-        #print component_form_list[1]['form'].errors.values()
         
         if len(not_submitted_comp) == 0:
             messages.add_message(request, messages.SUCCESS, "Your submission was successful.")
@@ -171,14 +150,18 @@ def add_submission(request, course_slug, activity_slug):
             "submitted_comp":submitted_comp, "not_submitted_comp":not_submitted_comp},
             context_instance=RequestContext(request))
     else: #not POST
-        if group_member:
+        print activity.group, group_member
+        if activity.group and group_member:
             messages.add_message(request, messages.WARNING, "This is a group submission. Your will submit on behalf of all your group members.")
+        elif activity.group:
+            return ForbiddenResponse(request)
+
         component_form_list = make_form_from_list(component_list)
         return render_to_response("submission/submission_add.html",
         {'component_form_list': component_form_list, "course": course, "activity": activity},
         context_instance = RequestContext(request))
 
-def _check_me_or_member(request, target_uid, course, activity, staff=True):
+def XXXX_check_me_or_member(request, target_uid, course, activity, staff=True):
     """
     if it's me or it's a member of my group, return true; otherwise false;
     staff=True means staff will always return true
@@ -197,36 +180,40 @@ def _check_me_or_member(request, target_uid, course, activity, staff=True):
     return False
 
 @requires_course_by_slug
-def show_components_submission_history(request, course_slug, activity_slug):
+def show_components_submission_history(request, course_slug, activity_slug, userid=None):
     userid = request.GET.get('userid')
     course = get_object_or_404(CourseOffering, slug = course_slug)
     activity = get_object_or_404(course.activity_set,slug = activity_slug)
 
     if userid==None:
+        # can always see your own submissions
         userid = request.user.username
-    if not _check_me_or_member(request, userid, course, activity):
-        return ForbiddenResponse(request)
-
-    group_member = GroupMember.objects.all().filter(student__person__userid=userid)\
-                                            .filter(confirmed=True)\
-                                            .filter(activity=activity)
-    if len(group_member) > 0:
-        is_group = True
-        messages.add_message(request, messages.WARNING, "This is a group submission. This history is based on submissions from all your group members.")
     else:
-        is_group = False
+        # specifying a userid: must be course staff
+        if not is_course_staff_by_slug(request.user, course.slug):
+            return ForbiddenResponse(request)
 
-    
-    
-    all_submitted_components = select_students_submitted_components(activity, userid)
+    if activity.group:
+        messages.add_message(request, messages.WARNING, "This is a group submission. This history is based on submissions from all your group members.")
+        gms = GroupMember.objects.filter(student__person__userid=userid, confirmed=True, activity=activity)
+        submissions = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms)
+    else:
+        submissions = StudentSubmission.objects.filter(activity=activity, member__person__userid=userid)
+
+    # get all submission components
     component_list = select_all_components(activity)
-    empty_component = []
-    for component in component_list:
-        if select_students_submission_by_component(component, userid) == []:
-            empty_component.append(component)
-            messages.add_message(request, messages.WARNING, "You have no submission for "+component.title+".")
+    all_submitted_components = []
+    for submission in submissions:
+        c = get_submission_components(submission, activity, component_list)
+        all_submitted_components.append({'sub':submission, 'comp':c})
+    
+    #empty_component = []
+    #for component in component_list:
+    #    if select_students_submission_by_component(component, userid) == []:
+    #        empty_component.append(component)
+    #        messages.add_message(request, messages.WARNING, "You have no submission for "+component.title+".")
     return render_to_response("submission/submission_history_view.html", 
-        {"course":course, "activity":activity,'userid':userid,'submitted_component': all_submitted_components,'empty_component': empty_component, 'course':course, 'activity':activity,'is_group':is_group},
+        {"course":course, "activity":activity,'userid':userid,'submitted_components': all_submitted_components, 'course':course, 'activity':activity},
         context_instance = RequestContext(request))
 
 #staff submission configuratiton

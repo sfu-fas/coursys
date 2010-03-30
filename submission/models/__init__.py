@@ -143,7 +143,7 @@ def XXX_select_students_submitted_components(activity, userid):
     new_submitted_component.sort()
     return new_submitted_component
 
-def select_students_submission_by_component(component, userid):
+def XXX_select_students_submission_by_component(component, userid):
     submitted_component = select_students_submitted_components(component.activity ,userid)
     new_submitted_component = [comp for comp in submitted_component if comp.component == component]
     new_submitted_component.sort()
@@ -193,11 +193,12 @@ def get_submitted_component(**kwargs):
 #            return c
 #    return None
 
-def get_submission_components(submission, activity):
+def get_submission_components(submission, activity, component_list=None):
     """
     return a list of pair[component, latest_submission(could be None)] for this submission
     """
-    component_list = select_all_components(activity)
+    if not component_list:
+        component_list = select_all_components(activity)
     
     submitted_components = []
     for component in component_list:
@@ -220,13 +221,16 @@ def get_current_submission(student, activity):
     """
     find most recent submission (individual or group)
     """
-    try:
-        submission = StudentSubmission.objects.filter(activity=activity, member__person=student).latest('created_at')
-    except StudentSubmission.DoesNotExist:
-        groups = Group.objects.filter(groupmember__student__person=student, groupmember__confirmed=True)
+    if activity.group:
+        gms = GroupMember.objects.filter(student__person=student, confirmed=True)
         try:
-            submission = GroupSubmission.objects.filter(activity=activity, group__in=groups).latest('created_at')
+            submission = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms).latest('created_at')
         except GroupSubmission.DoesNotExist:
+            submission = None
+    else:
+        try:
+            submission = StudentSubmission.objects.filter(activity=activity, member__person=student).latest('created_at')
+        except StudentSubmission.DoesNotExist:
             submission = None
 
     if submission:

@@ -17975,7 +17975,8 @@
    "position": 1, 
    "short_name": "A1", 
    "slug": "a1", 
-   "status": "RLS"
+   "status": "RLS",
+   "group": "True"
   }, 
   "model": "grades.activity", 
   "pk": 1
@@ -17989,7 +17990,8 @@
    "position": 2, 
    "short_name": "A2", 
    "slug": "a2", 
-   "status": "URLS"
+   "status": "URLS",
+   "group": "False"
   }, 
   "model": "grades.activity", 
   "pk": 2
