@@ -15,6 +15,7 @@ from contrib import messages
 from django.conf import settings
 from courselib.auth import requires_course_by_slug, requires_course_staff_by_slug, is_course_staff_by_slug, is_course_student_by_slug
 from log.models import *
+from sets import Set
 
 #@login_required
 #def index(request):
@@ -35,9 +36,76 @@ def groupmanage(request, course_slug):
 def _groupmanage_student(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     members = GroupMember.objects.filter(group__courseoffering=course, student__person__userid=request.user.username)
+    #NoDuplicateMembers=set(members)  
+    activities = Activity.objects.filter(offering = course, status = 'URLS') 
+    #students = Member.objects.select_related('person').filter(offering = course, role = 'STUD')
+    #groups= Group.objects.filter(courseoffering=course)
+    #plist= []
+    #groupmember=GroupMember.objects.filter(student__person__userid=request.user.username)
+    groups=Group.objects.filter(groupmember__student__person__userid=request.user.username)
+    #NoDuplicateGroups=list(Set(groups))
+    membersNotInDuplicateGroup = [] 
+    membersInDuplicateGroup = []
+    NoDuplicateGroupmembers=[]
+    #countGroup=0;
+    for member in members:
+        counter=0
+        memberNotInDuplicateGroupFlag=True
+        for group in groups:
+            if member.group == group:
+                counter=counter+1
+                if counter>1:
+                    memberNotInDuplicateGroupFlag=False
+        if memberNotInDuplicateGroupFlag==True:
+            membersNotInDuplicateGroup.append(member)
+        else:
+            membersInDuplicateGroup.append(member)
+    for member in membersInDuplicateGroup:
+        memberone=member
+        counter=0
+        for member in membersInDuplicateGroup:
+            if memberone.group==member.group:
+                counter=counter+1
+                if counter>1:
+                    membersInDuplicateGroup.remove(member)
     
-    return render_to_response('groups/student.html', {'course':course, 'members':members}, context_instance = RequestContext(request))
+    for member in membersInDuplicateGroup:
+        memberone=member
+        counter=0
+        for member in membersInDuplicateGroup:
+            if memberone.student==member.student:
+                if memberone.group==member.group:
+                    counter=counter+1
+            if counter>1:
+                    membersInDuplicateGroup.remove(member)
+    
+    for member in membersInDuplicateGroup:
+        membersNotInDuplicateGroup.append(member)
+    #for member in membersNotInDuplicateGroup:
+        #NoDuplicateGroupmembers.append(member)
+    
+    #for member in membersNotInDuplicateGroup:
+        #for m in member.group.groupmember_set.all:
+            #NoDuplicateGroupmembers.append(m) 
+    
+     
+        #for m in NoDuplicateGroupmembers:
+            #mn=m
+            #counter=0
+            #for mm in NoDuplicateGroupmembers:
+                #if (mm.student==mn.student & mm.group==mn.group):
+                    #counter=counter+1
+                    #if counter>1:
+                        #NoDuplicateGroupmembers.remove(m)
+                        
+    
+                    
+                
+            
+            
 
+    #membersNotInDuplicateGroup=set(membersInDuplicateGroup)
+    return render_to_response('groups/student.html', {'course':course, 'groups':groups,'membersNotInDuplicateGroup':membersNotInDuplicateGroup}, context_instance = RequestContext(request))
 def _groupmanage_staff(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     members = GroupMember.objects.filter(group__courseoffering=course)
@@ -61,7 +129,6 @@ def create(request,course_slug):
     person = get_object_or_404(Person,userid=request.user.username)
     course = get_object_or_404(CourseOffering, slug = course_slug)
     group_manager=Member.objects.get(person = person, offering = course)
-    
     #TODO can instructor create group based on unreleased activities?
     activities = Activity.objects.filter(offering = course, status = 'URLS') 
     activityList = []
