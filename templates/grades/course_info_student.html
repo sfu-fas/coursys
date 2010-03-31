@@ -77,7 +77,7 @@
         <tbody>
 	    {% for activityinfo in activityinfo_list %}
             <tr>
-		<td scope="row"><a href="#act-{{ activityinfo.activity.slug }}">{{ activityinfo.activity.display_label }}</a></td>
+		<td scope="row"><a href="{{activityinfo.activity.get_absolute_url}}">{{ activityinfo.activity.display_label }}</a></td>
 		<td>{{ activityinfo.display_grade_status_student }}</td>
 		<td>{{ activityinfo.display_grade_student }}</td>
             </tr>
@@ -86,64 +86,5 @@
     </table>
 </div>
 
-<h2>Activity Details</h2>
-{% for activityinfo in activityinfo_list %}
-<div class="activity_box">
-    <div class="grade">Grade: {{ activityinfo.display_grade_with_percentage_student }}</div>
-    <h3 class="heading" id="act-{{ activityinfo.activity.slug }}">{{ activityinfo.activity.display_label }}</h3>
-    {% if activityinfo.activity.submitable %}
-      <div><a class="redbutton submit_button" href="{% url submission.views.show_components course.slug, activityinfo.activity.slug%}">Submit</a></div>
-    {% else %}
-      <div><span class="disabledbutton submit_button">Submit</span></div>
-    {% endif %}
-    <div class="inside">
-	<table class="activity_box_info">
-	    <tbody>
-		<tr>
-		    <th scope="col">Due Date</th>
-		    <td>{{ activityinfo.activity.due_date }}</td>
-		</tr>
-		{% ifequal activityinfo.activity.status 'RLS' %}
-		{% if activityinfo.activity_stat %}
-		<tr>
-		    <th scope="col" rowspan="2">Statistics</th>
-		    <td>Average Grade={{ activityinfo.activity_stat.average }}</td>
-		</tr>
-		<tr>
-		    <td>
-			Min={{ activityinfo.activity_stat.min }}, Max={{ activityinfo.activity_stat.max }},
-			Median={{ activityinfo.activity_stat.median }}, StdDev={{ activityinfo.activity_stat.stddev }}
-		    </td>
-		</tr>
-		{% endif %}
-		{% endifequal %}
-	    </tbody>
-	</table>
-	{% ifequal activityinfo.activity.status 'RLS' %}
-	{% if activityinfo.activity_stat %}
-	<table class="data info" style="width: 500px; border-collapse: collapse;">
-	    <caption>Grade Range</caption>
-	    <thead>
-		<tr>
-		    <td></td>
-		    {% for grade_range_stat in activityinfo.activity_stat.grade_range_stat_list %}
-		    <th scope="col">{{ grade_range_stat.grade_range }}</th>
-		    {% endfor %}
-		</tr>
-	    </thead>
-	    <tbody>
-		<tr>
-		    <th scope="row">{{ activityinfo.activity.name }}</th>
-		    {% for grade_range_stat in activityinfo.activity_stat.grade_range_stat_list %}
-		    <td>{{ grade_range_stat.stud_count }}</td>
-		    {% endfor %}
-		</tr>
-	    </tbody>
-	</table>
-	{% endif %}
-	{% endifequal %}
-    </div>
-</div>
-{% endfor %}
 {% endif %}
 {% endblock %}

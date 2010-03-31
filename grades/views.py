@@ -78,13 +78,21 @@ def _course_info_student(request, course_slug):
     activityinfo_list = []
     for activity in activities:
         activityinfo_list.append(create_StudentActivityInfo_list(course, activity,
-                                                                student=Person.objects.get(userid=request.user.username))[0].append_activity_stat())
+                student=Person.objects.get(userid=request.user.username))[0].append_activity_stat())
     context = {'course': course, 'activityinfo_list': activityinfo_list, 'from_page': FROMPAGE['course']}
     return render_to_response("grades/course_info_student.html", context,
                               context_instance=RequestContext(request))
 
-@requires_course_staff_by_slug
+@login_required
 def activity_info(request, course_slug, activity_slug):
+    if is_course_staff_by_slug(request.user, course_slug):
+        return _activity_info_staff(request, course_slug, activity_slug)
+    elif is_course_student_by_slug(request.user, course_slug):
+        return _activity_info_student(request, course_slug, activity_slug)
+    else:
+        return ForbiddenResponse(request)
+
+def _activity_info_staff(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activities = all_activities_filter(slug=activity_slug, offering=course)
     if len(activities) != 1:
@@ -102,6 +110,28 @@ def activity_info(request, course_slug, activity_slug):
 
     context = {'course': course, 'activity_type': activity_type, 'activity': activity, 'student_grade_info_list': student_grade_info_list, 'from_page': FROMPAGE['activityinfo']}
     return render_to_response('grades/activity_info.html', context, context_instance=RequestContext(request))
+
+
+def _activity_info_student(request, course_slug, activity_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activities = all_activities_filter(slug=activity_slug, offering=course)
+    
+    if len(activities) != 1:
+        return NotFoundResponse(request)
+
+    activity = activities[0]
+    if activity.status=="INVI":
+        return NotFoundResponse(request)
+
+    # only display summary stats for courses with at least 10 students
+    student_count = Member.objects.filter(offering=course, role="STUD").count()
+    display_summary = student_count >= 10 and activity.status=="RLS"
+    
+    activityinfo = create_StudentActivityInfo_list(course, activity, student=Person.objects.get(userid=request.user.username))[0].append_activity_stat()
+
+    context = {'course': course, 'activity': activity, 'activityinfo': activityinfo, 'display_summary': display_summary}
+    return render_to_response('grades/activity_info_student.html', context, context_instance=RequestContext(request))
+
 
 @requires_course_staff_by_slug
 def activity_info_with_groups(request, course_slug, activity_slug):
