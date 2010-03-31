@@ -160,7 +160,7 @@ class NumericActivity(Activity):
                 n = NewsItem(user=m.person, author=None, course=self.offering,
                     source_app="grades", title="%s grade released" % (self.name), 
                     content=content,
-                    url=reverse('grades.views.course_info', kwargs={'course_slug':self.offering.slug})
+                    url=self.get_absolute_url()
                     )
                 n.save()
 

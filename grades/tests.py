@@ -177,4 +177,8 @@ class GradesTest(TestCase):
         self.assertContains(response, "Gregory Baker")
         self.assertContains(response, 'href="' + reverse('groups.views.groupmanage', kwargs={'course_slug':c.slug}) +'"')
 
+        response = basic_page_tests(self, client, a.get_absolute_url())
+        # small class (one student) shouldn't contain summary stats
+        self.assertNotContains(response, "Histogram")
+        self.assertNotContains(response, "Standard Deviation")
 
