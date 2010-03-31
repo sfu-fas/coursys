@@ -52,7 +52,7 @@ def _course_info_staff(request, course_slug):
         order = request.GET['order']
     if request.GET.has_key('act'):
         act = request.GET['act']
-    if order:
+    if order and act:
         reorder_course_activities(activities, act, order)
         return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
 
@@ -267,12 +267,14 @@ def formula_tester(request, course_slug):
             activity_form_entry = ActivityFormEntry(request.POST, prefix=numeric_activity.slug)
             if not activity_form_entry.is_valid():
                 has_error = True
+            else:
+                value = activity_form_entry.cleaned_data['value']
+                if not value:
+                    value = 0
+                faked_activities.append(FakeActivity(numeric_activity.name, numeric_activity.short_name,
+                                                     activity_form_entry.cleaned_data['status'], value))
             activity_entries.append(FormulaTesterActivityEntry(numeric_activity, activity_form_entry))
-            value = activity_form_entry.cleaned_data['value']
-            if not value:
-                value = 0
-            faked_activities.append(FakeActivity(numeric_activity.name, numeric_activity.short_name,
-                                                 activity_form_entry.cleaned_data['status'], value))
+            
 
         formula_form_entry = FormulaFormEntry(request.POST)
         formula_form_entry.activate_form_entry_validation(course_slug)

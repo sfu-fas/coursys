@@ -140,7 +140,7 @@ class NumericActivity(Activity):
             old = Activity.objects.get(id=self.id)
         except Activity.DoesNotExist:
             old = None
-        super(Activity, self).save(*args, **kwargs)
+        super(NumericActivity, self).save(*args, **kwargs)
 
         if newsitem and self.status == 'RLS' and old != None and old.status != 'RLS':
             # newly-released grades: create news items
@@ -187,7 +187,7 @@ class LetterActivity(Activity):
             old = old[0]
         else:
             old = None
-        super(Activity, self).save(*args, **kwargs)
+        super(LetterActivity, self).save(*args, **kwargs)
 
         if newsitem and old and self.status == 'RLS' and old.status != 'RLS':
             # newly-released grades: create news items

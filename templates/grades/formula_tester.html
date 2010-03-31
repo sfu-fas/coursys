@@ -56,7 +56,7 @@
                                         <td>{{ activity_form_entry.status }}</td>
                                         <td>
                                             {{ activity_form_entry.value }}/{{ activity.max_grade }}
-                                            {% if activity_form_entry.value.errors %}<span class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/> {{activity_form_entry.value.errors.0}}</span>{% endif %}
+                                            {% if activity_form_entry.value.errors %}<div class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/> {{activity_form_entry.value.errors.0}}</div>{% endif %}
                                         </td>
                                     </tr>
                                     {% endwith %}
