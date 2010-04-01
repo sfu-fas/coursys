@@ -1,6 +1,11 @@
 from django.test import TestCase
 from coredata.models import *
 
+from django.core.urlresolvers import reverse
+from django.test.client import Client
+from courselib.testing import *
+from settings import CAS_SERVER_URL
+
 from django.db.models import *
 from django.db import IntegrityError
 from datetime import date, datetime
@@ -54,6 +59,8 @@ class CoredataTest(TestCase):
         p2.save()
         
         self.assertEquals(str(p1), "Lname, Fname")
+        self.assertEquals(p1.name(), "Fn Lname")
+        self.assertEquals(p1.email(), "test1@sfu.ca")
         people = Person.objects.all()
         # check sorting
         self.assertEquals(p1, people[0])
@@ -90,6 +97,7 @@ class CoredataTest(TestCase):
         wk.save()
         
         self.assertEquals(s.label(), "Fall 2007")
+        self.assertEquals(str(wk), "1077 week 5")
         
         s2 = Semester(name="1077", start=date(2007,9,4), end=date(2007,12,3))
         self.assertRaises(IntegrityError, s2.save)
@@ -113,7 +121,11 @@ class CoredataTest(TestCase):
         # shouldn't be inverse function here: duedate always returns an in-semester date
         self._test_due_date(s, dt, 5, 2, reverse=datetime(2007,10,10, tzinfo=tz))
 
+        wk, wkday = s.week_weekday(date(2007, 10, 3))
+        self.assertEqual(wk, 5)
+        self.assertEqual(wkday, 2)
 
+        self.assertRaises(ValueError, s.week_weekday, date(2007, 9, 2))
 
     def test_course_offering(self):
         """
@@ -125,6 +137,8 @@ class CoredataTest(TestCase):
         url = c.get_absolute_url()
         self.assertEquals(url, str(url))
         self.assertEquals(url[0], '/')
+        self.assertEquals(str(c), "CMPT 120 D100 (Fall 2007)")
+        self.assertEquals(c.name(), "CMPT 120 D1")
 
         # check uniqueness criteria
         c2 = CourseOffering(subject="CMPT", number="120", section="D100", semester=s, component="LAB",
@@ -141,4 +155,66 @@ class CoredataTest(TestCase):
                 graded=True, crse_id=11112, class_nbr=22222, campus='SURRY',
                 enrl_cap=101, enrl_tot=100, wait_tot=3)
         self.assertRaises(IntegrityError, c2.save)
+
+        # test some course memberships
+        p1 = Person(emplid=210012345, userid="test1",
+                last_name="Lname", first_name="Fname", pref_first_name="Fn", middle_name="M")
+        p1.save()
+        m = Member(person=p1, offering=c, role="INST", credits=0, career="NONS", added_reason="AUTO")
+        m.save()
+        
+        self.assertEqual( str(list(c.instructors())), "[<Person: Lname, Fname>]")
+        self.assertEqual( str(list(c.tas())), "[]")
+        self.assertEqual( c.student_count(), 0)
+
+        m.role = "TA"
+        m.save()
+        self.assertEqual( str(list(c.instructors())), "[]")
+        self.assertEqual( str(list(c.tas())), "[<Person: Lname, Fname>]")
+        self.assertEqual( c.student_count(), 0)
+
+        m.role = "STUD"
+        m.save()
+        self.assertEqual( str(list(c.instructors())), "[]")
+        self.assertEqual( str(list(c.tas())), "[]")
+        self.assertEqual( c.student_count(), 1)
+        
+        self.assertEqual( str(m), "test1 (210012345) in CMPT 120 D100 (Fall 2007)")
+
+    def test_roles(self):
+        # create person an give sysadmin role
+        p1 = Person(emplid=210012345, userid="test1",
+                last_name="Lname", first_name="Fname", pref_first_name="Fn", middle_name="M")
+        p1.save()
+        
+        r = Role(person=p1, role="SYSA")
+        r.save()
+        self.assertEqual( str(r), "Lname, Fname (System Administrator)")
+
+        # check the front end
+        client = Client()
+        client.login(ticket="test1", service=CAS_SERVER_URL)
+
+        url = reverse('coredata.views.role_list')
+        response = basic_page_tests(self, client, url)
+        self.assertContains(response, '<td scope="row">Lname, Fname</td><td>System Administrator</td>')
+
+        # add a new role with the front end
+        url = reverse('coredata.views.new_role')
+        response = basic_page_tests(self, client, url)
+        
+        response = client.post(url, {'person':'asdfasdf', 'role':'FAC'})
+        self.assertEquals(response.status_code, 200)
+        validate_content(self, response.content, url)
+        self.assertContains(response, "Userid &#39;asdfasdf&#39; is unknown")
+
+        response = client.post(url, {'person':p1.userid, 'role':'FAC'})
+        self.assertEquals(response.status_code, 302)
+        
+        # make sure the role is now there
+        self.assertEquals( Role.objects.filter(role='FAC').count(), 1)
+
+
+
+
 

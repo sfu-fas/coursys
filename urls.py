@@ -71,8 +71,8 @@ urlpatterns = patterns('',
     url(r'^' + COURSE_ACTIVITY_SLUG + '/csv$', 'marking.views.export_csv'),
     url(r'^' + COURSE_SLUG + '/_copysetup/$', 'marking.views.copy_course_setup'),
 
-    url(r'^roles/$', 'courses.coredata.views.role_list'),
-    url(r'^roles/new$', 'courses.coredata.views.new_role'),
+    url(r'^roles/$', 'coredata.views.role_list'),
+    url(r'^roles/new$', 'coredata.views.new_role'),
 )
 if settings.DEBUG:
     # URLs for development only:
