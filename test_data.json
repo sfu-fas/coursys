@@ -10281,6 +10281,1302 @@
  }, 
  {
   "fields": {
+   "emplid": 200000101, 
+   "first_name": "M.", 
+   "last_name": "Atkins", 
+   "middle_name": "Stella", 
+   "pref_first_name": "M.", 
+   "userid": "stella"
+  }, 
+  "model": "coredata.person", 
+  "pk": 49
+ }, 
+ {
+  "fields": {
+   "emplid": 200000102, 
+   "first_name": "Gregory", 
+   "last_name": "Baker", 
+   "middle_name": "Garnet", 
+   "pref_first_name": "Gregory", 
+   "userid": "ggbaker"
+  }, 
+  "model": "coredata.person", 
+  "pk": 22
+ }, 
+ {
+  "fields": {
+   "emplid": 200000103, 
+   "first_name": "Bradley", 
+   "last_name": "Bart", 
+   "middle_name": "Stephen", 
+   "pref_first_name": "Bradley", 
+   "userid": "bbart"
+  }, 
+  "model": "coredata.person", 
+  "pk": 4
+ }, 
+ {
+  "fields": {
+   "emplid": 200000104, 
+   "first_name": "Christopher", 
+   "last_name": "Bastone", 
+   "middle_name": "", 
+   "pref_first_name": "Christopher", 
+   "userid": "cbastone"
+  }, 
+  "model": "coredata.person", 
+  "pk": 8
+ }, 
+ {
+  "fields": {
+   "emplid": 200000105, 
+   "first_name": "Petra", 
+   "last_name": "Berenbrink", 
+   "middle_name": "", 
+   "pref_first_name": "Petra", 
+   "userid": "petra"
+  }, 
+  "model": "coredata.person", 
+  "pk": 43
+ }, 
+ {
+  "fields": {
+   "emplid": 200000106, 
+   "first_name": "Binay", 
+   "last_name": "Bhattacharya", 
+   "middle_name": "", 
+   "pref_first_name": "Binay", 
+   "userid": "binay"
+  }, 
+  "model": "coredata.person", 
+  "pk": 5
+ }, 
+ {
+  "fields": {
+   "emplid": 200000107, 
+   "first_name": "Andrei", 
+   "last_name": "Bulatov", 
+   "middle_name": "A.", 
+   "pref_first_name": "Andrei", 
+   "userid": "abulatov"
+  }, 
+  "model": "coredata.person", 
+  "pk": 1
+ }, 
+ {
+  "fields": {
+   "emplid": 200000108, 
+   "first_name": "Frank", 
+   "last_name": "Burton", 
+   "middle_name": "Warren", 
+   "pref_first_name": "Frank", 
+   "userid": "burton"
+  }, 
+  "model": "coredata.person", 
+  "pk": 7
+ }, 
+ {
+  "fields": {
+   "emplid": 200000109, 
+   "first_name": "Chun", 
+   "last_name": "Chan", 
+   "middle_name": "Tung", 
+   "pref_first_name": "Chun", 
+   "userid": "bobbyc"
+  }, 
+  "model": "coredata.person", 
+  "pk": 6
+ }, 
+ {
+  "fields": {
+   "emplid": 200000110, 
+   "first_name": "Kin", 
+   "last_name": "Chan", 
+   "middle_name": "Hung Anthony", 
+   "pref_first_name": "Kin", 
+   "userid": "anthonyc"
+  }, 
+  "model": "coredata.person", 
+  "pk": 2
+ }, 
+ {
+  "fields": {
+   "emplid": 200000111, 
+   "first_name": "Harriet", 
+   "last_name": "Chicoine", 
+   "middle_name": "", 
+   "pref_first_name": "Harriet", 
+   "userid": "chicoine"
+  }, 
+  "model": "coredata.person", 
+  "pk": 10
+ }, 
+ {
+  "fields": {
+   "emplid": 200000112, 
+   "first_name": "Diana", 
+   "last_name": "Cukierman", 
+   "middle_name": "Raquel", 
+   "pref_first_name": "Diana", 
+   "userid": "diana"
+  }, 
+  "model": "coredata.person", 
+  "pk": 12
+ }, 
+ {
+  "fields": {
+   "emplid": 200000113, 
+   "first_name": "Veronica", 
+   "last_name": "Dahl", 
+   "middle_name": "", 
+   "pref_first_name": "Veronica", 
+   "userid": "veronica"
+  }, 
+  "model": "coredata.person", 
+  "pk": 58
+ }, 
+ {
+  "fields": {
+   "emplid": 200000114, 
+   "first_name": "James", 
+   "last_name": "Delgrande", 
+   "middle_name": "Patrick", 
+   "pref_first_name": "James", 
+   "userid": "jim"
+  }, 
+  "model": "coredata.person", 
+  "pk": 30
+ }, 
+ {
+  "fields": {
+   "emplid": 200000115, 
+   "first_name": "Ping", 
+   "last_name": "Ding", 
+   "middle_name": "", 
+   "pref_first_name": "Ping", 
+   "userid": "ding"
+  }, 
+  "model": "coredata.person", 
+  "pk": 13
+ }, 
+ {
+  "fields": {
+   "emplid": 200000116, 
+   "first_name": "Anthony", 
+   "last_name": "Dixon", 
+   "middle_name": "", 
+   "pref_first_name": "Anthony", 
+   "userid": "dixon"
+  }, 
+  "model": "coredata.person", 
+  "pk": 14
+ }, 
+ {
+  "fields": {
+   "emplid": 200000117, 
+   "first_name": "Toby", 
+   "last_name": "Donaldson", 
+   "middle_name": "John", 
+   "pref_first_name": "Toby", 
+   "userid": "tjd"
+  }, 
+  "model": "coredata.person", 
+  "pk": 55
+ }, 
+ {
+  "fields": {
+   "emplid": 200000118, 
+   "first_name": "Mark", 
+   "last_name": "Drew", 
+   "middle_name": "", 
+   "pref_first_name": "Mark", 
+   "userid": "mark"
+  }, 
+  "model": "coredata.person", 
+  "pk": 37
+ }, 
+ {
+  "fields": {
+   "emplid": 200000119, 
+   "first_name": "John", 
+   "last_name": "Edgar", 
+   "middle_name": "William McCredie", 
+   "pref_first_name": "John", 
+   "userid": "johnwill"
+  }, 
+  "model": "coredata.person", 
+  "pk": 31
+ }, 
+ {
+  "fields": {
+   "emplid": 200000120, 
+   "first_name": "Ayse", 
+   "last_name": "Ergun", 
+   "middle_name": "Funda", 
+   "pref_first_name": "Ayse", 
+   "userid": "funda"
+  }, 
+  "model": "coredata.person", 
+  "pk": 20
+ }, 
+ {
+  "fields": {
+   "emplid": 200000121, 
+   "first_name": "Martin", 
+   "last_name": "Ester", 
+   "middle_name": "", 
+   "pref_first_name": "Martin", 
+   "userid": "ester"
+  }, 
+  "model": "coredata.person", 
+  "pk": 15
+ }, 
+ {
+  "fields": {
+   "emplid": 200000122, 
+   "first_name": "Michael", 
+   "last_name": "Evans", 
+   "middle_name": "David", 
+   "pref_first_name": "Michael", 
+   "userid": "evans"
+  }, 
+  "model": "coredata.person", 
+  "pk": 16
+ }, 
+ {
+  "fields": {
+   "emplid": 200000123, 
+   "first_name": "Alexandra", 
+   "last_name": "Fedorova", 
+   "middle_name": "", 
+   "pref_first_name": "Alexandra", 
+   "userid": "fedorova"
+  }, 
+  "model": "coredata.person", 
+  "pk": 18
+ }, 
+ {
+  "fields": {
+   "emplid": 200000124, 
+   "first_name": "Brian", 
+   "last_name": "Funt", 
+   "middle_name": "Vincent", 
+   "pref_first_name": "Brian", 
+   "userid": "funt"
+  }, 
+  "model": "coredata.person", 
+  "pk": 21
+ }, 
+ {
+  "fields": {
+   "emplid": 200000125, 
+   "first_name": "Philippe", 
+   "last_name": "Giabbanelli", 
+   "middle_name": "Joseph", 
+   "pref_first_name": "Philippe", 
+   "userid": "pjg1"
+  }, 
+  "model": "coredata.person", 
+  "pk": 44
+ }, 
+ {
+  "fields": {
+   "emplid": 200000126, 
+   "first_name": "Uwe", 
+   "last_name": "Glaesser", 
+   "middle_name": "Peter", 
+   "pref_first_name": "Uwe", 
+   "userid": "glaesser"
+  }, 
+  "model": "coredata.person", 
+  "pk": 23
+ }, 
+ {
+  "fields": {
+   "emplid": 200000168, 
+   "first_name": "Douglas", 
+   "last_name": "Gradstudent", 
+   "middle_name": "", 
+   "pref_first_name": "Doug", 
+   "userid": "0grad"
+  }, 
+  "model": "coredata.person", 
+  "pk": 68
+ }, 
+ {
+  "fields": {
+   "emplid": 200000127, 
+   "first_name": "Qianping", 
+   "last_name": "Gu", 
+   "middle_name": "", 
+   "pref_first_name": "Qianping", 
+   "userid": "qgu"
+  }, 
+  "model": "coredata.person", 
+  "pk": 46
+ }, 
+ {
+  "fields": {
+   "emplid": 200000128, 
+   "first_name": "Robert", 
+   "last_name": "Hadley", 
+   "middle_name": "Francis", 
+   "pref_first_name": "Robert", 
+   "userid": "hadley"
+  }, 
+  "model": "coredata.person", 
+  "pk": 24
+ }, 
+ {
+  "fields": {
+   "emplid": 200000129, 
+   "first_name": "Louis", 
+   "last_name": "Hafer", 
+   "middle_name": "", 
+   "pref_first_name": "Louis", 
+   "userid": "lou"
+  }, 
+  "model": "coredata.person", 
+  "pk": 36
+ }, 
+ {
+  "fields": {
+   "emplid": 200000130, 
+   "first_name": "Ghassan", 
+   "last_name": "Hamarneh", 
+   "middle_name": "", 
+   "pref_first_name": "Ghassan", 
+   "userid": "hamarneh"
+  }, 
+  "model": "coredata.person", 
+  "pk": 25
+ }, 
+ {
+  "fields": {
+   "emplid": 200000164, 
+   "first_name": "Chang", 
+   "last_name": "Han", 
+   "middle_name": "", 
+   "pref_first_name": "Chang", 
+   "userid": "0changh"
+  }, 
+  "model": "coredata.person", 
+  "pk": 64
+ }, 
+ {
+  "fields": {
+   "emplid": 200000131, 
+   "first_name": "Mohamed", 
+   "last_name": "Hefeeda", 
+   "middle_name": "M", 
+   "pref_first_name": "Mohamed", 
+   "userid": "mhefeeda"
+  }, 
+  "model": "coredata.person", 
+  "pk": 38
+ }, 
+ {
+  "fields": {
+   "emplid": 200000132, 
+   "first_name": "Pavol", 
+   "last_name": "Hell", 
+   "middle_name": "", 
+   "pref_first_name": "Pavol", 
+   "userid": "pavol"
+  }, 
+  "model": "coredata.person", 
+  "pk": 41
+ }, 
+ {
+  "fields": {
+   "emplid": 200000133, 
+   "first_name": "Yuzhuang", 
+   "last_name": "Hu", 
+   "middle_name": "", 
+   "pref_first_name": "Yuzhuang", 
+   "userid": "yhu1"
+  }, 
+  "model": "coredata.person", 
+  "pk": 61
+ }, 
+ {
+  "fields": {
+   "emplid": 200000167, 
+   "first_name": "Robert", 
+   "last_name": "Kelowna", 
+   "middle_name": "J", 
+   "pref_first_name": "Bob", 
+   "userid": "0kel"
+  }, 
+  "model": "coredata.person", 
+  "pk": 67
+ }, 
+ {
+  "fields": {
+   "emplid": 200000134, 
+   "first_name": "Harinder", 
+   "last_name": "Khangura", 
+   "middle_name": "Singh", 
+   "pref_first_name": "Harinder", 
+   "userid": "hskhangu"
+  }, 
+  "model": "coredata.person", 
+  "pk": 27
+ }, 
+ {
+  "fields": {
+   "emplid": 200000135, 
+   "first_name": "Arthur", 
+   "last_name": "Kirkpatrick", 
+   "middle_name": "Edward", 
+   "pref_first_name": "Arthur", 
+   "userid": "ted"
+  }, 
+  "model": "coredata.person", 
+  "pk": 53
+ }, 
+ {
+  "fields": {
+   "emplid": 200000136, 
+   "first_name": "Ramesh", 
+   "last_name": "Krishnamurti", 
+   "middle_name": "", 
+   "pref_first_name": "Ramesh", 
+   "userid": "ramesh"
+  }, 
+  "model": "coredata.person", 
+  "pk": 47
+ }, 
+ {
+  "fields": {
+   "emplid": 200000165, 
+   "first_name": "Rebecca", 
+   "last_name": "Larkin", 
+   "middle_name": "Jane", 
+   "pref_first_name": "Becky", 
+   "userid": "0rjl23"
+  }, 
+  "model": "coredata.person", 
+  "pk": 65
+ }, 
+ {
+  "fields": {
+   "emplid": 200000137, 
+   "first_name": "Ze-Nian", 
+   "last_name": "Li", 
+   "middle_name": "", 
+   "pref_first_name": "Ze-Nian", 
+   "userid": "li"
+  }, 
+  "model": "coredata.person", 
+  "pk": 35
+ }, 
+ {
+  "fields": {
+   "emplid": 200000138, 
+   "first_name": "Arthur", 
+   "last_name": "Liestman", 
+   "middle_name": "", 
+   "pref_first_name": "Arthur", 
+   "userid": "art"
+  }, 
+  "model": "coredata.person", 
+  "pk": 3
+ }, 
+ {
+  "fields": {
+   "emplid": 200000139, 
+   "first_name": "Yaroslav", 
+   "last_name": "Litus", 
+   "middle_name": "", 
+   "pref_first_name": "Yaroslav", 
+   "userid": "ylitus"
+  }, 
+  "model": "coredata.person", 
+  "pk": 62
+ }, 
+ {
+  "fields": {
+   "emplid": 200000140, 
+   "first_name": "Jiangchuan", 
+   "last_name": "Liu", 
+   "middle_name": "", 
+   "pref_first_name": "Jiangchuan", 
+   "userid": "jcliu"
+  }, 
+  "model": "coredata.person", 
+  "pk": 29
+ }, 
+ {
+  "fields": {
+   "emplid": 200000141, 
+   "first_name": "Wo-Shun", 
+   "last_name": "Luk", 
+   "middle_name": "", 
+   "pref_first_name": "Wo-Shun", 
+   "userid": "woshun"
+  }, 
+  "model": "coredata.person", 
+  "pk": 60
+ }, 
+ {
+  "fields": {
+   "emplid": 200000142, 
+   "first_name": "Frances", 
+   "last_name": "McLafferty", 
+   "middle_name": "Helen", 
+   "pref_first_name": "Frances", 
+   "userid": "fmclaffe"
+  }, 
+  "model": "coredata.person", 
+  "pk": 19
+ }, 
+ {
+  "fields": {
+   "emplid": 200000143, 
+   "first_name": "David", 
+   "last_name": "Mitchell", 
+   "middle_name": "Geoffrey", 
+   "pref_first_name": "David", 
+   "userid": "dgm"
+  }, 
+  "model": "coredata.person", 
+  "pk": 11
+ }, 
+ {
+  "fields": {
+   "emplid": 200000144, 
+   "first_name": "Torsten", 
+   "last_name": "Moller", 
+   "middle_name": "", 
+   "pref_first_name": "Torsten", 
+   "userid": "torsten"
+  }, 
+  "model": "coredata.person", 
+  "pk": 56
+ }, 
+ {
+  "fields": {
+   "emplid": 200000163, 
+   "first_name": "Kimberly", 
+   "last_name": "Moore", 
+   "middle_name": "Veronica", 
+   "pref_first_name": "Kim", 
+   "userid": "0kvm"
+  }, 
+  "model": "coredata.person", 
+  "pk": 63
+ }, 
+ {
+  "fields": {
+   "emplid": 200000145, 
+   "first_name": "Gregory", 
+   "last_name": "Mori", 
+   "middle_name": "Peter", 
+   "pref_first_name": "Gregory", 
+   "userid": "mori"
+  }, 
+  "model": "coredata.person", 
+  "pk": 39
+ }, 
+ {
+  "fields": {
+   "emplid": 200000146, 
+   "first_name": "Steven", 
+   "last_name": "Pearce", 
+   "middle_name": "James", 
+   "pref_first_name": "Steven", 
+   "userid": "stevenp"
+  }, 
+  "model": "coredata.person", 
+  "pk": 50
+ }, 
+ {
+  "fields": {
+   "emplid": 200000147, 
+   "first_name": "Jian", 
+   "last_name": "Pei", 
+   "middle_name": "", 
+   "pref_first_name": "Jian", 
+   "userid": "jpei"
+  }, 
+  "model": "coredata.person", 
+  "pk": 32
+ }, 
+ {
+  "fields": {
+   "emplid": 200000148, 
+   "first_name": "Joseph", 
+   "last_name": "Peters", 
+   "middle_name": "Garnet", 
+   "pref_first_name": "Joseph", 
+   "userid": "peters"
+  }, 
+  "model": "coredata.person", 
+  "pk": 42
+ }, 
+ {
+  "fields": {
+   "emplid": 200000149, 
+   "first_name": "Fred", 
+   "last_name": "Popowich", 
+   "middle_name": "", 
+   "pref_first_name": "Fred", 
+   "userid": "popowich"
+  }, 
+  "model": "coredata.person", 
+  "pk": 45
+ }, 
+ {
+  "fields": {
+   "emplid": 200000150, 
+   "first_name": "Janice", 
+   "last_name": "Regan", 
+   "middle_name": "", 
+   "pref_first_name": "Janice", 
+   "userid": "jregan"
+  }, 
+  "model": "coredata.person", 
+  "pk": 33
+ }, 
+ {
+  "fields": {
+   "emplid": 200000151, 
+   "first_name": "Suleyman", 
+   "last_name": "Sahinalp", 
+   "middle_name": "Cenk", 
+   "pref_first_name": "Suleyman", 
+   "userid": "cenk"
+  }, 
+  "model": "coredata.person", 
+  "pk": 9
+ }, 
+ {
+  "fields": {
+   "emplid": 200000152, 
+   "first_name": "Oliver", 
+   "last_name": "Schulte", 
+   "middle_name": "Norbert", 
+   "pref_first_name": "Oliver", 
+   "userid": "oschulte"
+  }, 
+  "model": "coredata.person", 
+  "pk": 40
+ }, 
+ {
+  "fields": {
+   "emplid": 200000153, 
+   "first_name": "Thomas", 
+   "last_name": "Shermer", 
+   "middle_name": "", 
+   "pref_first_name": "Thomas", 
+   "userid": "shermer"
+  }, 
+  "model": "coredata.person", 
+  "pk": 48
+ }, 
+ {
+  "fields": {
+   "emplid": 200000154, 
+   "first_name": "Evgeny", 
+   "last_name": "Skvortsov", 
+   "middle_name": "Sergeevich", 
+   "pref_first_name": "Evgeny", 
+   "userid": "evgenys"
+  }, 
+  "model": "coredata.person", 
+  "pk": 17
+ }, 
+ {
+  "fields": {
+   "emplid": 200000155, 
+   "first_name": "Tamara", 
+   "last_name": "Smyth", 
+   "middle_name": "", 
+   "pref_first_name": "Tamara", 
+   "userid": "tamaras"
+  }, 
+  "model": "coredata.person", 
+  "pk": 51
+ }, 
+ {
+  "fields": {
+   "emplid": 200000169, 
+   "first_name": "A", 
+   "last_name": "Student", 
+   "middle_name": "Q", 
+   "pref_first_name": "A", 
+   "userid": "0aaa0"
+  }, 
+  "model": "coredata.person", 
+  "pk": 69
+ }, 
+ {
+  "fields": {
+   "emplid": 200000189, 
+   "first_name": "Aa", 
+   "last_name": "Student", 
+   "middle_name": "X", 
+   "pref_first_name": "Aa", 
+   "userid": "0bbb0"
+  }, 
+  "model": "coredata.person", 
+  "pk": 89
+ }, 
+ {
+  "fields": {
+   "emplid": 200000170, 
+   "first_name": "B", 
+   "last_name": "Student", 
+   "middle_name": "Q", 
+   "pref_first_name": "B", 
+   "userid": "0aaa1"
+  }, 
+  "model": "coredata.person", 
+  "pk": 70
+ }, 
+ {
+  "fields": {
+   "emplid": 200000190, 
+   "first_name": "Bb", 
+   "last_name": "Student", 
+   "middle_name": "X", 
+   "pref_first_name": "Bb", 
+   "userid": "0bbb1"
+  }, 
+  "model": "coredata.person", 
+  "pk": 90
+ }, 
+ {
+  "fields": {
+   "emplid": 200000171, 
+   "first_name": "C", 
+   "last_name": "Student", 
+   "middle_name": "Q", 
+   "pref_first_name": "C", 
+   "userid": "0aaa2"
+  }, 
+  "model": "coredata.person", 
+  "pk": 71
+ }, 
+ {
+  "fields": {
+   "emplid": 200000191, 
+   "first_name": "Cc", 
+   "last_name": "Student", 
+   "middle_name": "X", 
+   "pref_first_name": "Cc", 
+   "userid": "0bbb2"
+  }, 
+  "model": "coredata.person", 
+  "pk": 91
+ }, 
+ {
+  "fields": {
+   "emplid": 200000172, 
+   "first_name": "D", 
+   "last_name": "Student", 
+   "middle_name": "Q", 
+   "pref_first_name": "D", 
+   "userid": "0aaa3"
+  }, 
+  "model": "coredata.person", 
+  "pk": 72
+ }, 
+ {
+  "fields": {
+   "emplid": 200000192, 
+   "first_name": "Dd", 
+   "last_name": "Student", 
+   "middle_name": "X", 
+   "pref_first_name": "Dd", 
+   "userid": "0bbb3"
+  }, 
+  "model": "coredata.person", 
+  "pk": 92
+ }, 
+ {
+  "fields": {
+   "emplid": 200000173, 
+   "first_name": "E", 
+   "last_name": "Student", 
+   "middle_name": "Q", 
+   "pref_first_name": "E", 
+   "userid": "0aaa4"
+  }, 
+  "model": "coredata.person", 
+  "pk": 73
+ }, 
+ {
+  "fields": {
+   "emplid": 200000193, 
+   "first_name": "Ee", 
+   "last_name": "Student", 
+   "middle_name": "X", 
+   "pref_first_name": "Ee", 
+   "userid": "0bbb4"
+  }, 
+  "model": "coredata.person", 
+  "pk": 93
+ }, 
+ {
+  "fields": {
+   "emplid": 200000174, 
+   "first_name": "F", 
+   "last_name": "Student", 
+   "middle_name": "Q", 
+   "pref_first_name": "F", 
+   "userid": "0aaa5"
+  }, 
+  "model": "coredata.person", 
+  "pk": 74
+ }, 
+ {
+  "fields": {
+   "emplid": 200000194, 
+   "first_name": "Ff", 
+   "last_name": "Student", 
+   "middle_name": "X", 
+   "pref_first_name": "Ff", 
+   "userid": "0bbb5"
+  }, 
+  "model": "coredata.person", 
+  "pk": 94
+ }, 
+ {
+  "fields": {
+   "emplid": 200000175, 
+   "first_name": "G", 
+   "last_name": "Student", 
+   "middle_name": "Q", 
+   "pref_first_name": "G", 
+   "userid": "0aaa6"
+  }, 
+  "model": "coredata.person", 
+  "pk": 75
+ }, 
+ {
+  "fields": {
+   "emplid": 200000195, 
+   "first_name": "Gg", 
+   "last_name": "Student", 
+   "middle_name": "X", 
+   "pref_first_name": "Gg", 
+   "userid": "0bbb6"
+  }, 
+  "model": "coredata.person", 
+  "pk": 95
+ }, 
+ {
+  "fields": {
+   "emplid": 200000176, 
+   "first_name": "H", 
+   "last_name": "Student", 
+   "middle_name": "Q", 
+   "pref_first_name": "H", 
+   "userid": "0aaa7"
+  }, 
+  "model": "coredata.person", 
+  "pk": 76
+ }, 
+ {
+  "fields": {
+   "emplid": 200000196, 
+   "first_name": "Hh", 
+   "last_name": "Student", 
+   "middle_name": "X", 
+   "pref_first_name": "Hh", 
+   "userid": "0bbb7"
+  }, 
+  "model": "coredata.person", 
+  "pk": 96
+ }, 
+ {
+  "fields": {
+   "emplid": 200000177, 
+   "first_name": "I", 
+   "last_name": "Student", 
+   "middle_name": "Q", 
+   "pref_first_name": "I", 
+   "userid": "0aaa8"
+  }, 
+  "model": "coredata.person", 
+  "pk": 77
+ }, 
+ {
+  "fields": {
+   "emplid": 200000197, 
+   "first_name": "Ii", 
+   "last_name": "Student", 
+   "middle_name": "X", 
+   "pref_first_name": "Ii", 
+   "userid": "0bbb8"
+  }, 
+  "model": "coredata.person", 
+  "pk": 97
+ }, 
+ {
+  "fields": {
+   "emplid": 200000178, 
+   "first_name": "J", 
+   "last_name": "Student", 
+   "middle_name": "Q", 
+   "pref_first_name": "J", 
+   "userid": "0aaa9"
+  }, 
+  "model": "coredata.person", 
+  "pk": 78
+ }, 
+ {
+  "fields": {
+   "emplid": 200000198, 
+   "first_name": "Jj", 
+   "last_name": "Student", 
+   "middle_name": "X", 
+   "pref_first_name": "Jj", 
+   "userid": "0bbb9"
+  }, 
+  "model": "coredata.person", 
+  "pk": 98
+ }, 
+ {
+  "fields": {
+   "emplid": 200000179, 
+   "first_name": "K", 
+   "last_name": "Student", 
+   "middle_name": "Q", 
+   "pref_first_name": "K", 
+   "userid": "0aaa10"
+  }, 
+  "model": "coredata.person", 
+  "pk": 79
+ }, 
+ {
+  "fields": {
+   "emplid": 200000199, 
+   "first_name": "Kk", 
+   "last_name": "Student", 
+   "middle_name": "X", 
+   "pref_first_name": "Kk", 
+   "userid": "0bbb10"
+  }, 
+  "model": "coredata.person", 
+  "pk": 99
+ }, 
+ {
+  "fields": {
+   "emplid": 200000180, 
+   "first_name": "L", 
+   "last_name": "Student", 
+   "middle_name": "Q", 
+   "pref_first_name": "L", 
+   "userid": "0aaa11"
+  }, 
+  "model": "coredata.person", 
+  "pk": 80
+ }, 
+ {
+  "fields": {
+   "emplid": 200000200, 
+   "first_name": "Ll", 
+   "last_name": "Student", 
+   "middle_name": "X", 
+   "pref_first_name": "Ll", 
+   "userid": "0bbb11"
+  }, 
+  "model": "coredata.person", 
+  "pk": 100
+ }, 
+ {
+  "fields": {
+   "emplid": 200000181, 
+   "first_name": "M", 
+   "last_name": "Student", 
+   "middle_name": "Q", 
+   "pref_first_name": "M", 
+   "userid": "0aaa12"
+  }, 
+  "model": "coredata.person", 
+  "pk": 81
+ }, 
+ {
+  "fields": {
+   "emplid": 200000201, 
+   "first_name": "Mm", 
+   "last_name": "Student", 
+   "middle_name": "X", 
+   "pref_first_name": "Mm", 
+   "userid": "0bbb12"
+  }, 
+  "model": "coredata.person", 
+  "pk": 101
+ }, 
+ {
+  "fields": {
+   "emplid": 200000182, 
+   "first_name": "N", 
+   "last_name": "Student", 
+   "middle_name": "Q", 
+   "pref_first_name": "N", 
+   "userid": "0aaa13"
+  }, 
+  "model": "coredata.person", 
+  "pk": 82
+ }, 
+ {
+  "fields": {
+   "emplid": 200000202, 
+   "first_name": "Nn", 
+   "last_name": "Student", 
+   "middle_name": "X", 
+   "pref_first_name": "Nn", 
+   "userid": "0bbb13"
+  }, 
+  "model": "coredata.person", 
+  "pk": 102
+ }, 
+ {
+  "fields": {
+   "emplid": 200000183, 
+   "first_name": "O", 
+   "last_name": "Student", 
+   "middle_name": "Q", 
+   "pref_first_name": "O", 
+   "userid": "0aaa14"
+  }, 
+  "model": "coredata.person", 
+  "pk": 83
+ }, 
+ {
+  "fields": {
+   "emplid": 200000203, 
+   "first_name": "Oo", 
+   "last_name": "Student", 
+   "middle_name": "X", 
+   "pref_first_name": "Oo", 
+   "userid": "0bbb14"
+  }, 
+  "model": "coredata.person", 
+  "pk": 103
+ }, 
+ {
+  "fields": {
+   "emplid": 200000184, 
+   "first_name": "P", 
+   "last_name": "Student", 
+   "middle_name": "Q", 
+   "pref_first_name": "P", 
+   "userid": "0aaa15"
+  }, 
+  "model": "coredata.person", 
+  "pk": 84
+ }, 
+ {
+  "fields": {
+   "emplid": 200000204, 
+   "first_name": "Pp", 
+   "last_name": "Student", 
+   "middle_name": "X", 
+   "pref_first_name": "Pp", 
+   "userid": "0bbb15"
+  }, 
+  "model": "coredata.person", 
+  "pk": 104
+ }, 
+ {
+  "fields": {
+   "emplid": 200000185, 
+   "first_name": "Q", 
+   "last_name": "Student", 
+   "middle_name": "Q", 
+   "pref_first_name": "Q", 
+   "userid": "0aaa16"
+  }, 
+  "model": "coredata.person", 
+  "pk": 85
+ }, 
+ {
+  "fields": {
+   "emplid": 200000205, 
+   "first_name": "Qq", 
+   "last_name": "Student", 
+   "middle_name": "X", 
+   "pref_first_name": "Qq", 
+   "userid": "0bbb16"
+  }, 
+  "model": "coredata.person", 
+  "pk": 105
+ }, 
+ {
+  "fields": {
+   "emplid": 200000186, 
+   "first_name": "R", 
+   "last_name": "Student", 
+   "middle_name": "Q", 
+   "pref_first_name": "R", 
+   "userid": "0aaa17"
+  }, 
+  "model": "coredata.person", 
+  "pk": 86
+ }, 
+ {
+  "fields": {
+   "emplid": 200000206, 
+   "first_name": "Rr", 
+   "last_name": "Student", 
+   "middle_name": "X", 
+   "pref_first_name": "Rr", 
+   "userid": "0bbb17"
+  }, 
+  "model": "coredata.person", 
+  "pk": 106
+ }, 
+ {
+  "fields": {
+   "emplid": 200000187, 
+   "first_name": "S", 
+   "last_name": "Student", 
+   "middle_name": "Q", 
+   "pref_first_name": "S", 
+   "userid": "0aaa18"
+  }, 
+  "model": "coredata.person", 
+  "pk": 87
+ }, 
+ {
+  "fields": {
+   "emplid": 200000207, 
+   "first_name": "Ss", 
+   "last_name": "Student", 
+   "middle_name": "X", 
+   "pref_first_name": "Ss", 
+   "userid": "0bbb18"
+  }, 
+  "model": "coredata.person", 
+  "pk": 107
+ }, 
+ {
+  "fields": {
+   "emplid": 200000188, 
+   "first_name": "T", 
+   "last_name": "Student", 
+   "middle_name": "Q", 
+   "pref_first_name": "T", 
+   "userid": "0aaa19"
+  }, 
+  "model": "coredata.person", 
+  "pk": 88
+ }, 
+ {
+  "fields": {
+   "emplid": 200000208, 
+   "first_name": "Tt", 
+   "last_name": "Student", 
+   "middle_name": "X", 
+   "pref_first_name": "Tt", 
+   "userid": "0bbb19"
+  }, 
+  "model": "coredata.person", 
+  "pk": 108
+ }, 
+ {
+  "fields": {
+   "emplid": 200000166, 
+   "first_name": "Shaiming", 
+   "last_name": "Tang", 
+   "middle_name": "", 
+   "pref_first_name": "Steven", 
+   "userid": "0sta1234"
+  }, 
+  "model": "coredata.person", 
+  "pk": 66
+ }, 
+ {
+  "fields": {
+   "emplid": 200000156, 
+   "first_name": "Gabor", 
+   "last_name": "Tardos", 
+   "middle_name": "", 
+   "pref_first_name": "Gabor", 
+   "userid": "tardos"
+  }, 
+  "model": "coredata.person", 
+  "pk": 52
+ }, 
+ {
+  "fields": {
+   "emplid": 200000157, 
+   "first_name": "Evgenia", 
+   "last_name": "Ternovska", 
+   "middle_name": "", 
+   "pref_first_name": "Evgenia", 
+   "userid": "ter"
+  }, 
+  "model": "coredata.person", 
+  "pk": 54
+ }, 
+ {
+  "fields": {
+   "emplid": 200000158, 
+   "first_name": "Herbert", 
+   "last_name": "Tsang", 
+   "middle_name": "Ho Pan", 
+   "pref_first_name": "Herbert", 
+   "userid": "htsang"
+  }, 
+  "model": "coredata.person", 
+  "pk": 28
+ }, 
+ {
+  "fields": {
+   "emplid": 200000159, 
+   "first_name": "Richard", 
+   "last_name": "Vaughan", 
+   "middle_name": "Terence", 
+   "pref_first_name": "Richard", 
+   "userid": "vaughan"
+  }, 
+  "model": "coredata.person", 
+  "pk": 57
+ }, 
+ {
+  "fields": {
+   "emplid": 200000160, 
+   "first_name": "Ke", 
+   "last_name": "Wang", 
+   "middle_name": "", 
+   "pref_first_name": "Ke", 
+   "userid": "wangk"
+  }, 
+  "model": "coredata.person", 
+  "pk": 59
+ }, 
+ {
+  "fields": {
+   "emplid": 200000161, 
+   "first_name": "Kay", 
+   "last_name": "Wiese", 
+   "middle_name": "C.", 
+   "pref_first_name": "Kay", 
+   "userid": "kwiese"
+  }, 
+  "model": "coredata.person", 
+  "pk": 34
+ }, 
+ {
+  "fields": {
+   "emplid": 200000162, 
+   "first_name": "Hao", 
+   "last_name": "Zhang", 
+   "middle_name": "", 
+   "pref_first_name": "Hao", 
+   "userid": "haoz"
+  }, 
+  "model": "coredata.person", 
+  "pk": 26
+ }, 
+ {
+  "fields": {
    "added_reason": "AUTO", 
    "career": "NONS", 
    "credits": 0, 
@@ -16545,1302 +17841,6 @@
  }, 
  {
   "fields": {
-   "emplid": 200000101, 
-   "first_name": "M.", 
-   "last_name": "Atkins", 
-   "middle_name": "Stella", 
-   "pref_first_name": "M.", 
-   "userid": "stella"
-  }, 
-  "model": "coredata.person", 
-  "pk": 49
- }, 
- {
-  "fields": {
-   "emplid": 200000102, 
-   "first_name": "Gregory", 
-   "last_name": "Baker", 
-   "middle_name": "Garnet", 
-   "pref_first_name": "Gregory", 
-   "userid": "ggbaker"
-  }, 
-  "model": "coredata.person", 
-  "pk": 22
- }, 
- {
-  "fields": {
-   "emplid": 200000103, 
-   "first_name": "Bradley", 
-   "last_name": "Bart", 
-   "middle_name": "Stephen", 
-   "pref_first_name": "Bradley", 
-   "userid": "bbart"
-  }, 
-  "model": "coredata.person", 
-  "pk": 4
- }, 
- {
-  "fields": {
-   "emplid": 200000104, 
-   "first_name": "Christopher", 
-   "last_name": "Bastone", 
-   "middle_name": "", 
-   "pref_first_name": "Christopher", 
-   "userid": "cbastone"
-  }, 
-  "model": "coredata.person", 
-  "pk": 8
- }, 
- {
-  "fields": {
-   "emplid": 200000105, 
-   "first_name": "Petra", 
-   "last_name": "Berenbrink", 
-   "middle_name": "", 
-   "pref_first_name": "Petra", 
-   "userid": "petra"
-  }, 
-  "model": "coredata.person", 
-  "pk": 43
- }, 
- {
-  "fields": {
-   "emplid": 200000106, 
-   "first_name": "Binay", 
-   "last_name": "Bhattacharya", 
-   "middle_name": "", 
-   "pref_first_name": "Binay", 
-   "userid": "binay"
-  }, 
-  "model": "coredata.person", 
-  "pk": 5
- }, 
- {
-  "fields": {
-   "emplid": 200000107, 
-   "first_name": "Andrei", 
-   "last_name": "Bulatov", 
-   "middle_name": "A.", 
-   "pref_first_name": "Andrei", 
-   "userid": "abulatov"
-  }, 
-  "model": "coredata.person", 
-  "pk": 1
- }, 
- {
-  "fields": {
-   "emplid": 200000108, 
-   "first_name": "Frank", 
-   "last_name": "Burton", 
-   "middle_name": "Warren", 
-   "pref_first_name": "Frank", 
-   "userid": "burton"
-  }, 
-  "model": "coredata.person", 
-  "pk": 7
- }, 
- {
-  "fields": {
-   "emplid": 200000109, 
-   "first_name": "Chun", 
-   "last_name": "Chan", 
-   "middle_name": "Tung", 
-   "pref_first_name": "Chun", 
-   "userid": "bobbyc"
-  }, 
-  "model": "coredata.person", 
-  "pk": 6
- }, 
- {
-  "fields": {
-   "emplid": 200000110, 
-   "first_name": "Kin", 
-   "last_name": "Chan", 
-   "middle_name": "Hung Anthony", 
-   "pref_first_name": "Kin", 
-   "userid": "anthonyc"
-  }, 
-  "model": "coredata.person", 
-  "pk": 2
- }, 
- {
-  "fields": {
-   "emplid": 200000111, 
-   "first_name": "Harriet", 
-   "last_name": "Chicoine", 
-   "middle_name": "", 
-   "pref_first_name": "Harriet", 
-   "userid": "chicoine"
-  }, 
-  "model": "coredata.person", 
-  "pk": 10
- }, 
- {
-  "fields": {
-   "emplid": 200000112, 
-   "first_name": "Diana", 
-   "last_name": "Cukierman", 
-   "middle_name": "Raquel", 
-   "pref_first_name": "Diana", 
-   "userid": "diana"
-  }, 
-  "model": "coredata.person", 
-  "pk": 12
- }, 
- {
-  "fields": {
-   "emplid": 200000113, 
-   "first_name": "Veronica", 
-   "last_name": "Dahl", 
-   "middle_name": "", 
-   "pref_first_name": "Veronica", 
-   "userid": "veronica"
-  }, 
-  "model": "coredata.person", 
-  "pk": 58
- }, 
- {
-  "fields": {
-   "emplid": 200000114, 
-   "first_name": "James", 
-   "last_name": "Delgrande", 
-   "middle_name": "Patrick", 
-   "pref_first_name": "James", 
-   "userid": "jim"
-  }, 
-  "model": "coredata.person", 
-  "pk": 30
- }, 
- {
-  "fields": {
-   "emplid": 200000115, 
-   "first_name": "Ping", 
-   "last_name": "Ding", 
-   "middle_name": "", 
-   "pref_first_name": "Ping", 
-   "userid": "ding"
-  }, 
-  "model": "coredata.person", 
-  "pk": 13
- }, 
- {
-  "fields": {
-   "emplid": 200000116, 
-   "first_name": "Anthony", 
-   "last_name": "Dixon", 
-   "middle_name": "", 
-   "pref_first_name": "Anthony", 
-   "userid": "dixon"
-  }, 
-  "model": "coredata.person", 
-  "pk": 14
- }, 
- {
-  "fields": {
-   "emplid": 200000117, 
-   "first_name": "Toby", 
-   "last_name": "Donaldson", 
-   "middle_name": "John", 
-   "pref_first_name": "Toby", 
-   "userid": "tjd"
-  }, 
-  "model": "coredata.person", 
-  "pk": 55
- }, 
- {
-  "fields": {
-   "emplid": 200000118, 
-   "first_name": "Mark", 
-   "last_name": "Drew", 
-   "middle_name": "", 
-   "pref_first_name": "Mark", 
-   "userid": "mark"
-  }, 
-  "model": "coredata.person", 
-  "pk": 37
- }, 
- {
-  "fields": {
-   "emplid": 200000119, 
-   "first_name": "John", 
-   "last_name": "Edgar", 
-   "middle_name": "William McCredie", 
-   "pref_first_name": "John", 
-   "userid": "johnwill"
-  }, 
-  "model": "coredata.person", 
-  "pk": 31
- }, 
- {
-  "fields": {
-   "emplid": 200000120, 
-   "first_name": "Ayse", 
-   "last_name": "Ergun", 
-   "middle_name": "Funda", 
-   "pref_first_name": "Ayse", 
-   "userid": "funda"
-  }, 
-  "model": "coredata.person", 
-  "pk": 20
- }, 
- {
-  "fields": {
-   "emplid": 200000121, 
-   "first_name": "Martin", 
-   "last_name": "Ester", 
-   "middle_name": "", 
-   "pref_first_name": "Martin", 
-   "userid": "ester"
-  }, 
-  "model": "coredata.person", 
-  "pk": 15
- }, 
- {
-  "fields": {
-   "emplid": 200000122, 
-   "first_name": "Michael", 
-   "last_name": "Evans", 
-   "middle_name": "David", 
-   "pref_first_name": "Michael", 
-   "userid": "evans"
-  }, 
-  "model": "coredata.person", 
-  "pk": 16
- }, 
- {
-  "fields": {
-   "emplid": 200000123, 
-   "first_name": "Alexandra", 
-   "last_name": "Fedorova", 
-   "middle_name": "", 
-   "pref_first_name": "Alexandra", 
-   "userid": "fedorova"
-  }, 
-  "model": "coredata.person", 
-  "pk": 18
- }, 
- {
-  "fields": {
-   "emplid": 200000124, 
-   "first_name": "Brian", 
-   "last_name": "Funt", 
-   "middle_name": "Vincent", 
-   "pref_first_name": "Brian", 
-   "userid": "funt"
-  }, 
-  "model": "coredata.person", 
-  "pk": 21
- }, 
- {
-  "fields": {
-   "emplid": 200000125, 
-   "first_name": "Philippe", 
-   "last_name": "Giabbanelli", 
-   "middle_name": "Joseph", 
-   "pref_first_name": "Philippe", 
-   "userid": "pjg1"
-  }, 
-  "model": "coredata.person", 
-  "pk": 44
- }, 
- {
-  "fields": {
-   "emplid": 200000126, 
-   "first_name": "Uwe", 
-   "last_name": "Glaesser", 
-   "middle_name": "Peter", 
-   "pref_first_name": "Uwe", 
-   "userid": "glaesser"
-  }, 
-  "model": "coredata.person", 
-  "pk": 23
- }, 
- {
-  "fields": {
-   "emplid": 200000168, 
-   "first_name": "Douglas", 
-   "last_name": "Gradstudent", 
-   "middle_name": "", 
-   "pref_first_name": "Doug", 
-   "userid": "0grad"
-  }, 
-  "model": "coredata.person", 
-  "pk": 68
- }, 
- {
-  "fields": {
-   "emplid": 200000127, 
-   "first_name": "Qianping", 
-   "last_name": "Gu", 
-   "middle_name": "", 
-   "pref_first_name": "Qianping", 
-   "userid": "qgu"
-  }, 
-  "model": "coredata.person", 
-  "pk": 46
- }, 
- {
-  "fields": {
-   "emplid": 200000128, 
-   "first_name": "Robert", 
-   "last_name": "Hadley", 
-   "middle_name": "Francis", 
-   "pref_first_name": "Robert", 
-   "userid": "hadley"
-  }, 
-  "model": "coredata.person", 
-  "pk": 24
- }, 
- {
-  "fields": {
-   "emplid": 200000129, 
-   "first_name": "Louis", 
-   "last_name": "Hafer", 
-   "middle_name": "", 
-   "pref_first_name": "Louis", 
-   "userid": "lou"
-  }, 
-  "model": "coredata.person", 
-  "pk": 36
- }, 
- {
-  "fields": {
-   "emplid": 200000130, 
-   "first_name": "Ghassan", 
-   "last_name": "Hamarneh", 
-   "middle_name": "", 
-   "pref_first_name": "Ghassan", 
-   "userid": "hamarneh"
-  }, 
-  "model": "coredata.person", 
-  "pk": 25
- }, 
- {
-  "fields": {
-   "emplid": 200000164, 
-   "first_name": "Chang", 
-   "last_name": "Han", 
-   "middle_name": "", 
-   "pref_first_name": "Chang", 
-   "userid": "0changh"
-  }, 
-  "model": "coredata.person", 
-  "pk": 64
- }, 
- {
-  "fields": {
-   "emplid": 200000131, 
-   "first_name": "Mohamed", 
-   "last_name": "Hefeeda", 
-   "middle_name": "M", 
-   "pref_first_name": "Mohamed", 
-   "userid": "mhefeeda"
-  }, 
-  "model": "coredata.person", 
-  "pk": 38
- }, 
- {
-  "fields": {
-   "emplid": 200000132, 
-   "first_name": "Pavol", 
-   "last_name": "Hell", 
-   "middle_name": "", 
-   "pref_first_name": "Pavol", 
-   "userid": "pavol"
-  }, 
-  "model": "coredata.person", 
-  "pk": 41
- }, 
- {
-  "fields": {
-   "emplid": 200000133, 
-   "first_name": "Yuzhuang", 
-   "last_name": "Hu", 
-   "middle_name": "", 
-   "pref_first_name": "Yuzhuang", 
-   "userid": "yhu1"
-  }, 
-  "model": "coredata.person", 
-  "pk": 61
- }, 
- {
-  "fields": {
-   "emplid": 200000167, 
-   "first_name": "Robert", 
-   "last_name": "Kelowna", 
-   "middle_name": "J", 
-   "pref_first_name": "Bob", 
-   "userid": "0kel"
-  }, 
-  "model": "coredata.person", 
-  "pk": 67
- }, 
- {
-  "fields": {
-   "emplid": 200000134, 
-   "first_name": "Harinder", 
-   "last_name": "Khangura", 
-   "middle_name": "Singh", 
-   "pref_first_name": "Harinder", 
-   "userid": "hskhangu"
-  }, 
-  "model": "coredata.person", 
-  "pk": 27
- }, 
- {
-  "fields": {
-   "emplid": 200000135, 
-   "first_name": "Arthur", 
-   "last_name": "Kirkpatrick", 
-   "middle_name": "Edward", 
-   "pref_first_name": "Arthur", 
-   "userid": "ted"
-  }, 
-  "model": "coredata.person", 
-  "pk": 53
- }, 
- {
-  "fields": {
-   "emplid": 200000136, 
-   "first_name": "Ramesh", 
-   "last_name": "Krishnamurti", 
-   "middle_name": "", 
-   "pref_first_name": "Ramesh", 
-   "userid": "ramesh"
-  }, 
-  "model": "coredata.person", 
-  "pk": 47
- }, 
- {
-  "fields": {
-   "emplid": 200000165, 
-   "first_name": "Rebecca", 
-   "last_name": "Larkin", 
-   "middle_name": "Jane", 
-   "pref_first_name": "Becky", 
-   "userid": "0rjl23"
-  }, 
-  "model": "coredata.person", 
-  "pk": 65
- }, 
- {
-  "fields": {
-   "emplid": 200000137, 
-   "first_name": "Ze-Nian", 
-   "last_name": "Li", 
-   "middle_name": "", 
-   "pref_first_name": "Ze-Nian", 
-   "userid": "li"
-  }, 
-  "model": "coredata.person", 
-  "pk": 35
- }, 
- {
-  "fields": {
-   "emplid": 200000138, 
-   "first_name": "Arthur", 
-   "last_name": "Liestman", 
-   "middle_name": "", 
-   "pref_first_name": "Arthur", 
-   "userid": "art"
-  }, 
-  "model": "coredata.person", 
-  "pk": 3
- }, 
- {
-  "fields": {
-   "emplid": 200000139, 
-   "first_name": "Yaroslav", 
-   "last_name": "Litus", 
-   "middle_name": "", 
-   "pref_first_name": "Yaroslav", 
-   "userid": "ylitus"
-  }, 
-  "model": "coredata.person", 
-  "pk": 62
- }, 
- {
-  "fields": {
-   "emplid": 200000140, 
-   "first_name": "Jiangchuan", 
-   "last_name": "Liu", 
-   "middle_name": "", 
-   "pref_first_name": "Jiangchuan", 
-   "userid": "jcliu"
-  }, 
-  "model": "coredata.person", 
-  "pk": 29
- }, 
- {
-  "fields": {
-   "emplid": 200000141, 
-   "first_name": "Wo-Shun", 
-   "last_name": "Luk", 
-   "middle_name": "", 
-   "pref_first_name": "Wo-Shun", 
-   "userid": "woshun"
-  }, 
-  "model": "coredata.person", 
-  "pk": 60
- }, 
- {
-  "fields": {
-   "emplid": 200000142, 
-   "first_name": "Frances", 
-   "last_name": "McLafferty", 
-   "middle_name": "Helen", 
-   "pref_first_name": "Frances", 
-   "userid": "fmclaffe"
-  }, 
-  "model": "coredata.person", 
-  "pk": 19
- }, 
- {
-  "fields": {
-   "emplid": 200000143, 
-   "first_name": "David", 
-   "last_name": "Mitchell", 
-   "middle_name": "Geoffrey", 
-   "pref_first_name": "David", 
-   "userid": "dgm"
-  }, 
-  "model": "coredata.person", 
-  "pk": 11
- }, 
- {
-  "fields": {
-   "emplid": 200000144, 
-   "first_name": "Torsten", 
-   "last_name": "Moller", 
-   "middle_name": "", 
-   "pref_first_name": "Torsten", 
-   "userid": "torsten"
-  }, 
-  "model": "coredata.person", 
-  "pk": 56
- }, 
- {
-  "fields": {
-   "emplid": 200000163, 
-   "first_name": "Kimberly", 
-   "last_name": "Moore", 
-   "middle_name": "Veronica", 
-   "pref_first_name": "Kim", 
-   "userid": "0kvm"
-  }, 
-  "model": "coredata.person", 
-  "pk": 63
- }, 
- {
-  "fields": {
-   "emplid": 200000145, 
-   "first_name": "Gregory", 
-   "last_name": "Mori", 
-   "middle_name": "Peter", 
-   "pref_first_name": "Gregory", 
-   "userid": "mori"
-  }, 
-  "model": "coredata.person", 
-  "pk": 39
- }, 
- {
-  "fields": {
-   "emplid": 200000146, 
-   "first_name": "Steven", 
-   "last_name": "Pearce", 
-   "middle_name": "James", 
-   "pref_first_name": "Steven", 
-   "userid": "stevenp"
-  }, 
-  "model": "coredata.person", 
-  "pk": 50
- }, 
- {
-  "fields": {
-   "emplid": 200000147, 
-   "first_name": "Jian", 
-   "last_name": "Pei", 
-   "middle_name": "", 
-   "pref_first_name": "Jian", 
-   "userid": "jpei"
-  }, 
-  "model": "coredata.person", 
-  "pk": 32
- }, 
- {
-  "fields": {
-   "emplid": 200000148, 
-   "first_name": "Joseph", 
-   "last_name": "Peters", 
-   "middle_name": "Garnet", 
-   "pref_first_name": "Joseph", 
-   "userid": "peters"
-  }, 
-  "model": "coredata.person", 
-  "pk": 42
- }, 
- {
-  "fields": {
-   "emplid": 200000149, 
-   "first_name": "Fred", 
-   "last_name": "Popowich", 
-   "middle_name": "", 
-   "pref_first_name": "Fred", 
-   "userid": "popowich"
-  }, 
-  "model": "coredata.person", 
-  "pk": 45
- }, 
- {
-  "fields": {
-   "emplid": 200000150, 
-   "first_name": "Janice", 
-   "last_name": "Regan", 
-   "middle_name": "", 
-   "pref_first_name": "Janice", 
-   "userid": "jregan"
-  }, 
-  "model": "coredata.person", 
-  "pk": 33
- }, 
- {
-  "fields": {
-   "emplid": 200000151, 
-   "first_name": "Suleyman", 
-   "last_name": "Sahinalp", 
-   "middle_name": "Cenk", 
-   "pref_first_name": "Suleyman", 
-   "userid": "cenk"
-  }, 
-  "model": "coredata.person", 
-  "pk": 9
- }, 
- {
-  "fields": {
-   "emplid": 200000152, 
-   "first_name": "Oliver", 
-   "last_name": "Schulte", 
-   "middle_name": "Norbert", 
-   "pref_first_name": "Oliver", 
-   "userid": "oschulte"
-  }, 
-  "model": "coredata.person", 
-  "pk": 40
- }, 
- {
-  "fields": {
-   "emplid": 200000153, 
-   "first_name": "Thomas", 
-   "last_name": "Shermer", 
-   "middle_name": "", 
-   "pref_first_name": "Thomas", 
-   "userid": "shermer"
-  }, 
-  "model": "coredata.person", 
-  "pk": 48
- }, 
- {
-  "fields": {
-   "emplid": 200000154, 
-   "first_name": "Evgeny", 
-   "last_name": "Skvortsov", 
-   "middle_name": "Sergeevich", 
-   "pref_first_name": "Evgeny", 
-   "userid": "evgenys"
-  }, 
-  "model": "coredata.person", 
-  "pk": 17
- }, 
- {
-  "fields": {
-   "emplid": 200000155, 
-   "first_name": "Tamara", 
-   "last_name": "Smyth", 
-   "middle_name": "", 
-   "pref_first_name": "Tamara", 
-   "userid": "tamaras"
-  }, 
-  "model": "coredata.person", 
-  "pk": 51
- }, 
- {
-  "fields": {
-   "emplid": 200000169, 
-   "first_name": "A", 
-   "last_name": "Student", 
-   "middle_name": "Q", 
-   "pref_first_name": "A", 
-   "userid": "0aaa0"
-  }, 
-  "model": "coredata.person", 
-  "pk": 69
- }, 
- {
-  "fields": {
-   "emplid": 200000189, 
-   "first_name": "Aa", 
-   "last_name": "Student", 
-   "middle_name": "X", 
-   "pref_first_name": "Aa", 
-   "userid": "0bbb0"
-  }, 
-  "model": "coredata.person", 
-  "pk": 89
- }, 
- {
-  "fields": {
-   "emplid": 200000170, 
-   "first_name": "B", 
-   "last_name": "Student", 
-   "middle_name": "Q", 
-   "pref_first_name": "B", 
-   "userid": "0aaa1"
-  }, 
-  "model": "coredata.person", 
-  "pk": 70
- }, 
- {
-  "fields": {
-   "emplid": 200000190, 
-   "first_name": "Bb", 
-   "last_name": "Student", 
-   "middle_name": "X", 
-   "pref_first_name": "Bb", 
-   "userid": "0bbb1"
-  }, 
-  "model": "coredata.person", 
-  "pk": 90
- }, 
- {
-  "fields": {
-   "emplid": 200000171, 
-   "first_name": "C", 
-   "last_name": "Student", 
-   "middle_name": "Q", 
-   "pref_first_name": "C", 
-   "userid": "0aaa2"
-  }, 
-  "model": "coredata.person", 
-  "pk": 71
- }, 
- {
-  "fields": {
-   "emplid": 200000191, 
-   "first_name": "Cc", 
-   "last_name": "Student", 
-   "middle_name": "X", 
-   "pref_first_name": "Cc", 
-   "userid": "0bbb2"
-  }, 
-  "model": "coredata.person", 
-  "pk": 91
- }, 
- {
-  "fields": {
-   "emplid": 200000172, 
-   "first_name": "D", 
-   "last_name": "Student", 
-   "middle_name": "Q", 
-   "pref_first_name": "D", 
-   "userid": "0aaa3"
-  }, 
-  "model": "coredata.person", 
-  "pk": 72
- }, 
- {
-  "fields": {
-   "emplid": 200000192, 
-   "first_name": "Dd", 
-   "last_name": "Student", 
-   "middle_name": "X", 
-   "pref_first_name": "Dd", 
-   "userid": "0bbb3"
-  }, 
-  "model": "coredata.person", 
-  "pk": 92
- }, 
- {
-  "fields": {
-   "emplid": 200000173, 
-   "first_name": "E", 
-   "last_name": "Student", 
-   "middle_name": "Q", 
-   "pref_first_name": "E", 
-   "userid": "0aaa4"
-  }, 
-  "model": "coredata.person", 
-  "pk": 73
- }, 
- {
-  "fields": {
-   "emplid": 200000193, 
-   "first_name": "Ee", 
-   "last_name": "Student", 
-   "middle_name": "X", 
-   "pref_first_name": "Ee", 
-   "userid": "0bbb4"
-  }, 
-  "model": "coredata.person", 
-  "pk": 93
- }, 
- {
-  "fields": {
-   "emplid": 200000174, 
-   "first_name": "F", 
-   "last_name": "Student", 
-   "middle_name": "Q", 
-   "pref_first_name": "F", 
-   "userid": "0aaa5"
-  }, 
-  "model": "coredata.person", 
-  "pk": 74
- }, 
- {
-  "fields": {
-   "emplid": 200000194, 
-   "first_name": "Ff", 
-   "last_name": "Student", 
-   "middle_name": "X", 
-   "pref_first_name": "Ff", 
-   "userid": "0bbb5"
-  }, 
-  "model": "coredata.person", 
-  "pk": 94
- }, 
- {
-  "fields": {
-   "emplid": 200000175, 
-   "first_name": "G", 
-   "last_name": "Student", 
-   "middle_name": "Q", 
-   "pref_first_name": "G", 
-   "userid": "0aaa6"
-  }, 
-  "model": "coredata.person", 
-  "pk": 75
- }, 
- {
-  "fields": {
-   "emplid": 200000195, 
-   "first_name": "Gg", 
-   "last_name": "Student", 
-   "middle_name": "X", 
-   "pref_first_name": "Gg", 
-   "userid": "0bbb6"
-  }, 
-  "model": "coredata.person", 
-  "pk": 95
- }, 
- {
-  "fields": {
-   "emplid": 200000176, 
-   "first_name": "H", 
-   "last_name": "Student", 
-   "middle_name": "Q", 
-   "pref_first_name": "H", 
-   "userid": "0aaa7"
-  }, 
-  "model": "coredata.person", 
-  "pk": 76
- }, 
- {
-  "fields": {
-   "emplid": 200000196, 
-   "first_name": "Hh", 
-   "last_name": "Student", 
-   "middle_name": "X", 
-   "pref_first_name": "Hh", 
-   "userid": "0bbb7"
-  }, 
-  "model": "coredata.person", 
-  "pk": 96
- }, 
- {
-  "fields": {
-   "emplid": 200000177, 
-   "first_name": "I", 
-   "last_name": "Student", 
-   "middle_name": "Q", 
-   "pref_first_name": "I", 
-   "userid": "0aaa8"
-  }, 
-  "model": "coredata.person", 
-  "pk": 77
- }, 
- {
-  "fields": {
-   "emplid": 200000197, 
-   "first_name": "Ii", 
-   "last_name": "Student", 
-   "middle_name": "X", 
-   "pref_first_name": "Ii", 
-   "userid": "0bbb8"
-  }, 
-  "model": "coredata.person", 
-  "pk": 97
- }, 
- {
-  "fields": {
-   "emplid": 200000178, 
-   "first_name": "J", 
-   "last_name": "Student", 
-   "middle_name": "Q", 
-   "pref_first_name": "J", 
-   "userid": "0aaa9"
-  }, 
-  "model": "coredata.person", 
-  "pk": 78
- }, 
- {
-  "fields": {
-   "emplid": 200000198, 
-   "first_name": "Jj", 
-   "last_name": "Student", 
-   "middle_name": "X", 
-   "pref_first_name": "Jj", 
-   "userid": "0bbb9"
-  }, 
-  "model": "coredata.person", 
-  "pk": 98
- }, 
- {
-  "fields": {
-   "emplid": 200000179, 
-   "first_name": "K", 
-   "last_name": "Student", 
-   "middle_name": "Q", 
-   "pref_first_name": "K", 
-   "userid": "0aaa10"
-  }, 
-  "model": "coredata.person", 
-  "pk": 79
- }, 
- {
-  "fields": {
-   "emplid": 200000199, 
-   "first_name": "Kk", 
-   "last_name": "Student", 
-   "middle_name": "X", 
-   "pref_first_name": "Kk", 
-   "userid": "0bbb10"
-  }, 
-  "model": "coredata.person", 
-  "pk": 99
- }, 
- {
-  "fields": {
-   "emplid": 200000180, 
-   "first_name": "L", 
-   "last_name": "Student", 
-   "middle_name": "Q", 
-   "pref_first_name": "L", 
-   "userid": "0aaa11"
-  }, 
-  "model": "coredata.person", 
-  "pk": 80
- }, 
- {
-  "fields": {
-   "emplid": 200000200, 
-   "first_name": "Ll", 
-   "last_name": "Student", 
-   "middle_name": "X", 
-   "pref_first_name": "Ll", 
-   "userid": "0bbb11"
-  }, 
-  "model": "coredata.person", 
-  "pk": 100
- }, 
- {
-  "fields": {
-   "emplid": 200000181, 
-   "first_name": "M", 
-   "last_name": "Student", 
-   "middle_name": "Q", 
-   "pref_first_name": "M", 
-   "userid": "0aaa12"
-  }, 
-  "model": "coredata.person", 
-  "pk": 81
- }, 
- {
-  "fields": {
-   "emplid": 200000201, 
-   "first_name": "Mm", 
-   "last_name": "Student", 
-   "middle_name": "X", 
-   "pref_first_name": "Mm", 
-   "userid": "0bbb12"
-  }, 
-  "model": "coredata.person", 
-  "pk": 101
- }, 
- {
-  "fields": {
-   "emplid": 200000182, 
-   "first_name": "N", 
-   "last_name": "Student", 
-   "middle_name": "Q", 
-   "pref_first_name": "N", 
-   "userid": "0aaa13"
-  }, 
-  "model": "coredata.person", 
-  "pk": 82
- }, 
- {
-  "fields": {
-   "emplid": 200000202, 
-   "first_name": "Nn", 
-   "last_name": "Student", 
-   "middle_name": "X", 
-   "pref_first_name": "Nn", 
-   "userid": "0bbb13"
-  }, 
-  "model": "coredata.person", 
-  "pk": 102
- }, 
- {
-  "fields": {
-   "emplid": 200000183, 
-   "first_name": "O", 
-   "last_name": "Student", 
-   "middle_name": "Q", 
-   "pref_first_name": "O", 
-   "userid": "0aaa14"
-  }, 
-  "model": "coredata.person", 
-  "pk": 83
- }, 
- {
-  "fields": {
-   "emplid": 200000203, 
-   "first_name": "Oo", 
-   "last_name": "Student", 
-   "middle_name": "X", 
-   "pref_first_name": "Oo", 
-   "userid": "0bbb14"
-  }, 
-  "model": "coredata.person", 
-  "pk": 103
- }, 
- {
-  "fields": {
-   "emplid": 200000184, 
-   "first_name": "P", 
-   "last_name": "Student", 
-   "middle_name": "Q", 
-   "pref_first_name": "P", 
-   "userid": "0aaa15"
-  }, 
-  "model": "coredata.person", 
-  "pk": 84
- }, 
- {
-  "fields": {
-   "emplid": 200000204, 
-   "first_name": "Pp", 
-   "last_name": "Student", 
-   "middle_name": "X", 
-   "pref_first_name": "Pp", 
-   "userid": "0bbb15"
-  }, 
-  "model": "coredata.person", 
-  "pk": 104
- }, 
- {
-  "fields": {
-   "emplid": 200000185, 
-   "first_name": "Q", 
-   "last_name": "Student", 
-   "middle_name": "Q", 
-   "pref_first_name": "Q", 
-   "userid": "0aaa16"
-  }, 
-  "model": "coredata.person", 
-  "pk": 85
- }, 
- {
-  "fields": {
-   "emplid": 200000205, 
-   "first_name": "Qq", 
-   "last_name": "Student", 
-   "middle_name": "X", 
-   "pref_first_name": "Qq", 
-   "userid": "0bbb16"
-  }, 
-  "model": "coredata.person", 
-  "pk": 105
- }, 
- {
-  "fields": {
-   "emplid": 200000186, 
-   "first_name": "R", 
-   "last_name": "Student", 
-   "middle_name": "Q", 
-   "pref_first_name": "R", 
-   "userid": "0aaa17"
-  }, 
-  "model": "coredata.person", 
-  "pk": 86
- }, 
- {
-  "fields": {
-   "emplid": 200000206, 
-   "first_name": "Rr", 
-   "last_name": "Student", 
-   "middle_name": "X", 
-   "pref_first_name": "Rr", 
-   "userid": "0bbb17"
-  }, 
-  "model": "coredata.person", 
-  "pk": 106
- }, 
- {
-  "fields": {
-   "emplid": 200000187, 
-   "first_name": "S", 
-   "last_name": "Student", 
-   "middle_name": "Q", 
-   "pref_first_name": "S", 
-   "userid": "0aaa18"
-  }, 
-  "model": "coredata.person", 
-  "pk": 87
- }, 
- {
-  "fields": {
-   "emplid": 200000207, 
-   "first_name": "Ss", 
-   "last_name": "Student", 
-   "middle_name": "X", 
-   "pref_first_name": "Ss", 
-   "userid": "0bbb18"
-  }, 
-  "model": "coredata.person", 
-  "pk": 107
- }, 
- {
-  "fields": {
-   "emplid": 200000188, 
-   "first_name": "T", 
-   "last_name": "Student", 
-   "middle_name": "Q", 
-   "pref_first_name": "T", 
-   "userid": "0aaa19"
-  }, 
-  "model": "coredata.person", 
-  "pk": 88
- }, 
- {
-  "fields": {
-   "emplid": 200000208, 
-   "first_name": "Tt", 
-   "last_name": "Student", 
-   "middle_name": "X", 
-   "pref_first_name": "Tt", 
-   "userid": "0bbb19"
-  }, 
-  "model": "coredata.person", 
-  "pk": 108
- }, 
- {
-  "fields": {
-   "emplid": 200000166, 
-   "first_name": "Shaiming", 
-   "last_name": "Tang", 
-   "middle_name": "", 
-   "pref_first_name": "Steven", 
-   "userid": "0sta1234"
-  }, 
-  "model": "coredata.person", 
-  "pk": 66
- }, 
- {
-  "fields": {
-   "emplid": 200000156, 
-   "first_name": "Gabor", 
-   "last_name": "Tardos", 
-   "middle_name": "", 
-   "pref_first_name": "Gabor", 
-   "userid": "tardos"
-  }, 
-  "model": "coredata.person", 
-  "pk": 52
- }, 
- {
-  "fields": {
-   "emplid": 200000157, 
-   "first_name": "Evgenia", 
-   "last_name": "Ternovska", 
-   "middle_name": "", 
-   "pref_first_name": "Evgenia", 
-   "userid": "ter"
-  }, 
-  "model": "coredata.person", 
-  "pk": 54
- }, 
- {
-  "fields": {
-   "emplid": 200000158, 
-   "first_name": "Herbert", 
-   "last_name": "Tsang", 
-   "middle_name": "Ho Pan", 
-   "pref_first_name": "Herbert", 
-   "userid": "htsang"
-  }, 
-  "model": "coredata.person", 
-  "pk": 28
- }, 
- {
-  "fields": {
-   "emplid": 200000159, 
-   "first_name": "Richard", 
-   "last_name": "Vaughan", 
-   "middle_name": "Terence", 
-   "pref_first_name": "Richard", 
-   "userid": "vaughan"
-  }, 
-  "model": "coredata.person", 
-  "pk": 57
- }, 
- {
-  "fields": {
-   "emplid": 200000160, 
-   "first_name": "Ke", 
-   "last_name": "Wang", 
-   "middle_name": "", 
-   "pref_first_name": "Ke", 
-   "userid": "wangk"
-  }, 
-  "model": "coredata.person", 
-  "pk": 59
- }, 
- {
-  "fields": {
-   "emplid": 200000161, 
-   "first_name": "Kay", 
-   "last_name": "Wiese", 
-   "middle_name": "C.", 
-   "pref_first_name": "Kay", 
-   "userid": "kwiese"
-  }, 
-  "model": "coredata.person", 
-  "pk": 34
- }, 
- {
-  "fields": {
-   "emplid": 200000162, 
-   "first_name": "Hao", 
-   "last_name": "Zhang", 
-   "middle_name": "", 
-   "pref_first_name": "Hao", 
-   "userid": "haoz"
-  }, 
-  "model": "coredata.person", 
-  "pk": 26
- }, 
- {
-  "fields": {
    "end": "2009-08-04", 
    "name": "1094", 
    "start": "2009-05-04"
@@ -17940,14 +17940,6 @@
  },
  {
   "fields": {
-   "person": 109,
-   "role": "ADVS" 
-  }, 
-  "model": "coredata.role", 
-  "pk": 1
- },
- {
-  "fields": {
    "emplid": 210000161, 
    "first_name": "Danyu", 
    "last_name": "Zhao", 
@@ -17960,52 +17952,20 @@
  },
  {
   "fields": {
+   "person": 109,
+   "role": "ADVS" 
+  }, 
+  "model": "coredata.role", 
+  "pk": 1
+ },
+ {
+  "fields": {
    "person": 22, 
    "role": "SYSA"
   }, 
   "model": "coredata.role", 
   "pk": 2
  },
- {
-  "fields": {
-   "formula": "[A1] + [A2] + [Midterm Exam]"
-  }, 
-  "model": "grades.calnumericactivity", 
-  "pk": 10
- }, 
- {
-  "fields": {
-   "max_grade": "25"
-  }, 
-  "model": "grades.numericactivity", 
-  "pk": 1
- }, 
- {
-  "fields": {
-   "max_grade": "25"
-  }, 
-  "model": "grades.numericactivity", 
-  "pk": 2
- }, 
- {
-  "fields": {
-   "max_grade": "90"
-  }, 
-  "model": "grades.numericactivity", 
-  "pk": 3
- }, 
- {
-  "fields": {
-   "max_grade": "100"
-  }, 
-  "model": "grades.numericactivity", 
-  "pk": 10
- }, 
- {
-  "fields": {}, 
-  "model": "grades.letteractivity", 
-  "pk": 4
- }, 
  {
   "fields": {
    "deleted": false, 
@@ -18086,6 +18046,46 @@
   "model": "grades.activity", 
   "pk": 10
  },
+ {
+  "fields": {
+   "max_grade": "25"
+  }, 
+  "model": "grades.numericactivity", 
+  "pk": 1
+ }, 
+ {
+  "fields": {
+   "max_grade": "25"
+  }, 
+  "model": "grades.numericactivity", 
+  "pk": 2
+ }, 
+ {
+  "fields": {
+   "max_grade": "90"
+  }, 
+  "model": "grades.numericactivity", 
+  "pk": 3
+ }, 
+ {
+  "fields": {
+   "max_grade": "100"
+  }, 
+  "model": "grades.numericactivity", 
+  "pk": 10
+ }, 
+ {
+  "fields": {}, 
+  "model": "grades.letteractivity", 
+  "pk": 4
+ }, 
+ {
+  "fields": {
+   "formula": "[A1] + [A2] + [Midterm Exam]"
+  }, 
+  "model": "grades.calnumericactivity", 
+  "pk": 10
+ }, 
  {
   "fields": {
    "deleted": false, 
