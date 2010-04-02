@@ -12,11 +12,11 @@ handler404 = 'courselib.auth.NotFoundResponse'
 urlpatterns = patterns('',
     url(r'^login/$', 'django_cas.views.login'),
     url(r'^logout/$', 'django_cas.views.logout'),
-    
+
     url(r'^log/$', 'log.views.index'),
 
     url(r'^$', 'courses.dashboard.views.index'),
-    url(r'^' + 'all_news/$', 'dashboard.views.news_list'),
+    url(r'^' + '_all_news/$', 'dashboard.views.news_list'),
 
     url(r'^' + COURSE_SLUG + '/$', 'grades.views.course_info'),
     url(r'^' + COURSE_SLUG + '/_new_message$', 'dashboard.views.new_message'),
@@ -56,13 +56,13 @@ urlpatterns = patterns('',
     url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/' + GROUP_SLUG + '/mark$', 'submission.views.take_ownership_and_mark_group'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/' + USERID_SLUG + '/mark$', 'submission.views.take_ownership_and_mark'),
 
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/$', 'marking.views.manage_activity_components'),    
+    url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/$', 'marking.views.manage_activity_components'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/positions/$', 'marking.views.manage_component_positions'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/common$', 'marking.views.manage_common_problems'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/new/students/' + USERID_SLUG + '/$', 'marking.views.marking_student'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/new/groups/' + GROUP_SLUG + '/$', 'marking.views.marking_group'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/markall$', 'marking.views.mark_all_students'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/students/' + USERID_SLUG + '/$', 'marking.views.mark_summary_student'),    
+    url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/students/' + USERID_SLUG + '/$', 'marking.views.mark_summary_student'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/groups/' + GROUP_SLUG + '/$', 'marking.views.mark_summary_group'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/students/' + USERID_SLUG + '/history', 'marking.views.mark_history_student'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/groups/' + GROUP_SLUG + '/history', 'marking.views.mark_history_group'),
