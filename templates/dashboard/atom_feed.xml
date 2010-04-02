@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <id>{{server_url}}/feed/{{person.userid}}</id>
+  <title>Course Updates for {{person.name}}</title>
+  <updated>{{news_list.0.rfc_updated}}</updated>
+  <link rel="alternate" href="{{server_url}}" title="Course Management System" />
+
+{% for entry in news_list %}
+  <entry>
+    <id>{{server_url}}/feedentry/{{entry.feed_id}}</id>
+    <title>{{entry.title}}</title>
+    <updated>{{entry.rfc_updated}}</updated>
+    <content type="html">&lt;div&gt;{{entry.content_xhtml|force_escape}}&lt;/div&gt;</content>
+    <category term="{{entry.course.name}}" />
+    {% if entry.author %}<author><name>author.name</name></author>{% endif %}
+    {% if entry.url %}<link rel="alternate" href="{{entry.url}}"/>{% endif %}
+{% endfor %}
+</feed>

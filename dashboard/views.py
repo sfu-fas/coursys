@@ -5,10 +5,11 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
 from coredata.models import Member, CourseOffering, Person
-from courselib.auth import requires_course_staff_by_slug, requires_course_by_slug
-from dashboard.models import NewsItem, MessageForm
+from courselib.auth import requires_course_staff_by_slug, requires_course_by_slug, NotFoundResponse
+from dashboard.models import NewsItem, MessageForm, UserConfig
 from contrib import messages
 from log.models import LogEntry
+import random
 
 @login_required
 def index(request):
@@ -54,6 +55,34 @@ def news_list(request):
     user = get_object_or_404(Person, userid = request.user.username)
     news_list = NewsItem.objects.filter(user = user).order_by('-updated')
     return render_to_response("dashboard/all_news.html", {"news_list" :news_list}, context_instance=RequestContext(request))
+
+def atom_feed(request, token, userid):
+    """
+    Return an Atom feed for this user, authenticated by the token in the URL
+    """
+    person = get_object_or_404(Person, userid=userid)
+    
+    # make sure the token in the URL (32 hex characters) matches the token stored in the DB
+    configs = UserConfig.objects.filter(user=person, key="feed-token")
+    if not configs or configs[0].value != token:
+        # no token configured or wrong token provided
+        return NotFoundResponse(request)
+    #else:
+        # authenticated
+
+    news_list = NewsItem.objects.filter(user=person).order_by('-updated')[:20]
+    
+    # build base URL for the server for URIs and links    
+    if request.is_secure():
+        url = "https://"
+    else:
+        url = "http://"
+    url += request.META['SERVER_NAME'] + ":" + request.META['SERVER_PORT']
+
+    context = {"news_list": news_list, 'person': person, 'updated': news_list[0].updated, 'server_url': url}
+    #application/atom+xml
+    return render_to_response("dashboard/atom_feed.xml", context, context_instance=RequestContext(request), mimetype="text/plain")
+
 
 
 #@requires_course_by_slug

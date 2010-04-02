@@ -16,7 +16,8 @@ urlpatterns = patterns('',
     url(r'^log/$', 'log.views.index'),
 
     url(r'^$', 'courses.dashboard.views.index'),
-    url(r'^' + '_all_news/$', 'courses.dashboard.views.news_list'),
+    url(r'^' + 'all_news/$', 'courses.dashboard.views.news_list'),
+    url(r'^' + 'feed/(?P<token>[0-9a-f]{32})/' + USERID_SLUG + '$', 'courses.dashboard.views.atom_feed'),
 
     url(r'^' + COURSE_SLUG + '/$', 'grades.views.course_info'),
     url(r'^' + COURSE_SLUG + '/_new_message$', 'dashboard.views.new_message'),

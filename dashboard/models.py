@@ -1,9 +1,19 @@
 from django.db import models
 from coredata.models import Person, CourseOffering
 from django.utils.safestring import mark_safe
+from pytz import timezone
+from django.conf import settings
+from autoslug.settings import slugify
 
 import external.textile as textile
 Textile = textile.Textile(restricted=True)
+
+def _rfc_format(dt):
+    """
+    Format the datetime in RFC3339 format
+    """
+    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+    
 
 class NewsItem(models.Model):
     """
@@ -22,6 +32,37 @@ class NewsItem(models.Model):
 
     def content_xhtml(self):
         return mark_safe(Textile.textile(str(self.content)))
+
+    def rfc_updated(self):
+        """
+        Format the updated time in RFC3339 format
+        """
+        tz = timezone(settings.TIME_ZONE)
+        dt = self.updated
+        offset = tz.utcoffset(dt)
+        return _rfc_format(dt-offset)
+
+    def feed_id(self):
+        """
+        Return a unique to serve as a unique Atom identifier (after being appended to the server URL).
+        """
+        return slugify(
+            "%s %s %s" % (self.user.userid, self.published.strftime("%Y%m%d-%H%M%S"), self.id)
+            )
+
+class UserConfig(models.Model):
+    """
+    Simple class to hold user preferences.
+    """
+    user = models.ForeignKey(Person, null=False)
+    key = models.CharField(max_length=20, db_index=True, null=False)
+    value = models.CharField(max_length=200)
+    class Meta:
+        unique_together = (("user", "key"),)
+
+    def __unicode__(self):
+        return "%s: %s='%s'" % (self.user.userid, self.key, self.value)
+
 
 from django.forms import ModelForm
 class MessageForm(ModelForm):
