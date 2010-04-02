@@ -32,11 +32,7 @@ def new_message(request,course_slug):
             form.save()
             class_list = Member.objects.exclude(role="DROP").filter(offering=offering).exclude(person=staff)
             for p in class_list:
-                #new_message = form.save(commit=False)
-                #new_message.user = p.person
-                #new_message.save()
-                stu_message = NewsItem(author=staff, course=offering, source_app="dashboard")
-                stu_message.user = p.person
+                stu_message = NewsItem(user = p.person,author=staff, course=offering, source_app="dashboard")
                 stu_message.title = form.cleaned_data['title']
                 stu_message.content = form.cleaned_data['content']
                 stu_message.url = form.cleaned_data['url']
@@ -53,8 +49,12 @@ def new_message(request,course_slug):
         form = MessageForm()
     return render_to_response("dashboard/new_message.html", {"form" : form,'course': offering}, context_instance=RequestContext(request))
 
+@login_required
 def news_list(request):
-    pass
+    user = get_object_or_404(Person, userid = request.user.username)
+    news_list = NewsItem.objects.filter(user = user).order_by('-updated')
+    return render_to_response("dashboard/all_news.html", {"news_list" :news_list}, context_instance=RequestContext(request))
+
 
 #@requires_course_by_slug
 #def course(request, course_slug):
