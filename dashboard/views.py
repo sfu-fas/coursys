@@ -15,7 +15,7 @@ def index(request):
     userid = request.user.username
     memberships = Member.objects.exclude(role="DROP").filter(offering__graded=True).filter(person__userid=userid) \
             .select_related('offering','person','offering__semester')
-    news_list = NewsItem.objects.filter(user__userid=userid).order_by('-updated').select_related('course')[:5]
+    news_list = NewsItem.objects.filter(user_userid=userid).order_by('-updated').select_related('course')[:5]
 
     context = {'memberships': memberships ,'news_list': news_list}
     return render_to_response("dashboard/index.html",context ,context_instance=RequestContext(request))
@@ -37,7 +37,7 @@ def new_message(request,course_slug):
                 stu_message.content = form.cleaned_data['content']
                 stu_message.url = form.cleaned_data['url']
                 stu_message.save()
-                
+
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
                   description=("created a message for every student in %s") % (offering),
