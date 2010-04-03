@@ -4,7 +4,7 @@ from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.core.urlresolvers import reverse
 from coredata.models import *
-from courselib.auth import requires_faculty_member, requires_course_staff_by_slug
+from courselib.auth import requires_course_staff_by_slug, is_course_staff_by_slug, is_course_student_by_slug, ForbiddenResponse
 from grades.models import NumericActivity
 from groups.models import Group
 from log.models import *
@@ -13,6 +13,7 @@ from forms import *
 from django.forms.models import modelformset_factory
 from contrib import messages
 from django.db.models import Q
+
 
 def _find_setup_conflicts(source_setup, target_setup):    
     names_found = set()
@@ -242,6 +243,7 @@ def manage_common_problems(request, course_slug, activity_slug):
                               'components': components, 'formset' : formset },\
                               context_instance=RequestContext(request))
 
+@requires_course_staff_by_slug
 def manage_component_positions(request, course_slug, activity_slug): 
     course = get_object_or_404(CourseOffering, slug = course_slug)
     activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)
@@ -486,8 +488,17 @@ def marking_group(request, course_slug, activity_slug, group_slug):
                        'additional_info_form' : additional_info_form, 'mark_components': mark_components }, \
                        context_instance=RequestContext(request))
 
-@requires_course_staff_by_slug
+
+
+@login_required
 def mark_summary_student(request, course_slug, activity_slug, userid):
+     if is_course_staff_by_slug(request.user, course_slug):
+        is_staff = True
+     elif is_course_student_by_slug(request.user, course_slug):
+        is_staff = False
+     else:
+         return ForbiddenResponse(request)
+    
      student = get_object_or_404(Person, userid = userid)
      course = get_object_or_404(CourseOffering, slug = course_slug)    
      activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)     
@@ -511,10 +522,18 @@ def mark_summary_student(request, course_slug, activity_slug, userid):
      return render_to_response("marking/mark_summary.html", 
                                {'course':course, 'activity' : activity, 'student' : student, 'group' : group, \
                                 'activity_mark': act_mark, 'component_marks': component_marks, \
-                                'view_history': act_mark_id == None}, context_instance = RequestContext(request))
+                                'is_staff': is_staff, 'view_history': act_mark_id == None}, \
+                                context_instance = RequestContext(request))
 
 @requires_course_staff_by_slug     
 def mark_summary_group(request, course_slug, activity_slug, group_slug):
+     if is_course_staff_by_slug(request.user, course_slug):
+        is_staff = True
+     elif is_course_student_by_slug(request.user, course_slug):
+        is_staff = False
+     else:
+         return ForbiddenResponse(request)
+    
      course = get_object_or_404(CourseOffering, slug = course_slug)    
      activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)    
      group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
@@ -530,7 +549,8 @@ def mark_summary_group(request, course_slug, activity_slug, group_slug):
      return render_to_response("marking/mark_summary.html", 
                                {'course':course, 'activity' : activity, 'group' : group, \
                                 'activity_mark': act_mark, 'component_marks': component_marks, \
-                                'view_history': act_mark_id == None}, context_instance = RequestContext(request))
+                                'is_staff': is_staff, 'view_history': act_mark_id == None},\
+                                context_instance = RequestContext(request))
          
 from os import path
 from courses.settings import MEDIA_ROOT

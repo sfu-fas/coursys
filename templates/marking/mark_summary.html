@@ -126,6 +126,8 @@ Group {{group.name}} marked on {{activity.name}}
     </table>
 </div>   
 
+{% if is_staff %}
+
 {% if student %}
 <a class="button" href= "{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug userid=student.userid %}?base_activity_mark={{activity_mark.id}}">Mark based on this</a>
 {% else %}
@@ -139,5 +141,7 @@ Group {{group.name}} marked on {{activity.name}}
 		<a class="button" href = "{% url marking.views.mark_history_group course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}">Marking History</a>
 	{% endif %}
 {% endif %}	
+
+{% endif %}
 
 {% endblock %}

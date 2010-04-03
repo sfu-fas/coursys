@@ -1,6 +1,7 @@
 {% extends "grades/activity_info.html" %}
 
 {% block grades_headextra %}
+<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
 <script type="text/javascript">
     $(document).ready(function() {
 		// activate dataTable ui
@@ -14,34 +15,7 @@
             { "sWidth": "3em" }
             ]
 		});
-		
-		{% for info in group_grade_info_list %}		
-	    
-		    $('#area_{{forloop.counter}}').hide();/* hidden initially */
-		    $('#unfold_{{forloop.counter}}').hide();
-		    	
-		   
-		    function cb{{forloop.counter}}(){
-		   	$('#unfold_{{forloop.counter}}').hide();
-		   	$('#fold_{{forloop.counter}}').show();
-	        }
-	       
-	        function cbb{{forloop.counter}}(){
-		   	$('#fold_{{forloop.counter}}').hide();
-		   	$('#unfold_{{forloop.counter}}').show();
-	        }        
-	        	    	    
-		    $('#fold_{{forloop.counter}}').click(
-		    	function(){	      		      	      	
-		    		$('#area_{{forloop.counter}}').slideToggle(100, cbb{{forloop.counter}});
-		    });	    
-		    
-		    $('#unfold_{{forloop.counter}}').click(
-		        function(){	      	      	      	
-		    		$('#area_{{forloop.counter}}').slideToggle(100, cb{{forloop.counter}});
-		    });
-	    
-       {% endfor%}    
+		$('div.collapsible').collapsible();		
     });
    
 </script>
@@ -62,21 +36,17 @@
 	    {% for group_grade_info in group_grade_info_list %}
 	    {% with group_grade_info.group as group %}
 		    <tr>
-			<td scope="row">				    
+			<td scope="row">
+				<a href="#">{{ group.name }}</a>
+		    	<div class="collapsible"></div>
 		    	<div>
-		    	<img id="fold_{{forloop.counter}}" src="{{MEDIA_URL}}icons/fold.png" title="Show members" alt="Show members" />
-		    	<img id="unfold_{{forloop.counter}}" src="{{MEDIA_URL}}icons/unfold.png" title="Hide members" alt="Hide members" />
-		    	<a href="#">{{ group.name }}</a> 
-		    	</div>
-		    	<div class="group_info_area" id="area_{{forloop.counter}}">
 		    	    <ul class="group_member_list">
 			    		{% for group_member in group_grade_info.members %}
 			    		<li>
 			    		<a href="{% url grades.views.activity_info_student course_slug=course.slug activity_slug=activity.slug userid=group_member.userid%}">{{group_member.name}}</a>			    		
 			    		</li>
 		    		{% endfor %}
-		    		</ul>
-		    		<a href="#"><img src="{{MEDIA_URL}}icons/user_add.png" title="Add member" alt="add member" style="float: left;"/></a>		    		
+		    		</ul>		    				    		
 		    	</div>	    	   	   
 			</td>
 			<td>
