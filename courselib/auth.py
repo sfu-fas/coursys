@@ -92,7 +92,7 @@ def is_course_member_by_slug(u, course_slug, **kwargs):
     Return True if user is any kind of member (non-dropped) from course indicated by 'course_slug' keyword.
     """
     #offering = get_object_or_404(CourseOffering, slug=course_slug)
-    memberships = Member.objects.exclude(role="DROP", course__component="CAN").filter(offering__slug=course_slug, person__userid=u.username)
+    memberships = Member.objects.exclude(role="DROP", offering__component="CAN").filter(offering__slug=course_slug, person__userid=u.username)
     count = memberships.aggregate(Count('person'))['person__count']
     return count>0
 
@@ -110,7 +110,7 @@ def is_course_student_by_slug(u, course_slug, **kwargs):
     """
     Return True if user is student from course indicated by 'course_slug' keyword.
     """
-    memberships = Member.objects.filter(offering__slug=course_slug, person__userid=u.username, role="STUD").exclude(course__component="CAN")
+    memberships = Member.objects.filter(offering__slug=course_slug, person__userid=u.username, role="STUD").exclude(offering__component="CAN")
     count = memberships.aggregate(Count('person'))['person__count']
     return count>0
 
@@ -130,7 +130,7 @@ def is_course_staff_by_slug(u, course_slug, **kwargs):
     """
     #offering = get_object_or_404(CourseOffering, slug=course_slug)
     memberships = Member.objects.filter(offering__slug=course_slug, person__userid=u.username,
-            role__in=['INST', 'TA', 'APPR']).exclude(course__component="CAN")
+            role__in=['INST', 'TA', 'APPR']).exclude(offering__component="CAN")
     count = memberships.aggregate(Count('person'))['person__count']
     return count>0
 
