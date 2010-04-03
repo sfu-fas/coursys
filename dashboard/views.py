@@ -14,7 +14,8 @@ import random
 @login_required
 def index(request):
     userid = request.user.username
-    memberships = Member.objects.exclude(role="DROP").filter(offering__graded=True).filter(person__userid=userid) \
+    memberships = Member.objects.exclude(role="DROP", offering__component="CAN") \
+            .filter(offering__graded=True, person__userid=userid) \
             .select_related('offering','person','offering__semester')
     news_list = NewsItem.objects.filter(user__userid=userid).order_by('-updated').select_related('course')[:5]
 

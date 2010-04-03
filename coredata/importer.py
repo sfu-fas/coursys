@@ -4,16 +4,25 @@ sys.path.append(".")
 sys.path.append("..")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 from coredata.models import *
+from django.db import transaction
 
 # only import people matching this WHERE:
 #CONDITION = 'username LIKE "g%" OR username LIKE "b%"'
 #CONDITION = '1=1'
+
+# these users will be given sysadmin role (for bootstrapping)
+sysadmin = ["ggbaker"]
 
 import_host = '127.0.0.1'      
 import_user = 'ggbaker'
 import_name = 'ggbaker_crse_mgmt'
 import_port = 3309
 timezone = "America/Vancouver" # timezone of imported class meeting times
+
+ta_host = '127.0.0.1'      
+ta_user = 'ta_data_import'
+ta_name = 'ta_data_drop'
+ta_port = 3309
 
 #TODO: add sanity check for no DB info
 
@@ -108,8 +117,8 @@ def import_offerings(db):
     """
     Import course offerings
     """
-    db.execute('SELECT subject, catalog_nbr, class_section, strm, crse_id, class_nbr, ssr_component, descr, campus, enrl_cap, enrl_tot, wait_tot FROM v_ps_class_tbl')
-    for subject, number, section, strm, crse_id, class_nbr, component, title, campus, enrl_cap, enrl_tot, wait_tot in db:
+    db.execute('SELECT subject, catalog_nbr, class_section, strm, crse_id, class_nbr, ssr_component, descr, campus, enrl_cap, enrl_tot, wait_tot, cancel_dt FROM v_ps_class_tbl')
+    for subject, number, section, strm, crse_id, class_nbr, component, title, campus, enrl_cap, enrl_tot, wait_tot, cancel_dt in db:
         # only import for defined semesters.
         semesters = Semester.objects.filter(name=strm)
         if not semesters:
@@ -118,13 +127,15 @@ def import_offerings(db):
         
         graded = section.endswith("00")
 
-        #print subject, number, section, semester, crse_id
-
         # make sure the data is as we expect:
         if not CourseOffering.CAMPUSES.has_key(campus):
             raise KeyError, "Unknown campus: %r." % (campus)
         if not CourseOffering.COMPONENTS.has_key(component):
             raise KeyError, "Unknown course component: %r." % (component)
+
+        if cancel_dt != "None":
+            # mark cancelled sections
+            component="CAN"
 
         c_old = CourseOffering.objects.filter(subject=subject, number=number, section=section, semester=semester)
         if len(c_old)>1:
@@ -151,12 +162,17 @@ def import_meeting_times(db):
     """
     Import course meeting times
     """
-    db.execute('SELECT crse_id, class_section, strm, meeting_time_start, meeting_time_end, facility_id, mon,tues,wed,thurs,fri,sat,sun FROM v_ps_class_mtg_pat')
-    for crse_id, section, strm, start, end, room, mon,tues,wed,thurs,fri,sat,sun in db:
+    db.execute('SELECT crse_id, class_section, strm, meeting_time_start, meeting_time_end, facility_id, mon,tues,wed,thurs,fri,sat,sun, start_dt, end_dt FROM v_ps_class_mtg_pat')
+    for crse_id, section, strm, start, end, room, mon,tues,wed,thurs,fri,sat,sun, start_dt, end_dt in db:
         semester = Semester.objects.filter(name=strm)
         if not semester:
             continue
+        semester = semester[0]
         c = find_offering_by_crse_id(crse_id, section, semester)
+        
+        # exclude exam times
+        if start_dt > semester.end:
+            continue
 
         #print crse_id, section, strm, start, end, room, (mon,tues,wed,thurs,fri,sat,sun)
         wkdays = [n for n, day in zip(range(7), (mon,tues,wed,thurs,fri,sat,sun)) if day=='Y']
@@ -170,7 +186,7 @@ def import_meeting_times(db):
                 m_old.delete()
 
             m = MeetingTime(offering=c, weekday=wkd, start_time=start, end_time=end, timezone=timezone, room=room)
-            #m.save()
+            m.save()
             # TODO: ignore until we can distinguish exam times.
 
 
@@ -194,7 +210,7 @@ def import_instructors(db):
         if len(p)==0:
             m_old = []
         else:
-            m_old = Member.objects.filter(person=p, offering=c, role="DROP")
+            m_old = Member.objects.filter(person=p, offering=c)
 
         if len(m_old)>1:
             raise KeyError, "Already duplicate instructor entries: %r" % (m_old)
@@ -211,6 +227,54 @@ def import_instructors(db):
         # need to get personal and link info before saving
 
     return members
+
+def import_tas(dbpasswd):
+    """
+    Import TAs
+    """
+    dbconn = MySQLdb.connect(host=ta_host, user=ta_user,
+             passwd=dbpasswd, db=ta_name, port=ta_port)
+    db = dbconn.cursor()
+    
+    db.execute('SELECT strm, emplid, subject, catalog_nbr, class_section FROM ta_data')
+    members = []
+    for strm, emplid, subject, catalog_nbr, class_section in db:
+        class_section = class_section+"00"
+        semester = Semester.objects.filter(name=strm)
+        if not semester:
+            continue
+
+        # there's some fuzziness in the courseoffering mapping here: 376 vs 376W, D100 vs G100
+        cs = CourseOffering.objects.filter(subject=subject, number__in=[catalog_nbr,catalog_nbr+"W"],
+            section__in=[class_section, "G"+class_section[1:]], semester=semester)
+        if len(cs)==0:
+            raise KeyError, "Unknown course: %r %r %r %r." % (subject, catalog_nbr, class_section, semester)
+        elif len(cs)>1:
+            raise KeyError, "Course not uniquely selected: %r %r %r %r." % (subject, catalog_nbr, class_section, semester)
+        c = cs[0]
+
+        # find existing membership objects and update if appropriate
+        p = Person.objects.filter(emplid=emplid)
+        if len(p)==0:
+            m_old = []
+        else:
+            m_old = Member.objects.filter(person=p, offering=c)
+
+        if len(m_old)>1:
+            raise KeyError, "Already duplicate TA entries: %r" % (m_old)
+        elif len(m_old)==1:
+            m = m_old[0]
+            m.credits = 0
+            m.added_reason = "AUTO"
+            m.career = "NONS"
+            m.role = "TA"
+        else:
+            m = Member(offering=c, role="TA", credits=0, added_reason="AUTO", career="NONS")
+
+        members.append((str(emplid), m))
+
+    return members
+        
 
 def import_students(db):
     """
@@ -235,7 +299,7 @@ def import_students(db):
         if len(p)==0:
             m_old = []
         else:
-            m_old = Member.objects.filter(person=p, offering=c, role="DROP")
+            m_old = Member.objects.filter(person=p, offering=c)
 
         if len(m_old)>1:
             raise KeyError, "Already duplicate student entries: %r" % (m_old)
@@ -249,7 +313,7 @@ def import_students(db):
             m = Member(offering=c, role="STUD", credits=unt_taken, added_reason="AUTO", career=acad_career)
 
         members.append((emplid, m))
-        # need to get personal and link info before saving
+        # need to get personal info and link info before saving
 
     return members
 
@@ -262,7 +326,7 @@ def handle_person(membership, userid, emplid, last_name, first_name, middle_name
         return
     if not pref_first_name:
         pref_first_name = first_name
-        
+    
     p_old = Person.objects.filter(emplid=emplid)
     if len(p_old)>1:
         raise KeyError, "Already duplicate people: %r" % (p_old)
@@ -311,14 +375,14 @@ def import_people(db, members):
     for userid, emplid, last_name, first_name, middle_name, pref_first_name in db:
         handle_person(membership, userid, emplid, last_name, first_name, middle_name, pref_first_name)
     
+@transaction.commit_on_success
+def main():
+    dbpasswd = raw_input()
+    tapasswd = raw_input()
 
-def main(passwd=None):
-    if passwd == None:
-        raise NotImplementedError, "TODO: web form input"
-    
     create_semesters()
     dbconn = MySQLdb.connect(host=import_host, user=import_user,
-             passwd=passwd, db=import_name, port=import_port)
+             passwd=dbpasswd, db=import_name, port=import_port)
     db = dbconn.cursor()
     
     # Drop everybody (and re-add later if they're still around)
@@ -327,21 +391,31 @@ def main(passwd=None):
     # People to fetch: manually-added members of courses (and everybody else we find later)
     members = [(m.person.emplid, m.offering) for m in Member.objects.exclude(added_reason="AUTO")]
     
+    
     print "importing course offerings"
     import_offerings(db)
-    print "importing meeting times"
+    #print "importing meeting times"
     #import_meeting_times(db)
     print "importing instructors"
     members += import_instructors(db)
     print "importing students"
     members += import_students(db)
+    print "importing TAs"
+    members += import_tas(tapasswd)    
     
     print "importing personal info"
     import_people(db, members)
     
+    print "giving sysadmin permissions"
+    for userid in sysadmin:
+        p = Person.objects.get(userid=userid)
+        r = Role.objects.filter(person=p, role="SYSA")
+        if not r:
+            r = Role(person=p, role="SYSA")
+            r.save()
+    
+    print "committing to DB"
 
 
 if __name__ == "__main__":
-    import getpass
-    passwd = getpass.getpass('Database password: ')
-    main(passwd)
+    main()

@@ -135,6 +135,7 @@ class CourseOffering(models.Model):
         ('SEC', 'Section'), # "Section"?  ~= lecture?
         #('OPL', 'Open Lab'),
         #('FLD', 'Field School'),
+        ('CAN', 'Cancelled'),
     )
     COMPONENTS = dict(COMPONENT_CHOICES)
     CAMPUS_CHOICES = (
