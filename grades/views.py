@@ -1,5 +1,5 @@
 from django.shortcuts import render_to_response, get_object_or_404
-from django.http import HttpResponseRedirect, Http404, HttpResponseForbidden
+from django.http import HttpResponseRedirect, Http404, HttpResponseForbidden, HttpResponse
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
@@ -44,19 +44,24 @@ def _course_info_staff(request, course_slug):
     Course front page
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    activities = all_activities_filter(offering=course, deleted=False)
     
-    order = None
-    act = None
-    if request.GET.has_key('order'):
-        order = request.GET['order']
-    if request.GET.has_key('act'):
-        act = request.GET['act']
-    if order and act:
-        reorder_course_activities(activities, act, order)
-        return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
+    if request.method == 'POST':
+        id_up = request.POST.get('id_up') 
+        id_down = request.POST.get('id_down')
+        if id_up == None or id_down == None:                      
+            return HttpResponse("Order update failed!")
+        # swap the position of the two activities
+        activity_up = get_object_or_404(Activity, id=id_up);
+        activity_down = get_object_or_404(Activity, id=id_down);
+        temp = activity_up.position
+        activity_up.position = activity_down.position
+        activity_down.position = temp
+        activity_up.save()
+        activity_down.save()
+        return HttpResponse("Order updated!")
 
     # Todo: is the activity type necessary?
+    activities = all_activities_filter(offering=course, deleted=False)
     activities_info = []
     for activity in activities:
         if isinstance(activity, NumericActivity):

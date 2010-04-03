@@ -254,7 +254,7 @@ def manage_component_positions(request, course_slug, activity_slug):
             component_ids = request.POST.getlist('ids[]') 
             position = 1;
             for id in component_ids:
-                comp = get_object_or_404(ActivityComponent, id = id)
+                comp = get_object_or_404(components, id = id)
                 comp.position = position
                 comp.save()
                 position += 1
