@@ -139,7 +139,7 @@ def submission_upload_path(instance, filename):
             instance.submission.file_slug(),
             instance.submission.created_at.strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.submission.id),
             instance.component.slug,
-            filename)
+            filename.encode('ascii', 'ignore'))
     return fullpath
 
 

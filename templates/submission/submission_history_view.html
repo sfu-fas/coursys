@@ -11,10 +11,12 @@
 
 <div id="submission_history_view_container">
     {% for submission in submitted_components %}
-        <h2>{%if activity.group%} {{submission.sub.creator.student.person.name}} | {%endif%}
-            {{submission.sub.created_at|date:"Y-m-d H:i:s"}}
-        </h2>
+    <div class="submitter">
+         <img src="{{MEDIA_URL}}icons/tag_red.png" alt="submission" />
+        {{submission.sub.created_at|date:"Y-m-d H:i:s"}} {%if activity.group%} by {{submission.sub.creator.student.person.name}}{%endif%}
+    </div>
         <table>
+        <tbody>
             <tr>
                 <th>Component</th>
                 <th>Download</th>
@@ -39,6 +41,7 @@
                 </td>
             </tr>
         {% endfor %}
+        </tbody>
         </table>
     {% endfor %}
 </div>

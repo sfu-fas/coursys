@@ -23,13 +23,12 @@
         {%else%}
             <h2>Errors in Submission</h2>
             <table>
+                <tbody>
             {% for data in component_list %}
                 {%if data.form.errors %}
                     <tr>
-                        <td class="column1">
-                            {{ data.comp.title }}
-                        </td>
-                        <td class="column2">
+                        <th class="ui-state-default">{{ data.comp.title }}</th>
+                        <td class="error">
                         {% for field in data.form %}
                            {{field.errors}}
                         {% endfor %}
@@ -37,20 +36,25 @@
                     </tr>
                 {%endif%}
             {%endfor%}
+                </tbody>
             </table>
             {# if no component is submitted successfully #}
             {% ifequal submitted_comp|length 0 %}
             {% else %}
                 <h2>Successfully Submitted Components</h2>
                     <table>
+                        <tbody>
                         {% for component in submitted_comp %}
                             <tr>
-                                <td class ="column1">
+                                <th class="ui-state-default">
                                     {{component.component.title}}
+                                </th>
+                                <td class="submitted">
+                                     Submitted
                                 </td>
-                                <td class="column3">Submitted.</td>
                             </tr>
                         {% endfor %}
+                        </tbody>
                     </table>
             {% endifequal %}
             <h2 class ="text">All components with error are not submitted.</h2>

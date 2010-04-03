@@ -226,9 +226,13 @@ def get_all_submission_components(submission, activity, component_list=None):
     for component in component_list:
         if submission:
             SubmittedComponent = component.Type.SubmittedComponent
-            submits = SubmittedComponent.objects.filter(component=component).latest('submission__created_at')
-            if submits:
-                sub = submits
+            submits_all = SubmittedComponent.objects.filter(component=component)
+            submits = []
+            for s in submission:
+                submits.extend(submits_all.filter(submission=s))
+            if len(submits) > 0:
+                submits.sort()
+                sub = submits[0]
             else:
                 # this component didn't get submitted
                 sub = None
@@ -243,17 +247,13 @@ def get_current_submission(student, activity):
     """
     if activity.group:
         gms = GroupMember.objects.filter(student__person=student, confirmed=True)
-        try:
-            submission = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms)#.latest('created_at')
-        except GroupSubmission.DoesNotExist:
-            submission = None
+        print "gms", gms
+        submission = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms)#.latest('created_at')
     else:
-        try:
-            submission = StudentSubmission.objects.filter(activity=activity, member__person=student)#.latest('created_at')
-        except StudentSubmission.DoesNotExist:
-            submission = None
+        submission = StudentSubmission.objects.filter(activity=activity, member__person=student)#.latest('created_at')
 
-    if submission:
+    print submission
+    if len(submission) > 0:
         submitted_components = get_all_submission_components(submission, activity)
         return submission.latest('created_at'), submitted_components
     else:

@@ -756,26 +756,41 @@ fieldset .hidden {
  *  containers
  */
  /*view submission error*/
- #submission_error_container{
+#submission_error_container{
     margin: 1em;
     width: 50em;
- }
- #submission_error_container .button{
+}
+#submission_error_container .button{
     float:right;
     clear:right;
- }
- 
- #submission_error_container .text{
+}
+
+#submission_error_container .text{
     text-align: right;
- }
- #submission_error_container table {
+}
+#submission_error_container table {
     border: 1px;
-    width: 40em;
- }
- #submission_error_container table td{
+    width: 45em;
+}
+#submission_error_container table td{
     border: 1px solid #DBDBDB;
- }
- #submission_error_container table td.column1 {
+    width: 50%;
+}
+#submission_error_container ul, #submission_error_container li {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+#submission_error_container td.error {
+    color: red;
+    text-align: center;
+}
+#submission_error_container td.submitted {
+    color: green;
+    text-align: center;
+}
+
+ /*#submission_error_container table td.column1 {
     background: #E8E8E8;
     font-weight:bold;
     padding: 0.1em 2em;
@@ -790,6 +805,7 @@ fieldset .hidden {
        color:green;
        padding: 0.1em 4em;      
  }
+ */
   
 /* view submission history */
 #add_submission_component_container {
@@ -807,13 +823,18 @@ fieldset .hidden {
 #submission_history_view_container{
     clear: left;
 }
-
+#submission_history_view_container .submitter{
+    margin-top: 2em;
+    font-weight: bold;
+    font-size: 1.4em;
+    color: gray;
+}
 #submission_history_view_container h2{
-    color: 
+    color: #999;
 }
 #submission_history_view_container table{
-    border: 0px;
-    
+    border: 0px solid gray;
+    margin: 0;
 }
 #submission_history_view_container table tr {
     margin: 1em 10em;
