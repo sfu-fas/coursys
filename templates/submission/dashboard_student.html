@@ -23,7 +23,7 @@
             {% if late %}
             <tr id="late_for">
                 <th scope="row">Late for:</th>
-                <td>{{late}}</td>
+                <td style="color:red">{{activity.due_date|timesince:submission.created_at}}</td>
             </tr>
             {% endif %}
             <tr>

@@ -470,16 +470,6 @@ def show_student_history_staff(request, course_slug, activity_slug, userid):
 def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, group_slug=None):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set, slug=activity_slug)
-    if userid:
-        try:
-            submission = StudentSubmission.objects.filter(activity=activity, member__person__userid=userid).latest('created_at')
-        except StudentSubmission.DoesNotExist:
-            submission = None
-    elif group_slug:
-        try:
-            submission = GroupSubmission.objects.filter(group__slug=group_slug).latest('created_at')
-        except StudentSubmission.DoesNotExist:
-            submission = None
 
     # get the urlencode
     qDict = request.GET
@@ -487,26 +477,66 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
     if qDict.items():
         urlencode = '?' +  qDict.urlencode()
 
-    response = HttpResponseRedirect(reverse(marking_student, args=[course_slug, activity_slug, userid]) + urlencode)
-    #if it is taken by someone not me, show a confirm dialog
-    if request.GET.get('confirm') == None:
-        if submission and submission.owner:
-            return _override_ownership_confirm(request, course, activity, userid, None, c.submission.owner.person, urlencode)
+    if userid:
+        try:
+            if activity.group is True:
+                member = GroupMember.objects.filter(activity=activity, student__person__userid=userid, confirmed=True)
+                submission = GroupSubmission.objects.filter(activity=activity, group=member[0].group).latest('created_at')
+                print submission
+            else:
+                submission = StudentSubmission.objects.filter(activity=activity, member__person__userid=userid).latest('created_at')
+        except:
+            submission = None
+        response = HttpResponseRedirect(reverse(marking_student, args=[course_slug, activity_slug, userid]) + urlencode)
+        #if it is taken by someone not me, show a confirm dialog
+        if request.GET.get('confirm') == None:
+            if submission and submission.owner:
+                return _override_ownership_confirm(request, course, activity, userid, None, submission.owner.person, urlencode[1:])
 
-    if submission:
-        submission.set_owner(course, request.user.username)
-    
+        if submission:
+            submission.set_owner(course, request.user.username)
+
         #LOG EVENT#
         student = get_object_or_404(Person, userid=userid)
+        if submission:
+            str = (" of submission %i") % (submission.id)
+        else:
+            str = ""
         l = LogEntry(userid=request.user.username,
-              description=("took ownership on %s of submission %i by %s") % (activity, submission.id, submission.file_slug),
+              description=("took ownership on %s" + str + " by %s") % (activity, userid),
               related_object=student)
         l.save()
-        
-    return response
+
+        return response
+    elif group_slug:
+        try:
+            submission = GroupSubmission.objects.filter(group__slug=group_slug).latest('created_at')
+        except:
+            submission = None
+        response = HttpResponseRedirect(reverse(marking_group, args=[course_slug, activity_slug, group_slug]) + urlencode)
+        #if it is taken by someone not me, show a confirm dialog
+        if request.GET.get('confirm') == None:
+            if submission and submission.owner:
+                return _override_ownership_confirm(request, course, activity, None, group_slug, submission.owner.person, urlencode[1:])
+
+        if submission:
+            submission.set_owner(course, request.user.username)
+        #LOG EVENT#
+        groups = Group.objects.all().filter(courseoffering=course)
+        group = get_object_or_404(groups, slug=group_slug)
+        if submission:
+            str = (" of submission %i by group %s") % (submission.id, submission.file_slug)
+        else:
+            str = ""
+        l = LogEntry(userid=request.user.username,
+          description=("took ownership on %s"+str+ " by group %s") % (activity, group.name),
+          related_object=group)
+        l.save()
+        return response
+    
 
 @requires_course_staff_by_slug
-def take_ownership_and_mark_group(request, course_slug, activity_slug, group_slug):
+def XXX_take_ownership_and_mark_group(request, course_slug, activity_slug, group_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set, slug = activity_slug)
     group = get_object_or_404(Group, slug = group_slug)
@@ -537,10 +567,14 @@ def take_ownership_and_mark_group(request, course_slug, activity_slug, group_slu
 
 def _override_ownership_confirm(request, course, activity, userid, group_slug, old_owner, urlencode):
     if group_slug == None:
+        group = None
         student = get_object_or_404(Person, userid=userid)
     else:
         student = None
+        groups = Group.objects.all().filter(courseoffering=course)
+        group = get_object_or_404(groups, slug=group_slug)
+        
     
     return render_to_response("submission/override_ownership_confirm.html",
-        {"course":course, "activity":activity, "student":student, "group_slug":group_slug, "old_owner":old_owner, "true":True, "urlencode":urlencode, "userid":userid},
+        {"course":course, "activity":activity, "student":student, "group":group, "old_owner":old_owner, "true":True, "urlencode":urlencode, "userid":userid},
         context_instance=RequestContext(request))

@@ -129,7 +129,7 @@ Group {{group.name}} marked on {{activity.name}}
 {% if student %}
 <a class="button" href= "{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug userid=student.userid %}?base_activity_mark={{activity_mark.id}}">Mark based on this</a>
 {% else %}
-<a class="button" href= "{% url submission.views.take_ownership_and_mark_group course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}?base_activity_mark={{activity_mark.id}}">Mark based on this</a>
+<a class="button" href= "{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}?base_activity_mark={{activity_mark.id}}">Mark based on this</a>
 {% endif %}
 
 {% if view_history %}

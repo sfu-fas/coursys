@@ -21,17 +21,17 @@
     {% endif %}
 {% endblock %}
 
-{% block current_time %}
-{% endblock %}
-
 {% block navbutton %}
 <div id="my_submission_dashboard">
 <ul class="add_nav">
-    {% if submit_time %}
+    <li><a href ="{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug userid=userid%}" class="button" >Mark Student</a></li>
+    {% if group %}
+    <li><a href="{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}" class="button">Mark Group</a></li>
+    {% endif %}
+    {% if submission %}
         <li><a href ="{% url submission.views.show_components_submission_history course_slug=course.slug activity_slug=activity.slug %}?userid={{userid}}" class="button">View History</a></li>
         <li><a href ="{% url submission.views.download_file course.slug, activity.slug, userid %}" class="button" target="_blank">Download All</a></li>
     {% endif %}
-    <li><a href ="{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug userid=userid%}" class="button" >Mark This</a></li>
 </ul>
 </div>
 {% endblock %}
