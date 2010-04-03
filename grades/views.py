@@ -348,13 +348,13 @@ def edit_activity(request, course_slug, activity_slug):
         if request.method == 'POST': # If the form has been submitted...
             if isinstance(activity, CalNumericActivity):
                 form = CalNumericActivityForm(request.POST) # A form bound to the POST data
-                form.activate_editform_validation(course_slug, activity.id)
+                form.activate_editform_validation(course_slug, activity_slug)
             elif isinstance(activity, NumericActivity):
                 form = NumericActivityForm(request.POST) # A form bound to the POST data
-                form.activate_editform_validation(course_slug, activity.id)
+                form.activate_editform_validation(course_slug, activity_slug)
             elif isinstance(activity, LetterActivity):
                 form = LetterActivityForm(request.POST) # A form bound to the POST data
-                form.activate_editform_validation(course_slug, activity.id)
+                form.activate_editform_validation(course_slug, activity_slug)
             if form.is_valid(): # All validation rules pass
                 _populate_activity_from_formdata(activity, form.cleaned_data)
                 activity.save()

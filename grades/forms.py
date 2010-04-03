@@ -34,10 +34,10 @@ class ActivityForm(forms.Form):
         self._addform_validate = True
         self._course_slug = course_slug
         
-    def activate_editform_validation(self, course_slug, activity_id):
+    def activate_editform_validation(self, course_slug, activity_slug):
         self._editform_validate = True
         self._course_slug = course_slug
-        self._activity_id = activity_id
+        self._activity_slug = activity_slug
         
     def clean_name(self):
         name = self.cleaned_data['name']
@@ -46,7 +46,7 @@ class ActivityForm(forms.Form):
                 if Activity.objects.filter(offering__slug=self._course_slug, name=name, deleted=False).count() > 0:
                     raise forms.ValidationError(u'Activity with the same name already exists')
             if self._editform_validate:
-                if Activity.objects.filter(offering__slug=self._course_slug, name=name, deleted=False).exclude(id=self._activity_id).count() > 0:
+                if Activity.objects.filter(offering__slug=self._course_slug, name=name, deleted=False).exclude(slug=self._activity_slug).count() > 0:
                     raise forms.ValidationError(u'Activity with the same name already exists')
         
         return name
@@ -58,7 +58,7 @@ class ActivityForm(forms.Form):
                 if Activity.objects.filter(offering__slug=self._course_slug, short_name=short_name, deleted=False).count() > 0:
                     raise forms.ValidationError(u'Activity with the same short name already exists')
             if self._editform_validate:
-                if Activity.objects.filter(offering__slug=self._course_slug, short_name=short_name, deleted=False).exclude(id=self._activity_id).count() > 0:
+                if Activity.objects.filter(offering__slug=self._course_slug, short_name=short_name, deleted=False).exclude(slug=self._activity_slug).count() > 0:
                     raise forms.ValidationError(u'Activity with the same short name already exists')
         
         return short_name
