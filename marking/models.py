@@ -291,18 +291,20 @@ def save_copied_activity(target_activity, model, target_course_offering):
     we have to resolve the conflicts by deleting the old activity that conflicts with the new one
     """
     try:
-        old_activity = model.objects.get(Q(name=target_activity.name) | Q(short_name=target_activity.short_name), 
+        old_activity = model.objects.get(Q(name=target_activity.name) | Q(short_name=target_activity.short_name, 
+                                    deleted = False), 
             offering = target_course_offering)
     except model.DoesNotExist:
         target_activity.save()
     else:    
-        old_activity.delete()
+        old_activity.deleted = True
+        old_activity.save()
         target_activity.save()            
 
 def copyCourseSetup(course_copy_from, course_copy_to):
     """
     copy all the activities setup from one course to another
-    copy numeric activities with their marking components and common problems, submission components
+    copy numeric activities with their marking components, common problems and submission components
     """
     print "copying numeric activities ..."
     all_activities = all_activities_filter(offering=course_copy_from)

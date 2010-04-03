@@ -64,7 +64,7 @@ class Activity(models.Model):
     percent = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     position = models.PositiveSmallIntegerField(help_text="The order of displaying course activities.")
     group = models.BooleanField(default=False)
-    deleted = models.BooleanField(default=False)
+    deleted = models.BooleanField(null = False, db_index = True, default=False)
     
     offering = models.ForeignKey(CourseOffering)
 
@@ -76,8 +76,7 @@ class Activity(models.Model):
         return reverse('grades.views.activity_info', kwargs={'course_slug': self.offering.slug, 'activity_slug': self.slug})
     class Meta:
         verbose_name_plural = "activities"
-        unique_together = (("offering", "name"), ("offering", "short_name"))
-        ordering = ['position']
+        ordering = ['deleted', 'position']
     
     def display_label(self):
         if self.percent:

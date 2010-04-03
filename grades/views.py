@@ -44,7 +44,7 @@ def _course_info_staff(request, course_slug):
     Course front page
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    activities = all_activities_filter(offering=course)
+    activities = all_activities_filter(offering=course, deleted=False)
     
     order = None
     act = None
@@ -73,7 +73,7 @@ def _course_info_staff(request, course_slug):
 #@requires_course_student_by_slug
 def _course_info_student(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    activities = all_activities_filter(offering=course, status__in=['RLS', 'URLS'])
+    activities = all_activities_filter(offering=course, status__in=['RLS', 'URLS'], deleted=False)
     
     activityinfo_list = []
     for activity in activities:
@@ -256,7 +256,7 @@ def add_cal_numeric_activity(request, course_slug):
 @requires_course_staff_by_slug
 def formula_tester(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    numeric_activities = NumericActivity.objects.filter(offering=course)
+    numeric_activities = NumericActivity.objects.filter(offering=course, deleted=False)
     result = ""
     
     if request.method == 'POST': # If the form has been submitted...
@@ -348,13 +348,13 @@ def edit_activity(request, course_slug, activity_slug):
         if request.method == 'POST': # If the form has been submitted...
             if isinstance(activity, CalNumericActivity):
                 form = CalNumericActivityForm(request.POST) # A form bound to the POST data
-                form.activate_editform_validation(course_slug, activity_slug)
+                form.activate_editform_validation(course_slug, activity.id)
             elif isinstance(activity, NumericActivity):
                 form = NumericActivityForm(request.POST) # A form bound to the POST data
-                form.activate_editform_validation(course_slug, activity_slug)
+                form.activate_editform_validation(course_slug, activity.id)
             elif isinstance(activity, LetterActivity):
                 form = LetterActivityForm(request.POST) # A form bound to the POST data
-                form.activate_editform_validation(course_slug, activity_slug)
+                form.activate_editform_validation(course_slug, activity.id)
             if form.is_valid(): # All validation rules pass
                 _populate_activity_from_formdata(activity, form.cleaned_data)
                 activity.save()
@@ -450,32 +450,20 @@ def delete_activity_review(request, course_slug, activity_slug):
 @requires_course_staff_by_slug
 def delete_activity_confirm(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    activities = list(course.activity_set.all())
-    activity_found = False
-    for i in range(0, len(activities)):
-        if activities[i].slug == activity_slug:
-            activity_found = True
-            try:
-                activities[i].delete()
-                #LOG EVENT#
-                l = LogEntry(userid=request.user.username,
-                      description=("deleted %s") % (activities[i]),
-                      related_object=activities[i])
-                l.save()
-            except Exception:
-                raise Http404
-            for j in range(len(activities) - 1, i, -1):
-                activities[j].position = activities[j-1].position
-                activities[j].save()
-            break
-    if not activity_found:
-        raise Http404
+    activity = get_object_or_404(Activity, offering=course, slug=activity_slug)
+    activity.deleted = True
+    activity.save()
+    #LOG EVENT#
+    l = LogEntry(userid=request.user.username,
+          description=("deleted %s") % (activity),
+          related_object=activity)
+    l.save()
     return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
 
 @requires_course_staff_by_slug
 def all_grades(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    activities = all_activities_filter(offering=course)
+    activities = all_activities_filter(offering=course, deleted=False)
     students = Member.objects.filter(offering=course, role="STUD").select_related('person')
     
     # get grade data into a format we can work with
