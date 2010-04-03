@@ -18,7 +18,7 @@
             </tr>
             <tr>
                 <th scope="row">Latest Submission:</th>
-                <td>{% if submission %} {{submission.created_at|date:"Y-m-d H:i:s"}} {% else %} No Submission {% endif %}</td>
+                <td>{% if submission %} {{submission.created_at|date:"Y-m-d H:i:s"}} {% else %} &mdash; {% endif %}</td>
             </tr>
             {% if late %}
             <tr id="late_for">
@@ -36,8 +36,8 @@
                 <td>{{group.name}}</td>
             </tr>
             <tr>
-                <th scope="row">Submitter:</th>
-                <td>{{submission.creator.student.person.name}}</td>
+                <th scope="row">Latest Submitter:</th>
+                <td>{% if submission %}{{submission.creator.student.person.name}}{% else %} &mdash; {% endif %}</td>
             </tr>
             {% endif %}
         </table>
@@ -80,6 +80,9 @@
                 You have made submission to this component.
                 <ul class="component_description">
                     <li><label>Latest Submission: </label>{{pair.1.get_time}}</li>
+                    {% if group %}
+                    <li><label>Submitter: </label>{{pair.1.get_submitter}}</li>
+                    {% endif %}
                     {% if pair.1.get_size %}
                         <li><label>File Size:</label>{{pair.1.get_size|filesizeformat}} </li>
                     {% endif %}

@@ -195,11 +195,11 @@ def get_submitted_component(**kwargs):
 
 def get_submission_components(submission, activity, component_list=None):
     """
-    return a list of pair[component, latest_submission(could be None)] for this submission
+    return a list of pair[component, latest_submission(could be None)] for specific submission
     """
     if not component_list:
         component_list = select_all_components(activity)
-    
+
     submitted_components = []
     for component in component_list:
         if submission:
@@ -212,33 +212,53 @@ def get_submission_components(submission, activity, component_list=None):
                 sub = None
         else:
             sub = None
-
         submitted_components.append((component, sub))
+    return submitted_components
 
+def get_all_submission_components(submission, activity, component_list=None):
+    """
+    return a list of pair[component, latest_submission(could be None)] for all submissions
+    """
+    if not component_list:
+        component_list = select_all_components(activity)
+    
+    submitted_components = []
+    for component in component_list:
+        if submission:
+            SubmittedComponent = component.Type.SubmittedComponent
+            submits = SubmittedComponent.objects.filter(component=component).latest('submission__created_at')
+            if submits:
+                sub = submits
+            else:
+                # this component didn't get submitted
+                sub = None
+        else:
+            sub = None
+        submitted_components.append((component, sub))
     return submitted_components
 
 def get_current_submission(student, activity):
     """
-    find most recent submission (individual or group)
+    return most recent submission (individual or group) and compilation of valid components
     """
     if activity.group:
         gms = GroupMember.objects.filter(student__person=student, confirmed=True)
         try:
-            submission = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms).latest('created_at')
+            submission = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms)#.latest('created_at')
         except GroupSubmission.DoesNotExist:
             submission = None
     else:
         try:
-            submission = StudentSubmission.objects.filter(activity=activity, member__person=student).latest('created_at')
+            submission = StudentSubmission.objects.filter(activity=activity, member__person=student)#.latest('created_at')
         except StudentSubmission.DoesNotExist:
             submission = None
 
     if submission:
-        submitted_components = get_submission_components(submission, activity)
+        submitted_components = get_all_submission_components(submission, activity)
+        return submission.latest('created_at'), submitted_components
     else:
-        submitted_components = get_submission_components(None, activity)
-
-    return submission, submitted_components
+        submitted_components = get_all_submission_components(None, activity)
+        return None, submitted_components
 
 def get_submit_time_and_owner(activity, pair_list):
     """

@@ -117,7 +117,7 @@ def add_submission(request, course_slug, activity_slug):
 
             #form[1].component = form[0]
             if form.is_valid():
-                #save the froeign submission first at the first time a submission conponent is read in
+                #save the foreign submission first at the first time a submission component is read in
                 if new_sub_saved == False:
                     # save the submission forgein key
                     new_sub_saved = True
@@ -150,7 +150,7 @@ def add_submission(request, course_slug, activity_slug):
             "submitted_comp":submitted_comp, "not_submitted_comp":not_submitted_comp},
             context_instance=RequestContext(request))
     else: #not POST
-        print activity.group, group_member
+        #print activity.group, group_member
         if activity.group and group_member:
             messages.add_message(request, messages.WARNING, "This is a group submission. Your will submit on behalf of all your group members.")
         elif activity.group:
@@ -185,7 +185,7 @@ def show_components_submission_history(request, course_slug, activity_slug, user
     course = get_object_or_404(CourseOffering, slug = course_slug)
     activity = get_object_or_404(course.activity_set,slug = activity_slug)
 
-    if userid==None:
+    if userid is None:
         # can always see your own submissions
         userid = request.user.username
     else:
@@ -194,9 +194,11 @@ def show_components_submission_history(request, course_slug, activity_slug, user
             return ForbiddenResponse(request)
 
     if activity.group:
-        messages.add_message(request, messages.WARNING, "This is a group submission. This history is based on submissions from all your group members.")
+        messages.add_message(request, messages.INFO, "This is a group submission. This history is based on submissions from all your group members.")
         gms = GroupMember.objects.filter(student__person__userid=userid, confirmed=True, activity=activity)
+        print gms
         submissions = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms)
+        print submissions
     else:
         submissions = StudentSubmission.objects.filter(activity=activity, member__person__userid=userid)
 

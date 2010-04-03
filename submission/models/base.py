@@ -171,6 +171,12 @@ class SubmittedComponent(models.Model):
     def get_size_in_kb(self):
         res = int(self.get_size())/1024
         return res
+    def get_submitter(self):
+        group = GroupSubmission.objects.filter(id=self.submission.id)
+        if len(group) is 0:
+            student = StudentSubmission.objects.filter(id=self.submission.id)
+            return student.member.person
+        return group[0].creator.student.person
     def __unicode__(self):
         return "%s@%s" % (self.submission.activity, self.submission.created_at)
 

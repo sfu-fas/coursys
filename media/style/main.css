@@ -100,6 +100,12 @@ div#messages .warning {
     background-repeat: no-repeat;
     font-weight: bold;
 }
+div#messages .info {
+    color: #075fa3;
+    background-image: url('/media/icons/information.png');
+    background-repeat: no-repeat;
+    font-weight: bold;
+}
 div#newsitems div {
   /*margin: 0 2em;*/
 }

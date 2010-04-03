@@ -413,11 +413,11 @@ def marking_student(request, course_slug, activity_slug, userid):
                                   request.user.username, ('student %s'% userid),
                                   component_marks, additional_info)
             #LOG EVENT#
-            print "go to log event grade"
-            l = LogEntry(userid=request.user.username,
-            description="changed %s's mark for %s to %s " % (userid, activity, final_grade),
-            related_object=ngrade )
-            l.save()
+#            print "go to log event grade"
+#            l = LogEntry(userid=request.user.username,
+#            description="changed %s's mark for %s to %s " % (userid, activity, final_grade),
+#            related_object=ngrade )
+#            l.save()
             messages.add_message(request, messages.SUCCESS, 'Mark for student %s on %s saved!' % (userid, activity.name,))
             for warning in warning_messages:
                 messages.add_message(request, messages.WARNING, warning)                      
