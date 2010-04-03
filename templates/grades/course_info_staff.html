@@ -34,10 +34,10 @@
 			 var p = $(this).parent();
 			 var i = p.data('pos');			 
 			 /* post request */
-			 $.post("{% url grades.views.course_info course_slug=course.slug %}",
-		  	 {'id_up': act_ids[i], 'id_down': act_ids[i-1]}, 
-		  		function(data){ /* request success callback: swap rows */
-					 if( i > 0){				
+			 if(i > 0){
+			 	$.post("{% url grades.views.course_info course_slug=course.slug %}",
+		  	 		{'id_up': act_ids[i], 'id_down': act_ids[i-1]}, 
+		  			function(data){ /* request success callback: swap rows */					 				
 						 /* swap the content of the current row and the previous row(except for the first column) */				
 						 var row = oTable.fnGetNodes(i);
 						 var pre_row = oTable.fnGetNodes(i-1);
@@ -56,19 +56,20 @@
 						 act_ids[i-1] = temp;			 				 
 						 
 						 oTable.fnDraw();			
-					 }	
-			 	});
+					 
+			 		});
+			 	}
 		  });
 		 
 		$('.arrow_down').click(function(){
 			 var p = $(this).parent();
 			 var i = p.data('pos');
+			 if(i < {{activities_info|length}}-1){
 			 /* post request */
-			 $.post("{% url grades.views.course_info course_slug=course.slug %}",		  	 
-		  	 {'id_up': act_ids[i+1], 'id_down': act_ids[i]},
-		  		function(data){ /* request success callback: swap rows */  		 	 
-					 if( i < {{activities_info|length}}-1){				
-						 /* swap the content of the current row and the next row(except for the first column) */
+			 	$.post("{% url grades.views.course_info course_slug=course.slug %}",		  	 
+		  	 		{'id_up': act_ids[i+1], 'id_down': act_ids[i]},
+		  			function(data){ /* request success callback: swap rows */  		 	 
+					     /* swap the content of the current row and the next row(except for the first column) */
 						 var row = oTable.fnGetNodes(i);
 						 var next_row = oTable.fnGetNodes(i+1);
 						 var content = oTable.fnGetData(row);
@@ -86,8 +87,8 @@
 						 act_ids[i+1] = temp;	
 						  				 
 						 oTable.fnDraw();
-					 }
-			 	});		 
+			 		});		 
+			 	}
 		  });
 		
 	});
