@@ -8,6 +8,7 @@ $(document).ready(function() {
     'bPaginate': false,
     'bInfo': false,
     'bLengthChange': false,
+    "bJQueryUI": true,
   } );
 } );
 </script>
@@ -17,7 +18,8 @@ $(document).ready(function() {
 <p>
 <a href="{% url coredata.views.new_role %}">Add new role</a>
 </p>
-<table id="roles">
+<div class="datatable_container">
+<table id="roles" class="display">
   <thead><tr><th scope="col">Name</th><th scope="col">Role</th><th scope="col">Actions</th></tr></thead>
   <tbody>
   {% for role in roles %}
@@ -26,4 +28,5 @@ $(document).ready(function() {
   {% endfor %}
   </tbody>
 </table>
+</div>
 {% endblock %}

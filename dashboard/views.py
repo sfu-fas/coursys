@@ -6,7 +6,8 @@ from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
 from coredata.models import Member, CourseOffering, Person
 from courselib.auth import requires_course_staff_by_slug, requires_course_by_slug, NotFoundResponse
-from dashboard.models import NewsItem, MessageForm, UserConfig
+from dashboard.models import NewsItem, UserConfig
+from dashboard.forms import *
 from contrib import messages
 from log.models import LogEntry
 import random
@@ -24,7 +25,7 @@ def index(request):
 
 
 @requires_course_staff_by_slug
-def new_message(request,course_slug):
+def new_message(request, course_slug):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     staff = get_object_or_404(Person, userid=request.user.username)
     default_message = NewsItem(user=staff, author=staff, course=offering, source_app="dashboard")
@@ -51,39 +52,105 @@ def new_message(request,course_slug):
         form = MessageForm()
     return render_to_response("dashboard/new_message.html", {"form" : form,'course': offering}, context_instance=RequestContext(request))
 
-@login_required
-def news_list(request):
-    user = get_object_or_404(Person, userid = request.user.username)
-    news_list = NewsItem.objects.filter(user = user).order_by('-updated')
-    return render_to_response("dashboard/all_news.html", {"news_list" :news_list}, context_instance=RequestContext(request))
+
 
 def atom_feed(request, token, userid):
     """
     Return an Atom feed for this user, authenticated by the token in the URL
     """
-    person = get_object_or_404(Person, userid=userid)
+    user = get_object_or_404(Person, userid=userid)
     
     # make sure the token in the URL (32 hex characters) matches the token stored in the DB
-    configs = UserConfig.objects.filter(user=person, key="feed-token")
+    configs = UserConfig.objects.filter(user=user, key="feed-token")
     if not configs or configs[0].value != token:
         # no token configured or wrong token provided
         return NotFoundResponse(request)
     #else:
         # authenticated
 
-    news_list = NewsItem.objects.filter(user=person).order_by('-updated')[:20]
+    news_list = NewsItem.objects.filter(user=user).order_by('-updated')[:20]
     
-    # build base URL for the server for URIs and links    
+    url = _server_base(request)
+
+    context = {"news_list": news_list, 'person': user, 'updated': news_list[0].updated, 'server_url': url}
+    return render_to_response("dashboard/atom_feed.xml", context, context_instance=RequestContext(request),mimetype="application/atom+xml")
+
+
+
+# Management of feed URL tokens
+
+def _server_base(request):
+    "Build base URL for the server for URIs and links"
     if request.is_secure():
         url = "https://"
     else:
         url = "http://"
     url += request.META['SERVER_NAME'] + ":" + request.META['SERVER_PORT']
+    return url
 
-    context = {"news_list": news_list, 'person': person, 'updated': news_list[0].updated, 'server_url': url}
-    #application/atom+xml
-    return render_to_response("dashboard/atom_feed.xml", context, context_instance=RequestContext(request), mimetype="text/plain")
+@login_required
+def news_list(request):
+    user = get_object_or_404(Person, userid = request.user.username)
+    news_list = NewsItem.objects.filter(user = user).order_by('-updated')
+    
+    return render_to_response("dashboard/all_news.html", {"news_list": news_list}, context_instance=RequestContext(request))
 
+@login_required
+def news_config(request):
+    user = get_object_or_404(Person, userid=request.user.username)
+    configs = UserConfig.objects.filter(user=user, key="feed-token")
+    if not configs:
+        token = None
+    else:
+        token = configs[0].value
+    
+    url = _server_base(request)
+    context={'token': token, 'user': user, 'server_url': url}
+    return render_to_response("dashboard/news_config.html", context, context_instance=RequestContext(request))
+
+@login_required
+def create_news_url(request):
+    user = get_object_or_404(Person, userid=request.user.username)
+    configs = UserConfig.objects.filter(user=user, key="feed-token")
+    if request.method == 'POST':
+        form = FeedSetupForm(request.POST)
+        if form.is_valid():
+            token = new_feed_token()
+            if configs:
+                c = configs[0]
+                c.value = token
+            else:
+                c = UserConfig(user=user, key="feed-token", value=token)
+            c.save()
+            messages.add_message(request, messages.SUCCESS, 'Feed URL configured.')
+            return HttpResponseRedirect(reverse(news_config))
+    else:
+        if configs:
+            # pre-check if we're changing the token
+            form = FeedSetupForm({'agree': True})
+        else:
+            form = FeedSetupForm()
+
+    context = {'form': form}
+    return render_to_response("dashboard/news_url.html", context, context_instance=RequestContext(request))
+    
+@login_required
+def disable_news_url(request):
+    user = get_object_or_404(Person, userid=request.user.username)
+    if request.method == 'POST':
+        form = FeedSetupForm(request.POST)
+        if form.is_valid():
+            token = new_feed_token()
+            configs = UserConfig.objects.filter(user=user, key="feed-token")
+            configs.delete()
+            messages.add_message(request, messages.SUCCESS, 'External feed disabled.')
+            return HttpResponseRedirect(reverse(news_config))
+    else:
+        form = FeedSetupForm({'agree': True})
+
+    context = {'form': form}
+    return render_to_response("dashboard/disable_news_url.html", context, context_instance=RequestContext(request))
+    
 
 
 #@requires_course_by_slug

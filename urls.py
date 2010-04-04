@@ -15,9 +15,12 @@ urlpatterns = patterns('',
 
     url(r'^log/$', 'log.views.index'),
 
-    url(r'^$', 'courses.dashboard.views.index'),
-    url(r'^' + 'all_news/$', 'courses.dashboard.views.news_list'),
-    url(r'^' + 'feed/(?P<token>[0-9a-f]{32})/' + USERID_SLUG + '$', 'courses.dashboard.views.atom_feed'),
+    url(r'^$', 'dashboard.views.index'),
+    url(r'^' + 'news/$', 'dashboard.views.news_list'),
+    url(r'^' + 'news/configure$', 'dashboard.views.news_config'),
+    url(r'^' + 'news/configure/new$', 'dashboard.views.create_news_url'),
+    url(r'^' + 'news/configure/del$', 'dashboard.views.disable_news_url'),
+    url(r'^' + 'news/(?P<token>[0-9a-f]{32})/' + USERID_SLUG + '$', 'dashboard.views.atom_feed'),
 
     url(r'^' + COURSE_SLUG + '/$', 'grades.views.course_info'),
     url(r'^' + COURSE_SLUG + '/_new_message$', 'dashboard.views.new_message'),

@@ -4,6 +4,7 @@ from django.utils.safestring import mark_safe
 from pytz import timezone
 from django.conf import settings
 from autoslug.settings import slugify
+import random
 
 import external.textile as textile
 Textile = textile.Textile(restricted=True)
@@ -13,7 +14,15 @@ def _rfc_format(dt):
     Format the datetime in RFC3339 format
     """
     return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
-    
+
+
+def new_feed_token():
+    """
+    Generate a random token for the feed URL
+    """
+    n = random.getrandbits(128)
+    return "%x" % (n)
+
 
 class NewsItem(models.Model):
     """
@@ -64,10 +73,4 @@ class UserConfig(models.Model):
         return "%s: %s='%s'" % (self.user.userid, self.key, self.value)
 
 
-from django.forms import ModelForm
-class MessageForm(ModelForm):
-    class Meta:
-        model = NewsItem
-        # these 3 fields are decided from the request ant the time the form is submitted
-        exclude = ['user', 'author', 'published','updated','source_app','course']
 

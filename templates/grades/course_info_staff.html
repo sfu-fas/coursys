@@ -98,6 +98,18 @@
 
 {% block subbreadcrumbs %}<li>&gt; {{ course.name }} ({{course.semester.label}})</li>{% endblock %}
 
+{% block actions %}
+<div id="actions">
+<h2>Actions</h2>
+<ul>
+<li><a href="{% url grades.views.all_grades course_slug=course.slug %}">Display All Grades</a></li>
+<li><a class="button" href="{% url groups.views.groupmanage course_slug=course.slug %}">Manage Groups</a></li>
+<li><a class="button" href="{% url dashboard.views.new_message course_slug=course.slug %}">Message Class</a></li>
+<li><a class="button" href="{% url marking.views.copy_course_setup course_slug=course.slug %}">Copy Course Setup</a></li>
+</ul>
+</div>
+{% endblock %}
+
 {% block content %}
 <div class="table_container">
     <table class="info">
@@ -141,19 +153,6 @@
         </tbody>
     </table>
 </div>
-
-<p>
-<a class="button" href="{% url grades.views.all_grades course_slug=course.slug %}">All Grades</a>
-</p>
-<p>
-<a class="button" href="{% url groups.views.groupmanage course_slug=course.slug %}">Groups</a>
-</p>
-<p>
-<a class="button" href="{% url dashboard.views.new_message course_slug=course.slug %}">Message</a>
-</p>
-<p>
-<a class="button" href="{% url marking.views.copy_course_setup course_slug=course.slug %}">Copy Setup</a>
-</p>
 
 <div class="datatable_container">
     <h2>Course Activities</h2>

@@ -26,7 +26,22 @@
 
 {% block subbreadcrumbs %}<li>&gt; <a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li>&gt; {{ activity.name }}</li>{% endblock %}
 
+{% block actions %}
+<div id="actions">
+<h2>Actions</h2>
+<ul>
+<li><a href="{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}">Edit Activity Details</a></li>
+<li><a href="{% url submission.views.show_components course_slug=course.slug, activity_slug=activity.slug%}">Configure Submission</a></li>
+<li><a href="{% url marking.views.manage_activity_components course_slug=course.slug,activity_slug=activity.slug%}">Configure Marking</a></li>
+<li><a href="{% url marking.views.manage_common_problems course_slug=course.slug,activity_slug=activity.slug%}">Configure Common Problems</a></li>
+<li><a href="{% url marking.views.mark_all_students course_slug=course.slug, activity_slug=activity.slug%}">Mark all</a></li>
+<li><a href="{% url marking.views.export_csv course_slug=course.slug, activity_slug=activity.slug%}">Export all</a></li> 
+</ul>
+</div>
+{% endblock %}
+
 {% block content %}
+
 <div class="table_container">
     <table class="info">
         <tbody>
@@ -38,7 +53,6 @@
                 <th class="ui-state-default">Name</th>
                 <td>
                     {{activity.name}}
-                    <span>(<a href="{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}">Edit</a>) </span> 
                 </td>
             </tr>
             <tr>
@@ -71,17 +85,6 @@
             {% endif %}
         </tbody>
     </table>
-</div>
-
-<div class="activitymenu">
-<h2>Submission</h2>
-<a class="button" href="{% url submission.views.show_components course_slug=course.slug, activity_slug=activity.slug%}">Configure Submission</a>
-<h2>Marking</h2>
-<a class="button" href="{% url marking.views.manage_activity_components course_slug=course.slug,activity_slug=activity.slug%}">Configure</a>
-<a class="button" href="{% url marking.views.manage_common_problems course_slug=course.slug,activity_slug=activity.slug%}">Common Problems</a>
-<h2>Student Grades</h2>
-<a class="button" href="{% url marking.views.mark_all_students course_slug=course.slug, activity_slug=activity.slug%}">Mark all</a>
-<a class="button" href="{% url marking.views.export_csv course_slug=course.slug, activity_slug=activity.slug%}">Export all</a>    
 </div>
 
 {% block activity_info_grades_block %}

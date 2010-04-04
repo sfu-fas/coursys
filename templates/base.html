@@ -78,9 +78,10 @@ Logged in as {{user.username}}.
 			</ul>
 	  </div>
 
+{% block actions %}{% endblock %}
+
 {% if messages %}
 <div id="messages">
-<!--<h3>Messages</h3>-->
 <ul>
     {% for message in messages %}
     <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>

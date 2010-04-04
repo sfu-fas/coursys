@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load markup %}
+
+{% block title %}Disable External News Feed{% endblock %}
+{% block h1 %}Disable External News Feed{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url dashboard.views.news_list %}">News</a></li><li>&gt; <a href="{% url dashboard.views.news_config %}">Configure Feed</a></li><li>&gt; Configure URL</li>{% endblock %}
+
+{% block content %}
+
+<form action="{% url dashboard.views.disable_news_url %}" method="post">
+    {% for field in form.visible_fields %}
+        <div class="field">
+            {{ field }} Disable my external news feed.
+            {{ field.errors }}
+        </div>
+    {% endfor %}
+    <p><input type="submit" value="Disable Feed URL" /></p>
+</form>
+
+
+{% endblock %}
