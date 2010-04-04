@@ -13,7 +13,7 @@
     {% for submission in submitted_components %}
     <div class="submitter">
          <img src="{{MEDIA_URL}}icons/tag_red.png" alt="submission" />
-        {{submission.sub.created_at|date:"Y-m-d H:i:s"}} {%if activity.group%} by {{submission.sub.creator.student.person.name}}{%endif%}
+        {{submission.sub.created_at|date:"Y-m-d H:i:s"}} {%if activity.group%} by {{submission.sub.creator.person.name}}{%endif%}
     </div>
         <table>
         <tbody>

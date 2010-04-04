@@ -18,6 +18,8 @@ class Group(models.Model):
 
     def __unicode__(self):  
         return '%s' % (self.name)
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
 
     class Meta:
         unique_together = ("name", "courseoffering")

@@ -38,6 +38,8 @@ class NewsItem(models.Model):
     published = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     url = models.URLField(blank=True,verify_exists=False, help_text='absolute URL for the item: starts with "http://" or "/"')
+    
+    read = models.BooleanField(default=False, help_text="The user has marked the story read")
 
     def content_xhtml(self):
         return mark_safe(Textile.textile(str(self.content)))

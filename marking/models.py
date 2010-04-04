@@ -22,6 +22,8 @@ class ActivityComponent(models.Model):
     deleted = models.BooleanField(null = False, db_index = True, default = False)
     def __unicode__(self):        
         return self.title
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
     class Meta:
         verbose_name_plural = "Activity Marking Components"
         ordering = ['numeric_activity', 'deleted', 'position']
@@ -54,8 +56,7 @@ def attachment_upload_to(instance, filename):
 class ActivityMark(models.Model):
     """
     General Marking class for one numeric activity 
-    """    
-      
+    """
     overall_comment = models.TextField(null = True, max_length = 1000, blank = True)
     late_penalty = models.IntegerField(null = True, default = 0, blank = True)
     mark_adjustment = models.IntegerField(null = True, default = 0, blank = True)
@@ -71,6 +72,8 @@ class ActivityMark(models.Model):
     
     def __unicode__(self):
         return "Supper object containing additional info for marking"
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
     class Meta:
         ordering = ['created_at']
     
@@ -167,6 +170,8 @@ class ActivityComponentMark(models.Model):
     def __unicode__(self):
         # get the student and the activity
         return "Marking for [%s]" %(self.activity_component,)
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
         
     class Meta:
         unique_together = (('activity_mark', 'activity_component'),)

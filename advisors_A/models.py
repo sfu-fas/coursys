@@ -1,7 +1,6 @@
 from django.db import models
 from courses.coredata.models import Person
 from django.template.defaultfilters import default
-# Create your models here.
 
 class Note(models.Model):
     student = models.ForeignKey(Person, related_name = 'std_note_set', null = False)

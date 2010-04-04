@@ -109,8 +109,8 @@ INSTALLED_APPS = (
     'submission',
 
     # for orientation project only
-    'advisors_A',
-    'advisors_B',
+    #'advisors_A',
+    #'advisors_B',
 )
 
 #MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'

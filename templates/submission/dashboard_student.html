@@ -37,7 +37,7 @@
             </tr>
             <tr>
                 <th scope="row">Latest Submitter:</th>
-                <td>{% if submission %}{{submission.creator.student.person.name}}{% else %} &mdash; {% endif %}</td>
+                <td>{% if submission %}{{submission.creator.person.name}}{% else %} &mdash; {% endif %}</td>
             </tr>
             {% endif %}
         </table>

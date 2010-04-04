@@ -28,6 +28,9 @@ class Person(models.Model):
     class Meta:
         verbose_name_plural = "People"
         ordering = ['last_name', 'first_name', 'userid']
+    
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
 
 
 class Semester(models.Model):
@@ -44,6 +47,9 @@ class Semester(models.Model):
     start = models.DateField(help_text='First day of classes.')
     end = models.DateField(help_text='Last day of classes.')
     # TODO: validate that there is a SemesterWeek for week #1.
+
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
     
     def label(self):
         """
@@ -194,9 +200,8 @@ class CourseOffering(models.Model):
         return (m.person for m in self.member_set.filter(role="TA"))
     def student_count(self):
         return self.members.filter(person__role='STUD').count()
-
-    # TODO: week number -> date (of the Monday)
-    # TODO: date -> week number
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
 
     class Meta:
         ordering = ['-semester', 'subject', 'number', 'section']
@@ -246,6 +251,8 @@ class Member(models.Model):
         #    return "%s in %s" % (self.person, self.offering)
         #else:
         return "%s (%s) in %s" % (self.person.userid, self.person.emplid, self.offering,)
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
 
     class Meta:
         unique_together = (('person', 'offering', 'role'),)

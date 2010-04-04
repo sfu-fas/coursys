@@ -4,8 +4,8 @@ from dashboard.models import *
 class MessageForm(forms.ModelForm):
     class Meta:
         model = NewsItem
-        # these 3 fields are decided from the request ant the time the form is submitted
-        exclude = ['user', 'author', 'published','updated','source_app','course']
+        # these fields are decided from the request at the time the form is submitted
+        exclude = ['user', 'author', 'published','updated','source_app','course', 'read']
 
 class FeedSetupForm(forms.Form):
     agree = forms.BooleanField(required=False)

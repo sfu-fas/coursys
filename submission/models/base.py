@@ -1,7 +1,6 @@
 from django.db import models
 from grades.models import Activity
 from coredata.models import Member, Person,CourseOffering
-#from courses.grades.models import slug
 from groups.models import Group,GroupMember
 from datetime import datetime
 from autoslug import AutoSlugField
@@ -40,6 +39,8 @@ class SubmissionComponent(models.Model):
         app_label = 'submission'
     def __unicode__(self):
         return "%s %s"%(self.title, self.description)
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
     def XXX_get_type(self):
         "Return xxx of xxxComponent as type"
         class_name = self.__class__.__name__
@@ -72,6 +73,8 @@ class Submission(models.Model):
     class Meta:
         ordering = ['-created_at']
         app_label = 'submission'
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
 
     "Set ownership, and make state = in progree "
     def set_owner(self, course, userid):
@@ -101,7 +104,7 @@ class StudentSubmission(Submission):
 
 class GroupSubmission(Submission):
     group = models.ForeignKey(Group, null=False)
-    creator = models.ForeignKey(GroupMember, null = False)
+    creator = models.ForeignKey(Member, null = False)
 
     class Meta:
         app_label = 'submission'
@@ -118,10 +121,10 @@ class GroupSubmission(Submission):
         super(GroupSubmission, self).save()
         member_list = GroupMember.objects.exclude(student = self.creator).filter(group = self.group)
         for member in member_list:
-            n = NewsItem(user = member.student.person, author=self.creator.student.person, course=member.group.courseoffering,
+            n = NewsItem(user = member.student.person, author=self.creator.person, course=member.group.courseoffering,
                 source_app="group submission", title="New Group Submission",
                 content="Your group member %s has made a submission for %s."
-                    % (self.creator.student.person.name(), self.activity.name),
+                    % (self.creator.person.name(), self.activity.name),
                 url=reverse('submission.views.show_components', kwargs={'course_slug': self.group.courseoffering.slug, 'activity_slug': member.activity.slug})
                 )
             n.save()
@@ -159,6 +162,8 @@ class SubmittedComponent(models.Model):
             return 0
         else:
             return time
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
     def __cmp__(self, other):
         return cmp(other.submit_time, self.submit_time)
     class Meta:
@@ -176,7 +181,7 @@ class SubmittedComponent(models.Model):
         if len(group) is 0:
             student = StudentSubmission.objects.filter(id=self.submission.id)
             return student.member.person
-        return group[0].creator.student.person
+        return group[0].creator.person
     def __unicode__(self):
         return "%s@%s" % (self.submission.activity, self.submission.created_at)
 

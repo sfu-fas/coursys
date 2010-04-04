@@ -105,7 +105,7 @@ def add_submission(request, course_slug, activity_slug):
         elif group_member:
             new_sub = GroupSubmission()
             new_sub.group = group_member.group
-            new_sub.creator = group_member
+            new_sub.creator = group_member.student
         else:
             return ForbiddenResponse(request)
         new_sub.activity = activity

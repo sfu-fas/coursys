@@ -74,6 +74,8 @@ class Activity(models.Model):
         return cmp(self.position, other.position)
     def get_absolute_url(self):
         return reverse('grades.views.activity_info', kwargs={'course_slug': self.offering.slug, 'activity_slug': self.slug})
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
     class Meta:
         verbose_name_plural = "activities"
         ordering = ['deleted', 'position']
@@ -301,7 +303,6 @@ class NumericGrade(models.Model):
                 url=reverse('grades.views.course_info', kwargs={'course_slug':self.activity.offering.slug})
                 )
             n.save()
-
     
     class Meta:
         unique_together = (('activity', 'member'),)
