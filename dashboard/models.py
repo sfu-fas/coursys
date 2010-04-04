@@ -21,7 +21,7 @@ def new_feed_token():
     Generate a random token for the feed URL
     """
     n = random.getrandbits(128)
-    return "%x" % (n)
+    return "%032x" % (n)
 
 
 class NewsItem(models.Model):

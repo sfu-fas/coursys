@@ -105,7 +105,7 @@ def news_config(request):
         token = configs[0].value
     
     url = _server_base(request)
-    context={'token': token, 'user': user, 'server_url': url}
+    context={'token': token, 'userid': user.userid, 'server_url': url}
     return render_to_response("dashboard/news_config.html", context, context_instance=RequestContext(request))
 
 @login_required

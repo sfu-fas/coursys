@@ -11,8 +11,8 @@
     <title>{{entry.title}}</title>
     <updated>{{entry.rfc_updated}}</updated>
     <content type="html">&lt;div&gt;{{entry.content_xhtml|force_escape}}&lt;/div&gt;</content>
-    <category term="{{entry.course.name}}" />
-    {% if entry.author %}<author><name>author.name</name></author>{% endif %}
+    <category term="{{entry.course.name}}"/>
+    {% if entry.author %}<author><name>{{entry.author.name}}</name></author>{% endif %}
     {% if entry.url %}<link rel="alternate" href="{{entry.url}}"/>{% endif %}
   </entry>
 {% endfor %}
