@@ -15,6 +15,7 @@ from grades.utils import StudentActivityInfo, reorder_course_activities, create_
                         ORDER_TYPE, FormulaTesterActivityEntry, FakeActivity
 from marking.models import get_group_mark
 from groups.models import *
+from submission.models import get_current_submission
 from log.models import LogEntry
 from contrib import messages
 import pickle
@@ -497,19 +498,24 @@ def student_info(request, course_slug, userid):
     
     grade_info = []
     for a in activities:
+        info = {'act': a}
+        # get grade
         if hasattr(a, 'numericgrade_set'):
             gs = a.numericgrade_set.filter(member=member)
         else:
             gs = a.lettergrade_set.filter(member=member)
 
         if gs:
-            grade_info.append( {'act':a, 'grade':gs[0]} )
-            print gs[0]
-            print gs[0].get_absolute_url()
+            info['grade'] = gs[0]
         else:
-            grade_info.append( {'act':a, 'grade':None} )
+            info['grade'] = None
 
-    
+        # find most recent submission
+        sub, components = get_current_submission(member.person, a)
+        info['sub'] = sub
+
+        grade_info.append(info)
+
     context = {'course': course, 'member': member, 'grade_info': grade_info}
     return render_to_response('grades/student_info.html', context, context_instance=RequestContext(request))
 

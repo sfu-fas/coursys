@@ -55,6 +55,7 @@
             <th scope="col">Activity</th>
             <th scope="col">Grade Status</th>
             <th scope="col">Grade</th>
+            <th scope="col">Submission</th>
             </tr>
 	</thead>
         <tbody>
@@ -67,6 +68,12 @@
               {% else %}
               <td>no grade</td>
               <td>&mdash;</td>
+              {% endif %}
+              {% if info.sub %}
+              <td><a href="{% url submission.views.show_student_submission_staff course_slug=course.slug activity_slug=info.act.slug userid=member.person.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="{{info.act.name}} submission" alt="info" /></a>
+              <a href="{% url submission.views.download_file course_slug=course.slug activity_slug=info.act.slug userid=member.person.userid %}"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="download {{info.act.name}} submission" alt="Download" /></a></td>
+              {% else %}
+              <td></td>
               {% endif %}
             </tr>
             {% endfor %}

@@ -247,12 +247,10 @@ def get_current_submission(student, activity):
     """
     if activity.group:
         gms = GroupMember.objects.filter(student__person=student, confirmed=True)
-        print "gms", gms
-        submission = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms)#.latest('created_at')
+        submission = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms)
     else:
-        submission = StudentSubmission.objects.filter(activity=activity, member__person=student)#.latest('created_at')
+        submission = StudentSubmission.objects.filter(activity=activity, member__person=student)
 
-    print submission
     if len(submission) > 0:
         submitted_components = get_all_submission_components(submission, activity)
         return submission.latest('created_at'), submitted_components
