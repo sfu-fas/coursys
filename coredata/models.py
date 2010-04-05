@@ -257,6 +257,8 @@ class Member(models.Model):
     class Meta:
         unique_together = (('person', 'offering', 'role'),)
         ordering = ['offering', 'person']
+    def get_absolute_url(self):
+        return reverse('grades.views.student_info', kwargs={'course_slug': self.offering.slug, 'userid': self.person.userid})
 
 
 class MeetingTime(models.Model):

@@ -1,0 +1,73 @@
+{% extends "grades/base.html" %}
+{% load grade_student %}
+
+{% block title %}{{ course.name }}: Details for {{member.person.name}}{% endblock %}
+{% block h1 %}{{ course.name }}: Details for {{member.person.name}}{% endblock %}
+
+{% block grades_headextra %}
+<script type="text/javascript">
+    $(document).ready(function() {
+	// activate dataTable ui
+	oTable = $('#student_grades').dataTable({
+	    "bJQueryUI": true,
+	    "bPaginate": false,
+	});
+    });
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li>&gt; Details for {{member.person.name}}</li>{% endblock %}
+
+{% block content %}
+<div class="table_container">
+    <table class="info">
+        <tbody>
+	    <tr>
+                <th class="ui-state-default">Last Name</th>
+                <td>{{ member.person.last_name }}</td>
+            </tr>
+	    <tr>
+                <th class="ui-state-default">First Name</th>
+                <td>{{ member.person.first_name }}
+                </td>
+            </tr>
+	    <tr>
+                <th class="ui-state-default">Middle Name</th>
+                <td>{{ member.person.middle_name }}</td>
+            </tr>
+	    <tr>
+                <th class="ui-state-default">Student Number</th>
+                <td>{{ member.person.emplid }}</td>
+            </tr>
+	    <tr>
+                <th class="ui-state-default">Email Address</th>
+                <td><a href="mailto:{{ member.person.email }}">{{ member.person.email }}</a></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<h2 id="grades">Grade Details</h2>
+<div class="datatable_container">
+    <table class="display" id="student_grades">
+        <thead>
+            <tr>
+            <th scope="col">Activity</th>
+            <th scope="col">Grade Status</th>
+            <th scope="col">Grade</th>
+            </tr>
+	</thead>
+        <tbody>
+            {% for a in activities %}
+            <tr>
+              <td scope="row">{{a.name}}</td>
+              <td></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+
+{% endblock %}

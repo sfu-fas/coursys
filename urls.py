@@ -39,6 +39,8 @@ urlpatterns = patterns('',
     url(r'^' + COURSE_SLUG + '/_new_letter$', 'grades.views.add_letter_activity'),
     url(r'^' + COURSE_SLUG + '/_new_cal_numeric$', 'grades.views.add_cal_numeric_activity'),
     url(r'^' + COURSE_SLUG + '/_formula_tester$', 'grades.views.formula_tester'),
+    url(r'^' + COURSE_SLUG + '/_students/' + USERID_SLUG + '$', 'grades.views.student_info'),
+
     url(r'^' + COURSE_ACTIVITY_SLUG + '$', 'grades.views.activity_info'),
     #url(r'^' + COURSE_ACTIVITY_SLUG + '/delete$', 'grades.views.delete_activity_review'),
     #url(r'^' + COURSE_ACTIVITY_SLUG + '/delete_confirm$', 'grades.views.delete_activity_confirm'),

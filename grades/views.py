@@ -396,7 +396,7 @@ def edit_activity(request, course_slug, activity_slug):
             return render_to_response('grades/letter_activity_form.html', context, context_instance=RequestContext(request))
         
     else:
-        raise Http404
+        return NotFoundResponse(request)
     
 
     
@@ -450,7 +450,7 @@ def delete_activity_review(request, course_slug, activity_slug):
         context = {'course': course, 'activity_type': activity_type, 'activity': activities[0]}
         return render_to_response('grades/delete_activity_review.html', context, context_instance=RequestContext(request))
     else:
-        raise Http404
+        return NotFoundResponse(request)
 
 @requires_course_staff_by_slug
 def delete_activity_confirm(request, course_slug, activity_slug):
@@ -468,7 +468,7 @@ def delete_activity_confirm(request, course_slug, activity_slug):
 @requires_course_staff_by_slug
 def all_grades(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    activities = all_activities_filter(offering=course, deleted=False)
+    activities = all_activities_filter(offering=course)
     students = Member.objects.filter(offering=course, role="STUD").select_related('person')
     
     # get grade data into a format we can work with
@@ -485,5 +485,35 @@ def all_grades(request, course_slug):
     #print grades
     context = {'course': course, 'students': students, 'activities': activities, 'grades': grades}
     return render_to_response('grades/all_grades.html', context, context_instance=RequestContext(request))
+
+@requires_course_staff_by_slug
+def student_info(request, course_slug, userid):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    member = get_object_or_404(Member, person__userid=userid, offering__slug=course_slug)
+    activities = all_activities_filter(offering=course)
+    
+    if member.role != "STUD":
+        return NotFoundResponse(request)
+    
+    grades = {}
+    for a in activities:
+        if hasattr(a, 'numericgrade_set'):
+            gs = a.numericgrade_set.filter(member=member)
+        else:
+            gs = a.lettergrade_set.filter(member=member)
+
+        if gs:
+            grades[a.slug] = {userid: gs[0]}
+        else:
+            grades[a.slug] = {}
+
+    
+    context = {'course': course, 'member': member, 'activities': activities, 'grades': grades}
+    return render_to_response('grades/student_info.html', context, context_instance=RequestContext(request))
+
+
+
+
+
 
 

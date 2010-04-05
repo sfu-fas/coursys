@@ -24,18 +24,20 @@
     <table class="display" id="student_grades">
         <thead>
             <tr>
+                <th scope="col"><img src="{{MEDIA_URL}}icons/information.png" title="Details" alt="info" /></th>
                 <th scope="col">Last</th>
                 <th scope="col">First</th>
 		<th scope="col">User ID</th>
 		<th scope="col">Stu #</th>
 		{% for a in activities %}
-		<th scope="col">{{a.short_name}}</th>
+		<th scope="col"><a href="{{a.get_absolute_url}}">{{a.short_name}}</a></th>
 		{% endfor %}
             </tr>
 	</thead>
         <tbody>
         {% for s in students %}
         <tr>
+            <td><a href="{{s.get_absolute_url}}"><img src="{{MEDIA_URL}}icons/information.png" title="Details for {{s.person.name}}" alt="info" /></a></td>
             <td scope="row">{{s.person.last_name}}</td>
             <td scope="row">{{s.person.first_name}}</td>
             <td>{{s.person.userid}}</td>
