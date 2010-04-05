@@ -502,7 +502,10 @@ def mark_summary_student(request, course_slug, activity_slug, userid):
      student = get_object_or_404(Person, userid = userid)
      course = get_object_or_404(CourseOffering, slug = course_slug)    
      activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)     
-     membership = get_object_or_404(Member,offering = course, person = student, role = 'STUD') 
+     membership = get_object_or_404(Member,offering = course, person = student, role = 'STUD')
+     
+     if not is_staff and userid != request.user.username:
+         return ForbiddenResponse(request)
      
      act_mark_id = request.GET.get('activity_mark')
      if act_mark_id != None: # if act_mark_id specified in the url
@@ -532,11 +535,17 @@ def mark_summary_group(request, course_slug, activity_slug, group_slug):
      elif is_course_student_by_slug(request.user, course_slug):
         is_staff = False
      else:
-         return ForbiddenResponse(request)
+        return ForbiddenResponse(request)
     
      course = get_object_or_404(CourseOffering, slug = course_slug)    
      activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)    
      group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
+     
+     if not is_staff:
+         gm = GroupMember.objects.filter(group=group, student__person__userid=request.user.userid)
+         if not gm:
+             return ForbiddenResponse(request)
+     
      act_mark_id = request.GET.get('activity_mark')
      if act_mark_id != None: 
          act_mark = get_group_mark_by_id(activity, group_slug, act_mark_id)
@@ -693,7 +702,7 @@ def mark_all_students(request, course_slug, activity_slug):
             fileform = UploadGradeFileForm(request.POST, request.FILES, prefix = 'import-file');
             if fileform.is_valid() and fileform.cleaned_data['file'] != None:
                 students = course.members.filter(person__role='STUD')
-                error_info = compose_imported_grades(fileform.cleaned_data['file'], students, imported_data)
+                error_info = _compose_imported_grades(fileform.cleaned_data['file'], students, imported_data)
                 if error_info == None:
                     messages.add_message(request, messages.SUCCESS,\
                                 "%s students' grades imported. Please review before submitting." % len(imported_data.keys()))
@@ -722,7 +731,7 @@ def mark_all_students(request, course_slug, activity_slug):
                               'fileform' : fileform,'too_many': len(rows) >= 100,\
                               'mark_all_rows': rows }, context_instance = RequestContext(request))
  
-def compose_imported_grades(file, students_qset, data_to_return):
+def _compose_imported_grades(file, students_qset, data_to_return):
     
     reader = csv.reader(file)   
     try:  

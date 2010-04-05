@@ -495,7 +495,7 @@ def student_info(request, course_slug, userid):
     if member.role != "STUD":
         return NotFoundResponse(request)
     
-    grades = {}
+    grade_info = []
     for a in activities:
         if hasattr(a, 'numericgrade_set'):
             gs = a.numericgrade_set.filter(member=member)
@@ -503,12 +503,14 @@ def student_info(request, course_slug, userid):
             gs = a.lettergrade_set.filter(member=member)
 
         if gs:
-            grades[a.slug] = {userid: gs[0]}
+            grade_info.append( {'act':a, 'grade':gs[0]} )
+            print gs[0]
+            print gs[0].get_absolute_url()
         else:
-            grades[a.slug] = {}
+            grade_info.append( {'act':a, 'grade':None} )
 
     
-    context = {'course': course, 'member': member, 'activities': activities, 'grades': grades}
+    context = {'course': course, 'member': member, 'grade_info': grade_info}
     return render_to_response('grades/student_info.html', context, context_instance=RequestContext(request))
 
 

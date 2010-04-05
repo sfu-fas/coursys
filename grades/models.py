@@ -303,7 +303,9 @@ class NumericGrade(models.Model):
                 url=reverse('grades.views.course_info', kwargs={'course_slug':self.activity.offering.slug})
                 )
             n.save()
-    
+
+    def get_absolute_url(self):
+        return reverse("marking.views.mark_summary_student", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug, 'userid':self.member.person.userid})
     class Meta:
         unique_together = (('activity', 'member'),)
     

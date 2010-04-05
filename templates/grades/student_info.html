@@ -58,10 +58,16 @@
             </tr>
 	</thead>
         <tbody>
-            {% for a in activities %}
+            {% for info in grade_info %}
             <tr>
-              <td scope="row">{{a.name}}</td>
-              <td></td>
+              <td scope="row">{{info.act.name}}</td>
+              {% if info.grade %}
+              <td>{{info.grade.get_flag_display}}</td>
+              <td><a href="{{info.grade.get_absolute_url}}">{{info.grade.display_staff}}</a></td>
+              {% else %}
+              <td>no grade</td>
+              <td>&mdash;</td>
+              {% endif %}
             </tr>
             {% endfor %}
         </tbody>
