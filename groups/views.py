@@ -15,7 +15,7 @@ from contrib import messages
 from django.conf import settings
 from courselib.auth import requires_course_by_slug, requires_course_staff_by_slug, is_course_staff_by_slug, is_course_student_by_slug
 from log.models import *
-#from sets import Set
+
 
 #@login_required
 #def index(request):
@@ -81,31 +81,9 @@ def _groupmanage_student(request, course_slug):
     
     for member in membersInDuplicateGroup:
         membersNotInDuplicateGroup.append(member)
-    #for member in membersNotInDuplicateGroup:
-        #NoDuplicateGroupmembers.append(member)
-    
-    #for member in membersNotInDuplicateGroup:
-        #for m in member.group.groupmember_set.all:
-            #NoDuplicateGroupmembers.append(m) 
-    
      
-        #for m in NoDuplicateGroupmembers:
-            #mn=m
-            #counter=0
-            #for mm in NoDuplicateGroupmembers:
-                #if (mm.student==mn.student & mm.group==mn.group):
-                    #counter=counter+1
-                    #if counter>1:
-                        #NoDuplicateGroupmembers.remove(m)
-                        
-    
-                    
-                
-            
-            
-
-    #membersNotInDuplicateGroup=set(membersInDuplicateGroup)
     return render_to_response('groups/student.html', {'course':course, 'groups':groups,'membersNotInDuplicateGroup':membersNotInDuplicateGroup}, context_instance = RequestContext(request))
+
 def _groupmanage_staff(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     members = GroupMember.objects.filter(group__courseoffering=course)
@@ -130,7 +108,7 @@ def create(request,course_slug):
     course = get_object_or_404(CourseOffering, slug = course_slug)
     group_manager=Member.objects.get(person = person, offering = course)
     #TODO can instructor create group based on unreleased activities?
-    activities = Activity.objects.filter(offering = course, status = 'URLS') 
+    activities = Activity.objects.filter(offering = course, status = 'RLS') 
     activityList = []
     for activity in activities:
         activityForm = ActivityForm(prefix = activity.slug)
@@ -165,55 +143,62 @@ def submit(request,course_slug):
     person = get_object_or_404(Person,userid=request.user.username)
     course = get_object_or_404(CourseOffering, slug = course_slug)
     member = Member.objects.get(person = person, offering = course)
+    error_info=None
     name = request.POST.get('GroupName')
-    #should check if name already exists~~~~~~
-    group = Group(name = name, manager = member, courseoffering=course)
-    group.save()
-    #LOG EVENT#
-    l = LogEntry(userid=request.user.username,
-    description="created a new group %s for %s." % (group.name, course),
-    related_object=group )
-    l.save()
-    
-    #Deal with creating the membership
-    if is_course_student_by_slug(request.user, course_slug):
-        activities = Activity.objects.filter(offering = course, status = 'URLS') 
-        for activity in activities:
-            activityForm = ActivityForm(request.POST, prefix = activity.slug)
-            if activityForm.is_valid() and activityForm.cleaned_data['selected'] == True:
-                groupMember = GroupMember(group=group, student=member, confirmed=True, activity = activity)
-                groupMember.save()
-                #LOG EVENT#
-                l = LogEntry(userid=request.user.username,
-                description="automatically became a group member of %s for activity %s." % (group.name, groupMember.activity),
-                related_object=groupMember )
-                l.save()
-    
-        messages.add_message(request, messages.SUCCESS, 'Group Created')
-        return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
-    
-    elif is_course_staff_by_slug(request.user, course_slug):
-        activities = Activity.objects.filter(offering = course, status = 'URLS') 
-        students = Member.objects.select_related('person').filter(offering = course, role = 'STUD')  
+    #Check if group has a unique name
+    if Group.objects.filter(name=name,courseoffering=course):
+        error_info="Group %s has already exists" % (name)
+        messages.add_message(request, messages.ERROR, error_info)
+        if is_course_student_by_slug(request.user, course_slug):
+            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+        elif is_course_staff_by_slug(request.user, course_slug):
+            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))   
+        
 
-        for activity in activities:
-            activityForm = ActivityForm(request.POST, prefix = activity.slug)
-            if activityForm.is_valid() and activityForm.cleaned_data['selected'] == True:
-                for student in students:
-                    studentForm = StudentForm(request.POST, prefix = student.person.userid)
-                    if studentForm.is_valid() and studentForm.cleaned_data['selected'] == True:
-                        groupMember = GroupMember(group=group, student=student, confirmed=True, activity = activity)
-                        groupMember.save()
-                        #LOG EVENT#
-                        l = LogEntry(userid=request.user.username,
-                        description="added %s as a group member to %s for activity %s." % (student.person.userid,group.name, groupMember.activity),
-                        related_object=groupMember )
-                        l.save()
-                    
-        messages.add_message(request, messages.SUCCESS, 'Group Created')
-        return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
     else:
-        return HttpResponseForbidden()
+        group = Group(name = name, manager = member, courseoffering=course)
+        group.save()
+        #LOG EVENT#
+        l = LogEntry(userid=request.user.username,
+        description="created a new group %s for %s." % (group.name, course),
+        related_object=group )
+        l.save()
+        #Deal with creating the membership
+        if is_course_student_by_slug(request.user, course_slug):
+            activities = Activity.objects.filter(offering = course, status = 'URLS') 
+            for activity in activities:
+                activityForm = ActivityForm(request.POST, prefix = activity.slug)
+                if activityForm.is_valid() and activityForm.cleaned_data['selected'] == True:
+                    groupMember = GroupMember(group=group, student=member, confirmed=True, activity = activity)
+                    groupMember.save()
+                    #LOG EVENT#
+                    l = LogEntry(userid=request.user.username,
+                    description="automatically became a group member of %s for activity %s." % (group.name, groupMember.activity),
+                    related_object=groupMember )
+                    l.save()
+
+            messages.add_message(request, messages.SUCCESS, 'Group Created')
+            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))    
+        elif is_course_staff_by_slug(request.user, course_slug):
+            activities = Activity.objects.filter(offering = course, status = 'URLS') 
+            students = Member.objects.select_related('person').filter(offering = course, role = 'STUD') 
+            for activity in activities:
+                activityForm = ActivityForm(request.POST, prefix = activity.slug)
+                if activityForm.is_valid() and activityForm.cleaned_data['selected'] == True:
+                    for student in students:
+                        studentForm = StudentForm(request.POST, prefix = student.person.userid)
+                        if studentForm.is_valid() and studentForm.cleaned_data['selected'] == True:
+                            groupMember = GroupMember(group=group, student=student, confirmed=True, activity = activity)
+                            groupMember.save()
+                        #LOG EVENT#
+                            l = LogEntry(userid=request.user.username,
+                            description="added %s as a group member to %s for activity %s." % (student.person.userid,group.name, groupMember.activity),
+                            related_object=groupMember )
+                            l.save()                    
+            messages.add_message(request, messages.SUCCESS, 'Group Created')
+            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+        else:
+            return HttpResponseForbidden()
     
 
 

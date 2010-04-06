@@ -9,6 +9,15 @@ class GroupForm(ModelForm):
     class Meta:
         model = Group
         fields = ['name']
+        
+        def clean_name(self):
+            name = self.cleaned_data['name']
+            if name:
+                for group in self._course_groups:
+                    if name == group.name:
+                        raise forms.ValidationError(u'Group with the same name already exists')
+            return name
+
 
 
 class ActivityForm(forms.Form):
