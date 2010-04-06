@@ -12,7 +12,7 @@ from grades.forms import NumericActivityForm, LetterActivityForm, CalNumericActi
                          ActivityFormEntry, FormulaFormEntry, FORMTYPE, GROUP_STATUS_MAP
 from grades.models import *
 from grades.utils import StudentActivityInfo, reorder_course_activities, create_StudentActivityInfo_list, \
-                        ORDER_TYPE, FormulaTesterActivityEntry, FakeActivity, create_datetime
+                        ORDER_TYPE, FormulaTesterActivityEntry, FakeActivity
 from grades.utils import ValidationError, parse_and_validate_formula
 from marking.models import get_group_mark
 from groups.models import *
@@ -20,7 +20,7 @@ from submission.models import get_current_submission
 from log.models import LogEntry
 from contrib import messages
 import pickle
-from grades.formulas import parse, activities_dictionary, eval_parse, cols_used, EvalException
+from grades.formulas import activities_dictionary, eval_parse, EvalException
 
 
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
@@ -358,7 +358,7 @@ def calculate_all(request, course_slug, activity_slug):
         except NumericGrade.DoesNotExist:
             numeric_grade = None
         else:
-            numeric_grade.value = result
+            numeric_grade.value = str(result)
             numeric_grade.save()
 
         if numeric_grade == None:

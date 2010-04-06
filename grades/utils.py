@@ -336,14 +336,6 @@ def format_number(value, decimal_places):
     else:
         return u"%.*f" % (decimal_places, value)
 
-def create_datetime(date, time):
-    """
-    Create a datetime object which is inserted into datetime field of Activity model.
-    """
-    if date != None and time != None:
-        return datetime.datetime(date.year, date.month, date.day,
-                                time.hour, time.minute, time.second)
-
 class ValidationError(Exception):
     pass
 
