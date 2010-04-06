@@ -57,9 +57,6 @@ class ActivityForm(forms.Form):
     due_date = forms.SplitDateTimeField(label=mark_safe('Due date:'), required=False,
                                         help_text='Time format: HH:MM:SS',
                                         widget=CustomSplitDateTimeWidget())
-    #due_date = forms.DateField(label=mark_safe('Due date:'), required=False)
-    #due_time = forms.TimeField(label=mark_safe('Due time:'), required=False,
-    #                           help_text='Format: HH:MM:SS')
     percent = forms.DecimalField(max_digits=5, decimal_places=2, required=False, label='Percentage:',
                                  help_text='percent of final mark',
                                  widget=forms.TextInput(attrs={'size':'2'}))
@@ -104,23 +101,6 @@ class ActivityForm(forms.Form):
                     raise forms.ValidationError(u'Activity with the same short name already exists')
         
         return short_name
-    
-    #def clean(self):
-    #    cleaned_data = self.cleaned_data
-    #    
-    #    if not self._errors.get('due_date') and not self._errors.get("due_time"):
-    #        due_date = cleaned_data.get('due_date')
-    #        due_time = cleaned_data.get('due_time')
-    #        print due_time
-    #        if due_date != None or due_time != None:
-    #            if due_date == None:
-    #                self._errors['due_date'] = ErrorList([u'Please also specify due date'])
-    #                del cleaned_data["due_date"]
-    #            if due_time == None:
-    #                self._errors['due_time'] = ErrorList([u'Please also specify due time'])
-    #                del cleaned_data["due_time"]
-    #    return cleaned_data
-    
 
 class NumericActivityForm(ActivityForm):
     max_grade = forms.DecimalField(max_digits=5, decimal_places=2, label=mark_safe('Maximum grade:' + _required_star),
