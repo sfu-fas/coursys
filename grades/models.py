@@ -63,7 +63,7 @@ class Activity(models.Model):
     due_date = models.DateTimeField(null=True, help_text='Activity due date')
     percent = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     position = models.PositiveSmallIntegerField(help_text="The order of displaying course activities.")
-    group = models.BooleanField(default=False)
+    group = models.BooleanField(null=False, default=False)
     deleted = models.BooleanField(null = False, db_index = True, default=False)
     
     offering = models.ForeignKey(CourseOffering)

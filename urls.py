@@ -23,6 +23,7 @@ urlpatterns = patterns('',
     url(r'^' + 'news/(?P<token>[0-9a-f]{32})/' + USERID_SLUG + '$', 'dashboard.views.atom_feed'),
 
     url(r'^' + COURSE_SLUG + '/$', 'grades.views.course_info'),
+    url(r'^' + COURSE_SLUG + '/_reorder_activity$', 'grades.views.reorder_activity'),
     url(r'^' + COURSE_SLUG + '/_new_message$', 'dashboard.views.new_message'),
 
     url(r'^' + COURSE_SLUG + '/_groups$', 'groups.views.groupmanage'),
@@ -40,8 +41,8 @@ urlpatterns = patterns('',
     url(r'^' + COURSE_SLUG + '/_new_cal_numeric$', 'grades.views.add_cal_numeric_activity'),
     url(r'^' + COURSE_SLUG + '/_formula_tester$', 'grades.views.formula_tester'),
     url(r'^' + COURSE_SLUG + '/_students/' + USERID_SLUG + '$', 'grades.views.student_info'),
-
     url(r'^' + COURSE_ACTIVITY_SLUG + '$', 'grades.views.activity_info'),
+    url(r'^' + COURSE_ACTIVITY_SLUG + '/_cal_all$', 'grades.views.calculate_all'),
     #url(r'^' + COURSE_ACTIVITY_SLUG + '/delete$', 'grades.views.delete_activity_review'),
     #url(r'^' + COURSE_ACTIVITY_SLUG + '/delete_confirm$', 'grades.views.delete_activity_confirm'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/edit$', 'grades.views.edit_activity'),
@@ -83,7 +84,7 @@ urlpatterns = patterns('',
 if settings.DEBUG:
     # URLs for development only:
     urlpatterns += patterns('',
-        #(r'^admin/(.*)', admin.site.root),
+        (r'^admin/(.*)', admin.site.root),
         (r'^media/(?P<path>.*)$', 'django.views.static.serve',
             {'document_root': settings.MEDIA_ROOT}),
         #(r'^import/', 'courses.coredata.views.importer'),

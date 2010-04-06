@@ -9,10 +9,11 @@ from courselib.auth import *
 from grades.models import ACTIVITY_STATUS, all_activities_filter, Activity, \
                         NumericActivity, LetterActivity, CalNumericActivity, ACTIVITY_TYPES
 from grades.forms import NumericActivityForm, LetterActivityForm, CalNumericActivityForm, \
-                         ActivityFormEntry, FormulaFormEntry, FORMTYPE
+                         ActivityFormEntry, FormulaFormEntry, FORMTYPE, GROUP_STATUS_MAP
 from grades.models import *
 from grades.utils import StudentActivityInfo, reorder_course_activities, create_StudentActivityInfo_list, \
-                        ORDER_TYPE, FormulaTesterActivityEntry, FakeActivity
+                        ORDER_TYPE, FormulaTesterActivityEntry, FakeActivity, create_datetime
+from grades.utils import ValidationError, parse_and_validate_formula
 from marking.models import get_group_mark
 from groups.models import *
 from submission.models import get_current_submission
@@ -39,18 +40,18 @@ def course_info(request, course_slug):
     #else not found, return 403
     else:
         return ForbiddenResponse(request)
-
-def _course_info_staff(request, course_slug):
+        
+@requires_course_staff_by_slug
+def reorder_activity(request, course_slug):
     """
-    Course front page
+    Ajax way to reorder activity.
+    This ajav view function is called in the course_info page.
     """
-    course = get_object_or_404(CourseOffering, slug=course_slug)
-    
     if request.method == 'POST':
         id_up = request.POST.get('id_up') 
         id_down = request.POST.get('id_down')
         if id_up == None or id_down == None:                      
-            return HttpResponse("Order update failed!")
+            return ForbiddenResponse(request)
         # swap the position of the two activities
         activity_up = get_object_or_404(Activity, id=id_up);
         activity_down = get_object_or_404(Activity, id=id_down);
@@ -60,9 +61,28 @@ def _course_info_staff(request, course_slug):
         activity_up.save()
         activity_down.save()
         return HttpResponse("Order updated!")
+    return ForbiddenResponse(request)
+
+def _course_info_staff(request, course_slug):
+    """
+    Course front page
+    """
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activities = all_activities_filter(offering=course, deleted=False)
+    
+    # Non Ajax way to reorder activity, please also see reorder_activity view function for ajax way to reorder
+    order = None  
+    act = None  
+    if request.GET.has_key('order'):  
+        order = request.GET['order']  
+    if request.GET.has_key('act'):  
+        act = request.GET['act']  
+    if order and act:  
+        reorder_course_activities(activities, act, order)  
+        return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))  
+
 
     # Todo: is the activity type necessary?
-    activities = all_activities_filter(offering=course, deleted=False)
     activities_info = []
     for activity in activities:
         if isinstance(activity, NumericActivity):
@@ -74,8 +94,8 @@ def _course_info_staff(request, course_slug):
                'order_type': ORDER_TYPE}
     return render_to_response("grades/course_info_staff.html", context,
                               context_instance=RequestContext(request))
-    
 
+    
 #@requires_course_student_by_slug
 def _course_info_student(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
@@ -214,7 +234,8 @@ def add_numeric_activity(request, course_slug):
                                                 due_date=form.cleaned_data['due_date'],
                                                 percent=form.cleaned_data['percent'],
                                                 max_grade=form.cleaned_data['max_grade'],
-                                                offering=course, position=position)
+                                                offering=course, position=position,
+                                                group=GROUP_STATUS_MAP[form.cleaned_data['group']])
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
                       description=("created a numeric activity %s") % (a),
@@ -223,6 +244,8 @@ def add_numeric_activity(request, course_slug):
             except NotImplementedError:
                 return NotFoundResponse(request)
             return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
+        else:
+            messages.error(request, "Please correct the error below")
     else:
         form = NumericActivityForm()
     context = {'course': course, 'form': form, 'form_type': FORMTYPE['add']}
@@ -250,10 +273,13 @@ def add_cal_numeric_activity(request, course_slug):
                                                 percent=form.cleaned_data['percent'],
                                                 max_grade=form.cleaned_data['max_grade'],
                                                 formula=form.cleaned_data['formula'],
-                                                offering=course, position=position)
+                                                offering=course, position=position,
+                                                group=GROUP_STATUS_MAP[form.cleaned_data['group']])
             except NotImplementedError:
                 return NotFoundResponse(request)
             return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
+        else:
+            messages.error(request, "Please correct the error below")
     else:
         form = CalNumericActivityForm()
     context = {'course': course, 'form': form, 'numeric_activities': numeric_activities, 'form_type': FORMTYPE['add']}
@@ -305,6 +331,45 @@ def formula_tester(request, course_slug):
     context = {'course': course, 'activity_entries': activity_entries,
                'formula_form_entry': formula_form_entry, 'result': result}
     return render_to_response('grades/formula_tester.html', context, context_instance=RequestContext(request))
+    
+@requires_course_staff_by_slug
+def calculate_all(request, course_slug, activity_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(CalNumericActivity, slug=activity_slug, offering=course, deleted=False)
+    numeric_activities = NumericActivity.objects.filter(offering=course, deleted=False)
+    act_dict = activities_dictionary(numeric_activities)
+    
+    try:
+        parsed_expr = parse_and_validate_formula(activity.formula, numeric_activities)
+    except ValidationError as e:
+        messages.error(request, e.args[0])
+        return HttpResponseRedirect(activity.get_absolute_url())
+
+    member_list = Member.objects.filter(offering=course, role='STUD')
+    for member in member_list:
+        try:
+            result = eval_parse(parsed_expr, act_dict, member)
+        except EvalException:
+            messages.error(request,  "Can not evaluate formula")
+            return HttpResponseRedirect(activity.get_absolute_url())
+        
+        try:
+            numeric_grade = NumericGrade.objects.get(activity = activity, member = member)
+        except NumericGrade.DoesNotExist:
+            numeric_grade = None
+        else:
+            numeric_grade.value = result
+            numeric_grade.save()
+
+        if numeric_grade == None:
+            try:
+                numeric_grade = NumericGrade(activity=activity, member=member,
+                                             value=str(result), flag='CALC')
+                numeric_grade.save()
+            except NotImplementedError:
+                return NotFoundResponse(request)
+        
+    return HttpResponseRedirect(activity.get_absolute_url())
 
 def _create_activity_formdatadict(activity):
     if not [activity for activity_type in ACTIVITY_TYPES if isinstance(activity, activity_type)]:
@@ -315,7 +380,9 @@ def _create_activity_formdatadict(activity):
     data['status'] = activity.status
     data['due_date'] = activity.due_date
     data['percent'] = activity.percent
-    data['position'] = activity.position
+    for (k, v) in GROUP_STATUS_MAP.items():
+        if activity.group == v:
+            data['group'] = k
     if hasattr(activity, 'max_grade'):
         data['max_grade'] = activity.max_grade
     if hasattr(activity, 'formula'):
@@ -335,6 +402,8 @@ def _populate_activity_from_formdata(activity, data):
         activity.due_date = data['due_date']
     if data.has_key('percent'):
         activity.percent = data['percent']
+    if data.has_key('group'):
+        activity.group = GROUP_STATUS_MAP[data['group']]
     if data.has_key('max_grade'):
         activity.max_grade = data['max_grade']
     if data.has_key('formula'):
@@ -375,6 +444,8 @@ def edit_activity(request, course_slug, activity_slug):
                 elif from_page == FROMPAGE['activityinfo']:
                     return HttpResponseRedirect(reverse('grades.views.activity_info',
                                                         kwargs={'course_slug': course_slug, 'activity_slug': activity_slug}))
+            else:
+                messages.error(request, "Please correct the error below")
         else:
             datadict = _create_activity_formdatadict(activity)
             if isinstance(activity, CalNumericActivity):
@@ -420,7 +491,8 @@ def add_letter_activity(request, course_slug):
                                                 status=form.cleaned_data['status'],
                                                 due_date=form.cleaned_data['due_date'],
                                                 percent=form.cleaned_data['percent'],
-                                                offering=course, position=position)
+                                                offering=course, position=position,
+                                                group=GROUP_STATUS_MAP[form.cleaned_data['group']])
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
                       description=("created a letter-graded activity %s") % (a),

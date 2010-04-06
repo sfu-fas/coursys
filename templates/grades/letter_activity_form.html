@@ -9,12 +9,17 @@ Add Letter Graded Activity
 Edit Letter Graded Activity
 {% endifequal %}
 {% endblock %}
+{% block title %}
+{% ifequal form_type 'add' %}{{ course.name }} - Add Letter Graded Activity{% endifequal %}
+{% ifequal form_type 'edit' %}{{ course.name }} - Edit Letter Graded Activity{% endifequal %}
+{% endblock %}
 
 {% block grades_headextra %}
 <script type="text/javascript">
 $(document).ready(function() {
-    $("#id_due_date").datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.png',
-                                changeMonth: true, changeYear: true, showOn: 'button'});
+    $("#id_due_date_0").datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.png',
+                                changeMonth: true, changeYear: true,
+                                dateFormat: 'yy-mm-dd', showOn: 'button'});
 });
 </script>
 {% endblock %}
@@ -45,12 +50,6 @@ $(document).ready(function() {
 </ul>
 {% endifequal %}
 <div id="form_container">
-    {% if form.errors %}
-    <p class="errorindicator">
-        <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
-        Please correct the error below.
-    </p>
-    {% endif %}
     {% if form.non_field_errors %}
     <p class="errorindicator">
         <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
@@ -67,7 +66,9 @@ $(document).ready(function() {
                 {{form.short_name|activity_field}}
                 {{form.status|activity_field}}
                 {{form.due_date|activity_field}}
+                {{form.due_time|activity_field}}
                 {{form.percent|activity_field}}
+                {{form.group|activity_field}}
                 <li>
                     <input class="submit" type="submit" value="Submit" />
                 </li>

@@ -17,7 +17,9 @@
 		    null,
 		    null,
 		    null,
-            { "sWidth": "3em" }
+		    {% if not activity.calnumericactivity %}
+		    { "sWidth": "3em" }
+		    {% endif %}
 		]
 	});
     });
@@ -88,7 +90,14 @@
 </div>
 
 {% block activity_info_grades_block %}
-<a class="button" href="{% url grades.views.activity_info_with_groups course_slug=course.slug, activity_slug=activity.slug%}">View By Group</a>    
+{% if activity.group %}
+<a class="button" href="{% url grades.views.activity_info_with_groups course_slug=course.slug, activity_slug=activity.slug%}">View By Group</a>
+{% endif %}
+{% if activity.calnumericactivity %}
+<div class="buttongroup">
+    <a class="redbutton" href="{% url grades.views.calculate_all course_slug=course.slug activity_slug=activity.slug %}">Calculate all</a>
+</div>
+{% endif %}
 <div class="datatable_container">
     <table class="display" id="student_grades">
         <thead>
@@ -97,29 +106,37 @@
 		<th>Student Number</th>
 		<th>Grade Status</th>
 		<th>Grade</th>
+		{% if not activity.calnumericactivity %}
 		<th><img src="{{MEDIA_URL}}icons/disk_multiple.png" title="Submission" alt="Submission" /></th>
+		{% endif %}
             </tr>
 	</thead>
         <tbody>
 	    {% for student_grade_info in student_grade_info_list %}
-	    <tr>
+	    <t>
 		<td scope="row">
-			<a href="{% url grades.views.activity_info_student course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid%}">{{ student_grade_info.name }}</a>
+		    <a href="{% url grades.views.activity_info_student course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid%}">{{ student_grade_info.name }}</a>
 		</td>
 		<td>{{ student_grade_info.emplid }}</td>
 		<td>{{ student_grade_info.grade_status }}</td>
 		<td>
-		{% ifequal student_grade_info.grade_status 'no grade'%} 
-			<a href="{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid %}?from_page={{from_page}}"><img src="{{MEDIA_URL}}icons/page_white_edit.png" title="Mark This" alt="Mark This"/></a>		   
+		{% if activity.calnumericactivity %}
+		    {{ student_grade_info.display_grade_staff }}
 		{% else %}
-		    <a href="{% url marking.views.mark_summary_student course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
-		    {{ student_grade_info.display_grade_staff }}		   
-		{% endifequal %}	
+		    {% ifequal student_grade_info.grade_status 'no grade'%} 
+			<a href="{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid %}?from_page={{from_page}}"><img src="{{MEDIA_URL}}icons/page_white_edit.png" title="Mark This" alt="Mark This"/></a>		   
+		    {% else %}
+			<a href="{% url marking.views.mark_summary_student course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
+			{{ student_grade_info.display_grade_staff }}		   
+		    {% endifequal %}
+		{% endif %}
 		</td>
+		{% if not activity.calnumericactivity %}
 		<td>
 		    <a href="{% url submission.views.show_student_submission_staff course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View" alt="View" /></a>
-            <a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid %}"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="Download" alt="Download" /></a>
+		    <a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid %}"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="Download" alt="Download" /></a>
 		</td>
+		{% endif %}
 	    </tr>
 	    {% empty %}
 	    <tr>
@@ -127,7 +144,9 @@
 		<td></td>
 		<td></td>
 		<td></td>
+		{% if not activity.calnumericactivity %}
 		<td></td>
+		{% endif %}
 	    </tr>
 	    {% endfor %}
         </tbody>

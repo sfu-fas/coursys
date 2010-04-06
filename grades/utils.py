@@ -5,13 +5,17 @@ This module collects classes and functions that are for the display purpose of G
 from grades.models import Activity, NumericActivity, LetterActivity, NumericGrade, \
                            LetterGrade, all_activities_filter, ACTIVITY_TYPES, FLAGS
 from coredata.models import CourseOffering, Person
+from grades.formulas import parse, activities_dictionary, cols_used
+from external.pyparsing import ParseException
 import math
 import decimal
+import datetime
 
 ORDER_TYPE = {'UP': 'up', 'DN': 'down'}
 _NO_GRADE = u'\u2014'
 _DECIMAL_PLACE = 2
 _SUPPORTED_GRADE_RANGE = [10]
+
 
 class GradeRangeStat:
     """
@@ -152,7 +156,7 @@ def reorder_course_activities(ordered_activities, activity_slug, order):
     """
     for activity in ordered_activities:
         if not isinstance(activity, Activity):
-            return
+            raise TypeError(u'ordered_activities should be list of Activity')
     for i in range(0, len(ordered_activities)):
         if ordered_activities[i].slug == activity_slug:
             if (order == ORDER_TYPE['UP']) and (not i == 0):
@@ -181,16 +185,16 @@ def create_StudentActivityInfo_list(course, activity, student=None):
     if not course or not activity:
         return
     if not [activity for activity_type in ACTIVITY_TYPES if isinstance(activity, activity_type)]:
-        return
+        raise TypeError(u'Activity type is required')
     if not isinstance(course, CourseOffering):
-        return
+        raise TypeError(u'CourseOffering type is required')
     # verify if the course contains the activity
     if not all_activities_filter(slug=activity.slug, offering=course):
         return
     student_list = course.members.filter(person__role='STUD')
     if student:
         if not isinstance(student, Person):
-            return
+            raise TypeError(u'Person type is required')
         if student in student_list:
             student_list = [student]
         else:
@@ -304,7 +308,7 @@ def fetch_students_numeric_grade(activity):
     """
     _DEFAULT_NUMERIC_GRADE = 0
     if not isinstance(activity, NumericActivity):
-        return
+        raise TypeError('NumericActivity type is required')
     student_list = activity.offering.members.filter(person__role='STUD')
     numeric_grade_list = NumericGrade.objects.filter(activity=activity)\
                         .select_related('member','member__person')
@@ -331,3 +335,37 @@ def format_number(value, decimal_places):
         return u'%s' % str(value.quantize(decimal.Decimal(".1") ** decimal_places, context=context))
     else:
         return u"%.*f" % (decimal_places, value)
+
+def create_datetime(date, time):
+    """
+    Create a datetime object which is inserted into datetime field of Activity model.
+    """
+    if date != None and time != None:
+        return datetime.datetime(date.year, date.month, date.day,
+                                time.hour, time.minute, time.second)
+
+class ValidationError(Exception):
+    pass
+
+def parse_and_validate_formula(formula, numeric_activities):
+    """
+    Handy function to parse the formula and validate if the activity references
+    in the formula are in the numeric_activities list
+    Return the parsed formula if no exception raised
+    
+    May raise exception: ParseException, ValidateError
+    """
+    for activity in numeric_activities:
+        if not isinstance(activity, NumericActivity):
+            raise TypeError(u'NumericActivity list is required')
+    try:
+        parsed_expr = parse(formula)
+        activities_dict = activities_dictionary(numeric_activities)
+        cols = set([])
+        cols = cols_used(parsed_expr)
+        for col in cols:
+            if not col in activities_dict:
+                raise ValidationError(u'Invalid activity reference')
+    except ParseException:
+        raise ValidationError(u'Incorrect formula syntax')
+    return parsed_expr

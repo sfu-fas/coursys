@@ -5,10 +5,44 @@ from django.utils.safestring import mark_safe
 import pickle
 from grades.formulas import parse, activities_dictionary, cols_used
 from external.pyparsing import ParseException
+from django.forms.util import ErrorList
+import datetime
+from grades.utils import parse_and_validate_formula, ValidationError
 
 _required_star = '<span><img src="'+settings.MEDIA_URL+'icons/required_star.gif" alt="required"/></span>'
 
 FORMTYPE = {'add': 'add', 'edit': 'edit'}
+GROUP_STATUS_CHOICES = [
+    ('0', 'Yes'),
+    ('1', 'No') ]
+GROUP_STATUS = dict(GROUP_STATUS_CHOICES)
+GROUP_STATUS_MAP = {'0': True, '1': False}
+
+class CustomSplitDateTimeWidget(forms.SplitDateTimeWidget):
+    """
+    Create a custom SplitDateTimeWidget with custom html output format
+    """
+    def __init__(self, attrs=None, date_format=None, time_format=None):
+        super(CustomSplitDateTimeWidget, self).__init__(attrs, date_format, time_format)
+
+    def value_from_datadict(self, data, files, name):
+        """
+        Quick dirty solution.
+        Fix SplitDateTimeWidget bugs when displaying the form with SplitDateTimeField.
+        (Original problem: SplitDateTimeField can not display the field data into the seperated
+        DateInput and TimeInput)
+        """
+        if data.has_key(name):
+            # need to manually split the datetime into date and time for later data retrieval
+            if isinstance(data[name], datetime.datetime):
+                if isinstance(self.widgets[0], forms.DateInput) and isinstance(self.widgets[1], forms.TimeInput):
+                    data[name + '_0'] = data[name].date()
+                    data[name + '_1'] = data[name].time()
+        return [widget.value_from_datadict(data, files, name + '_%s' % i) for i, widget in enumerate(self.widgets)]
+        
+    def format_output(self, rendered_widgets):
+        return mark_safe(u'<div class="datetime">%s %s<br />%s %s</div>' % \
+            (('Date:'), rendered_widgets[0], ('Time:'), rendered_widgets[1]))
 
 class ActivityForm(forms.Form):
     name = forms.CharField(max_length=30, label=mark_safe('Name:'+_required_star),
@@ -20,10 +54,18 @@ class ActivityForm(forms.Form):
     status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS',
                                label=mark_safe('Status:' + _required_star),
                                help_text='visibility of grades/activity to students')
-    due_date = forms.DateTimeField(label=mark_safe('Due date:'), required=False)
+    due_date = forms.SplitDateTimeField(label=mark_safe('Due date:'), required=False,
+                                        help_text='Time format: HH:MM:SS',
+                                        widget=CustomSplitDateTimeWidget())
+    #due_date = forms.DateField(label=mark_safe('Due date:'), required=False)
+    #due_time = forms.TimeField(label=mark_safe('Due time:'), required=False,
+    #                           help_text='Format: HH:MM:SS')
     percent = forms.DecimalField(max_digits=5, decimal_places=2, required=False, label='Percentage:',
                                  help_text='percent of final mark',
                                  widget=forms.TextInput(attrs={'size':'2'}))
+    group = forms.ChoiceField(label=mark_safe('Group activity:' + _required_star), initial='1',
+                              choices=GROUP_STATUS_CHOICES,
+                              widget=forms.RadioSelect())
 
     def __init__(self, *args, **kwargs):
         super(ActivityForm, self).__init__(*args, **kwargs)
@@ -62,7 +104,23 @@ class ActivityForm(forms.Form):
                     raise forms.ValidationError(u'Activity with the same short name already exists')
         
         return short_name
-
+    
+    #def clean(self):
+    #    cleaned_data = self.cleaned_data
+    #    
+    #    if not self._errors.get('due_date') and not self._errors.get("due_time"):
+    #        due_date = cleaned_data.get('due_date')
+    #        due_time = cleaned_data.get('due_time')
+    #        print due_time
+    #        if due_date != None or due_time != None:
+    #            if due_date == None:
+    #                self._errors['due_date'] = ErrorList([u'Please also specify due date'])
+    #                del cleaned_data["due_date"]
+    #            if due_time == None:
+    #                self._errors['due_time'] = ErrorList([u'Please also specify due time'])
+    #                del cleaned_data["due_time"]
+    #    return cleaned_data
+    
 
 class NumericActivityForm(ActivityForm):
     max_grade = forms.DecimalField(max_digits=5, decimal_places=2, label=mark_safe('Maximum grade:' + _required_star),
@@ -91,15 +149,9 @@ class CalNumericActivityForm(NumericActivityForm):
         if formula:
             if self._addform_validate or self._editform_validate:
                 try:
-                    parsed_expr = parse(formula)
-                    activities_dict = activities_dictionary(self._course_numeric_activities)
-                    cols = set([])
-                    cols = cols_used(parsed_expr)
-                    for col in cols:
-                        if not col in activities_dict:
-                            raise forms.ValidationError(u'Invalid activity reference')
-                except ParseException:
-                    raise forms.ValidationError(u'Formula syntax incorrect')
+                    parse_and_validate_formula(formula, self._course_numeric_activities)
+                except ValidationError as e:
+                    raise forms.ValidationError(e.args[0])
         return formula
     
 class ActivityFormEntry(forms.Form):
@@ -125,14 +177,10 @@ class FormulaFormEntry(forms.Form):
         if formula:
             if self._form_entry_validate:
                 try:
-                    parsed_expr = parse(formula)
-                    activities_dict = activities_dictionary(self._course_numeric_activities)
-                    cols = set([])
-                    cols = cols_used(parsed_expr)
-                    for col in cols:
-                        if not col in activities_dict:
-                            raise forms.ValidationError(u'Invalid activity reference')
+                    parsed_expr = parse_and_validate_formula(formula, self._course_numeric_activities)
+                except ValidationError as e:
+                    raise forms.ValidationError(e.args[0])
+                else:
                     self.pickled_formula = pickle.dumps(parsed_expr)
-                except ParseException:
-                    raise forms.ValidationError(u'Formula syntax incorrect')
         return formula
+

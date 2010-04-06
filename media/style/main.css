@@ -602,6 +602,9 @@ fieldset .inputfield li {
 fieldset .inputfield label {
   width: 30em;
 }
+fieldset input {
+  margin: 2px 0;
+}
 
 /*
 fieldset .inputfield input[type='text'] {
@@ -648,6 +651,9 @@ fieldset .errorlist li {
 fieldset div.inputfield {
     float: left;
 }
+fieldset .datetime {
+  color: #666;
+}
 .helptext {
     color: gray;
     font-size: 0.9em;
@@ -671,6 +677,10 @@ fieldset label {
     margin-right: 1em;
     line-height: 1.5em;
     text-align: right;
+}
+fieldset .inputfield label {
+    width: auto;
+    text-align: left;
 }
 #formula_tester fieldset label {
     float: none;

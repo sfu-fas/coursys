@@ -12,86 +12,91 @@
     $(document).ready(function() {
         addLinkClickStyleClass('a.redbutton', 'redbutton_onclick');
         addLinkClickStyleClass('span.position_button', 'ui-state-hover');
+	
         // activate dataTable ui
-		var oTable = $('#activities').dataTable({
-			"bJQueryUI": true,
-			"sPaginationType": "full_numbers",
-	                "iDisplayLength" : 50,
-	                "bSort": false
-		});
-		
-		{%for info in activities_info%}
-			act_ids[{{forloop.counter}}-1] = "{{info.activity.id}}";
-		{%endfor%}
-		
-		for(var r = 1; r <= {{activities_info|length}}; r++)
-		{   
-		   /* attach position info to the arrow td */
-		    $('#arrow' + r).data('pos', r-1);
-		}			
-		
-		$('.arrow_up').click(function(){			
-			 var p = $(this).parent();
-			 var i = p.data('pos');			 
-			 /* post request */
-			 if(i > 0){
-			 	$.post("{% url grades.views.course_info course_slug=course.slug %}",
-		  	 		{'id_up': act_ids[i], 'id_down': act_ids[i-1]}, 
-		  			function(data){ /* request success callback: swap rows */					 				
-						 /* swap the content of the current row and the previous row(except for the first column) */				
-						 var row = oTable.fnGetNodes(i);
-						 var pre_row = oTable.fnGetNodes(i-1);
-						 var content = oTable.fnGetData(row);
-						 var pre_content = oTable.fnGetData(pre_row);
-						 var temp;
-						 for (var col=1, len = content.length ; col<len ; col++ )
-						 {  
-						    temp = content[col];
-						 	oTable.fnUpdate(pre_content[col], i, col);
-						 	oTable.fnUpdate(temp, i-1, col); 
-						 }
-						 /* swap the order of the two ids as well */
-						 temp = act_ids[i];
-						 act_ids[i] = act_ids[i-1];
-						 act_ids[i-1] = temp;			 				 
-						 
-						 oTable.fnDraw();			
-					 
-			 		});
-			 	}
-		  });
-		 
-		$('.arrow_down').click(function(){
-			 var p = $(this).parent();
-			 var i = p.data('pos');
-			 if(i < {{activities_info|length}}-1){
-			 /* post request */
-			 	$.post("{% url grades.views.course_info course_slug=course.slug %}",		  	 
-		  	 		{'id_up': act_ids[i+1], 'id_down': act_ids[i]},
-		  			function(data){ /* request success callback: swap rows */  		 	 
-					     /* swap the content of the current row and the next row(except for the first column) */
-						 var row = oTable.fnGetNodes(i);
-						 var next_row = oTable.fnGetNodes(i+1);
-						 var content = oTable.fnGetData(row);
-						 var next_content = oTable.fnGetData(next_row);					
-						 var temp;
-						 for (var col=1, len = content.length ; col<len ; col++ )
-						 {  
-						    temp = content[col];
-						 	oTable.fnUpdate(next_content[col], i, col);
-						 	oTable.fnUpdate(temp, i+1, col); 
-						 }
-						 /* swap the order of the two ids as well */
-						 temp = act_ids[i];
-						 act_ids[i] = act_ids[i+1];
-						 act_ids[i+1] = temp;	
-						  				 
-						 oTable.fnDraw();
-			 		});		 
-			 	}
-		  });
-		
+	var oTable = $('#activities').dataTable({
+		"bJQueryUI": true,
+		"sPaginationType": "full_numbers",
+		"iDisplayLength" : 50,
+		"bSort": false
 	});
+	
+	// The falling code deals with activity reordering
+	{%for info in activities_info%}
+		act_ids[{{forloop.counter}}-1] = "{{info.activity.id}}";
+	{%endfor%}
+	
+	for(var r = 1; r <= {{activities_info|length}}; r++)
+	{
+	    /* when javascript is enabled, use ajax call to reorder activity */
+	    $('#arrow' + r + ' ' + 'a.arrow_up').attr('href', 'javascript: return false;');
+	    $('#arrow' + r + ' ' + 'a.arrow_down').attr('href', 'javascript: return false;');
+	    
+	   /* attach position info to the arrow td */
+	    $('#arrow' + r).data('pos', r-1);
+	}			
+	
+	$('.arrow_up').click(function(){			
+		 var p = $(this).parent();
+		 var i = p.data('pos');			 
+		 /* post request */
+		 if(i > 0){
+			$.post("{% url grades.views.reorder_activity course_slug=course.slug %}",
+				{'id_up': act_ids[i], 'id_down': act_ids[i-1]}, 
+				function(data){ /* request success callback: swap rows */					 				
+					 /* swap the content of the current row and the previous row(except for the first column) */				
+					 var row = oTable.fnGetNodes(i);
+					 var pre_row = oTable.fnGetNodes(i-1);
+					 var content = oTable.fnGetData(row);
+					 var pre_content = oTable.fnGetData(pre_row);
+					 var temp;
+					 for (var col=1, len = content.length ; col<len ; col++ )
+					 {  
+					    temp = content[col];
+						oTable.fnUpdate(pre_content[col], i, col);
+						oTable.fnUpdate(temp, i-1, col); 
+					 }
+					 /* swap the order of the two ids as well */
+					 temp = act_ids[i];
+					 act_ids[i] = act_ids[i-1];
+					 act_ids[i-1] = temp;			 				 
+					 
+					 oTable.fnDraw();			
+				 
+				});
+			}
+	  });
+	 
+	$('.arrow_down').click(function(){
+		 var p = $(this).parent();
+		 var i = p.data('pos');
+		 if(i < {{activities_info|length}}-1){
+		 /* post request */
+			$.post("{% url grades.views.reorder_activity course_slug=course.slug %}",		  	 
+				{'id_up': act_ids[i+1], 'id_down': act_ids[i]},
+				function(data){ /* request success callback: swap rows */  		 	 
+				     /* swap the content of the current row and the next row(except for the first column) */
+					 var row = oTable.fnGetNodes(i);
+					 var next_row = oTable.fnGetNodes(i+1);
+					 var content = oTable.fnGetData(row);
+					 var next_content = oTable.fnGetData(next_row);					
+					 var temp;
+					 for (var col=1, len = content.length ; col<len ; col++ )
+					 {  
+					    temp = content[col];
+						oTable.fnUpdate(next_content[col], i, col);
+						oTable.fnUpdate(temp, i+1, col); 
+					 }
+					 /* swap the order of the two ids as well */
+					 temp = act_ids[i];
+					 act_ids[i] = act_ids[i+1];
+					 act_ids[i+1] = temp;	
+									 
+					 oTable.fnDraw();
+				});		 
+			}
+	  });
+    });
 </script>
 {% endblock %}
 
@@ -176,14 +181,18 @@
             {% with activity_info.activity as activity %}
             <tr>
                 <td id = "arrow{{forloop.counter}}">
-                    {% if not forloop.first %} 
-            		   <span class="arrow_up position_button ui-state-default ui-icon ui-icon-arrowthick-1-n">&uarr;</span>  
- 	      			{% else %}
- 	       			   <span class="position_placeholder"></span>
- 	      			{% endif %}
- 	     			{% if not forloop.last %}
- 	       			    <span class="arrow_down position_button ui-state-default ui-icon ui-icon-arrowthick-1-s">&darr;</span>
- 	      		    {% endif %}
+                    {% if not forloop.first %}
+		    <a class="arrow_up" href="{% url grades.views.course_info course_slug=course.slug %}?order=up&amp;act={{ activity.slug }}">  
+		       <span class="arrow_up position_button ui-state-default ui-icon ui-icon-arrowthick-1-n">&uarr;</span>  
+		    </a>
+		    {% else %}
+		       <span class="position_placeholder"></span>
+		    {% endif %}
+		    {% if not forloop.last %}
+		    <a class="arrow_down" href="{% url grades.views.course_info course_slug=course.slug %}?order=down&amp;act={{ activity.slug }}">
+			<span class="arrow_down position_button ui-state-default ui-icon ui-icon-arrowthick-1-s">&darr;</span>
+		    </a>
+		    {% endif %}
                 </td>
                 <td scope="row">
                         <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">{{ activity.name }}</a>
