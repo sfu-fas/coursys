@@ -43,7 +43,7 @@
 		    	    <ul class="group_member_list">
 			    		{% for group_member in group_grade_info.members %}
 			    		<li>
-			    		<a href="{% url grades.views.activity_info_student course_slug=course.slug activity_slug=activity.slug userid=group_member.userid%}">{{group_member.name}}</a>			    		
+			    		<a href="{{ group_member.get_absolute_url }}">{{group_member.person.name}}</a>			    		
 			    		</li>
 		    		{% endfor %}
 		    		</ul>		    				    		
@@ -58,8 +58,8 @@
 			{% endifequal %}	
 			</td>
 			<td>
-			    <a href="{% url submission.views.show_student_submission_staff course_slug=course.slug activity_slug=activity.slug userid=group_grade_info.members.0.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View" alt="View" /></a>
-                <a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=group_grade_info.members.0.userid %}"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="Download" alt="Download" /></a>
+			    <a href="{% url submission.views.show_student_submission_staff course_slug=course.slug activity_slug=activity.slug userid=group_grade_info.members.0.person.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View" alt="View" /></a>
+                <a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=group_grade_info.members.0.person.userid %}"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="Download" alt="Download" /></a>
 			</td>
 			{% endwith %}
 		    </tr>

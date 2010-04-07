@@ -181,7 +181,7 @@ def activity_info_with_groups(request, course_slug, activity_slug):
     for member in all_members:
         grouped_students += 1
         group = member.group
-        student = member.student.person
+        student = member.student
         if not groups_found.has_key(group.id):
             # a new group discovered by its first member
             # get the current grade of the group 
