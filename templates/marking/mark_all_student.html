@@ -47,19 +47,15 @@ $(document).ready(function() {
         <thead class="form_head">
             <tr>
                 <th>Student Name</th>
-				<th>Student Number</th>
-				<th>Current Grade</th>
-				<th>New Grade</th>
+		<th>Student Number</th>
+		<th>Current Grade</th>
+		<th>New Grade</th>
 		</thead>
         <tbody>
 	    {% for mark_row in mark_all_rows %}
 	    {% with mark_row.student as student %}
 	    <tr>
-		<td>
-		    <strong>
-			<a href="{% url grades.views.activity_info_student course_slug=course.slug activity_slug=activity.slug userid=student.userid %}">{{ student.name }}</a>
-		    </strong>
-		</td>
+		<td>{{ student.name }}</td>
 		{% with mark_row.form as form %}
 		<td>{{ student.emplid }}</td>
 		<td>{{ mark_row.current_grade }}</td>
