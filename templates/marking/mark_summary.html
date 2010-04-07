@@ -4,7 +4,9 @@
 
 {% block h1 %} Marking Summary {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">{{activity.name}}</a></li><li>&gt; Mark Summary</li>{% endblock %}
+{% block marking_subbreadcrumbs %}
+<li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Marking Summary</li>
+{% endblock %}
 
 {% block content %}
 <h2>

@@ -20,12 +20,11 @@ def _find_setup_conflicts(source_setup, target_setup):
     short_names_found = set()
     names_found.update((activity.name for activity in source_setup))
     short_names_found.update((activity.short_name for activity in source_setup))
-    conflicting_activities = set()
+    conflicting_activities = []
     
     for activity in target_setup:
         if (activity.name in names_found) or (activity.short_name in short_names_found):
-            if(activity not in conflicting_activities):
-                conflicting_activities.add(activity)
+                conflicting_activities.append(activity)
     
     return conflicting_activities
 
@@ -696,6 +695,8 @@ def mark_all_groups(request, course_slug, activity_slug):
            entry_form = MarkEntryForm(prefix = group.name)                                    
            rows.append({'group': group, 'current_mark' : current_mark, 'form' : entry_form}) 
     
+    if error_info:
+        messages.add_message(request, messages.ERROR, error_info)     
     return render_to_response("marking/mark_all_group.html",
                           {'course': course, 'activity': activity,'mark_all_rows': rows }, 
                           context_instance = RequestContext(request))
@@ -709,13 +710,12 @@ def mark_all_students(request, course_slug, activity_slug):
    
     rows = []
     fileform = None
-    imported_data = {} #may get filled with data from an imported file, a student userid to grade mapping
+    imported_data = {} #may get filled with data from an imported file, a mapping from student's userid to grade
     error_info = None 
     warning_info = []
     memberships = Member.objects.select_related('person').filter(offering = course, role = 'STUD')    
     
-    if request.method == 'POST' and request.GET.get('import') != 'true':      
-        forms = []           
+    if request.method == 'POST' and request.GET.get('import') != 'true':
         ngrades = []   
         # get data from the mark entry forms
         for member in memberships: 
@@ -730,8 +730,7 @@ def mark_all_students(request, course_slug, activity_slug):
                 current_grade = 'no grade'
             else:
                 current_grade = ngrade.value                    
-            ngrades.append(ngrade)            
-            forms.append(entry_form)
+            ngrades.append(ngrade) 
             rows.append({'student': student, 'current_grade' : current_grade, 'form' : entry_form})    
        
         # save if needed 
@@ -740,7 +739,7 @@ def mark_all_students(request, course_slug, activity_slug):
             for i in range(len(memberships)):
                student = memberships[i].person  
                ngrade = ngrades[i]
-               new_value = forms[i].cleaned_data['value'] 
+               new_value = rows[i]['form'].cleaned_data['value'] 
                # the new mark is blank or the new mark is the same as the old one, do nothing
                if (new_value == None) or (ngrade and ngrade.value == new_value):
                    continue 

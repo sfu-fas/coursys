@@ -19,8 +19,8 @@ $(document).ready(function(){
 {% block title %}Copy Course Setup{% endblock %}
 {% block h1 %}Copy Course Setup{% endblock %}
 
-{% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; Copy Course Setup</li>
+{% block marking_subbreadcrumbs %}
+<li>&gt; Copy Course Setup</li>
 {% endblock %}
 
 {% block content %}
@@ -32,7 +32,7 @@ $(document).ready(function(){
 	{% endfor %}
 	</ul> 
 {% else %}
-	<h2>Empty Setup </h2>
+	<h3 class="empty">Empty Setup </h3>
 {% endif %}
 
 <form action="{%url marking.views.copy_course_setup course_slug=course.slug%}?copy_from={{source_course.slug}}" method="post">

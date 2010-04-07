@@ -17,8 +17,9 @@
 {% block title %}{{activity.name}} Marking Components{% endblock %}
 {% block h1 %}{{activity.name}} Marking Components{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{{ course.get_absolute_url }}">{{ course.name }}</a></li><li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Marking Components</li>{% endblock %}
-
+{% block marking_subbreadcrumbs %}
+<li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Marking Components</li>
+{% endblock %}
 {% block content %}
 <ul id="form_nav">
     <li class="current"><a href="{% url marking.views.manage_activity_components course_slug=course.slug activity_slug=activity.slug %}">Edit Components Content</a></li>  

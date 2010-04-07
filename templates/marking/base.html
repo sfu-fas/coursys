@@ -5,6 +5,10 @@
 {% endblock %}
 
 {% block title %}Marking{% endblock %}
-
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }} ({{course.semester.label}})</a></li>
+{% block marking_subbreadcrumbs %}
+{% endblock %}
+{% endblock %}
 
 
