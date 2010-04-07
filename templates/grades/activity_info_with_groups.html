@@ -21,8 +21,7 @@
 </script>
 {% endblock %}
 
-{% block activity_info_grades_block %}
-<a class="button" href="{% url grades.views.activity_info course_slug=course.slug, activity_slug=activity.slug%}">View By Student</a>    
+{% block activity_info_grades_block %} 
 <div class="datatable_container">
     <table class="display" id="group_grades">
         <thead>

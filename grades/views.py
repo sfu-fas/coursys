@@ -28,6 +28,7 @@ FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_gr
 # Course should have this number to student to display the activity statistics, including histogram
 STUD_NUM_TO_DISP_ACTSTAT = 10
 
+ACTIVITY_VIEW_TYPE = {'I': 'individual', 'G': 'group'}
 # Only for display purpose.
 ACTIVITY_TYPE = {'NG': 'Numeric Graded', 'LG': 'Letter Graded',
                  'CNG': 'Calculated Numeric Graded', 'CLG': 'Calculated Letter Graded'}
@@ -138,7 +139,9 @@ def _activity_info_staff(request, course_slug, activity_slug):
     elif isinstance(activity, LetterActivity):
         activity_type = ACTIVITY_TYPE['LG']
 
-    context = {'course': course, 'activity_type': activity_type, 'activity': activity, 'student_grade_info_list': student_grade_info_list, 'from_page': FROMPAGE['activityinfo']}
+    context = {'course': course, 'activity_type': activity_type, 'activity': activity,
+               'activity_view_type': ACTIVITY_VIEW_TYPE['I'],
+               'student_grade_info_list': student_grade_info_list, 'from_page': FROMPAGE['activityinfo']}
     return render_to_response('grades/activity_info.html', context, context_instance=RequestContext(request))
 
 
@@ -202,7 +205,8 @@ def activity_info_with_groups(request, course_slug, activity_slug):
         activity_type = ACTIVITY_TYPE['LG']
 
     context = {'course': course, 'activity_type': activity_type, 
-               'activity': activity, 'ungrouped_students': ungrouped_students, \
+               'activity': activity, 'ungrouped_students': ungrouped_students,
+               'activity_view_type': ACTIVITY_VIEW_TYPE['G'],
                'group_grade_info_list': groups_found.values(), 'from_page': FROMPAGE['activityinfo_group']}
     return render_to_response('grades/activity_info_with_groups.html', context, context_instance=RequestContext(request))
 
@@ -368,7 +372,7 @@ def calculate_all(request, course_slug, activity_slug):
     try:
         parsed_expr = parse_and_validate_formula(activity.formula, numeric_activities)
     except ValidationError as e:
-        messages.error(request, e.args[0])
+        messages.error(request, 'Formula Error: ' + e.args[0])
         return HttpResponseRedirect(activity.get_absolute_url())
 
     student_list = Member.objects.filter(offering=course, role='STUD')
@@ -378,7 +382,7 @@ def calculate_all(request, course_slug, activity_slug):
         try:
             result = eval_parse(parsed_expr, act_dict, student)
         except EvalException:
-            messages.error(request,  "Can not evaluate formula")
+            messages.error(request,  "Formula Error: Can not evaluate formula")
             return HttpResponseRedirect(activity.get_absolute_url())
         
         # save grade

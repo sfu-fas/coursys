@@ -122,6 +122,42 @@ div#actions ul li{
   padding: 0;
 }
 
+
+/* staff action box */
+#main .action_box {
+  border: 1px solid #AAAAAA;
+  float: right;
+  width: 200px;
+  margin: 0 1em 1em 1em;
+}
+#main .action_box h2 {
+  background: url("/media/images/grades/action_box.gif") repeat-x left top #6D6D6D;
+  color: #FFF;
+  padding: 3px 10px;
+  margin: 0!important;
+}
+#main .action_box ul {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+#main .action_box ul li{
+  padding: 0;
+}
+#main .action_box li a {
+  width: auto;
+  height: 1.4em;
+  line-height: 1.4em;
+  text-decoration: none;
+  text-indent: 0.8em;
+  display: block;
+  padding: 3px 0 3px 0;
+}
+#main .action_box li a:hover {
+  background-color: #EAF2FA;
+  color: #222;
+}
+
 div#newsitems div {
   /*margin: 0 2em;*/
   clear: right;
@@ -247,6 +283,10 @@ table.display td select{
 	width: 100px;
 }
 
+table.display tr:hover {
+  background-color: #EAF2FA;
+}
+
 table td.hidden {
 	display: none;
 }
@@ -299,33 +339,6 @@ tr:hover .row-actions {
   vertical-align: top;
 }
 
-
-/* individual activity box style for student view */
-.activity_box {
-  -moz-border-radius: 6px 6px 6px 6px;
-  border: 1px solid #ccc;
-  margin: 1em 0 20px 0.5em;;
-  width: 600px;
-  margin-left: 0.5em;
-}
-.activity_box .grade {
-  float: right;
-  font-weight: bold;
-  font-size: 1.2em;
-  padding: 5px 20px 5px 0px;
-  color: #555555;
-}
-.activity_box h3 {
-  background: url("/media/images/grades/gray-grad.png") repeat-x left top #DFDFDF;
-  color: #555555;
-  font-weight: bold;
-  font-size: 1.2em;
-  padding: 5px!important;
-  margin: 0!important;
-}
-.activity_box .inside {
-  margin: 10px;
-}
 table.activity_box_info tbody th {
   font-weight: bold;
   text-align: left;
