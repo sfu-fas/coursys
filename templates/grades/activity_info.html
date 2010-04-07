@@ -117,7 +117,7 @@
 	</thead>
         <tbody>
 	    {% for student_grade_info in student_grade_info_list %}
-	    <t>
+	    <tr>
 		<td scope="row">
 		    <a href="{% url grades.views.activity_info_student course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid%}">{{ student_grade_info.name }}</a>
 		</td>

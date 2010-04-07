@@ -13,6 +13,7 @@ from forms import *
 from django.forms.models import modelformset_factory
 from contrib import messages
 from django.db.models import Q
+from decimal import Decimal
 
 
 def _find_setup_conflicts(source_setup, target_setup):    
@@ -332,14 +333,13 @@ def _check_additional_info_form(addtional_info_form, warnings_to_return):
     if addtional_info_form.is_valid():        
         return addtional_info_form.save(commit = False)   
     return None
-    
+
 def _compute_final_mark(component_marks, max_grade, additional_info):
     components_total = 0
     for cmp_mark in component_marks:   
         components_total += cmp_mark.value
    
-    return  components_total - \
-            additional_info.late_penalty * max_grade/100 + \
+    return  (1-additional_info.late_penalty/Decimal(100))*components_total - \
             additional_info.mark_adjustment
 
 def _save_marking_results(activity, activity_mark, final_mark, marker_ident, mark_receiver_ident, component_marks = None, additional_info=None):
@@ -491,21 +491,21 @@ def marking_group(request, course_slug, activity_slug, group_slug):
 
 @login_required
 def mark_summary_student(request, course_slug, activity_slug, userid):
+     course = get_object_or_404(CourseOffering, slug = course_slug)    
+     activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)     
+
      if is_course_staff_by_slug(request.user, course_slug):
-        is_staff = True
+         is_staff = True
      elif is_course_student_by_slug(request.user, course_slug):
-        is_staff = False
+         if userid != request.user.username or activity.status != "RLS":
+             return ForbiddenResponse(request)
+         is_staff = False
      else:
          return ForbiddenResponse(request)
     
      student = get_object_or_404(Person, userid = userid)
-     course = get_object_or_404(CourseOffering, slug = course_slug)    
-     activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)     
      membership = get_object_or_404(Member,offering = course, person = student, role = 'STUD')
-     
-     if not is_staff and userid != request.user.username:
-         return ForbiddenResponse(request)
-     
+          
      act_mark_id = request.GET.get('activity_mark')
      if act_mark_id != None: # if act_mark_id specified in the url
          act_mark = get_activity_mark_by_id(activity, membership, act_mark_id) 

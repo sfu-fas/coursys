@@ -147,20 +147,10 @@ class NumericActivity(Activity):
             # newly-released grades: create news items
             class_list = Member.objects.exclude(role="DROP").filter(offering=self.offering)
             for m in class_list:
-                content = "Grades have been released for %s in %s. " \
-                      % (self.name, self.offering.name())
-                
-                # find the student's grade (if it exists)
-                grades = self.numericgrade_set.filter(member=m)
-                if grades and grades[0].flag != "NOGR":
-                    grade = grades[0]
-                    content += "Your mark is %s/%s." % (grade.value, self.numericactivity.max_grade)
-                else:
-                    content += "You have no grade."
-
                 n = NewsItem(user=m.person, author=None, course=self.offering,
                     source_app="grades", title="%s grade released" % (self.name), 
-                    content=content,
+                    content='Grades have been released for "%s in %s":%s.' \
+                      % (self.name, self.offering.name(), self.get_absolute_url()),
                     url=self.get_absolute_url()
                     )
                 n.save()
@@ -197,14 +187,6 @@ class LetterActivity(Activity):
                 content = "Grades have been released for %s in %s. " \
                       % (self.name, self.offering.name())
                 
-                # find the student's grade (if it exists)
-                grades = self.lettergrade_set.filter(member=m)
-                if grades and grades[0].flag != "NOGR":
-                    grade = grades[0]
-                    content += "Your mark is %s." % (grade.letter_grade)
-                else:
-                    content += "You have no grade."
-
                 n = NewsItem(user=m.person, author=None, course=self.offering,
                     source_app="grades", title="%s grade released" % (self.name), 
                     content=content,
@@ -298,10 +280,9 @@ class NumericGrade(models.Model):
             # generate news item
             n = NewsItem(user=self.member.person, author=None, course=self.activity.offering,
                 source_app="grades", title="%s grade available" % (self.activity.name), 
-                content="New grade for %s in %s is available: %s/%s." 
-                  % (self.activity.name, self.activity.offering.name(), self.value, self.activity.max_grade),
-                url=reverse('grades.views.course_info', kwargs={'course_slug':self.activity.offering.slug})
-                )
+                content='A "new grade for %s":%s in %s is available.' 
+                  % (self.activity.name, self.get_absolute_url(), self.activity.offering.name()),
+                url=self.get_absolute_url())
             n.save()
 
     def get_absolute_url(self):
@@ -328,15 +309,15 @@ class LetterGrade(models.Model):
         else:
             return "%s" % (self.letter_grade)
     
-    def save(self):
-        super(LetterGrade, self).save()
+    def save(self, newsitem=True):
+        super(NumericGrade, self).save()
         if self.activity.status == "RLS" and newsitem and self.flag != "NOGR":
+            # generate news item
             n = NewsItem(user=self.member.person, author=None, course=self.activity.offering,
                 source_app="grades", title="%s grade available" % (self.activity.name), 
-                content="New grade for %s in %s is available: %s." 
-                  % (self.activity.name, self.activity.offering.name(), self.letter_grade),
-                url=reverse('grades.views.course_info', kwargs={'course_slug':self.activity.offering.slug})
-                )
+                content='A "new grade for %s":%s in %s is available.' 
+                  % (self.activity.name, self.get_absolute_url(), self.activity.offering.name()),
+                url=self.get_absolute_url())
             n.save()
     
     class Meta:
