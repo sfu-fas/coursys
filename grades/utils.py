@@ -4,7 +4,7 @@ This module collects classes and functions that are for the display purpose of G
 
 from grades.models import Activity, NumericActivity, LetterActivity, NumericGrade, \
                            LetterGrade, all_activities_filter, ACTIVITY_TYPES, FLAGS
-from coredata.models import CourseOffering, Person
+from coredata.models import CourseOffering, Member
 from grades.formulas import parse, activities_dictionary, cols_used
 from external.pyparsing import ParseException
 import math
@@ -41,12 +41,8 @@ class StudentActivityInfo:
     """
     Object holding student activity info, used as context object in template
     """
-    def __init__(self, id, name, userid, emplid, email, activity, grade_status, numeric_grade, letter_grade):
-        self.id = id
-        self.name = name
-        self.userid = userid
-        self.emplid = emplid
-        self.email = email
+    def __init__(self, student, activity, grade_status, numeric_grade, letter_grade):
+        self.student = student
         self.activity = activity
         self.grade_status = grade_status
         self.numeric_grade = numeric_grade
@@ -191,10 +187,10 @@ def create_StudentActivityInfo_list(course, activity, student=None):
     # verify if the course contains the activity
     if not all_activities_filter(slug=activity.slug, offering=course):
         return
-    student_list = course.members.filter(person__role='STUD')
+    student_list = Member.objects.filter(offering=course, role='STUD')
     if student:
-        if not isinstance(student, Person):
-            raise TypeError(u'Person type is required')
+        if not isinstance(student, Member):
+            raise TypeError(u'Member type is required')
         if student in student_list:
             student_list = [student]
         else:
@@ -203,33 +199,35 @@ def create_StudentActivityInfo_list(course, activity, student=None):
     student_activity_info_list = []
     
     if isinstance(activity, NumericActivity):
-        numeric_grade_list = NumericGrade.objects.filter(activity=activity)
+        # select_ralated field for fast template rendering
+        numeric_grade_list = NumericGrade.objects.filter(activity=activity).select_related('member', 'member__person')
         for student in student_list:
             student_grade_status = None
             for numeric_grade in numeric_grade_list:
-                if numeric_grade.member.person == student:
+                if numeric_grade.member == student:
                     student_grade_status = numeric_grade.get_flag_display()
                     student_grade = numeric_grade.value
                     break
             if not student_grade_status:
                 student_grade_status = FLAGS['NOGR']
                 student_grade = None
-            student_activity_info_list.append(StudentActivityInfo(student.id, student.name(), student.userid, student.emplid, student.email(),
-                                                            activity, student_grade_status, student_grade, None))
+            student_activity_info_list.append(StudentActivityInfo(student, activity,
+                                                                  student_grade_status, student_grade, None))
     elif isinstance(activity, LetterActivity):
-        letter_grade_list = LetterGrade.objects.filter(activity=activity)
+        # select_ralated field for fast template rendering
+        letter_grade_list = LetterGrade.objects.filter(activity=activity).select_related('member', 'member__person')
         for student in student_list:
             student_grade_status = None
             for letter_grade in letter_grade_list:
-                if letter_grade.member.person == student:
+                if letter_grade.member == student:
                     student_grade_status = letter_grade.get_flag_display()
                     student_grade = letter_grade.letter_grade
                     break
             if not student_grade_status:
                 student_grade_status = FLAGS['NOGR']
                 student_grade = None
-            student_activity_info_list.append(StudentActivityInfo(student.id, student.name(), student.userid, student.emplid, student.email(),
-                                                            activity, student_grade_status, None, student_grade))
+            student_activity_info_list.append(StudentActivityInfo(student, activity,
+                                                                  student_grade_status, None, student_grade))
     return student_activity_info_list
 
 def generate_numeric_activity_stat(activity):

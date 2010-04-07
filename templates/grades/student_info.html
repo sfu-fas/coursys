@@ -76,6 +76,13 @@
               <td></td>
               {% endif %}
             </tr>
+	    {% empty %}
+	    <tr>
+		<td>No activity</td>
+		<td></td>
+		<td></td>
+		<td></td>
+	    </tr>
             {% endfor %}
         </tbody>
     </table>

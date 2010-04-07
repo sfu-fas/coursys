@@ -17,6 +17,9 @@
 		    null,
 		    null,
 		    null,
+		    null,
+		    null,
+		    null,
 		    {% if not activity.calnumericactivity %}
 		    { "sWidth": "3em" }
 		    {% endif %}
@@ -33,6 +36,7 @@
 <h2>Actions</h2>
 <ul>
 <li><a href="{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}">Edit Activity Details</a></li>
+<li><a href="{% url grades.views.activity_stat course_slug=course.slug activity_slug=activity.slug %}">Display Statistics</a></li> 
 <li><a href="{% url submission.views.show_components course_slug=course.slug, activity_slug=activity.slug%}">Configure Submission</a></li>
 <li><a href="{% url marking.views.manage_activity_components course_slug=course.slug,activity_slug=activity.slug%}">Configure Marking</a></li>
 <li><a href="{% url marking.views.manage_common_problems course_slug=course.slug,activity_slug=activity.slug%}">Configure Common Problems</a></li>
@@ -41,7 +45,7 @@
 / <a class="button" href="{% url marking.views.mark_all_groups course_slug=course.slug, activity_slug=activity.slug%}">Mark all by Group</a>
 {% endif %}
 </li>
-<li><a href="{% url marking.views.export_csv course_slug=course.slug, activity_slug=activity.slug%}">Export all</a></li> 
+<li><a href="{% url marking.views.export_csv course_slug=course.slug, activity_slug=activity.slug%}">Export all</a></li>
 </ul>
 </div>
 {% endblock %}
@@ -106,45 +110,54 @@
     <table class="display" id="student_grades">
         <thead>
             <tr>
-                <th>Student Name</th>
-		<th>Student Number</th>
-		<th>Grade Status</th>
-		<th>Grade</th>
+		<th scope="col"><img src="{{MEDIA_URL}}icons/information.png" title="Details" alt="info" /></th>
+                <th scope="col">Last name</th>
+                <th scope="col">First name</th>
+		<th scope="col">User ID</th>
+		<th scope="col">Stu #</th>
+		<th scope="col">Grade Status</th>
+		<th scope="col">Grade</th>
 		{% if not activity.calnumericactivity %}
-		<th><img src="{{MEDIA_URL}}icons/disk_multiple.png" title="Submission" alt="Submission" /></th>
+		<th scope="col"><img src="{{MEDIA_URL}}icons/disk_multiple.png" title="Submission" alt="Submission" /></th>
 		{% endif %}
             </tr>
 	</thead>
         <tbody>
 	    {% for student_grade_info in student_grade_info_list %}
+	    {% with student_grade_info.student as student %}
 	    <tr>
-		<td scope="row">
-		    <a href="{% url grades.views.activity_info_student course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid%}">{{ student_grade_info.name }}</a>
-		</td>
-		<td>{{ student_grade_info.emplid }}</td>
+		<td><a href="{{student.get_absolute_url}}"><img src="{{MEDIA_URL}}icons/information.png" title="Details for {{student.person.name}}" alt="info" /></a></td>
+		<td>{{ student.person.last_name }}</td>
+		<td>{{ student.person.first_name }}</td>
+		<td>{{ student.person.userid }}</td>
+		<td>{{ student.person.emplid }}</td>
 		<td>{{ student_grade_info.grade_status }}</td>
 		<td>
 		{% if activity.calnumericactivity %}
 		    {{ student_grade_info.display_grade_staff }}
 		{% else %}
 		    {% ifequal student_grade_info.grade_status 'no grade'%} 
-			<a href="{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid %}?from_page={{from_page}}"><img src="{{MEDIA_URL}}icons/page_white_edit.png" title="Mark This" alt="Mark This"/></a>		   
+			<a href="{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug userid=student.person.userid %}?from_page={{from_page}}"><img src="{{MEDIA_URL}}icons/page_white_edit.png" title="Mark This" alt="Mark This"/></a>		   
 		    {% else %}
-			<a href="{% url marking.views.mark_summary_student course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
+			<a href="{% url marking.views.mark_summary_student course_slug=course.slug activity_slug=activity.slug userid=student.person.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
 			{{ student_grade_info.display_grade_staff }}		   
 		    {% endifequal %}
 		{% endif %}
 		</td>
 		{% if not activity.calnumericactivity %}
 		<td>
-		    <a href="{% url submission.views.show_student_submission_staff course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View" alt="View" /></a>
-		    <a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=student_grade_info.userid %}"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="Download" alt="Download" /></a>
+		    <a href="{% url submission.views.show_student_submission_staff course_slug=course.slug activity_slug=activity.slug userid=student.person.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View" alt="View" /></a>
+		    <a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=student.person.userid %}"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="Download" alt="Download" /></a>
 		</td>
 		{% endif %}
 	    </tr>
+	    {% endwith %}
 	    {% empty %}
 	    <tr>
 		<td>No student</td>
+		<td></td>
+		<td></td>
+		<td></td>
 		<td></td>
 		<td></td>
 		<td></td>

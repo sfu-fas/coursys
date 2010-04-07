@@ -12,7 +12,7 @@ from grades.forms import NumericActivityForm, LetterActivityForm, CalNumericActi
                          ActivityFormEntry, FormulaFormEntry, FORMTYPE, GROUP_STATUS_MAP
 from grades.models import *
 from grades.utils import StudentActivityInfo, reorder_course_activities, create_StudentActivityInfo_list, \
-                        ORDER_TYPE, FormulaTesterActivityEntry, FakeActivity
+                        ORDER_TYPE, FormulaTesterActivityEntry, FakeActivity, generate_numeric_activity_stat
 from grades.utils import ValidationError, parse_and_validate_formula
 from marking.models import get_group_mark
 from groups.models import *
@@ -24,6 +24,9 @@ from grades.formulas import activities_dictionary, eval_parse, EvalException
 
 
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
+
+# Course should have this number to student to display the activity statistics, including histogram
+STUD_NUM_TO_DISP_ACTSTAT = 10
 
 # Only for display purpose.
 ACTIVITY_TYPE = {'NG': 'Numeric Graded', 'LG': 'Letter Graded',
@@ -102,9 +105,10 @@ def _course_info_student(request, course_slug):
     activities = all_activities_filter(offering=course, status__in=['RLS', 'URLS'], deleted=False)
     
     activityinfo_list = []
+    student = Member.objects.get(offering=course, person__userid=request.user.username, role='STUD')
     for activity in activities:
         activityinfo_list.append(create_StudentActivityInfo_list(course, activity,
-                student=Person.objects.get(userid=request.user.username))[0].append_activity_stat())
+                                                                 student=student)[0])
     context = {'course': course, 'activityinfo_list': activityinfo_list, 'from_page': FROMPAGE['course']}
     return render_to_response("grades/course_info_student.html", context,
                               context_instance=RequestContext(request))
@@ -149,11 +153,14 @@ def _activity_info_student(request, course_slug, activity_slug):
     if activity.status=="INVI":
         return NotFoundResponse(request)
 
-    # only display summary stats for courses with at least 10 students
+    # only display summary stats for courses with at least STUD_NUM_TO_DISP_ACTSTAT students
     student_count = Member.objects.filter(offering=course, role="STUD").count()
-    display_summary = student_count >= 10 and activity.status=="RLS"
+    display_summary = student_count >= STUD_NUM_TO_DISP_ACTSTAT and activity.status=="RLS"
     
-    activityinfo = create_StudentActivityInfo_list(course, activity, student=Person.objects.get(userid=request.user.username))[0].append_activity_stat()
+    student = Member.objects.get(offering=course, person__userid=request.user.username, role='STUD')
+    activityinfo = create_StudentActivityInfo_list(course, activity, student=student)[0]
+    if display_summary:
+        activityinfo.append_activity_stat()
 
     context = {'course': course, 'activity': activity, 'activityinfo': activityinfo, 'display_summary': display_summary}
     return render_to_response('grades/activity_info_student.html', context, context_instance=RequestContext(request))
@@ -198,20 +205,39 @@ def activity_info_with_groups(request, course_slug, activity_slug):
                'activity': activity, 'ungrouped_students': ungrouped_students, \
                'group_grade_info_list': groups_found.values(), 'from_page': FROMPAGE['activityinfo_group']}
     return render_to_response('grades/activity_info_with_groups.html', context, context_instance=RequestContext(request))
-   
-            
+
 @requires_course_staff_by_slug
-def activity_info_student(request, course_slug, activity_slug, userid):
+def activity_stat(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activities = all_activities_filter(slug=activity_slug, offering=course)
+    
     if len(activities) != 1:
         return NotFoundResponse(request)
-        
+
     activity = activities[0]
-    student = get_object_or_404(Person, userid=userid)
-    student_grade_info = create_StudentActivityInfo_list(course, activity, student)[0]
-    context = {'course': course, 'activity': activity, 'student_grade_info': student_grade_info}
-    return render_to_response('grades/student_grade_info.html', context, context_instance=RequestContext(request))
+
+    # only display summary stats for courses with at least STUD_NUM_TO_DISP_ACTSTAT students
+    student_count = Member.objects.filter(offering=course, role="STUD").count()
+    display_summary = student_count >= STUD_NUM_TO_DISP_ACTSTAT
+    
+    activity_stat = generate_numeric_activity_stat(activity)
+
+    context = {'course': course, 'activity': activity, 'activity_stat': activity_stat, 'display_summary': display_summary}
+    return render_to_response('grades/activity_stat.html', context, context_instance=RequestContext(request))
+   
+            
+#@requires_course_staff_by_slug
+#def activity_info_student(request, course_slug, activity_slug, userid):
+#    course = get_object_or_404(CourseOffering, slug=course_slug)
+#    activities = all_activities_filter(slug=activity_slug, offering=course)
+#    if len(activities) != 1:
+#        return NotFoundResponse(request)
+#        
+#    activity = activities[0]
+#    student = get_object_or_404(Person, userid=userid)
+#    student_grade_info = create_StudentActivityInfo_list(course, activity, student)[0]
+#    context = {'course': course, 'activity': activity, 'student_grade_info': student_grade_info}
+#    return render_to_response('grades/student_grade_info.html', context, context_instance=RequestContext(request))
 
 
 @requires_course_staff_by_slug
@@ -345,25 +371,27 @@ def calculate_all(request, course_slug, activity_slug):
         messages.error(request, e.args[0])
         return HttpResponseRedirect(activity.get_absolute_url())
 
-    member_list = Member.objects.filter(offering=course, role='STUD')
-    for member in member_list:
+    student_list = Member.objects.filter(offering=course, role='STUD')
+    numeric_grade_list = NumericGrade.objects.filter(activity = activity).select_related('member')
+    for student in student_list:
+        # calculate grade
         try:
-            result = eval_parse(parsed_expr, act_dict, member)
+            result = eval_parse(parsed_expr, act_dict, student)
         except EvalException:
             messages.error(request,  "Can not evaluate formula")
             return HttpResponseRedirect(activity.get_absolute_url())
         
-        try:
-            numeric_grade = NumericGrade.objects.get(activity = activity, member = member)
-        except NumericGrade.DoesNotExist:
-            numeric_grade = None
-        else:
-            numeric_grade.value = str(result)
-            numeric_grade.save()
-
-        if numeric_grade == None:
+        # save grade
+        member_found = False
+        for numeric_grade in numeric_grade_list:
+            if numeric_grade.member == student:
+                member_found = True
+                numeric_grade.value = str(result)
+                numeric_grade.save()
+                break
+        if not member_found:
             try:
-                numeric_grade = NumericGrade(activity=activity, member=member,
+                numeric_grade = NumericGrade(activity=activity, member=student,
                                              value=str(result), flag='CALC')
                 numeric_grade.save()
             except NotImplementedError:
