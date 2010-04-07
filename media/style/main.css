@@ -100,29 +100,6 @@ div#messages .info {
     font-weight: bold;
 }
 
-div#actions {
-  float: right;
-  width: 200px;
-  margin: -2.15em 2em 1em 2em;
-  padding: 0.75em 0.5em;
-  background-color: #e6e6e6;
-}
-div#actions h2 {
-  margin: 0 0 0.5em 0;
-  padding: 0;
-}
-div#actions ul {
-  margin: 0;
-  padding: 0;
-  list-style-type: none;
-  font-weight: bold;
-}
-div#actions ul li{
-  margin: 0.3em 0;
-  padding: 0;
-}
-
-
 /* staff action box */
 #main .action_box {
   border: 1px solid #AAAAAA;
