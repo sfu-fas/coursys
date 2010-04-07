@@ -635,6 +635,74 @@ def export_csv(request, course_slug, activity_slug):
     return response
 
 @requires_course_staff_by_slug
+def mark_all_groups(request, course_slug, activity_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(NumericActivity, offering=course, slug=activity_slug)
+    
+    error_info = None
+    rows=[]
+    warning_info=[]
+    groups = set()
+    all_members = GroupMember.objects.select_related('group').filter(activity = activity, confirmed = True)
+    for member in all_members:
+        if not member.group in groups:
+            groups.add(member.group)
+    
+    if request.method == 'POST':
+        current_act_marks = []
+        for group in groups:
+            entry_form = MarkEntryForm(data = request.POST, prefix = group.name)
+            if entry_form.is_valid() == False:
+                error_info = "Error found"           
+            act_mark = get_group_mark(activity, group)         
+            if act_mark == None:
+                current_mark = 'no grade'
+            else:
+                current_mark = act_mark.mark 
+            current_act_marks.append(act_mark)
+            rows.append({'group': group, 'current_mark' : current_mark, 'form' : entry_form})  
+        
+        if error_info == None:
+            updated = 0
+            i = 0
+            for group in groups:
+               new_value = rows[i]['form'].cleaned_data['value']
+               if new_value== None or\
+                  (current_act_marks[i] != None and current_act_marks[i].mark == new_value):
+                   continue               
+               act_mark = GroupActivityMark(group=group, numeric_activity=activity)
+               _save_marking_results(activity, act_mark, new_value, request.user.username,\
+                                     ("group %s" % group.name))
+               updated += 1     
+               if new_value < 0:
+                   warning_info.append("Negative mark given to group %s" % group.name)
+               elif new_value > activity.max_grade:
+                   warning_info.append("Bonus mark given to group %s" % group.name)  
+               i += 1
+                 
+            if updated > 0:
+                messages.add_message(request, messages.SUCCESS, "Marks for all groups on %s saved (%s groups' grades updated)!" % (activity.name, updated))
+            for warning in warning_info:
+                messages.add_message(request, messages.WARNING, warning)                    
+            return HttpResponseRedirect(reverse('grades.views.activity_info', args=(course_slug, activity_slug)))     
+        
+    else: # for GET request
+       for group in groups: 
+           act_mark = get_group_mark(activity, group)         
+           if act_mark == None:
+                current_mark = 'no grade'
+           else:
+                current_mark = act_mark.mark
+           entry_form = MarkEntryForm(prefix = group.name)                                    
+           rows.append({'group': group, 'current_mark' : current_mark, 'form' : entry_form}) 
+    
+    return render_to_response("marking/mark_all_group.html",
+                          {'course': course, 'activity': activity,'mark_all_rows': rows }, 
+                          context_instance = RequestContext(request))
+            
+    
+
+@requires_course_staff_by_slug
 def mark_all_students(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug = course_slug)
     activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)
@@ -666,7 +734,7 @@ def mark_all_students(request, course_slug, activity_slug):
             forms.append(entry_form)
             rows.append({'student': student, 'current_grade' : current_grade, 'form' : entry_form})    
        
-        # try to save if needed 
+        # save if needed 
         if error_info == None:
             updated = 0                 
             for i in range(len(memberships)):
@@ -727,7 +795,7 @@ def mark_all_students(request, course_slug, activity_slug):
     if fileform == None:
         fileform = UploadGradeFileForm(prefix = 'import-file')   
     
-    return render_to_response("marking/mark_all.html",{'course': course, 'activity': activity,\
+    return render_to_response("marking/mark_all_student.html",{'course': course, 'activity': activity,\
                               'fileform' : fileform,'too_many': len(rows) >= 100,\
                               'mark_all_rows': rows }, context_instance = RequestContext(request))
  

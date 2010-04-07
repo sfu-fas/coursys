@@ -21,7 +21,7 @@
 		"bSort": false
 	});
 	
-	// The falling code deals with activity reordering
+	// The following code deals with activity reordering
 	{%for info in activities_info%}
 		act_ids[{{forloop.counter}}-1] = "{{info.activity.id}}";
 	{%endfor%}
