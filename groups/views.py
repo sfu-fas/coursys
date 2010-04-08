@@ -286,7 +286,7 @@ def remove_student(request, course_slug, group_slug):
                 #LOG EVENT#
         students = GroupMember.objects.filter(group = group)
         #if there is not member in this group, delete the group
-        if not student:
+        if not students:
             group.delete()
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
