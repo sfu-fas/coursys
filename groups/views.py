@@ -367,6 +367,64 @@ def switch_group(request, course_slug, group_slug):
         return render_to_response('groups/switch_group.html', \
                           {'course':course, 'group' : group, 'studentList':studentList}, \
                           context_instance = RequestContext(request))
+
+@requires_course_by_slug
+def assign_student(request, course_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    members = GroupMember.objects.filter(group__courseoffering=course)
+    
+    #find the students not in any group
+    students = Member.objects.select_related('person').filter(offering = course, role = 'STUD')
+    studentsNotInGroup = []
+    for student in students:
+        studentNotInGroupFlag = True
+        for groupMember in members:
+            if student == groupMember.student:
+                studentNotInGroupFlag = False
+        if studentNotInGroupFlag == True:
+            studentsNotInGroup.append(student) 
+            
+    group_qset = Group.objects.filter(courseoffering = course) \
+               .select_related('courseoffering')       
+    from django import forms
+    class GroupForm(forms.Form):
+        group = forms.ModelChoiceField(queryset = group_qset)   
+    
+    if request.method == "POST": 
+        groupForm = GroupForm(request.POST)
+        if groupForm.is_valid():
+            group = groupForm.cleaned_data['group']
+            
+        #find the activities belong to this group   
+        groupMembers = GroupMember.objects.filter(group = group)
+        if groupMembers:
+            memberships = GroupMember.objects.filter(student = groupMembers[0].student)
+            activityList = []
+            for membership in memberships:
+                activityList.append(membership.activity)
+                
+            #create new group member
+            for activity in activityList:
+                for student in studentsNotInGroup:
+                    studentForm = StudentForm(request.POST, prefix = student.person.userid)
+                    if studentForm.is_valid() and studentForm.cleaned_data['selected'] == True:
+                        groupMember = GroupMember(group=group, student=student, confirmed=True, activity = activity)
+                        groupMember.save()
+            
+        return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+        
+    else:  
+        groupForm = GroupForm()
+        studentList = []       
+        for student in studentsNotInGroup:
+            studentForm = StudentForm(prefix = student.person.userid)
+            studentList.append({'studentForm': studentForm, 'first_name' : student.person.first_name,\
+                                 'last_name' : student.person.last_name, 'userid' : student.person.userid,\
+                                 'emplid' : student.person.emplid})
+            
+        return render_to_response('groups/assign_student.html', \
+                          {'course':course, 'studentList':studentList, 'groupForm':groupForm}, \
+                          context_instance = RequestContext(request))
                                   
 
 #def joinconfirm(request):

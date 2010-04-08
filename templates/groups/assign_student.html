@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load course_display %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url groups.views.groupmanage course_slug=course.slug %}">groups</a></li><li>&gt; Assign student</li>{% endblock %}
+{% block content %}
+	<h1>Assign student</h1>
+	{% if user %}
+		<form action="{% url groups.views.assign_student course_slug=course.slug %}" method="POST">
+			  <div class = "group selector">
+			  <h2>Select a group</h2>
+			  <label for="id_group">Group:</label>
+			  {{ groupForm.group }}
+			  </div>
+			  <div class = "datatable_container"> 
+			  <h2>Select students to assign to the group</h2>
+			  <br>
+			   <table class="display" id="students">
+			     <thead>
+			       <tr>
+				     <th>Selected</th> 
+				     <th>User ID</th>
+				     <th>First Name</th>
+				     <th>Last Name</th>
+				     <th>Student ID</th>
+			       </tr>         
+			     </thead>  
+			     <tbody>
+			    {% for std in studentList %}
+			     <tr>
+				   <td><center>{{ std.studentForm.selected }}</center></td> 
+				   <td><center>{{ std.userid }}</center></td>
+				   <td><center>{{ std.first_name }}</center></td>
+				   <td><center>{{ std.last_name }}</center></td>  
+				   <td><center>{{ std.emplid }}</center></td> 
+			     </tr> 
+			   </tbody>
+			   {% endfor %}
+			   </table>
+			</div>
+			<br>
+			<input class = 'submit' type="submit" value="Assign">
+                </form>
+		<br>
+		<a class="button" href="{% url groups.views.groupmanage course_slug=course.slug %}">Return</a>
+	{% endif %}
+{% endblock content %}

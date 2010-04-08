@@ -41,6 +41,7 @@
   {% endif %}
   </div>
   <p>
+    <a class="button" href="{% url groups.views.assign_student course_slug=course.slug %}">Assign Student</a>
     <a class="button" href="{% url groups.views.create course_slug=course.slug %}">New Group</a>
   </p>
 {% endblock %}

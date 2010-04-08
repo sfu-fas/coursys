@@ -28,6 +28,7 @@ urlpatterns = patterns('',
 
     url(r'^' + COURSE_SLUG + '/_groups$', 'groups.views.groupmanage'),
     url(r'^' + COURSE_SLUG + '/_groups/new$', 'groups.views.create'),
+    url(r'^' + COURSE_SLUG + '/_groups/assignStudent$', 'groups.views.assign_student'),
     url(r'^' + COURSE_SLUG + '/_groups/submit$', 'groups.views.submit'),
     url(r'^' + COURSE_SLUG + '/_groups/invite/(?P<group_slug>' + SLUG_RE + ')$', 'groups.views.invite'),
     url(r'^' + COURSE_SLUG + '/_groups/switchGroup/(?P<group_slug>' + SLUG_RE + ')$', 'groups.views.switch_group'),
