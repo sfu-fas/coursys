@@ -382,7 +382,7 @@ def calculate_all(request, course_slug, activity_slug):
         try:
             result = eval_parse(parsed_expr, act_dict, student)
         except EvalException:
-            messages.error(request,  "Formula Error: Can not evaluate formula")
+            messages.error(request,  "Formula Error: Can not evaluate formula for student: '%s'" % student.person.name())
             return HttpResponseRedirect(activity.get_absolute_url())
         
         # save grade

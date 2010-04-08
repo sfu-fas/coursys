@@ -101,27 +101,27 @@ div#messages .info {
 }
 
 /* staff action box */
-#main .action_box {
+#actions {
   border: 1px solid #AAAAAA;
   float: right;
   width: 200px;
   margin: 0 1em 1em 1em;
 }
-#main .action_box h2 {
+#actions h2 {
   background: url("/media/images/grades/action_box.gif") repeat-x left top #6D6D6D;
   color: #FFF;
-  padding: 3px 10px;
-  margin: 0!important;
+  padding: 3px 10px !important;
+  margin: 0 !important;
 }
-#main .action_box ul {
+#actions ul {
   margin: 0;
   padding: 0;
   list-style-type: none;
 }
-#main .action_box ul li{
+#actions ul li{
   padding: 0;
 }
-#main .action_box li a {
+#actions li a {
   width: auto;
   height: 1.4em;
   line-height: 1.4em;
@@ -130,11 +130,15 @@ div#messages .info {
   display: block;
   padding: 3px 0 3px 0;
 }
-#main .action_box li a:hover {
+#actions li a:hover {
   background-color: #EAF2FA;
   color: #222;
+  text-decoration: none;
 }
 
+div#newsitems {
+  clear: both;
+}
 div#newsitems div {
   /*margin: 0 2em;*/
   clear: right;
