@@ -37,7 +37,7 @@ def _groupmanage_student(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     members = GroupMember.objects.filter(group__courseoffering=course, student__person__userid=request.user.username)
     #NoDuplicateMembers=set(members)  
-    activities = Activity.objects.filter(offering = course, status = 'URLS') 
+    #activities = Activity.objects.filter(offering = course, status = 'RLS') 
     #students = Member.objects.select_related('person').filter(offering = course, role = 'STUD')
     #groups= Group.objects.filter(courseoffering=course)
     #plist= []
@@ -60,6 +60,7 @@ def _groupmanage_student(request, course_slug):
             membersNotInDuplicateGroup.append(member)
         else:
             membersInDuplicateGroup.append(member)
+            
     for member in membersInDuplicateGroup:
         memberone=member
         counter=0
@@ -82,7 +83,7 @@ def _groupmanage_student(request, course_slug):
     for member in membersInDuplicateGroup:
         membersNotInDuplicateGroup.append(member)
      
-    return render_to_response('groups/student.html', {'course':course, 'groups':groups,'membersNotInDuplicateGroup':membersNotInDuplicateGroup}, context_instance = RequestContext(request))
+    return render_to_response('groups/student.html', {'course':course, 'groups':groups,'members':membersNotInDuplicateGroup}, context_instance = RequestContext(request))
 
 def _groupmanage_staff(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
