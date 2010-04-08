@@ -268,31 +268,46 @@ def invite(request, course_slug, group_slug):
         return render_to_response("groups/invite.html", context, context_instance=RequestContext(request))
 
 @requires_course_by_slug
-def delete_group(request, course_slug, group_slug):   
+def remove_student(request, course_slug, group_slug):   
     course = get_object_or_404(CourseOffering, slug = course_slug)
     group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
+    students = GroupMember.objects.filter(group = group) 
+    
     if request.method == "POST": 
-        groupMembers = GroupMember.objects.filter(group=group)
-        #LOG EVENT#
-        for member in groupMembers:
+        for student in students:
+            studentForm = StudentForm(request.POST, prefix = student.student.person.userid)
+            if studentForm.is_valid() and studentForm.cleaned_data['selected'] == True:
+                student.delete()
+                #LOG EVENT#
+                l = LogEntry(userid=request.user.username,
+                description="deleted %s in group %s for %s." % (student.student.person.userid,group.name,student.activity),
+                related_object=student)
+                l.save()
+                #LOG EVENT#
+        students = GroupMember.objects.filter(group = group)
+        #if there is not member in this group, delete the group
+        if not student:
+            group.delete()
+            #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-            description="deleted %s in group %s for %s." % (member.student.person.userid,group.name,member.activity),
-            related_object=member)
+            description="deleted group %s for course %s." % (group.name, group.courseoffering),
+            related_object=group)
             l.save()
-        groupMembers.delete()
-        group.delete()
-        #LOG EVENT#
-        l = LogEntry(userid=request.user.username,
-        description="deleted group %s for course %s." % (group.name, group.courseoffering),
-        related_object=group )
-        l.save()
-        
-
+            #LOG EVENT#
+                
         return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
         
-    else:
-        return render_to_response("groups/delete.html", {'course' : course, 'group' : group}, \
-                              context_instance=RequestContext(request))
+    else:     
+        studentList = []       
+        for student in students:
+            studentForm = StudentForm(prefix = student.student.person.userid)
+            studentList.append({'studentForm': studentForm, 'first_name' : student.student.person.first_name,\
+                                 'last_name' : student.student.person.last_name, 'userid' : student.student.person.userid,\
+                                 'emplid' : student.student.person.emplid})
+            
+        return render_to_response('groups/remove_student.html', \
+                          {'course':course, 'group' : group, 'studentList':studentList}, \
+                          context_instance = RequestContext(request))
     
 @requires_course_by_slug
 def change_name(request, course_slug, group_slug):   
