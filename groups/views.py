@@ -36,15 +36,15 @@ def groupmanage(request, course_slug):
 def _groupmanage_student(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     members = GroupMember.objects.filter(group__courseoffering=course, student__person__userid=request.user.username)
-    #NoDuplicateMembers=set(members)  
-    #activities = Activity.objects.filter(offering = course, status = 'RLS') 
+    #NoDuplicateMembers=set(members)
+    #activities = Activity.objects.filter(offering = course, status = 'RLS')
     #students = Member.objects.select_related('person').filter(offering = course, role = 'STUD')
     #groups= Group.objects.filter(courseoffering=course)
     #plist= []
     #groupmember=GroupMember.objects.filter(student__person__userid=request.user.username)
     groups=Group.objects.filter(groupmember__student__person__userid=request.user.username)
     #NoDuplicateGroups=list(Set(groups))
-    membersNotInDuplicateGroup = [] 
+    membersNotInDuplicateGroup = []
     membersInDuplicateGroup = []
     NoDuplicateGroupmembers=[]
     #countGroup=0;
@@ -60,7 +60,7 @@ def _groupmanage_student(request, course_slug):
             membersNotInDuplicateGroup.append(member)
         else:
             membersInDuplicateGroup.append(member)
-            
+
     for member in membersInDuplicateGroup:
         memberone=member
         counter=0
@@ -69,7 +69,7 @@ def _groupmanage_student(request, course_slug):
                 counter=counter+1
                 if counter>1:
                     membersInDuplicateGroup.remove(member)
-    
+
     for member in membersInDuplicateGroup:
         memberone=member
         counter=0
@@ -79,10 +79,10 @@ def _groupmanage_student(request, course_slug):
                     counter=counter+1
             if counter>1:
                     membersInDuplicateGroup.remove(member)
-    
+
     for member in membersInDuplicateGroup:
         membersNotInDuplicateGroup.append(member)
-     
+
     return render_to_response('groups/student.html', {'course':course, 'groups':groups,'members':membersNotInDuplicateGroup}, context_instance = RequestContext(request))
 
 def _groupmanage_staff(request, course_slug):
@@ -97,8 +97,8 @@ def _groupmanage_staff(request, course_slug):
             if student == groupMember.student:
                 studentNotInGroupFlag = False
         if studentNotInGroupFlag == True:
-            studentsNotInGroup.append(student)   
-    
+            studentsNotInGroup.append(student)
+
     groups = Group.objects.filter(courseoffering = course)
     groupList = []
     for group in groups:
@@ -124,7 +124,7 @@ def _groupmanage_staff(request, course_slug):
             #print groupDict
     #print groupList
     print groupList[0]['confirmedStudents']
-                
+
     return render_to_response('groups/instructor.html', \
                               {'course':course, 'groupList':groupList, 'studentsNotInGroup':studentsNotInGroup}, \
                               context_instance = RequestContext(request))
@@ -134,8 +134,8 @@ def create(request,course_slug):
     person = get_object_or_404(Person,userid=request.user.username)
     course = get_object_or_404(CourseOffering, slug = course_slug)
     group_manager=Member.objects.get(person = person, offering = course)
-    # can only see released and unreleased group activity 
-    activities = Activity.objects.filter(Q(status='RLS') | Q(status='URLS'), offering = course, group=True) 
+    # can only see released and unreleased group activity
+    activities = Activity.objects.filter(Q(status='RLS') | Q(status='URLS'), offering = course, group=True)
     activityList = []
     for activity in activities:
         activityForm = ActivityForm(prefix = activity.slug)
@@ -146,11 +146,11 @@ def create(request,course_slug):
         return render_to_response('groups/create_student.html', \
                                   {'manager':group_manager, 'course':course, 'activityList':activityList},\
                                   context_instance = RequestContext(request))
-    
+
     elif is_course_staff_by_slug(request.user, course_slug):
         #For instructor page, there is a student table for him/her to choose the students who belong to the new group
-        students = Member.objects.select_related('person').filter(offering = course, role = 'STUD')       
-        studentList = []       
+        students = Member.objects.select_related('person').filter(offering = course, role = 'STUD')
+        studentList = []
         for student in students:
             studentForm = StudentForm(prefix = student.person.userid)
             studentList.append({'studentForm': studentForm, 'first_name' : student.person.first_name,\
@@ -161,8 +161,8 @@ def create(request,course_slug):
                           {'manager':group_manager, 'course':course, 'activityList':activityList, \
                            'studentList':studentList}, context_instance = RequestContext(request))
     else:
-        return HttpResponseForbidden()    
-    
+        return HttpResponseForbidden()
+
 @requires_course_by_slug
 def submit(request,course_slug):
     #TODO: validate activity?
@@ -178,8 +178,8 @@ def submit(request,course_slug):
         if is_course_student_by_slug(request.user, course_slug):
             return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
         elif is_course_staff_by_slug(request.user, course_slug):
-            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))   
-        
+            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+
 
     else:
         group = Group(name = name, manager = member, courseoffering=course)
@@ -191,7 +191,7 @@ def submit(request,course_slug):
         l.save()
         #Deal with creating the membership
         if is_course_student_by_slug(request.user, course_slug):
-            activities = Activity.objects.filter(Q(status='RLS') | Q(status='URLS'), offering = course, group=True) 
+            activities = Activity.objects.filter(Q(status='RLS') | Q(status='URLS'), offering = course, group=True)
             for activity in activities:
                 activityForm = ActivityForm(request.POST, prefix = activity.slug)
                 if activityForm.is_valid() and activityForm.cleaned_data['selected'] == True:
@@ -204,10 +204,10 @@ def submit(request,course_slug):
                     l.save()
 
             messages.add_message(request, messages.SUCCESS, 'Group Created')
-            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))    
+            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
         elif is_course_staff_by_slug(request.user, course_slug):
-            activities = Activity.objects.filter(Q(status='RLS') | Q(status='URLS'), offering = course, group=True) 
-            students = Member.objects.select_related('person').filter(offering = course, role = 'STUD') 
+            activities = Activity.objects.filter(Q(status='RLS') | Q(status='URLS'), offering = course, group=True)
+            students = Member.objects.select_related('person').filter(offering = course, role = 'STUD')
             for activity in activities:
                 activityForm = ActivityForm(request.POST, prefix = activity.slug)
                 if activityForm.is_valid() and activityForm.cleaned_data['selected'] == True:
@@ -220,12 +220,12 @@ def submit(request,course_slug):
                             l = LogEntry(userid=request.user.username,
                             description="added %s as a group member to %s for activity %s." % (student.person.userid,group.name, groupMember.activity),
                             related_object=groupMember )
-                            l.save()                    
+                            l.save()
             messages.add_message(request, messages.SUCCESS, 'Group Created')
             return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
         else:
             return HttpResponseForbidden()
-    
+
 
 
 @requires_course_by_slug
@@ -234,10 +234,10 @@ def join(request, course_slug, group_slug):
     group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
     person = get_object_or_404(Person, userid = request.user.username)
     member = get_object_or_404(Member, person = person, offering=course)
-    
+
     for groupMember in GroupMember.objects.filter(group = group, student = member):
         groupMember.confirmed = True
-        groupMember.save()
+        groupMember.save(member.person)
 
      #LOG EVENT#
     l = LogEntry(userid=request.user.username,
@@ -253,15 +253,15 @@ def invite(request, course_slug, group_slug):
     course = get_object_or_404(CourseOffering, slug = course_slug)
     group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
     person = get_object_or_404(Person, userid = request.user.username)
-    invitor = get_object_or_404(Member, person = person, offering=course)     
+    invitor = get_object_or_404(Member, person = person, offering=course)
     error_info=None
-    from django import forms 
+    from django import forms
     class StudentReceiverForm(forms.Form):
         name = forms.CharField()
 
-    
-        
-    if request.method == "POST": 
+
+
+    if request.method == "POST":
         student_receiver_form = StudentReceiverForm(request.POST)
         #student_receiver_form.activate_addform_validation(course_slug,group_slug)
         if student_receiver_form.is_valid():
@@ -275,7 +275,7 @@ def invite(request, course_slug, group_slug):
                 for invitorMembership in GroupMember.objects.filter(group = group, student = invitor):
                     newGroupMember = GroupMember(group = group, student = member, \
                                           activity = invitorMembership.activity, confirmed = False)
-                    newGroupMember.save()
+                    newGroupMember.save(member.person)
                     #LOG EVENT#
                     l = LogEntry(userid=request.user.username,
                     description="invited %s to join group %s for activity %s." % (newGroupMember.student.person.userid,group.name, newGroupMember.activity),
@@ -293,12 +293,12 @@ def invite(request, course_slug, group_slug):
         return render_to_response("groups/invite.html", context, context_instance=RequestContext(request))
 
 @requires_course_by_slug
-def remove_student(request, course_slug, group_slug):   
+def remove_student(request, course_slug, group_slug):
     course = get_object_or_404(CourseOffering, slug = course_slug)
     group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
-    students = GroupMember.objects.filter(group = group) 
-    
-    if request.method == "POST": 
+    students = GroupMember.objects.filter(group = group)
+
+    if request.method == "POST":
         for student in students:
             studentForm = StudentForm(request.POST, prefix = student.student.person.userid)
             if studentForm.is_valid() and studentForm.cleaned_data['selected'] == True:
@@ -319,27 +319,27 @@ def remove_student(request, course_slug, group_slug):
             related_object=group)
             l.save()
             #LOG EVENT#
-                
+
         return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
-        
-    else:     
-        studentList = []       
+
+    else:
+        studentList = []
         for student in students:
             studentForm = StudentForm(prefix = student.student.person.userid)
             studentList.append({'studentForm': studentForm, 'first_name' : student.student.person.first_name,\
                                  'last_name' : student.student.person.last_name, 'userid' : student.student.person.userid,\
                                  'emplid' : student.student.person.emplid})
-            
+
         return render_to_response('groups/remove_student.html', \
                           {'course':course, 'group' : group, 'studentList':studentList}, \
                           context_instance = RequestContext(request))
-    
+
 @requires_course_by_slug
-def change_name(request, course_slug, group_slug):   
+def change_name(request, course_slug, group_slug):
     #Change the group's name
     course = get_object_or_404(CourseOffering, slug = course_slug)
     group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
-    if request.method == "POST": 
+    if request.method == "POST":
         groupForm = GroupForm(request.POST)
         if groupForm.is_valid():
             oldname = group.name #used for log information
@@ -351,28 +351,28 @@ def change_name(request, course_slug, group_slug):
             related_object=group)
             l.save()
         return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
-        
+
     else:
         groupForm = GroupForm(instance = group)
         return render_to_response("groups/change_name.html", \
                                   {'groupForm' : groupForm, 'course' : course, 'group' : group}, \
                                   context_instance=RequestContext(request))
-    
+
 @requires_course_by_slug
-def switch_group(request, course_slug, group_slug):   
+def switch_group(request, course_slug, group_slug):
     #Change the group's name
     course = get_object_or_404(CourseOffering, slug = course_slug)
     group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
-    students = GroupMember.objects.filter(group = group) 
+    students = GroupMember.objects.filter(group = group)
     groupid = group.id
     group_qset = Group.objects.filter(courseoffering = course) \
         .select_related('courseoffering')
 
     from django import forms
     class StudentGroupForm(forms.Form):
-        group = forms.ModelChoiceField(queryset = group_qset, initial = groupid)   
-    
-    if request.method == "POST": 
+        group = forms.ModelChoiceField(queryset = group_qset, initial = groupid)
+
+    if request.method == "POST":
         for student in students:
             studentGroupForm = StudentGroupForm(request.POST, prefix = student.student.person.userid)
             print studentGroupForm.is_valid()
@@ -380,15 +380,15 @@ def switch_group(request, course_slug, group_slug):
                 student.group = studentGroupForm.cleaned_data['group']
                 student.save()
         return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
-        
-    else:     
-        studentList = []       
+
+    else:
+        studentList = []
         for student in students:
             studentGroupForm = StudentGroupForm(prefix = student.student.person.userid)
             studentList.append({'studentGroupForm': studentGroupForm, 'first_name' : student.student.person.first_name,\
                                  'last_name' : student.student.person.last_name, 'userid' : student.student.person.userid,\
                                  'emplid' : student.student.person.emplid})
-            
+
         return render_to_response('groups/switch_group.html', \
                           {'course':course, 'group' : group, 'studentList':studentList}, \
                           context_instance = RequestContext(request))
@@ -397,7 +397,7 @@ def switch_group(request, course_slug, group_slug):
 def assign_student(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     members = GroupMember.objects.filter(group__courseoffering=course)
-    
+
     #find the students not in any group
     students = Member.objects.select_related('person').filter(offering = course, role = 'STUD')
     studentsNotInGroup = []
@@ -407,27 +407,27 @@ def assign_student(request, course_slug):
             if student == groupMember.student:
                 studentNotInGroupFlag = False
         if studentNotInGroupFlag == True:
-            studentsNotInGroup.append(student) 
-            
+            studentsNotInGroup.append(student)
+
     group_qset = Group.objects.filter(courseoffering = course) \
-               .select_related('courseoffering')       
+               .select_related('courseoffering')
     from django import forms
     class GroupForm(forms.Form):
-        group = forms.ModelChoiceField(queryset = group_qset)   
-    
-    if request.method == "POST": 
+        group = forms.ModelChoiceField(queryset = group_qset)
+
+    if request.method == "POST":
         groupForm = GroupForm(request.POST)
         if groupForm.is_valid():
             group = groupForm.cleaned_data['group']
-            
-        #find the activities belong to this group   
+
+        #find the activities belong to this group
         groupMembers = GroupMember.objects.filter(group = group)
         if groupMembers:
             memberships = GroupMember.objects.filter(student = groupMembers[0].student)
             activityList = []
             for membership in memberships:
                 activityList.append(membership.activity)
-                
+
             #create new group member
             for activity in activityList:
                 for student in studentsNotInGroup:
@@ -435,25 +435,25 @@ def assign_student(request, course_slug):
                     if studentForm.is_valid() and studentForm.cleaned_data['selected'] == True:
                         groupMember = GroupMember(group=group, student=student, confirmed=True, activity = activity)
                         groupMember.save()
-            
+
         return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
-        
-    else:  
+
+    else:
         groupForm = GroupForm()
-        studentList = []       
+        studentList = []
         for student in studentsNotInGroup:
             studentForm = StudentForm(prefix = student.person.userid)
             studentList.append({'studentForm': studentForm, 'first_name' : student.person.first_name,\
                                  'last_name' : student.person.last_name, 'userid' : student.person.userid,\
                                  'emplid' : student.person.emplid})
-            
+
         return render_to_response('groups/assign_student.html', \
                           {'course':course, 'studentList':studentList, 'groupForm':groupForm}, \
                           context_instance = RequestContext(request))
-                                  
+
 
 #def joinconfirm(request):
-#    return render_to_response('groups/create.html', context_instance = RequestContext(request)) 
+#    return render_to_response('groups/create.html', context_instance = RequestContext(request))
 #@requires_course_by_slug
 #def invite(request, course_slug, group_slug):
     #p = get_object_or_404(Person,userid=request.user.username)
