@@ -10,7 +10,7 @@ from dashboard.models import NewsItem, UserConfig
 from dashboard.forms import *
 from contrib import messages
 from log.models import LogEntry
-import random
+import random, datetime
 
 @login_required
 def index(request):
@@ -71,8 +71,12 @@ def atom_feed(request, token, userid):
     news_list = NewsItem.objects.filter(user=user).order_by('-updated')[:20]
     
     url = _server_base(request)
+    if news_list:
+        updated = news_list[0].updated
+    else:
+        updated = datetime.datetime.now()
 
-    context = {"news_list": news_list, 'person': user, 'updated': news_list[0].updated, 'server_url': url}
+    context = {"news_list": news_list, 'person': user, 'updated': updated, 'server_url': url}
     return render_to_response("dashboard/atom_feed.xml", context, context_instance=RequestContext(request),mimetype="application/atom+xml")
 
 
