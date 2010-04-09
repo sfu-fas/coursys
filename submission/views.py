@@ -196,9 +196,7 @@ def show_components_submission_history(request, course_slug, activity_slug, user
     if activity.group:
         messages.add_message(request, messages.INFO, "This is a group submission. This history is based on submissions from all your group members.")
         gms = GroupMember.objects.filter(student__person__userid=userid, confirmed=True, activity=activity)
-        print gms
         submissions = GroupSubmission.objects.filter(activity=activity, group__groupmember__in=gms)
-        print submissions
     else:
         submissions = StudentSubmission.objects.filter(activity=activity, member__person__userid=userid)
 

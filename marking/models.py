@@ -9,6 +9,10 @@ from datetime import datetime
 from django.db.models import Q
 from submission.models import select_all_components
 
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
+MarkingSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
+
 class ActivityComponent(models.Model):
     """    
     Markable Component of a numeric activity   
@@ -61,7 +65,7 @@ class ActivityMark(models.Model):
     late_penalty = models.IntegerField(null = True, default = 0, blank = True)
     mark_adjustment = models.IntegerField(null = True, default = 0, blank = True)
     mark_adjustment_reason = models.TextField(null = True, max_length = 1000, blank = True)
-    file_attachment = models.FileField(null = True, upload_to = attachment_upload_to, blank=True)#TODO: need to add student name or group name to the path  
+    file_attachment = models.FileField(storage=MarkingSystemStorage, null = True, upload_to = attachment_upload_to, blank=True)#TODO: need to add student name or group name to the path  
     
     created_by = models.CharField(max_length=8, null=False, help_text='Userid who gives the mark')
     created_at = models.DateTimeField(auto_now_add=True)

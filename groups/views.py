@@ -109,11 +109,10 @@ def create(request,course_slug):
     course = get_object_or_404(CourseOffering, slug = course_slug)
     group_manager=Member.objects.get(person = person, offering = course)
     #TODO can instructor create group based on unreleased activities?
-    activities = Activity.objects.filter(offering = course, status = 'RLS') 
+    activities = Activity.objects.filter(offering = course, status = 'RLS', group=True) 
     activityList = []
     for activity in activities:
         activityForm = ActivityForm(prefix = activity.slug)
-        print "act:", activity
         activityList.append({'activityForm': activityForm, 'name' : activity.name,\
                              'percent' : activity.percent, 'due_date' : activity.due_date})
 
