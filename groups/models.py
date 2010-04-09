@@ -37,7 +37,7 @@ class GroupMember(models.Model):
     activity = models.ForeignKey(Activity)
 
     def __unicode__(self):
-	    return '%s@%s' % (self.student.person, self.group)
+	    return '%s@%s/%s' % (self.student.person, self.group, self.activity.short_name)
 
     def save(self,person):
         super(GroupMember, self).save()

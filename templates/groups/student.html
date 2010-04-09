@@ -5,49 +5,49 @@
 
 {% block h1 %}{{course.name}} Groups{% endblock %}
 
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    <li><a href="{% url groups.views.create course_slug=course.slug %}">New Group</a></li>
+    </ul>
+</div>
+{% endblock %}
+
 {% block content %}
 <script language="javascript" type="text/javascript" src="/media/js/groups/main.js">
 </script>
-{% if members %}
-<dl>
-	{% for m in members %}
-		<dt><h2>{{ m.group.name }}</h2></dt><dd>
-		{% ifequal m.group.manager.person.name  m.student.person.name %}
-		<ul>
-		  {% for mm in m.group.groupmember_set.all %}
-		    {% if mm.confirmed %}
-		      <li>{{mm.student.person.name}} ({{mm.student.person.userid}})</li>
-		    {% else %}
-		      <li>{{mm.student.person.name}} ({{mm.student.person.userid}}) (not yet confirmed)</li>
-		    {% endif %}
-		  {% endfor %}
-		  <br />
-		  <a class="button" href="{% url groups.views.invite course_slug=course.slug group_slug=m.group.slug %}">Invite</a>
-		</ul>
-		{% else %}
-      
-           {% if m.confirmed %}<ul>
-           {% for mm in m.group.groupmember_set.all %}
-		    {% if mm.confirmed %}
-		      <li>{{mm.student.person.name}} ({{mm.student.person.userid}})</li>
-		    {% else %}
-		      <li>{{mm.student.person.name}} ({{mm.student.person.userid}}) (not yet confirmed)</li>
-		    {% endif %}
-		  {% endfor %}
-		   <br /></ul>
-           {% else %}
-		You have not confirmed membership in this group. <a class="button" href="{% url groups.views.join course_slug=course.slug,group_slug=m.group.slug %}">Join Group</a>
-		{% endif %}<br />
-        {% endifequal %}
-		</dd>
-	{% endfor %}
-</dl>
-{% else %}
-<p>You don't belong to any groups in this course.</p>
-{% endif %}
-<p>
-<a class="button" href="{% url groups.views.create course_slug=course.slug %}">New Group</a>
-</p>
+
+<div id="grouplist">
+  {% if groupList %}
+    {% for info in groupList %}
+      <h2 id="grp-{{ info.group.slug }}">{{ info.group.name }}</h2>
+      <p>A group for  
+          {% for activity in info.activities %}
+          {{ activity.name }}{% if forloop.last %}.{% else %}, {% endif %}
+          {% endfor %}
+          <ul>
+              {% for m in info.unique_members %}
+              <li>{{ m.member.person.name }}, {{ m.member.person.userid }} {% if not m.confirmed %}(unconfirmed){% endif %}
+              {% if m.missing %}(not for 
+              {% for a in m.missing %}
+              {{ a.name }}{% if forloop.last %}){% else %}, {% endif %}
+              {% endfor %}
+              {% endif %}
+              </li>
+              {% endfor %}
+          </ul>
+          <p>
+            <a class="button" href="{% url groups.views.invite course_slug=course.slug group_slug=info.group.slug %}">Invite</a>
+            </p>
+      </li>
+    {% endfor %}
+  {% else %}
+    <p class="empty">You don't belong to any groups in this course.</p>
+  {% endif %}  
+
+
+</div>
 
 {% endblock %}
 

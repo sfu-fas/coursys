@@ -406,7 +406,7 @@ def marking_student(request, course_slug, activity_slug, userid):
             except NumericGrade.DoesNotExist: 
                 ngrade = NumericGrade(activity = activity, member = membership)
                 ngrade.save(newsitem=False)    
-            activity_mark = StudentActivityMark(numeric_grade = ngrade)  
+            activity_mark = StudentActivityMark(numeric_grade = ngrade)
             final_grade = _compute_final_mark(component_marks, activity.max_grade, additional_info) 
             _save_marking_results(activity, activity_mark, final_grade, 
                                   request.user.username, ('student %s'% userid),

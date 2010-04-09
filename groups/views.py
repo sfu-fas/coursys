@@ -36,54 +36,25 @@ def groupmanage(request, course_slug):
 def _groupmanage_student(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     members = GroupMember.objects.filter(group__courseoffering=course, student__person__userid=request.user.username)
-    #NoDuplicateMembers=set(members)
-    #activities = Activity.objects.filter(offering = course, status = 'RLS')
-    #students = Member.objects.select_related('person').filter(offering = course, role = 'STUD')
-    #groups= Group.objects.filter(courseoffering=course)
-    #plist= []
-    #groupmember=GroupMember.objects.filter(student__person__userid=request.user.username)
-    groups=Group.objects.filter(groupmember__student__person__userid=request.user.username)
-    #NoDuplicateGroups=list(Set(groups))
-    membersNotInDuplicateGroup = []
-    membersInDuplicateGroup = []
-    NoDuplicateGroupmembers=[]
-    #countGroup=0;
-    for member in members:
-        counter=0
-        memberNotInDuplicateGroupFlag=True
-        for group in groups:
-            if member.group == group:
-                counter=counter+1
-                if counter>1:
-                    memberNotInDuplicateGroupFlag=False
-        if memberNotInDuplicateGroupFlag==True:
-            membersNotInDuplicateGroup.append(member)
-        else:
-            membersInDuplicateGroup.append(member)
 
-    for member in membersInDuplicateGroup:
-        memberone=member
-        counter=0
-        for member in membersInDuplicateGroup:
-            if memberone.group==member.group:
-                counter=counter+1
-                if counter>1:
-                    membersInDuplicateGroup.remove(member)
+    groups = Group.objects.filter(courseoffering=course, groupmember__student__person__userid=request.user.username)
+    groups = set(groups) # all groups student is a member of
 
-    for member in membersInDuplicateGroup:
-        memberone=member
-        counter=0
-        for member in membersInDuplicateGroup:
-            if memberone.student==member.student:
-                if memberone.group==member.group:
-                    counter=counter+1
-            if counter>1:
-                    membersInDuplicateGroup.remove(member)
+    #all_members = GroupMember.objects.filter(group__in=groups)
+    groupList = []
+    for group in groups:
+        members = GroupMember.objects.filter(group = group)
+        all_act = set((m.activity for m in members)) # all activities this group covers
+        unique_members = []
+        for s in set(m.student for m in members):
+            # confirmed in group?
+            confirmed = False not in (m.confirmed for m in members if m.student==s)
+            # not a member for any activities?
+            missing = all_act - set(m.activity for m in members if m.student==s)
+            unique_members.append( {'member': s, 'confirmed': confirmed, 'missing': missing} )
+        groupList.append({'group': group, 'activities': all_act, 'unique_members': unique_members, 'memb': members})
 
-    for member in membersInDuplicateGroup:
-        membersNotInDuplicateGroup.append(member)
-
-    return render_to_response('groups/student.html', {'course':course, 'groups':groups,'members':membersNotInDuplicateGroup}, context_instance = RequestContext(request))
+    return render_to_response('groups/student.html', {'course':course, 'groupList':groupList}, context_instance = RequestContext(request))
 
 def _groupmanage_staff(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
@@ -103,27 +74,15 @@ def _groupmanage_staff(request, course_slug):
     groupList = []
     for group in groups:
         members = GroupMember.objects.filter(group = group)
-        if members:
-            #get the members for the group
-            memberships = GroupMember.objects.filter(group = group, activity = members[0].activity)
-            confirmedStudents = []
-            unconfirmedStudents = []
-            for membership in memberships:
-                if membership.confirmed == True:
-                    confirmedStudents.append(membership)
-                else:
-                    unconfirmedStudents.append(membership)
-            #get the activities for the group
-            memberships = GroupMember.objects.filter(group = group, student = members[0].student)
-            activities = []
-            for membership in memberships:
-                activities.append(membership.activity)
-            #create a dictionary structure that contains the info of group members and activities of the group
-            groupDict = {'group':group, 'activities':activities, 'confirmedStudents':confirmedStudents, 'unconfirmedStudents':unconfirmedStudents}
-            groupList.append(groupDict)
-            #print groupDict
-    #print groupList
-    print groupList[0]['confirmedStudents']
+        all_act = set((m.activity for m in members)) # all activities this group covers
+        unique_members = []
+        for s in set(m.student for m in members):
+            # confirmed in group?
+            confirmed = False not in (m.confirmed for m in members if m.student==s)
+            # not a member for any activities?
+            missing = all_act - set(m.activity for m in members if m.student==s)
+            unique_members.append( {'member': s, 'confirmed': confirmed, 'missing': missing} )
+        groupList.append({'group': group, 'activities': all_act, 'unique_members': unique_members, 'memb': members})
 
     return render_to_response('groups/instructor.html', \
                               {'course':course, 'groupList':groupList, 'studentsNotInGroup':studentsNotInGroup}, \
@@ -292,7 +251,7 @@ def invite(request, course_slug, group_slug):
         context = {'course': course, 'form': student_receiver_form}
         return render_to_response("groups/invite.html", context, context_instance=RequestContext(request))
 
-@requires_course_by_slug
+@requires_course_staff_by_slug
 def remove_student(request, course_slug, group_slug):
     course = get_object_or_404(CourseOffering, slug = course_slug)
     group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
@@ -334,7 +293,7 @@ def remove_student(request, course_slug, group_slug):
                           {'course':course, 'group' : group, 'studentList':studentList}, \
                           context_instance = RequestContext(request))
 
-@requires_course_by_slug
+@requires_course_staff_by_slug
 def change_name(request, course_slug, group_slug):
     #Change the group's name
     course = get_object_or_404(CourseOffering, slug = course_slug)
@@ -358,7 +317,7 @@ def change_name(request, course_slug, group_slug):
                                   {'groupForm' : groupForm, 'course' : course, 'group' : group}, \
                                   context_instance=RequestContext(request))
 
-@requires_course_by_slug
+@requires_course_staff_by_slug
 def switch_group(request, course_slug, group_slug):
     #Change the group's name
     course = get_object_or_404(CourseOffering, slug = course_slug)
@@ -393,7 +352,7 @@ def switch_group(request, course_slug, group_slug):
                           {'course':course, 'group' : group, 'studentList':studentList}, \
                           context_instance = RequestContext(request))
 
-@requires_course_by_slug
+@requires_course_staff_by_slug
 def assign_student(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     members = GroupMember.objects.filter(group__courseoffering=course)

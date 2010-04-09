@@ -122,6 +122,7 @@ if DEBUG:
     INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.admin',)
     CACHE_BACKEND = 'locmem://'
 else:
+    SUBMISSION_PATH = None
     CACHE_BACKEND = '?????'
 
 

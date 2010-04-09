@@ -6,28 +6,36 @@
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; Groups</li>{% endblock %}
 
 {% block content %}
+<h2 id="current">Current Groups</h2>
 <div id="grouplist">
   {% if groupList %}
     <ul>
-    {% for group in groupList %}
-      <li>{{ group.group.name }}  ( for  
-          {% for activity in group.activities %}
-          {{ activity.name }}  
-          {% endfor %})
+    {% for info in groupList %}
+      <li>{{ info.group.name }}  (for  
+          {% for activity in info.activities %}
+          {{ activity.name }}{% if forloop.last %}){% else %}, {% endif %}
+          {% endfor %}
           <ul>
-              {% for member in group.confirmedStudents %}
-              <li>{{ member.student.person.name }}, {{ member.student.person.userid }} </li>
+              {% for m in info.unique_members %}
+              <li>{{ m.member.person.name }}, {{ m.member.person.userid }} {% if not m.confirmed %}(unconfirmed){% endif %}
+              {% if m.missing %}(not for 
+              {% for a in m.missing %}
+              {{ a.name }}{% if forloop.last %}){% else %}, {% endif %}
               {% endfor %}
-            <br>
-            <a class="button" href="{% url groups.views.switch_group course_slug=course.slug group_slug=group.group.slug %}">Switch Group</a>
-            <a class="button" href="{% url groups.views.change_name course_slug=course.slug group_slug=group.group.slug %}">Change Name</a>
-            <a class="button" href="{% url groups.views.remove_student course_slug=course.slug group_slug=group.group.slug %}">Remove Student</a>
+              {% endif %}
+              </li>
+              {% endfor %}
           </ul>
+          <p>
+            <!--<a class="button" href="{% url groups.views.switch_group course_slug=course.slug group_slug=info.group.slug %}">Switch Group</a>-->
+            <a class="button" href="{% url groups.views.change_name course_slug=course.slug group_slug=info.group.slug %}">Change Name</a>
+            <a class="button" href="{% url groups.views.remove_student course_slug=course.slug group_slug=info.group.slug %}">Remove Student</a>
+            </p>
       </li>
     {% endfor %}
     </ul>
   {% else %}
-    <p>There are currently no groups in this course offering</p>
+    <p class="empty">There are currently no groups in this course offering</p>
   {% endif %}  
 	
 <h2 id="nogroup">Students not in any group</h2>
