@@ -527,7 +527,7 @@ def mark_summary_student(request, course_slug, activity_slug, userid):
                                 'is_staff': is_staff, 'view_history': act_mark_id == None}, \
                                 context_instance = RequestContext(request))
 
-@requires_course_staff_by_slug     
+@login_required
 def mark_summary_group(request, course_slug, activity_slug, group_slug):
      if is_course_staff_by_slug(request.user, course_slug):
         is_staff = True

@@ -373,24 +373,19 @@ def calculate_numeric_grade(course, activity, student=None):
         parsed_expr = parse_and_validate_formula(activity.formula, numeric_activities)
     except ValidationError as e:
         raise ValidationError('Formula Error: ' + e.args[0])
-    
-    student_list = Member.objects.filter(offering=course, role='STUD')
-    if student != None:
-        if not isinstance(student, Member):
-            raise TypeError(u'Member type is required')
-        if student in student_list:
-            student_list = [student]
-        else:
-            return
-    if student != None:
+        
+    if student != None: # calculate for one student
+        student_list = [student]
         try:
             numeric_grade = NumericGrade.objects.get(activity = activity, member=student)
         except NumericGrade.DoesNotExist:
             numeric_grade_list = []
         else:
             numeric_grade_list = [numeric_grade]
-    else:
+    else: # calculate for all student
+        student_list = Member.objects.filter(offering=course, role='STUD')
         numeric_grade_list = NumericGrade.objects.filter(activity = activity).select_related('member')
+    
     for student in student_list:
         # calculate grade
         try:

@@ -298,13 +298,12 @@ def add_cal_numeric_activity(request, course_slug):
                     position = aggr_dict['position__max'] + 1
                 CalNumericActivity.objects.create(name=form.cleaned_data['name'],
                                                 short_name=form.cleaned_data['short_name'],
-                                                status=form.cleaned_data['status'],
-                                                due_date=form.cleaned_data['due_date'],
-                                                percent=form.cleaned_data['percent'],
+                                                status="INVI", # always invisible 
                                                 max_grade=form.cleaned_data['max_grade'],
                                                 formula=form.cleaned_data['formula'],
-                                                offering=course, position=position,
-                                                group=GROUP_STATUS_MAP[form.cleaned_data['group']])
+                                                offering=course, 
+                                                position=position,
+                                                group=False)
             except NotImplementedError:
                 return NotFoundResponse(request)
             return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
@@ -382,11 +381,8 @@ def calculate_all(request, course_slug, activity_slug):
 def calculate_individual(request, course_slug, activity_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(CalNumericActivity, slug=activity_slug, offering=course, deleted=False)
-    member = get_object_or_404(Member, person__userid=userid, offering__slug=course_slug)
-    
-    if member.role != "STUD":
-        return NotFoundResponse(request)
-    
+    member = get_object_or_404(Member, offering = course, person__userid=userid, role='STUD')
+   
     try:
         calculate_numeric_grade(course,activity, member)
     except ValidationError as e:
@@ -411,10 +407,7 @@ def calculate_individual_ajax(request, course_slug, activity_slug):
             
         course = get_object_or_404(CourseOffering, slug=course_slug)
         activity = get_object_or_404(CalNumericActivity, slug=activity_slug, offering=course, deleted=False)
-        member = get_object_or_404(Member, person__userid=userid, offering__slug=course_slug)
-        
-        if member.role != "STUD":
-            return ForbiddenResponse(request)
+        member = get_object_or_404(Member, offering = course, person__userid=userid, role='STUD')
 
         try:
             displayable_result = calculate_numeric_grade(course,activity, member)

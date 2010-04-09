@@ -15,7 +15,7 @@ from contrib import messages
 from django.conf import settings
 from courselib.auth import requires_course_by_slug, requires_course_staff_by_slug, is_course_staff_by_slug, is_course_student_by_slug
 from log.models import *
-
+from django.db.models import Q
 
 #@login_required
 #def index(request):
@@ -134,8 +134,8 @@ def create(request,course_slug):
     person = get_object_or_404(Person,userid=request.user.username)
     course = get_object_or_404(CourseOffering, slug = course_slug)
     group_manager=Member.objects.get(person = person, offering = course)
-    #TODO can instructor create group based on unreleased activities?
-    activities = Activity.objects.filter(offering = course, status = 'RLS', group=True) 
+    # can only see released and unreleased group activity 
+    activities = Activity.objects.filter(Q(status='RLS') | Q(status='URLS'), offering = course, group=True) 
     activityList = []
     for activity in activities:
         activityForm = ActivityForm(prefix = activity.slug)
@@ -191,7 +191,7 @@ def submit(request,course_slug):
         l.save()
         #Deal with creating the membership
         if is_course_student_by_slug(request.user, course_slug):
-            activities = Activity.objects.filter(offering = course, status = 'RLS') 
+            activities = Activity.objects.filter(Q(status='RLS') | Q(status='URLS'), offering = course, group=True) 
             for activity in activities:
                 activityForm = ActivityForm(request.POST, prefix = activity.slug)
                 if activityForm.is_valid() and activityForm.cleaned_data['selected'] == True:
@@ -206,7 +206,7 @@ def submit(request,course_slug):
             messages.add_message(request, messages.SUCCESS, 'Group Created')
             return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))    
         elif is_course_staff_by_slug(request.user, course_slug):
-            activities = Activity.objects.filter(offering = course, status = 'RLS') 
+            activities = Activity.objects.filter(Q(status='RLS') | Q(status='URLS'), offering = course, group=True) 
             students = Member.objects.select_related('person').filter(offering = course, role = 'STUD') 
             for activity in activities:
                 activityForm = ActivityForm(request.POST, prefix = activity.slug)

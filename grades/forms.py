@@ -51,19 +51,7 @@ class ActivityForm(forms.Form):
     short_name = forms.CharField(max_length=15, label=mark_safe('Short name:' + _required_star),
                                 help_text='short version of the name for column headings, e.g. "A1" or "MT"',
                                 widget=forms.TextInput(attrs={'size':'8'}))
-    status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS',
-                               label=mark_safe('Status:' + _required_star),
-                               help_text='visibility of grades/activity to students')
-    due_date = forms.SplitDateTimeField(label=mark_safe('Due date:'), required=False,
-                                        help_text='Time format: HH:MM:SS',
-                                        widget=CustomSplitDateTimeWidget())
-    percent = forms.DecimalField(max_digits=5, decimal_places=2, required=False, label='Percentage:',
-                                 help_text='percent of final mark',
-                                 widget=forms.TextInput(attrs={'size':'2'}))
-    group = forms.ChoiceField(label=mark_safe('Group activity:' + _required_star), initial='1',
-                              choices=GROUP_STATUS_CHOICES,
-                              widget=forms.RadioSelect())
-
+   
     def __init__(self, *args, **kwargs):
         super(ActivityForm, self).__init__(*args, **kwargs)
         self._addform_validate = False
@@ -103,15 +91,41 @@ class ActivityForm(forms.Form):
         return short_name
 
 class NumericActivityForm(ActivityForm):
+    status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS',
+                               label=mark_safe('Status:' + _required_star),
+                               help_text='visibility of grades/activity to students')
+    due_date = forms.SplitDateTimeField(label=mark_safe('Due date:'), required=False,
+                                        help_text='Time format: HH:MM:SS',
+                                        widget=CustomSplitDateTimeWidget())
+    percent = forms.DecimalField(max_digits=5, decimal_places=2, required=False, label='Percentage:',
+                                 help_text='percent of final mark',
+                                 widget=forms.TextInput(attrs={'size':'2'}))
+    group = forms.ChoiceField(label=mark_safe('Group activity:' + _required_star), initial='1',
+                              choices=GROUP_STATUS_CHOICES,
+                              widget=forms.RadioSelect())
     max_grade = forms.DecimalField(max_digits=5, decimal_places=2, label=mark_safe('Maximum grade:' + _required_star),
                                    help_text='maximum grade for the activity',
                                    widget=forms.TextInput(attrs={'size':'3'}))
     
 class LetterActivityForm(ActivityForm):
-    pass
+    status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS',
+                               label=mark_safe('Status:' + _required_star),
+                               help_text='visibility of grades/activity to students')
+    due_date = forms.SplitDateTimeField(label=mark_safe('Due date:'), required=False,
+                                        help_text='Time format: HH:MM:SS',
+                                        widget=CustomSplitDateTimeWidget())
+    percent = forms.DecimalField(max_digits=5, decimal_places=2, required=False, label='Percentage:',
+                                 help_text='percent of final mark',
+                                 widget=forms.TextInput(attrs={'size':'2'}))
+    group = forms.ChoiceField(label=mark_safe('Group activity:' + _required_star), initial='1',
+                              choices=GROUP_STATUS_CHOICES,
+                              widget=forms.RadioSelect())
     #specify_letter_formula = forms.BooleanField(label='Specify formula:', required=False)
     
-class CalNumericActivityForm(NumericActivityForm):
+class CalNumericActivityForm(ActivityForm):
+    max_grade = forms.DecimalField(max_digits=5, decimal_places=2, label=mark_safe('Maximum grade:' + _required_star),
+                                   help_text='maximum grade',
+                                   widget=forms.TextInput(attrs={'size':'3'}))
     formula = forms.CharField(max_length=250, label=mark_safe('Formula:'+_required_star),
                     help_text='parsed formula to calculate final numeric grade',
                     widget=forms.Textarea(attrs={'rows':'6', 'cols':'40'}))
@@ -133,7 +147,7 @@ class CalNumericActivityForm(NumericActivityForm):
                 except ValidationError as e:
                     raise forms.ValidationError(e.args[0])
         return formula
-    
+       
 class ActivityFormEntry(forms.Form):
     status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES)
     value = forms.DecimalField(max_digits=5, decimal_places=2, required=False,
