@@ -375,6 +375,8 @@ def calculate_numeric_grade(course, activity, student=None):
         raise ValidationError('Formula Error: ' + e.args[0])
         
     if student != None: # calculate for one student
+        if not isinstance(student, Member):
+            raise TypeError('Member type is required')
         student_list = [student]
         try:
             numeric_grade = NumericGrade.objects.get(activity = activity, member=student)

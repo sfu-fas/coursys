@@ -51,7 +51,10 @@ class ActivityForm(forms.Form):
     short_name = forms.CharField(max_length=15, label=mark_safe('Short name:' + _required_star),
                                 help_text='short version of the name for column headings, e.g. "A1" or "MT"',
                                 widget=forms.TextInput(attrs={'size':'8'}))
-   
+    percent = forms.DecimalField(max_digits=5, decimal_places=2, required=False, label='Percentage:',
+                                 help_text='percent of final mark',
+                                 widget=forms.TextInput(attrs={'size':'2'}))
+
     def __init__(self, *args, **kwargs):
         super(ActivityForm, self).__init__(*args, **kwargs)
         self._addform_validate = False
@@ -97,9 +100,6 @@ class NumericActivityForm(ActivityForm):
     due_date = forms.SplitDateTimeField(label=mark_safe('Due date:'), required=False,
                                         help_text='Time format: HH:MM:SS',
                                         widget=CustomSplitDateTimeWidget())
-    percent = forms.DecimalField(max_digits=5, decimal_places=2, required=False, label='Percentage:',
-                                 help_text='percent of final mark',
-                                 widget=forms.TextInput(attrs={'size':'2'}))
     group = forms.ChoiceField(label=mark_safe('Group activity:' + _required_star), initial='1',
                               choices=GROUP_STATUS_CHOICES,
                               widget=forms.RadioSelect())
@@ -114,9 +114,6 @@ class LetterActivityForm(ActivityForm):
     due_date = forms.SplitDateTimeField(label=mark_safe('Due date:'), required=False,
                                         help_text='Time format: HH:MM:SS',
                                         widget=CustomSplitDateTimeWidget())
-    percent = forms.DecimalField(max_digits=5, decimal_places=2, required=False, label='Percentage:',
-                                 help_text='percent of final mark',
-                                 widget=forms.TextInput(attrs={'size':'2'}))
     group = forms.ChoiceField(label=mark_safe('Group activity:' + _required_star), initial='1',
                               choices=GROUP_STATUS_CHOICES,
                               widget=forms.RadioSelect())

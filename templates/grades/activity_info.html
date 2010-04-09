@@ -5,6 +5,16 @@
 
 {% block grades_headextra %}
 <script type="text/javascript">
+    function fetchUserId(data) {
+	var dataArray = data.split('&')
+	for (var i=0; i<dataArray.length; i++) {
+	    pos = dataArray[i].indexOf('userid');
+	    if (pos != -1) {
+		userid = dataArray[i].substring(pos+7)
+		return userid
+	    }
+	}
+    }
     $(document).ready(function() {
 	addLinkClickStyleClass('a.redbutton', 'redbutton_onclick');
 	// activate dataTable ui
@@ -27,23 +37,51 @@
 		]
 	});
 	
+	$(document).ajaxSend(function(e, xhr, settings) {
+	    cal_link = $('#'+fetchUserId(settings.data));
+	    ajax_status = cal_link.parent().children('.ajax_status')
+	    if (ajax_status.html() != null) {
+		ajax_status.text('Processing...');
+	    }
+	    else {
+		cal_link.parent().append('<div class="ajax_status">Processing...</div>');
+		ajax_status = cal_link.parent().children('.ajax_status');
+	    }
+	});
+	$(document).ajaxSuccess(function(e, xhr, settings) {
+	    cal_link = $('#'+fetchUserId(settings.data));
+	    cal_link.parent().children('.ajax_status').remove();
+	    cal_link.parent().children('span.grade').html(xhr.responseText);
+	});
+	$(document).ajaxError(function(e, xhr, settings) {
+	    cal_link = $('#'+fetchUserId(settings.data));
+	    cal_link.parent().children('.ajax_status').text(xhr.status + " " + xhr.statusText);
+	});
 	$('a.calculator').attr('href', 'javascript: return false;').click(function(){
-	    cal_link = $(this)
-	    cal_link.parent().append('<div class="ajax_status">Processing...</div>');
+	    cal_link = $(this);
 	    ajax_status = cal_link.parent().children('.ajax_status');
 	    /* post request */
 	    $.post("{% url grades.views.calculate_individual_ajax course_slug=course.slug activity_slug=activity.slug %}",		  	 
-		    {'userid': cal_link.attr('id')},
-		    function(data){
-			calculated = true;
-			ajax_status.remove();
-			cal_link.parent().find('span.grade').html(data);
-		    });
-	    ajax_status.ajaxError(function(e, xhr, settings, exception) {
-		  $(this).text(xhr.status + " " + xhr.statusText);
-	    });
+		    {'userid': cal_link.attr('id'), 'a': 12, 'b':13});
 	});
 	
+	
+	//$('a.calculator').attr('href', 'javascript: return false;').click(function(){
+	//    cal_link = $(this)
+	//    cal_link.parent().append('<div class="ajax_status">Processing...</div>');
+	//    ajax_status = cal_link.parent().children('.ajax_status');
+	//    /* post request */
+	//    $.post("{% url grades.views.calculate_individual_ajax course_slug=course.slug activity_slug=activity.slug %}",		  	 
+	//	    {'userid': cal_link.attr('id')},
+	//	    function(data){
+	//		calculated = true;
+	//		ajax_status.remove();
+	//		cal_link.parent().find('span.grade').html(data);
+	//	    });
+	//    ajax_status.ajaxError(function(e, xhr, settings, exception) {
+	//	  $(this).text(xhr.status + " " + xhr.statusText);
+	//    });
+	//});
     });
 </script>
 {% endblock %}
