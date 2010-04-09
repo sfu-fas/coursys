@@ -11,6 +11,17 @@
 	oTable = $('#student_grades').dataTable({
 	    "bJQueryUI": true,
 	    "bPaginate": false,
+	    "aaSorting": [[1, "asc"]],
+	    "aoColumns": [
+		    { "bSearchable": false, "bSortable": false },
+		    null,
+		    null,
+		    null,
+		    null,
+		    {% for a in activities %}
+		    null,
+		    {% endfor %}
+		]
 	});
     });
 </script>

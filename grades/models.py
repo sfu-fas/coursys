@@ -201,11 +201,6 @@ class CalNumericActivity(NumericActivity):
     """
     formula = models.CharField(max_length=250, help_text='parsed formula to calculate final numeric grade')
 
-    def calculate_for(self, member):
-        pass
-    def calculate_all(self):
-        pass
-
     class Meta:
         verbose_name_plural = "cal numeric activities"
 

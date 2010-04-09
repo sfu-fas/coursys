@@ -12,8 +12,9 @@
 		"bJQueryUI": true,
 		"sPaginationType": "full_numbers",
 		"iDisplayLength" : 50,
+		"aaSorting": [[1, "asc"]],
 		"aoColumns": [
-		    { "sType": "html" },
+		    { "bSearchable": false, "bSortable": false },
 		    null,
 		    null,
 		    null,
@@ -25,6 +26,24 @@
 		    {% endif %}
 		]
 	});
+	
+	$('a.calculator').attr('href', 'javascript: return false;').click(function(){
+	    cal_link = $(this)
+	    cal_link.parent().append('<div class="ajax_status">Processing...</div>');
+	    ajax_status = cal_link.parent().children('.ajax_status');
+	    /* post request */
+	    $.post("{% url grades.views.calculate_individual_ajax course_slug=course.slug activity_slug=activity.slug %}",		  	 
+		    {'userid': cal_link.attr('id')},
+		    function(data){
+			calculated = true;
+			ajax_status.remove();
+			cal_link.parent().find('span.grade').html(data);
+		    });
+	    ajax_status.ajaxError(function(e, xhr, settings, exception) {
+		  $(this).text(xhr.status + " " + xhr.statusText);
+	    });
+	});
+	
     });
 </script>
 {% endblock %}
@@ -138,9 +157,10 @@
 		<td>{{ student_grade_info.grade_status }}</td>
 		<td>
 		{% if activity.calnumericactivity %}
-		    {{ student_grade_info.display_grade_staff }}
+		    <a id="{{student.person.userid}}" class="calculator" href="{% url grades.views.calculate_individual course_slug=course.slug activity_slug=activity.slug userid=student.person.userid %}"><img src="{{MEDIA_URL}}icons/calculator.png" title="Calculate" alt="Calculate" /></a>
+		    <span class="grade">{{ student_grade_info.display_grade_staff }}</span>
 		{% else %}
-		    {% ifequal student_grade_info.grade_status 'no grade'%} 
+		    {% ifequal student_grade_info.grade_status 'no grade'%}
 			<a href="{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug userid=student.person.userid %}?from_page={{from_page}}"><img src="{{MEDIA_URL}}icons/page_white_edit.png" title="Mark This" alt="Mark This"/></a>		   
 		    {% else %}
 			<a href="{% url marking.views.mark_summary_student course_slug=course.slug activity_slug=activity.slug userid=student.person.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>

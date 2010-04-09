@@ -22,7 +22,7 @@ class ActivityForm(forms.Form):
         if instance and instance.id:
             self.fields.widget.attrs['readonly'] = True
     
-     def clean_selected(self):
+    def clean_selected(self):
         act_selected=self.cleaned_data['selected']
         if act_selected:
             if Activity.object.filter(offering__slug=self._course_slug,selected=act_selected):

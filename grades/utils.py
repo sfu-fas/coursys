@@ -3,9 +3,10 @@ This module collects classes and functions that are for the display purpose of G
 """
 
 from grades.models import Activity, NumericActivity, LetterActivity, NumericGrade, \
-                           LetterGrade, all_activities_filter, ACTIVITY_TYPES, FLAGS
+                          LetterGrade, all_activities_filter, ACTIVITY_TYPES, FLAGS, \
+                          CalNumericActivity
 from coredata.models import CourseOffering, Member
-from grades.formulas import parse, activities_dictionary, cols_used
+from grades.formulas import parse, activities_dictionary, cols_used, eval_parse, EvalException
 from external.pyparsing import ParseException
 import math
 import decimal
@@ -359,3 +360,55 @@ def parse_and_validate_formula(formula, numeric_activities):
     except ParseException:
         raise ValidationError(u'Incorrect formula syntax')
     return parsed_expr
+
+def calculate_numeric_grade(course, activity, student=None):
+    if not isinstance(course, CourseOffering):
+        raise TypeError('CourseOffering type is required')
+    if not isinstance(activity, CalNumericActivity):
+        raise TypeError('CalNumericActivity type is required')
+
+    numeric_activities = NumericActivity.objects.filter(offering=course, deleted=False)
+    act_dict = activities_dictionary(numeric_activities)
+    try:
+        parsed_expr = parse_and_validate_formula(activity.formula, numeric_activities)
+    except ValidationError as e:
+        raise ValidationError('Formula Error: ' + e.args[0])
+    
+    student_list = Member.objects.filter(offering=course, role='STUD')
+    if student != None:
+        if not isinstance(student, Member):
+            raise TypeError(u'Member type is required')
+        if student in student_list:
+            student_list = [student]
+        else:
+            return
+    if student != None:
+        try:
+            numeric_grade = NumericGrade.objects.get(activity = activity, member=student)
+        except NumericGrade.DoesNotExist:
+            numeric_grade_list = []
+        else:
+            numeric_grade_list = [numeric_grade]
+    else:
+        numeric_grade_list = NumericGrade.objects.filter(activity = activity).select_related('member')
+    for student in student_list:
+        # calculate grade
+        try:
+            result = eval_parse(parsed_expr, act_dict, student)
+        except EvalException:
+            raise EvalException("Formula Error: Can not evaluate formula for student: '%s'" % student.person.name())
+        
+        # save grade
+        member_found = False
+        for numeric_grade in numeric_grade_list:
+            if numeric_grade.member == student:
+                member_found = True
+                numeric_grade.value = str(result)
+                numeric_grade.save()
+                break
+        if not member_found:
+            numeric_grade = NumericGrade(activity=activity, member=student,
+                                         value=str(result), flag='CALC')
+            numeric_grade.save()
+    if student != None:
+        return StudentActivityInfo(student, activity, FLAGS['CALC'], numeric_grade.value, None).display_grade_staff()

@@ -13,14 +13,14 @@ from grades.forms import NumericActivityForm, LetterActivityForm, CalNumericActi
 from grades.models import *
 from grades.utils import StudentActivityInfo, reorder_course_activities, create_StudentActivityInfo_list, \
                         ORDER_TYPE, FormulaTesterActivityEntry, FakeActivity, generate_numeric_activity_stat
-from grades.utils import ValidationError, parse_and_validate_formula
+from grades.utils import ValidationError, parse_and_validate_formula, calculate_numeric_grade
 from marking.models import get_group_mark
 from groups.models import *
 from submission.models import get_current_submission
 from log.models import LogEntry
 from contrib import messages
 import pickle
-from grades.formulas import activities_dictionary, eval_parse, EvalException
+from grades.formulas import EvalException
 
 
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
@@ -366,42 +366,67 @@ def formula_tester(request, course_slug):
 def calculate_all(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(CalNumericActivity, slug=activity_slug, offering=course, deleted=False)
-    numeric_activities = NumericActivity.objects.filter(offering=course, deleted=False)
-    act_dict = activities_dictionary(numeric_activities)
     
     try:
-        parsed_expr = parse_and_validate_formula(activity.formula, numeric_activities)
+        calculate_numeric_grade(course,activity)
     except ValidationError as e:
-        messages.error(request, 'Formula Error: ' + e.args[0])
-        return HttpResponseRedirect(activity.get_absolute_url())
+        messages.error(request, e.args[0])
+    except EvalException as e:
+        messages.error(request, e.args[0])
+    except NotImplementedError:
+        return NotFoundResponse(request)
 
-    student_list = Member.objects.filter(offering=course, role='STUD')
-    numeric_grade_list = NumericGrade.objects.filter(activity = activity).select_related('member')
-    for student in student_list:
-        # calculate grade
-        try:
-            result = eval_parse(parsed_expr, act_dict, student)
-        except EvalException:
-            messages.error(request,  "Formula Error: Can not evaluate formula for student: '%s'" % student.person.name())
-            return HttpResponseRedirect(activity.get_absolute_url())
-        
-        # save grade
-        member_found = False
-        for numeric_grade in numeric_grade_list:
-            if numeric_grade.member == student:
-                member_found = True
-                numeric_grade.value = str(result)
-                numeric_grade.save()
-                break
-        if not member_found:
-            try:
-                numeric_grade = NumericGrade(activity=activity, member=student,
-                                             value=str(result), flag='CALC')
-                numeric_grade.save()
-            except NotImplementedError:
-                return NotFoundResponse(request)
-        
     return HttpResponseRedirect(activity.get_absolute_url())
+
+@requires_course_staff_by_slug
+def calculate_individual(request, course_slug, activity_slug, userid):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(CalNumericActivity, slug=activity_slug, offering=course, deleted=False)
+    member = get_object_or_404(Member, person__userid=userid, offering__slug=course_slug)
+    
+    if member.role != "STUD":
+        return NotFoundResponse(request)
+    
+    try:
+        calculate_numeric_grade(course,activity, member)
+    except ValidationError as e:
+        messages.error(request, e.args[0])
+    except EvalException as e:
+        messages.error(request, e.args[0])
+    except NotImplementedError:
+        return NotFoundResponse(request)
+
+    return HttpResponseRedirect(activity.get_absolute_url())
+    
+@requires_course_staff_by_slug
+def calculate_individual_ajax(request, course_slug, activity_slug):
+    """
+    Ajax way to calculate individual numeric grade.
+    This ajav view function is called in the activity_info page.
+    """
+    if request.method == 'POST':
+        userid = request.POST.get('userid') 
+        if userid == None:                      
+            return ForbiddenResponse(request)
+            
+        course = get_object_or_404(CourseOffering, slug=course_slug)
+        activity = get_object_or_404(CalNumericActivity, slug=activity_slug, offering=course, deleted=False)
+        member = get_object_or_404(Member, person__userid=userid, offering__slug=course_slug)
+        
+        if member.role != "STUD":
+            return ForbiddenResponse(request)
+
+        try:
+            displayable_result = calculate_numeric_grade(course,activity, member)
+        except ValidationError:
+            return ForbiddenResponse(request)
+        except EvalException as e:
+            return ForbiddenResponse(request)
+        except NotImplementedError:
+            return ForbiddenResponse(request)
+        print displayable_result
+        return HttpResponse(displayable_result)
+    return ForbiddenResponse(request)
 
 def _create_activity_formdatadict(activity):
     if not [activity for activity_type in ACTIVITY_TYPES if isinstance(activity, activity_type)]:
