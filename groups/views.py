@@ -97,10 +97,36 @@ def _groupmanage_staff(request, course_slug):
             if student == groupMember.student:
                 studentNotInGroupFlag = False
         if studentNotInGroupFlag == True:
-            studentsNotInGroup.append(student)    
+            studentsNotInGroup.append(student)   
     
+    groups = Group.objects.filter(courseoffering = course)
+    groupList = []
+    for group in groups:
+        members = GroupMember.objects.filter(group = group)
+        if members:
+            #get the members for the group
+            memberships = GroupMember.objects.filter(group = group, activity = members[0].activity)
+            confirmedStudents = []
+            unconfirmedStudents = []
+            for membership in memberships:
+                if membership.confirmed == True:
+                    confirmedStudents.append(membership)
+                else:
+                    unconfirmedStudents.append(membership)
+            #get the activities for the group
+            memberships = GroupMember.objects.filter(group = group, student = members[0].student)
+            activities = []
+            for membership in memberships:
+                activities.append(membership.activity)
+            #create a dictionary structure that contains the info of group members and activities of the group
+            groupDict = {'group':group, 'activities':activities, 'confirmedStudents':confirmedStudents, 'unconfirmedStudents':unconfirmedStudents}
+            groupList.append(groupDict)
+            #print groupDict
+    #print groupList
+    print groupList[0]['confirmedStudents']
+                
     return render_to_response('groups/instructor.html', \
-                              {'course':course, 'members':members, 'studentsNotInGroup':studentsNotInGroup}, \
+                              {'course':course, 'groupList':groupList, 'studentsNotInGroup':studentsNotInGroup}, \
                               context_instance = RequestContext(request))
 
 @requires_course_by_slug
@@ -165,7 +191,7 @@ def submit(request,course_slug):
         l.save()
         #Deal with creating the membership
         if is_course_student_by_slug(request.user, course_slug):
-            activities = Activity.objects.filter(offering = course, status = 'URLS') 
+            activities = Activity.objects.filter(offering = course, status = 'RLS') 
             for activity in activities:
                 activityForm = ActivityForm(request.POST, prefix = activity.slug)
                 if activityForm.is_valid() and activityForm.cleaned_data['selected'] == True:
@@ -180,7 +206,7 @@ def submit(request,course_slug):
             messages.add_message(request, messages.SUCCESS, 'Group Created')
             return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))    
         elif is_course_staff_by_slug(request.user, course_slug):
-            activities = Activity.objects.filter(offering = course, status = 'URLS') 
+            activities = Activity.objects.filter(offering = course, status = 'RLS') 
             students = Member.objects.select_related('person').filter(offering = course, role = 'STUD') 
             for activity in activities:
                 activityForm = ActivityForm(request.POST, prefix = activity.slug)

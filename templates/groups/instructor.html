@@ -7,21 +7,23 @@
 
 {% block content %}
 <div id="grouplist">
-  {% if members %}
+  {% if groupList %}
     <ul>
-    {% regroup members by group as by_group %}
-    {% for entry in by_group %}
-      <li>{{entry.grouper.name}}<ul>
-        {% for m in entry.list %}
-          <li>{{m.student.person.name}}, {{m.student.person.userid}}
-          {% if not m.confirmed %}(unconfirmed){% endif %}
-          </li>
-        {% endfor %}
-        <br>
-        <a class="button" href="{% url groups.views.switch_group course_slug=course.slug group_slug=entry.grouper.slug %}">Switch Group</a>
-        <a class="button" href="{% url groups.views.change_name course_slug=course.slug group_slug=entry.grouper.slug %}">Change Name</a>
-        <a class="button" href="{% url groups.views.remove_student course_slug=course.slug group_slug=entry.grouper.slug %}">Remove Student</a>
-      </ul></li>
+    {% for group in groupList %}
+      <li>{{ group.group.name }}  ( for  
+          {% for activity in group.activities %}
+          {{ activity.name }}  
+          {% endfor %})
+          <ul>
+              {% for member in group.confirmedStudents %}
+              <li>{{ member.student.person.name }}, {{ member.student.person.userid }} </li>
+              {% endfor %}
+            <br>
+            <a class="button" href="{% url groups.views.switch_group course_slug=course.slug group_slug=group.group.slug %}">Switch Group</a>
+            <a class="button" href="{% url groups.views.change_name course_slug=course.slug group_slug=group.group.slug %}">Change Name</a>
+            <a class="button" href="{% url groups.views.remove_student course_slug=course.slug group_slug=group.group.slug %}">Remove Student</a>
+          </ul>
+      </li>
     {% endfor %}
     </ul>
   {% else %}
