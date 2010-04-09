@@ -38,8 +38,12 @@
               {% endfor %}
           </ul>
           <p>
-            <a class="button" href="{% url groups.views.invite course_slug=course.slug group_slug=info.group.slug %}">Invite</a>
-            </p>
+          {% if info.need_conf %}
+          You have not confirmed membership in this group. <a class="button" href="{% url groups.views.join course_slug=course.slug,group_slug=info.group.slug %}">Join Group</a>
+          {% else %}
+          <a class="button" href="{% url groups.views.invite course_slug=course.slug group_slug=info.group.slug %}">Invite</a>
+          {% endif %}
+          </p>
       </li>
     {% endfor %}
   {% else %}

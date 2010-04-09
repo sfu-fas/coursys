@@ -40,11 +40,12 @@ def _groupmanage_student(request, course_slug):
     groups = Group.objects.filter(courseoffering=course, groupmember__student__person__userid=request.user.username)
     groups = set(groups) # all groups student is a member of
 
-    #all_members = GroupMember.objects.filter(group__in=groups)
     groupList = []
+    my_membership = []
     for group in groups:
         members = GroupMember.objects.filter(group = group)
-        all_act = set((m.activity for m in members)) # all activities this group covers
+        need_conf = members.filter(student__person__userid=request.user.username, confirmed=False).count() != 0
+        all_act = all_activities(members)
         unique_members = []
         for s in set(m.student for m in members):
             # confirmed in group?
@@ -52,7 +53,8 @@ def _groupmanage_student(request, course_slug):
             # not a member for any activities?
             missing = all_act - set(m.activity for m in members if m.student==s)
             unique_members.append( {'member': s, 'confirmed': confirmed, 'missing': missing} )
-        groupList.append({'group': group, 'activities': all_act, 'unique_members': unique_members, 'memb': members})
+
+        groupList.append({'group': group, 'activities': all_act, 'unique_members': unique_members, 'memb': members, 'need_conf': need_conf})
 
     return render_to_response('groups/student.html', {'course':course, 'groupList':groupList}, context_instance = RequestContext(request))
 
@@ -74,7 +76,7 @@ def _groupmanage_staff(request, course_slug):
     groupList = []
     for group in groups:
         members = GroupMember.objects.filter(group = group)
-        all_act = set((m.activity for m in members)) # all activities this group covers
+        all_act = all_activities(members)
         unique_members = []
         for s in set(m.student for m in members):
             # confirmed in group?
@@ -218,8 +220,6 @@ def invite(request, course_slug, group_slug):
     class StudentReceiverForm(forms.Form):
         name = forms.CharField()
 
-
-
     if request.method == "POST":
         student_receiver_form = StudentReceiverForm(request.POST)
         #student_receiver_form.activate_addform_validation(course_slug,group_slug)
@@ -227,8 +227,16 @@ def invite(request, course_slug, group_slug):
             name = student_receiver_form.cleaned_data['name']
             newPerson = get_object_or_404(Person, userid=name)
             member = get_object_or_404(Member, person = newPerson, offering = course, role="STUD")
-            if GroupMember.objects.filter(student=member,group=group):
-                error_info="Student %s has already exists" % (newPerson)
+            
+            # find out if this person is already in a group
+            gms = group.groupmember_set.all()
+            all_act = all_activities(gms)
+            existing_memb = GroupMember.objects.filter(student=member, activity__in=all_act)
+            
+            if GroupMember.objects.filter(student=member, group=group):
+                error_info="%s is already in this group" % (newPerson.userid)
+            elif existing_memb:
+                error_info="%s is already in a group for %s" % (newPerson.userid, ", ".join(m.activity.name for m in existing_memb))
             else:
                 #member = Member.objects.get(person = newPerson, offering = course)
                 for invitorMembership in GroupMember.objects.filter(group = group, student = invitor):
@@ -245,6 +253,9 @@ def invite(request, course_slug, group_slug):
                 messages.add_message(request, messages.ERROR, error_info)
             else:
                 messages.add_message(request, messages.SUCCESS, 'Your invitation to "%s" has been sent out.' % (newPerson))
+            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+        else:
+            messages.add_message(request, messages.ERROR, "Invalid userid.")
             return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
     else:
         student_receiver_form = StudentReceiverForm()

@@ -38,6 +38,8 @@ class GroupMember(models.Model):
 
     def __unicode__(self):
 	    return '%s@%s/%s' % (self.student.person, self.group, self.activity.short_name)
+    class Meta:
+        unique_together = ("student", "activity")
 
     def save(self,person):
         super(GroupMember, self).save()
@@ -53,3 +55,11 @@ class GroupMember(models.Model):
 
     class Meta:
         unique_together = ("group", "student", "activity")
+
+def all_activities(members):
+    """
+    Return all activities for this set of group members.  i.e. all activities that any member is a member for.
+    """
+    return set(m.activity for m in members)
+
+
