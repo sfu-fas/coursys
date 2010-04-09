@@ -9,7 +9,7 @@ from django.test import TestCase
 from coredata.models import *
 from grades.models import *
 from models import *
-from views import manage_activity_components, manage_common_problems, marking_student, mark_history
+from views import manage_activity_components, manage_common_problems, marking_student
 from settings import CAS_SERVER_URL
 from courselib.testing import *
 from datetime import *
@@ -219,7 +219,7 @@ class BasicTest(TestCase):
         
         self.client.login(ticket = 'ggbaker', service=CAS_SERVER_URL)
 
-        response = self.client.get(reverse(mark_history, args=(self.c_slug, a.slug, '0aaa1')))
+        response = self.client.get(reverse('marking.views.mark_history_student', args=(self.c_slug, a.slug, '0aaa1')))
         self.assertEquals(response.status_code, 200)
         
         latest_act_mark = response.context['current_mark']
