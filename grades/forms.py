@@ -123,8 +123,12 @@ class LetterActivityForm(ActivityForm):
     #specify_letter_formula = forms.BooleanField(label='Specify formula:', required=False)
     
 class CalNumericActivityForm(ActivityForm):
+    # default status is invisible
+    status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='INVI',
+                               label=mark_safe('Status:' + _required_star),
+                               help_text='visibility of grades/activity to students')
     max_grade = forms.DecimalField(max_digits=5, decimal_places=2, label=mark_safe('Maximum grade:' + _required_star),
-                                   help_text='maximum grade',
+                                   help_text='maximum grade of the calculated result',
                                    widget=forms.TextInput(attrs={'size':'3'}))
     formula = forms.CharField(max_length=250, label=mark_safe('Formula:'+_required_star),
                     help_text='parsed formula to calculate final numeric grade',

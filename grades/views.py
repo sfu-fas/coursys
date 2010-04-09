@@ -298,7 +298,7 @@ def add_cal_numeric_activity(request, course_slug):
                     position = aggr_dict['position__max'] + 1
                 CalNumericActivity.objects.create(name=form.cleaned_data['name'],
                                                 short_name=form.cleaned_data['short_name'],
-                                                status="INVI", # always invisible 
+                                                status=form.cleaned_data['status'],
                                                 max_grade=form.cleaned_data['max_grade'],
                                                 formula=form.cleaned_data['formula'],
                                                 offering=course, 
