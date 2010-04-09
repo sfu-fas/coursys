@@ -87,14 +87,14 @@ def copy_course_setup(request, course_slug):
         course = CourseChoiceField(queryset = courses_qset)    
     
     if request.method == "POST":         
-        target_setup = Activity.objects.filter(offering = course)
+        target_setup = Activity.objects.filter(offering = course, deleted = False)
         error_info = None        
         source_slug = request.GET.get('copy_from')       
         if source_slug == None: # POST request for selecting the source course to copy from
             select_form = CourseSourceForm(request.POST, prefix = "select-form")
             if select_form.is_valid():
                 source_course = select_form.cleaned_data['course'].offering
-                source_setup = Activity.objects.filter(offering = source_course) 
+                source_setup = Activity.objects.filter(offering = source_course, deleted = False) 
                 conflicting_acts = _find_setup_conflicts(source_setup, target_setup)
                 rename_forms =[ ActivityRenameForm(prefix=act.id) for act in conflicting_acts ]
             else:
@@ -104,7 +104,7 @@ def copy_course_setup(request, course_slug):
             
         else: # POST request for renaming and copy    
             source_course = get_object_or_404(CourseOffering, slug = source_slug)
-            source_setup = Activity.objects.filter(offering = source_course)  
+            source_setup = Activity.objects.filter(offering = source_course, deleted = False)  
             conflicting_acts = _find_setup_conflicts(source_setup, target_setup)   
             
             if conflicting_acts: # check the renamed activities

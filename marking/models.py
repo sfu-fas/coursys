@@ -62,10 +62,10 @@ class ActivityMark(models.Model):
     General Marking class for one numeric activity 
     """
     overall_comment = models.TextField(null = True, max_length = 1000, blank = True)
-    late_penalty = models.IntegerField(null = True, default = 0, blank = True)
-    mark_adjustment = models.IntegerField(null = True, default = 0, blank = True)
+    late_penalty = models.IntegerField(null = True, default = 0, blank = True, help_text='Percentage to deduct from the total mark got due to late submission')
+    mark_adjustment = models.IntegerField(null = True, default = 0, blank = True, help_text='Points to add or deduct for any special reasons')
     mark_adjustment_reason = models.TextField(null = True, max_length = 1000, blank = True)
-    file_attachment = models.FileField(storage=MarkingSystemStorage, null = True, upload_to = attachment_upload_to, blank=True)#TODO: need to add student name or group name to the path  
+    file_attachment = models.FileField(storage=MarkingSystemStorage, null = True, upload_to = attachment_upload_to, blank=True)
     
     created_by = models.CharField(max_length=8, null=False, help_text='Userid who gives the mark')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -175,7 +175,7 @@ class ActivityComponentMark(models.Model):
         # get the student and the activity
         return "Marking for [%s]" %(self.activity_component,)
     def delete(self, *args, **kwargs):
-        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+        raise NotImplementedError, "This object cannot be deleted because it is used for marking history"
         
     class Meta:
         unique_together = (('activity_mark', 'activity_component'),)
