@@ -165,7 +165,7 @@ def create(request,course_slug):
     
 @requires_course_by_slug
 def submit(request,course_slug):
-    #TODO: validate group name and activity
+    #TODO: validate activity?
     person = get_object_or_404(Person,userid=request.user.username)
     course = get_object_or_404(CourseOffering, slug = course_slug)
     member = Member.objects.get(person = person, offering = course)
