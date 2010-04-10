@@ -392,6 +392,7 @@ def calculate_numeric_grade(course, activity, student=None):
         # calculate grade
         try:
             result = eval_parse(parsed_expr, act_dict, student)
+            result = decimal.Decimal(str(result)) # convert to decimal
         except EvalException:
             raise EvalException("Formula Error: Can not evaluate formula for student: '%s'" % student.person.name())
         
@@ -399,9 +400,10 @@ def calculate_numeric_grade(course, activity, student=None):
         member_found = False
         for numeric_grade in numeric_grade_list:
             if numeric_grade.member == student:
-                member_found = True
-                numeric_grade.value = str(result)
-                numeric_grade.save()
+                member_found = True                
+                if result != numeric_grade.value:# only save when the value changes
+                    numeric_grade.value = result
+                    numeric_grade.save()
                 break
         if not member_found:
             numeric_grade = NumericGrade(activity=activity, member=student,

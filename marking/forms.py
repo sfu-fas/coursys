@@ -137,3 +137,19 @@ class ActivityRenameForm(forms.Form):
                                 widget=forms.TextInput(attrs={'size':'8'}))
     selected = forms.BooleanField(required=False, label='Rename?', initial = True, 
                     widget=forms.CheckboxInput(attrs={'class':'rename_check'}))
+
+STATUS_CHOICES = [
+    ('GRAD', 'graded'),  
+    ('EXCU', 'excused'), 
+    ('DISH', 'academic dishonesty') ]    
+class GradeStatusForm(forms.Form):
+    """
+    used when if staff want to change the status of a grade after it is given
+    """
+    status = forms.ChoiceField(required=True, choices=STATUS_CHOICES,
+                               label=mark_safe('Change Status to:'+_required_star), 
+                               help_text='New status of the grade for this student')
+    comment = forms.CharField(required=True, max_length=500,
+                            label=mark_safe('Comment:'+_required_star),
+                            help_text='Please provide comment here',
+                            widget=forms.Textarea(attrs={'rows':'6', 'cols':'40'}))

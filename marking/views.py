@@ -5,7 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.core.urlresolvers import reverse
 from coredata.models import *
 from courselib.auth import *
-from grades.models import NumericActivity, FLAG_CHOICES
+from grades.models import NumericActivity, FLAGS
 from groups.models import Group
 from log.models import *
 from models import *      
@@ -13,7 +13,6 @@ from forms import *
 from django.forms.models import modelformset_factory
 from contrib import messages
 from django.db.models import Q
-from decimal import Decimal
 
 
    
@@ -378,8 +377,33 @@ def _save_marking_results(activity, activity_mark, final_mark, marker_ident, mar
        description="edited grade on %s for %s changed to %s" % \
       (activity, mark_receiver_ident, final_mark), related_object=activity_mark)                     
     l.save()   
-     
- 
+      
+def change_grade_status(request, course_slug, activity_slug, userid):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(NumericActivity, offering=course, slug=activity_slug)
+    member = get_object_or_404(Member, offering=course, person__userid = userid, role = 'STUD') 
+    numeric_grade = get_object_or_404(NumericGrade, activity=activity, member=member)
+    
+    if request.method == 'POST':
+        status_form = GradeStatusForm(data=request.POST, prefix='grade-status')
+        if status_form.is_valid():
+            print "valid"
+            new_status = status_form.cleaned_data['status']
+            comment = status_form.cleaned_data['comment']
+            if new_status != numeric_grade.flag:
+                numeric_grade.save_status_flag(new_status, comment)
+                messages.add_message(request, messages.WARNING, 'Grade status for student %s on %s changed!' % (userid, activity.name,))
+                
+            return _redirct_response(request, course_slug, activity_slug)
+    else:
+        status_form = GradeStatusForm(prefix='grade-status')
+        
+    context = {'course':course,'activity' : activity,\
+               'student' : member.person, 'current_status' : FLAGS[numeric_grade.flag],
+               'status_form': status_form}
+    return render_to_response("marking/grade_status.html", context,\
+                             context_instance=RequestContext(request))  
+
 @requires_course_staff_by_slug
 def marking_student(request, course_slug, activity_slug, userid):
     student = get_object_or_404(Person, userid = userid)
@@ -485,6 +509,7 @@ def marking_group(request, course_slug, activity_slug, group_slug):
                        {'course':course, 'activity' : activity,'group' : group,                              
                        'additional_info_form' : additional_info_form, 'mark_components': mark_components }, \
                        context_instance=RequestContext(request))
+
 
 
 
@@ -682,9 +707,12 @@ def mark_all_groups(request, course_slug, activity_slug):
             i = 0
             for group in groups:
                new_value = rows[i]['form'].cleaned_data['value']
-               if new_value== None or\
-                  (current_act_marks[i] != None and current_act_marks[i].mark == new_value):
-                   continue               
+               if new_value== None :
+                   continue
+               if current_act_marks[i] != None and current_act_marks[i].mark == new_value:
+                  # if any of the group members originally has a grade status other than 'GRAD'
+                  # so do not override the status
+                  continue               
                act_mark = GroupActivityMark(group=group, numeric_activity=activity)
                _save_marking_results(activity, act_mark, new_value, request.user.username,\
                                      ("group %s" % group.name))
@@ -757,7 +785,11 @@ def mark_all_students(request, course_slug, activity_slug):
                ngrade = ngrades[i]
                new_value = rows[i]['form'].cleaned_data['value'] 
                # the new mark is blank or the new mark is the same as the old one, do nothing
-               if (new_value == None) or (ngrade and ngrade.value == new_value):
+               if new_value == None: 
+                   continue
+               if ngrade !=None and ngrade.value == new_value:
+                   # if the student originally has a grade status other than 'GRAD',
+                   # we do not override that status
                    continue 
                # save data 
                if ngrade == None:

@@ -246,10 +246,6 @@ def all_activities_filter(**kwargs):
     return activities
 
 
-
-
-
-
 class NumericGrade(models.Model):
     """
     Individual numeric grade for a NumericActivity.
@@ -272,16 +268,40 @@ class NumericGrade(models.Model):
     def save(self, newsitem=True):
         super(NumericGrade, self).save()
         if self.activity.status == "RLS" and newsitem and self.flag != "NOGR":
-            # generate news item
+            # new grade assigned, generate news item only if the result is released
             n = NewsItem(user=self.member.person, author=None, course=self.activity.offering,
                 source_app="grades", title="%s grade available" % (self.activity.name), 
                 content='A "new grade for %s":%s in %s is available.' 
                   % (self.activity.name, self.get_absolute_url(), self.activity.offering.name()),
                 url=self.get_absolute_url())
             n.save()
+     
+    def save_status_flag(self, new_flag, comment):
+        """
+        status changed, generate the news item, regardless the grade of released or not
+        """
+        self.flag = new_flag
+        super(NumericGrade, self).save()
+        # link to activity information page ?
+        info_url = reverse("grades.views.activity_info", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug})
+        n = NewsItem(user=self.member.person, author=None, course=self.activity.offering,
+            source_app="grades", title="%s grade status changed" % (self.activity.name), 
+            #content='p(severe). "grade status change to %s for %s":%s in %s\n %s' 
+             # % (FLAGS[self.flag], self.activity.name, info_url, self.activity.offering.name(), comment),
+            content = '"grade status changed to *{color:red}%s*":%s for %s in %s\ncomment: %s' %
+                      (FLAGS[self.flag], info_url, self.activity.name, self.activity.offering.name(), comment),
+            url= info_url)
+        n.save()   
 
     def get_absolute_url(self):
-        return reverse("marking.views.mark_summary_student", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug, 'userid':self.member.person.userid})
+        """
+        for calculate numeric activity only return the activity information page
+        for regular numeric activity return the mark summary page
+        """
+        if CalNumericActivity.objects.filter(id=self.activity.id):
+            return reverse("grades.views.activity_info", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug})
+        else:
+            return reverse("marking.views.mark_summary_student", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug, 'userid':self.member.person.userid})
     class Meta:
         unique_together = (('activity', 'member'),)
     
@@ -306,14 +326,14 @@ class LetterGrade(models.Model):
     
     def save(self, newsitem=True):
         super(NumericGrade, self).save()
-        if self.activity.status == "RLS" and newsitem and self.flag != "NOGR":
-            # generate news item
+        if self.activity.status=="RLS" and newsitem and self.flag != "NOGR":
+            # new grade assigned, generate news item only if the result is released
             n = NewsItem(user=self.member.person, author=None, course=self.activity.offering,
                 source_app="grades", title="%s grade available" % (self.activity.name), 
                 content='A "new grade for %s":%s in %s is available.' 
                   % (self.activity.name, self.get_absolute_url(), self.activity.offering.name()),
                 url=self.get_absolute_url())
             n.save()
-    
+            
     class Meta:
         unique_together = (('activity', 'member'), )

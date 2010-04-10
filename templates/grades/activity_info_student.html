@@ -34,6 +34,10 @@
                 <td>{% if activity.percent %}{{activity.percent}}%{% else %}unknown{% endif %}</td>
             </tr>
             <tr>
+            	<th class="ui-state-default">Grade Status</th>
+                <td>{{activityinfo.grade_status}}</td>
+            </tr>
+            <tr>
                 <th class="ui-state-default">Your Grade</th>
                 <td>
 		{% if activity.calnumericactivity %}
