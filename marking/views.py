@@ -4,7 +4,7 @@ from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.core.urlresolvers import reverse
 from coredata.models import *
-from courselib.auth import requires_course_staff_by_slug, is_course_staff_by_slug, is_course_student_by_slug, ForbiddenResponse
+from courselib.auth import *
 from grades.models import NumericActivity
 from groups.models import Group
 from log.models import *
@@ -560,18 +560,31 @@ def mark_summary_group(request, course_slug, activity_slug, group_slug):
                                 'is_staff': is_staff, 'view_history': act_mark_id == None},\
                                 context_instance = RequestContext(request))
          
-from os import path
-from courses.settings import MEDIA_ROOT
-@requires_course_staff_by_slug
-def download_marking_attachment(request, course_slug, activity_slug, filepath):
+import os
+from courses.settings import SUBMISSION_PATH
+from django.core.servers.basehttp import FileWrapper
+@requires_course_by_slug
+def download_marking_attachment(request, course_slug, activity_slug, mark_id, filepath):
     course = get_object_or_404(CourseOffering, slug = course_slug)    
     activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)       
-   
-    filepath = path.join(MEDIA_ROOT, filepath).replace("\\", "/")
-    bytes = path.getsize(filepath)
-    download_file = file(filepath, 'r')
-   
-    response = HttpResponse(download_file.read())
+      
+    # url integrity check
+    result = StudentActivityMark.objects.filter(id=mark_id)    
+    if result.count() == 0:
+        result = GroupActivityMark.objects.filter(id=mark_id, activity=activity)
+        if result.count() == 0:
+            return ForbiddenResponse(request)
+    elif result[0].numeric_grade.activity != activity:
+        return ForbiddenResponse(request)
+    elif result[0].file_attachment.name != filepath:
+        return ForbiddenResponse(request)
+          
+    # for windows system, we need to convert the path separator '/' in url to '\\'
+    filepath = filepath.replace('/', os.path.sep)    
+    filepath = os.path.join(SUBMISSION_PATH, filepath)
+    bytes = os.path.getsize(filepath)
+    response = HttpResponse(FileWrapper(file(filepath, "rb")))
+
     response['Content-Disposition'] = 'attachment;'
     response['Content-Length'] = bytes
     return response

@@ -13,4 +13,8 @@ GROUP_SLUG  = '(?P<group_slug>' + GROUP_SLUG_RE + ')'
 
 COMPONENT_SLUG = '(?P<component_slug>' + SLUG_RE + ')'
 
-SUBMISSION_ID = '(?P<submission_id>\d+)'
+ID_RE = '\d+'
+SUBMISSION_ID = '(?P<submission_id>' + ID_RE + ')'
+ACTIVITY_MARK_ID = '(?P<mark_id>' + ID_RE + ')'
+
+FILE_PATH='(?P<filepath>.*)'

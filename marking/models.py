@@ -8,9 +8,10 @@ from groups.models import Group, GroupMember
 from datetime import datetime
 from django.db.models import Q
 from submission.models import select_all_components
-
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
+import os.path
+
 MarkingSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
 class ActivityComponent(models.Model):
@@ -44,19 +45,15 @@ class CommonProblem(models.Model):
     def __unicode__(self):
         return "common problem %s for %s" % (self.title, self.activity_component)
      
-# a callback to avoid path in the filename(that we have append folder structure to) be striped 
+# 
 def attachment_upload_to(instance, filename):
     """
-    append activity_slug/group_slug/ or
-           activity_slug/student_userid/ as the parent folder path   
-    filename is already in the form of activity_slug/group_slug/orignial_filename or
-                                       activity_slug/student_userid/orignial_filename
+    callback to avoid path in the filename(that we have append folder structure to) being striped 
     """
-    marking_files_root = 'marking/files/'
-    now = datetime.now()
-    time_path = '/'.join([str(now.year), str(now.month), str(now.day)])
-    return marking_files_root + time_path + filename
-         
+    print type(instance)
+    print os.path.join('marking', 'files', filename)
+    return os.path.join('marking', 'files', filename)
+             
 class ActivityMark(models.Model):
     """
     General Marking class for one numeric activity 
@@ -65,8 +62,7 @@ class ActivityMark(models.Model):
     late_penalty = models.IntegerField(null = True, default = 0, blank = True, help_text='Percentage to deduct from the total mark got due to late submission')
     mark_adjustment = models.IntegerField(null = True, default = 0, blank = True, help_text='Points to add or deduct for any special reasons')
     mark_adjustment_reason = models.TextField(null = True, max_length = 1000, blank = True)
-    file_attachment = models.FileField(storage=MarkingSystemStorage, null = True, upload_to = attachment_upload_to, blank=True)
-    
+    file_attachment = models.FileField(storage=MarkingSystemStorage, null = True, upload_to=attachment_upload_to, blank=True)
     created_by = models.CharField(max_length=8, null=False, help_text='Userid who gives the mark')
     created_at = models.DateTimeField(auto_now_add=True)
     # For the purpose of keeping a history,
@@ -93,7 +89,6 @@ class ActivityMark(models.Model):
     
     def setMark(self, grade):
         self.mark = grade
-  
 
 class StudentActivityMark(ActivityMark):
     """
@@ -117,11 +112,11 @@ class StudentActivityMark(ActivityMark):
             activity = self.numeric_grade.activity
             course = activity.offering
             student = self.numeric_grade.member.person           
-            self.file_attachment.name = '/' + course.slug + \
-                                        '/' + activity.slug + \
-                                        '/' + student.userid + \
-                                        '/' + self.file_attachment.name
-        
+            self.file_attachment.name = os.path.join(
+                                        course.slug, 
+                                        activity.slug, 
+                                        student.userid + '_' +self.file_attachment.name.encode('ascii', 'ignore'))
+       
         self.numeric_grade.value = grade
         self.numeric_grade.flag = 'GRAD'
         self.numeric_grade.save()            
@@ -145,10 +140,10 @@ class GroupActivityMark(ActivityMark):
         # append folder structure to the file name
         if self.file_attachment: 
             course = self.numeric_activity.offering              
-            self.file_attachment.name = '/' + course.slug + \
-                                        '/' + self.numeric_activity.slug + \
-                                        '/' + self.group.slug + \
-                                        '/' + self.file_attachment.name
+            self.file_attachment.name = os.path.join(
+                                        course.slug, 
+                                        activity.slug, 
+                                        group.slug + '_' +self.file_attachment.name.encode('ascii', 'ignore'))
         #assign mark for each member in the group
         group_members = GroupMember.objects.filter(group = self.group, activity = self.numeric_activity, confirmed = True)
         for g_member in group_members:
