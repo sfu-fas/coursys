@@ -92,27 +92,29 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    <li><a href="{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}">Edit Activity Details</a></li>
-    <li><a href="{% url grades.views.activity_stat course_slug=course.slug activity_slug=activity.slug %}">Display Statistics</a></li> 
-    <li><a href="{% url submission.views.show_components course_slug=course.slug, activity_slug=activity.slug%}">Configure Submission</a></li>
-    <li><a href="{% url marking.views.manage_activity_components course_slug=course.slug,activity_slug=activity.slug%}">Configure Marking</a></li>
-    <li><a href="{% url marking.views.manage_common_problems course_slug=course.slug,activity_slug=activity.slug%}">Configure Common Problems</a></li>
-    <li><a href="{% url marking.views.mark_all_students course_slug=course.slug, activity_slug=activity.slug%}">Mark all</a></li>
-    {% if activity.group %}
-    <li>
-    <a href="{% url marking.views.mark_all_groups course_slug=course.slug, activity_slug=activity.slug%}">Mark all by Group</a>
-    </li>
-    {% ifequal activity_view_type 'group' %}
-    <li>
-    <a href="{% url grades.views.activity_info course_slug=course.slug, activity_slug=activity.slug%}">View By Student</a>
-    </li>
-    {% endifequal %}
-    {% ifequal activity_view_type 'individual' %}
-    <li>
-    <a href="{% url grades.views.activity_info_with_groups course_slug=course.slug, activity_slug=activity.slug%}">View By Group</a>
-    </li>
-    {% endifequal %}
-    {% endif %}
+	    <li><a href="{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}">Edit Activity Details</a></li>
+	    <li><a href="{% url grades.views.activity_stat course_slug=course.slug activity_slug=activity.slug %}">Display Statistics</a></li> 
+		{% ifnotequal activity_type 'Calculated Numeric Graded' %}
+		    <li><a href="{% url submission.views.show_components course_slug=course.slug, activity_slug=activity.slug%}">Configure Submission</a></li>
+		    <li><a href="{% url marking.views.manage_activity_components course_slug=course.slug,activity_slug=activity.slug%}">Configure Marking</a></li>
+		    <li><a href="{% url marking.views.manage_common_problems course_slug=course.slug,activity_slug=activity.slug%}">Configure Common Problems</a></li>
+		    <li><a href="{% url marking.views.mark_all_students course_slug=course.slug, activity_slug=activity.slug%}">Mark all</a></li>
+		    {% if activity.group %}
+		    <li>
+		    <a href="{% url marking.views.mark_all_groups course_slug=course.slug, activity_slug=activity.slug%}">Mark all by Group</a>
+		    </li>
+		    {% ifequal activity_view_type 'group' %}
+		    <li>
+		    <a href="{% url grades.views.activity_info course_slug=course.slug, activity_slug=activity.slug%}">View By Student</a>
+		    </li>
+		    {% endifequal %}
+		    {% ifequal activity_view_type 'individual' %}
+		    <li>
+		    <a href="{% url grades.views.activity_info_with_groups course_slug=course.slug, activity_slug=activity.slug%}">View By Group</a>
+		    </li>
+		    {% endifequal %}
+		    {% endif %}
+    	{% endifnotequal %}
     <li><a href="{% url marking.views.export_csv course_slug=course.slug, activity_slug=activity.slug%}">Export all</a></li>
     </ul>
 </div>

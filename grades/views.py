@@ -49,7 +49,7 @@ def course_info(request, course_slug):
 def reorder_activity(request, course_slug):
     """
     Ajax way to reorder activity.
-    This ajav view function is called in the course_info page.
+    This ajax view function is called in the course_info page.
     """
     if request.method == 'POST':
         id_up = request.POST.get('id_up') 
