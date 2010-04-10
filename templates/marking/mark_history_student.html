@@ -44,7 +44,7 @@
 	    {% for act_mark in marks_individual %}
 	     	<tr>
 		      <td>
-		       {{act_mark.created_at|date:"Y M d D"}} {{act_mark.created_at|time:"H:i:s"}}
+		       {{act_mark.created_at|date:'r'}} 
 		       {% ifequal act_mark current_mark %}
 		       <img src = "{{MEDIA_URL}}icons/tick.png" title="Currently Valid" alt="Currently Valid" />
 		       {% endifequal %}		       
@@ -75,7 +75,7 @@
 	    {% for act_mark in marks_via_group %}
 	    	<tr>
 		      <td>
-		       {{act_mark.created_at|date:"Y M d D"}} {{act_mark.created_at|time:"H:i:s"}}
+		       {{act_mark.created_at|date:'r'}} 
 		       {% ifequal act_mark current_mark %}
 		       <img src = "{{MEDIA_URL}}icons/tick.png" title="Currently Valid" alt="Currently Valid" />
 		       {% endifequal %}		       

@@ -50,8 +50,6 @@ def attachment_upload_to(instance, filename):
     """
     callback to avoid path in the filename(that we have append folder structure to) being striped 
     """
-    print type(instance)
-    print os.path.join('marking', 'files', filename)
     return os.path.join('marking', 'files', filename)
              
 class ActivityMark(models.Model):

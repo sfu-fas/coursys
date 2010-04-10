@@ -5,7 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.core.urlresolvers import reverse
 from coredata.models import *
 from courselib.auth import *
-from grades.models import NumericActivity
+from grades.models import NumericActivity, FLAG_CHOICES
 from groups.models import Group
 from log.models import *
 from models import *      
@@ -14,6 +14,23 @@ from django.forms.models import modelformset_factory
 from contrib import messages
 from django.db.models import Q
 from decimal import Decimal
+
+
+   
+# request to views in the marking may comes from different pages, for POST request, we need to redirect to the right page
+FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
+def _redirct_response(request, course_slug, activity_slug):   
+    from_page = request.GET.get('from_page')
+    if from_page == FROMPAGE['course']:
+        redirect_url = reverse('grades.views.course_info', args=(course_slug,))
+    elif from_page == FROMPAGE['activityinfo']:
+        redirect_url = reverse('grades.views.activity_info', args=(course_slug, activity_slug))
+    elif from_page == FROMPAGE['activityinfo_group']:
+        redirect_url = reverse('grades.views.activity_info_with_groups', args=(course_slug, activity_slug))
+    else: #default to the activity_info page
+        redirect_url = reverse('grades.views.activity_info', args=(course_slug, activity_slug))
+    
+    return HttpResponseRedirect(redirect_url)  
 
 
 def _find_setup_conflicts(source_setup, target_setup):    
@@ -192,8 +209,7 @@ def manage_activity_components(request, course_slug, activity_slug):
                 messages.add_message(request, messages.WARNING, \
                                      "The max grade of %s updated from %s to %s" % (activity.name, old_max, now_max))
            
-        return HttpResponseRedirect(reverse('grades.views.activity_info', \
-                                                args=(course_slug, activity_slug)))                   
+        return _redirct_response(request, course_slug, activity_slug)            
     else: # for GET request
         formset = ComponentsFormSet(activity, queryset = qset) 
     
@@ -231,8 +247,7 @@ def manage_common_problems(request, course_slug, activity_slug):
             # save the formset  
             _save_common_problems(formset)
             messages.add_message(request, messages.SUCCESS, 'Common problems Saved')
-            return HttpResponseRedirect(reverse('grades.views.activity_info', \
-                                                args=(course_slug, activity_slug)))                   
+            return _redirct_response(request, course_slug, activity_slug)              
     else: # for GET request     
         formset = CommonProblemFormSet(components, queryset = qset) 
     
@@ -364,22 +379,6 @@ def _save_marking_results(activity, activity_mark, final_mark, marker_ident, mar
       (activity, mark_receiver_ident, final_mark), related_object=activity_mark)                     
     l.save()   
      
-   
-# request to marking view may comes from different pages
-FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
-def _marking_redirct_response(request, course_slug, activity_slug):   
-    from_page = request.GET.get('from_page')
-    if from_page == FROMPAGE['course']:
-        redirect_url = reverse('grades.views.course_info', args=(course_slug,))
-    elif from_page == FROMPAGE['activityinfo']:
-        redirect_url = reverse('grades.views.activity_info', args=(course_slug, activity_slug))
-    elif from_page == FROMPAGE['activityinfo_group']:
-        redirect_url = reverse('grades.views.activity_info_with_groups', args=(course_slug, activity_slug))
-    else: #default to the activity_info page
-        redirect_url = reverse('grades.views.activity_info', args=(course_slug, activity_slug))
-    
-    return HttpResponseRedirect(redirect_url)  
-     
  
 @requires_course_staff_by_slug
 def marking_student(request, course_slug, activity_slug, userid):
@@ -420,7 +419,7 @@ def marking_student(request, course_slug, activity_slug, userid):
             messages.add_message(request, messages.SUCCESS, 'Mark for student %s on %s saved!' % (userid, activity.name,))
             for warning in warning_messages:
                 messages.add_message(request, messages.WARNING, warning)                      
-            return _marking_redirct_response(request, course_slug, activity_slug)
+            return _redirct_response(request, course_slug, activity_slug)
         else:
             messages.add_message(request, messages.ERROR, 'Error found')            
     else: # for GET request
@@ -467,7 +466,7 @@ def marking_group(request, course_slug, activity_slug, group_slug):
             messages.add_message(request, messages.SUCCESS, 'Mark for group %s on %s saved!' % (group.name, activity.name,))                      
             for warning in warning_messages:
                 messages.add_message(request, messages.WARNING, warning)
-            return _marking_redirct_response(request, course_slug, activity_slug)
+            return _redirct_response(request, course_slug, activity_slug)
         else:
             messages.add_message(request, messages.ERROR, 'Error found')            
     
@@ -561,7 +560,6 @@ def mark_summary_group(request, course_slug, activity_slug, group_slug):
                                 context_instance = RequestContext(request))
          
 import os
-from courses.settings import SUBMISSION_PATH
 from django.core.servers.basehttp import FileWrapper
 @requires_course_by_slug
 def download_marking_attachment(request, course_slug, activity_slug, mark_id, filepath):
@@ -578,10 +576,14 @@ def download_marking_attachment(request, course_slug, activity_slug, mark_id, fi
         return ForbiddenResponse(request)
     elif result[0].file_attachment.name != filepath:
         return ForbiddenResponse(request)
-          
+    
+    print MarkingSystemStorage.location
+             
     # for windows system, we need to convert the path separator '/' in url to '\\'
-    filepath = filepath.replace('/', os.path.sep)    
-    filepath = os.path.join(SUBMISSION_PATH, filepath)
+    filepath = filepath.replace('/', os.path.sep)   
+    # append the marking base path 
+    filepath = os.path.join(MarkingSystemStorage.location, filepath)
+    
     bytes = os.path.getsize(filepath)
     response = HttpResponse(FileWrapper(file(filepath, "rb")))
 
@@ -619,6 +621,7 @@ def mark_history_group(request, course_slug, activity_slug, group_slug):
     return render_to_response("marking/mark_history_group.html", context, context_instance = RequestContext(request))
     
 import csv
+from grades.models import FLAG_CHOICES
 @requires_course_staff_by_slug
 def export_csv(request, course_slug, activity_slug):    
     course = get_object_or_404(CourseOffering, slug = course_slug)    
@@ -638,7 +641,7 @@ def export_csv(request, course_slug, activity_slug):
         except NumericGrade.DoesNotExist: #if the  NumericalGrade does not exist yet,
             row.append('no grade')
         else:
-            if ngrade.flag == 'GRAD':
+            if ngrade.flag == 'GRAD' or ngrade.flag == 'CALC':
                row.append(ngrade.value)   
             else:
                row.append(ngrade.flag)
@@ -696,7 +699,7 @@ def mark_all_groups(request, course_slug, activity_slug):
                 messages.add_message(request, messages.SUCCESS, "Marks for all groups on %s saved (%s groups' grades updated)!" % (activity.name, updated))
             for warning in warning_info:
                 messages.add_message(request, messages.WARNING, warning)                    
-            return HttpResponseRedirect(reverse('grades.views.activity_info', args=(course_slug, activity_slug)))     
+            return _redirct_response(request, course_slug, activity_slug)   
         
     else: # for GET request
        for group in groups: 
@@ -775,7 +778,7 @@ def mark_all_students(request, course_slug, activity_slug):
                 for warning in warning_info:
                     messages.add_message(request, messages.WARNING, warning)
                     
-            return HttpResponseRedirect(reverse('grades.views.activity_info', args=(course_slug, activity_slug)))  
+            return _redirct_response(request, course_slug, activity_slug) 
     
     else: 
         if request.method == 'POST': # for import
