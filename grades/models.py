@@ -286,8 +286,6 @@ class NumericGrade(models.Model):
         info_url = reverse("grades.views.activity_info", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug})
         n = NewsItem(user=self.member.person, author=None, course=self.activity.offering,
             source_app="grades", title="%s grade status changed" % (self.activity.name), 
-            #content='p(severe). "grade status change to %s for %s":%s in %s\n %s' 
-             # % (FLAGS[self.flag], self.activity.name, info_url, self.activity.offering.name(), comment),
             content = '"grade status changed to *{color:red}%s*":%s for %s in %s\ncomment: %s' %
                       (FLAGS[self.flag], info_url, self.activity.name, self.activity.offering.name(), comment),
             url= info_url)
