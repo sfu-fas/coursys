@@ -78,8 +78,6 @@ Logged in as {{user.username}}.
 			</ul>
 	  </div>
 
-{% block actions %}{% endblock %}
-
 {% if messages %}
 <div id="messages">
 <ul>
@@ -89,6 +87,8 @@ Logged in as {{user.username}}.
 </ul>
 </div>
 {% endif %}
+
+{% block actions %}{% endblock %}
 
 <div id="main">
 {% block content %}{% endblock %}
