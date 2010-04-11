@@ -5,7 +5,9 @@ from log.models import LogEntry
 import shlex
 from django.http import HttpResponse
 import re
+from courselib.auth import requires_role
 
+@requires_role("SYSA")
 def index(request):
     if request.method == 'POST':
         q = request.POST.get('q')

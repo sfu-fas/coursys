@@ -41,21 +41,6 @@ class GroupMember(models.Model):
     class Meta:
         unique_together = ("student", "activity")
 
-    def save(self, person=None, *args, **kwargs):
-        super(GroupMember, self).save(*args, **kwargs)
-        if self.confirmed == False:
-            course = get_object_or_404(CourseOffering, slug = self.group.courseoffering.slug)
-            member = get_object_or_404(Member, person = self.student.person,offering=course)
-            n = NewsItem(user = person,author = self.student.person, course=member.offering,
-                         source_app="Group Join", title="Group Conformation",
-                         content="You have been invited to join group %s." % (self.group),
-                         url=reverse('groups.views.groupmanage', kwargs={'course_slug':course.slug})
-            )
-            n.save()
-
-    class Meta:
-        unique_together = ("group", "student", "activity")
-
 def all_activities(members):
     """
     Return all activities for this set of group members.  i.e. all activities that any member is a member for.

@@ -95,8 +95,7 @@ def create(request,course_slug):
     person = get_object_or_404(Person,userid=request.user.username)
     course = get_object_or_404(CourseOffering, slug = course_slug)
     group_manager=Member.objects.get(person = person, offering = course)
-    # can only see released and unreleased group activity
-    activities = Activity.objects.filter(Q(status='RLS') | Q(status='URLS'), offering = course, group=True)
+    activities = Activity.objects.exclude(status='INVI').filter(offering=course, group=True)
     activityList = []
     for activity in activities:
         activityForm = ActivityForm(prefix = activity.slug)
@@ -136,52 +135,68 @@ def submit(request,course_slug):
     if Group.objects.filter(name=name,courseoffering=course):
         error_info="Group %s has already exists" % (name)
         messages.add_message(request, messages.ERROR, error_info)
-        if is_course_student_by_slug(request.user, course_slug):
-            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
-        elif is_course_staff_by_slug(request.user, course_slug):
-            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+        return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
 
 
     else:
-        group = Group(name = name, manager = member, courseoffering=course)
+        # find selected activities
+        selected_act = []
+        activities = Activity.objects.filter(offering=course, group=True)
+        if not is_course_staff_by_slug(request.user, course_slug):
+            activities = activities.exclude(status='INVI')
+
+        for activity in activities:
+            activityForm = ActivityForm(request.POST, prefix=activity.slug)
+            if activityForm.is_valid() and activityForm.cleaned_data['selected'] == True:
+                selected_act.append(activity)
+        
+        # no selected activities: fail.
+        if not selected_act:
+            messages.add_message(request, messages.ERROR, "Group not created: no activities selected.")
+            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+
+        group = Group(name=name, manager=member, courseoffering=course)
         group.save()
         #LOG EVENT#
         l = LogEntry(userid=request.user.username,
         description="created a new group %s for %s." % (group.name, course),
         related_object=group )
         l.save()
-        #Deal with creating the membership
+
         if is_course_student_by_slug(request.user, course_slug):
-            activities = Activity.objects.filter(Q(status='RLS') | Q(status='URLS'), offering = course, group=True)
-            for activity in activities:
-                activityForm = ActivityForm(request.POST, prefix = activity.slug)
-                if activityForm.is_valid() and activityForm.cleaned_data['selected'] == True:
-                    groupMember = GroupMember(group=group, student=member, confirmed=True, activity = activity)
-                    groupMember.save()
-                    #LOG EVENT#
-                    l = LogEntry(userid=request.user.username,
-                    description="automatically became a group member of %s for activity %s." % (group.name, groupMember.activity),
+            for activity in selected_act:
+                groupMember = GroupMember(group=group, student=member, confirmed=True, activity=activity)
+                groupMember.save()
+                #LOG EVENT#
+                l = LogEntry(userid=request.user.username,
+                description="automatically became a group member of %s for activity %s." % (group.name, groupMember.activity),
                     related_object=groupMember )
-                    l.save()
+                l.save()
 
             messages.add_message(request, messages.SUCCESS, 'Group Created')
             return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+
         elif is_course_staff_by_slug(request.user, course_slug):
-            activities = Activity.objects.filter(Q(status='RLS') | Q(status='URLS'), offering = course, group=True)
             students = Member.objects.select_related('person').filter(offering = course, role = 'STUD')
-            for activity in activities:
-                activityForm = ActivityForm(request.POST, prefix = activity.slug)
-                if activityForm.is_valid() and activityForm.cleaned_data['selected'] == True:
-                    for student in students:
-                        studentForm = StudentForm(request.POST, prefix = student.person.userid)
-                        if studentForm.is_valid() and studentForm.cleaned_data['selected'] == True:
-                            groupMember = GroupMember(group=group, student=student, confirmed=True, activity = activity)
-                            groupMember.save()
+            for student in students:
+                studentForm = StudentForm(request.POST, prefix = student.person.userid)
+                if studentForm.is_valid() and studentForm.cleaned_data['selected'] == True:
+                    for activity in selected_act:
+                        groupMember = GroupMember(group=group, student=student, confirmed=True, activity=activity)
+                        groupMember.save()
                         #LOG EVENT#
-                            l = LogEntry(userid=request.user.username,
-                            description="added %s as a group member to %s for activity %s." % (student.person.userid,group.name, groupMember.activity),
+                        l = LogEntry(userid=request.user.username,
+                        description="added %s as a group member to %s for activity %s." % (student.person.userid,group.name, groupMember.activity),
                             related_object=groupMember )
-                            l.save()
+                        l.save()
+                    
+                    n = NewsItem(user=student.person, author=member.person, course=group.courseoffering,
+                     source_app="group", title="Added to Group",
+                     content="You have been added the group %s." % (group.name),
+                     url=reverse('groups.views.groupmanage', kwargs={'course_slug':course.slug})
+                    )
+                    n.save()
+                    
             messages.add_message(request, messages.SUCCESS, 'Group Created')
             return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
         else:
@@ -198,14 +213,32 @@ def join(request, course_slug, group_slug):
 
     for groupMember in GroupMember.objects.filter(group = group, student = member):
         groupMember.confirmed = True
-        groupMember.save(member.person)
+        groupMember.save()
 
-     #LOG EVENT#
+    #LOG EVENT#
     l = LogEntry(userid=request.user.username,
-    description="joined group %s for activity %s." % (group.name, groupMember.activity),
-    related_object=groupMember )
+    description="joined group %s." % (group.name,),
+    related_object=group )
     l.save()
     messages.add_message(request, messages.SUCCESS, 'You have joined the group "%s".' % (group.name))
+    return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+
+@requires_course_by_slug
+def reject(request, course_slug, group_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
+    person = get_object_or_404(Person, userid = request.user.username)
+    member = get_object_or_404(Member, person = person, offering=course)
+
+    # delete membership on reject
+    GroupMember.objects.filter(group = group, student = member).delete()
+
+    #LOG EVENT#
+    l = LogEntry(userid=request.user.username,
+    description="rejected membership in group %s." % (group.name,),
+    related_object=group )
+    l.save()
+    messages.add_message(request, messages.SUCCESS, 'You have left the group "%s".' % (group.name))
     return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
 
 @requires_course_by_slug
@@ -243,11 +276,19 @@ def invite(request, course_slug, group_slug):
                     newGroupMember = GroupMember(group = group, student = member, \
                                           activity = invitorMembership.activity, confirmed = False)
                     newGroupMember.save(member.person)
+
                     #LOG EVENT#
                     l = LogEntry(userid=request.user.username,
                     description="invited %s to join group %s for activity %s." % (newGroupMember.student.person.userid,group.name, newGroupMember.activity),
                     related_object=newGroupMember )
                     l.save()
+                    
+                n = NewsItem(user=member.person, author=person, course=group.courseoffering,
+                     source_app="group", title="Group Invitation",
+                     content="You have been invited to join group %s." % (group.name),
+                     url=reverse('groups.views.groupmanage', kwargs={'course_slug':course.slug})
+                    )
+                n.save()
 
             if error_info:
                 messages.add_message(request, messages.ERROR, error_info)
@@ -279,16 +320,6 @@ def remove_student(request, course_slug, group_slug):
                 related_object=student)
                 l.save()
                 #LOG EVENT#
-        students = GroupMember.objects.filter(group = group)
-        #if there is not member in this group, delete the group
-        if not students:
-            group.delete()
-            #LOG EVENT#
-            l = LogEntry(userid=request.user.username,
-            description="deleted group %s for course %s." % (group.name, group.courseoffering),
-            related_object=group)
-            l.save()
-            #LOG EVENT#
 
         return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
 

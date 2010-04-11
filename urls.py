@@ -35,6 +35,7 @@ urlpatterns = patterns('',
     url(r'^' + COURSE_SLUG + '/_groups/removeStudent/(?P<group_slug>' + SLUG_RE + ')$', 'groups.views.remove_student'),
     url(r'^' + COURSE_SLUG + '/_groups/changeName/(?P<group_slug>' + SLUG_RE + ')$', 'groups.views.change_name'),
     url(r'^' + COURSE_SLUG + '/_groups/join/(?P<group_slug>' + SLUG_RE + ')$', 'groups.views.join'),
+    url(r'^' + COURSE_SLUG + '/_groups/reject/(?P<group_slug>' + SLUG_RE + ')$', 'groups.views.reject'),
 
     url(r'^' + COURSE_SLUG + '/_grades$', 'grades.views.all_grades'),
     url(r'^' + COURSE_SLUG + '/_new_numeric$', 'grades.views.add_numeric_activity'),

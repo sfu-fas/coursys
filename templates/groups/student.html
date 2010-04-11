@@ -9,7 +9,7 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    <li><a href="{% url groups.views.create course_slug=course.slug %}">New Group</a></li>
+    <li><a href="{% url groups.views.create course_slug=course.slug %}">Create New Group</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -39,7 +39,9 @@
           </ul>
           <p>
           {% if info.need_conf %}
-          You have not confirmed membership in this group. <a class="button" href="{% url groups.views.join course_slug=course.slug,group_slug=info.group.slug %}">Join Group</a>
+          You have not confirmed membership in this group.
+          <a class="button" href="{% url groups.views.join course_slug=course.slug,group_slug=info.group.slug %}">Join Group</a>
+          <a class="button" href="{% url groups.views.reject course_slug=course.slug,group_slug=info.group.slug %}">Reject Invitation</a>
           {% else %}
           <a class="button" href="{% url groups.views.invite course_slug=course.slug group_slug=info.group.slug %}">Invite</a>
           {% endif %}
