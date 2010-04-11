@@ -387,7 +387,6 @@ def change_grade_status(request, course_slug, activity_slug, userid):
     if request.method == 'POST':
         status_form = GradeStatusForm(data=request.POST, prefix='grade-status')
         if status_form.is_valid():
-            print "valid"
             new_status = status_form.cleaned_data['status']
             comment = status_form.cleaned_data['comment']
             if new_status != numeric_grade.flag:
@@ -434,12 +433,7 @@ def marking_student(request, course_slug, activity_slug, userid):
             _save_marking_results(activity, activity_mark, final_grade, 
                                   request.user.username, ('student %s'% userid),
                                   component_marks, additional_info)
-            #LOG EVENT#
-#            print "go to log event grade"
-#            l = LogEntry(userid=request.user.username,
-#            description="changed %s's mark for %s to %s " % (userid, activity, final_grade),
-#            related_object=ngrade )
-#            l.save()
+
             messages.add_message(request, messages.SUCCESS, 'Mark for student %s on %s saved!' % (userid, activity.name,))
             for warning in warning_messages:
                 messages.add_message(request, messages.WARNING, warning)                      

@@ -139,17 +139,18 @@ class ActivityRenameForm(forms.Form):
                     widget=forms.CheckboxInput(attrs={'class':'rename_check'}))
 
 STATUS_CHOICES = [
-    ('GRAD', 'graded'),  
+    ('GRAD', 'graded'), 
+    ('CALC', 'calculated'),  
     ('EXCU', 'excused'), 
     ('DISH', 'academic dishonesty') ]    
 class GradeStatusForm(forms.Form):
     """
-    used when if staff want to change the status of a grade after it is given
+    used when the staffs want to change the status of a grade after it is given
     """
     status = forms.ChoiceField(required=True, choices=STATUS_CHOICES,
                                label=mark_safe('Change Status to:'+_required_star), 
-                               help_text='New status of the grade for this student')
+                               help_text='Option "calcuated" should only used for "calculated activity"')
     comment = forms.CharField(required=True, max_length=500,
                             label=mark_safe('Comment:'+_required_star),
-                            help_text='Please provide comment here',
+                            help_text='Please provide the reasons here',
                             widget=forms.Textarea(attrs={'rows':'6', 'cols':'40'}))
