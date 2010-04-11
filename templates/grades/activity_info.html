@@ -30,13 +30,14 @@
 		    null,
 		    null,
 		    null,
-		    null,
+		    null
 		    {% if not activity.calnumericactivity %}
-		    { "sWidth": "3em" }
+		    ,{ "sWidth": "3em" }
 		    {% endif %}
 		]
 	});
 	
+	{% if activity.calnumericactivity %}
 	$(document).ajaxSend(function(e, xhr, settings) {
 	    cal_link = $('#'+fetchUserId(settings.data));
 	    ajax_status = cal_link.parent().children('.ajax_status')
@@ -52,6 +53,7 @@
 	    cal_link = $('#'+fetchUserId(settings.data));
 	    cal_link.parent().children('.ajax_status').remove();
 	    cal_link.parent().children('span.grade').html(xhr.responseText);
+	    cal_link.parent().parent().find('.grade_status').text('calculated');
 	});
 	$(document).ajaxError(function(e, xhr, settings) {
 	    cal_link = $('#'+fetchUserId(settings.data));
@@ -59,29 +61,11 @@
 	});
 	$('a.calculator').attr('href', 'javascript: return false;').click(function(){
 	    cal_link = $(this);
-	    ajax_status = cal_link.parent().children('.ajax_status');
 	    /* post request */
 	    $.post("{% url grades.views.calculate_individual_ajax course_slug=course.slug activity_slug=activity.slug %}",		  	 
-		    {'userid': cal_link.attr('id'), 'a': 12, 'b':13});
+		    {'userid': cal_link.attr('id')});
 	});
-	
-	
-	//$('a.calculator').attr('href', 'javascript: return false;').click(function(){
-	//    cal_link = $(this)
-	//    cal_link.parent().append('<div class="ajax_status">Processing...</div>');
-	//    ajax_status = cal_link.parent().children('.ajax_status');
-	//    /* post request */
-	//    $.post("{% url grades.views.calculate_individual_ajax course_slug=course.slug activity_slug=activity.slug %}",		  	 
-	//	    {'userid': cal_link.attr('id')},
-	//	    function(data){
-	//		calculated = true;
-	//		ajax_status.remove();
-	//		cal_link.parent().find('span.grade').html(data);
-	//	    });
-	//    ajax_status.ajaxError(function(e, xhr, settings, exception) {
-	//	  $(this).text(xhr.status + " " + xhr.statusText);
-	//    });
-	//});
+	{% endif %}
     });
 </script>
 {% endblock %}
@@ -197,8 +181,8 @@
 		<td>{{ student.person.first_name }}</td>
 		<td>{{ student.person.userid }}</td>
 		<td>{{ student.person.emplid }}</td>
-		<td>		
-		{{ student_grade_info.grade_status }}
+		<td>	
+		<span class="grade_status">{{ student_grade_info.grade_status }}</span>
 		{% ifnotequal student_grade_info.grade_status 'no grade'%}
 			<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=student.person.userid %}?from_page={{from_page}}"><img src="{{MEDIA_URL}}icons/tag_blue_edit.png" title="Change Status" alt="Change Status"/></a>		   
 		{% endifnotequal %}		

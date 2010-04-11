@@ -362,6 +362,12 @@ def parse_and_validate_formula(formula, numeric_activities):
     return parsed_expr
 
 def calculate_numeric_grade(course, activity, student=None):
+    """
+    Calculate all the student's grade in the course's CalNumericActivity.
+    If student param is specified, this student's grade is calculated instead
+    of the whole class, please also make sure this student is in the course
+    before passing the student param.
+    """
     if not isinstance(course, CourseOffering):
         raise TypeError('CourseOffering type is required')
     if not isinstance(activity, CalNumericActivity):
