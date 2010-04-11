@@ -74,7 +74,8 @@ def atom_feed(request, token, userid):
     if news_list:
         updated = news_list[0].updated
     else:
-        updated = datetime.datetime.now()
+        # no news items -> no recent updates.
+        updated = datetime.datetime(2000,1,1)
 
     context = {"news_list": news_list, 'person': user, 'updated': updated, 'server_url': url}
     return render_to_response("dashboard/atom_feed.xml", context, context_instance=RequestContext(request),mimetype="application/atom+xml")

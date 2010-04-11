@@ -88,7 +88,7 @@
 
 {% block subbreadcrumbs %}<li>&gt; <a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li>&gt; {{ activity.name }}</li>{% endblock %}
 
-{% block content %}
+{% block actions %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
@@ -118,6 +118,9 @@
     <li><a href="{% url marking.views.export_csv course_slug=course.slug, activity_slug=activity.slug%}">Export all</a></li>
     </ul>
 </div>
+{% endblock %}
+
+{% block content %}
 <div class="table_container">
     <table class="info">
         <tbody>

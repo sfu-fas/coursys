@@ -18,7 +18,6 @@ DATABASE_PORT = ''             # Set to empty string for default. Not used with 
 
 DATABASE_OPTIONS = {}
 if DATABASE_ENGINE == 'mysql':
-    # note: CREATE DATABASE <dbname> CHARACTER SET utf8;
     DATABASE_OPTIONS["init_command"] = "SET storage_engine=INNODB"
 
 # Local time zone for this installation. Choices can be found here:
@@ -118,9 +117,11 @@ MESSAGE_STORAGE = 'contrib.messages.storage.session.SessionStorage' # temp: repl
 
 
 if DEBUG:
+    #MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('contrib.profiling.ProfileMiddleware',)
     SUBMISSION_PATH = "submitted_files"
     INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.admin',)
     CACHE_BACKEND = 'locmem://'
+    #CACHE_BACKEND = 'db://cache'
 else:
     SUBMISSION_PATH = None
     CACHE_BACKEND = '?????'

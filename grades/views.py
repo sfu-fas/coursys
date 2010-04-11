@@ -72,7 +72,8 @@ def _course_info_staff(request, course_slug):
     Course front page
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    activities = all_activities_filter(offering=course, deleted=False)
+    activities = all_activities_filter(offering=course)
+    any_group = True in [a.group for a in activities]
     
     # Non Ajax way to reorder activity, please also see reorder_activity view function for ajax way to reorder
     order = None  
@@ -95,7 +96,7 @@ def _course_info_staff(request, course_slug):
             activities_info.append({'activity':activity, 'type':ACTIVITY_TYPE['LG']})
     
     context = {'course': course, 'activities_info': activities_info, 'from_page': FROMPAGE['course'],
-               'order_type': ORDER_TYPE}
+               'order_type': ORDER_TYPE, 'any_group': any_group}
     return render_to_response("grades/course_info_staff.html", context,
                               context_instance=RequestContext(request))
 
@@ -103,14 +104,17 @@ def _course_info_staff(request, course_slug):
 #@requires_course_student_by_slug
 def _course_info_student(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    activities = all_activities_filter(offering=course, status__in=['RLS', 'URLS'], deleted=False)
+    activities = all_activities_filter(offering=course)
+    any_group = True in [a.group for a in activities]
+    activities = [a for a in activities if a.status in ['RLS', 'URLS']]
     
     activityinfo_list = []
     student = Member.objects.get(offering=course, person__userid=request.user.username, role='STUD')
     for activity in activities:
         activityinfo_list.append(create_StudentActivityInfo_list(course, activity,
                                                                  student=student)[0])
-    context = {'course': course, 'activityinfo_list': activityinfo_list, 'from_page': FROMPAGE['course']}
+    context = {'course': course, 'activityinfo_list': activityinfo_list, 'any_group': any_group, 'from_page': FROMPAGE['course']}
+    
     return render_to_response("grades/course_info_student.html", context,
                               context_instance=RequestContext(request))
 

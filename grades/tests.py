@@ -149,7 +149,7 @@ class GradesTest(TestCase):
         a = NumericActivity(name="Assignment 1", short_name="A1", status="RLS", offering=c, position=2, max_grade=15, percent=10)
         a.save()
         a1=a
-        a = NumericActivity(name="Assignment 2", short_name="A2", status="URLS", offering=c, position=6, max_grade=20)
+        a = NumericActivity(name="Assignment 2", short_name="A2", status="URLS", offering=c, position=6, max_grade=20, group=True)
         a.save()
         p = Person.objects.get(userid="ggbaker")
         m = Member(person=p, offering=c, role="INST", added_reason="UNK")

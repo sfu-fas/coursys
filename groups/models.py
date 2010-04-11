@@ -41,8 +41,8 @@ class GroupMember(models.Model):
     class Meta:
         unique_together = ("student", "activity")
 
-    def save(self,person):
-        super(GroupMember, self).save()
+    def save(self, person=None, *args, **kwargs):
+        super(GroupMember, self).save(*args, **kwargs)
         if self.confirmed == False:
             course = get_object_or_404(CourseOffering, slug = self.group.courseoffering.slug)
             member = get_object_or_404(Member, person = self.student.person,offering=course)

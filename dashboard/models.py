@@ -3,8 +3,9 @@ from coredata.models import Person, CourseOffering
 from django.utils.safestring import mark_safe
 from pytz import timezone
 from django.conf import settings
+from django.core.cache import cache
 from autoslug.settings import slugify
-import random
+import random, hashlib
 
 import external.textile as textile
 Textile = textile.Textile(restricted=True)
@@ -42,7 +43,20 @@ class NewsItem(models.Model):
     read = models.BooleanField(default=False, help_text="The user has marked the story read")
 
     def content_xhtml(self):
-        return mark_safe(Textile.textile(str(self.content)))
+        """
+        Render content field as XHTML.
+        
+        Memoized in the cache: textile is expensive.
+        """
+        key = "news-content-" + hashlib.md5(self.content).hexdigest()
+        val = cache.get(key)
+        if val:
+            return val
+        
+        markup = mark_safe(Textile.textile(str(self.content)))
+
+        cache.set(key, markup, 36000)
+        return markup
 
     def rfc_updated(self):
         """

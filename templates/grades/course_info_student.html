@@ -17,6 +17,17 @@
 
 {% block subbreadcrumbs %}<li>&gt; {{ course.name }} ({{course.semester.label}})</li>{% endblock %}
 
+{% block actions %}
+{% if any_group %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+	<li><a href="{% url groups.views.groupmanage course_slug=course.slug %}">Manage Groups</a></li>
+    </ul>
+</div>
+{% endif %}
+{% endblock %}
+
 {% block content %}
 <div class="table_container">
     <table class="info">
@@ -56,10 +67,6 @@
         </tbody>
     </table>
 </div>
-
-<p>
-<a class="button" href="{% url groups.views.groupmanage course_slug=course.slug %}">Groups</a>
-</p>
 
 <h2>Course Activities</h2>
 {% if not activityinfo_list %}

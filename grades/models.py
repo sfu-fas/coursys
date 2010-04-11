@@ -237,8 +237,8 @@ def all_activities_filter(**kwargs):
     activities = [] # list of activities
     found = set() # keep track of what has been found so we can exclude less-specific duplicates.
     for ActivityType in ACTIVITY_TYPES:
-        acts = list(ActivityType.objects.filter(**kwargs))
-        activities.extend( (a for a in acts if not a.deleted and a.id not in found) )
+        acts = list(ActivityType.objects.filter(deleted=False, **kwargs))
+        activities.extend( (a for a in acts if a.id not in found) )
         found.update( (a.id for a in acts) )
 
     activities.sort()
