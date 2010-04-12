@@ -137,7 +137,12 @@ def submit(request,course_slug):
         error_info="Group %s has already exists" % (name)
         messages.add_message(request, messages.ERROR, error_info)
         return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
-
+    #Check if the group name is empty, these two checks may need to be moved to forms later.
+    if name == "":
+        error_info = "Group name cannot be empty, pleaes input a group name"
+        messages.add_message(request, messages.ERROR, error_info)
+        return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+    
 
     else:
         # find selected activities
