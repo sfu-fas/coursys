@@ -4,7 +4,7 @@
 {% block title %}{{course.name}} Groups{% endblock %}
 
 {% block h1 %}{{course.name}} Groups{% endblock %}
-
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; Groups</li>{% endblock %}
 {% block actions %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
