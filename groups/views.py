@@ -123,6 +123,32 @@ def create(request,course_slug):
                            'studentList':studentList}, context_instance = RequestContext(request))
     else:
         return HttpResponseForbidden()
+    
+def validateIntegrity(request, isStudentCreatedGroup, course, studentList, activityList):
+    """
+    #If one student is in a group for an activity, he/she cannot be in another group for the same activity.
+    """
+    integrityError = False
+    error_info = ""
+    print activityList
+    for student in studentList:
+        groupMembers = GroupMember.objects.filter(group__courseoffering = course, student = student)
+        for activity in activityList:
+            for groupMember in groupMembers:
+                if groupMember.activity == activity:
+                    integrityError = True
+                    #if the student creates this group
+                    if isStudentCreatedGroup:
+                        error_info = error_info + "You can not create this group for %s, \
+                        because you are already in the group: %s for %s.\n"\
+                                   % (activity.name, groupMember.group.name, activity.name)
+                    else: 
+                        error_info = error_info + "Student %s %s (%s)can not be assigned to this new group for %s,\
+                        because he/she is already in group %s for %s.\n" \
+                                   % (student.person.first_name, student.person.last_name, student.person.userid,\
+                                    activity.name, groupMember.group.name, activity.name)
+    messages.add_message(request, messages.ERROR, error_info)
+    return not integrityError
 
 @requires_course_by_slug
 def submit(request,course_slug):
@@ -164,7 +190,24 @@ def submit(request,course_slug):
         groupForSemesterForm = GroupForSemesterForm(request.POST)
         if groupForSemesterForm.is_valid():
             groupForSemester = groupForSemesterForm.cleaned_data['selected']
-            
+        
+        #validate database integrity before saving anything. 
+        #If one student is in a group for an activity, he/she cannot be in another group for the same activity.
+        if is_course_student_by_slug(request.user, course_slug):
+            isStudentCreatedGroup = True
+            studentList = []
+            studentList.append(member)
+        elif is_course_staff_by_slug(request.user, course_slug):
+            isStudentCreatedGroup = False
+            studentList = []
+            students = Member.objects.select_related('person').filter(offering = course, role = 'STUD')
+            for student in students:
+                studentForm = StudentForm(request.POST, prefix = student.person.userid)
+                if studentForm.is_valid() and studentForm.cleaned_data['selected'] == True:
+                    studentList.append(student)
+        if validateIntegrity(request,isStudentCreatedGroup, course, studentList, selected_act) == False:
+            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+        
         group = Group(name=name, manager=member, courseoffering=course, groupForSemester = groupForSemester)
         group.save()
         #LOG EVENT#
