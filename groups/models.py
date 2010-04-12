@@ -13,6 +13,8 @@ class Group(models.Model):
     name = models.CharField(max_length=30, help_text='Group name')
     manager = models.ForeignKey(Member, blank=False, null=False)
     courseoffering = models.ForeignKey(CourseOffering)
+    #if this bool value is true, then when a new group activity is created, it will call the add_activity_to_group_auto function to create corresponding GroupMembers for that activity.
+    groupForSemester = models.BooleanField(default = True)
 
     # preface slug with "g-" to avoid conflict with userids (so they can be used in same places in URLs)
     def autoslug(self):
@@ -47,4 +49,16 @@ def all_activities(members):
     """
     return set(m.activity for m in members)
 
+def add_activity_to_group_auto(activity, course):
+    """
+    if the groupForSemester bool value in Group model is true, then when a new group activity is created, it will call this add_activity_to_group_auto function to create corresponding GroupMembers for that activity.
+    """
+    groups = Group.objects.filter(courseoffering = course, groupForSemester = True)
+    for group in groups:
+	groupMembers = GroupMember.objects.filter(group = group)
+	unique_students = set(groupMember.student for groupMember in groupMembers)
+	for student in unique_students:
+	    groupMember = GroupMember(group=group, student=student, confirmed=True, activity=activity)
+	    groupMember.save()
+    return
 

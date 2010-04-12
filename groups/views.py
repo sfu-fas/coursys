@@ -95,6 +95,7 @@ def create(request,course_slug):
     person = get_object_or_404(Person,userid=request.user.username)
     course = get_object_or_404(CourseOffering, slug = course_slug)
     group_manager=Member.objects.get(person = person, offering = course)
+    groupForSemesterForm = GroupForSemesterForm()
     activities = Activity.objects.exclude(status='INVI').filter(offering=course, group=True)
     activityList = []
     for activity in activities:
@@ -104,7 +105,7 @@ def create(request,course_slug):
 
     if is_course_student_by_slug(request.user, course_slug):
         return render_to_response('groups/create_student.html', \
-                                  {'manager':group_manager, 'course':course, 'activityList':activityList},\
+                                  {'manager':group_manager, 'course':course, 'groupForSemester':groupForSemesterForm, 'activityList':activityList},\
                                   context_instance = RequestContext(request))
 
     elif is_course_staff_by_slug(request.user, course_slug):
@@ -118,7 +119,7 @@ def create(request,course_slug):
                                  'emplid' : student.person.emplid})
 
         return render_to_response('groups/create_instructor.html', \
-                          {'manager':group_manager, 'course':course, 'activityList':activityList, \
+                          {'manager':group_manager, 'course':course,'groupForSemester':groupForSemesterForm, 'activityList':activityList, \
                            'studentList':studentList}, context_instance = RequestContext(request))
     else:
         return HttpResponseForbidden()
@@ -154,8 +155,12 @@ def submit(request,course_slug):
         if not selected_act:
             messages.add_message(request, messages.ERROR, "Group not created: no activities selected.")
             return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
-
-        group = Group(name=name, manager=member, courseoffering=course)
+        
+        groupForSemesterForm = GroupForSemesterForm(request.POST)
+        if groupForSemesterForm.is_valid():
+            groupForSemester = groupForSemesterForm.cleaned_data['selected']
+            
+        group = Group(name=name, manager=member, courseoffering=course, groupForSemester = groupForSemester)
         group.save()
         #LOG EVENT#
         l = LogEntry(userid=request.user.username,

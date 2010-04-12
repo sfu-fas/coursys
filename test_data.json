@@ -18174,6 +18174,7 @@
    "courseoffering": 184,
    "manager": 162,
    "name": "Win!",
+   "groupForSemester": true,
    "slug": "g-win"
   },
   "model": "groups.group",
@@ -18184,6 +18185,7 @@
    "courseoffering": 184,
    "manager": 162,
    "name": "Course Men",
+   "groupForSemester": false,
    "slug": "g-course-men"
   },
   "model": "groups.group",
@@ -18194,6 +18196,7 @@
    "courseoffering": 184,
    "manager": 452,
    "name": "ddp",
+   "groupForSemester": false,
    "slug": "g-ddp"
   },
   "model": "groups.group",

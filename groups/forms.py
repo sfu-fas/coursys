@@ -14,7 +14,7 @@ class GroupForm(ModelForm):
 
 
 class ActivityForm(forms.Form):
-    selected = forms.BooleanField(label = 'Selected Activity:', required = False)
+    selected = forms.BooleanField(label = 'Selected Activity:', required = False, initial = True)
     
     def __init__(self, *args, **kwargs):
         super(ActivityForm, self).__init__(*args, **kwargs)
@@ -33,6 +33,9 @@ class ActivityForm(forms.Form):
         
 class StudentForm(forms.Form):
     selected = forms.BooleanField(label = 'Selected Student:', required = False)
+    
+class GroupForSemesterForm(forms.Form):
+    selected = forms.BooleanField(label = 'This group is for whole semester', required = False, initial = True)
 
 
     

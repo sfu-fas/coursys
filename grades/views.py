@@ -270,6 +270,8 @@ def add_numeric_activity(request, course_slug):
                                                 max_grade=form.cleaned_data['max_grade'],
                                                 offering=course, position=position,
                                                 group=GROUP_STATUS_MAP[form.cleaned_data['group']])
+                if a.group == True:
+                    add_activity_to_group_auto(a, course)
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
                       description=("created a numeric activity %s") % (a),
@@ -547,6 +549,8 @@ def add_letter_activity(request, course_slug):
                                                 percent=form.cleaned_data['percent'],
                                                 offering=course, position=position,
                                                 group=GROUP_STATUS_MAP[form.cleaned_data['group']])
+                if a.group == True:
+                    add_activity_to_group_auto(a, course)
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
                       description=("created a letter-graded activity %s") % (a),
