@@ -404,6 +404,8 @@ def change_name(request, course_slug, group_slug):
             description="changed name of group %s to %s for course %s." % (oldname, group.name, group.courseoffering),
             related_object=group)
             l.save()
+        else:
+            messages.add_message(request, messages.ERROR, "New group name is not valid.")
         return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
 
     else:
