@@ -2,6 +2,7 @@ from models import *
 from django.forms import ModelForm
 from django import forms
 from django.forms.models import BaseModelFormSet
+from grades.models import FLAG_CHOICES, CalNumericActivity
 
 class ActivityComponentMarkForm(ModelForm):
     
@@ -138,19 +139,29 @@ class ActivityRenameForm(forms.Form):
     selected = forms.BooleanField(required=False, label='Rename?', initial = True, 
                     widget=forms.CheckboxInput(attrs={'class':'rename_check'}))
 
-STATUS_CHOICES = [
-    ('GRAD', 'graded'), 
-    ('CALC', 'calculated'),  
-    ('EXCU', 'excused'), 
-    ('DISH', 'academic dishonesty') ]    
+ 
 class GradeStatusForm(forms.Form):
     """
     used when the staffs want to change the status of a grade after it is given
     """
-    status = forms.ChoiceField(required=True, choices=STATUS_CHOICES,
-                               label=mark_safe('Change Status to:'+_required_star), 
-                               help_text='Option "calcuated" should only used for "calculated activity"')
+    def __init__(self, activity=None, *args, **kwargs):
+        self.activity = activity
+        super(forms.Form, self).__init__(*args, **kwargs)
+        
+    status = forms.ChoiceField(required=True, choices=FLAG_CHOICES,
+                               label=mark_safe('Change Status to:' + _required_star), 
+                               help_text='Option "calculated" is only for "calculated activity" and "graded" only for other activities')
     comment = forms.CharField(required=True, max_length=500,
                             label=mark_safe('Comment:'+_required_star),
                             help_text='Please provide the reasons here',
                             widget=forms.Textarea(attrs={'rows':'6', 'cols':'40'}))
+    def clean_status(self):
+        status = self.cleaned_data['status']
+        isCalActivity = CalNumericActivity.objects.filter(id=self.activity.id).count() != 0
+       
+        if isCalActivity and status == 'GRAD':
+            raise forms.ValidationError(u'Cannot use "graded" for "calculated activity". Please use "calculated".')
+        elif not isCalActivity and status == 'CALC':
+            raise forms.ValidationError(u'Option "calculated" is only for "calculated activity". Please use "graded".')            
+        
+        return status

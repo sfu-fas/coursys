@@ -891,6 +891,7 @@ fieldset .hidden {
 #submission_history_view_container table tr.row2 {
     background-color: #e9eef7;
 }
+
 /* marking style */
 .marking_a
 {
@@ -951,6 +952,31 @@ table#common_problems p.component_info{
 
 #marking_container .requireindicator{
 	display: none;
+}
+
+#marking_summary_container .component_description{
+    border: 1px solid #4169E1;
+    color: green;
+    padding: 0.5em;
+    background-color: #F8F8C2;
+    margin-bottom: 1em;
+    margin-top: 0;
+    width: 600px;
+}
+
+#marking_summary_container .component_description ul{
+    margin: 0 0 0.5em 0;
+    padding: 0 0 0 0em;
+    list-style: none;
+}
+#marking_summary_container .component_description label{
+    font-weight: bold;
+    margin-right: 1em;
+}
+
+#marking_summary_container .component_description .component_title{
+   color: #4169E1;
+   font-style: italic;
 }
 
 thead.form_head th{

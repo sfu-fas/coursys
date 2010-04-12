@@ -378,6 +378,7 @@ def _save_marking_results(activity, activity_mark, final_mark, marker_ident, mar
       (activity, mark_receiver_ident, final_mark), related_object=activity_mark)                     
     l.save()   
       
+@requires_course_staff_by_slug      
 def change_grade_status(request, course_slug, activity_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(NumericActivity, offering=course, slug=activity_slug)
@@ -385,23 +386,27 @@ def change_grade_status(request, course_slug, activity_slug, userid):
     numeric_grade = get_object_or_404(NumericGrade, activity=activity, member=member)
     
     if request.method == 'POST':
-        status_form = GradeStatusForm(data=request.POST, prefix='grade-status')
+        status_form = GradeStatusForm(data=request.POST, activity=activity, prefix='grade-status')
         if status_form.is_valid():
+            
             new_status = status_form.cleaned_data['status']
             comment = status_form.cleaned_data['comment']
+           
             if new_status != numeric_grade.flag:
                 numeric_grade.save_status_flag(new_status, comment)
-                messages.add_message(request, messages.WARNING, 'Grade status for student %s on %s changed!' % (userid, activity.name,))
+                messages.add_message(request, messages.SUCCESS, 
+                   'Grade status for student %s on %s changed!' % (userid, activity.name,))
                 
             return _redirct_response(request, course_slug, activity_slug)
     else:
-        status_form = GradeStatusForm(prefix='grade-status')
+        status_form = GradeStatusForm(initial={'status': numeric_grade.flag}, prefix='grade-status')
         
     context = {'course':course,'activity' : activity,\
                'student' : member.person, 'current_status' : FLAGS[numeric_grade.flag],
                'status_form': status_form}
-    return render_to_response("marking/grade_status.html", context,\
-                             context_instance=RequestContext(request))  
+    
+    return render_to_response("marking/grade_status.html", context,
+                              context_instance=RequestContext(request))  
 
 @requires_course_staff_by_slug
 def marking_student(request, course_slug, activity_slug, userid):
