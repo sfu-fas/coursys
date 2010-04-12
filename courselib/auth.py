@@ -46,7 +46,7 @@ def ForbiddenResponse(request):
     return resp
 
 def NotFoundResponse(request):
-    resp = render_to_response('404.html')
+    resp = render_to_response('404.html', context_instance=RequestContext(request))
     resp.status_code = 404
     return resp
 
