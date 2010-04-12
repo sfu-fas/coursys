@@ -752,10 +752,10 @@ fieldset .view label {
     line-height: 1em;
     font-weight: bold;
 }
-fieldset #editbutton a.button{
+fieldset .editbutton a.button{
     float: right;
 }
-fieldset #editbutton a.button:hover{
+fieldset .editbutton a.button:hover{
     border: 0;
 }
 fieldset .hidden {

@@ -6,6 +6,7 @@ from grades.models import NumericActivity
 from coredata.tests import create_offering
 from settings import CAS_SERVER_URL
 from coredata.models import *
+from courselib.testing import *
 import gzip
 
 import base64, StringIO
@@ -63,75 +64,54 @@ class SubmissionTest(TestCase):
     fixtures = ['test_data']
     
     def setUp(self):
-        pass
+        self.s, self.course = create_offering()
+        self.a1 = NumericActivity(name="Assignment 1", short_name="A1", status="RLS", offering=self.course, position=2, max_grade=15, due_date="2010-04-01")
+        self.a1.save()
+        self.a2 = NumericActivity(name="Assignment 2", short_name="A2", status="RLS", offering=self.course, position=1, max_grade=15, due_date="2010-03-01")
+        self.a2.save()
+        
+        p = Person.objects.get(userid="ggbaker")
+        self.member = Member(person=p, offering=self.course, role="INST", career="NONS", added_reason="UNK")
+        self.member.save()
+        
+        self.c1 = URL.Component(activity=self.a1, title="URL Link", position=8)
+        self.c1.save()
+        self.c2 = Archive.Component(activity=self.a1, title="Archive File", position=1, max_size=100000)
+        self.c2.save()
+        self.c3 = Code.Component(activity=self.a1, title="Code File", position=3, max_size=2000, allowed=".py")
+        self.c3.save()
 
-    def test_components(self):
+    def test_select_components(self):
         """
         Test submission component classes: subclasses, selection, sorting.
         """
-        s, c = create_offering()
-        a = NumericActivity(name="Assignment 1", short_name="A1", status="RLS", offering=c, position=2, max_grade=15, due_date="2010-03-01")
-        a.save()
-        
-        c = URL.Component(activity=a, title="URL", position=8)
-        c.save()
-        c = Archive.Component(activity=a, title="Archive", position=1, max_size=100000)
-        c.save()
-        #c = PlainTextComponent(activity=a, title="Text", position=89)
-        #c.save()
-        #c = CppComponent(activity=a, title="CPP", position=2)
-        #c.save()
-        
-        return
-        
-        comps = select_all_components(a)
-        self.assertEqual(len(comps), 4)
-        self.assertEqual(comps[0].title, 'Archive') # make sure position=1 is first
-        self.assertEqual(type(comps[1]), CppComponent)
-        self.assertEqual(type(comps[3]), PlainTextComponent)
+        comps = select_all_components(self.a1)
+        self.assertEqual(len(comps), 3)
+        self.assertEqual(comps[0].title, 'Archive File') # make sure position=1 is first
+        self.assertEqual(str(comps[1].Type), "courses.submission.models.code.Code")
+        self.assertEqual(str(comps[2].Type), "courses.submission.models.url.URL")
 
     def test_component_view_page(self):
-        s, c = create_offering()
-        a = NumericActivity(name="Assignment 1", short_name="A1", status="RLS", offering=c, position=2, max_grade=15, due_date="2010-03-01")
-        a.save()
-        p = Person.objects.get(userid="ggbaker")
-        m = Member(person=p, offering=c, role="INST", career="NONS", added_reason="UNK")
-        m.save()
-
         client = Client()
         client.login(ticket="ggbaker", service=CAS_SERVER_URL)
         
         # When no component, should display error message
-        response = client.get('/'+c.slug+"/a1/submission/")
-        self.assertContains(response, "No components configured")
-        
-        return
-        
-        #add component and test
-        component = URLComponent(activity=a, title="URLComponent")
+        url = reverse('submission.views.show_components', kwargs={'course_slug':self.course.slug, 'activity_slug':self.a2.slug})
+        response = basic_page_tests(self, client, url)
+        self.assertContains(response, 'No components configured.')
+        # add component and test
+        component = URL.Component(activity=self.a2, title="URL2", position=1)
         component.save()
-        component = ArchiveComponent(activity=a, title="ArchiveComponent")
+        component = Archive.Component(activity=self.a2, title="Archive2", position=1, max_size=100)
         component.save()
-        component = CppComponent(activity=a, title="CppComponent")
-        component.save()
-        component = PlainTextComponent(activity=a, title="PlainTextComponent")
-        component.save()
-        component = JavaComponent(activity=a, title="JavaComponent")
-        component.save()
-        #should all appear
-        response = client.response = client.get('/'+c.slug+"/a1/submission/")
-        self.assertContains(response, "URLComponent")
-        self.assertContains(response, "ArchiveComponent")
-        self.assertContains(response, "CppComponent")
-        self.assertContains(response, "PlainTextComponent")
-        self.assertContains(response, "JavaComponent")
-        #make sure type displays
+        # should all appear
+        response = basic_page_tests(self, client, url)
+        self.assertContains(response, "URL2")
+        self.assertContains(response, "Archive2")
+        # make sure type displays
         self.assertContains(response, '<li class="view"><label>Type:</label>Archive</li>')
-
-        #delete component and test
-        component.delete()
-        response = client.response = client.get('/'+c.slug+"/a1/submission/")
-        self.assertNotContains(response, "JavaComponent")
+        # delete component
+        self.assertRaises(NotImplementedError, component.delete)
 
     def test_magic(self):
         """
