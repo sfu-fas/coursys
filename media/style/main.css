@@ -552,6 +552,7 @@ div.collapsible {
 
 #form_container {
     margin: 0 1em 0 0;
+    clear: both;
 }
 #form_container .errorindicator, #form_container .successindicator, #form_container .warningindicator {
     border: 1px solid;
@@ -1001,20 +1002,20 @@ thead.form_head th{
     padding: 0;
     list-style-type: none;
     width: 603px;
-    height: 28px;
+    height: 33px;
 }
 #form_nav li {
     float: left;
+    width: 200px;
+    height: 28px;
+    padding-right: 1px;
 }
 #form_nav li a {
     display: block;
-    width: 200px;
-    height: 28px;
     color: #FFF;
     text-align: center;
     line-height: 2em;
     background-color: #CB5A60;
-    border-right: 1px solid #FFF;
     text-decoration: none;
 }
 #form_nav li a:hover {
