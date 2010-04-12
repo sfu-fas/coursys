@@ -29,7 +29,11 @@ class LogEntry(models.Model):
     content_type = models.ForeignKey(ContentType, null=False, related_name="content_type")
     object_id = models.PositiveIntegerField(null=True)
     related_object = generic.GenericForeignKey('content_type', 'object_id')
+    class Meta:
+        ordering = ['datetime']
 
     def display(self):
         return "[%s] %s %s" % (self.datetime.ctime(), self.userid, self.description)
+
+    __unicode__ = display
 

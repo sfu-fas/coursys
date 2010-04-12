@@ -15,7 +15,7 @@
 {% endblock %}
 
 {% block content %}
-<script language="javascript" type="text/javascript" src="/media/js/groups/main.js">
+<script type="text/javascript" src="/media/js/groups/main.js">
 </script>
 
 <div id="grouplist">
@@ -25,7 +25,7 @@
       <p>A group for  
           {% for activity in info.activities %}
           {{ activity.name }}{% if forloop.last %}.{% else %}, {% endif %}
-          {% endfor %}
+          {% endfor %}</p>
           <ul>
               {% for m in info.unique_members %}
               <li>{{ m.member.person.name }}, {{ m.member.person.userid }} {% if not m.confirmed %}(unconfirmed){% endif %}
@@ -46,7 +46,6 @@
           <a class="button" href="{% url groups.views.invite course_slug=course.slug group_slug=info.group.slug %}">Invite</a>
           {% endif %}
           </p>
-      </li>
     {% endfor %}
   {% else %}
     <p class="empty">You don't belong to any groups in this course.</p>

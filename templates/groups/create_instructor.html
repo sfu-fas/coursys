@@ -4,18 +4,13 @@
 {% block content %}
 	<h1>Create Group</h1>
 	{% if user %}
-		<form action="{% url groups.views.submit course_slug=course.slug  %}" method="POST">
+		<form action="{% url groups.views.submit course_slug=course.slug  %}" method="post">
 			<div class = "group_name">
-			  <h2>Please input the Group Name</h2>
-			  <br>
 			  <label for="name">Group Name </label>
-			  <input type="text" name="GroupName">
+			  <input type="text" name="GroupName" id="name" />
 			</div>
-			<br>
-			<br>
 			<div class = "datatable_container"> 
-			<h2>Select activities for the new group</h2>
-			<br>
+			<h2>Activities for this Group</h2>
 			 <table class="display" id="activities">
 			   <thead>
 			     <tr>
@@ -28,20 +23,17 @@
 			   <tbody>
 			   {% for act in activityList %}
 			     <tr>
-				   <td><center>{{ act.activityForm.selected }}</center></td> 
-				   <td><center>{{ act.name }}</center></td>
-				   <td><center>{{ act.percent }}</center></td>
-				   <td><center>{{ act.due_date }}</center></td>              
+				   <td>{{ act.activityForm.selected }}</td> 
+				   <td>{{ act.name }}</td>
+				   <td>{{ act.percent }}</td>
+				   <td>{{ act.due_date }}</td>              
 			     </tr> 
-			   </tbody>
 			   {% endfor %}
+			   </tbody>
 			 </table>
 		      </div>
-		      <br>
-		      <br>
 			  <div class = "datatable_container"> 
-			  <h2>Select students for the new group</h2>
-			  <br>
+			  <h2>Students for this Group</h2>
 			   <table class="display" id="students">
 			     <thead>
 			       <tr>
@@ -55,20 +47,19 @@
 			     <tbody>
 			    {% for std in studentList %}
 			     <tr>
-				   <td><center>{{ std.studentForm.selected }}</center></td> 
-				   <td><center>{{ std.userid }}</center></td>
-				   <td><center>{{ std.first_name }}</center></td>
-				   <td><center>{{ std.last_name }}</center></td>  
-				   <td><center>{{ std.emplid }}</center></td> 
+				   <td>{{ std.studentForm.selected }}</td> 
+				   <td>{{ std.userid }}</td>
+				   <td>{{ std.first_name }}</td>
+				   <td>{{ std.last_name }}</td>  
+				   <td>{{ std.emplid }}</td> 
 			     </tr> 
-			   </tbody>
 			   {% endfor %}
+			   </tbody>
 			   </table>
 			</div>
-			<br>
-			<input class = 'submit' type="submit" value="create">
+			<div><input class = 'submit' type="submit" value="create" /></div>
                 </form>
         {% else %}
-		<p> Student does not exist </p>
+		<p class="empty">No students not in a group.</p>
 	{% endif %}
 {% endblock content %}

@@ -13,7 +13,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from contrib import messages
 from django.conf import settings
-from courselib.auth import requires_course_by_slug, requires_course_staff_by_slug, is_course_staff_by_slug, is_course_student_by_slug
+from courselib.auth import *
 from log.models import *
 from django.db.models import Q
 
