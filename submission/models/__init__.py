@@ -18,7 +18,8 @@ from base import SubmissionComponent, Submission, StudentSubmission, GroupSubmis
 from url import *
 from archive import *
 from pdf import *
-ALL_TYPE_CLASSES = [Archive, URL, PDF]
+from code import *
+ALL_TYPE_CLASSES = [Archive, URL, PDF, Code]
 
 def find_type_by_label(label):
     """

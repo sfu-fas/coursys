@@ -25,7 +25,7 @@ def display_form(form, text="Submit"):
     """
     Convert the form to HTML as we like it.
     """
-    output = ['<p class="requireindicator"><img src="/media//icons/required_star.gif" alt="required" />&nbsp;indicates required field</p>']
+    output = ['<p class="requireindicator"><img src="'+MEDIA_URL+'icons/required_star.gif" alt="required" />&nbsp;indicates required field</p>']
     output.append("<ul>")
     for field in form:
         c = Context({"field":field})

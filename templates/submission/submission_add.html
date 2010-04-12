@@ -15,8 +15,10 @@
     <fieldset>
         <legend>Activity Submission</legend>
         {% for data in component_form_list %}
-            <h3>{{data.comp.title}}</h3>
-            {% if data.comp.description %}<p>{{data.comp.description}}</p>{% endif %}
+            <h2>{{data.comp.title}}</h2>
+            {% if data.comp.description %}<p><label>Description:</label>{{data.comp.description}}</p>{% endif %}
+            {% if data.comp.max_size %}<p><label>Max File Size:</label>{{data.comp.max_size}} KB</p>{% endif %}
+			{% if data.comp.allowed %}<p><label>Allowed File Types:</label>{{data.comp.allowed}}</p>{% endif %}
             {{data.form.as_p}}
         {% endfor %}
     <input type ="submit" value ="Submit" class ="submit"/>

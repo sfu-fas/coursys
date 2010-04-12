@@ -181,7 +181,8 @@ def XXXX_check_me_or_member(request, target_uid, course, activity, staff=True):
 
 @requires_course_by_slug
 def show_components_submission_history(request, course_slug, activity_slug, userid=None):
-    userid = request.GET.get('userid')
+    if userid is None:
+        userid = request.GET.get('userid')
     course = get_object_or_404(CourseOffering, slug = course_slug)
     activity = get_object_or_404(course.activity_set,slug = activity_slug)
 
@@ -287,7 +288,7 @@ def edit_single(request, course_slug, activity_slug):
         return NotFoundResponse(request)
 
     form = component.Type.ComponentForm(instance=component)
-
+    
     #get type change
     #type = request.GET.get('to_type')
     #if no type change

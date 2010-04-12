@@ -122,6 +122,7 @@ div#messages .info {
   padding: 0;
 }
 #actions li a {
+  background-color: #FFF;
   width: auto;
   height: 1.4em;
   line-height: 1.4em;
@@ -803,11 +804,11 @@ fieldset .hidden {
 }
 #submission_error_container table {
     border: 1px;
-    width: 45em;
+    width: 60em;
 }
 #submission_error_container table td{
     border: 1px solid #DBDBDB;
-    width: 50%;
+    width: 75%;
 }
 #submission_error_container ul, #submission_error_container li {
     margin: 0;
@@ -816,11 +817,11 @@ fieldset .hidden {
 }
 #submission_error_container td.error {
     color: red;
-    text-align: center;
+    text-align: left;
 }
 #submission_error_container td.submitted {
     color: green;
-    text-align: center;
+    text-align: left;
 }
 
  /*#submission_error_container table td.column1 {

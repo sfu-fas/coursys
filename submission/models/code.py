@@ -1,0 +1,178 @@
+from base import *
+import submission.forms
+from django.forms.widgets import Textarea, TextInput, FileInput, SelectMultiple
+from django import forms
+from django.http import HttpResponse
+from os.path import splitext
+from settings import MEDIA_URL
+from django.template import Context, Template
+from django.utils.safestring import mark_safe
+
+# add file type that should be recognizable when a file is submitted
+CODE_TYPES = [
+    (".java", "Java Source"),
+    (".class", "Java Bytecode"),
+    (".cpp", "C++"),
+    (".c", "C"),
+    (".py", "Python"),
+    (".rb", "Ruby"),
+    (".pl", "Perl"),
+    (".hs", "Haskell"),
+    (".pro", "Prolog"),
+    (".php", "PHP"),
+    (".js", "Javascript"),
+]
+
+class CodeComponent(SubmissionComponent):
+    "A Source Code submission component"
+    max_size = models.PositiveIntegerField(help_text="Maximum size of the Code file, in kB.", null=False, default=2000)
+    allowed = models.CharField(max_length=500, null=False, help_text='Accepted file extensions.')
+    # allowed_types = {} # not in use
+    class Meta:
+        app_label = 'submission'
+    def get_allowed_list(self):
+        return self.allowed.split(",")
+
+
+class SubmittedCode(SubmittedComponent):
+    component = models.ForeignKey(CodeComponent, null=False)
+    code = models.FileField(upload_to=submission_upload_path, blank=False, storage=SubmissionSystemStorage)
+
+    class Meta:
+        app_label = 'submission'
+    def get_url(self):
+        return self.code.url
+    def get_size(self):
+        return self.code.size
+
+    def download_response(self):
+        response = HttpResponse(mimetype="text/plain")
+        self.sendfile(self.code, response)
+        return response
+    def add_to_zip(self, zipfile):
+        filename = self.file_filename(self.code)
+        zipfile.write(self.code.path, filename)
+
+FIELD_TEMPLATE = Template('''<li>
+                    {{ field.label_tag }}
+                    <div class="inputfield">
+                        {{ field }}
+			{% if field.errors %}<div class="errortext"><img src="'''+ MEDIA_URL+'''icons/error.png" alt="error"/>&nbsp;{{field.errors.0}}</div>{% endif %}
+			<div class="helptext">{{field.help_text}}</div>
+                    </div>
+                </li>''')
+                        
+class Code:
+    label = "code"
+    name = "Code"
+    Component = CodeComponent
+    SubmittedComponent = SubmittedCode
+
+    class ComponentForm(submission.forms.ComponentForm):
+        class Meta:
+            model = CodeComponent
+            fields = ['title', 'description', 'max_size', 'allowed']
+            widgets = {
+                'description': Textarea(attrs={'cols': 50, 'rows': 5}),
+                'max_size': TextInput(attrs={'style':'width:5em'}),
+                'allowed': SelectMultiple(choices=CODE_TYPES, attrs={'style':'width:20em'}),
+            }
+        
+        def clean_allowed(self):
+            data = self.cleaned_data['allowed']
+            # print "data:", data
+            allowed_list = data.split('\'')
+            # print "allowed_list:", allowed_list
+            res = ""
+            for item in allowed_list:
+                if item.startswith("."):
+                    res = res + (item+",")
+            return res[:-1]
+            
+        # output a customized form as <li>
+        def custom_form(self, text="Submit"):
+            # uncomment next line to see original form
+            # return None
+            
+            output = ['<p class="requireindicator"><img src="'+MEDIA_URL+'icons/required_star.gif" alt="required" />&nbsp;indicates required field</p>']
+            output.append("<ul>")
+            for field in self:
+                if field.name is "allowed":
+                    output.append("""
+                                <li>
+                                    <label for="id_allowed">Allowed File Types</label>
+                                    <div class="inputfield">
+                                    <select id="id_allowed" class="multiselect" multiple="multiple" name="allowed" >
+                    """)
+                    
+                    # get field value
+                    # see http://code.djangoproject.com/ticket/10427
+                    t = Template("{% load submission_filters %}{{field|display_value}}")
+                    c = Context({"field":field})
+                    selected_list = t.render(c).split(",")
+                    
+                    # when form submitted with error, '&#39;' are somehow added to the strings in the list... 
+                    new_list = []
+                    for i in selected_list:
+                        ii = i.split('&#39;')
+                        for ki in ii:
+                            if ki.startswith("."):
+                                new_list.append(ki)
+                    selected_list = new_list
+                    # print selected_list
+
+                    for k in CODE_TYPES:
+                        output.append('<option value="' + k[0] + '"')
+                        if k[0] in selected_list:
+                            output.append('selected="selected"')
+                        output.append(">" + k[1] +" (" + k[0] + ")</option>")
+
+                    output.append("""
+                                    </select>""")
+                    output.append('''<div class="errortext">''')
+                    if field.errors:
+                        output.append('''<img src="'''+ MEDIA_URL +'''icons/error.png" alt="error"/>&nbsp;''' + field.errors[0] + '</div>')
+                    output.append('''<div class="helptext">
+                                    </div>
+                                    </div>
+                                </li>
+                    ''')
+                else:
+                    c = Context({"field":field})
+                    output.append( FIELD_TEMPLATE.render(c) )
+            output.append('<li><input class="submit" type="submit" value="'+text+'" /></li>\n</ul>')
+            return mark_safe('\n'.join(output))
+
+    class SubmissionForm(submission.forms.SubmissionForm):
+        class Meta:
+            model = SubmittedCode
+            fields = ['code']
+            widgets = {'code': FileInput()}
+        def clean_code(self):
+            data = self.cleaned_data['code']
+            if self.check_is_empty(data):
+                raise forms.ValidationError("No file submitted.")
+            if not self.check_size(data):
+                raise forms.ValidationError("File size exceeded max size, component can not be uploaded.")
+            
+            # get allowed file types
+            upload_ext = splitext(data.name)[1]
+            t = CodeComponent.objects.filter(id=self.prefix)
+            allowed_list = t[0].allowed.split(",")
+            
+            if upload_ext not in allowed_list:
+                msg = None
+                msg_allowed = "Allowed types are:"
+                for k in CODE_TYPES:
+                    if k[0] in allowed_list:
+                        msg_allowed = msg_allowed + " " + k[1] + "(" + k[0] + "),"
+                    if k[0] == upload_ext:
+                        msg = "File extension incorrect.  File appears to be %s." % (k[1] + "(" + k[0] + ")")
+                if msg is None:
+                    msg = "Unable to determine file type (%s)." % upload_ext
+                raise forms.ValidationError(msg + " " +msg_allowed[:-1] + ".")
+            else:
+                return data
+
+SubmittedCode.Type = Code
+CodeComponent.Type = Code

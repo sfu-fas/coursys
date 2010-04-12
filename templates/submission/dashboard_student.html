@@ -65,8 +65,9 @@
 
         <ul class="component_description">
             <li class="view"><label>Submission Type:</label>{{pair.0.Type.name}}</li>
-            <li class="view"><label>Description:</label>{{pair.0.description}}</li>
+            {% if pair.0.description %}<li class="view"><label>Description:</label>{{pair.0.description}}</li>{% endif %}
             {% if pair.0.max_size %}<li class="view"><label>Max File Size:</label>{{pair.0.max_size}} KB</li>{% endif %}
+			{% if pair.0.allowed %}<li class="view"><label>Allowed File Types:</label>{{pair.0.allowed}}</li>{% endif %}
         </ul>
 
         {% ifequal pair.1 None %}
