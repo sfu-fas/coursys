@@ -6,6 +6,7 @@ from dashboard.models import *
 from django.core.urlresolvers import reverse
 from contrib import messages
 from django.core.cache import cache
+from datetime import datetime, timedelta
 
 FLAG_CHOICES = [
     ('NOGR', 'no grade'),
@@ -111,10 +112,14 @@ class Activity(models.Model):
 
     def submitable(self):
         """
-        Returns True if this activity is "submittable".  i.e. has any submission components defined.
+        Returns True if this activity is "submittable".
+        i.e. has any submission components defined and within 30 days after due date
         """
+        now = datetime.now()
+        if (now - self.due_date > timedelta(days=30)):
+            return False
         return self.submissioncomponent_set.all().count() != 0
-
+    
 
 
 class NumericActivity(Activity):
