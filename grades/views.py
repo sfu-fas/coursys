@@ -20,7 +20,7 @@ from submission.models import get_current_submission
 from log.models import LogEntry
 from contrib import messages
 import pickle
-from grades.formulas import EvalException
+from grades.formulas import EvalException, activities_dictionary, eval_parse
 
 
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}

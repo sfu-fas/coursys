@@ -13,6 +13,7 @@ from forms import *
 from django.forms.models import modelformset_factory
 from contrib import messages
 from django.db.models import Q
+import decimal
 
 
    
@@ -353,7 +354,7 @@ def _compute_final_mark(component_marks, max_grade, additional_info):
     for cmp_mark in component_marks:   
         components_total += cmp_mark.value
    
-    return  (1-additional_info.late_penalty/Decimal(100))*components_total - \
+    return  (1-additional_info.late_penalty/decimal.Decimal(100))*components_total - \
             additional_info.mark_adjustment
 
 def _save_marking_results(activity, activity_mark, final_mark, marker_ident, mark_receiver_ident, component_marks = None, additional_info=None):
