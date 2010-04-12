@@ -385,26 +385,27 @@ def change_grade_status(request, course_slug, activity_slug, userid):
     member = get_object_or_404(Member, offering=course, person__userid = userid, role = 'STUD') 
     numeric_grade = get_object_or_404(NumericGrade, activity=activity, member=member)
     
+    error = None
     if request.method == 'POST':
         status_form = GradeStatusForm(data=request.POST, activity=activity, prefix='grade-status')
-        if status_form.is_valid():
-            
+        if not status_form.is_valid(): 
+            error = 'Error found'
+        else:            
             new_status = status_form.cleaned_data['status']
-            comment = status_form.cleaned_data['comment']
-           
+            comment = status_form.cleaned_data['comment']           
             if new_status != numeric_grade.flag:
                 numeric_grade.save_status_flag(new_status, comment)
                 messages.add_message(request, messages.SUCCESS, 
-                   'Grade status for student %s on %s changed!' % (userid, activity.name,))
-                
-            return _redirct_response(request, course_slug, activity_slug)
+                   'Grade status for student %s on %s changed!' % (userid, activity.name,))                
+            return _redirct_response(request, course_slug, activity_slug)        
     else:
         status_form = GradeStatusForm(initial={'status': numeric_grade.flag}, prefix='grade-status')
         
+    if error:        
+        messages.add_message(request, messages.ERROR, error)    
     context = {'course':course,'activity' : activity,\
                'student' : member.person, 'current_status' : FLAGS[numeric_grade.flag],
                'status_form': status_form}
-    
     return render_to_response("marking/grade_status.html", context,
                               context_instance=RequestContext(request))  
 

@@ -954,7 +954,7 @@ table#common_problems p.component_info{
 	display: none;
 }
 
-#marking_summary_container .component_description{
+#marking_summary_container .component_mark{
     border: 1px solid #4169E1;
     color: green;
     padding: 0.5em;
@@ -964,17 +964,26 @@ table#common_problems p.component_info{
     width: 600px;
 }
 
-#marking_summary_container .component_description ul{
+#marking_summary_container .component_description{
+    color: #6666CC;
+    padding: 0.5em;
+    background-color: #CCFF88;
+    margin: 0.5em 0.5em 0.5em 0.5em;    
+    font-size: 0.81em;
+    text-align: left;
+}
+
+#marking_summary_container .component_mark ul{
     margin: 0 0 0.5em 0;
     padding: 0 0 0 0em;
     list-style: none;
 }
-#marking_summary_container .component_description label{
+#marking_summary_container .component_mark label{
     font-weight: bold;
     margin-right: 1em;
 }
 
-#marking_summary_container .component_description .component_title{
+#marking_summary_container .component_mark .component_title{
    color: #4169E1;
    font-style: italic;
 }

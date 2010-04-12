@@ -100,9 +100,12 @@ Group {{group.name}} marked on {{activity.name}}
 <h2> Components Details </h2>
 <div id="marking_summary_container">
 {% for component_mark in component_marks %}
-<div class="component_description">
+<div class="component_mark">
     <label class="component_title">{{component_mark.activity_component.title}}</label>
-	<ul>
+    <div class="component_description">
+   		<label>Discritption:</label>{{component_mark.activity_component.description}}
+    </div>
+	<ul>	   
         <li>
 	        <label>Mark:</label>{{component_mark.value}} out of {{component_mark.activity_component.max_mark}}
         </li>
