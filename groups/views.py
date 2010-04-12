@@ -124,7 +124,7 @@ def create(request,course_slug):
     else:
         return HttpResponseForbidden()
     
-def validateIntegrity(request, isStudentCreatedGroup, course, studentList, activityList):
+def validateIntegrity(request, isStudentCreatedGroup, groupForSemester, course, studentList, activityList):
     """
     #If one student is in a group for an activity, he/she cannot be in another group for the same activity.
     """
@@ -133,15 +133,32 @@ def validateIntegrity(request, isStudentCreatedGroup, course, studentList, activ
     print activityList
     for student in studentList:
         groupMembers = GroupMember.objects.filter(group__courseoffering = course, student = student)
+        #check if the student is already in a group for all group activities of the semester
+        for group in set(groupMember.group for groupMember in groupMembers):
+            if groupForSemester == True and group.groupForSemester == True:
+                integrityError = True
+                #if this group is created by student
+                if isStudentCreatedGroup:
+                    error_info = error_info + "You can not create this group, \
+                    because you are already in the group: %s for all activities of the semester" % (group.name)
+                #if this group is created by instructor 
+                else: 
+                    error_info = error_info + "Student %s %s (%s)can not be assigned to this new group,\
+                    because he/she is already in group %s for all activities of the semester.\n" \
+                               % (student.person.first_name, student.person.last_name, student.person.userid, group.name)
+        if integrityError == True:
+            continue
+        #check if the student is in a group that already has one or more than one activities in the activityList
         for activity in activityList:
             for groupMember in groupMembers:
                 if groupMember.activity == activity:
                     integrityError = True
-                    #if the student creates this group
+                    #if this group is created by student
                     if isStudentCreatedGroup:
                         error_info = error_info + "You can not create this group for %s, \
                         because you are already in the group: %s for %s.\n"\
                                    % (activity.name, groupMember.group.name, activity.name)
+                    #if this group is created by instructor 
                     else: 
                         error_info = error_info + "Student %s %s (%s)can not be assigned to this new group for %s,\
                         because he/she is already in group %s for %s.\n" \
@@ -205,7 +222,7 @@ def submit(request,course_slug):
                 studentForm = StudentForm(request.POST, prefix = student.person.userid)
                 if studentForm.is_valid() and studentForm.cleaned_data['selected'] == True:
                     studentList.append(student)
-        if validateIntegrity(request,isStudentCreatedGroup, course, studentList, selected_act) == False:
+        if validateIntegrity(request,isStudentCreatedGroup, groupForSemester, course, studentList, selected_act) == False:
             return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
         
         group = Group(name=name, manager=member, courseoffering=course, groupForSemester = groupForSemester)
