@@ -61,7 +61,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
         gm = GroupMember.objects.filter(student__person=student, activity=activity, confirmed=True)
         if gm:
             group = gm[0].group
-            messages.add_message(request, messages.WARNING, "This is a group submission. Your will submit on behalf of the group %s." % group.name)
+            messages.add_message(request, messages.WARNING, "This is a group submission. You will submit on behalf of the group %s." % group.name)
         else:
             group = None
             cansubmit = False

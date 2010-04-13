@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import *
 from django.test.client import Client
 from submission.models import *
 from submission.forms import *
@@ -64,45 +64,62 @@ class SubmissionTest(TestCase):
     fixtures = ['test_data']
     
     def setUp(self):
-        self.s, self.course = create_offering()
-        self.a1 = NumericActivity(name="Assignment 1", short_name="A1", status="RLS", offering=self.course, position=2, max_grade=15, due_date="2010-04-01")
-        self.a1.save()
-        self.a2 = NumericActivity(name="Assignment 2", short_name="A2", status="RLS", offering=self.course, position=1, max_grade=15, due_date="2010-03-01")
-        self.a2.save()
-        
-        p = Person.objects.get(userid="ggbaker")
-        self.member = Member(person=p, offering=self.course, role="INST", career="NONS", added_reason="UNK")
-        self.member.save()
-        
-        self.c1 = URL.Component(activity=self.a1, title="URL Link", position=8)
-        self.c1.save()
-        self.c2 = Archive.Component(activity=self.a1, title="Archive File", position=1, max_size=100000)
-        self.c2.save()
-        self.c3 = Code.Component(activity=self.a1, title="Code File", position=3, max_size=2000, allowed=".py")
-        self.c3.save()
+        pass
 
     def test_select_components(self):
         """
         Test submission component classes: subclasses, selection, sorting.
         """
-        comps = select_all_components(self.a1)
+        s, course = create_offering()
+        a1 = NumericActivity(name="Assignment 1", short_name="A1", status="RLS", offering=course, position=2, max_grade=15, due_date="2010-04-01")
+        a1.save()
+        a2 = NumericActivity(name="Assignment 2", short_name="A2", status="RLS", offering=course, position=1, max_grade=15, due_date="2010-03-01")
+        a2.save()
+
+        p = Person.objects.get(userid="ggbaker")
+        member = Member(person=p, offering=course, role="INST", career="NONS", added_reason="UNK")
+        member.save()
+
+        c1 = URL.Component(activity=a1, title="URL Link", position=8)
+        c1.save()
+        c2 = Archive.Component(activity=a1, title="Archive File", position=1, max_size=100000)
+        c2.save()
+        c3 = Code.Component(activity=a1, title="Code File", position=3, max_size=2000, allowed=".py")
+        c3.save()
+        comps = select_all_components(a1)
         self.assertEqual(len(comps), 3)
         self.assertEqual(comps[0].title, 'Archive File') # make sure position=1 is first
         self.assertEqual(str(comps[1].Type), "courses.submission.models.code.Code")
         self.assertEqual(str(comps[2].Type), "courses.submission.models.url.URL")
 
     def test_component_view_page(self):
+        s, course = create_offering()
+        a1 = NumericActivity(name="Assignment 1", short_name="A1", status="RLS", offering=course, position=2, max_grade=15, due_date="2010-04-01")
+        a1.save()
+        a2 = NumericActivity(name="Assignment 2", short_name="A2", status="RLS", offering=course, position=1, max_grade=15, due_date="2010-03-01")
+        a2.save()
+
+        p = Person.objects.get(userid="ggbaker")
+        member = Member(person=p, offering=course, role="INST", career="NONS", added_reason="UNK")
+        member.save()
+
+        c1 = URL.Component(activity=a1, title="URL Link", position=8)
+        c1.save()
+        c2 = Archive.Component(activity=a1, title="Archive File", position=1, max_size=100000)
+        c2.save()
+        c3 = Code.Component(activity=a1, title="Code File", position=3, max_size=2000, allowed=".py")
+        c3.save()
         client = Client()
         client.login(ticket="ggbaker", service=CAS_SERVER_URL)
         
         # When no component, should display error message
-        url = reverse('submission.views.show_components', kwargs={'course_slug':self.course.slug, 'activity_slug':self.a2.slug})
+        url = reverse('submission.views.show_components', kwargs={'course_slug':course.slug, 'activity_slug':a2.slug})
         response = basic_page_tests(self, client, url)
         self.assertContains(response, 'No components configured.')
         # add component and test
-        component = URL.Component(activity=self.a2, title="URL2", position=1)
+        component = URL.Component(activity=a2, title="URL2", position=1)
         component.save()
-        component = Archive.Component(activity=self.a2, title="Archive2", position=1, max_size=100)
+        component = Archive.Component(activity=a2, title="Archive2", position=1, max_size=100)
         component.save()
         # should all appear
         response = basic_page_tests(self, client, url)
@@ -128,7 +145,110 @@ class SubmissionTest(TestCase):
         ftype = filetype(StringIO.StringIO(PDF_FILE))
         self.assertEqual(ftype, "PDF")
 
+#    def test_student_submission(self):
+#        """
+#        Test functions for student submission
+#        """
+#        s, course = create_offering()
+#        a1 = NumericActivity(name="Assignment 1", short_name="A1", status="RLS", offering=course, position=2, max_grade=15, due_date="2010-04-01")
+#        a1.save()
+#        a2 = NumericActivity(name="Assignment 2", short_name="A2", status="RLS", offering=course, position=1, max_grade=15, due_date="2010-03-01")
+#        a2.save()
+#        p = Person.objects.get(userid="ggbaker")
+#        member = Member(person=p, offering=course, role="INST", career="NONS", added_reason="UNK")
+#        member.save()
+#        c1 = URL.Component(activity=a1, title="URL Link", position=8)
+#        c1.save()
+#        c2 = Archive.Component(activity=a1, title="Archive File", position=1, max_size=100000)
+#        c2.save()
+#        c3 = Code.Component(activity=a1, title="Code File", position=3, max_size=2000, allowed=".py")
+#        c3.save()
+#
+#        userid = "0aaa0"
+#        m = Member(person=p, offering=c, role="STUD", credits=3, career="UGRD", added_reason="UNK")
+#
+#        client = Client()
+#        client.login(ticket = "0aaa0", service = CAS_SERVER_URL)
 
 
+
+
+    def test_group_submission_view(self):
+        """
+        test if group submission can be viewed by group member and non group member
+        """
+        s, course = create_offering()
+        a1 = NumericActivity(name="Assignment 1", short_name="A1", status="RLS", offering=course, position=2, max_grade=15, due_date="2010-04-01", group=True)
+        a1.save()
+        a2 = NumericActivity(name="Assignment 2", short_name="A2", status="RLS", offering=course, position=1, max_grade=15, due_date="2010-03-01", group=True)
+        a2.save()
+        p = Person.objects.get(userid="ggbaker")
+        member = Member(person=p, offering=course, role="INST", career="NONS", added_reason="UNK")
+        member.save()
+        c1 = URL.Component(activity=a1, title="URL Link", position=8)
+        c1.save()
+        c2 = Archive.Component(activity=a1, title="Archive File", position=1, max_size=100000)
+        c2.save()
+        c3 = Code.Component(activity=a1, title="Code File", position=3, max_size=2000, allowed=".py")
+        c3.save()
+
+        userid1 = "0aaa0"
+        userid2 = "0aaa1"
+        userid3 = "0aaa2"
+        for u in [userid1, userid2,userid3]:
+            p = Person.objects.get(userid=u)
+            m = Member(person=p, offering=course, role="STUD", credits=3, career="UGRD", added_reason="UNK")
+            m.save()
+        m = Member.objects.get(person__userid=userid1, offering=course)
+        g = Group(name="Test Group", manager=m, courseoffering=course)
+        g.save()
+        gm = GroupMember(group=g, student=m, confirmed=True, activity=a1)
+        gm.save()
+        gm = GroupMember(group=g, student=m, confirmed=True, activity=a2)
+        gm.save()
+        m = Member.objects.get(person__userid=userid2, offering=course)
+        gm = GroupMember(group=g, student=m, confirmed=True, activity=a1)
+        gm.save()
+        gm = GroupMember(group=g, student=m, confirmed=True, activity=a2)
+        gm.save()
+        m = Member.objects.get(person__userid=userid3, offering=course)
+        gm = GroupMember(group=g, student=m, confirmed=True, activity=a2)
+        gm.save()
+
+        client = Client()
+        # login as "0aaa0", member of group : test_group for assignment1 and assgnment2
+        client.login(ticket = "0aaa0", service = CAS_SERVER_URL)
+
+        #submission page for assignment 1
+        url = reverse('submission.views.show_components', kwargs={'course_slug': course.slug,'activity_slug':a1.slug})
+        response = basic_page_tests(self, client, url)
+        self.assertContains(response, "This is a group submission. You will submit on behalf of the group Test Group.")
+        self.assertContains(response, "You haven't made a submission for this component.")
+
+        return
+
+        #add submission for test group in assignment 1 by "0aaa0" and "0aaa1"
+        gs = GroupSubmission(group=g, creator=Member.objects.get(person__userid=userid1, offering=course), activity=a1)
+        gs.save()
+        s = SubmittedArchive(component=c2, archive=File(), submission=gs)
+        s.save()
+        gs = GroupSubmission(group=g, creator=Member.objects.get(person__userid=userid2, offering=course), activity=a1)
+        gs.save()
+        s = SubmittedArchive(component=c2, archive=File(), submission=gs)
+        s.save()
+        
+
+        # submission page for assignment 1 login as "0aaa0"
+        url = reverse('submission.views.show_components', kwargs={'course_slug': course.slug,'activity_slug':a1.slug})
+        response = basic_page_tests(self, client, url)
+        self.assertContains(response, "You have made submission to this component.")
+        self.aasertContains(response, "Student, B")
+
+        # submission page for assignment 1 login as "0aaa2"
+        client.login(ticket = "0aaa2", service = CAS_SERVICE_URL)
+        url = reverse('submission.views.show_components', kwargs={'course_slug': course.slug,'activity_slug':a1.slug})
+        response = basic_page_tests(self, client, url)
+        self.assertContains(response, "You haven't made a submission for this component.")
+        
 
 
