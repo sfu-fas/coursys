@@ -17,6 +17,19 @@
 </script>
 {% endblock %}
 
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+		{% if activityinfo.activity.submitable %}
+        <li><a href="{% url submission.views.show_components course.slug, activityinfo.activity.slug%}">Make Submission</a></li>
+		{% else %}
+        <li><a href="{% url submission.views.show_components course.slug, activityinfo.activity.slug%}">View Submission</a></li>
+		{% endif %}
+    </ul>
+</div>
+{% endblock %}
+
 {% block content %}
 <div class="table_container">
     <table class="info">
@@ -53,10 +66,6 @@
         </tbody>
     </table>
 </div>
-
-{% if activityinfo.activity.submitable %}
-<div><a class="button" href="{% url submission.views.show_components course.slug, activityinfo.activity.slug%}">Submit</a></div>
-{% endif %}
 
 {% if display_summary %}
 

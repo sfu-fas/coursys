@@ -69,7 +69,9 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
     else:
         group = None
 
-
+    # activity should be submitable
+    cansubmit = cansubmit and activity.submitable()
+    
     return render_to_response("submission/" + template,
         {"course":course, "activity":activity, "submission": submission, "submitted_components":submitted_components, "userid":userid, "late":late, "student":student, "group":group, "cansubmit":cansubmit},
         context_instance=RequestContext(request))
@@ -86,6 +88,10 @@ def add_submission(request, course_slug, activity_slug):
     component_list = select_all_components(activity)
     component_list.sort()
     component_form_list=[]
+
+    if not activity.submitable():
+        messages.add_message(request, messages.ERROR, "This activity is not submittable.")
+        return ForbiddenResponse(request)
 
     group_member = None
     if activity.group:
@@ -107,6 +113,7 @@ def add_submission(request, course_slug, activity_slug):
             new_sub.group = group_member.group
             new_sub.creator = group_member.student
         else:
+            messages.add_message(request, messages.ERROR, "This is a group submission. You cannot submit since you aren't in a group.")
             return ForbiddenResponse(request)
         new_sub.activity = activity
         new_sub_saved = False

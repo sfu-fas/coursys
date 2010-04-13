@@ -5,8 +5,23 @@
 
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{course.name}}</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug, activity_slug=activity.slug %}">{{activity.name}}</a></li><li>&gt; Submission</li>{% endblock %}
 
-{% block content%}
 
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        {% if cansubmit %}
+        <li><a href="{% url submission.views.add_submission course_slug=course.slug, activity_slug=activity.slug %}" class="button">New Submission</a></li>
+        {% endif %}
+        {% if submission %}
+        <li><a href="{% url submission.views.show_components_submission_history course_slug=course.slug activity_slug=activity.slug %}" class="button">View History</a></li>
+        <li><a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=userid %}" class="button" target="_blank">Download All</a></li>
+        {% endif %}
+    </ul>
+</div>
+{% endblock %}
+
+{% block content%}
 {% ifequal submitted_pair|length 0 %}
     {# there is no component #}
 {% else %}
@@ -42,20 +57,6 @@
             {% endif %}
         </table>
         </div>
-
-        {% block navbutton %}
-        <div id="my_submission_dashboard"><h1>My Submission</h1>
-        <ul class="add_nav">
-            {% if cansubmit %}
-            <li><a href="{% url submission.views.add_submission course_slug=course.slug, activity_slug=activity.slug %}" class="button">New Submission</a></li>
-            {% endif %}
-            {% if submission %}
-            <li><a href="{% url submission.views.show_components_submission_history course_slug=course.slug activity_slug=activity.slug %}" class="button">View History</a></li>
-            <li><a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=userid %}" class="button" target="_blank">Download All</a></li>
-            {% endif %}
-        </ul>
-        </div>
-        {% endblock %}
 
         <div id="form_container">
         <div id="component_view_student_container">
