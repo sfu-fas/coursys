@@ -18155,16 +18155,6 @@
   "pk": 1
  }, 
  {
-  "fields": {
-   "activity": 1, 
-   "description": "Essay", 
-   "position": 20, 
-   "title": "Essay"
-  }, 
-  "model": "submission.submissioncomponent", 
-  "pk": 2
- }, 
- {
   "fields": {}, 
   "model": "submission.urlcomponent", 
   "pk": 1

@@ -117,12 +117,12 @@ class Activity(models.Model):
         """
         if self.no_submit_too_old():
             return False
-        return self.submissioncomponent_set.all().count() != 0
+        return self.submissioncomponent_set.filter(deleted=False).count() != 0
     def no_submit_too_old(self):
         """
         Returns True if this activity is not submittable because it is too old
         """
-        if self.submissioncomponent_set.all().count() == 0:
+        if self.submissioncomponent_set.filter(deleted=False).count() == 0:
             return False
         now = datetime.now()
         if (now - self.due_date > timedelta(days=30)):
