@@ -133,6 +133,12 @@
                 <th class="ui-state-default">Percentage</th>
                 <td>{{activity.percent}}</td>
             </tr>
+			{% if activity.group %}
+			<tr>
+                <th class="ui-state-default">Group Activity</th>
+                <td>Yes</td>
+            </tr>
+			{% endif %}
             {% if activity.numericactivity %}
             <tr>
                 <th class="ui-state-default">Maximum grade</th>
