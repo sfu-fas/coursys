@@ -2,6 +2,7 @@
 
 {% block marking_header_extra %}
 <script type="text/javascript">
+//<![CDATA[
 $(document).ready(function() {
 	var oTable = $('#all_marks').dataTable({
 		"bJQueryUI": true,
@@ -20,20 +21,23 @@ $(document).ready(function() {
 			mark_entry[0].tabIndex = tabi ++;
 	}	
 });
+//]]>
 </script>
 {% endblock %}
 
 {% block title %}Mark All{% endblock %}
 {% block h1 %} Mark All Students {% endblock %}
-{% block marking_subbreadcrumbs %}
-<li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Mark All Students</li>{% endblock %}
+{% block marking_subbreadcrumbs %}<li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Mark All Students</li>{% endblock %}
+
 {% block content %}
 <form id= "import_file_form" action="{%url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug%}?import=true" method="post" enctype="multipart/form-data"> 
 {% if fileform.file.errors %}
 <div class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/>&nbsp;{{fileform.file.errors.0}}</div>
 {% endif %} 
+<div>
 {{fileform.file}}
 <input type="submit" value="import"/>
+</div>
 </form>
 {% if too_many %}
 <a class="redbutton reset_button" href="{% url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug %}">Reset</a>
@@ -50,7 +54,8 @@ $(document).ready(function() {
 		<th>Student Number</th>
 		<th>Current Grade</th>
 		<th>New Grade</th>
-		</thead>
+	    </tr>
+	</thead>
         <tbody>
 	    {% for mark_row in mark_all_rows %}
 	    {% with mark_row.student as student %}
@@ -79,7 +84,7 @@ $(document).ready(function() {
         </tbody>
     </table>
 </div>
-<input class="submit" type="submit" value="Submit" />
+<div><input class="submit" type="submit" value="Submit" /></div>
 </form>
 <a class="redbutton reset_button" href="{% url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug %}">Reset</a>
 {% endblock %}

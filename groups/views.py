@@ -130,7 +130,6 @@ def validateIntegrity(request, isStudentCreatedGroup, groupForSemester, course, 
     """
     integrityError = False
     error_info = ""
-    print activityList
     for student in studentList:
         groupMembers = GroupMember.objects.filter(group__courseoffering = course, student = student)
         #check if the student is already in a group for all group activities of the semester
@@ -139,7 +138,7 @@ def validateIntegrity(request, isStudentCreatedGroup, groupForSemester, course, 
                 integrityError = True
                 #if this group is created by student
                 if isStudentCreatedGroup:
-                    error_info = error_info + "You can not create this group, \
+                    error_info = error_info + "You cannot create this group, \
                     because you are already in the group: %s for all activities of the semester" % (group.name)
                 #if this group is created by instructor 
                 else: 
@@ -155,7 +154,7 @@ def validateIntegrity(request, isStudentCreatedGroup, groupForSemester, course, 
                     integrityError = True
                     #if this group is created by student
                     if isStudentCreatedGroup:
-                        error_info = error_info + "You can not create this group for %s, \
+                        error_info = error_info + "You cannot create this group for %s, \
                         because you are already in the group: %s for %s.\n"\
                                    % (activity.name, groupMember.group.name, activity.name)
                     #if this group is created by instructor 

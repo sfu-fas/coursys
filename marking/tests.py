@@ -6,6 +6,7 @@ Replace these with more appropriate tests for your application.
 """
 
 from django.test import TestCase
+from django.test.client import Client
 from coredata.models import *
 from grades.models import *
 from models import *
@@ -228,5 +229,62 @@ class BasicTest(TestCase):
         self.assertEquals(group_mark, latest_act_mark)
 
         
+    def test_frontend(self):
+        client = Client()
+        client.login(ticket='ggbaker', service=CAS_SERVER_URL)
         
+        # set up a course
+        c = CourseOffering.objects.get(slug = self.c_slug)
+        a1 = NumericActivity(offering = c, name = 'test_assignment_1', \
+                            short_name = 'ta1', status = 'released', \
+                            due_date = datetime.now(), max_grade = 100, position = 0, group=True)
+        a1.save()
+        a2 = NumericActivity(offering = c, name = 'test_assignment_1', \
+                            short_name = 'ta1', status = 'released', \
+                            due_date = datetime.now(), max_grade = 100, position = 0, group=False)
+        a2.save()
         
+        stud1 = Member.objects.get(person = Person.objects.get(userid = '0aaa0'), offering = c)
+        stud2 = Member.objects.get(person = Person.objects.get(userid = '0aaa1'), offering = c)
+        instr = Member.objects.get(person = Person.objects.get(userid = 'ggbaker'), offering = c)
+        group = Group.objects.create(courseoffering = c, name = 'hello', manager = stud1)
+        member1 = GroupMember.objects.create(group = group, student = stud1, confirmed = True, activity=a1)
+        member2 = GroupMember.objects.create(group = group, student = stud2, confirmed = True, activity=a1)
+        
+        # marking form (student)
+        url = reverse('marking.views.marking_student', kwargs={'course_slug':c.slug, 'activity_slug':a2.slug, 'userid':stud1.person.userid})
+        response = basic_page_tests(self, client, url)
+        
+        ac = ActivityComponent(numeric_activity=a2, max_mark=5, title="AC Title", description="AC Description", position=1, deleted=False)
+        ac.save()
+        ac = ActivityComponent(numeric_activity=a2, max_mark=5, title="AC Title2", description="AC Description2", position=2, deleted=False)
+        ac.save()
+        cp = CommonProblem(activity_component=ac, title="CP title", penalty=2, description="Cp description", deleted=False)
+        cp.save()
+
+        response = basic_page_tests(self, client, url)
+
+        # marking form (group)
+        url = reverse('marking.views.marking_student', kwargs={'course_slug':c.slug, 'activity_slug':a1.slug, 'userid':stud1.person.userid})
+        response = basic_page_tests(self, client, url)
+        
+        ac = ActivityComponent(numeric_activity=a1, max_mark=5, title="AC Title", description="AC Description", position=1, deleted=False)
+        ac.save()
+        ac = ActivityComponent(numeric_activity=a1, max_mark=5, title="AC Title2", description="AC Description2", position=2, deleted=False)
+        ac.save()
+        cp = CommonProblem(activity_component=ac, title="CP title", penalty=2, description="Cp description", deleted=False)
+        cp.save()
+
+        response = basic_page_tests(self, client, url)
+
+        # common problem form
+        url = reverse('marking.views.manage_common_problems', kwargs={'course_slug':c.slug, 'activity_slug':a2.slug})
+        response = basic_page_tests(self, client, url)
+        
+        # mark all (student and group)
+        url = reverse('marking.views.mark_all_students', kwargs={'course_slug':c.slug, 'activity_slug':a2.slug})
+        response = basic_page_tests(self, client, url)
+        # mark all (student and group)
+        url = reverse('marking.views.mark_all_groups', kwargs={'course_slug':c.slug, 'activity_slug':a1.slug})
+        response = basic_page_tests(self, client, url)
+

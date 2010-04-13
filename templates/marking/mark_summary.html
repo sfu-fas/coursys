@@ -27,12 +27,12 @@ Group {{group.name}} marked on {{activity.name}}
 	            {{ activity_mark.created_by }}
 	        </td>
 	    </tr>
-	    <tr>
+	    {% if is_staff %}<tr>
 	    	<th  class="ui-state-default">Time</th>
 	        <td>
 	            {{activity_mark.created_at|date:'r'}} 
 	        </td>
-	    </tr>
+	    </tr>{% endif %}
 	    <tr>
 	    	<th  class="ui-state-default">Total Mark</th>
 	        <td>
@@ -103,7 +103,7 @@ Group {{group.name}} marked on {{activity.name}}
 <div class="component_mark">
     <label class="component_title">{{component_mark.activity_component.title}}</label>
     <div class="component_description">
-   		<label>Discritption:</label>{{component_mark.activity_component.description}}
+   		<label>Descritption:</label>{{component_mark.activity_component.description}}
     </div>
 	<ul>	   
         <li>

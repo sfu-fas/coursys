@@ -2,6 +2,7 @@
 
 {% block marking_header_extra %}
 <script type="text/javascript">
+//<![CDATA[
 $(document).ready(function() {
 	var oTable = $('#all_marks').dataTable({
 		"bJQueryUI": true,
@@ -20,14 +21,13 @@ $(document).ready(function() {
 			mark_entry[0].tabIndex = tabi ++;
 	}	
 });
+//]]>
 </script>
 {% endblock %}
 
 {% block title %}Mark All{% endblock %}
 {% block h1 %} Mark All Groups{% endblock %}
-{% block marking_subbreadcrumbs %}
-<li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Mark All Groups</li>
-{% endblock %}
+{% block marking_subbreadcrumbs %}<li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Mark All Groups</li>{% endblock %}
 {% block content %}
 
 <form id = "grades_form" action="" method="post">
@@ -36,9 +36,10 @@ $(document).ready(function() {
         <thead class="form_head">
             <tr>
                 <th>Group Name</th>
-				<th>Current Grade</th>
-				<th>New Grade</th>
-		</thead>
+		<th>Current Grade</th>
+		<th>New Grade</th>
+	    </tr>	
+	</thead>
         <tbody>
 	    {% for mark_row in mark_all_rows %}
 	    {% with mark_row.group as group %}
@@ -69,7 +70,7 @@ $(document).ready(function() {
         </tbody>
     </table>
 </div>
-<input class="submit" type="submit" value="Submit" />
+<div><input class="submit" type="submit" value="Submit" /></div>
 </form>
 <a class="redbutton reset_button" href="{% url marking.views.mark_all_groups course_slug=course.slug activity_slug=activity.slug %}">Reset</a>
 {% endblock %}
