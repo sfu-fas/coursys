@@ -222,7 +222,12 @@ def submit(request,course_slug):
                 studentForm = StudentForm(request.POST, prefix = student.person.userid)
                 if studentForm.is_valid() and studentForm.cleaned_data['selected'] == True:
                     studentList.append(student)
+        #Check if students has already in a group
         if validateIntegrity(request,isStudentCreatedGroup, groupForSemester, course, studentList, selected_act) == False:
+            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+        #No selected members,group creating will fail.        
+        if not studentList:
+            messages.add_message(request, messages.ERROR, "Group not created: no members selected.")
             return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
         
         group = Group(name=name, manager=member, courseoffering=course, groupForSemester = groupForSemester)
