@@ -134,7 +134,7 @@ class GroupTest(TestCase):
         # group management screen
         url = reverse('groups.views.groupmanage', kwargs={'course_slug': c.slug})
         response = basic_page_tests(self, client, url)
-        self.assertContains(response, "You don't belong to any groups")
+        self.assertContains(response, "You don't belong to any group")
         url = reverse('groups.views.create', kwargs={'course_slug': c.slug})
         self.assertContains(response, 'href="%s"'%(url))
         
