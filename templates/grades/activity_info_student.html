@@ -24,7 +24,9 @@
 		{% if activityinfo.activity.submitable %}
         <li><a href="{% url submission.views.show_components course.slug, activityinfo.activity.slug%}">Make Submission</a></li>
 		{% else %}
+		{% if activityinfo.activity.no_submit_too_old %}
         <li><a href="{% url submission.views.show_components course.slug, activityinfo.activity.slug%}">View Submission</a></li>
+		{% endif %}
 		{% endif %}
     </ul>
 </div>

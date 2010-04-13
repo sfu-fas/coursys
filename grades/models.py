@@ -115,10 +115,19 @@ class Activity(models.Model):
         Returns True if this activity is "submittable".
         i.e. has any submission components defined and within 30 days after due date
         """
-        now = datetime.now()
-        if (now - self.due_date > timedelta(days=30)):
+        if self.no_submit_too_old():
             return False
         return self.submissioncomponent_set.all().count() != 0
+    def no_submit_too_old(self):
+        """
+        Returns True if this activity is not submittable because it is too old
+        """
+        if self.submissioncomponent_set.all().count() == 0:
+            return False
+        now = datetime.now()
+        if (now - self.due_date > timedelta(days=30)):
+            return True
+        return False
     
 
 
