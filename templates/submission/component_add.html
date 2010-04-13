@@ -2,20 +2,12 @@
 {% load course_display %}
 
 {% block headextra %}
-<link type="text/css" rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/themes/base/ui.all.css" />
 <link type="text/css" href="{{MEDIA_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
-<script type="text/javascript" src="{{MEDIA_URL}}multiselect/js/jquery-1.4.2.min.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}multiselect/js/jquery-ui-1.8.custom.min.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}multiselect/js/plugins/localisation/jquery.localisation-min.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}multiselect/js/plugins/scrollTo/jquery.scrollTo-min.js"></script>
 <script type="text/javascript" src="{{MEDIA_URL}}multiselect/js/ui.multiselect.js"></script>
-<script type="text/javascript" src="http://jqueryui.com/themeroller/themeswitchertool/"></script>
 <script type="text/javascript">
-	$(function(){
-		$.localise('ui-multiselect', {/*language: 'en',*/ path: '{{MEDIA_URL}}multiselect/js/locale/'});
-		$(".multiselect").multiselect();
-		$('#switcher').themeswitcher("Redmond");
-	});
+  $(document).ready(function() {
+    $("#id_allowed").multiselect({dividerLocation: 1});
+  });
 </script>
 {% endblock %}
 
@@ -39,15 +31,10 @@
 <form action="" method="post">
 <fieldset>
     <legend>Add Component</legend>
-	{% if form.custom_form %}
-		{{form.custom_form}}
-	{% else %}
-		{{form|display_form}}
-	{% endif %}
+    {{form|display_form}}
 </fieldset>
 </form>
 </div>
-<div id="switcher" style="display:none"></div>
     
 </div>
 {% endblock %}

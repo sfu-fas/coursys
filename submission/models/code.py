@@ -69,28 +69,39 @@ class Code:
     SubmittedComponent = SubmittedCode
 
     class ComponentForm(submission.forms.ComponentForm):
+        def _initial_allowed(self):
+            """
+            Rework the comma-separated value into a list for the SelectMultiple initial value
+            """
+            if self.instance:
+                return self.instance.allowed.split(',')
+            else:
+                return []
+
         def __init__(self, *args, **kwargs):
             super(Code.ComponentForm, self).__init__(*args, **kwargs)
             self.fields['description'].widget = Textarea(attrs={'cols': 50, 'rows': 5})
             self.fields['max_size'].widget = TextInput(attrs={'style':'width:5em'})
             self.fields['allowed'].widget = SelectMultiple(choices=CODE_TYPES, attrs={'style':'width:20em'})
+            self.initial['allowed'] = self._initial_allowed
+            self.fields['allowed'].label=mark_safe("Allowed Types"+submission.forms._required_star)
+            self.fields['max_size'].label=mark_safe("Max size"+submission.forms._required_star)
+
         class Meta:
             model = CodeComponent
             fields = ['title', 'description', 'max_size', 'allowed']
-            #widgets = {
-            #    'description': Textarea(attrs={'cols': 50, 'rows': 5}),
-            #    'max_size': TextInput(attrs={'style':'width:5em'}),
-            #    'allowed': SelectMultiple(choices=CODE_TYPES, attrs={'style':'width:20em'}),
-            #}
         
         def clean_allowed(self):
             data = self.data.getlist('allowed')
+            print ">>>", `data`, len(data)
+            if len(data)==0:
+                raise forms.ValidationError("No file types selected")
             return ",".join(data)
             
         # output a customized form as <li>
         def custom_form(self, text="Submit"):
             # uncomment next line to see original form
-            #return None
+            return None
             
             output = ['<p class="requireindicator"><img src="'+MEDIA_URL+'icons/required_star.gif" alt="required" />&nbsp;indicates required field</p>']
             output.append("<ul>")
