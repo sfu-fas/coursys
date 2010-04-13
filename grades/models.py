@@ -153,6 +153,7 @@ class NumericActivity(Activity):
         # get old status so we can see if it's newly-released
         try:
             old = Activity.objects.get(id=self.id)
+            self.group = old.group
         except Activity.DoesNotExist:
             old = None
         super(NumericActivity, self).save(*args, **kwargs)

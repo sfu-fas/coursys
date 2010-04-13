@@ -69,30 +69,28 @@ class Code:
     SubmittedComponent = SubmittedCode
 
     class ComponentForm(submission.forms.ComponentForm):
+        def __init__(self, *args, **kwargs):
+            super(Code.ComponentForm, self).__init__(*args, **kwargs)
+            self.fields['description'].widget = Textarea(attrs={'cols': 50, 'rows': 5})
+            self.fields['max_size'].widget = TextInput(attrs={'style':'width:5em'})
+            self.fields['allowed'].widget = SelectMultiple(choices=CODE_TYPES, attrs={'style':'width:20em'})
         class Meta:
             model = CodeComponent
             fields = ['title', 'description', 'max_size', 'allowed']
-            widgets = {
-                'description': Textarea(attrs={'cols': 50, 'rows': 5}),
-                'max_size': TextInput(attrs={'style':'width:5em'}),
-                'allowed': SelectMultiple(choices=CODE_TYPES, attrs={'style':'width:20em'}),
-            }
+            #widgets = {
+            #    'description': Textarea(attrs={'cols': 50, 'rows': 5}),
+            #    'max_size': TextInput(attrs={'style':'width:5em'}),
+            #    'allowed': SelectMultiple(choices=CODE_TYPES, attrs={'style':'width:20em'}),
+            #}
         
         def clean_allowed(self):
-            data = self.cleaned_data['allowed']
-            # print "data:", data
-            allowed_list = data.split('\'')
-            # print "allowed_list:", allowed_list
-            res = ""
-            for item in allowed_list:
-                if item.startswith("."):
-                    res = res + (item+",")
-            return res[:-1]
+            data = self.data.getlist('allowed')
+            return ",".join(data)
             
         # output a customized form as <li>
         def custom_form(self, text="Submit"):
             # uncomment next line to see original form
-            # return None
+            #return None
             
             output = ['<p class="requireindicator"><img src="'+MEDIA_URL+'icons/required_star.gif" alt="required" />&nbsp;indicates required field</p>']
             output.append("<ul>")
