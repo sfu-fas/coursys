@@ -9,6 +9,7 @@ from dashboard.models import NewsItem
 from django.core.urlresolvers import reverse
 import os.path
 from django.conf import settings
+from django.utils.safestring import mark_safe
 
 
 STATUS_CHOICES = [
@@ -30,7 +31,7 @@ class SubmissionComponent(models.Model):
     description = models.CharField(max_length=1000, help_text="Short explanation for this component.", null=True,blank=True)
     position = models.PositiveSmallIntegerField(help_text="The order of display for listing components.", null=True,blank=True)
     slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with='activity')
-    deleted = models.BooleanField(default=False)
+    deleted = models.BooleanField(default=False, help_text="Invisible to students when checked.")
 
     def __cmp__(self, other):
         return cmp(self.position, other.position)

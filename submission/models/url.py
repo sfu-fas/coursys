@@ -5,6 +5,7 @@ from django import forms
 from django.http import HttpResponse
 from django.utils.html import escape
 
+
 # model objects must be defined at top-level so Django notices them for DB creation, etc.
 class URLComponent(SubmissionComponent):
     class Meta:
@@ -46,10 +47,14 @@ class URL:
     class ComponentForm(submission.forms.ComponentForm):
         class Meta:
             model = URLComponent
-            fields = ['title', 'description']
-            widgets = {
-                'description': Textarea(attrs={'cols':50, 'rows':5}),
-            }
+            fields = ['title', 'description', 'deleted']
+            # widgets = {
+            #     'description': Textarea(attrs={'cols':50, 'rows':5}),
+            # }
+        def __init__(self, *args, **kwargs):
+            super(URL.ComponentForm, self).__init__(*args, **kwargs)
+            self.fields['description'].widget = Textarea(attrs={'cols': 50, 'rows': 5})
+            self.fields['deleted'].label=mark_safe("Invisible")
 
     class SubmissionForm(submission.forms.SubmissionForm):
         class Meta:

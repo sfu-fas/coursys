@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from os.path import splitext
 from settings import MEDIA_URL
 from django.template import Context, Template
-from django.utils.safestring import mark_safe
+
 
 # add file type that should be recognizable when a file is submitted
 CODE_TYPES = [
@@ -72,7 +72,7 @@ class Code:
     class ComponentForm(submission.forms.ComponentForm):
         class Meta:
             model = CodeComponent
-            fields = ['title', 'description', 'max_size', 'allowed']
+            fields = ['title', 'description', 'max_size', 'allowed', 'deleted']
         
         def __init__(self, *args, **kwargs):
             super(Code.ComponentForm, self).__init__(*args, **kwargs)
@@ -83,6 +83,8 @@ class Code:
             self.fields['allowed'].widget = SelectMultiple(choices=CODE_TYPES, attrs={'style':'width:20em'})
             self.initial['allowed'] = self._initial_allowed
             self.fields['allowed'].label=mark_safe("Allowed Types"+submission.forms._required_star)
+
+            self.fields['deleted'].label=mark_safe("Invisible")
 
         def _initial_allowed(self):
             """

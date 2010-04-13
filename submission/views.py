@@ -235,7 +235,7 @@ def _show_components_staff(request, course_slug, activity_slug):
 
     #if POST, update the positions
     if request.method == 'POST':
-        component_list = select_all_components(activity)
+        component_list = select_all_components(activity, include_deleted=True)
         counter = 0
         for component in component_list:
             counter = counter + 1
@@ -249,7 +249,7 @@ def _show_components_staff(request, course_slug, activity_slug):
         messages.add_message(request, messages.SUCCESS, 'Component positions updated.')
         return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
     
-    component_list = select_all_components(activity)
+    component_list = select_all_components(activity, include_deleted=True)
     return render_to_response("submission/component_view_staff.html",
         {"course":course, "activity":activity, "component_list":component_list},
         context_instance=RequestContext(request))

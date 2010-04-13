@@ -4,6 +4,7 @@ from django.forms.widgets import Textarea, TextInput, FileInput
 from django import forms
 from django.http import HttpResponse
 
+
 class PDFComponent(SubmissionComponent):
     "A Acrobat (PDF) submission component"
     max_size = models.PositiveIntegerField(help_text="Maximum size of the PDF file, in kB.", null=False, default=5000)
@@ -42,11 +43,16 @@ class PDF:
     class ComponentForm(submission.forms.ComponentForm):
         class Meta:
             model = PDFComponent
-            fields = ['title', 'description', 'max_size']
-            widgets = {
-                'description': Textarea(attrs={'cols': 50, 'rows': 5}),
-                'max_size': TextInput(attrs={'style':'width:5em'}),
-            }
+            fields = ['title', 'description', 'max_size', 'deleted']
+            # widgets = {
+            #     'description': Textarea(attrs={'cols': 50, 'rows': 5}),
+            #     'max_size': TextInput(attrs={'style':'width:5em'}),
+            # }
+        def __init__(self, *args, **kwargs):
+            super(PDF.ComponentForm, self).__init__(*args, **kwargs)
+            self.fields['description'].widget = Textarea(attrs={'cols': 50, 'rows': 5})
+            self.fields['max_size'].label=mark_safe("Max size"+submission.forms._required_star)
+            self.fields['deleted'].label=mark_safe("Invisible")
 
     class SubmissionForm(submission.forms.SubmissionForm):
         class Meta:

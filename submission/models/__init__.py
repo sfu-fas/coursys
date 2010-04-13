@@ -56,14 +56,17 @@ its name is xxxComponent where xxx will be used as type identification
 # MUST have deepest subclasses first (i.e. nothing *after* a class is one of its subclasses)
 #COMPONENT_TYPES = [URLComponent, ArchiveComponent, CppComponent, PlainTextComponent, JavaComponent]
 
-def select_all_components(activity):
+def select_all_components(activity, include_deleted=False):
     """
     Return all components for this activity as their most specific class.
     """
     components = [] # list of components
     found = set() # keep track of what has been found so we can exclude less-specific duplicates.
     for Type in ALL_TYPE_CLASSES:
-        comps = list(Type.Component.objects.filter(activity=activity))
+        if include_deleted:
+            comps = list(Type.Component.objects.filter(activity=activity))
+        else:
+            comps = list(Type.Component.objects.filter(activity=activity, deleted=False))
         components.extend( (c for c in comps if c.id not in found) )
         found.update( (c.id for c in comps) )
 
