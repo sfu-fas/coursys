@@ -10,17 +10,18 @@ from django.utils.safestring import mark_safe
 
 # add file type that should be recognizable when a file is submitted
 CODE_TYPES = [
-    (".java", "Java Source"),
-    (".class", "Java Bytecode"),
-    (".cpp", "C++"),
-    (".c", "C"),
-    (".py", "Python"),
-    (".rb", "Ruby"),
-    (".pl", "Perl"),
-    (".hs", "Haskell"),
-    (".pro", "Prolog"),
-    (".php", "PHP"),
-    (".js", "Javascript"),
+    (".txt", "Plain Text (.txt)"),
+    (".java", "Java Source (.java)"),
+    (".class", "Java Bytecode (.class)"),
+    (".cpp", "C++ (.cpp)"),
+    (".c", "C (.c)"),
+    (".py", "Python (.py)"),
+    (".rb", "Ruby (.rb)"),
+    (".pl", "Perl (.pl)"),
+    (".hs", "Haskell (.hs)"),
+    (".pro", "Prolog (.pl)"),
+    (".php", "PHP (.php)"),
+    (".js", "Javascript (.js)"),
 ]
 
 class CodeComponent(SubmissionComponent):
@@ -174,9 +175,9 @@ class Code:
                 msg_allowed = "Allowed types are:"
                 for k in CODE_TYPES:
                     if k[0] in allowed_list:
-                        msg_allowed = msg_allowed + " " + k[1] + "(" + k[0] + "),"
+                        msg_allowed = msg_allowed + " " + k[1] + ","
                     if k[0] == upload_ext:
-                        msg = "File extension incorrect.  File appears to be %s." % (k[1] + "(" + k[0] + ")")
+                        msg = "File extension incorrect.  File appears to be %s." % (k[1])
                 if msg is None:
                     msg = "Unable to determine file type (%s)." % upload_ext
                 raise forms.ValidationError(msg + " " +msg_allowed[:-1] + ".")
