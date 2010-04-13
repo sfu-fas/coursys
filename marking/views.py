@@ -46,7 +46,7 @@ def _find_setup_conflicts(source_setup, target_setup):
     
     return conflicting_activities
 
-def _check_and_save_renamed_activities(all_activities, conflicting_activities, rename_forms):
+def _check_and_save_renamed_activities(all_activities, conflicting_activities, rename_forms, user):
     """        
     this function check that if it's ok to rename the activities(which conflict with ones in
     the source course setup) using the new names or new short names in the form.
@@ -72,18 +72,27 @@ def _check_and_save_renamed_activities(all_activities, conflicting_activities, r
                 return 'Conflicts on short name "%s" among the activities in this course' % new_short_name
             names_found.add(new_name)
             short_names_found.add(new_short_name)
-            act = all_activities.get(id=form.prefix)
+            act = all_activities.get(id=form.prefix)            
+            activities_renamed.append({'activity': act, 'old_name': act.name, 'old_short': act.short_name}) 
             act.name = new_name
             act.short_name = new_short_name
             act.slug = None #set to None for regeneration
-            activities_renamed.append(act) 
         else:# this conflicting activity is not to be renamed, add its name and short name to the set 
             act = all_activities.get(id=form.prefix)
             names_found.add(act.name)
             short_names_found.add(act.short_name)             
             
-    for act in activities_renamed:
+    for act_renamed in activities_renamed:       
+        act = act_renamed['activity'] 
+        old_name = act_renamed['old_name']
+        old_short = act_renamed['old_short']
         act.save()
+        #LOG EVENT
+        l = LogEntry(userid=user,
+              description=("renamed %s(%s) to %s(%s) in course %s") % 
+                          (old_name, old_short, act.name, act.short_name, act.offering),
+              related_object=act)
+        l.save()
     return None
 
 
@@ -126,12 +135,19 @@ def copy_course_setup(request, course_slug):
             
             if conflicting_acts: # check the renamed activities
                 rename_forms = [ ActivityRenameForm(request.POST, prefix=act.id) for act in conflicting_acts ]
-                error_info = _check_and_save_renamed_activities(target_setup, conflicting_acts, rename_forms)
+                error_info = _check_and_save_renamed_activities(
+                                   target_setup, conflicting_acts, rename_forms, request.user.username)
             
             if not error_info:# do the copy !
-                copyCourseSetup(source_course, course)
+                copyCourseSetup(source_course, course)     
+                #LOG EVENT
+                l = LogEntry(userid=request.user.username,
+                      description=("copied course setup from %s to %s") % 
+                                  (source_course, course),
+                      related_object=course)
+                l.save()                         
                 messages.add_message(request, messages.SUCCESS, \
-                        "Course Setup copied from %s (%s)" % (source_course.name(), source_course.semester.label(),))
+                        "Course Setup copied from %s (%s)" % (source_course.name(), source_course.semester.label(),))                
                 return HttpResponseRedirect(reverse('grades.views.course_info', args=(course_slug,)))
         
         if error_info:
@@ -148,7 +164,7 @@ def copy_course_setup(request, course_slug):
                                  {'course': course, 'select_form': select_form},\
                                  context_instance=RequestContext(request))
 
-def _save_common_problems(formset):
+def _save_common_problems(formset, activity, user):
     for form in formset.forms:
         try:  # component is required, empty component triggers KeyError and don't consider this row
             form.cleaned_data['activity_component']
@@ -158,10 +174,21 @@ def _save_common_problems(formset):
             form.cleaned_data['title']
         except KeyError:            
             continue
-        else:
-            instance = form.save()
+        else:    
+            instance = form.save() 
+            if not instance.deleted:
+                action = 'saved'
+            else:
+                action = 'deleted'                                          
+            #LOG EVENT#
+            l = LogEntry(userid=user,
+                  description=("%s common problem %s for %s %s") % 
+                              (action, instance, activity),
+                  related_object=instance)
+            l.save()
+            
 
-def _save_components(formset, activity):
+def _save_components(formset, activity, user):
     total_mark = 0;
     for form in formset.forms:
         try:  # title is required, empty title triggers KeyError and don't consider this row
@@ -170,10 +197,21 @@ def _save_components(formset, activity):
             continue
         else:
             instance = form.save(commit = False)
-            instance.numeric_activity = activity
+            instance.numeric_activity = activity            
+            instance.save()
+            
             if not instance.deleted:
                 total_mark += instance.max_mark
-            instance.save()
+                action = 'saved'
+            else:
+                action = 'deleted'                           
+            #LOG EVENT#
+            l = LogEntry(userid=user,
+                  description=("%s marking component %s of %s %s") % 
+                              (action, instance, activity),
+                  related_object=instance)  
+            l.save()         
+            
     return total_mark      
 
 @requires_course_staff_by_slug
@@ -199,7 +237,7 @@ def manage_activity_components(request, course_slug, activity_slug):
                 error_info = formset.non_form_errors()[0] 
         else:          
             # save the formset  
-            now_max = _save_components(formset, activity)
+            now_max = _save_components(formset, activity, request.user.username)
             messages.add_message(request, messages.SUCCESS, 'Components of %s Saved!' % activity.name)
             # if the max grade changed
             if now_max != activity.max_grade: 
@@ -245,7 +283,7 @@ def manage_common_problems(request, course_slug, activity_slug):
                 error_info = formset.non_form_errors()[0] 
         else:       
             # save the formset  
-            _save_common_problems(formset)
+            _save_common_problems(formset, activity, request.user.username)
             messages.add_message(request, messages.SUCCESS, 'Common problems Saved')
             return _redirct_response(request, course_slug, activity_slug)              
     else: # for GET request     
@@ -273,7 +311,14 @@ def manage_component_positions(request, course_slug, activity_slug):
                 comp.position = position
                 comp.save()
                 position += 1
-            return HttpResponse("Order of components updated !")
+            
+           #LOG EVENT
+            l = LogEntry(userid=request.user.username,
+                  description=("updated positions of marking components in %s") % activity,
+                  related_object=activity)
+            l.save()        
+                
+            return HttpResponse("Positions of components updated !")
            
     return render_to_response("marking/component_positions.html",
                               {'course' : course, 'activity' : activity,\
@@ -395,9 +440,17 @@ def change_grade_status(request, course_slug, activity_slug, userid):
             new_status = status_form.cleaned_data['status']
             comment = status_form.cleaned_data['comment']           
             if new_status != numeric_grade.flag:
-                numeric_grade.save_status_flag(new_status, comment)
+                numeric_grade.save_status_flag(new_status, comment)                
+                
+                #LOG EVENT#
+                l = LogEntry(userid=request.user.username,
+                      description=("changed the grade status of student %s to %s on %s") % 
+                                  (userid, FLAGS[numeric_grade.flag], activity),
+                      related_object=numeric_grade)
+                l.save()
+                
                 messages.add_message(request, messages.SUCCESS, 
-                   'Grade status for student %s on %s changed!' % (userid, activity.name,))                
+                   'Grade status for student %s on %s changed!' % (userid, activity.name,))                           
             return _redirct_response(request, course_slug, activity_slug)        
     else:
         status_form = GradeStatusForm(initial={'status': numeric_grade.flag}, prefix='grade-status')

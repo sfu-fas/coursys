@@ -279,6 +279,8 @@ def add_numeric_activity(request, course_slug):
                 l.save()
             except NotImplementedError:
                 return NotFoundResponse(request)
+            
+            messages.success(request, 'New activity "%s" added' % a.name)
             return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
         else:
             messages.error(request, "Please correct the error below")
@@ -312,6 +314,8 @@ def add_cal_numeric_activity(request, course_slug):
                                                 group=False)
             except NotImplementedError:
                 return NotFoundResponse(request)
+            
+            messages.success(request, 'New activity "%s" added' % a.name)
             return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
         else:
             messages.error(request, "Please correct the error below")
@@ -494,7 +498,7 @@ def edit_activity(request, course_slug, activity_slug):
                       description=("edited %s") % (activity),
                       related_object=activity)
                 l.save()
-                #print from_page
+                messages.success(request, "Details of %s updated" % activity.name)
                 if from_page == FROMPAGE['course']:
                     return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
                 elif from_page == FROMPAGE['activityinfo']:
@@ -556,8 +560,7 @@ def add_letter_activity(request, course_slug):
                       description=("created a letter-graded activity %s") % (a),
                       related_object=a)
                 l.save()
-            #except Exception:
-            #    raise Http404
+                messages.success(request, 'New activity "%s" added' % a.name)
                 return HttpResponseRedirect(reverse('grades.views.course_info',
                                                 kwargs={'course_slug': course_slug}))
     else:

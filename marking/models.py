@@ -342,13 +342,14 @@ def copyCourseSetup(course_copy_from, course_copy_to):
         
         print "- Activity %s is copied" % new_activity
         
-    
-    print "fixing calculated letter activities ..."
-    for activity in CalLetterActivity.objects.filter(offering = course_copy_to):
-        related_num_act =  activity.numeric_activity
-        related_exam = activity.exam_activity
-        
-        activity.numeric_activity = NumericActivity.objects.get(offering=course_copy_to, name=related_num_act.name)
-        activity.exam_activity = Activity.objects.get(offering=course_copy_to, name=related_exam.name)
-        activity.save()
+        print "please also copy the calculated letter activities once this type is implemented"    
+#    "fixing calculated letter activities ..."
+#    for activity in CalLetterActivity.objects.filter(offering = course_copy_to):
+#        related_num_act =  activity.numeric_activity
+#        related_exam = activity.exam_activity
+#        
+#        activity.numeric_activity = NumericActivity.objects.get(offering=course_copy_to, name=related_num_act.name)
+#        activity.exam_activity = Activity.objects.get(offering=course_copy_to, name=related_exam.name)
+#        activity.save()
+         
     
