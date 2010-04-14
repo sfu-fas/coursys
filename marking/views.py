@@ -207,7 +207,7 @@ def _save_components(formset, activity, user):
                 action = 'deleted'                           
             #LOG EVENT#
             l = LogEntry(userid=user,
-                  description=("%s marking component %s of %s %s") % 
+                  description=("%s marking component %s of %s") % 
                               (action, instance, activity),
                   related_object=instance)  
             l.save()         
