@@ -252,8 +252,11 @@ def generate_numeric_activity_stat(activity):
     stddev = math.sqrt(sum([(float(student_grade) - average) ** 2 for student_grade in student_grade_list]) / student_grade_list_count)
     
     # normalize the grade into 100 based in order to generate the grade range stat
-    normalized_student_grade_list = [ float(student_grade)/float(activity.max_grade)*100
-                                     for student_grade in student_grade_list ]
+    if activity.max_grade == 0:
+        normalized_student_grade_list = [100 for student_grade in student_grade_list]
+    else:
+        normalized_student_grade_list = [ float(student_grade)/float(activity.max_grade)*100
+                                        for student_grade in student_grade_list ]
     grade_range_stat_list = generate_grade_range_stat(normalized_student_grade_list)
     
     return ActivityStat(format_number(average, _DECIMAL_PLACE), format_number(student_grade_list[0], _DECIMAL_PLACE),

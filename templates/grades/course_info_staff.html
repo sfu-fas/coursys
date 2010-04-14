@@ -206,16 +206,16 @@
                     </div>
                 </td>
                 <td>{% if activity.group %}group{% else %}individual{% endif %}</td>
-                {% if activity.max_grade %}
+                {% ifnotequal activity.max_grade None %}
                 <td>{{ activity.max_grade }}</td>
                 {% else %}
                 <td>&mdash;</td>
-                {% endif %}
-		{% if activity.percent %}
+                {% endifnotequal %}
+		{% ifnotequal activity.percent None %}
                 <td>{{ activity.percent }}%</td>
 		{% else %}
                 <td>&mdash;</td>
-                {% endif %}
+                {% endifnotequal %}
                 <td class="{{activity.status|lower}}">{{ activity.get_status_display }}</td>
                 <td>{{ activity.due_date }}</td>
             </tr>
