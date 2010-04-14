@@ -19,7 +19,7 @@ CODE_TYPES = [
     (".rb", "Ruby (.rb)"),
     (".pl", "Perl (.pl)"),
     (".hs", "Haskell (.hs)"),
-    (".pro", "Prolog (.pl)"),
+    (".pl", "Prolog (.pl)"),
     (".php", "PHP (.php)"),
     (".js", "Javascript (.js)"),
 ]
@@ -80,7 +80,7 @@ class Code:
             self.fields['max_size'].widget = TextInput(attrs={'style':'width:5em'})
             self.fields['max_size'].label=mark_safe("Max size"+submission.forms._required_star)
 
-            self.fields['allowed'].widget = SelectMultiple(choices=CODE_TYPES, attrs={'style':'width:20em'})
+            self.fields['allowed'].widget = SelectMultiple(choices=CODE_TYPES, attrs={'style':'width:40em'})
             self.initial['allowed'] = self._initial_allowed
             self.fields['allowed'].label=mark_safe("Allowed Types"+submission.forms._required_star)
 
