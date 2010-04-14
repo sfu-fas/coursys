@@ -132,20 +132,24 @@ def validateIntegrity(request, isStudentCreatedGroup, groupForSemester, course, 
     error_info = ""
     for student in studentList:
         groupMembers = GroupMember.objects.filter(group__courseoffering = course, student = student)
+        skipIterationFlag = False
         #check if the student is already in a group for all group activities of the semester
         for group in set(groupMember.group for groupMember in groupMembers):
             if groupForSemester == True and group.groupForSemester == True:
                 integrityError = True
+                skipIterationFlag = True
                 #if this group is created by student
                 if isStudentCreatedGroup:
-                    error_info = error_info + "You cannot create this group, \
+                    error_info = "You cannot create this group, \
                     because you are already in the group: %s for all activities of the semester" % (group.name)
+                    messages.add_message(request, messages.ERROR, error_info)
                 #if this group is created by instructor 
                 else: 
-                    error_info = error_info + "Student %s %s (%s)can not be assigned to this new group,\
-                    because he/she is already in group %s for all activities of the semester.\n" \
+                    error_info = "Student %s %s (%s)can not be assigned to this new group,\
+                    because he/she is already in group %s for all activities of the semester." \
                                % (student.person.first_name, student.person.last_name, student.person.userid, group.name)
-        if integrityError == True:
+                    messages.add_message(request, messages.ERROR, error_info)
+        if skipIterationFlag == True:
             continue
         #check if the student is in a group that already has one or more than one activities in the activityList
         for activity in activityList:
@@ -154,16 +158,17 @@ def validateIntegrity(request, isStudentCreatedGroup, groupForSemester, course, 
                     integrityError = True
                     #if this group is created by student
                     if isStudentCreatedGroup:
-                        error_info = error_info + "You cannot create this group for %s, \
-                        because you are already in the group: %s for %s.\n"\
+                        error_info = "You cannot create this group for %s, \
+                        because you are already in the group: %s for %s."\
                                    % (activity.name, groupMember.group.name, activity.name)
+                        messages.add_message(request, messages.ERROR, error_info)
                     #if this group is created by instructor 
                     else: 
-                        error_info = error_info + "Student %s %s (%s)can not be assigned to this new group for %s,\
-                        because he/she is already in group %s for %s.\n" \
+                        error_info = "Student %s %s (%s)can not be assigned to this new group for %s,\
+                        because he/she is already in group %s for %s." \
                                    % (student.person.first_name, student.person.last_name, student.person.userid,\
                                     activity.name, groupMember.group.name, activity.name)
-    messages.add_message(request, messages.ERROR, error_info)
+                        messages.add_message(request, messages.ERROR, error_info)
     return not integrityError
 
 @requires_course_by_slug
@@ -398,12 +403,13 @@ def remove_student(request, course_slug, group_slug):
         return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
 
     else:
+        students_unique = set(groupMember.student for groupMember in students)
         studentList = []
-        for student in students:
-            studentForm = StudentForm(prefix = student.student.person.userid)
-            studentList.append({'studentForm': studentForm, 'first_name' : student.student.person.first_name,\
-                                 'last_name' : student.student.person.last_name, 'userid' : student.student.person.userid,\
-                                 'emplid' : student.student.person.emplid})
+        for student in students_unique:
+            studentForm = StudentForm(prefix = student.person.userid)
+            studentList.append({'studentForm': studentForm, 'first_name' : student.person.first_name,\
+                                 'last_name' : student.person.last_name, 'userid' : student.person.userid,\
+                                 'emplid' : student.person.emplid})
 
         return render_to_response('groups/remove_student.html', \
                           {'course':course, 'group' : group, 'studentList':studentList}, \
