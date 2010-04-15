@@ -18,6 +18,7 @@
 {% endblock %}
 
 {% block actions %}
+{% if activityinfo.activity.submitable or activityinfo.activity.no_submit_too_old %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
@@ -26,13 +27,11 @@
 		{% else %}
 		{% if activityinfo.activity.no_submit_too_old %}
         <li><a href="{% url submission.views.show_components course.slug, activityinfo.activity.slug%}">View Submission</a></li>
-		{% else %}
-			{# probably no item in the menu? #}
-			<li><a><i>No valid action.</i></a></li>
 		{% endif %}
 		{% endif %}
     </ul>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block content %}

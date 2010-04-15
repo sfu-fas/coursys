@@ -4,9 +4,7 @@
 
 {% block h1 %} Marking Summary {% endblock %}
 
-{% block marking_subbreadcrumbs %}
-<li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Marking Summary</li>
-{% endblock %}
+{% block marking_subbreadcrumbs %}<li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Marking Summary</li>{% endblock %}
 
 {% block content %}
 <h2>
@@ -103,7 +101,7 @@ Group {{group.name}} marked on {{activity.name}}
 <div class="component_mark">
     <label class="component_title">{{component_mark.activity_component.title}}</label>
     <div class="component_description">
-   		<label>Descritption:</label>{{component_mark.activity_component.description}}
+   		<label>Description:</label>{{component_mark.activity_component.description}}
     </div>
 	<ul>	   
         <li>
