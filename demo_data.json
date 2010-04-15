@@ -133,6 +133,26 @@
  }, 
  {
   "fields": {
+   "campus": "BRNBY", 
+   "class_nbr": 123456, 
+   "component": "LEC", 
+   "crse_id": 12345, 
+   "enrl_cap": 50, 
+   "enrl_tot": 8, 
+   "graded": true, 
+   "number": "199", 
+   "section": "D100", 
+   "semester": 3, 
+   "slug": "1101-cmpt-199-d100", 
+   "subject": "CMPT", 
+   "title": "System Demonstration Course", 
+   "wait_tot": 0
+  }, 
+  "model": "coredata.courseoffering", 
+  "pk": 1
+ },
+ {
+  "fields": {
    "added_reason": "AUTO", 
    "career": "NONS", 
    "credits": 0, 
