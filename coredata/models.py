@@ -16,7 +16,7 @@ class Person(models.Model):
         help_text='SFU Unix userid (i.e. part of SFU email address before the "@").')
     last_name = models.CharField(max_length=32)
     first_name = models.CharField(max_length=32)
-    middle_name = models.CharField(max_length=32, null=True)
+    middle_name = models.CharField(max_length=32, null=True, blank=True)
     pref_first_name = models.CharField(max_length=32)
     
     def __unicode__(self):

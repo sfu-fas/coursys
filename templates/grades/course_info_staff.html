@@ -149,7 +149,7 @@
             <tr>
                 <th scope="row">TA(s)</th>
                 <td>{% for ta in course.tas %}
-                    {{ ta.name }} (<a href="mailto:{{ ta.email }}">{{ ta.email }}</a>){% if not forloop.first %},{% endif %}
+                    {{ ta.name }} (<a href="mailto:{{ ta.email }}">{{ ta.email }}</a>){% if not forloop.last %},{% endif %}
                     {% endfor %}</td>
             </tr>
             <tr>

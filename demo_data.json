@@ -1,0 +1,274 @@
+[
+ {
+  "fields": {
+   "emplid": 200011111, 
+   "first_name": "Gregory", 
+   "last_name": "Baker", 
+   "middle_name": "G", 
+   "pref_first_name": "Gregory", 
+   "userid": "ggbaker"
+  }, 
+  "model": "coredata.person", 
+  "pk": 1
+ }, 
+ {
+  "fields": {
+   "emplid": 301048163, 
+   "first_name": "Kam Chon", 
+   "last_name": "Choi", 
+   "middle_name": "", 
+   "pref_first_name": "Vincent", 
+   "userid": "kcc14"
+  }, 
+  "model": "coredata.person", 
+  "pk": 5
+ }, 
+ {
+  "fields": {
+   "emplid": 309572947, 
+   "first_name": "Jian Feng", 
+   "last_name": "Hu", 
+   "middle_name": "", 
+   "pref_first_name": "Jian Feng", 
+   "userid": "jfhu"
+  }, 
+  "model": "coredata.person", 
+  "pk": 4
+ }, 
+ {
+  "fields": {
+   "emplid": 200022222, 
+   "first_name": "Nathan", 
+   "last_name": "Kubendranathan", 
+   "middle_name": "", 
+   "pref_first_name": "Nathan", 
+   "userid": "tkubendr"
+  }, 
+  "model": "coredata.person", 
+  "pk": 2
+ }, 
+ {
+  "fields": {
+   "emplid": 2000183745, 
+   "first_name": "Patrick", 
+   "last_name": "Lougheed", 
+   "middle_name": "", 
+   "pref_first_name": "Pat", 
+   "userid": "patl"
+  }, 
+  "model": "coredata.person", 
+  "pk": 11
+ }, 
+ {
+  "fields": {
+   "emplid": 301928374, 
+   "first_name": "Li", 
+   "last_name": "Tan", 
+   "middle_name": "", 
+   "pref_first_name": "Li", 
+   "userid": "lta19"
+  }, 
+  "model": "coredata.person", 
+  "pk": 6
+ }, 
+ {
+  "fields": {
+   "emplid": 300219735, 
+   "first_name": "Shan", 
+   "last_name": "Wu", 
+   "middle_name": "", 
+   "pref_first_name": "Shan", 
+   "userid": "shanw"
+  }, 
+  "model": "coredata.person", 
+  "pk": 7
+ }, 
+ {
+  "fields": {
+   "emplid": 357946621, 
+   "first_name": "Yi", 
+   "last_name": "Xiong", 
+   "middle_name": "", 
+   "pref_first_name": "Hill", 
+   "userid": "xiong"
+  }, 
+  "model": "coredata.person", 
+  "pk": 8
+ }, 
+ {
+  "fields": {
+   "emplid": 2000348576, 
+   "first_name": "Jia Hui", 
+   "last_name": "Xu", 
+   "middle_name": "", 
+   "pref_first_name": "Jia Hui", 
+   "userid": "jiahuix"
+  }, 
+  "model": "coredata.person", 
+  "pk": 3
+ }, 
+ {
+  "fields": {
+   "emplid": 301002548, 
+   "first_name": "Youyou", 
+   "last_name": "Yang", 
+   "middle_name": "", 
+   "pref_first_name": "Youyou", 
+   "userid": "youyouy"
+  }, 
+  "model": "coredata.person", 
+  "pk": 10
+ }, 
+ {
+  "fields": {
+   "emplid": 301254933, 
+   "first_name": "Yiran", 
+   "last_name": "Zhou", 
+   "middle_name": "", 
+   "pref_first_name": "Yiran", 
+   "userid": "yza73"
+  }, 
+  "model": "coredata.person", 
+  "pk": 9
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "NONS", 
+   "credits": 0, 
+   "offering": 1, 
+   "person": 1, 
+   "role": "INST"
+  }, 
+  "model": "coredata.member", 
+  "pk": 1
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "credits": 3, 
+   "offering": 1, 
+   "person": 5, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 3
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "credits": 3, 
+   "offering": 1, 
+   "person": 4, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 4
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "NONS", 
+   "credits": 0, 
+   "offering": 1, 
+   "person": 2, 
+   "role": "TA"
+  }, 
+  "model": "coredata.member", 
+  "pk": 2
+ }, 
+ {
+  "fields": {
+   "added_reason": "TA", 
+   "career": "NONS", 
+   "credits": 3, 
+   "offering": 1, 
+   "person": 11, 
+   "role": "TA"
+  }, 
+  "model": "coredata.member", 
+  "pk": 11
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "credits": 3, 
+   "offering": 1, 
+   "person": 6, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 5
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "credits": 3, 
+   "offering": 1, 
+   "person": 7, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 6
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "credits": 3, 
+   "offering": 1, 
+   "person": 8, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 7
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "credits": 3, 
+   "offering": 1, 
+   "person": 3, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 8
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "credits": 3, 
+   "offering": 1, 
+   "person": 10, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 9
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "credits": 3, 
+   "offering": 1, 
+   "person": 9, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 10
+ }, 
+ {
+  "fields": {
+   "person": 1, 
+   "role": "SYSA"
+  }, 
+  "model": "coredata.role", 
+  "pk": 1
+ }
+]
