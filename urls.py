@@ -11,7 +11,7 @@ handler404 = 'courselib.auth.NotFoundResponse'
 
 urlpatterns = patterns('',
     url(r'^login/$', 'django_cas.views.login'),
-    url(r'^logout/$', 'django_cas.views.logout'),
+    url(r'^logout/$', 'django_cas.views.logout', {'next_page': '/'}),
 
     url(r'^log/$', 'log.views.index'),
 
