@@ -182,7 +182,7 @@ def _save_common_problems(formset, activity, user):
                 action = 'deleted'                                          
             #LOG EVENT#
             l = LogEntry(userid=user,
-                  description=("%s common problem %s for %s %s") % 
+                  description=("%s common problem %s for %s") % 
                               (action, instance, activity),
                   related_object=instance)
             l.save()
