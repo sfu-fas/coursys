@@ -186,10 +186,9 @@ def _save_common_problems(formset, activity, user):
                               (action, instance, activity)),
                   related_object=instance)
             l.save()
-            
-
+         
 def _save_components(formset, activity, user):
-    total_mark = 0;
+    total_mark = 0
     for form in formset.forms:
         try:  # title is required, empty title triggers KeyError and don't consider this row
             form.cleaned_data['title']
