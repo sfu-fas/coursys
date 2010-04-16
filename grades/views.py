@@ -315,7 +315,7 @@ def add_cal_numeric_activity(request, course_slug):
             except NotImplementedError:
                 return NotFoundResponse(request)
             
-            messages.success(request, 'New activity "%s" added' % a.name)
+            messages.success(request, 'New activity "%s" added' % form.cleaned_data['name'])
             return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
         else:
             messages.error(request, "Please correct the error below")

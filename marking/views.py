@@ -174,7 +174,7 @@ def _save_common_problems(formset, activity, user):
             form.cleaned_data['title']
         except KeyError:            
             continue
-        else:    
+        else:
             instance = form.save() 
             if not instance.deleted:
                 action = 'saved'
@@ -182,8 +182,8 @@ def _save_common_problems(formset, activity, user):
                 action = 'deleted'                                          
             #LOG EVENT#
             l = LogEntry(userid=user,
-                  description=("%s common problem %s for %s") % 
-                              (action, instance, activity),
+                  description=("%s common problem %s for %s" % 
+                              (action, instance, activity)),
                   related_object=instance)
             l.save()
             
