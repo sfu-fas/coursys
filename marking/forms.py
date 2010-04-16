@@ -139,29 +139,31 @@ class ActivityRenameForm(forms.Form):
     selected = forms.BooleanField(required=False, label='Rename?', initial = True, 
                     widget=forms.CheckboxInput(attrs={'class':'rename_check'}))
 
- 
-class GradeStatusForm(forms.Form):
-    """
-    used when the staffs want to change the status of a grade after it is given
-    """
+
+class GradeStatusForm(forms.ModelForm):
     def __init__(self, activity=None, *args, **kwargs):
-        self.activity = activity
-        super(forms.Form, self).__init__(*args, **kwargs)
+    #    self.activity = activity
+        super(GradeStatusForm, self).__init__(*args, **kwargs)
+        self.fields['value'].label=mark_safe('Grade:' + _required_star)
+        self.fields['flag'].label=mark_safe('Change Status to:' + _required_star)
         
-    status = forms.ChoiceField(required=True, choices=FLAG_CHOICES,
-                               label=mark_safe('Change Status to:' + _required_star), 
-                               help_text='Option "calculated" is only for "calculated activity" and "graded" only for other activities')
-    comment = forms.CharField(required=True, max_length=500,
-                            label=mark_safe('Comment:'+_required_star),
+    comment = forms.CharField(required=False, max_length=500,
+                            label=mark_safe('Comment:'),
                             help_text='Please provide the reasons here',
                             widget=forms.Textarea(attrs={'rows':'6', 'cols':'40'}))
-    def clean_status(self):
-        status = self.cleaned_data['status']
-        isCalActivity = CalNumericActivity.objects.filter(id=self.activity.id).count() != 0
-       
-        if isCalActivity and status == 'GRAD':
-            raise forms.ValidationError(u'Cannot use "graded" for "calculated activity". Please use "calculated".')
-        elif not isCalActivity and status == 'CALC':
-            raise forms.ValidationError(u'Option "calculated" is only for "calculated activity". Please use "graded".')            
+
+    def clean_flag(self):
+        flag = self.cleaned_data['flag']
         
-        return status
+       
+        if flag == 'CALC':
+            isCalActivity = CalNumericActivity.objects.filter(id=self.instance.activity.id).count() != 0
+            if not isCalActivity:
+                raise forms.ValidationError(u'Option "calculated" is only for "calculated activity". Please use "graded".')            
+        
+        return flag
+        
+    class Meta:
+        model = NumericGrade
+        exclude = ('activity', 'member')
+

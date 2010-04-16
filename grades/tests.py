@@ -225,7 +225,7 @@ class GradesTest(TestCase):
         
         # add calculated numeric activity
         url = reverse('grades.views.add_cal_numeric_activity', kwargs={'course_slug': c.slug})
-        #response = basic_page_tests(self, client, url)
+        response = basic_page_tests(self, client, url)
         response = client.post(url, {'name':'Total', 'short_name':'Total', 'status':'URLS', 'group': '1', 'max_grade': 30, 'formula': '[A1]+5'})
         self.assertEquals(response.status_code, 302)
 
@@ -238,5 +238,12 @@ class GradesTest(TestCase):
         self.assertEquals(a.deleted, False)
         self.assertEquals(a.formula, '[A1]+5')
         
-
+        # formula tester
+        url = reverse('grades.views.formula_tester', kwargs={'course_slug': c.slug})
+        response = basic_page_tests(self, client, url)
+        response = client.post(url, {'formula': '[A1]+5', 'a1-status': 'RLS', 'a1-value': '6', 'total-status': 'URLS'})
+        self.assertContains(response, '<div id="formula_result">11.0</div>')
+        validate_content(self, response.content, url)
+        
+        
 

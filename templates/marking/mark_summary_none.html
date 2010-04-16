@@ -1,0 +1,30 @@
+{% extends "marking/base.html" %}
+
+{% block title %}Marking Summary{% endblock %}
+
+{% block h1 %} Marking Summary {% endblock %}
+
+{% block marking_subbreadcrumbs %}<li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Marking Summary</li>{% endblock %}
+
+{% block content %}
+<h2>
+{% if student %}
+Student {{student.userid}} marking details for {{activity.name}} 
+{% else %}
+Group {{group.name}} marking details for {{activity.name}} 
+{% endif %}
+</h2>
+
+<p class="empty">No marking details available for this grade.</p>
+
+{% if is_staff %}
+
+{% if student %}
+<a class="button" href= "{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug userid=student.userid %}">Mark</a>
+{% else %}
+<a class="button" href= "{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}">Mark</a>
+{% endif %}
+
+{% endif %}
+
+{% endblock %}

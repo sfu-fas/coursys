@@ -287,8 +287,8 @@ class NumericGrade(models.Model):
             n = NewsItem(user=self.member.person, author=None, course=self.activity.offering,
                 source_app="grades", title="%s grade available" % (self.activity.name), 
                 content='A "new grade for %s":%s in %s is available.' 
-                  % (self.activity.name, self.get_absolute_url(), self.activity.offering.name()),
-                url=self.get_absolute_url())
+                  % (self.activity.name, self.activity.get_absolute_url(), self.activity.offering.name()),
+                url=self.activity.get_absolute_url())
             n.save()
      
     def save_status_flag(self, new_flag, comment):

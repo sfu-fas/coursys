@@ -428,32 +428,32 @@ def _save_marking_results(activity, activity_mark, final_mark, marker_ident, mar
 def change_grade_status(request, course_slug, activity_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(NumericActivity, offering=course, slug=activity_slug)
-    member = get_object_or_404(Member, offering=course, person__userid = userid, role = 'STUD') 
-    numeric_grade = get_object_or_404(NumericGrade, activity=activity, member=member)
+    member = get_object_or_404(Member, offering=course, person__userid = userid, role = 'STUD')
+    grades = NumericGrade.objects.filter(activity=activity, member=member)
+    if grades:
+        numeric_grade = grades[0]
+    else:
+        numeric_grade = NumericGrade(activity=activity, member=member, flag="GRAD")
     
     error = None
     if request.method == 'POST':
-        status_form = GradeStatusForm(data=request.POST, activity=activity, prefix='grade-status')
+        status_form = GradeStatusForm(data=request.POST, instance=numeric_grade, prefix='grade-status')
         if not status_form.is_valid(): 
             error = 'Error found'
         else:            
-            new_status = status_form.cleaned_data['status']
-            comment = status_form.cleaned_data['comment']           
-            if new_status != numeric_grade.flag:
-                numeric_grade.save_status_flag(new_status, comment)                
+            status_form.save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("changed the grade of student %s to %s (%s) on %s.  Comment: '%s'") % 
+                              (userid, numeric_grade.value, FLAGS[numeric_grade.flag], activity, status_form.cleaned_data['comment']),
+                  related_object=numeric_grade)
+            l.save()
                 
-                #LOG EVENT#
-                l = LogEntry(userid=request.user.username,
-                      description=("changed the grade status of student %s to %s on %s") % 
-                                  (userid, FLAGS[numeric_grade.flag], activity),
-                      related_object=numeric_grade)
-                l.save()
-                
-                messages.add_message(request, messages.SUCCESS, 
-                   'Grade status for student %s on %s changed!' % (userid, activity.name,))                           
+            messages.add_message(request, messages.SUCCESS, 
+               'Grade status for student %s on %s changed!' % (userid, activity.name,))                           
             return _redirct_response(request, course_slug, activity_slug)        
     else:
-        status_form = GradeStatusForm(initial={'status': numeric_grade.flag}, prefix='grade-status')
+        status_form = GradeStatusForm(instance=numeric_grade, prefix='grade-status')
         
     if error:        
         messages.add_message(request, messages.ERROR, error)    
@@ -591,7 +591,10 @@ def mark_summary_student(request, course_slug, activity_slug, userid):
          act_mark = get_activity_mark_for_student(activity, membership)
      
      if act_mark == None:
-        raise Http404('No such ActivityMark for student %s on %s found.' % (student.userid, activity))
+         return render_to_response("marking/mark_summary_none.html", 
+                               {'course':course, 'activity' : activity, 'student' : student, \
+                                'is_staff': is_staff}, \
+                                context_instance = RequestContext(request))
     
      group = None
      if hasattr(act_mark, 'group'):
