@@ -182,3 +182,61 @@ class GradesTest(TestCase):
         self.assertNotContains(response, "Histogram")
         self.assertNotContains(response, "Standard Deviation")
 
+    def test_instructor_workflow(self):
+        """
+        Work through the site as an instructor
+        """
+        s, c = create_offering()
+        userid1 = "0kvm"
+        userid2 = "0aaa0"
+        userid3 = "0aaa1"
+        userid4 = "ggbaker"
+        for u in [userid1, userid2, userid3, userid4]:
+            p = Person.objects.get(userid=u)
+            m = Member(person=p, offering=c, role="STUD", credits=3, career="UGRD", added_reason="UNK")
+            m.save()
+        m.role="INST"
+        m.save()
+        
+        client = Client()
+        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        
+        # course main screen
+        url = reverse('grades.views.course_info', kwargs={'course_slug': c.slug})
+        response = basic_page_tests(self, client, url)
+        url = reverse('grades.views.add_numeric_activity', kwargs={'course_slug': c.slug})
+        self.assertContains(response, 'href="' + url +'"')
+        
+        # add activity
+        import datetime
+        now = datetime.datetime.now()
+        due = now + datetime.timedelta(days=7)
+        response = client.post(url, {'name':'Assignment 1', 'short_name':'A1', 'status':'URLS', 'due_date_0':due.strftime('%Y-%m-%d'), 'due_date_1':due.strftime('%H:%M:%S'), 'percent': '10', 'group': '1', 'max_grade': 25})
+        self.assertEquals(response.status_code, 302)
+        
+        acts = NumericActivity.objects.filter(offering=c)
+        self.assertEquals(len(acts), 1)
+        a = acts[0]
+        self.assertEquals(a.name, "Assignment 1")
+        self.assertEquals(a.slug, "a1")
+        self.assertEquals(a.max_grade, 25)
+        self.assertEquals(a.group, False)
+        self.assertEquals(a.deleted, False)
+        
+        # add calculated numeric activity
+        url = reverse('grades.views.add_cal_numeric_activity', kwargs={'course_slug': c.slug})
+        #response = basic_page_tests(self, client, url)
+        response = client.post(url, {'name':'Total', 'short_name':'Total', 'status':'URLS', 'group': '1', 'max_grade': 30, 'formula': '[A1]+5'})
+        self.assertEquals(response.status_code, 302)
+
+        acts = CalNumericActivity.objects.filter(offering=c)
+        self.assertEquals(len(acts), 1)
+        a = acts[0]
+        self.assertEquals(a.slug, "total")
+        self.assertEquals(a.max_grade, 30)
+        self.assertEquals(a.group, False)
+        self.assertEquals(a.deleted, False)
+        self.assertEquals(a.formula, '[A1]+5')
+        
+
+
