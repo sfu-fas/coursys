@@ -226,7 +226,7 @@ def activity_stat(request, course_slug, activity_slug):
 
     # only display summary stats for courses with at least STUD_NUM_TO_DISP_ACTSTAT students
     student_count = Member.objects.filter(offering=course, role="STUD").count()
-    display_summary = student_count >= STUD_NUM_TO_DISP_ACTSTAT
+    display_summary = True # always display for staff
     
     activity_stat = generate_numeric_activity_stat(activity)
 
