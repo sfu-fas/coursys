@@ -165,8 +165,15 @@ def _activity_info_student(request, course_slug, activity_slug):
     activityinfo = create_StudentActivityInfo_list(course, activity, student=student)[0]
     if display_summary:
         activityinfo.append_activity_stat()
+    else:
+        reason_msg = ''
+        if student_count < STUD_NUM_TO_DISP_ACTSTAT:
+            reason_msg = 'Summary statistics disabled for small classes.'
+        elif activity.status != 'RLS':
+            reason_msg = 'Summary statistics disabled for unrelease activities.'
 
-    context = {'course': course, 'activity': activity, 'activityinfo': activityinfo, 'display_summary': display_summary}
+    context = {'course': course, 'activity': activity, 'activityinfo': activityinfo,
+               'display_summary': display_summary, 'reason_msg': reason_msg}
     return render_to_response('grades/activity_info_student.html', context, context_instance=RequestContext(request))
 
 
