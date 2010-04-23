@@ -115,20 +115,14 @@ class Activity(models.Model):
         Returns True if this activity is "submittable".
         i.e. has any submission components defined and within 30 days after due date
         """
-        if self.no_submit_too_old():
-            return False
-        return self.submissioncomponent_set.filter(deleted=False).count() != 0
+        comp_count = self.submissioncomponent_set.filter(deleted=False).count()
+        return comp_count != 0 and self.no_submit_too_old()
     def no_submit_too_old(self):
         """
         Returns True if this activity is not submittable because it is too old
         """
-        if self.submissioncomponent_set.filter(deleted=False).count() == 0:
-            return False
         now = datetime.now()
-        if (now - self.due_date > timedelta(days=30)):
-            return True
-        return False
-    
+        return now - self.due_date <= timedelta(days=30)    
 
 
 class NumericActivity(Activity):
@@ -252,7 +246,7 @@ def all_activities_filter(**kwargs):
     activities = [] # list of activities
     found = set() # keep track of what has been found so we can exclude less-specific duplicates.
     for ActivityType in ACTIVITY_TYPES:
-        acts = list(ActivityType.objects.filter(deleted=False, **kwargs))
+        acts = list(ActivityType.objects.filter(deleted=False, **kwargs).select_related('offering'))
         activities.extend( (a for a in acts if a.id not in found) )
         found.update( (a.id for a in acts) )
 

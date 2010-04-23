@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <id>{{server_url}}/feed/{{person.userid}}</id>
   <title>Course Updates for {{person.name}}</title>
-  <updated>{{news_list.0.rfc_updated}}</updated>
+  <updated>{{updated}}</updated>
   <link rel="alternate" href="{{server_url}}" title="Course Management System" />
 
 {% for entry in news_list %}

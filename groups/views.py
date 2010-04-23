@@ -26,10 +26,10 @@ from django.db.models import Q
 
 @login_required
 def groupmanage(request, course_slug):
-    if is_course_student_by_slug(request.user, course_slug):
-        return _groupmanage_student(request, course_slug)
-    elif is_course_staff_by_slug(request.user, course_slug):
+    if is_course_staff_by_slug(request.user, course_slug):
         return _groupmanage_staff(request, course_slug)
+    elif is_course_student_by_slug(request.user, course_slug):
+        return _groupmanage_student(request, course_slug)
     else:
         return HttpResponseForbidden()
 
@@ -124,9 +124,9 @@ def create(request,course_slug):
     else:
         return HttpResponseForbidden()
     
-def validateIntegrity(request, isStudentCreatedGroup, groupForSemester, course, studentList, activityList):
+def _validateIntegrity(request, isStudentCreatedGroup, groupForSemester, course, studentList, activityList):
     """
-    #If one student is in a group for an activity, he/she cannot be in another group for the same activity.
+    If one student is in a group for an activity, he/she cannot be in another group for the same activity.
     """
     integrityError = False
     error_info = ""
@@ -227,7 +227,7 @@ def submit(request,course_slug):
                 if studentForm.is_valid() and studentForm.cleaned_data['selected'] == True:
                     studentList.append(student)
         #Check if students has already in a group
-        if validateIntegrity(request,isStudentCreatedGroup, groupForSemester, course, studentList, selected_act) == False:
+        if _validateIntegrity(request,isStudentCreatedGroup, groupForSemester, course, studentList, selected_act) == False:
             return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
         #No selected members,group creating will fail.        
         if not studentList:

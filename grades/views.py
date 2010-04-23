@@ -35,13 +35,10 @@ ACTIVITY_TYPE = {'NG': 'Numeric Graded', 'LG': 'Letter Graded',
 
 @login_required
 def course_info(request, course_slug):
-    #if course staff
-    if is_course_staff_by_slug(request.user, course_slug):
-        return _course_info_staff(request, course_slug)
-    #else course member
-    elif is_course_student_by_slug(request.user, course_slug):
+    if is_course_student_by_slug(request.user, course_slug):
         return _course_info_student(request, course_slug)
-    #else not found, return 403
+    elif is_course_staff_by_slug(request.user, course_slug):
+        return _course_info_staff(request, course_slug)
     else:
         return ForbiddenResponse(request)
         
@@ -120,10 +117,10 @@ def _course_info_student(request, course_slug):
 
 @login_required
 def activity_info(request, course_slug, activity_slug):
-    if is_course_staff_by_slug(request.user, course_slug):
-        return _activity_info_staff(request, course_slug, activity_slug)
-    elif is_course_student_by_slug(request.user, course_slug):
+    if is_course_student_by_slug(request.user, course_slug):
         return _activity_info_student(request, course_slug, activity_slug)
+    elif is_course_staff_by_slug(request.user, course_slug):
+        return _activity_info_staff(request, course_slug, activity_slug)
     else:
         return ForbiddenResponse(request)
 

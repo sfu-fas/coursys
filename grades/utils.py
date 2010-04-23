@@ -201,7 +201,8 @@ def create_StudentActivityInfo_list(course, activity, student=None):
     
     if isinstance(activity, NumericActivity):
         # select_ralated field for fast template rendering
-        numeric_grade_list = NumericGrade.objects.filter(activity=activity).select_related('member', 'member__person')
+        #numeric_grade_list = NumericGrade.objects.filter(activity=activity).select_related('member', 'member__person')
+        numeric_grade_list = activity.numericgrade_set.all().select_related('member', 'member__person', 'activity')
         for student in student_list:
             student_grade_status = None
             for numeric_grade in numeric_grade_list:
