@@ -163,10 +163,11 @@ def _activity_info_student(request, course_slug, activity_slug):
     
     student = Member.objects.get(offering=course, person__userid=request.user.username, role='STUD')
     activityinfo = create_StudentActivityInfo_list(course, activity, student=student)[0]
+    
+    reason_msg = ''
     if display_summary:
         activityinfo.append_activity_stat()
     else:
-        reason_msg = ''
         if student_count < STUD_NUM_TO_DISP_ACTSTAT:
             reason_msg = 'Summary statistics disabled for small classes.'
         elif activity.status != 'RLS':
