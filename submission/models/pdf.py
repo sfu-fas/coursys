@@ -30,8 +30,8 @@ class SubmittedPDF(SubmittedComponent):
         response = HttpResponse(mimetype="application/pdf")
         self.sendfile(self.pdf, response)
         return response
-    def add_to_zip(self, zipfile):
-        filename = self.file_filename(self.pdf)
+    def add_to_zip(self, zipfile, prefix=None):
+        filename = self.file_filename(self.pdf, prefix)
         zipfile.write(self.pdf.path, filename)
 
 class PDF:

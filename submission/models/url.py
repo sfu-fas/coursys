@@ -26,7 +26,7 @@ class SubmittedURL(SubmittedComponent):
         response.write("""<title>%s</title><a href="%s">%s</a>""" % (escape(self.component.title), escape(self.url), escape(self.url)))
         return response
 
-    def add_to_zip(self, zipfile):
+    def add_to_zip(self, zipfile, prefix=None):
         content = '<html><head><META HTTP-EQUIV="Refresh" CONTENT="0; URL='
         if str(self.url).find("://") == -1:
             content += "http://"
@@ -34,8 +34,11 @@ class SubmittedURL(SubmittedComponent):
         content += '"></head><body>' \
             + 'If redirecting doesn\' work, click the link <a href="' \
             + escape(self.url) + '">' + escape(self.url) + '</a>' \
-            + '</body></html> '
-        zipfile.writestr(self.component.slug+".html", content)
+            + '</body></html>'
+        fn = self.component.slug+".html"
+        if prefix:
+            fn = os.path.join(prefix, fn)
+        zipfile.writestr(fn, content)
 
 # class containing all pieces for this submission type
 class URL:

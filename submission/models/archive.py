@@ -45,8 +45,8 @@ class SubmittedArchive(SubmittedComponent):
         self.sendfile(self.archive, response)
         return response
 
-    def add_to_zip(self, zipfile):
-        filename = self.file_filename(self.archive)
+    def add_to_zip(self, zipfile, prefix=None):
+        filename = self.file_filename(self.archive, prefix)
         zipfile.write(self.archive.path, filename)
 
 class Archive:

@@ -285,13 +285,39 @@ def get_submit_time_and_owner(activity, pair_list):
         late = submit_time - activity.due_date
     return late, submit_time, owner
 
+def generate_activity_zip(activity, submissions):
+    """
+    Return a zip file with all (current) submissions for the activity
+    """
+    handle, filename = tempfile.mkstemp('.zip')
+    os.close(handle)
+    z = zipfile.ZipFile(filename, 'w')
+    
+    for slug in submissions:
+        sub = submissions[slug]
+        components = get_submission_components(sub, activity)
+        for component, sub in components:
+            if sub:
+                sub.add_to_zip(z, prefix=slug)
+    
+    z.close()
+
+    file = open(filename, 'rb')
+    response = HttpResponse(FileWrapper(file), mimetype='application/zip')
+    response['Content-Disposition'] = 'attachment; filename=%s'% activity.slug + ".zip"
+    try:
+        os.remove(filename)
+    except OSError:
+        print "Warning: error removing temporary file."
+    return response
+
 def generate_zip_file(submission, submitted_components):
     """
     return a zip file containing latest submission from userid for activity
     """
     handle, filename = tempfile.mkstemp('.zip')
     os.close(handle)
-    z = zipfile.ZipFile(filename, 'w', zipfile.ZIP_STORED)
+    z = zipfile.ZipFile(filename, 'w')
 
     for component, sub in submitted_components:
         if sub:

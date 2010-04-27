@@ -12,11 +12,11 @@
     <h2 class="heading">Actions</h2>
     <ul>
         {% if cansubmit %}
-        <li><a href="{% url submission.views.add_submission course_slug=course.slug, activity_slug=activity.slug %}" class="button">New Submission</a></li>
+        <li><a href="{% url submission.views.add_submission course_slug=course.slug, activity_slug=activity.slug %}">New Submission</a></li>
         {% endif %}
         {% if submission %}
-        <li><a href="{% url submission.views.show_components_submission_history course_slug=course.slug activity_slug=activity.slug %}" class="button">View History</a></li>
-        <li><a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=userid %}" class="button" target="_blank">Download All</a></li>
+        <li><a href="{% url submission.views.show_components_submission_history course_slug=course.slug activity_slug=activity.slug %}">View History</a></li>
+        <li><a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=userid %}">Download</a></li>
         {% endif %}
     </ul>
 </div>

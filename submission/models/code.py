@@ -50,8 +50,8 @@ class SubmittedCode(SubmittedComponent):
         response = HttpResponse(mimetype="text/plain")
         self.sendfile(self.code, response)
         return response
-    def add_to_zip(self, zipfile):
-        filename = self.file_filename(self.code)
+    def add_to_zip(self, zipfile, prefix=None):
+        filename = self.file_filename(self.code, prefix)
         zipfile.write(self.code.path, filename)
 
 FIELD_TEMPLATE = Template('''<li>

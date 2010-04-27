@@ -195,10 +195,13 @@ class SubmittedComponent(models.Model):
         fh = open(upfile.path, "r")
         for data in fh:
             response.write(data)
-    def file_filename(self, upfile):
+    def file_filename(self, upfile, prefix=None):
         """
         Come up with a filename for the uploaded file in a ZIP archive.
         """
         filename = os.path.split(upfile.name)[1]
-        return self.component.slug + "_" + filename
+        fn = self.component.slug + "_" + filename
+        if prefix:
+            fn = os.path.join(prefix, fn)
+        return fn
 

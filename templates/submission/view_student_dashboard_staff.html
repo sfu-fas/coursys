@@ -25,13 +25,13 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-		<li><a href ="{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug userid=userid%}" class="button" >Mark Student</a></li>
+	    <li><a href="{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug userid=userid%}">Mark Student</a></li>
 	    {% if group %}
-	    <li><a href="{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}" class="button">Mark Group</a></li>
+	    <li><a href="{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}">Mark Group</a></li>
 	    {% endif %}
 	    {% if submission %}
-	        <li><a href ="{% url submission.views.show_components_submission_history course_slug=course.slug activity_slug=activity.slug %}?userid={{userid}}" class="button">View History</a></li>
-	        <li><a href ="{% url submission.views.download_file course.slug, activity.slug, userid %}" class="button" target="_blank">Download All</a></li>
+	        <li><a href="{% url submission.views.show_components_submission_history course_slug=course.slug activity_slug=activity.slug %}?userid={{userid}}">View History</a></li>
+	        <li><a href="{% url submission.views.download_file course.slug, activity.slug, userid %}">Download</a></li>
 	    {% endif %}
     </ul>
 </div>

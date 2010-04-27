@@ -171,7 +171,7 @@ def _activity_info_student(request, course_slug, activity_slug):
         if student_count < STUD_NUM_TO_DISP_ACTSTAT:
             reason_msg = 'Summary statistics disabled for small classes.'
         elif activity.status != 'RLS':
-            reason_msg = 'Summary statistics disabled for unrelease activities.'
+            reason_msg = 'Summary statistics disabled for unreleased activities.'
 
     context = {'course': course, 'activity': activity, 'activityinfo': activityinfo,
                'display_summary': display_summary, 'reason_msg': reason_msg}
