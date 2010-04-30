@@ -9,6 +9,8 @@ from django.test.client import Client
 from settings import CAS_SERVER_URL
 from courselib.testing import *
 
+# TODO: test activity modifiers ([A1.max], [A1.percent], [A1.final])
+
 test_formulas = [ # expression, correct-result pairs
         ("-[A1] + +2", -8),
         ("9 + 2 - 3", 8),

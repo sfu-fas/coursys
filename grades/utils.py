@@ -137,10 +137,12 @@ class FakeGradeSet(object):
      def filter(self, **kwargs):
         return [self.grade]
 class FakeActivity(object):
-     def __init__(self, name, short_name, status, value):
+     def __init__(self, name, short_name, status, max_grade, percent, value):
         self.name = name
         self.short_name = short_name
         self.status = status
+        self.max_grade = max_grade
+        self.percent = percent
         grade = FakeGrade(value)
         self.numericgrade_set = FakeGradeSet(grade)
 

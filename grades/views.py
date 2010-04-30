@@ -348,7 +348,9 @@ def formula_tester(request, course_slug):
                 if not value:
                     value = 0
                 faked_activities.append(FakeActivity(numeric_activity.name, numeric_activity.short_name,
-                                                     activity_form_entry.cleaned_data['status'], value))
+                                                     activity_form_entry.cleaned_data['status'],
+                                                     numeric_activity.max_grade, numeric_activity.percent,
+                                                     value))
             activity_entries.append(FormulaTesterActivityEntry(numeric_activity, activity_form_entry))
             
 

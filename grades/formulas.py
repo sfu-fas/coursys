@@ -32,7 +32,21 @@ def create_parser():
     from external.pyparsing import Literal, Word, Optional, CaselessLiteral, Group, StringStart, StringEnd, Suppress, ParseResults, CharsNotIn, Forward, nums, delimitedList, operatorPrecedence, opAssoc
 
     def column_parse(toks):
-	return ("col", set([toks[0][0]]), toks[0][0])
+        """
+        Parse a column name and strip off any ".foo" modifier.
+        """
+        col = toks[0][0]
+        if col.endswith(".max"):
+            col = col[:-4]
+            return ("col", set([col]), col, 'max')
+        elif col.endswith(".percent"):
+            col = col[:-8]
+            return ("col", set([col]), col, 'per')
+        elif col.endswith(".final"):
+            col = col[:-6]
+            return ("col", set([col]), col, 'fin')
+        else:
+	    return ("col", set([col]), col, 'val')
 
     def real_parse(toks):
 	return ("num", set(), float(''.join(toks)))
@@ -107,6 +121,22 @@ def activities_dictionary(activities):
             ((a.short_name,a) for a in activities)
             ))
 
+def visible_grade(act, member):
+    """
+    Return student-visible grade on this activity
+    """
+    if act.status != 'RLS':
+        return 0.0
+    grades = act.numericgrade_set.filter(member=member)
+    if len(grades)==0:
+        return 0.0
+    grade = grades[0]
+    if grade.flag == 'NOGR':
+        return 0.0
+    else:
+        return float(grade.value)
+    
+
 def eval_parse(tree, act_dict, member):
     """
     Evaluate an expression given its parse tree and dictionary of column values.
@@ -122,16 +152,22 @@ def eval_parse(tree, act_dict, member):
         return -eval_parse(tree[3], act_dict, member)
     elif t == 'col':
         act = act_dict[tree[2]]
-        if act.status != 'RLS':
-            return 0.0
-        grades = act.numericgrade_set.filter(member=member)
-        if len(grades)==0:
-            return 0.0
-        grade = grades[0]
-        if grade.flag == 'NOGR':
-            return 0.0
-        else:
-            return float(grade.value)
+        part = tree[3]
+        if part=="val":
+            return visible_grade(act, member)
+        elif part=="max":
+            return float(act.max_grade)
+        elif part=="per":
+            if act.percent:
+                return float(act.percent)
+            else:
+                return 0.0
+        elif part=="fin":
+            if act.percent:
+                grade = visible_grade(act, member)
+                return grade/float(act.max_grade) * float(act.percent)
+            else:
+                return 0.0
 
     elif t == 'num':
         return tree[2]
