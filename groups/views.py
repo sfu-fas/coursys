@@ -337,8 +337,11 @@ def invite(request, course_slug, group_slug):
         #student_receiver_form.activate_addform_validation(course_slug,group_slug)
         if student_receiver_form.is_valid():
             name = student_receiver_form.cleaned_data['name']
-            newPerson = get_object_or_404(Person, userid=name)
-            member = get_object_or_404(Member, person = newPerson, offering = course, role="STUD")
+            members = Member.objects.filter(person__userid = name, offering = course, role="STUD")
+            if not members:
+                messages.add_message(request, messages.ERROR, 'Could not find userid "%s".' % (name))
+                return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+            member = members[0]
             
             # find out if this person is already in a group
             gms = group.groupmember_set.all()
@@ -346,11 +349,12 @@ def invite(request, course_slug, group_slug):
             existing_memb = GroupMember.objects.filter(student=member, activity__in=all_act)
             
             if GroupMember.objects.filter(student=member, group=group):
-                error_info="%s is already in this group" % (newPerson.userid)
+                messages.add_message(request, messages.ERROR, "%s is already in this group" % (member.person.userid))
             elif existing_memb:
-                error_info="%s is already in a group for %s" % (newPerson.userid, ", ".join(m.activity.name for m in existing_memb))
+                error="%s is already in a group for %s" % (member.person.userid, ", ".join(m.activity.name for m in existing_memb))
+                messages.add_message(request, messages.ERROR, error)
             else:
-                #member = Member.objects.get(person = newPerson, offering = course)
+                #member = Member.objects.get(person = member.person, offering = course)
                 for invitorMembership in GroupMember.objects.filter(group = group, student = invitor):
                     newGroupMember = GroupMember(group = group, student = member, \
                                           activity = invitorMembership.activity, confirmed = False)
@@ -368,11 +372,8 @@ def invite(request, course_slug, group_slug):
                      url=reverse('groups.views.groupmanage', kwargs={'course_slug':course.slug})
                     )
                 n.save()
+                messages.add_message(request, messages.SUCCESS, 'Your invitation to %s has been sent out.' % (member.person.name()))
 
-            if error_info:
-                messages.add_message(request, messages.ERROR, error_info)
-            else:
-                messages.add_message(request, messages.SUCCESS, 'Your invitation to "%s" has been sent out.' % (newPerson))
             return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
         else:
             messages.add_message(request, messages.ERROR, "Invalid userid.")
