@@ -51,7 +51,7 @@ class NewsItem(models.Model):
         key = "news-content-" + hashlib.md5(self.content).hexdigest()
         val = cache.get(key)
         if val:
-            return val
+            return mark_safe(val)
         
         markup = mark_safe(Textile.textile(str(self.content)))
 
