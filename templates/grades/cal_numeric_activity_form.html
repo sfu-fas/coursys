@@ -19,6 +19,7 @@ $(document).ready(function() {
                                 changeMonth: true, changeYear: true,
                                 dateFormat: 'yy-mm-dd', showOn: 'button'});
     $('div.collapsible').collapsible();
+    $('div#helphandle').collapsible();
     document.getElementById('testerlink').setAttribute('target', '_blank');
 });
 </script>
@@ -116,4 +117,12 @@ $(document).ready(function() {
         </fieldset>
     </form>
 </div>
+
+<h2 id="help">Formula Help</h2>
+
+<div id="helphandle">the formula help</div>
+<div id="formulahelp">
+{% include "grades/formula-help.html" %}
+</div>
+
 {% endblock %}

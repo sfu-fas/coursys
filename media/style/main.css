@@ -194,7 +194,20 @@ td[scope] {
 th.sorting_asc, th.sorting_desc {
   border-width: 2px;
 }
- 
+
+#formulahelp dt {
+  font-weight: bold;
+  margin-top: 1em;
+}
+#formulahelp dd p {
+  margin-top: 0.5em;
+  padding-top: 0;
+}
+#formulahelp dd ul {
+  margin-top: 0.5em;
+  padding-top: 0;
+}
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
   DataTable styles
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

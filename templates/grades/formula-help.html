@@ -1,7 +1,7 @@
 <p>
-In the examples, assume a student who received 12 marks on &ldquo;Assignment 1&rdquo; (which has short name &ldquo;A1&rdquo;),
- 18 on &ldquo;Assignment 2&rdquo; (short name &ldquo;A2&rdquo;),
-and 16 on &ldquo;Assignment 3&rdquo; (&ldquo;A3&rdquo;).
+In the examples, assume a student who received 12/15 on &ldquo;Assignment 1&rdquo; (which has short name &ldquo;A1&rdquo; and is worth 20% of the final course mark),
+ 18/20 on &ldquo;Assignment 2&rdquo; (short name &ldquo;A2&rdquo;),
+and 16/20 on &ldquo;Assignment 3&rdquo; (&ldquo;A3&rdquo;).
 </p>
 
 <h3 id="using-formulas">Using Formulas</h3>
@@ -26,6 +26,18 @@ and 16 on &ldquo;Assignment 3&rdquo; (&ldquo;A3&rdquo;).
   <li><code>([A1] + [A2])/3*20</code> &rarr; 200</li>
   <li><code>[A1]/[Assignment 2]*3</code> &rarr; 2</li>
   <li><code>-[A1] + [Assignment 3]</code> &rarr; 4</li>
+  </ul>
+  </dd>
+<dt>Activity Properties</dt>
+  <dd>
+  <p>You can also refer to an activity's maximum grade or percentage by appending <code>.max</code> or <code>.percent</code>.  The <code>.final</code> property of an activity is that activity's contribution to the final percentage grade.  That is for an activity A, <code>[A.final]</code> is a shorthand for <code>[A]/[A.max]*[A.percent]</code>.
+  </p>
+  <ul class="formula-eg">
+  <li><code>[Assignment 1.max]</code> &rarr; 15</li>
+  <li><code>[Assignment 2]/[Assignment 2.max]</code> &rarr; 0.9</li>
+  <li><code>[Assignment 1.percent]</code> &rarr; 20</li>
+  <li><code>[Assignment 1]/[Assignment 1.max]*[Assignment 1.percent]</code> &rarr; 16</li>
+  <li><code>[Assignment 1.final]</code> &rarr; 16</li>
   </ul>
   </dd>
 <dt>SUM Function</dt>
@@ -65,10 +77,7 @@ and 16 on &ldquo;Assignment 3&rdquo; (&ldquo;A3&rdquo;).
   <p>
   The <code>MIN</code> function can be used to find the smallest of a series of values.
   </p>
-  <ul class="formula-eg">
-  <li><code>MAX(1,2,5,4,3)</code> &rarr; 1</li>
-  <li><code>MAX([A1],[A2],[A3])</code> &rarr; 12</li>
-  </ul>
+
   </dd>
 <dt>BEST Function</dt>
   <dd>
@@ -85,4 +94,7 @@ and 16 on &ldquo;Assignment 3&rdquo; (&ldquo;A3&rdquo;).
 
 <h3 id="common-formulas">Common Formula Patterns</h3>
 
-<p>To be added.</p>
+<p>The most common formula is simply a sum of percentage contributions of each activity to the student's final mark:</p>
+<ul class="formula-eg">
+<li><code>[A1.final] + [A2.final] + [A3.final] + [MT.final] + [Exam.final]</code></li>
+</ul>
