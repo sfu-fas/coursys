@@ -86,14 +86,18 @@ def _course_info_staff(request, course_slug):
 
     # Todo: is the activity type necessary?
     activities_info = []
+    total_percent = 0
     for activity in activities:
+        if activity.percent:
+            total_percent += activity.percent
+
         if isinstance(activity, NumericActivity):
             activities_info.append({'activity':activity, 'type':ACTIVITY_TYPE['NG']})            
         elif isinstance(activity, LetterActivity):
             activities_info.append({'activity':activity, 'type':ACTIVITY_TYPE['LG']})
     
     context = {'course': course, 'activities_info': activities_info, 'from_page': FROMPAGE['course'],
-               'order_type': ORDER_TYPE, 'any_group': any_group}
+               'order_type': ORDER_TYPE, 'any_group': any_group, 'total_percent': total_percent}
     return render_to_response("grades/course_info_staff.html", context,
                               context_instance=RequestContext(request))
 
