@@ -33,6 +33,7 @@ function append_problem(n, content)
 	     <fieldset>
 	     <legend><a href="{% url marking.views.manage_activity_components course_slug=course.slug activity_slug=activity.slug %}" title="Edit components">{{entry.component.title}}</a></legend> 
 		     <ul class = "component">
+		        <li>{{entry.component.description}}</li>
 		        <li class="component_mark"> 
 		        	Mark {{entry.form.value}} Out of {{entry.component.max_mark}}
 		        	{% if entry.form.value.errors %}		        	
