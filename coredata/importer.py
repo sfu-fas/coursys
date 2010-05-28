@@ -1,4 +1,4 @@
-import sys, os, datetime, string
+import sys, os, datetime, string, time
 import MySQLdb
 sys.path.append(".")
 sys.path.append("..")
@@ -16,13 +16,13 @@ sysadmin = ["ggbaker"]
 import_host = '127.0.0.1'      
 import_user = 'ggbaker'
 import_name = 'ggbaker_crse_mgmt'
-import_port = 3309
+import_port = 4000
 timezone = "America/Vancouver" # timezone of imported class meeting times
 
 ta_host = '127.0.0.1'      
 ta_user = 'ta_data_import'
 ta_name = 'ta_data_drop'
-ta_port = 3309
+ta_port = 4000
 
 #TODO: add sanity check for no DB info
 
@@ -365,6 +365,7 @@ def import_people(db, members):
     # find all relevant people
     # Importing everybody in one query seems to bog things down: query is too large?  Import in managable segments.
     for c in string.ascii_lowercase:
+        time.sleep(1)
         print " " + c
         db.execute('SELECT username, emplid, last_name, first_name, middle_name, pref_first_name FROM v_ps_personal_data WHERE username LIKE "' + c + '%"')
         for userid, emplid, last_name, first_name, middle_name, pref_first_name in db:
@@ -390,22 +391,27 @@ def main():
     
     # People to fetch: manually-added members of courses (and everybody else we find later)
     members = [(m.person.emplid, m.offering) for m in Member.objects.exclude(added_reason="AUTO")]
+    time.sleep(1)
     
     
     print "importing course offerings"
     import_offerings(db)
+    time.sleep(1)
     #print "importing meeting times"
     #import_meeting_times(db)
     print "importing instructors"
     members += import_instructors(db)
+    time.sleep(1)
     print "importing students"
     members += import_students(db)
+    time.sleep(1)
     print "importing TAs"
-    members += import_tas(tapasswd)    
-    
+    members += import_tas(tapasswd)
+    time.sleep(1)  
     print "importing personal info"
     import_people(db, members)
     
+    time.sleep(1)
     print "giving sysadmin permissions"
     for userid in sysadmin:
         p = Person.objects.get(userid=userid)
