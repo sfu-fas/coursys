@@ -26,7 +26,7 @@ function append_problem(n, content)
         <h2> Mark for Group: {{group}} </h2> 
      {% else %}
        {% if student %}           
-        	<h2> Mark for Student: {{student.userid}} </h2>       
+        	<h2> Mark for Student: {{student.name}} ({{student.userid}}) </h2>       
        {% endif %}
      {% endif %}
 	 {% for entry in mark_components %}  	     

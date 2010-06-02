@@ -284,7 +284,7 @@ def manage_common_problems(request, course_slug, activity_slug):
             # save the formset  
             _save_common_problems(formset, activity, request.user.username)
             messages.add_message(request, messages.SUCCESS, 'Common problems Saved')
-            return _redirct_response(request, course_slug, activity_slug)              
+            return HttpResponseRedirect(reverse('marking.views.manage_common_problems', kwargs={'course_slug': activity.offering.slug, 'activity_slug': activity.slug}))
     else: # for GET request     
         formset = CommonProblemFormSet(components, queryset = qset) 
     
