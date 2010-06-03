@@ -298,7 +298,12 @@ def generate_activity_zip(activity, submissions):
         components = get_submission_components(sub, activity)
         for component, sub in components:
             if sub:
-                sub.add_to_zip(z, prefix=slug)
+                try:
+                    sub.add_to_zip(z, prefix=slug)
+                except OSError:
+                    # ignore missing file after failed upload.
+                    pass
+                    
     
     z.close()
 
