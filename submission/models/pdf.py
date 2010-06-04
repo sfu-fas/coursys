@@ -17,7 +17,8 @@ class PDFComponent(SubmissionComponent):
 
 class SubmittedPDF(SubmittedComponent):
     component = models.ForeignKey(PDFComponent, null=False)
-    pdf = models.FileField(upload_to=submission_upload_path, blank=False, storage=SubmissionSystemStorage)
+    pdf = models.FileField(upload_to=submission_upload_path, blank=False,  max_length=500, 
+          storage=SubmissionSystemStorage)
         
     class Meta:
         app_label = 'submission'

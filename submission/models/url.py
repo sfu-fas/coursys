@@ -13,7 +13,7 @@ class URLComponent(SubmissionComponent):
 
 class SubmittedURL(SubmittedComponent):
     component = models.ForeignKey(URLComponent, null=False)
-    url = models.URLField(verify_exists=True, null=False, blank=False) # TODO: make missing URL warning only (in case of authentication, etc)
+    url = models.URLField(verify_exists=False, null=False, blank=False, max_length=500) # TODO: make missing URL warning only (in case of authentication, etc)
     class Meta:
         app_label = 'submission'
     def get_url(self):

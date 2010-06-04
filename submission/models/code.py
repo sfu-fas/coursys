@@ -37,7 +37,7 @@ class CodeComponent(SubmissionComponent):
 
 class SubmittedCode(SubmittedComponent):
     component = models.ForeignKey(CodeComponent, null=False)
-    code = models.FileField(upload_to=submission_upload_path, blank=False, storage=SubmissionSystemStorage)
+    code = models.FileField(upload_to=submission_upload_path, blank=False, max_length=500, storage=SubmissionSystemStorage)
 
     class Meta:
         app_label = 'submission'
