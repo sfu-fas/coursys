@@ -25,7 +25,7 @@ class ArchiveComponent(SubmissionComponent):
 
 class SubmittedArchive(SubmittedComponent):
     component = models.ForeignKey(ArchiveComponent, null=False)
-    archive = models.FileField(upload_to=submission_upload_path, blank=False, storage=SubmissionSystemStorage)
+    archive = models.FileField(upload_to=submission_upload_path, blank=False, max_length=500, storage=SubmissionSystemStorage)
         
     class Meta:
         app_label = 'submission'
