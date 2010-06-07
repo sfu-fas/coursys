@@ -69,7 +69,7 @@ class ActivityMark(models.Model):
     mark = models.DecimalField(max_digits=5, decimal_places=2)     
     
     def __unicode__(self):
-        return "Supper object containing additional info for marking"
+        return "Super object containing additional info for marking"
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
     class Meta:

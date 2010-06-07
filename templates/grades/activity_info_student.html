@@ -50,6 +50,9 @@
                 <th class="ui-state-default">Percentage</th>
                 <td>{% if activity.percent %}{{activity.percent}}%{% else %}unknown{% endif %}</td>
             </tr>
+            
+            {% ifequal activity.status "RLS" %}
+            
             <tr>
             	<th class="ui-state-default">Grade Status</th>
                 <td>{{activityinfo.grade_status}}</td>
@@ -67,6 +70,21 @@
 		{% endif %}
                 </td>
             </tr>
+
+            {% else %}
+            
+            <tr>
+            	<th class="ui-state-default">Grade Status</th>
+                <td>no grade</td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Your Grade</th>
+                <td>
+		{{ activityinfo.display_grade_with_percentage_student }}
+                </td>
+            </tr>
+            
+            {% endifequal %}
         </tbody>
     </table>
 </div>
