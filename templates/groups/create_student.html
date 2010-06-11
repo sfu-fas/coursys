@@ -1,18 +1,14 @@
 {% extends "base.html" %}
 {% load course_display %}
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url groups.views.groupmanage course_slug=course.slug %}">groups</a></li><li>&gt; Create group</li>{% endblock %}
+{% block title %}Create Group{% endblock %}
+{% block h1 %}Create Group{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url groups.views.groupmanage course_slug=course.slug %}">Groups</a></li><li>&gt; Create group</li>{% endblock %}
 {% block content %}
-	<h1>Create Group</h1>
 	{% if user %}
 		<form action="{% url groups.views.submit course_slug=course.slug  %}" method="post">
 		        <div class="group_name">
 				<label for="name">Group Name </label>
 				<input type="text" name="GroupName" id="name" />
-			</div>
-			<div class = "group_for_semester">
-			  <h2>Group is for whole semester?</h2>
-			  {{ groupForSemester.selected }}
-			  <label for="id_selected">This group will stay together for any newly-created activities in this course</label>
 			</div>
 			<div class = "datatable_container"> 
 			<h2>Activities for this Group</h2>
@@ -37,7 +33,7 @@
 			   </tbody>
 			 </table>
 		      </div>
-	              <div><input class = 'submit' type="submit" value="create"/></div>
+	              <div><input class='submit' type="submit" value="Create"/></div>
                 </form>
         {% else %}
 		<p> Student does not exist </p>

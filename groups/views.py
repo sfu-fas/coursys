@@ -186,7 +186,7 @@ def submit(request,course_slug):
         return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
     #Check if the group name is empty, these two checks may need to be moved to forms later.
     if name == "":
-        error_info = "Group name cannot be empty, pleaes input a group name"
+        error_info = "Group name cannot be empty: please input a group name."
         messages.add_message(request, messages.ERROR, error_info)
         return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
     
@@ -208,9 +208,10 @@ def submit(request,course_slug):
             messages.add_message(request, messages.ERROR, "Group not created: no activities selected.")
             return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
         
-        groupForSemesterForm = GroupForSemesterForm(request.POST)
-        if groupForSemesterForm.is_valid():
-            groupForSemester = groupForSemesterForm.cleaned_data['selected']
+        #groupForSemesterForm = GroupForSemesterForm(request.POST)
+        #if groupForSemesterForm.is_valid():
+        #    groupForSemester = groupForSemesterForm.cleaned_data['selected']
+        groupForSemester = False
         
         #validate database integrity before saving anything. 
         #If one student is in a group for an activity, he/she cannot be in another group for the same activity.

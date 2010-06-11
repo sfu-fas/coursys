@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% load course_display %}
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url groups.views.groupmanage course_slug=course.slug %}">groups</a></li><li>&gt; Create group</li>{% endblock %}
+{% block title %}Create Group{% endblock %}
+{% block h1 %}Create Group{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url groups.views.groupmanage course_slug=course.slug %}">Groups</a></li><li>&gt; Create group</li>{% endblock %}
 {% block content %}
-	<h1>Create Group</h1>
 	{% if user %}
 		<form action="{% url groups.views.submit course_slug=course.slug  %}" method="post">
 			<div class = "group_name">
