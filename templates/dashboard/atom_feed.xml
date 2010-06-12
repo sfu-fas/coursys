@@ -8,7 +8,7 @@
 {% for entry in news_list %}
   <entry>
     <id>{{server_url}}/feedentry/{{entry.feed_id}}</id>
-    <title>{{entry.title}}</title>
+    <title>{{entry.course.name}}: {{entry.title}}</title>
     <updated>{{entry.rfc_updated}}</updated>
     <content type="html">&lt;div&gt;{{entry.content_xhtml|force_escape}}&lt;/div&gt;</content>
     <category term="{{entry.course.name}}"/>
