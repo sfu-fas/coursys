@@ -68,7 +68,7 @@ MIDDLEWARE_CLASSES = (
     'contrib.messages.middleware.MessageMiddleware', # temp: replace with above after 1.2 release
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django_cas.middleware.CASMiddleware',
-    'throttle.CacheThrottler',
+    #'throttle.CacheThrottler',
 )
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
