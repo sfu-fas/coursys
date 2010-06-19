@@ -39,12 +39,12 @@ class CommonProblem(models.Model):
     """
     activity_component = models.ForeignKey(ActivityComponent, null = False)
     title = models.CharField(max_length=30, null = False)
-    penalty = models.IntegerField(null = True, blank = True)
+    penalty = models.DecimalField(max_digits=5, decimal_places=2)
     description = models.TextField(max_length = 200, null = True, blank = True)
     deleted = models.BooleanField(null = False, db_index = True, default = False)
     def __unicode__(self):
         return "common problem %s for %s" % (self.title, self.activity_component)
-     
+
 # 
 def attachment_upload_to(instance, filename):
     """
