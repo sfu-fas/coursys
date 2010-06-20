@@ -56,6 +56,8 @@ def _groupmanage_student(request, course_slug):
             missing.sort()
             unique_members.append( {'member': s, 'confirmed': confirmed, 'missing': missing} )
 
+        all_act = list(all_act)
+        all_act.sort()
         groupList.append({'group': group, 'activities': all_act, 'unique_members': unique_members, 'memb': members, 'need_conf': need_conf})
 
     return render_to_response('groups/student.html', {'course':course, 'groupList':groupList}, context_instance = RequestContext(request))
@@ -105,6 +107,8 @@ def _groupmanage_staff(request, course_slug, activity_slug=None):
             missing = list(missing)
             missing.sort()
             unique_members.append( {'member': s, 'confirmed': confirmed, 'missing': missing} )
+        all_act = list(all_act)
+        all_act.sort()
         groupList.append({'group': group, 'activities': all_act, 'unique_members': unique_members, 'memb': members})
 
     return render_to_response('groups/instructor.html', \
