@@ -62,9 +62,9 @@ class BasicTest(TestCase):
         co2.save()
         
         #add some common problems
-        cp1 = CommonProblem(activity_component = co1, title = 'cp1')
-        cp2 = CommonProblem(activity_component = co1, title = 'cp2')        
-        cp3 = CommonProblem(activity_component = co2, title = 'cp3')
+        cp1 = CommonProblem(activity_component = co1, title = 'cp1', penalty="0")
+        cp2 = CommonProblem(activity_component = co1, title = 'cp2', penalty="1.12")        
+        cp3 = CommonProblem(activity_component = co2, title = 'cp3', penalty="-2.3")
         
         cp1.save()
         cp2.save()

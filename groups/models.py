@@ -25,9 +25,12 @@ class Group(models.Model):
         return '%s' % (self.name)
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+    def __cmp__(self, other):
+        return cmp(self.name, other.name)
 
     class Meta:
         unique_together = ("name", "courseoffering")
+        ordering = ["name"]
 
 class GroupMember(models.Model):
     """
@@ -42,6 +45,7 @@ class GroupMember(models.Model):
 	    return '%s@%s/%s' % (self.student.person, self.group, self.activity.short_name)
     class Meta:
         unique_together = ("student", "activity")
+        ordering = ["student__person"]
 
 def all_activities(members):
     """

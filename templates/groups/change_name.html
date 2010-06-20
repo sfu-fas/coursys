@@ -1,26 +1,18 @@
-
 {% extends "base.html" %}
+{% load course_display %}
+{% block title %}Rename group "{{group.name}}"{% endblock %}
+{% block h1 %}Rename group "{{group.name}}"{% endblock %}
 
-{% block title %}{{course.name}} Groups{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li>&gt; <a href="{% url groups.views.groupmanage course_slug=course.slug %}">Groups</a></li><li>&gt; {{group.name}} </li><li>&gt; Change Name</li>{% endblock %}
 
-{% block h1 %}{{course.name}} Groups{% endblock %}
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url groups.views.groupmanage course_slug=course.slug %}">groups</a></li><li>&gt; Change group name</li>{% endblock %}
 {% block content %}
-	{% if user %}
-		<form action="{% url groups.views.change_name course_slug=course.slug, group_slug=group.slug  %}" method="POST">
-			<div class = "group_name">
-				<h2>Please input the new group name below</h2>
-				<br>
-				{{ groupForm.name.errors }}
-				<label for="id_name">Group Name:</label>
-				{{ groupForm.name }}
-				<br>
-				<input class = 'submit' type="submit" value="Submit">	
-			</div>
-		</form>
-		<br>
-		<a class="button" href="{% url groups.views.groupmanage course_slug=course.slug %}">Return</a>
-	{% endif %}
-
+<form action="{% url groups.views.change_name course_slug=course.slug, group_slug=group.slug  %}" method="post">
+<div class = "group_name">
+{{ groupForm.name.errors }}
+<label for="id_name">Group Name:</label>
+{{ groupForm.name }}
+<input class="submit" type="submit" value="Submit" />
+</div>
+</form>
 {% endblock %}
 
