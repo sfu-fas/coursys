@@ -52,6 +52,8 @@ def _groupmanage_student(request, course_slug):
             confirmed = False not in (m.confirmed for m in members if m.student==s)
             # not a member for any activities?
             missing = all_act - set(m.activity for m in members if m.student==s)
+            missing = list(missing)
+            missing.sort()
             unique_members.append( {'member': s, 'confirmed': confirmed, 'missing': missing} )
 
         groupList.append({'group': group, 'activities': all_act, 'unique_members': unique_members, 'memb': members, 'need_conf': need_conf})
@@ -100,6 +102,8 @@ def _groupmanage_staff(request, course_slug, activity_slug=None):
             confirmed = False not in (m.confirmed for m in gmembers if m.student==s)
             # not a member for any activities?
             missing = all_act - set(m.activity for m in gmembers if m.student==s)
+            missing = list(missing)
+            missing.sort()
             unique_members.append( {'member': s, 'confirmed': confirmed, 'missing': missing} )
         groupList.append({'group': group, 'activities': all_act, 'unique_members': unique_members, 'memb': members})
 

@@ -51,9 +51,7 @@ def all_activities(members):
     """
     Return all activities for this set of group members.  i.e. all activities that any member is a member for.
     """
-    acts = list(set(m.activity for m in members))
-    acts.sort()
-    return acts
+    return set(m.activity for m in members)
 
 def add_activity_to_group_auto(activity, course):
     """
