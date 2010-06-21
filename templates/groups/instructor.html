@@ -18,11 +18,7 @@
   {% if groupList %}
   {% for info in groupList %}
   <h3 id="info.group.slug">{{ info.group.name }}</h3>
-  <p>For {% for activity in info.activities %}{{ activity.name }}{% if forloop.last %}{% else %}, {% endif %}{% endfor %}
-  [<a href="{% url groups.views.change_name course_slug=course.slug group_slug=info.group.slug %}">Change Name</a> |
-          <a href="{% url groups.views.assign_student course_slug=course.slug group_slug=info.group.slug %}">Add Student</a> |
-          <a href="{% url groups.views.remove_student course_slug=course.slug group_slug=info.group.slug %}">Remove Student</a>]
-  </p>
+  <p>For {% for activity in info.activities %}{{ activity.name }}{% if forloop.last %}{% else %}, {% endif %}{% endfor %}</p>
           <ul>
               {% for m in info.unique_members %}
               <li>{{ m.member.person.name }}, {{ m.member.person.userid }} {% if not m.confirmed %}(unconfirmed){% endif %}
@@ -34,7 +30,9 @@
               </li>
               {% endfor %}
           </ul>
-  
+  <p>[<a href="{% url groups.views.change_name course_slug=course.slug group_slug=info.group.slug %}">Change Name</a> |
+          <a href="{% url groups.views.assign_student course_slug=course.slug group_slug=info.group.slug %}">Add Student</a> |
+          <a href="{% url groups.views.remove_student course_slug=course.slug group_slug=info.group.slug %}">Remove Student</a>]</p>
   {% endfor %}
 
   {% else %}
