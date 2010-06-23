@@ -285,6 +285,24 @@ def get_submit_time_and_owner(activity, pair_list):
         late = submit_time - activity.due_date
     return late, submit_time, owner
 
+def _add_submission_to_zip(zipf, submission, components, prefix=""):
+    """
+    Add this submission to the zip file, with associated components.
+    """
+    for component, sub in components:
+        if sub:
+            #try:
+            sub.add_to_zip(zipf, prefix=prefix)
+            #except OSError:
+            #    # ignore missing file after failed upload.
+            #    pass
+
+    # add lateness note
+    if submission.created_at > submission.activity.due_date:
+        fn = os.path.join(prefix, "LATE.txt")
+        zipf.writestr(fn, "Submission was made at %s.\n\nThat is %s after the due date of %s.\n" %
+            (submission.created_at, submission.created_at - submission.activity.due_date, submission.activity.due_date))
+
 def generate_activity_zip(activity, submissions):
     """
     Return a zip file with all (current) submissions for the activity
@@ -294,16 +312,9 @@ def generate_activity_zip(activity, submissions):
     z = zipfile.ZipFile(filename, 'w')
     
     for slug in submissions:
-        sub = submissions[slug]
-        components = get_submission_components(sub, activity)
-        for component, sub in components:
-            if sub:
-                try:
-                    sub.add_to_zip(z, prefix=slug)
-                except OSError:
-                    # ignore missing file after failed upload.
-                    pass
-                    
+        submission = submissions[slug]
+        components = get_submission_components(submission, activity)
+        _add_submission_to_zip(z, submission, components, prefix=slug)
     
     z.close()
 
@@ -323,10 +334,8 @@ def generate_zip_file(submission, submitted_components):
     handle, filename = tempfile.mkstemp('.zip')
     os.close(handle)
     z = zipfile.ZipFile(filename, 'w')
-
-    for component, sub in submitted_components:
-        if sub:
-            sub.add_to_zip(z)
+    
+    _add_submission_to_zip(z, submission, submitted_components)
 
     z.close()
 
