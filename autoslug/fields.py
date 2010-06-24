@@ -301,3 +301,26 @@ class AutoSlugField(SlugField):
             # re-generate the slug
             data = dict(slug=orig_slug, sep=self.index_sep, index=index)
             slug = '%(slug)s%(sep)s%(index)d' % data
+
+
+try:
+    from south.modelsinspector import add_introspection_rules
+    add_introspection_rules([
+    (
+        [AutoSlugField], # Class(es) these apply to
+        [],         # Positional arguments (not used)
+        {           # Keyword argument
+            #"max_length": ["max_length", {"default": 50}], # in superclass
+            #"populate_from": ["populate_from", {"default": None}], # ignore: does not affect DB
+            "editable": ["editable", {"default": False}], # in superclass
+            "unique_with": ["unique_with", {}],
+            #"slugify": ["slugify", {}], # ignore: does not affect DB
+            "sep": ["index_sep", {"default": SLUG_INDEX_SEPARATOR}],
+            #"unique_with_date": ["????, {"default": }], # value contributes to "unique_with", so can be handled there?
+            "unique": ["unique", {}],
+        },
+    ),
+    ], ["^autoslug\.fields\.AutoSlugField"])
+except ImportError:
+    pass # ignore missing south module.
+
