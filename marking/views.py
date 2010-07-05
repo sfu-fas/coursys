@@ -760,8 +760,9 @@ def mark_all_groups(request, course_slug, activity_slug):
         
         if error_info == None:
             updated = 0
-            i = 0
+            i = -1
             for group in groups:
+               i += 1
                new_value = rows[i]['form'].cleaned_data['value']
                if new_value== None :
                    continue
@@ -777,7 +778,6 @@ def mark_all_groups(request, course_slug, activity_slug):
                    warning_info.append("Negative mark given to group %s" % group.name)
                elif new_value > activity.max_grade:
                    warning_info.append("Bonus mark given to group %s" % group.name)  
-               i += 1
                  
             if updated > 0:
                 messages.add_message(request, messages.SUCCESS, "Marks for all groups on %s saved (%s groups' grades updated)!" % (activity.name, updated))
