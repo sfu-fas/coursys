@@ -29,8 +29,16 @@
 
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; All Grades</li>{% endblock %}
 
-{% block content %}
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+	<li><a href="{% url grades.views.all_grades_csv course_slug=course.slug %}">Export CSV</a></li>
+    </ul>
+</div>
+{% endblock %}
 
+{% block content %}
 <div class="datatable_container">
     <table class="display" id="student_grades">
         <thead>

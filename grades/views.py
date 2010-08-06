@@ -631,6 +631,46 @@ def all_grades(request, course_slug):
     context = {'course': course, 'students': students, 'activities': activities, 'grades': grades}
     return render_to_response('grades/all_grades.html', context, context_instance=RequestContext(request))
 
+import csv
+@requires_course_staff_by_slug
+def all_grades_csv(request, course_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activities = all_activities_filter(offering=course)
+    students = Member.objects.filter(offering=course, role="STUD").select_related('person')
+    
+    # get grade data into a format we can work with
+    grades = {}
+    for a in activities:
+        grades[a.slug] = {}
+        if hasattr(a, 'numericgrade_set'):
+            gs = a.numericgrade_set.all()
+        else:
+            gs = a.lettergrade_set.all()
+        for g in gs:
+            grades[a.slug][g.member.person.userid] = g
+    
+    response = HttpResponse(mimetype='text/csv')#(mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=%s.csv' % (course_slug)
+    
+    writer = csv.writer(response)
+    row = ['Last name', 'First name', 'Userid', 'Student ID']
+    for a in activities:
+        row.append(a.short_name)
+    writer.writerow(row)
+    
+    for s in students:
+        row = [s.person.last_name, s.person.first_name, s.person.userid, s.person.emplid]
+        for a in activities:
+            try:
+                g = grades[a.slug][s.person.userid].value
+            except KeyError:
+                g = ''
+            row.append(g)
+        writer.writerow(row)
+        
+        
+    return response
+
 @requires_course_staff_by_slug
 def student_info(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
