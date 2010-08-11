@@ -190,6 +190,7 @@ td[scope] {
 }
 .dataTables_wrapper {
   margin: 1em 0;
+  overflow: auto;
 }
 th.sorting_asc, th.sorting_desc {
   border-width: 2px;
