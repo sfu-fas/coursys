@@ -212,13 +212,16 @@ th.sorting_asc, th.sorting_desc {
 /* DataTables features */
 .dataTables_wrapper {
     margin: 1em 0;
-    overflow: auto;
     clear: both;
     
     /* Override style in "media/style/main.css" */
     margin: 1em 0 0 0;
     zoom: 1; /* Feeling sorry for IE */
 }
+div.bigdatatable .dataTables_wrapper {
+    overflow: auto;
+}
+
 .dataTables_length {
     width: 40%;
     float: left;
