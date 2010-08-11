@@ -62,7 +62,7 @@
             <td>{{s.person.userid}}</td>
             <td>{{s.person.emplid}}</td>
             {% for a in activities %}
-              <td>{% select_grade grades a.slug s.person.userid %}</td>
+              <td class="num">{% select_grade grades a.slug s.person.userid %}</td>
             {% endfor %}
         </tr>
         {% endfor %}

@@ -51,8 +51,9 @@ class SelectGradeNode(template.Node):
 
         grades = dictionary[aslug]
         if userid not in grades:
-            return u'\u2014'
+            return ''
 
-        return grades[userid].display_staff()
+        print type(grades[userid])
+        return grades[userid].display_staff_short()
 
 

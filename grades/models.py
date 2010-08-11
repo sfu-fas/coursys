@@ -274,6 +274,12 @@ class NumericGrade(models.Model):
         else:
             return "%s/%s" % (self.value, self.activity.max_grade)
 
+    def display_staff_short(self):
+        if self.flag == 'NOGR':
+            return ''
+        else:
+            return "%.2f" % (self.value)
+
     def save(self, newsitem=True):
         super(NumericGrade, self).save()
         if self.activity.status == "RLS" and newsitem and self.flag != "NOGR":

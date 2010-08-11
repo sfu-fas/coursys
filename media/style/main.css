@@ -188,10 +188,6 @@ table th {
 td[scope] {
   font-weight: bold;
 }
-.dataTables_wrapper {
-  margin: 1em 0;
-  overflow: auto;
-}
 th.sorting_asc, th.sorting_desc {
   border-width: 2px;
 }
@@ -215,6 +211,8 @@ th.sorting_asc, th.sorting_desc {
  
 /* DataTables features */
 .dataTables_wrapper {
+    margin: 1em 0;
+    overflow: auto;
     clear: both;
     
     /* Override style in "media/style/main.css" */
@@ -268,6 +266,9 @@ table.display td {
 
 table.display td.center {
     text-align: center;
+}
+table.display td.num {
+    text-align: right;
 }
 
 table.display td textarea{
