@@ -208,7 +208,7 @@
 		</td>
 		<td>
 		{% if activity.calnumericactivity %}
-		    <span class="grade">{{ student_grade_info.display_grade_staff }}</span>
+		    {{ student_grade_info.display_grade_staff }}
 		    <a id="{{student.person.userid}}" class="calculator" href="{% url grades.views.calculate_individual course_slug=course.slug activity_slug=activity.slug userid=student.person.userid %}"><img src="{{MEDIA_URL}}icons/calculator.png" title="Calculate" alt="Calculate" /></a>
 		{% else %}
 		    {% ifequal student_grade_info.grade_status 'no grade'%}
