@@ -3,6 +3,20 @@
 {% block grades_headextra %}
 <script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
 <script type="text/javascript">
+    function mark_cmp(x,y) {
+      xn = parseFloat(x.split("/", 1), 10)
+      yn = parseFloat(y.split("/", 1), 10)
+      if (isNaN(xn) && isNaN(yn)) { return 0;
+      } else if (isNaN(xn)) { return 1;
+      } else if (isNaN(yn)) { return -1;
+      } else {
+        return ((xn < yn) ?  1 : ((xn > yn) ? -1 : 0));
+      }    
+    }
+    /* Define two custom functions (asc and desc) for string sorting */
+    jQuery.fn.dataTableExt.oSort['by-mark-asc']  = function(x,y) { return mark_cmp(x,y) };
+    jQuery.fn.dataTableExt.oSort['by-mark-desc'] = function(x,y) { return mark_cmp(y,x) };
+
     $(document).ready(function() {
 		// activate dataTable ui
 		oTable = $('#group_grades').dataTable({
@@ -11,7 +25,7 @@
 			"iDisplayLength" : 50,
             "aoColumns": [
 		    null,
-		    null,
+		    { "sType": "by-mark" },
             { "sWidth": "3em" }
             ]
 		});
@@ -52,8 +66,8 @@
 			{% ifequal group_grade_info.grade 'no grade'%} 
 				<a href="{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}?from_page={{from_page}}"><img src="{{MEDIA_URL}}icons/page_white_edit.png" title="Mark This" alt="Mark This"/></a>
 			{% else %}
-			    <a href="{% url marking.views.mark_summary_group course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
 			    {{ group_grade_info.grade }}		   
+			    <a href="{% url marking.views.mark_summary_group course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
 			{% endifequal %}	
 			</td>
 			<td>
