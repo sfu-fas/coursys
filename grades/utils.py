@@ -415,11 +415,11 @@ def calculate_numeric_grade(course, activity, student=None):
                 member_found = True                
                 if result != numeric_grade.value:# only save when the value changes
                     numeric_grade.value = result
-                    numeric_grade.save()
+                    numeric_grade.save(newsitem=False)
                 break
         if not member_found:
             numeric_grade = NumericGrade(activity=activity, member=student,
                                          value=str(result), flag='CALC')
-            numeric_grade.save()
+            numeric_grade.save(newsitem=False)
     if student != None:
         return StudentActivityInfo(student, activity, FLAGS['CALC'], numeric_grade.value, None).display_grade_staff()
