@@ -7,16 +7,16 @@ Adapted from the Dreamweaver template here: http://www.sfu.ca/clf/web/index.html
 <title>{% block title %}Course Management System{% endblock %}</title>
 <link rel="icon" href="{{MEDIA_URL}}icons/favicon.ico" type="image/x-icon" />
 <link rel="shortcut icon" href="{{MEDIA_URL}}icons/favicon.ico" type="image/x-icon" />
-<link rel="stylesheet" href="http://www.sfu.ca/hp/clf/css/layout.css" media="all" />
-<script type="text/javascript" src="http://www.sfu.ca/hp/clf/js/flyout.js"></script>
-<script type="text/javascript" src="http://www.sfu.ca/hp/clf/js/browserdetect_lite.js"></script>
-<script type="text/javascript" src="http://www.sfu.ca/hp/clf/js/opacity.js"></script>
-<script type="text/javascript" src="http://www.sfu.ca/hp/clf/js/admin.js"></script>
-<script type="text/javascript" src="http://www.sfu.ca/hp/clf/js/random.js"></script>
-<script type="text/javascript" src="http://www.sfu.ca/hp/clf/js/onload.js"></script>
+<link rel="stylesheet" href="{{MEDIA_URL}}sfu/css/layout.css" media="all" />
+<script type="text/javascript" src="{{MEDIA_URL}}sfu/js/flyout.js"></script>
+<script type="text/javascript" src="{{MEDIA_URL}}sfu/js/browserdetect_lite.js"></script>
+<script type="text/javascript" src="{{MEDIA_URL}}sfu/js/opacity.js"></script>
+<script type="text/javascript" src="{{MEDIA_URL}}sfu/js/admin.js"></script>
+<script type="text/javascript" src="{{MEDIA_URL}}sfu/js/random.js"></script>
+<script type="text/javascript" src="{{MEDIA_URL}}sfu/js/onload.js"></script>
 
 <!-- These next two define the rotating banner images.  If you want your own, replace these files with links to your own CSS and JS -->
-<link href="http://www.sfu.ca/css/dynamic/banner.css" rel="stylesheet" type="text/css" />
+<!--<link href="http://www.sfu.ca/css/dynamic/banner.css" rel="stylesheet" type="text/css" />-->
 <!--<script type="text/javascript" src="http://www.sfu.ca/js/dynamic/banner.js"></script>-->
 
 <link rel="stylesheet" href="{{MEDIA_URL}}style/main.css" media="all" />
@@ -71,10 +71,10 @@ Logged in as {{user.username}}.
 			</form>
 			<ul id="pullDowns" class="flyout">
 				<li><a href="http://www.sfu.ca/onlineservices/index.html">SFU Online</a>
-				<script type="text/javascript" src="http://www.sfu.ca/hp/clf/js/SFUonline.js"></script>
+				<script type="text/javascript" src="{{MEDIA_URL}}sfu/js/SFUonline.js"></script>
 				</li>
 				<li class="divider">|</li>
-				<li><script type="text/javascript" src="http://www.sfu.ca/hp/clf/js/AtoZ.js"></script><noscript>
+				<li><script type="text/javascript" src="{{MEDIA_URL}}sfu/js/AtoZ.js"></script><noscript>
 					<div><a href="http://www.sfu.ca/dir/az_dir.html">A-Z Links</a></div></noscript>
 				</li>
 			</ul>
