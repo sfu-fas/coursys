@@ -119,16 +119,18 @@ class GroupSubmission(Submission):
         return "group"
 
     def save(self):
+        new_submit = (self.id is None)
         super(GroupSubmission, self).save()
-        member_list = GroupMember.objects.exclude(student = self.creator).filter(group = self.group)
-        for member in member_list:
-            n = NewsItem(user = member.student.person, author=self.creator.person, course=member.group.courseoffering,
-                source_app="group submission", title="New Group Submission",
-                content="Your group member %s has made a submission for %s."
-                    % (self.creator.person.name(), self.activity.name),
-                url=reverse('submission.views.show_components', kwargs={'course_slug': self.group.courseoffering.slug, 'activity_slug': member.activity.slug})
-                )
-            n.save()
+        if new_submit:
+            member_list = GroupMember.objects.exclude(student = self.creator).filter(group = self.group)
+            for member in member_list:
+                n = NewsItem(user = member.student.person, author=self.creator.person, course=member.group.courseoffering,
+                    source_app="group submission", title="New Group Submission",
+                    content="Your group member %s has made a submission for %s."
+                        % (self.creator.person.name(), self.activity.name),
+                    url=reverse('submission.views.show_components', kwargs={'course_slug': self.group.courseoffering.slug, 'activity_slug': member.activity.slug})
+                    )
+                n.save()
 
 
 # parts of a submission, created as part of a student/group submission

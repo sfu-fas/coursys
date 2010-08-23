@@ -291,7 +291,7 @@ class NumericGrade(models.Model):
                 url=self.activity.get_absolute_url())
             n.save()
      
-    def save_status_flag(self, new_flag, comment):
+    def XXX_save_status_flag(self, new_flag, comment):
         """
         status changed, generate the news item, regardless the grade of released or not
         """
