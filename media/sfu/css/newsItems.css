@@ -1,0 +1,105 @@
+/* CSS Document */
+
+#newsSpacer {
+	clear: left;
+	float: left;
+	height: 43px;
+	width: 24px;
+	position: relative;
+	background-color: #D9D9D9;
+}
+#newsTitle {
+	margin-left: 410px;
+	margin-right: 0px;
+	padding-top: 30px;
+	padding-left: 30px;
+	padding-right: 10px;
+	height: 193px;
+	color: #FFFFFF;
+	width: 150px;
+	font-size: 36px;
+	font-family: Geneva, Arial, Helvetica, sans-serif;
+	clear: both;
+	text-transform: uppercase;
+}
+#newsCaption {
+	background-color: #EBEBEB;
+	width: 600px;
+	height: 40px;
+	clear: both;
+	margin-top: 223px;
+	padding-left: 10px;
+	padding-right: 10px;
+	float: left;
+	font-family: Arial, Helvetica, sans-serif;
+	color: #777777;
+	font-size: 12px;
+	line-height: 14px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	font-weight: bold;
+}
+#NewsImageArea {
+	position: relative;
+	margin-right: -20px;
+	float: left;
+	left: -20px;
+	height: 273px;
+	width: 600px;
+	overflow: hidden;
+	color: #FFFFFF;
+	background-color: #000000;
+	background-repeat: no-repeat;
+}
+
+.importantNews {
+	position: relative;
+	width: 190px;
+	float: right;
+	clear: right;
+	padding: 10px 10px 10px 10px;
+	margin: 0;
+	left: 190px;
+	background-color: #FFFFFF;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	text-transform: uppercase;
+	color: #B5111A;
+}
+.importantNews .newsItemTitle, .importantNews .newsItemText {
+	text-transform: none;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10pt;
+	margin: 0px;
+	padding: 0px;
+}
+.newsItemTitle a {
+	display: none;
+}
+.importantNews .newsItemTitle {
+	border-top: 2px solid #BBBBBB;
+	padding-top: 10px;
+}
+.importantNews .newsItemText {
+	color: #000000;
+}
+
+.newsItem {
+	position: relative;
+	float: right;
+	clear: right;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 9pt;
+	width: 170px;
+	padding: 10px;
+	background-color: #FFFFFF;
+}
+
+.newsItem a {
+	text-transform: uppercase;
+	text-decoration: none;
+	display: block;
+	width: 160px;
+	border-bottom: 2px solid #CCCCCC;
+	color: #B5111A;
+}

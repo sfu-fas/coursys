@@ -1,0 +1,37 @@
+/* This is something from A List Apart.  I do love their site. */
+
+.flyout, .flyout ul {
+	list-style: none;
+	overflow: visible;
+	}
+
+.flyout li {
+	position: relative;
+	}
+	
+.flyout li ul {
+	position: absolute;
+	top: 45px;
+	left: -40px;
+	display: none;
+	z-index: 200;
+	}
+.flyout li ul li {
+	/* padding: 0 -10px 0 10px; */
+}
+/* Styles for Menu Items */
+.flyout li a , .flyout ul li a {
+	display: block;
+	text-decoration: none;
+	}
+
+/* Fix IE. Hide from IE Mac \*/
+* html .flyout li { float: left; height: 1%; }
+* html .flyout li a { height: 1%; }
+* html .flyout ul li { float: left; height: 1%; }
+* html .flyout ul li a { height: 1%; }
+/* End */
+
+.flyout li a:hover {   } /* Hover Styles */
+		
+.flyout li:hover ul, .flyout li.over ul { display: block; } /* The magic */

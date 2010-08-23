@@ -1,4 +1,7 @@
 /* some mods to SFU template CSS */
+.banner_0 {
+	background-image:url(../sfu/images/banner2-seray-right.jpg);
+}
 div#main p {
   margin-top: 1em;
 }
@@ -26,11 +29,11 @@ div#header, div#footer {
 
 
 div .group_info_area{
-    background-image: url('/media/images/grades/bluep.png');
+    background-image: url('../images/grades/bluep.png');
 }
 
 div ul.group_member_list{
-	list-style-image: url('/media/icons/bullet.png');
+	list-style-image: url('../icons/bullet.png');
 } 
 
 
@@ -77,25 +80,25 @@ div#messages li {
 }
 div#messages .success {
     color: #92be2c;
-    background-image: url('/media/icons/action_check.png');
+    background-image: url('../icons/action_check.png');
     background-repeat: no-repeat;
     font-weight: bold;
 }
 div#messages .error {
     color: #c33a41;
-    background-image: url('/media/icons/action_delete.png');
+    background-image: url('../icons/action_delete.png');
     background-repeat: no-repeat;
     font-weight: bold;
 }
 div#messages .warning {
     color: #e06121;
-    background-image: url('/media/icons/exclamation.png');
+    background-image: url('../icons/exclamation.png');
     background-repeat: no-repeat;
     font-weight: bold;
 }
 div#messages .info {
     color: #075fa3;
-    background-image: url('/media/icons/information.png');
+    background-image: url('../icons/information.png');
     background-repeat: no-repeat;
     font-weight: bold;
 }
@@ -108,7 +111,7 @@ div#messages .info {
   margin: 0 1em 1em 1em;
 }
 #actions h2 {
-  background: url("/media/images/grades/action_box.gif") repeat-x left top #6D6D6D;
+  background: url("../images/grades/action_box.gif") repeat-x left top #6D6D6D;
   color: #FFF;
   padding: 3px 10px !important;
   margin: 0 !important;
@@ -553,7 +556,7 @@ div.collapsible {
 }
 #main .collapsible-heading {
   padding-left:15px;
-  background:url('/media/images/icon-triangle.png') 0 6px no-repeat;
+  background:url('../images/icon-triangle.png') 0 6px no-repeat;
 }
 #main .collapsible-heading-collapsed {
   background-position:0 -84px;
@@ -613,7 +616,7 @@ fieldset {
     padding: 0 0 0 0;
     border: 1px solid #BFBAB0;
     background: #F2EFE9;
-    background-image: url('/media/images/grades/fieldset_gradient.jpg');
+    background-image: url('../images/grades/fieldset_gradient.jpg');
     background-repeat: repeat-x;
     margin: 1em 0 1em 0;
 }
@@ -962,7 +965,7 @@ table#common_problems p.component_info{
 } 
 
 #marking_container li.common_problems{
-	background-image: url('/media/images/grades/bluep.png');	
+	background-image: url('../images/grades/bluep.png');	
 	padding: 0.2em 1em;
 	float: right;
 	margin: 10px;

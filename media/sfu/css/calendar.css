@@ -1,0 +1,50 @@
+/* CSS Document */
+
+.mainCal {
+width:300px;
+height: 136px;
+overflow: hidden;
+margin: 0px;
+}
+
+.month {
+background-color: #D3D3D3;
+font:bold 12px verdana;
+color: #666666;
+}
+
+.daysofweek {
+background-color: #D3D3D3;
+font:bold 12px verdana;
+color: #CC3333;
+}
+
+.days {
+font-size: 12px;
+font-family:verdana;
+color: #666666;
+background-color: #D3D3D3;
+padding: 2px;
+}
+
+.days #today{
+font-weight: bold;
+color: red;
+}
+
+#calendar {
+	font:bold 12px verdana;
+	float: left;
+	clear: left;
+	width: 300px;
+	margin-top: 10px;
+}
+#calendar .title {
+	background-color: #888888;
+	color: #EEEEEE;
+	width: 290px;
+	padding-left: 10px;
+	padding-top: 3px;
+	padding-bottom: 3px;
+	margin: 0px;
+}
