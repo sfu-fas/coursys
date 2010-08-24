@@ -9,7 +9,7 @@
 #   activities = NumericActivity.objects.filter(offering=c)
 #   act_dict = activities_dictionary(activities)        
 # then pass it into the evaluator along with a Member object for the student:
-#   result = eval_parse(parsed_expr, act_dict, member)
+#   result = eval_parse(parsed_expr, act_dict, member, visible)
 
 from external.pyparsing import ParseException
 import itertools
@@ -121,11 +121,11 @@ def activities_dictionary(activities):
             ((a.short_name,a) for a in activities)
             ))
 
-def visible_grade(act, member):
+def visible_grade(act, member, visible):
     """
     Return student-visible grade on this activity
     """
-    if act.status != 'RLS':
+    if visible and act.status != 'RLS':
         return 0.0
     grades = act.numericgrade_set.filter(member=member)
     if len(grades)==0:
@@ -137,9 +137,9 @@ def visible_grade(act, member):
         return float(grade.value)
     
 
-def eval_parse(tree, act_dict, member):
+def eval_parse(tree, act_dict, member, visible):
     """
-    Evaluate an expression given its parse tree and dictionary of column values.
+    Evaluate an expression given its parse tree and dictionary of column values.  "visible" indicates whether the activity in question is visible to students or not.
     
     Throws EvalException if there's a problem with the expression tree.
     
@@ -147,14 +147,14 @@ def eval_parse(tree, act_dict, member):
     """
     t = tree[0]
     if t == 'sign' and tree[2] == '+':
-        return eval_parse(tree[3], act_dict, member)
+        return eval_parse(tree[3], act_dict, member, visible)
     elif t == 'sign' and tree[2] == '-':
-        return -eval_parse(tree[3], act_dict, member)
+        return -eval_parse(tree[3], act_dict, member, visible)
     elif t == 'col':
         act = act_dict[tree[2]]
         part = tree[3]
         if part=="val":
-            return visible_grade(act, member)
+            return visible_grade(act, member, visible)
         elif part=="max":
             return float(act.max_grade)
         elif part=="per":
@@ -164,7 +164,7 @@ def eval_parse(tree, act_dict, member):
                 return 0.0
         elif part=="fin":
             if act.percent:
-                grade = visible_grade(act, member)
+                grade = visible_grade(act, member, visible)
                 return grade/float(act.max_grade) * float(act.percent)
             else:
                 return 0.0
@@ -177,11 +177,11 @@ def eval_parse(tree, act_dict, member):
         expr.pop() # remove the 'expr' marker
         expr.pop() # remove the column set
         # extract first term
-        val = eval_parse(expr.pop(), act_dict, member)
+        val = eval_parse(expr.pop(), act_dict, member, visible)
         while expr:
             # extract operator/operand pairs until they're all gone
             operator = expr.pop()
-            operand = eval_parse(expr.pop(), act_dict, member)
+            operand = eval_parse(expr.pop(), act_dict, member, visible)
             if operator == "+":
                 val += operand
             elif operator == "-":
@@ -196,21 +196,21 @@ def eval_parse(tree, act_dict, member):
     elif t == 'func':
         func = tree[2]
         if func == 'SUM':
-            return sum(eval_parse(t, act_dict, member) for t in tree[3:])
+            return sum(eval_parse(t, act_dict, member, visible) for t in tree[3:])
         elif func == 'MAX':
-            return max(eval_parse(t, act_dict, member) for t in tree[3:])
+            return max(eval_parse(t, act_dict, member, visible) for t in tree[3:])
         elif func == 'MIN':
-            return min(eval_parse(t, act_dict, member) for t in tree[3:])
+            return min(eval_parse(t, act_dict, member, visible) for t in tree[3:])
         elif func == 'AVG':
-            return sum(eval_parse(t, act_dict, member) for t in tree[3:]) / (len(tree)-3)
+            return sum(eval_parse(t, act_dict, member, visible) for t in tree[3:]) / (len(tree)-3)
         elif func == 'BEST':
             # round first argument to an int: it's the number of best items to pick
-            n = int(round( eval_parse(tree[3], act_dict, member) ) + 0.1)
+            n = int(round( eval_parse(tree[3], act_dict, member, visible) ) + 0.1)
             if n < 1:
                 raise EvalException, 'Bad number of "best" selected, %i.'%(n,)
             if n > len(tree)-4:
                 raise EvalException, "Not enough arguments to choose %i best."%(n,)
-            marks = [eval_parse(t, act_dict, member) for t in tree[4:]]
+            marks = [eval_parse(t, act_dict, member, visible) for t in tree[4:]]
             marks.sort()
             return sum(marks[-n:])
         else:

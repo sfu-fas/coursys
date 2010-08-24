@@ -403,7 +403,7 @@ def calculate_numeric_grade(course, activity, student=None):
     for student in student_list:
         # calculate grade
         try:
-            result = eval_parse(parsed_expr, act_dict, student)
+            result = eval_parse(parsed_expr, act_dict, student, activity.status=="RLS")
             result = decimal.Decimal(str(result)) # convert to decimal
         except EvalException:
             raise EvalException("Formula Error: Can not evaluate formula for student: '%s'" % student.person.name())

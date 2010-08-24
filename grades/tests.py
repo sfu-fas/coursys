@@ -54,7 +54,7 @@ class GradesTest(TestCase):
         a.save()
         g = NumericGrade(activity=a, member=m, value=10, flag="GRAD")
         g.save()
-        a = NumericActivity(name="Assignment #2", short_name="A2", status="RLS", offering=c, position=2, max_grade=40)
+        a = NumericActivity(name="Assignment #2", short_name="A2", status="URLS", offering=c, position=2, max_grade=40)
         a.save()
         g = NumericGrade(activity=a, member=m, value=30, flag="GRAD")
         g.save()
@@ -73,24 +73,31 @@ class GradesTest(TestCase):
         # test parsing and evaluation to make sure we get the right values out
         for expr, correct in test_formulas:
             tree = parse(expr)
-            res = eval_parse(tree, act_dict, m)
+            res = eval_parse(tree, act_dict, m, False)
             self.assertAlmostEqual(correct, res, msg=u"Incorrect result for %s"%(expr,))
 
         # test some badly-formed stuff for appropriate exceptions
         tree = parse("1 + BEST(3, [A1], [A2])")
-        self.assertRaises(EvalException, eval_parse, tree, act_dict, m)
+        self.assertRaises(EvalException, eval_parse, tree, act_dict, m, True)
         tree = parse("1 + BEST(0, [A1], [A2])")
-        self.assertRaises(EvalException, eval_parse, tree, act_dict, m)
+        self.assertRaises(EvalException, eval_parse, tree, act_dict, m, True)
         tree = parse("[Foo] /2")
-        self.assertRaises(KeyError, eval_parse, tree, act_dict, m)
+        self.assertRaises(KeyError, eval_parse, tree, act_dict, m, True)
         tree = parse("[a1] /2")
-        self.assertRaises(KeyError, eval_parse, tree, act_dict, m)
+        self.assertRaises(KeyError, eval_parse, tree, act_dict, m, True)
         
         self.assertRaises(ParseException, parse, "AVG()")
         self.assertRaises(ParseException, parse, "(2+3*84")
         self.assertRaises(ParseException, parse, "2+3**84")
         self.assertRaises(ParseException, parse, "AVG(2,3,4")
         
+        # test visible/invisible switching
+        tree = parse("[Assignment #2]")
+        res = eval_parse(tree, act_dict, m, True)
+        self.assertAlmostEqual(res, 0.0)
+        res = eval_parse(tree, act_dict, m, False)
+        self.assertAlmostEqual(res, 30.0)
+
         # test unreleased/missing grade conditions
         expr = "[Assignment #2]"
         tree = parse(expr)
@@ -100,7 +107,7 @@ class GradesTest(TestCase):
         a.save()
         activities = NumericActivity.objects.filter(offering=c)
         act_dict = activities_dictionary(activities)
-        res = eval_parse(tree, act_dict, m)
+        res = eval_parse(tree, act_dict, m, True)
         self.assertAlmostEqual(res, 0.0)
         
         # explicit no grade (relased assignment)
@@ -110,15 +117,16 @@ class GradesTest(TestCase):
         a.save()
         activities = NumericActivity.objects.filter(offering=c)
         act_dict = activities_dictionary(activities)
-        res = eval_parse(tree, act_dict, m)
+        res = eval_parse(tree, act_dict, m, True)
         self.assertAlmostEqual(res, 0.0)
 
         # no grade in database (relased assignment)
         g.delete()
         activities = NumericActivity.objects.filter(offering=c)
         act_dict = activities_dictionary(activities)
-        res = eval_parse(tree, act_dict, m)
+        res = eval_parse(tree, act_dict, m, True)
         self.assertAlmostEqual(res, 0.0)
+        
 
     def test_activities(self):
         """

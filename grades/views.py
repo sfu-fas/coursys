@@ -369,7 +369,7 @@ def formula_tester(request, course_slug):
             parsed_expr = pickle.loads(formula_form_entry.pickled_formula)
             act_dict = activities_dictionary(faked_activities)
             try:
-                result = eval_parse(parsed_expr, act_dict, None)
+                result = eval_parse(parsed_expr, act_dict, None, True)
             except EvalException:
                 messages.error(request,  "Can not evaluate formula")
     else:
