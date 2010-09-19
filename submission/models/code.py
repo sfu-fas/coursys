@@ -23,6 +23,8 @@ CODE_TYPES = [
     (".pl", "Prolog (.pl)"),
     (".php", "PHP (.php)"),
     (".js", "Javascript (.js)"),
+    (".cs", "C# (.cs)"),
+    (".inc", "HC11 Source (.inc)"),
 ]
 
 class CodeComponent(SubmissionComponent):
