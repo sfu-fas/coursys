@@ -139,6 +139,7 @@ def import_offerings(db):
 
         c_old = CourseOffering.objects.filter(subject=subject, number=number, section=section, semester=semester)
         if len(c_old)>1:
+	    c_old
             raise KeyError, "Already duplicate courses: %r" % (c_old)
         elif len(c_old)==1:
             # already in DB: update things that might have changed
@@ -154,9 +155,27 @@ def import_offerings(db):
             c_old.wait_tot = wait_tot
             c_old.save()
         else:
-            # new record: create.
-            c = CourseOffering(subject=subject, number=number, section=section, semester=semester, crse_id=crse_id, class_nbr=class_nbr, component=component, graded=graded, title=title, campus=campus, enrl_cap=enrl_cap, enrl_tot=enrl_tot, wait_tot=wait_tot)
-            c.save()
+	    c_old = CourseOffering.objects.filter(class_nbr=class_nbr, semester=semester)
+	    if len(c_old)>1:
+		raise KeyError, "Already duplicate courses: %r" % (c_old)
+	    elif len(c_old) == 1:
+		# already in DB: update things that might have changed
+            	c_old = c_old[0]
+            	c_old.crse_id = crse_id
+            	c_old.class_nbr = class_nbr
+		c_old.section = section
+            	c_old.component = component
+            	c_old.graded = graded
+            	c_old.title = title
+            	c_old.campus = campus
+            	c_old.enrl_cap = enrl_cap
+            	c_old.enrl_tot = enrl_tot
+            	c_old.wait_tot = wait_tot
+            	c_old.save()
+            else:
+            	# new record: create.
+            	c = CourseOffering(subject=subject, number=number, section=section, semester=semester, crse_id=crse_id, class_nbr=class_nbr, component=component, graded=graded, title=title, campus=campus, enrl_cap=enrl_cap, enrl_tot=enrl_tot, wait_tot=wait_tot)
+            	c.save()
 
 def import_meeting_times(db):
     """
