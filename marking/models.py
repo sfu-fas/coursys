@@ -1,7 +1,7 @@
 import copy
 from django.db import models
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, NumericGrade
-from grades.models import all_activities_filter
+from grades.models import all_activities_filter, neaten_activity_positions
 #from submission.models import SubmissionComponent, COMPONENT_TYPES
 from coredata.models import Semester
 from groups.models import Group, GroupMember
@@ -308,7 +308,7 @@ def copyCourseSetup(course_copy_from, course_copy_to):
     copy all the activities setup from one course to another
     copy numeric activities with their marking components, common problems and submission components
     """
-    print "copying numeric activities ..."
+    #print "copying numeric activities ..."
     all_activities = all_activities_filter(offering=course_copy_from)
 
     for activity in all_activities:
@@ -323,14 +323,15 @@ def copyCourseSetup(course_copy_from, course_copy_to):
             new_activity_component.pk = None
             new_activity_component.numeric_activity = new_activity
             new_activity_component.save()
-            print "-- marking component %s is copied" % new_activity_component            
+            #print "-- marking component %s is copied" % new_activity_component            
             for common_problem in CommonProblem.objects.filter(activity_component=activity_component, deleted=False):
                 new_common_problem = copy.deepcopy(common_problem)
                 new_common_problem.id = None
                 new_common_problem.pk = None
+                new_common_problem.penalty = str(new_common_problem.penalty)
                 new_common_problem.activity_component = new_activity_component
                 new_common_problem.save()
-                print "--- common problem %s is copied" % new_common_problem
+                #print "--- common problem %s is copied" % new_common_problem
         
         for submission_component in select_all_components(activity):
             new_submission_component = copy.deepcopy(submission_component)
@@ -338,11 +339,11 @@ def copyCourseSetup(course_copy_from, course_copy_to):
             new_submission_component.pk = None
             new_submission_component.activity = new_activity
             new_submission_component.save()
-            print "-- submission component %s is copied" % new_submission_component
+            #print "-- submission component %s is copied" % new_submission_component
         
-        print "- Activity %s is copied" % new_activity
+        #print "- Activity %s is copied" % new_activity
         
-        print "please also copy the calculated letter activities once this type is implemented"    
+        #print "please also copy the calculated letter activities once this type is implemented"    
 #    "fixing calculated letter activities ..."
 #    for activity in CalLetterActivity.objects.filter(offering = course_copy_to):
 #        related_num_act =  activity.numeric_activity

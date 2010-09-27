@@ -22,7 +22,6 @@ from contrib import messages
 import pickle
 from grades.formulas import EvalException, activities_dictionary, eval_parse
 
-
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
 
 # Course should have this number to student to display the activity statistics, including histogram
@@ -41,21 +40,18 @@ def course_info(request, course_slug):
         return _course_info_staff(request, course_slug)
     else:
         return ForbiddenResponse(request)
-        
+
+
+
 @requires_course_staff_by_slug
 def reorder_activity(request, course_slug):
     """
     Ajax way to reorder activity.
     This ajax view function is called in the course_info page.
     """
+    course = get_object_or_404(CourseOffering, slug=course_slug)
     if request.method == 'POST':
-        # update all positions to consecutive integers: seems possible to get identical positions in some cases
-        count = 1
-        for a in Activity.objects.filter(offering__slug=course_slug).order_by('position'):
-            a.position = count
-            a.save()
-            count += 1
-
+        neaten_activity_positions(course)
         # find the activities in question
         id_up = request.POST.get('id_up') 
         id_down = request.POST.get('id_down')

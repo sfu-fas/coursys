@@ -139,7 +139,8 @@ def copy_course_setup(request, course_slug):
                                    target_setup, conflicting_acts, rename_forms, request.user.username)
             
             if not error_info:# do the copy !
-                copyCourseSetup(source_course, course)     
+                copyCourseSetup(source_course, course)
+                neaten_activity_positions(course)
                 #LOG EVENT
                 l = LogEntry(userid=request.user.username,
                       description=("copied course setup from %s to %s") % 
