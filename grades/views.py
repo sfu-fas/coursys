@@ -49,18 +49,28 @@ def reorder_activity(request, course_slug):
     This ajax view function is called in the course_info page.
     """
     if request.method == 'POST':
+        # update all positions to consecutive integers: seems possible to get identical positions in some cases
+        count = 1
+        for a in Activity.objects.filter(offering__slug=course_slug).order_by('position'):
+            a.position = count
+            a.save()
+            count += 1
+
+        # find the activities in question
         id_up = request.POST.get('id_up') 
         id_down = request.POST.get('id_down')
         if id_up == None or id_down == None:                      
             return ForbiddenResponse(request)
         # swap the position of the two activities
-        activity_up = get_object_or_404(Activity, id=id_up);
-        activity_down = get_object_or_404(Activity, id=id_down);
+        activity_up = get_object_or_404(Activity, id=id_up, offering__slug=course_slug)
+        activity_down = get_object_or_404(Activity, id=id_down, offering__slug=course_slug)
+
         temp = activity_up.position
         activity_up.position = activity_down.position
         activity_down.position = temp
         activity_up.save()
-        activity_down.save()
+        activity_down.save()        
+        
         return HttpResponse("Order updated!")
     return ForbiddenResponse(request)
 
