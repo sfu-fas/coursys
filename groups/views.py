@@ -18,13 +18,6 @@ from log.models import *
 from django.db.models import Q
 from collections import defaultdict
 
-#@login_required
-#def index(request):
-#    p = get_object_or_404(Person, userid = request.user.username)
-#    courselist = Member.objects.exclude(role="DROP").filter(offering__graded=True).filter(person = p)\
-#               .select_related('offering','offering__semester')
-#    return render_to_response('groups/index.html', {'courselist':courselist}, context_instance = RequestContext(request))
-
 @login_required
 def groupmanage(request, course_slug, activity_slug=None):
     if is_course_staff_by_slug(request.user, course_slug):

@@ -5,6 +5,7 @@ from grades.models import Activity
 from django.shortcuts import get_object_or_404
 from django.core.urlresolvers import reverse
 from dashboard.models import NewsItem
+import datetime
 
 class Group(models.Model):
     """
@@ -46,6 +47,16 @@ class GroupMember(models.Model):
     class Meta:
         unique_together = ("student", "activity")
         ordering = ["student__person", "activity"]
+
+    def student_editable(self):
+        """
+        Are students allowed to modify this membership?
+        """
+        if activity.due_date and activity.due_date>datetime.datetime.now():
+            # due date passed: no.
+            return False
+        # TODO: if any submissions
+        return True
 
 def all_activities(members):
     """
