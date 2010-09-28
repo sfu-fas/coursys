@@ -10,9 +10,10 @@ from groups.models import *
 from django.core.urlresolvers import reverse
 from django.db import IntegrityError
 
-import re
+import re, datetime
 from coredata.models import Member, Person, CourseOffering
 from groups.models import *
+from submission.models import GroupSubmission
 from grades.models import Activity
 from django.db.models import Q
 
@@ -84,6 +85,35 @@ class GroupTest(TestCase):
         members = GroupMember.objects.filter(group=g)
         all_act = all_activities(members)
         self.assertEqual(set(a.slug for a in all_act), set([a1.slug, a2.slug]))
+        
+        # check student-editable tests
+        
+        # test dates
+        m = Member.objects.get(offering=c, person__userid="0kvm")
+        gm = GroupMember.objects.get(group=g, student=m, activity=a1)
+
+        a1.due_date = datetime.datetime.now() - datetime.timedelta(days=1) # yesterday
+        a1.save()
+        self.assertTrue("passed" in gm.student_editable())
+
+        a1.due_date = datetime.datetime.now() + datetime.timedelta(days=1) # tomorrow
+        a1.save()
+        gm = GroupMember.objects.get(group=g, student=m, activity=a1)
+        self.assertEqual(gm.student_editable(), '')
+        
+        # already graded
+        gr = NumericGrade(activity=a1, member=m, value=1, flag="GRAD")
+        gr.save()
+        self.assertTrue("grade" in gm.student_editable())
+        gr.flag="NOGR"
+        gr.save()
+        self.assertEqual(gm.student_editable(), '')
+        
+        # submission made
+        s = GroupSubmission(group=g, creator=m, activity=a1)
+        s.save()
+        self.assertTrue("submission" in gm.student_editable())
+        
 
     def test_group_student(self):
         """

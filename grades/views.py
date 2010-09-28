@@ -112,8 +112,8 @@ def _course_info_staff(request, course_slug):
 def _course_info_student(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activities = all_activities_filter(offering=course)
-    any_group = True in [a.group for a in activities]
     activities = [a for a in activities if a.status in ['RLS', 'URLS']]
+    any_group = True in [a.group for a in activities]
     
     activityinfo_list = []
     student = Member.objects.get(offering=course, person__userid=request.user.username, role='STUD')

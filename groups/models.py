@@ -1,7 +1,7 @@
 from django.db import models
 from coredata.models import Member, CourseOffering
 from autoslug import AutoSlugField
-from grades.models import Activity
+from grades.models import *
 from django.shortcuts import get_object_or_404
 from django.core.urlresolvers import reverse
 from dashboard.models import NewsItem
@@ -50,13 +50,28 @@ class GroupMember(models.Model):
 
     def student_editable(self):
         """
-        Are students allowed to modify this membership?
+        Are students allowed to modify this membership?  Returns text reason for non-editable (or "" if allowed)
         """
-        if activity.due_date and activity.due_date>datetime.datetime.now():
-            # due date passed: no.
-            return False
-        # TODO: if any submissions
-        return True
+        # if due date passed: not editable.
+        if self.activity.due_date and self.activity.due_date < datetime.datetime.now():
+            return "due date has passed"
+
+        # if student has a grade: not editable.
+        if isinstance(self.activity, LetterActivity):
+            GradeClass = LetterGrade
+        else:
+            GradeClass = NumericGrade
+        grades = GradeClass.objects.filter(activity=self.activity, member=self.student).exclude(flag="NOGR")
+        if len(grades)>0:
+            return "grade already received for activity"
+        
+        # if there has been a submission: not editable
+        from submission.models import GroupSubmission
+        subs = GroupSubmission.objects.filter(group=self.group, activity=self.activity)
+        if len(subs) > 0:
+            return "a submission has already been made for activity"
+        
+        return ""
 
 def all_activities(members):
     """

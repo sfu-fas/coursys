@@ -477,7 +477,6 @@ def XXX_switch_group(request, course_slug, group_slug):
     if request.method == "POST":
         for student in students:
             studentGroupForm = StudentGroupForm(request.POST, prefix = student.student.person.userid)
-            print studentGroupForm.is_valid()
             if studentGroupForm.is_valid():
                 student.group = studentGroupForm.cleaned_data['group']
                 student.save()
