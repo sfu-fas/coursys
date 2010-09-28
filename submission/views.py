@@ -470,20 +470,8 @@ def download_file(request, course_slug, activity_slug, component_slug=None, subm
 def download_activity_files(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set, slug=activity_slug)
-    
-    # build dictionary of all most recent submissions by student userid/group slug
-    if activity.group:
-        all_sub = GroupSubmission.objects.filter(activity=activity).order_by('created_at')
-        submissions = {}
-        for sub in all_sub:
-            submissions[sub.group.slug] = sub
-    else:
-        all_sub = StudentSubmission.objects.filter(activity=activity).order_by('created_at')
-        submissions = {}
-        for sub in all_sub:
-            submissions[sub.member.person.userid] = sub
 
-    return generate_activity_zip(activity, submissions)
+    return generate_activity_zip(activity)
 
 @requires_course_staff_by_slug
 def show_student_submission_staff(request, course_slug, activity_slug, userid):

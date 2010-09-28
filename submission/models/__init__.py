@@ -228,6 +228,7 @@ def get_all_submission_components(submission, activity, component_list=None):
     
     submitted_components = []
     for component in component_list:
+        # find most recent submission for this component
         if submission:
             SubmittedComponent = component.Type.SubmittedComponent
             submits_all = SubmittedComponent.objects.filter(component=component)
@@ -289,13 +290,11 @@ def _add_submission_to_zip(zipf, submission, components, prefix=""):
     """
     Add this submission to the zip file, with associated components.
     """
+    #print "A1",submission
+    #print "A2",components
     for component, sub in components:
         if sub:
-            #try:
             sub.add_to_zip(zipf, prefix=prefix)
-            #except OSError:
-            #    # ignore missing file after failed upload.
-            #    pass
 
     # add lateness note
     if submission.created_at > submission.activity.due_date:
@@ -303,7 +302,7 @@ def _add_submission_to_zip(zipf, submission, components, prefix=""):
         zipf.writestr(fn, "Submission was made at %s.\n\nThat is %s after the due date of %s.\n" %
             (submission.created_at, submission.created_at - submission.activity.due_date, submission.activity.due_date))
 
-def generate_activity_zip(activity, submissions):
+def generate_activity_zip(activity):
     """
     Return a zip file with all (current) submissions for the activity
     """
@@ -311,10 +310,27 @@ def generate_activity_zip(activity, submissions):
     os.close(handle)
     z = zipfile.ZipFile(filename, 'w')
     
-    for slug in submissions:
-        submission = submissions[slug]
-        components = get_submission_components(submission, activity)
-        _add_submission_to_zip(z, submission, components, prefix=slug)
+    # build dictionary of all most recent submissions by student userid/group slug
+    if activity.group:
+        submissions = GroupSubmission.objects.filter(activity=activity).order_by('created_at')
+    else:
+        submissions = StudentSubmission.objects.filter(activity=activity).order_by('created_at')
+    
+    # group submissions by student/group
+    submissions_by_person = {}
+    for s in submissions:
+        slug = s.file_slug()
+        if slug not in submissions_by_person:
+            subs = []
+        subs.append(s)
+        submissions_by_person[slug] = subs
+    
+    component_list = select_all_components(activity)
+    # now collect submitted components
+    for slug in submissions_by_person:
+        submission = submissions_by_person[slug]
+        submitted_components = get_all_submission_components(submission, activity, component_list=component_list)
+        _add_submission_to_zip(z, submission[-1], submitted_components, prefix=slug)
     
     z.close()
 
