@@ -122,8 +122,8 @@ if DEBUG:
     #MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('contrib.profiling.ProfileMiddleware',)
     SUBMISSION_PATH = "submitted_files"
     INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.admin',)
-    #CACHE_BACKEND = 'locmem://'
-    CACHE_BACKEND = 'db://cache'
+    CACHE_BACKEND = 'locmem://'
+    #CACHE_BACKEND = 'db://cache'
 else:
     SUBMISSION_PATH = None
     CACHE_BACKEND = '?????'
