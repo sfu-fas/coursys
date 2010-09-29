@@ -3,12 +3,13 @@
 {% block title %}Remove Student from {{group.name}}{% endblock %}
 {% block h1 %}Remove Student from {{group.name}}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li>&gt; <a href="{% url groups.views.groupmanage course_slug=course.slug %}">Groups</a></li><li>&gt; {{group.name}} </li><li>&gt; Remove student</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li>&gt; <a href="{% url groups.views.groupmanage course_slug=course.slug %}">Groups</a></li><li>&gt; {{group.name}} </li><li>&gt; Remove members</li>{% endblock %}
 
 {% block content %}
+{% if is_staff %}{% else %}<p>Please be careful with this form: it can be difficult to re-add students to groups.</p>{% endif %}
 <h2>Select students to remove:</h2>
 <form action="{% url groups.views.remove_student course_slug=course.slug, group_slug=group.slug  %}" method="post">
-<div class = "datatable_container"> 
+<div class="table_container"> 
 <table class="display" id="students">
 <thead>
 <tr>
@@ -20,8 +21,8 @@
 <tbody>
 {% for d in data %}
 <tr>
-  <td>{{ d.form.selected }}</td> 
-  <td>{{ d.member.student.person.name }} ({{ d.member.student.person.userid }}, {{ d.member.student.person.emplid }})</td>
+  <td>{% if d.form %}{{ d.form.selected }}{% else %}Can't remove: {{ d.reason }}{% endif %}</td> 
+  <td>{{ d.member.student.person.name }} ({{ d.member.student.person.userid }}{% if is_staff %}, {{ d.member.student.person.emplid }}{% endif %})</td>
   <td>{{ d.member.activity.name }}</td>
 </tr> 
 {% endfor %}

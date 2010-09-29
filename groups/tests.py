@@ -94,25 +94,28 @@ class GroupTest(TestCase):
 
         a1.due_date = datetime.datetime.now() - datetime.timedelta(days=1) # yesterday
         a1.save()
-        self.assertTrue("passed" in gm.student_editable())
+        self.assertTrue("passed" in gm.student_editable("0kvm"))
 
         a1.due_date = datetime.datetime.now() + datetime.timedelta(days=1) # tomorrow
         a1.save()
         gm = GroupMember.objects.get(group=g, student=m, activity=a1)
-        self.assertEqual(gm.student_editable(), '')
+        self.assertEqual(gm.student_editable("0kvm"), '')
+
+        # not member for this activity
+        self.assertTrue("not a member" in gm.student_editable("0aaa1"))
         
         # already graded
         gr = NumericGrade(activity=a1, member=m, value=1, flag="GRAD")
         gr.save()
-        self.assertTrue("grade" in gm.student_editable())
+        self.assertTrue("grade" in gm.student_editable("0kvm"))
         gr.flag="NOGR"
         gr.save()
-        self.assertEqual(gm.student_editable(), '')
+        self.assertEqual(gm.student_editable("0kvm"), '')
         
         # submission made
         s = GroupSubmission(group=g, creator=m, activity=a1)
         s.save()
-        self.assertTrue("submission" in gm.student_editable())
+        self.assertTrue("submission" in gm.student_editable("0kvm"))
         
 
     def test_group_student(self):

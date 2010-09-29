@@ -403,22 +403,36 @@ def invite(request, course_slug, group_slug):
         context = {'course': course, 'form': student_receiver_form}
         return render_to_response("groups/invite.html", context, context_instance=RequestContext(request))
 
-@requires_course_staff_by_slug
+@login_required
 def remove_student(request, course_slug, group_slug):
     course = get_object_or_404(CourseOffering, slug = course_slug)
     group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
     members = GroupMember.objects.filter(group = group).select_related('group', 'student', 'student__person', 'activity')
 
+    # check permissions
+    if is_course_staff_by_slug(request.user, course_slug):
+        is_staff = True
+    elif is_course_student_by_slug(request.user, course_slug):
+        is_staff = False
+        memberships = [m for m in members if m.student.person.userid == request.user.username]
+        if not memberships:
+            # student must be in this group
+            return HttpResponseForbidden()
+    else:
+        return HttpResponseForbidden()
+
     if request.method == "POST":
         for m in members:
             f = StudentForm(request.POST, prefix = m.student.person.userid + '_' + m.activity.slug)
-            if f.is_valid() and f.cleaned_data['selected'] == True:
+            if (is_staff or m.student_editable(request.user.username)=="") \
+                and f.is_valid() and f.cleaned_data['selected'] == True:
+            
                 m.delete()
 
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
-                description="deleted %s in group %s for %s." % (m.student.person.userid,group.name, m.activity),
-                related_object=m.student)
+                description="deleted %s in group %s for %s." % (m.student.person.userid, group.name, m.activity),
+                related_object=m.group)
                 l.save()
                 #LOG EVENT#
 
@@ -427,11 +441,15 @@ def remove_student(request, course_slug, group_slug):
     else:
         data = []
         for m in members:
-            f = StudentForm(prefix = m.student.person.userid + '_' + m.activity.slug)
-            data.append({'form': f, 'member': m})
+            editable = m.student_editable(request.user.username)
+            if is_staff or editable == "":
+                f = StudentForm(prefix = m.student.person.userid + '_' + m.activity.slug)
+                data.append({'form': f, 'member': m})
+            else:
+                data.append({'form': None, 'member': m, 'reason': editable})
 
         return render_to_response('groups/remove_student.html', \
-                          {'course':course, 'group' : group, 'data':data}, \
+                          {'course':course, 'group' : group, 'data':data, 'is_staff':is_staff}, \
                           context_instance = RequestContext(request))
 
 @requires_course_staff_by_slug

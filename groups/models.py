@@ -48,13 +48,18 @@ class GroupMember(models.Model):
         unique_together = ("student", "activity")
         ordering = ["student__person", "activity"]
 
-    def student_editable(self):
+    def student_editable(self, userid):
         """
-        Are students allowed to modify this membership?  Returns text reason for non-editable (or "" if allowed)
+        Is this student allowed to modify this membership?  Returns text reason for non-editable (or "" if allowed)
         """
+        # is student actually a member for this activity (i.e. must be part of group for assignment 3 to remove another for assignment 3)
+        user_membership = self.group.groupmember_set.filter(student__person__userid=userid, activity=self.activity)
+        if not user_membership:
+            return "you are not a member for " + self.activity.short_name
+        
         # if due date passed: not editable.
         if self.activity.due_date and self.activity.due_date < datetime.datetime.now():
-            return "due date has passed"
+            return "due date passed"
 
         # if student has a grade: not editable.
         if isinstance(self.activity, LetterActivity):
@@ -63,13 +68,13 @@ class GroupMember(models.Model):
             GradeClass = NumericGrade
         grades = GradeClass.objects.filter(activity=self.activity, member=self.student).exclude(flag="NOGR")
         if len(grades)>0:
-            return "grade already received for activity"
+            return "grade received"
         
         # if there has been a submission: not editable
         from submission.models import GroupSubmission
         subs = GroupSubmission.objects.filter(group=self.group, activity=self.activity)
         if len(subs) > 0:
-            return "a submission has already been made for activity"
+            return "submission made"
         
         return ""
 
