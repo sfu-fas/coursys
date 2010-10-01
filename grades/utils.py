@@ -188,7 +188,7 @@ def create_StudentActivityInfo_list(course, activity, student=None):
     if not isinstance(course, CourseOffering):
         raise TypeError(u'CourseOffering type is required')
     # verify if the course contains the activity
-    if not all_activities_filter(slug=activity.slug, offering=course):
+    if not Activity.objects.filter(slug=activity.slug, offering=course):
         return
     student_list = Member.objects.filter(offering=course, role='STUD')
     if student:

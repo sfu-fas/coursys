@@ -232,21 +232,26 @@ class CalLetterActivity(LetterActivity):
 # MUST have deepest subclasses first (i.e. nothing *after* a class is one of its subclasses)
 ACTIVITY_TYPES = [CalNumericActivity, NumericActivity, CalLetterActivity, LetterActivity]
 
-def all_activities_filter(**kwargs):
+def all_activities_filter(offering, slug=None):
     """
     Return all activities as their most specific class.
     
     This isn't pretty, but it will do the job.
     """
-    #key = "all_act_filt" +  '_'.join(k + "-" + str(kwargs[k]) for k in kwargs)
+    #key = "all_act_filt" + '_' + offering.slug
+    filter_args = {'offering':offering}
+    if slug:
+        filter_args['slug'] = slug
+        #key += "_" + slug
+
     #data = cache.get(key)
     #if data:
     #    return data
-
+    
     activities = [] # list of activities
     found = set() # keep track of what has been found so we can exclude less-specific duplicates.
     for ActivityType in ACTIVITY_TYPES:
-        acts = list(ActivityType.objects.filter(deleted=False, **kwargs).select_related('offering'))
+        acts = list(ActivityType.objects.filter(deleted=False, **filter_args).select_related('offering'))
         activities.extend( (a for a in acts if a.id not in found) )
         found.update( (a.id for a in acts) )
 
