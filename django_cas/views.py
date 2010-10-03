@@ -75,12 +75,20 @@ def login(request, next_page=None, required=False):
     service = _service_url(request, next_page)
     if ticket:
         from django.contrib import auth
+        from log.models import LogEntry
         user = auth.authenticate(ticket=ticket, service=service)
         if user is not None:
             auth.login(request, user)
             name = user.first_name or user.username
             message = "Login succeeded. Welcome, %s." % name
             user.message_set.create(message=message)
+
+            #LOG EVENT#
+            l = LogEntry(userid=user.username,
+                  description=("logged in as %s from %s") % (user.username, request.META['REMOTE_ADDR']),
+                  related_object=user)
+            l.save()
+
             return HttpResponseRedirect(next_page)
         elif settings.CAS_RETRY_LOGIN or required:
             return HttpResponseRedirect(_login_url(service))
