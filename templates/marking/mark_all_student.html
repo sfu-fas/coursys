@@ -54,6 +54,7 @@ $(document).ready(function() {
 <input type="submit" value="Import"/>
 </div>
 </form>
+<p class="helptext">Imported file must be CSV (comma-separated values).  First column can be either student number or userid; second column is the grade.  Other columns will be ignored.</p>
 {% if too_many %}
 <a class="redbutton reset_button" href="{% url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug %}">Reset</a>
 {% endif %}
