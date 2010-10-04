@@ -3,11 +3,26 @@
 {% block marking_header_extra %}
 <script type="text/javascript">
 //<![CDATA[
+    function mark_cmp(x,y) {
+      xn = parseFloat(x.split("/", 1), 10)
+      yn = parseFloat(y.split("/", 1), 10)
+      if (isNaN(xn) && isNaN(yn)) { return 0;
+      } else if (isNaN(xn)) { return 1;
+      } else if (isNaN(yn)) { return -1;
+      } else {
+        return ((xn < yn) ?  1 : ((xn > yn) ? -1 : 0));
+      }    
+    }
+    /* Define two custom functions (asc and desc) for string sorting */
+    jQuery.fn.dataTableExt.oSort['by-mark-asc']  = function(x,y) { return mark_cmp(x,y) };
+    jQuery.fn.dataTableExt.oSort['by-mark-desc'] = function(x,y) { return mark_cmp(y,x) };
+
 $(document).ready(function() {
 	var oTable = $('#all_marks').dataTable({
 		"bJQueryUI": true,
-		"bSort": false,
-		"bPaginate": false	/* turn off the pagination */
+		"bSort": true,
+		"bPaginate": false,	/* turn off the pagination */
+		"aoColumns": [null, null, null, { "sType": "by-mark" }, { "bSearchable": false, "bSortable": false }]
 	});		
 		
 	var oRows = oTable.fnGetNodes();
@@ -36,7 +51,7 @@ $(document).ready(function() {
 {% endif %} 
 <div>
 {{fileform.file}}
-<input type="submit" value="import"/>
+<input type="submit" value="Import"/>
 </div>
 </form>
 {% if too_many %}
@@ -52,6 +67,7 @@ $(document).ready(function() {
             <tr>
                 <th>Student Name</th>
 		<th>Student Number</th>
+		<th>User ID</th>
 		<th>Current Grade</th>
 		<th>New Grade</th>
 	    </tr>
@@ -63,6 +79,7 @@ $(document).ready(function() {
 		<td>{{ student.name }}</td>
 		{% with mark_row.form as form %}
 		<td>{{ student.emplid }}</td>
+		<td>{{ student.userid }}</td>
 		<td>{{ mark_row.current_grade }}</td>
 		<td>
 		{{ form.value }} / {{activity.max_grade}}
