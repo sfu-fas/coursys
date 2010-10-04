@@ -713,11 +713,11 @@ def export_csv(request, course_slug, activity_slug):
     response['Content-Disposition'] = 'attachment; filename=%s_%s.csv' % (course_slug, activity_slug,)
 
     writer = csv.writer(response)   
-    writer.writerow(['Student ID', 'Student Name', 'Grade'])
+    writer.writerow(['Student ID', 'User ID', 'Student Name', 'Grade'])
     
     student_members = Member.objects.filter(offering = course, role = 'STUD')
     for std in student_members:
-        row = [std.person.emplid, std.person.name()]
+        row = [std.person.emplid, std.person.userid, std.person.name()]
         try: 
             ngrade = NumericGrade.objects.get(activity = activity, member = std)                  
         except NumericGrade.DoesNotExist: #if the  NumericalGrade does not exist yet,
