@@ -76,7 +76,7 @@ $(document).ready(function() {
 	    {% for mark_row in mark_all_rows %}
 	    {% with mark_row.student as student %}
 	    <tr>
-		<td>{{ student.name }}</td>
+		<td>{{ student.sortname }}</td>
 		{% with mark_row.form as form %}
 		<td>{{ student.emplid }}</td>
 		<td>{{ student.userid }}</td>

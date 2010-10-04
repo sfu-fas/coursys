@@ -83,7 +83,7 @@ TEMPLATE_CONTEXT_PROCESSORS = ("django.core.context_processors.auth",
     )
 
 ROOT_URLCONF = 'courses.urls'
-INTERNAL_IPS = []
+INTERNAL_IPS = ['127.0.0.1']
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
