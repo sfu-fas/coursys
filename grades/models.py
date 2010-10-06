@@ -17,9 +17,9 @@ FLAG_CHOICES = [
 FLAGS = dict(FLAG_CHOICES)
 
 ACTIVITY_STATUS_CHOICES = [
-    ('RLS', 'released'),
-    ('URLS', 'unreleased'),
-    ('INVI', 'invisible') ]
+    ('RLS', 'grades released'),
+    ('URLS', 'grades not released to students'),
+    ('INVI', 'activity not visible to students') ]
 ACTIVITY_STATUS = dict(ACTIVITY_STATUS_CHOICES)
 
 LETTER_GRADE_CHOICES = [
@@ -267,8 +267,9 @@ class NumericGrade(models.Model):
     activity = models.ForeignKey(NumericActivity, null=False)
     member = models.ForeignKey(Member, null=False)
 
-    value = models.DecimalField(max_digits=5, decimal_places=2, default = 0, null=False)
+    value = models.DecimalField(max_digits=5, decimal_places=2, default=0, null=False)
     flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade', default = 'NOGR')
+    comment = models.TextField(null=True)
     
     def __unicode__(self):
         return "Member[%s]'s grade[%s] for [%s]" % (self.member.person.userid, self.value, self.activity)
@@ -284,6 +285,20 @@ class NumericGrade(models.Model):
             return ''
         else:
             return "%.2f" % (self.value)
+    
+    def display_with_percentage_student(self):
+        """
+        Display student grade with percentage from student view, e.g 12/15 (80.00%)
+        """
+        if self.activity.status == 'URLS':
+            return u'\u2014'
+        elif self.activity.status == "INVI":
+            raise RuntimeError, "Can't display invisible grade."
+        elif self.flag == "NOGR":
+            return u'\u2014'
+        else:
+            return '%s/%s (%.2f%%)' % (self.value, self.activity.max_grade, float(self.value)/float(self.activity.max_grade)*100)
+        
 
     def save(self, newsitem=True):
         super(NumericGrade, self).save()
@@ -295,21 +310,6 @@ class NumericGrade(models.Model):
                   % (self.activity.name, self.activity.get_absolute_url(), self.activity.offering.name()),
                 url=self.activity.get_absolute_url())
             n.save()
-     
-    def XXX_save_status_flag(self, new_flag, comment):
-        """
-        status changed, generate the news item, regardless the grade of released or not
-        """
-        self.flag = new_flag
-        super(NumericGrade, self).save()
-        # link to activity information page ?
-        info_url = reverse("grades.views.activity_info", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug})
-        n = NewsItem(user=self.member.person, author=None, course=self.activity.offering,
-            source_app="grades", title="%s grade status changed" % (self.activity.name), 
-            content = '"grade status changed to *{color:red}%s*":%s for %s in %s\nComment: %s' %
-                      (FLAGS[self.flag], info_url, self.activity.name, self.activity.offering.name(), comment),
-            url= info_url)
-        n.save()   
 
     def get_absolute_url(self):
         """        
@@ -333,6 +333,7 @@ class LetterGrade(models.Model):
     
     letter_grade = models.CharField(max_length=2, null=False, choices=LETTER_GRADE_CHOICES)
     flag = models.CharField(max_length=4, null=False, choices=FLAG_CHOICES, help_text='Status of the grade', default = 'NOGR')
+    comment = models.TextField(null=True)
     
     def __unicode__(self):
         return "Member[%s]'s letter grade[%s] for [%s]" % (self.member.person.userid, self.letter_grade, self.activity)
@@ -356,6 +357,10 @@ class LetterGrade(models.Model):
             
     class Meta:
         unique_together = (('activity', 'member'), )
+
+
+NumericActivity.GradeClass = NumericGrade
+LetterActivity.GradeClass = LetterGrade
 
 def neaten_activity_positions(course):
     """

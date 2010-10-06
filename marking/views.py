@@ -445,7 +445,7 @@ def change_grade_status(request, course_slug, activity_slug, userid):
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
                   description=("changed the grade of student %s to %s (%s) on %s.  Comment: '%s'") % 
-                              (userid, numeric_grade.value, FLAGS[numeric_grade.flag], activity, status_form.cleaned_data['comment']),
+                              (userid, numeric_grade.value, FLAGS[numeric_grade.flag], activity, numeric_grade.comment),
                   related_object=numeric_grade)
             l.save()
                 

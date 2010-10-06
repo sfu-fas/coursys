@@ -18,15 +18,15 @@
 {% endblock %}
 
 {% block actions %}
-{% if activityinfo.activity.submitable or activityinfo.activity.no_submit_too_old %}
+{% if activity.submitable or activity.no_submit_too_old %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-		{% if activityinfo.activity.submitable %}
-        <li><a href="{% url submission.views.show_components course.slug, activityinfo.activity.slug%}">Make Submission</a></li>
+		{% if activity.submitable %}
+        <li><a href="{% url submission.views.show_components course.slug, activity.slug%}">Make Submission</a></li>
 		{% else %}
-		{% if activityinfo.activity.no_submit_too_old %}
-        <li><a href="{% url submission.views.show_components course.slug, activityinfo.activity.slug%}">View Submission</a></li>
+		{% if activity.no_submit_too_old %}
+        <li><a href="{% url submission.views.show_components course.slug, activity.slug%}">View Submission</a></li>
 		{% endif %}
 		{% endif %}
     </ul>
@@ -51,72 +51,58 @@
                 <td>{% if activity.percent %}{{activity.percent}}%{% else %}unknown{% endif %}</td>
             </tr>
             
-            {% ifequal activity.status "RLS" %}
-            
             <tr>
-            	<th class="ui-state-default">Grade Status</th>
-                <td>{{activityinfo.grade_status}}</td>
+                <th class="ui-state-default">Grade Status</th>
+                <td>{{grade.get_flag_display}}</td>
             </tr>
             <tr>
                 <th class="ui-state-default">Your Grade</th>
                 <td>
-		{% if activity.calnumericactivity %}
-		{{ activityinfo.display_grade_with_percentage_student }}
-		{% else %}
-		    {% ifnotequal activityinfo.grade_status 'no grade' %} 
-		      <a href="{% url marking.views.mark_summary_student course_slug=course.slug activity_slug=activity.slug userid=activityinfo.student.person.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
-		    {% endifnotequal %}
-		    {{ activityinfo.display_grade_with_percentage_student }}
-		{% endif %}
+               {{ grade.display_with_percentage_student }}
+               {% ifnotequal grade.flag 'NOGR' %} 
+               {% ifnotequal grade.flag 'CALC' %} 
+               [<a href="{% url marking.views.mark_summary_student course_slug=course.slug activity_slug=activity.slug userid=grade.member.person.userid %}">Additional Marking Details</a>]
+               {% endifnotequal %}
+               {% endifnotequal %}
                 </td>
             </tr>
+            {% if grade.comment %} 
+            <tr>
+            	<th class="ui-state-default">Grade Comment</th>
+                <td>{{grade.comment|linebreaks}}</td>
+            </tr>
+            {% endif %}
 
-            {% else %}
-            
-            <tr>
-            	<th class="ui-state-default">Grade Status</th>
-                <td>no grade</td>
-            </tr>
-            <tr>
-                <th class="ui-state-default">Your Grade</th>
-                <td>
-		{{ activityinfo.display_grade_with_percentage_student }}
-                </td>
-            </tr>
-            
-            {% endifequal %}
         </tbody>
     </table>
 </div>
 
-{% if display_summary %}
 
-{% if activityinfo.activity_stat %}
+{% if activity_stat %}
 <h2 id="summary">Summary Statistics</h2>
-
 
 <div class="table_container">
     <table class="info">
         <tbody>
             <tr>
                 <th class="ui-state-default">Mean Grade</th>
-                <td>{{ activityinfo.activity_stat.average }}</td>
+                <td>{{ activity_stat.average }}</td>
             </tr>
             <tr>
                 <th class="ui-state-default">Median Grade</th>
-                <td>{{ activityinfo.activity_stat.median }}</td>
+                <td>{{ activity_stat.median }}</td>
             </tr>
             <tr>
                 <th class="ui-state-default">Standard Deviation</th>
-                <td>{{ activityinfo.activity_stat.stddev }}</td>
+                <td>{{ activity_stat.stddev }}</td>
             </tr>
             <tr>
                 <th class="ui-state-default">Minimum Grade</th>
-                <td>{{ activityinfo.activity_stat.min }}</td>
+                <td>{{ activity_stat.min }}</td>
             </tr>
             <tr>
                 <th class="ui-state-default">Maximum Grade</th>
-                <td>{{ activityinfo.activity_stat.max }}</td>
+                <td>{{ activity_stat.max }}</td>
             </tr>
         </tbody>
     </table>
@@ -129,21 +115,20 @@
     <thead>
 	<tr>
 	    <td></td>
-	    {% for grade_range_stat in activityinfo.activity_stat.grade_range_stat_list %}
+	    {% for grade_range_stat in activity_stat.grade_range_stat_list %}
 	    <th scope="col">{{ grade_range_stat.grade_range }}</th>
 	    {% endfor %}
 	</tr>
     </thead>
     <tbody>
 	<tr>
-	    <th scope="row">{{ activityinfo.activity.name }}</th>
-	    {% for grade_range_stat in activityinfo.activity_stat.grade_range_stat_list %}
+	    <th scope="row">{{ activity.name }}</th>
+	    {% for grade_range_stat in activity_stat.grade_range_stat_list %}
 	    <td>{{ grade_range_stat.stud_count }}</td>
 	    {% endfor %}
 	</tr>
     </tbody>
 </table>
-{% endif %}
 {% else %}
 <p class="empty">{{ reason_msg }}</p>
 {% endif %}

@@ -167,24 +167,29 @@ def _activity_info_student(request, course_slug, activity_slug):
     if activity.status=="INVI":
         return NotFoundResponse(request)
 
+    student = Member.objects.get(offering=course, person__userid=request.user.username, role='STUD')
+    grade = (activity.GradeClass).objects.filter(activity=activity, member=student)
+    if activity.status != "RLS" or not grade:
+        # shouldn't display or nothing in database: create temporary nograde object for the template
+        grade = (activity.GradeClass)(activity=activity, member=student, flag="NOGR")
+    else:
+        grade = grade[0]
+    
     # only display summary stats for courses with at least STUD_NUM_TO_DISP_ACTSTAT students
     student_count = Member.objects.filter(offering=course, role="STUD").count()
     display_summary = student_count >= STUD_NUM_TO_DISP_ACTSTAT and activity.status=="RLS"
-    
-    student = Member.objects.get(offering=course, person__userid=request.user.username, role='STUD')
-    activityinfo = create_StudentActivityInfo_list(course, activity, student=student)[0]
-    
     reason_msg = ''
     if display_summary:
-        activityinfo.append_activity_stat()
+        activity_stat = generate_numeric_activity_stat(activity)
     else:
+        activity_stat = None
         if student_count < STUD_NUM_TO_DISP_ACTSTAT:
             reason_msg = 'Summary statistics disabled for small classes.'
         elif activity.status != 'RLS':
             reason_msg = 'Summary statistics disabled for unreleased activities.'
 
-    context = {'course': course, 'activity': activity, 'activityinfo': activityinfo,
-               'display_summary': display_summary, 'reason_msg': reason_msg}
+    context = {'course': course, 'activity': activity, 'grade': grade,
+               'activity_stat': activity_stat, 'reason_msg': reason_msg}
     return render_to_response('grades/activity_info_student.html', context, context_instance=RequestContext(request))
 
 
