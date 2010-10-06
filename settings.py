@@ -83,7 +83,7 @@ TEMPLATE_CONTEXT_PROCESSORS = ("django.core.context_processors.auth",
     )
 
 ROOT_URLCONF = 'courses.urls'
-INTERNAL_IPS = ['127.0.0.1']
+INTERNAL_IPS = []
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -100,6 +100,7 @@ INSTALLED_APPS = (
     'django.contrib.markup',
     #'django.contrib.messages',
     'contrib.messages', # temp: replace with above after 1.2 release
+    'south',
     'coredata',
     'dashboard',
     'grades',
@@ -107,7 +108,6 @@ INSTALLED_APPS = (
     'log',
     'groups',
     'submission',
-    #'south',
 
     # for orientation project only
     #'advisors_A',
