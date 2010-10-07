@@ -217,6 +217,7 @@ def generate_activity_zip(activity):
         slug = s.file_slug()
         if slug not in submissions_by_person:
             submissions_by_person[slug] = []
+        subs = submissions_by_person[slug]
         subs.append(s)
     
     component_list = select_all_components(activity)
