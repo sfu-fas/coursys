@@ -150,8 +150,15 @@ def _activity_info_staff(request, course_slug, activity_slug):
     elif isinstance(activity, LetterActivity):
         activity_type = ACTIVITY_TYPE['LG']
 
+    # collect group membership info
+    group_membership = {}
+    if activity.group:
+        gms = GroupMember.objects.filter(activity=activity, confirmed=True).select_related('group', 'student__person')
+        for gm in gms:
+            group_membership[gm.student.person.userid] = gm.group
+
     context = {'course': course, 'activity_type': activity_type, 'activity': activity,
-               'activity_view_type': ACTIVITY_VIEW_TYPE['I'],
+               'activity_view_type': ACTIVITY_VIEW_TYPE['I'], 'group_membership': group_membership,
                'student_grade_info_list': student_grade_info_list, 'from_page': FROMPAGE['activityinfo']}
     return render_to_response('grades/activity_info.html', context, context_instance=RequestContext(request))
 

@@ -76,3 +76,14 @@ def display_form_as_row(form, arg=None):
     
     return mark_safe('\n'.join(output)) 
 
+
+# from http://stackoverflow.com/questions/35948/django-templates-and-variable-attributes
+from django.template import Variable, VariableDoesNotExist
+@register.filter
+def hash(object, attr):
+    pseudo_context = { 'object' : object }
+    try:
+        value = Variable('object.%s' % attr).resolve(pseudo_context)
+    except VariableDoesNotExist:
+        value = None
+    return value
