@@ -196,6 +196,11 @@ def generate_activity_zip(activity):
     """
     Return a zip file with all (current) submissions for the activity
     """
+    LOGFILE = open("/tmp/ziplog", "a")
+    LOGFILE.write("==============================================================")
+    LOGFILE.write("activity: "+str(activity))
+    LOGFILE.write("\n")
+    
     handle, filename = tempfile.mkstemp('.zip')
     os.close(handle)
     z = zipfile.ZipFile(filename, 'w')
@@ -218,8 +223,11 @@ def generate_activity_zip(activity):
     component_list = select_all_components(activity)
     # now collect submitted components
     for slug in submissions_by_person:
+        LOGFILE.write("slug:"+slug+"\n")
         submission = submissions_by_person[slug]
+        LOGFILE.write("  subs: "+str(submission)+"\n")
         submitted_components = get_all_submission_components(submission, activity, component_list=component_list)
+        LOGFILE.write("  comp: "+str(submitted_components)+"\n")
         _add_submission_to_zip(z, submission[-1], submitted_components, prefix=slug)
     
     z.close()
