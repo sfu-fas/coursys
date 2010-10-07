@@ -197,7 +197,7 @@ def generate_activity_zip(activity):
     Return a zip file with all (current) submissions for the activity
     """
     LOGFILE = open("/tmp/ziplog", "a")
-    LOGFILE.write("==============================================================")
+    LOGFILE.write("==============================================================\n")
     LOGFILE.write("activity: "+str(activity))
     LOGFILE.write("\n")
     
@@ -216,9 +216,8 @@ def generate_activity_zip(activity):
     for s in submissions:
         slug = s.file_slug()
         if slug not in submissions_by_person:
-            subs = []
+            submissions_by_person[slug] = []
         subs.append(s)
-        submissions_by_person[slug] = subs
     
     component_list = select_all_components(activity)
     # now collect submitted components
