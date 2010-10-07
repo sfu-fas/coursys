@@ -35,6 +35,7 @@ def index(request):
     today = datetime.date.today()
     past1 = today.replace(year=today.year-1) # 1 year ago
     past2 = today.replace(year=today.year-2) # 2 years ago
+    past_1mo = datetime.datetime.today() - datetime.timedelta(days=30) # 1 month ago
 
     memberships = Member.objects.exclude(role="DROP").exclude(offering__component="CAN") \
             .filter(offering__graded=True, person__userid=userid) \
@@ -43,7 +44,7 @@ def index(request):
             .select_related('offering','offering__semester')
     memberships = [m for m in memberships if _display_membership(m, today, past1)]
 
-    news_list = NewsItem.objects.filter(user__userid=userid).order_by('-updated').select_related('course')[:5]
+    news_list = NewsItem.objects.filter(user__userid=userid, updated__gte=past_1mo).order_by('-updated').select_related('course')[:5]
 
     context = {'memberships': memberships ,'news_list': news_list}
     return render_to_response("dashboard/index.html",context ,context_instance=RequestContext(request))

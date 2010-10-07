@@ -41,6 +41,9 @@ class NewsItem(models.Model):
     url = models.URLField(blank=True,verify_exists=False, help_text='absolute URL for the item: starts with "http://" or "/"')
     
     read = models.BooleanField(default=False, help_text="The user has marked the story read")
+    
+    def __unicode__(self):
+        return '"%s" for %s' % (self.title, self.user.userid)
 
     def content_xhtml(self):
         """
