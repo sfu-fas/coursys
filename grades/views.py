@@ -16,7 +16,7 @@ from grades.utils import StudentActivityInfo, reorder_course_activities, create_
 from grades.utils import ValidationError, parse_and_validate_formula, calculate_numeric_grade
 from marking.models import get_group_mark
 from groups.models import *
-from submission.models import get_current_submission
+from submission.models import GroupSubmission, StudentSubmission, get_current_submission
 from log.models import LogEntry
 from contrib import messages
 import pickle
@@ -157,9 +157,23 @@ def _activity_info_staff(request, course_slug, activity_slug):
         for gm in gms:
             group_membership[gm.student.person.userid] = gm.group
 
+    # collect submission status
+    submitted = {}
+    if activity.group:
+        subs = GroupSubmission.objects.filter(activity=activity).select_related('group')
+        for s in subs:
+            members = s.group.groupmember_set.filter(activity=activity)
+            for m in members:
+                submitted[m.student.person.userid] = True
+    else:
+        subs = StudentSubmission.objects.filter(activity=activity)
+        for s in subs:
+            submitted[s.member.person.userid] = True
+    
     context = {'course': course, 'activity_type': activity_type, 'activity': activity,
                'activity_view_type': ACTIVITY_VIEW_TYPE['I'], 'group_membership': group_membership,
-               'student_grade_info_list': student_grade_info_list, 'from_page': FROMPAGE['activityinfo']}
+               'student_grade_info_list': student_grade_info_list, 'from_page': FROMPAGE['activityinfo'],
+               'submitted': submitted}
     return render_to_response('grades/activity_info.html', context, context_instance=RequestContext(request))
 
 
@@ -208,6 +222,9 @@ def activity_info_with_groups(request, course_slug, activity_slug):
         return NotFoundResponse(request)
     
     activity = activities[0]
+    if not activity.group:
+        return NotFoundResponse(request)
+
     # build list of group grades information
     all_members = GroupMember.objects.select_related('group', 'student__person').filter(activity = activity, confirmed = True)
     groups_found = {}
@@ -229,6 +246,12 @@ def activity_info_with_groups(request, course_slug, activity_slug):
             group_grade_info['members'].append(student)
     
     ungrouped_students = Member.objects.filter(offering = course, role = 'STUD').count() - grouped_students 
+
+    # collect submission status
+    submitted = {}
+    subs = GroupSubmission.objects.filter(activity=activity).select_related('group')
+    for s in subs:
+        submitted[s.group.slug] = True
     
     if isinstance(activity, NumericActivity):
         activity_type = ACTIVITY_TYPE['NG']
@@ -238,7 +261,8 @@ def activity_info_with_groups(request, course_slug, activity_slug):
     context = {'course': course, 'activity_type': activity_type, 
                'activity': activity, 'ungrouped_students': ungrouped_students,
                'activity_view_type': ACTIVITY_VIEW_TYPE['G'],
-               'group_grade_info_list': groups_found.values(), 'from_page': FROMPAGE['activityinfo_group']}
+               'group_grade_info_list': groups_found.values(), 'from_page': FROMPAGE['activityinfo_group'],
+               'submitted': submitted}
     return render_to_response('grades/activity_info_with_groups.html', context, context_instance=RequestContext(request))
 
 @requires_course_staff_by_slug
@@ -456,7 +480,6 @@ def calculate_individual_ajax(request, course_slug, activity_slug):
             return ForbiddenResponse(request)
         except NotImplementedError:
             return ForbiddenResponse(request)
-        print displayable_result
         return HttpResponse(displayable_result)
     return ForbiddenResponse(request)
 
@@ -645,7 +668,6 @@ def all_grades(request, course_slug):
         for g in gs:
             grades[a.slug][g.member.person.userid] = g
     
-    #print grades
     context = {'course': course, 'students': students, 'activities': activities, 'grades': grades}
     return render_to_response('grades/all_grades.html', context, context_instance=RequestContext(request))
 

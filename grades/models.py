@@ -122,7 +122,14 @@ class Activity(models.Model):
         Returns True if this activity is not submittable because it is too old
         """
         now = datetime.now()
-        return now - self.due_date <= timedelta(days=30)    
+        return now - self.due_date <= timedelta(days=30)
+    
+    def SubmissionClass(self):
+        from submission.models import StudentSubmission, GroupSubmission
+        if self.group:
+            return GroupSubmission
+        else:
+            return StudentSubmission
 
 
 class NumericActivity(Activity):

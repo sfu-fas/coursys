@@ -225,30 +225,4 @@ class SubmissionTest(TestCase):
         self.assertContains(response, "This is a group submission. You will submit on behalf of the group Test Group.")
         self.assertContains(response, "You haven't made a submission for this component.")
 
-        return
-
-        #add submission for test group in assignment 1 by "0aaa0" and "0aaa1"
-        gs = GroupSubmission(group=g, creator=Member.objects.get(person__userid=userid1, offering=course), activity=a1)
-        gs.save()
-        s = SubmittedArchive(component=c2, archive=File(), submission=gs)
-        s.save()
-        gs = GroupSubmission(group=g, creator=Member.objects.get(person__userid=userid2, offering=course), activity=a1)
-        gs.save()
-        s = SubmittedArchive(component=c2, archive=File(), submission=gs)
-        s.save()
-        
-
-        # submission page for assignment 1 login as "0aaa0"
-        url = reverse('submission.views.show_components', kwargs={'course_slug': course.slug,'activity_slug':a1.slug})
-        response = basic_page_tests(self, client, url)
-        self.assertContains(response, "You have made submission to this component.")
-        self.aasertContains(response, "Student, B")
-
-        # submission page for assignment 1 login as "0aaa2"
-        client.login(ticket = "0aaa2", service = CAS_SERVICE_URL)
-        url = reverse('submission.views.show_components', kwargs={'course_slug': course.slug,'activity_slug':a1.slug})
-        response = basic_page_tests(self, client, url)
-        self.assertContains(response, "You haven't made a submission for this component.")
-        
-
 

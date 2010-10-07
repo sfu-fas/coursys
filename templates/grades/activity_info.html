@@ -226,8 +226,8 @@
 		</td>
 		{% if not activity.calnumericactivity %}
 		<td>
-		    <a href="{% url submission.views.show_student_submission_staff course_slug=course.slug activity_slug=activity.slug userid=student.person.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View" alt="View" /></a>
-		    <a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=student.person.userid %}"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="Download" alt="Download" /></a>
+		    {% if submitted|hash:student.person.userid %}<a href="{% url submission.views.show_student_submission_staff course_slug=course.slug activity_slug=activity.slug userid=student.person.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View" alt="View" /></a>
+		    <a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=student.person.userid %}"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="Download" alt="Download" /></a>{% endif %}
 		</td>
 		{% endif %}
 	    </tr>

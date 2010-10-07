@@ -1,4 +1,5 @@
 {% extends "grades/activity_info.html" %}
+{% load course_display %}
 
 {% block grades_headextra %}
 <script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
@@ -71,8 +72,8 @@
 			{% endifequal %}	
 			</td>
 			<td>
-			    <a href="{% url submission.views.show_student_submission_staff course_slug=course.slug activity_slug=activity.slug userid=group_grade_info.members.0.person.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View" alt="View" /></a>
-                <a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=group_grade_info.members.0.person.userid %}"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="Download" alt="Download" /></a>
+			{% if submitted|hash:group.slug %}<a href="{% url submission.views.show_student_submission_staff course_slug=course.slug activity_slug=activity.slug userid=group_grade_info.members.0.person.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View" alt="View" /></a>
+                <a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=group_grade_info.members.0.person.userid %}"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="Download" alt="Download" /></a>{% endif %}
 			</td>
 			{% endwith %}
 		    </tr>
