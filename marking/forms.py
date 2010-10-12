@@ -20,9 +20,7 @@ class ActivityMarkForm(ModelForm):
     def clean_late_penalty(self):  
         late_penalty = self.cleaned_data['late_penalty']
         if late_penalty:
-            if late_penalty < 0:          
-                raise forms.ValidationError(u'The late penalty can not be negative')
-            elif late_penalty > 100:
+            if late_penalty > 100:
                 raise forms.ValidationError(u'The late penalty can not exceed 100 percent')
         return late_penalty
     

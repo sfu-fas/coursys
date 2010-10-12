@@ -109,7 +109,8 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-	<li><a href="{% url grades.views.all_grades course_slug=course.slug %}">Display All Grades</a></li>
+        <li><a href="{% url grades.views.add_numeric_activity course_slug=course.slug %}">Add Activity</a></li>
+        <li><a href="{% url grades.views.all_grades course_slug=course.slug %}">Display All Grades</a></li>
 	{% if any_group %}<li><a href="{% url groups.views.groupmanage course_slug=course.slug %}">Manage Groups</a></li>{% endif %}
 	<li><a href="{% url dashboard.views.new_message course_slug=course.slug %}">Message Class</a></li>
 	<li><a href="{% url marking.views.copy_course_setup course_slug=course.slug %}">Copy Course Setup</a></li>
@@ -162,9 +163,6 @@
 
 <div class="datatable_container">
     <h2>Course Activities</h2>
-    <div class="buttongroup">
-	<a class="redbutton" href="{% url grades.views.add_numeric_activity course_slug=course.slug %}">Add Activity</a>
-    </div>
     <table class="display" id="activities">
         <thead>
             <tr>

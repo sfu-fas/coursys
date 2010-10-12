@@ -66,6 +66,7 @@ class Activity(models.Model):
     position = models.PositiveSmallIntegerField(help_text="The order of displaying course activities.")
     group = models.BooleanField(null=False, default=False)
     deleted = models.BooleanField(null = False, db_index = True, default=False)
+    url = models.URLField(verify_exists=True, null=True)
     
     offering = models.ForeignKey(CourseOffering)
 
