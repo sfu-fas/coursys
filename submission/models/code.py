@@ -25,6 +25,7 @@ CODE_TYPES = [
     (".js", "Javascript (.js)"),
     (".cs", "C# (.cs)"),
     (".inc", "HC11 Source (.inc)"),
+    (".cct", "Designworks Circuit (.cct)"),
 ]
 
 class CodeComponent(SubmissionComponent):
