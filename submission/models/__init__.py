@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404
 from django.core.servers.basehttp import FileWrapper
 import zipfile
 import tempfile
-import os, gzip
+import os, gzip, StringIO, csv
 from django.http import HttpResponse
 
 from base import SubmissionComponent, Submission, StudentSubmission, GroupSubmission, SubmittedComponent
@@ -216,12 +216,26 @@ def generate_activity_zip(activity):
         subs.append(s)
     
     component_list = select_all_components(activity)
-    # now collect submitted components
+    sub_time = {} # submission times for summary
+    # now collect submitted components (and last-submission times for summary)
     for slug in submissions_by_person:
         submission = submissions_by_person[slug]
+        last_sub = max([s.created_at for s in submission])
+        sub_time[slug] = last_sub
         submitted_components = get_all_submission_components(submission, activity, component_list=component_list)
         _add_submission_to_zip(z, submission[-1], submitted_components, prefix=slug)
     
+    # produce summary of submission datetimes
+    slugs = sub_time.keys()
+    slugs.sort()
+    summarybuffer = StringIO.StringIO()
+    summarycsv = csv.writer(summarybuffer)
+    summarycsv.writerow(["Userid", "Last Submission"])
+    for s in slugs:
+        summarycsv.writerow([s, sub_time[s].strftime("%Y/%m/%d %H:%M:%S")])
+    z.writestr("summary.csv", summarybuffer.getvalue())
+    summarybuffer.close()
+
     z.close()
 
     file = open(filename, 'rb')
