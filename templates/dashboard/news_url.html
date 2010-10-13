@@ -18,7 +18,7 @@ Activating the external news feed may cause privacy concerns.  You will be given
 <li>Your feed can be deactivated or be moved to a different URL at any time.</li>
 </ul>
 
-<form action="{% url dashboard.views.create_news_url %}" method="post">
+<form action="{% url dashboard.views.create_news_url %}" method="post">{% csrf_token %}
     {% for field in form.visible_fields %}
         <div class="field">
             {{ field }} I agree to activate the external news feed and be responsible for its privacy.

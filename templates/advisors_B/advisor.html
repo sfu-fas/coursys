@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-<form name ="input" action ="/advisors_B/searchresult" method = "post">
+<form name="input" action="/advisors_B/searchresult" method="post">{% csrf_token %}
       search:
-      <input type =" "text" name = "search_content" />
+      <input type ="text" name = "search_content" />
       <input type = "submit" value ="Submit" />
 </from>
 {% endblock %}

@@ -66,6 +66,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     #'django.contrib.messages.middleware.MessageMiddleware',
     'contrib.messages.middleware.MessageMiddleware', # temp: replace with above after 1.2 release
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django_cas.middleware.CASMiddleware',
     #'throttle.CacheThrottler',

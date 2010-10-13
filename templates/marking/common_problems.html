@@ -60,7 +60,7 @@
 
 {% block content %}
 
-<form action="" method="post">
+<form action="" method="post">{% csrf_token %}
      <div class = "datatable_container">
        {{ formset.management_form }} 
        <table class="display" id="common_problems">

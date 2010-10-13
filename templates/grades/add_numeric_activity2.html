@@ -38,7 +38,7 @@ $(document).ready(function() {
 </ul>
 <div id="activity_form_container">
     {{form|error_note}}
-    <form action="{% url grades.views.add_numeric_activity course_slug=course.slug %}" method="post">
+    <form action="{% url grades.views.add_numeric_activity course_slug=course.slug %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Activity Info</legend>
             {{form|display_form}}

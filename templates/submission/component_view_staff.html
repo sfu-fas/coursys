@@ -14,7 +14,7 @@
         No components configured.
     </p>
 {% else %}
-    <form action="" method="post">
+    <form action="" method="post">{% csrf_token %}
     {% for component in component_list %}
     <fieldset>
         <legend>{{component.title}}</legend>

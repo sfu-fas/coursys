@@ -10,12 +10,12 @@
 This news item will be sent to all members of {{course.name}} ({{course.semester.label}}).
 </p>
 
-<form action="{% url dashboard.views.new_message course_slug=course.slug %}" method="POST", enctype="multipart/form-data">
+<form action="{% url dashboard.views.new_message course_slug=course.slug %}" method="post" enctype="multipart/form-data">{% csrf_token %}
 <fieldset>
 <legend>New Message</legend>
 {{form.as_p}}
 </fieldset>
-<a class = "redbutton reset_button" href="{% url dashboard.views.new_message course.slug %}" >Reset</a>
+<a class="redbutton reset_button" href="{% url dashboard.views.new_message course.slug %}">Reset</a>
 <input class="submit" type="submit" value="Save" />
 </form>
 

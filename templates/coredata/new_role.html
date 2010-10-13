@@ -4,7 +4,7 @@
 
 {% block content %}
 
-<form action="{% url coredata.views.new_role %}" method="post">
+<form action="{% url coredata.views.new_role %}" method="post">{% csrf_token %}
 {{ form.as_p }}
 <p><input type="submit" value="Submit" /></p>
 </form>

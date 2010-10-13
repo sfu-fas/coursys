@@ -8,7 +8,7 @@
 {% block content %}
 {% if is_staff %}{% else %}<p>Please be careful with this form: it can be difficult to re-add students to groups.</p>{% endif %}
 <h2>Select students to remove:</h2>
-<form action="{% url groups.views.remove_student course_slug=course.slug, group_slug=group.slug  %}" method="post">
+<form action="{% url groups.views.remove_student course_slug=course.slug, group_slug=group.slug  %}" method="post">{% csrf_token %}
 <div class="table_container"> 
 <table class="display" id="students">
 <thead>
