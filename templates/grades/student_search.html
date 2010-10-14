@@ -1,0 +1,17 @@
+{% extends "grades/base.html" %}
+{% load grade_student %}
+
+{% block title %}Student Search{% endblock %}
+{% block h1 %}Student Search{% endblock %}
+
+{% block grades_headextra %}{% endblock %}
+{% block actions %}{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li>&gt; Student Search</li>{% endblock %}
+
+{% block content %}
+<form action="" method="post">{% csrf_token %}
+{{form.as_p}}
+<p><input class="submit" type="submit" value="Submit" /></p>
+</form>
+{% endblock %}
