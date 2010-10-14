@@ -179,3 +179,6 @@ class FormulaFormEntry(forms.Form):
                     self.pickled_formula = pickle.dumps(parsed_expr)
         return formula
 
+class StudentSearchForm(forms.Form):
+    search = forms.CharField(label="Userid or student number",
+             widget=forms.TextInput(attrs={'size':'15'}))

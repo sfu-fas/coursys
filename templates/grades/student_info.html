@@ -62,7 +62,7 @@
         <tbody>
             {% for info in grade_info %}
             <tr>
-              <td scope="row">{{info.act.name}}</td>
+              <td scope="row"><a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=info.act.slug %}">{{info.act.name}}</a></td>
               {% if info.grade %}
               <td>
               {{info.grade.get_flag_display}}

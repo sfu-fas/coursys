@@ -3,13 +3,14 @@ from django.http import HttpResponseRedirect, Http404, HttpResponseForbidden, Ht
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
+from django.db.models import Q
 from django.db.models.aggregates import Max
 from coredata.models import Member, CourseOffering, Person, Role
 from courselib.auth import *
 from grades.models import ACTIVITY_STATUS, all_activities_filter, Activity, \
                         NumericActivity, LetterActivity, CalNumericActivity, ACTIVITY_TYPES
 from grades.forms import NumericActivityForm, LetterActivityForm, CalNumericActivityForm, \
-                         ActivityFormEntry, FormulaFormEntry, FORMTYPE, GROUP_STATUS_MAP
+                         ActivityFormEntry, FormulaFormEntry, StudentSearchForm, FORMTYPE, GROUP_STATUS_MAP
 from grades.models import *
 from grades.utils import StudentActivityInfo, reorder_course_activities, create_StudentActivityInfo_list, \
                         ORDER_TYPE, FormulaTesterActivityEntry, FakeActivity, generate_numeric_activity_stat
@@ -710,6 +711,42 @@ def all_grades_csv(request, course_slug):
         
         
     return response
+
+@requires_course_staff_by_slug
+def student_search(request, course_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    if request.method == 'POST':
+        # find the student if we can and redirect to info page
+        form = StudentSearchForm(request.POST)
+        if not form.is_valid():
+            messages.add_message(request, messages.ERROR, 'Invalid search')
+            context = {'course': course, 'form': form}
+            return render_to_response('grades/student_search.html', context, context_instance=RequestContext(request))
+
+        search = form.cleaned_data['search']
+        try:
+            int(search)
+            students = Member.objects.filter(offering=course, role="STUD").filter(Q(person__userid=search) | Q(person__emplid=search))
+        except ValueError:
+            students = Member.objects.filter(offering=course, role="STUD").filter(person__userid=search)
+        
+        if len(students)!=1:
+            if len(students)==0:
+                messages.add_message(request, messages.ERROR, 'No student found')
+            else:
+                messages.add_message(request, messages.ERROR, 'Multiple students found')
+            context = {'course': course, 'form': form}
+            return render_to_response('grades/student_search.html', context, context_instance=RequestContext(request))
+
+        student = students[0]
+        return HttpResponseRedirect(reverse('grades.views.student_info',
+                                                kwargs={'course_slug': course_slug, 'userid': student.person.userid}))
+
+
+    form = StudentSearchForm()
+    context = {'course': course, 'form': form}
+    return render_to_response('grades/student_search.html', context, context_instance=RequestContext(request))
+    
 
 @requires_course_staff_by_slug
 def student_info(request, course_slug, userid):
