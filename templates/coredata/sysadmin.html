@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Course Management System Administration{% endblock %}
+{% block h1 %}Course Management System Administration{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; System Admin</li>{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+	    <li><a href="{% url log.views.index %}">View Logs</a></li>
+	    <li><a href="{% url coredata.views.role_list %}">Manage Roles</a></li>
+	    <li><a href="{% url coredata.views.members_list %}">Manage Memberships</a></li>
+    </ul>
+</div>
+{% endblock %}
+{% block content %}
+
+{% endblock %}

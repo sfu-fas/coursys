@@ -7,19 +7,9 @@ from courselib.auth import *
 from coredata.models import *
 from django.core.urlresolvers import reverse
 
-#@requires_role("SYSA")
-#def importer(request):
-#    """
-#    Run the data importer.
-#    """
-#    raise NotImplemented
-#    if request.method == 'POST':
-#        form = ImportForm(request.POST)
-#        if form.is_valid():
-#           return HttpResponse('thanks')
-#    else:
-#        form = ImportForm()
-#    return render_to_response('coredata/form.html', {'form': form}, context_instance=RequestContext(request))
+@requires_role("SYSA")
+def sysadmin(request):
+    return render_to_response('coredata/sysadmin.html', {}, context_instance=RequestContext(request))
 
 @requires_role("SYSA")
 def role_list(request):
@@ -42,5 +32,30 @@ def new_role(request, role=None):
 
     return render_to_response('coredata/new_role.html', {'form': form}, context_instance=RequestContext(request))
 
+
+@requires_role("SYSA")
+def members_list(request):
+    members = Member.objects.exclude(added_reason="AUTO")
+    return render_to_response('coredata/members_list.html', {'members': members}, context_instance=RequestContext(request))
+
+
+@requires_role("SYSA")
+def edit_member(request, member_id=None):
+    if member_id:
+        member = get_object_or_404(Member, id=member_id)
+    else:
+        member = None
+
+    if request.method == 'POST':
+        form = MemberForm(request.POST, instance=member)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse(members_list))
+    elif member_id:
+        form = MemberForm(instance=member, initial={'person': member.person.userid})
+    else:
+        form = MemberForm()
+
+    return render_to_response('coredata/edit_member.html', {'form': form, 'member': member}, context_instance=RequestContext(request))
 
 

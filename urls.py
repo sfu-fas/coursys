@@ -13,8 +13,6 @@ urlpatterns = patterns('',
     url(r'^login/$', 'django_cas.views.login'),
     url(r'^logout/$', 'django_cas.views.logout', {'next_page': '/'}),
 
-    url(r'^log/$', 'log.views.index'),
-
     url(r'^$', 'dashboard.views.index'),
     url(r'^' + 'news/$', 'dashboard.views.news_list'),
     url(r'^' + 'news/configure$', 'dashboard.views.news_config'),
@@ -89,8 +87,13 @@ urlpatterns = patterns('',
     url(r'^' + COURSE_ACTIVITY_SLUG + '/csv$', 'marking.views.export_csv'),
     url(r'^' + COURSE_SLUG + '/_copysetup/$', 'marking.views.copy_course_setup'),
 
-    url(r'^roles/$', 'coredata.views.role_list'),
-    url(r'^roles/new$', 'coredata.views.new_role'),
+    url(r'^sysadmin/$', 'coredata.views.sysadmin'),
+    url(r'^sysadmin/log/$', 'log.views.index'),
+    url(r'^sysadmin/roles/$', 'coredata.views.role_list'),
+    url(r'^sysadmin/roles/new$', 'coredata.views.new_role'),
+    url(r'^sysadmin/members/$', 'coredata.views.members_list'),
+    url(r'^sysadmin/members/new$', 'coredata.views.edit_member'),
+    url(r'^sysadmin/members/(?P<member_id>\d+)/edit$', 'coredata.views.edit_member'),
 )
 if settings.DEBUG:
     # URLs for development only:

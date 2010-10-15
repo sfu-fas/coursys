@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Course Management System Members{% endblock %}
+{% block h1 %}Course Management System Members{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.sysadmin %}">System Admin</a></li><li>&gt; Edit Member</li>{% endblock %}
+
+{% block content %}
+
+<form action="{% if member %}{% url coredata.views.edit_member member_id=member.id %}{% else %}{% url coredata.views.edit_member %}{% endif %}" method="post">{% csrf_token %}
+{{ form.as_p }}
+<p><input type="submit" value="Submit" /></p>
+</form>
+
+
+{% endblock %}

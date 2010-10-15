@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Course Management System Roles{% endblock %}
 {% block h1 %}Course Management System Roles{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.sysadmin %}">System Admin</a></li><li>&gt; List Roles</li>{% endblock %}
+
 {% block headextra %}
 <script type="text/javascript">
 $(document).ready(function() {
@@ -14,17 +17,23 @@ $(document).ready(function() {
 </script>
 {% endblock %}
 
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+	    <li><a href="{% url coredata.views.new_role %}">Add new role</a></li>
+    </ul>
+</div>
+{% endblock %}
+
 {% block content %}
-<p>
-<a href="{% url coredata.views.new_role %}">Add new role</a>
-</p>
 <div class="datatable_container">
 <table id="roles" class="display">
   <thead><tr><th scope="col">Name</th><th scope="col">Role</th><th scope="col">Actions</th></tr></thead>
   <tbody>
   {% for role in roles %}
   <tr><td scope="row">{{role.person}}</td><td>{{role.get_role_display}}</td>
-  <td><a href="#">delete</a></td></tr>
+  <td><!--<a href="#">delete</a>--></td></tr>
   {% endfor %}
   </tbody>
 </table>
