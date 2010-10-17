@@ -15,33 +15,39 @@ def index(request):
         reg = request.POST.get('reg')
         keywords = []
 
-        list = LogEntry.objects.all().order_by('-datetime')
+        logs = LogEntry.objects.all().order_by('-datetime')
         if reg == 'on':
             try:
                 pattern = re.compile(q, re.IGNORECASE)
             except:
-                return HttpResponse("Please check your regex.<hr>")
-            new_list = []
-            for l in list:
-                str = l.display()
-                if re.search(pattern, str) != None:
-                    new_list.append(l)
-            list = new_list
+                return HttpResponse("Please check your regex.")
+            new_logs = []
+            for l in logs:
+                s = l.display()
+                if re.search(pattern, s) != None:
+                    new_logs.append(l)
+            logs = new_logs
         else:
             try:
                 keywords = shlex.split(q)
             except:
-                return HttpResponse("Please check your input.<hr>")
+                return HttpResponse("Please check your input.")
             for k in keywords:
-                new_list = []
-                for l in list:
-                    str = l.display()
-                    if k.lower() in str.lower():
-                        new_list.append(l)
-                list = new_list
+                new_logs = []
+                for l in logs:
+                    s = l.display()
+                    if k.lower() in s.lower():
+                        new_logs.append(l)
+                logs = new_logs
 
-        return render_to_response("log/result.html", \
-            {"keywords":keywords, "log_list":list, "reg":reg}, \
-            context_instance=RequestContext(request))
+        logs = logs[:500]
     else:
-        return render_to_response("log/index.html", context_instance=RequestContext(request))
+        keywords = ""
+        logs = None
+        reg = ""
+
+    return render_to_response("log/index.html", \
+            {"keywords":keywords, "logs":logs, "reg":reg}, \
+            context_instance=RequestContext(request))
+
+    return render_to_response("log/index.html", context_instance=RequestContext(request))

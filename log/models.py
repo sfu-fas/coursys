@@ -30,10 +30,10 @@ class LogEntry(models.Model):
     object_id = models.PositiveIntegerField(null=True)
     related_object = generic.GenericForeignKey('content_type', 'object_id')
     class Meta:
-        ordering = ['datetime']
+        ordering = ['-datetime']
 
     def display(self):
-        return "[%s] %s %s" % (self.datetime.ctime(), self.userid, self.description)
+        return "%s - %s - %s" % (self.userid, self.description, self.comment)
 
     __unicode__ = display
 

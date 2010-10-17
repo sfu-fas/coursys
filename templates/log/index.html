@@ -1,78 +1,47 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-  <head>
-    <title>Log</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <script type="text/javascript" src="{{MEDIA_URL}}js/jquery.js"></script>
-    <script type="text/javascript">
-        $(document).ready(
-            function() {
-            $('#q').keydown(
-                function(e) {
-                var code = (e.keyCode ? e.keyCode : e.which);
-                if(code == 13) {
-                    var q = $('#q').val();
-                    var reg = $('#reg').val();
-                    q = $.trim(q);
-                    $.post("{% url log.views.index %}", {"q":q, "reg":reg}, function(data) {$('#results').html(data);})
-                }
-                }
-            );
-            });
+{% extends "grades/base.html" %}
+{% load course_display %}
 
-        $(document).ajaxStart( function() {
-            $('#spinner').show();
-        }).ajaxStop(function() {
-            $('#spinner').hide();
-        });
-        </script>
+{% block title %}System Logs{% endblock %}
+{% block h1 %}System Logs{% endblock %}
 
-        <style type="text/css">
-            #q {
-                float: left;
-                width: 100%;
-                color: gray;
-            }
-            #spinner {
-                float: right;
-                display: none;
-                background-color: red;
-                color: white;
-                padding: 0.2em 0.5em;
-            }
-            #reg_wrapper {
-                float: right;
-                font-size: 0.8em;
-            }
-            #title {
-                float: left;
-                margin: 0;
-                font-size: large;
-                font-weight: bold;
-                padding: 0.2em 0.5em;
-            }
-            #results {
-                margin-top: 2em;
-                clear: left;
-                font-family: Courier;
-                font-size: small;
-            }
-            #results ul {
-                padding: 0 0 0 2em;
-            }
-            .keyword {
-                margin: 0em;
-            }
-        </style>
-  </head>
-  <body>
-    <div id="title">Log Entries of Course Management System</div>
-    
-    <div id="spinner">Loading...</div>
-    <div>
-        <input id="q" type="text" value='enter keyword or "key phrase" here' onFocus="javascript:this.select()" />
-        <div id="reg_wrapper"><input id="reg" type="checkbox" />as regex</div>
-        <div id="results"></div>
-    </div>
-  </body>
-</html>
+{% block headextra %}
+<script type="text/javascript">
+//<![CDATA[
+$(document).ready(function() {
+  $('#logs').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bSort': true,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    "aaSorting": [[0, "desc"]],
+  } );
+} );
+//]]></script>
+{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.sysadmin %}">System Admin</a></li><li>&gt; Logs</li>{% endblock %}
+
+{% block actions %}{% endblock %}
+
+{% block content %}
+<form  method="post" action="">{% csrf_token %}
+<div><input type="text" name="q" value="" /></div>
+<div id="reg_wrapper"><input id="reg" type="checkbox" />as regex</div>
+<div><input type="submit" value="Submit" /></div>
+</form>
+
+{% if logs %}
+<div class="datatable_container">
+<table id="logs" class="display">
+  <thead><tr><th scope="col">Date/Time</th><th scope="col">Userid</th><th scope="col">Description</th><th scope="col"></th></tr></thead>
+  <tbody>
+  {% for l in logs %}
+    <tr><td>{{l.datetime}}</td><td>{{l.userid}}</td><td>{{l.description}}</td>
+    <td>{% if l.related_object.get_absolute_url %}<a href="{{l.related_object.get_absolute_url}}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View" alt="View" /></a>{% endif%}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+{% endblock %}

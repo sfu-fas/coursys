@@ -540,7 +540,7 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
         groups = Group.objects.all().filter(courseoffering=course)
         group = get_object_or_404(groups, slug=group_slug)
         if submission:
-            str = (" of submission %i by group %s") % (submission.id, submission.file_slug)
+            str = (" of submission %i by group %s") % (submission.id, submission.file_slug())
         else:
             str = ""
         l = LogEntry(userid=request.user.username,
