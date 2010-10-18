@@ -5,6 +5,7 @@ from django.template import RequestContext
 from forms import *
 from courselib.auth import *
 from coredata.models import *
+from log.models import LogEntry
 from django.core.urlresolvers import reverse
 
 @requires_role("SYSA")
@@ -26,6 +27,11 @@ def new_role(request, role=None):
         form = RoleForm(request.POST)
         if form.is_valid():
             form.save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("new role: %s as %s") % (form.instance.person.userid, form.instance.role),
+                  related_object=form.instance)
+            l.save()
             return HttpResponseRedirect(reverse(role_list))
     else:
         form = RoleForm()
@@ -50,6 +56,11 @@ def edit_member(request, member_id=None):
         form = MemberForm(request.POST, instance=member)
         if form.is_valid():
             form.save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("edited membership: %s as %s in %s") % (form.instance.person.userid, form.instance.role, form.instance.offering),
+                  related_object=form.instance)
+            l.save()
             return HttpResponseRedirect(reverse(members_list))
     elif member_id:
         form = MemberForm(instance=member, initial={'person': member.person.userid})
