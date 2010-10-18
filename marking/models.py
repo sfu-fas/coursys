@@ -1,5 +1,6 @@
 import copy
 from django.db import models
+from django.core.urlresolvers import reverse
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, NumericGrade
 from grades.models import all_activities_filter, neaten_activity_positions
 #from submission.models import SubmissionComponent, COMPONENT_TYPES
@@ -99,6 +100,8 @@ class StudentActivityMark(ActivityMark):
         student = self.numeric_grade.member.person
         activity = self.numeric_grade.activity      
         return "Marking for student [%s] for activity [%s]" %(student, activity)   
+    def get_absolute_url(self):
+        return reverse('marking.views.mark_history_student', kwargs={'course_slug': self.numeric_grade.activity.offering.slug, 'activity_slug': self.numeric_grade.activity.slug, 'userid': self.numeric_grade.member.person.userid})
       
     def setMark(self, grade):
         """         
@@ -129,6 +132,8 @@ class GroupActivityMark(ActivityMark):
          
     def __unicode__(self):
         return "Marking for group [%s] for activity [%s]" %(self.group, self.numeric_activity)
+    def get_absolute_url(self):
+        return reverse('marking.views.mark_history_group', kwargs={'course_slug': self.numeric_activity.offering.slug, 'activity_slug': self.numeric_activity.slug, 'group_slug': self.group.slug})
     
     def setMark(self, grade):
         """         

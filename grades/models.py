@@ -281,6 +281,8 @@ class NumericGrade(models.Model):
     
     def __unicode__(self):
         return "Member[%s]'s grade[%s] for [%s]" % (self.member.person.userid, self.value, self.activity)
+    def get_absolute_url(self):
+        return reverse('grades.views.student_info', kwargs={'course_slug': self.offering.slug, 'userid': self.member.person.userid})
 
     def display_staff(self):
         if self.flag == 'NOGR':
