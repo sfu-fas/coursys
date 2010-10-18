@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load markup %}
+
+{% block title %}Summary of User {{user.userid}}{% endblock %}
+{% block h1 %}Summary of User {{user.userid}}{% endblock %}
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#members').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    "aaSorting": [[1, "desc"], [0, "asc"]],
+    } );
+} );
+</script>
+{% endblock %}
+
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.sysadmin %}">System Admin</a></li><li>&gt; {{user.userid}} Summary</li>{% endblock %}
+
+{% block actions %}{% endblock %}
+
+{% block content %}
+<div class="table_container">
+    <table class="info">
+        <tbody>
+	    <tr>
+                <th class="ui-state-default">Last Name</th>
+                <td>{{ user.last_name }}</td>
+            </tr>
+	    <tr>
+                <th class="ui-state-default">First Name</th>
+                <td>{{ user.first_name }}
+                </td>
+            </tr>
+	    <tr>
+                <th class="ui-state-default">Middle Name</th>
+                <td>{{ user.middle_name }}</td>
+            </tr>
+	    <tr>
+                <th class="ui-state-default">Student Number</th>
+                <td>{{ user.emplid }}</td>
+            </tr>
+	    <tr>
+                <th class="ui-state-default">Email Address</th>
+                <td><a href="mailto:{{ user.email }}">{{ user.email }}</a></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<h2 id="member">Course Memberships</h2>
+{% if memberships %}
+
+<div class="datatable_container">
+<table id="members" class="display">
+  <thead><tr><th scope="col">Course</th><th scope="col">Semester</th><th scope="col">Role</th><th scope="col">Reason</th><th scope="col">Actions</th></tr></thead>
+  <tbody>
+  {% for m in memberships %}
+  <tr><td scope="row">{{m.offering.name}}</td><td>{{m.offering.semester}}</td><td>{{m.get_role_display}}</td><td>{{m.get_added_reason_display}}</td><td><a href="{% url coredata.views.edit_member member_id=m.id %}">Edit</a></td>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% else %}
+<p class="empty">Not a member of any courses.</p>
+{% endif %}
+
+<h2 id="member">Roles</h2>
+{% if roles %}
+<ul>
+  {% for r in roles %}
+  <li>{{r.get_role_display}}</li>
+  {% endfor %}
+</ul>
+
+{% else %}
+<p class="empty">Not assigned any roles.</p>
+{% endif %}
+{% endblock %}

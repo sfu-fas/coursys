@@ -70,3 +70,13 @@ def edit_member(request, member_id=None):
     return render_to_response('coredata/edit_member.html', {'form': form, 'member': member}, context_instance=RequestContext(request))
 
 
+@requires_role("SYSA")
+def user_summary(request, userid):
+    user = get_object_or_404(Person, userid=userid)
+    
+    memberships = Member.objects.filter(person=user)
+    roles = Role.objects.filter(person=user).exclude(role="NONE")
+    
+    context = {'user': user, 'memberships': memberships, 'roles': roles}
+    return render_to_response("coredata/user_summary.html", context ,context_instance=RequestContext(request))
+
