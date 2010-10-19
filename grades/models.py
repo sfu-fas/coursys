@@ -78,6 +78,8 @@ class Activity(models.Model):
         return reverse('grades.views.activity_info', kwargs={'course_slug': self.offering.slug, 'activity_slug': self.slug})
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+    def is_numeric(self):
+        return False
     class Meta:
         verbose_name_plural = "activities"
         ordering = ['deleted', 'position']
@@ -142,6 +144,10 @@ class NumericActivity(Activity):
 
     class Meta:
         verbose_name_plural = "numeric activities"
+    def type_long(self):
+        return "Numeric Graded"
+    def is_numeric(self):
+        return True
 
     def display_grade_visible(self, student):
         grades = NumericGrade.objects.filter(activity=self, member__person=student)
@@ -179,6 +185,8 @@ class LetterActivity(Activity):
     """
     class Meta:
         verbose_name_plural = "letter activities"
+    def type_long(self):
+        return "Letter Graded"
     
     def display_grade_visible(self, student):
         grades = LetterGrade.objects.filter(activity=self, member__person=student)
@@ -220,6 +228,8 @@ class CalNumericActivity(NumericActivity):
 
     class Meta:
         verbose_name_plural = "cal numeric activities"
+    def type_long(self):
+        return "Calculated Numeric Grade"
 
 class CalLetterActivity(LetterActivity):
     """
@@ -231,6 +241,8 @@ class CalLetterActivity(LetterActivity):
     
     class Meta:
         verbose_name_plural = 'cal letter activities'
+    def type_long(self):
+        return "Calculated Letter Grade"
 
 
 

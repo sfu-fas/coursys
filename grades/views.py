@@ -28,7 +28,6 @@ FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_gr
 # Course should have this number to student to display the activity statistics, including histogram
 STUD_NUM_TO_DISP_ACTSTAT = 10
 
-ACTIVITY_VIEW_TYPE = {'I': 'individual', 'G': 'group'}
 # Only for display purpose.
 ACTIVITY_TYPE = {'NG': 'Numeric Graded', 'LG': 'Letter Graded',
                  'CNG': 'Calculated Numeric Graded', 'CLG': 'Calculated Letter Graded'}
@@ -142,14 +141,17 @@ def _activity_info_staff(request, course_slug, activity_slug):
         return NotFoundResponse(request)
     
     activity = activities[0]
-    # build list of activities with metainfo
-    student_grade_info_list = create_StudentActivityInfo_list(course, activity)
-    if isinstance(activity, CalNumericActivity):
-        activity_type = ACTIVITY_TYPE['CNG']
-    elif isinstance(activity, NumericActivity):
-        activity_type = ACTIVITY_TYPE['NG']
-    elif isinstance(activity, LetterActivity):
-        activity_type = ACTIVITY_TYPE['LG']
+
+    # build list of all students and grades
+    students = Member.objects.filter(role="STUD", offering=activity.offering).select_related('person')
+    if activity.is_numeric():
+        grades_list = activity.numericgrade_set.filter().select_related('member__person', 'activity')
+    else:
+        grades_list = activity.lettergrade_set.filter().select_related('member__person', 'activity')
+    
+    grades = {}
+    for g in grades_list:
+        grades[g.member.person.userid] = g
 
     # collect group membership info
     group_membership = {}
@@ -170,10 +172,10 @@ def _activity_info_staff(request, course_slug, activity_slug):
         subs = StudentSubmission.objects.filter(activity=activity)
         for s in subs:
             submitted[s.member.person.userid] = True
-    
-    context = {'course': course, 'activity_type': activity_type, 'activity': activity,
-               'activity_view_type': ACTIVITY_VIEW_TYPE['I'], 'group_membership': group_membership,
-               'student_grade_info_list': student_grade_info_list, 'from_page': FROMPAGE['activityinfo'],
+
+    context = {'course': course, 'activity': activity, 'students': students, 'grades': grades,
+               'activity_view_type': 'individual', 'group_membership': group_membership,
+               'from_page': FROMPAGE['activityinfo'],
                'submitted': submitted}
     return render_to_response('grades/activity_info.html', context, context_instance=RequestContext(request))
 
@@ -261,7 +263,7 @@ def activity_info_with_groups(request, course_slug, activity_slug):
 
     context = {'course': course, 'activity_type': activity_type, 
                'activity': activity, 'ungrouped_students': ungrouped_students,
-               'activity_view_type': ACTIVITY_VIEW_TYPE['G'],
+               'activity_view_type': 'group',
                'group_grade_info_list': groups_found.values(), 'from_page': FROMPAGE['activityinfo_group'],
                'submitted': submitted}
     return render_to_response('grades/activity_info_with_groups.html', context, context_instance=RequestContext(request))
