@@ -6,10 +6,6 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 from coredata.models import *
 from django.db import transaction
 
-# only import people matching this WHERE:
-#CONDITION = 'username LIKE "g%" OR username LIKE "b%"'
-#CONDITION = '1=1'
-
 # these users will be given sysadmin role (for bootstrapping)
 sysadmin = ["ggbaker"]
 
@@ -84,6 +80,23 @@ def create_semesters():
         wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2010, 9, 6))
         wk.save()
 
+    s = Semester.objects.filter(name="1111")
+    if not s:
+        s = Semester(name="1111", start=datetime.date(2011, 1, 4), end=datetime.date(2011, 4, 7))
+        s.save()
+        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2011, 1, 3))
+        wk.save()
+        wk = SemesterWeek(semester=s, week=8, monday=datetime.date(2011, 2, 28))
+        wk.save()
+
+    s = Semester.objects.filter(name="1114")
+    if not s:
+        s = Semester(name="1114", start=datetime.date(2011, 5, 9), end=datetime.date(2011, 8, 8))
+        s.save()
+        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2011, 5, 9))
+        wk.save()
+
+
 
 def find_offering_by_crse_id(crse_id, section, semester):
     """
@@ -111,6 +124,15 @@ def find_offering_by_class_nbr(class_nbr, semester):
 
 
 
+
+
+def fix_emplid(db):
+    """
+    Any manually-entered people will have emplid 0000?????.  Update them with the real emplid from the database.
+    """
+    people = Person.objects.filter(emplid__lt=100000)
+    for p in people:
+        print p
 
 
 def import_offerings(db):
@@ -412,7 +434,9 @@ def main():
     members = [(m.person.emplid, m.offering) for m in Member.objects.exclude(added_reason="AUTO")]
     time.sleep(1)
     
-    
+    print "fixing any unknown emplids"
+    fix_emplid(db)
+    time.sleep(1)    
     print "importing course offerings"
     import_offerings(db)
     time.sleep(1)

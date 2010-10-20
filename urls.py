@@ -96,6 +96,7 @@ urlpatterns = patterns('',
     url(r'^sysadmin/members/(?P<member_id>\d+)/edit$', 'coredata.views.edit_member'),
     url(r'^users/' + USERID_SLUG + '/$', 'django.views.generic.simple.redirect_to', {'url': '/sysadmin/users/%(userid)s/'}), # accept the URL provided as get_absolute_url for user objects
     url(r'^sysadmin/users/' + USERID_SLUG + '/$', 'coredata.views.user_summary'),
+    url(r'^sysadmin/people/new$', 'coredata.views.new_person'),
 
 )
 if settings.DEBUG:

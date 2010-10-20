@@ -80,3 +80,22 @@ def user_summary(request, userid):
     context = {'user': user, 'memberships': memberships, 'roles': roles}
     return render_to_response("coredata/user_summary.html", context ,context_instance=RequestContext(request))
 
+
+@requires_role("SYSA")
+def new_person(request):
+    if request.method == 'POST':
+        form = PersonForm(request.POST)
+        if form.is_valid():
+            form.save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("new person added: %s (%s)") % (form.instance.name(), form.instance.userid),
+                  related_object=form.instance)
+            l.save()
+            return HttpResponseRedirect(reverse(sysadmin))
+    else:
+        form = PersonForm()
+
+    return render_to_response('coredata/new_person.html', {'form': form}, context_instance=RequestContext(request))
+
+

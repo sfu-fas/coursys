@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Course Management System People{% endblock %}
+{% block h1 %}Course Management System People{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.sysadmin %}">System Admin</a></li><li>&gt; New Person</li>{% endblock %}
+
+{% block content %}
+<p>Note: All data except userid and emplid will be updated on nightly data imports: values entered here are temporary.</p>
+<form action="{% url coredata.views.new_person %}" method="post">{% csrf_token %}
+{{ form.as_p }}
+<p><input type="submit" value="Submit" /></p>
+</form>
+
+{% endblock %}

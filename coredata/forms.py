@@ -1,10 +1,6 @@
 from django import forms
 from coredata.models import Role, Person, Member
 
-#class ImportForm(forms.Form):
-#    passwd = forms.CharField(widget=forms.PasswordInput(render_value=False),
-#            label='Database password', max_length=20)
-
 class RoleForm(forms.ModelForm):
     person = forms.CharField(min_length=1, max_length=8, label='SFU Userid')
     
@@ -32,4 +28,11 @@ class MemberForm(forms.ModelForm):
     
     class Meta:
         model = Member
+
+class PersonForm(forms.ModelForm):
+    emplid = forms.CharField(max_length=9,
+                    help_text='Employee ID (i.e. student number).  Enter a number starting with "0000" if unknown: will be filled in based on userid at next import',
+                    widget=forms.TextInput(attrs={'size':'9'}))
+    class Meta:
+        model = Person
         
