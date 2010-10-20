@@ -132,8 +132,11 @@ def fix_emplid(db):
     """
     people = Person.objects.filter(emplid__lt=100000)
     for p in people:
-        print p
-
+        print " ", p.userid
+        db.execute('SELECT emplid FROM v_ps_personal_data WHERE username=%s', p.userid)
+        emplid, = db.fetchone()
+        p.emplid = emplid
+        p.save()
 
 def import_offerings(db):
     """
@@ -426,6 +429,10 @@ def main():
     dbconn = MySQLdb.connect(host=import_host, user=import_user,
              passwd=dbpasswd, db=import_name, port=import_port)
     db = dbconn.cursor()
+
+    print "fixing any unknown emplids"
+    fix_emplid(db)
+    time.sleep(1)
     
     # Drop everybody (and re-add later if they're still around)
     Member.objects.filter(added_reason="AUTO").update(role="DROP")
@@ -434,9 +441,6 @@ def main():
     members = [(m.person.emplid, m.offering) for m in Member.objects.exclude(added_reason="AUTO")]
     time.sleep(1)
     
-    print "fixing any unknown emplids"
-    fix_emplid(db)
-    time.sleep(1)    
     print "importing course offerings"
     import_offerings(db)
     time.sleep(1)
