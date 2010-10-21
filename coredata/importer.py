@@ -370,7 +370,7 @@ def handle_person(membership, userid, emplid, last_name, first_name, middle_name
         return
     if not pref_first_name:
         pref_first_name = first_name
-    
+
     p_old = Person.objects.filter(emplid=emplid)
     if len(p_old)>1:
         raise KeyError, "Already duplicate people: %r" % (p_old)
@@ -405,6 +405,11 @@ def import_people(db, members):
             membership[emplid] = membership.get(emplid, []) + [offering]
         else:
             membership[emplid] = membership.get(emplid, [])
+
+    # make sure role accounts have personal data imported too
+    for r in Role.objects.all():
+        emplid = str(r.person.emplid)
+        membership[emplid] = membership.get(emplid, [])
 
     # find all relevant people
     # Importing everybody in one query seems to bog things down: query is too large?  Import in managable segments.
@@ -466,7 +471,7 @@ def main():
         if not r:
             r = Role(person=p, role="SYSA")
             r.save()
-    
+        
     print "committing to DB"
 
 
