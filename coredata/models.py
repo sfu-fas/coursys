@@ -5,6 +5,7 @@ from timezones.fields import TimeZoneField
 from django.conf import settings
 import datetime
 from django.core.urlresolvers import reverse
+from django.core.exceptions import ValidationError
 
 class Person(models.Model):
     """
@@ -255,9 +256,18 @@ class Member(models.Model):
         return "%s (%s) in %s" % (self.person.userid, self.person.emplid, self.offering,)
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+    def clean(self):
+        """
+        Validate unique_together = (('person', 'offering', 'role'),) UNLESS role=='DROP'
+        """
+        if self.role == 'DROP':
+            return
+        others = Member.objects.filter(person=self.person, offering=self.offering, role=self.role)
+        if others:
+            raise ValidationError('There is another membership with this reason, offering, and role.  These must be unique for a membership (unless role is "dropped").')
 
     class Meta:
-        unique_together = (('person', 'offering', 'role'),)
+        #unique_together = (('person', 'offering', 'role'),)  # now handled by self.clean()
         ordering = ['offering', 'person']
     def get_absolute_url(self):
         return reverse('grades.views.student_info', kwargs={'course_slug': self.offering.slug, 'userid': self.person.userid})

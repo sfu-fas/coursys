@@ -5,7 +5,7 @@
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.sysadmin %}">System Admin</a></li><li>&gt; New Person</li>{% endblock %}
 
 {% block content %}
-<p>Note: All data except userid and emplid will be updated on nightly data imports: values entered here are temporary.</p>
+<p>Note: All data except userid and emplid will be updated on nightly data imports, as long as the person has a role or is a member of a course. Values entered here are temporary.</p>
 <form action="{% url coredata.views.new_person %}" method="post">{% csrf_token %}
 {{ form.as_p }}
 <p><input type="submit" value="Submit" /></p>
