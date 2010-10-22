@@ -189,7 +189,7 @@
 	    {% with member.person.userid as userid %}
 	    {% with grades|hash:userid as grade %}
 	    <tr>
-		<td><a href="{{student.get_absolute_url}}"><img src="{{MEDIA_URL}}icons/information.png" title="Details for {{member.person.name}}" alt="info" /></a></td>
+		<td><a href="{{member.get_absolute_url}}"><img src="{{MEDIA_URL}}icons/information.png" title="Details for {{member.person.name}}" alt="info" /></a></td>
 		<td>{{ member.person.last_name }}</td>
 		<td>{{ member.person.first_name }}</td>
 		<td>{{ member.person.userid }}</td>
