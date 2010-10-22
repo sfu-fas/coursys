@@ -7,11 +7,12 @@ from courselib.auth import has_role
 class ImpersonateMiddleware(object):
     def process_request(self, request):
         if "__impersonate" in request.GET and has_role('SYSA', request.user):
+            userid = request.GET["__impersonate"]
             try:
-                user = User.objects.get(username__iexact=request.GET["__impersonate"])
+                user = User.objects.get(username__iexact=userid)
             except User.DoesNotExist:
                 # create user object if they have never logged in (same thing django_cas does)
-                user = User.objects.create_user(username, '')
+                user = User.objects.create_user(userid, '')
                 user.save()
 
             request.user = user
