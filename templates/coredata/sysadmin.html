@@ -16,5 +16,10 @@
 </div>
 {% endblock %}
 {% block content %}
+<h2 id="search">User Search</h2>
+<form action="{% url coredata.views.sysadmin %}" method="get">
+<p>Userid: <input type="text" name="q" size="8" /></p>
+<p><input type="submit" value="Search" /></p>
+</form>
 
 {% endblock %}

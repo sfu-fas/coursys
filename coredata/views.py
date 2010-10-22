@@ -10,6 +10,10 @@ from django.core.urlresolvers import reverse
 
 @requires_role("SYSA")
 def sysadmin(request):
+    if 'q' in request.GET:
+        userid = request.GET['q']
+        return HttpResponseRedirect(reverse(user_summary, kwargs={'userid': userid}))
+        
     return render_to_response('coredata/sysadmin.html', {}, context_instance=RequestContext(request))
 
 @requires_role("SYSA")
