@@ -306,7 +306,7 @@ class NumericGrade(models.Model):
         if self.flag == 'NOGR':
             return ''
         else:
-            return "%.2f" % (self.value)
+            return "%.1f" % (self.value)
     
     def display_with_percentage_student(self):
         """
