@@ -226,7 +226,7 @@ div.bigdatatable .dataTables_wrapper {
     font-size: smaller;
 }
 div.bigdatatable .dataTables_wrapper td {
-    padding: 2px 0;
+    padding: 2px 1px;
 }
 
 .dataTables_length {
