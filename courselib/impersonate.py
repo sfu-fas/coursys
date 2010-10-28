@@ -21,11 +21,12 @@ class ImpersonateMiddleware(object):
                 # for sysadmins: yes.
                 pass
             elif match:
-                # for instructors of a course: yes, but only within that course's "directory".
+                # for instructors of a course: yes, but only students, and only within that course's "directory".
                 course_slug = match.group('course_slug') # course slug from the URL
-                memberships = Member.objects.filter(person__userid=request.user.username, offering__slug=course_slug, role="INST")
-                if not memberships:
-                    # this person is not an instructor for this course: no
+                instructor = Member.objects.filter(person__userid=request.user.username, offering__slug=course_slug, role="INST")
+                student = Member.objects.filter(person__userid=userid, offering__slug=course_slug, role="STUD")
+                if (not instructor) or (not student):
+                    # this person is not an instructor for this course trying to impersonate a student: no
                     return
             else:
                 # no for anybody else: just ignore the impersonation request.
