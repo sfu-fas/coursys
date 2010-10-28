@@ -223,6 +223,10 @@ th.sorting_asc, th.sorting_desc {
 }
 div.bigdatatable .dataTables_wrapper {
     overflow: auto;
+    font-size: smaller;
+}
+div.bigdatatable .dataTables_wrapper td {
+    padding: 2px 0;
 }
 
 .dataTables_length {

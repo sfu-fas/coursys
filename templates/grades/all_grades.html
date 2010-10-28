@@ -19,7 +19,7 @@
 		    null,
 		    null,
 		    {% for a in activities %}
-		    null{% if not forloop.last %},{% endif %}
+		    {"sWidth": "0"}{% if not forloop.last %},{% endif %}
 		    {% endfor %}
 		]
 	});
