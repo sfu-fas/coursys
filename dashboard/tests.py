@@ -5,6 +5,7 @@ from settings import CAS_SERVER_URL
 from coredata.tests import create_offering
 from coredata.models import *
 from courselib.testing import *
+from django.core.urlresolvers import reverse
 
 class DashboardTest(TestCase):
     fixtures = ['test_data']
@@ -13,15 +14,15 @@ class DashboardTest(TestCase):
         pass
 
     def test_front_page(self):
-        # log in as student "0kvm"
+        # log in as student "0aaa0"
         client = Client()
-        client.login(ticket="0kvm", service=CAS_SERVER_URL)
+        client.login(ticket="0aaa0", service=CAS_SERVER_URL)
 
         response = client.get("/")
         self.assertEquals(response.status_code, 200)
         
         # this student is in this course: check for a link to its page
-        c = CourseOffering.objects.get(slug='1101-cmpt-125-d200')
+        c = CourseOffering.objects.get(slug='1101-cmpt-165-d100')
         self.assertContains(response, '<a href="%s"' % (c.get_absolute_url()) )
 
         validate_content(self, response.content, "index page")
@@ -94,6 +95,58 @@ class DashboardTest(TestCase):
         self.assertEquals(response.status_code, 403)
         
     def test_impersonation(self):
-        pass
+        """
+        Test impersonation logic
+        """
+        client = Client()
+        url = reverse('groups.views.groupmanage', kwargs={'course_slug': '1101-cmpt-120-d100'})
 
+        # login as a sysadmin
+        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        # not instructor, so can't really access
+        response = client.get(url)
+        self.assertEquals(response.status_code, 403)
+        # ...but can impersonate instructor
+        response = client.get(url, {"__impersonate": "diana"})        
+        self.assertEquals(response.status_code, 200)
+        self.assertContains(response, 'Logged in as diana')
+
+        # login as student
+        client.login(ticket="0bbb0", service=CAS_SERVER_URL)
+        # can access
+        response = client.get(url)
+        self.assertEquals(response.status_code, 200)
+        self.assertContains(response, 'Logged in as 0bbb0')
+        # try to impersonate anybody: no change
+        response = client.get(url, {"__impersonate": "0bbb1"})
+        self.assertEquals(response.status_code, 200)
+        self.assertContains(response, 'Logged in as 0bbb0')
+        response = client.get(url, {"__impersonate": "diana"})
+        self.assertEquals(response.status_code, 200)
+        self.assertContains(response, 'Logged in as 0bbb0')
+
+        # login as instructor
+        client.login(ticket="diana", service=CAS_SERVER_URL)
+        # can access
+        response = client.get(url)
+        self.assertEquals(response.status_code, 200)
+        self.assertContains(response, 'Logged in as diana')
+        # try to impersonate non-student: no change
+        response = client.get(url, {"__impersonate": "0aaa0"})
+        self.assertEquals(response.status_code, 200)
+        self.assertContains(response, 'Logged in as diana')
+        # try to impersonate student: should be them
+        response = client.get(url, {"__impersonate": "0bbb0"})
+        self.assertEquals(response.status_code, 200)
+        self.assertContains(response, 'Logged in as 0bbb0')
+        
+        # try some other course: shouldn't be able to impersonate
+        url = reverse('groups.views.groupmanage', kwargs={'course_slug': '1101-cmpt-165-d100'})
+        response = client.get(url, {"__impersonate": "0aaa0"})
+        self.assertEquals(response.status_code, 403)
+        # try non-course URL: shouldn't be able to impersonate
+        url = reverse('dashboard.views.index', kwargs={})
+        response = client.get(url, {"__impersonate": "0aaa0"})
+        self.assertEquals(response.status_code, 200)
+        self.assertContains(response, 'Logged in as diana')
 
