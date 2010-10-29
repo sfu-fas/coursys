@@ -497,9 +497,21 @@ def marking_student(request, course_slug, activity_slug, userid):
             messages.add_message(request, messages.SUCCESS, 'Mark for student %s on %s saved!' % (userid, activity.name,))
             for warning in warning_messages:
                 messages.add_message(request, messages.WARNING, warning)                      
-            return _redirct_response(request, course_slug, activity_slug)
+            if 'marknext' in request.POST:
+                # "submit and mark next" clicked: jump to next userid
+                try:
+                    nextmember = Member.objects.filter(offering=course, person__userid__gt=userid, role="STUD"
+                                 ).order_by('person__userid')[0]
+                    return HttpResponseRedirect(reverse(marking_student, 
+                           kwargs={'course_slug': course.slug, 'activity_slug': activity.slug,
+                           'userid': nextmember.person.userid}))
+                except IndexError:
+                    messages.add_message(request, messages.WARNING, 'That was the last userid in the course.')
+                    return _redirct_response(request, course_slug, activity_slug)
+            else:
+                return _redirct_response(request, course_slug, activity_slug)
         else:
-            messages.add_message(request, messages.ERROR, 'Error found')            
+            messages.add_message(request, messages.ERROR, 'Error found')
     else: # for GET request
         base_act_mark = None
         act_mark_id = request.GET.get('base_activity_mark')

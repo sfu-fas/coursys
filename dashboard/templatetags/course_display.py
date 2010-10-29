@@ -21,7 +21,7 @@ ERROR_NOTE_TEMPLATE = Template('''
     </p>''')
 
 @register.filter
-def display_form(form, text="Submit"):
+def display_form(form, text="Submit", extrabutton=""):
     """
     Convert the form to HTML as we like it.
     """
@@ -31,8 +31,15 @@ def display_form(form, text="Submit"):
         c = Context({"field":field})
         output.append( FIELD_TEMPLATE.render(c) )
     
-    output.append('<li><input class="submit" type="submit" value="'+text+'" /></li>\n</ul>')
+    output.append('<li><input class="submit" type="submit" value="'+text+'" />' + extrabutton + '</li>\n</ul>')
     return mark_safe('\n'.join(output))
+
+@register.filter
+def display_form_marknext(form, text="Submit"):
+    """
+    Like display_form, but with the "mark next" button
+    """
+    return display_form(form, text, extrabutton='<input class="submit" type="submit" name="marknext" title="submit this form and mark next student (by userid)" value="Submit and mark next" />')
 
 @register.filter
 def error_note(form):
