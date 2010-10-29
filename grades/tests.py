@@ -255,5 +255,25 @@ class GradesTest(TestCase):
         self.assertContains(response, '<div id="formula_result">11.0</div>')
         validate_content(self, response.content, url)
         
+    def test_activity_status(self):
+        """
+        Test operations on activity's status
+        """
+        # check the get_status_display override
+        now = datetime.datetime.now()
+        a = NumericActivity(name="Assign 1", short_name="A1", status="INVI", max_grade=10)
+        self.assertEquals(a.get_status_display(), ACTIVITY_STATUS["INVI"])
+        a.status="RLS"
+        self.assertEquals(a.get_status_display(), ACTIVITY_STATUS["RLS"])
+        a.status="URLS"
+        self.assertEquals(a.get_status_display(), ACTIVITY_STATUS["URLS"])
+        a.due_date = now - datetime.timedelta(hours=1)
+        self.assertEquals(a.get_status_display(), ACTIVITY_STATUS["URLS"])
+        # the special case: unreleased, before the due date
+        a.due_date = now + datetime.timedelta(hours=1)
+        self.assertEquals(a.get_status_display(), "no grades: due date not passed")
+        
+        
+        
         
 

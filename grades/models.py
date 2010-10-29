@@ -21,6 +21,7 @@ ACTIVITY_STATUS_CHOICES = [
     ('URLS', 'grades not released to students'),
     ('INVI', 'activity not visible to students') ]
 ACTIVITY_STATUS = dict(ACTIVITY_STATUS_CHOICES)
+# but see also overridden get_status_display method on Activity
 
 LETTER_GRADE_CHOICES = [
     ('A+', 'A+ - Excellent performance'),
@@ -106,6 +107,14 @@ class Activity(models.Model):
         String representing grade for this student
         """
         return self.display_grade_visible(student)
+    def get_status_display(self):
+        """
+        Override to provide better string for not-yet-due case.
+        """
+        if self.status == "URLS" and self.due_date and self.due_date > datetime.now():
+            return "no grades: due date not passed"
+
+        return ACTIVITY_STATUS[self.status]
 
     def markable(self):
         """
