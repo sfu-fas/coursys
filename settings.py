@@ -12,6 +12,7 @@ ADMINS = (
 MANAGERS = ADMINS
 
 if DEPLOYED:
+    DATABASE_ENGINE = 'mysql'
     DATABASE_NAME = '?????'
     DATABASE_USER = '?????'
     DATABASE_PASSWORD = '?????'

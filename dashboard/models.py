@@ -77,6 +77,15 @@ class NewsItem(models.Model):
         return slugify(
             "%s %s %s" % (self.user.userid, self.published.strftime("%Y%m%d-%H%M%S"), self.id)
             )
+    
+    def absolute_url(self):
+        """
+        Return an absolute URL (scheme+server+path) for this news item.
+        """
+        if self.url.startswith("/"):
+            return settings.BASE_ABS_URL + self.url
+        else:
+            return self.url
 
 class UserConfig(models.Model):
     """
