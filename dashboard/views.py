@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
 from django.db.models import Count
 from django.views.decorators.cache import cache_page
+from django.conf import settings
 from coredata.models import Member, CourseOffering, Person
 from courselib.auth import requires_course_staff_by_slug, requires_course_by_slug, NotFoundResponse
 from dashboard.models import NewsItem, UserConfig
@@ -13,6 +14,7 @@ from dashboard.forms import *
 from contrib import messages
 from log.models import LogEntry
 import random, datetime, time
+
 
 def _display_membership(m, today, student_cutoff):
     """
@@ -96,28 +98,18 @@ def atom_feed(request, token, userid):
 
     news_list = NewsItem.objects.filter(user=user).order_by('-updated')[:20]
     
-    url = _server_base(request)
     if news_list:
         updated = news_list[0].rfc_updated()
     else:
         # no news items -> no recent updates.
         updated = '2000-01-01T00:00:00Z'
 
-    context = {"news_list": news_list, 'person': user, 'updated': updated, 'server_url': url}
+    context = {"news_list": news_list, 'person': user, 'updated': updated, 'server_url': settings.BASE_ABS_URL}
     return render_to_response("dashboard/atom_feed.xml", context, context_instance=RequestContext(request),mimetype="application/atom+xml")
 
 
 
 # Management of feed URL tokens
-
-def _server_base(request):
-    "Build base URL for the server for URIs and links"
-    if request.is_secure():
-        url = "https://"
-    else:
-        url = "http://"
-    url += request.META['SERVER_NAME'] + ":" + request.META['SERVER_PORT']
-    return url
 
 @login_required
 def news_list(request):
@@ -135,8 +127,7 @@ def news_config(request):
     else:
         token = configs[0].value
     
-    url = _server_base(request)
-    context={'token': token, 'userid': user.userid, 'server_url': url}
+    context={'token': token, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL}
     return render_to_response("dashboard/news_config.html", context, context_instance=RequestContext(request))
 
 @login_required

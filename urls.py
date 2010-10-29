@@ -1,7 +1,7 @@
 from django.conf.urls.defaults import *
 from django.conf import settings
 
-if settings.DEBUG:
+if not settings.DEPLOYED:
     from django.contrib import admin
     admin.autodiscover()
 
@@ -99,12 +99,11 @@ urlpatterns = patterns('',
     url(r'^sysadmin/people/new$', 'coredata.views.new_person'),
 
 )
-if settings.DEBUG:
+if not settings.DEPLOYED:
     # URLs for development only:
     urlpatterns += patterns('',
         (r'^admin/(.*)', admin.site.root),
         (r'^media/(?P<path>.*)$', 'django.views.static.serve',
             {'document_root': settings.MEDIA_ROOT}),
-        #(r'^import/', 'courses.coredata.views.importer'),
     )
 

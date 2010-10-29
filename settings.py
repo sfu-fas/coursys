@@ -1,7 +1,9 @@
-# Django settings for courses project.
+import socket
+hostname = socket.gethostname()
 
-DEBUG = True
+DEBUG = hostname != 'courses'
 TEMPLATE_DEBUG = DEBUG
+DEPLOYED = hostname == 'courses'
 
 ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
@@ -9,12 +11,19 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DATABASE_ENGINE = 'sqlite3'           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-DATABASE_NAME = 'db.sqlite'             # Or path to database file if using sqlite3.
-DATABASE_USER = ''             # Not used with sqlite3.
-DATABASE_PASSWORD = ''         # Not used with sqlite3.
-DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
-DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
+if DEPLOYED:
+    DATABASE_NAME = '?????'
+    DATABASE_USER = '?????'
+    DATABASE_PASSWORD = '?????'
+    DATABASE_HOST = '127.0.0.1'
+    DATABASE_PORT = '3306'
+else:
+    DATABASE_ENGINE = 'sqlite3'
+    DATABASE_NAME = 'db.sqlite'
+    DATABASE_USER = ''
+    DATABASE_PASSWORD = ''
+    DATABASE_HOST = ''
+    DATABASE_PORT = ''
 
 DATABASE_OPTIONS = {}
 if DATABASE_ENGINE == 'mysql':
@@ -85,7 +94,7 @@ TEMPLATE_CONTEXT_PROCESSORS = ("django.core.context_processors.auth",
     )
 
 ROOT_URLCONF = 'courses.urls'
-INTERNAL_IPS = ['127.0.0.1']
+INTERNAL_IPS = ('127.0.0.1',)
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -93,6 +102,8 @@ TEMPLATE_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
     'templates',
 )
+if DEPLOYED:
+    TEMPLATE_DIRS = TEMPLATE_DIRS + ('/home/ggbaker/courses/templates',)
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -115,24 +126,29 @@ INSTALLED_APPS = (
     #'advisors_A',
     #'advisors_B',
 )
+if DEBUG:
+    INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
 
 #MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 MESSAGE_STORAGE = 'contrib.messages.storage.session.SessionStorage' # temp: replace with above after 1.2 release
+SESSION_COOKIE_AGE = 86400 # 24 hours
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
-
-if DEBUG:
-    #MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('contrib.profiling.ProfileMiddleware',)
-    SUBMISSION_PATH = "submitted_files"
-    INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.admin',)
-    CACHE_BACKEND = 'locmem://'
-    #CACHE_BACKEND = 'db://cache'
+if DEPLOYED:
+    SUBMISSION_PATH = '/home/ggbaker/submitted_files'
+    CACHE_BACKEND = 'memcached://127.0.0.1:22122/'
+    BASE_ABS_URL = "https://courses.cs.sfu.ca"
 else:
-    SUBMISSION_PATH = None
-    CACHE_BACKEND = '?????'
+    #MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('contrib.profiling.ProfileMiddleware',)
+    MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('debug_toolbar.middleware.DebugToolbarMiddleware',)
+    SUBMISSION_PATH = "submitted_files"
+    #INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.admin',)
+    CACHE_BACKEND = 'locmem://'
+    BASE_ABS_URL = "http://localhost:8000"
 
 
 CAS_SERVER_URL = "https://cas.sfu.ca/cgi-bin/WebObjects/cas.woa/wa/"
-if DEBUG:
+if not DEPLOYED and DEBUG and hostname != 'courses':
     CAS_SERVER_URL = "http://lefty.cmpt.sfu.ca/fake-cas/"
 LOGIN_URL = "/login/"
 LOGOUT_URL = "/logout/"

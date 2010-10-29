@@ -93,6 +93,7 @@ class DashboardTest(TestCase):
         response = client.get(url)
         self.assertEquals(response.status_code, 403)
         
-        
+    def test_impersonation(self):
+        pass
 
 
