@@ -40,8 +40,8 @@ def user_passes_test(test_func, login_url=None,
     return decorator
 
 
-def ForbiddenResponse(request):
-    resp = render_to_response('403.html', context_instance=RequestContext(request))
+def ForbiddenResponse(request, errormsg=None):
+    resp = render_to_response('403.html', {'errormsg': errormsg}, context_instance=RequestContext(request))
     resp.status_code = 403
     return resp
 

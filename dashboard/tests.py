@@ -113,28 +113,25 @@ class DashboardTest(TestCase):
 
         # login as student
         client.login(ticket="0bbb0", service=CAS_SERVER_URL)
-        # can access
+        # can access normally
         response = client.get(url)
         self.assertEquals(response.status_code, 200)
         self.assertContains(response, 'Logged in as 0bbb0')
-        # try to impersonate anybody: no change
+        # try to impersonate anybody: not allowed
         response = client.get(url, {"__impersonate": "0bbb1"})
-        self.assertEquals(response.status_code, 200)
-        self.assertContains(response, 'Logged in as 0bbb0')
+        self.assertEquals(response.status_code, 403)
         response = client.get(url, {"__impersonate": "diana"})
-        self.assertEquals(response.status_code, 200)
-        self.assertContains(response, 'Logged in as 0bbb0')
+        self.assertEquals(response.status_code, 403)
 
         # login as instructor
         client.login(ticket="diana", service=CAS_SERVER_URL)
-        # can access
+        # can access course page
         response = client.get(url)
         self.assertEquals(response.status_code, 200)
         self.assertContains(response, 'Logged in as diana')
-        # try to impersonate non-student: no change
+        # try to impersonate non-student: not allowed
         response = client.get(url, {"__impersonate": "0aaa0"})
-        self.assertEquals(response.status_code, 200)
-        self.assertContains(response, 'Logged in as diana')
+        self.assertEquals(response.status_code, 403)
         # try to impersonate student: should be them
         response = client.get(url, {"__impersonate": "0bbb0"})
         self.assertEquals(response.status_code, 200)
@@ -147,6 +144,5 @@ class DashboardTest(TestCase):
         # try non-course URL: shouldn't be able to impersonate
         url = reverse('dashboard.views.index', kwargs={})
         response = client.get(url, {"__impersonate": "0aaa0"})
-        self.assertEquals(response.status_code, 200)
-        self.assertContains(response, 'Logged in as diana')
+        self.assertEquals(response.status_code, 403)
 
