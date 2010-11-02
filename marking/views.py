@@ -671,7 +671,7 @@ def download_marking_attachment(request, course_slug, activity_slug, mark_id, fi
     elif result[0].file_attachment.name != filepath:
         return ForbiddenResponse(request)
     
-    print MarkingSystemStorage.location
+    #print MarkingSystemStorage.location
              
     # for windows system, we need to convert the path separator '/' in url to '\\'
     filepath = filepath.replace('/', os.path.sep)   

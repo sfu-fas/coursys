@@ -15,7 +15,7 @@ class ActivityMarkForm(ModelForm):
     class Meta:
         model = ActivityMark
         fields = ['late_penalty', 'mark_adjustment', 'mark_adjustment_reason', 'overall_comment', \
-                  'file_attachment']
+                  ] #'file_attachment'
     
     def clean_late_penalty(self):  
         late_penalty = self.cleaned_data['late_penalty']
