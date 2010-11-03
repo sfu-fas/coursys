@@ -67,7 +67,8 @@ class ActivityMark(models.Model):
     # For the purpose of keeping a history,
     # need the copy of the mark here in case that 
     # the 'value' field in the related numeric grades gets overridden
-    mark = models.DecimalField(max_digits=5, decimal_places=2)     
+    mark = models.DecimalField(max_digits=5, decimal_places=2)
+    activity = models.ForeignKey(NumericActivity, null=True) # null=True to keep south happy
     
     def __unicode__(self):
         return "Super object containing additional info for marking"

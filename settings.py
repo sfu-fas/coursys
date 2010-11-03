@@ -129,6 +129,8 @@ INSTALLED_APPS = (
 )
 if DEBUG:
     INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
+    MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('debug_toolbar.middleware.DebugToolbarMiddleware',)
+    #INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.admin',)
     DEBUG_TOOLBAR_CONFIG = {
         'INTERCEPT_REDIRECTS': False,
     }
@@ -144,7 +146,6 @@ if DEPLOYED:
     BASE_ABS_URL = "https://courses.cs.sfu.ca"
 else:
     #MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('contrib.profiling.ProfileMiddleware',)
-    MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('debug_toolbar.middleware.DebugToolbarMiddleware',)
     SUBMISSION_PATH = "submitted_files"
     #INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.admin',)
     CACHE_BACKEND = 'locmem://'
