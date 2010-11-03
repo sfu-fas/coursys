@@ -408,7 +408,8 @@ def _save_marking_results(activity, activity_mark, final_mark, marker_ident, mar
     if additional_info != None:
         activity_mark.copyFrom(additional_info)
     activity_mark.setMark(final_mark)           
-    activity_mark.created_by = marker_ident    
+    activity_mark.created_by = marker_ident
+    activity_mark.activity = activity
     #save the ActivityMark first    
     activity_mark.save()
     

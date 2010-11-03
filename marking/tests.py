@@ -106,7 +106,7 @@ class BasicTest(TestCase):
        
         #add an numeric activity and its components
         a = NumericActivity(offering = c, name = 'test_assignment_1', \
-                            short_name = 'ta1', status = 'released', \
+                            short_name = 'ta1', status = 'RLS', \
                             due_date = datetime.now(), max_grade = 100, position = 0)
         a.save()
                                     
