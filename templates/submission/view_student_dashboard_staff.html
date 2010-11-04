@@ -1,15 +1,9 @@
 {% extends "submission/dashboard_student.html" %}
 
 {% block studentinfo %}
-<div id="student_info_submission_dashboard">
-<h3>Student Information</h3>
-<ul>
-    <li><label>Name:</label>{{student.name}}</li>
-    <li><label>Student ID:</label>{{student.emplid}}</li>
-    <li><label>Computing ID:</label>{{student.userid}}</li>
-    <li><label>Email:</label><a href="mailto:{{student.email}}">{{student.email}}</a></li>
-</ul>
-</div>
+<tr><th scope="row">{% if activity.group %}Submitter's {% endif %}Name:</th><td>{{student.name}}</td></tr>
+<tr><th scope="row">Student Number:</th><td>{{student.emplid}}</td></tr>
+<tr><th scope="row">Email:</th><td><a href="mailto:{{student.email}}">{{student.email}}</td></tr>
 {% endblock %}
 
 {% block owner %}

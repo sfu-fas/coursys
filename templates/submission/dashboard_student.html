@@ -29,6 +29,13 @@
 {% else %}
         <div class="table_container">
         <table class="info">
+            {% block studentinfo %}{% if activity.group %}<tr><th scope="row">Last Submitter:</th><td>{{student.name}}</td></tr>{% endif %}{% endblock %}
+            {% if group %}
+            <tr>
+                <th scope="row">Group:</th>
+                <td>{{group.name}}</td>
+            </tr>
+            {% endif %}
             <tr>
                 <th scope="row">Due Date:</th>
                 <td>{{activity.due_date|date:"Y-m-d H:i:s"}}</td>
@@ -47,16 +54,6 @@
                 <th scope="row">Current Time:</th>
                 <td>{% now "Y-m-d H:i:s" %}</td>
             </tr>
-            {% if group %}
-            <tr>
-                <th scope="row">Group:</th>
-                <td>{{group.name}}</td>
-            </tr>
-            <tr>
-                <th scope="row">Latest Submitter:</th>
-                <td>{% if submission %}{{submission.creator.person.name}}{% else %} &mdash; {% endif %}</td>
-            </tr>
-            {% endif %}
         </table>
         </div>
 
