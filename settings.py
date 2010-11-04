@@ -144,6 +144,7 @@ if DEPLOYED:
     SUBMISSION_PATH = '/home/ggbaker/submitted_files'
     CACHE_BACKEND = 'memcached://127.0.0.1:22122/'
     BASE_ABS_URL = "https://courses.cs.sfu.ca"
+    SESSION_COOKIE_SECURE = True
 else:
     #MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('contrib.profiling.ProfileMiddleware',)
     SUBMISSION_PATH = "submitted_files"
