@@ -19,7 +19,7 @@ from marking.models import get_group_mark
 from groups.models import *
 from submission.models import GroupSubmission, StudentSubmission, get_current_submission
 from log.models import LogEntry
-from contrib import messages
+from django.contrib import messages
 import pickle
 from grades.formulas import EvalException, activities_dictionary, eval_parse
 

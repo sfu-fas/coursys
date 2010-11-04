@@ -74,8 +74,7 @@ TEMPLATE_LOADERS = (
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    #'django.contrib.messages.middleware.MessageMiddleware',
-    'contrib.messages.middleware.MessageMiddleware', # temp: replace with above after 1.2 release
+    'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django_cas.middleware.CASMiddleware',
@@ -90,8 +89,7 @@ TEMPLATE_CONTEXT_PROCESSORS = ("django.core.context_processors.auth",
     "django.core.context_processors.debug",
     "django.core.context_processors.i18n",
     "django.core.context_processors.media",
-    #"django.contrib.messages.context_processors.messages"
-    'contrib.messages.context_processors.messages', # temp: replace with above after 1.2 release
+    "django.contrib.messages.context_processors.messages"
     )
 
 ROOT_URLCONF = 'courses.urls'
@@ -112,8 +110,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.markup',
-    #'django.contrib.messages',
-    'contrib.messages', # temp: replace with above after 1.2 release
+    'django.contrib.messages',
     'south',
     'coredata',
     'dashboard',
@@ -128,15 +125,14 @@ INSTALLED_APPS = (
     #'advisors_B',
 )
 if DEBUG:
-    INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
-    MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('debug_toolbar.middleware.DebugToolbarMiddleware',)
+    #INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
+    #MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('debug_toolbar.middleware.DebugToolbarMiddleware',)
     #INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.admin',)
     DEBUG_TOOLBAR_CONFIG = {
         'INTERCEPT_REDIRECTS': False,
     }
 
-#MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
-MESSAGE_STORAGE = 'contrib.messages.storage.session.SessionStorage' # temp: replace with above after 1.2 release
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 SESSION_COOKIE_AGE = 86400 # 24 hours
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 

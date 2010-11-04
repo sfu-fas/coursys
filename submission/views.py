@@ -9,7 +9,7 @@ from submission.forms import *
 from courselib.auth import is_course_staff_by_slug, is_course_member_by_slug
 from submission.models import *
 from django.core.urlresolvers import reverse
-from contrib import messages
+from django.contrib import messages
 from datetime import *
 from marking.views import marking_student, marking_group
 from groups.models import Group, GroupMember

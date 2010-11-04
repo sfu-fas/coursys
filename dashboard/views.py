@@ -11,7 +11,7 @@ from coredata.models import Member, CourseOffering, Person
 from courselib.auth import requires_course_staff_by_slug, requires_course_by_slug, NotFoundResponse
 from dashboard.models import NewsItem, UserConfig
 from dashboard.forms import *
-from contrib import messages
+from django.contrib import messages
 from log.models import LogEntry
 import random, datetime, time
 

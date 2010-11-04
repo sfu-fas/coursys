@@ -11,7 +11,7 @@ from django.forms.formsets import formset_factory
 from django.forms.util import ErrorList
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
-from contrib import messages
+from django.contrib import messages
 from django.conf import settings
 from courselib.auth import *
 from log.models import *

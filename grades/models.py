@@ -4,7 +4,7 @@ from timezones.fields import TimeZoneField
 from coredata.models import Member, CourseOffering
 from dashboard.models import *
 from django.core.urlresolvers import reverse
-from contrib import messages
+from django.contrib import messages
 from django.core.cache import cache
 from datetime import datetime, timedelta
 

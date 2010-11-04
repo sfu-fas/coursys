@@ -11,7 +11,7 @@ from log.models import *
 from models import *      
 from forms import *
 from django.forms.models import modelformset_factory
-from contrib import messages
+from django.contrib import messages
 from django.db.models import Q
 import decimal
 
