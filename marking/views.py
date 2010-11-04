@@ -281,7 +281,7 @@ def import_components(request, course_slug, activity_slug):
             else:
                 pos += 1
 
-            data = request.FILES['file'].read()
+            data = request.FILES['file'].read().decode('windows-1252')
             data = json.loads(data)
             for comp in data:
                 if len(comp)==0:
