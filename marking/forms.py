@@ -127,6 +127,16 @@ class UploadGradeFileForm(forms.Form):
             raise forms.ValidationError(u"Only .csv files are permitted")
         return file    
 
+class ImportFileForm(forms.Form):
+    file = forms.FileField(required=True)
+    def clean_file(self):        
+        file = self.cleaned_data['file']
+        if file != None and (not file.name.endswith('.json')) and\
+           (not file.name.endswith('.JSON')):
+            raise forms.ValidationError(u"Only .json files are permitted")
+        return file    
+
+
 from django.utils.safestring import mark_safe
 from grades.forms import _required_star 
 class ActivityRenameForm(forms.Form):

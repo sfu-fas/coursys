@@ -86,8 +86,8 @@
 		{% if activity.is_numeric %} {# only numeric activity has following actions #}
 		    <li><a href="{% url submission.views.show_components course_slug=course.slug, activity_slug=activity.slug%}">Configure Submission</a></li>
 		    <li><a href="{% url submission.views.download_activity_files course_slug=course.slug, activity_slug=activity.slug%}">Download Submissions</a></li>
-		    <li><a href="{% url marking.views.manage_activity_components course_slug=course.slug,activity_slug=activity.slug%}?from_page={{ from_page }}">Configure Marking</a></li>
-		    <li><a href="{% url marking.views.mark_all_students course_slug=course.slug, activity_slug=activity.slug%}?from_page={{ from_page }}">Mark all</a></li>
+		    <li><a href="{% url marking.views.manage_activity_components course_slug=course.slug,activity_slug=activity.slug%}">Configure Marking</a></li>
+		    <li><a href="{% url marking.views.mark_all_students course_slug=course.slug, activity_slug=activity.slug%}">Mark all</a></li>
 		    {% if activity.group %}
 		    <li>
 		    <a href="{% url marking.views.mark_all_groups course_slug=course.slug, activity_slug=activity.slug%}?from_page={{ from_page }}">Mark all by Group</a>

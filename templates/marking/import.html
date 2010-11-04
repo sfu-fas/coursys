@@ -1,0 +1,20 @@
+{% extends "marking/base.html" %}
+{% load course_display %}
+
+{% block marking_header_extra %}
+{% endblock %}
+
+{% block title %}{{activity.name}}: Import Marking Components{% endblock %}
+{% block h1 %}{{activity.name}}: Import Marking Components{% endblock %}
+
+{% block marking_subbreadcrumbs %}
+<li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Import Marking Components</li>
+{% endblock %}
+{% block content %}
+
+<form action="{% url marking.views.import_components course_slug=course.slug activity_slug=activity.slug %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+<p>{{form.errors}}</p>
+<p>{{form.file}}</p>
+<p><input class ="submit" type="submit" value="Submit" /></p>
+</form>  
+{% endblock %}

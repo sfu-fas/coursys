@@ -257,7 +257,75 @@ def manage_activity_components(request, course_slug, activity_slug):
                               {'course' : course, 'activity' : activity,\
                                'formset' : formset },\
                                context_instance=RequestContext(request))
+
+
+@requires_course_staff_by_slug
+def import_components(request, course_slug, activity_slug):
+    """
+    Quick (but not pretty) view to allow importing marking setup fromt he old system.  Not well tested, but seems to work well enough.
+    """
+    course = get_object_or_404(CourseOffering, slug = course_slug)
+    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug) 
+    if request.method == "POST":
+        import json
+        from django.db.models import Max, Sum
+        form = ImportFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            max_grade = ActivityComponent.objects.filter(numeric_activity=activity).aggregate(Sum('max_mark'))['max_mark__sum']
+            if max_grade is None:
+                max_grade = 0
+
+            pos = ActivityComponent.objects.filter(numeric_activity=activity).aggregate(Max('position'))['position__max']
+            if pos is None:
+                pos = 1
+            else:
+                pos += 1
+
+            data = request.FILES['file'].read()
+            data = json.loads(data)
+            for comp in data:
+                if len(comp)==0:
+                    # ignore the empty object outputted for ease-of-export
+                    continue
+                ac = ActivityComponent(numeric_activity=activity,
+                        max_mark = comp['mark'],
+                        title = comp['name'],
+                        description = comp['desc'],
+                        position = pos)
+                ac.save()
+                max_grade += comp['mark']
+                pos += 1
+                for c in comp['common']:
+                    if len(c)==0:
+                        # ignore the empty object outputted for ease-of-export
+                        continue
+                    cp = CommonProblem(activity_component=ac,
+                            title=c['short'],
+                            penalty=str(c['mark']),
+                            description=c['long'])
+                    cp.save()
+            
+            # if the max grade changed
+            if max_grade != activity.max_grade: 
+                old_max = activity.max_grade
+                activity.max_grade = max_grade
+                activity.save()               
+                messages.add_message(request, messages.WARNING, \
+                                     "The max grade of %s updated from %s to %s" % (activity.name, old_max, max_grade))
+            #LOG EVENT
+            l = LogEntry(userid=request.user.username,
+                  description=("imported marking setup for %s") % (activity),
+                  related_object=activity)
+            l.save()                         
+            messages.add_message(request, messages.SUCCESS, "Marking setup imported.")                
+            return HttpResponseRedirect(reverse('marking.views.manage_activity_components', kwargs={'course_slug':course_slug, 'activity_slug': activity_slug}))
+    else:
+        form = ImportFileForm()
+    return render_to_response("marking/import.html", 
+                              {'course': course, 'activity': activity, 'form': form},\
+                              context_instance=RequestContext(request))
     
+
 @requires_course_staff_by_slug
 def manage_common_problems(request, course_slug, activity_slug):    
        
