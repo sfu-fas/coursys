@@ -10,7 +10,7 @@ from courselib.auth import *
 from grades.models import ACTIVITY_STATUS, all_activities_filter, Activity, \
                         NumericActivity, LetterActivity, CalNumericActivity, ACTIVITY_TYPES
 from grades.forms import NumericActivityForm, LetterActivityForm, CalNumericActivityForm, \
-                         ActivityFormEntry, FormulaFormEntry, StudentSearchForm, FORMTYPE, GROUP_STATUS_MAP
+                         ActivityFormEntry, FormulaFormEntry, StudentSearchForm, FORMTYPE, GROUP_STATUS_MAP, URLForm
 from grades.models import *
 from grades.utils import StudentActivityInfo, reorder_course_activities, create_StudentActivityInfo_list, \
                         ORDER_TYPE, FormulaTesterActivityEntry, FakeActivity, generate_numeric_activity_stat
@@ -107,7 +107,33 @@ def _course_info_staff(request, course_slug):
     return render_to_response("grades/course_info_staff.html", context,
                               context_instance=RequestContext(request))
 
+
+@requires_course_staff_by_slug
+def course_url(request, course_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    if request.method=="POST":
+        form = URLForm(request.POST)
+        if form.is_valid():
+            course.url = form.cleaned_data['url'] 
+            course.save()
+            messages.success(request, 'Course home page updated')
+
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("updated URL for %s") % (course),
+                  related_object=course)
+            l.save()
+
+            return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
+    else:
+        form = URLForm({'url':course.url})
     
+    context = {'course': course, 'form': form}
+    return render_to_response("grades/course_url.html", context,
+                              context_instance=RequestContext(request))
+
+        
+
 #@requires_course_student_by_slug
 def _course_info_student(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
@@ -322,6 +348,7 @@ def add_numeric_activity(request, course_slug):
                                                 due_date=form.cleaned_data['due_date'],
                                                 percent=form.cleaned_data['percent'],
                                                 max_grade=form.cleaned_data['max_grade'],
+                                                url=form.cleaned_data['url'],
                                                 offering=course, position=position,
                                                 group=GROUP_STATUS_MAP[form.cleaned_data['group']])
                 if a.group == True:
@@ -362,6 +389,7 @@ def add_cal_numeric_activity(request, course_slug):
                                                 short_name=form.cleaned_data['short_name'],
                                                 status=form.cleaned_data['status'],
                                                 max_grade=form.cleaned_data['max_grade'],
+                                                url=form.cleaned_data['url'],
                                                 formula=form.cleaned_data['formula'],
                                                 offering=course, 
                                                 position=position,
@@ -495,6 +523,7 @@ def _create_activity_formdatadict(activity):
     data['status'] = activity.status
     data['due_date'] = activity.due_date
     data['percent'] = activity.percent
+    data['url'] = activity.url
     for (k, v) in GROUP_STATUS_MAP.items():
         if activity.group == v:
             data['group'] = k
@@ -523,6 +552,8 @@ def _populate_activity_from_formdata(activity, data):
         activity.max_grade = data['max_grade']
     if data.has_key('formula'):
         activity.formula = data['formula']
+    if data.has_key('url'):
+        activity.url = data['url']
 
 @requires_course_staff_by_slug
 def edit_activity(request, course_slug, activity_slug):
@@ -606,6 +637,7 @@ def add_letter_activity(request, course_slug):
                                                 status=form.cleaned_data['status'],
                                                 due_date=form.cleaned_data['due_date'],
                                                 percent=form.cleaned_data['percent'],
+                                                url=form.cleaned_data['url'],
                                                 offering=course, position=position,
                                                 group=GROUP_STATUS_MAP[form.cleaned_data['group']])
                 if a.group == True:

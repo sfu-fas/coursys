@@ -54,6 +54,9 @@ class ActivityForm(forms.Form):
     percent = forms.DecimalField(max_digits=5, decimal_places=2, required=False, label='Percentage:',
                                  help_text='percent of final mark',
                                  widget=forms.TextInput(attrs={'size':'2'}))
+    url = forms.URLField(required=False, verify_exists=True, label='URL:',
+                                 help_text='page for more information, e.g. assignment description or exam info',
+                                 widget=forms.TextInput(attrs={'size':'60'}))
 
     def __init__(self, *args, **kwargs):
         super(ActivityForm, self).__init__(*args, **kwargs)
@@ -182,3 +185,8 @@ class FormulaFormEntry(forms.Form):
 class StudentSearchForm(forms.Form):
     search = forms.CharField(label="Userid or student number",
              widget=forms.TextInput(attrs={'size':'15'}))
+
+class URLForm(forms.Form):
+    url = forms.URLField(required=False, verify_exists=True, label='URL:',
+                                 help_text='Course home page address',
+                                 widget=forms.TextInput(attrs={'size':'60'}))

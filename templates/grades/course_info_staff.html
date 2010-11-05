@@ -114,6 +114,7 @@
         <li><a href="{% url grades.views.student_search course_slug=course.slug %}">Student Search</a></li>
 	{% if any_group %}<li><a href="{% url groups.views.groupmanage course_slug=course.slug %}">Manage Groups</a></li>{% endif %}
 	<li><a href="{% url dashboard.views.new_message course_slug=course.slug %}">Message Class</a></li>
+	<li><a href="{% url grades.views.course_url course_slug=course.slug %}">Edit Course URL</a></li>
 	<li><a href="{% url marking.views.copy_course_setup course_slug=course.slug %}">Copy Course Setup</a></li>
     </ul>
 </div>
@@ -157,6 +158,10 @@
             <tr>
                 <th scope="row">Number of Students</th>
                 <td>{{ course.student_count }}</td>
+            </tr>
+            <tr>
+                <th scope="row">Course home page</th>
+                <td>{% if course.url %}{{ course.url|urlize }}{% endif %}</td>
             </tr>
         </tbody>
     </table>

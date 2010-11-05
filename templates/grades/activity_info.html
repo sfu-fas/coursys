@@ -157,6 +157,12 @@
                 <td>{{activity.formula}}</td>
             </tr>
             {% endif %}
+            {% if activity.url %}
+            <tr>
+                <th class="ui-state-default">More Information</th>
+                <td>{{activity.url|urlize}}</td>
+            </tr>
+            {% endif %}
         </tbody>
     </table>
 </div>
