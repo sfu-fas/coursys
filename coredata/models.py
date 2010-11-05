@@ -180,6 +180,7 @@ class CourseOffering(models.Model):
     wait_tot = models.PositiveSmallIntegerField()
 
     members = models.ManyToManyField(Person, related_name="member", through="Member")
+    url = models.URLField(verify_exists=True, null=True)
     
     def autoslug(self):
         words = [str(s) for s in self.semester, self.subject, self.number, self.section]
