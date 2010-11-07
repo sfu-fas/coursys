@@ -214,7 +214,7 @@
                 <td>&mdash;</td>
                 {% endifnotequal %}
                 <td class="{{activity.status|lower}}">{{ activity.get_status_display }}</td>
-                <td>{{ activity.due_date }}</td>
+                <td class="{{activity.due_class}}">{{ activity.due_date }}</td>
             </tr>
             {% endwith %}
 	    {% empty %}
