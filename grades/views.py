@@ -617,6 +617,40 @@ def edit_activity(request, course_slug, activity_slug):
         return NotFoundResponse(request)
     
 
+@requires_course_staff_by_slug
+def release_activity(request, course_slug, activity_slug):
+    """
+    Bump activity status: INVI -> URLS, URLS -> RLS.
+    """
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=course, deleted=False)
+    if request.method == 'POST':
+        if activity.status == "INVI":
+            activity.status = "URLS"
+            activity.save()
+            messages.success(request, 'Activity made visible to students (but grades are still unreleased).')
+
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("activity %s made visible") % (activity),
+                  related_object=course)
+            l.save()
+        elif activity.status == "URLS":
+            activity.status = "RLS"
+            activity.save()
+            messages.success(request, 'Grades released to students.')
+
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("activity %s grades released") % (activity),
+                  related_object=course)
+            l.save()
+
+        return HttpResponseRedirect(reverse('grades.views.activity_info', kwargs={'course_slug': course.slug, 'activity_slug': activity.slug}))
+            
+    else:
+        return ForbiddenResponse(request)
+
     
 @requires_course_staff_by_slug
 def add_letter_activity(request, course_slug):

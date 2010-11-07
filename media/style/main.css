@@ -503,6 +503,15 @@ table.info {
   border-color: #ccc;
   width: 100%;
 }
+div#main table.info p {
+  padding: 0;
+  margin: 0;
+}
+div#main table.info p input {
+  float: right;
+  font-size: 75%;
+  padding: 0;
+}
 .table_container {
   width: 600px;
 }

@@ -129,7 +129,13 @@
             </tr>
             <tr>
                 <th class="ui-state-default">Status</th>
-                <td>{{activity.get_status_display}}</td>
+                <td><form action="{% url grades.views.release_activity course_slug=course.slug, activity_slug=activity.slug %}" method="post">{% csrf_token %}<p>
+                {{activity.get_status_display}}
+                {% if activity.status == "INVI" %}
+                <input type="submit" value="make visible" />
+                {% else %}{% if activity.status == "URLS" %}
+                <input type="submit" value="release grades" />
+                {% endif %}{% endif %}</p></form></td>
             </tr>
             <tr>
                 <th class="ui-state-default">Due date</th>
