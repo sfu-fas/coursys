@@ -512,6 +512,12 @@ div#main table.info p input {
   font-size: 75%;
   padding: 0;
 }
+.due_verysoon {
+  background-color: #f22;
+}
+.due_soon {
+  background-color: #ff0;
+}
 .table_container {
   width: 600px;
 }
