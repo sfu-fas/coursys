@@ -83,7 +83,7 @@
 	<thead>
 	    <tr>
 		<th scope="col">Activity</th>
-		<!--<th scope="col">Due In</th>-->
+		<th scope="col">Due In</th>
 		<th scope="col">Status</th>
 		<th scope="col">Grade</th>
 	    </tr>
@@ -92,7 +92,7 @@
 	    {% for activityinfo in activityinfo_list %}
             <tr>
 		<td scope="row"><a href="{{activityinfo.activity.get_absolute_url}}">{{ activityinfo.activity.display_label }}</a></td>
-		<!--<td class="{{activityinfo.activity.due_class}}">{{ activityinfo.activity.due_in_str }}</td>-->
+		<td class="{{activityinfo.activity.due_class}}">{{ activityinfo.activity.due_in_str }}</td>
 		<td>{{ activityinfo.display_grade_status_student }}</td>
 		<td>{{ activityinfo.display_grade_student }}</td>
             </tr>
