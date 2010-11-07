@@ -143,43 +143,6 @@ class Activity(models.Model):
         else:
             return StudentSubmission
 
-    def due_in_str(self):
-        """
-        Produce pretty string for "in how long is this due"
-        """
-        if not self.due_date:
-            return u"\u2014"
-        due_in = self.due_date - datetime.now()
-        seconds = (due_in.microseconds + (due_in.seconds + due_in.days * 24 * 3600.0) * 10**6) / 10**6
-        if due_in < timedelta(seconds=0):
-            return "past due"
-        elif due_in > timedelta(days=2):
-            return "%i days" % (due_in.days)
-        elif due_in > timedelta(days=1):
-            return "%i day %i hours" % (due_in.days, int((seconds/3600) - (due_in.days*24)))
-        elif due_in > timedelta(hours=2):
-            return "%i hours %i minutes" % (int(seconds/3600), int(seconds%3600/60))
-        elif due_in > timedelta(hours=1):
-            return "%i hour %i minutes" % (int(seconds/3600), int(seconds%3600/60))
-        else:
-            return "%i minutes" % (int(seconds/60))
-        
-    def due_class(self):
-        """
-        Produce class name for "heat": how long until it is due?
-        """
-        if not self.due_date:
-            return "due_unknown"
-        due_in = self.due_date - datetime.now()
-        if due_in < timedelta(seconds=0):
-            return "due_overdue"
-        elif due_in < timedelta(days=2):
-            return "due_verysoon"
-        elif due_in < timedelta(days=7):
-            return "due_soon"
-        else:
-            return "due_far"
-
 
 class NumericActivity(Activity):
     """
