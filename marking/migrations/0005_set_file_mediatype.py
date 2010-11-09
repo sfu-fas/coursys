@@ -7,23 +7,16 @@ from django.db import models
 class Migration(DataMigration):
 
     def forwards(self, orm):
-        "Find the corresponding activities"
-        for am in orm.ActivityMark.objects.all():
-            try:
-                gam = am.groupactivitymark
-                act = gam.numeric_activity
-                assert act.group
-            except am.DoesNotExist:
-                sam = am.studentactivitymark
-                act = sam.numeric_grade.activity
-            
-            am.activity = act
+        "Write your forwards methods here."
+        for am in orm.ActivityMark.objects.exclude(file_attachment=''):
+            am.file_mediatype = 'application/octet-stream'
             am.save()
+        
 
     def backwards(self, orm):
-        "Delete the activities."
-        for am in orm.ActivityMark.objects.all():
-            am.activity_id = 0
+        "Write your backwards methods here."
+        for am in orm.ActivityMark.objects.exclude(file_attachment=''):
+            am.file_mediatype = ''
             am.save()
 
 
@@ -45,6 +38,7 @@ class Migration(DataMigration):
             'slug': ('autoslug.fields.AutoSlugField', [], {'max_length': '50', 'unique': 'False', 'unique_with': '()', 'db_index': 'True'}),
             'subject': ('django.db.models.fields.CharField', [], {'max_length': '4', 'db_index': 'True'}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '30'}),
+            'url': ('django.db.models.fields.URLField', [], {'max_length': '200', 'null': 'True'}),
             'wait_tot': ('django.db.models.fields.PositiveSmallIntegerField', [], {})
         },
         'coredata.member': {
@@ -135,11 +129,12 @@ class Migration(DataMigration):
             'activity': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['grades.NumericActivity']", 'null': 'True'}),
             'created_at': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'created_by': ('django.db.models.fields.CharField', [], {'max_length': '8'}),
-            'file_attachment': ('django.db.models.fields.files.FileField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
+            'file_attachment': ('django.db.models.fields.files.FileField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'}),
+            'file_mediatype': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'late_penalty': ('django.db.models.fields.IntegerField', [], {'default': '0', 'null': 'True', 'blank': 'True'}),
+            'late_penalty': ('django.db.models.fields.DecimalField', [], {'default': '0', 'null': 'True', 'max_digits': '5', 'decimal_places': '2', 'blank': 'True'}),
             'mark': ('django.db.models.fields.DecimalField', [], {'max_digits': '5', 'decimal_places': '2'}),
-            'mark_adjustment': ('django.db.models.fields.IntegerField', [], {'default': '0', 'null': 'True', 'blank': 'True'}),
+            'mark_adjustment': ('django.db.models.fields.DecimalField', [], {'default': '0', 'null': 'True', 'max_digits': '5', 'decimal_places': '2', 'blank': 'True'}),
             'mark_adjustment_reason': ('django.db.models.fields.TextField', [], {'max_length': '1000', 'null': 'True', 'blank': 'True'}),
             'overall_comment': ('django.db.models.fields.TextField', [], {'max_length': '1000', 'null': 'True', 'blank': 'True'})
         },

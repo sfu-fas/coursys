@@ -394,7 +394,7 @@ def manage_component_positions(request, course_slug, activity_slug):
                                context_instance=RequestContext(request))
     
     
-def _initialize_component_mark_forms(components, base_activity_mark=None):
+def XXX_initialize_component_mark_forms(components, base_activity_mark=None):
     
     leng = len(components)
     component_mark_forms = []
@@ -421,7 +421,7 @@ def _initialize_component_mark_forms(components, base_activity_mark=None):
    
     return component_mark_forms 
 
-def _construct_mark_components(components, component_mark_forms):
+def XXX_construct_mark_components(components, component_mark_forms):
     assert len(components)==len(component_mark_forms)
     mark_components = []
     for i in range(len(components)):
@@ -432,7 +432,7 @@ def _construct_mark_components(components, component_mark_forms):
     
     return mark_components              
     
-def _check_component_marks_forms(components, component_mark_forms, warnings_to_return):
+def XXX_check_component_marks_forms(components, component_mark_forms, warnings_to_return):
     """
     return a list of ActivityComponentMark objects generated from the forms 
     if error found in any of the forms, return None
@@ -453,7 +453,7 @@ def _check_component_marks_forms(components, component_mark_forms, warnings_to_r
                 
     return cmp_marks
 
-def _check_additional_info_form(addtional_info_form, warnings_to_return):
+def XXX_check_additional_info_form(addtional_info_form, warnings_to_return):
     """ 
     Return the ActivityMark object containing additional information
     if error found return None
@@ -462,7 +462,7 @@ def _check_additional_info_form(addtional_info_form, warnings_to_return):
         return addtional_info_form.save(commit = False)   
     return None
 
-def _compute_final_mark(component_marks, max_grade, additional_info):
+def XXX_compute_final_mark(component_marks, max_grade, additional_info):
     components_total = 0
     for cmp_mark in component_marks:   
         components_total += cmp_mark.value
@@ -470,7 +470,7 @@ def _compute_final_mark(component_marks, max_grade, additional_info):
     return  (1-additional_info.late_penalty/decimal.Decimal(100))*components_total - \
             additional_info.mark_adjustment
 
-def _save_marking_results(activity, activity_mark, final_mark, marker_ident, mark_receiver_ident, component_marks = None, additional_info=None):
+def XXX_save_marking_results(activity, activity_mark, final_mark, marker_ident, mark_receiver_ident, component_marks = None, additional_info=None):
     
     # copy the additional info      
     if additional_info != None:
@@ -532,8 +532,154 @@ def change_grade_status(request, course_slug, activity_slug, userid):
     return render_to_response("marking/grade_status.html", context,
                               context_instance=RequestContext(request))  
 
+def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
+    """
+    Function to handle all of the marking views (individual/group, new/editing, GET/POST).
+    
+    Long and has lots of conditional code, but avoids logic duplication.
+    """
+    course = get_object_or_404(CourseOffering, slug=course_slug)    
+    activity = get_object_or_404(NumericActivity, offering=course, slug=activity_slug)     
+    components = ActivityComponent.objects.filter(numeric_activity=activity, deleted=False)
+    if groupmark:
+        group = get_object_or_404(Group, slug=userid)
+        ActivityMarkForm = GroupActivityMarkForm
+    else:
+        student = get_object_or_404(Person, userid=userid)
+        membership = get_object_or_404(Member, offering=course, person=student, role='STUD') 
+        ActivityMarkForm = StudentActivityMarkForm
+    
+    # set up forms (all cases handled here to avoid duplicating the logic)
+    postdata = None
+    filedata = None
+    am = None
+    if request.method == 'POST':
+        # use POST data
+        postdata = request.POST
+        filedata = request.FILES
+    elif 'base_activity_mark' in request.GET:
+        # requested "mark based on" object
+        old_id = request.GET['base_activity_mark']
+        if groupmark:
+            am = get_group_mark_by_id(activity, group, old_id)
+        else:
+            am = get_activity_mark_by_id(activity, membership, old_id)
+
+    # build actual forms
+    form = ActivityMarkForm(instance=am, data=postdata, files=filedata)
+    component_data = []
+    for i,c in enumerate(components):
+        old_c = None
+        if am:
+            try:
+                old_c = am.activitycomponentmark_set.filter(activity_component=c)[0]
+            except IndexError: # just in case: leave old_c==None if can't be found in database
+                pass
+        f = ActivityComponentMarkForm(instance=old_c, data=postdata, prefix="cmp-%s" % (i+1))
+        common = CommonProblem.objects.filter(activity_component=c)
+        component_data.append( {'component': c, 'form': f, 'common_problems': common } )
+    
+    
+    if request.method == 'POST':
+        # base form and all components must be valid to continue
+        if form.is_valid() and (False not in [entry['form'].is_valid() for entry in component_data]):
+            # set additional ActivityMark info
+            am = form.save(commit=False)
+            am.created_by = request.user.username
+            am.activity = activity
+            if 'file_attachment' in request.FILES:
+                # store MIME type from uploaded file
+                upfile = request.FILES['file_attachment']
+                filetype = upfile.content_type
+                if upfile.charset:
+                    filetype += "; charset=" + upfile.charset
+                am.file_mediatype = filetype
+
+            if groupmark:
+                # set group info
+                am.group = group
+                am.numeric_activity = activity
+            else:
+                # need a corresponding NumericGrade object: find or create one
+                try:       
+                    ngrade = NumericGrade.objects.get(activity=activity, member=membership)
+                except NumericGrade.DoesNotExist:
+                    ngrade = NumericGrade(activity=activity, member=membership)
+                    ngrade.save(newsitem=False)
+                am.numeric_grade = ngrade
+            
+            # calculate grade and save
+            total = decimal.Decimal(0)
+            for entry in component_data:
+                value = entry['form'].cleaned_data['value']
+                total += value
+                
+                if value > entry['component'].max_mark:
+                    messages.add_message(request, messages.WARNING, "Bonus marks given for %s" % (entry['component'].title))
+                if value < 0:
+                    messages.add_message(request, messages.WARNING, "Negative mark given for %s" % (entry['component'].title))
+            
+            mark = (1-form.cleaned_data['late_penalty']/decimal.Decimal(100)) * \
+                   (total - form.cleaned_data['mark_adjustment'])
+            am.mark = mark
+            am.setMark(mark)
+
+            am.save()
+            form.save_m2m()
+            for entry in component_data:
+                c = entry['form'].save(commit=False)
+                c.activity_component = entry['component']
+                c.activity_mark = am
+                c.save()
+                entry['form'].save_m2m()
+
+            if groupmark:
+                messages.add_message(request, messages.SUCCESS, 'Mark for group "%s" on %s saved: %s/%s.' % (group.name, activity.name, mark, activity.max_grade))
+            else:
+                messages.add_message(request, messages.SUCCESS, 'Mark for %s on %s saved: %s/%s.' % (student.name(), activity.name, mark, activity.max_grade))
+            #LOG EVENT
+            l = LogEntry(userid=request.user.username,
+                  description=("marked %s for %s: %s/%s") % (activity, userid, mark, activity.max_grade),
+                  related_object=am)
+            l.save()      
+
+            # redirect to next page
+            if 'marknext' in request.POST:
+                # "submit and mark next" clicked: jump to next userid
+                try:
+                    nextmember = Member.objects.filter(offering=course, person__userid__gt=userid, role="STUD"
+                                 ).order_by('person__userid')[0]
+                    return HttpResponseRedirect(reverse(marking_student, 
+                           kwargs={'course_slug': course.slug, 'activity_slug': activity.slug,
+                           'userid': nextmember.person.userid}))
+                except IndexError:
+                    messages.add_message(request, messages.INFO, 'That was the last userid in the course.')
+                    return _redirct_response(request, course_slug, activity_slug)
+            elif groupmark:
+                return HttpResponseRedirect(reverse('grades.views.activity_info_with_groups', 
+                           kwargs={'course_slug': course.slug, 'activity_slug': activity.slug}))
+            else:
+                return _redirct_response(request, course_slug, activity_slug)
+
+    context = {'course': course, 'activity': activity, 'form': form, 'component_data': component_data }
+    if groupmark:
+        context['group'] = group
+    else:
+        context['student'] = student
+    return render_to_response("marking/marking.html", context,
+                       context_instance=RequestContext(request))  
+    
+
 @requires_course_staff_by_slug
 def marking_student(request, course_slug, activity_slug, userid):
+    return _marking_view(request, course_slug, activity_slug, userid, groupmark=False)
+
+@requires_course_staff_by_slug
+def marking_group(request, course_slug, activity_slug, group_slug):
+    return _marking_view(request, course_slug, activity_slug, group_slug, groupmark=True)
+
+@requires_course_staff_by_slug
+def XXX_marking_student(request, course_slug, activity_slug, userid):
     student = get_object_or_404(Person, userid = userid)
     course = get_object_or_404(CourseOffering, slug = course_slug)    
     activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)     
@@ -597,8 +743,10 @@ def marking_student(request, course_slug, activity_slug, userid):
                        'additional_info_form' : additional_info_form, 'mark_components': mark_components }, \
                        context_instance=RequestContext(request))  
 
+
+
 @requires_course_staff_by_slug
-def marking_group(request, course_slug, activity_slug, group_slug):    
+def XXX_marking_group(request, course_slug, activity_slug, group_slug):    
     course = get_object_or_404(CourseOffering, slug = course_slug)    
     activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)
     group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
@@ -723,35 +871,46 @@ def mark_summary_group(request, course_slug, activity_slug, group_slug):
                                 context_instance = RequestContext(request))
          
 import os
-from django.core.servers.basehttp import FileWrapper
-@requires_course_by_slug
-def download_marking_attachment(request, course_slug, activity_slug, mark_id, filepath):
-    course = get_object_or_404(CourseOffering, slug = course_slug)    
-    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)       
-      
-    # url integrity check
-    result = StudentActivityMark.objects.filter(id=mark_id)    
-    if result.count() == 0:
-        result = GroupActivityMark.objects.filter(id=mark_id, activity=activity)
-        if result.count() == 0:
-            return ForbiddenResponse(request)
-    elif result[0].numeric_grade.activity != activity:
-        return ForbiddenResponse(request)
-    elif result[0].file_attachment.name != filepath:
-        return ForbiddenResponse(request)
-    
-    #print MarkingSystemStorage.location
-             
-    # for windows system, we need to convert the path separator '/' in url to '\\'
-    filepath = filepath.replace('/', os.path.sep)   
-    # append the marking base path 
-    filepath = os.path.join(MarkingSystemStorage.location, filepath)
-    
-    bytes = os.path.getsize(filepath)
-    response = HttpResponse(FileWrapper(file(filepath, "rb")))
+@login_required
+def download_marking_attachment(request, course_slug, activity_slug, mark_id):
+    course = get_object_or_404(CourseOffering, slug=course_slug)    
+    activity = get_object_or_404(NumericActivity, offering=course, slug=activity_slug)
 
-    response['Content-Disposition'] = 'attachment;'
-    response['Content-Length'] = bytes
+    if is_course_staff_by_slug(request.user, course_slug):
+       is_staff = True
+    elif is_course_student_by_slug(request.user, course_slug):
+       is_staff = False
+    else:
+       return ForbiddenResponse(request)
+
+    # get the ActivityMark object
+    try:
+        am = StudentActivityMark.objects.get(id=mark_id)
+        groupmark = False
+    except StudentActivityMark.DoesNotExist:
+        try:
+            am = GroupActivityMark.objects.get(id=mark_id)
+            groupmark = True
+        except GroupActivityMark.DoesNotExist:
+            return NotFoundResponse(request)
+    
+    # check permissions:
+    if is_staff:
+        pass
+    elif groupmark:
+        # must be member of the group for this activity
+        gms = am.group.groupmember_set.filter(student__person__userid=request.user.username, activity=activity, confirmed=True)
+        if not gms:
+            return ForbiddenResponse(request)
+    else:
+        # must be corresponding student
+        if am.numeric_grade.member.userid != request.user.username:
+            return ForbiddenResponse(request)
+    
+    # send the file
+    filename = am.attachment_filename()
+    response = HttpResponse(am.file_attachment, mimetype=am.file_mediatype)
+    response['Content-Disposition'] = 'inline; filename='+filename
     return response
 
 @requires_course_staff_by_slug

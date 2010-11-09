@@ -442,7 +442,7 @@ def download_file(request, course_slug, activity_slug, component_slug=None, subm
     if is_course_staff_by_slug(request.user, course_slug):
         pass
     elif isinstance(submission, GroupSubmission):
-        membership = submission.group.groupmember_set.filter(student__person__userid=request.user.username, confirmed=True)
+        membership = submission.group.groupmember_set.filter(student__person__userid=request.user.username, activity=activity, confirmed=True)
         if not membership:
             return ForbiddenResponse(request)
     elif isinstance(submission, StudentSubmission):

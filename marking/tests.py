@@ -15,7 +15,7 @@ from settings import CAS_SERVER_URL
 from courselib.testing import *
 from datetime import *
 from django.core.urlresolvers import reverse
-
+import decimal
 
 
 class BasicTest(TestCase):
@@ -91,7 +91,7 @@ class BasicTest(TestCase):
         url = reverse(marking_student, args=(self.c_slug,a.slug, '0aaa0'))
         response = basic_page_tests(self, self.client, url)
         
-        mark_components = response.context['mark_components']
+        mark_components = response.context['component_data']
         com1 = mark_components[0]
         com2 = mark_components[1]
         
@@ -263,6 +263,28 @@ class BasicTest(TestCase):
         cp.save()
 
         response = basic_page_tests(self, client, url)
+        
+        # submit the form and check that objects were created
+        response = client.post(url, {'cmp-1-value': 5, 'cmp-1-comment': 'perfect', 'cmp-2-value': 3, 'cmp-2-comment': 'ok', 'mark_adjustment': 1, 'mark_adjustment_reason': 'reason', 'late_penalty': 10, u'overall_comment': 'overall'})
+        self.assertEquals(response.status_code, 302)
+        sam = StudentActivityMark.objects.filter(activity=a2, numeric_grade__member=stud1)
+        self.assertEquals(len(sam), 1)
+        sam = sam[0]
+        self.assertEquals(sam.mark_adjustment, 1)
+        self.assertEquals(sam.late_penalty, 10)
+        self.assertEquals(sam.overall_comment, 'overall')
+        self.assertEquals(sam.mark, decimal.Decimal("6.3"))
+        acms = sam.activitycomponentmark_set.all()
+        self.assertEquals(len(acms), 2)
+        self.assertEquals(acms[0].value, 5)
+        self.assertEquals(acms[0].comment, 'perfect')
+        g = NumericGrade.objects.get(activity=a2, member=stud1)
+        self.assertEquals(g.value, decimal.Decimal("6.3"))
+        
+        # make sure we get old data for "mark based on"
+        response = basic_page_tests(self, client, url + "?base_activity_mark="+str(sam.id))
+        self.assertContains(response, 'name="cmp-1-value" value="5"')
+        self.assertContains(response, 'name="late_penalty" value="10"')
 
         # marking form (group)
         url = reverse('marking.views.marking_student', kwargs={'course_slug':c.slug, 'activity_slug':a1.slug, 'userid':stud1.person.userid})

@@ -11,6 +11,7 @@ from django.db.models import Q
 from submission.models import select_all_components
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
+from django.core.exceptions import ValidationError
 import os.path
 
 MarkingSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
@@ -51,17 +52,23 @@ def attachment_upload_to(instance, filename):
     """
     callback to avoid path in the filename(that we have append folder structure to) being striped 
     """
-    return os.path.join('marking', 'files', filename)
-             
+    fullpath = os.path.join(
+            instance.activity.offering.slug,
+            instance.activity.slug + "_marking",
+            datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.created_by),
+            filename.encode('ascii', 'ignore'))
+    return fullpath 
+                
 class ActivityMark(models.Model):
     """
     General Marking class for one numeric activity 
     """
     overall_comment = models.TextField(null = True, max_length = 1000, blank = True)
-    late_penalty = models.IntegerField(null = True, default = 0, blank = True, help_text='Percentage to deduct from the total mark got due to late submission')
-    mark_adjustment = models.IntegerField(null = True, default = 0, blank = True, help_text='Points to add or deduct for any special reasons')
+    late_penalty = models.DecimalField(max_digits=5, decimal_places=2, null = True, default = 0, blank = True, help_text='Percentage to deduct from the total mark got due to late submission')
+    mark_adjustment = models.DecimalField(max_digits=5, decimal_places=2, null = True, default = 0, blank = True, help_text='Points to deduct for any special reasons')
     mark_adjustment_reason = models.TextField(null = True, max_length = 1000, blank = True)
-    file_attachment = models.FileField(storage=MarkingSystemStorage, null = True, upload_to=attachment_upload_to, blank=True)
+    file_attachment = models.FileField(storage=MarkingSystemStorage, null = True, upload_to=attachment_upload_to, blank=True, max_length=500)
+    file_mediatype = models.CharField(null=True, blank=True, max_length=200)
     created_by = models.CharField(max_length=8, null=False, help_text='Userid who gives the mark')
     created_at = models.DateTimeField(auto_now_add=True)
     # For the purpose of keeping a history,
@@ -89,6 +96,12 @@ class ActivityMark(models.Model):
     
     def setMark(self, grade):
         self.mark = grade
+    def attachment_filename(self):
+        """
+        Return the filename only (no path) for the attachment.
+        """
+        path, filename = os.path.split(self.file_attachment.name)
+        return filename
 
 class StudentActivityMark(ActivityMark):
     """
@@ -109,16 +122,6 @@ class StudentActivityMark(ActivityMark):
         Set the mark
         """
         super(StudentActivityMark, self).setMark(grade)       
-        # append folder structure to the file name
-        if self.file_attachment:                
-            activity = self.numeric_grade.activity
-            course = activity.offering
-            student = self.numeric_grade.member.person           
-            self.file_attachment.name = os.path.join(
-                                        course.slug, 
-                                        activity.slug, 
-                                        student.userid + '_' +self.file_attachment.name.encode('ascii', 'ignore'))
-       
         self.numeric_grade.value = grade
         self.numeric_grade.flag = 'GRAD'
         self.numeric_grade.save()            
@@ -140,21 +143,14 @@ class GroupActivityMark(ActivityMark):
         """         
         Set the mark of the group members
         """
-        super(GroupActivityMark, self).setMark(grade)    
-        # append folder structure to the file name
-        if self.file_attachment: 
-            course = self.numeric_activity.offering              
-            self.file_attachment.name = os.path.join(
-                                        course.slug, 
-                                        activity.slug, 
-                                        group.slug + '_' +self.file_attachment.name.encode('ascii', 'ignore'))
+        super(GroupActivityMark, self).setMark(grade)
         #assign mark for each member in the group
-        group_members = GroupMember.objects.filter(group = self.group, activity = self.numeric_activity, confirmed = True)
+        group_members = GroupMember.objects.filter(group=self.group, activity=self.numeric_activity, confirmed=True)
         for g_member in group_members:
             try:            
-                ngrade = NumericGrade.objects.get(activity = self.numeric_activity, member = g_member.student)
+                ngrade = NumericGrade.objects.get(activity=self.numeric_activity, member=g_member.student)
             except NumericGrade.DoesNotExist: 
-                ngrade = NumericGrade(activity = self.numeric_activity, member = g_member.student)
+                ngrade = NumericGrade(activity=self.numeric_activity, member=g_member.student)
             ngrade.value = grade
             ngrade.flag = 'GRAD'
             ngrade.save()            

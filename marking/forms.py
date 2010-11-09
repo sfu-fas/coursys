@@ -10,19 +10,36 @@ class ActivityComponentMarkForm(ModelForm):
         model = ActivityComponentMark            
         fields = ['comment', 'value']
     
+
+activity_mark_fields = ['late_penalty', 'mark_adjustment', 'mark_adjustment_reason', 'overall_comment', \
+                  'file_attachment']
            
 class ActivityMarkForm(ModelForm):
     class Meta:
         model = ActivityMark
-        fields = ['late_penalty', 'mark_adjustment', 'mark_adjustment_reason', 'overall_comment', \
-                  ] #'file_attachment'
+        fields = activity_mark_fields
     
     def clean_late_penalty(self):  
         late_penalty = self.cleaned_data['late_penalty']
+        try:
+            float(late_penalty)
+        except TypeError:
+            raise forms.ValidationError(u'The late penalty must be a number')
         if late_penalty:
             if late_penalty > 100:
                 raise forms.ValidationError(u'The late penalty can not exceed 100 percent')
         return late_penalty
+
+class StudentActivityMarkForm(ActivityMarkForm):
+    class Meta:
+        model = StudentActivityMark
+        fields = activity_mark_fields
+
+class GroupActivityMarkForm(ActivityMarkForm):
+    class Meta:
+        model = GroupActivityMark
+        fields = activity_mark_fields
+
     
 class BaseActivityComponentFormSet(BaseModelFormSet):
     

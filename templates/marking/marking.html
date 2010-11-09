@@ -29,9 +29,9 @@ function append_problem(n, content)
         	<h2> Mark for Student: {{student.name}} ({{student.userid}}) </h2>       
        {% endif %}
      {% endif %}
-	 {% for entry in mark_components %}  	     
+	 {% for entry in component_data %}  	     
 	     <fieldset>
-	     <legend><a href="{% url marking.views.manage_activity_components course_slug=course.slug activity_slug=activity.slug %}" title="Edit components">{{entry.component.title}}</a></legend> 
+	     <legend>{{entry.component.title}}</legend> 
 		     <ul class = "component">
 		        <li>{{entry.component.description}}</li>
 		        <li class="component_mark"> 
@@ -67,9 +67,9 @@ function append_problem(n, content)
 	 <fieldset>
 	 <legend>Additional Information</legend>
 	 {% if group %}
-	   {{additional_info_form|display_form}}
+	   {{form|display_form}}
 	 {% else %}
-	   {{additional_info_form|display_form_marknext}}
+	   {{form|display_form_marknext}}
 	 {% endif %}
 	 </fieldset>     
 </form>
