@@ -42,7 +42,7 @@ Group {{group.name}} marked on {{activity.name}}
 	    	<th  class="ui-state-default">Mark Approach</th>
 	        <td>
 	            {% if group %}
-	            Via group <a href="#">{{group.name}}</a>
+	            Via group &ldquo;{{group.name}}&rdquo;
 	            {% else %}
 	            Directly to individual
 	            {% endif %}
@@ -60,7 +60,7 @@ Group {{group.name}} marked on {{activity.name}}
 	    <tr>
 	       <th class="ui-state-default">Overall comment</th>
 	       <td> 
-		      {{ activity_mark.overall_comment }}	
+		      {{ activity_mark.overall_comment|linebreaks }}	
            </td>
         </tr>    
 		<tr>
@@ -69,6 +69,7 @@ Group {{group.name}} marked on {{activity.name}}
 			 {{ activity_mark.late_penalty }}	
 	      </td>
 	    </tr>
+	    {% if activity_mark.mark_adjustment != 0 or activity_mark.mark_adjustment_reason != '' %}
 	    <tr>
 		  <th class="ui-state-default">Adjustment Mark</th>
 		  <td> 
@@ -78,19 +79,18 @@ Group {{group.name}} marked on {{activity.name}}
 	    <tr>
 		  <th class="ui-state-default">Adjustment Mark Reason</th>
 		  <td> 
-			 {{ activity_mark.mark_adjustment_reason }}	
+			 {{ activity_mark.mark_adjustment_reason|linebreaks }}	
 	      </td>
 	    </tr>
+	    {% endif %}
+		  {% if activity_mark.file_attachment %}
 	    <tr>
 		  <th class="ui-state-default">File Attachment</th>
-		  {% if activity_mark.file_attachment %}
 		    <td>
 		    <a href = "{% url marking.views.download_marking_attachment course_slug=course.slug, activity_slug=activity.slug, mark_id=activity_mark.id %}">{{activity_mark.attachment_filename}} <img src="{{MEDIA_URL}}icons/download.png" title="Download" alt="Download" /></a>		    
 		    </td>
-		  {% else %}
-		  	<td>no attachment</td>
-	      {% endif %}
 	    </tr>
+	      {% endif %}
     </tbody>
     </table>
 </div>   

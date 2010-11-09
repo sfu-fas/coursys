@@ -497,7 +497,6 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
             if activity.group is True:
                 member = GroupMember.objects.filter(activity=activity, student__person__userid=userid, confirmed=True)
                 submission = GroupSubmission.objects.filter(activity=activity, group=member[0].group).latest('created_at')
-                print submission
             else:
                 submission = StudentSubmission.objects.filter(activity=activity, member__person__userid=userid).latest('created_at')
         except:
@@ -505,7 +504,7 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
         response = HttpResponseRedirect(reverse(marking_student, args=[course_slug, activity_slug, userid]) + urlencode)
         #if it is taken by someone not me, show a confirm dialog
         if request.GET.get('confirm') == None:
-            if submission and submission.owner:
+            if submission and submission.owner and submission.owner.person.userid != request.user.username:
                 return _override_ownership_confirm(request, course, activity, userid, None, submission.owner.person, urlencode[1:])
 
         if submission:
@@ -531,7 +530,7 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
         response = HttpResponseRedirect(reverse(marking_group, args=[course_slug, activity_slug, group_slug]) + urlencode)
         #if it is taken by someone not me, show a confirm dialog
         if request.GET.get('confirm') == None:
-            if submission and submission.owner:
+            if submission and submission.owner and submission.owner.person.userid != request.user.username:
                 return _override_ownership_confirm(request, course, activity, None, group_slug, submission.owner.person, urlencode[1:])
 
         if submission:

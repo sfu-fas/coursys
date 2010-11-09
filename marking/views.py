@@ -558,14 +558,14 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
         postdata = request.POST
         filedata = request.FILES
     elif 'base_activity_mark' in request.GET:
-        # requested "mark based on" object
+        # requested "mark based on"
         old_id = request.GET['base_activity_mark']
         if groupmark:
             am = get_group_mark_by_id(activity, group, old_id)
         else:
             am = get_activity_mark_by_id(activity, membership, old_id)
 
-    # build actual forms
+    # build forms
     form = ActivityMarkForm(instance=am, data=postdata, files=filedata)
     component_data = []
     for i,c in enumerate(components):
@@ -573,13 +573,13 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
         if am:
             try:
                 old_c = am.activitycomponentmark_set.filter(activity_component=c)[0]
-            except IndexError: # just in case: leave old_c==None if can't be found in database
+            except IndexError: # just in case: leave old_c==None if old one can't be found in database
                 pass
         f = ActivityComponentMarkForm(instance=old_c, data=postdata, prefix="cmp-%s" % (i+1))
-        common = CommonProblem.objects.filter(activity_component=c)
+        common = CommonProblem.objects.filter(activity_component=c, deleted=False)
         component_data.append( {'component': c, 'form': f, 'common_problems': common } )
     
-    
+    # handle POST for writing mark
     if request.method == 'POST':
         # base form and all components must be valid to continue
         if form.is_valid() and (False not in [entry['form'].is_valid() for entry in component_data]):
@@ -588,7 +588,7 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
             am.created_by = request.user.username
             am.activity = activity
             if 'file_attachment' in request.FILES:
-                # store MIME type from uploaded file
+                # also store MIME type for uploaded file
                 upfile = request.FILES['file_attachment']
                 filetype = upfile.content_type
                 if upfile.charset:
@@ -613,7 +613,6 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
             for entry in component_data:
                 value = entry['form'].cleaned_data['value']
                 total += value
-                
                 if value > entry['component'].max_mark:
                     messages.add_message(request, messages.WARNING, "Bonus marks given for %s" % (entry['component'].title))
                 if value < 0:
@@ -621,7 +620,6 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
             
             mark = (1-form.cleaned_data['late_penalty']/decimal.Decimal(100)) * \
                    (total - form.cleaned_data['mark_adjustment'])
-            am.mark = mark
             am.setMark(mark)
 
             am.save()
@@ -641,7 +639,7 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
             l = LogEntry(userid=request.user.username,
                   description=("marked %s for %s: %s/%s") % (activity, userid, mark, activity.max_grade),
                   related_object=am)
-            l.save()      
+            l.save()
 
             # redirect to next page
             if 'marknext' in request.POST:
@@ -661,13 +659,13 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
             else:
                 return _redirct_response(request, course_slug, activity_slug)
 
+    # display form for GET or failed validation
     context = {'course': course, 'activity': activity, 'form': form, 'component_data': component_data }
     if groupmark:
         context['group'] = group
     else:
         context['student'] = student
-    return render_to_response("marking/marking.html", context,
-                       context_instance=RequestContext(request))  
+    return render_to_response("marking/marking.html", context, context_instance=RequestContext(request))  
     
 
 @requires_course_staff_by_slug

@@ -44,7 +44,9 @@ def index(request):
             .filter(offering__semester__end__gte=past2) \
             .annotate(num_activities=Count('offering__activity')) \
             .select_related('offering','offering__semester')
+    print memberships
     memberships = [m for m in memberships if _display_membership(m, today, past1)]
+    print memberships
 
     news_list = NewsItem.objects.filter(user__userid=userid, updated__gte=past_1mo).order_by('-updated').select_related('course')[:5]
 
