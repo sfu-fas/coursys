@@ -554,11 +554,11 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
     filedata = None
     am = None
     if request.method == 'POST':
-        # use POST data
+        # use POST data when creating forms
         postdata = request.POST
         filedata = request.FILES
     elif 'base_activity_mark' in request.GET:
-        # requested "mark based on"
+        # requested "mark based on": get that object
         old_id = request.GET['base_activity_mark']
         if groupmark:
             am = get_group_mark_by_id(activity, group, old_id)
@@ -581,7 +581,7 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
     
     # handle POST for writing mark
     if request.method == 'POST':
-        # base form and all components must be valid to continue
+        # base form *and* all components must be valid to continue
         if form.is_valid() and (False not in [entry['form'].is_valid() for entry in component_data]):
             # set additional ActivityMark info
             am = form.save(commit=False)
@@ -652,12 +652,11 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
                            'userid': nextmember.person.userid}))
                 except IndexError:
                     messages.add_message(request, messages.INFO, 'That was the last userid in the course.')
-                    return _redirct_response(request, course_slug, activity_slug)
             elif groupmark:
                 return HttpResponseRedirect(reverse('grades.views.activity_info_with_groups', 
                            kwargs={'course_slug': course.slug, 'activity_slug': activity.slug}))
-            else:
-                return _redirct_response(request, course_slug, activity_slug)
+
+            return _redirct_response(request, course_slug, activity_slug)
 
     # display form for GET or failed validation
     context = {'course': course, 'activity': activity, 'form': form, 'component_data': component_data }

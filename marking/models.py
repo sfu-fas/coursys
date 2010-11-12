@@ -11,7 +11,6 @@ from django.db.models import Q
 from submission.models import select_all_components
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
-from django.core.exceptions import ValidationError
 import os.path
 
 MarkingSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
