@@ -89,12 +89,12 @@ def get_submitted_component(**kwargs):
     return None
 
 
-def get_submission_components(submission, activity, component_list=None):
+def get_submission_components(submission, activity, component_list=None, include_deleted=False):
     """
     return a list of pair[component, latest_submission(could be None)] for specific submission
     """
     if not component_list:
-        component_list = select_all_components(activity)
+        component_list = select_all_components(activity, include_deleted=include_deleted)
 
     submitted_components = []
     for component in component_list:
@@ -111,12 +111,12 @@ def get_submission_components(submission, activity, component_list=None):
         submitted_components.append((component, sub))
     return submitted_components
 
-def get_all_submission_components(submission, activity, component_list=None):
+def get_all_submission_components(submission, activity, component_list=None, include_deleted=False):
     """
     return a list of pair[component, latest_submission(could be None)] for all submissions
     """
     if not component_list:
-        component_list = select_all_components(activity)
+        component_list = select_all_components(activity, include_deleted=include_deleted)
     
     submitted_components = []
     for component in component_list:
@@ -138,7 +138,7 @@ def get_all_submission_components(submission, activity, component_list=None):
         submitted_components.append((component, sub))
     return submitted_components
 
-def get_current_submission(student, activity):
+def get_current_submission(student, activity, include_deleted=False):
     """
     return most recent submission (individual or group) and compilation of valid components
     """
@@ -149,10 +149,10 @@ def get_current_submission(student, activity):
         submission = StudentSubmission.objects.filter(activity=activity, member__person=student)
 
     if len(submission) > 0:
-        submitted_components = get_all_submission_components(submission, activity)
+        submitted_components = get_all_submission_components(submission, activity, include_deleted=include_deleted)
         return submission.latest('created_at'), submitted_components
     else:
-        submitted_components = get_all_submission_components(None, activity)
+        submitted_components = get_all_submission_components(None, activity, include_deleted=include_deleted)
         return None, submitted_components
 
 def get_submit_time_and_owner(activity, pair_list):
@@ -215,7 +215,7 @@ def generate_activity_zip(activity):
         subs = submissions_by_person[slug]
         subs.append(s)
     
-    component_list = select_all_components(activity)
+    component_list = select_all_components(activity, include_deleted=True)
     sub_time = {} # submission times for summary
     # now collect submitted components (and last-submission times for summary)
     for slug in submissions_by_person:

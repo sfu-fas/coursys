@@ -37,7 +37,7 @@ def show_components(request, course_slug, activity_slug):
     
 #student submission main page
 #may be viewed by a staff
-def _show_components_student(request, course_slug, activity_slug, userid=None, template="dashboard_student.html"):
+def _show_components_student(request, course_slug, activity_slug, userid=None, template="dashboard_student.html", staff=False):
     """
     Show all the component submission history of this activity
     """
@@ -48,7 +48,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
     student = get_object_or_404(Person, userid=userid)
     cansubmit = True
 
-    submission, submitted_components = get_current_submission(student, activity)
+    submission, submitted_components = get_current_submission(student, activity, include_deleted=staff)
     if len(submitted_components) == 0:
         return NotFoundResponse(request)
 
@@ -192,14 +192,18 @@ def show_components_submission_history(request, course_slug, activity_slug, user
         userid = request.GET.get('userid')
     course = get_object_or_404(CourseOffering, slug = course_slug)
     activity = get_object_or_404(course.activity_set,slug = activity_slug)
+    staff = False
 
     if userid is None:
         # can always see your own submissions
         userid = request.user.username
     else:
         # specifying a userid: must be course staff
-        if not is_course_staff_by_slug(request.user, course.slug):
+        if is_course_staff_by_slug(request.user, course.slug):
+            staff = True
+        else:
             return ForbiddenResponse(request)
+        
 
     if activity.group:
         messages.add_message(request, messages.INFO, "This is a group submission. This history is based on submissions from all your group members.")
@@ -209,7 +213,7 @@ def show_components_submission_history(request, course_slug, activity_slug, user
         submissions = StudentSubmission.objects.filter(activity=activity, member__person__userid=userid)
 
     # get all submission components
-    component_list = select_all_components(activity)
+    component_list = select_all_components(activity, include_deleted=staff)
     all_submitted_components = []
     for submission in submissions:
         c = get_submission_components(submission, activity, component_list)
@@ -418,6 +422,9 @@ def get_submission(submission_id):
 def download_file(request, course_slug, activity_slug, component_slug=None, submission_id=None, userid=None):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set, slug = activity_slug)
+    staff = False
+    if is_course_staff_by_slug(request.user, course_slug):
+        staff = True
     
     # find the appropriate submission object
     if submission_id:
@@ -425,12 +432,12 @@ def download_file(request, course_slug, activity_slug, component_slug=None, subm
         submission = get_submission(submission_id)
         if not submission or submission.activity!=activity:
             return NotFoundResponse(request)
-        submitted_components = get_submission_components(submission, activity)
+        submitted_components = get_submission_components(submission, activity, include_deleted=staff)
 
     elif userid:
         # userid specified: get their most recent submission
         student = get_object_or_404(Person, userid=userid)
-        submission, submitted_components = get_current_submission(student, activity)
+        submission, submitted_components = get_current_submission(student, activity, include_deleted=staff)
         if not submission:
             return NotFoundResponse(request)
     
@@ -439,7 +446,7 @@ def download_file(request, course_slug, activity_slug, component_slug=None, subm
 
     
     # make sure this user is allowed to see the file
-    if is_course_staff_by_slug(request.user, course_slug):
+    if staff:
         pass
     elif isinstance(submission, GroupSubmission):
         membership = submission.group.groupmember_set.filter(student__person__userid=request.user.username, activity=activity, confirmed=True)
@@ -475,7 +482,7 @@ def download_activity_files(request, course_slug, activity_slug):
 
 @requires_course_staff_by_slug
 def show_student_submission_staff(request, course_slug, activity_slug, userid):
-    return _show_components_student(request, course_slug, activity_slug, userid, "view_student_dashboard_staff.html")
+    return _show_components_student(request, course_slug, activity_slug, userid, "view_student_dashboard_staff.html", staff=True)
 
 @requires_course_staff_by_slug
 def show_student_history_staff(request, course_slug, activity_slug, userid):
