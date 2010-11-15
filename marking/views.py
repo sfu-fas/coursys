@@ -564,6 +564,19 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
             am = get_group_mark_by_id(activity, group, old_id)
         else:
             am = get_activity_mark_by_id(activity, membership, old_id)
+    elif 'load_old' in request.GET:
+        # requested load any previous mark: get that object
+        try:
+            if groupmark:
+                am = get_group_mark(activity, group)
+            else:
+                am = get_activity_mark_for_student(activity, membership)
+        except NumericGrade.DoesNotExist:
+            pass
+
+        if am:
+            messages.add_message(request, messages.INFO, 'There was a previous mark for this student.  Details are below.')
+        
 
     # build forms
     form = ActivityMarkForm(instance=am, data=postdata, files=filedata)
@@ -649,7 +662,7 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
                                  ).order_by('person__userid')[0]
                     return HttpResponseRedirect(reverse(marking_student, 
                            kwargs={'course_slug': course.slug, 'activity_slug': activity.slug,
-                           'userid': nextmember.person.userid}))
+                           'userid': nextmember.person.userid}) + "?load_old")
                 except IndexError:
                     messages.add_message(request, messages.INFO, 'That was the last userid in the course.')
             elif groupmark:
