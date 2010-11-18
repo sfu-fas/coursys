@@ -7240,6 +7240,7 @@
   "pk": 107
  }, 
 
+
  {
   "fields": {
    "campus": "BRNBY", 
@@ -15819,6 +15820,7 @@
    "career": "NONS", 
    "credits": 0, 
    "offering": 219, 
+
    "person": 6, 
    "role": "INST"
   }, 
@@ -17842,105 +17844,6 @@
   "model": "coredata.member", 
   "pk": 337
  }, 
- {
-  "fields": {
-   "end": "2009-08-04", 
-   "name": "1094", 
-   "start": "2009-05-04"
-  }, 
-  "model": "coredata.semester", 
-  "pk": 1
- }, 
- {
-  "fields": {
-   "end": "2009-12-07", 
-   "name": "1097", 
-   "start": "2009-09-08"
-  }, 
-  "model": "coredata.semester", 
-  "pk": 2
- }, 
- {
-  "fields": {
-   "end": "2010-04-16", 
-   "name": "1101", 
-   "start": "2010-01-04"
-  }, 
-  "model": "coredata.semester", 
-  "pk": 3
- }, 
- {
-  "fields": {
-   "end": "2010-08-11", 
-   "name": "1104", 
-   "start": "2010-05-12"
-  }, 
-  "model": "coredata.semester", 
-  "pk": 4
- }, 
- {
-  "fields": {
-   "end": "2010-12-06", 
-   "name": "1107", 
-   "start": "2010-09-07"
-  }, 
-  "model": "coredata.semester", 
-  "pk": 5
- }, 
- {
-  "fields": {
-   "monday": "2009-05-04", 
-   "semester": 1, 
-   "week": 1
-  }, 
-  "model": "coredata.semesterweek", 
-  "pk": 1
- }, 
- {
-  "fields": {
-   "monday": "2009-09-07", 
-   "semester": 5, 
-   "week": 1
-  }, 
-  "model": "coredata.semesterweek", 
-  "pk": 2
- }, 
- {
-  "fields": {
-   "monday": "2010-01-04", 
-   "semester": 6, 
-   "week": 1
-  }, 
-  "model": "coredata.semesterweek", 
-  "pk": 3
- }, 
- {
-  "fields": {
-   "monday": "2010-03-01", 
-   "semester": 6, 
-   "week": 7
-  }, 
-  "model": "coredata.semesterweek", 
-  "pk": 4
- }, 
- {
-  "fields": {
-   "monday": "2010-05-10", 
-   "semester": 7, 
-   "week": 1
-  }, 
-  "model": "coredata.semesterweek", 
-  "pk": 5
- }, 
- {
-  "fields": {
-   "monday": "2010-09-06", 
-   "semester": 5, 
-   "week": 1
-  }, 
-  "model": "coredata.semesterweek", 
-  "pk": 6
- },
  {
   "fields": {
    "emplid": 210000161, 
