@@ -1020,15 +1020,22 @@ def mark_all_groups(request, course_slug, activity_slug):
                if current_act_marks[i] != None and current_act_marks[i].mark == new_value:
                   # if any of the group members originally has a grade status other than 'GRAD'
                   # so do not override the status
-                  continue               
-               act_mark = GroupActivityMark(group=group, numeric_activity=activity)
-               _save_marking_results(activity, act_mark, new_value, request.user.username,\
-                                     ("group %s" % group.name))
+                  continue
+               act_mark = GroupActivityMark(group=group, numeric_activity=activity, created_by=request.user.username)
+               act_mark.setMark(new_value)
+               act_mark.save()
+
                updated += 1     
                if new_value < 0:
                    warning_info.append("Negative mark given to group %s" % group.name)
                elif new_value > activity.max_grade:
                    warning_info.append("Bonus mark given to group %s" % group.name)  
+
+               #LOG EVENT
+               l = LogEntry(userid=request.user.username,
+                     description=("bulk marked %s for group '%s': %s/%s") % (activity, group.name, new_value, activity.max_grade),
+                     related_object=act_mark)
+               l.save()                  
                  
             if updated > 0:
                 messages.add_message(request, messages.SUCCESS, "Marks for all groups on %s saved (%s groups' grades updated)!" % (activity.name, updated))
@@ -1101,16 +1108,21 @@ def mark_all_students(request, course_slug, activity_slug):
                # save data 
                if ngrade == None:
                     ngrade = NumericGrade(activity = activity, member = memberships[i]);
-                    ngrade.save(newsitem=False)
-               # created a new activity_mark as well
-               activity_mark = StudentActivityMark(numeric_grade = ngrade)              
-               _save_marking_results(activity, activity_mark, new_value, request.user.username,\
-                                     ("student %s" % student.userid))
+               ngrade.value = new_value
+               ngrade.flag = "GRAD"
+               ngrade.save()
+               
                updated += 1     
                if new_value < 0:
                    warning_info.append("Negative mark given to %s on %s" %(student.userid, activity.name))
                elif new_value > activity.max_grade:
-                   warning_info.append("Bonus mark given to %s on %s" %(student.userid, activity.name))                  
+                   warning_info.append("Bonus mark given to %s on %s" %(student.userid, activity.name))
+               
+               #LOG EVENT
+               l = LogEntry(userid=request.user.username,
+                     description=("bulk marked %s for %s: %s/%s") % (activity, student.userid, new_value, activity.max_grade),
+                     related_object=ngrade)
+               l.save()                  
            
             if updated > 0:
                 messages.add_message(request, messages.SUCCESS, "Marks for all students on %s saved (%s students' grades updated)!" % (activity.name, updated))
