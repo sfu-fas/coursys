@@ -84,6 +84,27 @@ class Activity(models.Model):
     class Meta:
         verbose_name_plural = "activities"
         ordering = ['deleted', 'position']
+
+    def save(self, force_insert=False, force_update=False, newsitem=True, *args, **kwargs):
+        # get old status so we can see if it's newly-released
+        try:
+            old = Activity.objects.get(id=self.id)
+            self.group = old.group
+        except Activity.DoesNotExist:
+            old = None
+        super(Activity, self).save(*args, **kwargs)
+
+        if newsitem and old and self.status == 'RLS' and old != None and old.status != 'RLS':
+            # newly-released grades: create news items
+            class_list = Member.objects.exclude(role="DROP").filter(offering=self.offering)
+            for m in class_list:
+                n = NewsItem(user=m.person, author=None, course=self.offering,
+                    source_app="grades", title="%s grade released" % (self.name), 
+                    content='Grades have been released for "%s in %s":%s.' \
+                      % (self.name, self.offering.name(), self.get_absolute_url()),
+                    url=self.get_absolute_url()
+                    )
+                n.save()
     
     def display_label(self):
         if self.percent:
@@ -203,26 +224,6 @@ class NumericActivity(Activity):
             grade = grades[0].value
         return "%s/%s" % (grade, self.max_grade)
 
-    def save(self, force_insert=False, force_update=False, newsitem=True, *args, **kwargs):
-        # get old status so we can see if it's newly-released
-        try:
-            old = Activity.objects.get(id=self.id)
-            self.group = old.group
-        except Activity.DoesNotExist:
-            old = None
-        super(NumericActivity, self).save(*args, **kwargs)
-
-        if newsitem and self.status == 'RLS' and old != None and old.status != 'RLS':
-            # newly-released grades: create news items
-            class_list = Member.objects.exclude(role="DROP").filter(offering=self.offering)
-            for m in class_list:
-                n = NewsItem(user=m.person, author=None, course=self.offering,
-                    source_app="grades", title="%s grade released" % (self.name), 
-                    content='Grades have been released for "%s in %s":%s.' \
-                      % (self.name, self.offering.name(), self.get_absolute_url()),
-                    url=self.get_absolute_url()
-                    )
-                n.save()
 
 
 class LetterActivity(Activity):
@@ -241,29 +242,6 @@ class LetterActivity(Activity):
         else:
             grade = str(grades[0].letter_grade)
         return grade
-
-    def save(self, force_insert=False, force_update=False, newsitem=True, *args, **kwargs):
-        # get old status so we can see if it's newly-released
-        old = Activity.objects.filter(id=self.id)
-        if old:
-            old = old[0]
-        else:
-            old = None
-        super(LetterActivity, self).save(*args, **kwargs)
-
-        if newsitem and old and self.status == 'RLS' and old.status != 'RLS':
-            # newly-released grades: create news items
-            class_list = Member.objects.exclude(role="DROP").filter(offering=self.offering)
-            for m in class_list:
-                content = "Grades have been released for %s in %s. " \
-                      % (self.name, self.offering.name())
-                
-                n = NewsItem(user=m.person, author=None, course=self.offering,
-                    source_app="grades", title="%s grade released" % (self.name), 
-                    content=content,
-                    url=reverse('grades.views.course_info', kwargs={'course_slug':self.offering.slug})
-                    )
-                n.save()
 
 
 class CalNumericActivity(NumericActivity):

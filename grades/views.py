@@ -563,8 +563,6 @@ def edit_activity(request, course_slug, activity_slug):
         activity = activities[0]
                 
         from_page = request.GET.get('from_page')
-        if from_page == None:
-            from_page = FROMPAGE['course']
         
         if request.method == 'POST': # If the form has been submitted...
             if isinstance(activity, CalNumericActivity):
@@ -587,7 +585,7 @@ def edit_activity(request, course_slug, activity_slug):
                 messages.success(request, "Details of %s updated" % activity.name)
                 if from_page == FROMPAGE['course']:
                     return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
-                elif from_page == FROMPAGE['activityinfo']:
+                else:
                     return HttpResponseRedirect(reverse('grades.views.activity_info',
                                                         kwargs={'course_slug': course_slug, 'activity_slug': activity_slug}))
             else:
