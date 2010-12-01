@@ -49,7 +49,7 @@
 		<th scope="col">User ID</th>
 		<th scope="col">Stu #</th>
 		{% for a in activities %}
-		<th scope="col"><a href="{{a.get_absolute_url}}">{{a.short_name}}</a></th>
+		<th scope="col"><abbr title="{{a.name}}"><a href="{{a.get_absolute_url}}">{{a.short_name}}</a></abbr></th>
 		{% endfor %}
             </tr>
 	</thead>
