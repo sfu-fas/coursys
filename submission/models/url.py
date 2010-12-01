@@ -8,14 +8,14 @@ from django.utils.html import escape
 
 # model objects must be defined at top-level so Django notices them for DB creation, etc.
 class URLComponent(SubmissionComponent):
-    check = models.BooleanField(default=False, help_text="Check that the page really exists?")
-    prefix = models.CharField(blank=True, null=True, max_length=200, help_text='Prefix that the URL *must* start with. (Blank for none.)')
+    check = models.BooleanField(default=False, help_text="Check that the page really exists?  Will reject missing or password-protected URLs.")
+    prefix = models.CharField(blank=True, null=True, max_length=200, help_text='Prefix that the URL *must* start with. (e.g. "http://server.com/course/", blank for none.)')
     class Meta:
         app_label = 'submission'
 
 class SubmittedURL(SubmittedComponent):
     component = models.ForeignKey(URLComponent, null=False)
-    url = models.URLField(verify_exists=False, null=False, blank=False, max_length=500) # TODO: make missing URL warning only (in case of authentication, etc)
+    url = models.URLField(verify_exists=False, null=False, blank=False, max_length=500, verbose_name="URL")
     class Meta:
         app_label = 'submission'
     def get_url(self):
@@ -42,6 +42,7 @@ class SubmittedURL(SubmittedComponent):
             fn = os.path.join(prefix, fn)
         zipfile.writestr(fn, content)
 
+from django.core.validators import URLValidator
 # class containing all pieces for this submission type
 class URL:
     label = "url"
@@ -52,7 +53,7 @@ class URL:
     class ComponentForm(submission.forms.ComponentForm):
         class Meta:
             model = URLComponent
-            fields = ['title', 'description', 'deleted']
+            fields = ['title', 'description', 'check', 'prefix', 'deleted']
             # widgets = {
             #     'description': Textarea(attrs={'cols':50, 'rows':5}),
             # }
@@ -72,6 +73,20 @@ class URL:
             url = self.cleaned_data['url']
             if self.check_is_empty(url):
                 raise forms.ValidationError("No URL given.")
+
+            if self.component.prefix:
+                # check that the URL starts with the provided prefix
+                if not url.startswith(self.component.prefix):
+                    raise forms.ValidationError('Submitted URL must start with "%s".' % (self.component.prefix))
+
+            if self.component.check:
+                # instructor asked to check that URLs really exist: do it.
+                validator = URLValidator(verify_exists=True)
+                try:
+                    validator(url) # throws ValidationError if there's a problem
+                except forms.ValidationError:
+                    # re-throw to produce a better error message
+                    raise forms.ValidationError("The submitted URL doesn't seem to exist: please check the URL and resubmit.")
             return url;
 
 SubmittedURL.Type = URL
