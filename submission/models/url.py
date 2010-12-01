@@ -8,6 +8,8 @@ from django.utils.html import escape
 
 # model objects must be defined at top-level so Django notices them for DB creation, etc.
 class URLComponent(SubmissionComponent):
+    check = models.BooleanField(default=False, help_text="Check that the page really exists?")
+    prefix = models.CharField(blank=True, null=True, max_length=200, help_text='Prefix that the URL *must* start with. (Blank for none.)')
     class Meta:
         app_label = 'submission'
 
