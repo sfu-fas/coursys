@@ -769,7 +769,11 @@ def all_grades_csv(request, course_slug):
         row = [s.person.last_name, s.person.first_name, s.person.userid, s.person.emplid]
         for a in activities:
             try:
-                g = grades[a.slug][s.person.userid].value
+                gr = grades[a.slug][s.person.userid]
+                if gr.flag=='NOGR':
+                    g = ''
+                else:
+                    g = gr.value
             except KeyError:
                 g = ''
             row.append(g)
