@@ -347,6 +347,10 @@ class NumericGrade(models.Model):
         
 
     def save(self, newsitem=True):
+        if self.flag == "NOGR":
+            # make sure "no grade" values have a zero: just in case the value is used in some other calc
+            self.value = 0
+
         super(NumericGrade, self).save()
         if self.activity.status == "RLS" and newsitem and self.flag != "NOGR":
             # new grade assigned, generate news item only if the result is released
