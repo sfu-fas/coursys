@@ -149,13 +149,19 @@ class Activity(models.Model):
         i.e. has any submission components defined and within 30 days after due date
         """
         comp_count = self.submissioncomponent_set.filter(deleted=False).count()
-        return comp_count != 0 and self.no_submit_too_old()
+        return comp_count != 0 and not self.too_old()
     def no_submit_too_old(self):
+        """
+        Returns True if this activity was submittable but is now too old
+        """
+        comp_count = self.submissioncomponent_set.filter(deleted=False).count()
+        return comp_count != 0 and self.too_old()
+    def too_old(self):
         """
         Returns True if this activity is not submittable because it is too old
         """
         now = datetime.now()
-        return now - self.due_date <= timedelta(days=30)
+        return now - self.due_date >= timedelta(days=30)
     
     def SubmissionClass(self):
         from submission.models import StudentSubmission, GroupSubmission
