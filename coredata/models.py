@@ -134,9 +134,7 @@ class SemesterWeek(models.Model):
         ordering = ['semester','week']
         unique_together = (('semester', 'week'))
 
-    
-class CourseOffering(models.Model):
-    COMPONENT_CHOICES = (
+COMPONENT_CHOICES = (
         ('LEC', 'Lecture'),
         ('LAB', 'Lab'),
         ('TUT', 'Tutorial'),
@@ -144,10 +142,10 @@ class CourseOffering(models.Model):
         ('SEC', 'Section'), # "Section"?  ~= lecture?
         #('OPL', 'Open Lab'),
         #('FLD', 'Field School'),
-        ('CAN', 'Cancelled'),
-    )
-    COMPONENTS = dict(COMPONENT_CHOICES)
-    CAMPUS_CHOICES = (
+        ('CAN', 'Cancelled')
+        )
+COMPONENTS = dict(COMPONENT_CHOICES)
+CAMPUS_CHOICES = (
         ('BRNBY', 'Burnaby Campus'),
         ('SURRY', 'Surrey Campus'),
         ('VANCR', 'Harbour Centre'),
@@ -155,9 +153,10 @@ class CourseOffering(models.Model):
         #('SEGAL', 'Segal Centre'),
         #('GRNORTHW', 'Great Northern Way Campus'),
         #('KAM', 'Kamloops Campus'),
-    )
-    CAMPUSES = dict(CAMPUS_CHOICES)
+        )
+CAMPUSES = dict(CAMPUS_CHOICES)
 
+class CourseOffering(models.Model):
     subject = models.CharField(max_length=4, null=False, db_index=True,
         help_text='Subject code, like "CMPT" or "FAN".')
     number = models.CharField(max_length=4, null=False, db_index=True,
@@ -274,8 +273,7 @@ class Member(models.Model):
         return reverse('grades.views.student_info', kwargs={'course_slug': self.offering.slug, 'userid': self.person.userid})
 
 
-class MeetingTime(models.Model):
-    WEEKDAY_CHOICES = (
+WEEKDAY_CHOICES = (
         (0, 'Monday'),
         (1, 'Tuesday'),
         (2, 'Wednesday'),
@@ -283,7 +281,8 @@ class MeetingTime(models.Model):
         (4, 'Friday'),
         (5, 'Saturday'),
         (6, 'Sunday'),
-    )
+        )
+class MeetingTime(models.Model):
     offering = models.ForeignKey(CourseOffering, null=False)
     weekday = models.PositiveSmallIntegerField(null=False, choices=WEEKDAY_CHOICES,
         help_text='Day of week of the meeting')
@@ -303,6 +302,8 @@ class Role(models.Model):
     ROLE_CHOICES = (
         ('ADVS', 'Advisor'),
         ('FAC', 'Faculty Member'),
+        ('SESS', 'Sessional Instructor'),
+        ('PLAN', 'Planning Administrator'),
         ('ADMN', 'Departmental Administrator'),
         ('SYSA', 'System Administrator'),
         ('NONE', 'none'),
