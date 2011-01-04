@@ -182,7 +182,7 @@ class CourseOffering(models.Model):
     url = models.URLField(verify_exists=True, null=True)
     
     def autoslug(self):
-        words = [str(s) for s in self.semester, self.subject, self.number, self.section]
+        words = [str(s).lower() for s in self.semester, self.subject, self.number, self.section]
         return '-'.join(words)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False)
 

@@ -178,6 +178,7 @@ def import_offerings(db):
             c_old.enrl_cap = enrl_cap
             c_old.enrl_tot = enrl_tot
             c_old.wait_tot = wait_tot
+            c_old.slug = c_old.autoslug() # rebuild slug in case section changes for some reason
             c_old.save()
         else:
 	    c_old = CourseOffering.objects.filter(class_nbr=class_nbr, semester=semester)
