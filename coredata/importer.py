@@ -5,6 +5,7 @@ sys.path.append("..")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 from coredata.models import *
 from django.db import transaction
+from django.contrib.sessions.models import Session
 
 # these users will be given sysadmin role (for bootstrapping)
 sysadmin = ["ggbaker"]
@@ -13,7 +14,7 @@ import_host = '127.0.0.1'
 import_user = 'ggbaker'
 import_name = 'ggbaker_crse_mgmt'
 import_port = 4000
-timezone = "America/Vancouver" # timezone of imported class meeting times
+#timezone = "America/Vancouver" # timezone of imported class meeting times
 
 ta_host = '127.0.0.1'      
 ta_user = 'ta_data_import'
@@ -23,14 +24,7 @@ ta_port = 4000
 #TODO: add sanity check for no DB info
 
 """
-need TA data
-
 v_ps_class_instr: only getting primary/printing instructors
-
-need to be able to detect cancelled offerings (for deletion)
-
-Also getting exam times in import.  Can we distinguish?
-SELECT * FROM v_ps_class_mtg_pat v where crse_id=004232 and class_section="D200" and strm="1097"
 
 pref_first_name always empty
 SELECT * FROM v_ps_personal_data v where length(pref_first_name)>0 LIMIT 100
@@ -215,12 +209,6 @@ def import_meeting_times(db):
         semester = semester[0]
         c = find_offering_by_crse_id(crse_id, section, semester)
 
-        #print crse_id, section, strm, start, end, room, stnd_mtg_pat, (mon,tues,wed,thurs,fri,sat,sun)
-        
-        # exclude exam times
-        if stnd_mtg_pat=="EXAM" or start_dt > semester.end:
-            continue
-
         wkdays = [n for n, day in zip(range(7), (mon,tues,wed,thurs,fri,sat,sun)) if day=='Y']
         for wkd in wkdays:
             m_old = MeetingTime.objects.filter(offering=c, weekday=wkd, start_time=start, end_time=end)
@@ -230,8 +218,10 @@ def import_meeting_times(db):
                 # new data: just replace.
                 m_old = m_old[0]
                 m_old.delete()
-
-            m = MeetingTime(offering=c, weekday=wkd, start_time=start, end_time=end, timezone=timezone, room=room)
+            
+            m = MeetingTime(offering=c, weekday=wkd, start_day=start_dt, end_day=end_dt,
+                            start_time=start, end_time=end, room=room)
+            m.exam = stnd_mtg_pat in ["EXAM","MIDT"]:
             m.save()
 
 
@@ -472,6 +462,9 @@ def main():
         if not r:
             r = Role(person=p, role="SYSA")
             r.save()
+    
+    # cleanup sessions table
+    Session.objects.filter(expire_date__lt=datetime.datetime.now()).delete()
         
     print "committing to DB"
 

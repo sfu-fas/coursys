@@ -1,7 +1,7 @@
 from django.db import models
 from django.template.defaultfilters import slugify
 from autoslug import AutoSlugField
-from timezones.fields import TimeZoneField
+#from timezones.fields import TimeZoneField
 from django.conf import settings
 import datetime
 from django.core.urlresolvers import reverse
@@ -289,8 +289,11 @@ class MeetingTime(models.Model):
         help_text='Day of week of the meeting')
     start_time = models.TimeField(null=False, help_text='Start time of the meeting')
     end_time = models.TimeField(null=False, help_text='End time of the meeting')
-    timezone = TimeZoneField(null=False)
+    start_day = models.DateField(null=False, help_text='Starting day of the meeting')
+    end_day = models.DateField(null=False, help_text='Ending day of the meeting')
+    #timezone = TimeZoneField(null=False)
     room = models.CharField(max_length=20, help_text='Room (or other location) for the meeting')
+    exam = models.BooleanField()
     def __unicode__(self):
         return "%s %s %s-%s" % (unicode(self.offering), WEEKDAYS[self.weekday], self.start_time, self.end_time)
 
