@@ -207,19 +207,20 @@ def import_meeting_times(db):
     """
     Import course meeting times
     """
-    db.execute('SELECT crse_id, class_section, strm, meeting_time_start, meeting_time_end, facility_id, mon,tues,wed,thurs,fri,sat,sun, start_dt, end_dt FROM v_ps_class_mtg_pat')
-    for crse_id, section, strm, start, end, room, mon,tues,wed,thurs,fri,sat,sun, start_dt, end_dt in db:
+    db.execute('SELECT crse_id, class_section, strm, meeting_time_start, meeting_time_end, facility_id, mon,tues,wed,thurs,fri,sat,sun, start_dt, end_dt, stnd_mtg_pat FROM v_ps_class_mtg_pat')
+    for crse_id, section, strm, start, end, room, mon,tues,wed,thurs,fri,sat,sun, start_dt, end_dt, stnd_mtg_pat in db:
         semester = Semester.objects.filter(name=strm)
         if not semester:
             continue
         semester = semester[0]
         c = find_offering_by_crse_id(crse_id, section, semester)
+
+        #print crse_id, section, strm, start, end, room, stnd_mtg_pat, (mon,tues,wed,thurs,fri,sat,sun)
         
         # exclude exam times
-        if start_dt > semester.end:
+        if stnd_mtg_pat=="EXAM" or start_dt > semester.end:
             continue
 
-        #print crse_id, section, strm, start, end, room, (mon,tues,wed,thurs,fri,sat,sun)
         wkdays = [n for n, day in zip(range(7), (mon,tues,wed,thurs,fri,sat,sun)) if day=='Y']
         for wkd in wkdays:
             m_old = MeetingTime.objects.filter(offering=c, weekday=wkd, start_time=start, end_time=end)
@@ -232,7 +233,6 @@ def import_meeting_times(db):
 
             m = MeetingTime(offering=c, weekday=wkd, start_time=start, end_time=end, timezone=timezone, room=room)
             m.save()
-            # TODO: ignore until we can distinguish exam times.
 
 
 def import_instructors(db):
@@ -450,8 +450,8 @@ def main():
     print "importing course offerings"
     import_offerings(db)
     time.sleep(1)
-    #print "importing meeting times"
-    #import_meeting_times(db)
+    print "importing meeting times"
+    import_meeting_times(db)
     print "importing instructors"
     members += import_instructors(db)
     time.sleep(1)

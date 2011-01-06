@@ -282,6 +282,7 @@ WEEKDAY_CHOICES = (
         (5, 'Saturday'),
         (6, 'Sunday'),
         )
+WEEKDAYS = dict(WEEKDAY_CHOICES)
 class MeetingTime(models.Model):
     offering = models.ForeignKey(CourseOffering, null=False)
     weekday = models.PositiveSmallIntegerField(null=False, choices=WEEKDAY_CHOICES,
@@ -290,6 +291,8 @@ class MeetingTime(models.Model):
     end_time = models.TimeField(null=False, help_text='End time of the meeting')
     timezone = TimeZoneField(null=False)
     room = models.CharField(max_length=20, help_text='Room (or other location) for the meeting')
+    def __unicode__(self):
+        return "%s %s %s-%s" % (unicode(self.offering), WEEKDAYS[self.weekday], self.start_time, self.end_time)
 
     class Meta:
         ordering = ['weekday']
