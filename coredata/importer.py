@@ -221,7 +221,7 @@ def import_meeting_times(db):
             
             m = MeetingTime(offering=c, weekday=wkd, start_day=start_dt, end_day=end_dt,
                             start_time=start, end_time=end, room=room)
-            m.exam = stnd_mtg_pat in ["EXAM","MIDT"]:
+            m.exam = stnd_mtg_pat in ["EXAM","MIDT"]
             m.save()
 
 
@@ -442,6 +442,7 @@ def main():
     time.sleep(1)
     print "importing meeting times"
     import_meeting_times(db)
+    time.sleep(1)
     print "importing instructors"
     members += import_instructors(db)
     time.sleep(1)

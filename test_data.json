@@ -7241,6 +7241,7 @@
  }, 
 
 
+
  {
   "fields": {
    "campus": "BRNBY", 
@@ -16294,6 +16295,7 @@
   }, 
   "model": "coredata.member", 
   "pk": 425
+
  }, 
  {
   "fields": {
@@ -18177,5 +18179,89 @@
  },
  "model": "groups.groupmember",
  "pk": 8
-}
+},
+ {
+  "fields": {
+   "end_day": "2011-02-28", 
+   "end_time": "19:50:00", 
+   "exam": true, 
+   "offering": 183, 
+   "room": "", 
+   "start_day": "2011-02-28", 
+   "start_time": "19:00:00", 
+   "weekday": 0
+  }, 
+  "model": "coredata.meetingtime", 
+  "pk": 3116
+ }, 
+ {
+  "fields": {
+   "end_day": "2011-04-19", 
+   "end_time": "15:00:00", 
+   "exam": true, 
+   "offering": 183, 
+   "room": "", 
+   "start_day": "2011-04-19", 
+   "start_time": "12:00:00", 
+   "weekday": 1
+  }, 
+  "model": "coredata.meetingtime", 
+  "pk": 3115
+ }, 
+ {
+  "fields": {
+   "end_day": "2011-04-11", 
+   "end_time": "15:20:00", 
+   "exam": false, 
+   "offering": 184, 
+   "room": "AQ3181", 
+   "start_day": "2011-01-06", 
+   "start_time": "14:30:00", 
+   "weekday": 0
+  }, 
+  "model": "coredata.meetingtime", 
+  "pk": 3117
+ }, 
+ {
+  "fields": {
+   "end_day": "2011-04-11", 
+   "end_time": "15:20:00", 
+   "exam": false, 
+   "offering": 184, 
+   "room": "AQ3181", 
+   "start_day": "2011-01-06", 
+   "start_time": "14:30:00", 
+   "weekday": 2
+  }, 
+  "model": "coredata.meetingtime", 
+  "pk": 3118
+ }, 
+ {
+  "fields": {
+   "end_day": "2011-04-11", 
+   "end_time": "15:20:00", 
+   "exam": false, 
+   "offering": 184, 
+   "room": "AQ3181", 
+   "start_day": "2011-01-06", 
+   "start_time": "14:30:00", 
+   "weekday": 4
+  }, 
+  "model": "coredata.meetingtime", 
+  "pk": 3119
+ }, 
+ {
+  "fields": {
+   "end_day": "2011-04-17", 
+   "end_time": "15:00:00", 
+   "exam": true, 
+   "offering": 184, 
+   "room": "", 
+   "start_day": "2011-04-17", 
+   "start_time": "12:00:00", 
+   "weekday": 6
+  }, 
+  "model": "coredata.meetingtime", 
+  "pk": 3120
+ }
 ]
