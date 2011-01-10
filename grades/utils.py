@@ -30,13 +30,14 @@ class ActivityStat:
     """
     Object holding activity stat info, used as context object in template
     """
-    def __init__(self, average, min, max, median, stddev, grade_range_stat_list):
+    def __init__(self, average, min, max, median, stddev, grade_range_stat_list, count):
         self.average = average
         self.min = min
         self.max = max
         self.median = median
         self.stddev = stddev
         self.grade_range_stat_list = grade_range_stat_list
+        self.count = count
         
 class StudentActivityInfo:
     """
@@ -265,7 +266,7 @@ def generate_numeric_activity_stat(activity):
     return ActivityStat(format_number(average, _DECIMAL_PLACE), format_number(student_grade_list[0], _DECIMAL_PLACE),
                         format_number(student_grade_list[student_grade_list_count - 1], _DECIMAL_PLACE),
                         format_number(median, _DECIMAL_PLACE),
-                        format_number(stddev, _DECIMAL_PLACE), grade_range_stat_list)
+                        format_number(stddev, _DECIMAL_PLACE), grade_range_stat_list, student_grade_list_count)
     
 def generate_grade_range_stat(student_grade_list, grade_range=10):
     """
@@ -315,7 +316,7 @@ def fetch_students_numeric_grade(activity):
     if not isinstance(activity, NumericActivity):
         raise TypeError('NumericActivity type is required')
     student_list = activity.offering.members.filter(person__role='STUD')
-    numeric_grade_list = NumericGrade.objects.filter(activity=activity)\
+    numeric_grade_list = NumericGrade.objects.filter(activity=activity).exclude(flag="NOGR")\
                         .select_related('member','member__person')
     
     student_grade_list = []
@@ -326,8 +327,8 @@ def fetch_students_numeric_grade(activity):
                 student_found = True
                 student_grade_list.append(numeric_grade.value)
                 break
-        if not student_found:
-            student_grade_list.append(_DEFAULT_NUMERIC_GRADE)
+        #if not student_found:
+        #    student_grade_list.append(_DEFAULT_NUMERIC_GRADE)
     
     return student_grade_list
     

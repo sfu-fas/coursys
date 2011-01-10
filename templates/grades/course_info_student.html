@@ -75,7 +75,7 @@
 </div>
 
 <h2>Course Activities</h2>
-{% if not activityinfo_list %}
+{% if not activity_data %}
 <p class="empty">No activities defined for this course: it is likely is not using this system.</p>
 {% else %}
 <div class="table_container">
@@ -89,12 +89,12 @@
 	    </tr>
 	</thead>
         <tbody>
-	    {% for activityinfo in activityinfo_list %}
+	    {% for data in activity_data %}
             <tr>
-		<td scope="row"><a href="{{activityinfo.activity.get_absolute_url}}">{{ activityinfo.activity.display_label }}</a></td>
-		<td class="{{activityinfo.activity.due_class}}">{{ activityinfo.activity.due_in_str }}</td>
-		<td>{{ activityinfo.display_grade_status_student }}</td>
-		<td>{{ activityinfo.display_grade_student }}</td>
+		<td scope="row"><a href="{{data.act.get_absolute_url}}">{{ data.act.display_label }}</a></td>
+		<td class="{{data.act.due_class}}">{{ data.act.due_in_str }}</td>
+		<td>{{ data.act.get_status_display }}</td>
+		<td>{{ data.grade_display }}</td>
             </tr>
 	    {% endfor %}
 	</tbody>

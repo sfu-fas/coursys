@@ -226,6 +226,8 @@ class NumericActivity(Activity):
         grades = NumericGrade.objects.filter(activity=self, member__person=student)
         if len(grades)==0:
             grade = u'\u2014'
+        elif grades[0].flag == "NOGR":
+            grade = u'\u2014'
         else:
             grade = grades[0].value
         return "%s/%s" % (grade, self.max_grade)
@@ -244,6 +246,8 @@ class LetterActivity(Activity):
     def display_grade_visible(self, student):
         grades = LetterGrade.objects.filter(activity=self, member__person=student)
         if len(grades)==0:
+            grade = u'\u2014'
+        elif grades[0].flag == "NOGR":
             grade = u'\u2014'
         else:
             grade = str(grades[0].letter_grade)
