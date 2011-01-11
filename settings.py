@@ -120,10 +120,7 @@ INSTALLED_APPS = (
     'groups',
     'submission',
     'planning',
-
-    # for orientation project only
-    #'advisors_A',
-    #'advisors_B',
+    'advisors',
 )
 if DEBUG:
     #INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
