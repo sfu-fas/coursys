@@ -24,6 +24,8 @@ CODE_TYPES = [
     (".php", "PHP (.php)"),
     (".js", "Javascript (.js)"),
     (".cs", "C# (.cs)"),
+    (".html", "HTML (.html)"),
+    (".css", "CSS (.css)"),
     (".inc", "HC11 Source (.inc)"),
     (".cct", "Designworks Circuit (.cct)"),
 ]
