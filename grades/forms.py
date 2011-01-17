@@ -1,6 +1,6 @@
 from django import forms
 from django.conf import settings
-from grades.models import ACTIVITY_STATUS_CHOICES, NumericActivity, Activity
+from grades.models import ACTIVITY_STATUS_CHOICES, NumericActivity, Activity, NumericGrade, LetterGrade
 from django.utils.safestring import mark_safe
 import pickle
 from grades.formulas import parse, activities_dictionary, cols_used
@@ -8,6 +8,7 @@ from external.pyparsing import ParseException
 from django.forms.util import ErrorList
 import datetime
 from grades.utils import parse_and_validate_formula, ValidationError
+from submission.models import Submission
 
 _required_star = '<span><img src="'+settings.MEDIA_URL+'icons/required_star.gif" alt="required"/></span>'
 
@@ -95,6 +96,34 @@ class ActivityForm(forms.Form):
                     raise forms.ValidationError(u'Activity with the same short name already exists')
         
         return short_name
+
+    def clean_group(self):
+        if self._addform_validate:
+            # adding new activity: any value okay
+            return self.cleaned_data['group']
+
+        # get old version of activity and see if we're changing .group value
+        old = Activity.objects.get(offering__slug=self._course_slug, slug=self._activity_slug)
+        if self.cleaned_data['group'] is None:
+            new_group = False
+        else:
+            new_group = GROUP_STATUS_MAP[self.cleaned_data['group']]
+        
+        if new_group != old.group:
+            # attempting to switch group <-> individual: make sure that's allowed
+            if old.due_date < datetime.datetime.now():
+                raise forms.ValidationError('Cannot change group/individual status: due date has passed.')
+            if Submission.objects.filter(activity=old):
+                raise forms.ValidationError('Cannot change group/individual status: submissions have already been made.')
+            if NumericGrade.objects.filter(activity=old).exclude(flag="NOGR") \
+                    or LetterGrade.objects.filter(activity=old).exclude(flag="NOGR"):
+                raise forms.ValidationError('Cannot change group/individual status: grades have already been given.')
+
+        if new_group:
+            # apparently 0 == True in this world.  Should fix GROUP_STATUS*
+            return '0'
+        else:
+            return '1'
 
 class NumericActivityForm(ActivityForm):
     status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS',

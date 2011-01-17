@@ -2,6 +2,7 @@ from django.test import TestCase
 from grades.formulas import *
 from grades.models import *
 from coredata.models import *
+from submission.models import StudentSubmission
 from coredata.tests import create_offering
 import pickle
 
@@ -273,7 +274,72 @@ class GradesTest(TestCase):
         a.due_date = now + datetime.timedelta(hours=1)
         self.assertEquals(a.get_status_display(), "no grades: due date not passed")
         
+    def test_group_change(self):
+        """
+        Test changing group <-> individual on an activity.  Should only be possible in some conditions.
+        """
+        s, c = create_offering()
+
+        # add some assignments and members
+        due = datetime.datetime.now() + datetime.timedelta(days=1)
+        due_date = str(due.date())
+        due_time = due.time().strftime("%H:%M:%S")
+        a = NumericActivity(name="Assignment 1", short_name="A1", status="RLS", offering=c, position=2, max_grade=15, percent=10, due_date=due, group=False)
+        a.save()
+        p = Person.objects.get(userid="ggbaker")
+        m = Member(person=p, offering=c, role="INST", added_reason="UNK")
+        m.save()
+        p = Person.objects.get(userid="0kvm")
+        m = Member(person=p, offering=c, role="STUD", added_reason="UNK")
+        m.save()
         
+        client = Client()
+        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        url = reverse('grades.views.edit_activity', kwargs={'course_slug': c.slug, 'activity_slug': a.slug})
+
+        # for whatever reason, '0' is group and '1' is individual for the group value
+        submit_dict = {'name': a.name, 'short_name': a.short_name, 'status': a.status, 'due_date_0': due_date, 'due_date_1': due_time, 'percent': a.percent, 'max_grade': a.max_grade, 'group': '1'}
+        # no change
+        response = client.post(url, submit_dict)
+        self.assertEquals(response.status_code, 302) # successful submit -> redirect
+        self.assertEquals(NumericActivity.objects.get(id=a.id).group, False)
+
+        # change indiv -> group
+        submit_dict['group'] = '0'
+        response = client.post(url, submit_dict)
+        self.assertEquals(response.status_code, 302)
+        self.assertEquals(NumericActivity.objects.get(id=a.id).group, True)
         
+        # try with activity past due
+        a.due_date = datetime.datetime.now() - datetime.timedelta(days=1)
+        a.save()
+        submit_dict['due_date_0'] = str(a.due_date.date())
+        submit_dict['group'] = '0'
+        response = client.post(url, submit_dict)
+        self.assertEquals(response.status_code, 200) # error on form -> 200 and back to form with error
+        self.assertContains(response, "due date has passed")
+        
+        # try with a mark in the system
+        a.due_date = datetime.datetime.now() + datetime.timedelta(days=1)
+        a.save()
+        submit_dict['due_date_0'] = str(a.due_date.date())
+        submit_dict['group'] = '0'
+        g = NumericGrade(activity=a, member=m, value=2, flag="GRAD")
+        g.save()
+        response = client.post(url, submit_dict)
+        self.assertEquals(response.status_code, 200)
+        self.assertContains(response, "grades have already been given")
+        
+        # try with a submission in the system
+        g.flag = "NOGR"
+        g.save()
+        s = StudentSubmission(activity=a, member=m)
+        s.save()
+        response = client.post(url, submit_dict)
+        self.assertEquals(response.status_code, 200)
+        self.assertContains(response, "submissions have already been made")
+        
+
+
         
 

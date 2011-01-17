@@ -200,12 +200,12 @@ def submit(request,course_slug):
     name = request.POST.get('GroupName')
     #Check if group has a unique name
     if Group.objects.filter(name=name,courseoffering=course):
-        error_info="Group %s has already exists" % (name)
+        error_info="A group named \"%s\" already exists" % (name)
         messages.add_message(request, messages.ERROR, error_info)
         return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
     #Check if the group name is empty, these two checks may need to be moved to forms later.
     if name == "":
-        error_info = "Group name cannot be empty: please input a group name."
+        error_info = "Group name cannot be empty: please enter a group name."
         messages.add_message(request, messages.ERROR, error_info)
         return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
     
