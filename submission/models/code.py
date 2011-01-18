@@ -28,6 +28,7 @@ CODE_TYPES = [
     (".css", "CSS (.css)"),
     (".inc", "HC11 Source (.inc)"),
     (".cct", "Designworks Circuit (.cct)"),
+    (".jpg", "JPEG images (.jpg)"),
 ]
 
 class CodeComponent(SubmissionComponent):

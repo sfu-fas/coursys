@@ -26,19 +26,16 @@
 		"bJQueryUI": true,
 		"sPaginationType": "full_numbers",
 		"iDisplayLength" : 50,
-		"aaSorting": [[1, "asc"]],
+		"aaSorting": [[0, "asc"]],
 		"aoColumns": [
-		    { "bSearchable": false, "bSortable": false },
 		    null,
 		    null,
 		    null,
-		    null,
-        {% if activity.group %}null,{% endif %}
-		    { },
-		    { "sType": "by-mark", "sWidth": "8em" }
-		    {% if not activity.calnumericactivity %}
-		    ,{ "sWidth": "3em" }
-		    {% endif %}
+		    { "sType": "by-nolink" },
+		    {% if activity.group %}null,{% endif %}
+		    { "sType": "by-nolinkmark" },
+		    {% if not activity.calnumericactivity %}{ "sType": "by-nolinkmark" },null
+		    {% else %}null{% endif %}
 		]
 	});
 	
@@ -81,17 +78,7 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-	    <li><a href="{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}">Edit Activity Details</a></li>
-	    <li><a href="{% url grades.views.activity_stat course_slug=course.slug activity_slug=activity.slug %}">Display Statistics</a></li> 
-		{% if activity.is_numeric %} {# only numeric activity has following actions #}
-		    <li><a href="{% url submission.views.show_components course_slug=course.slug, activity_slug=activity.slug%}">Configure Submission</a></li>
-		    <li><a href="{% url submission.views.download_activity_files course_slug=course.slug, activity_slug=activity.slug%}">Download Submissions</a></li>
-		    <li><a href="{% url marking.views.manage_activity_components course_slug=course.slug,activity_slug=activity.slug%}">Configure Marking</a></li>
-		    <li><a href="{% url marking.views.mark_all_students course_slug=course.slug, activity_slug=activity.slug%}">Mark all</a></li>
-		    {% if activity.group %}
-		    <li>
-		    <a href="{% url marking.views.mark_all_groups course_slug=course.slug, activity_slug=activity.slug%}?from_page={{ from_page }}">Mark all by Group</a>
-		    </li>
+	    {% if activity.group %}
 		    {% ifequal activity_view_type 'group' %}
 		    <li>
 		    <a href="{% url grades.views.activity_info course_slug=course.slug, activity_slug=activity.slug%}">View By Student</a>
@@ -102,9 +89,21 @@
 		    <a href="{% url grades.views.activity_info_with_groups course_slug=course.slug, activity_slug=activity.slug%}">View By Group</a>
 		    </li>
 		    {% endifequal %}
-		    {% endif %}
-    	{% endif %}
-    <li><a href="{% url marking.views.export_csv course_slug=course.slug, activity_slug=activity.slug%}">Export all</a></li>
+	    {% endif %}
+	    <li class="newsec"><a href="{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}">Edit Activity Details</a></li>
+	    <li><a href="{% url submission.views.show_components course_slug=course.slug, activity_slug=activity.slug%}">Configure Submission</a></li>
+
+	    <li class="newsec"><a href="{% url submission.views.download_activity_files course_slug=course.slug, activity_slug=activity.slug%}">Download Submissions</a></li>
+	    <li><a href="{% url marking.views.manage_activity_components course_slug=course.slug,activity_slug=activity.slug%}">Configure Marking</a></li>
+	    <li><a href="{% url marking.views.mark_all_students course_slug=course.slug, activity_slug=activity.slug%}">Mark all</a></li>
+	    {% if activity.group %}
+		    <li>
+		    <a href="{% url marking.views.mark_all_groups course_slug=course.slug, activity_slug=activity.slug%}?from_page={{ from_page }}">Mark all by Group</a>
+		    </li>
+	    {% endif %}
+
+	    <li class="newsec"><a href="{% url marking.views.export_csv course_slug=course.slug, activity_slug=activity.slug%}">Export Grades</a></li>
+	    <li><a href="{% url grades.views.activity_stat course_slug=course.slug activity_slug=activity.slug %}">Display Statistics</a></li> 
     </ul>
 </div>
 {% endblock %}
@@ -119,9 +118,7 @@
             </tr>
             <tr>
                 <th class="ui-state-default">Name</th>
-                <td>
-                    {{activity.name}}
-                </td>
+                <td>{{activity.name}}</td>
             </tr>
             <tr>
                 <th class="ui-state-default">Short name</th>
@@ -183,16 +180,17 @@
     <table class="display" id="student_grades">
         <thead>
             <tr>
-		<th scope="col"><img src="{{MEDIA_URL}}icons/information.png" title="Details" alt="info" /></th>
                 <th scope="col">Last name</th>
                 <th scope="col">First name</th>
 		<th scope="col">User ID</th>
 		<th scope="col">Stu #</th>
 		{% if activity.group %}<th scope="col">Group</th>{% endif %}
-		<th scope="col">Grade Status</th>
 		<th scope="col">Grade</th>
 		{% if not activity.calnumericactivity %}
-		<th scope="col"><img src="{{MEDIA_URL}}icons/disk_multiple.png" title="Submission" alt="Submission" /></th>
+		<th scope="col">Marking</th>
+		<th scope="col">Submission</th>
+		{% else %}
+		<th scope="col">Calculate</th>
 		{% endif %}
             </tr>
 	</thead>
@@ -201,34 +199,39 @@
 	    {% with member.person.userid as userid %}
 	    {% with grades|hash:userid as grade %}
 	    <tr>
-		<td><a href="{{member.get_absolute_url}}"><img src="{{MEDIA_URL}}icons/information.png" title="Details for {{member.person.name}}" alt="info" /></a></td>
 		<td>{{ member.person.last_name }}</td>
 		<td>{{ member.person.first_name }}</td>
 		<td>{{ member.person.userid }}</td>
-		<td>{{ member.person.emplid }}</td>
+		<td><a href="{{member.get_absolute_url}}" title="student info">{{ member.person.emplid }}</a></td>
 
 		{% if activity.group %}<td>{% with group_membership|hash:userid as group %}{% if group %}{{group}}{%else%}&mdash;{%endif%}{%endwith%}</td>{% endif %}
-		<td>	
-		<span class="grade_status">{% if grade %}{{ grade.get_flag_display }}{% else %}no grade{% endif %}</span>
-		<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}"><img src="{{MEDIA_URL}}icons/tag_blue_edit.png" title="Change Status" alt="Change Status"/></a>		   
-		</td>
 		<td>
-		{% if activity.calnumericactivity %}
-		    {{ grade.display_staff }}
-		    <a id="{{student.person.userid}}" class="calculator" href="{% url grades.views.calculate_individual course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}"><img src="{{MEDIA_URL}}icons/calculator.png" title="Calculate" alt="Calculate" /></a>
-		{% else %}
 		    {% if not grade or grade.flag == 'NOGR'%}
-			<a href="{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}"><img src="{{MEDIA_URL}}icons/page_white_edit.png" title="Mark This" alt="Mark This"/></a>		   
+			<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">&mdash;/{{activity.max_grade}}</a>		   
 		    {% else %}
-			{{ grade.display_staff }}		   
-			<a href="{% url marking.views.mark_summary_student course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
+			<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">{{ grade.display_staff }}</a>
 		    {% endif %}
-		{% endif %}
+		    {% if activity.calnumericactivity %}
+		      {% if not grade or grade.flag != 'CALC' %}
+		      ({{ grade.get_flag_display }})
+		      {% endif %}
+		    {% else %}
+		      {% if grade and grade.flag != 'GRAD' and grade.flag != 'NOGR' %}
+		      ({{ grade.get_flag_display }})
+		      {% endif %}
+		    {% endif %}
 		</td>
 		{% if not activity.calnumericactivity %}
 		<td>
-		    {% if submitted|hash:userid %}<a href="{% url submission.views.show_student_submission_staff course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View" alt="View" /></a>
-		    <a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="Download" alt="Download" /></a>{% endif %}
+		    marking link
+		</td>
+		<td>
+		    {% if submitted|hash:userid %}<a href="{% url submission.views.show_student_submission_staff course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="view details" alt="View" /></a>
+		    <a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="download ZIP" alt="Download" /></a>{% endif %}
+		</td>
+		{% else %}
+		<td>
+		    recalculate link
 		</td>
 		{% endif %}
 	    </tr>

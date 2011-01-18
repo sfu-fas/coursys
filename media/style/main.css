@@ -124,6 +124,9 @@ div#messages .info {
 #actions ul li{
   padding: 0;
 }
+#actions ul li.newsec {
+  border-top: 1px solid #aaa;
+}
 #actions li a {
   background-color: #FFF;
   width: auto;
@@ -394,7 +397,6 @@ table.activity_box_info {
     margin-left:0;
     border: 1px solid;
     border-color:#FFCA91;
-    backgroup-color:#FFEAD4;
     padding:5px 15px 15px 5px;
 }
 
