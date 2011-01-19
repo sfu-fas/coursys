@@ -18,3 +18,4 @@ SUBMISSION_ID = '(?P<submission_id>' + ID_RE + ')'
 ACTIVITY_MARK_ID = '(?P<mark_id>' + ID_RE + ')'
 
 FILE_PATH='(?P<filepath>.*)'
+CASE_SLUG = '(?P<case_slug>[\w\-]+)'

@@ -120,6 +120,7 @@ INSTALLED_APPS = (
     'groups',
     'submission',
     'planning',
+    'discipline',
     'advisors',
 )
 if DEBUG:

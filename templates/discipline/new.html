@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}{{ course.name }} New Dishonesty Case{% endblock %}
+{% block h1 %}{{ course.name }} New Dishonesty Case{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url discipline.views.index course_slug=course.slug %}">Discipline Cases</a></li><li>&gt; New</li>{% endblock %}
+
+{% block actions %}{% endblock %}
+
+{% block content %}
+<div id="form_container">
+    <form action="{% url discipline.views.new course_slug=course.slug %}" method="post">{% csrf_token %}
+    <p>Select student: <select name="userid" id="userid">
+    {% for m in students %}
+    <option value="{{m.person.userid}}">{{m.person.sortname}} ({{m.person.userid}}, {{m.person.emplid}})</option>
+    {% endfor %}
+    </select></p>
+    <p><input type="submit" value="Create Case" /></p>
+    </form>
+</div>
+{% endblock %}

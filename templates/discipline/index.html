@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}{{ course.name }} Dishonesty Cases{% endblock %}
+{% block h1 %}{{ course.name }} Dishonesty Cases{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; Discipline Cases</li>{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+	<li><a href="{% url discipline.views.new course_slug=course.slug %}">Create Case</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<ul>
+{% for c in cases %}
+<li>{{c.student}}</li>
+{% endfor %}
+</ul>
+{% endblock %}
