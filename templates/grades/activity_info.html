@@ -34,7 +34,9 @@
 		    { "sType": "by-nolink" },
 		    {% if activity.group %}null,{% endif %}
 		    { "sType": "by-nolinkmark" },
-		    {% if not activity.calnumericactivity %}{ "sType": "by-nolinkmark" },null
+		    {% if not activity.is_calculated %}
+		    { "bSortable": false },
+		    { "bSortable": false }
 		    {% else %}null{% endif %}
 		]
 	});
@@ -202,16 +204,20 @@
 		<td>{{ member.person.last_name }}</td>
 		<td>{{ member.person.first_name }}</td>
 		<td>{{ member.person.userid }}</td>
-		<td><a href="{{member.get_absolute_url}}" title="student info">{{ member.person.emplid }}</a></td>
+		<td><a href="{% url grades.views.student_info course_slug=course.slug userid=member.person.userid %}" title="student info">{{ member.person.emplid }}</a></td>
 
-		{% if activity.group %}<td>{% with group_membership|hash:userid as group %}{% if group %}{{group}}{%else%}&mdash;{%endif%}{%endwith%}</td>{% endif %}
+		{% if activity.group %}
+		  <td>{% with group_membership|hash:userid as group %}
+		  {% if group %}{{group}}{%else%}&mdash;{%endif%}
+		  {%endwith%}</td>
+		{% endif %}
 		<td>
 		    {% if not grade or grade.flag == 'NOGR'%}
 			<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">&mdash;/{{activity.max_grade}}</a>		   
 		    {% else %}
 			<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">{{ grade.display_staff }}</a>
 		    {% endif %}
-		    {% if activity.calnumericactivity %}
+		    {% if activity.is_calculated %}
 		      {% if not grade or grade.flag != 'CALC' %}
 		      ({{ grade.get_flag_display }})
 		      {% endif %}
@@ -221,11 +227,15 @@
 		      {% endif %}
 		    {% endif %}
 		</td>
-		{% if not activity.calnumericactivity %}
-		<td>
-		    marking link
+		{% if not activity.is_calculated %}
+		<td class="iconcell">
+		    {% if marked|hash:userid %}
+		    <a href="{% url marking.views.mark_summary_student course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View Detail" alt="View Detail" /></a>
+		    {% else %}
+		    <a href="{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}"><img src="{{MEDIA_URL}}icons/page_white_edit.png" title="Mark This" alt="Mark This"/></a>
+		    {% endif %}
 		</td>
-		<td>
+		<td class="iconcell">
 		    {% if submitted|hash:userid %}<a href="{% url submission.views.show_student_submission_staff course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="view details" alt="View" /></a>
 		    <a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="download ZIP" alt="Download" /></a>{% endif %}
 		</td>

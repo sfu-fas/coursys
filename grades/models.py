@@ -220,6 +220,8 @@ class NumericActivity(Activity):
         return "Numeric Graded"
     def is_numeric(self):
         return True
+    def is_calculated(self):
+        return False
 
     def display_grade_visible(self, student):
         grades = NumericGrade.objects.filter(activity=self, member__person=student)
@@ -259,6 +261,8 @@ class CalNumericActivity(NumericActivity):
     """
     formula = models.CharField(max_length=250, help_text='parsed formula to calculate final numeric grade')
 
+    def is_calculated(self):
+        return True
     class Meta:
         verbose_name_plural = "cal numeric activities"
     def type_long(self):

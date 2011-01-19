@@ -15,7 +15,7 @@ from grades.models import *
 from grades.utils import StudentActivityInfo, reorder_course_activities, create_StudentActivityInfo_list, \
                         ORDER_TYPE, FormulaTesterActivityEntry, FakeActivity, generate_numeric_activity_stat
 from grades.utils import ValidationError, parse_and_validate_formula, calculate_numeric_grade
-from marking.models import get_group_mark
+from marking.models import get_group_mark, StudentActivityMark, GroupActivityMark
 from groups.models import *
 from submission.models import GroupSubmission, StudentSubmission, get_current_submission
 from log.models import LogEntry
@@ -201,10 +201,25 @@ def _activity_info_staff(request, course_slug, activity_slug):
         for s in subs:
             submitted[s.member.person.userid] = True
 
+    # collect marking status
+    marked = {}
+    marks = StudentActivityMark.objects.filter(activity=activity).select_related('numeric_grade__member__person')
+    for m in marks:
+        marked[m.numeric_grade.member.person.userid] = True
+    if activity.group:
+        # also collect group marks: attribute to both the group and members
+        marks = GroupActivityMark.objects.filter(activity=activity).select_related('group')
+        for m in marks:
+            marked[m.group.slug] = True
+            members = m.group.groupmember_set.filter(activity=activity).select_related('student__person')
+            for m in members:
+                marked[m.student.person.userid] = True
+            
+
     context = {'course': course, 'activity': activity, 'students': students, 'grades': grades,
                'activity_view_type': 'individual', 'group_membership': group_membership,
                'from_page': FROMPAGE['activityinfo'],
-               'submitted': submitted}
+               'submitted': submitted, 'marked': marked}
     return render_to_response('grades/activity_info.html', context, context_instance=RequestContext(request))
 
 
@@ -774,7 +789,6 @@ def all_grades_csv(request, course_slug):
                 g = ''
             row.append(g)
         writer.writerow(row)
-        
         
     return response
 

@@ -4,6 +4,7 @@ sys.path.append(".")
 sys.path.append("..")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 from coredata.models import *
+from dashboard.models import NewsItem
 from django.db import transaction
 from django.contrib.sessions.models import Session
 
@@ -464,8 +465,11 @@ def main():
             r = Role(person=p, role="SYSA")
             r.save()
     
+    time.sleep(1)
     # cleanup sessions table
     Session.objects.filter(expire_date__lt=datetime.datetime.now()).delete()
+    # cleanup old news items
+    NewsItem.objects.filter(updated__lt=datetime.datetime.now()-datetime.timedelta(days=60)).delete()
         
     print "committing to DB"
 

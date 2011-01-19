@@ -252,6 +252,9 @@ div.bigdatatable .dataTables_wrapper td {
     float: right;
     text-align: right;
 }
+.datatable_container .iconcell {
+  text-align: center;
+}
 
 /* DataTables display */
 table.display {
