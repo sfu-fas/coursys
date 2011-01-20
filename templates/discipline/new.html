@@ -9,13 +9,20 @@
 
 {% block content %}
 <div id="form_container">
-    <form action="{% url discipline.views.new course_slug=course.slug %}" method="post">{% csrf_token %}
-    <p>Select student: <select name="userid" id="userid">
+    <form action="{% if group %}{% url discipline.views.newgroup course_slug=course.slug %}{% else %}{% url discipline.views.new course_slug=course.slug %}{% endif %}" method="post">{% csrf_token %}
+    
+    {{ form.as_p }}
+    <p><input type="submit" value="Create Group" /></p>
+    
+    <!--
+    
+    {% if group %}<p>Group name: <input type="text" name="name" id="name" /></p>{% endif %}
+    <p>Select student{% if group %}s{% endif %}: <select name="userid" id="userid"{% if group %}multiple="multiple"{% endif %}>
     {% for m in students %}
     <option value="{{m.person.userid}}">{{m.person.sortname}} ({{m.person.userid}}, {{m.person.emplid}})</option>
     {% endfor %}
     </select></p>
-    <p><input type="submit" value="Create Case" /></p>
+    -->
     </form>
 </div>
 {% endblock %}

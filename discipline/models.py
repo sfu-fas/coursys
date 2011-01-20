@@ -1,5 +1,5 @@
 from django.db import models
-from coredata.models import Member
+from coredata.models import Member, CourseOffering
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from autoslug import AutoSlugField
@@ -31,18 +31,37 @@ CHAIR_PENALTY_CHOICES = (
         ('NONE', 'no further penalty assigned'),
         ('REPR', 'formal reprimand to the student'),
         ('GRAD', 'grade penalty less severe than failure'),
-        ('F', 'grade of \u201CF\u201D in the course'),
-        ('FD', 'grade of \u201CFD\u201D in the course'),
+        ('F', u'grade of \u201CF\u201D in the course'),
+        ('FD', u'grade of \u201CFD\u201D in the course'),
         ('OTHE', 'other penalty: see rationale'),
         )
 DisciplineSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
+class DisciplineGroup(models.Model):
+    """
+    A set of discipline cases that are related.
+    """
+    name = models.CharField(max_length=60, blank=False, null=False, verbose_name="Group Name",
+            help_text='An arbitrary "name" for this group of cases') #.  Will be auto-generated if left blank.')
+    offering = models.ForeignKey(CourseOffering, help_text="The course this group is associated with")
+    slug = AutoSlugField(populate_from='name', null=False, editable=False, unique_with='offering')
+    
+    def __unicode__(self):
+        return "%s in %s" % (self.name, self.offering)
+    class Meta:
+        unique_together = (("name", "offering"),)
+
+
 class DisciplineCase(models.Model):
+    """
+    A case for a single student.
+    """
     student = models.ForeignKey(Member, help_text="The student this case concerns")
     notes = models.TextField(blank=True, null=True, help_text='Notes about the case (private notes)')
     def autoslug(self):
         return self.student.person.userid
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='student__offering')
+    group = models.ForeignKey(DisciplineGroup, null=True, help_text="Group this case belongs to")
     
     # fields for instructor
     intro = models.TextField(blank=True, null=True, verbose_name="Introductory Sentence",
@@ -58,13 +77,15 @@ class DisciplineCase(models.Model):
     
     facts = models.TextField(blank=True, null=True, verbose_name="Facts of the Case",
             help_text='Summary of the facts of the case (included in letter)')
-    instr_penalty = models.CharField(max_length=4, choices=INSTR_PENALTY_CHOICES, default="WAIT", verbose_name="Instructor Penalty",
+    instr_penalty = models.CharField(max_length=4, choices=INSTR_PENALTY_CHOICES, default="WAIT",
+            verbose_name="Instructor Penalty",
             help_text='Penalty assigned by the instructor for this case.')
     refer_chair = models.BooleanField(default=False, help_text='Refer case to the Chair/Director?', verbose_name="Refer to chair?")
     penalty_reason = models.TextField(blank=True, null=True, verbose_name="Penalty Rationale",
             help_text='Rationale for assigned penalty, or notes concerning penalty (included in letter)')
     
-    instr_done = models.BooleanField(default=False, verbose_name="Closed?", help_text='Case closed for the instructor?')
+    instr_done = models.BooleanField(default=False, verbose_name="Closed?", 
+            help_text='Case closed for the instructor?')
     
     # fields for chair/director
     chair_meeting_date = models.DateField(blank=True, null=True,
@@ -80,6 +101,10 @@ class DisciplineCase(models.Model):
     refer_ubsc = models.BooleanField(default=False, help_text='Refer case to the UBSD?', verbose_name="Refer UBSD?")
     
     chair_done = models.BooleanField(default=False, verbose_name="Closed?", help_text='Case closed for the Chair/Director?')
+
+    def __unicode__(self):
+        return '%s: "%s"' % (self.student.person.userid, self.intro)
+
     
 
 class RelatedObject(models.Model):

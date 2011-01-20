@@ -93,7 +93,9 @@ urlpatterns = patterns('',
 
     url(r'^' + COURSE_SLUG + '/_dishonesty/$', 'discipline.views.index'),
     url(r'^' + COURSE_SLUG + '/_dishonesty/new$', 'discipline.views.new'),
-    url(r'^' + COURSE_SLUG + '/_dishonesty/' + CASE_SLUG + '$', 'discipline.views.show'),
+    url(r'^' + COURSE_SLUG + '/_dishonesty/newgroup$', 'discipline.views.newgroup'),
+    url(r'^' + COURSE_SLUG + '/_dishonesty/cases/' + CASE_SLUG + '$', 'discipline.views.show'),
+    url(r'^' + COURSE_SLUG + '/_dishonesty/groups/' + DGROUP_SLUG + '$', 'discipline.views.showgroup'),
 
     url(r'^sysadmin/$', 'coredata.views.sysadmin'),
     url(r'^sysadmin/log/$', 'log.views.index'),

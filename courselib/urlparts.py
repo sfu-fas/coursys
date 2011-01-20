@@ -19,3 +19,4 @@ ACTIVITY_MARK_ID = '(?P<mark_id>' + ID_RE + ')'
 
 FILE_PATH='(?P<filepath>.*)'
 CASE_SLUG = '(?P<case_slug>[\w\-]+)'
+DGROUP_SLUG = '(?P<group_slug>[\w\-]+)'

@@ -10,11 +10,20 @@
     <h2 class="heading">Actions</h2>
     <ul>
 	<li><a href="{% url discipline.views.new course_slug=course.slug %}">Create Case</a></li>
+	<li><a href="{% url discipline.views.newgroup course_slug=course.slug %}">Create Case Group</a></li>
     </ul>
 </div>
 {% endblock %}
 
 {% block content %}
+<h2 id="groups">Case Groups</h2>
+<ul>
+{% for g in groups %}
+<li>{{g.name}}</li>
+{% endfor %}
+</ul>
+
+<h2 id="cases">Cases</h2>
 <ul>
 {% for c in cases %}
 <li>{{c.student}}</li>
