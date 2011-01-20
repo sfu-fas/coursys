@@ -1,3 +1,6 @@
+import os, sys
+sys.path.append( os.path.dirname(os.path.dirname(__file__)) )
+
 import socket
 hostname = socket.gethostname()
 
@@ -92,7 +95,7 @@ TEMPLATE_CONTEXT_PROCESSORS = ("django.core.context_processors.auth",
     "django.contrib.messages.context_processors.messages"
     )
 
-ROOT_URLCONF = 'courses.urls'
+ROOT_URLCONF = 'urls'
 INTERNAL_IPS = ('127.0.0.1',)
 
 TEMPLATE_DIRS = (
