@@ -35,6 +35,11 @@ CHAIR_PENALTY_CHOICES = (
         ('FD', u'grade of \u201CFD\u201D in the course'),
         ('OTHE', 'other penalty: see rationale'),
         )
+LETTER_CHOICES = (
+        ('WAIT', 'Not yet contacted'),
+        ('MAIL', 'Letter emailed (by system)'),
+        ('OTHR', 'Letter delivered (outside of this system)'),
+        )
 DisciplineSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
 class DisciplineGroup(models.Model):
@@ -61,7 +66,7 @@ class DisciplineCase(models.Model):
     def autoslug(self):
         return self.student.person.userid
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='student__offering')
-    group = models.ForeignKey(DisciplineGroup, null=True, help_text="Group this case belongs to")
+    group = models.ForeignKey(DisciplineGroup, null=True, blank=True, help_text="Group this case belongs to (if any)")
     
     # fields for instructor
     intro = models.TextField(blank=True, null=True, verbose_name="Introductory Sentence",
@@ -71,9 +76,9 @@ class DisciplineCase(models.Model):
     response = models.CharField(max_length=4, choices=RESPONSE_CHOICES, default="WAIT", verbose_name="Student Response",
             help_text='Has the student responded to a meeting')
     
-    meeting_date = models.DateField(blank=True, null=True, help_text='Date of meeting with student (if applicable)')
-    meeting_summary = models.TextField(blank=True, null=True, help_text='Summary of the meeting with student (included in letter)')
-    meeting_notes = models.TextField(blank=True, null=True, help_text='Notes about the meeting with student (private notes)')
+    meeting_date = models.DateField(blank=True, null=True, help_text='Date of meeting/email with student (if applicable)')
+    meeting_summary = models.TextField(blank=True, null=True, help_text='Summary of the meeting/email with student (included in letter)')
+    meeting_notes = models.TextField(blank=True, null=True, help_text='Notes about the meeting/email with student (private notes)')
     
     facts = models.TextField(blank=True, null=True, verbose_name="Facts of the Case",
             help_text='Summary of the facts of the case (included in letter)')
@@ -84,6 +89,8 @@ class DisciplineCase(models.Model):
     penalty_reason = models.TextField(blank=True, null=True, verbose_name="Penalty Rationale",
             help_text='Rationale for assigned penalty, or notes concerning penalty (included in letter)')
     
+    letter_sent = models.CharField(max_length=4, choices=LETTER_CHOICES, default="WAIT", verbose_name="Letter Sent?",
+            help_text='Has the letter been sent to the student and Chair/Director?')
     instr_done = models.BooleanField(default=False, verbose_name="Closed?", 
             help_text='Case closed for the instructor?')
     
@@ -100,12 +107,41 @@ class DisciplineCase(models.Model):
             help_text='Rationale for penalty assigned by Chair/Director, or notes concerning penalty (appended to letter)')
     refer_ubsc = models.BooleanField(default=False, help_text='Refer case to the UBSD?', verbose_name="Refer UBSD?")
     
+    chair_letter_sent = models.CharField(max_length=4, choices=LETTER_CHOICES, default="WAIT", verbose_name="Chair's Letter Sent?",
+            help_text='Has the letter been sent to the student and Student Services?')
     chair_done = models.BooleanField(default=False, verbose_name="Closed?", help_text='Case closed for the Chair/Director?')
 
     def __unicode__(self):
-        return '%s: "%s"' % (self.student.person.userid, self.intro)
+        if self.group:
+            return '%s: "%s" (in %s)' % (self.student.person.userid, self.intro, self.group.name)
+        else:
+            return '%s: "%s"' % (self.student.person.userid, self.intro)
 
-    
+    def next_step(self):
+        """
+        Return next field that should be dealt with
+        """
+        if not self.intro:
+            return "intro"
+        elif self.contacted=="NONE":
+            return "contact"
+        elif self.response=="WAIT":
+            return "response"
+        elif self.response in ["MET", "MAIL"] and not self.meeting_date:
+            return "meeting_date"
+        elif self.response in ["MET", "MAIL"] and not self.meeting_summary:
+            return "meeting_summary"
+        elif not self.facts:
+            return "facts"
+        elif self.instr_penalty=="WAIT":
+            return "instr_penalty"
+        elif self.instr_penalty=="NONE" and not self.instr_done:
+            return "instr_done"
+        elif self.letter_sent=="WAIT":
+            return "letter_sent"
+        elif not self.instr_done:
+            return "instr_done"
+        # TODO: Chair steps
 
 class RelatedObject(models.Model):
     """

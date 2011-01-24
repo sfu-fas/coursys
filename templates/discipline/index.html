@@ -1,5 +1,24 @@
 {% extends "base.html" %}
 
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#casestable').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    "aoColumns": [
+      { "sType": "by-nolink" },
+      null,
+      null,
+      null,
+    ]
+  } );
+} );
+</script>
+{% endblock %}
+
 {% block title %}{{ course.name }} Dishonesty Cases{% endblock %}
 {% block h1 %}{{ course.name }} Dishonesty Cases{% endblock %}
 
@@ -9,8 +28,8 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-	<li><a href="{% url discipline.views.new course_slug=course.slug %}">Create Case</a></li>
 	<li><a href="{% url discipline.views.newgroup course_slug=course.slug %}">Create Case Group</a></li>
+	<li><a href="{% url discipline.views.new course_slug=course.slug %}">Create Individual Case</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -19,14 +38,22 @@
 <h2 id="groups">Case Groups</h2>
 <ul>
 {% for g in groups %}
-<li>{{g.name}}</li>
+<li><a href="{% url discipline.views.showgroup course_slug=course.slug group_slug=g.slug %}">{{g.name}}</a></li>
+{% empty %}
+<li class="empty">None</li>
 {% endfor %}
 </ul>
 
 <h2 id="cases">Cases</h2>
-<ul>
-{% for c in cases %}
-<li>{{c.student}}</li>
-{% endfor %}
-</ul>
+<div class="datatable_container">
+<table id="casestable" class="display">
+  <thead><tr><th scope="col">Name</th><th scope="col">Student #</th><th scope="col">Userid</th><th scope="col">Group</th></tr></thead>
+  <tbody>
+  {% for c in cases %}
+  <tr><td scope="row"><a href="{% url discipline.views.show course_slug=course.slug case_slug=c.slug %}">{{c.student.person.sortname}}</a></td><td>{{c.student.person.emplid}}</td><td>{{c.student.person.userid}}</td><td>{{c.group.name}}</td>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
 {% endblock %}

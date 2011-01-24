@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}New Dishonesty Case Group{% endblock %}
+{% block h1 %}New Dishonesty Case Group{% endblock %}
+
+{% block headextra %}
+<link type="text/css" href="{{MEDIA_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
+<script type="text/javascript" src="{{MEDIA_URL}}multiselect/js/ui.multiselect.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#id_students").multiselect();
+  });
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url discipline.views.index course_slug=course.slug %}">Discipline Cases</a></li><li>&gt; New Group</li>{% endblock %}
+
+{% block actions %}{% endblock %}
+
+{% block content %}
+<div id="form_container">
+    <form action="{% url discipline.views.newgroup course_slug=course.slug %}" method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <p><input type="submit" value="Create Group" /></p>
+    </form>
+</div>
+{% endblock %}

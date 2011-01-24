@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load discipline_filters %}
+
+{% block title %}Dishonesty Case for {{case.student.person.name}}{% endblock %}
+{% block h1 %}Dishonesty Case for {{case.student.person.name}}{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url discipline.views.index course_slug=course.slug %}">Discipline Cases</a></li><li>&gt; Case for {{case.student.person.name}}</li>{% endblock %}
+
+{% block actions %}{% endblock %}
+
+{% block content %}
+
+<h2 id="info">Student Info</h2>
+
+<div class="table_container">
+<table class="info">
+<tbody>
+<tr>
+  <th class="ui-state-default">Name</th>
+  <td>{{ case.student.person.sortname }}</td>
+</tr>
+<tr>
+  <th class="ui-state-default">Email</th>
+  <td><a href="mailto:{{ case.student.person.email }}">{{ case.student.person.email }}</a></td>
+</tr>
+<tr>
+  <th class="ui-state-default">Student Number</th>
+  <td>{{ case.student.person.emplid }}</td>
+</tr>
+<tr>
+  <th class="ui-state-default">Course Offering</th>
+  <td>{{ case.student.offering }}</td>
+</tr>
+<tr>
+  <th class="ui-state-default">Case Group</th>
+  <td>{% if case.group %}<a href="{% url discipline.views.showgroup course_slug=course.slug group_slug=case.group.slug %}">{{ case.group.name }}</a>{% else %}&mdash;{% endif %}</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+{{case.next_step}}
+
+<h2 id="notes">Notes</h2>
+<dl>
+<dt>Case Notes (private)</dt>
+<dd>{{case.notes|format_text}}</dd>
+<dt>Related Items (private)</dt>
+<dd>{{case.relatedobject_set.all}}</dd>
+</dl>
+
+<h2 id="contact">Initial Contact</h2>
+<dl>
+<dt>Introductory Sentence (included in email)</dt>
+<dd>{{case.intro|format_text}}</dd>
+<dt>Student Contacted?</dt>
+<dd>{{case.get_contacted_display}}</dd>
+<dt>Student Contacted?</dt>
+<dd>{{case.get_response_display}}</dd>
+</dl>
+
+<h2 id="meeting">Meeting with Student</h2>
+<dl>
+<dt>Meeting Date</dt>
+<dd>{{case.meeting_date}}</dd>
+<dt>Meeting Summary (included in letter)</dt>
+<dd>{{case.meeting_summary|format_text}}</dd>
+<dt>Meeting Notes (private)</dt>
+<dd>{{case.meeting_notes|format_text}}</dd>
+</dl>
+
+<h2 id="facts">Facts and Decision</h2>
+<dl>
+<dt>Facts of case (included in letter)</dt>
+<dd>{{case.facts|format_text}}</dd>
+<dt>Penalty assigned by instructor</dt>
+<dd>{{case.get_instr_penalty_display}}</dd>
+<dt>Refer to Chair/Director?</dt>
+<dd>{{case.refer_chair}}</dd>
+<dt>Penalty Rationale (included in letter)</dt>
+<dd>{{case.penalty_reason|format_text}}</dd>
+</dl>
+
+
+
+{% endblock %}

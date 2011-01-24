@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Dishonesty Group {{group.name}}{% endblock %}
+{% block h1 %}Dishonesty Group {{group.name}}{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url discipline.views.index course_slug=course.slug %}">Discipline Cases</a></li><li>&gt; Group {{group.name}}</li>{% endblock %}
+
+{% block actions %}{% endblock %}
+
+{% block content %}
+<h2 id="members">Member cases:</h2>
+<ul>
+{% for case in group.disciplinecase_set.all %}
+<li><a href="{% url discipline.views.show course_slug=course.slug case_slug=case.slug %}">{{case.student.person.sortname}}</a></li>
+{% endfor %}
+</ul>
+{% endblock %}

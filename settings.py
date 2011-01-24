@@ -129,7 +129,7 @@ INSTALLED_APPS = (
 if DEBUG:
     #INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
     #MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('debug_toolbar.middleware.DebugToolbarMiddleware',)
-    #INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.admin',)
+    INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.admin',)
     DEBUG_TOOLBAR_CONFIG = {
         'INTERCEPT_REDIRECTS': False,
     }

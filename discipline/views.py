@@ -23,27 +23,53 @@ def index(request, course_slug):
 @requires_course_staff_by_slug
 def newgroup(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
+    student_choices = [
+            (m.person.userid,
+               "%s (%s, %s)" % (m.person.sortname(), m.person.emplid, m.person.userid))
+            for m in
+            Member.objects.filter(offering=course, role="STUD").select_related('person')]
     
     if request.method == 'POST':
-        form = DisciplineGroupForm(request.POST)
-        group = form.save(commit=False)
-        group.offering = course
-        group.save()
-        form.save_m2m()
-        print ">>>", group
+        form = DisciplineGroupForm(offering=course, data=request.POST)
+        form.fields['students'].choices = student_choices
+        if form.is_valid():
+            group = form.save()
+            for userid in form.cleaned_data['students']:
+                # create case for each student in the group
+                student = Member.objects.get(offering=course, person__userid=userid)
+                case = DisciplineCase(student=student, group=group)
+                case.save()
+            return HttpResponseRedirect(reverse('discipline.views.showgroup', kwargs={'course_slug': course_slug, 'group_slug': group.slug}))
 
     else:
-        form = DisciplineGroupForm()
+        form = DisciplineGroupForm(offering=course)
 
-    form.fields['students'].choices = [(m.person.userid, m.person.sortname()) for m in
-            Member.objects.filter(offering=course, role="STUD").select_related('person')]
-    context = {'course': course, 'form': form, 'group': True}
-    return render_to_response("discipline/new.html", context, context_instance=RequestContext(request))
-    #return _new(request, course_slug, group=True)
+    form.fields['students'].choices = student_choices
+    context = {'course': course, 'form': form}
+    return render_to_response("discipline/newgroup.html", context, context_instance=RequestContext(request))
 
 @requires_course_staff_by_slug
 def new(request, course_slug, group=False):
-    return _new(request, course_slug, group=False)
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    student_choices = [
+            (m.person.userid,
+               "%s (%s, %s)" % (m.person.sortname(), m.person.emplid, m.person.userid))
+            for m in
+            Member.objects.filter(offering=course, role="STUD").select_related('person')]
+    
+    if request.method == 'POST':
+        form = DisciplineCaseForm(offering=course, data=request.POST)
+        form.fields['student'].choices = student_choices
+        if form.is_valid():
+            case = form.save()
+            return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
+
+    else:
+        form = DisciplineCaseForm(offering=course)
+
+    form.fields['student'].choices = student_choices
+    context = {'course': course, 'form': form}
+    return render_to_response("discipline/new.html", context, context_instance=RequestContext(request))
 
 def _new(request, course_slug, group):
     """
@@ -82,10 +108,21 @@ def show(request, course_slug, case_slug):
     """
     Display current case status
     """
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    case = get_object_or_404(DisciplineCase, slug=case_slug, student__offering__slug=course_slug)
+    
+    context = {'course': course, 'case': case}
+    return render_to_response("discipline/show.html", context, context_instance=RequestContext(request))
 
 @requires_course_staff_by_slug
 def showgroup(request, course_slug, group_slug):
     """
     Display current case status
     """
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    group = get_object_or_404(DisciplineGroup, slug=group_slug, offering__slug=course_slug)
+    print DisciplineCase.objects.filter(group=group)
+    
+    context = {'course': course, 'group': group}
+    return render_to_response("discipline/showgroup.html", context, context_instance=RequestContext(request))
 
