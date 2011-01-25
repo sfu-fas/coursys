@@ -1125,6 +1125,15 @@ thead.form_head th{
     font-weight: bold;
 }
 
+/* discipline module styles */
+
+div#nextstep {
+  background-color: #f44;
+  padding: 1em;
+  margin: 1em 1em 1em 0;
+  font-size: 1.25em;
+}
+
 /* Override jquery UI style, otherwise the datepicker will be displayed too large */
 #ui-datepicker-div {font-size:0.8em}
 

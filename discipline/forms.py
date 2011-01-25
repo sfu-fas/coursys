@@ -42,4 +42,14 @@ class DisciplineCaseForm(forms.ModelForm):
         model = DisciplineCase
         fields = ("student", "group")
 
+class CaseIntroForm(forms.ModelForm):
+    #intro = forms.CharField(widget=forms.Textarea)
+    #intro = forms.CharField(required=False, label="Introductory sentence", widget=forms.TextInput(attrs={'size':'80'}))
+    class Meta:
+        model = DisciplineCase
+        fields = ("intro",)
+        widgets = {
+            'intro': forms.TextInput(attrs={'size':'80'}),
+        }
+
 

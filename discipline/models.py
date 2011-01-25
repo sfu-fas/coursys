@@ -2,6 +2,7 @@ from django.db import models
 from coredata.models import Member, CourseOffering
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
+from django.core.urlresolvers import reverse
 from autoslug import AutoSlugField
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
@@ -41,6 +42,16 @@ LETTER_CHOICES = (
         ('OTHR', 'Letter delivered (outside of this system)'),
         )
 DisciplineSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
+
+STEP_VIEW = { # map of field -> view function ("edit_foo") that is used to edit it.
+        'intro': 'intro',
+        'contact': 'contact',
+        }
+STEP_TEXT = { # map of field -> description of what it is
+        'intro': 'edit the introductory sentence',
+        'contact': 'contact the student regarding the case',
+        }
+
 
 class DisciplineGroup(models.Model):
     """
@@ -142,6 +153,21 @@ class DisciplineCase(models.Model):
         elif not self.instr_done:
             return "instr_done"
         # TODO: Chair steps
+
+    def next_step_url(self):
+        """
+        The URL to edit view for the next step.
+        """
+        step = self.next_step()
+        return reverse('discipline.views.edit_'+STEP_VIEW[step],
+            kwargs={'course_slug':self.student.offering.slug, 'case_slug': self.slug})
+
+    def next_step_text(self):
+        """
+        The text description of the next step.
+        """
+        step = self.next_step()
+        return STEP_TEXT[step]
 
 class RelatedObject(models.Model):
     """

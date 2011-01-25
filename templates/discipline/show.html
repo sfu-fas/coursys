@@ -39,7 +39,7 @@
 </table>
 </div>
 
-{{case.next_step}}
+<div id="nextstep">Suggested next step is to <a href="{{case.next_step_url}}">{{case.next_step_text}}</a>.</div>
 
 <h2 id="notes">Notes</h2>
 <dl>
@@ -52,7 +52,7 @@
 <h2 id="contact">Initial Contact</h2>
 <dl>
 <dt>Introductory Sentence (included in email)</dt>
-<dd>{{case.intro|format_text}}</dd>
+<dd>{{case.intro|format_text}}<p class="editlink"><a href="{% url discipline.views.edit_intro course_slug=course.slug case_slug=case.slug %}">edit intro sentence</a></p></dd>
 <dt>Student Contacted?</dt>
 <dd>{{case.get_contacted_display}}</dd>
 <dt>Student Contacted?</dt>
