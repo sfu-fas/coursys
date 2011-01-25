@@ -28,6 +28,7 @@ div#header, div#footer {
 }
 dt {
   font-weight: bold;
+  margin-top: 1em;
 }
 
 div .group_info_area{
@@ -387,6 +388,10 @@ table.activity_box_info {
   padding-left: 1em;
   color: gray;
   font-style: italic;
+}
+a.editlink {
+  float: right;
+  font-size: smaller;
 }
 
 /* CSS for group */
@@ -1038,7 +1043,6 @@ table#common_problems p.component_info{
 }
 
 thead.form_head th{
-	border:1px solid white;
 	color:#555555;
 	outline:medium none;
 }
@@ -1132,6 +1136,17 @@ div#nextstep {
   padding: 1em;
   margin: 1em 1em 1em 0;
   font-size: 1.25em;
+}
+p.actionwarning {
+  color: #b00;
+  font-weight: bold;
+}
+p.editlink {
+  float: right;
+  clear: right;
+}
+div#form_container>form>ul>li {
+  list-style-type: none;
 }
 
 /* Override jquery UI style, otherwise the datepicker will be displayed too large */

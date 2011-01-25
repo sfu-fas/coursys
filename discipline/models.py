@@ -1,11 +1,13 @@
 from django.db import models
-from coredata.models import Member, CourseOffering
+from coredata.models import Person, Member, CourseOffering
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.core.urlresolvers import reverse
 from autoslug import AutoSlugField
 from django.core.files.storage import FileSystemStorage
+from django.utils.text import wrap
 from django.conf import settings
+from discipline.content import *
 
 CONTACT_CHOICES = (
         ('NONE', 'Not yet contacted'),
@@ -14,7 +16,7 @@ CONTACT_CHOICES = (
         )
 RESPONSE_CHOICES = (
         ('WAIT', 'Waiting for response'),
-        ('NONE', 'No response from student'),
+        ('NONE', 'No response from student (after a reasonable period of time)'),
         ('DECL', 'Student declined to meet'),
         ('MAIL', 'Student sent statement by email'),
         ('MET', 'Met with student'),
@@ -44,19 +46,44 @@ LETTER_CHOICES = (
 DisciplineSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
 STEP_VIEW = { # map of field -> view function ("edit_foo") that is used to edit it.
+        'notes': 'notes',
         'intro': 'intro',
         'contacted': 'contacted',
         'response': 'response',
+        'meeting_date': 'meeting',
+        'meeting_summary': 'meeting',
+        'meeting_notes': 'meeting',
+        'facts': 'facts',
+        'instr_penalty': 'instr_penalty',
+        'refer_chair': 'instr_penalty',
+        'penalty_reason': 'instr_penalty',
+        'letter_sent': 'letter_sent',
         }
 STEP_TEXT = { # map of field -> description of what the step
+        'notes': 'edit your notes on the case',
         'intro': 'edit the introductory sentence',
         'contacted': 'contact the student regarding the case',
         'response': "enter details of the student's response",
+        'meeting_date': "enter details of the student meeting/email",
+        'meeting_summary': "enter a summary of the student meeting/email",
+        'facts': "summarize the facts of the case",
+        'instr_penalty': 'assign a penalty',
+        'letter_sent': "send instructor's letter",
         }
-STEP_DESC = { # map of field -> description of what it is
+STEP_DESC = { # map of field/form -> description of what it is
+        'notes': 'instructor notes',
         'intro': 'introductory sentence',
         'contacted': 'initial contact information',
-        'response': 'student response details'
+        'response': 'student response details',
+        'meeting': 'student meeting/email details',
+        'meeting_date': 'student meeting/email details',
+        'meeting_summary': 'student meeting/email details',
+        'meeting_notes': 'student meeting/email details',
+        'facts': 'facts of the case',
+        'instr_penalty': 'penalty (from instructor)',
+        'refer_chair': 'penalty (from instructor)',
+        'penalty_reason': 'penalty (from instructor)',
+        'letter_sent': "instructor's letter",
         }
 
 
@@ -79,33 +106,34 @@ class DisciplineCase(models.Model):
     """
     A case for a single student.
     """
-    student = models.ForeignKey(Member, help_text="The student this case concerns")
-    notes = models.TextField(blank=True, null=True, help_text='Notes about the case (private notes)')
+    student = models.ForeignKey(Member, help_text="The student this case concerns.")
+    instructor = models.ForeignKey(Person, help_text="The instructor who created this case.")
+    notes = models.TextField(blank=True, null=True, help_text='Notes about the case (private notes, <a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a> allowed).')
     def autoslug(self):
         return self.student.person.userid
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='student__offering')
-    group = models.ForeignKey(DisciplineGroup, null=True, blank=True, help_text="Group this case belongs to (if any)")
+    group = models.ForeignKey(DisciplineGroup, null=True, blank=True, help_text="Group this case belongs to (if any).")
     
     # fields for instructor
     intro = models.TextField(blank=True, null=True, verbose_name="Introductory Sentence",
-            help_text='You should "outline the nature of the concern", written to the student.  e.g. "On assignment 1, you submitted work very similar to another student."')
+            help_text=u'You should "outline the nature of the concern", written to the student&mdash;this sentence will be the introduction of the initial email to the student (plain text).  e.g. "On assignment 1, you submitted work very similar to another student."')
     contacted = models.CharField(max_length=4, choices=CONTACT_CHOICES, default="NONE", verbose_name="Student Contacted?",
             help_text='Has the student been informed of the case?')
     response = models.CharField(max_length=4, choices=RESPONSE_CHOICES, default="WAIT", verbose_name="Student Response",
-            help_text='Has the student responded to a meeting')
+            help_text='Has the student responded to the initial contact?')
     
-    meeting_date = models.DateField(blank=True, null=True, help_text='Date of meeting/email with student (if applicable)')
-    meeting_summary = models.TextField(blank=True, null=True, help_text='Summary of the meeting/email with student (included in letter)')
-    meeting_notes = models.TextField(blank=True, null=True, help_text='Notes about the meeting/email with student (private notes)')
+    meeting_date = models.DateField(blank=True, null=True, verbose_name="Meeting/Email Date", help_text='Date of meeting/email with student.')
+    meeting_summary = models.TextField(blank=True, null=True, verbose_name="Meeting/Email Summary", help_text='Summary of the meeting/email with student (included in letter, <a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a> allowed).')
+    meeting_notes = models.TextField(blank=True, null=True, verbose_name="Meeting/Email Notes", help_text='Notes about the meeting/email with student (private notes, <a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a> allowed).')
     
     facts = models.TextField(blank=True, null=True, verbose_name="Facts of the Case",
-            help_text='Summary of the facts of the case (included in letter)')
+            help_text='Summary of the facts of the case (included in letter, <a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a> allowed).  This should be a summary of the case from the instructor\'s perspective.')
     instr_penalty = models.CharField(max_length=4, choices=INSTR_PENALTY_CHOICES, default="WAIT",
             verbose_name="Instructor Penalty",
             help_text='Penalty assigned by the instructor for this case.')
-    refer_chair = models.BooleanField(default=False, help_text='Refer case to the Chair/Director?', verbose_name="Refer to chair?")
+    refer_chair = models.BooleanField(default=False, help_text='Refer this case to the Chair/Director?', verbose_name="Refer to chair?")
     penalty_reason = models.TextField(blank=True, null=True, verbose_name="Penalty Rationale",
-            help_text='Rationale for assigned penalty, or notes concerning penalty (included in letter)')
+            help_text='Rationale for assigned penalty, or notes/details concerning penalty.  Optional but recommended. (included in letter, <a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a> allowed)')
     
     letter_sent = models.CharField(max_length=4, choices=LETTER_CHOICES, default="WAIT", verbose_name="Letter Sent?",
             help_text='Has the letter been sent to the student and Chair/Director?')
@@ -135,6 +163,12 @@ class DisciplineCase(models.Model):
         else:
             return '%s: "%s"' % (self.student.person.userid, self.intro)
 
+    def get_refer_chair_display(self):
+        if self.refer_chair:
+            return "Yes"
+        else:
+            return "No"
+    
     def next_step(self):
         """
         Return next field that should be dealt with
@@ -175,6 +209,21 @@ class DisciplineCase(models.Model):
         """
         step = self.next_step()
         return STEP_TEXT[step]
+    
+    def contact_email(self):
+        """
+        Contact email to the student (as arguments to send_mail())
+        
+        Use like: send_mail(*case.contact_email())
+        """
+        message = EMAIL_TEMPLATE.substitute(introsentence=self.intro)
+        return (
+            'Academic dishonsty in %s' % (self.student.offering), # subject
+            wrap(message, 72), # message body
+            self.instructor.email(), # from email
+            [self.student.person.email(), self.instructor.email()] #recipients
+            )
+
 
 class RelatedObject(models.Model):
     """

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load discipline_filters %}
+
+{% block title %}Dishonesty Case for {{case.student.person.name}}: Edit Notes{% endblock %}
+{% block h1 %}Dishonesty Case for {{case.student.person.name}}: Edit Notes{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url discipline.views.index course_slug=course.slug %}">Discipline Cases</a></li><li>&gt; <a href="{% url discipline.views.show course_slug=course.slug case_slug=case.slug %}">Case for {{case.student.person.name}}</a></li><li>&gt; Edit Notes</li>{% endblock %}
+
+{% block actions %}{% endblock %}
+
+{% block content %}
+<div id="form_container">
+    <form action="{% url discipline.views.edit_notes course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
+    <p>{{ form.notes.label }}:</p>
+    <blockquote>{{ form.notes }}</blockquote>
+    <p class="helptext">{{ form.notes.help_text|safe }}</p>
+    <p><input type="submit" value="Edit Notes" /></p>
+    </form>
+</div>
+
+{% endblock %}

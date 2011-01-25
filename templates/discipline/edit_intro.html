@@ -11,7 +11,9 @@
 {% block content %}
 <div id="form_container">
     <form action="{% url discipline.views.edit_intro course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
-    {{ form.as_p }}
+    <p>{{ form.intro.label }}:
+    	{{ form.intro }}</p>
+    <p class="helptext">{{ form.intro.help_text|safe }}</p>
     <p><input type="submit" value="Edit Intro" /></p>
     </form>
 </div>

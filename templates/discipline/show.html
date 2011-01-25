@@ -35,6 +35,10 @@
   <th class="ui-state-default">Case Group</th>
   <td>{% if case.group %}<a href="{% url discipline.views.showgroup course_slug=course.slug group_slug=case.group.slug %}">{{ case.group.name }}</a>{% else %}&mdash;{% endif %}</td>
 </tr>
+<tr>
+  <th class="ui-state-default">Case Creator</th>
+  <td>{{ case.instructor.name }}</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -44,41 +48,41 @@
 <h2 id="notes">Notes</h2>
 <dl>
 <dt>Case Notes (private)</dt>
-<dd>{{case.notes|format_text}}</dd>
+<dd>{{case|edit_link:'notes'}}{{case.notes|format_text}}</dd>
 <dt>Related Items (private)</dt>
-<dd>{{case.relatedobject_set.all}}</dd>
+<dd><p>{{case.relatedobject_set.all}}</p></dd>
 </dl>
 
 <h2 id="contact">Initial Contact</h2>
 <dl>
 <dt>Introductory Sentence (included in email)</dt>
-<dd>{{case.intro|format_text}}{{case|edit_link:'intro'}}</dd>
+<dd>{{case|edit_link:'intro'}}{{case.intro|format_text}}</dd>
 <dt>Student Contacted?</dt>
-<dd>{{case.get_contacted_display}}{{case|edit_link:'contacted'}}</dd>
-<dt>Student Contacted?</dt>
-<dd>{{case.get_response_display}}</dd>
+<dd>{{case|edit_link:'contacted'}}<p>{{case.get_contacted_display}}</p></dd>
+<dt>Student Response</dt>
+<dd>{{case|edit_link:'response'}}<p>{{case.get_response_display}}</p></dd>
 </dl>
 
-<h2 id="meeting">Meeting with Student</h2>
+<h2 id="meeting">Meeting with (or Email from) Student</h2>
 <dl>
 <dt>Meeting Date</dt>
-<dd>{{case.meeting_date}}</dd>
-<dt>Meeting Summary (included in letter)</dt>
-<dd>{{case.meeting_summary|format_text}}</dd>
-<dt>Meeting Notes (private)</dt>
-<dd>{{case.meeting_notes|format_text}}</dd>
+<dd>{{case|edit_link:'meeting_date'}}<p>{{case.meeting_date}}</p></dd>
+<dt>Meeting/Email Summary (included in letter)</dt>
+<dd>{{case|edit_link:'meeting_summary'}}{{case.meeting_summary|format_text}}</dd>
+<dt>Meeting/Email Notes (private)</dt>
+<dd>{{case|edit_link:'meeting_notes'}}{{case.meeting_notes|format_text}}</dd>
 </dl>
 
 <h2 id="facts">Facts and Decision</h2>
 <dl>
 <dt>Facts of case (included in letter)</dt>
-<dd>{{case.facts|format_text}}</dd>
+<dd>{{case|edit_link:'facts'}}{{case.facts|format_text}}</dd>
 <dt>Penalty assigned by instructor</dt>
-<dd>{{case.get_instr_penalty_display}}</dd>
+<dd>{{case|edit_link:'instr_penalty'}}<p>{{case.get_instr_penalty_display}}</p></dd>
 <dt>Refer to Chair/Director?</dt>
-<dd>{{case.refer_chair}}</dd>
+<dd>{{case|edit_link:'refer_chair'}}<p>{{case.get_refer_chair_display}}</p></dd>
 <dt>Penalty Rationale (included in letter)</dt>
-<dd>{{case.penalty_reason|format_text}}</dd>
+<dd>{{case|edit_link:'penalty_reason'}}{{case.penalty_reason|format_text}}</dd>
 </dl>
 
 

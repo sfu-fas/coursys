@@ -1,6 +1,17 @@
 {% extends "base.html" %}
 {% load discipline_filters %}
 
+{% block headextra %}
+<script type="text/javascript">
+function fillPreview() {
+  {% with case.contact_email as mail %}
+  content = "From: {{mail.2|escapejs}}\nTo: {{mail.3|join:", "|escapejs}}\nSubject: {{mail.0|escapejs}}\n\n{{mail.1|escapejs}}";
+  $("#preview").html(content)
+  {% endwith %}
+}
+</script>
+{% endblock %}
+
 {% block title %}Dishonesty Case for {{case.student.person.name}}: Edit Intro{% endblock %}
 {% block h1 %}Dishonesty Case for {{case.student.person.name}}: Edit Intro{% endblock %}
 
@@ -11,9 +22,14 @@
 {% block content %}
 <div id="form_container">
     <form action="{% url discipline.views.edit_contacted course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
-    {{ form.as_p }}
-    {% if case.contacted != "MAIL" %}<p>Note: selecting "Student emailed (by system)" will cause an email to be sent to the student.</p>{% endif %}
-    <p><input type="submit" value="Edit Contact" /></p>
+    <p>{{ form.contacted.help_text }}
+    	{{ form.contacted }}</p>
+    {% if case.contacted != "MAIL" %}<p class="actionwarning">Note: Changing to "Student emailed (by system)" will cause an email to be sent to the student. <a href="javascript:fillPreview()">Preview student email.</a></p>{% endif %}
+    {% if case.contacted == "MAIL" %}<p><a href="javascript:fillPreview()">View student email.</a></p>{% endif %}
+    <p><input type="submit" value="Edit Contact Details" /></p>
+    <blockquote>
+    	<pre id="preview"></pre>
+    </blockquote>
     </form>
 </div>
 

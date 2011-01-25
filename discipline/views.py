@@ -1,4 +1,4 @@
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response, get_object_or_404
 from django.core.urlresolvers import reverse
 from django.template import RequestContext
@@ -6,8 +6,8 @@ from django.contrib import messages
 from coredata.models import Member, CourseOffering, Person
 from discipline.models import *
 from discipline.forms import *
+from discipline.content import *
 from courselib.auth import requires_course_staff_by_slug, NotFoundResponse
-
 
 @requires_course_staff_by_slug
 def index(request, course_slug):
@@ -34,11 +34,12 @@ def newgroup(request, course_slug):
         form = DisciplineGroupForm(offering=course, data=request.POST)
         form.fields['students'].choices = student_choices
         if form.is_valid():
+            instructor = Person.objects.get(userid=request.user.username)
             group = form.save()
             for userid in form.cleaned_data['students']:
                 # create case for each student in the group
                 student = Member.objects.get(offering=course, person__userid=userid)
-                case = DisciplineCase(student=student, group=group)
+                case = DisciplineCase(student=student, group=group, instructor=instructor)
                 case.save()
             return HttpResponseRedirect(reverse('discipline.views.showgroup', kwargs={'course_slug': course_slug, 'group_slug': group.slug}))
 
@@ -62,7 +63,11 @@ def new(request, course_slug, group=False):
         form = DisciplineCaseForm(offering=course, data=request.POST)
         form.fields['student'].choices = student_choices
         if form.is_valid():
-            case = form.save()
+            instructor = Person.objects.get(userid=request.user.username)
+            case = form.save(commit=False)
+            case.instructor = instructor
+            case.save()
+            form.save_m2m()
             return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
 
     else:
@@ -122,7 +127,6 @@ def showgroup(request, course_slug, group_slug):
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
     group = get_object_or_404(DisciplineGroup, slug=group_slug, offering__slug=course_slug)
-    print DisciplineCase.objects.filter(group=group)
     
     context = {'course': course, 'group': group}
     return render_to_response("discipline/showgroup.html", context, context_instance=RequestContext(request))
@@ -136,11 +140,11 @@ def _edit_case_info(request, course_slug, case_slug, field):
     FormClass = STEP_FORM[field]
     if request.method == 'POST':
         form = FormClass(request.POST, instance=case)
-        #print dir(form)
-        #raise
         if form.is_valid():
             c=form.save()
             messages.add_message(request, messages.INFO, "Updated " + STEP_DESC[field] + '.')
+            if hasattr(c, 'just_emailed'):
+                messages.add_message(request, messages.INFO, "Email sent to student notifying of case.")
             return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
     else:
         form = FormClass(instance=case)
@@ -149,13 +153,32 @@ def _edit_case_info(request, course_slug, case_slug, field):
     return render_to_response("discipline/edit_"+field+".html", context, context_instance=RequestContext(request))
 
 @requires_course_staff_by_slug
+def edit_notes(request, course_slug, case_slug):
+    return _edit_case_info(request, course_slug, case_slug, "notes")
+@requires_course_staff_by_slug
 def edit_intro(request, course_slug, case_slug):
     return _edit_case_info(request, course_slug, case_slug, "intro")
-
 @requires_course_staff_by_slug
 def edit_contacted(request, course_slug, case_slug):
     return _edit_case_info(request, course_slug, case_slug, "contacted")
-
 @requires_course_staff_by_slug
 def edit_response(request, course_slug, case_slug):
     return _edit_case_info(request, course_slug, case_slug, "response")
+@requires_course_staff_by_slug
+def edit_meeting(request, course_slug, case_slug):
+    return _edit_case_info(request, course_slug, case_slug, "meeting")
+@requires_course_staff_by_slug
+def edit_facts(request, course_slug, case_slug):
+    return _edit_case_info(request, course_slug, case_slug, "facts")
+@requires_course_staff_by_slug
+def edit_instr_penalty(request, course_slug, case_slug):
+    return _edit_case_info(request, course_slug, case_slug, "instr_penalty")
+
+@requires_course_staff_by_slug
+def show_letter(request, course_slug, case_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    case = get_object_or_404(DisciplineCase, slug=case_slug, student__offering__slug=course_slug)
+    context = {'course': course, 'case': case}
+    return render_to_response("discipline/show_letter.html", context, context_instance=RequestContext(request))
+
+

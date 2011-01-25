@@ -56,7 +56,7 @@ class NewsItem(models.Model):
         if val:
             return mark_safe(val)
         
-        markup = mark_safe(Textile.textile(str(self.content)))
+        markup = mark_safe(Textile.textile(unicode(self.content)))
 
         cache.set(key, markup, 86400)
         return markup

@@ -1,6 +1,7 @@
 from django import forms
 from discipline.models import DisciplineCase, DisciplineGroup
 from coredata.models import Member
+from django.core.mail import send_mail
 
 class DisciplineGroupForm(forms.ModelForm):
     students = forms.MultipleChoiceField(choices=[])
@@ -43,19 +44,27 @@ class DisciplineCaseForm(forms.ModelForm):
         fields = ("student", "group")
 
 
+class CaseNotesForm(forms.ModelForm):
+    class Meta:
+        model = DisciplineCase
+        fields = ("notes",)
+        widgets = {
+            'notes': forms.Textarea(attrs={'cols':'80', 'rows':'20'}),
+        }
 class CaseIntroForm(forms.ModelForm):
     class Meta:
         model = DisciplineCase
         fields = ("intro",)
         widgets = {
-            'intro': forms.TextInput(attrs={'size':'80'}),
+            'intro': forms.TextInput(attrs={'size':'70'}),
         }
 class CaseContactedForm(forms.ModelForm):
     def clean_contacted(self):
         new_contacted = self.cleaned_data['contacted']
         old_contacted = self.instance.contacted
         if old_contacted!="MAIL" and new_contacted=="MAIL":
-            print "EMAILING STUDENT"
+            send_mail( *self.instance.contact_email() )
+            self.instance.just_emailed = True
         
         return new_contacted
 
@@ -65,9 +74,45 @@ class CaseContactedForm(forms.ModelForm):
         widgets = {
             'contacted': forms.RadioSelect(),
         }
+class CaseResponseForm(forms.ModelForm):
+    class Meta:
+        model = DisciplineCase
+        fields = ("response",)
+        widgets = {
+            'response': forms.RadioSelect(),
+        }
+class CaseMeetingForm(forms.ModelForm):
+    class Meta:
+        model = DisciplineCase
+        fields = ("meeting_date", "meeting_summary", "meeting_notes")
+        widgets = {
+            'meeting_summary': forms.Textarea(attrs={'cols':'80', 'rows':'10'}),
+            'meeting_notes': forms.Textarea(attrs={'cols':'80', 'rows':'10'}),
+        }
+class CaseFactsForm(forms.ModelForm):
+    class Meta:
+        model = DisciplineCase
+        fields = ("facts",)
+        widgets = {
+            'facts': forms.Textarea(attrs={'cols':'80', 'rows':'20'}),
+        }
+class CaseInstrPenaltyForm(forms.ModelForm):
+    class Meta:
+        model = DisciplineCase
+        fields = ("instr_penalty", "refer_chair", "penalty_reason")
+        widgets = {
+            'instr_penalty': forms.RadioSelect(),
+            'penalty_reason': forms.Textarea(attrs={'cols':'80', 'rows':'10'}),
+        }
+
 
 STEP_FORM = { # map of field -> form for editing it (all ModelForm for DisciplineCase)
+        'notes': CaseNotesForm,
         'intro': CaseIntroForm,
         'contacted': CaseContactedForm,
+        'response': CaseResponseForm,
+        'meeting': CaseMeetingForm,
+        'facts': CaseFactsForm,
+        'instr_penalty': CaseInstrPenaltyForm,
         }
 

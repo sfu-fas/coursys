@@ -1,6 +1,3 @@
-import os, sys
-sys.path.append( os.path.dirname(os.path.dirname(__file__)) )
-
 import socket
 hostname = socket.gethostname()
 
@@ -95,7 +92,7 @@ TEMPLATE_CONTEXT_PROCESSORS = ("django.core.context_processors.auth",
     "django.contrib.messages.context_processors.messages"
     )
 
-ROOT_URLCONF = 'urls'
+ROOT_URLCONF = 'courses.urls'
 INTERNAL_IPS = ('127.0.0.1',)
 
 TEMPLATE_DIRS = (
@@ -143,12 +140,14 @@ if DEPLOYED:
     CACHE_BACKEND = 'memcached://127.0.0.1:22122/'
     BASE_ABS_URL = "https://courses.cs.sfu.ca"
     SESSION_COOKIE_SECURE = True
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 else:
     #MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('contrib.profiling.ProfileMiddleware',)
     SUBMISSION_PATH = "submitted_files"
     #INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.admin',)
     CACHE_BACKEND = 'locmem://'
     BASE_ABS_URL = "http://localhost:8000"
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 
 CAS_SERVER_URL = "https://cas.sfu.ca/cgi-bin/WebObjects/cas.woa/wa/"

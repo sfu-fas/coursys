@@ -15,9 +15,9 @@ from grades.models import *
 from grades.utils import StudentActivityInfo, reorder_course_activities, create_StudentActivityInfo_list, \
                         ORDER_TYPE, FormulaTesterActivityEntry, FakeActivity, generate_numeric_activity_stat
 from grades.utils import ValidationError, parse_and_validate_formula, calculate_numeric_grade
-from marking.models import get_group_mark, StudentActivityMark, GroupActivityMark
+from marking.models import get_group_mark, StudentActivityMark, GroupActivityMark, ActivityComponent
 from groups.models import *
-from submission.models import GroupSubmission, StudentSubmission, get_current_submission
+from submission.models import SubmissionComponent, GroupSubmission, StudentSubmission, get_current_submission
 from log.models import LogEntry
 from django.contrib import messages
 import pickle
@@ -189,6 +189,7 @@ def _activity_info_staff(request, course_slug, activity_slug):
             group_membership[gm.student.person.userid] = gm.group
 
     # collect submission status
+    sub_comps = [sc.title for sc in SubmissionComponent.objects.filter(activity=activity, deleted=False)]
     submitted = {}
     if activity.group:
         subs = GroupSubmission.objects.filter(activity=activity).select_related('group')
@@ -202,6 +203,7 @@ def _activity_info_staff(request, course_slug, activity_slug):
             submitted[s.member.person.userid] = True
 
     # collect marking status
+    mark_comps = [ac.title for ac in ActivityComponent.objects.filter(numeric_activity=activity, deleted=False)]
     marked = {}
     marks = StudentActivityMark.objects.filter(activity=activity).select_related('numeric_grade__member__person')
     for m in marks:
@@ -219,6 +221,7 @@ def _activity_info_staff(request, course_slug, activity_slug):
     context = {'course': course, 'activity': activity, 'students': students, 'grades': grades,
                'activity_view_type': 'individual', 'group_membership': group_membership,
                'from_page': FROMPAGE['activityinfo'],
+               'sub_comps': sub_comps, 'mark_comps': mark_comps,
                'submitted': submitted, 'marked': marked}
     return render_to_response('grades/activity_info.html', context, context_instance=RequestContext(request))
 
