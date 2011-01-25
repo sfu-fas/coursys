@@ -127,14 +127,20 @@ def showgroup(request, course_slug, group_slug):
     context = {'course': course, 'group': group}
     return render_to_response("discipline/showgroup.html", context, context_instance=RequestContext(request))
 
-def _edit_case_info(request, course_slug, case_slug, field, FormClass, name):
+def _edit_case_info(request, course_slug, case_slug, field):
+    """
+    View function for all of the "edit this aspect of the case" steps.  Uses the STEP_* dictionaries to get relevant strings/classes.
+    """
     course = get_object_or_404(CourseOffering, slug=course_slug)
     case = get_object_or_404(DisciplineCase, slug=case_slug, student__offering__slug=course_slug)
+    FormClass = STEP_FORM[field]
     if request.method == 'POST':
-        form = FormClass(instance=case, data=request.POST)
+        form = FormClass(request.POST, instance=case)
+        #print dir(form)
+        #raise
         if form.is_valid():
-            form.save()
-            messages.add_message(request, messages.INFO, name+' updated.')
+            c=form.save()
+            messages.add_message(request, messages.INFO, "Updated " + STEP_DESC[field] + '.')
             return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
     else:
         form = FormClass(instance=case)
@@ -144,9 +150,12 @@ def _edit_case_info(request, course_slug, case_slug, field, FormClass, name):
 
 @requires_course_staff_by_slug
 def edit_intro(request, course_slug, case_slug):
-    return _edit_case_info(request, course_slug, case_slug, "intro", CaseIntroForm, "Introductory sentence")
+    return _edit_case_info(request, course_slug, case_slug, "intro")
 
 @requires_course_staff_by_slug
-def edit_contact(request, course_slug, case_slug):
-    pass
+def edit_contacted(request, course_slug, case_slug):
+    return _edit_case_info(request, course_slug, case_slug, "contacted")
 
+@requires_course_staff_by_slug
+def edit_response(request, course_slug, case_slug):
+    return _edit_case_info(request, course_slug, case_slug, "response")

@@ -45,11 +45,18 @@ DisciplineSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, b
 
 STEP_VIEW = { # map of field -> view function ("edit_foo") that is used to edit it.
         'intro': 'intro',
-        'contact': 'contact',
+        'contacted': 'contacted',
+        'response': 'response',
         }
-STEP_TEXT = { # map of field -> description of what it is
+STEP_TEXT = { # map of field -> description of what the step
         'intro': 'edit the introductory sentence',
-        'contact': 'contact the student regarding the case',
+        'contacted': 'contact the student regarding the case',
+        'response': "enter details of the student's response",
+        }
+STEP_DESC = { # map of field -> description of what it is
+        'intro': 'introductory sentence',
+        'contacted': 'initial contact information',
+        'response': 'student response details'
         }
 
 
@@ -135,7 +142,7 @@ class DisciplineCase(models.Model):
         if not self.intro:
             return "intro"
         elif self.contacted=="NONE":
-            return "contact"
+            return "contacted"
         elif self.response=="WAIT":
             return "response"
         elif self.response in ["MET", "MAIL"] and not self.meeting_date:

@@ -42,14 +42,32 @@ class DisciplineCaseForm(forms.ModelForm):
         model = DisciplineCase
         fields = ("student", "group")
 
+
 class CaseIntroForm(forms.ModelForm):
-    #intro = forms.CharField(widget=forms.Textarea)
-    #intro = forms.CharField(required=False, label="Introductory sentence", widget=forms.TextInput(attrs={'size':'80'}))
     class Meta:
         model = DisciplineCase
         fields = ("intro",)
         widgets = {
             'intro': forms.TextInput(attrs={'size':'80'}),
         }
+class CaseContactedForm(forms.ModelForm):
+    def clean_contacted(self):
+        new_contacted = self.cleaned_data['contacted']
+        old_contacted = self.instance.contacted
+        if old_contacted!="MAIL" and new_contacted=="MAIL":
+            print "EMAILING STUDENT"
+        
+        return new_contacted
 
+    class Meta:
+        model = DisciplineCase
+        fields = ("contacted",)
+        widgets = {
+            'contacted': forms.RadioSelect(),
+        }
+
+STEP_FORM = { # map of field -> form for editing it (all ModelForm for DisciplineCase)
+        'intro': CaseIntroForm,
+        'contacted': CaseContactedForm,
+        }
 
