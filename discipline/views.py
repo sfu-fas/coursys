@@ -4,9 +4,11 @@ from django.core.urlresolvers import reverse
 from django.template import RequestContext
 from django.contrib import messages
 from coredata.models import Member, CourseOffering, Person
+from grades.models import all_activities_filter
 from discipline.models import *
 from discipline.forms import *
 from discipline.content import *
+from log.models import LogEntry
 from courselib.auth import requires_course_staff_by_slug, NotFoundResponse
 
 @requires_course_staff_by_slug
@@ -36,11 +38,21 @@ def newgroup(request, course_slug):
         if form.is_valid():
             instructor = Person.objects.get(userid=request.user.username)
             group = form.save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("created a discipline group in %s") % (course),
+                  related_object=group)
+            l.save()
             for userid in form.cleaned_data['students']:
                 # create case for each student in the group
                 student = Member.objects.get(offering=course, person__userid=userid)
                 case = DisciplineCase(student=student, group=group, instructor=instructor)
                 case.save()
+                #LOG EVENT#
+                l = LogEntry(userid=request.user.username,
+                      description=("created a discipline case for %s in group %s") % (userid, group.name),
+                      related_object=case)
+                l.save()
             return HttpResponseRedirect(reverse('discipline.views.showgroup', kwargs={'course_slug': course_slug, 'group_slug': group.slug}))
 
     else:
@@ -68,6 +80,11 @@ def new(request, course_slug, group=False):
             case.instructor = instructor
             case.save()
             form.save_m2m()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("created a discipline case for %s in %s") % (case.student.person.userid, course),
+                  related_object=case)
+            l.save()
             return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
 
     else:
@@ -142,7 +159,12 @@ def _edit_case_info(request, course_slug, case_slug, field):
         form = FormClass(request.POST, instance=case)
         if form.is_valid():
             c=form.save()
-            messages.add_message(request, messages.INFO, "Updated " + STEP_DESC[field] + '.')
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("edit discipline case %s in %s: changed %s") % (c.slug, c.student.offering, STEP_DESC[field]),
+                  related_object=c)
+            l.save()
+            messages.add_message(request, messages.SUCCESS, "Updated " + STEP_DESC[field] + '.')
             if hasattr(c, 'just_emailed'):
                 messages.add_message(request, messages.INFO, "Email sent to student notifying of case.")
             return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
@@ -173,6 +195,44 @@ def edit_facts(request, course_slug, case_slug):
 @requires_course_staff_by_slug
 def edit_instr_penalty(request, course_slug, case_slug):
     return _edit_case_info(request, course_slug, case_slug, "instr_penalty")
+
+@requires_course_staff_by_slug
+def edit_related(request, course_slug, case_slug):
+    """
+    View function to edit related items: more difficult than the generic function above.
+    """
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    case = get_object_or_404(DisciplineCase, slug=case_slug, student__offering__slug=course_slug)
+    
+    if request.method == 'POST':
+        form = CaseRelatedForm(request.POST)
+        form.set_choices(course, case)
+        if form.is_valid():
+            all_acts = dict(((act.id, act) for act in all_activities_filter(course)))
+            for actid in form.cleaned_data['activities']:
+                actid = int(actid)
+                act = all_acts[actid]
+                ro = RelatedObject(case=case, content_object=act)
+                ro.save()
+                
+            print form.cleaned_data['submissions']
+            print form.cleaned_data['students']
+            raise
+            
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("edit discipline case %s in %s: changed %s") % (case.slug, case.student.offering, STEP_DESC['related']),
+                  related_object=case)
+            l.save()
+            messages.add_message(request, messages.SUCCESS, "Updated " + STEP_DESC['related'] + '.')
+            return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
+    else:
+        form = CaseRelatedForm()
+        form.set_choices(course, case)
+    
+    context = {'course': course, 'case': case, 'form': form}
+    return render_to_response("discipline/edit_related.html", context, context_instance=RequestContext(request))
+
 
 @requires_course_staff_by_slug
 def show_letter(request, course_slug, case_slug):

@@ -105,9 +105,40 @@ class CaseInstrPenaltyForm(forms.ModelForm):
             'penalty_reason': forms.Textarea(attrs={'cols':'80', 'rows':'10'}),
         }
 
+from grades.models import Activity
+from groups.models import GroupMember
+from submission.models import StudentSubmission, GroupSubmission
+import itertools
+class CaseRelatedForm(forms.Form):
+    activities = forms.MultipleChoiceField(widget=forms.SelectMultiple(attrs={'size':'8'}))
+    submissions = forms.MultipleChoiceField(widget=forms.SelectMultiple(attrs={'size':'8'}))
+    students = forms.MultipleChoiceField(widget=forms.SelectMultiple(attrs={'size':'8'}))
+    
+    def set_choices(self, course, case):
+        """
+        Set choices fields as appropriate to this case.
+        """
+        # set activity choices
+        activity_choices = [(act.id, act.name) for act in Activity.objects.filter(offering=course, deleted=False)]
+        self.fields['activities'].choices = activity_choices
 
-STEP_FORM = { # map of field -> form for editing it (all ModelForm for DisciplineCase)
+        # set submission choices
+        gms = GroupMember.objects.filter(student=case.student)
+        sub_sets = [StudentSubmission.objects.filter(activity__offering=course, member=case.student)]
+        for gm in gms:
+            sub_sets.append( GroupSubmission.objects.filter(activity=gm.activity, group=gm.group) )
+        subs = itertools.chain(*sub_sets)
+        submissions_choices = [(sub.id, "%s @ %s" % (sub.activity.name, sub.created_at)) for sub in subs]
+        self.fields['submissions'].choices = submissions_choices
+        
+        # set student choices
+        students_choices = [(m.id, m.person.sortname()) for m in Member.objects.filter(offering=course, role="STUD")]
+        self.fields['students'].choices = students_choices
+
+
+STEP_FORM = { # map of field -> form for editing it (all ModelForm for DisciplineCase, except Related)
         'notes': CaseNotesForm,
+        'related': CaseRelatedForm,
         'intro': CaseIntroForm,
         'contacted': CaseContactedForm,
         'response': CaseResponseForm,

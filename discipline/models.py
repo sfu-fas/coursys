@@ -47,6 +47,7 @@ DisciplineSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, b
 
 STEP_VIEW = { # map of field -> view function ("edit_foo") that is used to edit it.
         'notes': 'notes',
+        'related': 'related',
         'intro': 'intro',
         'contacted': 'contacted',
         'response': 'response',
@@ -72,6 +73,7 @@ STEP_TEXT = { # map of field -> description of what the step
         }
 STEP_DESC = { # map of field/form -> description of what it is
         'notes': 'instructor notes',
+        'related': 'related items',
         'intro': 'introductory sentence',
         'contacted': 'initial contact information',
         'response': 'student response details',
@@ -98,6 +100,8 @@ class DisciplineGroup(models.Model):
     
     def __unicode__(self):
         return "%s in %s" % (self.name, self.offering)
+    def get_absolute_url(self):
+        return reverse('discipline.views.showgroup', kwargs={'course_slug': self.offering.slug, 'group_slug': self.slug})
     class Meta:
         unique_together = (("name", "offering"),)
 
@@ -162,6 +166,9 @@ class DisciplineCase(models.Model):
             return '%s: "%s" (in %s)' % (self.student.person.userid, self.intro, self.group.name)
         else:
             return '%s: "%s"' % (self.student.person.userid, self.intro)
+
+    def get_absolute_url(self):
+        return reverse('discipline.views.show', kwargs={'course_slug': self.student.offering.slug, 'case_slug': self.slug})
 
     def get_refer_chair_display(self):
         if self.refer_chair:
