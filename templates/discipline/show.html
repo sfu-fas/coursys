@@ -50,7 +50,25 @@
 <dt>Case Notes (private)</dt>
 <dd>{{case|edit_link:'notes'}}{{case.notes|format_text}}</dd>
 <dt>Related Items (private)</dt>
-<dd>{{case|edit_link:'related'}}<p>{{case.relatedobject_set.all}}</p></dd>
+<dd>{{case|edit_link:'related'}}
+<ul>{% for ro in case.relatedobject_set.all %}
+  {% if ro.content_object.get_absolute_url %}
+  <li><a href="{{ro.content_object.get_absolute_url}}">{{ro.content_object.short_str}}</a></li>
+  {% else %}
+  <li>{{ro.content_object.short_str}}</li>
+  {% endif %}
+{% empty %}<li class="empty">None</li>
+{% endfor %}</ul>
+<dt>Attached Files</dt>
+<dd>{{case|edit_link:'attach'}}
+<ul>{% for att in case.caseattachment_set.all %}
+  <li><a href="">{{att}}</a></li>
+{% empty %}<li class="empty">None</li>
+{% endfor %}</ul>
+
+
+
+</dd>
 </dl>
 
 <h2 id="contact">Initial Contact</h2>

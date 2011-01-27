@@ -4,7 +4,8 @@ from django.core.urlresolvers import reverse
 from django.template import RequestContext
 from django.contrib import messages
 from coredata.models import Member, CourseOffering, Person
-from grades.models import all_activities_filter
+from submission.models import Submission, StudentSubmission, GroupSubmission
+from grades.models import all_activities_filter, Activity
 from discipline.models import *
 from discipline.forms import *
 from discipline.content import *
@@ -94,7 +95,7 @@ def new(request, course_slug, group=False):
     context = {'course': course, 'form': form}
     return render_to_response("discipline/new.html", context, context_instance=RequestContext(request))
 
-def _new(request, course_slug, group):
+def XXXX_new(request, course_slug, group):
     """
     Create new case or case group
     """
@@ -208,16 +209,39 @@ def edit_related(request, course_slug, case_slug):
         form = CaseRelatedForm(request.POST)
         form.set_choices(course, case)
         if form.is_valid():
+            # delete any old related objects that we might be replacing (but leave others alone)
+            for ro in RelatedObject.objects.filter(case=case):
+                Class = ro.content_type.model_class()
+                if issubclass(Class, Activity) or issubclass(Class, Submission) or issubclass(Class, Member):
+                    ro.delete()
+
+            # find selected activities
+            all_obj = []
             all_acts = dict(((act.id, act) for act in all_activities_filter(course)))
             for actid in form.cleaned_data['activities']:
                 actid = int(actid)
                 act = all_acts[actid]
-                ro = RelatedObject(case=case, content_object=act)
+                all_obj.append(act)
+            
+            # find selected submissions
+            all_sub = dict(((sub.id, sub) for sub in StudentSubmission.objects.filter(activity__offering=course)))
+            group_sub = dict(((sub.id, sub) for sub in GroupSubmission.objects.filter(activity__offering=course)))
+            all_sub.update(group_sub)
+            for subid in form.cleaned_data['submissions']:
+                subid = int(subid)
+                sub = all_sub[subid]
+                all_obj.append(sub)
+
+            # find selected members
+            all_member = dict(((m.id, m)for m in Member.objects.filter(offering=course, role="STUD")))
+            for membid in form.cleaned_data['students']:
+                membid = int(membid)
+                memb = all_member[membid]
+                all_obj.append(memb)
+
+            for o in all_obj:
+                ro = RelatedObject(case=case, content_object=o)
                 ro.save()
-                
-            print form.cleaned_data['submissions']
-            print form.cleaned_data['students']
-            raise
             
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
@@ -227,12 +251,27 @@ def edit_related(request, course_slug, case_slug):
             messages.add_message(request, messages.SUCCESS, "Updated " + STEP_DESC['related'] + '.')
             return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
     else:
-        form = CaseRelatedForm()
+        initial = {'students': [], 'activities': [], 'submissions': []}
+        for ro in case.relatedobject_set.all():
+            Class = ro.content_type.model_class()
+            if issubclass(Class, Activity):
+                initial['activities'].append( str(ro.content_object.id) )
+            elif issubclass(Class, Submission):
+                initial['submissions'].append( str(ro.content_object.id) )
+            elif issubclass(Class, Member):
+                initial['students'].append( str(ro.content_object.id) )
+
+        form = CaseRelatedForm(initial=initial)
         form.set_choices(course, case)
+        print form.initial
     
     context = {'course': course, 'case': case, 'form': form}
     return render_to_response("discipline/edit_related.html", context, context_instance=RequestContext(request))
 
+
+@requires_course_staff_by_slug
+def edit_attach(request, course_slug, case_slug):
+    pass
 
 @requires_course_staff_by_slug
 def show_letter(request, course_slug, case_slug):

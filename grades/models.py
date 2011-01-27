@@ -73,6 +73,8 @@ class Activity(models.Model):
 
     def __unicode__(self):
         return "%s - %s" % (self.offering, self.name)
+    def short_str(self):
+        return self.name
     def __cmp__(self, other):
         return cmp(self.position, other.position)
     def get_absolute_url(self):

@@ -250,10 +250,9 @@ class Member(models.Model):
     career = models.CharField(max_length=4, choices=CAREER_CHOICES)
     added_reason = models.CharField(max_length=4, choices=REASON_CHOICES)
     def __unicode__(self):
-        #if self.person:
-        #    return "%s in %s" % (self.person, self.offering)
-        #else:
         return "%s (%s) in %s" % (self.person.userid, self.person.emplid, self.offering,)
+    def short_str(self):
+        return "%s (%s)" % (self.person.name(), self.person.userid)
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
     def clean(self):

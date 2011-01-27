@@ -48,6 +48,7 @@ DisciplineSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, b
 STEP_VIEW = { # map of field -> view function ("edit_foo") that is used to edit it.
         'notes': 'notes',
         'related': 'related',
+        'attach': 'attach',
         'intro': 'intro',
         'contacted': 'contacted',
         'response': 'response',
@@ -74,6 +75,7 @@ STEP_TEXT = { # map of field -> description of what the step
 STEP_DESC = { # map of field/form -> description of what it is
         'notes': 'instructor notes',
         'related': 'related items',
+        'attach': 'attached files',
         'intro': 'introductory sentence',
         'contacted': 'initial contact information',
         'response': 'student response details',
@@ -243,6 +245,8 @@ class RelatedObject(models.Model):
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
     content_object = generic.GenericForeignKey('content_type', 'object_id')
+    # front-end handles adding some types of content_object, but can handle
+    # any object that has a .short_str() method (which is used as its label)
 
 
 class CaseAttachment(models.Model):
@@ -252,6 +256,8 @@ class CaseAttachment(models.Model):
     case = models.ForeignKey(DisciplineCase)
     name = models.CharField(max_length=255, blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
+    public = models.BooleanField(default=False, verbose_name="Public?", 
+            help_text='Should this file be sent to the student?')
         
     def upload_to(instance, filename):
         """

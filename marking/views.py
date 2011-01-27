@@ -225,7 +225,7 @@ def manage_activity_components(request, course_slug, activity_slug):
     
     ComponentsFormSet  = modelformset_factory(ActivityComponent, fields=fields, \
                                               formset=BaseActivityComponentFormSet, \
-                                              can_delete = False, extra = 3) 
+                                              can_delete = False, extra = 5) 
     
     qset =  ActivityComponent.objects.filter(numeric_activity = activity, deleted=False);
                  
@@ -247,7 +247,7 @@ def manage_activity_components(request, course_slug, activity_slug):
                 messages.add_message(request, messages.WARNING, \
                                      "The max grade of %s updated from %s to %s" % (activity.name, old_max, now_max))
            
-        return _redirct_response(request, course_slug, activity_slug)            
+            return _redirct_response(request, course_slug, activity_slug)            
     else: # for GET request
         formset = ComponentsFormSet(activity, queryset = qset) 
     

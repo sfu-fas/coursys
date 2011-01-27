@@ -65,7 +65,7 @@ class BaseActivityComponentFormSet(BaseModelFormSet):
             else:  
                 title = form.cleaned_data['title']
                 if (not form.cleaned_data['deleted']) and title in titles:
-                    raise forms.ValidationError(u"Each component must have an unique title")
+                    raise forms.ValidationError(u"Each component must have a unique title")
                 titles.append(title)  
         
         # check max marks
@@ -76,7 +76,7 @@ class BaseActivityComponentFormSet(BaseModelFormSet):
                 continue                        
             max_mark = form.cleaned_data['max_mark']
             if max_mark < 0:
-                raise forms.ValidationError(u"Max mark of a component can not be negative")
+                raise forms.ValidationError(u"Max mark of a component cannot be negative")
             
             
 class BaseCommonProblemFormSet(BaseModelFormSet):
@@ -109,7 +109,7 @@ class BaseCommonProblemFormSet(BaseModelFormSet):
             if (not form.cleaned_data['deleted']) and \
                component in common_problems.keys() and \
                common_problems[component].count(form.cleaned_data['title']) > 0:
-               raise forms.ValidationError(u"Each common problem must have an unique title within one component")
+               raise forms.ValidationError(u"Each common problem must have a unique title within one component")
            
             if not form.cleaned_data['deleted']:
                 if not component in common_problems.keys():

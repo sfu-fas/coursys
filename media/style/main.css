@@ -258,6 +258,10 @@ div.bigdatatable .dataTables_wrapper td {
 .datatable_container .iconcell {
   text-align: center;
 }
+.datatable_container .disabled {
+  background-color: #eee;
+  color: #999;
+}
 
 /* DataTables display */
 table.display {

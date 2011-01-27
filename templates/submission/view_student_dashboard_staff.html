@@ -24,7 +24,7 @@
 	    <li><a href="{% url submission.views.take_ownership_and_mark course_slug=course.slug activity_slug=activity.slug group_slug=group.slug %}">Mark Group</a></li>
 	    {% endif %}
 	    {% if submission %}
-	        <li><a href="{% url submission.views.show_components_submission_history course_slug=course.slug activity_slug=activity.slug %}?userid={{userid}}">View History</a></li>
+	        <li><a href="{% url submission.views.show_components_submission_history course_slug=course.slug activity_slug=activity.slug userid=userid %}">View History</a></li>
 	        <li><a href="{% url submission.views.download_file course.slug, activity.slug, userid %}">Download</a></li>
 	    {% endif %}
     </ul>

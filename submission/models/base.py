@@ -98,6 +98,10 @@ class StudentSubmission(Submission):
         return self.member.person.userid
     def __unicode__(self):
         return "%s->%s@%s" % (self.member.person.userid, self.activity, self.created_at)
+    def short_str(self):
+        return "%s submission by %s at %s" % (self.activity.short_str(), self.member.person.userid, self.created_at.strftime("%Y-%m-%d %H:%M"))
+    def get_absolute_url(self):
+        return reverse('submission.views.show_components_submission_history', kwargs={'course_slug': self.member.offering.slug, 'activity_slug': self.activity.slug, 'userid': self.member.person.userid})
     def file_slug(self):
         return self.member.person.userid
     def XXX_get_type(self):
@@ -113,6 +117,10 @@ class GroupSubmission(Submission):
         return self.group.manager.person.userid
     def __unicode__(self):
         return "%s->%s@%s" % (self.group.manager.person.userid, self.activity, self.created_at)
+    def short_str(self):
+        return "%s submission by %s for group %s at %s" % (self.activity.short_str(), self.creator.person.userid, self.group.name, self.created_at.strftime("%Y-%m-%d %H:%M"))
+    def get_absolute_url(self):
+        return reverse('submission.views.show_components_submission_history', kwargs={'course_slug': self.group.courseoffering.slug, 'activity_slug': self.activity.slug, 'userid': self.creator.person.userid})
     def file_slug(self):
         return self.group.slug
     def XXX_get_type(self):

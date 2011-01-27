@@ -4,7 +4,7 @@ from coredata.models import Member
 from django.core.mail import send_mail
 
 class DisciplineGroupForm(forms.ModelForm):
-    students = forms.MultipleChoiceField(choices=[])
+    students = forms.MultipleChoiceField(choices=[], required=False)
     
     def __init__(self, offering, *args, **kwargs):
         super(DisciplineGroupForm, self).__init__(*args, **kwargs)
@@ -110,9 +110,9 @@ from groups.models import GroupMember
 from submission.models import StudentSubmission, GroupSubmission
 import itertools
 class CaseRelatedForm(forms.Form):
-    activities = forms.MultipleChoiceField(widget=forms.SelectMultiple(attrs={'size':'8'}))
-    submissions = forms.MultipleChoiceField(widget=forms.SelectMultiple(attrs={'size':'8'}))
-    students = forms.MultipleChoiceField(widget=forms.SelectMultiple(attrs={'size':'8'}))
+    activities = forms.MultipleChoiceField(label="Activities in the course", widget=forms.SelectMultiple(attrs={'size':'8'}), required=False)
+    submissions = forms.MultipleChoiceField(label="Submissions by this student (or groups they are in)", widget=forms.SelectMultiple(attrs={'size':'8'}), required=False)
+    students = forms.MultipleChoiceField(label="Students from the course (other than students in the case group)", widget=forms.SelectMultiple(attrs={'size':'8'}), required=False)
     
     def set_choices(self, course, case):
         """
@@ -128,7 +128,7 @@ class CaseRelatedForm(forms.Form):
         for gm in gms:
             sub_sets.append( GroupSubmission.objects.filter(activity=gm.activity, group=gm.group) )
         subs = itertools.chain(*sub_sets)
-        submissions_choices = [(sub.id, "%s @ %s" % (sub.activity.name, sub.created_at)) for sub in subs]
+        submissions_choices = [(sub.id, "%s @ %s" % (sub.activity.name, sub.created_at.strftime("%Y-%m-%d %H:%M"))) for sub in subs]
         self.fields['submissions'].choices = submissions_choices
         
         # set student choices
