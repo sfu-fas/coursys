@@ -20,21 +20,17 @@ def index(request):
 @requires_advisor
 #@login_required()
 def search(request):
+       query = request.GET.get('index_text')
+       if query is not None:
+          result = Person.objects.filter(Q(emplid_contains=query)|Q(first_name_contains=query)|Q(last_name_contains=query)|Q(middle_name_contains=query))
+       else:
+          return HttpResponse('input error') 
     
-    query = request.GET.get('index_text')
-    if query == None:
- 	return HttpResponse(query)  
-    else:
-	return HttpResponse(query)
-
-#    else:
-#      result = Person.objects.filter(Q(emplid=query)|Q(first_name=query)|Q(last_name=query)|Q(middle_name=query))
-    
-#    if result == None:
-#      return HttpResponse('<h1>No result founded</h1>')  
-#    else:
-#    return render_to_resonse('view.html',{result:"result"},context_instance=RequestContext(request))
-#	return HttpResponse('Hello World')
+       if result is None:
+          return HttpResponse('<h1>No result founded</h1>')  
+       else:
+          return render_to_response('advisors/view.html',{'result':result},context_instance=RequestContext(request))
+        #return HttpResponse('Hello World')
 # --------------View and Add Notes------------------------
 
 #Add Notes, only advisor can do it
