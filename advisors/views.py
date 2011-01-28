@@ -26,13 +26,14 @@ def search(request):
  	return HttpResponse(query)  
     else:
 	return HttpResponse(query)
+
 #    else:
 #      result = Person.objects.filter(Q(emplid=query)|Q(first_name=query)|Q(last_name=query)|Q(middle_name=query))
     
 #    if result == None:
 #      return HttpResponse('<h1>No result founded</h1>')  
 #    else:
-#    render_to_resonse('view.html',{result:"result"},context_instance=RequestContext(request))
+#    return render_to_resonse('view.html',{result:"result"},context_instance=RequestContext(request))
 #	return HttpResponse('Hello World')
 # --------------View and Add Notes------------------------
 

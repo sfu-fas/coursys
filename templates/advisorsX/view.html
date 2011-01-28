@@ -1,0 +1,23 @@
+{%extends "base.html" %}
+
+{%block content%}
+
+	{%if 1 %}
+		<table border="1">
+			<tr>
+				<td>Student Name</td>
+				<td>Student ID</td>
+			</tr>
+			{%for result in student%}
+			<tr>
+				<td>{{result.first_name}} {{result.last_name}}</td>
+				<td>{{result.stuid}}</td>
+			</tr>
+			{%endfor%}
+		</table>
+	{%else%}
+		<p>No such student found</p>
+	{%endif%}
+{%endblock content%}
+
+

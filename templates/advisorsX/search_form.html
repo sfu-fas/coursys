@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{# list advisor's info #}
+
+<h2>Welcome! Advisor {{ advisor.first_name }} {{ advisor.last_name }} </h2>
+
+
+{# draw a inputbox and a search button #}
+
+<form name="input" action="/view" method="get">{% csrf_token %}
+     search:
+     <input type ="text" name = "index_text" />
+     <input type = "submit" value ="Search" />
+</from>
+
+
+{% endblock%}
+
