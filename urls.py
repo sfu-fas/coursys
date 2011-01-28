@@ -9,10 +9,28 @@ from courselib.urlparts import *
 
 handler404 = 'courselib.auth.NotFoundResponse'
 
-urlpatterns = patterns('',
+#---------------------------------------
+
+from advisors.models import *
+
+
+urlpatterns = patterns('advisors.views',
+    (r'^$','index'),
+(r'^advisors/view.html/$', 'search')
+#    (r'^(?P<note_id>\d+)/detail/$', 'detail'),
+#    (r'^(?P<advisor_id>\w+)/(?P<student_id>\w+)/create/$','create'),
+#    (r'^(?P<advisor_id>\w+)/(?P<student_id>\w+)/submit/$', 'submit'),
+#    (r'^search_form/$', 'search_form'),
+#    (r'^search/$', 'search_result'),
+
+)
+#---------------------------------------
+
+urlpatterns += patterns('',
     url(r'^login/$', 'django_cas.views.login'),
     url(r'^logout/$', 'django_cas.views.logout', {'next_page': '/'}),
-
+	
+#---------------------------------------
     url(r'^$', 'dashboard.views.index'),
     url(r'^' + 'news/$', 'dashboard.views.news_list'),
     url(r'^' + 'news/configure$', 'dashboard.views.news_config'),

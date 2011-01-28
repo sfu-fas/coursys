@@ -5,6 +5,9 @@ DEBUG = hostname != 'courses'
 TEMPLATE_DEBUG = DEBUG
 DEPLOYED = hostname == 'courses'
 
+#---------------------
+
+#---------------------
 ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
 )
@@ -122,6 +125,10 @@ INSTALLED_APPS = (
     'planning',
     'discipline',
     'advisors',
+#----------------
+#'advisors_B'
+#----------------
+
 )
 if DEBUG:
     #INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
