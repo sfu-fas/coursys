@@ -51,13 +51,13 @@ class CaseNotesForm(forms.ModelForm):
         widgets = {
             'notes': forms.Textarea(attrs={'cols':'80', 'rows':'20'}),
         }
-class CaseIntroForm(forms.ModelForm):
-    class Meta:
-        model = DisciplineCase
-        fields = ("intro",)
-        widgets = {
-            'intro': forms.TextInput(attrs={'size':'70'}),
-        }
+#class CaseIntroForm(forms.ModelForm):
+#    class Meta:
+#        model = DisciplineCase
+#        fields = ("intro",)
+#        widgets = {
+#            'intro': forms.TextInput(attrs={'size':'70'}),
+#        }
 class CaseContactedForm(forms.ModelForm):
     def clean_contacted(self):
         new_contacted = self.cleaned_data['contacted']
@@ -70,9 +70,10 @@ class CaseContactedForm(forms.ModelForm):
 
     class Meta:
         model = DisciplineCase
-        fields = ("contacted",)
+        fields = ("contacted", "contact_email_text",)
         widgets = {
             'contacted': forms.RadioSelect(),
+            'contact_email_text': forms.Textarea(attrs={'cols':'80', 'rows':'15'}),
         }
 class CaseResponseForm(forms.ModelForm):
     class Meta:
@@ -139,7 +140,7 @@ class CaseRelatedForm(forms.Form):
 STEP_FORM = { # map of field -> form for editing it (all ModelForm for DisciplineCase, except Related)
         'notes': CaseNotesForm,
         'related': CaseRelatedForm,
-        'intro': CaseIntroForm,
+        #'intro': CaseIntroForm,
         'contacted': CaseContactedForm,
         'response': CaseResponseForm,
         'meeting': CaseMeetingForm,

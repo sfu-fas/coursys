@@ -1,13 +1,14 @@
-{% extends "base.html" %}
-{% load discipline_filters %}
+{% extends "discipline/editbase.html" %}
 
-{% block headextra %}
+{% block jsextra %}
+$(document).ready(function() {
+  setup_templates("penalty_reason");
+})
 {% endblock %}
 
 {% block title %}Dishonesty Case for {{case.student.person.name}}: Edit Instructor Penalty{% endblock %}
 {% block h1 %}Dishonesty Case for {{case.student.person.name}}: Edit Instructor Penalty{% endblock %}
-
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url discipline.views.index course_slug=course.slug %}">Discipline Cases</a></li><li>&gt; <a href="{% url discipline.views.show course_slug=course.slug case_slug=case.slug %}">Case for {{case.student.person.name}}</a></li><li>&gt; Edit Instructor Penalty</li>{% endblock %}
+{% block editlabel %}Instructor Penalty{% endblock %}
 
 {% block actions %}{% endblock %}
 
@@ -21,10 +22,11 @@
     	{{ form.refer_chair }}</p>
     
     <p>{{ form.penalty_reason.label }}:</p>
+    <div class="templates" id="templates_penalty_reason"></div>
     <blockquote>{{ form.penalty_reason }}</blockquote>
     <p class="helptext">{{ form.penalty_reason.help_text|safe }}</p>
     
-    <p><input type="submit" value="Edit Penalty" /></p>
+    <p><input type="submit" value="Update Penalty" /></p>
     </form>
 </div>
 

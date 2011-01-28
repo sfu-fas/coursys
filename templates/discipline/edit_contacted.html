@@ -1,32 +1,28 @@
-{% extends "base.html" %}
-{% load discipline_filters %}
+{% extends "discipline/editbase.html" %}
 
-{% block headextra %}
-<script type="text/javascript">
-function fillPreview() {
-  {% with case.contact_email as mail %}
-  content = "From: {{mail.2|escapejs}}\nTo: {{mail.3|join:", "|escapejs}}\nSubject: {{mail.0|escapejs}}\n\n{{mail.1|escapejs}}";
-  $("#preview").html(content)
-  {% endwith %}
-}
-</script>
+{% block jsextra %}
+$(document).ready(function() {
+  setup_templates("contact_email_text");
+})
 {% endblock %}
 
 {% block title %}Dishonesty Case for {{case.student.person.name}}: Edit Intro{% endblock %}
 {% block h1 %}Dishonesty Case for {{case.student.person.name}}: Edit Intro{% endblock %}
-
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url discipline.views.index course_slug=course.slug %}">Discipline Cases</a></li><li>&gt; <a href="{% url discipline.views.show course_slug=course.slug case_slug=case.slug %}">Case for {{case.student.person.name}}</a></li><li>&gt; Edit Intro</li>{% endblock %}
-
-{% block actions %}{% endblock %}
+{% block editlabel %}Intro{% endblock %}
 
 {% block content %}
 <div id="form_container">
-    <form action="{% url discipline.views.edit_contacted course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
+    <form action="{% url discipline.views.edit_contacted course_slug=course.slug case_slug=case.slug %}" method="post" onchange="contact_change()">{% csrf_token %}
     <p>{{ form.contacted.help_text }}
     	{{ form.contacted }}</p>
-    {% if case.contacted != "MAIL" %}<p class="actionwarning">Note: Changing to "Student emailed (by system)" will cause an email to be sent to the student. <a href="javascript:fillPreview()">Preview student email.</a></p>{% endif %}
-    {% if case.contacted == "MAIL" %}<p><a href="javascript:fillPreview()">View student email.</a></p>{% endif %}
-    <p><input type="submit" value="Edit Contact Details" /></p>
+    <p class="actionwarning" id="warning"></p>
+    
+    <p>{{ form.contact_email_text.label }}:</p>
+    <div class="templates" id="templates_contact_email_text"></div>
+    <blockquote>{{ form.contact_email_text }}</blockquote>
+    <p class="helptext">{{ form.contact_email_text.help_text|safe }}</p>
+    
+    <p><input type="submit" value="Update Contact Details" /></p>
     <blockquote>
     	<pre id="preview"></pre>
     </blockquote>

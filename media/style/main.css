@@ -1152,6 +1152,25 @@ p.editlink {
 div#form_container>form>ul>li {
   list-style-type: none;
 }
+div.templates {
+  float: right;
+  width: 15em;
+  border: dashed 1px #ccc;
+  display: none;
+}
+#main div.templates h3 {
+  margin: 0.5em;
+  padding: 0;
+}
+div.templates ul {
+  margin: 0.5em;
+  padding: 0;
+}
+div.templates ul li {
+  margin: 0.25em 0;
+  padding: 0;
+  list-style-type: none;
+}
 
 /* Override jquery UI style, otherwise the datepicker will be displayed too large */
 #ui-datepicker-div {font-size:0.8em}

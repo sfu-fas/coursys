@@ -1,22 +1,20 @@
-{% extends "base.html" %}
-{% load discipline_filters %}
+{% extends "discipline/editbase.html" %}
 
-{% block headextra %}
-<script type="text/javascript">
+{% block jsextra %}
+$(document).ready(function() {
+  setup_templates("meeting_summary");
+  setup_templates("meeting_notes");
+})
 $(document).ready(function() {
     $("#id_meeting_date").datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.png',
                                 changeMonth: true, changeYear: true,
                                 dateFormat: 'yy-mm-dd', showOn: 'button'});
 });
-</script>
 {% endblock %}
 
 {% block title %}Dishonesty Case for {{case.student.person.name}}: Edit Meeting/Email Details{% endblock %}
 {% block h1 %}Dishonesty Case for {{case.student.person.name}}: Edit Meeting/Email Details{% endblock %}
-
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url discipline.views.index course_slug=course.slug %}">Discipline Cases</a></li><li>&gt; <a href="{% url discipline.views.show course_slug=course.slug case_slug=case.slug %}">Case for {{case.student.person.name}}</a></li><li>&gt; Edit Meeting/Email Details</li>{% endblock %}
-
-{% block actions %}{% endblock %}
+{% block editlabel %}Meeting/Email Details{% endblock %}
 
 {% block content %}
 <div id="form_container">
@@ -25,14 +23,16 @@ $(document).ready(function() {
     <p class="helptext">{{ form.meeting_date.help_text|safe }}</p>
 
     <p>{{ form.meeting_summary.label }}:</p>
+    <div class="templates" id="templates_meeting_summary"></div>
     <blockquote>{{ form.meeting_summary }}</blockquote>
     <p class="helptext">{{ form.meeting_summary.help_text|safe }}</p>
 
     <p>{{ form.meeting_notes.label }}:</p>
+    <div class="templates" id="templates_meeting_notes"></div>
     <blockquote>{{ form.meeting_notes }}</blockquote>
     <p class="helptext">{{ form.meeting_notes.help_text|safe }}</p>
 
-    <p><input type="submit" value="Edit Meeting/Email Details" /></p>
+    <p><input type="submit" value="Update Meeting/Email Details" /></p>
     </form>
 </div>
 

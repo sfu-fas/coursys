@@ -1,10 +1,14 @@
-{% extends "base.html" %}
-{% load discipline_filters %}
+{% extends "discipline/editbase.html" %}
+
+{% block jsextra %}
+$(document).ready(function() {
+  setup_templates("facts");
+})
+{% endblock %}
 
 {% block title %}Dishonesty Case for {{case.student.person.name}}: Edit Case Facts{% endblock %}
 {% block h1 %}Dishonesty Case for {{case.student.person.name}}: Edit Case Facts{% endblock %}
-
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url discipline.views.index course_slug=course.slug %}">Discipline Cases</a></li><li>&gt; <a href="{% url discipline.views.show course_slug=course.slug case_slug=case.slug %}">Case for {{case.student.person.name}}</a></li><li>&gt; Edit Case Facts</li>{% endblock %}
+{% block editlabel %}Case Facts{% endblock %}
 
 {% block actions %}{% endblock %}
 
@@ -12,9 +16,10 @@
 <div id="form_container">
     <form action="{% url discipline.views.edit_facts course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
     <p>{{ form.facts.label }}:</p>
+    <div class="templates" id="templates_facts"></div>
     <blockquote>{{ form.facts }}</blockquote>
     <p class="helptext">{{ form.facts.help_text|safe }}</p>
-    <p><input type="submit" value="Edit Facts" /></p>
+    <p><input type="submit" value="Update Facts" /></p>
     </form>
 </div>
 

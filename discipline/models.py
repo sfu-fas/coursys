@@ -8,6 +8,7 @@ from django.core.files.storage import FileSystemStorage
 from django.utils.text import wrap
 from django.conf import settings
 from discipline.content import *
+import string
 
 CONTACT_CHOICES = (
         ('NONE', 'Not yet contacted'),
@@ -49,7 +50,7 @@ STEP_VIEW = { # map of field -> view function ("edit_foo") that is used to edit 
         'notes': 'notes',
         'related': 'related',
         'attach': 'attach',
-        'intro': 'intro',
+        #'intro': 'intro',
         'contacted': 'contacted',
         'response': 'response',
         'meeting_date': 'meeting',
@@ -63,7 +64,7 @@ STEP_VIEW = { # map of field -> view function ("edit_foo") that is used to edit 
         }
 STEP_TEXT = { # map of field -> description of what the step
         'notes': 'edit your notes on the case',
-        'intro': 'edit the introductory sentence',
+        #'intro': 'edit the introductory sentence',
         'contacted': 'contact the student regarding the case',
         'response': "enter details of the student's response",
         'meeting_date': "enter details of the student meeting/email",
@@ -76,7 +77,7 @@ STEP_DESC = { # map of field/form -> description of what it is
         'notes': 'instructor notes',
         'related': 'related items',
         'attach': 'attached files',
-        'intro': 'introductory sentence',
+        #'intro': 'introductory sentence',
         'contacted': 'initial contact information',
         'response': 'student response details',
         'meeting': 'student meeting/email details',
@@ -88,6 +89,16 @@ STEP_DESC = { # map of field/form -> description of what it is
         'refer_chair': 'penalty (from instructor)',
         'penalty_reason': 'penalty (from instructor)',
         'letter_sent': "instructor's letter",
+        }
+TEMPLATE_FIELDS = { # fields that can have a template associated with them
+        'notes': 'instructor notes',
+        #'intro': 'introductory sentence',
+        'contact_email_text': 'initial contact email',
+        'response': 'student response details',
+        'meeting_summary': 'student meeting/email summary',
+        'meeting_notes': 'student meeting/email notes',
+        'facts': 'facts of the case',
+        'penalty_reason': 'penalty rationale',
         }
 
 
@@ -121,10 +132,13 @@ class DisciplineCase(models.Model):
     group = models.ForeignKey(DisciplineGroup, null=True, blank=True, help_text="Group this case belongs to (if any).")
     
     # fields for instructor
-    intro = models.TextField(blank=True, null=True, verbose_name="Introductory Sentence",
-            help_text=u'You should "outline the nature of the concern", written to the student&mdash;this sentence will be the introduction of the initial email to the student (plain text).  e.g. "On assignment 1, you submitted work very similar to another student."')
+    #intro = models.TextField(blank=True, null=True, verbose_name="Introductory Sentence",
+    #        help_text=u'You should "outline the nature of the concern", written to the student&mdash;this sentence will be the introduction of the initial email to the student (plain text).  e.g. "On assignment 1, you submitted work very similar to another student."')
+    contact_email_text = models.TextField(blank=True, null=True, verbose_name="Contact Email Text",
+            help_text=u'The initial email sent to the student regarding the case.')
     contacted = models.CharField(max_length=4, choices=CONTACT_CHOICES, default="NONE", verbose_name="Student Contacted?",
             help_text='Has the student been informed of the case?')
+    contact_date = models.DateField(blank=True, null=True, verbose_name="Initial Contact Date", help_text='Date of initial contact with student regarding the case.')
     response = models.CharField(max_length=4, choices=RESPONSE_CHOICES, default="WAIT", verbose_name="Student Response",
             help_text='Has the student responded to the initial contact?')
     
@@ -141,8 +155,12 @@ class DisciplineCase(models.Model):
     penalty_reason = models.TextField(blank=True, null=True, verbose_name="Penalty Rationale",
             help_text='Rationale for assigned penalty, or notes/details concerning penalty.  Optional but recommended. (included in letter, <a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a> allowed)')
     
+    letter_review = models.BooleanField(default=False, verbose_name="Reviewed?", 
+            help_text='Has instructor reviewed the letter before sending?')
     letter_sent = models.CharField(max_length=4, choices=LETTER_CHOICES, default="WAIT", verbose_name="Letter Sent?",
             help_text='Has the letter been sent to the student and Chair/Director?')
+    penalty_implemented = models.BooleanField(default=False, verbose_name="Penalty Implemented?", 
+            help_text='Has instructor implemented the assigned penalty?')
     instr_done = models.BooleanField(default=False, verbose_name="Closed?", 
             help_text='Case closed for the instructor?')
     
@@ -182,9 +200,7 @@ class DisciplineCase(models.Model):
         """
         Return next field that should be dealt with
         """
-        if not self.intro:
-            return "intro"
-        elif self.contacted=="NONE":
+        if self.contacted=="NONE":
             return "contacted"
         elif self.response=="WAIT":
             return "response"
@@ -198,8 +214,12 @@ class DisciplineCase(models.Model):
             return "instr_penalty"
         elif self.instr_penalty=="NONE" and not self.instr_done:
             return "instr_done"
+        elif not self.letter_review:
+            return "letter_review"
         elif self.letter_sent=="WAIT":
             return "letter_sent"
+        elif not self.penalty_implemented:
+            return "penalty_implemented"
         elif not self.instr_done:
             return "instr_done"
         # TODO: Chair steps
@@ -218,6 +238,17 @@ class DisciplineCase(models.Model):
         """
         step = self.next_step()
         return STEP_TEXT[step]
+    
+    def infodict(self):
+        """
+        return a dictionary of info about the case which can be used for template substitution.
+        """
+        d = {
+            'FNAME': self.student.person.first_name,
+            'LNAME': self.student.person.last_name,
+            'COURSE': self.student.offering.subject + " " + self.student.offering.number,
+            }
+        return d
     
     def contact_email(self):
         """
@@ -273,3 +304,49 @@ class CaseAttachment(models.Model):
     attachment = models.FileField(upload_to=upload_to, max_length=500)
     mediatype = models.CharField(null=True, blank=True, max_length=200)
 
+
+# from django/template/defaultfilters.py 
+_base_js_escapes = (
+    ('\\', r'\u005C'),
+    ('\'', r'\u0027'),
+    ('"', r'\u0022'),
+    ('>', r'\u003E'),
+    ('<', r'\u003C'),
+    ('&', r'\u0026'),
+    ('=', r'\u003D'),
+    ('-', r'\u002D'),
+    (';', r'\u003B'),
+    (u'\u2028', r'\u2028'),
+    (u'\u2029', r'\u2029')
+)
+
+# Escape every ASCII character with a value less than 32.
+_js_escapes = (_base_js_escapes +
+               tuple([('%c' % z, '\\u%04X' % z) for z in range(32)]))
+
+def escapejs(value):
+    """Hex encodes characters for use in JavaScript strings."""
+    for bad, good in _js_escapes:
+        value = value.replace(bad, good)
+    return value
+
+class DisciplineTemplate(models.Model):
+    """
+    A text template to help fill in a field in this app.
+    """
+    field = models.CharField(max_length=30, null=False, choices=TEMPLATE_FIELDS.items())
+    label = models.CharField(max_length=50, null=False)
+    text = models.TextField(blank=True, null=True)
+    def __unicode__(self):
+        return "%s: %s" % (self.field, self.label)
+    def sub_text(self, casedict):
+        """
+        Build the text with appropriate substitutions.
+        """
+        return string.Template(self.text).substitute(casedict)
+    def toJSON(self, casedict):
+        """
+        Convert this template to a JSON snippet, making substitutions in the text as specified in the casedict.
+        """
+        text = self.sub_text(casedict)
+        return """{'field': '%s', 'label': '%s', 'text': '%s'}"""% (escapejs(self.field), escapejs(self.label), escapejs(text))

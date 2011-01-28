@@ -3,6 +3,7 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.core.urlresolvers import reverse
 from django.template import RequestContext
 from django.contrib import messages
+from django.utils.safestring import mark_safe
 from coredata.models import Member, CourseOffering, Person
 from submission.models import Submission, StudentSubmission, GroupSubmission
 from grades.models import all_activities_filter, Activity
@@ -172,15 +173,19 @@ def _edit_case_info(request, course_slug, case_slug, field):
     else:
         form = FormClass(instance=case)
     
-    context = {'course': course, 'case': case, 'form': form}
+    templates = DisciplineTemplate.objects.filter(field__in=form.fields.keys())
+    casedict = case.infodict()
+    tempaltesJSON = '[' + ",\n".join((t.toJSON(casedict) for t in templates)) + ']'
+    
+    context = {'course': course, 'case': case, 'form': form, 'tempaltesJSON': mark_safe(tempaltesJSON)}
     return render_to_response("discipline/edit_"+field+".html", context, context_instance=RequestContext(request))
 
 @requires_course_staff_by_slug
 def edit_notes(request, course_slug, case_slug):
     return _edit_case_info(request, course_slug, case_slug, "notes")
-@requires_course_staff_by_slug
-def edit_intro(request, course_slug, case_slug):
-    return _edit_case_info(request, course_slug, case_slug, "intro")
+#@requires_course_staff_by_slug
+#def edit_intro(request, course_slug, case_slug):
+#    return _edit_case_info(request, course_slug, case_slug, "intro")
 @requires_course_staff_by_slug
 def edit_contacted(request, course_slug, case_slug):
     return _edit_case_info(request, course_slug, case_slug, "contacted")
@@ -263,7 +268,6 @@ def edit_related(request, course_slug, case_slug):
 
         form = CaseRelatedForm(initial=initial)
         form.set_choices(course, case)
-        print form.initial
     
     context = {'course': course, 'case': case, 'form': form}
     return render_to_response("discipline/edit_related.html", context, context_instance=RequestContext(request))
