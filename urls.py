@@ -15,8 +15,8 @@ from advisors.models import *
 
 
 urlpatterns = patterns('advisors.views',
-    (r'^$','index'),
-(r'^advisors/view.html/$', 'search')
+    	(r'^$','index'),
+    	(r'^view/$', 'search')
 #    (r'^(?P<note_id>\d+)/detail/$', 'detail'),
 #    (r'^(?P<advisor_id>\w+)/(?P<student_id>\w+)/create/$','create'),
 #    (r'^(?P<advisor_id>\w+)/(?P<student_id>\w+)/submit/$', 'submit'),

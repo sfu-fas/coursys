@@ -10,21 +10,22 @@ from django.http import HttpResponse
 # --------------Searech-----------------------------------
 from django.template import RequestContext
 
-#@requires_advisor
-@login_required()
+@requires_advisor
+#@login_required()
 def index(request):
         username = request.user.username
         advisor = get_object_or_404(Person, userid = username)
    	return render_to_response("advisors/search_form.html",{'advisor':advisor},context_instance=RequestContext(request))
 
-@login_required()
+@requires_advisor
+#@login_required()
 def search(request):
     
-    query = request.GET.get('input')
+    query = request.GET.get('index_text')
     if query == None:
  	return HttpResponse(query)  
     else:
-	return HttpResponse('hello world')
+	return HttpResponse(query)
 #    else:
 #      result = Person.objects.filter(Q(emplid=query)|Q(first_name=query)|Q(last_name=query)|Q(middle_name=query))
     
