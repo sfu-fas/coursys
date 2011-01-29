@@ -8,10 +8,10 @@
 				<td>Student Name</td>
 				<td>Student ID</td>
 			</tr>
-			{%for result in student%}
+			{%for result in results%}
 			<tr>
 				<td>{{result.first_name}} {{result.last_name}}</td>
-				<td>{{result.stuid}}</td>
+				<td>{{result.emplid}}</td>
 			</tr>
 			{%endfor%}
 		</table>

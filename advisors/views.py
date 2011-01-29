@@ -20,54 +20,13 @@ def index(request):
 @requires_advisor
 #@login_required()
 def search(request):
-       query = request.GET.get('index_text')
-       if query is not None:
-          result = Person.objects.filter(Q(emplid_contains=query)|Q(first_name_contains=query)|Q(last_name_contains=query)|Q(middle_name_contains=query))
+    if 'index_text' in request.GET and request.GET['index_text']:
+       query = request.GET['index_text']
+       result = Person.objects.filter(Q(emplid__icontains=query)|Q(first_name__icontains=query)|Q(last_name__icontains=query)|Q(middle_name__icontains=query))   
+       if result:
+          return render_to_response('advisors/view.html',{'results':result},context_instance=RequestContext(request))
+          return HttpResponse(result)  
        else:
-          return HttpResponse('input error') 
-    
-       if result is None:
           return HttpResponse('<h1>No result founded</h1>')  
-       else:
-          return render_to_response('advisors/view.html',{'result':result},context_instance=RequestContext(request))
-        #return HttpResponse('Hello World')
-# --------------View and Add Notes------------------------
-
-#Add Notes, only advisor can do it
-#@requires_advisor
-#def add_notes(request, student_NO):
-#	try:
-#		std = Person.objects.get(emplid = student_NO)
-#	except Person.DoesNotExist:
-#		raise Http404
-#	try:
-#		adv = Person.objects.get(userid = request.user.username)
-#	except Person.DoesNotExist:
-#		raise Http404
-#
-#	notes_content = request.POST['Detail_Text']
-#
-#	added_notes = Note(advisor = adv, student = std, notes = notes_content, created_date = datetime.now())
-#	added_notes.save();
-
-#	return render_to_response("advisors/Detail.html", {'note':notes_content})
-
-
-#View Notes, students can read the notes of themselves, advisors can read all the notes for the choosen student
-#@login_required
-#def view_notes(request, student_NO):
-#	try:
-#		std = Person.objects.get(emplid = student_NO)
-#	except Person.DoesNotExist:
-#		raise Http404
-#   	results = Notes.objects.filter(student=std).order_by('created_date')
-
-#	try:
-#		list_of_notes = Note.objects.get(...)
-#	except Note.DoesNotExist:
-#		raise Http404
-
-#	return render_to_response("advisors/Detail.html", {'note':list_of_notes})
-
-# --------------------------------------------------------
-
+    else:
+       return HttpResponse('input error') 
