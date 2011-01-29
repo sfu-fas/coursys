@@ -177,7 +177,7 @@ def _edit_case_info(request, course_slug, case_slug, field):
     casedict = case.infodict()
     tempaltesJSON = '[' + ",\n".join((t.toJSON(casedict) for t in templates)) + ']'
     
-    context = {'course': course, 'case': case, 'form': form, 'tempaltesJSON': mark_safe(tempaltesJSON)}
+    context = {'course': course, 'case': case, 'form': form, 'templatesJSON': mark_safe(tempaltesJSON)}
     return render_to_response("discipline/edit_"+field+".html", context, context_instance=RequestContext(request))
 
 @requires_course_staff_by_slug
@@ -269,7 +269,7 @@ def edit_related(request, course_slug, case_slug):
         form = CaseRelatedForm(initial=initial)
         form.set_choices(course, case)
     
-    context = {'course': course, 'case': case, 'form': form}
+    context = {'course': course, 'case': case, 'form': form, 'templatesJSON': '[]'}
     return render_to_response("discipline/edit_related.html", context, context_instance=RequestContext(request))
 
 

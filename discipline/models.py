@@ -1,5 +1,6 @@
 from django.db import models
 from coredata.models import Person, Member, CourseOffering
+from grades.models import Activity
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.core.urlresolvers import reverse
@@ -248,6 +249,18 @@ class DisciplineCase(models.Model):
             'LNAME': self.student.person.last_name,
             'COURSE': self.student.offering.subject + " " + self.student.offering.number,
             }
+        
+        # get list of activities in as English
+        activities = [ro for ro in self.relatedobject_set.all() if isinstance(ro.content_object, Activity)]
+        if activities:
+            activities = ", ".join((ro.content_object.name for ro in activities))
+            # replace the last ", " with " and "
+            pos = activities.rfind(", ")
+            activities = activities[:pos] + " and " + activities[(pos+2):]
+            d['ACTIVITIES'] = activities
+        else:
+            # some fallback marker
+            d['ACTIVITIES'] = 'ASSIGNMENT/EXAM'
         return d
     
     def contact_email(self):
