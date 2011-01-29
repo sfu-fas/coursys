@@ -22,8 +22,7 @@ from advisors.models import *
 #    (r'^(?P<advisor_id>\w+)/(?P<student_id>\w+)/submit/$', 'submit'),
 #    (r'^search_form/$', 'search_form'),
 #    (r'^search/$', 'search_result'),
-
-)
+#)
 #---------------------------------------
 
 urlpatterns = patterns('',
