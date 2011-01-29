@@ -23,10 +23,6 @@ def search(request):
     if 'index_text' in request.GET and request.GET['index_text']:
        query = request.GET['index_text']
        result = Person.objects.filter(Q(emplid__icontains=query)|Q(first_name__icontains=query)|Q(last_name__icontains=query)|Q(middle_name__icontains=query))   
-       if result:
-          return render_to_response('advisors/view.html',{'results':result},context_instance=RequestContext(request))
-          return HttpResponse(result)  
-       else:
-          return HttpResponse('<h1>No result founded</h1>')  
+       return render_to_response('advisors/view.html',{'results':result},context_instance=RequestContext(request)) 
     else:
        return HttpResponse('input error') 
