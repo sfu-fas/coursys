@@ -1,6 +1,7 @@
 from django.test import TestCase
 from grades.formulas import *
 from grades.models import *
+from grades.utils import *
 from coredata.models import *
 from submission.models import StudentSubmission
 from coredata.tests import create_offering
@@ -339,7 +340,33 @@ class GradesTest(TestCase):
         self.assertEquals(response.status_code, 200)
         self.assertContains(response, "submissions have already been made")
         
+    def test_grade_range_stat(self):
+        student_grade_list = [10, 10, 10, 100, 100, 0, 0, 5, 20]
+        grade_range_list = generate_grade_range_stat(student_grade_list, 10)
+        res = [(i.grade_range, i.stud_count) for i in grade_range_list]
+        expect = [('0-10',3), ('10-20',3), ('20-30',1), ('30-40',0), ('40-50',0), ('50-60',0), ('60-70',0),('70-80',0),('80-90',0),('90-100',2)]
+        self.assertEquals(res, expect)
 
+        student_grade_list = [10, 10, 10, 100.01, 100, 0, 0, 5, 20]
+        grade_range_list = generate_grade_range_stat(student_grade_list, 10)
+        res = [(i.grade_range, i.stud_count) for i in grade_range_list]
+        expect = [('0-10',3), ('10-20',3), ('20-30',1), ('30-40',0), ('40-50',0), ('50-60',0), ('60-70',0),('70-80',0),('80-90',0),('90-100',0),('100-110',2)]
+        self.assertEquals(res, expect)
 
-        
+        student_grade_list = [20, 20, 20, 20, 20, 20, 20, 20, 20]
+        grade_range_list = generate_grade_range_stat(student_grade_list, 10)
+        res = [(i.grade_range, i.stud_count) for i in grade_range_list]
+        expect = [('0-10',0), ('10-20',0), ('20-30',9), ('30-40',0), ('40-50',0), ('50-60',0), ('60-70',0),('70-80',0),('80-90',0),('90-100',0)]
+        self.assertEquals(res, expect)
 
+        student_grade_list = [-20, -20, -20, -20, -10, -10, -10, -10]
+        grade_range_list = generate_grade_range_stat(student_grade_list, 10)
+        res = [(i.grade_range, i.stud_count) for i in grade_range_list]
+        expect = [('-20--10',4),('-10-0',4), ('0-10',0), ('10-20',0), ('20-30',0), ('30-40',0), ('40-50',0), ('50-60',0), ('60-70',0),('70-80',0),('80-90',0),('90-100',0)]
+        self.assertEquals(res, expect)
+
+        student_grade_list = [-20.1, -20, -20, -20, -10, -10, -10, -10]
+        grade_range_list = generate_grade_range_stat(student_grade_list, 10)
+        res = [(i.grade_range, i.stud_count) for i in grade_range_list]
+        expect = [('-30--20',1), ('-20--10',3), ('-10-0',4), ('0-10',0), ('10-20',0), ('20-30',0), ('30-40',0), ('40-50',0), ('50-60',0), ('60-70',0),('70-80',0),('80-90',0),('90-100',0)]
+        self.assertEquals(res, expect)

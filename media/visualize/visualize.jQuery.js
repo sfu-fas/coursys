@@ -19,15 +19,21 @@ $.fn.visualize = function(options, container){
 			appendTitle: true, //table caption text is added to chart
 			title: null, //grabs from table caption if null
 			appendKey: true, //color key is added to chart
+			rowFilter: ' ',
+			colFilter: ' ',
 			colors: ['#be1e2d','#666699','#92d5ea','#ee8310','#8d10ee','#5a3b16','#26a4ed','#f45a90','#e9e744'],
 			textColors: [], //corresponds with colors array. null/undefined items will fall back to CSS
 			parseDirection: 'x', //which direction to parse the table data
 			pieMargin: 20, //pie charts only - spacing around pie
+			pieLabelsAsPercent: true,
 			pieLabelPos: 'inside',
 			lineWeight: 4, //for line and area - stroke weight
+			lineDots: ( options && options.type == 'line' ) ? 'double' : false, //also available: 'single', false
+			dotInnerColor: "#ffffff", // only used for lineDots:'double'
 			barGroupMargin: 10,
 			barMargin: 1, //space around bars in bar chart (added to both sides of bar)
-			yLabelInterval: 30 //distance between y labels
+			yLabelInterval: 30, //distance between y labels,
+			labelFilter: function(label) { return label; }
 		},options);
 		
 		//reset width, height to numbers
@@ -45,25 +51,25 @@ $.fn.visualize = function(options, container){
 				dataGroups: function(){
 					var dataGroups = [];
 					if(o.parseDirection == 'x'){
-						self.find('tr:gt(0)').each(function(i){
+						self.find('tr:gt(0)').filter(o.rowFilter).each(function(i){
 							dataGroups[i] = {};
 							dataGroups[i].points = [];
 							dataGroups[i].color = colors[i];
 							if(textColors[i]){ dataGroups[i].textColor = textColors[i]; }
-							$(this).find('td').each(function(){
+							$(this).find('td').filter(o.colFilter).each(function(){
 								dataGroups[i].points.push( parseFloat($(this).text()) );
 							});
 						});
 					}
 					else {
-						var cols = self.find('tr:eq(1) td').size();
+						var cols = self.find('tr:eq(1) td').filter(o.colFilter).size();
 						for(var i=0; i<cols; i++){
 							dataGroups[i] = {};
 							dataGroups[i].points = [];
 							dataGroups[i].color = colors[i];
 							if(textColors[i]){ dataGroups[i].textColor = textColors[i]; }
-							self.find('tr:gt(0)').each(function(){
-								dataGroups[i].points.push( $(this).find('td').eq(i).text()*1 );
+							self.find('tr:gt(0)').filter(o.rowFilter).each(function(){
+								dataGroups[i].points.push( $(this).find('td').filter(o.colFilter).eq(i).text()*1 );
 							});
 						};
 					}
@@ -93,7 +99,7 @@ $.fn.visualize = function(options, container){
 						return topValue;
 				},
 				bottomValue: function(){
-						var bottomValue = 0;
+						var bottomValue = this.topValue();
 						var allData = this.allData().join(',').split(',');
 						$(allData).each(function(){
 							if(this<bottomValue) bottomValue = parseFloat(this);
@@ -145,12 +151,12 @@ $.fn.visualize = function(options, container){
 				xLabels: function(){
 					var xLabels = [];
 					if(o.parseDirection == 'x'){
-						self.find('tr:eq(0) th').each(function(){
+						self.find('tr:eq(0) th').filter(o.colFilter).each(function(){
 							xLabels.push($(this).html());
 						});
 					}
 					else {
-						self.find('tr:gt(0) th').each(function(){
+						self.find('tr:gt(0) th').filter(o.rowFilter).each(function(){
 							xLabels.push($(this).html());
 						});
 					}
@@ -158,13 +164,18 @@ $.fn.visualize = function(options, container){
 				},
 				yLabels: function(){
 					var yLabels = [];
-					yLabels.push(bottomValue); 
-					var numLabels = Math.round(o.height / o.yLabelInterval);
-					var loopInterval = Math.ceil(totalYRange / numLabels) || 1;
-					while( yLabels[yLabels.length-1] < topValue - loopInterval){
-						yLabels.push(yLabels[yLabels.length-1] + loopInterval); 
+					var chartHeight = ('bar' == o.type && 'horizontal' == o.barDirection) ? o.width : o.height;
+					var numLabels = Math.round(chartHeight / 30);
+					//var totalRange = this.topValue() + Math.abs(this.bottomValue());
+					var loopInterval = Math.round(this.totalYRange() / Math.floor(numLabels)); //fix provided from lab
+					loopInterval = Math.max(loopInterval, 1);
+					for(var j=this.bottomValue(); j<=topValue; j+=loopInterval){
+						yLabels.push(j); 
 					}
-					yLabels.push(topValue); 
+					if(yLabels[yLabels.length-1] != this.topValue()) {
+						yLabels.pop();
+						yLabels.push(this.topValue());
+					}
 					return yLabels;
 				}			
 			};
@@ -191,7 +202,9 @@ $.fn.visualize = function(options, container){
 
 				//draw the pie pieces
 				$.each(memberTotals, function(i){
-					var fraction = (this <= 0 || isNaN(this))? 0 : this / dataSum;
+					var fraction = this / dataSum;
+                    if (fraction <= 0 || isNaN(fraction))
+                        return;
 					ctx.beginPath();
 					ctx.moveTo(centerx, centery);
 					ctx.arc(centerx, centery, radius, 
@@ -209,19 +222,25 @@ $.fn.visualize = function(options, container){
 			        var labely = Math.round(centery - Math.cos(sliceMiddle * Math.PI * 2) * (distance));
 			        var leftRight = (labelx > centerx) ? 'right' : 'left';
 			        var topBottom = (labely > centery) ? 'bottom' : 'top';
-			        var labeltext = $('<span class="visualize-label">' + Math.round(fraction*100) + '%</span>')
-			        	.css(leftRight, 0)
-			        	.css(topBottom, 0);
-			        var label = $('<li class="visualize-label-pos"></li>')
-			       			.appendTo(labels)
-			        		.css({left: labelx, top: labely})
-			        		.append(labeltext);	
-			        labeltext
-			        	.css('font-size', radius / 8)		
-			        	.css('margin-'+leftRight, -labeltext.width()/2)
-			        	.css('margin-'+topBottom, -labeltext.outerHeight()/2);
-			        	
-			        if(dataGroups[i].textColor){ labeltext.css('color', dataGroups[i].textColor); }	
+			        var percentage = parseFloat((fraction*100).toFixed(2));
+
+			        if(percentage){
+			        	var labelval = (o.pieLabelsAsPercent) ? percentage + '%' : o.labelFilter(this);
+				        var labeltext = $('<span class="visualize-label">' + labelval +'</span>')
+				        	.css(leftRight, 0)
+				        	.css(topBottom, 0);
+				        	if(labeltext)
+				        var label = $('<li class="visualize-label-pos"></li>')
+				       			.appendTo(labels)
+				        		.css({left: labelx, top: labely})
+				        		.append(labeltext);	
+				        labeltext
+				        	.css('font-size', radius / 8)		
+				        	.css('margin-'+leftRight, -labeltext.width()/2)
+				        	.css('margin-'+topBottom, -labeltext.outerHeight()/2);
+				        	
+				        if(dataGroups[i].textColor){ labeltext.css('color', dataGroups[i].textColor); }	
+			        }
 			      	counter+=fraction;
 				});
 			},
@@ -238,7 +257,7 @@ $.fn.visualize = function(options, container){
 					.height(canvas.height())
 					.insertBefore(canvas);
 				$.each(xLabels, function(i){ 
-					var thisLi = $('<li><span>'+this+'</span></li>')
+					var thisLi = $('<li><span>'+o.labelFilter(this)+'</span></li>')
 						.prepend('<span class="line" />')
 						.css('left', xInterval * i)
 						.appendTo(xlabelsUL);						
@@ -260,7 +279,7 @@ $.fn.visualize = function(options, container){
 					.insertBefore(canvas);
 					
 				$.each(yLabels, function(i){  
-					var thisLi = $('<li><span>'+this+'</span></li>')
+					var thisLi = $('<li><span>'+o.labelFilter(this)+'</span></li>')
 						.prepend('<span class="line"  />')
 						.css('bottom',liBottom*i)
 						.prependTo(ylabelsUL);
@@ -273,6 +292,25 @@ $.fn.visualize = function(options, container){
 						.addClass('label');
 				});
 
+				var drawPoint = function (x,y,color,size) {
+					ctx.moveTo(x,y);
+					ctx.beginPath();
+					ctx.arc(x,y,size/2,0,2*Math.PI,false);
+					ctx.closePath();
+					ctx.fillStyle = color;
+					ctx.fill();
+				}
+				var pointQueue = [];
+				var keyPoint = function(x,y,color) {
+					var size = o.lineWeight*Math.PI;
+					pointQueue.push(function() {
+						drawPoint(x,y,color,size);
+						if(o.lineDots === 'double') {
+							drawPoint(x,y,o.dotInnerColor,size-o.lineWeight*Math.PI/2);
+						}
+					});
+				};
+
 				//start from the bottom left
 				ctx.translate(0,zeroLoc);
 				//iterate and draw
@@ -281,24 +319,34 @@ $.fn.visualize = function(options, container){
 					ctx.lineWidth = o.lineWeight;
 					ctx.lineJoin = 'round';
 					var points = this.points;
-					var integer = 0;
+					var integer = 0; // the current offset
+					var color = this.color;
 					ctx.moveTo(0,-(points[0]*yScale));
+					keyPoint(0,-(points[0]*yScale),color);
 					$.each(points, function(){
+						if(o.lineDots) {
+							keyPoint(integer,-(this*yScale),color);
+						}
 						ctx.lineTo(integer,-(this*yScale));
 						integer+=xInterval;
 					});
-					ctx.strokeStyle = this.color;
+					ctx.strokeStyle = color;
 					ctx.stroke();
 					if(area){
-						ctx.lineTo(integer,0);
+						// integer can be infinite if the xInterval is infinite (i.e. there's only one entry)
+						if (isFinite(integer))
+							ctx.lineTo(integer,0);
 						ctx.lineTo(0,0);
 						ctx.closePath();
-						ctx.fillStyle = this.color;
+						ctx.fillStyle = color;
 						ctx.globalAlpha = .3;
 						ctx.fill();
 						ctx.globalAlpha = 1.0;
 					}
 					else {ctx.closePath();}
+					$.each(pointQueue,function(){
+						pointQueue.shift().call();
+					});
 				});
 			},
 			
@@ -307,63 +355,147 @@ $.fn.visualize = function(options, container){
 			},
 			
 			bar: function(){
-				
+				/**
+				 * We can draw horizontal or vertical bars depending on the
+				 * value of the 'barDirection' option (which may be 'vertical' or
+				 * 'horizontal').
+				 */
+
+				var horizontal = (o.barDirection == 'horizontal');
+
 				canvasContain.addClass('visualize-bar');
-			
-				//write X labels
-				var xInterval = canvas.width() / (xLabels.length);
+
+				/**
+				 * Write labels along the bottom of the chart.	If we're drawing
+				 * horizontal bars, these will be the yLabels, otherwise they
+				 * will be the xLabels.	The positioning also varies slightly:
+				 * yLabels are values, hence they will span the whole width of
+				 * the canvas, whereas xLabels are supposed to line up with the
+				 * bars.
+				 */
+				var bottomLabels = horizontal ? yLabels : xLabels;
+
+				var xInterval = canvas.width() / (bottomLabels.length - (horizontal ? 1 : 0));
+
 				var xlabelsUL = $('<ul class="visualize-labels-x"></ul>')
 					.width(canvas.width())
 					.height(canvas.height())
 					.insertBefore(canvas);
-				$.each(xLabels, function(i){ 
-					var thisLi = $('<li><span class="label">'+this+'</span></li>')
+
+				$.each(bottomLabels, function(i){
+					var thisLi = $('<li><span class="label">'+o.labelFilter(this)+'</span></li>')
 						.prepend('<span class="line" />')
 						.css('left', xInterval * i)
 						.width(xInterval)
 						.appendTo(xlabelsUL);
-					var label = thisLi.find('span.label');
-					label.addClass('label');
+
+					if (horizontal)	{
+						var label = thisLi.find('span.label');
+						label.css("margin-left", -label.width() / 2);
+					}
 				});
 
-				//write Y labels
-				var yScale = canvas.height() / totalYRange;
-				var liBottom = canvas.height() / (yLabels.length-1);
+				/**
+				 * Write labels along the left of the chart.	Follows the same idea
+				 * as the bottom labels.
+				 */
+				leftLabels = horizontal ? xLabels : yLabels;
+				var liBottom = canvas.height() / (leftLabels.length - (horizontal ? 0 : 1));
+
 				var ylabelsUL = $('<ul class="visualize-labels-y"></ul>')
 					.width(canvas.width())
 					.height(canvas.height())
 					.insertBefore(canvas);
-				$.each(yLabels, function(i){  
-					var thisLi = $('<li><span>'+this+'</span></li>')
-						.prepend('<span class="line"  />')
-						.css('bottom',liBottom*i)
-						.prependTo(ylabelsUL);
-						var label = thisLi.find('span:not(.line)');
-						var topOffset = label.height()/-2;
-						if(i == 0){ topOffset = -label.height(); }
-						else if(i== yLabels.length-1){ topOffset = 0; }
-						label
-							.css('margin-top', topOffset)
-							.addClass('label');
+
+				$.each(leftLabels, function(i){
+					var thisLi = $('<li><span>'+o.labelFilter(this)+'</span></li>').prependTo(ylabelsUL);
+
+					var label = thisLi.find('span:not(.line)').addClass('label');
+
+					if (horizontal) {
+						/**
+						 * For left labels, we want to vertically align the text
+						 * to the middle of its container, but we don't know how
+						 * many lines of text we will have, since the labels could
+						 * be very long.
+						 *
+						 * So we set a min-height of liBottom, and a max-height
+						 * of liBottom + 1, so we can then check the label's actual
+						 * height to determine if it spans one line or more lines.
+						 */
+						label.css({
+							'min-height': liBottom,
+							'max-height': liBottom + 1,
+							'vertical-align': 'middle'
+						});
+						thisLi.css({'top': liBottom * i, 'min-height': liBottom});
+
+						r = label[0].getClientRects()[0];
+						if (r.bottom - r.top == liBottom) {
+							/* This means we have only one line of text; hence
+							 * we can centre the text vertically by setting the line-height,
+							 * as described at:
+							 *   http://www.ampsoft.net/webdesign-l/vertical-aligned-nav-list.html
+							 *
+							 * (Although firefox has .height on the rectangle, IE doesn't,
+							 * so we use r.bottom - r.top rather than r.height.)
+							 */
+							label.css('line-height', parseInt(liBottom) + 'px');
+						}
+						else {
+							/*
+							 * If there is more than one line of text, then we shouldn't
+							 * touch the line height, but we should make sure the text
+							 * doesn't overflow the container.
+							 */
+							label.css("overflow", "hidden");
+						}
+					}
+					else {
+						thisLi.css('bottom', liBottom * i).prepend('<span class="line" />');
+						label.css('margin-top', -label.height() / 2)
+					}
 				});
 
-				//start from the bottom left
-				ctx.translate(0,zeroLoc);
-				//iterate and draw
+				// Draw bars
+
+				if (horizontal) {
+					// for horizontal, keep the same code, but rotate everything 90 degrees
+					// clockwise.
+					ctx.rotate(Math.PI / 2);
+				}
+				else {
+					// for vertical, translate to the top left corner.
+					ctx.translate(0, zeroLoc);
+				}
+
+				// Don't attempt to draw anything if all the values are zero,
+				// otherwise we will get weird exceptions from the canvas methods.
+				if (totalYRange <= 0)
+					return;
+
+				var yScale = (horizontal ? canvas.width() : canvas.height()) / totalYRange;
+				var barWidth = horizontal ? (canvas.height() / xLabels.length) : (canvas.width() / (bottomLabels.length));
+				var linewidth = (barWidth - o.barGroupMargin*2) / dataGroups.length;
+
 				for(var h=0; h<dataGroups.length; h++){
 					ctx.beginPath();
-					var linewidth = (xInterval-o.barGroupMargin*2) / dataGroups.length; //removed +1 
+
 					var strokeWidth = linewidth - (o.barMargin*2);
 					ctx.lineWidth = strokeWidth;
 					var points = dataGroups[h].points;
 					var integer = 0;
 					for(var i=0; i<points.length; i++){
-						var xVal = (integer-o.barGroupMargin)+(h*linewidth)+linewidth/2;
-						xVal += o.barGroupMargin*2;
-						
-						ctx.moveTo(xVal, 0);
-						ctx.lineTo(xVal, Math.round(-points[i]*yScale));
-						integer+=xInterval;
+						// If the last value is zero, IE will go nuts and not draw anything,
+						// so don't try to draw zero values at all.
+						if (points[i] != 0) {
+							var xVal = (integer-o.barGroupMargin)+(h*linewidth)+linewidth/2;
+							xVal += o.barGroupMargin*2;
+
+							ctx.moveTo(xVal, 0);
+							ctx.lineTo(xVal, Math.round(-points[i]*yScale));
+                        }
+						integer+=barWidth;
 					}
 					ctx.strokeStyle = dataGroups[h].color;
 					ctx.stroke();
@@ -374,9 +506,11 @@ $.fn.visualize = function(options, container){
 	
 		//create new canvas, set w&h attrs (not inline styles)
 		var canvasNode = document.createElement("canvas"); 
-		canvasNode.setAttribute('height',o.height);
-		canvasNode.setAttribute('width',o.width);
-		var canvas = $(canvasNode);
+		var canvas = $(canvasNode)
+			.attr({
+				'height': o.height,
+				'width': o.width
+			});
 			
 		//get title for chart
 		var title = o.title || self.find('caption').text();
@@ -415,8 +549,15 @@ $.fn.visualize = function(options, container){
 		//append key
 		if(o.appendKey){
 			var newKey = $('<ul class="visualize-key"></ul>');
-			var selector = (o.parseDirection == 'x') ? 'tr:gt(0) th' : 'tr:eq(0) th' ;
-			self.find(selector).each(function(i){
+			var selector;
+			if(o.parseDirection == 'x'){
+				selector = self.find('tr:gt(0) th').filter(o.rowFilter);
+			}
+			else{
+				selector = self.find('tr:eq(0) th').filter(o.colFilter);
+			}
+			
+			selector.each(function(i){
 				$('<li><span class="visualize-key-color" style="background: '+dataGroups[i].color+'"></span><span class="visualize-key-label">'+ $(this).text() +'</span></li>')
 					.appendTo(newKey);
 			});
@@ -426,7 +567,7 @@ $.fn.visualize = function(options, container){
 		//append new canvas to page
 		
 		if(!container){canvasContain.insertAfter(this); }
-		if( typeof(G_vmlCanvasManager) != 'undefined' ){ G_vmlCanvasManager.initElement(canvas[0]); }	
+		if( typeof(G_vmlCanvasManager) != 'undefined' ){ G_vmlCanvasManager.init(); G_vmlCanvasManager.initElement(canvas[0]); }	
 		
 		//set up the drawing board	
 		var ctx = canvas[0].getContext('2d');
