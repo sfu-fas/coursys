@@ -261,7 +261,6 @@ def generate_numeric_activity_stat(activity):
     else:
         normalized_student_grade_list = [ float(student_grade)/float(activity.max_grade)*100
                                         for student_grade in student_grade_list ]
-    print normalized_student_grade_list
     grade_range_stat_list = generate_grade_range_stat(normalized_student_grade_list)
 
     return ActivityStat(format_number(average, _DECIMAL_PLACE), format_number(student_grade_list[0], _DECIMAL_PLACE),
