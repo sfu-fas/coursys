@@ -1,0 +1,25 @@
+{% extends "discipline/editbase.html" %}
+
+{% block jsextra %}
+{% endblock %}
+
+{% block title %}Dishonesty Case for {{case.student.person.name}}: Letter Review{% endblock %}
+{% block h1 %}Dishonesty Case for {{case.student.person.name}}: Letter Review{% endblock %}
+{% block editlabel %}Letter Review{% endblock %}
+
+{% block actions %}{% endblock %}
+
+{% block content %}
+<div id="form_container">
+    <form action="{% url discipline.views.edit_letter_review course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
+
+    <p>Please review the letter below:</p>
+    <div class="letter">{% include "discipline/letter_body.html" %}</div>
+    
+    <p>Letter is okay to send to the student and be filed.  {{ form.letter_review }}</p>
+    
+    <p><input type="submit" value="Update Letter Review Status" /></p>
+    </form>
+</div>
+
+{% endblock %}

@@ -3,7 +3,36 @@
 {% block jsextra %}
 $(document).ready(function() {
   setup_templates("contact_email_text");
+  $("#id_contact_date").datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.png',
+                                changeMonth: true, changeYear: true,
+                                dateFormat: 'yy-mm-dd', showOn: 'button'});
+  contact_change();
 })
+
+function contact_change() {
+  // set the page up appropriately to this radio-button selection
+  var value = $('input:radio[name=contacted]:checked').val();
+  var div = $('#warning');
+  var submit = $('#submitbutton');
+  var date = $('#id_contact_date');
+  var icon = $('.ui-datepicker-trigger');
+  if ( value=="NONE" ) {
+    div.html( "" );
+    submit.val("Update Contact Details");
+    date.attr("disabled", true);
+    icon.hide();
+  } else if ( value=="MAIL" ) {
+    div.html( 'Submitting with "Student emailed (by system)" selected will cause the email below to be sent to the student (and instructor).' );
+    submit.val("Update Contact Details and EMAIL THE STUDENT");
+    date.attr("disabled", true);
+    icon.hide();
+  } else if ( value=="OTHR" ) {
+    div.html( 'Optionally enter information about how the student was contacted below.' );
+    submit.val("Update Contact Details");
+    date.attr("disabled", false);
+    icon.show();
+  }
+}
 {% endblock %}
 
 {% block title %}Dishonesty Case for {{case.student.person.name}}: Edit Intro{% endblock %}
@@ -13,16 +42,21 @@ $(document).ready(function() {
 {% block content %}
 <div id="form_container">
     <form action="{% url discipline.views.edit_contacted course_slug=course.slug case_slug=case.slug %}" method="post" onchange="contact_change()">{% csrf_token %}
+    {{ form.non_field_errors }}
     <p>{{ form.contacted.help_text }}
     	{{ form.contacted }}</p>
     <p class="actionwarning" id="warning"></p>
     
+    <p>{{ form.contact_date.label }}: {{ form.contact_date }}</p>
+    <p class="helptext">{{ form.contact_date.help_text|safe }}</p>
+    
     <p>{{ form.contact_email_text.label }}:</p>
-    <div class="templates" id="templates_contact_email_text"></div>
+    <div class="discside" id="templates_contact_email_text"></div>
+    <div class="discside" id="group_contact_email_text"></div>
     <blockquote>{{ form.contact_email_text }}</blockquote>
     <p class="helptext">{{ form.contact_email_text.help_text|safe }}</p>
     
-    <p><input type="submit" value="Update Contact Details" /></p>
+    <p><input type="submit" value="Update Contact Details" id="submitbutton" /></p>
     <blockquote>
     	<pre id="preview"></pre>
     </blockquote>

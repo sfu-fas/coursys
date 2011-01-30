@@ -1,7 +1,8 @@
 from django import forms
-from discipline.models import DisciplineCase, DisciplineGroup
+from discipline.models import DisciplineCase, DisciplineGroup, DisciplineTemplate
 from coredata.models import Member
 from django.core.mail import send_mail
+import datetime
 
 class DisciplineGroupForm(forms.ModelForm):
     students = forms.MultipleChoiceField(choices=[], required=False)
@@ -44,6 +45,14 @@ class DisciplineCaseForm(forms.ModelForm):
         fields = ("student", "group")
 
 
+class TemplateForm(forms.ModelForm):
+    class Meta:
+        model = DisciplineTemplate
+        widgets = {
+            'text': forms.Textarea(attrs={'cols':'80', 'rows':'20'}),
+        }
+
+
 class CaseNotesForm(forms.ModelForm):
     class Meta:
         model = DisciplineCase
@@ -51,26 +60,29 @@ class CaseNotesForm(forms.ModelForm):
         widgets = {
             'notes': forms.Textarea(attrs={'cols':'80', 'rows':'20'}),
         }
-#class CaseIntroForm(forms.ModelForm):
-#    class Meta:
-#        model = DisciplineCase
-#        fields = ("intro",)
-#        widgets = {
-#            'intro': forms.TextInput(attrs={'size':'70'}),
-#        }
 class CaseContactedForm(forms.ModelForm):
-    def clean_contacted(self):
-        new_contacted = self.cleaned_data['contacted']
-        old_contacted = self.instance.contacted
-        if old_contacted!="MAIL" and new_contacted=="MAIL":
-            send_mail( *self.instance.contact_email() )
+    def clean(self):
+        """
+        Send the mail if appropriate.
+        """
+        contacted = self.cleaned_data['contacted']
+        text = self.cleaned_data['contact_email_text']
+
+        if contacted=="MAIL":
+            if not text.strip():
+                raise forms.ValidationError('Must enter email text: email is sent to student on submitting this form.')
+            send_mail( *self.instance.contact_email(message=text) )
+            self.cleaned_data['contact_date'] = datetime.date.today()
             self.instance.just_emailed = True
-        
-        return new_contacted
+        elif contacted=="OTHR":
+            if not self.cleaned_data['contact_date']:
+                raise forms.ValidationError('Please enter the date of initial contact about the case.')
+
+        return self.cleaned_data
 
     class Meta:
         model = DisciplineCase
-        fields = ("contacted", "contact_email_text",)
+        fields = ("contacted", "contact_date", "contact_email_text")
         widgets = {
             'contacted': forms.RadioSelect(),
             'contact_email_text': forms.Textarea(attrs={'cols':'80', 'rows':'15'}),
@@ -105,6 +117,10 @@ class CaseInstrPenaltyForm(forms.ModelForm):
             'instr_penalty': forms.RadioSelect(),
             'penalty_reason': forms.Textarea(attrs={'cols':'80', 'rows':'10'}),
         }
+class CaseLetterReviewForm(forms.ModelForm):
+    class Meta:
+        model = DisciplineCase
+        fields = ("letter_review",)
 
 from grades.models import Activity
 from groups.models import GroupMember
@@ -140,11 +156,11 @@ class CaseRelatedForm(forms.Form):
 STEP_FORM = { # map of field -> form for editing it (all ModelForm for DisciplineCase, except Related)
         'notes': CaseNotesForm,
         'related': CaseRelatedForm,
-        #'intro': CaseIntroForm,
         'contacted': CaseContactedForm,
         'response': CaseResponseForm,
         'meeting': CaseMeetingForm,
         'facts': CaseFactsForm,
         'instr_penalty': CaseInstrPenaltyForm,
+        'letter_review': CaseLetterReviewForm,
         }
 

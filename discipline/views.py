@@ -11,7 +11,7 @@ from discipline.models import *
 from discipline.forms import *
 from discipline.content import *
 from log.models import LogEntry
-from courselib.auth import requires_course_staff_by_slug, NotFoundResponse
+from courselib.auth import requires_course_staff_by_slug, requires_role, NotFoundResponse
 
 @requires_course_staff_by_slug
 def index(request, course_slug):
@@ -96,38 +96,6 @@ def new(request, course_slug, group=False):
     context = {'course': course, 'form': form}
     return render_to_response("discipline/new.html", context, context_instance=RequestContext(request))
 
-def XXXX_new(request, course_slug, group):
-    """
-    Create new case or case group
-    """
-    course = get_object_or_404(CourseOffering, slug=course_slug)
-    if request.method == 'POST':
-        if group:
-            groupobj = DisciplineGroup(name=request.POST['name'], offering=course)
-            groupobj.save()
-        else:
-            groupobj = None
-
-        userids = request.POST.getlist('userid')
-        for userid in userids:
-            students = Member.objects.filter(offering=course, role="STUD", person__userid=userid)
-            if len(students) != 1:
-                return NotFoundResponse(request)
-            student = students[0]
-        
-            case = DisciplineCase(student=student, group=groupobj)
-            case.save()
-
-        if group:
-            return HttpResponseRedirect(reverse('discipline.views.showgroup', kwargs={'course_slug': course_slug, 'group_slug': groupobj.slug}))
-        else:
-            return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
-
-
-    students = Member.objects.filter(offering=course, role="STUD")
-    context = {'course': course, 'students': students, 'group': group}
-    return render_to_response("discipline/new.html", context, context_instance=RequestContext(request))
-
 @requires_course_staff_by_slug
 def show(request, course_slug, case_slug):
     """
@@ -174,18 +142,16 @@ def _edit_case_info(request, course_slug, case_slug, field):
         form = FormClass(instance=case)
     
     templates = DisciplineTemplate.objects.filter(field__in=form.fields.keys())
-    casedict = case.infodict()
-    tempaltesJSON = '[' + ",\n".join((t.toJSON(casedict) for t in templates)) + ']'
+    tempaltesJSON = '[' + ",\n".join((t.toJSON() for t in templates)) + ']'
+    groupmembersJSON = case.groupmembersJSON()
     
-    context = {'course': course, 'case': case, 'form': form, 'templatesJSON': mark_safe(tempaltesJSON)}
+    context = {'course': course, 'case': case, 'form': form,
+        'templatesJSON': mark_safe(tempaltesJSON), 'groupmembersJSON': mark_safe(groupmembersJSON)}
     return render_to_response("discipline/edit_"+field+".html", context, context_instance=RequestContext(request))
 
 @requires_course_staff_by_slug
 def edit_notes(request, course_slug, case_slug):
     return _edit_case_info(request, course_slug, case_slug, "notes")
-#@requires_course_staff_by_slug
-#def edit_intro(request, course_slug, case_slug):
-#    return _edit_case_info(request, course_slug, case_slug, "intro")
 @requires_course_staff_by_slug
 def edit_contacted(request, course_slug, case_slug):
     return _edit_case_info(request, course_slug, case_slug, "contacted")
@@ -201,6 +167,9 @@ def edit_facts(request, course_slug, case_slug):
 @requires_course_staff_by_slug
 def edit_instr_penalty(request, course_slug, case_slug):
     return _edit_case_info(request, course_slug, case_slug, "instr_penalty")
+@requires_course_staff_by_slug
+def edit_letter_review(request, course_slug, case_slug):
+    return _edit_case_info(request, course_slug, case_slug, "letter_review")
 
 @requires_course_staff_by_slug
 def edit_related(request, course_slug, case_slug):
@@ -284,4 +253,59 @@ def show_letter(request, course_slug, case_slug):
     context = {'course': course, 'case': case}
     return render_to_response("discipline/show_letter.html", context, context_instance=RequestContext(request))
 
+@requires_role("SYSA")
+def show_templates(request):
+    templates = DisciplineTemplate.objects.all()
+    context = {'templates': templates}
+    return render_to_response("discipline/show_templates.html", context, context_instance=RequestContext(request))
+
+@requires_role("SYSA")
+def new_template(request):
+    if request.method == 'POST':
+        form = TemplateForm(request.POST)
+        if form.is_valid():
+            t = form.save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("create discipline template %i") % (t.id),
+                  related_object=t)
+            l.save()
+            messages.add_message(request, messages.SUCCESS, 'Created template "%s".' % (t.label))
+            return HttpResponseRedirect(reverse('discipline.views.show_templates'))
+    else:
+        form = TemplateForm()
+    context = {'form': form}
+    return render_to_response("discipline/new_template.html", context, context_instance=RequestContext(request))
+
+@requires_role("SYSA")
+def edit_template(request, template_id):
+    template = get_object_or_404(DisciplineTemplate, id=template_id)
+    if request.method == 'POST':
+        form = TemplateForm(request.POST, instance=template)
+        if form.is_valid():
+            t = form.save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("edit discipline template %i") % (t.id),
+                  related_object=t)
+            l.save()
+            messages.add_message(request, messages.SUCCESS, 'Edited template "%s".' % (t.label))
+            return HttpResponseRedirect(reverse('discipline.views.show_templates'))
+    else:
+        form = TemplateForm(instance=template)
+    context = {'template': template, 'form': form}
+    return render_to_response("discipline/edit_template.html", context, context_instance=RequestContext(request))
+
+@requires_role("SYSA")
+def delete_template(request, template_id):
+    template = get_object_or_404(DisciplineTemplate, id=template_id)
+    if request.method == 'POST':
+        #LOG EVENT#
+        l = LogEntry(userid=request.user.username,
+              description=("deleted discipline template %i") % (template.id),
+              related_object=template)
+        l.save()
+        messages.add_message(request, messages.SUCCESS, 'Deleted template "%s".' % (template.label))
+        template.delete()
+    return HttpResponseRedirect(reverse('discipline.views.show_templates'))
 

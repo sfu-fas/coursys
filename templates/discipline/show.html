@@ -10,17 +10,17 @@
 
 {% block content %}
 
-<h2 id="info">Student Info</h2>
+<h2 id="info">Case Info</h2>
 
 <div class="table_container">
 <table class="info">
 <tbody>
 <tr>
-  <th class="ui-state-default">Name</th>
+  <th class="ui-state-default">Student Name</th>
   <td>{{ case.student.person.sortname }}</td>
 </tr>
 <tr>
-  <th class="ui-state-default">Email</th>
+  <th class="ui-state-default">Student Email</th>
   <td><a href="mailto:{{ case.student.person.email }}">{{ case.student.person.email }}</a></td>
 </tr>
 <tr>
@@ -48,7 +48,7 @@
 <h2 id="notes">Notes</h2>
 <dl>
 <dt>Case Notes (private)</dt>
-<dd>{{case|edit_link:'notes'}}{{case.notes|format_text}}</dd>
+<dd>{{case|edit_link:'notes'}}{{case|format_field:'notes'}}</dd>
 <dt>Related Items (private)</dt>
 <dd>{{case|edit_link:'related'}}
 <ul>{% for ro in case.relatedobject_set.all %}
@@ -58,7 +58,7 @@
   <li>{{ro.content_object.short_str}}</li>
   {% endif %}
 {% empty %}<li class="empty">None</li>
-{% endfor %}</ul>
+{% endfor %}</ul></dd>
 <dt>Attached Files</dt>
 <dd>{{case|edit_link:'attach'}}
 <ul>{% for att in case.caseattachment_set.all %}
@@ -74,7 +74,9 @@
 <h2 id="contact">Initial Contact</h2>
 <dl>
 <dt>Student Contacted?</dt>
-<dd>{{case|edit_link:'contacted'}}<p>{{case.get_contacted_display}}</p></dd>
+<dd>{{case|edit_link:'contacted'}}<p>{{case.get_contacted_display}} {% if case.contact_date %}on {{case.contact_date}}{% endif %}.</p></dd>
+<dt>Contact Email or Contact Information</dt>
+<dd>{{case|edit_link:'contacted'}}{{case|format_field:'contact_email_text'}}</dd>
 <dt>Student Response</dt>
 <dd>{{case|edit_link:'response'}}<p>{{case.get_response_display}}</p></dd>
 </dl>
@@ -84,21 +86,23 @@
 <dt>Meeting Date</dt>
 <dd>{{case|edit_link:'meeting_date'}}<p>{{case.meeting_date}}</p></dd>
 <dt>Meeting/Email Summary (included in letter)</dt>
-<dd>{{case|edit_link:'meeting_summary'}}{{case.meeting_summary|format_text}}</dd>
+<dd>{{case|edit_link:'meeting_summary'}}{{case|format_field:'meeting_summary'}}</dd>
 <dt>Meeting/Email Notes (private)</dt>
-<dd>{{case|edit_link:'meeting_notes'}}{{case.meeting_notes|format_text}}</dd>
+<dd>{{case|edit_link:'meeting_notes'}}{{case|format_field:'meeting_notes'}}</dd>
 </dl>
 
 <h2 id="facts">Facts and Decision</h2>
 <dl>
 <dt>Facts of case (included in letter)</dt>
-<dd>{{case|edit_link:'facts'}}{{case.facts|format_text}}</dd>
+<dd>{{case|edit_link:'facts'}}{{case|format_field:'facts'}}</dd>
 <dt>Penalty assigned by instructor</dt>
 <dd>{{case|edit_link:'instr_penalty'}}<p>{{case.get_instr_penalty_display}}</p></dd>
 <dt>Refer to Chair/Director?</dt>
 <dd>{{case|edit_link:'refer_chair'}}<p>{{case.get_refer_chair_display}}</p></dd>
 <dt>Penalty Rationale (included in letter)</dt>
-<dd>{{case|edit_link:'penalty_reason'}}{{case.penalty_reason|format_text}}</dd>
+<dd>{{case|edit_link:'penalty_reason'}}{{case|format_field:'penalty_reason'}}</dd>
+<dt>Letter Reviewed?</dt>
+<dd>{{case|edit_link:'letter_review'}}<p>{{case.get_letter_review_display}}</p></dd>
 </dl>
 
 

@@ -119,12 +119,12 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_SLUG + '/_dishonesty/cases/' + CASE_SLUG + '/notes$', 'discipline.views.edit_notes'),
     url(r'^' + COURSE_SLUG + '/_dishonesty/cases/' + CASE_SLUG + '/related$', 'discipline.views.edit_attach'),
     url(r'^' + COURSE_SLUG + '/_dishonesty/cases/' + CASE_SLUG + '/attach$', 'discipline.views.edit_related'),
-    #url(r'^' + COURSE_SLUG + '/_dishonesty/cases/' + CASE_SLUG + '/intro$', 'discipline.views.edit_intro'),
     url(r'^' + COURSE_SLUG + '/_dishonesty/cases/' + CASE_SLUG + '/contact$', 'discipline.views.edit_contacted'),
     url(r'^' + COURSE_SLUG + '/_dishonesty/cases/' + CASE_SLUG + '/response$', 'discipline.views.edit_response'),
     url(r'^' + COURSE_SLUG + '/_dishonesty/cases/' + CASE_SLUG + '/meeting$', 'discipline.views.edit_meeting'),
     url(r'^' + COURSE_SLUG + '/_dishonesty/cases/' + CASE_SLUG + '/facts$', 'discipline.views.edit_facts'),
     url(r'^' + COURSE_SLUG + '/_dishonesty/cases/' + CASE_SLUG + '/instr_penalty$', 'discipline.views.edit_instr_penalty'),
+    url(r'^' + COURSE_SLUG + '/_dishonesty/cases/' + CASE_SLUG + '/letter_review$', 'discipline.views.edit_letter_review'),
     url(r'^' + COURSE_SLUG + '/_dishonesty/cases/' + CASE_SLUG + '/letter$', 'discipline.views.show_letter'),
 
     url(r'^sysadmin/$', 'coredata.views.sysadmin'),
@@ -137,6 +137,10 @@ urlpatterns += patterns('',
     url(r'^users/' + USERID_SLUG + '/$', 'django.views.generic.simple.redirect_to', {'url': '/sysadmin/users/%(userid)s/'}), # accept the URL provided as get_absolute_url for user objects
     url(r'^sysadmin/users/' + USERID_SLUG + '/$', 'coredata.views.user_summary'),
     url(r'^sysadmin/people/new$', 'coredata.views.new_person'),
+    url(r'^sysadmin/dishonesty/$', 'discipline.views.show_templates'),
+    url(r'^sysadmin/dishonesty/new$', 'discipline.views.new_template'),
+    url(r'^sysadmin/dishonesty/edit/(?P<template_id>\d+)$', 'discipline.views.edit_template'),
+    url(r'^sysadmin/dishonesty/delete/(?P<template_id>\d+)$', 'discipline.views.delete_template'),
 
 )
 if not settings.DEPLOYED:

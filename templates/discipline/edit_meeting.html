@@ -23,12 +23,14 @@ $(document).ready(function() {
     <p class="helptext">{{ form.meeting_date.help_text|safe }}</p>
 
     <p>{{ form.meeting_summary.label }}:</p>
-    <div class="templates" id="templates_meeting_summary"></div>
+    <div class="discside" id="templates_meeting_summary"></div>
+    <div class="discside" id="group_meeting_summary"></div>
     <blockquote>{{ form.meeting_summary }}</blockquote>
     <p class="helptext">{{ form.meeting_summary.help_text|safe }}</p>
 
     <p>{{ form.meeting_notes.label }}:</p>
-    <div class="templates" id="templates_meeting_notes"></div>
+    <div class="discside" id="templates_meeting_notes"></div>
+    <div class="discside" id="group_meeting_notes"></div>
     <blockquote>{{ form.meeting_notes }}</blockquote>
     <p class="helptext">{{ form.meeting_notes.help_text|safe }}</p>
 

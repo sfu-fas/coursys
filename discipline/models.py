@@ -8,8 +8,11 @@ from autoslug import AutoSlugField
 from django.core.files.storage import FileSystemStorage
 from django.utils.text import wrap
 from django.conf import settings
+#from django.utils.safestring import mark_safe
 from discipline.content import *
 import string
+#import external.textile as textile
+#Textile = textile.Textile(restricted=True)
 
 CONTACT_CHOICES = (
         ('NONE', 'Not yet contacted'),
@@ -29,7 +32,7 @@ INSTR_PENALTY_CHOICES = (
         ('WARN', 'give the student a warning'),
         ('REDO', 'require the student to redo the work, or to do supplementary work'),
         ('MARK', 'assign a low grade for the work'),
-        ('ZERO', u'assign a grade of \u201CF\u201D for the work'),
+        ('ZERO', u'assign a grade of \u201CF\u201D or zero for the work'),
         )
 CHAIR_PENALTY_CHOICES = (
         ('WAIT', 'penalty not yet assigned'),
@@ -51,7 +54,6 @@ STEP_VIEW = { # map of field -> view function ("edit_foo") that is used to edit 
         'notes': 'notes',
         'related': 'related',
         'attach': 'attach',
-        #'intro': 'intro',
         'contacted': 'contacted',
         'response': 'response',
         'meeting_date': 'meeting',
@@ -61,24 +63,24 @@ STEP_VIEW = { # map of field -> view function ("edit_foo") that is used to edit 
         'instr_penalty': 'instr_penalty',
         'refer_chair': 'instr_penalty',
         'penalty_reason': 'instr_penalty',
+        'letter_review': 'letter_review',
         'letter_sent': 'letter_sent',
         }
 STEP_TEXT = { # map of field -> description of what the step
         'notes': 'edit your notes on the case',
-        #'intro': 'edit the introductory sentence',
         'contacted': 'contact the student regarding the case',
         'response': "enter details of the student's response",
         'meeting_date': "enter details of the student meeting/email",
         'meeting_summary': "enter a summary of the student meeting/email",
         'facts': "summarize the facts of the case",
         'instr_penalty': 'assign a penalty',
+        'letter_review': 'review letter to student',
         'letter_sent': "send instructor's letter",
         }
-STEP_DESC = { # map of field/form -> description of what it is
+STEP_DESC = { # map of field/form -> description of what is being edited
         'notes': 'instructor notes',
         'related': 'related items',
         'attach': 'attached files',
-        #'intro': 'introductory sentence',
         'contacted': 'initial contact information',
         'response': 'student response details',
         'meeting': 'student meeting/email details',
@@ -89,11 +91,11 @@ STEP_DESC = { # map of field/form -> description of what it is
         'instr_penalty': 'penalty (from instructor)',
         'refer_chair': 'penalty (from instructor)',
         'penalty_reason': 'penalty (from instructor)',
+        'letter_review': 'review status',
         'letter_sent': "instructor's letter",
         }
 TEMPLATE_FIELDS = { # fields that can have a template associated with them
         'notes': 'instructor notes',
-        #'intro': 'introductory sentence',
         'contact_email_text': 'initial contact email',
         'response': 'student response details',
         'meeting_summary': 'student meeting/email summary',
@@ -103,12 +105,39 @@ TEMPLATE_FIELDS = { # fields that can have a template associated with them
         }
 
 
+# from django/template/defaultfilters.py 
+_base_js_escapes = (
+    ('\\', r'\u005C'),
+    ('\'', r'\u0027'),
+    ('"', r'\u0022'),
+    ('>', r'\u003E'),
+    ('<', r'\u003C'),
+    ('&', r'\u0026'),
+    ('=', r'\u003D'),
+    ('-', r'\u002D'),
+    (';', r'\u003B'),
+    (u'\u2028', r'\u2028'),
+    (u'\u2029', r'\u2029')
+)
+
+# Escape every ASCII character with a value less than 32.
+_js_escapes = (_base_js_escapes +
+               tuple([('%c' % z, '\\u%04X' % z) for z in range(32)]))
+
+def escapejs(value):
+    """Hex encodes characters for use in JavaScript strings."""
+    for bad, good in _js_escapes:
+        value = value.replace(bad, good)
+    return value
+
+
+
 class DisciplineGroup(models.Model):
     """
     A set of discipline cases that are related.
     """
     name = models.CharField(max_length=60, blank=False, null=False, verbose_name="Group Name",
-            help_text='An arbitrary "name" for this group of cases') #.  Will be auto-generated if left blank.')
+            help_text='An arbitrary "name" for this group of cases')
     offering = models.ForeignKey(CourseOffering, help_text="The course this group is associated with")
     slug = AutoSlugField(populate_from='name', null=False, editable=False, unique_with='offering')
     
@@ -133,8 +162,6 @@ class DisciplineCase(models.Model):
     group = models.ForeignKey(DisciplineGroup, null=True, blank=True, help_text="Group this case belongs to (if any).")
     
     # fields for instructor
-    #intro = models.TextField(blank=True, null=True, verbose_name="Introductory Sentence",
-    #        help_text=u'You should "outline the nature of the concern", written to the student&mdash;this sentence will be the introduction of the initial email to the student (plain text).  e.g. "On assignment 1, you submitted work very similar to another student."')
     contact_email_text = models.TextField(blank=True, null=True, verbose_name="Contact Email Text",
             help_text=u'The initial email sent to the student regarding the case.')
     contacted = models.CharField(max_length=4, choices=CONTACT_CHOICES, default="NONE", verbose_name="Student Contacted?",
@@ -184,9 +211,9 @@ class DisciplineCase(models.Model):
 
     def __unicode__(self):
         if self.group:
-            return '%s: "%s" (in %s)' % (self.student.person.userid, self.intro, self.group.name)
+            return '%s (in %s)' % (self.student.person.userid, self.group.name)
         else:
-            return '%s: "%s"' % (self.student.person.userid, self.intro)
+            return '%s' % (self.student.person.userid)
 
     def get_absolute_url(self):
         return reverse('discipline.views.show', kwargs={'course_slug': self.student.offering.slug, 'case_slug': self.slug})
@@ -196,6 +223,23 @@ class DisciplineCase(models.Model):
             return "Yes"
         else:
             return "No"
+    def get_letter_review_display(self):
+        if self.letter_review:
+            return "Yes"
+        else:
+            return "No"
+    
+    def groupmembersJSON(self):
+        """
+        Return list of other group cases as a JSON object.
+        """
+        if not self.group:
+            return "[]"
+        
+        return "[" + ", ".join(
+            ('{"id": "%i", "name": "%s (%s)"}'
+                % (c.id, escapejs(c.student.person.name()), escapejs(c.student.person.userid))
+                for c in self.group.disciplinecase_set.exclude(pk=self.pk))) + "]"
     
     def next_step(self):
         """
@@ -240,9 +284,11 @@ class DisciplineCase(models.Model):
         step = self.next_step()
         return STEP_TEXT[step]
     
-    def infodict(self):
+    def create_infodict(self):
         """
-        return a dictionary of info about the case which can be used for template substitution.
+        Create a dictionary of info about the case which can be used for template substitution.
+        
+        Dictionary is cached as self.infodict.
         """
         d = {
             'FNAME': self.student.person.first_name,
@@ -250,7 +296,7 @@ class DisciplineCase(models.Model):
             'COURSE': self.student.offering.subject + " " + self.student.offering.number,
             }
         
-        # get list of activities in as English
+        # get list of activities as English
         activities = [ro for ro in self.relatedobject_set.all() if isinstance(ro.content_object, Activity)]
         if activities:
             activities = ", ".join((ro.content_object.name for ro in activities))
@@ -261,20 +307,37 @@ class DisciplineCase(models.Model):
         else:
             # some fallback marker
             d['ACTIVITIES'] = 'ASSIGNMENT/EXAM'
-        return d
+        
+        self.infodict = d
     
-    def contact_email(self):
+    def substitite_values(self, text):
         """
-        Contact email to the student (as arguments to send_mail())
+        Return field with substitutions as promised.
+        """
+        SUB_FIELDS = ['LNAME', 'FNAME', 'COURSE', 'ACTIVITIES']
+        if not hasattr(self, 'infodict'):
+            self.create_infodict()
+
+        template = text.replace("$", "$$")
+        for field in SUB_FIELDS:
+            template = template.replace("{{"+field+"}}", "${"+field+"}")
+
+        return string.Template(template).substitute(self.infodict)
+
+    def contact_email(self, message=None):
+        """
+        Contact email to the student (returned as arguments to send_mail())
         
         Use like: send_mail(*case.contact_email())
         """
-        message = EMAIL_TEMPLATE.substitute(introsentence=self.intro)
+        if message is None:
+            message = self.contact_email_text
+        message = self.substitite_values(message)
         return (
             'Academic dishonsty in %s' % (self.student.offering), # subject
             wrap(message, 72), # message body
             self.instructor.email(), # from email
-            [self.student.person.email(), self.instructor.email()] #recipients
+            [self.student.person.email(), self.instructor.email()] # recipients
             )
 
 
@@ -318,48 +381,23 @@ class CaseAttachment(models.Model):
     mediatype = models.CharField(null=True, blank=True, max_length=200)
 
 
-# from django/template/defaultfilters.py 
-_base_js_escapes = (
-    ('\\', r'\u005C'),
-    ('\'', r'\u0027'),
-    ('"', r'\u0022'),
-    ('>', r'\u003E'),
-    ('<', r'\u003C'),
-    ('&', r'\u0026'),
-    ('=', r'\u003D'),
-    ('-', r'\u002D'),
-    (';', r'\u003B'),
-    (u'\u2028', r'\u2028'),
-    (u'\u2029', r'\u2029')
-)
-
-# Escape every ASCII character with a value less than 32.
-_js_escapes = (_base_js_escapes +
-               tuple([('%c' % z, '\\u%04X' % z) for z in range(32)]))
-
-def escapejs(value):
-    """Hex encodes characters for use in JavaScript strings."""
-    for bad, good in _js_escapes:
-        value = value.replace(bad, good)
-    return value
-
 class DisciplineTemplate(models.Model):
     """
     A text template to help fill in a field in this app.
     """
-    field = models.CharField(max_length=30, null=False, choices=TEMPLATE_FIELDS.items())
-    label = models.CharField(max_length=50, null=False)
-    text = models.TextField(blank=True, null=True)
+    field = models.CharField(max_length=30, null=False, choices=TEMPLATE_FIELDS.items(),
+            verbose_name="Field", help_text="The field this template applies to")
+    label = models.CharField(max_length=50, null=False,
+            verbose_name="Label", help_text="A short label for the menu of templates")
+    text = models.TextField(blank=True, null=True,
+            verbose_name="Text", help_text='"The text for the template.  Templates can contain <a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a> (except the initial contact email) and substitutions described below.')
+    class Meta:
+        unique_together = (("field", "label"),)
     def __unicode__(self):
         return "%s: %s" % (self.field, self.label)
-    def sub_text(self, casedict):
+    def toJSON(self):
         """
-        Build the text with appropriate substitutions.
+        Convert this template to a JSON snippet.
         """
-        return string.Template(self.text).substitute(casedict)
-    def toJSON(self, casedict):
-        """
-        Convert this template to a JSON snippet, making substitutions in the text as specified in the casedict.
-        """
-        text = self.sub_text(casedict)
-        return """{'field': '%s', 'label': '%s', 'text': '%s'}"""% (escapejs(self.field), escapejs(self.label), escapejs(text))
+        return """{'field': '%s', 'label': '%s', 'text': '%s'}""" % \
+                (escapejs(self.field), escapejs(self.label), escapejs(self.text))

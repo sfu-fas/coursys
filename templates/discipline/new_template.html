@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}New Dishonesty Template{% endblock %}
+{% block h1 %}New Dishonesty Template{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.sysadmin %}">System Admin</a></li><li>&gt; <a href="{% url discipline.views.show_templates %}">Dishonesty Templates</a></li><li>&gt; New</li>{% endblock %}
+
+{% block actions %}{% endblock %}
+
+{% block content %}
+<div id="form_container">
+    <form action="{% url discipline.views.new_template %}" method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <p><input type="submit" value="Create Template" /></p>
+    </form>
+
+<h2 id="subs">Substitutions</h2>
+<p>The following substitutions will be made within the template:</p>
+{% include "discipline/substitutions.html" %}
+
+
+</div>
+{% endblock %}

@@ -16,7 +16,8 @@ $(document).ready(function() {
 <div id="form_container">
     <form action="{% url discipline.views.edit_facts course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
     <p>{{ form.facts.label }}:</p>
-    <div class="templates" id="templates_facts"></div>
+    <div class="discside" id="templates_facts"></div>
+    <div class="discside" id="group_facts"></div>
     <blockquote>{{ form.facts }}</blockquote>
     <p class="helptext">{{ form.facts.help_text|safe }}</p>
     <p><input type="submit" value="Update Facts" /></p>
