@@ -42,7 +42,7 @@ function setup_groupmembers(field) {
   if ( groupmembers.length > 0 ) {
     div = document.getElementById('group_'+field);
     h3 = document.createElement('h3');
-    h3.appendChild(document.createTextNode("Same value for:"));
+    h3.appendChild(document.createTextNode("Set same value for:"));
     div.appendChild(h3);
     ul = document.createElement('ul');
     div.appendChild(ul);

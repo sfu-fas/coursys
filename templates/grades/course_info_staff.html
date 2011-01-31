@@ -116,6 +116,7 @@
         <li><a href="{% url grades.views.student_search course_slug=course.slug %}">Student Search</a></li>
 	<li class="newsec"><a href="{% url dashboard.views.new_message course_slug=course.slug %}">Message Class</a></li>
 	{% if any_group %}<li><a href="{% url groups.views.groupmanage course_slug=course.slug %}">Manage Groups</a></li>{% endif %}
+        <li><a href="{% url discipline.views.index course_slug=course.slug %}">Dishonesty Cases</a></li>
     </ul>
 </div>
 {% endblock %}

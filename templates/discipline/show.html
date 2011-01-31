@@ -43,8 +43,15 @@
 </table>
 </div>
 
-<div id="nextstep">Suggested next step is to <a href="{{case.next_step_url}}">{{case.next_step_text}}</a>.</div>
+<div id="nextstep">
+{% if case.next_step %}
+Suggested next step is to <a href="{{case.next_step_url}}">{{case.next_step_text}}</a>.
+{% else %}
+Case is completed.
+{% endif %}
+</div>
 
+<div class="showcase">
 <h2 id="notes">Notes</h2>
 <dl>
 <dt>Case Notes (private)</dt>
@@ -61,13 +68,10 @@
 {% endfor %}</ul></dd>
 <dt>Attached Files</dt>
 <dd>{{case|edit_link:'attach'}}
-<ul>{% for att in case.caseattachment_set.all %}
-  <li><a href="">{{att}}</a></li>
+<ul>{% for f in case.caseattachment_set.all %}
+  <li>{{f.name}} (<a href="{% url discipline.views.download_file course_slug=course.slug case_slug=case.slug fileid=f.id %}">{{f.filename}}</a>, {{f.attachment.size|filesizeformat}}, {% if f.public %}public{% else %}private{% endif %})</li>
 {% empty %}<li class="empty">None</li>
 {% endfor %}</ul>
-
-
-
 </dd>
 </dl>
 
@@ -84,11 +88,11 @@
 <h2 id="meeting">Meeting with (or Email from) Student</h2>
 <dl>
 <dt>Meeting Date</dt>
-<dd>{{case|edit_link:'meeting_date'}}<p>{{case.meeting_date}}</p></dd>
+<dd>{{case|edit_link:'meeting'}}<p>{{case.meeting_date}}</p></dd>
 <dt>Meeting/Email Summary (included in letter)</dt>
-<dd>{{case|edit_link:'meeting_summary'}}{{case|format_field:'meeting_summary'}}</dd>
+<dd>{{case|edit_link:'meeting'}}{{case|format_field:'meeting_summary'}}</dd>
 <dt>Meeting/Email Notes (private)</dt>
-<dd>{{case|edit_link:'meeting_notes'}}{{case|format_field:'meeting_notes'}}</dd>
+<dd>{{case|edit_link:'meeting'}}{{case|format_field:'meeting_notes'}}</dd>
 </dl>
 
 <h2 id="facts">Facts and Decision</h2>
@@ -98,13 +102,24 @@
 <dt>Penalty assigned by instructor</dt>
 <dd>{{case|edit_link:'instr_penalty'}}<p>{{case.get_instr_penalty_display}}</p></dd>
 <dt>Refer to Chair/Director?</dt>
-<dd>{{case|edit_link:'refer_chair'}}<p>{{case.get_refer_chair_display}}</p></dd>
+<dd>{{case|edit_link:'instr_penalty'}}<p>{{case.get_refer_chair_display}}</p></dd>
 <dt>Penalty Rationale (included in letter)</dt>
-<dd>{{case|edit_link:'penalty_reason'}}{{case|format_field:'penalty_reason'}}</dd>
-<dt>Letter Reviewed?</dt>
-<dd>{{case|edit_link:'letter_review'}}<p>{{case.get_letter_review_display}}</p></dd>
+<dd>{{case|edit_link:'instr_penalty'}}{{case|format_field:'penalty_reason'}}</dd>
 </dl>
 
+<h2 id="facts">Finalizing Case</h2>
+<dl>
+<dt>Letter Reviewed?</dt>
+<dd>{{case|edit_link:'letter_review'}}<p>{{case.get_letter_review_display}}</p></dd>
+<dt>Letter Sent?</dt>
+<dd>{{case|edit_link:'letter_sent'}}<p>{{case.get_letter_sent_display}}</p>
+{% if case.letter_sent == "OTHR" %}
+{{case|format_field:'letter_text'}}
+{% endif %}</dd>
+<dt>Penalty Implemented?</dt>
+<dd>{{case|edit_link:'penalty_implemented'}}<p>{{case.get_penalty_implemented_display}}</p></dd>
+</dl>
 
+</div>
 
 {% endblock %}

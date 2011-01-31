@@ -36,6 +36,8 @@
   <dd><p>Penalty: {{case.get_instr_penalty_display}}</p>
   {% if case.penalty_reason %}{{case|format_field:'penalty_reason'}}{% endif %}
   </dd>
+<dt>Case referred to Chair/Director?</dt>
+  <dd><p>{{case.get_refer_chair_display}}</p></dd>
 </dl>
 
 

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Dishonesty Case for {{case.student.person.name}}: New File{% endblock %}
+{% block h1 %}Dishonesty Case for {{case.student.person.name}}: New File{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url discipline.views.index course_slug=course.slug %}">Discipline Cases</a></li><li>&gt; <a href="{% url discipline.views.show course_slug=course.slug case_slug=case.slug %}">Case for {{case.student.person.name}}</a></li><li>&gt; <a href="{% url discipline.views.edit_attach course_slug=course.slug case_slug=case.slug %}">Attached Files</a></li><li>&gt; New File</li>{% endblock %}
+
+{% block content %}
+<div id="form_container">
+    <form action="{% url discipline.views.new_file course_slug=course.slug case_slug=case.slug %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+    {{ form.non_field_errors }}
+    <p>{{form.case}}{{form.name.label}}: {{ form.name }} <span class="helptext">{{ form.name.help_text|safe }}</span></p>
+    {{form.name.errors}}
+
+    <p>{{form.attachment.label}}: {{ form.attachment }}</p>
+    {{form.attachment.errors}}
+    <p>{{form.public.label}} {{ form.public }} <span class="helptext">{{ form.public.help_text|safe }}</span></p>
+    
+    <p>{{ form.notes.label }}:</p>
+    <blockquote>{{ form.notes }}</blockquote>
+    <p class="helptext">{{ form.notes.help_text|safe }}</p>
+
+    <p><input type="submit" value="Create File" /></p>
+    </form>
+</div>
+{% endblock %}

@@ -4,6 +4,7 @@
 $(document).ready(function() {
   setup_templates("meeting_summary");
   setup_templates("meeting_notes");
+  setup_groupmembers("meeting_date");
 })
 $(document).ready(function() {
     $("#id_meeting_date").datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.png',
@@ -18,16 +19,20 @@ $(document).ready(function() {
 
 {% block content %}
 <div id="form_container">
-    <form action="{% url discipline.views.edit_meeting course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
+    <form action="{% url discipline.views.edit_case_info field='meeting' course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
+    <div class="discside" id="group_meeting_date"></div>
     <p>{{ form.meeting_date.label }}: {{ form.meeting_date }}</p>
+    {{form.meeting_date.errors}}
     <p class="helptext">{{ form.meeting_date.help_text|safe }}</p>
 
+    <hr class="fieldsep" />
     <p>{{ form.meeting_summary.label }}:</p>
     <div class="discside" id="templates_meeting_summary"></div>
     <div class="discside" id="group_meeting_summary"></div>
     <blockquote>{{ form.meeting_summary }}</blockquote>
     <p class="helptext">{{ form.meeting_summary.help_text|safe }}</p>
 
+    <hr class="fieldsep" />
     <p>{{ form.meeting_notes.label }}:</p>
     <div class="discside" id="templates_meeting_notes"></div>
     <div class="discside" id="group_meeting_notes"></div>

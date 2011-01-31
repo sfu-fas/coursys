@@ -3,6 +3,8 @@
 {% block jsextra %}
 $(document).ready(function() {
   setup_templates("contact_email_text");
+  setup_groupmembers("contacted");
+  setup_groupmembers("contact_date");
   $("#id_contact_date").datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.png',
                                 changeMonth: true, changeYear: true,
                                 dateFormat: 'yy-mm-dd', showOn: 'button'});
@@ -35,21 +37,25 @@ function contact_change() {
 }
 {% endblock %}
 
-{% block title %}Dishonesty Case for {{case.student.person.name}}: Edit Intro{% endblock %}
-{% block h1 %}Dishonesty Case for {{case.student.person.name}}: Edit Intro{% endblock %}
-{% block editlabel %}Intro{% endblock %}
+{% block title %}Dishonesty Case for {{case.student.person.name}}: Edit Initial Contact Info{% endblock %}
+{% block h1 %}Dishonesty Case for {{case.student.person.name}}: Edit Initial Contact Info{% endblock %}
+{% block editlabel %}Initial Contact Info{% endblock %}
 
 {% block content %}
 <div id="form_container">
-    <form action="{% url discipline.views.edit_contacted course_slug=course.slug case_slug=case.slug %}" method="post" onchange="contact_change()">{% csrf_token %}
+    <form action="{% url discipline.views.edit_case_info field='contacted' course_slug=course.slug case_slug=case.slug %}" method="post" onchange="contact_change()">{% csrf_token %}
     {{ form.non_field_errors }}
+    <div class="discside" id="group_contacted"></div>
     <p>{{ form.contacted.help_text }}
     	{{ form.contacted }}</p>
     <p class="actionwarning" id="warning"></p>
     
+    <hr class="fieldsep" />
+    <div class="discside" id="group_contact_date"></div>
     <p>{{ form.contact_date.label }}: {{ form.contact_date }}</p>
     <p class="helptext">{{ form.contact_date.help_text|safe }}</p>
     
+    <hr class="fieldsep" />
     <p>{{ form.contact_email_text.label }}:</p>
     <div class="discside" id="templates_contact_email_text"></div>
     <div class="discside" id="group_contact_email_text"></div>

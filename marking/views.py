@@ -504,6 +504,8 @@ def change_grade_status(request, course_slug, activity_slug, userid):
     else:
         numeric_grade = NumericGrade(activity=activity, member=member, flag="GRAD")
     
+    if 'status' in request.GET:
+        numeric_grade.flag = request.GET['status']
     error = None
     if request.method == 'POST':
         status_form = GradeStatusForm(data=request.POST, instance=numeric_grade, prefix='grade-status')

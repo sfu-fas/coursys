@@ -2,6 +2,7 @@
 
 {% block jsextra %}
 $(document).ready(function() {
+  setup_groupmembers("response");
 })
 {% endblock %}
 {% block title %}Dishonesty Case for {{case.student.person.name}}: Edit Student Response{% endblock %}
@@ -10,7 +11,8 @@ $(document).ready(function() {
 
 {% block content %}
 <div id="form_container">
-    <form action="{% url discipline.views.edit_response course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
+    <form action="{% url discipline.views.edit_case_info field='response' course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
+    <div class="discside" id="group_response"></div>
     <p>{{ form.response.help_text }}
     	{{ form.response }}</p>
     <p><input type="submit" value="Update Student Response" /></p>

@@ -11,7 +11,8 @@ from discipline.models import *
 from discipline.forms import *
 from discipline.content import *
 from log.models import LogEntry
-from courselib.auth import requires_course_staff_by_slug, requires_role, NotFoundResponse
+from courselib.auth import requires_course_staff_by_slug, requires_role, NotFoundResponse, ForbiddenResponse
+import re
 
 @requires_course_staff_by_slug
 def index(request, course_slug):
@@ -118,25 +119,90 @@ def showgroup(request, course_slug, group_slug):
     context = {'course': course, 'group': group}
     return render_to_response("discipline/showgroup.html", context, context_instance=RequestContext(request))
 
+
+also_set_re = re.compile("also-(?P<field>[[a-z_]+)-(?P<caseid>\d+)")
+def edit_case_info(request, course_slug, case_slug, field):
+    return _edit_case_info(request, course_slug, case_slug, field)
 def _edit_case_info(request, course_slug, case_slug, field):
     """
     View function for all of the "edit this aspect of the case" steps.  Uses the STEP_* dictionaries to get relevant strings/classes.
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
     case = get_object_or_404(DisciplineCase, slug=case_slug, student__offering__slug=course_slug)
+    if case.instr_done() and field in INSTR_STEPS+INSTR_FINAL:
+        # once case is closed, don't allow editing
+        return ForbiddenResponse(request)
+
     FormClass = STEP_FORM[field]
     if request.method == 'POST':
         form = FormClass(request.POST, instance=case)
         if form.is_valid():
             c=form.save()
+            if field in INSTR_STEPS:
+                c.letter_review = False
+                c.letter_sent = 'WAIT'
+                c.penalty_implemented = False
+                c.save()
+
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
                   description=("edit discipline case %s in %s: changed %s") % (c.slug, c.student.offering, STEP_DESC[field]),
                   related_object=c)
             l.save()
             messages.add_message(request, messages.SUCCESS, "Updated " + STEP_DESC[field] + '.')
-            if hasattr(c, 'just_emailed'):
+            
+            # set identical value for group members as requested
+            also_contact = []
+            for postfield in request.POST:
+                match = also_set_re.match(postfield)
+                if not match or request.POST[postfield] != "on":
+                    continue
+                
+                field = match.group('field')
+                caseid = match.group('caseid')
+                cases = DisciplineCase.objects.filter(id=caseid)
+                if len(cases) != 1 or cases[0].group != case.group:
+                    continue
+                c0 = cases[0]
+
+                if field=="contacted":
+                    # special case handled below
+                    also_contact.append(c0)
+                else:
+                    setattr(c0, field, form.cleaned_data[field])
+                    if field in INSTR_STEPS:
+                        c0.letter_review = False
+                    c0.save()
+                    messages.add_message(request, messages.SUCCESS,
+                        "Also updated %s for %s." % (STEP_DESC[field], c0.student.person.name()))
+                    
+            if hasattr(c, 'send_letter_now'):
+                # send instructor's letter
+                c.send_letter()
+                messages.add_message(request, messages.INFO, "Letter sent to student summarizing case.")
+
+            if hasattr(c, 'send_contact_mail'):
+                # send initial contact email
+                c.send_contact_email()
                 messages.add_message(request, messages.INFO, "Email sent to student notifying of case.")
+                for c0 in also_contact:
+                    textkey = 'also-contact_email_text-' + str(c0.id)
+                    if textkey in request.POST and request.POST[textkey]=="on":
+                        # only send the email if text was updated too
+                        c0.contacted = form.cleaned_data['contacted']
+                        c0.save()
+                        messages.add_message(request, messages.SUCCESS,
+                            "Also updated %s for %s." % (STEP_DESC['contacted'], c0.student.person.name()))
+                        c0.send_contact_email()
+                        messages.add_message(request, messages.INFO, "Also emailed %s." % (c0.student.person.name()))
+                    else:
+                        # if not, give an error message.
+                        messages.add_message(request, messages.ERROR,
+                            mark_safe('Email not sent to %s since message text not updated. You can <a href="%s">edit their contact info</a> if you wish.'
+                            % (c0.student.person.name(),
+                                reverse('discipline.views.edit_case_info',
+                                    kwargs={'field': 'contacted', 'course_slug': course_slug, 'case_slug': c0.slug}))))
+            
             return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
     else:
         form = FormClass(instance=case)
@@ -149,27 +215,6 @@ def _edit_case_info(request, course_slug, case_slug, field):
         'templatesJSON': mark_safe(tempaltesJSON), 'groupmembersJSON': mark_safe(groupmembersJSON)}
     return render_to_response("discipline/edit_"+field+".html", context, context_instance=RequestContext(request))
 
-@requires_course_staff_by_slug
-def edit_notes(request, course_slug, case_slug):
-    return _edit_case_info(request, course_slug, case_slug, "notes")
-@requires_course_staff_by_slug
-def edit_contacted(request, course_slug, case_slug):
-    return _edit_case_info(request, course_slug, case_slug, "contacted")
-@requires_course_staff_by_slug
-def edit_response(request, course_slug, case_slug):
-    return _edit_case_info(request, course_slug, case_slug, "response")
-@requires_course_staff_by_slug
-def edit_meeting(request, course_slug, case_slug):
-    return _edit_case_info(request, course_slug, case_slug, "meeting")
-@requires_course_staff_by_slug
-def edit_facts(request, course_slug, case_slug):
-    return _edit_case_info(request, course_slug, case_slug, "facts")
-@requires_course_staff_by_slug
-def edit_instr_penalty(request, course_slug, case_slug):
-    return _edit_case_info(request, course_slug, case_slug, "instr_penalty")
-@requires_course_staff_by_slug
-def edit_letter_review(request, course_slug, case_slug):
-    return _edit_case_info(request, course_slug, case_slug, "letter_review")
 
 @requires_course_staff_by_slug
 def edit_related(request, course_slug, case_slug):
@@ -238,20 +283,95 @@ def edit_related(request, course_slug, case_slug):
         form = CaseRelatedForm(initial=initial)
         form.set_choices(course, case)
     
-    context = {'course': course, 'case': case, 'form': form, 'templatesJSON': '[]'}
+    groupmembersJSON = case.groupmembersJSON()
+    
+    context = {'course': course, 'case': case, 'form': form,
+            'templatesJSON': '[]', 'groupmembersJSON': mark_safe(groupmembersJSON)}
     return render_to_response("discipline/edit_related.html", context, context_instance=RequestContext(request))
 
 
-@requires_course_staff_by_slug
-def edit_attach(request, course_slug, case_slug):
-    pass
+# Attachment editing views
 
 @requires_course_staff_by_slug
-def show_letter(request, course_slug, case_slug):
+def edit_attach(request, course_slug, case_slug):
+    """
+    Front page of the file attachments interface
+    """
     course = get_object_or_404(CourseOffering, slug=course_slug)
     case = get_object_or_404(DisciplineCase, slug=case_slug, student__offering__slug=course_slug)
-    context = {'course': course, 'case': case}
-    return render_to_response("discipline/show_letter.html", context, context_instance=RequestContext(request))
+    attach_pub = CaseAttachment.objects.filter(case=case, public=True)
+    attach_pri = CaseAttachment.objects.filter(case=case, public=False)
+    
+    groupmembersJSON = case.groupmembersJSON()
+    context = {'course': course, 'case': case, 'attach_pub': attach_pub, 'attach_pri': attach_pri,
+            'templatesJSON': '[]', 'groupmembersJSON': mark_safe(groupmembersJSON)}
+    return render_to_response("discipline/show_attach.html", context, context_instance=RequestContext(request))
+
+@requires_course_staff_by_slug
+def new_file(request, course_slug, case_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    case = get_object_or_404(DisciplineCase, slug=case_slug, student__offering__slug=course_slug)
+
+    if request.method == 'POST':
+        form = NewAttachFileForm(case, request.POST, request.FILES)
+        if form.is_valid():
+            f = form.save()
+            mediatype = request.FILES['attachment'].content_type
+            f.mediatype = mediatype
+            f.save()
+            
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("edit discipline case %s in %s: add attachment %s") % (case.slug, case.student.offering, f.name),
+                  related_object=case)
+            l.save()
+            messages.add_message(request, messages.SUCCESS, 'Created file attachment "%s".' % (f.name))
+            return HttpResponseRedirect(reverse('discipline.views.edit_attach', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
+    else:
+        form = NewAttachFileForm(case)
+
+    context = {'course': course, 'case': case, 'form': form}
+    return render_to_response("discipline/new_file.html", context, context_instance=RequestContext(request))
+
+@requires_course_staff_by_slug
+def download_file(request, course_slug, case_slug, fileid):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    case = get_object_or_404(DisciplineCase, slug=case_slug, student__offering__slug=course_slug)
+    attach = get_object_or_404(CaseAttachment, case__slug=case_slug, case__student__offering__slug=course_slug, id=fileid)
+
+    attach.attachment.open()
+    resp = HttpResponse(attach.attachment, mimetype=attach.mediatype)
+    resp['Content-Disposition'] = 'inline; filename=' + attach.filename()
+
+    return resp
+
+@requires_course_staff_by_slug
+def edit_file(request, course_slug, case_slug, fileid):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    case = get_object_or_404(DisciplineCase, slug=case_slug, student__offering__slug=course_slug)
+    attach = get_object_or_404(CaseAttachment, case__slug=case_slug, case__student__offering__slug=course_slug, id=fileid)
+
+    if request.method == 'POST':
+        form = EditAttachFileForm(request.POST, request.FILES, instance=attach)
+        if form.is_valid():
+            f = form.save()
+            
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("edit discipline case %s in %s: edited attachment %s") % (case.slug, case.student.offering, f.name),
+                  related_object=case)
+            l.save()
+            messages.add_message(request, messages.SUCCESS, 'Updated file attachment "%s".' % (f.name))
+            return HttpResponseRedirect(reverse('discipline.views.edit_attach', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
+    else:
+        form = EditAttachFileForm(instance=attach)
+
+    context = {'course': course, 'case': case, 'attach': attach, 'form': form}
+    return render_to_response("discipline/edit_file.html", context, context_instance=RequestContext(request))
+    
+
+
+# Template editing views for sysadmin interface
 
 @requires_role("SYSA")
 def show_templates(request):

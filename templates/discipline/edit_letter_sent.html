@@ -1,0 +1,50 @@
+{% extends "discipline/editbase.html" %}
+
+{% block jsextra %}
+$(document).ready(function() {
+  sent_change();
+})
+
+function sent_change() {
+  // set the page up appropriately to this radio-button selection
+  var value = $('input:radio[name=letter_sent]:checked').val();
+  var div = $('#warning');
+  var submit = $('#submitbutton');
+  var text = $('#id_letter_text');
+  if ( value=="WAIT" ) {
+    div.html( "" );
+    submit.val("Update Letter Status");
+    text.attr("disabled", true);
+  } else if ( value=="MAIL" ) {
+    div.html( 'Submitting with "Letter emailed (by system)" selected will cause the official letter to be sent to the student (and instructor).' );
+    submit.val("Update Letter Status and EMAIL THE STUDENT");
+    text.attr("disabled", true);
+  } else if ( value=="OTHR" ) {
+    div.html( 'Enter information about how the student was contacted below.' );
+    submit.val("Update Letter Status");
+    text.attr("disabled", false);
+  }
+}
+{% endblock %}
+
+{% block title %}Dishonesty Case for {{case.student.person.name}}: Edit Letter Status{% endblock %}
+{% block h1 %}Dishonesty Case for {{case.student.person.name}}: Edit Letter Status{% endblock %}
+{% block editlabel %}Letter Status{% endblock %}
+
+{% block content %}
+<div id="form_container">
+    <form action="{% url discipline.views.edit_case_info field='letter_sent' course_slug=course.slug case_slug=case.slug %}" method="post" onchange="sent_change()">{% csrf_token %}
+    {{ form.non_field_errors }}
+    <p>{{ form.letter_sent.help_text }}
+    	{{ form.letter_sent }}</p>
+    <p class="actionwarning" id="warning"></p>
+
+    <hr class="fieldsep" />
+    <p>Details of letter delivery:</p>
+    <blockquote>{{ form.letter_text }}</blockquote>
+
+    <p><input type="submit" value="Update Letter Status" id="submitbutton" /></p>
+    </form>
+</div>
+
+{% endblock %}

@@ -3,6 +3,7 @@ from coredata.models import Person, Member, CourseOffering
 from grades.models import Activity
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
+from django.core.mail import EmailMessage, EmailMultiAlternatives
 from django.core.urlresolvers import reverse
 from autoslug import AutoSlugField
 from django.core.files.storage import FileSystemStorage
@@ -10,7 +11,7 @@ from django.utils.text import wrap
 from django.conf import settings
 #from django.utils.safestring import mark_safe
 from discipline.content import *
-import string
+import string, os, datetime
 #import external.textile as textile
 #Textile = textile.Textile(restricted=True)
 
@@ -44,18 +45,21 @@ CHAIR_PENALTY_CHOICES = (
         ('OTHE', 'other penalty: see rationale'),
         )
 LETTER_CHOICES = (
-        ('WAIT', 'Not yet contacted'),
+        ('WAIT', 'Not yet sent'),
         ('MAIL', 'Letter emailed (by system)'),
         ('OTHR', 'Letter delivered (outside of this system)'),
         )
+INSTR_STEPS = ['contacted', 'response', 'meeting', 'meeting_date', 'meeting_summary', 'facts', 'instr_penalty']
+INSTR_FINAL = ['letter_review', 'letter_sent', 'penalty_implemented']
 DisciplineSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
-STEP_VIEW = { # map of field -> view function ("edit_foo") that is used to edit it.
+STEP_VIEW = { # map of field/form -> view function ("edit_foo") that is used to edit it.
         'notes': 'notes',
         'related': 'related',
         'attach': 'attach',
         'contacted': 'contacted',
         'response': 'response',
+        'meeting': 'meeting',
         'meeting_date': 'meeting',
         'meeting_summary': 'meeting',
         'meeting_notes': 'meeting',
@@ -65,6 +69,7 @@ STEP_VIEW = { # map of field -> view function ("edit_foo") that is used to edit 
         'penalty_reason': 'instr_penalty',
         'letter_review': 'letter_review',
         'letter_sent': 'letter_sent',
+        'penalty_implemented': 'penalty_implemented',
         }
 STEP_TEXT = { # map of field -> description of what the step
         'notes': 'edit your notes on the case',
@@ -76,23 +81,27 @@ STEP_TEXT = { # map of field -> description of what the step
         'instr_penalty': 'assign a penalty',
         'letter_review': 'review letter to student',
         'letter_sent': "send instructor's letter",
+        'penalty_implemented': "confirm penalty has been implemented",
         }
 STEP_DESC = { # map of field/form -> description of what is being edited
         'notes': 'instructor notes',
         'related': 'related items',
         'attach': 'attached files',
         'contacted': 'initial contact information',
+        'contact_date': 'initial contact date',
+        'contact_email_text': 'initial contact email text',
         'response': 'student response details',
         'meeting': 'student meeting/email details',
-        'meeting_date': 'student meeting/email details',
-        'meeting_summary': 'student meeting/email details',
-        'meeting_notes': 'student meeting/email details',
+        'meeting_date': 'student meeting/email date',
+        'meeting_summary': 'student meeting/email summary',
+        'meeting_notes': 'student meeting/email notes',
         'facts': 'facts of the case',
         'instr_penalty': 'penalty (from instructor)',
-        'refer_chair': 'penalty (from instructor)',
-        'penalty_reason': 'penalty (from instructor)',
+        'refer_chair': 'Chair/Director referral',
+        'penalty_reason': 'penalty rationale',
         'letter_review': 'review status',
-        'letter_sent': "instructor's letter",
+        'letter_sent': "instructor's letter status",
+        'penalty_implemented': 'penalty confirmation'
         }
 TEMPLATE_FIELDS = { # fields that can have a template associated with them
         'notes': 'instructor notes',
@@ -187,10 +196,9 @@ class DisciplineCase(models.Model):
             help_text='Has instructor reviewed the letter before sending?')
     letter_sent = models.CharField(max_length=4, choices=LETTER_CHOICES, default="WAIT", verbose_name="Letter Sent?",
             help_text='Has the letter been sent to the student and Chair/Director?')
+    letter_text = models.TextField(blank=True, null=True, verbose_name="Letter Text")
     penalty_implemented = models.BooleanField(default=False, verbose_name="Penalty Implemented?", 
             help_text='Has instructor implemented the assigned penalty?')
-    instr_done = models.BooleanField(default=False, verbose_name="Closed?", 
-            help_text='Case closed for the instructor?')
     
     # fields for chair/director
     chair_meeting_date = models.DateField(blank=True, null=True,
@@ -228,6 +236,17 @@ class DisciplineCase(models.Model):
             return "Yes"
         else:
             return "No"
+    def get_penalty_implemented_display(self):
+        if self.penalty_implemented:
+            return "Yes"
+        else:
+            return "No"
+    def public_attachments(self):
+        return CaseAttachment.objects.filter(case=self, public=True)
+    def related_activities(self):
+        return [ro for ro in self.relatedobject_set.all() if isinstance(ro.content_object, Activity)]
+    def instr_done(self):
+        return self.penalty_implemented
     
     def groupmembersJSON(self):
         """
@@ -274,8 +293,8 @@ class DisciplineCase(models.Model):
         The URL to edit view for the next step.
         """
         step = self.next_step()
-        return reverse('discipline.views.edit_'+STEP_VIEW[step],
-            kwargs={'course_slug':self.student.offering.slug, 'case_slug': self.slug})
+        return reverse('discipline.views.edit_case_info',
+            kwargs={'field': STEP_VIEW[step], 'course_slug':self.student.offering.slug, 'case_slug': self.slug})
 
     def next_step_text(self):
         """
@@ -297,12 +316,13 @@ class DisciplineCase(models.Model):
             }
         
         # get list of activities as English
-        activities = [ro for ro in self.relatedobject_set.all() if isinstance(ro.content_object, Activity)]
+        activities = self.related_activities()
         if activities:
             activities = ", ".join((ro.content_object.name for ro in activities))
             # replace the last ", " with " and "
             pos = activities.rfind(", ")
-            activities = activities[:pos] + " and " + activities[(pos+2):]
+            if pos!=-1:
+                activities = activities[:pos] + " and " + activities[(pos+2):]
             d['ACTIVITIES'] = activities
         else:
             # some fallback marker
@@ -324,21 +344,43 @@ class DisciplineCase(models.Model):
 
         return string.Template(template).substitute(self.infodict)
 
-    def contact_email(self, message=None):
+    def send_contact_email(self):
         """
-        Contact email to the student (returned as arguments to send_mail())
+        Send contact email to the student and CC instructor
+        """
+        body = wrap(self.substitite_values(self.contact_email_text), 72)
         
-        Use like: send_mail(*case.contact_email())
-        """
-        if message is None:
-            message = self.contact_email_text
-        message = self.substitite_values(message)
-        return (
-            'Academic dishonsty in %s' % (self.student.offering), # subject
-            wrap(message, 72), # message body
-            self.instructor.email(), # from email
-            [self.student.person.email(), self.instructor.email()] # recipients
+        email = EmailMessage(
+            subject='Academic dishonesty in %s' % (self.student.offering),
+            body=body,
+            from_email=self.instructor.email(),
+            to=[self.student.person.email(), self.instructor.email()],
             )
+        
+        email.send(fail_silently=False)
+
+    def send_letter(self):
+        """
+        Send instructor's letter to the student and CC instructor
+        """
+        from django.template.loader import render_to_string
+        html_body = "<html><body>" + render_to_string('discipline/letter_body.html', { 'case': self }) + "</body></html>"
+        text_body = "See letter online."
+        self.letter_text = html_body
+        self.save()
+        email = EmailMultiAlternatives(
+            subject='Academic dishonesty in %s' % (self.student.offering),
+            body=text_body,
+            from_email=self.instructor.email(),
+            to=[self.student.person.email(), self.instructor.email()],
+            )
+        email.attach_alternative(html_body, "text/html")
+        attach = self.public_attachments()
+        for f in attach:
+            f.attachment.open()
+            email.attach(f.filename(), f.attachment.read(), f.mediatype)
+        
+        email.send(fail_silently=False)
 
 
 class RelatedObject(models.Model):
@@ -360,25 +402,32 @@ class CaseAttachment(models.Model):
     """
     A piece of evidence to attach to a case
     """
-    case = models.ForeignKey(DisciplineCase)
-    name = models.CharField(max_length=255, blank=True, null=True)
-    notes = models.TextField(blank=True, null=True)
-    public = models.BooleanField(default=False, verbose_name="Public?", 
-            help_text='Should this file be sent to the student?')
-        
     def upload_to(instance, filename):
         """
         path to upload case attachment
         """
         fullpath = os.path.join(
-            instance.student.activity.offering.slug,
-            instance.activity.slug + "_discipline",
-            datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.created_by),
+            instance.case.student.offering.slug,
+            "_discipline",
+            str(instance.case.id),
+            datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
             filename.encode('ascii', 'ignore'))
-        return fullpath 
+        return fullpath
 
-    attachment = models.FileField(upload_to=upload_to, max_length=500)
+    case = models.ForeignKey(DisciplineCase)
+    name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Name", help_text="Identifying name for the attachment")
+    attachment = models.FileField(upload_to=upload_to, max_length=500, verbose_name="File")
     mediatype = models.CharField(null=True, blank=True, max_length=200)
+    public = models.BooleanField(default=False, verbose_name="Public?", 
+            help_text='Public files will be included in correspondence as evidence.')
+
+    notes = models.TextField(blank=True, null=True, verbose_name="Notes", help_text="Notes about this file (private).")
+
+    class Meta:
+        unique_together = (("case", "name"),)
+    def filename(self):
+        return os.path.basename(self.attachment.name)
+
 
 
 class DisciplineTemplate(models.Model):

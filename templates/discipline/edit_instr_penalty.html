@@ -3,6 +3,8 @@
 {% block jsextra %}
 $(document).ready(function() {
   setup_templates("penalty_reason");
+  setup_groupmembers("instr_penalty");
+  setup_groupmembers("refer_chair");
 })
 {% endblock %}
 
@@ -14,13 +16,17 @@ $(document).ready(function() {
 
 {% block content %}
 <div id="form_container">
-    <form action="{% url discipline.views.edit_instr_penalty course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
+    <form action="{% url discipline.views.edit_case_info field='instr_penalty' course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
+    <div class="discside" id="group_instr_penalty"></div>
     <p>{{ form.instr_penalty.help_text }}
     	{{ form.instr_penalty }}</p>
 
+    <hr class="fieldsep" />
+    <div class="discside" id="group_refer_chair"></div>
     <p>{{ form.refer_chair.help_text }}
     	{{ form.refer_chair }}</p>
     
+    <hr class="fieldsep" />
     <p>{{ form.penalty_reason.label }}:</p>
     <div class="discside" id="templates_penalty_reason"></div>
     <div class="discside" id="group_penalty_reason"></div>

@@ -1,7 +1,13 @@
 from django import forms
-from discipline.models import DisciplineCase, DisciplineGroup, DisciplineTemplate
-from coredata.models import Member
 from django.core.mail import send_mail
+from django.core.urlresolvers import reverse
+from django.utils.safestring import mark_safe
+from discipline.models import *
+from grades.models import Activity
+from coredata.models import Member
+from groups.models import GroupMember
+from submission.models import StudentSubmission, GroupSubmission
+import itertools
 import datetime
 
 class DisciplineGroupForm(forms.ModelForm):
@@ -62,18 +68,14 @@ class CaseNotesForm(forms.ModelForm):
         }
 class CaseContactedForm(forms.ModelForm):
     def clean(self):
-        """
-        Send the mail if appropriate.
-        """
         contacted = self.cleaned_data['contacted']
         text = self.cleaned_data['contact_email_text']
 
         if contacted=="MAIL":
             if not text.strip():
                 raise forms.ValidationError('Must enter email text: email is sent to student on submitting this form.')
-            send_mail( *self.instance.contact_email(message=text) )
             self.cleaned_data['contact_date'] = datetime.date.today()
-            self.instance.just_emailed = True
+            self.instance.send_contact_mail = True # trigger email sending in view logic
         elif contacted=="OTHR":
             if not self.cleaned_data['contact_date']:
                 raise forms.ValidationError('Please enter the date of initial contact about the case.')
@@ -95,6 +97,12 @@ class CaseResponseForm(forms.ModelForm):
             'response': forms.RadioSelect(),
         }
 class CaseMeetingForm(forms.ModelForm):
+    def clean_meeting_date(self):
+        date = self.cleaned_data['meeting_date']
+        if date > datetime.date.today():
+            raise forms.ValidationError("Cannot select meeting/email date in the future.")
+        return date
+
     class Meta:
         model = DisciplineCase
         fields = ("meeting_date", "meeting_summary", "meeting_notes")
@@ -118,14 +126,70 @@ class CaseInstrPenaltyForm(forms.ModelForm):
             'penalty_reason': forms.Textarea(attrs={'cols':'80', 'rows':'10'}),
         }
 class CaseLetterReviewForm(forms.ModelForm):
+    def clean_letter_review(self):
+        review = self.cleaned_data['letter_review']
+        if review:
+            # cannot set to true if other required fields not filled in
+            case = self.instance
+            step = case.next_step()
+            if step in INSTR_STEPS:
+                raise forms.ValidationError(
+                    mark_safe('Cannot finalize letter: have not entered <a href="%s">%s</a>.'
+                        % (reverse('discipline.views.edit_case_info',
+                            kwargs={'field': STEP_VIEW[step], 'course_slug':case.student.offering.slug, 'case_slug':case.slug}),
+                        STEP_DESC[step])))
+
+        return review
+
     class Meta:
         model = DisciplineCase
         fields = ("letter_review",)
 
-from grades.models import Activity
-from groups.models import GroupMember
-from submission.models import StudentSubmission, GroupSubmission
-import itertools
+class CaseLetterSentForm(forms.ModelForm):
+    def clean(self):
+        letter_sent = self.cleaned_data['letter_sent']
+        text = self.cleaned_data['letter_text']
+        case = self.instance
+
+        if letter_sent=="MAIL":
+            if not case.letter_review:
+                raise forms.ValidationError(
+                    mark_safe('Cannot send letter: it has not <a href="%s">been reviewed</a>.'
+                        % (reverse('discipline.views.edit_case_info',
+                            kwargs={'field': 'letter_review', 'course_slug':case.student.offering.slug, 'case_slug':case.slug}))))
+            self.instance.send_letter_now = True # trigger email sending in view logic
+        elif letter_sent=="OTHR":
+            if not text.strip():
+                raise forms.ValidationError('Please enter details of the letter delivery.')
+
+        return self.cleaned_data
+
+    class Meta:
+        model = DisciplineCase
+        fields = ("letter_sent","letter_text")
+        widgets = {
+            'letter_sent': forms.RadioSelect(),
+        }
+
+class CasePenaltyImplementedForm(forms.ModelForm):
+    def clean_penalty_implemented(self):
+        impl = self.cleaned_data['penalty_implemented']
+        print `impl`
+        print self.instance.letter_sent
+        if impl and self.instance.letter_sent=="WAIT":
+            # cannot set to true if letter not sent
+            raise forms.ValidationError(
+                mark_safe('Cannot implement penalty: have not <a href="%s">sent letter</a>.'
+                    % (reverse('discipline.views.edit_case_info',
+                        kwargs={'field': 'letter_sent', 'course_slug':self.instance.student.offering.slug, 'case_slug':self.instance.slug}))))
+
+        return impl
+
+    class Meta:
+        model = DisciplineCase
+        fields = ("penalty_implemented",)
+
+
 class CaseRelatedForm(forms.Form):
     activities = forms.MultipleChoiceField(label="Activities in the course", widget=forms.SelectMultiple(attrs={'size':'8'}), required=False)
     submissions = forms.MultipleChoiceField(label="Submissions by this student (or groups they are in)", widget=forms.SelectMultiple(attrs={'size':'8'}), required=False)
@@ -162,5 +226,39 @@ STEP_FORM = { # map of field -> form for editing it (all ModelForm for Disciplin
         'facts': CaseFactsForm,
         'instr_penalty': CaseInstrPenaltyForm,
         'letter_review': CaseLetterReviewForm,
+        'letter_sent': CaseLetterSentForm,
+        'penalty_implemented': CasePenaltyImplementedForm,
         }
+
+
+
+
+class NewAttachFileForm(forms.ModelForm):
+    def __init__(self, case, *args, **kwargs):
+        super(NewAttachFileForm, self).__init__(*args, **kwargs)
+        # force the right case into place
+        self.case = case
+        self.fields['case'].initial = case.id
+    
+    def clean_case(self):
+        if self.cleaned_data['case'] != self.case:
+            raise forms.ValidationError("Wrong case.")
+        return self.cleaned_data['case']
+    
+    class Meta:
+        model = CaseAttachment
+        exclude = ['mediatype']
+        widgets = {
+            'case': forms.HiddenInput(),
+        }
+
+class EditAttachFileForm(forms.ModelForm):
+    def clean_case(self):
+        if self.cleaned_data['case'] != self.case:
+            raise forms.ValidationError("Wrong case.")
+        return self.cleaned_data['case']
+    
+    class Meta:
+        model = CaseAttachment
+        exclude = ['case', 'attachment', 'mediatype']
 
