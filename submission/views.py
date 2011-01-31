@@ -61,7 +61,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
         gm = GroupMember.objects.filter(student__person=student, activity=activity, confirmed=True)
         if gm:
             group = gm[0].group
-            messages.add_message(request, messages.WARNING, "This is a group submission. You will submit on behalf of the group %s." % group.name)
+            member = gm[0].student
         else:
             group = None
             cansubmit = False
@@ -71,15 +71,88 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
 
     # activity should be submitable
     cansubmit = cansubmit and activity.submitable()
-    
-    return render_to_response("submission/" + template,
+
+    if not cansubmit:
+        messages.add_message(request, messages.ERROR, "This activity is not submittable.")
+        return render_to_response("submission/" + template,
         {"course":course, "activity":activity, "submission": submission, "submitted_components":submitted_components, "userid":userid, "late":late, "student":student, "group":group, "cansubmit":cansubmit},
         context_instance=RequestContext(request))
 
+    # get all components of activity
+    component_list = select_all_components(activity)
+    component_list.sort()
+    component_form_list=[]
 
-#student's submission page
+    if request.method == 'POST':
+        component_form_list = make_form_from_list(component_list, request=request)
+        submitted_comp = []    # list all components which has content submitted in the POST
+        not_submitted_comp = [] #list allcomponents which has no content submitted in the POST
+        if not activity.group:
+            new_sub = StudentSubmission()   # the submission foreign key for newly submitted components
+            new_sub.member = get_object_or_404(Member, offering__slug=course_slug, person__userid=request.user.username)
+        elif gm:
+            new_sub = GroupSubmission()
+            new_sub.group = group
+            new_sub.creator = member
+        else:
+            messages.add_message(request, messages.ERROR, "This is a group submission. You cannot submit since you aren't in a group.")
+            return ForbiddenResponse(request)
+        new_sub.activity = activity
+        new_sub_saved = False
+
+        for data in component_form_list:
+            component = data['comp']
+            form = data['form']
+
+            #form[1].component = form[0]
+            if form.is_valid():
+                #save the foreign submission first at the first time a submission component is read in
+                if new_sub_saved == False:
+                    # save the submission forgein key
+                    new_sub_saved = True
+                    new_sub.save()
+
+                sub = form.save(commit=False)
+                sub.submission = new_sub
+                sub.component = component
+                sub.save()
+
+                submitted_comp.append(sub)
+                #LOG EVENT#
+                if activity.group:
+                    group_str = " as a member of group %s" % new_sub.group.name
+                else:
+                    group_str = ""
+                l = LogEntry(userid=request.user.username,
+                      description=("submitted for %s %s" + group_str) % (activity, sub.component.title),
+                      related_object=sub)
+                l.save()
+            else:
+                not_submitted_comp.append(component)
+
+        if len(not_submitted_comp) == 0:
+            messages.add_message(request, messages.SUCCESS, "Your submission was successful.")
+            return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
+
+        return render_to_response("submission/submission_error.html",
+            {"course":course, "activity":activity, "component_list":component_form_list,
+            "submitted_comp":submitted_comp, "not_submitted_comp":not_submitted_comp},
+            context_instance=RequestContext(request))
+    else: #not POST
+        if activity.group and gm:
+            messages.add_message(request, messages.WARNING, "This is a group submission. You will submit on behalf of the group %s." % group.name)
+    
+
+        component_form_list = make_form_from_list(component_list)
+        return render_to_response("submission/" + template,
+        {'component_form_list': component_form_list, "course": course, "activity": activity, "submission": submission, "submitted_components":submitted_components, "userid":userid, "late":late, "student":student, "group":group, "cansubmit":cansubmit},
+        context_instance = RequestContext(request))
+
+
+
+#student's submission page, not used any more
 @requires_course_by_slug
-def add_submission(request, course_slug, activity_slug):
+def xxxx_add_submission(request, course_slug, activity_slug):
     """
     enable student to upload files to a activity
     """

@@ -950,6 +950,39 @@ fieldset .hidden {
     background-color: #e9eef7;
 }
 
+div#submission_form_container{
+    width: 600px;
+    margin: 0.5em;
+    background: none;
+
+}
+
+#submission_form_container fieldset{
+   background: none;
+   background-color: #FFE6ED;
+
+}
+
+#submission_form_container fieldset h2{
+    margin: 0.5em 0 0 2em;
+    font-size: 1.1em;
+    color: #666;
+}
+
+#submission_form_container fieldset p {
+    margin-left: 11em;
+}
+
+#submission_form_container fieldset li{
+    list-style-type: none;
+}
+
+#submission_form_container fieldset li input{
+    border-bottom: 1px dashed #666;
+    width: 280px;
+}
+
+
 /* marking style */
 .marking_a
 {

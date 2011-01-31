@@ -78,7 +78,7 @@ urlpatterns += patterns('',
 
     #url(r'^' + COURSE_SLUG + '/submission/$', 'submission.views.index'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/$', 'submission.views.show_components'),
-    url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/new$', 'submission.views.add_submission'),
+    #url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/new$', 'submission.views.add_submission'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/history$', 'submission.views.show_components_submission_history'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/download$', 'submission.views.download_activity_files'),
     #url(r'^' + COURSE_SLUG + '/submission/' + ACTIVITY_SLUG + '/view/' + USERID_SLUG + '/history/$', 'submission.views.show_student_history_staff'),

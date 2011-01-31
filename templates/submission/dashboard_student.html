@@ -7,13 +7,10 @@
 
 
 {% block actions %}
-{% if cansubmit or submission %}
+{% if submission %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-        {% if cansubmit %}
-        <li><a href="{% url submission.views.add_submission course_slug=course.slug, activity_slug=activity.slug %}">New Submission</a></li>
-        {% endif %}
         {% if submission %}
         <li><a href="{% url submission.views.show_components_submission_history course_slug=course.slug activity_slug=activity.slug %}">View History</a></li>
         <li><a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=userid %}">Download</a></li>
@@ -23,7 +20,9 @@
 {% endif %}
 {% endblock %}
 
+
 {% block content%}
+
 {% ifequal submitted_pair|length 0 %}
     {# there is no component #}
 {% else %}
@@ -56,6 +55,25 @@
             </tr>
         </table>
         </div>
+
+        {% if cansubmit %}
+            <div id="submission_form_container">
+            <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+                <fieldset>
+                    <legend>Activity Submission</legend>
+                    {% for data in component_form_list %}
+                        <h2>{{data.comp.title}}</h2>
+                        {% if data.comp.description %}<div><label>Description:</label><p>{{data.comp.description}}</p></div>{% endif %}
+                        {% if data.comp.max_size %}<div><label>Max File Size:</label><p>{{data.comp.max_size}} KB</p></div>{% endif %}
+                        {% if data.comp.allowed %}<div><label>Allowed File Types:</label><p>{{data.comp.allowed}}</p></div>{% endif %}
+                        {{data.form.as_ul}}
+                    {% endfor %}
+                <input type ="submit" value ="Submit" class ="submit"/>
+                </fieldset>
+
+            </form>
+            </div>
+        {% endif %}
 
         <div id="form_container">
         <div id="component_view_student_container">
