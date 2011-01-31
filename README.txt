@@ -23,4 +23,3 @@ serialize.py: code to create more JSON data for test_data.json.  See comments in
 media: static web files (CSS, JS, images, etc.)
 
 All other files are the standard Django setup.
-
