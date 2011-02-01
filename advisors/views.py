@@ -27,6 +27,11 @@ def search(request):
     else:
        return HttpResponse('input error')
 
+def detail(request, note_id):
+    note = get_object_or_404(Notes, id=note_id)
+    
+    return HttpResponse(note)
+
 # --------------View and Add Notes------------------------
 
 #Add Notes, only advisor can do it
@@ -51,7 +56,7 @@ def search(request):
 
 #View Notes, students can read the notes of themselves, advisors can read all the notes for the choosen student
 #@login_required
-def view_notes(request):
+def view_notes(request, userid):
 	 #query = request.GET['index_text']
 
 #        try:
@@ -60,10 +65,6 @@ def view_notes(request):
 #                raise Http404
 #           results = Notes.objects.filter(student=std).order_by('created_date')
 
-#        try:
-#                list_of_notes = Note.objects.get(...)
-#        except Note.DoesNotExist:
-#                raise Http404
 	return HttpResponse('fff')
 #        return render_to_response("advisors/Detail.html", {'note':list_of_notes})
 

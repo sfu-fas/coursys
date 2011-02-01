@@ -15,7 +15,7 @@
 				<td>{{result.first_name}} {{result.last_name}}</td>
 				<td>{{result.emplid}}</td>
 					
-				<td><a href="/advisors/search_detail">Detail</a></td>
+				<td><a href="{% url advisors.views.view_notes userid=result.userid %}">Detail</a></td>
 			</tr>			
 
 
