@@ -25,4 +25,47 @@ def search(request):
        result = Person.objects.filter(Q(emplid__icontains=query)|Q(first_name__icontains=query)|Q(last_name__icontains=query)|Q(middle_name__icontains=query))   
        return render_to_response('advisors/view.html',{'results':result},context_instance=RequestContext(request)) 
     else:
-       return HttpResponse('input error') 
+       return HttpResponse('input error')
+
+# --------------View and Add Notes------------------------
+
+#Add Notes, only advisor can do it
+#@requires_advisor
+#def add_notes(request, student_NO):
+#        try:
+#                std = Person.objects.get(emplid = student_NO)
+#        except Person.DoesNotExist:
+#                raise Http404
+#        try:
+#                adv = Person.objects.get(userid = request.user.username)
+#        except Person.DoesNotExist:
+#                raise Http404
+#
+#        notes_content = request.POST['Detail_Text']
+#
+#        added_notes = Note(advisor = adv, student = std, notes = notes_content, created_date = datetime.now())
+#        added_notes.save();
+
+#        return render_to_response("advisors/Detail.html", {'note':notes_content})
+
+
+#View Notes, students can read the notes of themselves, advisors can read all the notes for the choosen student
+#@login_required
+def view_notes(request):
+	 #query = request.GET['index_text']
+
+#        try:
+#                std = Person.objects.get(emplid = student_NO)
+#        except Person.DoesNotExist:
+#                raise Http404
+#           results = Notes.objects.filter(student=std).order_by('created_date')
+
+#        try:
+#                list_of_notes = Note.objects.get(...)
+#        except Note.DoesNotExist:
+#                raise Http404
+	return HttpResponse('fff')
+#        return render_to_response("advisors/Detail.html", {'note':list_of_notes})
+
+# --------------------------------------------------------
+ 

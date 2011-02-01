@@ -7,15 +7,23 @@
 			<tr>
 				<td>Student Name</td>
 				<td>Student ID</td>
-                                <td>     </td>
+                                <td>Option</td>
+			
 			</tr>
 			{%for result in results%}
 			<tr>
 				<td>{{result.first_name}} {{result.last_name}}</td>
 				<td>{{result.emplid}}</td>
-			</tr>
+					
+				<td><a href="/advisors/search_detail">Detail</a></td>
+			</tr>			
+
+
+
 			{%endfor%}
+
 		</table>
+
 	{%else%}
 		<p>No such student found</p>
 	{%endif%}
