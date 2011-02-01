@@ -30,6 +30,7 @@ $(document).ready(function() {
     <ul>
 	<li><a href="{% url discipline.views.newgroup course_slug=course.slug %}">Create Case Group</a></li>
 	<li><a href="{% url discipline.views.new course_slug=course.slug %}">Create Individual Case</a></li>
+	<li><a href="{% url discipline.views.new_nonstudent course_slug=course.slug %}">Create Non-Student Case</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -50,7 +51,7 @@ $(document).ready(function() {
   <thead><tr><th scope="col">Name</th><th scope="col">Student #</th><th scope="col">Userid</th><th scope="col">Group</th></tr></thead>
   <tbody>
   {% for c in cases %}
-  <tr><td scope="row"><a href="{% url discipline.views.show course_slug=course.slug case_slug=c.slug %}">{{c.student.person.sortname}}</a></td><td>{{c.student.person.emplid}}</td><td>{{c.student.person.userid}}</td><td>{{c.group.name}}</td>
+  <tr><td scope="row"><a href="{% url discipline.views.show course_slug=course.slug case_slug=c.slug %}">{{c.student.sortname}}</a></td><td>{{c.student.emplid}}</td><td>{{c.student.userid}}</td><td>{{c.group.name}}</td>
   {% endfor %}
   </tbody>
 </table>

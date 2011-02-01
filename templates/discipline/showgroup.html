@@ -10,8 +10,8 @@
 {% block content %}
 <h2 id="members">Member cases:</h2>
 <ul>
-{% for case in group.disciplinecase_set.all %}
-<li><a href="{% url discipline.views.show course_slug=course.slug case_slug=case.slug %}">{{case.student.person.sortname}}</a></li>
+{% for case in group.disciplinecasebase_set.all %}
+<li><a href="{% url discipline.views.show course_slug=course.slug case_slug=case.slug %}">{{case.subclass.student.sortname}}</a></li>
 {% endfor %}
 </ul>
 {% endblock %}

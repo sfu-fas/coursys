@@ -8,15 +8,30 @@ $(document).ready(function() {
 })
 {% endblock %}
 
-{% block title %}Dishonesty Case for {{case.student.person.name}}: Edit Instructor Penalty{% endblock %}
-{% block h1 %}Dishonesty Case for {{case.student.person.name}}: Edit Instructor Penalty{% endblock %}
+{% block title %}Dishonesty Case for {{case.student.name}}: Edit Instructor Penalty{% endblock %}
+{% block h1 %}Dishonesty Case for {{case.student.name}}: Edit Instructor Penalty{% endblock %}
 {% block editlabel %}Instructor Penalty{% endblock %}
 
 {% block actions %}{% endblock %}
 
 {% block content %}
+<p>SFU's <a href="http://www.sfu.ca/policies/Students/index.html">Academic Honesty and Student Conduct Policies</a> have this to say about deciding penalty:</p>
+<blockquote style="font-size: 80%;">
+	<p>In deciding upon the appropriate penalty to be imposed for an act of academic dishonesty,
+		consideration must be given to the following factors:</p>
+	<ol style="list-style-type: lower-roman;">
+	<li>the extent of the academic dishonesty;</li>
+	<li>whether the academic dishonesty was deliberate;</li>
+	<li>the importance of the work in question as a component of the course or program;</li>
+	<li>whether the act in question is an isolated incident or part of repeated acts of academic
+	dishonesty; and</li>
+	<li>any other mitigating or aggravating circumstances.</li>
+	</ol>
+</blockquote>
+
 <div id="form_container">
     <form action="{% url discipline.views.edit_case_info field='instr_penalty' course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
+    <hr class="fieldsep" />
     <div class="discside" id="group_instr_penalty"></div>
     <p>{{ form.instr_penalty.help_text }}
     	{{ form.instr_penalty }}</p>

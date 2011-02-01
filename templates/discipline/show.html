@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% load discipline_filters %}
 
-{% block title %}Dishonesty Case for {{case.student.person.name}}{% endblock %}
-{% block h1 %}Dishonesty Case for {{case.student.person.name}}{% endblock %}
+{% block title %}Dishonesty Case for {{case.student.name}}{% endblock %}
+{% block h1 %}Dishonesty Case for {{case.student.name}}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url discipline.views.index course_slug=course.slug %}">Discipline Cases</a></li><li>&gt; Case for {{case.student.person.name}}</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url discipline.views.index course_slug=course.slug %}">Discipline Cases</a></li><li>&gt; Case for {{case.student.name}}</li>{% endblock %}
 
 {% block actions %}{% endblock %}
 
@@ -17,19 +17,19 @@
 <tbody>
 <tr>
   <th class="ui-state-default">Student Name</th>
-  <td>{{ case.student.person.sortname }}</td>
+  <td>{{ case.student.sortname }}</td>
 </tr>
 <tr>
   <th class="ui-state-default">Student Email</th>
-  <td><a href="mailto:{{ case.student.person.email }}">{{ case.student.person.email }}</a></td>
+  <td><a href="mailto:{{ case.student.email }}">{{ case.student.email }}</a></td>
 </tr>
 <tr>
   <th class="ui-state-default">Student Number</th>
-  <td>{{ case.student.person.emplid }}</td>
+  <td>{{ case.student.emplid }}</td>
 </tr>
 <tr>
   <th class="ui-state-default">Course Offering</th>
-  <td>{{ case.student.offering }}</td>
+  <td>{{ case.offering }}</td>
 </tr>
 <tr>
   <th class="ui-state-default">Case Group</th>
@@ -46,6 +46,9 @@
 <div id="nextstep">
 {% if case.next_step %}
 Suggested next step is to <a href="{{case.next_step_url}}">{{case.next_step_text}}</a>.
+  {% if case.next_step == 'contacted' or case.next_step == 'response' %}
+  Optional but useful: Enter <a href="{% url discipline.views.edit_related course_slug=course.slug case_slug=case.slug %}">related items</a> or <a href="{% url discipline.views.edit_attach course_slug=course.slug case_slug=case.slug %}">attach files</a>.
+  {% endif %}
 {% else %}
 Case is completed.
 {% endif %}

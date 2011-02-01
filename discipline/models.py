@@ -1,6 +1,7 @@
 from django.db import models
 from coredata.models import Person, Member, CourseOffering
 from grades.models import Activity
+from django.http import Http404
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.core.mail import EmailMessage, EmailMultiAlternatives
@@ -9,11 +10,9 @@ from autoslug import AutoSlugField
 from django.core.files.storage import FileSystemStorage
 from django.utils.text import wrap
 from django.conf import settings
-#from django.utils.safestring import mark_safe
+from django.shortcuts import get_object_or_404
 from discipline.content import *
 import string, os, datetime
-#import external.textile as textile
-#Textile = textile.Textile(restricted=True)
 
 CONTACT_CHOICES = (
         ('NONE', 'Not yet contacted'),
@@ -158,16 +157,33 @@ class DisciplineGroup(models.Model):
         unique_together = (("name", "offering"),)
 
 
-class DisciplineCase(models.Model):
+class DisciplineCaseBase(models.Model):
     """
     A case for a single student.
     """
-    student = models.ForeignKey(Member, help_text="The student this case concerns.")
+    @classmethod
+    def get_or_404(cls, **kwargs):
+        """
+        specialized version of get_object_or_404 that gets the right subclass object
+        """
+        try:
+            return get_object_or_404(DisciplineCase, **kwargs)
+        except Http404:
+            return get_object_or_404(DisciplineCaseNonStudent, **kwargs)
+
+    def subclass(self):
+        try:
+            case = DisciplineCase.objects.get(id=self.id)
+        except DisciplineCase.DoesNotExist:
+            case = DisciplineCaseNonStudent.objects.get(id=self.id)
+        return case
+    
     instructor = models.ForeignKey(Person, help_text="The instructor who created this case.")
+    offering = models.ForeignKey(CourseOffering)
     notes = models.TextField(blank=True, null=True, help_text='Notes about the case (private notes, <a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a> allowed).')
     def autoslug(self):
-        return self.student.person.userid
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='student__offering')
+        return self.student.userid
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='offering')
     group = models.ForeignKey(DisciplineGroup, null=True, blank=True, help_text="Group this case belongs to (if any).")
     
     # fields for instructor
@@ -218,10 +234,11 @@ class DisciplineCase(models.Model):
     chair_done = models.BooleanField(default=False, verbose_name="Closed?", help_text='Case closed for the Chair/Director?')
 
     def __unicode__(self):
-        if self.group:
-            return '%s (in %s)' % (self.student.person.userid, self.group.name)
-        else:
-            return '%s' % (self.student.person.userid)
+        return str(self.id)
+        #if self.group:
+        #    return '%s (in %s)' % (self.student.userid, self.group.name)
+        #else:
+        #    return '%s' % (self.student.userid)
 
     def get_absolute_url(self):
         return reverse('discipline.views.show', kwargs={'course_slug': self.student.offering.slug, 'case_slug': self.slug})
@@ -257,8 +274,8 @@ class DisciplineCase(models.Model):
         
         return "[" + ", ".join(
             ('{"id": "%i", "name": "%s (%s)"}'
-                % (c.id, escapejs(c.student.person.name()), escapejs(c.student.person.userid))
-                for c in self.group.disciplinecase_set.exclude(pk=self.pk))) + "]"
+                % (c.id, escapejs(c.subclass().student.name()), escapejs(c.subclass().student.userid))
+                for c in self.group.disciplinecasebase_set.exclude(pk=self.pk))) + "]"
     
     def next_step(self):
         """
@@ -294,7 +311,7 @@ class DisciplineCase(models.Model):
         """
         step = self.next_step()
         return reverse('discipline.views.edit_case_info',
-            kwargs={'field': STEP_VIEW[step], 'course_slug':self.student.offering.slug, 'case_slug': self.slug})
+            kwargs={'field': STEP_VIEW[step], 'course_slug':self.offering.slug, 'case_slug': self.slug})
 
     def next_step_text(self):
         """
@@ -310,9 +327,9 @@ class DisciplineCase(models.Model):
         Dictionary is cached as self.infodict.
         """
         d = {
-            'FNAME': self.student.person.first_name,
-            'LNAME': self.student.person.last_name,
-            'COURSE': self.student.offering.subject + " " + self.student.offering.number,
+            'FNAME': self.student.first_name,
+            'LNAME': self.student.last_name,
+            'COURSE': self.offering.subject + " " + self.offering.number,
             }
         
         # get list of activities as English
@@ -351,10 +368,10 @@ class DisciplineCase(models.Model):
         body = wrap(self.substitite_values(self.contact_email_text), 72)
         
         email = EmailMessage(
-            subject='Academic dishonesty in %s' % (self.student.offering),
+            subject='Academic dishonesty in %s' % (self.offering),
             body=body,
             from_email=self.instructor.email(),
-            to=[self.student.person.email(), self.instructor.email()],
+            to=[self.student.email(), self.instructor.email()],
             )
         
         email.send(fail_silently=False)
@@ -369,10 +386,10 @@ class DisciplineCase(models.Model):
         self.letter_text = html_body
         self.save()
         email = EmailMultiAlternatives(
-            subject='Academic dishonesty in %s' % (self.student.offering),
+            subject='Academic dishonesty in %s' % (self.offering),
             body=text_body,
             from_email=self.instructor.email(),
-            to=[self.student.person.email(), self.instructor.email()],
+            to=[self.student.email(), self.instructor.email()],
             )
         email.attach_alternative(html_body, "text/html")
         attach = self.public_attachments()
@@ -383,11 +400,43 @@ class DisciplineCase(models.Model):
         email.send(fail_silently=False)
 
 
+class DisciplineCase(DisciplineCaseBase):
+    student = models.ForeignKey(Person, help_text="The student this case concerns.")
+
+class DisciplineCaseNonStudent(DisciplineCaseBase):
+    emplid = models.PositiveIntegerField(max_length=9, null=True, blank=True, verbose_name="Student Number")
+    userid = models.CharField(max_length=8, null=True, blank=True, db_index=True)
+    email = models.EmailField(null=False, blank=False)
+    last_name = models.CharField(max_length=32)
+    first_name = models.CharField(max_length=32)
+    
+    def __init__(self, *args, **kwargs):
+        super(DisciplineCaseNonStudent, self).__init__(*args, **kwargs)
+        self.student = self.FakePerson()
+        self.student.emplid = self.emplid
+        self.student.userid = self.userid
+        self.student.last_name = self.last_name
+        self.student.first_name = self.first_name
+        self.student.emailaddr = self.email
+        
+    class FakePerson(object):
+        """
+        An object enough like a coredata.models.Person to be used in its place
+        """
+        def email(self):
+            return self.emailaddr
+        def name(self):
+            return "%s %s" % (self.first_name, self.last_name)
+        def sortname(self):
+            return "%s, %s" % (self.last_name, self.first_name)
+        
+
+
 class RelatedObject(models.Model):
     """
     Another object within the system that is related to this case: private for instructor
     """
-    case = models.ForeignKey(DisciplineCase)
+    case = models.ForeignKey(DisciplineCaseBase)
     name = models.CharField(max_length=255, blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
     
@@ -407,18 +456,18 @@ class CaseAttachment(models.Model):
         path to upload case attachment
         """
         fullpath = os.path.join(
-            instance.case.student.offering.slug,
+            instance.case.offering.slug,
             "_discipline",
             str(instance.case.id),
             datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
             filename.encode('ascii', 'ignore'))
         return fullpath
 
-    case = models.ForeignKey(DisciplineCase)
+    case = models.ForeignKey(DisciplineCaseBase)
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Name", help_text="Identifying name for the attachment")
-    attachment = models.FileField(upload_to=upload_to, max_length=500, verbose_name="File")
+    attachment = models.FileField(upload_to=upload_to, max_length=500, verbose_name="File", storage=DisciplineSystemStorage)
     mediatype = models.CharField(null=True, blank=True, max_length=200)
-    public = models.BooleanField(default=False, verbose_name="Public?", 
+    public = models.BooleanField(default=True, verbose_name="Public?", 
             help_text='Public files will be included in correspondence as evidence.')
 
     notes = models.TextField(blank=True, null=True, verbose_name="Notes", help_text="Notes about this file (private).")

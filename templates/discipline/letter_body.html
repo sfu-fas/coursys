@@ -1,15 +1,15 @@
 {% load discipline_filters %}
 <dl>
 <dt>Course Number</dt>
-  <dd>{{case.student.offering.subject}} {{case.student.offering.number}} {{case.student.offering.section}}</dd>
+  <dd>{{case.offering.subject}} {{case.offering.number}} {{case.offering.section}}</dd>
 <dt>Course Title</dt>
-  <dd>{{case.student.offering.title}}</dd>
+  <dd>{{case.offering.title}}</dd>
 <dt>Semester</dt>
-  <dd>{{case.student.offering.semester.label}} ({{case.student.offering.semester}})</dd>
+  <dd>{{case.offering.semester.label}} ({{case.offering.semester}})</dd>
 <dt>Student's Name</dt>
-  <dd>{{case.student.person.sortname}}</dd>
+  <dd>{{case.student.sortname}}</dd>
 <dt>Student's Email</dt>
-  <dd>{{case.student.person.email}}</dd>
+  <dd>{{case.student.email}}</dd>
 <dt>Instructor's Name</dt>
   <dd>{{case.instructor.sortname}}</dd>
 <dt>Student's Email</dt>
@@ -38,6 +38,14 @@
   </dd>
 <dt>Case referred to Chair/Director?</dt>
   <dd><p>{{case.get_refer_chair_display}}</p></dd>
+{% if case.public_attachments %}
+<dt>Enclosed</dt>
+  <dd><ul>
+  {% for f in case.public_attachments %}
+  <li>{{f.name}} ({{f.filename}}, {{f.attachment.size|filesizeformat}})</li>
+  {% endfor %}
+  </ul></dd>
+{% endif %}
 </dl>
 
 

@@ -1,7 +1,7 @@
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response, get_object_or_404
 from django.core.urlresolvers import reverse
-from django.template import RequestContext
+from django.template import RequestContext, defaultfilters
 from django.contrib import messages
 from django.utils.safestring import mark_safe
 from coredata.models import Member, CourseOffering, Person
@@ -20,7 +20,7 @@ def index(request, course_slug):
     List of cases for the course
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    cases = DisciplineCase.objects.filter(student__offering=course)
+    cases = DisciplineCase.objects.filter(offering=course)
     groups = DisciplineGroup.objects.filter(offering=course)
     
     context = {'course': course, 'cases': cases, 'groups': groups}
@@ -49,7 +49,8 @@ def newgroup(request, course_slug):
             for userid in form.cleaned_data['students']:
                 # create case for each student in the group
                 student = Member.objects.get(offering=course, person__userid=userid)
-                case = DisciplineCase(student=student, group=group, instructor=instructor)
+                case = DisciplineCase(student=student.person, group=group, instructor=instructor, offering=course)
+                print case
                 case.save()
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
@@ -66,7 +67,7 @@ def newgroup(request, course_slug):
     return render_to_response("discipline/newgroup.html", context, context_instance=RequestContext(request))
 
 @requires_course_staff_by_slug
-def new(request, course_slug, group=False):
+def new(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     student_choices = [
             (m.person.userid,
@@ -81,11 +82,12 @@ def new(request, course_slug, group=False):
             instructor = Person.objects.get(userid=request.user.username)
             case = form.save(commit=False)
             case.instructor = instructor
+            case.offering = course
             case.save()
             form.save_m2m()
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=("created a discipline case for %s in %s") % (case.student.person.userid, course),
+                  description=("created a discipline case for %s in %s") % (case.student.userid, course),
                   related_object=case)
             l.save()
             return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
@@ -97,13 +99,45 @@ def new(request, course_slug, group=False):
     context = {'course': course, 'form': form}
     return render_to_response("discipline/new.html", context, context_instance=RequestContext(request))
 
+
+@requires_course_staff_by_slug
+def new_nonstudent(request, course_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    
+    if request.method == 'POST':
+        form = DisciplineNonStudentCaseForm(data=request.POST)
+        if form.is_valid():
+            instructor = Person.objects.get(userid=request.user.username)
+            case = form.save(commit=False)
+            case.instructor = instructor
+            case.offering = course
+            case.slug = defaultfilters.slugify(case.first_name + " " + case.last_name)
+            case.save()
+            form.save_m2m()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("created a non-student discipline case for %s in %s") % (case.student.userid, course),
+                  related_object=case)
+            l.save()
+            return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
+
+    else:
+        form = DisciplineNonStudentCaseForm()
+
+    context = {'course': course, 'form': form}
+    return render_to_response("discipline/new_nonstudent.html", context, context_instance=RequestContext(request))
+
+
+
 @requires_course_staff_by_slug
 def show(request, course_slug, case_slug):
     """
     Display current case status
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    case = get_object_or_404(DisciplineCase, slug=case_slug, student__offering__slug=course_slug)
+    case = DisciplineCaseBase.get_or_404(slug=case_slug, offering__slug=course_slug)
+    case = case.subclass()
+    #case = get_object_or_404(DisciplineCaseBase, slug=case_slug, student__offering__slug=course_slug)
     
     context = {'course': course, 'case': case}
     return render_to_response("discipline/show.html", context, context_instance=RequestContext(request))
@@ -122,13 +156,12 @@ def showgroup(request, course_slug, group_slug):
 
 also_set_re = re.compile("also-(?P<field>[[a-z_]+)-(?P<caseid>\d+)")
 def edit_case_info(request, course_slug, case_slug, field):
-    return _edit_case_info(request, course_slug, case_slug, field)
-def _edit_case_info(request, course_slug, case_slug, field):
     """
     View function for all of the "edit this aspect of the case" steps.  Uses the STEP_* dictionaries to get relevant strings/classes.
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    case = get_object_or_404(DisciplineCase, slug=case_slug, student__offering__slug=course_slug)
+    case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
+    case = case.subclass()
     if case.instr_done() and field in INSTR_STEPS+INSTR_FINAL:
         # once case is closed, don't allow editing
         return ForbiddenResponse(request)
@@ -146,7 +179,7 @@ def _edit_case_info(request, course_slug, case_slug, field):
 
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=("edit discipline case %s in %s: changed %s") % (c.slug, c.student.offering, STEP_DESC[field]),
+                  description=("edit discipline case %s in %s: changed %s") % (c.slug, c.offering, STEP_DESC[field]),
                   related_object=c)
             l.save()
             messages.add_message(request, messages.SUCCESS, "Updated " + STEP_DESC[field] + '.')
@@ -160,12 +193,16 @@ def _edit_case_info(request, course_slug, case_slug, field):
                 
                 field = match.group('field')
                 caseid = match.group('caseid')
-                cases = DisciplineCase.objects.filter(id=caseid)
+                cases = DisciplineCaseBase.objects.filter(id=caseid)
                 if len(cases) != 1 or cases[0].group != case.group:
                     continue
-                c0 = cases[0]
+                c0 = cases[0].subclass()
+                if c0.instr_done():
+                    messages.add_message(request, messages.ERROR,
+                        "Case for %s is finished: cannot update %s." % (c0.student.name(), STEP_DESC[field]))
+                    continue
 
-                if field=="contacted":
+                if field=="contacted" and form.cleaned_data[field]=='MAIL':
                     # special case handled below
                     also_contact.append(c0)
                 else:
@@ -174,7 +211,7 @@ def _edit_case_info(request, course_slug, case_slug, field):
                         c0.letter_review = False
                     c0.save()
                     messages.add_message(request, messages.SUCCESS,
-                        "Also updated %s for %s." % (STEP_DESC[field], c0.student.person.name()))
+                        "Also updated %s for %s." % (STEP_DESC[field], c0.student.name()))
                     
             if hasattr(c, 'send_letter_now'):
                 # send instructor's letter
@@ -190,16 +227,17 @@ def _edit_case_info(request, course_slug, case_slug, field):
                     if textkey in request.POST and request.POST[textkey]=="on":
                         # only send the email if text was updated too
                         c0.contacted = form.cleaned_data['contacted']
+                        c0.contact_email_text = form.cleaned_data['contact_email_text']
                         c0.save()
                         messages.add_message(request, messages.SUCCESS,
-                            "Also updated %s for %s." % (STEP_DESC['contacted'], c0.student.person.name()))
+                            "Also updated %s for %s." % (STEP_DESC['contacted'], c0.student.name()))
                         c0.send_contact_email()
-                        messages.add_message(request, messages.INFO, "Also emailed %s." % (c0.student.person.name()))
+                        messages.add_message(request, messages.INFO, "Also emailed %s." % (c0.student.name()))
                     else:
                         # if not, give an error message.
                         messages.add_message(request, messages.ERROR,
-                            mark_safe('Email not sent to %s since message text not updated. You can <a href="%s">edit their contact info</a> if you wish.'
-                            % (c0.student.person.name(),
+                            mark_safe('Email not sent to %s since their "Contact Email Text" was not updated. You can <a href="%s">edit their contact info</a> if you wish.'
+                            % (c0.student.name(),
                                 reverse('discipline.views.edit_case_info',
                                     kwargs={'field': 'contacted', 'course_slug': course_slug, 'case_slug': c0.slug}))))
             
@@ -222,7 +260,8 @@ def edit_related(request, course_slug, case_slug):
     View function to edit related items: more difficult than the generic function above.
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    case = get_object_or_404(DisciplineCase, slug=case_slug, student__offering__slug=course_slug)
+    case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
+    case = case.subclass()
     
     if request.method == 'POST':
         form = CaseRelatedForm(request.POST)
@@ -264,7 +303,7 @@ def edit_related(request, course_slug, case_slug):
             
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=("edit discipline case %s in %s: changed %s") % (case.slug, case.student.offering, STEP_DESC['related']),
+                  description=("edit discipline case %s in %s: changed %s") % (case.slug, case.offering, STEP_DESC['related']),
                   related_object=case)
             l.save()
             messages.add_message(request, messages.SUCCESS, "Updated " + STEP_DESC['related'] + '.')
@@ -298,7 +337,8 @@ def edit_attach(request, course_slug, case_slug):
     Front page of the file attachments interface
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    case = get_object_or_404(DisciplineCase, slug=case_slug, student__offering__slug=course_slug)
+    case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
+    case = case.subclass()
     attach_pub = CaseAttachment.objects.filter(case=case, public=True)
     attach_pri = CaseAttachment.objects.filter(case=case, public=False)
     
@@ -310,7 +350,8 @@ def edit_attach(request, course_slug, case_slug):
 @requires_course_staff_by_slug
 def new_file(request, course_slug, case_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    case = get_object_or_404(DisciplineCase, slug=case_slug, student__offering__slug=course_slug)
+    case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
+    case = case.subclass()
 
     if request.method == 'POST':
         form = NewAttachFileForm(case, request.POST, request.FILES)
@@ -322,7 +363,7 @@ def new_file(request, course_slug, case_slug):
             
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=("edit discipline case %s in %s: add attachment %s") % (case.slug, case.student.offering, f.name),
+                  description=("edit discipline case %s in %s: add attachment %s") % (case.slug, case.offering, f.name),
                   related_object=case)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'Created file attachment "%s".' % (f.name))
@@ -336,8 +377,9 @@ def new_file(request, course_slug, case_slug):
 @requires_course_staff_by_slug
 def download_file(request, course_slug, case_slug, fileid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    case = get_object_or_404(DisciplineCase, slug=case_slug, student__offering__slug=course_slug)
-    attach = get_object_or_404(CaseAttachment, case__slug=case_slug, case__student__offering__slug=course_slug, id=fileid)
+    case = get_object_or_404(DisciplineCase, slug=case_slug, offering__slug=course_slug)
+    case = case.subclass()
+    attach = get_object_or_404(CaseAttachment, case__slug=case_slug, case__offering__slug=course_slug, id=fileid)
 
     attach.attachment.open()
     resp = HttpResponse(attach.attachment, mimetype=attach.mediatype)
@@ -348,8 +390,9 @@ def download_file(request, course_slug, case_slug, fileid):
 @requires_course_staff_by_slug
 def edit_file(request, course_slug, case_slug, fileid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    case = get_object_or_404(DisciplineCase, slug=case_slug, student__offering__slug=course_slug)
-    attach = get_object_or_404(CaseAttachment, case__slug=case_slug, case__student__offering__slug=course_slug, id=fileid)
+    case = get_object_or_404(DisciplineCase, slug=case_slug, offering__slug=course_slug)
+    case = case.subclass()
+    attach = get_object_or_404(CaseAttachment, case__slug=case_slug, case__offering__slug=course_slug, id=fileid)
 
     if request.method == 'POST':
         form = EditAttachFileForm(request.POST, request.FILES, instance=attach)
@@ -358,7 +401,7 @@ def edit_file(request, course_slug, case_slug, fileid):
             
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=("edit discipline case %s in %s: edited attachment %s") % (case.slug, case.student.offering, f.name),
+                  description=("edit discipline case %s in %s: edited attachment %s") % (case.slug, case.offering, f.name),
                   related_object=case)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'Updated file attachment "%s".' % (f.name))

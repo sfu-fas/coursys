@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}New Dishonesty Case{% endblock %}
+{% block h1 %}New Dishonesty Case{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url discipline.views.index course_slug=course.slug %}">Discipline Cases</a></li><li>&gt; New Case (non student)</li>{% endblock %}
+
+{% block actions %}{% endblock %}
+
+{% block content %}
+<p>This form can be used to create a case for someone who is not a student in this course.</p>
+<div id="form_container">
+    <form action="{% url discipline.views.new_nonstudent course_slug=course.slug %}" method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <p><input type="submit" value="Create Case" /></p>
+    </form>
+</div>
+{% endblock %}

@@ -44,11 +44,17 @@ class DisciplineCaseForm(forms.ModelForm):
         if members.count() != 1:
             raise forms.ValidationError("Can't find student")
 
-        return members[0]
+        return members[0].person
     
     class Meta:
         model = DisciplineCase
         fields = ("student", "group")
+
+
+class DisciplineNonStudentCaseForm(forms.ModelForm):
+    class Meta:
+        model = DisciplineCaseNonStudent
+        fields = ("emplid", "userid", "email", "last_name", "first_name", "group")
 
 
 class TemplateForm(forms.ModelForm):
@@ -241,9 +247,9 @@ class NewAttachFileForm(forms.ModelForm):
         self.fields['case'].initial = case.id
     
     def clean_case(self):
-        if self.cleaned_data['case'] != self.case:
+        if self.cleaned_data['case'].id != self.case.id:
             raise forms.ValidationError("Wrong case.")
-        return self.cleaned_data['case']
+        return self.cleaned_data['case'].subclass()
     
     class Meta:
         model = CaseAttachment
