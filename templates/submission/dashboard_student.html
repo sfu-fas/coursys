@@ -49,10 +49,6 @@
                 <td style="color:red">{{activity.due_date|timesince:submission.created_at}}</td>
             </tr>
             {% endif %}
-            <tr>
-                <th scope="row">Current Time:</th>
-                <td>{% now "Y-m-d H:i:s" %}</td>
-            </tr>
         </table>
         </div>
 
