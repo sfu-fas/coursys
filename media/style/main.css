@@ -979,7 +979,8 @@ div#submission_form_container{
 
 #submission_form_container fieldset li input{
     border-bottom: 1px dashed #666;
-    width: 280px;
+    min-width: 350px;
+    max-width: 350px;
 }
 
 
