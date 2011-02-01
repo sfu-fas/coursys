@@ -61,6 +61,12 @@ def filetype(fh):
     """
     Do some magic to guess the filetype.  Argument must be an open file-like object.
     """
+    #TODO: replace with some real check
+    if fh.name.endswith('.doc'):
+        return "WORD"
+    if fh.name.endswith('.odt'):
+        return "OPENDOC"
+    
     # methods extracted from the magic file (/usr/share/file/magic)
     # why not just check the filename?  Students seem to randomly rename.
     fh.seek(0)

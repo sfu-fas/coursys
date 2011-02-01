@@ -19,7 +19,8 @@ from url import *
 from archive import *
 from pdf import *
 from code import *
-ALL_TYPE_CLASSES = [Archive, URL, PDF, Code]
+from word import *
+ALL_TYPE_CLASSES = [Archive, URL, PDF, Code, Word]
 
 def find_type_by_label(label):
     """
