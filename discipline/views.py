@@ -426,7 +426,7 @@ def new_file(request, course_slug, case_slug):
 @requires_discipline_user
 def download_file(request, course_slug, case_slug, fileid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    case = get_object_or_404(DisciplineCase, slug=case_slug, offering__slug=course_slug)
+    case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
     case = case.subclass()
     attach = get_object_or_404(CaseAttachment, case__slug=case_slug, case__offering__slug=course_slug, id=fileid)
 
@@ -439,7 +439,7 @@ def download_file(request, course_slug, case_slug, fileid):
 @requires_discipline_user
 def edit_file(request, course_slug, case_slug, fileid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    case = get_object_or_404(DisciplineCase, slug=case_slug, offering__slug=course_slug)
+    case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
     case = case.subclass()
     attach = get_object_or_404(CaseAttachment, case__slug=case_slug, case__offering__slug=course_slug, id=fileid)
 
