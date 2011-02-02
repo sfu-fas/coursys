@@ -11,22 +11,23 @@ from discipline.models import *
 from discipline.forms import *
 from discipline.content import *
 from log.models import LogEntry
-from courselib.auth import requires_course_staff_by_slug, requires_role, NotFoundResponse, ForbiddenResponse
+from courselib.auth import requires_discipline_user, requires_role, NotFoundResponse, ForbiddenResponse
 import re
 
-@requires_course_staff_by_slug
+@requires_discipline_user
 def index(request, course_slug):
     """
     List of cases for the course
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    cases = DisciplineCase.objects.filter(offering=course)
+    cases = DisciplineCaseBase.objects.filter(offering=course)
+    cases = [c.subclass() for c in cases]
     groups = DisciplineGroup.objects.filter(offering=course)
     
     context = {'course': course, 'cases': cases, 'groups': groups}
     return render_to_response("discipline/index.html", context, context_instance=RequestContext(request))
 
-@requires_course_staff_by_slug
+@requires_discipline_user
 def newgroup(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     student_choices = [
@@ -66,7 +67,7 @@ def newgroup(request, course_slug):
     context = {'course': course, 'form': form}
     return render_to_response("discipline/newgroup.html", context, context_instance=RequestContext(request))
 
-@requires_course_staff_by_slug
+@requires_discipline_user
 def new(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     student_choices = [
@@ -74,10 +75,12 @@ def new(request, course_slug):
                "%s (%s, %s)" % (m.person.sortname(), m.person.emplid, m.person.userid))
             for m in
             Member.objects.filter(offering=course, role="STUD").select_related('person')]
-    
+    group_choices = [('', u'\u2014')] + [(g.id, g.name) for g in DisciplineGroup.objects.filter(offering=course)]
+
     if request.method == 'POST':
         form = DisciplineCaseForm(offering=course, data=request.POST)
         form.fields['student'].choices = student_choices
+        form.fields['group'].choices = group_choices
         if form.is_valid():
             instructor = Person.objects.get(userid=request.user.username)
             case = form.save(commit=False)
@@ -87,7 +90,7 @@ def new(request, course_slug):
             form.save_m2m()
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=("created a discipline case for %s in %s") % (case.student.userid, course),
+                  description=("created a discipline case for %s in %s") % (case.student.name(), course),
                   related_object=case)
             l.save()
             return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
@@ -96,16 +99,19 @@ def new(request, course_slug):
         form = DisciplineCaseForm(offering=course)
 
     form.fields['student'].choices = student_choices
+    form.fields['group'].choices = group_choices
     context = {'course': course, 'form': form}
     return render_to_response("discipline/new.html", context, context_instance=RequestContext(request))
 
 
-@requires_course_staff_by_slug
+@requires_discipline_user
 def new_nonstudent(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
+    group_choices = [('', u'\u2014')] + [(g.id, g.name) for g in DisciplineGroup.objects.filter(offering=course)]
     
     if request.method == 'POST':
         form = DisciplineNonStudentCaseForm(data=request.POST)
+        form.fields['group'].choices = group_choices
         if form.is_valid():
             instructor = Person.objects.get(userid=request.user.username)
             case = form.save(commit=False)
@@ -116,33 +122,34 @@ def new_nonstudent(request, course_slug):
             form.save_m2m()
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=("created a non-student discipline case for %s in %s") % (case.student.userid, course),
+                  description=("created a non-student discipline case for %s in %s") % (case.student.name(), course),
                   related_object=case)
             l.save()
             return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
 
     else:
         form = DisciplineNonStudentCaseForm()
-
+    
+    form.fields['group'].choices = group_choices
     context = {'course': course, 'form': form}
     return render_to_response("discipline/new_nonstudent.html", context, context_instance=RequestContext(request))
 
 
 
-@requires_course_staff_by_slug
+@requires_discipline_user
 def show(request, course_slug, case_slug):
     """
     Display current case status
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    case = DisciplineCaseBase.get_or_404(slug=case_slug, offering__slug=course_slug)
+    case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
     case = case.subclass()
     #case = get_object_or_404(DisciplineCaseBase, slug=case_slug, student__offering__slug=course_slug)
     
     context = {'course': course, 'case': case}
     return render_to_response("discipline/show.html", context, context_instance=RequestContext(request))
 
-@requires_course_staff_by_slug
+@requires_discipline_user
 def showgroup(request, course_slug, group_slug):
     """
     Display current case status
@@ -155,6 +162,7 @@ def showgroup(request, course_slug, group_slug):
 
 
 also_set_re = re.compile("also-(?P<field>[[a-z_]+)-(?P<caseid>\d+)")
+@requires_discipline_user
 def edit_case_info(request, course_slug, case_slug, field):
     """
     View function for all of the "edit this aspect of the case" steps.  Uses the STEP_* dictionaries to get relevant strings/classes.
@@ -248,13 +256,68 @@ def edit_case_info(request, course_slug, case_slug, field):
     templates = DisciplineTemplate.objects.filter(field__in=form.fields.keys())
     tempaltesJSON = '[' + ",\n".join((t.toJSON() for t in templates)) + ']'
     groupmembersJSON = case.groupmembersJSON()
+    hasRelAct = len(case.related_activities())>0
     
     context = {'course': course, 'case': case, 'form': form,
-        'templatesJSON': mark_safe(tempaltesJSON), 'groupmembersJSON': mark_safe(groupmembersJSON)}
+        'templatesJSON': mark_safe(tempaltesJSON), 'groupmembersJSON': mark_safe(groupmembersJSON), 'hasRelAct': hasRelAct}
     return render_to_response("discipline/edit_"+field+".html", context, context_instance=RequestContext(request))
 
 
-@requires_course_staff_by_slug
+def _set_related_items(request, case, course, form):
+    """
+    Do the work of setting related activities
+    """
+    # delete any old related objects that we might be replacing (but leave others alone)
+    for ro in RelatedObject.objects.filter(case=case):
+        Class = ro.content_type.model_class()
+        if issubclass(Class, Activity) or issubclass(Class, Submission) or issubclass(Class, Member):
+            ro.delete()
+
+    # find selected activities
+    all_obj = []
+    all_acts = dict(((act.id, act) for act in all_activities_filter(course)))
+    for actid in form.cleaned_data['activities']:
+        actid = int(actid)
+        act = all_acts[actid]
+        all_obj.append(act)
+
+    # find selected submissions
+    indiv_sub = dict(((sub.id, sub) for sub in StudentSubmission.objects.filter(activity__offering=course)))
+    for subid in form.cleaned_data['submissions']:
+        subid = int(subid)
+        if subid in indiv_sub:
+            sub = indiv_sub[subid]
+            if case.student == sub.member.person:
+                # only if submittor match
+                all_obj.append(sub)
+
+    group_sub = dict(((sub.id, sub) for sub in GroupSubmission.objects.filter(activity__offering=course)))
+    for subid in form.cleaned_data['submissions']:
+        subid = int(subid)
+        if subid in group_sub:
+            sub = group_sub[subid]
+            if sub.group.groupmember_set.filter(student__person=case.student):
+                # only if in group
+                all_obj.append(sub)
+
+    # find selected members
+    all_member = dict(((m.id, m)for m in Member.objects.filter(offering=course, role="STUD")))
+    for membid in form.cleaned_data['students']:
+        membid = int(membid)
+        memb = all_member[membid]
+        all_obj.append(memb)
+
+    for o in all_obj:
+        ro = RelatedObject(case=case, content_object=o)
+        ro.save()
+
+    #LOG EVENT#
+    l = LogEntry(userid=request.user.username,
+          description=("edit discipline case %s in %s: changed %s") % (case.slug, case.offering, STEP_DESC['related']),
+          related_object=case)
+    l.save()
+
+@requires_discipline_user
 def edit_related(request, course_slug, case_slug):
     """
     View function to edit related items: more difficult than the generic function above.
@@ -267,46 +330,32 @@ def edit_related(request, course_slug, case_slug):
         form = CaseRelatedForm(request.POST)
         form.set_choices(course, case)
         if form.is_valid():
-            # delete any old related objects that we might be replacing (but leave others alone)
-            for ro in RelatedObject.objects.filter(case=case):
-                Class = ro.content_type.model_class()
-                if issubclass(Class, Activity) or issubclass(Class, Submission) or issubclass(Class, Member):
-                    ro.delete()
-
-            # find selected activities
-            all_obj = []
-            all_acts = dict(((act.id, act) for act in all_activities_filter(course)))
-            for actid in form.cleaned_data['activities']:
-                actid = int(actid)
-                act = all_acts[actid]
-                all_obj.append(act)
-            
-            # find selected submissions
-            all_sub = dict(((sub.id, sub) for sub in StudentSubmission.objects.filter(activity__offering=course)))
-            group_sub = dict(((sub.id, sub) for sub in GroupSubmission.objects.filter(activity__offering=course)))
-            all_sub.update(group_sub)
-            for subid in form.cleaned_data['submissions']:
-                subid = int(subid)
-                sub = all_sub[subid]
-                all_obj.append(sub)
-
-            # find selected members
-            all_member = dict(((m.id, m)for m in Member.objects.filter(offering=course, role="STUD")))
-            for membid in form.cleaned_data['students']:
-                membid = int(membid)
-                memb = all_member[membid]
-                all_obj.append(memb)
-
-            for o in all_obj:
-                ro = RelatedObject(case=case, content_object=o)
-                ro.save()
-            
-            #LOG EVENT#
-            l = LogEntry(userid=request.user.username,
-                  description=("edit discipline case %s in %s: changed %s") % (case.slug, case.offering, STEP_DESC['related']),
-                  related_object=case)
-            l.save()
+            _set_related_items(request, case, course, form)
             messages.add_message(request, messages.SUCCESS, "Updated " + STEP_DESC['related'] + '.')
+
+            for postfield in request.POST:
+                match = also_set_re.match(postfield)
+                if not match or request.POST[postfield] != "on":
+                    continue
+                
+                field = match.group('field')
+                caseid = match.group('caseid')
+                cases = DisciplineCaseBase.objects.filter(id=caseid)
+                if len(cases) != 1 or cases[0].group != case.group:
+                    continue
+                c0 = cases[0].subclass()
+                if c0.instr_done():
+                    messages.add_message(request, messages.ERROR,
+                        "Case for %s is finished: cannot update %s." % (c0.student.name(), STEP_DESC[field]))
+                    continue
+
+                _set_related_items(request, c0, course, form)
+                if field in INSTR_STEPS:
+                    c0.letter_review = False
+                c0.save()
+                messages.add_message(request, messages.SUCCESS,
+                    "Also updated %s for %s." % (STEP_DESC[field], c0.student.name()))
+
             return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
     else:
         initial = {'students': [], 'activities': [], 'submissions': []}
@@ -325,13 +374,13 @@ def edit_related(request, course_slug, case_slug):
     groupmembersJSON = case.groupmembersJSON()
     
     context = {'course': course, 'case': case, 'form': form,
-            'templatesJSON': '[]', 'groupmembersJSON': mark_safe(groupmembersJSON)}
+            'templatesJSON': '[]', 'groupmembersJSON': mark_safe(groupmembersJSON), 'hasRelAct': 'false'}
     return render_to_response("discipline/edit_related.html", context, context_instance=RequestContext(request))
 
 
 # Attachment editing views
 
-@requires_course_staff_by_slug
+@requires_discipline_user
 def edit_attach(request, course_slug, case_slug):
     """
     Front page of the file attachments interface
@@ -347,7 +396,7 @@ def edit_attach(request, course_slug, case_slug):
             'templatesJSON': '[]', 'groupmembersJSON': mark_safe(groupmembersJSON)}
     return render_to_response("discipline/show_attach.html", context, context_instance=RequestContext(request))
 
-@requires_course_staff_by_slug
+@requires_discipline_user
 def new_file(request, course_slug, case_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
@@ -374,7 +423,7 @@ def new_file(request, course_slug, case_slug):
     context = {'course': course, 'case': case, 'form': form}
     return render_to_response("discipline/new_file.html", context, context_instance=RequestContext(request))
 
-@requires_course_staff_by_slug
+@requires_discipline_user
 def download_file(request, course_slug, case_slug, fileid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     case = get_object_or_404(DisciplineCase, slug=case_slug, offering__slug=course_slug)
@@ -387,7 +436,7 @@ def download_file(request, course_slug, case_slug, fileid):
 
     return resp
 
-@requires_course_staff_by_slug
+@requires_discipline_user
 def edit_file(request, course_slug, case_slug, fileid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     case = get_object_or_404(DisciplineCase, slug=case_slug, offering__slug=course_slug)
@@ -411,7 +460,21 @@ def edit_file(request, course_slug, case_slug, fileid):
 
     context = {'course': course, 'case': case, 'attach': attach, 'form': form}
     return render_to_response("discipline/edit_file.html", context, context_instance=RequestContext(request))
+
+
+
+
+# Discipline admin views
+
+@requires_role("DISC")
+def all_cases(request):
+    cases = DisciplineCaseBase.objects.all()
+    cases = [c.subclass() for c in cases]
+    context = {'cases': cases}
+    return render_to_response("discipline/all_cases.html", context, context_instance=RequestContext(request))
     
+
+
 
 
 # Template editing views for sysadmin interface

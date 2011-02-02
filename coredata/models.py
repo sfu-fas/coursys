@@ -309,6 +309,7 @@ class Role(models.Model):
         ('FAC', 'Faculty Member'),
         ('SESS', 'Sessional Instructor'),
         ('PLAN', 'Planning Administrator'),
+        ('DISC', 'Discipline Case Administrator'),
         ('ADMN', 'Departmental Administrator'),
         ('SYSA', 'System Administrator'),
         ('NONE', 'none'),

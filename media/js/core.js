@@ -15,8 +15,13 @@ jQuery.fn.dataTableExt.oSort['by-mark-desc'] = function(x,y) { return mark_cmp(y
 /* jQuery Datatables sorting ignoring any <a> (e.g. '<a href="foo">123</a>' sorts by '123') */
 link_re = /<a href=".+">(.+)<\/a>/;
 function nolink_cmp(x,y) {
-  xc = link_re.exec(x)[1];
-  yc = link_re.exec(y)[1];
+  xc = link_re.exec(x);
+  yc = link_re.exec(y);
+  if ( xc == null && yc == null ) { return -0 }
+  if ( xc == null ) { return -1; }
+  if ( yc == null ) { return 1; }
+  xc = xc[1];
+  yc = yc[1];
   return ((xc < yc) ? -1 : ((xc > yc) ? 1 : 0));
 }
 jQuery.fn.dataTableExt.oSort['by-nolink-asc']  = function(x,y) { return nolink_cmp(x,y) };

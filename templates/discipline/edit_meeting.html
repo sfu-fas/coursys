@@ -17,7 +17,7 @@ $(document).ready(function() {
 {% block h1 %}Dishonesty Case for {{case.student.name}}: Edit Meeting/Email Details{% endblock %}
 {% block editlabel %}Meeting/Email Details{% endblock %}
 
-{% block content %}
+{% block disc_content %}
 <div id="form_container">
     <form action="{% url discipline.views.edit_case_info field='meeting' course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
     <div class="discside" id="group_meeting_date"></div>

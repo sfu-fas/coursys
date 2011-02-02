@@ -7,7 +7,7 @@ from django.template import RequestContext
 from django.db.models import Count
 from django.views.decorators.cache import cache_page
 from django.conf import settings
-from coredata.models import Member, CourseOffering, Person
+from coredata.models import Member, CourseOffering, Person, Role
 from courselib.auth import requires_course_staff_by_slug, requires_course_by_slug, NotFoundResponse
 from dashboard.models import NewsItem, UserConfig
 from dashboard.forms import *
@@ -47,8 +47,9 @@ def index(request):
     memberships = [m for m in memberships if _display_membership(m, today, past1)]
 
     news_list = NewsItem.objects.filter(user__userid=userid, updated__gte=past_1mo).order_by('-updated').select_related('course')[:5]
+    roles = [r.role for r in Role.objects.filter(person__userid=userid)]
 
-    context = {'memberships': memberships ,'news_list': news_list}
+    context = {'memberships': memberships ,'news_list': news_list, 'roles': roles}
     return render_to_response("dashboard/index.html",context ,context_instance=RequestContext(request))
 
 

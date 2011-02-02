@@ -12,7 +12,7 @@ $(document).ready(function() {
 
 {% block actions %}{% endblock %}
 
-{% block content %}
+{% block disc_content %}
 <div id="form_container">
     <form action="{% url discipline.views.edit_case_info field='facts' course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
     <p>{{ form.facts.label }}:</p>

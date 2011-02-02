@@ -8,6 +8,8 @@
   <dd>{{case.offering.semester.label}} ({{case.offering.semester}})</dd>
 <dt>Student's Name</dt>
   <dd>{{case.student.sortname}}</dd>
+<dt>Student Number</dt>
+  <dd>{% if case.student.emplid %}{{case.student.emplid}}{% else %}unknown{% endif %}</dd>
 <dt>Student's Email</dt>
   <dd>{{case.student.email}}</dd>
 <dt>Instructor's Name</dt>

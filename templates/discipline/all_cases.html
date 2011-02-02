@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#casestable').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    "aoColumns": [
+      null,
+      null,
+      { "sType": "by-nolink" },
+      null,
+      null,
+      { "sType": "by-nolink" },
+      null,
+    ]
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block title %}{{ course.name }} Dishonesty Cases{% endblock %}
+{% block h1 %}{{ course.name }} Dishonesty Cases{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; Discipline Cases</li>{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+<div class="datatable_container">
+<table id="casestable" class="display">
+  <thead><tr><th scope="col">Semester</th><th scope="col">Course</th><th scope="col">Name</th><th scope="col">Student #</th><th scope="col">Userid</th><th scope="col">Group</th><th scope="col">Done?</th></tr></thead>
+  <tbody>
+  {% for c in cases %}
+  <tr><td>{{c.offering.semester}}</td><td>{{c.offering.name}}</td><td><a href="{% url discipline.views.show course_slug=c.offering.slug case_slug=c.slug %}">{{c.student.sortname}}</a></td><td>{{c.student.emplid}}</td><td>{{c.student.userid}}</td><td>{% if c.group %}<a href="{% url discipline.views.showgroup course_slug=c.offering.slug group_slug=c.group.slug %}">{{c.group.name}}</a>{% endif %}</td><td>{% if c.instr_done %}Done{% endif %}</td>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% endblock %}

@@ -1,0 +1,38 @@
+[
+ {
+  "fields": {
+   "field": "contact_email_text", 
+   "label": "generic", 
+   "text": "DESCRIPTION OF INCIDENT. This does not usually occur unless there is a violation of SFU's Code of Academic Integrity and Good Conduct, Policy S10.01. I take academic honesty very seriously and intend to pursue this apparent violation of SFU's standards for academic honesty.\r\n\r\nAs required by SFU Policy S10.02, Principles and Procedures for Academic Discipline, I am offering you the opportunity to meet with me to discuss this incident. You are not required to accept this offer. If you would like to meet, please contact me to make an appointment outside of my regular office hours.\r\n\r\nYou may wish to refer to SFU's policies and procedures on academic integrity,\r\n  http://www.sfu.ca/policies/Students/index.html .\r\nYou can also contact the Office of the Ombudsperson for assistance in navigating University procedures.\r\n"
+  }, 
+  "model": "discipline.disciplinetemplate", 
+  "pk": 1
+ }, 
+ {
+  "fields": {
+   "field": "contact_email_text", 
+   "label": "simiar work (pair)", 
+   "text": "You and another student submitted very similar work on {{ACTIVITIES}}. This level of similarity does not usually occur unless collaboration exceeds the limits allowed by SFU's Code of Academic Integrity and Good Conduct, Policy S10.01. I take academic honesty very seriously and intend to pursue this apparent violation of SFU's standards for academic honesty.\r\n\r\nAs required by SFU Policy S10.02, Principles and Procedures for Academic Discipline, I am offering you the opportunity to meet with me to discuss this incident. You are not required to accept this offer. If you would like to meet, please contact me to make an appointment outside of my regular office hours.\r\n\r\nYou may wish to refer to SFU's policies and procedures on academic integrity,\r\n  http://www.sfu.ca/policies/Students/index.html .\r\nYou can also contact the Office of the Ombudsperson for assistance in navigating University procedures.\r\n"
+  }, 
+  "model": "discipline.disciplinetemplate", 
+  "pk": 2
+ }, 
+ {
+  "fields": {
+   "field": "contact_email_text", 
+   "label": "simiar work (group)", 
+   "text": "You and other students submitted very similar work on {{ACTIVITIES}}. This level of similarity does not usually occur unless collaboration exceeds the limits allowed by SFU's Code of Academic Integrity and Good Conduct, Policy S10.01. I take academic honesty very seriously and intend to pursue this apparent violation of SFU's standards for academic honesty.\r\n\r\nAs required by SFU Policy S10.02, Principles and Procedures for Academic Discipline, I am offering you the opportunity to meet with me to discuss this incident. You are not required to accept this offer. If you would like to meet, please contact me to make an appointment outside of my regular office hours.\r\n\r\nYou may wish to refer to SFU's policies and procedures on academic integrity,\r\n  http://www.sfu.ca/policies/Students/index.html .\r\nYou can also contact the Office of the Ombudsperson for assistance in navigating University procedures.\r\n"
+  }, 
+  "model": "discipline.disciplinetemplate", 
+  "pk": 3
+ }, 
+ {
+  "fields": {
+   "field": "meeting_summary", 
+   "label": "admitted", 
+   "text": "The student admitted academic dishonesty as described below in \"facts of the case\"."
+  }, 
+  "model": "discipline.disciplinetemplate", 
+  "pk": 4
+ }
+]

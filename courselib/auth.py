@@ -26,6 +26,7 @@ def user_passes_test(test_func, login_url=None,
     def decorator(view_func):
         @wraps(view_func)
         def wrapper(request, *args, **kwargs):
+            print ">>>", kwargs
             if test_func(request.user, **kwargs):
                 return view_func(request, *args, **kwargs)
             elif request.user.is_authenticated():
@@ -55,7 +56,7 @@ def is_advisor(u, **kwargs):
     Return True is the given user is an advisor
     """
     perms = Role.objects.filter(person__userid=u.username, role='ADVS')
-    count = perms.aggregate(Count('person'))['person__count']
+    count = perms.count()
     return count>0
 
 def requires_advisor(function=None, login_url=None):
@@ -73,7 +74,7 @@ def has_role(role, u, **kwargs):
     Return True is the given user has the specified role
     """
     perms = Role.objects.filter(person__userid=u.username, role=role)
-    count = perms.aggregate(Count('person'))['person__count']
+    count = perms.count()
     return count>0
 
 def requires_role(role, login_url=None):
@@ -93,7 +94,7 @@ def is_course_member_by_slug(u, course_slug, **kwargs):
     """
     #offering = get_object_or_404(CourseOffering, slug=course_slug)
     memberships = Member.objects.exclude(role="DROP", offering__component="CAN").filter(offering__slug=course_slug, person__userid=u.username)
-    count = memberships.aggregate(Count('person'))['person__count']
+    count = memberships.count()
     return count>0
 
 def requires_course_by_slug(function=None, login_url=None):
@@ -111,7 +112,7 @@ def is_course_student_by_slug(u, course_slug, **kwargs):
     Return True if user is student from course indicated by 'course_slug' keyword.
     """
     memberships = Member.objects.filter(offering__slug=course_slug, person__userid=u.username, role="STUD").exclude(offering__component="CAN")
-    count = memberships.aggregate(Count('person'))['person__count']
+    count = memberships.count()
     return count>0
 
 def requires_course_student_by_slug(function=None, login_url=None):
@@ -131,7 +132,7 @@ def is_course_staff_by_slug(u, course_slug, **kwargs):
     #offering = get_object_or_404(CourseOffering, slug=course_slug)
     memberships = Member.objects.filter(offering__slug=course_slug, person__userid=u.username,
             role__in=['INST', 'TA', 'APPR']).exclude(offering__component="CAN")
-    count = memberships.aggregate(Count('person'))['person__count']
+    count = memberships.count()
     return count>0
 
 def requires_course_staff_by_slug(function=None, login_url=None):
@@ -139,6 +140,30 @@ def requires_course_staff_by_slug(function=None, login_url=None):
     Allows access if user is a staff member (instructor, TA, approver) from course indicated by 'course_slug'.
     """
     actual_decorator = user_passes_test(is_course_staff_by_slug, login_url=login_url)
+    if function:
+        return actual_decorator(function)
+    else:
+        return actual_decorator
+
+
+def is_discipline_user(u, course_slug, **kwargs):
+    """
+    Return True if user is a discipline user (instructor, approver or discipline admin)
+    """
+    memberships = Member.objects.filter(offering__slug=course_slug, person__userid=u.username,
+            role__in=['INST', 'APPR']).exclude(offering__component="CAN")
+    count = memberships.count()
+    if count>0:
+        return True
+    
+    perms = Role.objects.filter(person__userid=u.username, role='DISC').count()
+    return perms>0
+
+def requires_discipline_user(function=None, login_url=None):
+    """
+    Allows access if user is a discipline user for this case
+    """
+    actual_decorator = user_passes_test(is_discipline_user, login_url=login_url)
     if function:
         return actual_decorator(function)
     else:

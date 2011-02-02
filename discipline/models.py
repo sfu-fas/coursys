@@ -111,7 +111,8 @@ TEMPLATE_FIELDS = { # fields that can have a template associated with them
         'facts': 'facts of the case',
         'penalty_reason': 'penalty rationale',
         }
-
+TEXTILENOTE = '<a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a> and <a href="javascript:substitution_popup()">case substitutions</a> allowed'
+TEXTILEONLYNOTE = '<a href="javascript:substitution_popup()">Case substitutions</a> allowed'
 
 # from django/template/defaultfilters.py 
 _base_js_escapes = (
@@ -159,19 +160,12 @@ class DisciplineGroup(models.Model):
 
 class DisciplineCaseBase(models.Model):
     """
-    A case for a single student.
+    A case for a single person: either a student in the course, or arbitrary person (depending on the subclass used).
     """
-    @classmethod
-    def get_or_404(cls, **kwargs):
-        """
-        specialized version of get_object_or_404 that gets the right subclass object
-        """
-        try:
-            return get_object_or_404(DisciplineCase, **kwargs)
-        except Http404:
-            return get_object_or_404(DisciplineCaseNonStudent, **kwargs)
-
     def subclass(self):
+        """
+        Return the specific subclass version of this object.
+        """
         try:
             case = DisciplineCase.objects.get(id=self.id)
         except DisciplineCase.DoesNotExist:
@@ -180,7 +174,7 @@ class DisciplineCaseBase(models.Model):
     
     instructor = models.ForeignKey(Person, help_text="The instructor who created this case.")
     offering = models.ForeignKey(CourseOffering)
-    notes = models.TextField(blank=True, null=True, help_text='Notes about the case (private notes, <a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a> allowed).')
+    notes = models.TextField(blank=True, null=True, help_text='Notes about the case (private notes, '+TEXTILENOTE+').')
     def autoslug(self):
         return self.student.userid
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='offering')
@@ -188,7 +182,7 @@ class DisciplineCaseBase(models.Model):
     
     # fields for instructor
     contact_email_text = models.TextField(blank=True, null=True, verbose_name="Contact Email Text",
-            help_text=u'The initial email sent to the student regarding the case.')
+            help_text=u'The initial email sent to the student regarding the case. ('+TEXTILEONLYNOTE+'.)')
     contacted = models.CharField(max_length=4, choices=CONTACT_CHOICES, default="NONE", verbose_name="Student Contacted?",
             help_text='Has the student been informed of the case?')
     contact_date = models.DateField(blank=True, null=True, verbose_name="Initial Contact Date", help_text='Date of initial contact with student regarding the case.')
@@ -196,17 +190,17 @@ class DisciplineCaseBase(models.Model):
             help_text='Has the student responded to the initial contact?')
     
     meeting_date = models.DateField(blank=True, null=True, verbose_name="Meeting/Email Date", help_text='Date of meeting/email with student.')
-    meeting_summary = models.TextField(blank=True, null=True, verbose_name="Meeting/Email Summary", help_text='Summary of the meeting/email with student (included in letter, <a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a> allowed).')
-    meeting_notes = models.TextField(blank=True, null=True, verbose_name="Meeting/Email Notes", help_text='Notes about the meeting/email with student (private notes, <a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a> allowed).')
+    meeting_summary = models.TextField(blank=True, null=True, verbose_name="Meeting/Email Summary", help_text='Summary of the meeting/email with student (included in letter, '+TEXTILENOTE+').')
+    meeting_notes = models.TextField(blank=True, null=True, verbose_name="Meeting/Email Notes", help_text='Notes about the meeting/email with student (private notes, '+TEXTILENOTE+').')
     
     facts = models.TextField(blank=True, null=True, verbose_name="Facts of the Case",
-            help_text='Summary of the facts of the case (included in letter, <a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a> allowed).  This should be a summary of the case from the instructor\'s perspective.')
+            help_text='Summary of the facts of the case (included in letter, '+TEXTILENOTE+').  This should be a summary of the case from the instructor\'s perspective.')
     instr_penalty = models.CharField(max_length=4, choices=INSTR_PENALTY_CHOICES, default="WAIT",
             verbose_name="Instructor Penalty",
             help_text='Penalty assigned by the instructor for this case.')
     refer_chair = models.BooleanField(default=False, help_text='Refer this case to the Chair/Director?', verbose_name="Refer to chair?")
     penalty_reason = models.TextField(blank=True, null=True, verbose_name="Penalty Rationale",
-            help_text='Rationale for assigned penalty, or notes/details concerning penalty.  Optional but recommended. (included in letter, <a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a> allowed)')
+            help_text='Rationale for assigned penalty, or notes/details concerning penalty.  Optional but recommended. (included in letter, '+TEXTILENOTE+')')
     
     letter_review = models.BooleanField(default=False, verbose_name="Reviewed?", 
             help_text='Has instructor reviewed the letter before sending?')
@@ -235,10 +229,6 @@ class DisciplineCaseBase(models.Model):
 
     def __unicode__(self):
         return str(self.id)
-        #if self.group:
-        #    return '%s (in %s)' % (self.student.userid, self.group.name)
-        #else:
-        #    return '%s' % (self.student.userid)
 
     def get_absolute_url(self):
         return reverse('discipline.views.show', kwargs={'course_slug': self.student.offering.slug, 'case_slug': self.slug})
@@ -404,8 +394,7 @@ class DisciplineCase(DisciplineCaseBase):
     student = models.ForeignKey(Person, help_text="The student this case concerns.")
 
 class DisciplineCaseNonStudent(DisciplineCaseBase):
-    emplid = models.PositiveIntegerField(max_length=9, null=True, blank=True, verbose_name="Student Number")
-    userid = models.CharField(max_length=8, null=True, blank=True, db_index=True)
+    emplid = models.PositiveIntegerField(max_length=9, null=True, blank=True, verbose_name="Student Number", help_text="SFU student number, if known")
     email = models.EmailField(null=False, blank=False)
     last_name = models.CharField(max_length=32)
     first_name = models.CharField(max_length=32)
@@ -414,7 +403,6 @@ class DisciplineCaseNonStudent(DisciplineCaseBase):
         super(DisciplineCaseNonStudent, self).__init__(*args, **kwargs)
         self.student = self.FakePerson()
         self.student.emplid = self.emplid
-        self.student.userid = self.userid
         self.student.last_name = self.last_name
         self.student.first_name = self.first_name
         self.student.emailaddr = self.email
@@ -497,5 +485,7 @@ class DisciplineTemplate(models.Model):
         """
         Convert this template to a JSON snippet.
         """
-        return """{'field': '%s', 'label': '%s', 'text': '%s'}""" % \
-                (escapejs(self.field), escapejs(self.label), escapejs(self.text))
+        uses_act = self.text.find("{{ACTIVITIES}}") != -1 # template uses related activities?
+        uses_act = str(uses_act).lower()
+        return """{'field': '%s', 'label': '%s', 'text': '%s', 'activities': %s}""" % \
+                (escapejs(self.field), escapejs(self.label), escapejs(self.text), uses_act)

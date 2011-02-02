@@ -3,8 +3,8 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 
 # create "objs" by selecting all objects you want to serialize
 from coredata.models import *
-from groups.models import *
-objs = itertools.chain( Group.objects.all(), GroupMember.objects.all() )
+from discipline.models import *
+objs = itertools.chain( DisciplineTemplate.objects.all() )
 
 # output the JSON: copy into test_data.json when you're sure it's right.
 from django.core import serializers

@@ -31,7 +31,7 @@ function sent_change() {
 {% block h1 %}Dishonesty Case for {{case.student.name}}: Edit Letter Status{% endblock %}
 {% block editlabel %}Letter Status{% endblock %}
 
-{% block content %}
+{% block disc_content %}
 <div id="form_container">
     <form action="{% url discipline.views.edit_case_info field='letter_sent' course_slug=course.slug case_slug=case.slug %}" method="post" onchange="sent_change()">{% csrf_token %}
     {{ form.non_field_errors }}

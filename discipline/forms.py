@@ -54,7 +54,7 @@ class DisciplineCaseForm(forms.ModelForm):
 class DisciplineNonStudentCaseForm(forms.ModelForm):
     class Meta:
         model = DisciplineCaseNonStudent
-        fields = ("emplid", "userid", "email", "last_name", "first_name", "group")
+        fields = ("emplid", "email", "last_name", "first_name", "group")
 
 
 class TemplateForm(forms.ModelForm):
@@ -63,6 +63,10 @@ class TemplateForm(forms.ModelForm):
         widgets = {
             'text': forms.Textarea(attrs={'cols':'80', 'rows':'20'}),
         }
+
+
+
+
 
 
 class CaseNotesForm(forms.ModelForm):
@@ -210,8 +214,9 @@ class CaseRelatedForm(forms.Form):
         self.fields['activities'].choices = activity_choices
 
         # set submission choices
-        gms = GroupMember.objects.filter(student=case.student)
-        sub_sets = [StudentSubmission.objects.filter(activity__offering=course, member=case.student)]
+        gms = GroupMember.objects.filter(student__person=case.student)
+        sub_sets = [StudentSubmission.objects.filter(activity__offering=course, member__person=case.student)]
+        print gms
         for gm in gms:
             sub_sets.append( GroupSubmission.objects.filter(activity=gm.activity, group=gm.group) )
         subs = itertools.chain(*sub_sets)
