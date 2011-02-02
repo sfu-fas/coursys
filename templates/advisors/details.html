@@ -1,17 +1,31 @@
-{% extent "base.html" %}
-
-{% block headextra %}
-
-{# list advisor's info and student's info#}
-
-{% endblock %}
+{% extends "base.html" %}
 
 {% block content %}
 
 {# list the history of the student #}
+	<p><b>User Name: </b>{{ login_user }} </p>
 
-{# implement delete button #}
+	{%if notes %}
+		</>Notes: </p>
+		{%for note in notess%}
+		
+			{{ note.content }}
+			<p><b>Created by: </b>{{ note.advisor }} </p>
+			<p><b>Created date: </b>{{ note.created_date }} </p>
 
-{# implement inputbox and add button #}
+		{%endfor%}
 
-{% endblock%}
+	{%else%}
+		<p><b>No Notes Found</b></p>
+	{%endif%}
+
+	<label><b>New Notes:</b>
+
+	<form enctype="multipart/form-data" action="/advisors/{{ login_user }}/{{ userid }}/add_notes/"" method="post">{% csrf_token %}
+	
+		<textarea name="NotesContent" cols="50" rows="10" wrap="virtual" id="NotesContent"></textarea>		
+		<input type="submit" value="Submit" />
+	
+	</form>
+
+{% endblock content %}
