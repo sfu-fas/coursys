@@ -146,7 +146,7 @@ class CaseLetterReviewForm(forms.ModelForm):
                 raise forms.ValidationError(
                     mark_safe('Cannot finalize letter: have not entered <a href="%s">%s</a>.'
                         % (reverse('discipline.views.edit_case_info',
-                            kwargs={'field': STEP_VIEW[step], 'course_slug':case.student.offering.slug, 'case_slug':case.slug}),
+                            kwargs={'field': STEP_VIEW[step], 'course_slug':case.offering.slug, 'case_slug':case.slug}),
                         STEP_DESC[step])))
 
         return review
@@ -166,7 +166,7 @@ class CaseLetterSentForm(forms.ModelForm):
                 raise forms.ValidationError(
                     mark_safe('Cannot send letter: it has not <a href="%s">been reviewed</a>.'
                         % (reverse('discipline.views.edit_case_info',
-                            kwargs={'field': 'letter_review', 'course_slug':case.student.offering.slug, 'case_slug':case.slug}))))
+                            kwargs={'field': 'letter_review', 'course_slug':case.offering.slug, 'case_slug':case.slug}))))
             self.instance.send_letter_now = True # trigger email sending in view logic
         elif letter_sent=="OTHR":
             if not text.strip():
@@ -191,7 +191,7 @@ class CasePenaltyImplementedForm(forms.ModelForm):
             raise forms.ValidationError(
                 mark_safe('Cannot implement penalty: have not <a href="%s">sent letter</a>.'
                     % (reverse('discipline.views.edit_case_info',
-                        kwargs={'field': 'letter_sent', 'course_slug':self.instance.student.offering.slug, 'case_slug':self.instance.slug}))))
+                        kwargs={'field': 'letter_sent', 'course_slug':self.instance.offering.slug, 'case_slug':self.instance.slug}))))
 
         return impl
 

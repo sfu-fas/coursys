@@ -23,7 +23,7 @@ if DEPLOYED:
     DATABASE_PORT = '3306'
 else:
     DATABASE_ENGINE = 'sqlite3'
-    DATABASE_NAME = '/home/ggbaker/fastcgi-trunk/courses/db.sqlite'
+    DATABASE_NAME = 'db.sqlite'
     DATABASE_USER = ''
     DATABASE_PASSWORD = ''
     DATABASE_HOST = ''
@@ -103,7 +103,6 @@ TEMPLATE_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     'templates',
-    '/home/ggbaker/fastcgi-trunk/courses/templates'
 )
 if DEPLOYED:
     TEMPLATE_DIRS = TEMPLATE_DIRS + ('/home/ggbaker/courses/templates',)
