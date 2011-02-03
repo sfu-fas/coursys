@@ -1218,7 +1218,7 @@ div.discside ul li {
   padding: 0;
   list-style-type: none;
 }
-div#subpop {
+div#subpop, div#texpop {
   display: none;
 }
 div.letter {

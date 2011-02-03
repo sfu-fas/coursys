@@ -22,4 +22,19 @@ var hasRelAct = {{hasRelAct|lower}};
 <p>The following substitutions will be made within the text:</p>
 {% include "discipline/substitutions.html" %}
 </div>
+<div id="texpop">
+<p>Textile is a simple markup language that you can use to do some basic formatting within this field.  Text within a paragraph:</p>
+<ul>
+  <li><code>_text_</code>: emphasized text (italic)</li>
+  <li><code>*text*</code>: strongly emphasized text (bold)</li>
+  <li><code>@text@</code>: code (monospaced font)</li>
+</ul>
+<p>And some basic blocks.  Each of these should be a separate line/paragraph:</p>
+<ul>
+  <li><code>bq. text</code>: blockquote (indented as a long-form quote)</li>
+  <li><code>* text</code>: a bulleted list</li>
+  <li><code># text</code>: a numbered list</li>
+</ul>
+<p>For more options, see the <a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Wikipedia article on Textile</a>.</p>
+</div>
 {% endblock %}

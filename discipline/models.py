@@ -111,7 +111,7 @@ TEMPLATE_FIELDS = { # fields that can have a template associated with them
         'facts': 'facts of the case',
         'penalty_reason': 'penalty rationale',
         }
-TEXTILENOTE = '<a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a> and <a href="javascript:substitution_popup()">case substitutions</a> allowed'
+TEXTILENOTE = '<a href="javascript:textile_popup()">Textile markup</a> and <a href="javascript:substitution_popup()">case substitutions</a> allowed'
 TEXTILEONLYNOTE = '<a href="javascript:substitution_popup()">Case substitutions</a> allowed'
 
 # from django/template/defaultfilters.py 
@@ -264,7 +264,7 @@ class DisciplineCaseBase(models.Model):
         
         return "[" + ", ".join(
             ('{"id": "%i", "name": "%s (%s)"}'
-                % (c.id, escapejs(c.subclass().student.name()), escapejs(c.subclass().student.userid))
+                % (c.id, escapejs(c.subclass().student.name()), escapejs(c.subclass().student_userid()))
                 for c in self.group.disciplinecasebase_set.exclude(pk=self.pk))) + "]"
     
     def next_step(self):
@@ -372,7 +372,8 @@ class DisciplineCaseBase(models.Model):
         """
         from django.template.loader import render_to_string
         html_body = "<html><body>" + render_to_string('discipline/letter_body.html', { 'case': self }) + "</body></html>"
-        text_body = "See letter online."
+        text_body = "Letter is included here an an HTML message, or can be viewed online at this URL:\n%s" %\
+            (settings.BASE_ABS_URL + reverse('discipline.views.view_letter', kwargs={'course_slug': self.offering.slug, 'case_slug': self.slug}))
         self.letter_text = html_body
         self.save()
         email = EmailMultiAlternatives(
@@ -392,6 +393,9 @@ class DisciplineCaseBase(models.Model):
 
 class DisciplineCase(DisciplineCaseBase):
     student = models.ForeignKey(Person, help_text="The student this case concerns.")
+    
+    def student_userid(self):
+        return self.student.userid
 
 class DisciplineCaseNonStudent(DisciplineCaseBase):
     emplid = models.PositiveIntegerField(max_length=9, null=True, blank=True, verbose_name="Student Number", help_text="SFU student number, if known")
@@ -406,6 +410,9 @@ class DisciplineCaseNonStudent(DisciplineCaseBase):
         self.student.last_name = self.last_name
         self.student.first_name = self.first_name
         self.student.emailaddr = self.email
+
+    def student_userid(self):
+        return self.email
         
     class FakePerson(object):
         """

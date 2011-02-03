@@ -11,7 +11,8 @@ from discipline.models import *
 from discipline.forms import *
 from discipline.content import *
 from log.models import LogEntry
-from courselib.auth import requires_discipline_user, requires_role, NotFoundResponse, ForbiddenResponse
+from courselib.auth import requires_discipline_user, is_discipline_user, requires_role, NotFoundResponse, ForbiddenResponse
+from django.contrib.auth.decorators import login_required
 import re
 
 @requires_discipline_user
@@ -51,7 +52,6 @@ def newgroup(request, course_slug):
                 # create case for each student in the group
                 student = Member.objects.get(offering=course, person__userid=userid)
                 case = DisciplineCase(student=student.person, group=group, instructor=instructor, offering=course)
-                print case
                 case.save()
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
@@ -378,6 +378,35 @@ def edit_related(request, course_slug, case_slug):
     return render_to_response("discipline/edit_related.html", context, context_instance=RequestContext(request))
 
 
+
+@login_required
+def view_letter(request, course_slug, case_slug):
+    """
+    Display current case status
+    """
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
+    case = case.subclass()
+    
+    # allowed users: instructor/discipline admin, or student if they received the letter.
+    if is_discipline_user(request.user, course_slug):
+        is_student = False
+        messages.add_message(request, messages.INFO,
+                "The student should be able to view the letter at this URL as well." )
+    elif request.user.username == case.student.userid and case.letter_sent == 'MAIL':
+        is_student = True
+    else:
+        return ForbiddenResponse(request) 
+           
+    if case.letter_sent != 'MAIL' or not case.letter_text:
+        return ForbiddenResponse(request, errormsg="The letter for this case was not sent by this system.")
+    
+    context = {'course': course, 'case': case, 'is_student': is_student}
+    return render_to_response("discipline/view_letter.html", context, context_instance=RequestContext(request))
+
+
+
+
 # Attachment editing views
 
 @requires_discipline_user
@@ -423,12 +452,24 @@ def new_file(request, course_slug, case_slug):
     context = {'course': course, 'case': case, 'form': form}
     return render_to_response("discipline/new_file.html", context, context_instance=RequestContext(request))
 
-@requires_discipline_user
+@login_required
 def download_file(request, course_slug, case_slug, fileid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
     case = case.subclass()
     attach = get_object_or_404(CaseAttachment, case__slug=case_slug, case__offering__slug=course_slug, id=fileid)
+
+    # allowed users: instructor/discipline admin, or student if they received the letter.
+    if is_discipline_user(request.user, course_slug):
+        is_student = False
+    elif request.user.username == case.student.userid and case.letter_sent == 'MAIL':
+        is_student = True
+    else:
+        return ForbiddenResponse(request) 
+           
+    if case.letter_sent != 'MAIL' or not case.letter_text:
+        return ForbiddenResponse(request, errormsg="The letter for this case was not sent by this system.")
+
 
     attach.attachment.open()
     resp = HttpResponse(attach.attachment, mimetype=attach.mediatype)

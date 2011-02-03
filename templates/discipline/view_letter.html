@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load discipline_filters %}
+{% block title %}Dishonesty Case for {{case.student.name}}: Letter{% endblock %}
+{% block h1 %}Dishonesty Case for {{case.student.name}}: Letter{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; {% if is_student %}Discipline Cases {% else %}<a href="{% url discipline.views.index course_slug=course.slug %}">Discipline Cases</a> {% endif %}</li><li>&gt; {% if is_student %}Case for {{case.student.name}} {% else %}<a href="{% url discipline.views.show course_slug=course.slug case_slug=case.slug %}">Case for {{case.student.name}}</a> {% endif %}</li><li>&gt; Letter</li>{% endblock %}
+
+{% block content %}
+<p>The following letter was sent regarding this case:</p>
+<div class="letter">{{case.letter_text|safe}}</div>
+<h2 id="attach">Attached Files</h2>
+    <p>These files were attached to the email sent:</p>
+    <ul>
+    {% for f in case.public_attachments %}
+    <li><a href="{% url discipline.views.download_file course_slug=course.slug case_slug=case.slug fileid=f.id %}">{{f.filename}}</a>, {{f.attachment.size|filesizeformat}}</li>
+    {% empty %}
+    <li class="none">None</li>
+    {% endfor %}
+    </ul>
+{% endblock %}

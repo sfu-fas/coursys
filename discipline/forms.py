@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.utils.safestring import mark_safe
 from discipline.models import *
 from grades.models import Activity
-from coredata.models import Member
+from coredata.models import Member, Person
 from groups.models import GroupMember
 from submission.models import StudentSubmission, GroupSubmission
 import itertools
@@ -184,8 +184,6 @@ class CaseLetterSentForm(forms.ModelForm):
 class CasePenaltyImplementedForm(forms.ModelForm):
     def clean_penalty_implemented(self):
         impl = self.cleaned_data['penalty_implemented']
-        print `impl`
-        print self.instance.letter_sent
         if impl and self.instance.letter_sent=="WAIT":
             # cannot set to true if letter not sent
             raise forms.ValidationError(
@@ -214,9 +212,14 @@ class CaseRelatedForm(forms.Form):
         self.fields['activities'].choices = activity_choices
 
         # set submission choices
-        gms = GroupMember.objects.filter(student__person=case.student)
-        sub_sets = [StudentSubmission.objects.filter(activity__offering=course, member__person=case.student)]
-        print gms
+        if isinstance(case.student, Person):
+            gms = GroupMember.objects.filter(student=case.student)
+            sub_sets = [StudentSubmission.objects.filter(activity__offering=course, member__person=case.student)]
+        else:
+            # for FakePerson in non-student cases: no submissions possible.
+            gms = []
+            sub_sets = []
+
         for gm in gms:
             sub_sets.append( GroupSubmission.objects.filter(activity=gm.activity, group=gm.group) )
         subs = itertools.chain(*sub_sets)

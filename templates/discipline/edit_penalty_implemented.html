@@ -11,7 +11,7 @@
 
 {% block disc_content %}
 <div id="form_container">
-    {% if case.related_activities %}
+    {% if case.related_activities and case.student.userid %}
     <p>You may wish to edit this student's grades on:</p>
     <ul>
     {% for ro in case.related_activities %}

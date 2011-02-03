@@ -3,6 +3,11 @@ function substitution_popup() {
       width: 500
       });
 }
+function textile_popup() {
+  $('#texpop').dialog({
+      width: 500
+      });
+}
 
 function use_template(n) {
   // put corresponding template text in its field

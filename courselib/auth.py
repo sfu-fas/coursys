@@ -26,7 +26,6 @@ def user_passes_test(test_func, login_url=None,
     def decorator(view_func):
         @wraps(view_func)
         def wrapper(request, *args, **kwargs):
-            print ">>>", kwargs
             if test_func(request.user, **kwargs):
                 return view_func(request, *args, **kwargs)
             elif request.user.is_authenticated():
@@ -85,7 +84,6 @@ def requires_role(role, login_url=None):
         return has_role(role, u, **kwargs)
         
     actual_decorator = user_passes_test(has_this_role, login_url=login_url)
-    #print has_this_role
     return actual_decorator
 
 def is_course_member_by_slug(u, course_slug, **kwargs):
@@ -181,8 +179,6 @@ def requires_faculty_member(function=None, login_url=None):
     """
     Allows access if user is a faculty member.
     """
-    #print function
-    #print login_url
     actual_decorator = user_passes_test(is_faculty_member, login_url=login_url)
     if function:
         return  actual_decorator(function)
