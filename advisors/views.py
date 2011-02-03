@@ -7,7 +7,14 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render_to_response
 from django.http import HttpResponse
-# --------------Searech-----------------------------------
+
+from django.template import RequestContext
+from django.template import Context, loader
+from django.db.models import query
+from django.core.files.uploadedfile import SimpleUploadedFile
+from datetime import datetime
+
+# --------------Search-----------------------------------
 from django.template import RequestContext
 
 @requires_advisor
@@ -30,43 +37,46 @@ def search(request):
 # --------------View and Add Notes------------------------
 
 #Add Notes, only advisor can do it
-#@requires_advisor
-#def add_notes(request, student_NO):
-#        try:
-#                std = Person.objects.get(emplid = student_NO)
-#        except Person.DoesNotExist:
-#                raise Http404
-#        try:
-#                adv = Person.objects.get(userid = request.user.username)
-#        except Person.DoesNotExist:
-#                raise Http404
-#
-#        notes_content = request.POST['Detail_Text']
-#
-#        added_notes = Note(advisor = adv, student = std, notes = notes_content, created_date = datetime.now())
-#        added_notes.save();
+@requires_advisor
+def add_notes(request, userid):
+#        
+	notes = request.POST['NotesContent']
+        
+	user = get_object_or_404(Person, userid = userid)
+	login_user = get_object_or_404(Person, userid = request.user.username)
+	advisor = get_object_or_404(Role, person = login_user)
 
-#        return render_to_response("advisors/Detail.html", {'note':notes_content})
+	added_notes = Notes(advisor = advisor, student = user, content = notes, created_date = datetime.now())
+	added_notes.save();
+        
+	return render_to_response("advisors/success.html",{'notes':notes, 'userid': userid, 'user': user, 'created_date':datetime.now(), 'advisor':advisor}, context_instance=RequestContext(request))
 
 
 #View Notes, students can read the notes of themselves, advisors can read all the notes for the choosen student
 @login_required
 def view_notes(request, userid):
 
-        try:
-                user = Person.objects.get(userid = userid)
-        except Person.DoesNotExist:
-                raise Http404
-       	#login_user = request.user.username
-	try:
-                login_user = Person.objects.get(userid = request.user.username)
-        except Person.DoesNotExist:
-                raise Http404
+	user = get_object_or_404(Person, userid = userid)
+	login_user = get_object_or_404(Person, userid = request.user.username)
+		
+	notes = Notes.objects.filter(student = user).order_by('created_date')
+  
+	return render_to_response("advisors/details.html",{'user':user, 'userid':userid, 'notes':notes},context_instance=RequestContext(request))
+
+#@requires_advisor
+#def delete_notes(request, userid, note_id):
 	
-	#notes = Notes.objects.filter(advisor = user).order_by('created_date')
-
-	#return HttpResponse(user)
-        return render_to_response("advisors/details.html",{'user':user, 'login_user':login_user},context_instance=RequestContext(request))
-
+	
+#	return HttpResponse('Notes deleted')
 # --------------------------------------------------------
  
+
+
+
+
+
+
+
+
+
+

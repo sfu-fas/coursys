@@ -11,8 +11,9 @@ class Notes(models.Model):
 	content = models.TextField( max_length = 1000)
 	created_date = models.DateTimeField(auto_now = False, auto_now_add = False)
 
-	def _unicode_(self):
-		return '%s %s' % (self.advisor, self.student)
+	def __unicode__(self):
+		return u'%s %s' % (self.student,self.content)
+        
 
 class NotesForm(ModelForm):
 	class Meta:

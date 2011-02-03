@@ -3,25 +3,31 @@
 {% block content %}
 
 {# list the history of the student #}
-	<p><b>User Name: </b>{{ login_user }} </p>
-
+	<p><b>User Name: </b>{{ user }} </p>
 	{%if notes %}
-		</>Notes: </p>
-		{%for note in notess%}
-		
-			{{ note.content }}
-			<p><b>Created by: </b>{{ note.advisor }} </p>
-			<p><b>Created date: </b>{{ note.created_date }} </p>
-
+	<table border="1" cellspacing="5" cellpadding="5">
+		<tr>
+			<th>Content</th>
+			<th>Created by</th>
+			<th>Created date</th>
+			<th>Delete</th>
+		</tr>
+		{%for note in notes%}
+		<tr>
+			<td>{{ note.content }}</td>
+			<td>{{ note.advisor }}</td>
+			<td>{{ note.created_date }}</td>
+			<td><a href="">Delete</a></td>
+		</tr>
 		{%endfor%}
-
+	</table>
 	{%else%}
 		<p><b>No Notes Found</b></p>
 	{%endif%}
-
+	
 	<label><b>New Notes:</b>
 
-	<form enctype="multipart/form-data" action="/advisors/{{ login_user }}/{{ userid }}/add_notes/"" method="post">{% csrf_token %}
+	<form enctype="multipart/form-data" action="/success/{{ userid }}" method="post">{% csrf_token %}
 	
 		<textarea name="NotesContent" cols="50" rows="10" wrap="virtual" id="NotesContent"></textarea>		
 		<input type="submit" value="Submit" />
