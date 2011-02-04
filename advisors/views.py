@@ -56,12 +56,12 @@ def add_notes(request, userid):
 @login_required
 def view_notes(request, userid):
 
-	user = get_object_or_404(Person, userid = userid)
+	user_name = get_object_or_404(Person, userid = userid)
 	login_user = get_object_or_404(Person, userid = request.user.username)
 		
-	notes = Notes.objects.filter(student = user).filter(hidden = False).order_by('created_date')
+	notes = Notes.objects.filter(student = user_name).filter(hidden = False).order_by('created_date')
   
-	return render_to_response("advisors/details.html",{'user':user, 'userid':userid, 'notes':notes},context_instance=RequestContext(request))
+	return render_to_response("advisors/details.html",{'user_name':user_name, 'userid':userid, 'notes':notes},context_instance=RequestContext(request))
 
 @requires_advisor
 def delete_notes(request, userid, note_id):

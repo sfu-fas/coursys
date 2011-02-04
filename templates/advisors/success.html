@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+	
+	<p>Submit Successfully!</p> 
+	<p>Notes:</p>
+	<table border="0" cellspacing="5" cellpadding="5">
+		<tr>
+			<th>Content</th>
+			<th>Created by</th>
+			<th>Created date</th>
+		</tr>
+		<tr>
+			<td>{{ notes }}</td>
+			<td>{{ advisor }}</td>
+			<td>{{ created_date }}</td>
+		</tr>
+	</table>
+	
+	<p>Has been added to {{user}}</p>
+	<a href="{% url  advisors.views.view_notes userid=userid %}">Back</a>
+	
+{% endblock content %}
