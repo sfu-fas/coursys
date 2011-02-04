@@ -3,12 +3,35 @@
 
 {% block marking_header_extra %}
 <script type="text/javascript">
+    var items_to_add = 25;
     $(document).ready(function() {
 	var oTable = $('#activity_components').dataTable({
 		"bJQueryUI": true,
 		"bSort": false,
 		"bFilter": false,
-		"bPaginate": false/* turn off the pagination */
+		"bPaginate": false/* turn off the pagination */,
+		"oLanguage": {
+			"sInfo": "",
+			"sInfoEmpty": "Showing 0 to 0 of 0 records"
+		}
+	});
+	$("#button_five_more").removeClass("hidden");
+	$("#button_five_more").click(function() {
+	    var table = document.getElementById('activity_components').childNodes;
+	    for (var x = 0; x < table.length; x++) {
+	        if (table[x].nodeName == 'TBODY') {
+	            var len = table[x].childNodes.length;
+	            for (var i = 0; i < 5; i++) {
+	                $(table[x].childNodes[len-items_to_add+i]).removeClass('hidden');
+	            }
+	            items_to_add -= 5;
+	            break;
+	        }
+	    }
+	    if (items_to_add == 0) {
+	        $("#button_five_more").addClass("hidden");
+	    }
+	    return false;
 	});
     });
 </script>
@@ -38,15 +61,17 @@
           </tr>         
         </thead>  
         <tbody>
-	      {% for form in formset.forms|slice:":-5" %} 	      
-		  {{ form|display_form_as_row:"deleted_flag"}}
+	      {% for form in formset.forms|slice:":-25" %} 	      
+		      {{ form|display_form_as_row:"deleted_flag"}}
 	      {% endfor %}
-	      {% for form in formset.forms|slice:"-5:" %} {# you can add 5 more components #}	      
-	          {{ form|display_form_as_row }}
+	      {# you can add 25 more components #}
+          {% for form in formset.forms|slice:"-25:" %}
+              {{ form|display_form_as_row:"hidden" }}
           {% endfor %}
         </tbody>
       </table>
-   </div>   
+   </div>
 <p><input class ="submit" type="submit" value="Submit" /></p>
+<p><input class="submit hidden" type="submit" value="Add 5 more" id="button_five_more" /></p>   
 </form>  
 {% endblock %}

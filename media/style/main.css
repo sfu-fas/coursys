@@ -307,7 +307,7 @@ table.display tr:hover {
   background-color: #EAF2FA;
 }
 
-table td.hidden {
+table td.hidden, table tr.hidden {
 	display: none;
 }
 
@@ -1248,4 +1248,8 @@ a img {
 }
 ul {
   margin-top: 1em;
+}
+
+.hidden {
+    display: none;
 }

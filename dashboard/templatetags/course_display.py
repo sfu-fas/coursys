@@ -66,8 +66,10 @@ def display_form_as_row(form, arg=None):
     """
     Convert the form to a HTML table row
     set arg to be "deleted_flag" to include the deleted field
-    """    
+    """
     output = ["<tr>"]
+    if arg == 'hidden':
+        output = ['<tr class="hidden">']
     for field in form.visible_fields():
         if field.name == "deleted" and (arg != "deleted_flag"):
             output.append("<td></td>")

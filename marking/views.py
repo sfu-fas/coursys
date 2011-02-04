@@ -225,7 +225,7 @@ def manage_activity_components(request, course_slug, activity_slug):
     
     ComponentsFormSet  = modelformset_factory(ActivityComponent, fields=fields, \
                                               formset=BaseActivityComponentFormSet, \
-                                              can_delete = False, extra = 5) 
+                                              can_delete = False, extra = 25) 
     
     qset =  ActivityComponent.objects.filter(numeric_activity = activity, deleted=False);
                  
