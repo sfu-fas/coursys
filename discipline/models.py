@@ -11,7 +11,6 @@ from django.core.files.storage import FileSystemStorage
 from django.utils.text import wrap
 from django.conf import settings
 from django.shortcuts import get_object_or_404
-from discipline.content import *
 import string, os, datetime
 
 CONTACT_CHOICES = (
