@@ -9,7 +9,6 @@ from submission.models import Submission, StudentSubmission, GroupSubmission
 from grades.models import all_activities_filter, Activity
 from discipline.models import *
 from discipline.forms import *
-from discipline.content import *
 from log.models import LogEntry
 from courselib.auth import requires_discipline_user, is_discipline_user, requires_role, NotFoundResponse, ForbiddenResponse
 from django.contrib.auth.decorators import login_required
