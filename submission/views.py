@@ -419,6 +419,10 @@ def edit_single(request, course_slug, activity_slug):
         new_form = component.Type.ComponentForm(request.POST)
         if new_form.is_valid():
             new_component = new_form.save(commit=False)
+            #FIXME: shouldn't need the following 'if'
+            print new_component.specified_filename, new_form.cleaned_data
+            if 'specified_filename' in new_form.cleaned_data:
+                new_component.specified_filename = new_form.cleaned_data['specified_filename']
             new_component.activity = activity
             new_component.id = component.id
             if new_component.position == None:

@@ -25,6 +25,7 @@
             {% if component.max_size %}<li class="view"><label>Maximum Size:</label>{{component.max_size}} KB</li>{% endif %}
             {% if component.max_length %}<li class="view"><label>Maximum Length:</label>{{component.max_length}}</li>{% endif %}
 			{% if component.allowed %}<li class="view"><label>Allowed Type:</label>{{component.allowed}}</li>{% endif %}
+			{% if component.specified_filename %}<li class="view"><label>Specified filename:</label>{{component.specified_filename}}</li>{% endif %}
 			{% if component.deleted %}<li class="view"><label>Invisible:</label>Yes</li>{% endif %}
             <li class="editbutton"><a class="button" href="{% url submission.views.edit_single course_slug=course.slug, activity_slug=activity.slug %}?id={{component.id}}">Edit</a></li>
         </ul>

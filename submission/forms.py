@@ -12,6 +12,7 @@ _required_star = '<em><img src="'+settings.MEDIA_URL+'icons/required_star.gif" a
 class ComponentForm(ModelForm):
     #override title to have 'required star'
     title = forms.CharField(max_length=100, help_text='Name for this component (e.g. "Part 1" or "Programming Section")', label=mark_safe("Title"+_required_star))
+    specified_filename = forms.CharField(max_length=200, help_text="Specified file name for this component", label="Specified file name", required=False)
 
 
 #class ArchiveComponentForm(ComponentForm):
@@ -137,10 +138,16 @@ class SubmissionForm(ModelForm):
             return True
         return False
 
+    def check_filename(self, data):
+        specified_filename = self.component.specified_filename.strip()
+        if specified_filename and len(specified_name) > 0 and data.name != specified_filename:
+            raise forms.ValidationError('File name incorrect.  It must be "%s".' % (specified_filename))
+    
     def check_uploaded_data(self, data):
         if self.check_is_empty(data):
             raise forms.ValidationError("No file submitted.")
         self.check_type(data)
+        self.check_filename(data)
         if not self.check_size(data):
             raise forms.ValidationError("File size exceeded max size, component can not be uploaded.")
         return data

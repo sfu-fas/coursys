@@ -62,6 +62,7 @@
                         {% if data.comp.description %}<div><label>Description:</label><p>{{data.comp.description}}</p></div>{% endif %}
                         {% if data.comp.max_size %}<div><label>Max File Size:</label><p>{{data.comp.max_size}} KB</p></div>{% endif %}
                         {% if data.comp.allowed %}<div><label>Allowed File Types:</label><p>{{data.comp.allowed}}</p></div>{% endif %}
+                        {% if data.comp.specified_filename %}<div><label>Specified File Name:</label><p>{{data.comp.specified_filename}}</p></div>{% endif %}
                         {{data.form.as_ul}}
                     {% endfor %}
                 <input type ="submit" value ="Submit" class ="submit"/>

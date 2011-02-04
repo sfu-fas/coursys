@@ -59,6 +59,7 @@ class URL:
             # }
         def __init__(self, *args, **kwargs):
             super(URL.ComponentForm, self).__init__(*args, **kwargs)
+            self.fields.__delitem__('specified_filename')
             self.fields['description'].widget = Textarea(attrs={'cols': 50, 'rows': 5})
             self.fields['deleted'].label=mark_safe("Invisible")
 

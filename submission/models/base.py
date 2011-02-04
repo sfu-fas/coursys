@@ -32,6 +32,7 @@ class SubmissionComponent(models.Model):
     position = models.PositiveSmallIntegerField(help_text="The order of display for listing components.", null=True,blank=True)
     slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with='activity')
     deleted = models.BooleanField(default=False, help_text="Invisible to students when checked.")
+    specified_filename = models.CharField(max_length=200, help_text="Specify a file name for this component.")
 
     def __cmp__(self, other):
         return cmp(self.position, other.position)
