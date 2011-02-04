@@ -4,6 +4,8 @@
 {% block headextra %}
 <link type="text/css" href="{{MEDIA_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
 <script type="text/javascript" src="{{MEDIA_URL}}multiselect/js/ui.multiselect.js"></script>
+<script type="text/javascript" src="{{MEDIA_URL}}js/submissionmain.js"></script>
+<script type="text/javascript">init()</script>
 <script type="text/javascript">
   $(document).ready(function() {
     $("#id_allowed").multiselect();
@@ -21,10 +23,11 @@
 
 <ul class="add_nav">
 {% for t in types %}
-  <li><a href="?type={{t.label}}" class="button"{% ifequal t.label type.label %}id="current_type"{% endifequal %}>{{t.name}}</a></li>
+  <li><a href="?type={{t.label}}" class="button"{% ifequal t.label type.label %}id="current_type"{% endifequal %} onclick="readField()">{{t.name}}</a></li>
 {% endfor %}
 </ul>
 
+{%if type%}
 <div id="form_container">
 <div id="add_submission_component_container">
 
@@ -32,9 +35,12 @@
 <fieldset>
     <legend>Add Component</legend>
     {{form|display_form}}
+    
+    
 </fieldset>
 </form>
 </div>
     
 </div>
+{% endif %}
 {% endblock %}

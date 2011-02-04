@@ -448,15 +448,12 @@ def add_component(request, course_slug, activity_slug):
 
     #default, Archive
     typelabel = request.GET.get('type')
-    if typelabel == None:
-        Type = Archive
-    else:
-        Type = find_type_by_label(typelabel)
+    Type = find_type_by_label(typelabel)
     
     if Type is None:
-        return NotFoundResponse(request)
-    
-    form = Type.ComponentForm()
+        form = None
+    else:
+        form = Type.ComponentForm()
 
     #if form is submitted, validate / add component
     if request.method == 'POST':
