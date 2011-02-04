@@ -17,9 +17,9 @@ from advisors.models import *
 urlpatterns = patterns('advisors.views',
     	url(r'^advisors/$','index'),
     	url(r'^view/$', 'search'),
-	url(r'^search_detail/' + USERID_SLUG + '$', 'view_notes'),
-	url(r'^success/' + USERID_SLUG + '$', 'add_notes')
-#    url(r'^delete_notes/(?P<note_id>\d+)/$', 'delete_notes'),
+		url(r'^search_detail/' + USERID_SLUG + '$', 'view_notes'),
+		url(r'^success/' + USERID_SLUG + '$', 'add_notes'),
+		url(r'^delete_notes/' + USERID_SLUG + '/(?P<note_id>\w+)/$', 'delete_notes'),
 #    (r'^(?P<advisor_id>\w+)/(?P<student_id>\w+)/create/$','create'),
 #    (r'^(?P<advisor_id>\w+)/(?P<student_id>\w+)/submit/$', 'submit'),
 #    (r'^search_form/$', 'search_form'),

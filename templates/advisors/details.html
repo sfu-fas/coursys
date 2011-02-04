@@ -17,7 +17,7 @@
 			<td>{{ note.content }}</td>
 			<td>{{ note.advisor }}</td>
 			<td>{{ note.created_date }}</td>
-			<td><a href="">Delete</a></td>
+			<td><a href="{% url advisors.views.delete_notes userid=userid note_id=note.id %} ">Delete</td>
 		</tr>
 		{%endfor%}
 	</table>

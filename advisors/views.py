@@ -46,9 +46,9 @@ def add_notes(request, userid):
 	login_user = get_object_or_404(Person, userid = request.user.username)
 	advisor = get_object_or_404(Role, person = login_user)
 
-	added_notes = Notes(advisor = advisor, student = user, content = notes, created_date = datetime.now())
+	added_notes = Notes(advisor = advisor, student = user, content = notes, created_date = datetime.now(), hidden = False)
 	added_notes.save();
-        
+      
 	return render_to_response("advisors/success.html",{'notes':notes, 'userid': userid, 'user': user, 'created_date':datetime.now(), 'advisor':advisor}, context_instance=RequestContext(request))
 
 
@@ -59,15 +59,22 @@ def view_notes(request, userid):
 	user = get_object_or_404(Person, userid = userid)
 	login_user = get_object_or_404(Person, userid = request.user.username)
 		
-	notes = Notes.objects.filter(student = user).order_by('created_date')
+	notes = Notes.objects.filter(student = user).filter(hidden = False).order_by('created_date')
   
 	return render_to_response("advisors/details.html",{'user':user, 'userid':userid, 'notes':notes},context_instance=RequestContext(request))
 
-#@requires_advisor
-#def delete_notes(request, userid, note_id):
+@requires_advisor
+def delete_notes(request, userid, note_id):
 	
+	notes = Notes.objects.get(pk = note_id)
+	notes.hidden = True
+	notes.save()
 	
-#	return HttpResponse('Notes deleted')
+	user = get_object_or_404(Person, userid = userid)
+	notes = Notes.objects.filter(student = user).filter(hidden = False).order_by('created_date')
+	
+	return render_to_response("advisors/details.html",{'user':user, 'userid':userid, 'notes':notes},context_instance=RequestContext(request))
+	
 # --------------------------------------------------------
  
 

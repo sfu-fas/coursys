@@ -10,6 +10,7 @@ class Notes(models.Model):
 	student = models.ForeignKey(Person)
 	content = models.TextField( max_length = 1000)
 	created_date = models.DateTimeField(auto_now = False, auto_now_add = False)
+   	hidden = models.BooleanField(default = False)
 
 	def __unicode__(self):
 		return u'%s %s' % (self.student,self.content)
