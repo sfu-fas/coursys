@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Course Management System: Assignment Submission{% endblock %}
+{% block h1 %}Course Management System: Assignment Submission{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url dashboard.views.list_docs %}">Docs</a></li><li>&gt; Submission</li>{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+<h2 id="components">Submission &ldquo;Components&rdquo;</h2>
+<p>For each activity, the instructor (or TAs) can define multiple submission &ldquo;components&rdquo;. Roughly, each component is a file that will be submitted.  You can specify the type of file and other restrictions on what can be submitted for each component.</p>
+<p>For example, a programming assignment with both design and implementation phases might have two components:</p>
+<ul>
+<li>Design: a PDF file named <code>design.pdf</code> containing the design of a system.</li>
+<li>Implementation: a ZIP file containing the code for the system.</li>
+</ul>
+
+
+<h2 id="setup">Setup</h2>
+<p>Instructors <strong>must configure submission for an assignment</strong> before students can submit anything.  Until the configuration is done, the system doesn't know what components to accept, so students will not see any of the submission controls.</p>
+<p>An activity <strong>must have a due date</strong> set before you can configure submission: the system needs to know when to start counting things as &ldquo;late&rdquo;.</p>
+<p>To start configuration, click &ldquo;Configure Submission&rdquo; on the assignment screen.</p>
+
+
+<h2 id="setup-comp">Setting up Compontents</h2>
+
+<p>To create a new component, select &ldquo;Add Component&rdquo;.  Configuring a component is a two step process:</p>
+<ol>
+<li>Select the type of file you want submitted: Archive (ZIP/RAR/TAR.GZ), PDF file, code file, etc.</li>
+<li>Give a title to the component (so students know what part of their work to submit) and indicate any other restrictions or details of the component.  The information that you can enter depends on the type of component, but hopefully the help text on the screen will guide you through.</li>
+</ol>
+
+
+<h2 id="submit">Submitting</h2>
+<p>
+Students submit by visiting the same page you visit to configure submission.
+</p>
+{% if activity %}
+<p>For example, in your {{course.name}} course, students will submit {{activity.name}} at this URL:</p>
+<blockquote><p><a href="{{BASE_ABS_URL}}{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug %}">{{BASE_ABS_URL}}{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug %}</a></p></blockquote>
+{% else %}{% if course %}
+<p>For example, in your {{course.name}} course, if you create an activity &ldquo;Assignment 1&rdquo;, students would submit at a URL like this:</p>
+<blockquote><p>{{BASE_ABS_URL}}{% url submission.views.show_components course_slug=course.slug activity_slug='assign1' %}</p></blockquote>
+{% else %}
+<p>For example, in a course CMPT&nbsp;001, students would submit their first assignment at a URL like this:</p>
+<blockquote><p>{{BASE_ABS_URL}}{% url submission.views.show_components course_slug=cslug activity_slug='assign1' %}</p></blockquote>
+{% endif %}
+{% endif %}
+<p>To see the student's view of submission, instructors can use <a href="{% url dashboard.views.view_doc doc_slug="impersonate" %}">the impersonate feature</a>.</p>
+<p>Students will be able to see their submissions to confirm that they are in the system.  For group activities, students will also be able to see submissions made by other group members on their behalf.</p>
+<p>Submissions are accepted late (up to 30 days), but are timestamped.</p>
+
+<h2 id="retrieve">Retrieving Submissions</h2>
+<p>There are several ways to get a student's submissions:</p>
+<ol>
+<li><p>To see details of an <strong>individual student's submission</strong>, click the magnifying glass icon (<img src="{{MEDIA_URL}}icons/magnifier.png" alt="magnifying glass" />) under the &ldquo;Submission&rdquo; column, beside the student's name.  On this page, you can see all of the details of the submission: which files were submitted when (and by which group member if relevant), as well as being able to find the full submission history for that student.</p></li>
+<li><p>To download an <strong>individual student's submission as a ZIP</strong>, click the compressed file icon (<img src="{{MEDIA_URL}}icons/page_compressed.png" alt="compressed file" />) under the &ldquo;Submission&rdquo; column, beside the student's name.  If the (last) submission was after the deadline, this ZIP will contain a file <code>LATE.txt</code> with details about the submission and how late it was.</p></li>
+<li><p>To download the <strong>submissions of the whole class</strong>, click &ldquo;Download Submissions&rdquo; in the &ldquo;Actions&rdquo; menu.  You will get a ZIP file containing all of the submissions (each student in a separate directory), as well as a <code>summary.csv</code> file containing the date/time of each student's submission and the <code>LATE.txt</code> files described above.</p></li>
+</ol>
+
+
+{% endblock %}

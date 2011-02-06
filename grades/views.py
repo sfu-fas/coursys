@@ -202,6 +202,9 @@ def _activity_info_staff(request, course_slug, activity_slug):
         for s in subs:
             submitted[s.member.person.userid] = True
 
+    if bool(sub_comps) and not bool(activity.due_date):
+        messages.warning(request, 'Students will not be able to submit: no due date/time is set.')
+
     # collect marking status
     mark_comps = [ac.title for ac in ActivityComponent.objects.filter(numeric_activity=activity, deleted=False)]
     marked = {}

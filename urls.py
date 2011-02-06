@@ -39,6 +39,8 @@ urlpatterns += patterns('',
     url(r'^' + 'news/configure/new$', 'dashboard.views.create_news_url'),
     url(r'^' + 'news/configure/del$', 'dashboard.views.disable_news_url'),
     url(r'^' + 'news/(?P<token>[0-9a-f]{32})/' + USERID_SLUG + '$', 'dashboard.views.atom_feed'),
+    url(r'^' + 'docs/$', 'dashboard.views.list_docs'),
+    url(r'^' + 'docs/(?P<doc_slug>' + SLUG_RE + ')$', 'dashboard.views.view_doc'),
 
     url(r'^' + COURSE_SLUG + '/$', 'grades.views.course_info'),
     url(r'^' + COURSE_SLUG + '/_reorder_activity$', 'grades.views.reorder_activity'),

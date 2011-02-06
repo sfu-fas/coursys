@@ -2,7 +2,7 @@ from django.db import models
 from django.forms import ModelForm
 from timezones.fields import TimeZoneField
 from django.template.defaultfilters import slugify
-from courses.coredata.models import Person, Role
+from coredata.models import Person, Role
 
 class Notes(models.Model):
 	

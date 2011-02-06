@@ -37,7 +37,7 @@ class ImpersonateMiddleware(object):
                     # trying to impersonate a non-student: no
                     return self._generate_error(request, "requested user is not a student in this course")
             else:
-                # no for anybody else: just ignore the impersonation request.
+                # anybody else: no
                 return self._generate_error(request, "do not have permission to impersonate others")
 
             # handle the impersonation

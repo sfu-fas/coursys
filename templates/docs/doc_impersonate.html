@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Course Management System: Impersonating Other Users{% endblock %}
+{% block h1 %}Course Management System: Impersonating Other Users{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url dashboard.views.list_docs %}">Docs</a></li><li>&gt; Impersonating</li>{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+<p>It is often useful for instructors to be able to see what the site looks like to a student, so they can diagnose problems, write instructions, etc.  This is done by adding &ldquo;__impersonate=<var>userid</var>&rdquo; to the query string of the page's URL.</p>
+
+{% if course and student %}
+<p>For example, to see the front page of your course {{course.name}} as the student with userid &ldquo;{{student.person.userid}}&rdquo;, change this URL:</p>
+<blockquote><p><a href="{{BASE_ABS_URL}}{% url grades.views.course_info course_slug=course.slug %}">{{BASE_ABS_URL}}{% url grades.views.course_info course_slug=course.slug %}</a></p></blockquote>
+<p>&hellip;to:</p>
+<blockquote><p><a href="{{BASE_ABS_URL}}{% url grades.views.course_info course_slug=course.slug %}?__impersonate={{student.person.userid}}">{{BASE_ABS_URL}}{% url grades.views.course_info course_slug=course.slug %}?__impersonate={{student.person.userid}}</a></p></blockquote>
+<p>You can append &ldquo;?__impersonate={{student.person.userid}}&rdquo; to any page within your course to see that student's view of that page.</p>
+{% else %}{% if course %}
+<p>For example, to see the front page of your course {{course.name}} as the student with userid &ldquo;userid&rdquo;, change this URL:</p>
+<blockquote><p><a href="{{BASE_ABS_URL}}{% url grades.views.course_info course_slug=course.slug %}">{{BASE_ABS_URL}}{% url grades.views.course_info course_slug=course.slug %}</a></p></blockquote>
+<p>&hellip;to:</p>
+<blockquote><p>{{BASE_ABS_URL}}{% url grades.views.course_info course_slug=course.slug %}?__impersonate=userid</p></blockquote>
+{% else %}
+<p>For example, to see the front page of the course CMPT 001 as the student with userid &ldquo;userid&rdquo;, change this URL:</p>
+<blockquote><p>{{BASE_ABS_URL}}{% url grades.views.course_info course_slug=cslug %}</p></blockquote>
+<p>&hellip;to:</p>
+<blockquote><p>{{BASE_ABS_URL}}{% url grades.views.course_info course_slug=cslug %}?__impersonate=userid</p></blockquote>
+{% endif %}
+<p>You can append &ldquo;?__impersonate=<var>userid</var>&rdquo; to any page within your course to see that student's view of that page.</p>
+{% endif %}
+
+<p>This impersonation feature is a bit of a hack and creates a slow &ldquo;click, change URL, enter; click, change URL, enter&rdquo; navigation flow.  This is intentional to make it impossible to accidentally leave yourself in &ldquo;impersonation&rdquo; mode.
+</p>
+
+<h2 id="other">Other Pages</h2>
+<p>Instructors can only impersonate pages of students within their courses.  System administrators can impersonate on pages throughout the system.  If you need to view other pages, contact them.</p>
+
+
+{% endblock %}

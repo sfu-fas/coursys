@@ -39,7 +39,7 @@ def display_form_marknext(form, text="Submit"):
     """
     Like display_form, but with the "mark next" button
     """
-    return display_form(form, text, extrabutton='<input class="submit" type="submit" name="marknext" title="submit this form and mark next student (by userid)" value="Submit and mark next" />')
+    return display_form(form, text, extrabutton='<input class="submit" type="submit" name="marknext" title="submit this form and mark next student (by userid)" value="Submit and mark next userid" />')
 
 @register.filter
 def error_note(form):

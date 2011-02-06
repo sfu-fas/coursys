@@ -7,7 +7,8 @@ from django.template import RequestContext
 from django.db.models import Count
 from django.views.decorators.cache import cache_page
 from django.conf import settings
-from coredata.models import Member, CourseOffering, Person, Role
+from coredata.models import Member, CourseOffering, Person, Role, Semester
+from grades.models import Activity
 from courselib.auth import requires_course_staff_by_slug, requires_course_by_slug, NotFoundResponse
 from dashboard.models import NewsItem, UserConfig
 from dashboard.forms import *
@@ -174,3 +175,48 @@ def disable_news_url(request):
     context = {'form': form}
     return render_to_response("dashboard/disable_news_url.html", context, context_instance=RequestContext(request))
 
+
+# documentation views
+
+def list_docs(request):
+    pass
+
+def view_doc(request, doc_slug):
+    context = {'BASE_ABS_URL': settings.BASE_ABS_URL}
+    
+    # set up useful context variables for this doc
+    if doc_slug == "submission":
+        instructor = Member.objects.filter(person__userid=request.user.username, offering__graded=True, role="INST")
+        offerings = [m.offering for m in instructor]
+        activities = Activity.objects.filter(offering__in=offerings).annotate(Count('submissioncomponent')).order_by('-offering__semester', '-due_date')
+        # decorate to prefer (1) submission configured, (2) has due date.
+        activities = [(a.submissioncomponent__count==0, not bool(a.due_date), a) for a in activities]
+        activities.sort()
+        if activities:
+            context['activity'] = activities[0][2]
+            context['course'] = context['activity'].offering
+        elif offerings:
+            context['course'] = offerings[0]
+        else:
+            sem = Semester.objects.all().reverse()[0]
+            context['cslug'] = sem.name + '-cmpt-001-d100' # a sample contemporary course slug 
+
+    elif doc_slug == "impersonate":
+        instructor = Member.objects.filter(person__userid=request.user.username, offering__graded=True, role="INST")
+        offerings = [(Member.objects.filter(offering=m.offering, role="STUD"), m.offering) for m in instructor]
+        offerings = [(students.count()>0, course.semester.name, students, course) for students, course in offerings]
+        offerings.sort()
+        offerings.reverse()
+        if offerings:
+            nonempty, semester, students, course = offerings[0]
+            context['course'] = course
+            if students:
+                context['student'] = students[0]
+        else:
+            sem = Semester.objects.all().reverse()[0]
+            context['cslug'] = sem.name + '-cmpt-001-d100' # a sample contemporary course slug 
+    
+    print context
+    return render_to_response("docs/doc_" + doc_slug + ".html", context, context_instance=RequestContext(request))
+    
+    

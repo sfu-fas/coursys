@@ -1234,7 +1234,7 @@ div.letter {
 /* styles of titles, texts, etc., override SFU's template' */
 #main h2 {
     font-family: 'Lucida Grande', Lucida, Arial, Verdana, sans-serif;
-    margin: 1em 0 0 0;
+    margin: 2em 0 0 0;
     padding: 0em;
 }
 #main h3 {

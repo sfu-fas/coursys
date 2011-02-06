@@ -12,7 +12,7 @@ _required_star = '<em><img src="'+settings.MEDIA_URL+'icons/required_star.gif" a
 class ComponentForm(ModelForm):
     #override title to have 'required star'
     title = forms.CharField(max_length=100, help_text='Name for this component (e.g. "Part 1" or "Programming Section")', label=mark_safe("Title"+_required_star))
-    specified_filename = forms.CharField(max_length=200, help_text="Specified file name for this component", label="Specified file name", required=False)
+    specified_filename = forms.CharField(max_length=200, help_text="Specify the name of the file to be submitted.  Leave blank to accept any file name.", label="File name", required=False)
 
 
 #class ArchiveComponentForm(ComponentForm):
