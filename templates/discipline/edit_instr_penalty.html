@@ -5,7 +5,21 @@ $(document).ready(function() {
   setup_templates("penalty_reason");
   setup_groupmembers("instr_penalty");
   setup_groupmembers("refer_chair");
+  form_change();
+  //document.getElementById("id_refer_chair").setAttribute("onchange","refer_chair_change();")
 })
+
+function form_change() {
+  // suggest assigning F if doing referral
+  var penalty = $("input[name=instr_penalty]:checked").val();
+  var refer = $("#id_refer_chair:checked").val();
+  var div = $('#warning');
+  if ( refer == "on" && penalty != "ZERO" ) {
+    div.html('If referring to the Chair/Director, it is strongly recommended that you assign the maximum penalty available, since you are referring <em>for further penalty</em>.  You should assign and implement this penalty: the Chair/Director may later assign further penalty.');
+  } else {
+    div.html('');
+  }
+}
 {% endblock %}
 
 {% block title %}Dishonesty Case for {{case.student.name}}: Edit Instructor Penalty{% endblock %}
@@ -15,7 +29,7 @@ $(document).ready(function() {
 {% block actions %}{% endblock %}
 
 {% block disc_content %}
-<p>SFU's <a href="http://www.sfu.ca/policies/Students/index.html">Academic Honesty and Student Conduct Policies</a> have this to say about deciding penalty:</p>
+<p>SFU's <a href="http://www.sfu.ca/policies/gazette/student.html">Academic Honesty and Student Conduct Policies</a> have this to say about deciding penalty:</p>
 <blockquote style="font-size: 80%;">
 	<p>In deciding upon the appropriate penalty to be imposed for an act of academic dishonesty,
 		consideration must be given to the following factors:</p>
@@ -28,9 +42,10 @@ $(document).ready(function() {
 	<li>any other mitigating or aggravating circumstances.</li>
 	</ol>
 </blockquote>
+<p>Please consider consulting with the departmentatl Academic Integrity Advisor or Chair before deciding penlaty.</p>
 
 <div id="form_container">
-    <form action="{% url discipline.views.edit_case_info field='instr_penalty' course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
+    <form action="{% url discipline.views.edit_case_info field='instr_penalty' course_slug=course.slug case_slug=case.slug %}" method="post" onchange="form_change();">{% csrf_token %}
     <hr class="fieldsep" />
     <div class="discside" id="group_instr_penalty"></div>
     <p>{{ form.instr_penalty.help_text }}
@@ -40,6 +55,8 @@ $(document).ready(function() {
     <div class="discside" id="group_refer_chair"></div>
     <p>{{ form.refer_chair.help_text }}
     	{{ form.refer_chair }}</p>
+    <p class="helptext">The case may be referred to the Chair/Director if you &ldquo;believe that a penalty is warranted beyond that provided for [above]&rdquo;.</p>
+    <p class="actionwarning" id="warning"></p>
     
     <hr class="fieldsep" />
     <p>{{ form.penalty_reason.label }}:</p>

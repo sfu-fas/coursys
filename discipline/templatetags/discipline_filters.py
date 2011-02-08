@@ -21,7 +21,7 @@ def format_field(case, field):
     
     if field == 'contact_email_text':
         # special case: contact email is plain text
-        return mark_safe("<pre>" + escape(wrap(case.substitite_values(unicode(text)), 72)) + "</pre>")
+        return mark_safe("<pre>" + escape(wrap(case.substitite_values(unicode(text)), 78)) + "</pre>")
     else:
         return mark_safe(Textile.textile(case.substitite_values(unicode(text))))
 

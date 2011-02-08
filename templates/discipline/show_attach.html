@@ -12,6 +12,7 @@
     <h2 class="heading">Actions</h2>
     <ul>
 	<li><a href="{% url discipline.views.new_file course_slug=course.slug case_slug=case.slug %}">New Attachment</a></li>
+	<li><a href="{% url discipline.views.show course_slug=course.slug case_slug=case.slug %}">Return to Case</a></li>
     </ul>
 </div>
 {% endblock %}

@@ -54,7 +54,7 @@ class DisciplineCaseForm(forms.ModelForm):
 class DisciplineNonStudentCaseForm(forms.ModelForm):
     class Meta:
         model = DisciplineCaseNonStudent
-        fields = ("emplid", "email", "last_name", "first_name", "group")
+        fields = ("emplid", "userid", "email", "last_name", "first_name", "group")
 
 
 class TemplateForm(forms.ModelForm):

@@ -354,7 +354,7 @@ class DisciplineCaseBase(models.Model):
         """
         Send contact email to the student and CC instructor
         """
-        body = wrap(self.substitite_values(self.contact_email_text), 72)
+        body = wrap(self.substitite_values(self.contact_email_text), 78)
         
         email = EmailMessage(
             subject='Academic dishonesty in %s' % (self.offering),
@@ -398,6 +398,7 @@ class DisciplineCase(DisciplineCaseBase):
 
 class DisciplineCaseNonStudent(DisciplineCaseBase):
     emplid = models.PositiveIntegerField(max_length=9, null=True, blank=True, verbose_name="Student Number", help_text="SFU student number, if known")
+    userid = models.CharField(max_length=8, null=True, blank=True, help_text='SFU Unix userid, if known')
     email = models.EmailField(null=False, blank=False)
     last_name = models.CharField(max_length=32)
     first_name = models.CharField(max_length=32)
@@ -406,6 +407,7 @@ class DisciplineCaseNonStudent(DisciplineCaseBase):
         super(DisciplineCaseNonStudent, self).__init__(*args, **kwargs)
         self.student = self.FakePerson()
         self.student.emplid = self.emplid
+        self.student.userid = self.userid
         self.student.last_name = self.last_name
         self.student.first_name = self.first_name
         self.student.emailaddr = self.email

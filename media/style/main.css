@@ -1226,6 +1226,10 @@ div.letter {
   padding: 0.5em;
   border: 1px dashed #ccc;
 }
+div.letter p {
+  margin: 1em 0 !important;
+  padding: 0;
+}
 
 /* Override jquery UI style, otherwise the datepicker will be displayed too large */
 #ui-datepicker-div {font-size:0.8em}

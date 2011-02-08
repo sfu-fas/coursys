@@ -1,4 +1,8 @@
 {% load discipline_filters %}
+{% comment %}
+This is used and an HTML email body: everything that happens here must work in email clients
+http://en.wikipedia.org/wiki/HTML_e-mail
+{% endcomment %}
 <dl>
 <dt>Course Number</dt>
   <dd>{{case.offering.subject}} {{case.offering.number}} {{case.offering.section}}</dd>
@@ -24,7 +28,7 @@
     {% else %}{% if case.response == "DECL" %}
     <p>Student declined to meet.</p>
     {% else %}{% if case.response == "MAIL" %}
-    <p>Student sent statement by email on {{case.meeting_date}}.</p>
+    <p>Student sent a statement by email on {{case.meeting_date}}.</p>
     {{case|format_field:'meeting_summary'}}
     {% else %}{% if case.response == "MET" %}
     <p>Met with the student on {{case.meeting_date}}.</p>
@@ -35,11 +39,16 @@
 <dt>Facts of the case</dt>
   <dd>{{case|format_field:'facts'}}</dd>
 <dt>Penalty assigned by instructor</dt>
-  <dd><p>Penalty: {{case.get_instr_penalty_display}}</p>
-  {% if case.penalty_reason %}{{case|format_field:'penalty_reason'}}{% endif %}
+  <dd>
+  {% if case.penalty_reason %}
+  <p>Penalty: {{case.get_instr_penalty_display}}.</p>{{case|format_field:'penalty_reason'}}
+  {% else %}
+   <p>{{case.get_instr_penalty_display|capfirst}}.</p>
+  {% endif %}
   </dd>
 <dt>Case referred to Chair/Director?</dt>
   <dd><p>{{case.get_refer_chair_display}}</p></dd>
+<p>This report will be retained by the University and, in the event of any further reports of academic dishonesty, it may be used to determine a penalty for the subsequent academic dishonesty.</p>
 {% if case.public_attachments %}
 <dt>Enclosed</dt>
   <dd><ul>
