@@ -6,7 +6,9 @@ from coredata.models import Person, Member, Role
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render_to_response
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
+from django.contrib import messages
+from django.core.urlresolvers import reverse
 
 from django.template import RequestContext
 from django.template import Context, loader
@@ -48,8 +50,10 @@ def add_notes(request, userid):
 
 	added_notes = Notes(advisor = advisor, student = user, content = notes, created_date = datetime.now(), hidden = False)
 	added_notes.save();
-      
-	return render_to_response("advisors/success.html",{'notes':notes, 'userid': userid, 'user': user, 'created_date':datetime.now(), 'advisor':advisor}, context_instance=RequestContext(request))
+
+	messages.add_message(request, messages.SUCCESS, 'Submit successfully.')
+      	return HttpResponseRedirect(reverse(view_notes, kwargs={'userid':userid}))
+	#return render_to_response("advisors/success.html",{'notes':notes, 'userid': userid, 'user': user, 'created_date':datetime.now(), 'advisor':advisor}, context_instance=RequestContext(request))
 
 
 #View Notes, students can read the notes of themselves, advisors can read all the notes for the choosen student
@@ -72,8 +76,9 @@ def delete_notes(request, userid, note_id):
 	
 	user = get_object_or_404(Person, userid = userid)
 	notes = Notes.objects.filter(student = user).filter(hidden = False).order_by('created_date')
-	
-	return render_to_response("advisors/details.html",{'user':user, 'userid':userid, 'notes':notes},context_instance=RequestContext(request))
+	messages.add_message(request, messages.SUCCESS, 'Comment deleted successfully.')
+	return HttpResponseRedirect(reverse(view_notes, kwargs={'userid':userid}))
+	#return render_to_response("advisors/details.html",{'user':user, 'userid':userid, 'notes':notes},context_instance=RequestContext(request))
 	
 # --------------------------------------------------------
  
