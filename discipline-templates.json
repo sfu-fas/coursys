@@ -30,7 +30,7 @@
   "fields": {
    "field": "meeting_summary", 
    "label": "admitted", 
-   "text": "The student admitted academic dishonesty as described below in \"facts of the case\"."
+   "text": "The student admitted academic dishonesty as described below in “facts of the case”."
   }, 
   "model": "discipline.disciplinetemplate", 
   "pk": 4

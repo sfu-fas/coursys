@@ -324,6 +324,10 @@ def edit_related(request, course_slug, case_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
     case = case.subclass()
+
+    if case.instr_done():
+        # once case is closed, don't allow editing
+        return ForbiddenResponse(request)
     
     if request.method == 'POST':
         form = CaseRelatedForm(request.POST)
@@ -418,7 +422,11 @@ def edit_attach(request, course_slug, case_slug):
     case = case.subclass()
     attach_pub = CaseAttachment.objects.filter(case=case, public=True)
     attach_pri = CaseAttachment.objects.filter(case=case, public=False)
-    
+
+    if case.instr_done():
+        # once case is closed, don't allow editing
+        return ForbiddenResponse(request)
+
     groupmembersJSON = case.groupmembersJSON()
     context = {'course': course, 'case': case, 'attach_pub': attach_pub, 'attach_pri': attach_pri,
             'templatesJSON': '[]', 'groupmembersJSON': mark_safe(groupmembersJSON)}
@@ -429,6 +437,10 @@ def new_file(request, course_slug, case_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
     case = case.subclass()
+
+    if case.instr_done():
+        # once case is closed, don't allow editing
+        return ForbiddenResponse(request)
 
     if request.method == 'POST':
         form = NewAttachFileForm(case, request.POST, request.FILES)
@@ -461,14 +473,13 @@ def download_file(request, course_slug, case_slug, fileid):
     # allowed users: instructor/discipline admin, or student if they received the letter.
     if is_discipline_user(request.user, course_slug):
         is_student = False
-    elif request.user.username == case.student.userid and case.letter_sent == 'MAIL':
+    elif attach.public and request.user.username == case.student.userid and case.letter_sent == 'MAIL':
         is_student = True
     else:
         return ForbiddenResponse(request) 
-           
-    if case.letter_sent != 'MAIL' or not case.letter_text:
-        return ForbiddenResponse(request, errormsg="The letter for this case was not sent by this system.")
 
+    if is_student and (case.letter_sent != 'MAIL' or not case.letter_text):
+        return ForbiddenResponse(request, errormsg="The letter for this case was not sent by this system.")
 
     attach.attachment.open()
     resp = HttpResponse(attach.attachment, mimetype=attach.mediatype)
@@ -482,6 +493,10 @@ def edit_file(request, course_slug, case_slug, fileid):
     case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
     case = case.subclass()
     attach = get_object_or_404(CaseAttachment, case__slug=case_slug, case__offering__slug=course_slug, id=fileid)
+
+    if case.instr_done():
+        # once case is closed, don't allow editing
+        return ForbiddenResponse(request)
 
     if request.method == 'POST':
         form = EditAttachFileForm(request.POST, request.FILES, instance=attach)

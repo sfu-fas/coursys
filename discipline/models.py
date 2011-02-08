@@ -462,7 +462,7 @@ class CaseAttachment(models.Model):
     attachment = models.FileField(upload_to=upload_to, max_length=500, verbose_name="File", storage=DisciplineSystemStorage)
     mediatype = models.CharField(null=True, blank=True, max_length=200)
     public = models.BooleanField(default=True, verbose_name="Public?", 
-            help_text='Public files will be included in correspondence as evidence.')
+            help_text='Public files will be included in correspondence with student. Private files will be retained as information about the case.')
 
     notes = models.TextField(blank=True, null=True, verbose_name="Notes", help_text="Notes about this file (private).")
 
