@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% load markup %}
+
+{% block title %}My Course Plan{% endblock %}
+{% block h1 %}My Course Plan{% endblock %}
+
+{% block subbreadcrumbs %}&gt; Course Planning</li>{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    <li><a href="{% url planning.views.add_plan userid=userid %}">Add a New Course Plan</a></li>
+    <li><a href="{% url planning.views.courses %}">Edit a Course Plan</a></li>
+    <li><a href="{% url planning.views.add_course userid=userid %}">Add Courses</a></li>
+
+    </ul>
+</div>
+{% endblock %}
+
+
+{% block content %}
+
+<p><strong>Choose a semester:</strong></p>
+<form name="semester" action="" method="POST">
+<div align="left">
+<select name="dropdown">
+<option value="Fall_2010">Fall 2010</option>
+<option value="Spring_2011">Spring 2011</option>
+<option value="Summer_2011">Summer 2011</option>
+</select>
+</div>
+</form>
+
+{% if plan_list%}
+<div id="course_plan" class="table_container">
+	
+
+	
+	<table class = "info">
+		<tbody>
+		<tr>
+			<th>Course</th>
+			<th>Instructor</th>
+			
+		</tr>
+		{% for plan in plan_list %}
+		<tr>
+			<td>{{ plan.course }}</td>
+			<td>{{ plan.instructor }}</td>
+		</tr>
+		{%endfor%}
+        </tbody>
+    </table>
+	
+  
+</div>
+{% else %}
+<p class="empty">No course plan found.</p>
+{% endif %}
+	
+
+{% endblock content %}
