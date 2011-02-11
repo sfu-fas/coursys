@@ -1,6 +1,6 @@
 {% extends "submission/base.html" %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{course.name}}</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug, activity_slug=activity.slug %}">{{activity.name}}</a></li><li>&gt; Submission</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{course.name}}</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug, activity_slug=activity.slug %}">{{activity.name}}</a></li><li>&gt; <a href="{% url submission.views.show_components course.slug, activity.slug%}">Submission</a></li><li>&gt; Error Detected</li>{% endblock %}
 
 {% block h1 %}
     {%ifequal not_submitted_comp|length 0 %}
