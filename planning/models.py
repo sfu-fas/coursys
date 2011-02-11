@@ -54,6 +54,7 @@ class TeachingIntention(models.Model):
         return "%s: %d (%s)" % (self.instructor, self.count, self.semester.label())
 
 class PlannedOffering(models.Model):
+    #plan = models.ForeignKey(SemesterPlan)
     course = models.ForeignKey(Course, null=False)
     section = models.CharField(max_length=4, blank=True, default='',
         help_text='Section should be in the form "C100" or "D103".')
@@ -80,5 +81,7 @@ class MeetingTime(models.Model):
         ordering = ['weekday']
 
 
-
+#class SemesterPlan(models.Model):
+    #semester = models.ForeignKey(Semester)
+    #visibility = models.
 
