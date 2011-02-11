@@ -26,6 +26,8 @@ class SubmittedPDF(SubmittedComponent):
         return self.pdf.url
     def get_size(self):
         return self.pdf.size
+    def get_filename(self):
+        return os.path.split(self.pdf.name)[1]
 
     def download_response(self):
         response = HttpResponse(mimetype="application/pdf")

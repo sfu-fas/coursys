@@ -104,11 +104,14 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
             component = data['comp']
             form = data['form']
 
+            #TODO: see the notes in forms.py, SubmissionForm.submitted_components
+            form.submitted_components = get_current_submission(student, activity)
+
             #form[1].component = form[0]
             if form.is_valid():
                 #save the foreign submission first at the first time a submission component is read in
                 if new_sub_saved == False:
-                    # save the submission forgein key
+                    # save the submission foreign key
                     new_sub_saved = True
                     new_sub.save()
 

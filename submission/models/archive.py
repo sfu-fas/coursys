@@ -33,6 +33,8 @@ class SubmittedArchive(SubmittedComponent):
         return self.archive.url
     def get_size(self):
         return self.archive.size
+    def get_filename(self):
+        return os.path.split(self.archive.name)[1]
 
     def download_response(self):
         # figure out the MIME type

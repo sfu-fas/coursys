@@ -52,6 +52,8 @@ class SubmittedCode(SubmittedComponent):
         return self.code.url
     def get_size(self):
         return self.code.size
+    def get_filename(self):
+        return os.path.split(self.code.name)[1]
 
     def download_response(self):
         response = HttpResponse(mimetype="text/plain")

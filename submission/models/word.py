@@ -32,6 +32,8 @@ class SubmittedWord(SubmittedComponent):
         return self.word.url
     def get_size(self):
         return self.word.size
+    def get_filename(self):
+        return os.path.split(self.word.name)[1]
 
     def download_response(self):
         # figure out the MIME type

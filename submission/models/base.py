@@ -211,8 +211,7 @@ class SubmittedComponent(models.Model):
         Come up with a filename for the uploaded file in a ZIP archive.
         """
         filename = os.path.split(upfile.name)[1]
-        fn = self.component.slug + "_" + filename
         if prefix:
-            fn = os.path.join(prefix, fn)
-        return fn
+            filename = os.path.join(prefix, filename)
+        return filename
 
