@@ -15,11 +15,11 @@ from advisors.models import *
 
 
 urlpatterns = patterns('advisors.views',
-    	url(r'^advisors/$','index'),
-    	url(r'^view/$', 'search'),
-		url(r'^search_detail/' + USERID_SLUG + '$', 'view_notes'),
-		url(r'^success/' + USERID_SLUG + '$', 'add_notes'),
-		url(r'^delete_notes/' + USERID_SLUG + '/(?P<note_id>\w+)/$', 'delete_notes'),
+    url(r'^advisors/$','index'),
+    url(r'^view/$', 'search'),
+	url(r'^search_detail/' + USERID_SLUG + '$', 'view_notes'),
+	url(r'^success/' + USERID_SLUG + '$', 'add_notes'),
+	url(r'^delete_notes/' + USERID_SLUG + '/(?P<note_id>\w+)/$', 'delete_notes'),
 #    (r'^(?P<advisor_id>\w+)/(?P<student_id>\w+)/create/$','create'),
 #    (r'^(?P<advisor_id>\w+)/(?P<student_id>\w+)/submit/$', 'submit'),
 #    (r'^search_form/$', 'search_form'),
@@ -28,6 +28,18 @@ urlpatterns = patterns('advisors.views',
 )
 #---------------------------------------
 
+urlpatterns += patterns('planning.views',
+	
+	url(r'^planning/$', 'courses'),
+	url(r'^planning/add_plan/' + USERID_SLUG + '$', 'add_plan'),
+	url(r'^planning/add_course/' + USERID_SLUG + '$', 'add_course'),
+	url(r'^submit/' + USERID_SLUG + '$', 'submit_course'),
+	
+)
+
+
+
+#---------------------------------------
 urlpatterns += patterns('',
     url(r'^login/$', 'django_cas.views.login'),
     url(r'^logout/$', 'django_cas.views.logout', {'next_page': '/'}),

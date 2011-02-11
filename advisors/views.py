@@ -17,7 +17,6 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from datetime import datetime
 
 # --------------Search-----------------------------------
-from django.template import RequestContext
 
 @requires_advisor
 #@login_required()

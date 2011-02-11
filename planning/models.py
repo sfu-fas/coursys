@@ -1,5 +1,8 @@
 from django.db import models
 from coredata.models import Person, Role, Semester, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES 
+from django.forms import ModelForm
+from django.template.defaultfilters import slugify
+
 
 class Course(models.Model):
     """
@@ -16,7 +19,7 @@ class Course(models.Model):
     class Meta:
         ordering = ['subject', 'number']
         unique_together = (('subject', 'number'),)
-        
+	
     def __unicode__(self):
         return "%s %s (%s)" % (self.subject, self.number, self.title)
         
@@ -24,6 +27,12 @@ class Course(models.Model):
         if isinstance(other, Course):
             return cmp(str(self), str(other))
         return NotImplemented
+
+class CourseForm(ModelForm):
+	class Meta:
+		model = Course
+
+
 
 class TeachingCapability(models.Model):
     instructor = models.ForeignKey(Person, null=False)

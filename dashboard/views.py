@@ -51,7 +51,7 @@ def index(request):
     roles = [r.role for r in Role.objects.filter(person__userid=userid)]
 
     context = {'memberships': memberships ,'news_list': news_list, 'roles': roles}
-    return render_to_response("dashboard/index.html",context ,context_instance=RequestContext(request))
+    return render_to_response("dashboard/index.html",context,context_instance=RequestContext(request))
 
 
 @requires_course_staff_by_slug
