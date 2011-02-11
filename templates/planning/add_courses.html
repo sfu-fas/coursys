@@ -21,6 +21,9 @@
 {% endblock %}
 
 {% block content %}
+
+
+
 <div id="form_container">
     {% if form.non_field_errors %}
     <p class="errorindicator">
@@ -33,9 +36,16 @@
         <fieldset>
             <legend>Course Info</legend>
             <ul>
+				
+				Subject:
 
-				Subject: <input type="text" name = "course_subject" size="30" /><br />
-				Number: <input type="text" name = "course_number" size="30" /><br />
+				<select name="course_subject">
+				<option value="CMPT">CMPT</option>
+				<option value="MACM">MACM</option>
+				</select>
+
+				</br >
+				Number: <input type="text" name = "course_number" size="30" />
 				Title: <input type="text" name = "course_title" size="30" />
 
 

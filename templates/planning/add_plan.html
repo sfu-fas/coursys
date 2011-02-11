@@ -20,17 +20,6 @@
 
 {% block content %}
 
-<p><strong>Choose a semester:</strong></p>
-<form name="semester" action="" method="POST">
-<div align="left">
-<select name="dropdown">
-<option value="Fall_2010">Fall 2010</option>
-<option value="Spring_2011">Spring 2011</option>
-<option value="Summer_2011">Summer 2011</option>
-</select>
-</div>
-</form>
-
 
 <div id="form_container">
     {% if form.non_field_errors %}
@@ -41,11 +30,22 @@
     {% endif %}
 	
     <form action="/submit_plan/{{ userid }}" method="post">{% csrf_token %}
+
+
         <fieldset>
             <legend>Select Courses</legend>
+
+
+
+
             <ul>
 
-
+				Semester:
+				<select name="semester">
+				<option value="Fall_2010">Fall 2010</option>
+				<option value="Spring_2011">Spring 2011</option>
+				<option value="Summer_2011">Summer 2011</option>
+				</select>
 
                 <li>
                     <input class="submit" type="submit" value="Submit" />

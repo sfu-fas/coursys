@@ -12,7 +12,7 @@
     <h2 class="heading">Actions</h2>
     <ul>
     <li><a href="{% url planning.views.add_plan userid=userid %}">Add a New Course Plan</a></li>
-    <li><a href="{% url planning.views.courses %}">Edit a Course Plan</a></li>
+    <li><a href="{% url planning.views.edit_plan userid=userid %}">Edit a Course Plan</a></li>
     <li><a href="{% url planning.views.add_course userid=userid %}">Add Courses</a></li>
 
     </ul>
@@ -23,9 +23,9 @@
 {% block content %}
 
 <p><strong>Choose a semester:</strong></p>
-<form name="semester" action="" method="POST">
+<form action="" method="POST">
 <div align="left">
-<select name="dropdown">
+<select name="semester">
 <option value="Fall_2010">Fall 2010</option>
 <option value="Spring_2011">Spring 2011</option>
 <option value="Summer_2011">Summer 2011</option>
