@@ -28,19 +28,15 @@ class Course(models.Model):
             return cmp(str(self), str(other))
         return NotImplemented
 
-class CourseForm(ModelForm):
-	class Meta:
-		model = Course
-
-
 
 class TeachingCapability(models.Model):
     instructor = models.ForeignKey(Person, null=False)
     course = models.ForeignKey(Course, null=False)
     
+
     class Meta:
         ordering = ['instructor', 'course']
-        unique_together = (('instructor', 'course'),)
+        unique_together = (('instructor','course'),)
         
     def __unicode__(self):
         return "%s - %s" % (self.instructor, self.course)

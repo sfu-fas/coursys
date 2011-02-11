@@ -33,7 +33,9 @@ urlpatterns += patterns('planning.views',
 	url(r'^planning/$', 'courses'),
 	url(r'^planning/add_plan/' + USERID_SLUG + '$', 'add_plan'),
 	url(r'^planning/add_course/' + USERID_SLUG + '$', 'add_course'),
-	url(r'^submit/' + USERID_SLUG + '$', 'submit_course'),
+	url(r'^submit_course/' + USERID_SLUG + '$', 'submit_course'),
+	url(r'^submit_plan/' + USERID_SLUG + '$', 'submit_plan'),
+	
 	
 )
 

@@ -1,7 +1,7 @@
 from planning.models import *
 from courselib.auth import requires_advisor
 from django.db.models import Q
-from coredata.models import Person, Member, Role
+from coredata.models import Person, Role, Semester, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES 
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render_to_response
@@ -18,14 +18,32 @@ from datetime import datetime
 def courses(request):
 
 	userid = request.user.username
-	return render_to_response("planning/index.html",{'userid':userid},context_instance=RequestContext(request))
+	
+	instructor = get_object_or_404(Person, userid = request.user.username)
+		
+	plan_list = TeachingCapability.objects.filter(instructor = instructor).order_by('course')
+ 		
+	return render_to_response("planning/index.html",{'userid':userid, 'plan_list':plan_list},context_instance=RequestContext(request))
 	
 
 @login_required
 def add_plan(request, userid):
     
-	return HttpResponse(userid)
+	return render_to_response("planning/add_plan.html",{'userid':userid},context_instance=RequestContext(request))
 	
+@login_required
+def submit_plan(request, userid):
+    
+	instructor = get_object_or_404(Person, userid = request.user.username)
+	course = get_object_or_404(Course, title = "D300")
+#	semester = get_object_or_404(Semester, name = '1097')
+	
+	added_plan = TeachingCapability(instructor = instructor, course = course)
+	added_plan.save();
+
+	messages.add_message(request, messages.SUCCESS, 'Submit Successfully.')
+	return HttpResponseRedirect(reverse(add_plan, kwargs={'userid':userid}))
+
 
 @login_required
 def add_course(request, userid):
@@ -42,10 +60,8 @@ def submit_course(request, userid):
 	added_course = Course(subject = subject, number = number, title = title)
 	added_course.save();
 
-	messages.add_message(request, messages.SUCCESS, 'Submit successfully.')
+	messages.add_message(request, messages.SUCCESS, 'Submit Successfully.')
 	return HttpResponseRedirect(reverse(add_course, kwargs={'userid':userid}))
-
-#	return	HttpResponse("submit success")
 
 
 
