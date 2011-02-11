@@ -11,7 +11,7 @@ from django.core.files.storage import FileSystemStorage
 from django.utils.text import wrap
 from django.conf import settings
 from django.shortcuts import get_object_or_404
-import string, os, datetime
+import string, os, datetime, json
 
 CONTACT_CHOICES = (
         ('NONE', 'Not yet contacted'),
@@ -259,12 +259,13 @@ class DisciplineCaseBase(models.Model):
         Return list of other group cases as a JSON object.
         """
         if not self.group:
-            return "[]"
+            return json.dumps([])
         
-        return "[" + ", ".join(
-            ('{"id": "%i", "name": "%s (%s)"}'
-                % (c.id, escapejs(c.subclass().student.name()), escapejs(c.subclass().student_userid()))
-                for c in self.group.disciplinecasebase_set.exclude(pk=self.pk))) + "]"
+        return json.dumps(
+                [{"id": c.id,
+                  "name": "%s (%s)" % (c.subclass().student.name(), c.subclass().student_userid() )}
+                for c in self.group.disciplinecasebase_set.exclude(pk=self.pk)]
+                )
     
     def next_step(self):
         """
@@ -489,11 +490,11 @@ class DisciplineTemplate(models.Model):
         unique_together = (("field", "label"),)
     def __unicode__(self):
         return "%s: %s" % (self.field, self.label)
-    def toJSON(self):
+    def JSON_data(self):
         """
         Convert this template to a JSON snippet.
         """
         uses_act = self.text.find("{{ACTIVITIES}}") != -1 # template uses related activities?
-        uses_act = str(uses_act).lower()
-        return """{'field': '%s', 'label': '%s', 'text': '%s', 'activities': %s}""" % \
-                (escapejs(self.field), escapejs(self.label), escapejs(self.text), uses_act)
+        return {"field": self.field, "label": self.label, "text": self.text, "activities": uses_act}
+
+

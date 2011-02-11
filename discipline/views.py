@@ -253,7 +253,7 @@ def edit_case_info(request, course_slug, case_slug, field):
         form = FormClass(instance=case)
     
     templates = DisciplineTemplate.objects.filter(field__in=form.fields.keys())
-    tempaltesJSON = '[' + ",\n".join((t.toJSON() for t in templates)) + ']'
+    tempaltesJSON = json.dumps([t.JSON_data() for t in templates])
     groupmembersJSON = case.groupmembersJSON()
     hasRelAct = len(case.related_activities())>0
     
