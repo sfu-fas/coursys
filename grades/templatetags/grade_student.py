@@ -10,7 +10,7 @@ def stu_grade(Activity,Person):
     return Activity.display_grade_student(Person)
 ACTIVITY_FIELD_TEMPLATE = Template('''<li>
                     {{ field.label_tag }}
-                    <div class="inputfield">
+                    <div class="inputfield" id="div_id_{{field.name}}">
                         {{ field }}
                         {% if field.errors %}<span class="errortext"><img src="''' + MEDIA_URL + '''icons/error.png" alt="error"/> {{field.errors.0}}</span>{% endif %}
                         {% if field.help_text %}<div class="helptext">({{field.help_text}})</div>{% endif %}
