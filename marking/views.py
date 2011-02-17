@@ -964,21 +964,35 @@ def export_csv(request, course_slug, activity_slug):
     response = HttpResponse(mimetype='text/csv')
     response['Content-Disposition'] = 'attachment; filename=%s_%s.csv' % (course_slug, activity_slug,)
 
-    writer = csv.writer(response)   
-    writer.writerow(['Student ID', 'User ID', 'Student Name', 'Grade'])
+    writer = csv.writer(response)
+    if activity.group:
+        writer.writerow(['Student ID', 'User ID', 'Student Name', 'Grade', 'Group'])
+        gms = GroupMember.objects.filter(activity=activity).select_related('student__person', 'group')
+        gms = dict((gm.student.person.userid, gm) for gm in gms)
+    else:
+        writer.writerow(['Student ID', 'User ID', 'Student Name', 'Grade'])
     
-    student_members = Member.objects.filter(offering = course, role = 'STUD')
+    student_members = Member.objects.filter(offering = course, role = 'STUD').select_related('person')
     for std in student_members:
         row = [std.person.emplid, std.person.userid, std.person.name()]
         try: 
             ngrade = NumericGrade.objects.get(activity = activity, member = std)                  
-        except NumericGrade.DoesNotExist: #if the  NumericalGrade does not exist yet,
+        except NumericGrade.DoesNotExist: #if the NumericGrade does not exist yet,
             row.append('no grade')
         else:
             if ngrade.flag == 'GRAD' or ngrade.flag == 'CALC':
-               row.append(ngrade.value)   
+                row.append(ngrade.value)
+            elif ngrade.flag == 'NOGR':
+                row.append('no grade')
             else:
-               row.append(ngrade.flag)
+                row.append(ngrade.flag)
+        
+        if activity.group:
+            if std.person.userid in gms:
+                row.append(gms[std.person.userid].group.name)
+            else:
+                row.append('')
+
         writer.writerow(row)
 
     return response

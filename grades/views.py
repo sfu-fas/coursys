@@ -773,7 +773,7 @@ def all_grades_csv(request, course_slug):
         for g in gs:
             grades[a.slug][g.member.person.userid] = g
     
-    response = HttpResponse(mimetype='text/csv')#(mimetype='text/csv')
+    response = HttpResponse(mimetype='text/csv')
     response['Content-Disposition'] = 'attachment; filename=%s.csv' % (course_slug)
     
     writer = csv.writer(response)
