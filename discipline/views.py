@@ -44,7 +44,7 @@ def newgroup(request, course_slug):
             group = form.save()
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=("created a discipline group in %s") % (course),
+                  description=("created a discipline cluster in %s") % (course),
                   related_object=group)
             l.save()
             for userid in form.cleaned_data['students']:
@@ -54,7 +54,7 @@ def newgroup(request, course_slug):
                 case.save()
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
-                      description=("created a discipline case for %s in group %s") % (userid, group.name),
+                      description=("created a discipline case for %s in cluster %s") % (userid, group.name),
                       related_object=case)
                 l.save()
             return HttpResponseRedirect(reverse('discipline.views.showgroup', kwargs={'course_slug': course_slug, 'group_slug': group.slug}))

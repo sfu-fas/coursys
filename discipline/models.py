@@ -144,9 +144,9 @@ class DisciplineGroup(models.Model):
     """
     A set of discipline cases that are related.
     """
-    name = models.CharField(max_length=60, blank=False, null=False, verbose_name="Group Name",
-            help_text='An arbitrary "name" for this group of cases')
-    offering = models.ForeignKey(CourseOffering, help_text="The course this group is associated with")
+    name = models.CharField(max_length=60, blank=False, null=False, verbose_name="Cluster Name",
+            help_text='An arbitrary "name" for this cluster of cases')
+    offering = models.ForeignKey(CourseOffering, help_text="The course this cluster is associated with")
     slug = AutoSlugField(populate_from='name', null=False, editable=False, unique_with='offering')
     
     def __unicode__(self):
@@ -177,7 +177,7 @@ class DisciplineCaseBase(models.Model):
     def autoslug(self):
         return self.student.userid
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='offering')
-    group = models.ForeignKey(DisciplineGroup, null=True, blank=True, help_text="Group this case belongs to (if any).")
+    group = models.ForeignKey(DisciplineGroup, null=True, blank=True, help_text="Cluster this case belongs to (if any).")
     
     # fields for instructor
     contact_email_text = models.TextField(blank=True, null=True, verbose_name="Contact Email Text",

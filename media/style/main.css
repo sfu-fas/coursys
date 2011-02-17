@@ -12,6 +12,9 @@ div#main p {
 div#main h3 {
   margin-top: 1em;
 }
+dfn, var {
+  font-style: italic;
+}
 /* remove left-side menu for more screen space */
 ul#main_nav {
   display: none;

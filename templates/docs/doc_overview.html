@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Course Management System: Overview{% endblock %}
+{% block h1 %}Course Management System: Overview{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url dashboard.views.list_docs %}">Docs</a></li><li>&gt; Overview</li>{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+<p>This system is intended to handle as much of the record-keeping and management of a course as possible. Described below are some of the major features of the system.</p>
+
+<h2 id="activities">Activities and Grades</h2>
+<p>Each assignment, exam, etc. is an <dfn>activity</dfn> in the system.  Or if you prefer, each activity corresponds to a column on your grade sheet.</p>
+<p>Students can be assigned a grade for each activity.  (Or grades can be assigned for groups, as described <a href="#groups">under &ldquo;Groups&rdquo;</a> below.)</p>
+<p>Instructors should create an activity for each piece of work in the course.  They can also (optionally) use submission and marking tools for each activity.</p>
+
+<h2 id="submission">Assignment Submission</h2>
+<p>The submission feature allows instructors to configure the type of files they want submitted for an assignment.</p>
+<p>Students can then submit their work: files are check to make sure they are the correct type and meet other criteria set by the instructor.  Students can review their submitted files and resubmit if they wish.</p>
+<p>See the <a href="{% url dashboard.views.view_doc doc_slug='submission' %}">assignment submission documentation</a> for more information.</p>
+
+<h2 id="marking">Assignment Marking</h2>
+
+
+<h2 id="groups">Groups</h2>
+
+
+{% endblock %}

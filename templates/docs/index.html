@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Course Management System Documentation{% endblock %}
+{% block h1 %}Course Management System Documentation{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; Docs</li>{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+<ul>
+<li><a href="{% url dashboard.views.view_doc doc_slug='overview' %}">Overview of the system</a></li>
+<li><a href="{% url dashboard.views.view_doc doc_slug='submission' %}">Assignment submission</a></li>
+<li><a href="{% url dashboard.views.view_doc doc_slug='impersonate' %}">Impersonating other users</a></li>
+</ul>
+
+{% endblock %}

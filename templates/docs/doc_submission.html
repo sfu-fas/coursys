@@ -48,9 +48,11 @@ Students submit by visiting the same page you visit to configure submission.
 <blockquote><p>{{BASE_ABS_URL}}{% url submission.views.show_components course_slug=cslug activity_slug='assign1' %}</p></blockquote>
 {% endif %}
 {% endif %}
-<p>To see the student's view of submission, instructors can use <a href="{% url dashboard.views.view_doc doc_slug="impersonate" %}">the impersonate feature</a>.</p>
+<p>To see the student's view of submission, instructors can use <a href="{% url dashboard.views.view_doc doc_slug="impersonate" %}">the impersonation feature</a>.</p>
 <p>Students will be able to see their submissions to confirm that they are in the system.  For group activities, students will also be able to see submissions made by other group members on their behalf.</p>
-<p>Submissions are accepted late (up to 30 days), but are timestamped.</p>
+<h2 id="other">Resubmitting and Late Submissions</h2>
+<p>Students can resubmit as many times as they wish.  Their latest submission is used to calculate how &ldquo;late&rdquo; their work is.  Instructors can see the full submission history by clicking &ldquo;View History&rdquo; on the page with details of the student's submission.</p>
+<p>Submissions are accepted late (up to 30 days), but are timestamped. See below for details on checking lateness of submissions.</p>
 
 <h2 id="retrieve">Retrieving Submissions</h2>
 <p>There are several ways to get a student's submissions:</p>

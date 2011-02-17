@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}New Dishonesty Case Group{% endblock %}
-{% block h1 %}New Dishonesty Case Group{% endblock %}
+{% block title %}New Dishonesty Case Cluster{% endblock %}
+{% block h1 %}New Dishonesty Case Cluster{% endblock %}
 
 {% block headextra %}
 <link type="text/css" href="{{MEDIA_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
@@ -13,7 +13,7 @@
 </script>
 {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url discipline.views.index course_slug=course.slug %}">Discipline Cases</a></li><li>&gt; New Group</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url discipline.views.index course_slug=course.slug %}">Discipline Cases</a></li><li>&gt; New Cluster</li>{% endblock %}
 
 {% block actions %}{% endblock %}
 
@@ -21,7 +21,7 @@
 <div id="form_container">
     <form action="{% url discipline.views.newgroup course_slug=course.slug %}" method="post">{% csrf_token %}
     {{ form.as_p }}
-    <p><input type="submit" value="Create Group" /></p>
+    <p><input type="submit" value="Create Cluster" /></p>
     </form>
 </div>
 {% endblock %}

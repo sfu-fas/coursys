@@ -48,7 +48,7 @@ def index(request):
     memberships = [m for m in memberships if _display_membership(m, today, past1)]
 
     news_list = NewsItem.objects.filter(user__userid=userid, updated__gte=past_1mo).order_by('-updated').select_related('course')[:5]
-    roles = [r.role for r in Role.objects.filter(person__userid=userid)]
+    roles = set((r.role for r in Role.objects.filter(person__userid=userid)))
 
     context = {'memberships': memberships ,'news_list': news_list, 'roles': roles}
     return render_to_response("dashboard/index.html",context,context_instance=RequestContext(request))
@@ -179,7 +179,8 @@ def disable_news_url(request):
 # documentation views
 
 def list_docs(request):
-    pass
+    context = {}
+    return render_to_response("docs/index.html", context, context_instance=RequestContext(request))
 
 def view_doc(request, doc_slug):
     context = {'BASE_ABS_URL': settings.BASE_ABS_URL}
@@ -215,8 +216,7 @@ def view_doc(request, doc_slug):
         else:
             sem = Semester.objects.all().reverse()[0]
             context['cslug'] = sem.name + '-cmpt-001-d100' # a sample contemporary course slug 
-    
-    print context
+
     return render_to_response("docs/doc_" + doc_slug + ".html", context, context_instance=RequestContext(request))
     
     
