@@ -180,7 +180,7 @@ class Activity(models.Model):
         due_in = self.due_date - datetime.now()
         seconds = (due_in.microseconds + (due_in.seconds + due_in.days * 24 * 3600.0) * 10**6) / 10**6
         if due_in < timedelta(seconds=0):
-            return "past due"
+            return u'\u2014'
         elif due_in > timedelta(days=2):
             return "%i days" % (due_in.days)
         elif due_in > timedelta(days=1):

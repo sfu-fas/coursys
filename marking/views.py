@@ -966,7 +966,7 @@ def export_csv(request, course_slug, activity_slug):
 
     writer = csv.writer(response)
     if activity.group:
-        writer.writerow(['Student ID', 'User ID', 'Student Name', 'Grade', 'Group'])
+        writer.writerow(['Student ID', 'User ID', 'Student Name', 'Grade', 'Group', 'Group ID'])
         gms = GroupMember.objects.filter(activity=activity).select_related('student__person', 'group')
         gms = dict((gm.student.person.userid, gm) for gm in gms)
     else:
@@ -990,7 +990,9 @@ def export_csv(request, course_slug, activity_slug):
         if activity.group:
             if std.person.userid in gms:
                 row.append(gms[std.person.userid].group.name)
+                row.append(gms[std.person.userid].group.slug)
             else:
+                row.append('')
                 row.append('')
 
         writer.writerow(row)
