@@ -33,8 +33,11 @@ urlpatterns += patterns('planning.views',
 	url(r'^planning/$', 'courses'),
 	url(r'^planning/add_plan/' + USERID_SLUG + '$', 'add_plan'),
 	url(r'^planning/add_course/' + USERID_SLUG + '$', 'add_course'),
+	url(r'^planning/add_intention/' + USERID_SLUG + '$', 'add_intention'),
 	url(r'^submit_course/' + USERID_SLUG + '$', 'submit_course'),
 	url(r'^submit_plan/' + USERID_SLUG + '$', 'submit_plan'),
+	url(r'^submit_intention/' + USERID_SLUG + '$', 'submit_intention'),
+	
 
 	
 	

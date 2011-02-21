@@ -11,8 +11,9 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    <li><a href="{% url planning.views.add_plan userid=userid %}">Add/Edit a Course Plan</a></li>
-    <li><a href="{% url planning.views.add_course userid=userid %}">Add Courses</a></li>
+    <li><a href="{% url planning.views.add_plan userid=userid %}">Manage Course Plan</a></li>
+	<li><a href="{% url planning.views.add_intention userid=userid %}">Manage Teaching Intention</a></li>
+    <li><a href="{% url planning.views.add_course userid=userid %}">Manage Courses</a></li>
 
     </ul>
 </div>
@@ -52,9 +53,9 @@
 
 			{% for intention in intention_list %}
 			<tr>
-				<td>{{ intention.semester }}</td>
+				<td>{{ intention.semester.label }}</td>
 				<td>{{ intention.count }}</td>
-			</tr>
+				<td><a href="">Course Schedule</a></td>
 			{%endfor%}
 				</tr>
 
