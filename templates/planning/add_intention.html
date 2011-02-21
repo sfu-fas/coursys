@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+
+{% load markup %}
+
+{% block title %}Add Course Plan{% endblock %}
+{% block h1 %}Add Course Plan{% endblock %}
+
+{% block subbreadcrumbs %}&gt; Add Course Plan</li>{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    <li><a href="{% url planning.views.courses %}">My Course Plan</a></li>
+
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+
+<div id="form_container">
+    {% if form.non_field_errors %}
+    <p class="errorindicator">
+        <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
+        {{ form.non_field_errors }}
+    </p>
+    {% endif %}
+	
+    <form action="/submit_intention/{{ userid }}" method="post">{% csrf_token %}
+
+        
+		<fieldset>
+            <legend>Edit Teaching Intention</legend>
+
+            <ul>
+				Semester:
+				<select name="semester">
+					<option value="None"></option>
+					{% for semester in semester_list %}
+						<option value={{semester.name}}>{{semester.label}}</option>
+					{%endfor%}
+				</select>
+				</br>
+				Teaching Intention:
+				<select name="course_count">
+				<option value="None"></option>
+				<option value="1">1</option>
+				<option value="2">2</option>
+				<option value="3">3</option>
+				<option value="4">4</option>
+				<option value="5">5</option>
+				</select>
+				</br>				
+                <li>
+                    <input class="submit" type="submit" value="Submit" />
+                </li>
+            </ul>
+        </fieldset>
+
+    </form>
+
+</div>
+
+
+{% endblock%}
+
+
+
+
