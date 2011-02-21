@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load grade_student %}
 
 
 {% load markup %}
@@ -12,7 +13,7 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    <li><a href="{% url planning.views.add_plan userid=userid %}">Add a New Course Plan</a></li>
+    <li><a href="{% url planning.views.add_plan userid=userid %}">Add/Edit a Course Plan</a></li>
 
     <li><a href="{% url planning.views.courses %}">Edit a Course Plan</a></li>
 
@@ -36,6 +37,8 @@
         <fieldset>
             <legend>Course Info</legend>
             <ul>
+				
+				{{form.test|activity_field}}
 				
 				Subject:
 
