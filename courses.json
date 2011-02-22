@@ -1,0 +1,875 @@
+[
+ {
+  "fields": {
+   "number": "", 
+   "subject": "CMPT", 
+   "title": ""
+  }, 
+  "model": "planning.course", 
+  "pk": 3
+ }, 
+ {
+  "fields": {
+   "number": "102", 
+   "subject": "CMPT", 
+   "title": "Scientific Cmpt.Prgm"
+  }, 
+  "model": "planning.course", 
+  "pk": 51
+ }, 
+ {
+  "fields": {
+   "number": "110", 
+   "subject": "CMPT", 
+   "title": "Programming in Visual Basic"
+  }, 
+  "model": "planning.course", 
+  "pk": 71
+ }, 
+ {
+  "fields": {
+   "number": "118", 
+   "subject": "CMPT", 
+   "title": "Spec.Top./Computer & Info.Tech"
+  }, 
+  "model": "planning.course", 
+  "pk": 21
+ }, 
+ {
+  "fields": {
+   "number": "120", 
+   "subject": "CMPT", 
+   "title": "Intro.Cmpt.Sci/Programming I"
+  }, 
+  "model": "planning.course", 
+  "pk": 31
+ }, 
+ {
+  "fields": {
+   "number": "125", 
+   "subject": "CMPT", 
+   "title": "Intro.Cmpt.Sci/Programming II"
+  }, 
+  "model": "planning.course", 
+  "pk": 38
+ }, 
+ {
+  "fields": {
+   "number": "126", 
+   "subject": "CMPT", 
+   "title": "Intro.Cmpt.Sci and Programming"
+  }, 
+  "model": "planning.course", 
+  "pk": 64
+ }, 
+ {
+  "fields": {
+   "number": "128", 
+   "subject": "CMPT", 
+   "title": "Intro. Cmpt.Sci/Prgm/Engineers"
+  }, 
+  "model": "planning.course", 
+  "pk": 70
+ }, 
+ {
+  "fields": {
+   "number": "150", 
+   "subject": "CMPT", 
+   "title": "Intro to Computer Design"
+  }, 
+  "model": "planning.course", 
+  "pk": 23
+ }, 
+ {
+  "fields": {
+   "number": "165", 
+   "subject": "CMPT", 
+   "title": "Internet WWW"
+  }, 
+  "model": "planning.course", 
+  "pk": 1
+ }, 
+ {
+  "fields": {
+   "number": "165", 
+   "subject": "CMPT", 
+   "title": "Intro Internet  World Wide Web"
+  }, 
+  "model": "planning.course", 
+  "pk": 55
+ }, 
+ {
+  "fields": {
+   "number": "170", 
+   "subject": "CMPT", 
+   "title": "Intro to Web App Development"
+  }, 
+  "model": "planning.course", 
+  "pk": 57
+ }, 
+ {
+  "fields": {
+   "number": "212", 
+   "subject": "CMPT", 
+   "title": "Appl.Design in C++"
+  }, 
+  "model": "planning.course", 
+  "pk": 58
+ }, 
+ {
+  "fields": {
+   "number": "225", 
+   "subject": "CMPT", 
+   "title": "DS & A"
+  }, 
+  "model": "planning.course", 
+  "pk": 2
+ }, 
+ {
+  "fields": {
+   "number": "225", 
+   "subject": "CMPT", 
+   "title": "Data Structures/Programming"
+  }, 
+  "model": "planning.course", 
+  "pk": 82
+ }, 
+ {
+  "fields": {
+   "number": "250", 
+   "subject": "CMPT", 
+   "title": "Cmpt.Architecture"
+  }, 
+  "model": "planning.course", 
+  "pk": 50
+ }, 
+ {
+  "fields": {
+   "number": "261", 
+   "subject": "CMPT", 
+   "title": "Spatial Computing"
+  }, 
+  "model": "planning.course", 
+  "pk": 85
+ }, 
+ {
+  "fields": {
+   "number": "275", 
+   "subject": "CMPT", 
+   "title": "Software Engineering I"
+  }, 
+  "model": "planning.course", 
+  "pk": 44
+ }, 
+ {
+  "fields": {
+   "number": "276", 
+   "subject": "CMPT", 
+   "title": "Intro Software Engineering"
+  }, 
+  "model": "planning.course", 
+  "pk": 7
+ }, 
+ {
+  "fields": {
+   "number": "300", 
+   "subject": "CMPT", 
+   "title": "Operating Systems I"
+  }, 
+  "model": "planning.course", 
+  "pk": 43
+ }, 
+ {
+  "fields": {
+   "number": "307", 
+   "subject": "CMPT", 
+   "title": "Data Structures"
+  }, 
+  "model": "planning.course", 
+  "pk": 12
+ }, 
+ {
+  "fields": {
+   "number": "310", 
+   "subject": "CMPT", 
+   "title": "Artificial Intel."
+  }, 
+  "model": "planning.course", 
+  "pk": 90
+ }, 
+ {
+  "fields": {
+   "number": "320", 
+   "subject": "CMPT", 
+   "title": "Social Implications"
+  }, 
+  "model": "planning.course", 
+  "pk": 93
+ }, 
+ {
+  "fields": {
+   "number": "322W", 
+   "subject": "CMPT", 
+   "title": "Responsibility and Ethics"
+  }, 
+  "model": "planning.course", 
+  "pk": 15
+ }, 
+ {
+  "fields": {
+   "number": "354", 
+   "subject": "CMPT", 
+   "title": "Database Systems I"
+  }, 
+  "model": "planning.course", 
+  "pk": 79
+ }, 
+ {
+  "fields": {
+   "number": "361", 
+   "subject": "CMPT", 
+   "title": "Intro to Graphics"
+  }, 
+  "model": "planning.course", 
+  "pk": 97
+ }, 
+ {
+  "fields": {
+   "number": "363", 
+   "subject": "CMPT", 
+   "title": "User Interface Dsgn"
+  }, 
+  "model": "planning.course", 
+  "pk": 41
+ }, 
+ {
+  "fields": {
+   "number": "365", 
+   "subject": "CMPT", 
+   "title": "Multimedia Systems"
+  }, 
+  "model": "planning.course", 
+  "pk": 25
+ }, 
+ {
+  "fields": {
+   "number": "370", 
+   "subject": "CMPT", 
+   "title": "Info System Design"
+  }, 
+  "model": "planning.course", 
+  "pk": 26
+ }, 
+ {
+  "fields": {
+   "number": "371", 
+   "subject": "CMPT", 
+   "title": "Data Communications/Networking"
+  }, 
+  "model": "planning.course", 
+  "pk": 88
+ }, 
+ {
+  "fields": {
+   "number": "373", 
+   "subject": "CMPT", 
+   "title": "Software Development Methods"
+  }, 
+  "model": "planning.course", 
+  "pk": 53
+ }, 
+ {
+  "fields": {
+   "number": "375", 
+   "subject": "CMPT", 
+   "title": "SW Technology Foundations"
+  }, 
+  "model": "planning.course", 
+  "pk": 68
+ }, 
+ {
+  "fields": {
+   "number": "376W", 
+   "subject": "CMPT", 
+   "title": "Tech.Writing and Group Dynamic"
+  }, 
+  "model": "planning.course", 
+  "pk": 67
+ }, 
+ {
+  "fields": {
+   "number": "379", 
+   "subject": "CMPT", 
+   "title": "Compiler Design"
+  }, 
+  "model": "planning.course", 
+  "pk": 78
+ }, 
+ {
+  "fields": {
+   "number": "383", 
+   "subject": "CMPT", 
+   "title": "Programming Langs."
+  }, 
+  "model": "planning.course", 
+  "pk": 92
+ }, 
+ {
+  "fields": {
+   "number": "405", 
+   "subject": "CMPT", 
+   "title": "Cmpt. Algorithms"
+  }, 
+  "model": "planning.course", 
+  "pk": 69
+ }, 
+ {
+  "fields": {
+   "number": "407", 
+   "subject": "CMPT", 
+   "title": "Computational Cmplx"
+  }, 
+  "model": "planning.course", 
+  "pk": 13
+ }, 
+ {
+  "fields": {
+   "number": "408", 
+   "subject": "CMPT", 
+   "title": "Cmpt Networks/Cmns"
+  }, 
+  "model": "planning.course", 
+  "pk": 27
+ }, 
+ {
+  "fields": {
+   "number": "411", 
+   "subject": "CMPT", 
+   "title": "Knowledge Representation"
+  }, 
+  "model": "planning.course", 
+  "pk": 56
+ }, 
+ {
+  "fields": {
+   "number": "412", 
+   "subject": "CMPT", 
+   "title": "Computational Vision"
+  }, 
+  "model": "planning.course", 
+  "pk": 83
+ }, 
+ {
+  "fields": {
+   "number": "414", 
+   "subject": "CMPT", 
+   "title": "Model-Based Computer Vision"
+  }, 
+  "model": "planning.course", 
+  "pk": 49
+ }, 
+ {
+  "fields": {
+   "number": "415", 
+   "subject": "CMPT", 
+   "title": "Special Resrch Proje"
+  }, 
+  "model": "planning.course", 
+  "pk": 76
+ }, 
+ {
+  "fields": {
+   "number": "416", 
+   "subject": "CMPT", 
+   "title": "Special Research Projects"
+  }, 
+  "model": "planning.course", 
+  "pk": 11
+ }, 
+ {
+  "fields": {
+   "number": "417", 
+   "subject": "CMPT", 
+   "title": "Intelligent Systems"
+  }, 
+  "model": "planning.course", 
+  "pk": 42
+ }, 
+ {
+  "fields": {
+   "number": "419", 
+   "subject": "CMPT", 
+   "title": "Spec.Topics/Artificial Intell."
+  }, 
+  "model": "planning.course", 
+  "pk": 4
+ }, 
+ {
+  "fields": {
+   "number": "426", 
+   "subject": "CMPT", 
+   "title": "Practicum I"
+  }, 
+  "model": "planning.course", 
+  "pk": 89
+ }, 
+ {
+  "fields": {
+   "number": "427", 
+   "subject": "CMPT", 
+   "title": "Practicum II"
+  }, 
+  "model": "planning.course", 
+  "pk": 66
+ }, 
+ {
+  "fields": {
+   "number": "428", 
+   "subject": "CMPT", 
+   "title": "Practicum III"
+  }, 
+  "model": "planning.course", 
+  "pk": 18
+ }, 
+ {
+  "fields": {
+   "number": "429", 
+   "subject": "CMPT", 
+   "title": "Practicum IV"
+  }, 
+  "model": "planning.course", 
+  "pk": 81
+ }, 
+ {
+  "fields": {
+   "number": "430", 
+   "subject": "CMPT", 
+   "title": "Practicum V"
+  }, 
+  "model": "planning.course", 
+  "pk": 9
+ }, 
+ {
+  "fields": {
+   "number": "431", 
+   "subject": "CMPT", 
+   "title": "Distributed Systems"
+  }, 
+  "model": "planning.course", 
+  "pk": 39
+ }, 
+ {
+  "fields": {
+   "number": "441", 
+   "subject": "CMPT", 
+   "title": "Computational Biology"
+  }, 
+  "model": "planning.course", 
+  "pk": 5
+ }, 
+ {
+  "fields": {
+   "number": "454", 
+   "subject": "CMPT", 
+   "title": "Database Systems II"
+  }, 
+  "model": "planning.course", 
+  "pk": 54
+ }, 
+ {
+  "fields": {
+   "number": "456", 
+   "subject": "CMPT", 
+   "title": "Info Retrieval and Web Search"
+  }, 
+  "model": "planning.course", 
+  "pk": 19
+ }, 
+ {
+  "fields": {
+   "number": "461", 
+   "subject": "CMPT", 
+   "title": "Image Synthesis"
+  }, 
+  "model": "planning.course", 
+  "pk": 87
+ }, 
+ {
+  "fields": {
+   "number": "464", 
+   "subject": "CMPT", 
+   "title": "Geometric Modeling in CG"
+  }, 
+  "model": "planning.course", 
+  "pk": 48
+ }, 
+ {
+  "fields": {
+   "number": "466", 
+   "subject": "CMPT", 
+   "title": "Animation"
+  }, 
+  "model": "planning.course", 
+  "pk": 10
+ }, 
+ {
+  "fields": {
+   "number": "468", 
+   "subject": "CMPT", 
+   "title": "Intro Computer Music and Sound"
+  }, 
+  "model": "planning.course", 
+  "pk": 75
+ }, 
+ {
+  "fields": {
+   "number": "470", 
+   "subject": "CMPT", 
+   "title": "Web-Based Info Syst"
+  }, 
+  "model": "planning.course", 
+  "pk": 35
+ }, 
+ {
+  "fields": {
+   "number": "471", 
+   "subject": "CMPT", 
+   "title": "Networking II"
+  }, 
+  "model": "planning.course", 
+  "pk": 61
+ }, 
+ {
+  "fields": {
+   "number": "475", 
+   "subject": "CMPT", 
+   "title": "Software Engineering II"
+  }, 
+  "model": "planning.course", 
+  "pk": 45
+ }, 
+ {
+  "fields": {
+   "number": "477", 
+   "subject": "CMPT", 
+   "title": "Intro to Formal Verification"
+  }, 
+  "model": "planning.course", 
+  "pk": 77
+ }, 
+ {
+  "fields": {
+   "number": "497", 
+   "subject": "CMPT", 
+   "title": "Dual Degree Capstone Project"
+  }, 
+  "model": "planning.course", 
+  "pk": 30
+ }, 
+ {
+  "fields": {
+   "number": "701", 
+   "subject": "CMPT", 
+   "title": "Computability and Logic"
+  }, 
+  "model": "planning.course", 
+  "pk": 14
+ }, 
+ {
+  "fields": {
+   "number": "705", 
+   "subject": "CMPT", 
+   "title": "Design/Analysis Algorithms"
+  }, 
+  "model": "planning.course", 
+  "pk": 34
+ }, 
+ {
+  "fields": {
+   "number": "710", 
+   "subject": "CMPT", 
+   "title": "Cmpt. Complexity"
+  }, 
+  "model": "planning.course", 
+  "pk": 36
+ }, 
+ {
+  "fields": {
+   "number": "711", 
+   "subject": "CMPT", 
+   "title": "Bioinformatics Algorithms"
+  }, 
+  "model": "planning.course", 
+  "pk": 6
+ }, 
+ {
+  "fields": {
+   "number": "726", 
+   "subject": "CMPT", 
+   "title": "Machine Learning"
+  }, 
+  "model": "planning.course", 
+  "pk": 95
+ }, 
+ {
+  "fields": {
+   "number": "741", 
+   "subject": "CMPT", 
+   "title": "Data Mining"
+  }, 
+  "model": "planning.course", 
+  "pk": 40
+ }, 
+ {
+  "fields": {
+   "number": "761", 
+   "subject": "CMPT", 
+   "title": "Image Synthesis"
+  }, 
+  "model": "planning.course", 
+  "pk": 20
+ }, 
+ {
+  "fields": {
+   "number": "764", 
+   "subject": "CMPT", 
+   "title": "Geometric Modeling in CG"
+  }, 
+  "model": "planning.course", 
+  "pk": 62
+ }, 
+ {
+  "fields": {
+   "number": "765", 
+   "subject": "CMPT", 
+   "title": "Computer Cmns Network"
+  }, 
+  "model": "planning.course", 
+  "pk": 94
+ }, 
+ {
+  "fields": {
+   "number": "768", 
+   "subject": "CMPT", 
+   "title": "Sound Synthesis"
+  }, 
+  "model": "planning.course", 
+  "pk": 46
+ }, 
+ {
+  "fields": {
+   "number": "771", 
+   "subject": "CMPT", 
+   "title": "Internet Arch and Protocols"
+  }, 
+  "model": "planning.course", 
+  "pk": 24
+ }, 
+ {
+  "fields": {
+   "number": "777", 
+   "subject": "CMPT", 
+   "title": "Formal Verification"
+  }, 
+  "model": "planning.course", 
+  "pk": 8
+ }, 
+ {
+  "fields": {
+   "number": "815", 
+   "subject": "CMPT", 
+   "title": "Algorithms/Optimiz."
+  }, 
+  "model": "planning.course", 
+  "pk": 60
+ }, 
+ {
+  "fields": {
+   "number": "822", 
+   "subject": "CMPT", 
+   "title": "Computational Vision"
+  }, 
+  "model": "planning.course", 
+  "pk": 59
+ }, 
+ {
+  "fields": {
+   "number": "823", 
+   "subject": "CMPT", 
+   "title": "Knowledge Represent."
+  }, 
+  "model": "planning.course", 
+  "pk": 33
+ }, 
+ {
+  "fields": {
+   "number": "825", 
+   "subject": "CMPT", 
+   "title": "Natural Lang.Process"
+  }, 
+  "model": "planning.course", 
+  "pk": 52
+ }, 
+ {
+  "fields": {
+   "number": "826", 
+   "subject": "CMPT", 
+   "title": "Automated Learning Reasoning"
+  }, 
+  "model": "planning.course", 
+  "pk": 80
+ }, 
+ {
+  "fields": {
+   "number": "829", 
+   "subject": "CMPT", 
+   "title": "Special Topics Bioinformatics"
+  }, 
+  "model": "planning.course", 
+  "pk": 28
+ }, 
+ {
+  "fields": {
+   "number": "843", 
+   "subject": "CMPT", 
+   "title": "Data/Knowledge-Base"
+  }, 
+  "model": "planning.course", 
+  "pk": 86
+ }, 
+ {
+  "fields": {
+   "number": "880", 
+   "subject": "CMPT", 
+   "title": "Spec.Top. in Computing Science"
+  }, 
+  "model": "planning.course", 
+  "pk": 96
+ }, 
+ {
+  "fields": {
+   "number": "881", 
+   "subject": "CMPT", 
+   "title": "Spec.Top./Theoretical Cmpt."
+  }, 
+  "model": "planning.course", 
+  "pk": 65
+ }, 
+ {
+  "fields": {
+   "number": "882", 
+   "subject": "CMPT", 
+   "title": "Spc.Topics Art. Intelligence"
+  }, 
+  "model": "planning.course", 
+  "pk": 63
+ }, 
+ {
+  "fields": {
+   "number": "884", 
+   "subject": "CMPT", 
+   "title": "Spec.Top. in Database Systems"
+  }, 
+  "model": "planning.course", 
+  "pk": 73
+ }, 
+ {
+  "fields": {
+   "number": "886", 
+   "subject": "CMPT", 
+   "title": "Special Topics Operating Syst"
+  }, 
+  "model": "planning.course", 
+  "pk": 17
+ }, 
+ {
+  "fields": {
+   "number": "888", 
+   "subject": "CMPT", 
+   "title": "Spec.Topics/Graphics,HCI,Visn"
+  }, 
+  "model": "planning.course", 
+  "pk": 47
+ }, 
+ {
+  "fields": {
+   "number": "889", 
+   "subject": "CMPT", 
+   "title": "Spec.Topics / Interdisc Cmpt"
+  }, 
+  "model": "planning.course", 
+  "pk": 74
+ }, 
+ {
+  "fields": {
+   "number": "891", 
+   "subject": "CMPT", 
+   "title": "Advanced Seminar"
+  }, 
+  "model": "planning.course", 
+  "pk": 72
+ }, 
+ {
+  "fields": {
+   "number": "894", 
+   "subject": "CMPT", 
+   "title": "Directed Reading"
+  }, 
+  "model": "planning.course", 
+  "pk": 29
+ }, 
+ {
+  "fields": {
+   "number": "897", 
+   "subject": "CMPT", 
+   "title": "M.Sc. Project"
+  }, 
+  "model": "planning.course", 
+  "pk": 16
+ }, 
+ {
+  "fields": {
+   "number": "898", 
+   "subject": "CMPT", 
+   "title": "M.Sc. Thesis"
+  }, 
+  "model": "planning.course", 
+  "pk": 84
+ }, 
+ {
+  "fields": {
+   "number": "899", 
+   "subject": "CMPT", 
+   "title": "Ph.D. Thesis"
+  }, 
+  "model": "planning.course", 
+  "pk": 22
+ }, 
+ {
+  "fields": {
+   "number": "XX1", 
+   "subject": "CMPT", 
+   "title": "Computers & People"
+  }, 
+  "model": "planning.course", 
+  "pk": 32
+ }, 
+ {
+  "fields": {
+   "number": "101", 
+   "subject": "MACM", 
+   "title": "Discrete Math I"
+  }, 
+  "model": "planning.course", 
+  "pk": 91
+ }, 
+ {
+  "fields": {
+   "number": "300", 
+   "subject": "MACM", 
+   "title": "Formal Languages/Automata"
+  }, 
+  "model": "planning.course", 
+  "pk": 37
+ }
+]
