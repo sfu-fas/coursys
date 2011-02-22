@@ -7242,6 +7242,7 @@
 
 
 
+
  {
   "fields": {
    "campus": "BRNBY", 
@@ -13453,6 +13454,7 @@
  }, 
  {
   "fields": {
+
    "added_reason": "AUTO", 
    "career": "UGRD", 
    "credits": 3, 
@@ -17865,6 +17867,14 @@
   }, 
   "model": "coredata.role", 
   "pk": 1
+ },
+ {
+  "fields": {
+   "person": 14,
+   "role": "PLAN" 
+  }, 
+  "model": "coredata.role", 
+  "pk": 3
  },
  {
   "fields": {

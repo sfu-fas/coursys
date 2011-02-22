@@ -1,3 +1,14 @@
 1	What is meeting_time in models for?
 2	The relationship among models should be settled.
-3	But first we need to talk about the design of models.
+3	But first we need to talk about the design of models
+
+
+
+planning workflow:
+1. create a new plan ("fall 2011 plan #1")
+2. decide which courses to offer in that plan (120, 150, 225, ...) and section/campus/component/enrol_cap
+3. decide who teaches the courses (ggbaker teaches CMPT 120)
+4. decide meeting times/rooms
+5. checks: every course has instructor, people teaching right #
+6. publish to instructors
+7. publish to everybody

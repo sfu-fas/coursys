@@ -52,8 +52,23 @@ class TeachingIntention(models.Model):
     def __unicode__(self):
         return "%s: %d (%s)" % (self.instructor, self.count, self.semester.label())
 
+
+VISIBILITY_CHOICES = [
+    ('ADMI', 'administrator only'),
+    ('INST', 'instructors'), 
+    ('ALL', 'everybody')]
+
+class SemesterPlan(models.Model):
+    semester = models.ForeignKey(Semester)
+    name = models.CharField(max_length=40)
+    visibility = models.CharField(max_length=4, choices=VISIBILITY_CHOICES, help_text="Who can see this plan?")
+    active = models.BooleanField(help_text="The currently-active plan for this semester.")
+
+    class Meta:
+        ordering = ['-semester', 'name']
+
 class PlannedOffering(models.Model):
-    #plan = models.ForeignKey(SemesterPlan)
+    plan = models.ForeignKey(SemesterPlan)
     course = models.ForeignKey(Course, null=False)
     section = models.CharField(max_length=4, blank=True, default='',
         help_text='Section should be in the form "C100" or "D103".')
@@ -64,8 +79,8 @@ class PlannedOffering(models.Model):
     instructor = models.ForeignKey(Person, null=True, blank=True)
 
     class Meta:
-        ordering = ['course', 'section', 'campus']
-        unique_together = (('course', 'section'),)
+        ordering = ['plan', 'course', 'campus']
+        unique_together = (('plan', 'course', 'section'),)
     
 
 class MeetingTime(models.Model):
@@ -77,10 +92,6 @@ class MeetingTime(models.Model):
     room = models.CharField(max_length=20, help_text='Room (or other location) for the meeting')
 
     class Meta:
-        ordering = ['weekday']
+        ordering = ['offering', 'weekday']
 
-
-#class SemesterPlan(models.Model):
-    #semester = models.ForeignKey(Semester)
-    #visibility = models.
 
