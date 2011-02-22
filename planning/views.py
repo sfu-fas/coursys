@@ -19,18 +19,20 @@ def courses(request):
 
 	userid = request.user.username
 	instructor = get_object_or_404(Person, userid = request.user.username)
-	plan_list = TeachingCapability.objects.filter(instructor = instructor).order_by('course')
+	capability_list = TeachingCapability.objects.filter(instructor = instructor).order_by('course')
 	intention_list = TeachingIntention.objects.filter(instructor = instructor).order_by('semester')
  		
-	return render_to_response("planning/index.html",{'userid':userid, 'plan_list':plan_list, 'intention_list':intention_list},context_instance=RequestContext(request))
+	return render_to_response("planning/index.html",{'userid':userid, 'capability_list':capability_list, 'intention_list':intention_list},context_instance=RequestContext(request))
 	
 
 @login_required
 def add_plan(request, userid):
    	
 	course_list = Course.objects.filter()
+	instructor = get_object_or_404(Person, userid = request.user.username)
+	capability_list = TeachingCapability.objects.filter(instructor = instructor).order_by('course')
 	
-	return render_to_response("planning/add_plan.html",{'userid':userid, 'course_list':course_list},context_instance=RequestContext(request))
+	return render_to_response("planning/add_plan.html",{'userid':userid, 'capability_list':capability_list, 'course_list':course_list},context_instance=RequestContext(request))
 
 
 @login_required
@@ -38,25 +40,21 @@ def submit_plan(request, userid):
     
 	course_number = request.POST['offering_courses']
 
-	
 	instructor = get_object_or_404(Person, userid = request.user.username)
 	course = get_object_or_404(Course, number = course_number)
 	semester = get_object_or_404(Semester, name = '1097')
 	
-	
 	added_plan = TeachingCapability(instructor = instructor, course = course)
 	added_plan.save()
-
 	
-
 	messages.add_message(request, messages.SUCCESS, 'Plan Submitted Successfully.')
 	return HttpResponseRedirect(reverse(add_plan, kwargs={'userid':userid}))
-	#return HttpResponse(course_number)
 
 @login_required
 def add_intention(request, userid):
 
 	semester_list = Semester.objects.filter()
+	
 	return render_to_response("planning/add_intention.html",{'userid':userid, 'semester_list':semester_list},context_instance=RequestContext(request))
 
 @login_required
@@ -72,12 +70,11 @@ def submit_intention(request, userid):
 	intention.save()
 	
 	messages.add_message(request, messages.SUCCESS, 'Teaching Intention Submitted Successfully.')
-	return HttpResponseRedirect(reverse(add_plan, kwargs={'userid':userid}))
+	return HttpResponseRedirect(reverse(add_intention, kwargs={'userid':userid}))
 
 	
 @login_required
 def add_course(request, userid):
-#    form = PlanForm()
 
 	return render_to_response("planning/add_courses.html",{'userid':userid},context_instance=RequestContext(request))
 
@@ -94,9 +91,15 @@ def submit_course(request, userid):
 	messages.add_message(request, messages.SUCCESS, 'Submit Successfully.')
 	return HttpResponseRedirect(reverse(add_course, kwargs={'userid':userid}))
 
+@login_required
+def delete_course_from_capability(request, userid, course_id):
 
+	course = TeachingCapability.objects.get(pk = course_id)
+	#course.delete()
+	#course.save()
 
-
+	messages.add_message(request, messages.SUCCESS, 'Course Removed Successfully.')
+	return HttpResponseRedirect(reverse(add_plan, kwargs={'userid':userid}))
 
 
 

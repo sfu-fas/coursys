@@ -37,6 +37,8 @@ urlpatterns += patterns('planning.views',
 	url(r'^submit_course/' + USERID_SLUG + '$', 'submit_course'),
 	url(r'^submit_plan/' + USERID_SLUG + '$', 'submit_plan'),
 	url(r'^submit_intention/' + USERID_SLUG + '$', 'submit_intention'),
+	url(r'^delete_course_from_capability/' + USERID_SLUG + '/(?P<course_id>\w+)/$', 'delete_course_from_capability'),
+	
 	
 
 	

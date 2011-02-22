@@ -13,7 +13,7 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    <li><a href="{% url planning.views.add_plan userid=userid %}">Manage Course Plan</a></li>
+    <li><a href="{% url planning.views.add_plan userid=userid %}">Manage Teaching Capability</a></li>
 
     </ul>
 </div>
@@ -35,9 +35,7 @@
         <fieldset>
             <legend>Course Info</legend>
             <ul>
-				
-				{{form.test|activity_field}}
-				
+								
 				Subject:
 
 				<select name="course_subject">

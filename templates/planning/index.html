@@ -11,7 +11,7 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    <li><a href="{% url planning.views.add_plan userid=userid %}">Manage Course Plan</a></li>
+    <li><a href="{% url planning.views.add_plan userid=userid %}">Manage Teaching Capability</a></li>
 	<li><a href="{% url planning.views.add_intention userid=userid %}">Manage Teaching Intention</a></li>
     <li><a href="{% url planning.views.add_course userid=userid %}">Manage Courses</a></li>
 
@@ -33,9 +33,9 @@
 					<th>Course</th>
 
 				</tr>
-				{% for plan in plan_list %}
+				{% for capability in capability_list %}
 				<tr>
-					<td>{{ plan.course }}</td>
+					<td>{{ capability.course }}</td>
 				</tr>
 				{%endfor%}
 		    </tbody>

@@ -32,7 +32,6 @@ class Course(models.Model):
 class TeachingCapability(models.Model):
     instructor = models.ForeignKey(Person, null=False)
     course = models.ForeignKey(Course, null=False)
-    
 
     class Meta:
         ordering = ['instructor', 'course']
@@ -44,8 +43,8 @@ class TeachingCapability(models.Model):
 class TeachingIntention(models.Model):
     instructor = models.ForeignKey(Person, null=False)
     semester = models.ForeignKey(Semester, null=False)
-    count = models.PositiveSmallIntegerField(help_text="the number of courses the instructor should teach in the semester.")
-    
+    count = models.PositiveSmallIntegerField(help_text="the number of courses the instructor should teach in the semester.")    
+
     class Meta:
         ordering = ['-semester', 'instructor']
         unique_together = (('instructor', 'semester'),)

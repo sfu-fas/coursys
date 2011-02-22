@@ -3,10 +3,10 @@
 
 {% load markup %}
 
-{% block title %}Add Course Plan{% endblock %}
-{% block h1 %}Add Course Plan{% endblock %}
+{% block title %}Edit Teaching Capability{% endblock %}
+{% block h1 %}Edit Teaching Capability{% endblock %}
 
-{% block subbreadcrumbs %}&gt; Add Course Plan</li>{% endblock %}
+{% block subbreadcrumbs %}&gt; Edit Teaching Capability</li>{% endblock %}
 
 {% block actions %}
 <div id="actions">
@@ -20,6 +20,28 @@
 
 {% block content %}
 
+<div id="capability" class="table_container">
+
+	
+	<h2>Teaching Capability</h2>
+    
+		<table class = "info">
+			<tbody>
+				<tr>
+					<th>Course</th>
+					<th>Option</th>
+
+				</tr>
+				{% for capability in capability_list %}
+				<tr>
+					<td>{{ capability.course }}</td>
+					<td><a href="{% url planning.views.delete_course_from_capability userid=userid course_id=capability.id %} ">Remove</td>
+					
+				</tr>
+				{%endfor%}
+		    </tbody>
+		</table>
+</div>
 
 <div id="form_container">
     {% if form.non_field_errors %}
@@ -28,12 +50,12 @@
         {{ form.non_field_errors }}
     </p>
     {% endif %}
-	
+
     <form action="/submit_plan/{{ userid }}" method="post">{% csrf_token %}
 
 
         <fieldset>
-            <legend>Add Courses to My Plan</legend>
+            <legend>Add Courses</legend>
 
             <ul>
 				Course Offering:
