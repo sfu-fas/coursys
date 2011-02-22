@@ -245,6 +245,10 @@ class LetterActivity(Activity):
         verbose_name_plural = "letter activities"
     def type_long(self):
         return "Letter Graded"
+    def is_numeric(self):
+        return False
+    def is_calculated(self):
+        return False
     
     def display_grade_visible(self, student):
         grades = LetterGrade.objects.filter(activity=self, member__person=student)
@@ -282,6 +286,8 @@ class CalLetterActivity(LetterActivity):
         verbose_name_plural = 'cal letter activities'
     def type_long(self):
         return "Calculated Letter Grade"
+    def is_calculated(self):
+        return True
 
 
 

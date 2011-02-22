@@ -95,7 +95,7 @@ def submit_course(request, userid):
 def delete_course_from_capability(request, userid, course_id):
 
 	course = TeachingCapability.objects.get(pk = course_id)
-	#course.delete()
+	course.delete()
 	#course.save()
 
 	messages.add_message(request, messages.SUCCESS, 'Course Removed Successfully.')

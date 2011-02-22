@@ -1,15 +1,6 @@
 [
  {
   "fields": {
-   "number": "", 
-   "subject": "CMPT", 
-   "title": ""
-  }, 
-  "model": "planning.course", 
-  "pk": 3
- }, 
- {
-  "fields": {
    "number": "102", 
    "subject": "CMPT", 
    "title": "Scientific Cmpt.Prgm"
@@ -84,15 +75,6 @@
   "fields": {
    "number": "165", 
    "subject": "CMPT", 
-   "title": "Internet WWW"
-  }, 
-  "model": "planning.course", 
-  "pk": 1
- }, 
- {
-  "fields": {
-   "number": "165", 
-   "subject": "CMPT", 
    "title": "Intro Internet  World Wide Web"
   }, 
   "model": "planning.course", 
@@ -115,15 +97,6 @@
   }, 
   "model": "planning.course", 
   "pk": 58
- }, 
- {
-  "fields": {
-   "number": "225", 
-   "subject": "CMPT", 
-   "title": "DS & A"
-  }, 
-  "model": "planning.course", 
-  "pk": 2
  }, 
  {
   "fields": {
