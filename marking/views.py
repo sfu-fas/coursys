@@ -5,7 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.core.urlresolvers import reverse
 from coredata.models import *
 from courselib.auth import *
-from grades.models import NumericActivity, FLAGS
+from grades.models import *
 from groups.models import Group
 from log.models import *
 from models import *      
@@ -1077,7 +1077,53 @@ def mark_all_groups(request, course_slug, activity_slug):
                           {'course': course, 'activity': activity,'mark_all_rows': rows }, 
                           context_instance = RequestContext(request))
             
+######################### Henry Added #############################
+# This is for marking groups with letter grades
+@requires_course_staff_by_slug
+def mark_all_groups_lettergrade (request, course_slug, activity_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(LetterActivity, offering=course, slug=activity_slug)
+    rows = [] 
     
+    return render_to_response("marking/mark_all_group_lettergrade.html",
+                          {'course': course, 'activity': activity,'mark_all_rows': rows }, 
+                          context_instance = RequestContext(request))
+
+
+#This is for marking students with letter grades
+@requires_course_staff_by_slug
+def mark_all_students_lettergrade(request, course_slug, activity_slug):
+    course = get_object_or_404(CourseOffering, slug = course_slug)
+    activity = get_object_or_404(LetterActivity, offering = course, slug = activity_slug)
+    fileform = None
+    rows = []  
+    
+    return render_to_response("marking/mark_all_student_lettergrade.html",{'course': course, 'activity': activity,\
+                              'fileform' : fileform,'too_many': len(rows) >= 100,\
+                              'mark_all_rows': rows }, context_instance = RequestContext(request))            
+#This is for change grade status of letter grades
+@requires_course_staff_by_slug      
+def change_grade_status_lettergrade(request, course_slug, activity_slug, userid):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(LetterActivity, offering=course, slug=activity_slug)
+    member = get_object_or_404(Member, offering=course, person__userid = userid, role = 'STUD')
+    
+    #grades = NumericGrade.objects.filter(activity=activity, member=member)
+    grades = LetterGrade.objects.filter(activity=activity, member=member)
+    if grades:
+        numeric_grade = grades[0]
+    else:
+        numeric_grade = LetterGrade(activity=activity, member=member, flag="GRAD")
+    status_form = GradeStatusForm(instance=numeric_grade, prefix='grade-status')
+    # The part above is just for testing, needs rewriting
+    
+    context = {'course':course,'activity' : activity,\
+               'student' : member.person, 'current_status' : FLAGS[numeric_grade.flag],
+               'status_form': status_form}
+    return render_to_response("marking/grade_status_lettergrade.html", context,
+                              context_instance=RequestContext(request))  
+
+######################### Henry Added #############################    
 
 @requires_course_staff_by_slug
 def mark_all_students(request, course_slug, activity_slug):

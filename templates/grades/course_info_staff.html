@@ -177,6 +177,7 @@
                 <th scope="col">Activity</th>
                 <th scope="col">Group?</th>
                 <th scope="col">Max Grade</th>
+		<th scope="col">Letter Graded?</th>
                 <th scope="col">Percentage</th>
                 <th scope="col">Status</th>
                 <th scope="col">Due Date</th>
@@ -203,12 +204,15 @@
                 <td scope="row">
                         <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">{{ activity.name }}</a>
                 </td>
+                
                 <td>{% if activity.group %}group{% else %}individual{% endif %}</td>
+                
                 {% ifnotequal activity.max_grade None %}
                 <td>{{ activity.max_grade }}</td>
                 {% else %}
                 <td>&mdash;</td>
                 {% endifnotequal %}
+		<td>{% ifequal activity.type_long "Numeric Graded" %}Numeric Graded{% else %}Letter Graded{% endifequal %}</td>
 		{% ifnotequal activity.percent None %}
                 <td>{{ activity.percent }}%</td>
 		{% else %}

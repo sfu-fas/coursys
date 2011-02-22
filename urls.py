@@ -124,6 +124,11 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/new/groups/' + GROUP_SLUG + '/$', 'marking.views.marking_group'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/markall/students$', 'marking.views.mark_all_students'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/markall/groups$', 'marking.views.mark_all_groups'),
+    ################################################### Henry Added ######################################################################
+    url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/markall/students/lettergrade$', 'marking.views.mark_all_students_lettergrade'),
+    url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/markall/groups/lettergrade$', 'marking.views.mark_all_groups_lettergrade'),
+    url(r'^' + COURSE_ACTIVITY_SLUG + '/gradestatus/lettergrade' + USERID_SLUG + '/$', 'marking.views.change_grade_status_lettergrade'),
+    ################################################### Henry Added #######################################################################
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/students/' + USERID_SLUG + '/$', 'marking.views.mark_summary_student'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/groups/' + GROUP_SLUG + '/$', 'marking.views.mark_summary_group'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/students/' + USERID_SLUG + '/history', 'marking.views.mark_history_student'),
