@@ -1,0 +1,83 @@
+{% extends "marking/base.html" %}
+
+{% block marking_header_extra %}
+<script type="text/javascript">
+//<![CDATA[
+$(document).ready(function() {
+	var oTable = $('#all_marks').dataTable({
+		"bJQueryUI": true,
+		"bSort": true,
+		"bPaginate": false,	/* turn off the pagination */
+		"aoColumns": [null, null, null, { "sType": "by-mark" }, { "bSearchable": false, "bSortable": false }]
+	});
+});
+//]]>
+</script>
+{% endblock %}
+
+{% block title %}Mark All{% endblock %}
+{% block h1 %} Mark All Students {% endblock %}
+{% block marking_subbreadcrumbs %}<li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Mark All Students</li>{% endblock %}
+
+{% block content %}
+<form id="import_file_form" action="{%url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug%}?import=true" method="post" enctype="multipart/form-data">{% csrf_token %}
+{% if fileform.file.errors %}
+<div class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/>&nbsp;{{fileform.file.errors.0}}</div>
+{% endif %} 
+<div>
+{{fileform.file}}
+<input type="submit" value="Import"/>
+</div>
+</form>
+<p class="helptext">Imported file must be CSV (comma-separated values).  First column can be either student number or userid; second column is the grade.  Other columns will be ignored.</p>
+{% if too_many %}
+<a class="redbutton reset_button" href="{% url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug %}">Reset</a>
+{% endif %}
+<form id = "grades_form" action="{%url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug%}" method="post">{% csrf_token %}
+{%if too_many %}
+<input class="submit" type="submit" value="Submit" />
+{% endif %}
+<div class="datatable_container">
+     <table class="display" id="all_marks">
+        <thead class="form_head">
+            <tr>
+                <th>Student Name</th>
+		<th>Student Number</th>
+		<th>User ID</th>
+		<th>Current Grade</th>
+		<th>New Grade</th>
+	    </tr>
+	</thead>
+        <tbody>
+	    {% for mark_row in mark_all_rows %}
+	    {% with mark_row.student as student %}
+	    <tr>
+		<td>{{ student.sortname }}</td>
+		{% with mark_row.form as form %}
+		<td>{{ student.emplid }}</td>
+		<td>{{ student.userid }}</td>
+		<td>{{ mark_row.current_grade }}</td>
+		<td>
+		{{ form.value }} / {{activity.max_grade}}
+		{% if form.value.errors %}
+		<div class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/>&nbsp;{{form.value.errors.0}}</div>
+		{% endif %} 
+		</td>
+		{% endwith %}	    
+	    </tr>
+	    {%endwith%}
+	    {% empty %}
+	    <tr>
+		<td class="empty">No students</td>
+		<td></td>
+		<td></td>
+		<td></td>
+	    </tr>
+	    {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div><input class="submit" type="submit" value="Submit" /></div>
+</form>
+<a class="redbutton reset_button" href="{% url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug %}">Reset</a>
+{% endblock %}

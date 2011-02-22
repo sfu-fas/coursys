@@ -1,0 +1,59 @@
+{% extends "marking/base.html" %}
+{% load course_display %}
+
+{% block title %}Change Grade Status{% endblock %}
+
+{% block h1 %}Change Grade Status{% endblock %}
+
+{% block marking_subbreadcrumbs %}
+<li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Change Grade Status</li>
+{% endblock %}
+
+{% block content %}
+
+<div class="table_container">
+	<table class="info">
+	<tbody> 
+	     <tr>
+	     	<th class="ui-state-default">Activity</th>
+	        <td>
+	            {{activity.name}}  
+	        </td>
+	     </tr> 
+		 <tr>
+	    	<th class="ui-state-default">Student Name</th>
+	        <td>
+	            {{student.name}}  
+	        </td>
+	    </tr>
+	    <tr>
+	    	<th  class="ui-state-default">User ID</th>
+	        <td>
+	            {{student.userid}}
+	        </td>
+	    </tr>
+	    <tr>
+	    	<th  class="ui-state-default">Stu #</th>
+	        <td>
+	            {{student.emplid}}
+	        </td>
+	    </tr>  
+	    <tr>
+	    	<th  class="ui-state-default">Current Grade Status</th>
+	        <td>
+	            {{current_status}}
+	        </td>
+	    </tr> 
+	</tbody>
+	</table>
+</div>
+<div id="form_container">
+    <form action="" method="post">{% csrf_token %}
+	    <fieldset>
+		 <legend>Change Grade Status</legend>
+		 {{status_form|display_form}}
+		</fieldset> 
+    </form>
+</div>
+
+{% endblock %}
