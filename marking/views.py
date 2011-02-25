@@ -216,11 +216,10 @@ def _save_components(formset, activity, user):
 
 @requires_course_staff_by_slug
 def manage_activity_components(request, course_slug, activity_slug):    
-            
+           
     error_info = None
-    course = get_object_or_404(CourseOffering, slug = course_slug)
-    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug) 
-   
+    course = get_object_or_404(CourseOffering, slug = course_slug)   
+    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)   
     fields = ('title', 'description', 'max_mark', 'deleted',)
     
     ComponentsFormSet  = modelformset_factory(ActivityComponent, fields=fields, \
@@ -262,10 +261,11 @@ def manage_activity_components(request, course_slug, activity_slug):
 @requires_course_staff_by_slug
 def import_components(request, course_slug, activity_slug):
     """
-    Quick (but not pretty) view to allow importing marking setup fromt he old system.  Not well tested, but seems to work well enough.
+    Quick (but not pretty) view to allow importing marking setup from the old system.  Not well tested, but seems to work well enough.
     """
     course = get_object_or_404(CourseOffering, slug = course_slug)
-    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug) 
+    activity = get_object_or_404(NumericalActivity, offering = course, slug = activity_slug)
+
     if request.method == "POST":
         import json
         from django.db.models import Max, Sum
@@ -756,7 +756,6 @@ def XXX_marking_student(request, course_slug, activity_slug, userid):
                        context_instance=RequestContext(request))  
 
 
-
 @requires_course_staff_by_slug
 def XXX_marking_group(request, course_slug, activity_slug, group_slug):    
     course = get_object_or_404(CourseOffering, slug = course_slug)    
@@ -1076,6 +1075,8 @@ def mark_all_groups(request, course_slug, activity_slug):
     return render_to_response("marking/mark_all_group.html",
                           {'course': course, 'activity': activity,'mark_all_rows': rows }, 
                           context_instance = RequestContext(request))
+
+
             
 ######################### Henry Added #############################
 # This is for marking groups with letter grades
@@ -1107,18 +1108,38 @@ def change_grade_status_lettergrade(request, course_slug, activity_slug, userid)
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(LetterActivity, offering=course, slug=activity_slug)
     member = get_object_or_404(Member, offering=course, person__userid = userid, role = 'STUD')
-    
-    #grades = NumericGrade.objects.filter(activity=activity, member=member)
     grades = LetterGrade.objects.filter(activity=activity, member=member)
     if grades:
-        numeric_grade = grades[0]
+        letter_grade = grades[0]
     else:
-        numeric_grade = LetterGrade(activity=activity, member=member, flag="GRAD")
-    status_form = GradeStatusForm(instance=numeric_grade, prefix='grade-status')
-    # The part above is just for testing, needs rewriting
+        letter_grade = LetterGrade(activity=activity, member=member, flag="GRAD")
     
+    if 'status' in request.GET:
+        letter_grade.flag = request.GET['status']
+    error = None
+    if request.method == 'POST':
+        status_form = GradeStatusForm_LetterGrade(data=request.POST, instance=letter_grade, prefix='grade-status')
+        if not status_form.is_valid(): 
+            error = 'Error found'
+        else:            
+            status_form.save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("changed the grade of student %s to %s (%s) on %s.  Comment: '%s'") % 
+                              (userid, letter_grade.letter_grade, FLAGS[letter_grade.flag], activity, letter_grade.comment),
+                  related_object=letter_grade)
+            l.save()
+                
+            messages.add_message(request, messages.SUCCESS, 
+               'Grade status for student %s on %s changed!' % (userid, activity.name,))                           
+            return _redirct_response(request, course_slug, activity_slug)        
+    else:
+        status_form = GradeStatusForm_LetterGrade(instance=letter_grade, prefix='grade-status')
+        
+    if error:        
+        messages.add_message(request, messages.ERROR, error)    
     context = {'course':course,'activity' : activity,\
-               'student' : member.person, 'current_status' : FLAGS[numeric_grade.flag],
+               'student' : member.person, 'current_status' : FLAGS[letter_grade.flag],
                'status_form': status_form}
     return render_to_response("marking/grade_status_lettergrade.html", context,
                               context_instance=RequestContext(request))  
@@ -1258,5 +1279,6 @@ def _compose_imported_grades(file, students_qset, data_to_return):
                "only the first two columns are used."   
     return None   
 
-        
+
+            
         

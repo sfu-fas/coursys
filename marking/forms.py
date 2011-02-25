@@ -192,3 +192,30 @@ class GradeStatusForm(forms.ModelForm):
         model = NumericGrade
         exclude = ('activity', 'member')
 
+class GradeStatusForm_LetterGrade(forms.ModelForm):
+    def __init__(self, activity=None, *args, **kwargs):
+    #    self.activity = activity
+        super(GradeStatusForm_LetterGrade, self).__init__(*args, **kwargs)
+        self.fields['letter_grade'].label=mark_safe('Grade:' + _required_star)
+        self.fields['flag'].label=mark_safe('Change Status to:' + _required_star)
+        
+    comment = forms.CharField(required=False, max_length=500,
+                            label=mark_safe('Comment:'),
+                            help_text='Please provide the reasons here',
+                            widget=forms.Textarea(attrs={'rows':'6', 'cols':'40'}))
+
+    def clean_flag(self):
+        flag = self.cleaned_data['flag']
+        
+       
+        if flag == 'CALC':
+            isCalActivity = CalNumericActivity.objects.filter(id=self.instance.activity.id).count() != 0
+            if not isCalActivity:
+                raise forms.ValidationError(u'Option "calculated" is only for "calculated activity". Please use "graded".')            
+        
+        return flag
+        
+    class Meta:
+        model = LetterGrade
+        exclude = ('activity', 'member')
+

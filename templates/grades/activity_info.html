@@ -177,13 +177,15 @@
                 <td>{% if sub_comps %}{{sub_comps|join:", "}}{% else %}<span class="empty">Submission not configured.</span>{% endif %}
                 <a class="editlink" href="{% url submission.views.show_components course_slug=course.slug, activity_slug=activity.slug%}">Configure Submission</a>
                 </td>
-            </tr>            
-            <tr>
+            </tr>
+                       {% if activity.numericactivity %}          
+                       <tr>
                 <th class="ui-state-default">Marking Components</th>
                 <td>{% if mark_comps %}{{mark_comps|join:", "}}{% else %}<span class="empty">Marking not configured.</span>{% endif %}
                 <a class="editlink" href="{% url marking.views.manage_activity_components course_slug=course.slug,activity_slug=activity.slug%}">Configure Marking</a>
                 </td>
-            </tr>            
+            </tr>
+                       {% endif %}         
             {% endif %}
             {% if activity.url %}
             <tr>

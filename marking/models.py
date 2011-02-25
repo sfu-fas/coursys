@@ -1,7 +1,7 @@
 import copy
 from django.db import models
 from django.core.urlresolvers import reverse
-from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, NumericGrade
+from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, NumericGrade,LetterGrade,LETTER_GRADE_CHOICES
 from grades.models import all_activities_filter, neaten_activity_positions
 #from submission.models import SubmissionComponent, COMPONENT_TYPES
 from coredata.models import Semester
@@ -173,6 +173,67 @@ class ActivityComponentMark(models.Model):
         
     class Meta:
         unique_together = (('activity_mark', 'activity_component'),)
+
+class ActivityMark_LetterGrade(models.Model):
+    """
+    General Marking class for one letter activity 
+    """
+    overall_comment = models.TextField(null = True, max_length = 1000, blank = True)
+    file_attachment = models.FileField(storage=MarkingSystemStorage, null = True, upload_to=attachment_upload_to, blank=True, max_length=500)
+    file_mediatype = models.CharField(null=True, blank=True, max_length=200)
+    created_by = models.CharField(max_length=8, null=False, help_text='Userid who gives the mark')
+    created_at = models.DateTimeField(auto_now_add=True)
+    # For the purpose of keeping a history,
+    # need the copy of the mark here in case that 
+    # the 'value' field in the related numeric grades gets overridden
+    mark = models.CharField(max_length=2, null=False,choices=LETTER_GRADE_CHOICES)
+    activity = models.ForeignKey(LetterActivity, null=True) # null=True to keep south happy
+    
+    def __unicode__(self):
+        return "Super object containing additional info for marking"
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+    class Meta:
+        ordering = ['created_at']
+    
+    def copyFrom(self, obj):
+        """
+        Copy information form another ActivityMark object
+        """
+        self.overall_comment = obj.overall_comment
+        self.file_attachment = obj.file_attachment
+    
+    def setMark(self, grade):
+        self.mark = grade
+    def attachment_filename(self):
+        """
+        Return the filename only (no path) for the attachment.
+        """
+        path, filename = os.path.split(self.file_attachment.name)
+        return filename
+
+class StudentActivityMark_LetterGrade(ActivityMark_LetterGrade):
+    """
+    Marking of one student on one letter activity 
+    """        
+    letter_grade = models.ForeignKey(LetterGrade, null = False, choices=LETTER_GRADE_CHOICES)
+       
+    def __unicode__(self):
+        # get the student and the activity
+        student = self.letter_grade.member.person
+        activity = self.letter_grade.activity      
+        return "Marking for student [%s] for activity [%s]" %(student, activity)   
+    def get_absolute_url(self):
+        return reverse('marking.views.mark_history_student', kwargs={'course_slug': self.letter_grade.activity.offering.slug, 'activity_slug': self.letter_grade.activity.slug, 'userid': self.letter_grade.member.person.userid})
+      
+    def setMark(self, grade):
+        """         
+        Set the mark
+        """
+        super(StudentActivityMark, self).setMark(grade)       
+        self.letter_grade.value = grade
+        self.letter_grade.flag = 'GRAD'
+        self.letter_grade.save()   
         
 def get_activity_mark_by_id(activity, student_membership, activity_mark_id): 
      """

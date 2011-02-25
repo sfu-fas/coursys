@@ -414,9 +414,11 @@ class LetterGrade(models.Model):
             return u'\u2014'
         else:
             return "%s" % (self.letter_grade)
+    def get_absolute_url(self):
+        return reverse('grades.views.student_info', kwargs={'course_slug': self.offering.slug, 'userid': self.member.person.userid})
     
     def save(self, newsitem=True):
-        super(NumericGrade, self).save()
+        super(LetterGrade, self).save()
         if self.activity.status=="RLS" and newsitem and self.flag != "NOGR":
             # new grade assigned, generate news item only if the result is released
             n = NewsItem(user=self.member.person, author=None, course=self.activity.offering,
@@ -425,6 +427,16 @@ class LetterGrade(models.Model):
                   % (self.activity.name, self.get_absolute_url(), self.activity.offering.name()),
                 url=self.get_absolute_url())
             n.save()
+    def get_absolute_url(self):
+        """        
+        for regular numeric activity return the mark summary page
+        but for calculate numeric activity only return the activity information page
+        because there is no associated mark summary record
+        """
+        if CalNumericActivity.objects.filter(id=self.activity.id):
+            return reverse("grades.views.activity_info", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug})
+        else:
+            return reverse("marking.views.mark_summary_student", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug, 'userid':self.member.person.userid})
             
     class Meta:
         unique_together = (('activity', 'member'), )
