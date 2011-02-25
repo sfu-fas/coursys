@@ -1103,6 +1103,10 @@ def mark_all_students_lettergrade(request, course_slug, activity_slug):
                               'fileform' : fileform,'too_many': len(rows) >= 100,\
                               'mark_all_rows': rows }, context_instance = RequestContext(request))            
 #This is for change grade status of letter grades
+
+######################### Henry Added #############################    
+
+######################### Yu Liu Added #############################  
 @requires_course_staff_by_slug      
 def change_grade_status_lettergrade(request, course_slug, activity_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
@@ -1144,7 +1148,7 @@ def change_grade_status_lettergrade(request, course_slug, activity_slug, userid)
     return render_to_response("marking/grade_status_lettergrade.html", context,
                               context_instance=RequestContext(request))  
 
-######################### Henry Added #############################    
+######################### Yu Liu Added #############################  
 
 @requires_course_staff_by_slug
 def mark_all_students(request, course_slug, activity_slug):
