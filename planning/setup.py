@@ -1,7 +1,8 @@
 # creates initial data for planning module, based on historical offerings
 
-import os
+import os, sys
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+sys.path.append(".")
 
 from coredata.models import *
 from planning.models import *

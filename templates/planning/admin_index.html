@@ -2,6 +2,19 @@
 
 {% load markup %}
 
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#plans').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+  } );
+} );
+</script>
+{% endblock %}
+
 {% block title %}Manage Course Plans{% endblock %}
 {% block h1 %}Manage Course Plans{% endblock %}
 
@@ -43,8 +56,8 @@
 			<td>{{ plan.semester.label }}</td>
 			<td><a href="{% url planning.views.edit_courses userid=userid plan_id=plan.id %}">Edit Courses</a></td>
 			<td><a href="">Assign Instructors</a></td>
-			<td>{{ plan.visibility }}</td>
-			<td>{{ plan.active }} (<a href="">Option</a>)</td>
+			<td>{{ plan.get_visibility_display }}</td>
+			<td>{% if plan.active %}active{% endif %} (<a href="">Option</a>)</td>
 			
 		{%endfor%}
 
