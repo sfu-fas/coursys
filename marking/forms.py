@@ -192,6 +192,7 @@ class GradeStatusForm(forms.ModelForm):
         model = NumericGrade
         exclude = ('activity', 'member')
 
+##############################Yu Liu Added#########################################################  
 class GradeStatusForm_LetterGrade(forms.ModelForm):
     def __init__(self, activity=None, *args, **kwargs):
     #    self.activity = activity
@@ -218,4 +219,4 @@ class GradeStatusForm_LetterGrade(forms.ModelForm):
     class Meta:
         model = LetterGrade
         exclude = ('activity', 'member')
-
+##############################Yu Liu Added#########################################################  

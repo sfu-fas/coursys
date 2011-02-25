@@ -394,7 +394,9 @@ class NumericGrade(models.Model):
             return reverse("marking.views.mark_summary_student", kwargs={'course_slug':self.activity.offering.slug, 'activity_slug':self.activity.slug, 'userid':self.member.person.userid})
     class Meta:
         unique_together = (('activity', 'member'),)
-    
+
+
+##############################Yu Liu Added#########################################################     
 class LetterGrade(models.Model):
     """
     Individual letter grade for a LetterActivity
@@ -441,6 +443,7 @@ class LetterGrade(models.Model):
     class Meta:
         unique_together = (('activity', 'member'), )
 
+##############################Yu Liu Added#########################################################  
 
 NumericActivity.GradeClass = NumericGrade
 LetterActivity.GradeClass = LetterGrade

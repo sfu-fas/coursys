@@ -174,6 +174,7 @@ class ActivityComponentMark(models.Model):
     class Meta:
         unique_together = (('activity_mark', 'activity_component'),)
 
+##############################Yu Liu Added#########################################################  
 class ActivityMark_LetterGrade(models.Model):
     """
     General Marking class for one letter activity 
@@ -234,7 +235,8 @@ class StudentActivityMark_LetterGrade(ActivityMark_LetterGrade):
         self.letter_grade.value = grade
         self.letter_grade.flag = 'GRAD'
         self.letter_grade.save()   
-        
+##############################Yu Liu Added#########################################################
+       
 def get_activity_mark_by_id(activity, student_membership, activity_mark_id): 
      """
      Find the activity_mark with that id if it exists for the student on the activity
