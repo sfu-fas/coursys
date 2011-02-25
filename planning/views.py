@@ -15,24 +15,32 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from datetime import datetime
 
 @login_required
-def courses(request):
+def instructor_index(request):
 
 	userid = request.user.username
 	instructor = get_object_or_404(Person, userid = request.user.username)
 	capability_list = TeachingCapability.objects.filter(instructor = instructor).order_by('course')
 	intention_list = TeachingIntention.objects.filter(instructor = instructor).order_by('semester')
  		
-	return render_to_response("planning/index.html",{'userid':userid, 'capability_list':capability_list, 'intention_list':intention_list},context_instance=RequestContext(request))
-	
+	return render_to_response("planning/instructor_index.html",{'userid':userid, 'capability_list':capability_list, 'intention_list':intention_list},context_instance=RequestContext(request))
 
 @login_required
-def add_plan(request, userid):
+def admin_index(request):
+
+	userid = request.user.username
+	admin = get_object_or_404(Person, userid = request.user.username)
+	
+	return render_to_response("planning/admin_index.html",{'userid':userid},context_instance=RequestContext(request))
+	#return HttpResponse('test')
+
+@login_required
+def add_capability(request, userid):
    	
 	course_list = Course.objects.filter()
 	instructor = get_object_or_404(Person, userid = request.user.username)
 	capability_list = TeachingCapability.objects.filter(instructor = instructor).order_by('course')
 	
-	return render_to_response("planning/add_plan.html",{'userid':userid, 'capability_list':capability_list, 'course_list':course_list},context_instance=RequestContext(request))
+	return render_to_response("planning/add_capability.html",{'userid':userid, 'capability_list':capability_list, 'course_list':course_list},context_instance=RequestContext(request))
 
 
 @login_required
@@ -96,7 +104,6 @@ def delete_course_from_capability(request, userid, course_id):
 
 	course = TeachingCapability.objects.get(pk = course_id)
 	course.delete()
-	#course.save()
 
 	messages.add_message(request, messages.SUCCESS, 'Course Removed Successfully.')
 	return HttpResponseRedirect(reverse(add_plan, kwargs={'userid':userid}))

@@ -12,7 +12,9 @@
     <ul>
     <li><a href="{% url dashboard.views.news_list %}">All News Items</a></li>
 
-    <li><a href="{% url planning.views.courses %}">Planning Module</a></li>
+    <li><a href="{% url planning.views.index %}">Planning Module</a></li>
+
+    <li><a href="{% url planning.views.admin_index %}">Planning Module (Admin)</a></li>
 
     {% if 'DISC' in roles %}<li><a href="{% url discipline.views.all_cases %}">Discipline Cases</a></li>{% endif %}
     {% if 'SYSA' in roles %}<li><a href="{% url coredata.views.sysadmin %}">System Administration</a></li>{% endif %}
