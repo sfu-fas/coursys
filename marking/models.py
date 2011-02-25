@@ -235,6 +235,34 @@ class StudentActivityMark_LetterGrade(ActivityMark_LetterGrade):
         self.letter_grade.value = grade
         self.letter_grade.flag = 'GRAD'
         self.letter_grade.save()   
+
+class GroupActivityMark_LetterGrade(ActivityMark):
+    """
+    Marking of one group on one letter activity
+    """
+    group = models.ForeignKey(Group, null = False) 
+    numeric_activity = models.ForeignKey(LetterActivity, null = False)
+         
+    def __unicode__(self):
+        return "Marking for group [%s] for activity [%s]" %(self.group, self.letter_activity)
+    def get_absolute_url(self):
+        return reverse('marking.views.mark_history_group', kwargs={'course_slug': self.letter_activity.offering.slug, 'activity_slug': self.letter_activity.slug, 'group_slug': self.group.slug})
+    
+    def setMark(self, grade):
+        """         
+        Set the mark of the group members
+        """
+        super(GroupActivityMark, self).setMark(grade)
+        #assign mark for each member in the group
+        group_members = GroupMember.objects.filter(group=self.group, activity=self.letter_activity, confirmed=True)
+        for g_member in group_members:
+            try:            
+                lgrade = LetterGrade.objects.get(activity=self.letter_activity, member=g_member.student)
+            except LetterGrade.DoesNotExist: 
+                lgrade = LetterGrade(activity=self.letter_activity, member=g_member.student)
+            lgrade.value = grade
+            lgrade.flag = 'GRAD'
+            lgrade.save() 
 ##############################Yu Liu Added#########################################################
        
 def get_activity_mark_by_id(activity, student_membership, activity_mark_id): 
