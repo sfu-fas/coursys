@@ -25,15 +25,6 @@ def instructor_index(request):
 	return render_to_response("planning/instructor_index.html",{'userid':userid, 'capability_list':capability_list, 'intention_list':intention_list},context_instance=RequestContext(request))
 
 @login_required
-def admin_index(request):
-
-	userid = request.user.username
-	admin = get_object_or_404(Person, userid = request.user.username)
-	
-	return render_to_response("planning/admin_index.html",{'userid':userid},context_instance=RequestContext(request))
-	#return HttpResponse('test')
-
-@login_required
 def add_capability(request, userid):
    	
 	course_list = Course.objects.filter()
@@ -42,21 +33,19 @@ def add_capability(request, userid):
 	
 	return render_to_response("planning/add_capability.html",{'userid':userid, 'capability_list':capability_list, 'course_list':course_list},context_instance=RequestContext(request))
 
-
 @login_required
-def submit_plan(request, userid):
+def submit_capability(request, userid):
     
 	course_number = request.POST['offering_courses']
 
 	instructor = get_object_or_404(Person, userid = request.user.username)
 	course = get_object_or_404(Course, number = course_number)
-	semester = get_object_or_404(Semester, name = '1097')
 	
-	added_plan = TeachingCapability(instructor = instructor, course = course)
-	added_plan.save()
+	added_capability = TeachingCapability(instructor = instructor, course = course)
+	added_capability.save()
 	
-	messages.add_message(request, messages.SUCCESS, 'Plan Submitted Successfully.')
-	return HttpResponseRedirect(reverse(add_plan, kwargs={'userid':userid}))
+	messages.add_message(request, messages.SUCCESS, 'Submitted Successfully.')
+	return HttpResponseRedirect(reverse(add_capability, kwargs={'userid':userid}))
 
 @login_required
 def add_intention(request, userid):
@@ -79,6 +68,7 @@ def submit_intention(request, userid):
 	
 	messages.add_message(request, messages.SUCCESS, 'Teaching Intention Submitted Successfully.')
 	return HttpResponseRedirect(reverse(add_intention, kwargs={'userid':userid}))
+
 
 	
 @login_required
@@ -108,8 +98,58 @@ def delete_course_from_capability(request, userid, course_id):
 	messages.add_message(request, messages.SUCCESS, 'Course Removed Successfully.')
 	return HttpResponseRedirect(reverse(add_plan, kwargs={'userid':userid}))
 
+#********************************************ADMIN************************************************************
+@login_required
+def admin_index(request):
 
+	userid = request.user.username
+	admin = get_object_or_404(Person, userid = request.user.username)
+	plan_list = SemesterPlan.objects.filter().order_by('semester')
 
+	return render_to_response("planning/admin_index.html",{'userid':userid, 'plan_list':plan_list},context_instance=RequestContext(request))
+
+@login_required
+def add_plan(request, userid):
+
+	admin = get_object_or_404(Person, userid = request.user.username)
+	semester_list = Semester.objects.filter()
+
+	return render_to_response("planning/add_plan.html",{'userid':userid, 'semester_list':semester_list},context_instance=RequestContext(request))
+
+@login_required
+def submit_plan(request, userid):
+
+	admin = get_object_or_404(Person, userid = request.user.username)
+
+	input_semester = request.POST['semester']
+	name = request.POST['plan_name']
+	visibility = request.POST['visibility']
+	active = False
+
+	semester = get_object_or_404(Semester, name = input_semester)
+
+	added_plan = SemesterPlan(semester = semester, name = name, visibility = visibility, active = active)
+	added_plan.save()
+
+	messages.add_message(request, messages.SUCCESS, 'Plan Submitted Successfully.')
+	return HttpResponseRedirect(reverse(add_plan, kwargs={'userid':userid}))
+
+@login_required
+def edit_courses(request, userid, plan_id):
+
+	semester_plan = get_object_or_404(SemesterPlan, pk = plan_id)
+
+	#planned_courses_list = 
+	#plan = PlannedOffering(plan = semester_plan, course = course, section = section, component = component, campus = campus)
+	#plan.save()
+
+	admin = get_object_or_404(Person, userid = request.user.username)
+	course_list = Course.objects.filter()
+
+	#return render_to_response("planning/edit_courses.html",{'userid':userid, 'course_list':course_list, 'planned_courses_list':planned_courses_list},context_instance=RequestContext(request))
+	return render_to_response("planning/edit_courses.html",{'userid':userid, 'course_list':course_list},context_instance=RequestContext(request))
+
+#********************************************ADMIN************************************************************
 
 
 

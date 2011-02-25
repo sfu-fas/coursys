@@ -11,8 +11,9 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    <li><a href="{% url planning.views.add_plan userid=userid %}">Create a Course Plan</a></li>
-
+    	<li><a href="{% url planning.views.add_plan userid=userid %}">Create a Course Plan</a></li>
+		<li><a href="{% url planning.views.add_course userid=userid %}">Manage Courses</a></li>
+	    
     </ul>
 </div>
 {% endblock %}
@@ -22,21 +23,31 @@
 
 <div class="datatable_container">
     <h2>Course Plans</h2>
-    <table class="display" id="activities">
+    <table class="display" id="plans">
         <thead>
             <tr>
                 <th scope="col">Plan Name</th>
+                <th scope="col">Semester</th>
                 <th scope="col">Edit Courses</th>
                 <th scope="col">Assign Instructors</th>
+                <th scope="col">Visibility</th>
+                <th scope="col">Active</th>
+
             </tr>
         </thead>
 
         <tbody>
+		{% for plan in plan_list %}
+		<tr>
+			<td>{{ plan.name }}</td>
+			<td>{{ plan.semester.label }}</td>
+			<td><a href="{% url planning.views.edit_courses userid=userid plan_id=plan.id %}">Edit Courses</a></td>
+			<td><a href="">Assign Instructors</a></td>
+			<td>{{ plan.visibility }}</td>
+			<td>{{ plan.active }} (<a href="">Option</a>)</td>
+			
+		{%endfor%}
 
-
-	    <tr>
-			<td class="empty">No plans currently</td>
-	    </tr>
         </tbody>
     </table>
 </div>

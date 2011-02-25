@@ -35,10 +35,15 @@ urlpatterns += patterns('planning.views',
 	url(r'^planning/add_course/' + USERID_SLUG + '$', 'add_course'),
 	url(r'^planning/add_intention/' + USERID_SLUG + '$', 'add_intention'),
 	url(r'^submit_course/' + USERID_SLUG + '$', 'submit_course'),
-	url(r'^submit_plan/' + USERID_SLUG + '$', 'submit_plan'),
+	url(r'^submit_capability/' + USERID_SLUG + '$', 'submit_capability'),
 	url(r'^submit_intention/' + USERID_SLUG + '$', 'submit_intention'),
 	url(r'^delete_course_from_capability/' + USERID_SLUG + '/(?P<course_id>\w+)/$', 'delete_course_from_capability'),
 	url(r'^admin_planning/$', 'admin_index'),
+	url(r'^planning/add_plan/' + USERID_SLUG + '$', 'add_plan'),
+	url(r'^submit_plan/' + USERID_SLUG + '$', 'submit_plan'),
+	url(r'^planning/edit_courses/' + USERID_SLUG + '/(?P<plan_id>\w+)/$', 'edit_courses'),
+	
+	
 	
 	
 

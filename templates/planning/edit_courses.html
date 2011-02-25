@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load grade_student %}
+
+
+{% load markup %}
+
+{% block title %}Edit Courses{% endblock %}
+{% block h1 %}Edit Courses{% endblock %}
+
+{% block subbreadcrumbs %}&gt; Edit Courses</li>{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+	
+    	<li><a href="{% url planning.views.admin_index %}">Manage Course Plans</a></li>
+		<li><a href="{% url planning.views.add_course userid=userid %}">Manage Courses</a></li>
+
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+
+<div class="datatable_container">
+    <table class="display" id="plans">
+        <thead>
+            <tr>
+                <th scope="col">Course Name</th>
+                <th scope="col">Section</th>
+                <th scope="col">Component</th>
+                <th scope="col">Campus</th>
+
+            </tr>
+        </thead>
+
+        <tbody>
+			{% for planned_courses in planned_courses_list %}
+			<tr>
+
+				<td>{{ planned_courses.course }}</td>
+				<td>{{ planned_courses.section }}</td>
+				<td>{{ planned_courses.component }}</td>
+				<td>{{ planned_courses.campus }}</td>
+
+			{%endfor%}
+
+        </tbody>
+    </table>
+</div>
+
+<div id="form_container">
+    {% if form.non_field_errors %}
+    <p class="errorindicator">
+        <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
+        {{ form.non_field_errors }}
+    </p>
+    {% endif %}
+	
+	<form action="/submit_plan/{{ userid }}" method="post">{% csrf_token %}
+
+
+        <fieldset>
+            <legend>Add Courses to Plan</legend>
+
+            <ul>
+				Course Offering:
+				<select name="offering_courses">
+					<option value="None"></option>
+					{% for course in course_list %}
+						<option value={{course.number}}>{{course}}</option>
+					{%endfor%}
+				</select>
+
+                <li>
+                    <input class="submit" type="submit" value="Add" />
+                </li>
+            </ul>
+        </fieldset>
+        
+
+    </form>
+
+
+</div>
+{% endblock%}
+
+
