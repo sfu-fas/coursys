@@ -56,7 +56,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
         late = submission.created_at - activity.due_date
     else:
         late = 0
-
+        
     if activity.group:
         gm = GroupMember.objects.filter(student__person=student, activity=activity, confirmed=True)
         if gm:
@@ -65,7 +65,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
         else:
             group = None
             cansubmit = False
-            messages.add_message(request, messages.WARNING, "This is a group submission. You cannot submit since you aren't in a group.")
+            messages.add_message(request, messages.INFO, "This is a group submission. You cannot submit since you aren't in a group.")
     else:
         group = None
 
@@ -105,7 +105,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
             form = data['form']
 
             #TODO: see the notes in forms.py, SubmissionForm.submitted_components
-            form.submitted_components = get_current_submission(student, activity)
+            # form.submitted_components = get_current_submission(student, activity)
 
             #form[1].component = form[0]
             if form.is_valid():
@@ -137,20 +137,38 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
             messages.add_message(request, messages.SUCCESS, "Your submission was successful.")
             return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
 
+        submission, submitted_components = get_current_submission(student, activity, include_deleted=staff)
+        _check_file_name(request, submitted_components)
+
         return render_to_response("submission/submission_error.html",
             {"course":course, "activity":activity, "component_list":component_form_list,
             "submitted_comp":submitted_comp, "not_submitted_comp":not_submitted_comp},
             context_instance=RequestContext(request))
     else: #not POST
         if activity.group and gm:
-            messages.add_message(request, messages.WARNING, "This is a group submission. You will submit on behalf of the group %s." % group.name)
+            messages.add_message(request, messages.INFO, "This is a group submission. You will submit on behalf of the group %s." % group.name)
     
-
+        _check_file_name(request, submitted_components)
+        
         component_form_list = make_form_from_list(component_list)
         return render_to_response("submission/" + template,
-        {'component_form_list': component_form_list, "course": course, "activity": activity, "submission": submission, "submitted_components":submitted_components, "userid":userid, "late":late, "student":student, "group":group, "cansubmit":cansubmit},
+        {'component_form_list': component_form_list, "course": course, "activity": activity, "submission": submission, "submitted_components":submitted_components, "userid":userid, "late":late, "student":student, "group":group, "cansubmit":cansubmit, "is_staff":staff},
         context_instance = RequestContext(request))
 
+def _check_file_name(request, submitted_components):
+    """ warn if there are files with the same name """
+    sc_names = {}
+    for sc in submitted_components:
+        if sc[1] and hasattr(sc[1], 'get_filename'):
+            fn = sc[1].get_filename()
+            if fn in sc_names: sc_names[fn] += 1
+            else: sc_names[fn] = 1
+    if len(sc_names) > 0:
+        msg = "There are files with the same name in the submission:"
+        for i in sc_names:
+            msg = "%s %d files named %s," % (msg, sc_names[i], i)
+        msg = msg[:-1] + '.' 
+        messages.add_message(request, messages.WARNING, msg)
 
 
 #student's submission page, not used any more
@@ -235,7 +253,7 @@ def xxxx_add_submission(request, course_slug, activity_slug):
     else: #not POST
         #print activity.group, group_member
         if activity.group and group_member:
-            messages.add_message(request, messages.WARNING, "This is a group submission. Your will submit on behalf of all your group members.")
+            messages.add_message(request, messages.INFO, "This is a group submission. Your will submit on behalf of all your group members.")
         elif activity.group:
             return ForbiddenResponse(request)
 

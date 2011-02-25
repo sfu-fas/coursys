@@ -53,6 +53,7 @@
         </div>
 
         {% if cansubmit %}
+        {% if not is_staff %}
             <div id="submission_form_container">
             <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
                 <fieldset>
@@ -70,6 +71,7 @@
 
             </form>
             </div>
+        {% endif %}
         {% endif %}
 
         <div id="form_container">
