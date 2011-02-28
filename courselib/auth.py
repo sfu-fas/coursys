@@ -168,20 +168,20 @@ def requires_discipline_user(function=None, login_url=None):
         return actual_decorator
 
 
-def is_faculty_member(u, **kwargs):
+def is_instructor(u, **kwargs):
     """
-    Return True if the user is a faculty member
+    Return True if the user is an instructor
     """
-    perms = Role.objects.filter(person__userid=u.username, role='FAC').count()
+    perms = Role.objects.filter(person__userid=u.username, role__in=['FAC','SESS','COOP']).count()
     return perms>0
 
-def requires_faculty_member(function=None, login_url=None):
+def requires_instructor(function=None, login_url=None):
     """
-    Allows access if user is a faculty member.
+    Allows access if user is an instructor.
     """
-    actual_decorator = user_passes_test(is_faculty_member, login_url=login_url)
+    actual_decorator = user_passes_test(is_instructor, login_url=login_url)
     if function:
-        return  actual_decorator(function)
+        return actual_decorator(function)
     else:
         return actual_decorator
 

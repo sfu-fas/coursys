@@ -12,8 +12,14 @@ $(document).ready(function() {
     'bInfo': false,
     'bLengthChange': false,
     "bJQueryUI": true,
+    'aaSorting': [[1, 'asc']],
   } );
 } );
+function confirmDelete(url) {
+  if ( confirm("Are you sure you want to delete this role?") ) {
+    document.location = url;
+  };
+}
 </script>
 {% endblock %}
 
@@ -21,7 +27,8 @@ $(document).ready(function() {
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-	    <li><a href="{% url coredata.views.new_role %}">Add new role</a></li>
+    <li><a href="{% url coredata.views.new_role %}">Add new role</a></li>
+    <li><a href="{% url coredata.views.missing_instructors %}">Unknown instructors</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -33,7 +40,7 @@ $(document).ready(function() {
   <tbody>
   {% for role in roles %}
   <tr><td scope="row">{{role.person}}</td><td>{{role.get_role_display}}</td>
-  <td><!--<a href="#">delete</a>--></td></tr>
+  <td><a href="javascript:confirmDelete('{% url coredata.views.delete_role role_id=role.pk %}');">delete</a></td></tr>
   {% endfor %}
   </tbody>
 </table>

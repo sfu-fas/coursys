@@ -35,4 +35,16 @@ class PersonForm(forms.ModelForm):
                     widget=forms.TextInput(attrs={'size':'9'}))
     class Meta:
         model = Person
-        
+
+class InstrRoleForm(forms.Form):
+    ROLE_CHOICES = [
+            ('NONE', u'\u2014'),
+            ('FAC', 'Faculty Member'),
+            ('SESS', 'Sessional Instructor'),
+            ('COOP', 'Co-op Staff'),
+            ]
+    person = forms.ModelChoiceField(queryset=Person.objects.all(), widget=forms.HiddenInput)
+    role = forms.ChoiceField(choices=ROLE_CHOICES)
+    
+InstrRoleFormSet = forms.formsets.formset_factory(InstrRoleForm, extra=0)
+
