@@ -41,7 +41,7 @@ $(document).ready(function() {
 <div class="datatable_container">
 	
 	
-    <h2>Course Plan</h2>
+    <h2>{{ semester_plan.semester.label }} </br> {{ semester_plan.name }}</h2>
     <table class="display" id="courses">
         <thead>
             <tr>
@@ -65,7 +65,7 @@ $(document).ready(function() {
 			<td>{{ planned_course.section }}</td>
 			<td>
 				
-				{{ planned_course.instructor }}
+					{{ planned_course.instructor }}
 				
 			</td>
 			<td>

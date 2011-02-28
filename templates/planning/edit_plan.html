@@ -35,6 +35,8 @@ function Show() {
 {% endblock %}
 
 {% block content %}
+
+<h2>{{ semester_plan.semester.label }} </br> {{ semester_plan.name }}</h2>
 <div id="form_container">
     {% if form.non_field_errors %}
     <p class="errorindicator">
