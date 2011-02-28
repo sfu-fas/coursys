@@ -207,7 +207,6 @@ def assign_instructors(request, userid, plan_id):
 
 	course_list = Course.objects.filter()
 	planned_courses_list = PlannedOffering.objects.filter(plan = semester_plan)
-	semester_plan.semester
 	
 	instructor_list = TeachingCapability.objects.filter().order_by('instructor')
 	instructor_intention_list = TeachingIntention.objects.filter(semester = semester_plan.semester)
