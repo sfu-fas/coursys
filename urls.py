@@ -42,11 +42,13 @@ urlpatterns += patterns('planning.views',
 	url(r'^admin_planning/$', 'admin_index'),
 	url(r'^admin_planning/submit_course/' + USERID_SLUG + '$', 'submit_course'),
 	url(r'^admin_planning/add_plan/' + USERID_SLUG + '$', 'add_plan'),
+	url(r'^admin_planning/edit_plan/' + USERID_SLUG + '/(?P<plan_id>\w+)/$', 'edit_plan'),
+	url(r'^admin_planning/submit_edited_plan/' + USERID_SLUG + '/(?P<plan_id>\w+)/$', 'submit_edited_plan'),
 	url(r'^admin_planning/submit_plan/' + USERID_SLUG + '$', 'submit_plan'),
 	url(r'^admin_planning/edit_courses/' + USERID_SLUG + '/(?P<plan_id>\w+)/$', 'edit_courses'),
 	url(r'^admin_planning/add_courses_to_plan/' + USERID_SLUG + '/(?P<plan_id>\w+)/$', 'add_courses_to_plan'),
 	url(r'^admin_planning/delete_course_from_plan/' + USERID_SLUG + '/(?P<course_id>\w+)/(?P<plan_id>\w+)/$', 'delete_course_from_plan'),
-	
+	url(r'^admin_planning/assign_instructors/' + USERID_SLUG + '/(?P<plan_id>\w+)/$', 'assign_instructors'),
 	
 	
 	

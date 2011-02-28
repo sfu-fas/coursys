@@ -1,7 +1,7 @@
 from planning.models import *
 from courselib.auth import requires_advisor
 from django.db.models import Q
-from coredata.models import Person, Role, Semester, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES 
+from coredata.models import Person, Role, Semester, Member, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES 
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render_to_response
@@ -103,7 +103,7 @@ def delete_course_from_capability(request, userid, course_id):
 def admin_index(request):
 
 	userid = request.user.username
-	admin = get_object_or_404(Person, userid = request.user.username)
+	#admin = get_object_or_404(Person, userid = request.user.username)
 	plan_list = SemesterPlan.objects.filter().order_by('semester')
 
 	return render_to_response("planning/admin_index.html",{'userid':userid, 'plan_list':plan_list},context_instance=RequestContext(request))
@@ -111,15 +111,43 @@ def admin_index(request):
 @login_required
 def add_plan(request, userid):
 
-	admin = get_object_or_404(Person, userid = request.user.username)
+	#admin = get_object_or_404(Person, userid = request.user.username)
 	semester_list = Semester.objects.filter()
 
 	return render_to_response("planning/add_plan.html",{'userid':userid, 'semester_list':semester_list},context_instance=RequestContext(request))
 
+def edit_plan(request, userid, plan_id):
+	
+	semester_list = Semester.objects.filter()
+	semester_plan = get_object_or_404(SemesterPlan, pk = plan_id)
+	
+	
+	return render_to_response("planning/edit_plan.html",{'userid':userid, 'plan_id':plan_id, 'semester_list':semester_list, 'semester_plan':semester_plan},context_instance=RequestContext(request))
+
+@login_required
+def submit_edited_plan(request, userid, plan_id):
+
+	input_semester = request.POST['semester']
+	name = request.POST['plan_name']
+	visibility = request.POST['visibility']
+	
+	semester = get_object_or_404(Semester, name = input_semester)
+	
+	edited_plan = SemesterPlan.objects.get(pk = plan_id)
+
+	edited_plan.name = name
+	edited_plan.semester = semester
+	edited_plan.visibility = visibility
+	edited_plan.save()
+	
+	messages.add_message(request, messages.SUCCESS, 'Plan Edited Successfully.')
+	return HttpResponseRedirect(reverse(admin_index))
+	
+
 @login_required
 def submit_plan(request, userid):
 
-	admin = get_object_or_404(Person, userid = request.user.username)
+	#admin = get_object_or_404(Person, userid = request.user.username)
 
 	input_semester = request.POST['semester']
 	name = request.POST['plan_name']
@@ -139,7 +167,7 @@ def edit_courses(request, userid, plan_id):
 
 	semester_plan = get_object_or_404(SemesterPlan, pk = plan_id)
 
-	admin = get_object_or_404(Person, userid = request.user.username)
+	#admin = get_object_or_404(Person, userid = request.user.username)
 	course_list = Course.objects.filter()
 	planned_courses_list = PlannedOffering.objects.filter(plan = semester_plan)
 	
@@ -163,8 +191,6 @@ def add_courses_to_plan(request, userid, plan_id):
 	messages.add_message(request, messages.SUCCESS, 'Course Added Successfully.')
 	return HttpResponseRedirect(reverse(edit_courses, kwargs={'userid':userid, 'plan_id':plan_id}))
 	
-#	return HttpResponse('test')
-
 @login_required
 def delete_course_from_plan(request, userid, course_id, plan_id):
 	
@@ -173,6 +199,24 @@ def delete_course_from_plan(request, userid, course_id, plan_id):
 
 	messages.add_message(request, messages.SUCCESS, 'Course Removed Successfully.')
 	return HttpResponseRedirect(reverse(edit_courses, kwargs={'userid':userid, 'plan_id':plan_id}))
+	
+
+@login_required
+def assign_instructors(request, userid, plan_id):
+
+	semester_plan = get_object_or_404(SemesterPlan, pk = plan_id)
+
+	#admin = get_object_or_404(Person, userid = request.user.username)
+	course_list = Course.objects.filter()
+	planned_courses_list = PlannedOffering.objects.filter(plan = semester_plan)
+	semester_plan.semester
+	
+#	instructor_list = TeachingCapability.objects.values('instructor').distinct().order_by('instructor')
+	instructor_list = TeachingIntention.objects.filter(semester = semester_plan.semester)
+	
+	return render_to_response("planning/assign_instructors.html",{'userid':userid, 'plan_id':plan_id, 'course_list':course_list, 'planned_courses_list':planned_courses_list, 'instructor_list':instructor_list},context_instance=RequestContext(request))
+	#return HttpResponse(instructor_list)
+
 	
 #********************************************ADMIN************************************************************
 
