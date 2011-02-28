@@ -56,7 +56,7 @@ $(document).ready(function() {
 		{% for plan in plan_list %}
 
 		<tr>
-			<td>{{ plan.name }} (<a href="{% url planning.views.edit_plan userid=userid plan_id=plan.id %}">edit</a>)</td>
+			<td>{{ plan.name }} (<a href="{% url planning.views.edit_plan userid=userid plan_id=plan.id %}">edit</a> | <a href="{% url planning.views.delete_plan plan_id=plan.id %}">delete</a>)</td>
 			<td>{{ plan.semester.label }}</td>
 			<td><a href="{% url planning.views.edit_courses userid=userid plan_id=plan.id %}">Edit Courses</a></td>
 			<td><a href="{% url planning.views.assign_instructors userid=userid plan_id=plan.id %}">Assign Instructors</a></td>

@@ -159,7 +159,7 @@ def submit_plan(request, userid):
 	added_plan.save()
 
 	messages.add_message(request, messages.SUCCESS, 'Plan Submitted Successfully.')
-	return HttpResponseRedirect(reverse(add_plan, kwargs={'userid':userid}))
+	return HttpResponseRedirect(reverse(admin_index))
 
 @login_required
 def edit_courses(request, userid, plan_id):
@@ -238,7 +238,7 @@ def activate_plan(request, plan_id):
 	semester_plan.save()
 
 	messages.add_message(request, messages.SUCCESS, 'Plan Activated Successfully.')
-	return HttpResponseRedirect(reverse(admin_index, kwargs={}))
+	return HttpResponseRedirect(reverse(admin_index))
 	
 @login_required
 def inactivate_plan(request, plan_id):
@@ -249,8 +249,21 @@ def inactivate_plan(request, plan_id):
 	semester_plan.save()
 
 	messages.add_message(request, messages.SUCCESS, 'Plan Inactivated Successfully.')
-	return HttpResponseRedirect(reverse(admin_index, kwargs={}))
+	return HttpResponseRedirect(reverse(admin_index))
 
+@login_required
+def delete_plan(request, plan_id):
+
+	semester_plan = get_object_or_404(SemesterPlan, pk = plan_id)
+	semester_plan.delete()
+
+	#if PlannedOffering.objects.get(plan = semester_plan):
+	#	plannedoffering = PlannedOffering.objects.get(plan = semester_plan)
+	#	plannedoffering.delete()
+
+	messages.add_message(request, messages.SUCCESS, 'Plan Deleted Successfully.')
+	return HttpResponseRedirect(reverse(admin_index))
+		
 #********************************************ADMIN************************************************************
 
 
