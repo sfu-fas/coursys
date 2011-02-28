@@ -62,7 +62,7 @@ class SemesterPlan(models.Model):
     semester = models.ForeignKey(Semester)
     name = models.CharField(max_length=40)
     visibility = models.CharField(max_length=4, choices=VISIBILITY_CHOICES, help_text="Who can see this plan?")
-    active = models.BooleanField(help_text="The currently-active plan for this semester.")
+    active = models.BooleanField(default = False, help_text="The currently-active plan for this semester.")
 
     class Meta:
         ordering = ['-semester', 'name']

@@ -152,11 +152,10 @@ def submit_plan(request, userid):
 	input_semester = request.POST['semester']
 	name = request.POST['plan_name']
 	visibility = request.POST['visibility']
-	active = False
 
 	semester = get_object_or_404(Semester, name = input_semester)
 
-	added_plan = SemesterPlan(semester = semester, name = name, visibility = visibility, active = active)
+	added_plan = SemesterPlan(semester = semester, name = name, visibility = visibility)
 	added_plan.save()
 
 	messages.add_message(request, messages.SUCCESS, 'Plan Submitted Successfully.')
@@ -229,6 +228,29 @@ def submit_assigned_instructors(request, userid, course_id, plan_id):
 	
 	messages.add_message(request, messages.SUCCESS, 'Instructor Assinged Successfully.')
 	return HttpResponseRedirect(reverse(assign_instructors, kwargs={'userid':userid, 'plan_id':plan_id}))
+	
+@login_required
+def activate_plan(request, plan_id):
+
+	semester_plan = get_object_or_404(SemesterPlan, pk = plan_id)
+
+	semester_plan.active = True
+	semester_plan.save()
+
+	messages.add_message(request, messages.SUCCESS, 'Plan Activated Successfully.')
+	return HttpResponseRedirect(reverse(admin_index, kwargs={}))
+	
+@login_required
+def inactivate_plan(request, plan_id):
+
+	semester_plan = get_object_or_404(SemesterPlan, pk = plan_id)
+
+	semester_plan.active = False
+	semester_plan.save()
+
+	messages.add_message(request, messages.SUCCESS, 'Plan Inactivated Successfully.')
+	return HttpResponseRedirect(reverse(admin_index, kwargs={}))
+
 #********************************************ADMIN************************************************************
 
 

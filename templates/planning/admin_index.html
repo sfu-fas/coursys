@@ -61,7 +61,13 @@ $(document).ready(function() {
 			<td><a href="{% url planning.views.edit_courses userid=userid plan_id=plan.id %}">Edit Courses</a></td>
 			<td><a href="{% url planning.views.assign_instructors userid=userid plan_id=plan.id %}">Assign Instructors</a></td>
 			<td>{{ plan.get_visibility_display }}</td>
-			<td>{% if plan.active %}active{% endif %}<a href="">Active</a></td>
+			<td>
+				{% if plan.active %}
+					<a href="{% url planning.views.inactivate_plan plan_id=plan.id %}">Inactivate</a>
+				{% else %}
+					<a href="{% url planning.views.activate_plan plan_id=plan.id %}">Activate</a>
+				{% endif %}
+			</td>
 		
 		{%endfor%}
 

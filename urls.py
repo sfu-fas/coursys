@@ -50,6 +50,11 @@ urlpatterns += patterns('planning.views',
 	url(r'^admin_planning/delete_course_from_plan/' + USERID_SLUG + '/(?P<course_id>\w+)/(?P<plan_id>\w+)/$', 'delete_course_from_plan'),
 	url(r'^admin_planning/assign_instructors/' + USERID_SLUG + '/(?P<plan_id>\w+)/$', 'assign_instructors'),
 	url(r'^admin_planning/submit_assigned_instructors/' + USERID_SLUG + '/(?P<course_id>\w+)/(?P<plan_id>\w+)/$', 'submit_assigned_instructors'),
+	url(r'^admin_planning/activate_plan/(?P<plan_id>\w+)/$', 'activate_plan'),
+	url(r'^admin_planning/inactivate_plan/(?P<plan_id>\w+)/$', 'inactivate_plan'),
+	
+	
+	
 	
 	
 	
