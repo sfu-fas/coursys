@@ -20,6 +20,28 @@
 
 {% block content %}
 
+<div id="intention" class="table_container">
+	<h2>Teaching Intention</h2>
+
+		<table class = "info">
+			<tbody>
+				<tr>
+					<th>Semester</th>
+					<th>Number of Courses</th>
+					<th>Detail</th>
+
+			{% for intention in intention_list %}
+			<tr>
+				<td>{{ intention.semester.label }}</td>
+				<td>{{ intention.count }}</td>
+				<td><a href="">Course Schedule</a></td>
+			{%endfor%}
+				</tr>
+
+		    </tbody>
+		</table>
+</div>	
+
 
 <div id="form_container">
     {% if form.non_field_errors %}

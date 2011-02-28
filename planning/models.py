@@ -44,7 +44,7 @@ class TeachingIntention(models.Model):
     instructor = models.ForeignKey(Person, null=False)
     semester = models.ForeignKey(Semester, null=False)
     count = models.PositiveSmallIntegerField(help_text="the number of courses the instructor should teach in the semester.")    
-    #intentionfull = models.BooleanField(default = False)
+    intentionfull = models.BooleanField(default = False)
 
     class Meta:
         ordering = ['-semester', 'instructor']

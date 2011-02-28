@@ -50,9 +50,12 @@ def submit_capability(request, userid):
 @login_required
 def add_intention(request, userid):
 
+	instructor = get_object_or_404(Person, userid = request.user.username)
 	semester_list = Semester.objects.filter()
+	intention_list = TeachingIntention.objects.filter(instructor = instructor).order_by('semester')
 	
-	return render_to_response("planning/add_intention.html",{'userid':userid, 'semester_list':semester_list},context_instance=RequestContext(request))
+	
+	return render_to_response("planning/add_intention.html",{'userid':userid, 'semester_list':semester_list, 'intention_list':intention_list},context_instance=RequestContext(request))
 
 @login_required
 def submit_intention(request, userid):
@@ -209,7 +212,7 @@ def assign_instructors(request, userid, plan_id):
 	planned_courses_list = PlannedOffering.objects.filter(plan = semester_plan)
 	
 	instructor_list = TeachingCapability.objects.filter().order_by('instructor')
-	instructor_intention_list = TeachingIntention.objects.filter(semester = semester_plan.semester)
+	instructor_intention_list = TeachingIntention.objects.filter(semester = semester_plan.semester, intentionfull = False)
 		
 	return render_to_response("planning/assign_instructors.html",{'userid':userid, 'plan_id':plan_id, 'course_list':course_list, 'planned_courses_list':planned_courses_list, 'instructor_list':instructor_list, 'instructor_intention_list':instructor_intention_list},context_instance=RequestContext(request))
 
@@ -217,14 +220,36 @@ def assign_instructors(request, userid, plan_id):
 def submit_assigned_instructors(request, userid, course_id, plan_id):
 	
 	course = get_object_or_404(PlannedOffering, pk = course_id)
+	semester_plan = get_object_or_404(SemesterPlan, pk = plan_id)
 	
 	instructor_id = request.POST['instructors']
 	
 	assigned_instructor = get_object_or_404(Person, userid = instructor_id)
 	
+	pre_instructor = course.instructor
 	course.instructor = assigned_instructor
 	course.save()
 	
+	intention_count = PlannedOffering.objects.filter(plan = semester_plan, instructor = assigned_instructor).count()	
+	teaching_intention = TeachingIntention.objects.get(semester = semester_plan.semester, instructor = assigned_instructor)
+	
+	pre_intention_count = PlannedOffering.objects.filter(plan = semester_plan, instructor = pre_instructor).count()
+	pre_teaching_intention = TeachingIntention.objects.get(semester = semester_plan.semester, instructor = pre_instructor)
+	
+	if intention_count >= teaching_intention.count:
+		teaching_intention.intentionfull = True
+		teaching_intention.save()
+	else:
+		teaching_intention.intentionfull = False
+		teaching_intention.save()		
+
+	if pre_intention_count >= pre_teaching_intention.count:
+		pre_teaching_intention.intentionfull = True
+		pre_teaching_intention.save()
+	else:
+		pre_teaching_intention.intentionfull = False
+		pre_teaching_intention.save()
+				
 	messages.add_message(request, messages.SUCCESS, 'Instructor Assinged Successfully.')
 	return HttpResponseRedirect(reverse(assign_instructors, kwargs={'userid':userid, 'plan_id':plan_id}))
 	
