@@ -39,6 +39,8 @@ $(document).ready(function() {
 {% block content %}
 
 <div class="datatable_container">
+	
+	
     <h2>Course Plan</h2>
     <table class="display" id="courses">
         <thead>
@@ -47,7 +49,6 @@ $(document).ready(function() {
                 <th scope="col">Section</th>
                 <th scope="col">Assigned Instructors</th>
                 <th scope="col">Capable Instructors</th>
-                <th scope="col">Option</th>
 
 
 
@@ -56,8 +57,10 @@ $(document).ready(function() {
 
         <tbody>
 		{% for planned_course in planned_courses_list %}
-
+		
 		<tr>
+			<form action="/admin_planning/submit_assigned_instructors/{{ userid }}/{{ planned_course.id }}/{{ plan_id }}/" method="post">{% csrf_token %}
+			
 			<td>{{ planned_course.course }}</td>
 			<td>{{ planned_course.section }}</td>
 			<td>{{ planned_course.instructor }}</td>
@@ -65,18 +68,26 @@ $(document).ready(function() {
 			<select name="instructors">
 				<option value="None"></option>
 				{% for instructors in instructor_list %}
-					<option value={{instructors.instructor}}>{{instructors.instructor}}</option>
-				{%endfor%}
+					{% for instructors_check in  instructor_intention_list %}
+						{% if instructors.instructor ==  instructors_check.instructor %}
+							{% if instructors.course ==  planned_course.course %}
+								<option value={{instructors.instructor.userid}}>{{instructors.instructor}}</option>
+							{% endif %}
+						{% endif %}
+					{% endfor %}	
+				{% endfor %}
 			</select>
+			<input type="submit" value="Assign" />
 			</td>
-			
-			<td><a href="">Update</td>
+	
+			</form>
 		</tr>
-		
-		{%endfor%}
 
+		{%endfor%}
         </tbody>
     </table>
+		
+
 </div>
 
 

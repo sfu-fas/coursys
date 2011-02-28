@@ -206,18 +206,29 @@ def assign_instructors(request, userid, plan_id):
 
 	semester_plan = get_object_or_404(SemesterPlan, pk = plan_id)
 
-	#admin = get_object_or_404(Person, userid = request.user.username)
 	course_list = Course.objects.filter()
 	planned_courses_list = PlannedOffering.objects.filter(plan = semester_plan)
 	semester_plan.semester
 	
-#	instructor_list = TeachingCapability.objects.values('instructor').distinct().order_by('instructor')
-	instructor_list = TeachingIntention.objects.filter(semester = semester_plan.semester)
-	
-	return render_to_response("planning/assign_instructors.html",{'userid':userid, 'plan_id':plan_id, 'course_list':course_list, 'planned_courses_list':planned_courses_list, 'instructor_list':instructor_list},context_instance=RequestContext(request))
-	#return HttpResponse(instructor_list)
+	instructor_list = TeachingCapability.objects.filter().order_by('instructor')
+	instructor_intention_list = TeachingIntention.objects.filter(semester = semester_plan.semester)
+		
+	return render_to_response("planning/assign_instructors.html",{'userid':userid, 'plan_id':plan_id, 'course_list':course_list, 'planned_courses_list':planned_courses_list, 'instructor_list':instructor_list, 'instructor_intention_list':instructor_intention_list},context_instance=RequestContext(request))
 
+@login_required
+def submit_assigned_instructors(request, userid, course_id, plan_id):
 	
+	course = get_object_or_404(PlannedOffering, pk = course_id)
+	
+	instructor_id = request.POST['instructors']
+	
+	assigned_instructor = get_object_or_404(Person, userid = instructor_id)
+	
+	course.instructor = assigned_instructor
+	course.save()
+	
+	messages.add_message(request, messages.SUCCESS, 'Instructor Assinged Successfully.')
+	return HttpResponseRedirect(reverse(assign_instructors, kwargs={'userid':userid, 'plan_id':plan_id}))
 #********************************************ADMIN************************************************************
 
 
