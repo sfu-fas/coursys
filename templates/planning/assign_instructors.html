@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load grade_student %}
+
+
+{% load markup %}
+
+{% block title %}Edit Courses{% endblock %}
+{% block h1 %}Edit Courses{% endblock %}
+
+{% block subbreadcrumbs %}&gt; Edit Courses</li>{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+	
+    	<li><a href="{% url planning.views.admin_index %}">Manage Course Plans</a></li>
+		<li><a href="{% url planning.views.add_course userid=userid %}">Manage Courses</a></li>
+
+    </ul>
+</div>
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#courses').dataTable( {
+    'bPaginate': true,
+    'bInfo': true,
+    'bLengthChange': true,
+    "bJQueryUI": true,
+	"sPaginationType": "full_numbers",
+	"iDisplayLength" : 50
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block content %}
+
+<div class="datatable_container">
+    <h2>Course Plan</h2>
+    <table class="display" id="courses">
+        <thead>
+            <tr>
+                <th scope="col">Course Name</th>
+                <th scope="col">Section</th>
+                <th scope="col">Assigned Instructors</th>
+                <th scope="col">Capable Instructors</th>
+                <th scope="col">Option</th>
+
+
+
+            </tr>
+        </thead>
+
+        <tbody>
+		{% for planned_course in planned_courses_list %}
+
+		<tr>
+			<td>{{ planned_course.course }}</td>
+			<td>{{ planned_course.section }}</td>
+			<td>{{ planned_course.instructor }}</td>
+			<td>
+			<select name="instructors">
+				<option value="None"></option>
+				{% for instructors in instructor_list %}
+					<option value={{instructors.instructor}}>{{instructors.instructor}}</option>
+				{%endfor%}
+			</select>
+			</td>
+			
+			<td><a href="">Update</td>
+		</tr>
+		
+		{%endfor%}
+
+        </tbody>
+    </table>
+</div>
+
+
+{% endblock%}
+
+
