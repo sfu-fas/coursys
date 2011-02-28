@@ -54,9 +54,9 @@ class TeachingIntention(models.Model):
 
 
 VISIBILITY_CHOICES = [
-    ('ADMI', 'administrator only'),
-    ('INST', 'instructors'), 
-    ('ALL', 'everybody')]
+    ('ADMI', 'Administrator Only'),
+    ('INST', 'Instructors'), 
+    ('ALL', 'Everybody')]
 
 class SemesterPlan(models.Model):
     semester = models.ForeignKey(Semester)

@@ -21,31 +21,50 @@
 </div>
 {% endblock %}
 
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#courses').dataTable( {
+    'bPaginate': true,
+    'bInfo': false,
+    'bLengthChange': true,
+    "bJQueryUI": true,
+	"sPaginationType": "full_numbers",
+	"iDisplayLength" : 10
+  } );
+} );
+</script>
+{% endblock %}
+
 {% block content %}
 
-
 <div class="datatable_container">
-    <table class="display" id="plans">
+    <h2>Course Plan</h2>
+    <table class="display" id="courses">
         <thead>
             <tr>
                 <th scope="col">Course Name</th>
                 <th scope="col">Section</th>
-                <th scope="col">Component</th>
                 <th scope="col">Campus</th>
+                <th scope="col">Component</th>
+                <th scope="col">Option</th>
+
 
             </tr>
         </thead>
 
         <tbody>
-			{% for planned_courses in planned_courses_list %}
-			<tr>
+		{% for planned_course in planned_courses_list %}
 
-				<td>{{ planned_courses.course }}</td>
-				<td>{{ planned_courses.section }}</td>
-				<td>{{ planned_courses.component }}</td>
-				<td>{{ planned_courses.campus }}</td>
-
-			{%endfor%}
+		<tr>
+			<td>{{ planned_course.course }}</td>
+			<td>{{ planned_course.section }}</td>
+			<td>{{ planned_course.get_campus_display }}</td>
+			<td>{{ planned_course.get_component_display }}</td>
+			<td><a href="{% url planning.views.delete_course_from_plan userid=userid course_id=planned_course.id plan_id=plan_id %} ">Remove</td>
+		</tr>
+		
+		{%endfor%}
 
         </tbody>
     </table>
@@ -59,7 +78,7 @@
     </p>
     {% endif %}
 	
-	<form action="/submit_plan/{{ userid }}" method="post">{% csrf_token %}
+	<form action="/admin_planning/add_courses_to_plan/{{ userid }}/{{ plan_id }}/" method="post">{% csrf_token %}
 
 
         <fieldset>
@@ -73,7 +92,30 @@
 						<option value={{course.number}}>{{course}}</option>
 					{%endfor%}
 				</select>
-
+				
+				Section: <input type="text" name = "section" size="6" />
+				
+				Campus:
+				<select name="campus">
+					<option value="None"></option>
+					<option value="BRNBY">Burnaby Campus</option>
+					<option value="SURRY">Surrey Campus</option>
+					<option value="VANCR">Harbour Centre</option>
+					<option value="OFFST">Off-campus</option>						
+				</select>
+				
+				Component:
+				<select name="component">
+					<option value="None"></option>
+					<option value="LEC">Lecture</option>
+					<option value="LAB">Lab</option>
+					<option value="TUT">Tutorial</option>
+					<option value="SEM">Seminar</option>
+					<option value="SEC">Section</option>
+					<option value="CAN">Cancelled</option>						
+				</select>
+				
+												
                 <li>
                     <input class="submit" type="submit" value="Add" />
                 </li>

@@ -6,10 +6,12 @@
 <script type="text/javascript">
 $(document).ready(function() {
   $('#plans').dataTable( {
-    'bPaginate': false,
+    'bPaginate': true,
     'bInfo': false,
-    'bLengthChange': false,
+    'bLengthChange': true,
     "bJQueryUI": true,
+	"sPaginationType": "full_numbers",
+	"iDisplayLength" : 10
   } );
 } );
 </script>
@@ -32,6 +34,7 @@ $(document).ready(function() {
 {% endblock %}
 
 
+
 {% block content %}
 
 <div class="datatable_container">
@@ -51,6 +54,7 @@ $(document).ready(function() {
 
         <tbody>
 		{% for plan in plan_list %}
+
 		<tr>
 			<td>{{ plan.name }}</td>
 			<td>{{ plan.semester.label }}</td>
@@ -58,7 +62,7 @@ $(document).ready(function() {
 			<td><a href="">Assign Instructors</a></td>
 			<td>{{ plan.get_visibility_display }}</td>
 			<td>{% if plan.active %}active{% endif %} (<a href="">Option</a>)</td>
-			
+		
 		{%endfor%}
 
         </tbody>

@@ -96,7 +96,7 @@ def delete_course_from_capability(request, userid, course_id):
 	course.delete()
 
 	messages.add_message(request, messages.SUCCESS, 'Course Removed Successfully.')
-	return HttpResponseRedirect(reverse(add_plan, kwargs={'userid':userid}))
+	return HttpResponseRedirect(reverse(add_capability, kwargs={'userid':userid}))
 
 #********************************************ADMIN************************************************************
 @login_required
@@ -139,16 +139,41 @@ def edit_courses(request, userid, plan_id):
 
 	semester_plan = get_object_or_404(SemesterPlan, pk = plan_id)
 
-	#planned_courses_list = 
-	#plan = PlannedOffering(plan = semester_plan, course = course, section = section, component = component, campus = campus)
-	#plan.save()
-
 	admin = get_object_or_404(Person, userid = request.user.username)
 	course_list = Course.objects.filter()
+	planned_courses_list = PlannedOffering.objects.filter(plan = semester_plan)
+	
+	return render_to_response("planning/edit_courses.html",{'userid':userid, 'plan_id':plan_id, 'course_list':course_list, 'planned_courses_list':planned_courses_list},context_instance=RequestContext(request))
 
-	#return render_to_response("planning/edit_courses.html",{'userid':userid, 'course_list':course_list, 'planned_courses_list':planned_courses_list},context_instance=RequestContext(request))
-	return render_to_response("planning/edit_courses.html",{'userid':userid, 'course_list':course_list},context_instance=RequestContext(request))
+@login_required
+def add_courses_to_plan(request, userid, plan_id):
+	
+	semester_plan = get_object_or_404(SemesterPlan, pk = plan_id)
+	
+	course_number = request.POST['offering_courses']
+	course = get_object_or_404(Course, number = course_number)
+	
+	campus = request.POST['campus']
+	component = request.POST['component']
+	section = request.POST['section']
+	
+	added_course_to_plan = PlannedOffering(plan = semester_plan, course = course, campus = campus, component = component, section = section)
+	added_course_to_plan.save()
 
+	messages.add_message(request, messages.SUCCESS, 'Course Added Successfully.')
+	return HttpResponseRedirect(reverse(edit_courses, kwargs={'userid':userid, 'plan_id':plan_id}))
+	
+#	return HttpResponse('test')
+
+@login_required
+def delete_course_from_plan(request, userid, course_id, plan_id):
+	
+	course = PlannedOffering.objects.get(pk = course_id)
+	course.delete()
+
+	messages.add_message(request, messages.SUCCESS, 'Course Removed Successfully.')
+	return HttpResponseRedirect(reverse(edit_courses, kwargs={'userid':userid, 'plan_id':plan_id}))
+	
 #********************************************ADMIN************************************************************
 
 

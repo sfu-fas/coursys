@@ -19,9 +19,8 @@
 </div>
 {% endblock %}
 
+
 {% block content %}
-
-
 
 <div id="form_container">
     {% if form.non_field_errors %}
@@ -31,7 +30,7 @@
     </p>
     {% endif %}
 	
-    <form action="/submit_course/{{ userid }}" method="post">{% csrf_token %}
+    <form action="/admin_planning/submit_course/{{ userid }}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Course Info</legend>
             <ul>

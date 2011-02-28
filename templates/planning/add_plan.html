@@ -32,7 +32,7 @@
     </p>
     {% endif %}
 	
-    <form action="/submit_plan/{{ userid }}" method="post">{% csrf_token %}
+    <form action="/admin_planning/submit_plan/{{ userid }}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Plan Info</legend>
             <ul>
@@ -53,7 +53,6 @@
 					<option value="ALL">Everybody</option>			
 				</select>
 				
-			
 				Name: <input type="text" name = "plan_name" size="30" />
                 <li>
                     <input class="submit" type="submit" value="Submit" />
