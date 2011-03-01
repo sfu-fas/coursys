@@ -64,7 +64,7 @@ def edit_intention(request):
                       related_object=intention)
                 l.save()
                 messages.add_message(request, messages.SUCCESS, 'Added semester plan for %s.' % (intention.semester))
-	        return HttpResponseRedirect(reverse('planning.views.edit_capability', kwargs={}))
+	        return HttpResponseRedirect(reverse('planning.views.edit_intention', kwargs={}))
 	else:
 	    form = IntentionForm(initial={'instructor':instructor})
 	
