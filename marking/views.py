@@ -1222,7 +1222,7 @@ def mark_all_students_lettergrade(request, course_slug, activity_slug):
                lgrade = lgrades[i]
                new_value = rows[i]['form'].cleaned_data['value'] 
                # the new mark is blank or the new mark is the same as the old one, do nothing
-               if new_value == None: 
+               if new_value not in LETTER_GRADE_CHOICES_IN: 
                    continue
                if lgrade !=None and lgrade.letter_grade == new_value:
                    # if the student originally has a grade status other than 'GRAD',

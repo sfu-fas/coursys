@@ -23,6 +23,37 @@ ACTIVITY_STATUS_CHOICES = [
 ACTIVITY_STATUS = dict(ACTIVITY_STATUS_CHOICES)
 # but see also overridden get_status_display method on Activity
 
+##########Yu Liu Added##############
+LETTER_GRADE_CHOICES_IN = [
+    ('A+'),
+    ('A'),
+    ('A-'),
+    ('B+'),
+    ('B'),
+    ('B-'),
+    ('C+'),
+    ('C'),
+    ('C-'),
+    ('D'),
+    ('F'),
+    ('FD'),
+    ('N'),
+    ('P'),
+    ('W'),
+    ('AE'),
+    ('AU'),
+    ('CC'),
+    ('CF'),
+    ('CN'),
+    ('CR'),
+    ('FX'),
+    ('WD'),
+    ('WE'),
+    ('DE'),
+    ('GN'),
+    ('IP') ]
+##########Yu Liu Added##############
+
 LETTER_GRADE_CHOICES = [
     ('A+', 'A+ - Excellent performance'),
     ('A', 'A - Excellent performance'),
