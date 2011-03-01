@@ -219,4 +219,8 @@ class GradeStatusForm_LetterGrade(forms.ModelForm):
     class Meta:
         model = LetterGrade
         exclude = ('activity', 'member')
+
+
+class MarkEntryForm_LetterGrade(forms.Form):
+    value = forms.CharField(max_length=2,required=False)
 ##############################Yu Liu Added#########################################################  

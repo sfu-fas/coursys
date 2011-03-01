@@ -1088,20 +1088,7 @@ def mark_all_groups_lettergrade (request, course_slug, activity_slug):
     
     return render_to_response("marking/mark_all_group_lettergrade.html",
                           {'course': course, 'activity': activity,'mark_all_rows': rows }, 
-                          context_instance = RequestContext(request))
-
-
-#This is for marking students with letter grades
-@requires_course_staff_by_slug
-def mark_all_students_lettergrade(request, course_slug, activity_slug):
-    course = get_object_or_404(CourseOffering, slug = course_slug)
-    activity = get_object_or_404(LetterActivity, offering = course, slug = activity_slug)
-    fileform = None
-    rows = []  
-    
-    return render_to_response("marking/mark_all_student_lettergrade.html",{'course': course, 'activity': activity,\
-                              'fileform' : fileform,'too_many': len(rows) >= 100,\
-                              'mark_all_rows': rows }, context_instance = RequestContext(request))     
+                          context_instance = RequestContext(request))     
 
 # This is for marking groups with calculated letter grades
 @requires_course_staff_by_slug
@@ -1197,6 +1184,105 @@ def change_grade_status_lettergrade(request, course_slug, activity_slug, userid)
     return render_to_response("marking/grade_status_lettergrade.html", context,
                               context_instance=RequestContext(request))  
 
+@requires_course_staff_by_slug
+def mark_all_students_lettergrade(request, course_slug, activity_slug):
+    course = get_object_or_404(CourseOffering, slug = course_slug)
+    activity = get_object_or_404(LetterActivity, offering = course, slug = activity_slug)
+   
+    rows = []
+    fileform = None
+    imported_data = {} #may get filled with data from an imported file, a mapping from student's userid to grade
+    error_info = None 
+    warning_info = []
+    memberships = Member.objects.select_related('person').filter(offering = course, role = 'STUD')    
+    
+    if request.method == 'POST' and request.GET.get('import') != 'true':
+        lgrades = []   
+        # get data from the mark entry forms
+        for member in memberships: 
+            student = member.person  
+            entry_form = MarkEntryForm_LetterGrade(data = request.POST, prefix = student.userid)
+            if entry_form.is_valid() == False:
+                error_info = "Error found"           
+            lgrade = None
+            try:
+                lgrade = LetterGrade.objects.get(activity = activity, member = member)
+            except LetterGrade.DoesNotExist:
+                current_grade = 'no grade'
+            else:
+                current_grade = lgrade.letter_grade                    
+            lgrades.append(lgrade) 
+            rows.append({'student': student, 'current_grade' : current_grade, 'form' : entry_form})    
+       
+        # save if needed 
+        if error_info == None:
+            updated = 0                 
+            for i in range(len(memberships)):
+               student = memberships[i].person  
+               lgrade = lgrades[i]
+               new_value = rows[i]['form'].cleaned_data['value'] 
+               # the new mark is blank or the new mark is the same as the old one, do nothing
+               if new_value == None: 
+                   continue
+               if lgrade !=None and lgrade.letter_grade == new_value:
+                   # if the student originally has a grade status other than 'GRAD',
+                   # we do not override that status
+                   continue 
+               # save data 
+               if lgrade == None:
+                    lgrade = LetterGrade(activity = activity, member = memberships[i]);
+               lgrade.letter_grade = new_value
+               lgrade.flag = "GRAD"
+               lgrade.save()
+               
+               updated += 1     
+               
+               #LOG EVENT
+               l = LogEntry(userid=request.user.username,
+                     description=("bulk marked %s for %s: %s") % (activity, student.userid, new_value),
+                     related_object=lgrade)
+               l.save()                  
+           
+            if updated > 0:
+                messages.add_message(request, messages.SUCCESS, "Marks for all students on %s saved (%s students' grades updated)!" % (activity.name, updated))
+                for warning in warning_info:
+                    messages.add_message(request, messages.WARNING, warning)
+                    
+            return _redirct_response(request, course_slug, activity_slug) 
+    
+    else: 
+        if request.method == 'POST': # for import
+            fileform = UploadGradeFileForm(request.POST, request.FILES, prefix = 'import-file');
+            if fileform.is_valid() and fileform.cleaned_data['file'] != None:
+                students = course.members.filter(person__role='STUD')
+                error_info = _compose_imported_grades(fileform.cleaned_data['file'], students, imported_data)
+                if error_info == None:
+                    messages.add_message(request, messages.SUCCESS,\
+                                "%s students' grades imported. Please review before submitting." % len(imported_data.keys()))
+        # may use the imported file data to fill in the forms       
+        for member in memberships: 
+            student = member.person              
+            try:
+                lgrade = LetterGrade.objects.get(activity = activity, member = member)
+            except LetterGrade.DoesNotExist:
+                current_grade = 'no grade'
+            else:
+                current_grade = lgrade.letter_grade            
+            initial_value = imported_data.get(student.userid) 
+            if initial_value != None:
+                entry_form = MarkEntryForm(initial = {'value': initial_value}, prefix = student.userid)
+            else:
+                entry_form = MarkEntryForm(prefix = student.userid)                                    
+            rows.append({'student': student, 'current_grade' : current_grade, 'form' : entry_form}) 
+               
+    if error_info:
+        messages.add_message(request, messages.ERROR, error_info) 
+    if fileform == None:
+        fileform = UploadGradeFileForm(prefix = 'import-file')   
+    
+    return render_to_response("marking/mark_all_student_lettergrade.html",{'course': course, 'activity': activity,\
+                              'fileform' : fileform,'too_many': len(rows) >= 100,\
+                              'mark_all_rows': rows }, context_instance = RequestContext(request))
 ######################### Yu Liu Added #############################  
 
 @requires_course_staff_by_slug
