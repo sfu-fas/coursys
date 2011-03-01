@@ -136,6 +136,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
                 not_submitted_comp.append(component)
         else:
             # display submission_error.html with some message about duplicate filenames
+            pass
 
         if len(not_submitted_comp) == 0:
             messages.add_message(request, messages.SUCCESS, "Your submission was successful.")
