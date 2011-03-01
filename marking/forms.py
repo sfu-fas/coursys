@@ -224,6 +224,12 @@ class GradeStatusForm_LetterGrade(forms.ModelForm):
 
 class MarkEntryForm_LetterGrade(forms.Form):
     value = forms.CharField(required=False,max_length=2)
+    
+    def clean_value(self):
+        grade = self.cleaned_data['value']
+        if grade=="ZZ":
+            raise forms.ValidationError(u'Invalid letter grade.')
+        return grade
 
 
 
