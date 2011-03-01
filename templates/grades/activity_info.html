@@ -91,32 +91,26 @@
 {% endif %}
 
 	    <li{% if activity.group %} class="newsec"{% endif %}><a href="{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}">Edit Activity Details</a></li>
-	    <li><a href="{% url submission.views.show_components course_slug=course.slug, activity_slug=activity.slug%}">Configure Submission</a></li>
 	    
+	    {% if not activity.is_calculated %}
+	    <li><a href="{% url submission.views.show_components course_slug=course.slug, activity_slug=activity.slug%}">Configure Submission</a></li>	    
 	    <li class="newsec">
 	    {% if activity.is_numeric %}
 	    <a href="{% url marking.views.manage_activity_components course_slug=course.slug,activity_slug=activity.slug%}">Configure Marking</a>
 	    {% endif %}
 	    </li>
 	    <li><a href="{% url submission.views.download_activity_files course_slug=course.slug, activity_slug=activity.slug%}">Download Submissions</a></li>
-	    
-	    {% ifequal activity.type_long "Numeric Graded" %}
-	    
-	    {% else %}
-	    
-	    {% endifequal %}
+	    {% endif %}
 	    
 	    {% if activity.is_numeric %}
 		    	{% if activity.is_calculated %}
-		    	<li><a href="{% url marking.views.mark_all_students_cal course_slug=course.slug, activity_slug=activity.slug%}">Mark each Student</a></li>
+		    	{# <li><a href="{% url marking.views.mark_all_students_cal course_slug=course.slug, activity_slug=activity.slug%}">Mark each Student</a></li> #}
 		    	{% else %}
 		    	<li><a href="{% url marking.views.mark_all_students course_slug=course.slug, activity_slug=activity.slug%}">Mark each Student</a></li>
 		    	{% endif %}
 	    {% else %}
 		    	{% if activity.is_calculated %}
-			<li>
-		    	<a href="{% url marking.views.mark_all_students_cal_lettergrade course_slug=course.slug, activity_slug=activity.slug%}?from_page={{ from_page }}">Mark each Student</a>
-		    	</li>
+			{# <li><a href="{% url marking.views.mark_all_students_cal_lettergrade course_slug=course.slug, activity_slug=activity.slug%}?from_page={{ from_page }}">Mark each Student</a></li> #}
 		    	{% else %}
 		    	<li><a href="{% url marking.views.mark_all_students_lettergrade course_slug=course.slug, activity_slug=activity.slug%}">Mark each Student</a></li>
 		    	{% endif %}
@@ -126,9 +120,7 @@
 	    {% if activity.group %}
 	    	    {% if activity.is_numeric %}
 		    	{% if activity.is_calculated %}
-		    	<li>
-		    	<a href="{% url marking.views.mark_all_groups_cal course_slug=course.slug, activity_slug=activity.slug%}?from_page={{ from_page }}">Mark each Group</a>
-		    	</li>
+		    	{# <li><a href="{% url marking.views.mark_all_groups_cal course_slug=course.slug, activity_slug=activity.slug%}?from_page={{ from_page }}">Mark each Group</a></li> #}
 		    	{% else %}
 		    	<li>
 		    	<a href="{% url marking.views.mark_all_groups course_slug=course.slug, activity_slug=activity.slug%}?from_page={{ from_page }}">Mark each Group</a>
@@ -136,9 +128,7 @@
 		    	{% endif %}
 		    {% else %}
 		    	{% if activity.is_calculated %}
-			<li>
-		    	<a href="{% url marking.views.mark_all_groups_cal_lettergrade course_slug=course.slug, activity_slug=activity.slug%}?from_page={{ from_page }}">Mark each Group</a>
-		    	</li>
+			{# <li><a href="{% url marking.views.mark_all_groups_cal_lettergrade course_slug=course.slug, activity_slug=activity.slug%}?from_page={{ from_page }}">Mark each Group</a></li> #}
 		    	{% else %}
 		    	<li>
 		    	<a href="{% url marking.views.mark_all_groups_lettergrade course_slug=course.slug, activity_slug=activity.slug%}?from_page={{ from_page }}">Mark each Group</a>
@@ -245,14 +235,15 @@
 		<th scope="col">User ID</th>
 		<th scope="col">Stu #</th>
 		{% if activity.group %}<th scope="col">Group</th>{% endif %}
-		<th scope="col">Grade</th>
 		{% if not activity.calnumericactivity %}
+			<th scope="col">Grade</th>
 			{% if activity.is_numeric%}
 			<th scope="col"{% if not mark_comps %} class="disabled"{% endif %}>Marking</th>
 			{% endif %}
 			<th scope="col"{% if not sub_comps %} class="disabled"{% endif %}>Submission</th>
 		{% else %}
-		<th scope="col">Calculate</th>
+		<th scope="col">Calculated Result</th>
+		<th scope="col">Letter Grade</th>
 		{% endif %}
             </tr>
 	</thead>
@@ -273,18 +264,31 @@
 		{% endif %}
 		<td>
 		    {% if not grade or grade.flag == 'NOGR'%}
-			{% ifequal activity.type_long "Numeric Graded" %}
-			<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">&mdash;/{{activity.max_grade}}</a>
+			{% if not activity.is_calculated %}
+				{% if activity.is_numeric %}
+					<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">&mdash;/{{activity.max_grade}}</a>
+				{% else %}
+					<a href="{% url marking.views.change_grade_status_lettergrade course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">&mdash;</a>
+				{% endif %}
 			{% else %}
-			<a href="{% url marking.views.change_grade_status_lettergrade course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">&mdash;/{{activity.max_grade}}</a>
-			{% endifequal %}		   
+				{% if activity.is_numeric %}
+					<a>&mdash;/{{activity.max_grade}}</a>
+				{% else %}
+					<a>&mdash;</a>
+				{% endif %}
+			{% endif %}	   
 		    {% else %}
-		    	{% ifequal activity.type_long "Numeric Graded" %}
-			<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">{{ grade.display_staff }}</a>
+		    	{% if not activity.is_calculated %}
+		    		{% if activity.is_numeric %}
+					<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">{{ grade.display_staff }}</a>
+				{% else %}
+					<a href="{% url marking.views.change_grade_status_lettergrade course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">{{ grade.display_staff }}</a>
+				{% endif %}
 			{% else %}
-			<a href="{% url marking.views.change_grade_status_lettergrade course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">{{ grade.display_staff }}</a>
-			{% endifequal %}
+				<a>{{ grade.display_staff }}</a>
+			{% endif %}
 		    {% endif %}
+		    
 		    {% if activity.is_calculated %}
 		      {% if not grade or grade.flag != 'CALC' %}
 		      ({{ grade.get_flag_display }})
