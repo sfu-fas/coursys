@@ -98,7 +98,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
             messages.add_message(request, messages.ERROR, "This is a group submission. You cannot submit since you aren't in a group.")
             return ForbiddenResponse(request)
         new_sub.activity = activity
-        new_sub_saved = False
+        all_okay = True
 
         for data in component_form_list:
             component = data['comp']
@@ -110,17 +110,19 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
             #form[1].component = form[0]
             if form.is_valid():
                 #save the foreign submission first at the first time a submission component is read in
-                if new_sub_saved == False:
-                    # save the submission foreign key
-                    new_sub_saved = True
-                    new_sub.save()
 
                 sub = form.save(commit=False)
                 sub.submission = new_sub
                 sub.component = component
-                sub.save()
 
                 submitted_comp.append(sub)
+
+        # check duplicate filenames here
+
+        if no_duplicate_filenames:
+            new_sub.save()
+            for sub in submitted_comp:
+                sub.save()
                 #LOG EVENT#
                 if activity.group:
                     group_str = " as a member of group %s" % new_sub.group.name
@@ -132,6 +134,8 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
                 l.save()
             else:
                 not_submitted_comp.append(component)
+        else:
+            # display submission_error.html with some message about duplicate filenames
 
         if len(not_submitted_comp) == 0:
             messages.add_message(request, messages.SUCCESS, "Your submission was successful.")
