@@ -1293,7 +1293,7 @@ def mark_all_students_lettergrade(request, course_slug, activity_slug):
                new_value = rows[i]['form'].cleaned_data['value'] 
                # the new mark is blank or the new mark is the same as the old one, do nothing
                if new_value not in LETTER_GRADE_CHOICES_IN:  
-                   valid_input = False
+                   error_info = False
                    continue
                if lgrade !=None and lgrade.letter_grade == new_value:
                    # if the student originally has a grade status other than 'GRAD',
@@ -1318,8 +1318,8 @@ def mark_all_students_lettergrade(request, course_slug, activity_slug):
             if updated > 0:
                 messages.add_message(request, messages.SUCCESS, "Marks for all students on %s saved (%s students' grades updated)!" % (activity.name, updated))
             
-            if valid_input == False:
-                messages.add_message(request, messages.SUCCESS, "Not valid input exists, but was ignored. Please check for not updated one.")
+            #if valid_input == False:
+            #   messages.add_message(request, messages.SUCCESS, "Not valid input exists, but was ignored. Please check for not updated one.")
                     
             return _redirct_response(request, course_slug, activity_slug) 
     
