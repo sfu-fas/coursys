@@ -66,7 +66,7 @@ class Semester(models.Model):
         return semester + " " + str(year)
 
     def __unicode__(self):
-        return str(self.name)
+        return self.label()
     
     def week_weekday(self, dt):
         """

@@ -1,8 +1,7 @@
 from django.db import models
 from coredata.models import Person, Role, Semester, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES 
 from django.forms import ModelForm
-from django.template.defaultfilters import slugify
-
+from autoslug import AutoSlugField
 
 class Course(models.Model):
     """
@@ -22,6 +21,8 @@ class Course(models.Model):
 	
     def __unicode__(self):
         return "%s %s (%s)" % (self.subject, self.number, self.title)
+    def short_str(self):
+        return "%s %s" % (self.subject, self.number)
         
     def __cmp__(self, other):
         if isinstance(other, Course):
@@ -32,6 +33,7 @@ class Course(models.Model):
 class TeachingCapability(models.Model):
     instructor = models.ForeignKey(Person, null=False)
     course = models.ForeignKey(Course, null=False)
+    note = models.TextField(null=True, blank=True, default="", help_text="Additional information for those doing the course planning.")
 
     class Meta:
         ordering = ['instructor', 'course']
@@ -43,7 +45,8 @@ class TeachingCapability(models.Model):
 class TeachingIntention(models.Model):
     instructor = models.ForeignKey(Person, null=False)
     semester = models.ForeignKey(Semester, null=False)
-    count = models.PositiveSmallIntegerField(help_text="the number of courses the instructor should teach in the semester.")    
+    count = models.PositiveSmallIntegerField(help_text="The number of courses the instructor plans to teach in this semester.")    
+    note = models.TextField(null=True, blank=True, default="", help_text="Additional information for those doing the course planning.")
     intentionfull = models.BooleanField(default = False)
 
     class Meta:
@@ -61,17 +64,19 @@ VISIBILITY_CHOICES = [
 
 class SemesterPlan(models.Model):
     semester = models.ForeignKey(Semester)
-    name = models.CharField(max_length=40)
-    visibility = models.CharField(max_length=4, choices=VISIBILITY_CHOICES, help_text="Who can see this plan?")
+    name = models.CharField(max_length=40, help_text="A name to help you remeber which plan this is.")
+    visibility = models.CharField(max_length=4, choices=VISIBILITY_CHOICES, default="ADMI", help_text="Who can see this plan?")
     active = models.BooleanField(default = False, help_text="The currently-active plan for this semester.")
+    slug = AutoSlugField(populate_from='name', null=False, editable=False, unique_with='semester')
 
     class Meta:
         ordering = ['-semester', 'name']
+        unique_together = (('semester', 'name'),)
 
 class PlannedOffering(models.Model):
     plan = models.ForeignKey(SemesterPlan)
     course = models.ForeignKey(Course, null=False)
-    section = models.CharField(max_length=4, blank=True, default='',
+    section = models.CharField(max_length=4, blank=False, null=False, default='',
         help_text='Section should be in the form "C100" or "D103".')
     component = models.CharField(max_length=3, null=False, choices=COMPONENT_CHOICES, default="LEC",
         help_text='Component of the course, like "LEC" or "LAB".')

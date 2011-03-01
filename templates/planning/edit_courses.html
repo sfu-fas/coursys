@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load grade_student %}
+{% load form_display %}
 
 
 {% load markup %}
@@ -7,16 +7,13 @@
 {% block title %}Edit Courses{% endblock %}
 {% block h1 %}Edit Courses{% endblock %}
 
-{% block subbreadcrumbs %}&gt; Edit Courses</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li><li>&gt; {{ plan.name }} in {{plan.semester.label}}</li><li>&gt; Courses</li>{% endblock %}
 
 {% block actions %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-	
-    	<li><a href="{% url planning.views.admin_index %}">Manage Course Plans</a></li>
-		<li><a href="{% url planning.views.add_course userid=userid %}">Manage Courses</a></li>
-
+		<li><a href="{% url planning.views.add_course %}">Manage Courses</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -61,7 +58,7 @@ $(document).ready(function() {
 			<td>{{ planned_course.section }}</td>
 			<td>{{ planned_course.get_campus_display }}</td>
 			<td>{{ planned_course.get_component_display }}</td>
-			<td><a href="{% url planning.views.delete_course_from_plan userid=userid course_id=planned_course.id plan_id=plan_id %} ">Remove</td>
+			<td><a href="{% url planning.views.delete_course_from_plan course_id=planned_course.id plan_id=plan.id %} ">Remove</td>
 		</tr>
 		
 		{%endfor%}
@@ -71,60 +68,13 @@ $(document).ready(function() {
 </div>
 
 <div id="form_container">
-    {% if form.non_field_errors %}
-    <p class="errorindicator">
-        <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
-        {{ form.non_field_errors }}
-    </p>
-    {% endif %}
-	
-	<form action="/admin_planning/add_courses_to_plan/{{ userid }}/{{ plan_id }}/" method="post">{% csrf_token %}
-
-
+    <form action="{% url planning.views.edit_courses semester=plan.semester.name plan_slug=plan.slug%}" method="post">{% csrf_token %}
         <fieldset>
-            <legend>Add Courses to Plan</legend>
-
-            <ul>
-				Course Offering:
-				<select name="offering_courses">
-					<option value="None"></option>
-					{% for course in course_list %}
-						<option value={{course.number}}>{{course}}</option>
-					{%endfor%}
-				</select>
-				
-				Section: <input type="text" name = "section" size="6" />
-				
-				Campus:
-				<select name="campus">
-					<option value="None"></option>
-					<option value="BRNBY">Burnaby Campus</option>
-					<option value="SURRY">Surrey Campus</option>
-					<option value="VANCR">Harbour Centre</option>
-					<option value="OFFST">Off-campus</option>						
-				</select>
-				
-				Component:
-				<select name="component">
-					<option value="None"></option>
-					<option value="LEC">Lecture</option>
-					<option value="LAB">Lab</option>
-					<option value="TUT">Tutorial</option>
-					<option value="SEM">Seminar</option>
-					<option value="SEC">Section</option>
-					<option value="CAN">Cancelled</option>						
-				</select>
-				
-												
-                <li>
-                    <input class="submit" type="submit" value="Add" />
-                </li>
-            </ul>
+            <legend>Add Course</legend>
+            {{form|as_dl}}
+            <div><input class="submit" type="submit" value="Submit" /></div>
         </fieldset>
-        
-
     </form>
-
 
 </div>
 {% endblock%}

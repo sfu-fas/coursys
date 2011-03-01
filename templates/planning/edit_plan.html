@@ -1,81 +1,35 @@
 {% extends "base.html" %}
-{% load grade_student %}
+{% load form_display %}
 
 
 {% load markup %}
 
-{% block headextra %}
-<SCRIPT language="text/javascript">
-function Show() {
-  var success = -1;
-  for (var i=0; i < document.plan_info.visibility.length; i++) {
-    if (document.plan_info.visibility.options[i].text == document.)
-      success = [i];
-  }
-  document.plan_info.visibility.selectedIndex=success;
-} 
-</SCRIPT>
-{% endblock %}
+{% block title %}Edit Plan {{ plan.name }}{% endblock %}
+{% block h1 %}Edit Plan {{ plan.name }}{% endblock %}
 
-
-{% block title %}Edit Plan{% endblock %}
-{% block h1 %}Edit Plan{% endblock %}
-
-{% block subbreadcrumbs %}&gt; Edit Plan</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li><li>&gt; {{ plan.name }} in {{plan.semester.label}}</li><li>&gt; Edit</li>{% endblock %}
 
 {% block actions %}
-<div id="actions">
-    <h2 class="heading">Actions</h2>
-    <ul>
-	
-    	<li><a href="{% url planning.views.admin_index %}">Manage Course Plans</a></li>
-
-    </ul>
-</div>
 {% endblock %}
 
 {% block content %}
 
-<h2>{{ semester_plan.semester.label }} </br> {{ semester_plan.name }}</h2>
 <div id="form_container">
-    {% if form.non_field_errors %}
-    <p class="errorindicator">
-        <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
-        {{ form.non_field_errors }}
-    </p>
-    {% endif %}
-	
-    <form action="/admin_planning/submit_edited_plan/{{ userid }}/{{ plan_id }}/" method="post" name="plan_info">{% csrf_token %}
+    <form action="{% url planning.views.edit_plan semester=plan.semester.name plan_slug=plan.slug %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Plan Info</legend>
-            <ul>
-								
-				Semester:
-				<select name="semester">
-					<option value="None"></option>
-					{% for semester in semester_list %}
-						<option value={{semester.name}}>{{semester.label}}</option>
-					{%endfor%}
-				</select>
-
-				Visibility:
-				<select name="visibility">
-					<option value="None"></option>
-					<option value="ADMI">Administrator Only</option>
-					<option value="INST">Instructors</option>
-					<option value="ALL">Everybody</option>								
-				</select>
-				
-				Name: <input type="text" name = "plan_name" value = {{semester_plan.name}} size="30" />
-				
-                <li>
-                    <input class="submit" type="submit" value="Submit" />
-                </li>
-            </ul>
+            {{form|as_dl}}
+            <div><input class="submit" type="submit" value="Submit" /></div>
         </fieldset>
     </form>
-
 </div>
+
+<form action="{% url planning.views.delete_plan semester=plan.semester.name plan_slug=plan.slug %}" method="post">{% csrf_token %}
+        <fieldset>
+            <legend>Delete Plan</legend>
+            <div><input class="submit" type="submit" value="Delete Plan" /></div>
+        </fieldset>
+    </form>
 {% endblock%}
 
 

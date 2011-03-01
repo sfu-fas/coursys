@@ -1,7 +1,9 @@
 from planning.models import *
-from courselib.auth import requires_advisor
+from planning.forms import *
+from courselib.auth import requires_instructor, requires_role
 from django.db.models import Q
 from coredata.models import Person, Role, Semester, Member, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES 
+from log.models import LogEntry
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render_to_response
@@ -14,50 +16,61 @@ from django.db.models import query
 from django.core.files.uploadedfile import SimpleUploadedFile
 from datetime import datetime
 
-@login_required
+@requires_instructor
 def instructor_index(request):
-
-	userid = request.user.username
 	instructor = get_object_or_404(Person, userid = request.user.username)
 	capability_list = TeachingCapability.objects.filter(instructor = instructor).order_by('course')
 	intention_list = TeachingIntention.objects.filter(instructor = instructor).order_by('semester')
  		
-	return render_to_response("planning/instructor_index.html",{'userid':userid, 'capability_list':capability_list, 'intention_list':intention_list},context_instance=RequestContext(request))
+	return render_to_response("planning/instructor_index.html",{'capability_list':capability_list, 'intention_list':intention_list},context_instance=RequestContext(request))
 
-@login_required
-def add_capability(request, userid):
-   	
-	course_list = Course.objects.filter()
+@requires_instructor
+def edit_capability(request):
 	instructor = get_object_or_404(Person, userid = request.user.username)
 	capability_list = TeachingCapability.objects.filter(instructor = instructor).order_by('course')
+	if request.method == 'POST':
+	    form = CapabilityForm(request.POST)
+	    form.instructor_id = instructor.id
+	    if form.is_valid():
+	        capability = form.save()
+	        
+	        #LOG EVENT#
+                l = LogEntry(userid=request.user.username,
+                      description=("added teaching capability %s") % (capability.course.short_str()),
+                      related_object=capability)
+                l.save()
+                messages.add_message(request, messages.SUCCESS, 'Added teaching capability %s.' % (capability.course.short_str()))
+	        return HttpResponseRedirect(reverse('planning.views.edit_capability', kwargs={}))
+	else:
+	    form = CapabilityForm(initial={'instructor':instructor})
 	
-	return render_to_response("planning/add_capability.html",{'userid':userid, 'capability_list':capability_list, 'course_list':course_list},context_instance=RequestContext(request))
+	return render_to_response("planning/add_capability.html",{'capability_list': capability_list, 'form':form},context_instance=RequestContext(request))
 
-@login_required
-def submit_capability(request, userid):
-    
-	course_number = request.POST['offering_courses']
-
-	instructor = get_object_or_404(Person, userid = request.user.username)
-	course = get_object_or_404(Course, number = course_number)
-	
-	added_capability = TeachingCapability(instructor = instructor, course = course)
-	added_capability.save()
-	
-	messages.add_message(request, messages.SUCCESS, 'Submitted Successfully.')
-	return HttpResponseRedirect(reverse(add_capability, kwargs={'userid':userid}))
-
-@login_required
-def add_intention(request, userid):
-
-	instructor = get_object_or_404(Person, userid = request.user.username)
+@requires_instructor
+def edit_intention(request):
+	instructor = get_object_or_404(Person, userid=request.user.username)
 	semester_list = Semester.objects.filter()
 	intention_list = TeachingIntention.objects.filter(instructor = instructor).order_by('semester')
 	
+	if request.method == 'POST':
+	    form = IntentionForm(request.POST)
+	    form.instructor_id = instructor.id
+	    if form.is_valid():
+	        intention = form.save()
+	        
+	        #LOG EVENT#
+                l = LogEntry(userid=request.user.username,
+                      description=("added teaching intention for %s") % (intention.semester),
+                      related_object=intention)
+                l.save()
+                messages.add_message(request, messages.SUCCESS, 'Added semester plan for %s.' % (intention.semester))
+	        return HttpResponseRedirect(reverse('planning.views.edit_capability', kwargs={}))
+	else:
+	    form = IntentionForm(initial={'instructor':instructor})
 	
-	return render_to_response("planning/add_intention.html",{'userid':userid, 'semester_list':semester_list, 'intention_list':intention_list},context_instance=RequestContext(request))
+	return render_to_response("planning/add_intention.html",{'form':form, 'intention_list':intention_list},context_instance=RequestContext(request))
 
-@login_required
+@requires_instructor
 def submit_intention(request, userid):
 	
 	semester = request.POST['semester']
@@ -74,13 +87,13 @@ def submit_intention(request, userid):
 
 
 	
-@login_required
-def add_course(request, userid):
+@requires_role('PLAN')
+def add_course(request):
 
-	return render_to_response("planning/add_courses.html",{'userid':userid},context_instance=RequestContext(request))
+	return render_to_response("planning/add_courses.html",{},context_instance=RequestContext(request))
 
-@login_required
-def submit_course(request, userid):
+@requires_role('PLAN')
+def submit_course(request):
 
 	subject = request.POST['course_subject']
 	number = request.POST['course_number']
@@ -89,20 +102,20 @@ def submit_course(request, userid):
 	added_course = Course(subject = subject, number = number, title = title)
 	added_course.save();
 
-	messages.add_message(request, messages.SUCCESS, 'Submit Successfully.')
-	return HttpResponseRedirect(reverse(add_course, kwargs={'userid':userid}))
+	messages.add_message(request, messages.SUCCESS, 'Course %s %s added.' % (subject, number))
+	return HttpResponseRedirect(reverse('planning.views.admin_index', kwargs={}))
 
-@login_required
-def delete_course_from_capability(request, userid, course_id):
-
-	course = TeachingCapability.objects.get(pk = course_id)
+@requires_instructor
+def delete_course_from_capability(request, course_id):
+	instructor = get_object_or_404(Person, userid=request.user.username)
+	course = get_object_or_404(TeachingCapability, pk=course_id, instructor=instructor)
+	messages.add_message(request, messages.SUCCESS, '%s %s removed from teachable courses.' % (course.course.subject, course.course.number))
 	course.delete()
 
-	messages.add_message(request, messages.SUCCESS, 'Course Removed Successfully.')
-	return HttpResponseRedirect(reverse(add_capability, kwargs={'userid':userid}))
+	return HttpResponseRedirect(reverse(edit_capability, kwargs={}))
 
 #********************************************ADMIN************************************************************
-@login_required
+@requires_role('PLAN')
 def admin_index(request):
 
 	userid = request.user.username
@@ -111,40 +124,47 @@ def admin_index(request):
 
 	return render_to_response("planning/admin_index.html",{'userid':userid, 'plan_list':plan_list},context_instance=RequestContext(request))
 
-@login_required
-def add_plan(request, userid):
-
-	#admin = get_object_or_404(Person, userid = request.user.username)
-	semester_list = Semester.objects.filter()
-
-	return render_to_response("planning/add_plan.html",{'userid':userid, 'semester_list':semester_list},context_instance=RequestContext(request))
+@requires_role('PLAN')
+def add_plan(request):
+	if request.method == 'POST':
+	    form = PlanBasicsForm(request.POST)
+	    if form.is_valid():
+	        plan = form.save()
+	        
+	        #LOG EVENT#
+                l = LogEntry(userid=request.user.username,
+                      description=("created course plan %s in %s") % (plan.name, plan.semester),
+                      related_object=plan)
+                l.save()
+                messages.add_message(request, messages.SUCCESS, 'New plan "%s" created.' % (plan.name))
+	        return HttpResponseRedirect(reverse('planning.views.admin_index', kwargs={}))
+	else:
+	    form = PlanBasicsForm()
 	
-@login_required
-def submit_plan(request, userid):
+	return render_to_response("planning/add_plan.html",{'form':form},context_instance=RequestContext(request))
 
-	#admin = get_object_or_404(Person, userid = request.user.username)
-
-	input_semester = request.POST['semester']
-	name = request.POST['plan_name']
-	visibility = request.POST['visibility']
-
-	semester = get_object_or_404(Semester, name = input_semester)
-
-	added_plan = SemesterPlan(semester = semester, name = name, visibility = visibility)
-	added_plan.save()
-
-	messages.add_message(request, messages.SUCCESS, 'Plan Submitted Successfully.')
-	return HttpResponseRedirect(reverse(admin_index))
-		
-def edit_plan(request, userid, plan_id):
+@requires_role('PLAN')
+def edit_plan(request, semester, plan_slug):
+	plan = get_object_or_404(SemesterPlan, semester__name=semester, slug=plan_slug)
+	if request.method == 'POST':
+	    form = PlanBasicsForm(request.POST, instance=plan)
+	    if form.is_valid():
+	        plan = form.save()
+	        
+	        #LOG EVENT#
+                l = LogEntry(userid=request.user.username,
+                      description=("created course plan %s in %s") % (plan.name, plan.semester),
+                      related_object=plan)
+                l.save()
+                
+                messages.add_message(request, messages.SUCCESS, 'Plan "%s" updated.' % (plan.name))
+	        return HttpResponseRedirect(reverse('planning.views.admin_index', kwargs={}))
+	else:
+	    form = PlanBasicsForm(instance=plan)
 	
-	semester_list = Semester.objects.filter()
-	semester_plan = get_object_or_404(SemesterPlan, pk = plan_id)
-	
-	
-	return render_to_response("planning/edit_plan.html",{'userid':userid, 'plan_id':plan_id, 'semester_list':semester_list, 'semester_plan':semester_plan},context_instance=RequestContext(request))
+	return render_to_response("planning/edit_plan.html",{'form':form, 'plan':plan},context_instance=RequestContext(request))
 
-@login_required
+@requires_role('PLAN')
 def submit_edited_plan(request, userid, plan_id):
 
 	input_semester = request.POST['semester']
@@ -164,18 +184,35 @@ def submit_edited_plan(request, userid, plan_id):
 	return HttpResponseRedirect(reverse(admin_index))
 	
 
-@login_required
-def edit_courses(request, userid, plan_id):
-
-	semester_plan = get_object_or_404(SemesterPlan, pk = plan_id)
-
-	#admin = get_object_or_404(Person, userid = request.user.username)
-	course_list = Course.objects.filter()
-	planned_courses_list = PlannedOffering.objects.filter(plan = semester_plan)
+@requires_role('PLAN')
+def edit_courses(request, semester, plan_slug):
+	plan = get_object_or_404(SemesterPlan, semester__name=semester, slug=plan_slug)
+	planned_courses_list = PlannedOffering.objects.filter(plan=plan)
+	if request.method == 'POST':
+	    form = OfferingBasicsForm(request.POST)
+	    if form.is_valid():
+	        offering = form.save(commit=False)
+	        offering.plan = plan
+	        offering.save()
+	        form.save_m2m()
+	        
+	        #LOG EVENT#
+                l = LogEntry(userid=request.user.username,
+                      description=("added offering %s in %s") % (offering.course, offering.plan),
+                      related_object=plan)
+                l.save()
+                
+                messages.add_message(request, messages.SUCCESS, 'Added course %s.' % (offering.course))
+	        #return HttpResponseRedirect(reverse('planning.views.admin_index', kwargs={}))
+	    else:
+	        form = OfferingBasicsForm()
+	else:
+	    form = OfferingBasicsForm()
 	
-	return render_to_response("planning/edit_courses.html",{'userid':userid, 'plan_id':plan_id, 'semester_plan':semester_plan, 'course_list':course_list, 'planned_courses_list':planned_courses_list},context_instance=RequestContext(request))
+	return render_to_response("planning/edit_courses.html",{'form':form, 'plan':plan, 'planned_courses_list':planned_courses_list},context_instance=RequestContext(request))
 
-@login_required
+
+@requires_role('PLAN')
 def add_courses_to_plan(request, userid, plan_id):
 	
 	semester_plan = get_object_or_404(SemesterPlan, pk = plan_id)
@@ -193,7 +230,7 @@ def add_courses_to_plan(request, userid, plan_id):
 	messages.add_message(request, messages.SUCCESS, 'Course Added Successfully.')
 	return HttpResponseRedirect(reverse(edit_courses, kwargs={'userid':userid, 'plan_id':plan_id}))
 	
-@login_required
+@requires_role('PLAN')
 def delete_course_from_plan(request, userid, course_id, plan_id):
 	
 	course = PlannedOffering.objects.get(pk = course_id)
@@ -203,10 +240,24 @@ def delete_course_from_plan(request, userid, course_id, plan_id):
 	return HttpResponseRedirect(reverse(edit_courses, kwargs={'userid':userid, 'plan_id':plan_id}))
 	
 
-@login_required
-def assign_instructors(request, userid, plan_id):
+@requires_role('PLAN')
+def assign_instructors(request, semester, plan_slug):
+	semester_plan = get_object_or_404(SemesterPlan, semester__name=semester, slug=plan_slug)
+	
+	# build list of offerings with their forms
+	offerings = []
+	for o in semester_plan.plannedoffering_set.all():
+	    data = {}
+	    data['offering'] = o
+	    form = OfferingInstructorForm(instance=o)
+	    choices = [(tc.instructor.userid, tc.instructor.name()) for tc in TeachingCapability.objects.filter(course=o.course)]
+	    form.fields['instructor'].choices = [(None, u'\u2014')] + choices
+	    data['form'] = form
+	    offerings.append(data)
+	
+	return render_to_response("planning/assign_instructors.html",{'semester_plan': semester_plan, 'offerings': offerings},context_instance=RequestContext(request))
+	
 
-	semester_plan = get_object_or_404(SemesterPlan, pk = plan_id)
 
 	course_list = Course.objects.filter()
 	planned_courses_list = PlannedOffering.objects.filter(plan = semester_plan)
@@ -214,16 +265,14 @@ def assign_instructors(request, userid, plan_id):
 	instructor_list = TeachingCapability.objects.filter().order_by('instructor')
 	instructor_intention_list = TeachingIntention.objects.filter(semester = semester_plan.semester, intentionfull = False)
 		
-	return render_to_response("planning/assign_instructors.html",{'userid':userid, 'plan_id':plan_id, 'semester_plan':semester_plan, 'course_list':course_list, 'planned_courses_list':planned_courses_list, 'instructor_list':instructor_list, 'instructor_intention_list':instructor_intention_list},context_instance=RequestContext(request))
+	return render_to_response("planning/assign_instructors.html",{'semester_plan':semester_plan, 'course_list':course_list, 'planned_courses_list':planned_courses_list, 'instructor_list':instructor_list, 'instructor_intention_list':instructor_intention_list},context_instance=RequestContext(request))
 
-@login_required
-def submit_assigned_instructors(request, userid, course_id, plan_id):
+@requires_role('PLAN')
+def submit_assigned_instructors(request, semester, plan_slug, offering_id):
+	semester_plan = get_object_or_404(SemesterPlan, semester__name=semester, slug=plan_slug)
+	course = get_object_or_404(PlannedOffering, pk=offering_id, plan=semester_plan)
 	
-	course = get_object_or_404(PlannedOffering, pk = course_id)
-	semester_plan = get_object_or_404(SemesterPlan, pk = plan_id)
-	
-	instructor_id = request.POST['instructors']
-	
+	instructor_id = request.POST['instructor']
 	assigned_instructor = get_object_or_404(Person, userid = instructor_id)
 	
 	pre_instructor = course.instructor
@@ -231,29 +280,31 @@ def submit_assigned_instructors(request, userid, course_id, plan_id):
 	course.save()
 	
 	intention_count = PlannedOffering.objects.filter(plan = semester_plan, instructor = assigned_instructor).count()	
-	teaching_intention = TeachingIntention.objects.get(semester = semester_plan.semester, instructor = assigned_instructor)
+	teaching_intentions = TeachingIntention.objects.filter(semester = semester_plan.semester, instructor = assigned_instructor)
+	if teaching_intentions.count()==1:
+	    teaching_intention = teaching_intentions[0]
 	
-	pre_intention_count = PlannedOffering.objects.filter(plan = semester_plan, instructor = pre_instructor).count()
-	pre_teaching_intention = TeachingIntention.objects.get(semester = semester_plan.semester, instructor = pre_instructor)
+	    pre_intention_count = PlannedOffering.objects.filter(plan = semester_plan, instructor = pre_instructor).count()
+	    pre_teaching_intention = TeachingIntention.objects.get(semester = semester_plan.semester, instructor = pre_instructor)
 	
-	if intention_count >= teaching_intention.count:
-		teaching_intention.intentionfull = True
-		teaching_intention.save()
-	else:
-		teaching_intention.intentionfull = False
-		teaching_intention.save()		
+	    if intention_count >= teaching_intention.count:
+	        teaching_intention.intentionfull = True
+	        teaching_intention.save()
+	    else:
+	        teaching_intention.intentionfull = False
+	        teaching_intention.save()		
 
-	if pre_intention_count >= pre_teaching_intention.count:
-		pre_teaching_intention.intentionfull = True
-		pre_teaching_intention.save()
-	else:
-		pre_teaching_intention.intentionfull = False
-		pre_teaching_intention.save()
+	    if pre_intention_count >= pre_teaching_intention.count:
+	        pre_teaching_intention.intentionfull = True
+	        pre_teaching_intention.save()
+	    else:
+	        pre_teaching_intention.intentionfull = False
+	        pre_teaching_intention.save()
 				
 	messages.add_message(request, messages.SUCCESS, 'Instructor Assinged Successfully.')
-	return HttpResponseRedirect(reverse(assign_instructors, kwargs={'userid':userid, 'plan_id':plan_id}))
+	return HttpResponseRedirect(reverse(assign_instructors, kwargs={'semester':semester_plan.semester.name, 'plan_slug':semester_plan.slug}))
 	
-@login_required
+@requires_role('PLAN')
 def activate_plan(request, plan_id):
 
 	semester_plan = get_object_or_404(SemesterPlan, pk = plan_id)
@@ -264,7 +315,7 @@ def activate_plan(request, plan_id):
 	messages.add_message(request, messages.SUCCESS, 'Plan Activated Successfully.')
 	return HttpResponseRedirect(reverse(admin_index))
 	
-@login_required
+@requires_role('PLAN')
 def inactivate_plan(request, plan_id):
 
 	semester_plan = get_object_or_404(SemesterPlan, pk = plan_id)
@@ -275,18 +326,21 @@ def inactivate_plan(request, plan_id):
 	messages.add_message(request, messages.SUCCESS, 'Plan Inactivated Successfully.')
 	return HttpResponseRedirect(reverse(admin_index))
 
-@login_required
-def delete_plan(request, plan_id):
+@requires_role('PLAN')
+def delete_plan(request, semester, plan_slug):
+	plan = get_object_or_404(SemesterPlan, semester__name=semester, slug=plan_slug)
+	if request.method == 'POST':
+	    plan.delete()
+	    
+	    #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("deleted course plan %s in %s") % (plan.name, plan.semester),
+                  related_object=request.user)
+            l.save()
 
-	semester_plan = get_object_or_404(SemesterPlan, pk = plan_id)
-	semester_plan.delete()
-
-	#if PlannedOffering.objects.get(plan = semester_plan):
-	#	plannedoffering = PlannedOffering.objects.get(plan = semester_plan)
-	#	plannedoffering.delete()
-
-	messages.add_message(request, messages.SUCCESS, 'Plan Deleted Successfully.')
+	    messages.add_message(request, messages.SUCCESS, 'Plan Deleted.')
 	return HttpResponseRedirect(reverse(admin_index))
+		
 		
 #********************************************ADMIN************************************************************
 

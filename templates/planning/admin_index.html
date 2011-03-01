@@ -20,15 +20,14 @@ $(document).ready(function() {
 {% block title %}Manage Course Plans{% endblock %}
 {% block h1 %}Manage Course Plans{% endblock %}
 
-{% block subbreadcrumbs %}&gt; Admin Course Planning</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; Course Planning</li>{% endblock %}
 
 {% block actions %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    	<li><a href="{% url planning.views.add_plan userid=userid %}">Create a Course Plan</a></li>
-		<li><a href="{% url planning.views.add_course userid=userid %}">Manage Courses</a></li>
-	    
+    	<li><a href="{% url planning.views.add_plan %}">Create a Course Plan</a></li>
+	<li><a href="{% url planning.views.add_course %}">Manage Courses</a></li>    
     </ul>
 </div>
 {% endblock %}
@@ -56,10 +55,10 @@ $(document).ready(function() {
 		{% for plan in plan_list %}
 
 		<tr>
-			<td>{{ plan.name }} (<a href="{% url planning.views.edit_plan userid=userid plan_id=plan.id %}">edit</a> | <a href="{% url planning.views.delete_plan plan_id=plan.id %}">delete</a>)</td>
+			<td><a href="{% url planning.views.edit_plan semester=plan.semester.name plan_slug=plan.slug %}">{{ plan.name }}</a></td>
 			<td>{{ plan.semester.label }}</td>
-			<td><a href="{% url planning.views.edit_courses userid=userid plan_id=plan.id %}">Edit Courses</a></td>
-			<td><a href="{% url planning.views.assign_instructors userid=userid plan_id=plan.id %}">Assign Instructors</a></td>
+			<td><a href="{% url planning.views.edit_courses semester=plan.semester.name plan_slug=plan.slug %}">Edit Courses</a></td>
+			<td><a href="{% url planning.views.assign_instructors semester=plan.semester.name plan_slug=plan.slug %}">Assign Instructors</a></td>
 			<td>{{ plan.get_visibility_display }}</td>
 			<td>
 				{% if plan.active %}

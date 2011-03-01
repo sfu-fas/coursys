@@ -7,16 +7,9 @@
 {% block title %}Add Courses{% endblock %}
 {% block h1 %}Add Courses{% endblock %}
 
-{% block subbreadcrumbs %}&gt; Add Courses</li>{% endblock %}
+{% block subbreadcrumbs %}&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a>&gt; Add Courses</li>{% endblock %}
 
 {% block actions %}
-<div id="actions">
-    <h2 class="heading">Actions</h2>
-    <ul>
-    	<li><a href="{% url planning.views.admin_index %}">Manage Course Plans</a></li>
-
-    </ul>
-</div>
 {% endblock %}
 
 
@@ -30,7 +23,7 @@
     </p>
     {% endif %}
 	
-    <form action="/admin_planning/submit_course/{{ userid }}" method="post">{% csrf_token %}
+    <form action="{% url planning.views.submit_course %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Course Info</legend>
             <ul>

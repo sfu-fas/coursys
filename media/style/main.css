@@ -725,6 +725,9 @@ fieldset .datetime {
     color: gray;
     font-size: 0.9em;
 }
+dl.dlform .helptext {
+    margin-left: 9em;
+}
 fieldset .errortext {
     color: red;
     font-size: 0.9em;

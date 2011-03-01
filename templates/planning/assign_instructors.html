@@ -7,18 +7,9 @@
 {% block title %}Edit Courses{% endblock %}
 {% block h1 %}Edit Courses{% endblock %}
 
-{% block subbreadcrumbs %}&gt; Edit Courses</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li><li>&gt; {{ semester_plan.name }} in {{semester_plan.semester.label}}</li><li>&gt; Instructors</li>{% endblock %}
 
 {% block actions %}
-<div id="actions">
-    <h2 class="heading">Actions</h2>
-    <ul>
-	
-    	<li><a href="{% url planning.views.admin_index %}">Manage Course Plans</a></li>
-		<li><a href="{% url planning.views.add_course userid=userid %}">Manage Courses</a></li>
-
-    </ul>
-</div>
 {% endblock %}
 
 {% block headextra %}
@@ -56,35 +47,22 @@ $(document).ready(function() {
         </thead>
 
         <tbody>
-		{% for planned_course in planned_courses_list %}
+		{% for o in offerings %}
 		
 		<tr>
-			<form action="/admin_planning/submit_assigned_instructors/{{ userid }}/{{ planned_course.id }}/{{ plan_id }}/" method="post">{% csrf_token %}
 			
-			<td>{{ planned_course.course }}</td>
-			<td>{{ planned_course.section }}</td>
+			
+			<td>{{ o.offering.course }}</td>
+			<td>{{ o.offering.section }}</td>
+			<td>{{ o.offering.instructor }}</td>
 			<td>
-				
-					{{ planned_course.instructor }}
-				
-			</td>
-			<td>
-			<select name="instructors">
-				<option value="None"></option>
-				{% for instructors in instructor_list %}
-					{% for instructors_check in  instructor_intention_list %}
-						{% if instructors.instructor ==  instructors_check.instructor %}
-							{% if instructors.course ==  planned_course.course %}
-								<option value={{instructors.instructor.userid}}>{{instructors.instructor}}</option>
-							{% endif %}
-						{% endif %}
-					{% endfor %}	
-				{% endfor %}
-			</select>
+			<form action="{% url planning.views.submit_assigned_instructors semester=semester_plan.semester.name plan_slug=semester_plan.slug offering_id=o.offering.id%}" method="post">{% csrf_token %}
+			{{o.form.instructor}}
 			<input type="submit" value="Assign" />
+			</form>
 			</td>
 	
-			</form>
+			
 		</tr>
 
 		{%endfor%}
