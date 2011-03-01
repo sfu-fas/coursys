@@ -1101,7 +1101,56 @@ def mark_all_students_lettergrade(request, course_slug, activity_slug):
     
     return render_to_response("marking/mark_all_student_lettergrade.html",{'course': course, 'activity': activity,\
                               'fileform' : fileform,'too_many': len(rows) >= 100,\
-                              'mark_all_rows': rows }, context_instance = RequestContext(request))            
+                              'mark_all_rows': rows }, context_instance = RequestContext(request))     
+
+# This is for marking groups with calculated letter grades
+@requires_course_staff_by_slug
+def mark_all_groups_cal_lettergrade (request, course_slug, activity_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(CalLetterActivity, offering=course, slug=activity_slug)
+    rows = [] 
+    
+    return render_to_response("marking/mark_all_group_lettergrade.html",
+                          {'course': course, 'activity': activity,'mark_all_rows': rows }, 
+                          context_instance = RequestContext(request))
+
+
+#This is for marking students with calculated letter grades
+@requires_course_staff_by_slug
+def mark_all_students_cal_lettergrade(request, course_slug, activity_slug):
+    course = get_object_or_404(CourseOffering, slug = course_slug)
+    activity = get_object_or_404(CalLetterActivity, offering = course, slug = activity_slug)
+    fileform = None
+    rows = []  
+    
+    return render_to_response("marking/mark_all_student_lettergrade.html",{'course': course, 'activity': activity,\
+                              'fileform' : fileform,'too_many': len(rows) >= 100,\
+                              'mark_all_rows': rows }, context_instance = RequestContext(request))
+
+# This is for marking groups with calculated numeric grades
+@requires_course_staff_by_slug
+def mark_all_groups_cal (request, course_slug, activity_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(CalNumericActivity, offering=course, slug=activity_slug)
+    rows = [] 
+    
+    return render_to_response("marking/mark_all_group_lettergrade.html",
+                          {'course': course, 'activity': activity,'mark_all_rows': rows }, 
+                          context_instance = RequestContext(request))
+
+
+#This is for marking students with calculated numeric grades
+@requires_course_staff_by_slug
+def mark_all_students_cal(request, course_slug, activity_slug):
+    course = get_object_or_404(CourseOffering, slug = course_slug)
+    activity = get_object_or_404(CalNumericActivity, offering = course, slug = activity_slug)
+    fileform = None
+    rows = []  
+    
+    return render_to_response("marking/mark_all_student_lettergrade.html",{'course': course, 'activity': activity,\
+                              'fileform' : fileform,'too_many': len(rows) >= 100,\
+                              'mark_all_rows': rows }, context_instance = RequestContext(request)) 
+        
 #This is for change grade status of letter grades
 
 ######################### Henry Added #############################    

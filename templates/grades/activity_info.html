@@ -97,21 +97,50 @@
 	    <li><a href="{% url submission.views.download_activity_files course_slug=course.slug, activity_slug=activity.slug%}">Download Submissions</a></li>
 	    
 	    {% ifequal activity.type_long "Numeric Graded" %}
-	    <li><a href="{% url marking.views.mark_all_students course_slug=course.slug, activity_slug=activity.slug%}">Mark each Student</a></li>
+	    
 	    {% else %}
-	    <li><a href="{% url marking.views.mark_all_students_lettergrade course_slug=course.slug, activity_slug=activity.slug%}">Mark each Student</a></li>
+	    
 	    {% endifequal %}
 	    
+	    {% if activity.is_numeric %}
+		    	{% if activity.is_calculated %}
+		    	<li><a href="{% url marking.views.mark_all_students_cal course_slug=course.slug, activity_slug=activity.slug%}">Mark each Student</a></li>
+		    	{% else %}
+		    	<li><a href="{% url marking.views.mark_all_students course_slug=course.slug, activity_slug=activity.slug%}">Mark each Student</a></li>
+		    	{% endif %}
+	    {% else %}
+		    	{% if activity.is_calculated %}
+			<li>
+		    	<a href="{% url marking.views.mark_all_students_cal_lettergrade course_slug=course.slug, activity_slug=activity.slug%}?from_page={{ from_page }}">Mark each Group</a>
+		    	</li>
+		    	{% else %}
+		    	<li><a href="{% url marking.views.mark_all_students_lettergrade course_slug=course.slug, activity_slug=activity.slug%}">Mark each Student</a></li>
+		    	{% endif %}
+	    {% endif %}
+
+	    
 	    {% if activity.group %}
-		    {% ifequal activity.type_long "Numeric Graded" %}
-		    <li>
-		    <a href="{% url marking.views.mark_all_groups course_slug=course.slug, activity_slug=activity.slug%}?from_page={{ from_page }}">Mark each Group</a>
-		    </li>
+	    	    {% if activity.is_numeric %}
+		    	{% if activity.is_calculated %}
+		    	<li>
+		    	<a href="{% url marking.views.mark_all_groups_cal course_slug=course.slug, activity_slug=activity.slug%}?from_page={{ from_page }}">Mark each Group</a>
+		    	</li>
+		    	{% else %}
+		    	<li>
+		    	<a href="{% url marking.views.mark_all_groups course_slug=course.slug, activity_slug=activity.slug%}?from_page={{ from_page }}">Mark each Group</a>
+		    	</li>
+		    	{% endif %}
 		    {% else %}
-		    <li>
-		    <a href="{% url marking.views.mark_all_groups_lettergrade course_slug=course.slug, activity_slug=activity.slug%}?from_page={{ from_page }}">Mark each Group</a>
-		    </li>
-		    {% endifequal %}
+		    	{% if activity.is_calculated %}
+			<li>
+		    	<a href="{% url marking.views.mark_all_groups_cal_lettergrade course_slug=course.slug, activity_slug=activity.slug%}?from_page={{ from_page }}">Mark each Group</a>
+		    	</li>
+		    	{% else %}
+		    	<li>
+		    	<a href="{% url marking.views.mark_all_groups_lettergrade course_slug=course.slug, activity_slug=activity.slug%}?from_page={{ from_page }}">Mark each Group</a>
+		    	</li>
+		    	{% endif %}
+		    {% endif %}
 	    {% endif %}
 
 	    <li class="newsec"><a href="{% url grades.views.activity_stat course_slug=course.slug activity_slug=activity.slug %}">Display Statistics</a></li> 

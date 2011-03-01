@@ -106,7 +106,7 @@
 
 
 {% block actions %}
-<div id="actions">
+<div id="actions">Student
     <h2 class="heading">Actions</h2>
     <ul>
 	<li><a href="{% url marking.views.copy_course_setup course_slug=course.slug %}">Copy Course Setup</a></li>
@@ -212,7 +212,21 @@
                 {% else %}
                 <td>&mdash;</td>
                 {% endifnotequal %}
-		<td>{% ifequal activity.type_long "Numeric Graded" %}Numeric Graded{% else %}Letter Graded{% endifequal %}</td>
+		<td>
+		    {% if activity.is_numeric %}
+		    	{% if activity.is_calculated %}
+				Calculated Numeric Grade
+		    	{% else %}
+		    		Numeric Grade
+		    	{% endif %}
+		    {% else %}
+		    	{% if activity.is_calculated %}
+				Calculated Letter Grade
+		    	{% else %}
+		    		Letter Grade
+		    	{% endif %}
+		    {% endif %}
+		</td>
 		{% ifnotequal activity.percent None %}
                 <td>{{ activity.percent }}%</td>
 		{% else %}
