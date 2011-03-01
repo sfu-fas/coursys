@@ -227,10 +227,19 @@ class MarkEntryForm_LetterGrade(forms.Form):
     
     def clean_value(self):
         grade = self.cleaned_data['value']
-        if grade=="ZZ":
+        if grade not in LETTER_GRADE_CHOICES_IN:
             raise forms.ValidationError(u'Invalid letter grade.')
         return grade
 
+class UploadGradeFileForm_LetterGrade(forms.Form):
+    file = forms.FileField(required=True)
+    
+    def clean_file(self):        
+        file = self.cleaned_data['file']
+        if file != None and (not file.name.endswith('.csv')) and\
+           (not file.name.endswith('.CSV')):
+            raise forms.ValidationError(u"Only .csv files are permitted")
+        return file 
 
 
 ##############################Yu Liu Added#########################################################  

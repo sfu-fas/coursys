@@ -1120,8 +1120,8 @@ def mark_all_groups_lettergrade(request, course_slug, activity_slug):
                   # so do not override the status
                 if act_mark == None:
                     act_mark = LetterGrade(activity = activity, member = all_members[i]);
-               act_mark.letter_grade = new_value
-               act_mark.flag = "GRAD"
+               act_mark = GroupActivityMark_LetterGrade(group=group, letter_activity=activity, created_by=request.user.username)
+               act_mark.setMark(new_value)
                act_mark.save()
 
                updated += 1     
@@ -1325,7 +1325,7 @@ def mark_all_students_lettergrade(request, course_slug, activity_slug):
     
     else: 
         if request.method == 'POST': # for import
-            fileform = UploadGradeFileForm(request.POST, request.FILES, prefix = 'import-file');
+            fileform = UploadGradeFileForm_LetterGrade(request.POST, request.FILES, prefix = 'import-file');
             if fileform.is_valid() and fileform.cleaned_data['file'] != None:
                 students = course.members.filter(person__role='STUD')
                 error_info = _compose_imported_grades(fileform.cleaned_data['file'], students, imported_data)
@@ -1343,20 +1343,46 @@ def mark_all_students_lettergrade(request, course_slug, activity_slug):
                 current_grade = lgrade.letter_grade            
             initial_value = imported_data.get(student.userid) 
             if initial_value != None:
-                entry_form = MarkEntryForm(initial = {'value': initial_value}, prefix = student.userid)
+                entry_form = MarkEntryForm_LetterGrade(initial = {'value': initial_value}, prefix = student.userid)
             else:
-                entry_form = MarkEntryForm(prefix = student.userid)                                    
+                entry_form = MarkEntryForm_LetterGrade(prefix = student.userid)                                    
             rows.append({'student': student, 'current_grade' : current_grade, 'form' : entry_form}) 
                
     if error_info:
         messages.add_message(request, messages.ERROR, error_info) 
 
     if fileform == None:
-        fileform = UploadGradeFileForm(prefix = 'import-file')   
+        fileform = UploadGradeFileForm_LetterGrade(prefix = 'import-file')   
     
     return render_to_response("marking/mark_all_student_lettergrade.html",{'course': course, 'activity': activity,\
                               'fileform' : fileform,'too_many': len(rows) >= 100,\
                               'mark_all_rows': rows }, context_instance = RequestContext(request))
+
+
+
+@requires_course_staff_by_slug
+def calculate_lettergrade(request, course_slug, activity_slug):
+    course = get_object_or_404(CourseOffering, slug = course_slug)
+    activity = get_object_or_404(LetterActivity, offering = course, slug = activity_slug)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ######################### Yu Liu Added #############################  
 
 @requires_course_staff_by_slug
@@ -1480,7 +1506,7 @@ def _compose_imported_grades(file, students_qset, data_to_return):
                 data_to_return.clear()
                 return "Error found in file (row %s): Unmatched student number or user-id (%s)." % (read, row[0],)            
             # try to parse the second row as a float           
-            value = float(row[1])
+            value = (row[1])
             if(data_to_return.has_key(target[0].userid)):
                 data_to_return.clear()
                 return "Error found in file (row %s): multiple entries found for student (%s)." % (read, row[0],) 

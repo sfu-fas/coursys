@@ -51,7 +51,8 @@ LETTER_GRADE_CHOICES_IN = [
     ('WE'),
     ('DE'),
     ('GN'),
-    ('IP') ]
+    ('IP'),
+    ('') ]
 ##########Yu Liu Added##############
 
 LETTER_GRADE_CHOICES = [

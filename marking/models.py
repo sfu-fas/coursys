@@ -236,12 +236,13 @@ class StudentActivityMark_LetterGrade(ActivityMark_LetterGrade):
         self.letter_grade.flag = 'GRAD'
         self.letter_grade.save()   
 
-class GroupActivityMark_LetterGrade(ActivityMark):
+class GroupActivityMark_LetterGrade(ActivityMark_LetterGrade):
     """
     Marking of one group on one letter activity
     """
     group = models.ForeignKey(Group, null = False) 
     letter_activity = models.ForeignKey(LetterActivity, null = False)
+    letter_grade = models.ForeignKey(LetterGrade, null = False, choices=LETTER_GRADE_CHOICES)
          
     def __unicode__(self):
         return "Marking for group [%s] for activity [%s]" %(self.group, self.letter_activity)
