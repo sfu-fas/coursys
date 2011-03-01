@@ -241,7 +241,7 @@ class GroupActivityMark_LetterGrade(ActivityMark):
     Marking of one group on one letter activity
     """
     group = models.ForeignKey(Group, null = False) 
-    numeric_activity = models.ForeignKey(LetterActivity, null = False)
+    letter_activity = models.ForeignKey(LetterActivity, null = False)
          
     def __unicode__(self):
         return "Marking for group [%s] for activity [%s]" %(self.group, self.letter_activity)
@@ -252,7 +252,7 @@ class GroupActivityMark_LetterGrade(ActivityMark):
         """         
         Set the mark of the group members
         """
-        super(GroupActivityMark, self).setMark(grade)
+        super(GroupActivityMark_LetterGrade, self).setMark(grade)
         #assign mark for each member in the group
         group_members = GroupMember.objects.filter(group=self.group, activity=self.letter_activity, confirmed=True)
         for g_member in group_members:
