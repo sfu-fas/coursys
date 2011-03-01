@@ -2,7 +2,8 @@ from models import *
 from django.forms import ModelForm
 from django import forms
 from django.forms.models import BaseModelFormSet
-from grades.models import FLAG_CHOICES, CalNumericActivity
+from grades.models import FLAG_CHOICES, CalNumericActivity,LETTER_GRADE_CHOICES_IN
+
 
 class ActivityComponentMarkForm(ModelForm):
     
@@ -222,5 +223,8 @@ class GradeStatusForm_LetterGrade(forms.ModelForm):
 
 
 class MarkEntryForm_LetterGrade(forms.Form):
-    value = forms.CharField(max_length=2,required=False)
+    value = forms.CharField(required=False,max_length=2)
+
+
+
 ##############################Yu Liu Added#########################################################  

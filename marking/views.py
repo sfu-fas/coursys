@@ -1222,7 +1222,7 @@ def mark_all_students_lettergrade(request, course_slug, activity_slug):
                lgrade = lgrades[i]
                new_value = rows[i]['form'].cleaned_data['value'] 
                # the new mark is blank or the new mark is the same as the old one, do nothing
-               if new_value not in LETTER_GRADE_CHOICES_IN: 
+               if new_value not in LETTER_GRADE_CHOICES_IN:  
                    continue
                if lgrade !=None and lgrade.letter_grade == new_value:
                    # if the student originally has a grade status other than 'GRAD',
@@ -1235,7 +1235,8 @@ def mark_all_students_lettergrade(request, course_slug, activity_slug):
                lgrade.flag = "GRAD"
                lgrade.save()
                
-               updated += 1     
+               updated += 1    
+               
                
                #LOG EVENT
                l = LogEntry(userid=request.user.username,
@@ -1245,8 +1246,6 @@ def mark_all_students_lettergrade(request, course_slug, activity_slug):
            
             if updated > 0:
                 messages.add_message(request, messages.SUCCESS, "Marks for all students on %s saved (%s students' grades updated)!" % (activity.name, updated))
-                for warning in warning_info:
-                    messages.add_message(request, messages.WARNING, warning)
                     
             return _redirct_response(request, course_slug, activity_slug) 
     
@@ -1277,6 +1276,7 @@ def mark_all_students_lettergrade(request, course_slug, activity_slug):
                
     if error_info:
         messages.add_message(request, messages.ERROR, error_info) 
+
     if fileform == None:
         fileform = UploadGradeFileForm(prefix = 'import-file')   
     
@@ -1382,6 +1382,7 @@ def mark_all_students(request, course_slug, activity_slug):
                
     if error_info:
         messages.add_message(request, messages.ERROR, error_info) 
+
     if fileform == None:
         fileform = UploadGradeFileForm(prefix = 'import-file')   
     
