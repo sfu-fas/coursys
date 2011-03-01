@@ -58,7 +58,7 @@ $(document).ready(function() {
 		<td>{{ student.userid }}</td>
 		<td>{{ mark_row.current_grade }}</td>
 		<td>
-		{{ form.value }} / {{activity.max_grade}}
+		{{ form.value }}
 		{% if form.value.errors %}
 		<div class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/>&nbsp;{{form.value.errors.0}}</div>
 		{% endif %} 
