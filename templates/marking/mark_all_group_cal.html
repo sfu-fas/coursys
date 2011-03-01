@@ -1,0 +1,76 @@
+{% extends "marking/base.html" %}
+
+{% block marking_header_extra %}
+<script type="text/javascript">
+//<![CDATA[
+$(document).ready(function() {
+	var oTable = $('#all_marks').dataTable({
+		"bJQueryUI": true,
+		"bSort": false,
+		"bPaginate": false	/* turn off the pagination */
+	});		
+		
+	var oRows = oTable.fnGetNodes();
+	
+	/* set the tab indices of all the text boxes*/
+	var tabi = 1;
+	for(var r = 0; r < oRows.length; r++)
+	{
+		var mark_entry = oRows[r].getElementsByTagName('input');
+		if(mark_entry.length > 0)
+			mark_entry[0].tabIndex = tabi ++;
+	}	
+});
+//]]>
+</script>
+{% endblock %}
+
+{% block title %}Mark All{% endblock %}
+{% block h1 %} Mark All Groups{% endblock %}
+{% block marking_subbreadcrumbs %}<li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Mark All Groups</li>{% endblock %}
+{% block content %}
+
+<form id="grades_form" action="" method="post">{% csrf_token %}
+<div class="datatable_container">
+     <table class="display" id="all_marks">
+        <thead class="form_head">
+            <tr>
+                <th>Group Name</th>
+		<th>Current Grade</th>
+		<th>New Grade</th>
+	    </tr>	
+	</thead>
+        <tbody>
+	    {% for mark_row in mark_all_rows %}
+	    {% with mark_row.group as group %}
+	    <tr>
+		<td>
+		    <strong>
+			<a href="#">{{ group.name }}</a>
+		    </strong>
+		</td>		
+		<td>{{ mark_row.current_mark }}</td>
+		{% with mark_row.form as form %}
+		<td>
+		{{ form.value }} / {{activity.max_grade}}
+		{% if form.value.errors %}
+		<div class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/>&nbsp;{{form.value.errors.0}}</div>
+		{% endif %} 
+		</td>
+		{% endwith %}	    
+	    </tr>
+	    {%endwith%}
+	    {% empty %}
+	    <tr>
+		<td class="empty">No groups</td>
+		<td></td>
+		<td></td>
+	    </tr>
+	    {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div><input class="submit" type="submit" value="Submit" /></div>
+</form>
+<a class="redbutton reset_button" href="{% url marking.views.mark_all_groups course_slug=course.slug activity_slug=activity.slug %}">Reset</a>
+{% endblock %}
