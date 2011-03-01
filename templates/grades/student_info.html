@@ -64,15 +64,28 @@
             <tr>
               <td scope="row"><a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=info.act.slug %}">{{info.act.name}}</a></td>
               {% if info.grade %}
-              <td>
-              {{info.grade.get_flag_display}}
-              <a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=info.act.slug userid=member.person.userid %}"><img src="{{MEDIA_URL}}icons/tag_blue_edit.png" title="Change Status" alt="Change Status"/></a>		   
-              </td>
-              <td><a href="{{info.grade.get_absolute_url}}">{{info.grade.display_staff}}</a></td>
+              	<td>
+              	{{info.grade.get_flag_display}}
+              	
+              	
+              	{# How it works here ?#}
+              	{% if info.act.is_caluclated %}
+              	{% else %}
+              		{% if info.act.is_numeric %}
+              			<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=info.act.slug userid=member.person.userid %}"><img src="{{MEDIA_URL}}icons/tag_blue_edit.png" title="Change Status" alt="Change Status"/></a>		   
+              		{% else %}
+              			<a href="{% url marking.views.change_grade_status_lettergrade course_slug=course.slug activity_slug=info.act.slug userid=member.person.userid %}"><img src="{{MEDIA_URL}}icons/tag_blue_edit.png" title="Change Status" alt="Change Status"/></a>
+              		{% endif %}
+              	{% endif %}
+              	</td>
+              	<td><a href="{{info.grade.get_absolute_url}}">{{info.grade.display_staff}}</a></td>
               {% else %}
-              <td>no grade</td>
-              <td>&mdash;</td>
+              		<td>no grade</td>
+             		<td>&mdash;</td>
               {% endif %}
+              {# How it works here ?#}
+              
+              
               {% if info.sub %}
               <td><a href="{% url submission.views.show_student_submission_staff course_slug=course.slug activity_slug=info.act.slug userid=member.person.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="{{info.act.name}} submission" alt="info" /></a>
               <a href="{% url submission.views.download_file course_slug=course.slug activity_slug=info.act.slug userid=member.person.userid %}"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="download {{info.act.name}} submission" alt="Download" /></a></td>
