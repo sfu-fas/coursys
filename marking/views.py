@@ -1194,7 +1194,8 @@ def mark_all_students_lettergrade(request, course_slug, activity_slug):
     imported_data = {} #may get filled with data from an imported file, a mapping from student's userid to grade
     error_info = None 
     warning_info = []
-    memberships = Member.objects.select_related('person').filter(offering = course, role = 'STUD')    
+    memberships = Member.objects.select_related('person').filter(offering = course, role = 'STUD')
+    valid_input = True  
     
     if request.method == 'POST' and request.GET.get('import') != 'true':
         lgrades = []   
@@ -1223,6 +1224,7 @@ def mark_all_students_lettergrade(request, course_slug, activity_slug):
                new_value = rows[i]['form'].cleaned_data['value'] 
                # the new mark is blank or the new mark is the same as the old one, do nothing
                if new_value not in LETTER_GRADE_CHOICES_IN:  
+                   valid_input = False
                    continue
                if lgrade !=None and lgrade.letter_grade == new_value:
                    # if the student originally has a grade status other than 'GRAD',
@@ -1246,6 +1248,9 @@ def mark_all_students_lettergrade(request, course_slug, activity_slug):
            
             if updated > 0:
                 messages.add_message(request, messages.SUCCESS, "Marks for all students on %s saved (%s students' grades updated)!" % (activity.name, updated))
+            
+            if valid_input == False:
+                messages.add_message(request, messages.SUCCESS, "Not valid input exists, but was ignored. Please check for not updated one.")
                     
             return _redirct_response(request, course_slug, activity_slug) 
     
