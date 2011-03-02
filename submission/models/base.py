@@ -43,10 +43,6 @@ class SubmissionComponent(models.Model):
         return "%s %s"%(self.title, self.description)
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
-    def XXX_get_type(self):
-        "Return xxx of xxxComponent as type"
-        class_name = self.__class__.__name__
-        return class_name[:class_name.index("Component")]
         
     def save(self):
         if self.position is None:
@@ -85,11 +81,6 @@ class Submission(models.Model):
             self.owner = member[0]
             self.status = "INP"
             self.save()
-    def XXX_get_derived_class(self):
-        if self.get_type() == "Group":
-            return GroupSubmission.objects.all().get(pk = self.pk)
-        else:
-            return StudentSubmission.objects.all().get(pk = self.pk)
 
 class StudentSubmission(Submission):
     member = models.ForeignKey(Member, null=False)
@@ -105,8 +96,6 @@ class StudentSubmission(Submission):
         return reverse('submission.views.show_components_submission_history', kwargs={'course_slug': self.member.offering.slug, 'activity_slug': self.activity.slug, 'userid': self.member.person.userid})
     def file_slug(self):
         return self.member.person.userid
-    def XXX_get_type(self):
-        return "student"
 
 class GroupSubmission(Submission):
     group = models.ForeignKey(Group, null=False)
@@ -124,8 +113,6 @@ class GroupSubmission(Submission):
         return reverse('submission.views.show_components_submission_history', kwargs={'course_slug': self.group.courseoffering.slug, 'activity_slug': self.activity.slug, 'userid': self.creator.person.userid})
     def file_slug(self):
         return self.group.slug
-    def XXX_get_type(self):
-        return "group"
 
     def save(self):
         new_submit = (self.id is None)
@@ -181,10 +168,6 @@ class SubmittedComponent(models.Model):
     class Meta:
         ordering = ['submit_time']
         app_label = 'submission'
-    def XXX_get_type(self):
-        "Return xxx of Submittedxxx as type"
-        class_name = self.__class__.__name__
-        return class_name[9:]
     def get_size_in_kb(self):
         res = int(self.get_size())/1024
         return res

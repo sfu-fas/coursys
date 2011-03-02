@@ -1,7 +1,4 @@
 from django.db import models
-#from grades.models import Activity
-#from coredata.models import Member, Person,CourseOffering
-#from courses.grades.models import slug
 from groups.models import Group,GroupMember
 from datetime import datetime
 from autoslug import AutoSlugField
