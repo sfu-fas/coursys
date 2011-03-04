@@ -23,13 +23,14 @@
         </fieldset>
     </form>
 </div>
-
+<div id="form_container">
 <form action="{% url planning.views.delete_plan semester=plan.semester.name plan_slug=plan.slug %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Delete Plan</legend>
             <div><input class="submit" type="submit" value="Delete Plan" /></div>
         </fieldset>
     </form>
+</div>
 {% endblock%}
 
 
