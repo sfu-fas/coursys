@@ -57,7 +57,7 @@ class TeachingIntention(models.Model):
         return "%s: %d (%s)" % (self.instructor, self.count, self.semester.label())
     
     def is_full(self, semester_plan):
-        return semester_plan.plannedoffering_set.filter(instructor=self.instructor).count() >= self.count:
+        return semester_plan.plannedoffering_set.filter(instructor=self.instructor).count() >= self.count
          
 
 
