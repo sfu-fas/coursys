@@ -1115,13 +1115,13 @@ def mark_all_groups_lettergrade(request, course_slug, activity_slug):
                new_value = rows[i]['form'].cleaned_data['value']
                if new_value not in LETTER_GRADE_CHOICES_IN: 
                    continue
-               if act_mark!= None and act_mark.letter_grade == new_value:
+               #if act_mark!= None and act_mark.letter_grade == new_value:
                   # if any of the group members originally has a grade status other than 'GRAD'
                   # so do not override the status
-                if act_mark == None:
-                    act_mark = LetterGrade(activity = activity, member = all_members[i]);
+               # if act_mark == None:
+               #    act_mark = LetterGrade(activity = activity, member = all_members[i]);
                act_mark = GroupActivityMark_LetterGrade(group=group, letter_activity=activity, created_by=request.user.username)
-               act_mark.setMark(new_value)
+               #act_mark.setMark(new_value)
                act_mark.save()
 
                updated += 1     

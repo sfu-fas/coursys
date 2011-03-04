@@ -342,7 +342,14 @@ class CalLetterActivity(LetterActivity):
     """
     numeric_activity = models.ForeignKey(NumericActivity, related_name='numeric_source_set')
     exam_activity = models.ForeignKey(Activity, null=True, related_name='exam_set')
-    letter_cutoff_formula = models.CharField(max_length=250, help_text='parsed formula to calculate final letter grade')
+    letter_cutoffs = models.CharField(max_length=500, help_text='parsed formula to calculate final letter grade', default='[95, 90, 85, 80, 75, 70, 65, 60, 55, 50]')
+    
+    #cutoffs = [95, 90, 85, 80, 75, 70, 65, 60, 55, 50]
+    ## lower-bound for A+, A, A-, B+, ...
+    #import json
+    #activity.letter_cutoffs = json.dumps(cutoffs)
+    
+    # cutoffs = json.loads(activity.letter_cutoffs)
     
     class Meta:
         verbose_name_plural = 'cal letter activities'

@@ -196,6 +196,8 @@ def edit_courses(request, semester, plan_slug):
 	        offering.save()
 	        form.save_m2m()
 	        
+	        #print form.cleaned_data['lab_sections']
+	        
 	        #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
                       description=("added offering %s in %s") % (offering.course, offering.plan),

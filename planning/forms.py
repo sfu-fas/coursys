@@ -34,6 +34,7 @@ class PlanBasicsForm(forms.ModelForm):
         model = SemesterPlan
 
 class OfferingBasicsForm(forms.ModelForm):
+    lab_sections = forms.CharField()
     def clean_section(self):
         section = self.cleaned_data['section']
         if not section_re.match(section):

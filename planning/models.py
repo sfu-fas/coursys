@@ -55,6 +55,10 @@ class TeachingIntention(models.Model):
         
     def __unicode__(self):
         return "%s: %d (%s)" % (self.instructor, self.count, self.semester.label())
+    
+    def is_full(self, semester_plan):
+        return semester_plan.plannedoffering_set.filter(instructor=self.instructor).count() >= self.count:
+         
 
 
 VISIBILITY_CHOICES = [

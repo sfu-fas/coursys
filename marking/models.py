@@ -180,8 +180,6 @@ class ActivityMark_LetterGrade(models.Model):
     General Marking class for one letter activity 
     """
     overall_comment = models.TextField(null = True, max_length = 1000, blank = True)
-    file_attachment = models.FileField(storage=MarkingSystemStorage, null = True, upload_to=attachment_upload_to, blank=True, max_length=500)
-    file_mediatype = models.CharField(null=True, blank=True, max_length=200)
     created_by = models.CharField(max_length=8, null=False, help_text='Userid who gives the mark')
     created_at = models.DateTimeField(auto_now_add=True)
     # For the purpose of keeping a history,
@@ -242,7 +240,8 @@ class GroupActivityMark_LetterGrade(ActivityMark_LetterGrade):
     """
     group = models.ForeignKey(Group, null = False) 
     letter_activity = models.ForeignKey(LetterActivity, null = False)
-    letter_grade = models.ForeignKey(LetterGrade, null = False, choices=LETTER_GRADE_CHOICES)
+    #letter_grade = models.ForeignKey(LetterGrade, null = False, choices=LETTER_GRADE_CHOICES)
+    letter_grade = models.CharField(max_length=2, choices=LETTER_GRADE_CHOICES)
          
     def __unicode__(self):
         return "Marking for group [%s] for activity [%s]" %(self.group, self.letter_activity)
