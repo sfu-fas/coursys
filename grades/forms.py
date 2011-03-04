@@ -126,6 +126,11 @@ class ActivityForm(forms.Form):
             return '1'
 
 class NumericActivityForm(ActivityForm):
+    def __init__(self, *args, **kwargs):
+        tmp_act_list = kwargs.pop('previous_activities')
+        super(NumericActivityForm, self).__init__(*args, **kwargs)
+        self.fields['extend_group'].choices = tmp_act_list
+        
     status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS',
                                label=mark_safe('Status:' + _required_star),
                                help_text='visibility of grades/activity to students')
@@ -135,6 +140,9 @@ class NumericActivityForm(ActivityForm):
     group = forms.ChoiceField(label=mark_safe('Group activity:' + _required_star), initial='1',
                               choices=GROUP_STATUS_CHOICES,
                               widget=forms.RadioSelect())
+    extend_group = forms.ChoiceField(choices = [('NO', 'None')],
+                                     label=mark_safe('Extend groups from:'),
+                                     help_text = 'extend groups from earlier group activities')
     max_grade = forms.DecimalField(max_digits=5, decimal_places=2, label=mark_safe('Maximum grade:' + _required_star),
                                    help_text='maximum grade for the activity',
                                    widget=forms.TextInput(attrs={'size':'3'}))
@@ -150,7 +158,7 @@ class LetterActivityForm(ActivityForm):
                               choices=GROUP_STATUS_CHOICES,
                               widget=forms.RadioSelect())
     #specify_letter_formula = forms.BooleanField(label='Specify formula:', required=False)
-    
+
 class CalNumericActivityForm(ActivityForm):
     # default status is invisible
     status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='INVI',

@@ -348,9 +348,15 @@ def activity_stat(request, course_slug, activity_slug):
 @requires_course_staff_by_slug
 def add_numeric_activity(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
+
+    activities_list = [(None, '---'),]
+    activities = all_activities_filter(course)
+    for a in activities:
+        if a.group == True:
+            activities_list.append((a.slug, a.name))
     
     if request.method == 'POST': # If the form has been submitted...
-        form = NumericActivityForm(request.POST) # A form bound to the POST data
+        form = NumericActivityForm(request.POST, previous_activities=activities_list) # A form bound to the POST data
         form.activate_addform_validation(course_slug)
         if form.is_valid(): # All validation rules pass
             try:
@@ -368,8 +374,11 @@ def add_numeric_activity(request, course_slug):
                                                 url=form.cleaned_data['url'],
                                                 offering=course, position=position,
                                                 group=GROUP_STATUS_MAP[form.cleaned_data['group']])
-                if a.group == True:
-                    add_activity_to_group_auto(a, course)
+                if a.group == True and form.cleaned_data['extend_group'] is not None:
+                    a2 = [i for i in activities if i.slug == form.cleaned_data['extend_group']]
+                    if len(a2) > 0:
+                        add_activity_to_group(a, a2[0], course)
+                
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
                       description=("created a numeric activity %s") % (a),
@@ -383,7 +392,7 @@ def add_numeric_activity(request, course_slug):
         else:
             messages.error(request, "Please correct the error below")
     else:
-        form = NumericActivityForm()
+        form = NumericActivityForm(previous_activities=activities_list)
     context = {'course': course, 'form': form, 'form_type': FORMTYPE['add']}
     return render_to_response('grades/numeric_activity_form.html', context, context_instance=RequestContext(request))
     

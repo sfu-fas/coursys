@@ -84,7 +84,7 @@ def all_activities(members):
     """
     return set(m.activity for m in members)
 
-def add_activity_to_group_auto(activity, course):
+def xxx_add_activity_to_group_auto(activity, course):
     """
     if the groupForSemester bool value in Group model is true, then when a new group activity is created, it will call this add_activity_to_group_auto function to create corresponding GroupMembers for that activity.
     """
@@ -97,3 +97,16 @@ def add_activity_to_group_auto(activity, course):
 	    groupMember.save()
     return
 
+def add_activity_to_group(activity1, activity2, course):
+    """
+    copy group settings from activity2 -> activity1
+    """
+    print activity1, activity2, course
+    groups = Group.objects.filter(courseoffering = course)
+    for group in groups:
+	groupMembers = GroupMember.objects.filter(group=group, activity=activity2, confirmed=True)
+	unique_students = set(groupMember.student for groupMember in groupMembers)
+	for student in unique_students:
+	    groupMember = GroupMember(group=group, student=student, confirmed=True, activity=activity1)
+	    groupMember.save()
+    return
