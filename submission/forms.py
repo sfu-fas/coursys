@@ -105,7 +105,7 @@ class SubmissionForm(ModelForm):
     def check_filename(self, data):
         # check if the submitted file matches specified file name
         specified_filename = self.component.specified_filename.strip()
-        if specified_filename and len(specified_name) > 0 and data.name != specified_filename:
+        if specified_filename and len(specified_filename) > 0 and data.name != specified_filename:
             raise forms.ValidationError('File name incorrect.  It must be "%s".' % (specified_filename))
 
         # check for duplicate file names

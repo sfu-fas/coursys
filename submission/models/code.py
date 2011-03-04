@@ -81,7 +81,7 @@ class Code:
     class ComponentForm(submission.forms.ComponentForm):
         class Meta:
             model = CodeComponent
-            fields = ['title', 'description', 'max_size', 'allowed', 'deleted']
+            fields = ['title', 'description', 'max_size', 'allowed', 'deleted', 'specified_filename']
         
         def __init__(self, *args, **kwargs):
             super(Code.ComponentForm, self).__init__(*args, **kwargs)

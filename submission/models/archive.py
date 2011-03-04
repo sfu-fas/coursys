@@ -60,7 +60,7 @@ class Archive:
     class ComponentForm(submission.forms.ComponentForm):
         class Meta:
             model = ArchiveComponent
-            fields = ['title', 'description', 'max_size', 'deleted']
+            fields = ['title', 'description', 'max_size', 'deleted', 'specified_filename']
             # widgets = {
             #     'description': Textarea(attrs={'cols': 50, 'rows': 5}),
             #     'max_size': TextInput(attrs={'style':'width:5em'}),

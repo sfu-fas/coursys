@@ -59,7 +59,7 @@ class Word:
     class ComponentForm(submission.forms.ComponentForm):
         class Meta:
             model = WordComponent
-            fields = ['title', 'description', 'max_size', 'deleted']
+            fields = ['title', 'description', 'max_size', 'deleted', 'specified_filename']
         def __init__(self, *args, **kwargs):
             super(Word.ComponentForm, self).__init__(*args, **kwargs)
             self.fields['description'].widget = Textarea(attrs={'cols': 50, 'rows': 5})
