@@ -57,7 +57,7 @@
             <div id="submission_form_container">
             <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
                 <fieldset>
-                    <legend>Activity Submission</legend>
+                    <legend>New Submission</legend>
                     {% for data in component_form_list %}
                         <h2>{{data.comp.title}}</h2>
                         {% if data.comp.description %}<div><label>Description:</label><p>{{data.comp.description}}</p></div>{% endif %}

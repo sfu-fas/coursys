@@ -56,12 +56,6 @@ class SubmissionForm(ModelForm):
     # e.g. "thisform.component = URLComponent.objects...."
     # This is automatically handled by make_form_from_list
     component = None
-    """
-    self.submitted_components points to submitted components for this activity.
-    This value will be assigned in views.py for now, as I cannot import 'get_current_submission' here (import error)
-    """
-    #TODO: better way to do this? Say, resolve the import cycle?
-    # submitted_components = None
     
     class Meta:
         model = SubmittedComponent
@@ -108,15 +102,6 @@ class SubmissionForm(ModelForm):
         if specified_filename and len(specified_filename) > 0 and data.name != specified_filename:
             raise forms.ValidationError('File name incorrect.  It must be "%s".' % (specified_filename))
 
-        # check for duplicate file names
-        # for i in self.submitted_components[1]:
-        #    # if different components
-        #    if i[0] != self.component:
-        #        # if has submitted before, if it's a file, and if with the same file name
-        #        if i[1] and hasattr(i[1], 'get_filename') and data.name == i[1].get_filename():
-        #            raise forms.ValidationError('You already have a file "%s" in other parts of the submission. Please rename and resubmit.' % data.name)
-
-    
     def check_uploaded_data(self, data):
         if self.check_is_empty(data):
             raise forms.ValidationError("No file submitted.")

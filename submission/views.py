@@ -14,6 +14,7 @@ from datetime import *
 from marking.views import marking_student, marking_group
 from groups.models import Group, GroupMember
 from log.models import LogEntry
+from django.forms.util import ErrorList
 
 
 @login_required
@@ -91,52 +92,67 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
             messages.add_message(request, messages.ERROR, "This is a group submission. You cannot submit since you aren't in a group.")
             return ForbiddenResponse(request)
         new_sub.activity = activity
-        all_okay = True
 
+        # begin validating uploaded data
+        submitted_comp = []
+        not_submitted_comp = []
+        # validate forms one by one
         for data in component_form_list:
             component = data['comp']
             form = data['form']
-
-            #TODO: see the notes in forms.py, SubmissionForm.submitted_components
-            # form.submitted_components = get_current_submission(student, activity)
-
-            #form[1].component = form[0]
             if form.is_valid():
-                #save the foreign submission first at the first time a submission component is read in
-
                 sub = form.save(commit=False)
-                sub.submission = new_sub
                 sub.component = component
-
                 submitted_comp.append(sub)
-
-        # check duplicate filenames here
-
-        if no_duplicate_filenames:
-            new_sub.save()
-            for sub in submitted_comp:
-                sub.save()
-                #LOG EVENT#
-                if activity.group:
-                    group_str = " as a member of group %s" % new_sub.group.name
-                else:
-                    group_str = ""
-                l = LogEntry(userid=request.user.username,
-                      description=("submitted for %s %s" + group_str) % (activity, sub.component.title),
-                      related_object=sub)
-                l.save()
             else:
                 not_submitted_comp.append(component)
-        else:
-            # display submission_error.html with some message about duplicate filenames
-            pass
+        # check duplicate filenames here
+        all_ok = False
+        while not all_ok:
+            all_ok = True
+            d = {}
+            for c,s in submitted_components:
+                d[c] = s and s.get_filename()
+            for s in submitted_comp:
+                d[s.component] = s.get_filename()
+            # a list holding all file names
+            file_name_list = [a[1] for a in d.items() if a[1] is not None]
+            to_be_removed = []
+            for (i, s) in enumerate(submitted_comp):
+                if file_name_list.count(s.get_filename()) > 1:
+                    all_ok = False
+                    to_be_removed.append(i)
+                    not_submitted_comp.append(s.component)
+                    #HACK: modify the 'errors' field in the form
+                    for data in component_form_list:
+                        if s.component == data['comp']:
+                            # assume we have only one field for submission form
+                            field_name = data['form'].fields.keys()[0]
+                            data['form']._errors[field_name] = ErrorList([u"This file has the same name as another file in your submission."])
+            # remove those has errors in submitted_comp
+            to_be_removed.reverse()
+            for t in to_be_removed:
+                submitted_comp.pop(t)
+        # all okay now
+        # end validating, begin saving
+        if len(submitted_comp) > 0:
+            new_sub.save()    
+        for sub in submitted_comp:
+            sub.submission = new_sub
+            sub.save()
+            #LOG EVENT#
+            if activity.group:
+                group_str = " as a member of group %s" % new_sub.group.name
+            else:
+                group_str = ""
+            l = LogEntry(userid=request.user.username,
+                  description=("submitted for %s %s" + group_str) % (activity, sub.component.title),
+                  related_object=sub)
+            l.save()
 
         if len(not_submitted_comp) == 0:
             messages.add_message(request, messages.SUCCESS, "Your submission was successful.")
             return HttpResponseRedirect(reverse(show_components, args=[course_slug, activity_slug]))
-
-        submission, submitted_components = get_current_submission(student, activity, include_deleted=staff)
-        _check_file_name(request, submitted_components)
 
         return render_to_response("submission/submission_error.html",
             {"course":course, "activity":activity, "component_list":component_form_list,
@@ -145,29 +161,11 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
     else: #not POST
         if activity.group and gm:
             messages.add_message(request, messages.INFO, "This is a group submission. You will submit on behalf of the group %s." % group.name)
-    
-        _check_file_name(request, submitted_components)
         
         component_form_list = make_form_from_list(component_list)
         return render_to_response("submission/" + template,
         {'component_form_list': component_form_list, "course": course, "activity": activity, "submission": submission, "submitted_components":submitted_components, "userid":userid, "late":late, "student":student, "group":group, "cansubmit":cansubmit, "is_staff":staff},
         context_instance = RequestContext(request))
-
-def _check_file_name(request, submitted_components):
-    """ warn if there are files with the same name """
-    sc_names = {}
-    for sc in submitted_components:
-        if sc[1] and hasattr(sc[1], 'get_filename'):
-            fn = sc[1].get_filename()
-            if fn in sc_names: sc_names[fn] += 1
-            else: sc_names[fn] = 1
-    if len(sc_names) > 0:
-        msg = "There are files with the same name in the submission:"
-        for i in sc_names:
-            msg = "%s %d files named %s," % (msg, sc_names[i], i)
-        msg = msg[:-1] + '.' 
-        messages.add_message(request, messages.WARNING, msg)
-
 
 @requires_course_by_slug
 def show_components_submission_history(request, course_slug, activity_slug, userid=None):
