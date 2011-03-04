@@ -2,7 +2,7 @@ from models import *
 from django.forms import ModelForm
 from django import forms
 from django.forms.models import BaseModelFormSet
-from grades.models import FLAG_CHOICES, CalNumericActivity,LETTER_GRADE_CHOICES_IN
+from grades.models import FLAG_CHOICES, CalNumericActivity,LETTER_GRADE_CHOICES_IN,LETTER_GRADE_CHOICES_IN2
 
 
 class ActivityComponentMarkForm(ModelForm):
@@ -227,7 +227,7 @@ class MarkEntryForm_LetterGrade(forms.Form):
     
     def clean_value(self):
         grade = self.cleaned_data['value']
-        if grade not in LETTER_GRADE_CHOICES_IN:
+        if grade not in LETTER_GRADE_CHOICES_IN2:
             raise forms.ValidationError(u'Invalid letter grade.')
         return grade
 
