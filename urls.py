@@ -68,6 +68,7 @@ urlpatterns += patterns('',
 	
 #---------------------------------------
     url(r'^$', 'dashboard.views.index'),
+        url(r'^m/$', 'mobile.views.index'),
     url(r'^' + 'news/$', 'dashboard.views.news_list'),
     url(r'^' + 'news/configure$', 'dashboard.views.news_config'),
     url(r'^' + 'news/configure/new$', 'dashboard.views.create_news_url'),

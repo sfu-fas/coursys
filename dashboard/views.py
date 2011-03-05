@@ -35,24 +35,31 @@ def _display_membership(m, today, student_cutoff):
 @login_required
 def index(request):
     userid = request.user.username
+    memberships = _get_memberships(userid)
+    news_list = _get_news_list(userid, 5)
+    roles = _get_roles(userid)
+
+    context = {'memberships': memberships ,'news_list': news_list, 'roles': roles}
+    return render_to_response("dashboard/index.html",context,context_instance=RequestContext(request))
+
+def _get_memberships(userid):
     today = datetime.date.today()
     past1 = today.replace(year=today.year-1) # 1 year ago
     past2 = today.replace(year=today.year-2) # 2 years ago
-    past_1mo = datetime.datetime.today() - datetime.timedelta(days=30) # 1 month ago
-
     memberships = Member.objects.exclude(role="DROP").exclude(offering__component="CAN") \
             .filter(offering__graded=True, person__userid=userid) \
             .filter(offering__semester__end__gte=past2) \
             .annotate(num_activities=Count('offering__activity')) \
             .select_related('offering','offering__semester')
     memberships = [m for m in memberships if _display_membership(m, today, past1)]
+    return memberships
 
-    news_list = NewsItem.objects.filter(user__userid=userid, updated__gte=past_1mo).order_by('-updated').select_related('course')[:5]
-    roles = set((r.role for r in Role.objects.filter(person__userid=userid)))
+def _get_roles(userid):
+    return set((r.role for r in Role.objects.filter(person__userid=userid)))
 
-    context = {'memberships': memberships ,'news_list': news_list, 'roles': roles}
-    return render_to_response("dashboard/index.html",context,context_instance=RequestContext(request))
-
+def _get_news_list(userid, count):
+    past_1mo = datetime.datetime.today() - datetime.timedelta(days=30) # 1 month ago
+    return NewsItem.objects.filter(user__userid=userid, updated__gte=past_1mo).order_by('-updated').select_related('course')[:count]
 
 @requires_course_staff_by_slug
 def new_message(request, course_slug):
