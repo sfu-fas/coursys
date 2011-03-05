@@ -1,1 +1,51 @@
-/* empty for now */
+#absWrapper {
+    border-top: 2em solid #B5111A;
+}
+
+#container {
+    margin: 0 auto 0 auto;
+    padding: 1em 2em 1.5em 1em;
+    background-color: white;
+    border-left: 1em solid #cdcdc7;
+}
+
+#container a {
+    color: #0054A6;
+    text-decoration: none;
+}
+
+/* styles of titles, texts, etc. */
+body {
+    margin: 0px;
+    padding:  0px;
+    background-color: #A7A8A0;
+    font-family: 'Lucida Grande', Lucida, Helvetica, Arial, Verdana, sans-serif;
+    font-size: 11px;
+}
+h1 {
+    color: #b5111b;
+    font: bold 1.4em/1.8em "Lucida Grande", Lucida, Arial, Verdana, sans-serif;
+}
+
+h2 {
+    color: #555;
+    font: bold 1.2em/1.3em "Lucida Grande", Lucida, Arial, Verdana, sans-serif;
+}
+
+h3 {
+    color: #777;
+    font: 1.1em/1.4em "Lucida Grande", Lucida, Arial, Verdana, sans-serif;
+}
+
+h4 {
+    color: #555;
+    font: 1.1em/1.4em arial, helvetica, verdana, sans-serif;
+    padding-top: .6em;
+    border-top: 1px dashed #ccc;
+}
+a img {
+    border-style: none;
+}
+.hidden {
+    display: none;
+}
