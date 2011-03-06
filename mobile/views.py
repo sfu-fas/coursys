@@ -79,8 +79,6 @@ def _course_info_staff(request, course_slug):
             grades_list = activity.lettergrade_set.filter().select_related('member__person', 'activity')
         grade_count = len(grades_list)
 
-        print count, sub_count, grade_count
-        #TODO: Calculate how many student has submitted the assignment
         activities_info.append({'activity':activity, 'count':count,'sub_count':sub_count, 'student_count':student_count,
                             'grade_count': grade_count, 'passdue':passdue})
         
