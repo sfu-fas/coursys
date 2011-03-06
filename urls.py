@@ -78,6 +78,7 @@ urlpatterns += patterns('',
     url(r'^' + 'docs/(?P<doc_slug>' + SLUG_RE + ')$', 'dashboard.views.view_doc'),
 
     url(r'^' + COURSE_SLUG + '/$', 'grades.views.course_info'),
+        url(r'^m/' + COURSE_SLUG + '/$', 'mobile.views.course_info'),
     url(r'^' + COURSE_SLUG + '/_reorder_activity$', 'grades.views.reorder_activity'),
     url(r'^' + COURSE_SLUG + '/_new_message$', 'dashboard.views.new_message'),
     url(r'^' + COURSE_SLUG + '/_url$', 'grades.views.course_url'),

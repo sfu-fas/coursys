@@ -127,7 +127,10 @@ class ActivityForm(forms.Form):
 
 class NumericActivityForm(ActivityForm):
     def __init__(self, *args, **kwargs):
-        tmp_act_list = kwargs.pop('previous_activities')
+        try:
+            tmp_act_list = kwargs.pop('previous_activities')
+        except:
+            tmp_act_list = [(None, 'Not available'),]
         super(NumericActivityForm, self).__init__(*args, **kwargs)
         self.fields['extend_group'].choices = tmp_act_list
         

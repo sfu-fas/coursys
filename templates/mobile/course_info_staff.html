@@ -1,0 +1,52 @@
+{% extends "mobile/base.html" %}
+{% load mobile_tags %}
+
+{% block title %}Course Management System{% endblock %}
+{% block h1 %}
+{{course.subject}} {{course.number}} {{course.section}} {% endblock %}
+{% block content%}
+
+
+<div class="datatable_container">
+
+    <h2>Course Activities</h2>
+    {% for activity_info in activities_info %}
+        {% with activity_info.activity as activity %}
+            {% comment %}
+                <a href="{% url mobile.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">
+            {% endcomment %}
+            <a href="{% url mobile.views.course_info course_slug=course.slug %}">{{activity.name}}</a>
+            <ul>
+                <li>
+                    Status: {{ activity.get_status_display }}
+                </li>
+                {% if activity.due_date %}
+                <li>
+                    Due Date: {{ activity.due_date }}
+                    {% if activity_info.passdue %}
+                    {% endif %}
+                </li>
+                {% endif %}
+                {% if activity.submitable %}
+                <li>
+                    Submitted: {{activity_info.sub_count}}/{{activity_info.count}}
+                    {% if activity.group %}
+                        groups
+                    {% else %}
+                        students
+                    {% endif %}
+                </li>
+                {% endif %}
+                {% if activity_info.passdue or activity_info.grade_count %}
+                <li>
+                    Graded: {{activity_info.grade_count}}/{{activity_info.student_count}} students
+                </li>
+                {% endif %}
+
+            </ul>
+        {% endwith %}
+        {% empty %}
+
+    {% endfor %}
+</div>
+{% endblock %}
