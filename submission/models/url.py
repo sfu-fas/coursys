@@ -36,9 +36,9 @@ class SubmittedURL(SubmittedComponent):
             content += "http://"
         content += self.url
         content += '"></head><body>' \
-            + 'If redirecting doesn\' work, click the link <a href="' \
+            + 'If redirecting doesn\'t work, click the link <a href="' \
             + escape(self.url) + '">' + escape(self.url) + '</a>' \
-            + '</body></html>'
+            + '</body></html>\n'
         fn = self.component.slug+".html"
         if prefix:
             fn = os.path.join(prefix, fn)

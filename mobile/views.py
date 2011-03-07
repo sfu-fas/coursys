@@ -2,6 +2,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.template import RequestContext
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.gzip import gzip_page
 from courselib.auth import *
 from grades.models import ACTIVITY_STATUS, all_activities_filter, Activity
 from groups.models import *
@@ -11,6 +12,7 @@ from datetime import datetime
 from dashboard.views import _get_memberships, _get_news_list, _get_roles
 
 @login_required
+@gzip_page
 def index(request):
     userid = request.user.username
     memberships = _get_memberships(userid)
@@ -22,6 +24,7 @@ def index(request):
         context, context_instance=RequestContext(request));
 
 @login_required
+@gzip_page
 def course_info(request,course_slug):
     if is_course_student_by_slug(request.user, course_slug):
         return _course_info_student(request, course_slug)
