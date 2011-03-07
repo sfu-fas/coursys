@@ -1,14 +1,15 @@
 {% extends "base.html" %}
+{% load form_display %}
 
 {% block title %}Edit Dishonesty Template "{{template.label}}"{% endblock %}
 {% block h1 %}Edit Dishonesty Template "{{template.label}}"{% endblock %}
 
 {% block headextra %}
+<script type="text/javascript" src="{{MEDIA_URL}}js/discipline.js"></script>
 <script type="text/javascript">
 function confirmSubmit() {
   return confirm("Are you sure you want to delete this template?");
 }
-
 </script>
 {% endblock %}
 
@@ -19,19 +20,18 @@ function confirmSubmit() {
 {% block content %}
 <div id="form_container">
     <form action="{% url discipline.views.edit_template template_id=template.id %}" method="post">{% csrf_token %}
-    {{ form.as_p }}
-    <p><input type="submit" value="Update Template" /></p>
+    <fieldset>
+    <legend>Template Details</legend>
+    {{ form|as_dl_safe }}
+    <p><input type="submit" class="submit" value="Update Template" /></p>
+    </fieldset>
     </form>
 
     <form action="{% url discipline.views.delete_template template_id=template.id %}" method="post" name="deleteform">{% csrf_token %}
-    <p><input type="submit" value="Delete Template" id="deletesubmit" onclick="return confirmSubmit();" /></p>
+    <p><input type="submit" class="submit" value="Delete Template" id="deletesubmit" onclick="return confirmSubmit();" /></p>
     </form>
+</div>
 
-<h2 id="subs">Substitutions</h2>
-<p>The following substitutions will be made within the template:</p>
 {% include "discipline/substitutions.html" %}
 
-
-
-</div>
 {% endblock %}

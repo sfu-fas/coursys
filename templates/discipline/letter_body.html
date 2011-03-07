@@ -3,25 +3,29 @@
 This is used and an HTML email body: everything that happens here must work in email clients
 http://en.wikipedia.org/wiki/HTML_e-mail
 {% endcomment %}
-<dl>
-<dt>Course Number</dt>
-  <dd>{{case.offering.subject}} {{case.offering.number}} {{case.offering.section}}</dd>
-<dt>Course Title</dt>
-  <dd>{{case.offering.title}}</dd>
-<dt>Semester</dt>
-  <dd>{{case.offering.semester.label}} ({{case.offering.semester}})</dd>
-<dt>Student's Name</dt>
-  <dd>{{case.student.sortname}}</dd>
-<dt>Student Number</dt>
-  <dd>{% if case.student.emplid %}{{case.student.emplid}}{% else %}unknown{% endif %}</dd>
-<dt>Student's Email</dt>
-  <dd>{{case.student.email}}</dd>
-<dt>Instructor's Name</dt>
-  <dd>{{case.instructor.sortname}}</dd>
-<dt>Student's Email</dt>
-  <dd>{{case.instructor.email}}</dd>
 
-<dt>Meeting with student</dt>
+<table style="width: 100%; border-collapse: collapse;">
+<tr>
+  <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Course:</span> {{case.offering.subject}} {{case.offering.number}}</td>
+  <td colspan="2" style="border: 1px solid black"><span style="font-weight: bold">Title:</span> {{case.offering.title}}</td>
+</tr>
+<tr>
+  <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Section:</span> {{case.offering.section}}</td>
+  <td colspan="2" style="border: 1px solid black"><span style="font-weight: bold">Semester:</span> {{case.offering.semester.label}} ({{case.offering.semester.name}})</td>
+</tr>
+<tr>
+  <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Student Name:</span> {{case.student.sortname}}</td>
+  <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Student Number:</span> {% if case.student.emplid %}{{case.student.emplid}}{% else %}unknown{% endif %}</td>
+  <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Student Email:</span> {{case.student.email}}</td>
+</tr>
+<tr>
+  <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Instructor:</span> {{case.instructor.sortname}}</td>
+  <td colspan="2" style="border: 1px solid black"><span style="font-weight: bold">Instructor Email:</span> {{case.instructor.email}}</td>
+</tr>
+</table>
+
+<dl>
+<dt style="font-weight: bold">Meeting with student</dt>
   <dd>
     {% if case.response == "NONE" %}
     <p>No response from student.</p>
@@ -36,9 +40,9 @@ http://en.wikipedia.org/wiki/HTML_e-mail
     {% endif %}{% endif %}{% endif %}{% endif %}
   </dd>
   <dd>{{case.meeting_text}}</dd>
-<dt>Facts of the case</dt>
+<dt style="font-weight: bold">Facts of the case</dt>
   <dd>{{case|format_field:'facts'}}</dd>
-<dt>Penalty assigned by instructor</dt>
+<dt style="font-weight: bold">Penalty assigned by instructor</dt>
   <dd>
   {% if case.penalty_reason %}
   <p>Penalty: {{case.get_instr_penalty_display}}.</p>{{case|format_field:'penalty_reason'}}
@@ -46,11 +50,11 @@ http://en.wikipedia.org/wiki/HTML_e-mail
    <p>{{case.get_instr_penalty_display|capfirst}}.</p>
   {% endif %}
   </dd>
-<dt>Case referred to Chair/Director?</dt>
+<dt style="font-weight: bold">Case referred to Chair/Director?</dt>
   <dd><p>{{case.get_refer_chair_display}}</p></dd>
 <p>This report will be retained by the University and, in the event of any further reports of academic dishonesty, it may be used to determine a penalty for the subsequent academic dishonesty.</p>
 {% if case.public_attachments %}
-<dt>Enclosed</dt>
+<dt style="font-weight: bold">Enclosed</dt>
   <dd><ul>
   {% for f in case.public_attachments %}
   <li>{{f.name}} ({{f.filename}}, {{f.attachment.size|filesizeformat}})</li>

@@ -4,7 +4,7 @@ from django.utils.html import escape
 register = template.Library()
 
 @register.filter
-def as_dl(form):
+def as_dl(form, safe=False):
     """
     Output a Form as a nice <dl>
     """
@@ -27,11 +27,21 @@ def as_dl(form):
         out.append(unicode(field.errors))
         out.append('<div class="field">%s</div>' % (unicode(field)))
         if field.help_text:
-            out.append('<div class="helptext">%s</div>' % (escape(field.help_text)))
+            if safe:
+                out.append('<div class="helptext">%s</div>' % (field.help_text))
+            else:
+                out.append('<div class="helptext">%s</div>' % (escape(field.help_text)))
         out.append('</dd>')
     
     out.append('</dl>')
     if reqcount > 0:
         out.append('<p class="helptext"><span class="required">*</span> This field is required.</p>')
     return mark_safe('\n'.join(out))
+
+@register.filter
+def as_dl_safe(form):
+    """
+    Like as_dl, but assumes helptext is a safe string
+    """
+    return as_dl(form, safe=True)
 

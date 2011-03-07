@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load form_display %}
 
 {% block title %}New Dishonesty Case{% endblock %}
 {% block h1 %}New Dishonesty Case{% endblock %}
@@ -11,8 +12,11 @@
 <p>This form can be used to create a case for someone who is not a student in this course.</p>
 <div id="form_container">
     <form action="{% url discipline.views.new_nonstudent course_slug=course.slug %}" method="post">{% csrf_token %}
-    {{ form.as_p }}
-    <p><input type="submit" value="Create Case" /></p>
+    <fieldset>
+    <legend>Dishonesty Case</legend>
+    {{ form|as_dl_safe }}
+    <p><input type="submit" class="submit" value="Create Case" /></p>
+    </fieldset>
     </form>
 </div>
 {% endblock %}

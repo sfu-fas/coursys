@@ -485,7 +485,7 @@ class DisciplineTemplate(models.Model):
     label = models.CharField(max_length=50, null=False,
             verbose_name="Label", help_text="A short label for the menu of templates")
     text = models.TextField(blank=True, null=True,
-            verbose_name="Text", help_text='"The text for the template.  Templates can contain <a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a> (except the initial contact email) and substitutions described below.')
+            verbose_name="Text", help_text='The text for the template.  Templates can contain '+TEXTILENOTE+' (except the initial contact email) and substitutions described below.')
     class Meta:
         unique_together = (("field", "label"),)
     def __unicode__(self):

@@ -23,6 +23,8 @@
 
     <p>{{ form.penalty_implemented.help_text }} {{ form.penalty_implemented }}</p>
     {{ form.penalty_implemented.errors }}
+    
+    <p class="helptext">Note: stated penalty was &ldquo;{{case.get_instr_penalty_display}}&rdquo;.</p>
     <p><input type="submit" value="Update Penalty Status" /></p>
     </form>
 </div>
