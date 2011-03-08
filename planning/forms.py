@@ -3,18 +3,7 @@ from planning.models import *
 import re
 
 section_re = re.compile("^[A-Z]\d\d\d$")
-LAB_SECTION_CHOICES = (
-    ('0', '0'),
-    ('1', '1'),
-    ('2', '2'),
-    ('3', '3'),
-    ('4', '4'),
-    ('5', '5'),
-    ('6', '6'),
-    ('7', '7'),
-    ('8', '8'),
-    ('9', '9'),
-)
+LAB_SECTION_CHOICES = [(str(i), str(i)) for i in range(16)]
 
 class ModelFormWithInstructor(forms.ModelForm):
     def clean(self):
