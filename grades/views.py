@@ -8,9 +8,9 @@ from django.db.models.aggregates import Max
 from coredata.models import Member, CourseOffering, Person, Role
 from courselib.auth import *
 from grades.models import ACTIVITY_STATUS, all_activities_filter, Activity, \
-                        NumericActivity, LetterActivity, CalNumericActivity, ACTIVITY_TYPES
+                        NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity,ACTIVITY_TYPES
 from grades.forms import NumericActivityForm, LetterActivityForm, CalNumericActivityForm, \
-                         ActivityFormEntry, FormulaFormEntry, StudentSearchForm, FORMTYPE, GROUP_STATUS_MAP, URLForm
+                         ActivityFormEntry, FormulaFormEntry, StudentSearchForm, FORMTYPE, GROUP_STATUS_MAP, URLForm, CalLetterActivityForm
 from grades.models import *
 from grades.utils import StudentActivityInfo, reorder_course_activities, create_StudentActivityInfo_list, \
                         ORDER_TYPE, FormulaTesterActivityEntry, FakeActivity, generate_numeric_activity_stat
@@ -417,6 +417,46 @@ def add_cal_numeric_activity(request, course_slug):
         form = CalNumericActivityForm()
     context = {'course': course, 'form': form, 'numeric_activities': numeric_activities, 'form_type': FORMTYPE['add']}
     return render_to_response('grades/cal_numeric_activity_form.html', context, context_instance=RequestContext(request))
+
+######################################YU LIU####################################3
+@requires_course_staff_by_slug
+def add_cal_letter_activity(request, course_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    letter_activities = LetterActivity.objects.filter(offering=course)
+    
+    if request.method == 'POST': # If the form has been submitted...
+        form = CalLetterActivityForm(request.POST) # A form bound to the POST data
+        form.activate_addform_validation(course_slug)
+        if form.is_valid(): # All validation rules pass
+            try:
+                aggr_dict = Activity.objects.filter(offering=course).aggregate(Max('position'))
+                if not aggr_dict['position__max']:
+                    position = 1
+                else:
+                    position = aggr_dict['position__max'] + 1
+                CalLetterActivity.objects.create(name=form.cleaned_data['name'],
+                                                short_name=form.cleaned_data['short_name'],
+                                                status=form.cleaned_data['status'],
+                                                url=form.cleaned_data['url'],
+                                                formula=form.cleaned_data['formula'],
+                                                offering=course, 
+                                                position=position,
+                                                group=False)
+            except NotImplementedError:
+                return NotFoundResponse(request)
+            
+            messages.success(request, 'New activity "%s" added' % form.cleaned_data['name'])
+            return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
+        else:
+            messages.error(request, "Please correct the error below")
+    else:
+        form = CalLetterActivityForm()
+    context = {'course': course, 'form': form, 'letter_activities': letter_activities, 'form_type': FORMTYPE['add']}
+    return render_to_response('grades/cal_letter_activity_form.html', context, context_instance=RequestContext(request))
+######################################################################################333
+
+
+
 
 @requires_course_staff_by_slug
 def formula_tester(request, course_slug):

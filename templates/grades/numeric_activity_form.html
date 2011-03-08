@@ -50,6 +50,7 @@ $(document).ready(function() {
     <li class="current"><a href="{% url grades.views.add_numeric_activity course_slug=course.slug %}">Numeric Graded Activity</a></li>
     <li><a href="{% url grades.views.add_letter_activity course_slug=course.slug %}">Letter Graded Activity</a></li>
     <li><a href="{% url grades.views.add_cal_numeric_activity course_slug=course.slug %}">Calculated Numeric Activity</a></li>
+    <li><a href="{% url grades.views.add_cal_letter_activity course_slug=course.slug %}">Calculated Numeric Activity</a></li>
 </ul>
 {% endifequal %}
 <div id="form_container">

@@ -102,6 +102,9 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_SLUG + '/_new_numeric$', 'grades.views.add_numeric_activity'),
     url(r'^' + COURSE_SLUG + '/_new_letter$', 'grades.views.add_letter_activity'),
     url(r'^' + COURSE_SLUG + '/_new_cal_numeric$', 'grades.views.add_cal_numeric_activity'),
+    ######################################### Henry Added ########################################
+    url(r'^' + COURSE_SLUG + '/_new_cal_letter$', 'grades.views.add_cal_letter_activity'),
+    ######################################### Henry Added ########################################
     url(r'^' + COURSE_SLUG + '/_formula_tester$', 'grades.views.formula_tester'),
     url(r'^' + COURSE_SLUG + '/_students/$', 'grades.views.student_search'),
     url(r'^' + COURSE_SLUG + '/_students/' + USERID_SLUG + '$', 'grades.views.student_info'),

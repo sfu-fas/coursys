@@ -206,7 +206,41 @@ class CalNumericActivityForm(ActivityForm):
                 except ValidationError as e:
                     raise forms.ValidationError(e.args[0])
         return formula
-       
+#################################################YU LIU Added#############################
+class CalLetterActivityForm(ActivityForm):
+    # default status is invisible
+    status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='INVI',
+                               label=mark_safe('Status:' + _required_star),
+                               help_text='visibility of grades/activity to students')
+    
+    formula = forms.CharField(max_length=250, label=mark_safe('Formula:'+_required_star),
+                    help_text='parsed formula to calculate final numeric grade',
+                    widget=forms.Textarea(attrs={'rows':'6', 'cols':'40'}))
+    letter_cutoffs = forms.CharField(max_length=500, help_text='parsed formula to calculate final letter grade')
+
+    
+    def activate_addform_validation(self, course_slug):
+        super(CalLetterActivityForm, self).activate_addform_validation(course_slug)
+        self._course_letter_activities = LetterActivity.objects.filter(offering__slug=course_slug)
+        
+    def activate_editform_validation(self, course_slug, activity_slug):
+        super(CalLetterActivityForm, self).activate_editform_validation(course_slug, activity_slug)
+        self._course_letter_activities = LetterActivity.objects.exclude(slug=activity_slug).filter(offering__slug=course_slug)
+    
+    def clean_formula(self):
+        formula = self.cleaned_data['formula']
+        if formula:
+            if self._addform_validate or self._editform_validate:
+                try:
+                    parse_and_validate_formula(formula, self._course_letter_activities)
+                except ValidationError as e:
+                    raise forms.ValidationError(e.args[0])
+        return formula
+
+
+
+
+##############################################################################################    
 class ActivityFormEntry(forms.Form):
     status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES)
     value = forms.DecimalField(max_digits=5, decimal_places=2, required=False,
