@@ -3,6 +3,18 @@ from planning.models import *
 import re
 
 section_re = re.compile("^[A-Z]\d\d\d$")
+LAB_SECTION_CHOICES = (
+    ('0', '0'),
+    ('1', '1'),
+    ('2', '2'),
+    ('3', '3'),
+    ('4', '4'),
+    ('5', '5'),
+    ('6', '6'),
+    ('7', '7'),
+    ('8', '8'),
+    ('9', '9'),
+)
 
 class ModelFormWithInstructor(forms.ModelForm):
     def clean(self):
@@ -33,8 +45,11 @@ class PlanBasicsForm(forms.ModelForm):
     class Meta:
         model = SemesterPlan
 
+
 class OfferingBasicsForm(forms.ModelForm):
-    lab_sections = forms.CharField()
+
+    #lab_sections = forms.CharField()
+    lab_sections = forms.ChoiceField(choices=LAB_SECTION_CHOICES) 
     def clean_section(self):
         section = self.cleaned_data['section']
         if not section_re.match(section):

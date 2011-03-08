@@ -66,6 +66,7 @@ VISIBILITY_CHOICES = [
     ('INST', 'Instructors'), 
     ('ALL', 'Everybody')]
 
+
 class SemesterPlan(models.Model):
     semester = models.ForeignKey(Semester)
     name = models.CharField(max_length=40, help_text="A name to help you remeber which plan this is.")

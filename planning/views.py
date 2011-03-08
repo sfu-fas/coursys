@@ -190,27 +190,43 @@ def edit_courses(request, semester, plan_slug):
 	plan = get_object_or_404(SemesterPlan, semester__name=semester, slug=plan_slug)
 	planned_courses_list = PlannedOffering.objects.filter(plan=plan)
 	if request.method == 'POST':
-	    form = OfferingBasicsForm(request.POST)
-	    if form.is_valid():
-	        offering = form.save(commit=False)
-	        offering.plan = plan
-	        offering.save()
-	        form.save_m2m()
-	        
-	        #print form.cleaned_data['lab_sections']
-	        
-	        #LOG EVENT#
-                l = LogEntry(userid=request.user.username,
-                      description=("added offering %s in %s") % (offering.course, offering.plan),
-                      related_object=plan)
-                l.save()
-                
-                messages.add_message(request, messages.SUCCESS, 'Added course %s.' % (offering.course))
-	        #return HttpResponseRedirect(reverse('planning.views.admin_index', kwargs={}))
-	    else:
-	        form = OfferingBasicsForm()
+		form = OfferingBasicsForm(request.POST)
+		form2 = form
+		if form.is_valid():
+			offering = form.save(commit=False)
+	        	offering.plan = plan
+	        	num_of_lab = form.cleaned_data['lab_sections']
+	        	offering.save()
+	        	form.save_m2m()
+
+			i = 0
+			num_of_lab = int(num_of_lab)
+			if num_of_lab != 0:
+				while (i < num_of_lab):
+
+					course = form.cleaned_data['course']
+					section = form.cleaned_data['section'][:3] + str(i+1)	
+					component = form.cleaned_data['component']	
+					campus = form.cleaned_data['campus']
+					enrl_cap = form.cleaned_data['enrl_cap']
+
+					added_lab_section = PlannedOffering(plan = plan, course = course, section = section, component = component, campus = campus, enrl_cap = enrl_cap)
+					added_lab_section.save();
+					i = i + 1
+
+	        	#LOG EVENT#
+                	l = LogEntry(userid=request.user.username,
+                	      description=("added offering %s in %s") % (offering.course, offering.plan),
+                	      related_object=plan)
+                	l.save()
+                	
+                	messages.add_message(request, messages.SUCCESS, 'Added course %s.' % (offering.course))
+	        	#return HttpResponseRedirect(reverse('planning.views.admin_index', kwargs={}))
+	    	else:
+	        	form = OfferingBasicsForm()
 	else:
-	    form = OfferingBasicsForm()
+		form = OfferingBasicsForm()
+	
 	
 	return render_to_response("planning/edit_courses.html",{'form':form, 'plan':plan, 'planned_courses_list':planned_courses_list},context_instance=RequestContext(request))
 
