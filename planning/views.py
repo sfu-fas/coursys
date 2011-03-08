@@ -36,11 +36,11 @@ def edit_capability(request):
             capability = form.save()
             
             #LOG EVENT#
-                l = LogEntry(userid=request.user.username,
+            l = LogEntry(userid=request.user.username,
                       description=("added teaching capability %s") % (capability.course.short_str()),
                       related_object=capability)
-                l.save()
-                messages.add_message(request, messages.SUCCESS, 'Added teaching capability %s.' % (capability.course.short_str()))
+            l.save()
+            messages.add_message(request, messages.SUCCESS, 'Added teaching capability %s.' % (capability.course.short_str()))
             return HttpResponseRedirect(reverse('planning.views.edit_capability', kwargs={}))
     else:
         form = CapabilityForm(initial={'instructor':instructor})
@@ -60,11 +60,11 @@ def edit_intention(request):
             intention = form.save()
             
             #LOG EVENT#
-                l = LogEntry(userid=request.user.username,
+            l = LogEntry(userid=request.user.username,
                       description=("added teaching intention for %s") % (intention.semester),
                       related_object=intention)
-                l.save()
-                messages.add_message(request, messages.SUCCESS, 'Added semester plan for %s.' % (intention.semester))
+            l.save()
+            messages.add_message(request, messages.SUCCESS, 'Added semester plan for %s.' % (intention.semester))
             return HttpResponseRedirect(reverse('planning.views.edit_intention', kwargs={}))
     else:
         form = IntentionForm(initial={'instructor':instructor})
@@ -133,11 +133,11 @@ def add_plan(request):
             plan = form.save()
             
             #LOG EVENT#
-                l = LogEntry(userid=request.user.username,
+            l = LogEntry(userid=request.user.username,
                       description=("created course plan %s in %s") % (plan.name, plan.semester),
                       related_object=plan)
-                l.save()
-                messages.add_message(request, messages.SUCCESS, 'New plan "%s" created.' % (plan.name))
+            l.save()
+            messages.add_message(request, messages.SUCCESS, 'New plan "%s" created.' % (plan.name))
             return HttpResponseRedirect(reverse('planning.views.admin_index', kwargs={}))
     else:
         form = PlanBasicsForm()
@@ -153,15 +153,15 @@ def edit_plan(request, semester, plan_slug):
             plan = form.save()
             
             #LOG EVENT#
-                l = LogEntry(userid=request.user.username,
+            l = LogEntry(userid=request.user.username,
                       description=("created course plan %s in %s") % (plan.name, plan.semester),
                       related_object=plan)
-                l.save()
+            l.save()
                 
-                messages.add_message(request, messages.SUCCESS, 'Plan "%s" updated.' % (plan.name))
+            messages.add_message(request, messages.SUCCESS, 'Plan "%s" updated.' % (plan.name))
             return HttpResponseRedirect(reverse('planning.views.admin_index', kwargs={}))
     else:
-        form = PlanBasicsForm(instance=plan)
+            form = PlanBasicsForm(instance=plan)
     
     return render_to_response("planning/edit_plan.html",{'form':form, 'plan':plan},context_instance=RequestContext(request))
 
@@ -194,33 +194,32 @@ def edit_courses(request, semester, plan_slug):
         form2 = form
         if form.is_valid():
             offering = form.save(commit=False)
-                offering.plan = plan
-                num_of_lab = form.cleaned_data['lab_sections']
-                offering.save()
-                form.save_m2m()
+            offering.plan = plan
+            num_of_lab = form.cleaned_data['lab_sections']
+            offering.save()
+            form.save_m2m()
 
             i = 0
             num_of_lab = int(num_of_lab)
             if num_of_lab != 0:
-                while (i < num_of_lab):
+                for i in range(num_of_lab):
 
                     course = form.cleaned_data['course']
-                    section = form.cleaned_data['section'][:3] + str(i+1)    
-                    component = form.cleaned_data['component']    
+                    section = form.cleaned_data['section'][:2] + "%02i" % (i+1)    
+                    component = "LAB"    
                     campus = form.cleaned_data['campus']
                     enrl_cap = form.cleaned_data['enrl_cap']
 
                     added_lab_section = PlannedOffering(plan = plan, course = course, section = section, component = component, campus = campus, enrl_cap = enrl_cap)
                     added_lab_section.save();
-                    i = i + 1
 
                 #LOG EVENT#
-                    l = LogEntry(userid=request.user.username,
-                          description=("added offering %s in %s") % (offering.course, offering.plan),
-                          related_object=plan)
-                    l.save()
+                l = LogEntry(userid=request.user.username,
+                      description=("added offering %s in %s") % (offering.course, offering.plan),
+                      related_object=plan)
+                l.save()
                     
-                    messages.add_message(request, messages.SUCCESS, 'Added course %s.' % (offering.course))
+                messages.add_message(request, messages.SUCCESS, 'Added course %s.' % (offering.course))
                 #return HttpResponseRedirect(reverse('planning.views.admin_index', kwargs={}))
             else:
                 form = OfferingBasicsForm()
@@ -341,10 +340,10 @@ def delete_plan(request, semester, plan_slug):
         plan.delete()
         
         #LOG EVENT#
-            l = LogEntry(userid=request.user.username,
+        l = LogEntry(userid=request.user.username,
                   description=("deleted course plan %s in %s") % (plan.name, plan.semester),
                   related_object=request.user)
-            l.save()
+        l.save()
 
         messages.add_message(request, messages.SUCCESS, 'Plan Deleted.')
     return HttpResponseRedirect(reverse(admin_index))
