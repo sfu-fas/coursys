@@ -1,6 +1,7 @@
 from planning.models import *
 from planning.forms import *
-from courselib.auth import requires_instructor, requires_role
+from courselib.auth import requires_instructor
+from courselib.auth import requires_global_role as requires_role
 from django.db.models import Q
 from coredata.models import Person, Role, Semester, Member, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES 
 from log.models import LogEntry

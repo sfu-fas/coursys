@@ -9,9 +9,9 @@
 <p>These people are listed as the instructor of one or more courses, but do not have an appropriate role within the system.  These missing roles will prevent these people from using the course planning module.</p>
 <form action="{% url coredata.views.missing_instructors %}" method="post">{% csrf_token %}{{ formset.management_form }}
 <table>
-<thead><tr><th scope="col">Person</th><th scope="col">Role</th></tr></thead>
+<thead><tr><th scope="col">Person</th><th scope="col">Role</th><th scope="col">Department</th></tr></thead>
 {% for f in formset.forms %}
-<tr><td scope="row">{{ f.initial.person.name }}</td><td>{{f.person}}{{f.role}}</td>{% if f.errors %}<td>{{f.errors}}</td>{% endif %}</tr>
+<tr><td scope="row">{{ f.initial.person.name }}</td><td>{{f.person}}{{f.role}}</td><td>{{f.department}}</td>{% if f.errors %}<td>{{f.errors}}</td>{% endif %}</tr>
 {% empty %}
 <tr><td class="empty">No instructors without role</td><td></tr>
 {% endfor %}

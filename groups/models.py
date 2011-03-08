@@ -101,7 +101,6 @@ def add_activity_to_group(activity1, activity2, course):
     """
     copy group settings from activity2 -> activity1
     """
-    print activity1, activity2, course
     groups = Group.objects.filter(courseoffering = course)
     for group in groups:
 	groupMembers = GroupMember.objects.filter(group=group, activity=activity2, confirmed=True)

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load form_display %}
 {% block title %}Course Management System Roles{% endblock %}
 {% block h1 %}Course Management System Roles{% endblock %}
 
@@ -7,8 +8,11 @@
 {% block content %}
 
 <form action="{% url coredata.views.new_role %}" method="post">{% csrf_token %}
-{{ form.as_p }}
-<p><input type="submit" value="Submit" /></p>
+<fieldset>
+<legend>Role</legend>
+{{ form|as_dl }}
+<p><input type="submit" class="submit" value="Submit" /></p>
+</fieldset>
 </form>
 
 

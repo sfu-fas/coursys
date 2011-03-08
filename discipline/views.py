@@ -10,7 +10,7 @@ from grades.models import all_activities_filter, Activity
 from discipline.models import *
 from discipline.forms import *
 from log.models import LogEntry
-from courselib.auth import requires_discipline_user, is_discipline_user, requires_role, NotFoundResponse, ForbiddenResponse
+from courselib.auth import requires_discipline_user, is_discipline_user, requires_global_role, NotFoundResponse, ForbiddenResponse
 from django.contrib.auth.decorators import login_required
 import re
 
@@ -521,7 +521,7 @@ def edit_file(request, course_slug, case_slug, fileid):
 
 # Discipline admin views
 
-@requires_role("DISC")
+@requires_global_role("DISC")
 def all_cases(request):
     cases = DisciplineCaseBase.objects.all()
     cases = [c.subclass() for c in cases]
@@ -534,13 +534,13 @@ def all_cases(request):
 
 # Template editing views for sysadmin interface
 
-@requires_role("SYSA")
+@requires_global_role("SYSA")
 def show_templates(request):
     templates = DisciplineTemplate.objects.all()
     context = {'templates': templates}
     return render_to_response("discipline/show_templates.html", context, context_instance=RequestContext(request))
 
-@requires_role("SYSA")
+@requires_global_role("SYSA")
 def new_template(request):
     if request.method == 'POST':
         form = TemplateForm(request.POST)
@@ -558,7 +558,7 @@ def new_template(request):
     context = {'form': form}
     return render_to_response("discipline/new_template.html", context, context_instance=RequestContext(request))
 
-@requires_role("SYSA")
+@requires_global_role("SYSA")
 def edit_template(request, template_id):
     template = get_object_or_404(DisciplineTemplate, id=template_id)
     if request.method == 'POST':
@@ -577,7 +577,7 @@ def edit_template(request, template_id):
     context = {'template': template, 'form': form}
     return render_to_response("discipline/edit_template.html", context, context_instance=RequestContext(request))
 
-@requires_role("SYSA")
+@requires_global_role("SYSA")
 def delete_template(request, template_id):
     template = get_object_or_404(DisciplineTemplate, id=template_id)
     if request.method == 'POST':

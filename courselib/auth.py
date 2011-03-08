@@ -68,20 +68,20 @@ def requires_advisor(function=None, login_url=None):
     else:
         return actual_decorator
 
-def has_role(role, u, **kwargs):
+def has_global_role(role, u, **kwargs):
     """
     Return True is the given user has the specified role
     """
-    perms = Role.objects.filter(person__userid=u.username, role=role)
+    perms = Role.objects.filter(person__userid=u.username, role=role, department="!!!!")
     count = perms.count()
     return count>0
 
-def requires_role(role, login_url=None):
+def requires_global_role(role, login_url=None):
     """
     Allows access if user has the given role
     """
     def has_this_role(u, **kwargs):
-        return has_role(role, u, **kwargs)
+        return has_global_role(role, u, **kwargs)
         
     actual_decorator = user_passes_test(has_this_role, login_url=login_url)
     return actual_decorator

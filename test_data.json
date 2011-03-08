@@ -7243,6 +7243,7 @@
 
 
 
+
  {
   "fields": {
    "campus": "BRNBY", 
@@ -9168,6 +9169,7 @@
   "fields": {
    "campus": "BRNBY", 
    "class_nbr": 7182, 
+
    "component": "LAB", 
    "crse_id": 11547, 
    "enrl_cap": 26, 
@@ -11143,6 +11145,7 @@
    "last_name": "Student", 
    "middle_name": "X", 
    "pref_first_name": "Ff", 
+
    "userid": "0bbb5"
   }, 
   "model": "coredata.person", 
@@ -17863,7 +17866,8 @@
  {
   "fields": {
    "person": 109,
-   "role": "ADVS" 
+   "role": "ADVS",
+   "department": "CMPT"
   }, 
   "model": "coredata.role", 
   "pk": 1
@@ -17871,7 +17875,8 @@
  {
   "fields": {
    "person": 14,
-   "role": "PLAN" 
+   "role": "PLAN",
+   "department": "!!!!"
   }, 
   "model": "coredata.role", 
   "pk": 3
@@ -17879,7 +17884,8 @@
  {
   "fields": {
    "person": 22, 
-   "role": "SYSA"
+   "role": "SYSA",
+   "department": "!!!!"
   }, 
   "model": "coredata.role", 
   "pk": 2
@@ -18189,6 +18195,7 @@
  },
  "model": "groups.groupmember",
  "pk": 8
+
 },
  {
   "fields": {

@@ -112,7 +112,8 @@ class Semester(models.Model):
         date = base.monday + datetime.timedelta(days=7*(wk-base.week)+wkday)
         # construct the datetime from date and time.
         dt = datetime.datetime(year=date.year, month=date.month, day=date.day, 
-            hour=time.hour, minute=time.minute, second=time.second, microsecond=time.microsecond, tzinfo=time.tzinfo)
+            hour=time.hour, minute=time.minute, second=time.second, 
+            microsecond=time.microsecond, tzinfo=time.tzinfo)
         return dt
 
     class Meta:
@@ -182,9 +183,11 @@ class CourseOffering(models.Model):
 
     members = models.ManyToManyField(Person, related_name="member", through="Member")
     url = models.URLField(verify_exists=True, null=True)
+    department = models.CharField(max_length=4, null=True, blank=True,
+        help_text='The department in charge of this offering.') # used only by discipline module
     
     def autoslug(self):
-        words = [str(s).lower() for s in self.semester, self.subject, self.number, self.section]
+        words = [str(s).lower() for s in self.semester.name, self.subject, self.number, self.section]
         return '-'.join(words)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False)
 
@@ -320,6 +323,7 @@ class Role(models.Model):
     ROLES = dict(ROLE_CHOICES)
     person = models.ForeignKey(Person)
     role = models.CharField(max_length=4, choices=ROLE_CHOICES)
+    department = models.CharField(max_length=4, help_text="Department where this role is relevant, or '!!!!' for global.")
 
     def __unicode__(self):
         return "%s (%s)" % (self.person, self.ROLES[str(self.role)])

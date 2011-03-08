@@ -3,7 +3,7 @@
 from django.http import HttpResponseRedirect
 from courselib.auth import ForbiddenResponse
 from django.contrib.auth.models import User
-from courselib.auth import has_role
+from courselib.auth import has_global_role
 from log.models import LogEntry
 
 from coredata.models import Member
@@ -21,7 +21,7 @@ class ImpersonateMiddleware(object):
             # impersonation requested: check if it's allowed
             userid = request.GET["__impersonate"]
             match = course_path_re.match(request.path)
-            if has_role('SYSA', request.user):
+            if has_global_role('SYSA', request.user):
                 # for sysadmins: yes.
                 pass
             elif match:

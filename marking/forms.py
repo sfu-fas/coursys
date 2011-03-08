@@ -2,7 +2,7 @@ from models import *
 from django.forms import ModelForm
 from django import forms
 from django.forms.models import BaseModelFormSet
-from grades.models import FLAG_CHOICES, CalNumericActivity,LETTER_GRADE_CHOICES_IN,LETTER_GRADE_CHOICES_IN2
+from grades.models import FLAG_CHOICES, CalNumericActivity,LETTER_GRADE_CHOICES_IN
 
 
 class ActivityComponentMarkForm(ModelForm):
@@ -193,7 +193,6 @@ class GradeStatusForm(forms.ModelForm):
         model = NumericGrade
         exclude = ('activity', 'member')
 
-##############################Yu Liu Added#########################################################  
 class GradeStatusForm_LetterGrade(forms.ModelForm):
     def __init__(self, activity=None, *args, **kwargs):
     #    self.activity = activity
@@ -227,7 +226,7 @@ class MarkEntryForm_LetterGrade(forms.Form):
     
     def clean_value(self):
         grade = self.cleaned_data['value']
-        if grade not in LETTER_GRADE_CHOICES_IN2:
+        if grade != '' and grade not in LETTER_GRADE_CHOICES_IN:
             raise forms.ValidationError(u'Invalid letter grade.')
         return grade
 
@@ -241,5 +240,3 @@ class UploadGradeFileForm_LetterGrade(forms.Form):
             raise forms.ValidationError(u"Only .csv files are permitted")
         return file 
 
-
-##############################Yu Liu Added#########################################################  

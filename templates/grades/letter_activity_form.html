@@ -20,6 +20,14 @@ $(document).ready(function() {
     $("#id_due_date_0").datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.png',
                                 changeMonth: true, changeYear: true,
                                 dateFormat: 'yy-mm-dd', showOn: 'button'});
+    $("input[name=group]").click(function(){
+        if($("input[name=group]:checked").val() == '1'){
+            $("#div_id_extend_group").parent().addClass("hidden");
+        } else {
+            $("#div_id_extend_group").parent().removeClass("hidden");
+        }
+    });
+    $("input[name=group]:checked").click();
 });
 </script>
 {% endblock %}

@@ -223,7 +223,7 @@ class GradesTest(TestCase):
         import datetime
         now = datetime.datetime.now()
         due = now + datetime.timedelta(days=7)
-        response = client.post(url, {'name':'Assignment 1', 'short_name':'A1', 'status':'URLS', 'due_date_0':due.strftime('%Y-%m-%d'), 'due_date_1':due.strftime('%H:%M:%S'), 'percent': '10', 'group': '1', 'max_grade': 25})
+        response = client.post(url, {'name':'Assignment 1', 'short_name':'A1', 'status':'URLS', 'due_date_0':due.strftime('%Y-%m-%d'), 'due_date_1':due.strftime('%H:%M:%S'), 'percent': '10', 'group': '1', 'max_grade': 25, 'extend_group': 'None'})
         self.assertEquals(response.status_code, 302)
         
         acts = NumericActivity.objects.filter(offering=c)
@@ -299,7 +299,7 @@ class GradesTest(TestCase):
         url = reverse('grades.views.edit_activity', kwargs={'course_slug': c.slug, 'activity_slug': a.slug})
 
         # for whatever reason, '0' is group and '1' is individual for the group value
-        submit_dict = {'name': a.name, 'short_name': a.short_name, 'status': a.status, 'due_date_0': due_date, 'due_date_1': due_time, 'percent': a.percent, 'max_grade': a.max_grade, 'group': '1'}
+        submit_dict = {'name': a.name, 'short_name': a.short_name, 'status': a.status, 'due_date_0': due_date, 'due_date_1': due_time, 'percent': a.percent, 'max_grade': a.max_grade, 'group': '1', 'extend_group': 'None'}
         # no change
         response = client.post(url, submit_dict)
         self.assertEquals(response.status_code, 302) # successful submit -> redirect

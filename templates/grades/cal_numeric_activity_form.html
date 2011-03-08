@@ -48,6 +48,7 @@ $(document).ready(function() {
     <li class="current"><a href="{% url grades.views.add_cal_numeric_activity course_slug=course.slug %}">Calculated Numeric Activity</a></li>
 </ul>
 {% endifequal %}
+{{ form.errors }}
 <div id="form_container">
     {% if form.non_field_errors %}
     <p class="errorindicator">

@@ -63,7 +63,7 @@ class ActivityForm(forms.Form):
         super(ActivityForm, self).__init__(*args, **kwargs)
         self._addform_validate = False
         self._editform_validate = False
-    
+
     def activate_addform_validation(self, course_slug):
         self._addform_validate = True
         self._course_slug = course_slug
@@ -126,14 +126,34 @@ class ActivityForm(forms.Form):
             return '1'
 
 class NumericActivityForm(ActivityForm):
+        
+    status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS',
+                               label=mark_safe('Status:' + _required_star),
+                               help_text='visibility of grades/activity to students')
+    due_date = forms.SplitDateTimeField(label=mark_safe('Due date:'), required=False,
+                                        help_text='Time format: HH:MM:SS',
+                                        widget=CustomSplitDateTimeWidget())
+    max_grade = forms.DecimalField(max_digits=5, decimal_places=2, label=mark_safe('Maximum grade:' + _required_star),
+                                   help_text='maximum grade for the activity',
+                                   widget=forms.TextInput(attrs={'size':'3'}))
+    group = forms.ChoiceField(label=mark_safe('Group activity:' + _required_star), initial='1',
+                              choices=GROUP_STATUS_CHOICES,
+                              widget=forms.RadioSelect())
+    extend_group = forms.ChoiceField(choices = [('NO', 'None')],
+                                     label=mark_safe('Extend groups from:'),
+                                     help_text = 'extend groups from earlier group activities')
+
     def __init__(self, *args, **kwargs):
         try:
             tmp_act_list = kwargs.pop('previous_activities')
         except:
             tmp_act_list = [(None, 'Not available'),]
+
         super(NumericActivityForm, self).__init__(*args, **kwargs)
+
         self.fields['extend_group'].choices = tmp_act_list
-        
+    
+class LetterActivityForm(ActivityForm):
     status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS',
                                label=mark_safe('Status:' + _required_star),
                                help_text='visibility of grades/activity to students')
@@ -146,21 +166,16 @@ class NumericActivityForm(ActivityForm):
     extend_group = forms.ChoiceField(choices = [('NO', 'None')],
                                      label=mark_safe('Extend groups from:'),
                                      help_text = 'extend groups from earlier group activities')
-    max_grade = forms.DecimalField(max_digits=5, decimal_places=2, label=mark_safe('Maximum grade:' + _required_star),
-                                   help_text='maximum grade for the activity',
-                                   widget=forms.TextInput(attrs={'size':'3'}))
-    
-class LetterActivityForm(ActivityForm):
-    status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS',
-                               label=mark_safe('Status:' + _required_star),
-                               help_text='visibility of grades/activity to students')
-    due_date = forms.SplitDateTimeField(label=mark_safe('Due date:'), required=False,
-                                        help_text='Time format: HH:MM:SS',
-                                        widget=CustomSplitDateTimeWidget())
-    group = forms.ChoiceField(label=mark_safe('Group activity:' + _required_star), initial='1',
-                              choices=GROUP_STATUS_CHOICES,
-                              widget=forms.RadioSelect())
-    #specify_letter_formula = forms.BooleanField(label='Specify formula:', required=False)
+
+    def __init__(self, *args, **kwargs):
+        try:
+            tmp_act_list = kwargs.pop('previous_activities')
+        except:
+            tmp_act_list = [(None, 'Not available'),]
+
+        super(LetterActivityForm, self).__init__(*args, **kwargs)
+
+        self.fields['extend_group'].choices = tmp_act_list
 
 class CalNumericActivityForm(ActivityForm):
     # default status is invisible

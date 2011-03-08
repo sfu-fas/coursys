@@ -9,7 +9,7 @@ from log.models import LogEntry
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 
-@requires_role("SYSA")
+@requires_global_role("SYSA")
 def sysadmin(request):
     if 'q' in request.GET:
         userid = request.GET['q']
@@ -17,7 +17,7 @@ def sysadmin(request):
         
     return render_to_response('coredata/sysadmin.html', {}, context_instance=RequestContext(request))
 
-@requires_role("SYSA")
+@requires_global_role("SYSA")
 def role_list(request):
     """
     Display list of who has what role
@@ -26,7 +26,7 @@ def role_list(request):
     
     return render_to_response('coredata/roles.html', {'roles': roles}, context_instance=RequestContext(request))
 
-@requires_role("SYSA")
+@requires_global_role("SYSA")
 def new_role(request, role=None):
     if request.method == 'POST':
         form = RoleForm(request.POST)
@@ -43,7 +43,7 @@ def new_role(request, role=None):
 
     return render_to_response('coredata/new_role.html', {'form': form}, context_instance=RequestContext(request))
 
-@requires_role("SYSA")
+@requires_global_role("SYSA")
 def delete_role(request, role_id):
     role = get_object_or_404(Role, pk=role_id)
     messages.success(request, 'Deleted role %s for %s.' % (role.get_role_display(), role.person.name()))
@@ -56,7 +56,7 @@ def delete_role(request, role_id):
     role.delete()
     return HttpResponseRedirect(reverse(role_list))
 
-@requires_role("SYSA")
+@requires_global_role("SYSA")
 def missing_instructors(request):
     # build a set of all instructors that don't have an instructor-appropriate role
     roles = dict(((r.person, r.role) for r in Role.objects.filter(role__in=["FAC","SESS","COOP"]).select_related('person')))
@@ -76,10 +76,11 @@ def missing_instructors(request):
             for f in formset.forms:
                 p = f.cleaned_data['person']
                 r = f.cleaned_data['role']
+                d = f.cleaned_data['department']
                 if r == "NONE" or p not in missing:
                     continue
                 
-                r = Role(person=p, role=r)
+                r = Role(person=p, role=r, department=d)
                 r.save()
                 count += 1
 
@@ -96,13 +97,13 @@ def missing_instructors(request):
     return render_to_response('coredata/missing_instructors.html', {'formset': formset}, context_instance=RequestContext(request))
 
 
-@requires_role("SYSA")
+@requires_global_role("SYSA")
 def members_list(request):
     members = Member.objects.exclude(added_reason="AUTO")
     return render_to_response('coredata/members_list.html', {'members': members}, context_instance=RequestContext(request))
 
 
-@requires_role("SYSA")
+@requires_global_role("SYSA")
 def edit_member(request, member_id=None):
     if member_id:
         member = get_object_or_404(Member, id=member_id)
@@ -127,7 +128,7 @@ def edit_member(request, member_id=None):
     return render_to_response('coredata/edit_member.html', {'form': form, 'member': member}, context_instance=RequestContext(request))
 
 
-@requires_role("SYSA")
+@requires_global_role("SYSA")
 def user_summary(request, userid):
     user = get_object_or_404(Person, userid=userid)
     
@@ -138,7 +139,7 @@ def user_summary(request, userid):
     return render_to_response("coredata/user_summary.html", context ,context_instance=RequestContext(request))
 
 
-@requires_role("SYSA")
+@requires_global_role("SYSA")
 def new_person(request):
     if request.method == 'POST':
         form = PersonForm(request.POST)

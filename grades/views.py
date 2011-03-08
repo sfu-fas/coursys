@@ -329,20 +329,6 @@ def activity_stat(request, course_slug, activity_slug):
 
     context = {'course': course, 'activity': activity, 'activity_stat': activity_stat, 'display_summary': display_summary}
     return render_to_response('grades/activity_stat.html', context, context_instance=RequestContext(request))
-   
-            
-#@requires_course_staff_by_slug
-#def activity_info_student(request, course_slug, activity_slug, userid):
-#    course = get_object_or_404(CourseOffering, slug=course_slug)
-#    activities = all_activities_filter(slug=activity_slug, offering=course)
-#    if len(activities) != 1:
-#        return NotFoundResponse(request)
-#        
-#    activity = activities[0]
-#    student = get_object_or_404(Person, userid=userid)
-#    student_grade_info = create_StudentActivityInfo_list(course, activity, student)[0]
-#    context = {'course': course, 'activity': activity, 'student_grade_info': student_grade_info}
-#    return render_to_response('grades/student_grade_info.html', context, context_instance=RequestContext(request))
 
 
 @requires_course_staff_by_slug
@@ -680,8 +666,14 @@ def release_activity(request, course_slug, activity_slug):
 def add_letter_activity(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     
+    activities_list = [(None, '---'),]
+    activities = all_activities_filter(course)
+    for a in activities:
+        if a.group == True:
+            activities_list.append((a.slug, a.name))
+
     if request.method == 'POST': # If the form has been submitted...
-        form = LetterActivityForm(request.POST) # A form bound to the POST data
+        form = LetterActivityForm(request.POST, previous_activities=activities_list) # A form bound to the POST data
         form.activate_addform_validation(course_slug)
         if form.is_valid(): # All validation rules pass
             #try:
@@ -698,8 +690,11 @@ def add_letter_activity(request, course_slug):
                                                 url=form.cleaned_data['url'],
                                                 offering=course, position=position,
                                                 group=GROUP_STATUS_MAP[form.cleaned_data['group']])
-                if a.group == True:
-                    add_activity_to_group_auto(a, course)
+                if a.group == True and form.cleaned_data['extend_group'] is not None:
+                    a2 = [i for i in activities if i.slug == form.cleaned_data['extend_group']]
+                    if len(a2) > 0:
+                        add_activity_to_group(a, a2[0], course)
+
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
                       description=("created a letter-graded activity %s") % (a),
@@ -709,7 +704,7 @@ def add_letter_activity(request, course_slug):
                 return HttpResponseRedirect(reverse('grades.views.course_info',
                                                 kwargs={'course_slug': course_slug}))
     else:
-        form = LetterActivityForm()
+        form = LetterActivityForm(previous_activities=activities_list)
     activities = course.activity_set.all()
     context = {'course': course, 'form': form, 'form_type': FORMTYPE['add']}
     return render_to_response('grades/letter_activity_form.html', context, context_instance=RequestContext(request))
