@@ -1122,8 +1122,8 @@ def mark_all_groups_lettergrade(request, course_slug, activity_slug):
                #if act_mark == None:
                    #act_mark = LetterGrade(activity = activity, member = all_members[i])       
                act_mark = GroupActivityMark_LetterGrade(group=group, letter_activity=activity, created_by=request.user.username)
-               #act_mark.setMark(new_value)
-               #act_mark.save()
+               act_mark.setMark(new_value)
+               act_mark.save()
 
                #LOG EVENT
                l = LogEntry(userid=request.user.username,

@@ -260,7 +260,7 @@ class GroupActivityMark_LetterGrade(ActivityMark_LetterGrade):
                 lgrade = LetterGrade.objects.get(activity=self.letter_activity, member=g_member.student)
             except LetterGrade.DoesNotExist: 
                 lgrade = LetterGrade(activity=self.letter_activity, member=g_member.student)
-            lgrade.value = grade
+            lgrade.letter_grade = grade
             lgrade.flag = 'GRAD'
             lgrade.save() 
 
