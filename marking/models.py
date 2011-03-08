@@ -263,6 +263,8 @@ class GroupActivityMark_LetterGrade(ActivityMark_LetterGrade):
             lgrade.value = grade
             lgrade.flag = 'GRAD'
             lgrade.save() 
+
+
 ##############################Yu Liu Added#########################################################
        
 def get_activity_mark_by_id(activity, student_membership, activity_mark_id): 

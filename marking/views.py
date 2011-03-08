@@ -1096,7 +1096,7 @@ def mark_all_groups_lettergrade(request, course_slug, activity_slug):
             entry_form = MarkEntryForm_LetterGrade(data = request.POST, prefix = group.name)
             if entry_form.is_valid() == False:
                 error_info = "Error found"           
-            act_mark = None        
+            act_mark = None 
             try:
                 act_mark = LetterGrade.objects.get(activity = activity, member = member)
             except LetterGrade.DoesNotExist:
@@ -1115,24 +1115,19 @@ def mark_all_groups_lettergrade(request, course_slug, activity_slug):
                new_value = rows[i]['form'].cleaned_data['value']
                if new_value not in LETTER_GRADE_CHOICES_IN: 
                    continue
-               #if act_mark!= None and act_mark.letter_grade == new_value:
+               if act_mark!= None and act_mark.letter_grade == new_value:
                   # if any of the group members originally has a grade status other than 'GRAD'
                   # so do not override the status
-               # if act_mark == None:
-               #    act_mark = LetterGrade(activity = activity, member = all_members[i]);
+                   continue
+               #if act_mark == None:
+                   #act_mark = LetterGrade(activity = activity, member = all_members[i])       
                act_mark = GroupActivityMark_LetterGrade(group=group, letter_activity=activity, created_by=request.user.username)
                #act_mark.setMark(new_value)
-               act_mark.save()
-
-               updated += 1     
-               if new_value < 0:
-                   warning_info.append("Negative mark given to group %s" % group.name)
-               elif new_value > activity.max_grade:
-                   warning_info.append("Bonus mark given to group %s" % group.name)  
+               #act_mark.save()
 
                #LOG EVENT
                l = LogEntry(userid=request.user.username,
-                     description=("bulk marked %s for group '%s': %s/%s") % (activity, group.name, new_value, activity.max_grade),
+                     description=("bulk marked %s for group '%s': %s") % (activity, group.name, new_value),
                      related_object=act_mark)
                l.save()                  
                  
