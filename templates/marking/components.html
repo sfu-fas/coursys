@@ -3,6 +3,7 @@
 
 {% block marking_header_extra %}
 <script type="text/javascript">
+//<![CDATA[
     var items_to_add = 25;
     $(document).ready(function() {
 	var oTable = $('#activity_components').dataTable({
@@ -34,6 +35,7 @@
 	    return false;
 	});
     });
+//]]>
 </script>
 {% endblock %}
 

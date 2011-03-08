@@ -370,3 +370,29 @@ class GradesTest(TestCase):
         res = [(i.grade_range, i.stud_count) for i in grade_range_list]
         expect = [('-30--20',1), ('-20--10',3), ('-10-0',4), ('0-10',0), ('10-20',0), ('20-30',0), ('30-40',0), ('40-50',0), ('50-60',0), ('60-70',0),('70-80',0),('80-90',0),('90-100',0)]
         self.assertEquals(res, expect)
+
+    def test_calc_letter(self):
+        """
+        Test calculated letter functionality
+        """
+        s, c = create_offering()
+        na = NumericActivity(name="Assignment 1", short_name="A1", status="RLS", offering=c, position=2, max_grade=15, percent=10, group=False)
+        na.save()
+        
+        a = CalLetterActivity(offering=c, name="A1 Letter", short_name="A1L", status="RLS", numeric_activity=na, exam_activity=None)
+        a.save()
+        
+        # test cutoff getter/setter
+        cs = a.get_cutoffs()
+        cs[1] = decimal.Decimal('271') / decimal.Decimal('3')
+        a.set_cutoffs(cs)
+        s.save()
+        cs = a.get_cutoffs()
+        self.assertAlmostEquals(float(cs[1]), 90.333333333333)
+
+
+
+
+
+
+

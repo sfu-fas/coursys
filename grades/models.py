@@ -7,6 +7,7 @@ from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.core.cache import cache
 from datetime import datetime, timedelta
+import decimal, json
 
 FLAG_CHOICES = [
     ('NOGR', 'no grade'),
@@ -281,23 +282,34 @@ class CalLetterActivity(LetterActivity):
     """
     numeric_activity = models.ForeignKey(NumericActivity, related_name='numeric_source_set')
     exam_activity = models.ForeignKey(Activity, null=True, related_name='exam_set')
-    letter_cutoffs = models.CharField(max_length=500, help_text='parsed formula to calculate final letter grade', default='[95, 90, 85, 80, 75, 70, 65, 60, 55, 50]')
-    
-    #cutoffs = [95, 90, 85, 80, 75, 70, 65, 60, 55, 50]
-    ## lower-bound for A+, A, A-, B+, ...
-    #import json
-    #activity.letter_cutoffs = json.dumps(cutoffs)
-    
-    # cutoffs = json.loads(activity.letter_cutoffs)
-    
+    letter_cutoffs = models.CharField(max_length=1000, help_text='parsed formula to calculate final letter grade', default='[95, 90, 85, 80, 75, 70, 65, 60, 55, 50]')
+        
     class Meta:
         verbose_name_plural = 'cal letter activities'
     def type_long(self):
         return "Calculated Letter Grade"
     def is_calculated(self):
         return True
+    
+    def get_cutoffs(self):
+        """
+        Get the list of grade cutoffs: 10 values, lower-bounds for A+, A, A-, B+, ..., as decimal.Decimal
+        """
+        return [decimal.Decimal(g) for g in json.loads(self.letter_cutoffs)]
 
+    def set_cutoffs(self, cutoffs):
+        """
+        Set the grade cutoffs. List must be 10 values, lower-bounds for A+, A, A-, B+, ...
+        """
+        if len(cutoffs) != 10:
+            raise ValueError, "Must provide 10 cutoffs."
+        cut_copy = cutoffs[:]
+        cut_copy.sort()
+        cut_copy.reverse()
+        if cutoffs != cut_copy:
+            raise ValueError, "Cutoffs must be in decending order."
 
+        self.letter_cutoffs = json.dumps([str(g) for g in cutoffs])
 
 
 
