@@ -544,7 +544,7 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
     activity = get_object_or_404(NumericActivity, offering=course, slug=activity_slug)     
     components = ActivityComponent.objects.filter(numeric_activity=activity, deleted=False)
     if groupmark:
-        group = get_object_or_404(Group, slug=userid)
+        group = get_object_or_404(Group, slug=userid, courseoffering=course)
         ActivityMarkForm = GroupActivityMarkForm
     else:
         student = get_object_or_404(Person, userid=userid)
