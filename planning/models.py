@@ -18,7 +18,7 @@ class Course(models.Model):
     class Meta:
         ordering = ['subject', 'number']
         unique_together = (('subject', 'number'),)
-	
+    
     def __unicode__(self):
         return "%s %s (%s)" % (self.subject, self.number, self.title)
     def short_str(self):
