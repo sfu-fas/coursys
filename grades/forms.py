@@ -1,6 +1,6 @@
 from django import forms
 from django.conf import settings
-from grades.models import ACTIVITY_STATUS_CHOICES, NumericActivity, Activity, NumericGrade, LetterGrade
+from grades.models import ACTIVITY_STATUS_CHOICES, NumericActivity, LetterActivity, Activity, NumericGrade, LetterGrade
 from django.utils.safestring import mark_safe
 import pickle
 from grades.formulas import parse, activities_dictionary, cols_used
@@ -213,10 +213,8 @@ class CalLetterActivityForm(ActivityForm):
                                label=mark_safe('Status:' + _required_star),
                                help_text='visibility of grades/activity to students')
     
-    formula = forms.CharField(max_length=250, label=mark_safe('Formula:'+_required_star),
-                    help_text='parsed formula to calculate final numeric grade',
-                    widget=forms.Textarea(attrs={'rows':'6', 'cols':'40'}))
-    letter_cutoffs = forms.CharField(max_length=500, help_text='parsed formula to calculate final letter grade')
+    numeric_activity = forms.ChoiceField(choices=[])
+    exam_activity = forms.ChoiceField(choices=[])
 
     
     def activate_addform_validation(self, course_slug):

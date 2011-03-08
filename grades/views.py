@@ -423,9 +423,13 @@ def add_cal_numeric_activity(request, course_slug):
 def add_cal_letter_activity(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     letter_activities = LetterActivity.objects.filter(offering=course)
+    numact_choices = [(na.pk, na.name) for na in NumericActivity.objects.filter(offering=course)]
+    examact_choices = [(0, "--")] + [(na.pk, na.name) for na in Activity.objects.filter(offering=course)]
     
     if request.method == 'POST': # If the form has been submitted...
         form = CalLetterActivityForm(request.POST) # A form bound to the POST data
+        form.fields['numeric_activity'].choices = numact_choices
+        form.fields['exam_activity'].choices = examact_choices
         form.activate_addform_validation(course_slug)
         if form.is_valid(): # All validation rules pass
             try:
@@ -438,8 +442,7 @@ def add_cal_letter_activity(request, course_slug):
                                                 short_name=form.cleaned_data['short_name'],
                                                 status=form.cleaned_data['status'],
                                                 url=form.cleaned_data['url'],
-                                                formula=form.cleaned_data['formula'],
-                                                offering=course, 
+                                                                                                offering=course, 
                                                 position=position,
                                                 group=False)
             except NotImplementedError:
@@ -451,6 +454,8 @@ def add_cal_letter_activity(request, course_slug):
             messages.error(request, "Please correct the error below")
     else:
         form = CalLetterActivityForm()
+        form.fields['numeric_activity'].choices = numact_choices
+        form.fields['exam_activity'].choices = examact_choices
     context = {'course': course, 'form': form, 'letter_activities': letter_activities, 'form_type': FORMTYPE['add']}
     return render_to_response('grades/cal_letter_activity_form.html', context, context_instance=RequestContext(request))
 ######################################################################################333
