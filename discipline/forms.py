@@ -158,6 +158,7 @@ class CaseLetterReviewForm(forms.ModelForm):
 class CaseLetterSentForm(forms.ModelForm):
     def clean(self):
         letter_sent = self.cleaned_data['letter_sent']
+        date = self.cleaned_data['letter_date']
         text = self.cleaned_data['letter_text']
         case = self.instance
 
@@ -171,12 +172,14 @@ class CaseLetterSentForm(forms.ModelForm):
         elif letter_sent=="OTHR":
             if not text.strip():
                 raise forms.ValidationError('Please enter details of the letter delivery.')
+            if not date:
+                raise forms.ValidationError('Please enter the date the letter was sent.')
 
         return self.cleaned_data
 
     class Meta:
         model = DisciplineCase
-        fields = ("letter_sent","letter_text")
+        fields = ("letter_sent","letter_date","letter_text")
         widgets = {
             'letter_sent': forms.RadioSelect(),
         }
@@ -184,7 +187,7 @@ class CaseLetterSentForm(forms.ModelForm):
 class CasePenaltyImplementedForm(forms.ModelForm):
     def clean_penalty_implemented(self):
         impl = self.cleaned_data['penalty_implemented']
-        if impl and self.instance.letter_sent=="WAIT":
+        if impl and self.instance.instr_penalty!="NONE" and self.instance.letter_sent=="WAIT":
             # cannot set to true if letter not sent
             raise forms.ValidationError(
                 mark_safe('Cannot implement penalty: have not <a href="%s">sent letter</a>.'

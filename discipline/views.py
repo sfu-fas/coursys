@@ -4,13 +4,13 @@ from django.core.urlresolvers import reverse
 from django.template import RequestContext, defaultfilters
 from django.contrib import messages
 from django.utils.safestring import mark_safe
-from coredata.models import Member, CourseOffering, Person
+from coredata.models import Member, CourseOffering, Person, Role
 from submission.models import Submission, StudentSubmission, GroupSubmission
 from grades.models import all_activities_filter, Activity
 from discipline.models import *
 from discipline.forms import *
 from log.models import LogEntry
-from courselib.auth import requires_discipline_user, is_discipline_user, requires_global_role, NotFoundResponse, ForbiddenResponse
+from courselib.auth import requires_discipline_user, is_discipline_user, requires_role, requires_global_role, NotFoundResponse, ForbiddenResponse
 from django.contrib.auth.decorators import login_required
 import re
 
@@ -134,7 +134,6 @@ def new_nonstudent(request, course_slug):
     return render_to_response("discipline/new_nonstudent.html", context, context_instance=RequestContext(request))
 
 
-
 @requires_discipline_user
 def show(request, course_slug, case_slug):
     """
@@ -143,9 +142,9 @@ def show(request, course_slug, case_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
     case = case.subclass()
-    #case = get_object_or_404(DisciplineCaseBase, slug=case_slug, student__offering__slug=course_slug)
+    roles = request.session['discipline-'+course_slug] # get roles from session
     
-    context = {'course': course, 'case': case}
+    context = {'course': course, 'case': case, 'roles': roles}
     return render_to_response("discipline/show.html", context, context_instance=RequestContext(request))
 
 @requires_discipline_user
@@ -170,8 +169,9 @@ def edit_case_info(request, course_slug, case_slug, field):
     case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
     case = case.subclass()
     if case.instr_done() and field in INSTR_STEPS+INSTR_FINAL:
-        # once case is closed, don't allow editing
+        # once instructor finished, don't allow editing those fields
         return ForbiddenResponse(request)
+    
 
     FormClass = STEP_FORM[field]
     if request.method == 'POST':
@@ -179,6 +179,7 @@ def edit_case_info(request, course_slug, case_slug, field):
         if form.is_valid():
             c=form.save()
             if field in INSTR_STEPS:
+                # letter hasn't been reviewed if anything changes
                 c.letter_review = False
                 c.letter_sent = 'WAIT'
                 c.penalty_implemented = False
@@ -392,7 +393,7 @@ def view_letter(request, course_slug, case_slug):
     case = case.subclass()
     
     # allowed users: instructor/discipline admin, or student if they received the letter.
-    if is_discipline_user(request.user, course_slug):
+    if is_discipline_user(request, course_slug):
         is_student = False
         messages.add_message(request, messages.INFO,
                 "The student should be able to view the letter at this URL as well." )
@@ -471,7 +472,7 @@ def download_file(request, course_slug, case_slug, fileid):
     attach = get_object_or_404(CaseAttachment, case__slug=case_slug, case__offering__slug=course_slug, id=fileid)
 
     # allowed users: instructor/discipline admin, or student if they received the letter.
-    if is_discipline_user(request.user, course_slug):
+    if is_discipline_user(request, course_slug):
         is_student = False
     elif attach.public and request.user.username == case.student.userid and case.letter_sent == 'MAIL':
         is_student = True
@@ -521,9 +522,13 @@ def edit_file(request, course_slug, case_slug, fileid):
 
 # Discipline admin views
 
-@requires_global_role("DISC")
+@requires_role("DISC")
 def all_cases(request):
-    cases = DisciplineCaseBase.objects.all()
+    # discipline admin for these departments
+    depts = set([r.department for r in Role.objects.filter(person__userid=request.user.username, role="DISC")])
+
+    # TODO: filter based on offering.department instead (once it's populated sensibly)
+    cases = DisciplineCaseBase.objects.filter(offering__subject__in=depts)
     cases = [c.subclass() for c in cases]
     context = {'cases': cases}
     return render_to_response("discipline/all_cases.html", context, context_instance=RequestContext(request))

@@ -26,9 +26,9 @@ def index(request):
 @login_required
 @gzip_page
 def course_info(request,course_slug):
-    if is_course_student_by_slug(request.user, course_slug):
+    if is_course_student_by_slug(request, course_slug):
         return _course_info_student(request, course_slug)
-    elif is_course_staff_by_slug(request.user, course_slug):
+    elif is_course_staff_by_slug(request, course_slug):
         return _course_info_staff(request, course_slug)
     else:
         return ForbiddenResponse(request)

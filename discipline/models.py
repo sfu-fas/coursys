@@ -6,6 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.core.mail import EmailMessage, EmailMultiAlternatives
 from django.core.urlresolvers import reverse
+from django.template.loader import render_to_string
 from autoslug import AutoSlugField
 from django.core.files.storage import FileSystemStorage
 from django.utils.text import wrap
@@ -47,6 +48,12 @@ LETTER_CHOICES = (
         ('MAIL', 'Letter emailed (by system)'),
         ('OTHR', 'Letter delivered (outside of this system)'),
         )
+SS_STATE_CHOICES = (
+        ('WAIT', 'Waiting for instructor/chair'),
+        ('UBSD', 'Case sent to UBSD'),
+        ('SCOD', 'Case sent to SCODA'),
+        ('DONE', 'Case completed'),
+        )
 INSTR_STEPS = ['contacted', 'response', 'meeting', 'meeting_date', 'meeting_summary', 'facts', 'instr_penalty']
 INSTR_FINAL = ['letter_review', 'letter_sent', 'penalty_implemented']
 DisciplineSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
@@ -68,6 +75,10 @@ STEP_VIEW = { # map of field/form -> view function ("edit_foo") that is used to 
         'letter_review': 'letter_review',
         'letter_sent': 'letter_sent',
         'penalty_implemented': 'penalty_implemented',
+
+        'chair_meeting_date': 'chair_meeting',
+        'chair_meeting_summary': 'chair_meeting',
+        'chair_meeting_notes': 'chair_meeting',
         }
 STEP_TEXT = { # map of field -> description of what the step
         'notes': 'edit your notes on the case',
@@ -80,6 +91,10 @@ STEP_TEXT = { # map of field -> description of what the step
         'letter_review': 'review letter to student',
         'letter_sent': "send instructor's letter",
         'penalty_implemented': "confirm penalty has been implemented",
+
+        'chair_meeting_date': "enter details of the chair's meeting",
+        'chair_meeting_summary': "enter details of the chair's meeting",
+        'chair_meeting_notes': "enter details of the chair's meeting",
         }
 STEP_DESC = { # map of field/form -> description of what is being edited
         'notes': 'instructor notes',
@@ -99,7 +114,11 @@ STEP_DESC = { # map of field/form -> description of what is being edited
         'penalty_reason': 'penalty rationale',
         'letter_review': 'review status',
         'letter_sent': "instructor's letter status",
-        'penalty_implemented': 'penalty confirmation'
+        'penalty_implemented': 'penalty confirmation',
+
+        'chair_meeting_date': "chair's meeting details",
+        'chair_meeting_summary': "chair's meeting details",
+        'chair_meeting_notes': "chair's meeting details",
         }
 TEMPLATE_FIELDS = { # fields that can have a template associated with them
         'notes': 'instructor notes',
@@ -109,34 +128,12 @@ TEMPLATE_FIELDS = { # fields that can have a template associated with them
         'meeting_notes': 'student meeting/email notes',
         'facts': 'facts of the case',
         'penalty_reason': 'penalty rationale',
+
+        'chair_meeting_summary': "chair's meeting summary",
+        'chair_meeting_notes': "chair's meeting notes",
         }
 TEXTILENOTE = '<a href="javascript:textile_popup()">Textile markup</a> and <a href="javascript:substitution_popup()">case substitutions</a> allowed'
 TEXTILEONLYNOTE = '<a href="javascript:substitution_popup()">Case substitutions</a> allowed'
-
-# from django/template/defaultfilters.py 
-_base_js_escapes = (
-    ('\\', r'\u005C'),
-    ('\'', r'\u0027'),
-    ('"', r'\u0022'),
-    ('>', r'\u003E'),
-    ('<', r'\u003C'),
-    ('&', r'\u0026'),
-    ('=', r'\u003D'),
-    ('-', r'\u002D'),
-    (';', r'\u003B'),
-    (u'\u2028', r'\u2028'),
-    (u'\u2029', r'\u2029')
-)
-
-# Escape every ASCII character with a value less than 32.
-_js_escapes = (_base_js_escapes +
-               tuple([('%c' % z, '\\u%04X' % z) for z in range(32)]))
-
-def escapejs(value):
-    """Hex encodes characters for use in JavaScript strings."""
-    for bad, good in _js_escapes:
-        value = value.replace(bad, good)
-    return value
 
 
 
@@ -205,6 +202,7 @@ class DisciplineCaseBase(models.Model):
             help_text='Has instructor reviewed the letter before sending?')
     letter_sent = models.CharField(max_length=4, choices=LETTER_CHOICES, default="WAIT", verbose_name="Letter Sent?",
             help_text='Has the letter been sent to the student and Chair/Director?')
+    letter_date = models.DateField(blank=True, null=True, verbose_name="Letter Date", help_text="Date instructor's letter was sent to student.")
     letter_text = models.TextField(blank=True, null=True, verbose_name="Letter Text")
     penalty_implemented = models.BooleanField(default=False, verbose_name="Penalty Implemented?", 
             help_text='Has instructor implemented the assigned penalty?')
@@ -213,18 +211,33 @@ class DisciplineCaseBase(models.Model):
     chair_meeting_date = models.DateField(blank=True, null=True,
             help_text='Date of meeting with student and Chair/Director (if applicable)')
     chair_meeting_summary = models.TextField(blank=True, null=True,
-            help_text='Summary of the meeting with student and Chair/Director (appended to letter)')
+            help_text='Summary of the meeting with student and Chair/Director (included in letter, '+TEXTILENOTE+')')
     chair_meeting_notes = models.TextField(blank=True, null=True,
-            help_text='Notes about the meeting with student and Chair/Director(private notes)')
+            help_text='Notes about the meeting with student and Chair/Director (private notes, '+TEXTILENOTE+')')
+    chair_facts = models.TextField(blank=True, null=True, verbose_name="Facts of the Case from Chair/Director",
+            help_text='Summary of the facts of the case (included in letter, '+TEXTILENOTE+').  This should contain any additions/updates to the facts presented by the instructor.')
+
     chair_penalty = models.CharField(max_length=4, choices=CHAIR_PENALTY_CHOICES, default="WAIT",
             help_text='Penalty assigned by the Chair/Director for this case.')
+    refer_ubsd = models.BooleanField(default=False, help_text='Refer case to the UBSD?', verbose_name="Refer UBSD?")
     chair_penalty_reason = models.TextField(blank=True, null=True, verbose_name="Penalty Rationale",
-            help_text='Rationale for penalty assigned by Chair/Director, or notes concerning penalty (appended to letter)')
-    refer_ubsc = models.BooleanField(default=False, help_text='Refer case to the UBSD?', verbose_name="Refer UBSD?")
+            help_text='Rationale for penalty assigned by Chair/Director, or notes concerning penalty (included in letter, '+TEXTILENOTE+')')
     
+    chair_letter_review = models.BooleanField(default=False, verbose_name="Chair Letter Reviewed?", 
+            help_text='Has the chair/directory reviewed the letter before sending?')
     chair_letter_sent = models.CharField(max_length=4, choices=LETTER_CHOICES, default="WAIT", verbose_name="Chair's Letter Sent?",
             help_text='Has the letter been sent to the student and Student Services?')
-    chair_done = models.BooleanField(default=False, verbose_name="Closed?", help_text='Case closed for the Chair/Director?')
+    chair_letter_date = models.DateField(blank=True, null=True, verbose_name="Letter Date", help_text="Date chair's/director's letter was sent to student.")
+    chair_letter_text = models.TextField(blank=True, null=True, verbose_name="Letter Text")
+    chair_penalty_implemented = models.BooleanField(default=False, verbose_name="Penalty Implemented?", 
+            help_text="Has chair's/director's been implemented?")
+
+    # fields for student services
+    ss_state = models.CharField(max_length=4, choices=SS_STATE_CHOICES, default="WAIT",
+            help_text='State of the case for Student Services.')
+    ss_notes = models.TextField(blank=True, null=True,
+            help_text="Student Services' notes about the case (private notes, "+TEXTILENOTE+')')
+
 
     def __unicode__(self):
         return str(self.id)
@@ -253,6 +266,8 @@ class DisciplineCaseBase(models.Model):
         return [ro for ro in self.relatedobject_set.all() if isinstance(ro.content_object, Activity)]
     def instr_done(self):
         return self.penalty_implemented
+    def chair_done(self):
+        return (not self.refer_chair) or self.chair_penalty_implemented
     
     def groupmembersJSON(self):
         """
@@ -271,6 +286,7 @@ class DisciplineCaseBase(models.Model):
         """
         Return next field that should be dealt with
         """
+        # instructor steps:
         if self.contacted=="NONE":
             return "contacted"
         elif self.response=="WAIT":
@@ -283,17 +299,23 @@ class DisciplineCaseBase(models.Model):
             return "facts"
         elif self.instr_penalty=="WAIT":
             return "instr_penalty"
-        elif self.instr_penalty=="NONE" and not self.instr_done:
-            return "instr_done"
-        elif not self.letter_review:
+        elif self.instr_penalty!="NONE" and not self.letter_review:
             return "letter_review"
-        elif self.letter_sent=="WAIT":
+        elif self.instr_penalty!="NONE" and self.letter_sent=="WAIT":
             return "letter_sent"
         elif not self.penalty_implemented:
             return "penalty_implemented"
-        elif not self.instr_done:
-            return "instr_done"
-        # TODO: Chair steps
+        
+        # Chair steps:
+        elif self.instr_done():
+            if not self.chair_meeting_date:
+                return 'chair_meeting_date'
+            elif not self.chair_meeting_summary:
+                return 'chair_meeting_summary'
+            elif not self.chair_facts:
+                return 'chair_facts'
+            elif self.chair_penalty == 'WAIT':
+                return 'chair_penalty'
 
     def next_step_url(self):
         """
@@ -370,11 +392,11 @@ class DisciplineCaseBase(models.Model):
         """
         Send instructor's letter to the student and CC instructor
         """
-        from django.template.loader import render_to_string
-        html_body = "<html><body>" + render_to_string('discipline/letter_body.html', { 'case': self }) + "</body></html>"
+        html_body = render_to_string('discipline/letter_body.html', { 'case': self })
         text_body = "Letter is included here an an HTML message, or can be viewed online at this URL:\n%s" %\
             (settings.BASE_ABS_URL + reverse('discipline.views.view_letter', kwargs={'course_slug': self.offering.slug, 'case_slug': self.slug}))
         self.letter_text = html_body
+        self.letter_date = datetime.date.today()
         self.save()
         email = EmailMultiAlternatives(
             subject='Academic dishonesty in %s' % (self.offering),
@@ -382,7 +404,7 @@ class DisciplineCaseBase(models.Model):
             from_email=self.instructor.email(),
             to=[self.student.email(), self.instructor.email()],
             )
-        email.attach_alternative(html_body, "text/html")
+        email.attach_alternative("<html><body>" + html_body + "</body></html>", "text/html")
         attach = self.public_attachments()
         for f in attach:
             f.attachment.open()
@@ -488,6 +510,7 @@ class DisciplineTemplate(models.Model):
             verbose_name="Text", help_text='The text for the template.  Templates can contain '+TEXTILENOTE+' (except the initial contact email) and substitutions described below.')
     class Meta:
         unique_together = (("field", "label"),)
+        ordering = ('field', 'label')
     def __unicode__(self):
         return "%s: %s" % (self.field, self.label)
     def JSON_data(self):

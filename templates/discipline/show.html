@@ -44,13 +44,26 @@
 </div>
 
 <div id="nextstep">
-{% if case.next_step %}
+{% if not case.instr_done %}
 Suggested next step is to <a href="{{case.next_step_url}}">{{case.next_step_text}}</a>.
   {% if case.next_step == 'contacted' or case.next_step == 'response' %}
   Optional but useful: Enter <a href="{% url discipline.views.edit_related course_slug=course.slug case_slug=case.slug %}">related items</a> or <a href="{% url discipline.views.edit_attach course_slug=course.slug case_slug=case.slug %}">attach files</a>.
   {% endif %}
 {% else %}
-Case is completed.  {% if case.letter_sent == 'MAIL' %}<a href="{% url discipline.views.view_letter course_slug=course.slug case_slug=case.slug %}">View letter</a>.{% endif %}
+  {% if "INSTR" not in roles %}
+    Instructor has completed case.
+    {% if case.letter_sent == 'MAIL' %}
+      <a href="{% url discipline.views.view_letter course_slug=course.slug case_slug=case.slug %}">View instructor's letter</a>.
+    {% endif %}
+    {% if not case.chair_done %}
+      <p>Suggested next step is to <a href="{{case.next_step_url}}">{{case.next_step_text}}</a>.</p>
+    {% endif %}
+  {% else %}
+    Case is completed.
+    {% if case.letter_sent == 'MAIL' %}
+      <a href="{% url discipline.views.view_letter course_slug=course.slug case_slug=case.slug %}">View instructor's letter</a>.
+    {% endif %}
+  {% endif %}
 {% endif %}
 </div>
 
@@ -115,7 +128,9 @@ Case is completed.  {% if case.letter_sent == 'MAIL' %}<a href="{% url disciplin
 <dt>Letter Reviewed?</dt>
 <dd>{{case|edit_link:'letter_review'}}<p>{{case.get_letter_review_display}}</p></dd>
 <dt>Letter Sent?</dt>
-<dd>{{case|edit_link:'letter_sent'}}<p>{{case.get_letter_sent_display}}</p>
+<dd>{{case|edit_link:'letter_sent'}}<p>{{case.get_letter_sent_display}}
+{% if case.letter_date %} on {{case.letter_date}}{% endif %}
+</p>
 {% if case.letter_sent == "OTHR" %}
 {{case|format_field:'letter_text'}}
 {% endif %}</dd>

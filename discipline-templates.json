@@ -2,6 +2,15 @@
  {
   "fields": {
    "field": "contact_email_text", 
+   "label": "exam copying", 
+   "text": "During the {{ACTIVITIES}}, you were observed looking at another student's paper. This indicates that there is a violation of SFU's Code of Academic Integrity and Good Conduct, Policy S10.01. I take academic honesty very seriously and intend to pursue this apparent violation of SFU's standards for academic honesty.\r\n\r\nAs required by SFU Policy S10.02, Principles and Procedures for Academic Discipline, I am offering you the opportunity to meet with me to discuss this incident. You are not required to accept this offer. If you would like to meet, please contact me to make an appointment outside of my regular office hours.\r\n\r\nYou may wish to refer to SFU's policies and procedures on academic integrity,\r\n  http://www.sfu.ca/policies/Students/index.html .\r\nYou can also contact the Office of the Ombudsperson for assistance in navigating University procedures.\r\n"
+  }, 
+  "model": "discipline.disciplinetemplate", 
+  "pk": 5
+ }, 
+ {
+  "fields": {
+   "field": "contact_email_text", 
    "label": "generic", 
    "text": "DESCRIPTION OF INCIDENT. This does not usually occur unless there is a violation of SFU's Code of Academic Integrity and Good Conduct, Policy S10.01. I take academic honesty very seriously and intend to pursue this apparent violation of SFU's standards for academic honesty.\r\n\r\nAs required by SFU Policy S10.02, Principles and Procedures for Academic Discipline, I am offering you the opportunity to meet with me to discuss this incident. You are not required to accept this offer. If you would like to meet, please contact me to make an appointment outside of my regular office hours.\r\n\r\nYou may wish to refer to SFU's policies and procedures on academic integrity,\r\n  http://www.sfu.ca/policies/Students/index.html .\r\nYou can also contact the Office of the Ombudsperson for assistance in navigating University procedures.\r\n"
   }, 
@@ -11,11 +20,11 @@
  {
   "fields": {
    "field": "contact_email_text", 
-   "label": "simiar work (pair)", 
-   "text": "You and another student submitted very similar work on {{ACTIVITIES}}. This level of similarity does not usually occur unless collaboration exceeds the limits allowed by SFU's Code of Academic Integrity and Good Conduct, Policy S10.01. I take academic honesty very seriously and intend to pursue this apparent violation of SFU's standards for academic honesty.\r\n\r\nAs required by SFU Policy S10.02, Principles and Procedures for Academic Discipline, I am offering you the opportunity to meet with me to discuss this incident. You are not required to accept this offer. If you would like to meet, please contact me to make an appointment outside of my regular office hours.\r\n\r\nYou may wish to refer to SFU's policies and procedures on academic integrity,\r\n  http://www.sfu.ca/policies/Students/index.html .\r\nYou can also contact the Office of the Ombudsperson for assistance in navigating University procedures.\r\n"
+   "label": "not your work", 
+   "text": "Your submission for {{ACTIVITIES}} contains work that does not appear to be your own. This indicates that there is a violation of SFU's Code of Academic Integrity and Good Conduct, Policy S10.01. I take academic honesty very seriously and intend to pursue this apparent violation of SFU's standards for academic honesty.\r\n\r\nAs required by SFU Policy S10.02, Principles and Procedures for Academic Discipline, I am offering you the opportunity to meet with me to discuss this incident. You are not required to accept this offer. If you would like to meet, please contact me to make an appointment outside of my regular office hours.\r\n\r\nYou may wish to refer to SFU's policies and procedures on academic integrity,\r\n  http://www.sfu.ca/policies/Students/index.html .\r\nYou can also contact the Office of the Ombudsperson for assistance in navigating University procedures.\r\n"
   }, 
   "model": "discipline.disciplinetemplate", 
-  "pk": 2
+  "pk": 6
  }, 
  {
   "fields": {
@@ -28,11 +37,92 @@
  }, 
  {
   "fields": {
+   "field": "contact_email_text", 
+   "label": "simiar work (pair)", 
+   "text": "You and another student submitted very similar work on {{ACTIVITIES}}. This level of similarity does not usually occur unless collaboration exceeds the limits allowed by SFU's Code of Academic Integrity and Good Conduct, Policy S10.01. I take academic honesty very seriously and intend to pursue this apparent violation of SFU's standards for academic honesty.\r\n\r\nAs required by SFU Policy S10.02, Principles and Procedures for Academic Discipline, I am offering you the opportunity to meet with me to discuss this incident. You are not required to accept this offer. If you would like to meet, please contact me to make an appointment outside of my regular office hours.\r\n\r\nYou may wish to refer to SFU's policies and procedures on academic integrity,\r\n  http://www.sfu.ca/policies/Students/index.html .\r\nYou can also contact the Office of the Ombudsperson for assistance in navigating University procedures.\r\n"
+  }, 
+  "model": "discipline.disciplinetemplate", 
+  "pk": 2
+ }, 
+ {
+  "fields": {
+   "field": "facts", 
+   "label": "attachment", 
+   "text": "See details in attached file facts.pdf."
+  }, 
+  "model": "discipline.disciplinetemplate", 
+  "pk": 7
+ }, 
+ {
+  "fields": {
+   "field": "facts", 
+   "label": "copied (other knew)", 
+   "text": "{{FNAME}} was given a solution to {{ACTIVITIES}} by another student. The other student seems to have completed the work independently. Both students submitted the work as their own."
+  }, 
+  "model": "discipline.disciplinetemplate", 
+  "pk": 11
+ }, 
+ {
+  "fields": {
+   "field": "facts", 
+   "label": "copied (source)", 
+   "text": "{{FNAME}} gave his/her solutions to {{ACTIVITIES}} to another student. Both students then submitted the work as their own."
+  }, 
+  "model": "discipline.disciplinetemplate", 
+  "pk": 12
+ }, 
+ {
+  "fields": {
+   "field": "facts", 
+   "label": "copied (without knowledge)", 
+   "text": "{{FNAME}} copied the work of another student on {{ACTIVITIES}} without his/her knowledge.  Both students submitted the work as their own."
+  }, 
+  "model": "discipline.disciplinetemplate", 
+  "pk": 10
+ }, 
+ {
+  "fields": {
+   "field": "facts", 
+   "label": "worked together (group)", 
+   "text": "{{FNAME}} completed {{ACTIVITIES}} in collaboration with other students.  The level of collaboration was not acceptable given that the work was to be completed individually."
+  }, 
+  "model": "discipline.disciplinetemplate", 
+  "pk": 9
+ }, 
+ {
+  "fields": {
+   "field": "facts", 
+   "label": "worked together (pair)", 
+   "text": "{{FNAME}} completed {{ACTIVITIES}} in collaboration with another student.  The level of collaboration was not acceptable given that the work was to be completed individually."
+  }, 
+  "model": "discipline.disciplinetemplate", 
+  "pk": 8
+ }, 
+ {
+  "fields": {
    "field": "meeting_summary", 
    "label": "admitted", 
-   "text": "The student admitted academic dishonesty as described below in “facts of the case”."
+   "text": "The student admitted academic dishonesty as described below in \u201cfacts of the case\u201d."
   }, 
   "model": "discipline.disciplinetemplate", 
   "pk": 4
+ }, 
+ {
+  "fields": {
+   "field": "meeting_summary", 
+   "label": "denied", 
+   "text": "The student denied any wrongdoing in this case."
+  }, 
+  "model": "discipline.disciplinetemplate", 
+  "pk": 13
+ }, 
+ {
+  "fields": {
+   "field": "meeting_summary", 
+   "label": "explained", 
+   "text": "{{FNAME}} explained that..."
+  }, 
+  "model": "discipline.disciplinetemplate", 
+  "pk": 14
  }
 ]

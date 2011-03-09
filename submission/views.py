@@ -20,10 +20,10 @@ from django.forms.util import ErrorList
 @login_required
 def show_components(request, course_slug, activity_slug):
     #if course staff
-    if is_course_staff_by_slug(request.user, course_slug):
+    if is_course_staff_by_slug(request, course_slug):
         return _show_components_staff(request, course_slug, activity_slug)
     #else course member
-    elif is_course_member_by_slug(request.user, course_slug):
+    elif is_course_member_by_slug(request, course_slug):
         return _show_components_student(request, course_slug, activity_slug)
     #else not found, return 403
     else:
@@ -180,7 +180,7 @@ def show_components_submission_history(request, course_slug, activity_slug, user
         userid = request.user.username
     else:
         # specifying a userid: must be course staff
-        if is_course_staff_by_slug(request.user, course.slug):
+        if is_course_staff_by_slug(request, course.slug):
             staff = True
         else:
             return ForbiddenResponse(request)
@@ -328,7 +328,7 @@ def download_file(request, course_slug, activity_slug, component_slug=None, subm
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(course.activity_set, slug = activity_slug)
     staff = False
-    if is_course_staff_by_slug(request.user, course_slug):
+    if is_course_staff_by_slug(request, course_slug):
         staff = True
     
     # find the appropriate submission object

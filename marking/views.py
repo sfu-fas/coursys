@@ -812,9 +812,9 @@ def mark_summary_student(request, course_slug, activity_slug, userid):
      course = get_object_or_404(CourseOffering, slug = course_slug)    
      activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)     
 
-     if is_course_staff_by_slug(request.user, course_slug):
+     if is_course_staff_by_slug(request, course_slug):
          is_staff = True
-     elif is_course_student_by_slug(request.user, course_slug):
+     elif is_course_student_by_slug(request, course_slug):
          if userid != request.user.username or activity.status != "RLS":
              return ForbiddenResponse(request)
          is_staff = False
@@ -850,9 +850,9 @@ def mark_summary_student(request, course_slug, activity_slug, userid):
 
 @login_required
 def mark_summary_group(request, course_slug, activity_slug, group_slug):
-     if is_course_staff_by_slug(request.user, course_slug):
+     if is_course_staff_by_slug(request, course_slug):
         is_staff = True
-     elif is_course_student_by_slug(request.user, course_slug):
+     elif is_course_student_by_slug(request, course_slug):
         is_staff = False
      else:
         return ForbiddenResponse(request)
@@ -887,9 +887,9 @@ def download_marking_attachment(request, course_slug, activity_slug, mark_id):
     course = get_object_or_404(CourseOffering, slug=course_slug)    
     activity = get_object_or_404(NumericActivity, offering=course, slug=activity_slug)
 
-    if is_course_staff_by_slug(request.user, course_slug):
+    if is_course_staff_by_slug(request, course_slug):
        is_staff = True
-    elif is_course_student_by_slug(request.user, course_slug):
+    elif is_course_student_by_slug(request, course_slug):
        is_staff = False
     else:
        return ForbiddenResponse(request)

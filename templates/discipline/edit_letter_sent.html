@@ -3,6 +3,9 @@
 {% block jsextra %}
 $(document).ready(function() {
   sent_change();
+    $("#id_letter_date").datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.png',
+                                changeMonth: true, changeYear: true,
+                                dateFormat: 'yy-mm-dd', showOn: 'button'});
 })
 
 function sent_change() {
@@ -10,18 +13,22 @@ function sent_change() {
   var value = $('input:radio[name=letter_sent]:checked').val();
   var div = $('#warning');
   var submit = $('#submitbutton');
+  var date = $('#id_letter_date');
   var text = $('#id_letter_text');
   if ( value=="WAIT" ) {
     div.html( "" );
     submit.val("Update Letter Status");
+    date.attr("disabled", true);
     text.attr("disabled", true);
   } else if ( value=="MAIL" ) {
     div.html( 'Submitting with "Letter emailed (by system)" selected will cause the official letter to be sent to the student (and instructor).' );
     submit.val("Update Letter Status and EMAIL THE STUDENT");
+    date.attr("disabled", true);
     text.attr("disabled", true);
   } else if ( value=="OTHR" ) {
     div.html( 'Enter information about how the student was contacted below.' );
     submit.val("Update Letter Status");
+    date.attr("disabled", false);
     text.attr("disabled", false);
   }
 }
@@ -38,6 +45,10 @@ function sent_change() {
     <p>{{ form.letter_sent.help_text }}
     	{{ form.letter_sent }}</p>
     <p class="actionwarning" id="warning"></p>
+
+    <p>{{ form.letter_date.label }}: {{ form.letter_date }}</p>
+    {{form.letter_date.errors}}
+    <p class="helptext">{{ form.letter_date.help_text|safe }}</p>
 
     <hr class="fieldsep" />
     <p>Details of letter delivery:</p>

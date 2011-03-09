@@ -26,7 +26,7 @@ def user_passes_test(test_func, login_url=None,
     def decorator(view_func):
         @wraps(view_func)
         def wrapper(request, *args, **kwargs):
-            if test_func(request.user, **kwargs):
+            if test_func(request, **kwargs):
                 return view_func(request, *args, **kwargs)
             elif request.user.is_authenticated():
                 resp = render_to_response('403.html', context_instance=RequestContext(request))
@@ -50,11 +50,11 @@ def NotFoundResponse(request):
     resp.status_code = 404
     return resp
 
-def is_advisor(u, **kwargs):
+def is_advisor(request, **kwargs):
     """
     Return True is the given user is an advisor
     """
-    perms = Role.objects.filter(person__userid=u.username, role='ADVS')
+    perms = Role.objects.filter(person__userid=request.user.username, role='ADVS')
     count = perms.count()
     return count>0
 
@@ -68,11 +68,29 @@ def requires_advisor(function=None, login_url=None):
     else:
         return actual_decorator
 
-def has_global_role(role, u, **kwargs):
+def has_global_role(role, request, **kwargs):
     """
     Return True is the given user has the specified role
     """
-    perms = Role.objects.filter(person__userid=u.username, role=role, department="!!!!")
+    perms = Role.objects.filter(person__userid=request.user.username, role=role, department="!!!!")
+    count = perms.count()
+    return count>0
+
+def requires_role(role, login_url=None):
+    """
+    Allows access if user has the given role in ANY department
+    """
+    def has_this_role(req, **kwargs):
+        return has_role(role, req, **kwargs)
+        
+    actual_decorator = user_passes_test(has_this_role, login_url=login_url)
+    return actual_decorator
+
+def has_role(role, request, **kwargs):
+    """
+    Return True is the given user has the specified role in ANY department
+    """
+    perms = Role.objects.filter(person__userid=request.user.username, role=role)
     count = perms.count()
     return count>0
 
@@ -80,18 +98,17 @@ def requires_global_role(role, login_url=None):
     """
     Allows access if user has the given role
     """
-    def has_this_role(u, **kwargs):
-        return has_global_role(role, u, **kwargs)
+    def has_this_role(req, **kwargs):
+        return has_global_role(role, req, **kwargs)
         
     actual_decorator = user_passes_test(has_this_role, login_url=login_url)
     return actual_decorator
 
-def is_course_member_by_slug(u, course_slug, **kwargs):
+def is_course_member_by_slug(request, course_slug, **kwargs):
     """
     Return True if user is any kind of member (non-dropped) from course indicated by 'course_slug' keyword.
     """
-    #offering = get_object_or_404(CourseOffering, slug=course_slug)
-    memberships = Member.objects.exclude(role="DROP", offering__component="CAN").filter(offering__slug=course_slug, person__userid=u.username)
+    memberships = Member.objects.exclude(role="DROP", offering__component="CAN").filter(offering__slug=course_slug, person__userid=request.user.username)
     count = memberships.count()
     return count>0
 
@@ -105,11 +122,11 @@ def requires_course_by_slug(function=None, login_url=None):
     else:
         return actual_decorator
 
-def is_course_student_by_slug(u, course_slug, **kwargs):
+def is_course_student_by_slug(request, course_slug, **kwargs):
     """
     Return True if user is student from course indicated by 'course_slug' keyword.
     """
-    memberships = Member.objects.filter(offering__slug=course_slug, person__userid=u.username, role="STUD").exclude(offering__component="CAN")
+    memberships = Member.objects.filter(offering__slug=course_slug, person__userid=request.user.username, role="STUD").exclude(offering__component="CAN")
     count = memberships.count()
     return count>0
 
@@ -123,12 +140,11 @@ def requires_course_student_by_slug(function=None, login_url=None):
     else:
         return actual_decorator
 
-def is_course_staff_by_slug(u, course_slug, **kwargs):
+def is_course_staff_by_slug(request, course_slug, **kwargs):
     """
     Return True if user is a staff member (instructor, TA, approver) from course indicated by 'course_slug' keyword.
     """
-    #offering = get_object_or_404(CourseOffering, slug=course_slug)
-    memberships = Member.objects.filter(offering__slug=course_slug, person__userid=u.username,
+    memberships = Member.objects.filter(offering__slug=course_slug, person__userid=request.user.username,
             role__in=['INST', 'TA', 'APPR']).exclude(offering__component="CAN")
     count = memberships.count()
     return count>0
@@ -144,18 +160,30 @@ def requires_course_staff_by_slug(function=None, login_url=None):
         return actual_decorator
 
 
-def is_discipline_user(u, course_slug, **kwargs):
+def is_discipline_user(request, course_slug, **kwargs):
     """
     Return True if user is a discipline user (instructor, approver or discipline admin)
     """
-    memberships = Member.objects.filter(offering__slug=course_slug, person__userid=u.username,
+    # departmental discipline admins    
+    # TODO: filter by offering.department once it's populated
+    roles = set()
+    offering = CourseOffering.objects.get(slug=course_slug)
+    perms = Role.objects.filter(person__userid=request.user.username, role='DISC', department=offering.subject).count()
+    if perms>0:
+        roles.add("DEPT")
+
+    # instructors
+    memberships = Member.objects.filter(offering__slug=course_slug, person__userid=request.user.username,
             role__in=['INST', 'APPR']).exclude(offering__component="CAN")
     count = memberships.count()
-    if count>0:
-        return True
     
-    perms = Role.objects.filter(person__userid=u.username, role='DISC').count()
-    return perms>0
+    if count>0:
+        roles.add("INSTR")
+    
+    # record why we have permission in the session
+    request.session['discipline-'+course_slug] = roles
+    return bool(roles)
+
 
 def requires_discipline_user(function=None, login_url=None):
     """
@@ -168,11 +196,11 @@ def requires_discipline_user(function=None, login_url=None):
         return actual_decorator
 
 
-def is_instructor(u, **kwargs):
+def is_instructor(request, **kwargs):
     """
     Return True if the user is an instructor
     """
-    perms = Role.objects.filter(person__userid=u.username, role__in=['FAC','SESS','COOP']).count()
+    perms = Role.objects.filter(person__userid=request.user.username, role__in=['FAC','SESS','COOP']).count()
     return perms>0
 
 def requires_instructor(function=None, login_url=None):

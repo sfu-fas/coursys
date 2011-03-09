@@ -20,9 +20,9 @@ from collections import defaultdict
 
 @login_required
 def groupmanage(request, course_slug, activity_slug=None):
-    if is_course_staff_by_slug(request.user, course_slug):
+    if is_course_staff_by_slug(request, course_slug):
         return _groupmanage_staff(request, course_slug, activity_slug)
-    elif is_course_student_by_slug(request.user, course_slug):
+    elif is_course_student_by_slug(request, course_slug):
         return _groupmanage_student(request, course_slug)
     else:
         return HttpResponseForbidden()
@@ -122,12 +122,12 @@ def create(request,course_slug):
         activityList.append({'activityForm': activityForm, 'name' : activity.name,\
                              'percent' : activity.percent, 'due_date' : activity.due_date})
 
-    if is_course_student_by_slug(request.user, course_slug):
+    if is_course_student_by_slug(request, course_slug):
         return render_to_response('groups/create_student.html', \
                                   {'manager':group_manager, 'course':course, 'groupForSemester':groupForSemesterForm, 'activityList':activityList},\
                                   context_instance = RequestContext(request))
 
-    elif is_course_staff_by_slug(request.user, course_slug):
+    elif is_course_staff_by_slug(request, course_slug):
         #For instructor page, there is a student table for him/her to choose the students who belong to the new group
         students = Member.objects.select_related('person').filter(offering = course, role = 'STUD')
         studentList = []
@@ -214,7 +214,7 @@ def submit(request,course_slug):
         # find selected activities
         selected_act = []
         activities = Activity.objects.filter(offering=course, group=True)
-        if not is_course_staff_by_slug(request.user, course_slug):
+        if not is_course_staff_by_slug(request, course_slug):
             activities = activities.exclude(status='INVI')
 
         for activity in activities:
@@ -234,11 +234,11 @@ def submit(request,course_slug):
         
         #validate database integrity before saving anything. 
         #If one student is in a group for an activity, he/she cannot be in another group for the same activity.
-        if is_course_student_by_slug(request.user, course_slug):
+        if is_course_student_by_slug(request, course_slug):
             isStudentCreatedGroup = True
             studentList = []
             studentList.append(member)
-        elif is_course_staff_by_slug(request.user, course_slug):
+        elif is_course_staff_by_slug(request, course_slug):
             isStudentCreatedGroup = False
             studentList = []
             students = Member.objects.select_related('person').filter(offering = course, role = 'STUD')
@@ -262,7 +262,7 @@ def submit(request,course_slug):
         related_object=group )
         l.save()
 
-        if is_course_student_by_slug(request.user, course_slug):
+        if is_course_student_by_slug(request, course_slug):
             for activity in selected_act:
                 groupMember = GroupMember(group=group, student=member, confirmed=True, activity=activity)
                 groupMember.save()
@@ -275,7 +275,7 @@ def submit(request,course_slug):
             messages.add_message(request, messages.SUCCESS, 'Group Created')
             return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
 
-        elif is_course_staff_by_slug(request.user, course_slug):
+        elif is_course_staff_by_slug(request, course_slug):
             students = Member.objects.select_related('person').filter(offering = course, role = 'STUD')
             for student in students:
                 studentForm = StudentForm(request.POST, prefix = student.person.userid)
@@ -410,9 +410,9 @@ def remove_student(request, course_slug, group_slug):
     members = GroupMember.objects.filter(group = group).select_related('group', 'student', 'student__person', 'activity')
 
     # check permissions
-    if is_course_staff_by_slug(request.user, course_slug):
+    if is_course_staff_by_slug(request, course_slug):
         is_staff = True
-    elif is_course_student_by_slug(request.user, course_slug):
+    elif is_course_student_by_slug(request, course_slug):
         is_staff = False
         memberships = [m for m in members if m.student.person.userid == request.user.username]
         if not memberships:
