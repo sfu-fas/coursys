@@ -201,6 +201,25 @@ class CasePenaltyImplementedForm(forms.ModelForm):
         fields = ("penalty_implemented",)
 
 
+
+class CaseChairMeetingForm(forms.ModelForm):
+    def clean_chair_meeting_date(self):
+        date = self.cleaned_data['chair_meeting_date']
+        if date > datetime.date.today():
+            raise forms.ValidationError("Cannot select meeting/email date in the future.")
+        return date
+
+    class Meta:
+        model = DisciplineCase
+        fields = ("chair_meeting_date", "chair_meeting_summary", "chair_meeting_notes")
+        widgets = {
+            'chair_meeting_summary': forms.Textarea(attrs={'cols':'80', 'rows':'10'}),
+            'chair_meeting_notes': forms.Textarea(attrs={'cols':'80', 'rows':'10'}),
+        }
+
+
+
+
 class CaseRelatedForm(forms.Form):
     activities = forms.MultipleChoiceField(label="Activities in the course", widget=forms.SelectMultiple(attrs={'size':'8'}), required=False)
     submissions = forms.MultipleChoiceField(label="Submissions by this student (or groups they are in)", widget=forms.SelectMultiple(attrs={'size':'8'}), required=False)
@@ -245,6 +264,8 @@ STEP_FORM = { # map of field -> form for editing it (all ModelForm for Disciplin
         'letter_review': CaseLetterReviewForm,
         'letter_sent': CaseLetterSentForm,
         'penalty_implemented': CasePenaltyImplementedForm,
+
+        'chair_meeting': CaseChairMeetingForm,
         }
 
 

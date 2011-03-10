@@ -56,6 +56,7 @@ SS_STATE_CHOICES = (
         )
 INSTR_STEPS = ['contacted', 'response', 'meeting', 'meeting_date', 'meeting_summary', 'facts', 'instr_penalty']
 INSTR_FINAL = ['letter_review', 'letter_sent', 'penalty_implemented']
+CHAIR_STEPS = ['chair_meeting_date', 'chair_meeting_summary', 'chair_facts']
 DisciplineSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
 STEP_VIEW = { # map of field/form -> view function ("edit_foo") that is used to edit it.
@@ -79,6 +80,7 @@ STEP_VIEW = { # map of field/form -> view function ("edit_foo") that is used to 
         'chair_meeting_date': 'chair_meeting',
         'chair_meeting_summary': 'chair_meeting',
         'chair_meeting_notes': 'chair_meeting',
+        'chair_facts': 'chair_facts',
         }
 STEP_TEXT = { # map of field -> description of what the step
         'notes': 'edit your notes on the case',
@@ -95,6 +97,7 @@ STEP_TEXT = { # map of field -> description of what the step
         'chair_meeting_date': "enter details of the chair's meeting",
         'chair_meeting_summary': "enter details of the chair's meeting",
         'chair_meeting_notes': "enter details of the chair's meeting",
+        'chair_facts': "enter any additional facts of the case",
         }
 STEP_DESC = { # map of field/form -> description of what is being edited
         'notes': 'instructor notes',
@@ -116,9 +119,8 @@ STEP_DESC = { # map of field/form -> description of what is being edited
         'letter_sent': "instructor's letter status",
         'penalty_implemented': 'penalty confirmation',
 
-        'chair_meeting_date': "chair's meeting details",
-        'chair_meeting_summary': "chair's meeting details",
-        'chair_meeting_notes': "chair's meeting details",
+        'chair_meeting': "chair's meeting details",
+        'chair_facts': "chair's facts of the case",
         }
 TEMPLATE_FIELDS = { # fields that can have a template associated with them
         'notes': 'instructor notes',
@@ -131,6 +133,7 @@ TEMPLATE_FIELDS = { # fields that can have a template associated with them
 
         'chair_meeting_summary': "chair's meeting summary",
         'chair_meeting_notes': "chair's meeting notes",
+        'chair_facts': "chair's facts of the case",
         }
 TEXTILENOTE = '<a href="javascript:textile_popup()">Textile markup</a> and <a href="javascript:substitution_popup()">case substitutions</a> allowed'
 TEXTILEONLYNOTE = '<a href="javascript:substitution_popup()">Case substitutions</a> allowed'

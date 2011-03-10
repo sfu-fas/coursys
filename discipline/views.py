@@ -168,10 +168,19 @@ def edit_case_info(request, course_slug, case_slug, field):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
     case = case.subclass()
-    if case.instr_done() and field in INSTR_STEPS+INSTR_FINAL:
-        # once instructor finished, don't allow editing those fields
-        return ForbiddenResponse(request)
-    
+
+    # permisson checks
+    if field in INSTR_STEPS+INSTR_FINAL:
+        if case.instr_done():
+            # once instructor finished, don't allow editing those fields
+            return ForbiddenResponse(request)
+        elif "INST" not in request.session['discipline-'+course_slug]:
+            # only instructor can edit those fields
+            return ForbiddenResponse(request)
+    if field in CHAIR_STEPS:
+        if "DEPT" not in request.session['discipline-'+course_slug]:
+            # only discipline admins can edit chair fields
+            return ForbiddenResponse(request)
 
     FormClass = STEP_FORM[field]
     if request.method == 'POST':
@@ -183,6 +192,12 @@ def edit_case_info(request, course_slug, case_slug, field):
                 c.letter_review = False
                 c.letter_sent = 'WAIT'
                 c.penalty_implemented = False
+                c.save()
+            if field in CHAIR_STEPS:
+                # letter hasn't been reviewed if anything changes
+                c.chair_letter_review = False
+                c.chair_letter_sent = 'WAIT'
+                c.chair_penalty_implemented = False
                 c.save()
 
             #LOG EVENT#

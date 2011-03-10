@@ -5,9 +5,7 @@ $(document).ready(function() {
   setup_templates("meeting_summary");
   setup_templates("meeting_notes");
   setup_groupmembers("meeting_date");
-})
-$(document).ready(function() {
-    $("#id_meeting_date").datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.png',
+  $("#id_meeting_date").datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.png',
                                 changeMonth: true, changeYear: true,
                                 dateFormat: 'yy-mm-dd', showOn: 'button'});
 });
