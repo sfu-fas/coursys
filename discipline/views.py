@@ -170,17 +170,18 @@ def edit_case_info(request, course_slug, case_slug, field):
     case = case.subclass()
 
     # permisson checks
+    roles = request.session['discipline-'+course_slug]
     if field in INSTR_STEPS+INSTR_FINAL:
         if case.instr_done():
             # once instructor finished, don't allow editing those fields
-            return ForbiddenResponse(request)
-        elif "INST" not in request.session['discipline-'+course_slug]:
+            return ForbiddenResponse(request, "case is closed to instructor: cannot edit this field")
+        elif "INSTR" not in roles:
             # only instructor can edit those fields
-            return ForbiddenResponse(request)
-    if field in CHAIR_STEPS:
-        if "DEPT" not in request.session['discipline-'+course_slug]:
+            return ForbiddenResponse(request, "only the instructor can edit this field")
+    if field in CHAIR_STEPS+CHAIR_FINAL:
+        if "DEPT" not in roles:
             # only discipline admins can edit chair fields
-            return ForbiddenResponse(request)
+            return ForbiddenResponse(request, "only the Chair (or delegate) can edit this field")
 
     FormClass = STEP_FORM[field]
     if request.method == 'POST':

@@ -4,7 +4,7 @@ from django.utils.html import escape
 from django.utils.text import wrap
 from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse
-from discipline.models import STEP_DESC, STEP_VIEW
+from discipline.models import STEP_DESC, STEP_VIEW, INSTR_STEPS, INSTR_FINAL, CHAIR_STEPS, CHAIR_FINAL
 import external.textile as textile
 Textile = textile.Textile(restricted=True)
 

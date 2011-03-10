@@ -57,6 +57,7 @@ SS_STATE_CHOICES = (
 INSTR_STEPS = ['contacted', 'response', 'meeting', 'meeting_date', 'meeting_summary', 'facts', 'instr_penalty']
 INSTR_FINAL = ['letter_review', 'letter_sent', 'penalty_implemented']
 CHAIR_STEPS = ['chair_meeting_date', 'chair_meeting_summary', 'chair_facts']
+CHAIR_FINAL = []
 DisciplineSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
 STEP_VIEW = { # map of field/form -> view function ("edit_foo") that is used to edit it.
