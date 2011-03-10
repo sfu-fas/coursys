@@ -1,13 +1,13 @@
-import socket
+import socket, sys, os
 hostname = socket.gethostname()
 
 DEBUG = hostname != 'courses'
 TEMPLATE_DEBUG = DEBUG
 DEPLOYED = hostname == 'courses'
 
-#---------------------
+# add ./external directory to search path so we find modules there
+sys.path.append( os.path.join(os.path.dirname(__file__), 'external') )
 
-#---------------------
 ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
 )
