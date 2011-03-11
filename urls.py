@@ -153,6 +153,7 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_SLUG + '/_copysetup/$', 'marking.views.copy_course_setup'),
 
     url(r'^discipline/$', 'discipline.views.all_cases'),
+    url(r'^discipline/' + COURSE_SLUG + '/' + CASE_SLUG + '$', 'discipline.views.show_chair'),
     url(r'^' + COURSE_SLUG + '/_dishonesty/$', 'discipline.views.index'),
     url(r'^' + COURSE_SLUG + '/_dishonesty/new$', 'discipline.views.new'),
     url(r'^' + COURSE_SLUG + '/_dishonesty/newgroup$', 'discipline.views.newgroup'),

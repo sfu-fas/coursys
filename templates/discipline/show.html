@@ -36,7 +36,7 @@
   <td>{% if case.group %}<a href="{% url discipline.views.showgroup course_slug=course.slug group_slug=case.group.slug %}">{{ case.group.name }}</a>{% else %}&mdash;{% endif %}</td>
 </tr>
 <tr>
-  <th class="ui-state-default">Case Creator</th>
+  <th class="ui-state-default">Instructor</th>
   <td>{{ case.instructor.name }}</td>
 </tr>
 </tbody>
@@ -50,20 +50,10 @@ Suggested next step is to <a href="{{case.next_step_url}}">{{case.next_step_text
   Optional but useful: Enter <a href="{% url discipline.views.edit_related course_slug=course.slug case_slug=case.slug %}">related items</a> or <a href="{% url discipline.views.edit_attach course_slug=course.slug case_slug=case.slug %}">attach files</a>.
   {% endif %}
 {% else %}
-  {% if "INSTR" not in roles %}
-    Instructor has completed case.
-    {% if case.letter_sent == 'MAIL' %}
-      <a href="{% url discipline.views.view_letter course_slug=course.slug case_slug=case.slug %}">View instructor's letter</a>.
-    {% endif %}
-    {% if not case.chair_done %}
-      <p>Suggested next step is to <a href="{{case.next_step_url}}">{{case.next_step_text}}</a>.</p>
-    {% endif %}
-  {% else %}
     Case is completed.
     {% if case.letter_sent == 'MAIL' %}
       <a href="{% url discipline.views.view_letter course_slug=course.slug case_slug=case.slug %}">View instructor's letter</a>.
     {% endif %}
-  {% endif %}
 {% endif %}
 </div>
 

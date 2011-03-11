@@ -265,7 +265,10 @@ def edit_case_info(request, course_slug, case_slug, field):
                                 reverse('discipline.views.edit_case_info',
                                     kwargs={'field': 'contacted', 'course_slug': course_slug, 'case_slug': c0.slug}))))
             
-            return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
+            if field in CHAIR_STEPS+CHAIR_FINAL:
+                return HttpResponseRedirect(reverse('discipline.views.show_chair', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
+            else:
+                return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
     else:
         form = FormClass(instance=case)
     
@@ -440,7 +443,7 @@ def edit_attach(request, course_slug, case_slug):
     attach_pub = CaseAttachment.objects.filter(case=case, public=True)
     attach_pri = CaseAttachment.objects.filter(case=case, public=False)
 
-    if case.instr_done():
+    if case.instr_done() and "DEPT" not in request.session['discipline-'+course_slug]:
         # once case is closed, don't allow editing
         return ForbiddenResponse(request)
 
@@ -455,7 +458,7 @@ def new_file(request, course_slug, case_slug):
     case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
     case = case.subclass()
 
-    if case.instr_done():
+    if case.instr_done() and "DEPT" not in request.session['discipline-'+course_slug]:
         # once case is closed, don't allow editing
         return ForbiddenResponse(request)
 
@@ -511,7 +514,7 @@ def edit_file(request, course_slug, case_slug, fileid):
     case = case.subclass()
     attach = get_object_or_404(CaseAttachment, case__slug=case_slug, case__offering__slug=course_slug, id=fileid)
 
-    if case.instr_done():
+    if case.instr_done() and "DEPT" not in request.session['discipline-'+course_slug]:
         # once case is closed, don't allow editing
         return ForbiddenResponse(request)
 
@@ -549,6 +552,18 @@ def all_cases(request):
     context = {'cases': cases}
     return render_to_response("discipline/all_cases.html", context, context_instance=RequestContext(request))
     
+@requires_role("DISC")
+def show_chair(request, course_slug, case_slug):
+    """
+    Display current case status
+    """
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
+    case = case.subclass()
+    roles = request.session['discipline-'+course_slug] # get roles from session
+    
+    context = {'course': course, 'case': case, 'roles': roles}
+    return render_to_response("discipline/show_chair.html", context, context_instance=RequestContext(request))
 
 
 

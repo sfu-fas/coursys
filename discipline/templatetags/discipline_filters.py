@@ -5,7 +5,7 @@ from django.utils.text import wrap
 from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse
 from discipline.models import STEP_DESC, STEP_VIEW, INSTR_STEPS, INSTR_FINAL, CHAIR_STEPS, CHAIR_FINAL
-import external.textile as textile
+import textile
 Textile = textile.Textile(restricted=True)
 
 register = template.Library()
@@ -31,6 +31,16 @@ def edit_link(case, field):
     An "edit this thing" link for the corresponding field
     """
     if case.instr_done():
+        return ""
+    return mark_safe('<p class="editlink"><a href="%s">Edit %s</a></p>' % (reverse('discipline.views.edit_case_info',
+            kwargs={'course_slug':case.offering.slug, 'case_slug': case.slug, 'field': STEP_VIEW[field]}), STEP_DESC[field]))
+
+@register.filter()
+def chair_edit_link(case, field):
+    """
+    An "edit this thing" link for the corresponding field: chair's display
+    """
+    if case.chair_done():
         return ""
     return mark_safe('<p class="editlink"><a href="%s">Edit %s</a></p>' % (reverse('discipline.views.edit_case_info',
             kwargs={'course_slug':case.offering.slug, 'case_slug': case.slug, 'field': STEP_VIEW[field]}), STEP_DESC[field]))

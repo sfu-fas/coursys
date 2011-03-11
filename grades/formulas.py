@@ -11,7 +11,7 @@
 # then pass it into the evaluator along with a Member object for the student:
 #   result = eval_parse(parsed_expr, act_dict, member, visible)
 
-from external.pyparsing import ParseException
+from pyparsing import ParseException
 import itertools
 
 class EvalException(Exception):
@@ -29,7 +29,7 @@ def create_parser():
     
     Parser throws ParseException if something goes wrong.
     """
-    from external.pyparsing import Literal, Word, Optional, CaselessLiteral, Group, StringStart, StringEnd, Suppress, ParseResults, CharsNotIn, Forward, nums, delimitedList, operatorPrecedence, opAssoc
+    from pyparsing import Literal, Word, Optional, CaselessLiteral, Group, StringStart, StringEnd, Suppress, ParseResults, CharsNotIn, Forward, nums, delimitedList, operatorPrecedence, opAssoc
 
     def column_parse(toks):
         """

@@ -7,7 +7,7 @@ from django.core.cache import cache
 from autoslug.settings import slugify
 import random, hashlib
 
-import external.textile as textile
+import textile
 Textile = textile.Textile(restricted=True)
 
 def _rfc_format(dt):

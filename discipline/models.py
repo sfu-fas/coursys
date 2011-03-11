@@ -56,7 +56,7 @@ SS_STATE_CHOICES = (
         )
 INSTR_STEPS = ['contacted', 'response', 'meeting', 'meeting_date', 'meeting_summary', 'facts', 'instr_penalty']
 INSTR_FINAL = ['letter_review', 'letter_sent', 'penalty_implemented']
-CHAIR_STEPS = ['chair_meeting_date', 'chair_meeting_summary', 'chair_facts']
+CHAIR_STEPS = ['chair_notes', 'chair_meeting', 'chair_meeting_date', 'chair_meeting_summary', 'chair_facts', 'chair_penalty']
 CHAIR_FINAL = []
 DisciplineSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
@@ -78,12 +78,17 @@ STEP_VIEW = { # map of field/form -> view function ("edit_foo") that is used to 
         'letter_sent': 'letter_sent',
         'penalty_implemented': 'penalty_implemented',
 
+        'chair_notes': 'chair_notes',
+        'chair_meeting': 'chair_meeting',
         'chair_meeting_date': 'chair_meeting',
         'chair_meeting_summary': 'chair_meeting',
         'chair_meeting_notes': 'chair_meeting',
         'chair_facts': 'chair_facts',
+        'chair_penalty': 'chair_penalty',
+        'refer_ubsd': 'chair_penalty',
+        'chair_letter_review': 'chair_letter_review',
         }
-STEP_TEXT = { # map of field -> description of what the step
+STEP_TEXT = { # map of field -> description of the step
         'notes': 'edit your notes on the case',
         'contacted': 'contact the student regarding the case',
         'response': "enter details of the student's response",
@@ -99,6 +104,9 @@ STEP_TEXT = { # map of field -> description of what the step
         'chair_meeting_summary': "enter details of the chair's meeting",
         'chair_meeting_notes': "enter details of the chair's meeting",
         'chair_facts': "enter any additional facts of the case",
+        'chair_penalty': "assign chair's penalty",
+        'refer_ubsd': "assign chair's penalty",
+        'chair_letter_review': 'review letter to student',
         }
 STEP_DESC = { # map of field/form -> description of what is being edited
         'notes': 'instructor notes',
@@ -120,8 +128,12 @@ STEP_DESC = { # map of field/form -> description of what is being edited
         'letter_sent': "instructor's letter status",
         'penalty_implemented': 'penalty confirmation',
 
+        'chair_notes': "chair's notes",
         'chair_meeting': "chair's meeting details",
         'chair_facts': "chair's facts of the case",
+        'chair_penalty': "chair's penalty",
+        'refer_ubsd': "chair's penalty",
+        'chair_letter_review': 'review status',
         }
 TEMPLATE_FIELDS = { # fields that can have a template associated with them
         'notes': 'instructor notes',
@@ -131,10 +143,6 @@ TEMPLATE_FIELDS = { # fields that can have a template associated with them
         'meeting_notes': 'student meeting/email notes',
         'facts': 'facts of the case',
         'penalty_reason': 'penalty rationale',
-
-        'chair_meeting_summary': "chair's meeting summary",
-        'chair_meeting_notes': "chair's meeting notes",
-        'chair_facts': "chair's facts of the case",
         }
 TEXTILENOTE = '<a href="javascript:textile_popup()">Textile markup</a> and <a href="javascript:substitution_popup()">case substitutions</a> allowed'
 TEXTILEONLYNOTE = '<a href="javascript:substitution_popup()">Case substitutions</a> allowed'
@@ -212,6 +220,7 @@ class DisciplineCaseBase(models.Model):
             help_text='Has instructor implemented the assigned penalty?')
     
     # fields for chair/director
+    chair_notes = models.TextField(blank=True, null=True, help_text='Notes about the case (private notes, '+TEXTILENOTE+').')
     chair_meeting_date = models.DateField(blank=True, null=True,
             help_text='Date of meeting with student and Chair/Director (if applicable)')
     chair_meeting_summary = models.TextField(blank=True, null=True,
@@ -250,20 +259,18 @@ class DisciplineCaseBase(models.Model):
         return reverse('discipline.views.show', kwargs={'course_slug': self.student.offering.slug, 'case_slug': self.slug})
 
     def get_refer_chair_display(self):
-        if self.refer_chair:
-            return "Yes"
-        else:
-            return "No"
+        return "Yes" if self.refer_chair else "No"
+    def get_refer_ubsd_display(self):
+        return "Yes" if self.refer_ubsd else "No"
     def get_letter_review_display(self):
-        if self.letter_review:
-            return "Yes"
-        else:
-            return "No"
+        return "Yes" if self.letter_review else "No"
+    def get_chair_letter_review_display(self):
+        return "Yes" if self.chair_letter_review else "No"
     def get_penalty_implemented_display(self):
-        if self.penalty_implemented:
-            return "Yes"
-        else:
-            return "No"
+        return "Yes" if self.penalty_implemented else "No"
+    def get_chair_penalty_implemented_display(self):
+        return "Yes" if self.chair_penalty_implemented else "No"
+
     def public_attachments(self):
         return CaseAttachment.objects.filter(case=self, public=True)
     def related_activities(self):
@@ -272,6 +279,16 @@ class DisciplineCaseBase(models.Model):
         return self.penalty_implemented
     def chair_done(self):
         return (not self.refer_chair) or self.chair_penalty_implemented
+    def open_for_display(self):
+        """
+        list of people this case needs attention from
+        """
+        roles = []
+        if not self.instr_done():
+            roles.append("instructor")
+        if not self.chair_done() and self.refer_chair:
+            roles.append("chair")
+        return roles
     
     def groupmembersJSON(self):
         """
@@ -290,7 +307,6 @@ class DisciplineCaseBase(models.Model):
         """
         Return next field that should be dealt with
         """
-        # instructor steps:
         if self.contacted=="NONE":
             return "contacted"
         elif self.response=="WAIT":
@@ -310,31 +326,40 @@ class DisciplineCaseBase(models.Model):
         elif not self.penalty_implemented:
             return "penalty_implemented"
         
-        # Chair steps:
-        elif self.instr_done():
-            if not self.chair_meeting_date:
-                return 'chair_meeting_date'
-            elif not self.chair_meeting_summary:
-                return 'chair_meeting_summary'
-            elif not self.chair_facts:
-                return 'chair_facts'
-            elif self.chair_penalty == 'WAIT':
-                return 'chair_penalty'
+    def next_step_chair(self):
+        """
+        Return next field that should be dealt with by Chair
+        """
+        if not self.chair_meeting_date:
+            return 'chair_meeting_date'
+        elif not self.chair_meeting_summary:
+            return 'chair_meeting_summary'
+        elif not self.chair_facts:
+            return 'chair_facts'
+        elif self.chair_penalty == 'WAIT':
+            return 'chair_penalty'
+        elif not self.chair_letter_review:
+            return "chair_letter_review"
+        elif self.chair_letter_sent=="WAIT":
+            return "chair_letter_sent"
+        elif not self.penalty_implemented:
+            return "chair_penalty_implemented"
 
     def next_step_url(self):
-        """
-        The URL to edit view for the next step.
-        """
-        step = self.next_step()
+        "The URL to edit view for the next step."
         return reverse('discipline.views.edit_case_info',
-            kwargs={'field': STEP_VIEW[step], 'course_slug':self.offering.slug, 'case_slug': self.slug})
-
+            kwargs={'field': STEP_VIEW[self.next_step()], 'course_slug':self.offering.slug, 'case_slug': self.slug})
     def next_step_text(self):
-        """
-        The text description of the next step.
-        """
-        step = self.next_step()
-        return STEP_TEXT[step]
+        "The text description of the next step."
+        return STEP_TEXT[self.next_step()]
+
+    def next_step_url_chair(self):
+        "The URL to edit view for the next step."
+        return reverse('discipline.views.edit_case_info',
+            kwargs={'field': STEP_VIEW[self.next_step_chair()], 'course_slug':self.offering.slug, 'case_slug': self.slug})
+    def next_step_text_chair(self):
+        "The text description of the next step."
+        return STEP_TEXT[self.next_step_chair()]
     
     def create_infodict(self):
         """

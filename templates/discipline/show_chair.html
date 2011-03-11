@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load discipline_filters %}
+
+{% block title %}Dishonesty Case for {{case.student.name}}{% endblock %}
+{% block h1 %}Dishonesty Case for {{case.student.name}}{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url discipline.views.all_cases %}">Discipline Cases</a></li><li>&gt; {{course.name}} {{course.semester}} </li><li>&gt; Case for {{case.student.name}}</li>{% endblock %}
+
+{% block actions %}{% endblock %}
+
+{% block content %}
+
+<h2 id="info">Case Info</h2>
+
+<div class="table_container">
+<table class="info">
+<tbody>
+<tr>
+  <th class="ui-state-default">Student Name</th>
+  <td>{{ case.student.sortname }}</td>
+</tr>
+<tr>
+  <th class="ui-state-default">Student Email</th>
+  <td><a href="mailto:{{ case.student.email }}">{{ case.student.email }}</a></td>
+</tr>
+<tr>
+  <th class="ui-state-default">Student Number</th>
+  <td>{{ case.student.emplid }}</td>
+</tr>
+<tr>
+  <th class="ui-state-default">Course Offering</th>
+  <td>{{ case.offering }}</td>
+</tr>
+<tr>
+  <th class="ui-state-default">Case Cluster</th>
+  <td>{% if case.group %}<a href="{% url discipline.views.showgroup course_slug=course.slug group_slug=case.group.slug %}">{{ case.group.name }}</a>{% else %}&mdash;{% endif %}</td>
+</tr>
+<tr>
+  <th class="ui-state-default">Instructor</th>
+  <td>{{ case.instructor.name }} &lt;{{ case.instructor.email }}&gt;</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<div id="nextstep">
+{% if not case.penalty_implemented %}
+Instructor has <strong>not</strong> implemented their penalty.
+{% endif %}
+Suggested next step is to <a href="{{case.next_step_url_chair}}">{{case.next_step_text_chair}}</a>.
+</div>
+
+<div class="showcase">
+<h2 id="notes">Notes</h2>
+<dl>
+<dt>Chairs's Case Notes (private)</dt>
+<dd>{{case|chair_edit_link:'chair_notes'}}{{case|format_field:'chair_notes'}}</dd>
+<dt>Related Items (private)</dt>
+<dd>{{case|edit_link:'related'}}
+<ul>{% for ro in case.relatedobject_set.all %}
+  {% if ro.content_object.get_absolute_url %}
+  <li><a href="{{ro.content_object.get_absolute_url}}">{{ro.content_object.short_str}}</a></li>
+  {% else %}
+  <li>{{ro.content_object.short_str}}</li>
+  {% endif %}
+{% empty %}<li class="empty">None</li>
+{% endfor %}</ul></dd>
+<dt>Attached Files</dt>
+<dd>{{case|chair_edit_link:'attach'}}
+<ul>{% for f in case.caseattachment_set.all %}
+  <li>{{f.name}} (<a href="{% url discipline.views.download_file course_slug=course.slug case_slug=case.slug fileid=f.id %}">{{f.filename}}</a>, {{f.attachment.size|filesizeformat}}, {% if f.public %}public{% else %}private{% endif %})</li>
+{% empty %}<li class="empty">None</li>
+{% endfor %}</ul>
+</dd>
+</dl>
+
+<h2 id="meeting">Chair's Meeting with Student</h2>
+<dl>
+<dt>Meeting Date</dt>
+<dd>{{case|chair_edit_link:'chair_meeting'}}<p>{{case.chair_meeting_date}}</p></dd>
+<dt>Meeting/Email Summary (included in letter)</dt>
+<dd>{{case|chair_edit_link:'chair_meeting'}}{{case|format_field:'chair_meeting_summary'}}</dd>
+<dt>Meeting/Email Notes (private)</dt>
+<dd>{{case|chair_edit_link:'chair_meeting'}}{{case|format_field:'chair_meeting_notes'}}</dd>
+</dl>
+
+<h2 id="facts">Facts and Decision</h2>
+<dl>
+<dt>Facts of case (included in letter)</dt>
+<dd>{{case|chair_edit_link:'chair_facts'}}{{case|format_field:'chair_facts'}}</dd>
+<dt>Penalty assigned by instructor</dt>
+<dd>{{case|chair_edit_link:'chair_penalty'}}<p>{{case.get_chair_penalty_display}}</p></dd>
+<dt>Refer to UBSD?</dt>
+<dd>{{case|chair_edit_link:'refer_ubsd'}}<p>{{case.get_refer_ubsd_display}}</p></dd>
+<dt>Penalty Rationale (included in letter)</dt>
+<dd>{{case|chair_edit_link:'chair_penalty'}}{{case|format_field:'chair_penalty_reason'}}</dd>
+</dl>
+
+<h2 id="facts">Finalizing Case</h2>
+<dl>
+<dt>Letter Reviewed?</dt>
+<dd>{{case|chair_edit_link:'chair_letter_review'}}<p>{{case.get_chair_letter_review_display}}</p></dd>
+</dl>
+
+</div>
+
+{% endblock %}

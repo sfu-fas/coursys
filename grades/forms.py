@@ -4,7 +4,7 @@ from grades.models import ACTIVITY_STATUS_CHOICES, NumericActivity, LetterActivi
 from django.utils.safestring import mark_safe
 import pickle
 from grades.formulas import parse, activities_dictionary, cols_used
-from external.pyparsing import ParseException
+from pyparsing import ParseException
 from django.forms.util import ErrorList
 import datetime
 from grades.utils import parse_and_validate_formula, ValidationError

@@ -7,7 +7,7 @@ from grades.models import Activity, NumericActivity, LetterActivity, NumericGrad
                           CalNumericActivity
 from coredata.models import CourseOffering, Member
 from grades.formulas import parse, activities_dictionary, cols_used, eval_parse, EvalException
-from external.pyparsing import ParseException
+from pyparsing import ParseException
 import math
 import decimal
 import datetime

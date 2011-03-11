@@ -201,7 +201,13 @@ class CasePenaltyImplementedForm(forms.ModelForm):
         fields = ("penalty_implemented",)
 
 
-
+class CaseChairNotesForm(forms.ModelForm):
+    class Meta:
+        model = DisciplineCase
+        fields = ("chair_notes",)
+        widgets = {
+            'chair_notes': forms.Textarea(attrs={'cols':'80', 'rows':'20'}),
+        }
 class CaseChairMeetingForm(forms.ModelForm):
     def clean_chair_meeting_date(self):
         date = self.cleaned_data['chair_meeting_date']
@@ -216,7 +222,40 @@ class CaseChairMeetingForm(forms.ModelForm):
             'chair_meeting_summary': forms.Textarea(attrs={'cols':'80', 'rows':'10'}),
             'chair_meeting_notes': forms.Textarea(attrs={'cols':'80', 'rows':'10'}),
         }
+class CaseChairFactsForm(forms.ModelForm):
+    class Meta:
+        model = DisciplineCase
+        fields = ("chair_facts",)
+        widgets = {
+            'chair_facts': forms.Textarea(attrs={'cols':'80', 'rows':'20'}),
+        }
+class CaseChairPenaltyForm(forms.ModelForm):
+    class Meta:
+        model = DisciplineCase
+        fields = ("chair_penalty", "refer_ubsd", "chair_penalty_reason")
+        widgets = {
+            'chair_penalty': forms.RadioSelect(),
+            'chair_penalty_reason': forms.Textarea(attrs={'cols':'80', 'rows':'10'}),
+        }
+class CaseChairLetterReviewForm(forms.ModelForm):
+    def clean_letter_review(self):
+        review = self.cleaned_data['chair_letter_review']
+        if review:
+            # cannot set to true if other required fields not filled in
+            case = self.instance
+            step = case.chair_next_step()
+            if step in CHAIR_STEPS:
+                raise forms.ValidationError(
+                    mark_safe('Cannot finalize letter: have not entered <a href="%s">%s</a>.'
+                        % (reverse('discipline.views.edit_case_info',
+                            kwargs={'field': STEP_VIEW[step], 'course_slug':case.offering.slug, 'case_slug':case.slug}),
+                        STEP_DESC[step])))
 
+        return review
+
+    class Meta:
+        model = DisciplineCase
+        fields = ("chair_letter_review",)
 
 
 
@@ -265,7 +304,11 @@ STEP_FORM = { # map of field -> form for editing it (all ModelForm for Disciplin
         'letter_sent': CaseLetterSentForm,
         'penalty_implemented': CasePenaltyImplementedForm,
 
+        'chair_notes': CaseChairNotesForm,
         'chair_meeting': CaseChairMeetingForm,
+        'chair_facts': CaseChairFactsForm,
+        'chair_penalty': CaseChairPenaltyForm,
+        'chair_letter_review': CaseChairLetterReviewForm,
         }
 
 
