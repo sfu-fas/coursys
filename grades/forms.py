@@ -280,9 +280,9 @@ class URLForm(forms.Form):
 
 
 class LetterCutoffForm(forms.Form):
-    ap = forms.Charfield()
-    a = forms.Charfield()
-    am = forms.Charfield()
+    ap = forms.CharField()
+    a = forms.CharField()
+    am = forms.CharField()
     
     def clean(self):
         pass
