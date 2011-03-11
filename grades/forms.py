@@ -277,3 +277,13 @@ class URLForm(forms.Form):
     url = forms.URLField(required=False, verify_exists=True, label='URL:',
                                  help_text='Course home page address',
                                  widget=forms.TextInput(attrs={'size':'60'}))
+
+
+class LetterCutoffForm(forms.Form):
+    ap = forms.Charfield()
+    a = forms.Charfield()
+    am = forms.Charfield()
+    
+    def clean(self):
+        pass
+

@@ -30,6 +30,8 @@ $(document).ready(function() {
 {% block content %}
 <form action="/marking/" method="get">
 	<div>
+	A+: {{form.ap}} {{form.ap.errors}}
+	
 		A+: 
 		<input type="text" name="A+_value"/>
 		<br />
@@ -62,17 +64,9 @@ $(document).ready(function() {
 		<br/>
 	</div>
 	<div>
-		D+: 
-		<input type="text" name="D+_value"/>
-		<br />
 		D : 
 		<input type="text" name="D_value" />
 		<br/>
-		D-:				
-		<input type="text" name="D_value"/>
-		<br/>
-	</div>
-	<div>
 		F : 
 		<input type="text" name="F_value"/>
 		<br/>
