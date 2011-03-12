@@ -24,9 +24,9 @@
     </ul>
     
     <h2 id="confirm">Confirm</h2>
-    <form action="{% url discipline.views.edit_case_info field='letter_review' course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
-    <p>Letter is ready to send to the student and be filed.  {{ form.letter_review }}</p>
-    {{ form.letter_review.errors }}
+    <form action="{% url discipline.views.edit_case_info field='chair_letter_review' course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
+    <p>Letter is ready to send to the student and be filed.  {{ form.chair_letter_review }}</p>
+    {{ form.chair_letter_review.errors }}
     <p><input type="submit" value="Update Letter Review Status" /></p>
     </form>
 </div>

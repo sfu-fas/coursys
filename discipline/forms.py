@@ -274,13 +274,13 @@ class CaseRelatedForm(forms.Form):
 
         # set submission choices
         if isinstance(case.student, Person):
-            gms = GroupMember.objects.filter(student=case.student)
+            gms = GroupMember.objects.filter(student__person=case.student)
             sub_sets = [StudentSubmission.objects.filter(activity__offering=course, member__person=case.student)]
         else:
             # for FakePerson in non-student cases: no submissions possible.
             gms = []
             sub_sets = []
-
+        
         for gm in gms:
             sub_sets.append( GroupSubmission.objects.filter(activity=gm.activity, group=gm.group) )
         subs = itertools.chain(*sub_sets)

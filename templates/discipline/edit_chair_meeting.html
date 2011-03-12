@@ -4,7 +4,6 @@
 $(document).ready(function() {
   setup_templates("chair_meeting_summary");
   setup_templates("chair_meeting_notes");
-  setup_groupmembers("chair_meeting_date");
   $("#id_chair_meeting_date").datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.png',
                                 changeMonth: true, changeYear: true,
                                 dateFormat: 'yy-mm-dd', showOn: 'button'});
@@ -18,7 +17,6 @@ $(document).ready(function() {
 {% block disc_content %}
 <div id="form_container">
     <form action="{% url discipline.views.edit_case_info field='chair_meeting' course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
-    <div class="discside" id="group_chair_meeting_date"></div>
     <p>{{ form.chair_meeting_date.label }}: {{ form.chair_meeting_date }}</p>
     {{form.chair_meeting_date.errors}}
     <p class="helptext">{{ form.chair_meeting_date.help_text|safe }}</p>
@@ -26,14 +24,12 @@ $(document).ready(function() {
     <hr class="fieldsep" />
     <p>{{ form.chair_meeting_summary.label }}:</p>
     <div class="discside" id="templates_chair_meeting_summary"></div>
-    <div class="discside" id="group_chair_meeting_summary"></div>
     <blockquote>{{ form.chair_meeting_summary }}</blockquote>
     <p class="helptext">{{ form.chair_meeting_summary.help_text|safe }}</p>
 
     <hr class="fieldsep" />
     <p>{{ form.chair_meeting_notes.label }}:</p>
     <div class="discside" id="templates_chair_meeting_notes"></div>
-    <div class="discside" id="group_chair_meeting_notes"></div>
     <blockquote>{{ form.chair_meeting_notes }}</blockquote>
     <p class="helptext">{{ form.chair_meeting_notes.help_text|safe }}</p>
 

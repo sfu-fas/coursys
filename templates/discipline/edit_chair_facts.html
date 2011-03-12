@@ -1,5 +1,11 @@
 {% extends "discipline/editbase.html" %}
 
+{% block jsextra %}
+$(document).ready(function() {
+  setup_templates("chair_facts");
+})
+{% endblock %}
+
 {% block title %}Dishonesty Case for {{case.student.name}}: Edit Chair's Case Facts{% endblock %}
 {% block h1 %}Dishonesty Case for {{case.student.name}}: Edit Chair's Case Facts{% endblock %}
 {% block editlabel %}Chair's Case Facts{% endblock %}
@@ -10,6 +16,7 @@
 <div id="form_container">
     <form action="{% url discipline.views.edit_case_info field='chair_facts' course_slug=course.slug case_slug=case.slug %}" method="post">{% csrf_token %}
     <p>{{ form.chair_facts.label }}:</p>
+    <div class="discside" id="templates_chair_facts"></div>
     <blockquote>{{ form.chair_facts }}</blockquote>
     <p class="helptext">{{ form.chair_facts.help_text|safe }}</p>
     <p><input type="submit" value="Update Facts" /></p>

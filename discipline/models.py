@@ -57,7 +57,7 @@ SS_STATE_CHOICES = (
 INSTR_STEPS = ['contacted', 'response', 'meeting', 'meeting_date', 'meeting_summary', 'facts', 'instr_penalty']
 INSTR_FINAL = ['letter_review', 'letter_sent', 'penalty_implemented']
 CHAIR_STEPS = ['chair_notes', 'chair_meeting', 'chair_meeting_date', 'chair_meeting_summary', 'chair_facts', 'chair_penalty']
-CHAIR_FINAL = []
+CHAIR_FINAL = ['chair_letter_review', 'chair_letter_sent']
 DisciplineSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
 STEP_VIEW = { # map of field/form -> view function ("edit_foo") that is used to edit it.
@@ -87,6 +87,7 @@ STEP_VIEW = { # map of field/form -> view function ("edit_foo") that is used to 
         'chair_penalty': 'chair_penalty',
         'refer_ubsd': 'chair_penalty',
         'chair_letter_review': 'chair_letter_review',
+        'chair_letter_sent': 'chair_letter_sent',
         }
 STEP_TEXT = { # map of field -> description of the step
         'notes': 'edit your notes on the case',
@@ -107,6 +108,7 @@ STEP_TEXT = { # map of field -> description of the step
         'chair_penalty': "assign chair's penalty",
         'refer_ubsd': "assign chair's penalty",
         'chair_letter_review': 'review letter to student',
+        'chair_letter_sent': "send chair's letter",
         }
 STEP_DESC = { # map of field/form -> description of what is being edited
         'notes': 'instructor notes',
@@ -143,6 +145,12 @@ TEMPLATE_FIELDS = { # fields that can have a template associated with them
         'meeting_notes': 'student meeting/email notes',
         'facts': 'facts of the case',
         'penalty_reason': 'penalty rationale',
+
+        'chair_notes': "chair's notes",
+        'chair_meeting_summary': "chair's meeting summary",
+        'chair_meeting_notes': "chair's meeting notes",
+        'chair_facts': "chair's facts of the case",
+        'chair_penalty_reason': "chair's penalty rationale",
         }
 TEXTILENOTE = '<a href="javascript:textile_popup()">Textile markup</a> and <a href="javascript:substitution_popup()">case substitutions</a> allowed'
 TEXTILEONLYNOTE = '<a href="javascript:substitution_popup()">Case substitutions</a> allowed'
@@ -286,7 +294,7 @@ class DisciplineCaseBase(models.Model):
         roles = []
         if not self.instr_done():
             roles.append("instructor")
-        if not self.chair_done() and self.refer_chair:
+        if not self.chair_done() and self.refer_chair and self.letter_sent != 'WAIT':
             roles.append("chair")
         return roles
     
@@ -430,8 +438,8 @@ class DisciplineCaseBase(models.Model):
         email = EmailMultiAlternatives(
             subject='Academic dishonesty in %s' % (self.offering),
             body=text_body,
-            from_email=self.instructor.email(),
-            to=[self.student.email(), self.instructor.email()],
+            from_email=self.instructor.full_email(),
+            to=[self.student.full_email(), self.instructor.full_email()],
             )
         email.attach_alternative("<html><body>" + html_body + "</body></html>", "text/html")
         attach = self.public_attachments()

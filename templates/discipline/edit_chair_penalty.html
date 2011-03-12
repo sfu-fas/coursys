@@ -1,6 +1,13 @@
 {% extends "discipline/editbase.html" %}
 
 {% block jsextra %}
+$(document).ready(function() {
+  setup_templates("chair_penalty_reason");
+  setup_groupmembers("chair_penalty");
+  setup_groupmembers("refer_ubsd");
+  form_change();
+})
+
 function form_change() {
   // suggest assigning F if doing referral
   var penalty = $("input[name=chair_penalty]:checked").val();
@@ -41,7 +48,6 @@ function form_change() {
     	{{ form.chair_penalty }}</p>
 
     <hr class="fieldsep" />
-    <div class="discside" id="group_refer_ubsd"></div>
     <p>{{ form.refer_ubsd.help_text }}
     	{{ form.refer_ubsd }}</p>
     <p class="helptext">The case may be referred to the UBSD if you &ldquo;believe that the academic dishonesty deserves a penalty beyond that provided for [above]&rdquo;.</p>
@@ -49,6 +55,7 @@ function form_change() {
     
     <hr class="fieldsep" />
     <p>{{ form.chair_penalty_reason.label }}:</p>
+    <div class="discside" id="templates_chair_penalty_reason"></div>
     <blockquote>{{ form.chair_penalty_reason }}</blockquote>
     <p class="helptext">{{ form.chair_penalty_reason.help_text|safe }}</p>
     

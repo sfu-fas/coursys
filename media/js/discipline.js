@@ -55,6 +55,9 @@ function setup_groupmembers(field) {
   var div, h3, ul, li, check, label, member;
   if ( groupmembers.length > 0 ) {
     div = document.getElementById('group_'+field);
+    if ( div == null ) {
+      return;
+    }
     h3 = document.createElement('h3');
     h3.appendChild(document.createTextNode("Set same value for:"));
     div.appendChild(h3);

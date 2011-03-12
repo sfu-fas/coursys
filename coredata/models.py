@@ -28,6 +28,8 @@ class Person(models.Model):
         return "%s, %s" % (self.last_name, self.pref_first_name)
     def email(self):
         return "%s@sfu.ca" % (self.userid)
+    def full_email(self):
+        return "%s <%s@sfu.ca>" % (self.name(), self.userid)
     def __cmp__(self, other):
         return cmp((self.last_name, self.first_name, self.userid), (other.last_name, other.first_name, other.userid))
     class Meta:

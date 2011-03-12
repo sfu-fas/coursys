@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% load discipline_filters %}
 
-{% block title %}Dishonesty Case for {{case.student.name}}{% endblock %}
-{% block h1 %}Dishonesty Case for {{case.student.name}}{% endblock %}
+{% block title %}Dishonesty Case for {{case.student.name}}: Chair's view{% endblock %}
+{% block h1 %}Dishonesty Case for {{case.student.name}}: Chair's view{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url discipline.views.all_cases %}">Discipline Cases</a></li><li>&gt; {{course.name}} {{course.semester}} </li><li>&gt; Case for {{case.student.name}}</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url discipline.views.all_cases %}">Discipline Cases</a></li><li>&gt; {{course.name}} {{course.semester}} </li><li>&gt; Case for {{case.student.name}}: Chair's view</li>{% endblock %}
 
 {% block actions %}{% endblock %}
 
@@ -37,17 +37,22 @@
 </tr>
 <tr>
   <th class="ui-state-default">Instructor</th>
-  <td>{{ case.instructor.name }} &lt;{{ case.instructor.email }}&gt;</td>
+  <td>{{ case.instructor.name }} &lt;<a href="mailto:{{ case.instructor.email }}">{{ case.instructor.email }}</a>&gt;</td>
+</tr>
+<tr>
+  <th class="ui-state-default">Referred to Chair?</th>
+  <td>{{ case.get_refer_chair_display }}</td>
 </tr>
 </tbody>
 </table>
 </div>
 
 <div id="nextstep">
+<a href="{% url discipline.views.show course_slug=course.slug case_slug=case.slug %}">Instructor's view of this case</a>.
 {% if not case.penalty_implemented %}
-Instructor has <strong>not</strong> implemented their penalty.
+<strong>Instructor has not implemented their penalty</strong>.
 {% endif %}
-Suggested next step is to <a href="{{case.next_step_url_chair}}">{{case.next_step_text_chair}}</a>.
+<p>Suggested next step is to <a href="{{case.next_step_url_chair}}">{{case.next_step_text_chair}}</a>.</p>
 </div>
 
 <div class="showcase">
