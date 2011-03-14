@@ -68,4 +68,7 @@ $(document).ready(function() {
         </fieldset>
     </form>
 </div>
+  <p>
+    <a class="button" href="{% url grades.views.course_info course_slug=course.slug %}">Back</a>
+  </p>
 {% endblock %}

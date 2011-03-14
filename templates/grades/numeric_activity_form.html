@@ -75,6 +75,6 @@ $(document).ready(function() {
     </form>
 </div>
   <p>
-    <a class="button" href="{% url groups.views.create course_slug=course.slug %}">Back</a>
+    <a class="button" href="{% url grades.views.course_info course_slug=course.slug %}">Back</a>
   </p>
 {% endblock %}
