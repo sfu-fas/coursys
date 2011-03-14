@@ -45,14 +45,7 @@ $(document).ready(function() {
 
 {% block content %}
 <br/>
-{% ifequal form_type 'add' %}
-<ul id="form_nav">
-    <li class="current"><a href="{% url grades.views.add_numeric_activity course_slug=course.slug %}">Numeric Graded Activity</a></li>
-    <li><a href="{% url grades.views.add_letter_activity course_slug=course.slug %}">Letter Graded Activity</a></li>
-    <li><a href="{% url grades.views.add_cal_numeric_activity course_slug=course.slug %}">Calculated Numeric Activity</a></li>
-    <li><a href="{% url grades.views.add_cal_letter_activity course_slug=course.slug %}">Calculated Numeric Activity</a></li>
-</ul>
-{% endifequal %}
+
 <div id="form_container">
     {% if form.non_field_errors %}
     <p class="errorindicator">
@@ -81,4 +74,7 @@ $(document).ready(function() {
         </fieldset>
     </form>
 </div>
+  <p>
+    <a class="button" href="{% url groups.views.create course_slug=course.slug %}">Back</a>
+  </p>
 {% endblock %}

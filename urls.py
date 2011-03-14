@@ -98,6 +98,7 @@ urlpatterns += patterns('',
 
     url(r'^' + COURSE_SLUG + '/_grades$', 'grades.views.all_grades'),
     url(r'^' + COURSE_SLUG + '/_grades_csv$', 'grades.views.all_grades_csv'),
+    url(r'^' + COURSE_SLUG + '/_activity_choice$', 'grades.views.activity_choice'),
     url(r'^' + COURSE_SLUG + '/_new_numeric$', 'grades.views.add_numeric_activity'),
     url(r'^' + COURSE_SLUG + '/_new_letter$', 'grades.views.add_letter_activity'),
     url(r'^' + COURSE_SLUG + '/_new_cal_numeric$', 'grades.views.add_cal_numeric_activity'),

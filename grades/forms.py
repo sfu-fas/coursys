@@ -1,6 +1,6 @@
 from django import forms
 from django.conf import settings
-from grades.models import ACTIVITY_STATUS_CHOICES, NumericActivity, LetterActivity, Activity, NumericGrade, LetterGrade
+from grades.models import ACTIVITY_STATUS_CHOICES, NumericActivity, LetterActivity, Activity, NumericGrade, LetterGrade,ACTIVITY_TYPES
 from django.utils.safestring import mark_safe
 import pickle
 from grades.formulas import parse, activities_dictionary, cols_used
@@ -244,6 +244,10 @@ class ActivityFormEntry(forms.Form):
     value = forms.DecimalField(max_digits=5, decimal_places=2, required=False,
                                widget=forms.TextInput(attrs={'size':'3'}))
     
+class Activity_ChoiceForm(forms.Form):
+    choice = forms.ChoiceField(choices=ACTIVITY_TYPES)
+
+
 class FormulaFormEntry(forms.Form):
     formula = forms.CharField(max_length=250, label=mark_safe('Formula:'+_required_star),
                     help_text='parsed formula to calculate final numeric grade',

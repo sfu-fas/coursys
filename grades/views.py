@@ -10,7 +10,7 @@ from courselib.auth import *
 from grades.models import ACTIVITY_STATUS, all_activities_filter, Activity, \
                         NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity,ACTIVITY_TYPES
 from grades.forms import NumericActivityForm, LetterActivityForm, CalNumericActivityForm, \
-                         ActivityFormEntry, FormulaFormEntry, StudentSearchForm, FORMTYPE, GROUP_STATUS_MAP, URLForm, CalLetterActivityForm
+                         ActivityFormEntry, FormulaFormEntry, StudentSearchForm, FORMTYPE, GROUP_STATUS_MAP, URLForm, CalLetterActivityForm, Activity_ChoiceForm
 from grades.models import *
 from grades.utils import StudentActivityInfo, reorder_course_activities, create_StudentActivityInfo_list, \
                         ORDER_TYPE, FormulaTesterActivityEntry, FakeActivity, generate_numeric_activity_stat
@@ -330,6 +330,21 @@ def activity_stat(request, course_slug, activity_slug):
     context = {'course': course, 'activity': activity, 'activity_stat': activity_stat, 'display_summary': display_summary}
     return render_to_response('grades/activity_stat.html', context, context_instance=RequestContext(request))
 
+@requires_course_staff_by_slug
+def activity_choice(request, course_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+   
+   # if request.method == 'POST': # If the form has been submitted...
+    form = Activity_ChoiceForm(request.POST) # A form bound to the POST data
+    choice=form.fields['choice']
+    if choice == "NumericActivity":
+         #   messages.success(request, 'New activity "%s" added' % form.cleaned_data['choices'])
+        return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
+    context = {'course': course, 'form': form, 'form_type': FORMTYPE['add']}
+    return render_to_response('grades/activity_choice.html', context, context_instance=RequestContext(request))
+
+    
+
 
 @requires_course_staff_by_slug
 def add_numeric_activity(request, course_slug):
@@ -458,9 +473,6 @@ def add_cal_letter_activity(request, course_slug):
         form.fields['exam_activity'].choices = examact_choices
     context = {'course': course, 'form': form, 'letter_activities': letter_activities, 'form_type': FORMTYPE['add']}
     return render_to_response('grades/cal_letter_activity_form.html', context, context_instance=RequestContext(request))
-######################################################################################333
-
-
 
 
 @requires_course_staff_by_slug
