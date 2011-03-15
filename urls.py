@@ -50,6 +50,7 @@ urlpatterns += patterns('planning.views',
 	url(r'^planning/activate_plan/(?P<plan_id>\w+)/$', 'activate_plan'),
 	url(r'^planning/inactivate_plan/(?P<plan_id>\w+)/$', 'inactivate_plan'),
 	url(r'^planning/' + SEMESTER + '/' + PLAN_SLUG + '/delete$', 'delete_plan'),
+	url(r'^planning/' + SEMESTER + '/' + PLAN_SLUG + '/assign/(?P<course_id>\w+)/$', 'view_instructors'),
 	
 	
 	

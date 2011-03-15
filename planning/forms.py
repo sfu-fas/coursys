@@ -1,4 +1,5 @@
 from django import forms
+from django.forms.widgets import RadioSelect
 from planning.models import *
 import re
 
@@ -38,7 +39,7 @@ class PlanBasicsForm(forms.ModelForm):
 class OfferingBasicsForm(forms.ModelForm):
 
     #lab_sections = forms.CharField()
-    lab_sections = forms.ChoiceField(choices=LAB_SECTION_CHOICES) 
+    lab_sections = forms.ChoiceField(choices=LAB_SECTION_CHOICES)
     def clean_section(self):
         section = self.cleaned_data['section']
         if not section_re.match(section):
@@ -52,5 +53,21 @@ class OfferingBasicsForm(forms.ModelForm):
 class OfferingInstructorForm(forms.ModelForm):
     class Meta:
         model = PlannedOffering
-        fields = ('instructor',)
+        fields = ('instructor')
+
+class ViewInstructorForm(forms.ModelForm):
+	
+	instructor = forms.ChoiceField(widget=RadioSelect())
+	class Meta:
+		model = TeachingIntention
+		exclude = ('intentionfull', 'semester', 'count', 'note')
+        fields = ('instructor')
+	
+	
+	
+	
+	
+	
+	
+	
 

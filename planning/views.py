@@ -134,7 +134,7 @@ def add_plan(request):
             
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                      description=("created course plan %s in %s") % (plan.name, plan.semester),
+                      description=("Created course plan %s in %s") % (plan.name, plan.semester),
                       related_object=plan)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'New plan "%s" created.' % (plan.name))
@@ -154,7 +154,7 @@ def edit_plan(request, semester, plan_slug):
             
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                      description=("created course plan %s in %s") % (plan.name, plan.semester),
+                      description=("Modified course plan %s in %s") % (plan.name, plan.semester),
                       related_object=plan)
             l.save()
                 
@@ -164,27 +164,7 @@ def edit_plan(request, semester, plan_slug):
             form = PlanBasicsForm(instance=plan)
     
     return render_to_response("planning/edit_plan.html",{'form':form, 'plan':plan},context_instance=RequestContext(request))
-
-@requires_role('PLAN')
-def submit_edited_plan(request, userid, plan_id):
-
-    input_semester = request.POST['semester']
-    name = request.POST['plan_name']
-    visibility = request.POST['visibility']
     
-    semester = get_object_or_404(Semester, name = input_semester)
-    
-    edited_plan = SemesterPlan.objects.get(pk = plan_id)
-
-    edited_plan.name = name
-    edited_plan.semester = semester
-    edited_plan.visibility = visibility
-    edited_plan.save()
-    
-    messages.add_message(request, messages.SUCCESS, 'Plan Edited Successfully.')
-    return HttpResponseRedirect(reverse(admin_index))
-    
-
 @requires_role('PLAN')
 def edit_courses(request, semester, plan_slug):
     plan = get_object_or_404(SemesterPlan, semester__name=semester, slug=plan_slug)
@@ -204,11 +184,13 @@ def edit_courses(request, semester, plan_slug):
             if num_of_lab != 0:
                 for i in range(num_of_lab):
 
+
                     course = form.cleaned_data['course']
                     section = form.cleaned_data['section'][:2] + "%02i" % (i+1)    
                     component = "LAB"    
                     campus = form.cleaned_data['campus']
                     enrl_cap = form.cleaned_data['enrl_cap']
+
 
                     added_lab_section = PlannedOffering(plan = plan, course = course, section = section, component = component, campus = campus, enrl_cap = enrl_cap)
                     added_lab_section.save();
@@ -253,8 +235,8 @@ def assign_instructors(request, semester, plan_slug):
         data = {}
         data['offering'] = o
         form = OfferingInstructorForm(instance=o)
-        choices = [(tc.instructor.userid, tc.instructor.name()) for tc in TeachingCapability.objects.filter(course=o.course)]
-        form.fields['instructor'].choices = [(None, u'\u2014')] + choices
+        #choices = [(tc.instructor.userid, tc.instructor.name()) for tc in TeachingCapability.objects.filter(course=o.course)]
+        #form.fields['instructor'].choices = [(None, u'\u2014')] + choices
         data['form'] = form
         offerings.append(data)
     
@@ -347,27 +329,50 @@ def delete_plan(request, semester, plan_slug):
 
         messages.add_message(request, messages.SUCCESS, 'Plan Deleted.')
     return HttpResponseRedirect(reverse(admin_index))
-        
+ 
+@requires_role('PLAN')
+def view_instructors(request, semester, plan_slug, course_id):
+    semester_plan = get_object_or_404(SemesterPlan, semester__name=semester, slug=plan_slug)
+    course_name = get_object_or_404(Course, pk=course_id)
+    course_info = get_object_or_404(PlannedOffering, course=course_name, plan=semester_plan, component__in=['LEC', 'SEM', 'SEC', 'CAN'])
 
-#********************************************Deleted Functions************************************************************
-#@requires_role('PLAN')
-#def add_courses_to_plan(request, userid, plan_id):
-    
-#    semester_plan = get_object_or_404(SemesterPlan, pk = plan_id)
-    
-#    course_number = request.POST['offering_courses']
-#    course = get_object_or_404(Course, number = course_number)
-    
-#    campus = request.POST['campus']
-#    component = request.POST['component']
-#    section = request.POST['section']
-    
-#    added_course_to_plan = PlannedOffering(plan = semester_plan, course = course, campus = campus, component = component, section = section)
-#    added_course_to_plan.save()
+    instructor_list =  TeachingCapability.objects.filter(course=course_name).order_by('instructor')
 
-#    messages.add_message(request, messages.SUCCESS, 'Course Added Successfully.')
-#    return HttpResponseRedirect(reverse(edit_courses, kwargs={'userid':userid, 'plan_id':plan_id}))
-#********************************************Deleted Functions************************************************************
+    #form = []
+    form = ViewInstructorForm()
+    choices = [(tc.instructor.userid, tc.instructor.name()) for tc in TeachingCapability.objects.filter(course=course_name)]
+    form.fields['instructor'].choices = choices
+    #build list of offerings with their forms
+    #offerings = []
+    #for o in semester_plan.plannedoffering_set.all():
+    #    data = {}
+    #    data['offering'] = o
+    #    form = ViewInstructorForm(instance=o)
+    #    choices = [(tc.instructor.userid, tc.instructor.name()) for tc in TeachingCapability.objects.filter(course=o.course)]
+    #    form.fields['instructor'].choices = choices
+    #    data['form'] = form
+    #    if o.course == course_name:
+    #        offerings.append(data)
+
+    #if request.method == 'POST':
+	#	form = ViewInstructorForm(request.POST, instance=plan)
+	#	if form.is_valid():
+			#plan = form.save()
+
+			#LOG EVENT#
+	        #l = LogEntry(userid=request.user.username,
+			#		description=("Test ViewInstructor Function"),
+	        #        related_object=semester_plan)
+	        #l.save()
+	
+            #messages.add_message(request, messages.SUCCESS, 'Test.')
+            #return HttpResponseRedirect(reverse('planning.views.assign_instructors', kwargs={'semester':semester, 'plan_slug':plan_slug}))
+    #else:
+	    #form = ViewInstructorForm()
+	
+    return render_to_response("planning/view_instructors.html",{'semester_plan': semester_plan, 'course_info':course_info, 'form':form, 'instructor_list':instructor_list},context_instance=RequestContext(request))
+
+
 
 
 

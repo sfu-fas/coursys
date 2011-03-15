@@ -38,6 +38,7 @@ $(document).ready(function() {
             <tr>
                 <th scope="col">Course Name</th>
                 <th scope="col">Section</th>
+				<th scope="col">Component</th>
                 <th scope="col">Assigned Instructors</th>
                 <th scope="col">Capable Instructors</th>
 
@@ -54,14 +55,19 @@ $(document).ready(function() {
 			
 			<td>{{ o.offering.course }}</td>
 			<td>{{ o.offering.section }}</td>
+			<td>{{ o.offering.get_component_display }}</td>
 			<td>{{ o.offering.instructor }}</td>
+			
 			<td>
-			<form action="{% url planning.views.submit_assigned_instructors semester=semester_plan.semester.name plan_slug=semester_plan.slug offering_id=o.offering.id%}" method="post">{% csrf_token %}
-			{{o.form.instructor}}
-			<input type="submit" value="Assign" />
-			</form>
+				{% if o.offering.component != "LAB" and o.offering.component != "TUT" %}
+				<form action="{% url planning.views.view_instructors semester=semester_plan.semester.name plan_slug=semester_plan.slug course_id=o.offering.course.id %}" method="post">{% csrf_token %}
+				
+				<input type="submit" value="Assign Instructors" />
+				
+				</form>
+				{% endif %}
 			</td>
-	
+			
 			
 		</tr>
 
