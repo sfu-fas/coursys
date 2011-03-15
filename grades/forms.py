@@ -1,6 +1,6 @@
 from django import forms
 from django.conf import settings
-from grades.models import ACTIVITY_STATUS_CHOICES, NumericActivity, LetterActivity, Activity, NumericGrade, LetterGrade,ACTIVITY_TYPES
+from grades.models import ACTIVITY_STATUS_CHOICES, NumericActivity, LetterActivity, Activity, NumericGrade, LetterGrade,ACTIVITY_TYPES, LETTER_GRADE_CHOICES
 from django.utils.safestring import mark_safe
 import pickle
 from grades.formulas import parse, activities_dictionary, cols_used
@@ -284,10 +284,59 @@ class URLForm(forms.Form):
 
 
 class LetterCutoffForm(forms.Form):
-    ap = forms.CharField()
-    a = forms.CharField()
-    am = forms.CharField()
-    
+    ap = forms.CharField(max_length=2)
+    a = forms.CharField(max_length=2)
+    am = forms.CharField(max_length=2)
+    bp =forms.CharField(max_length=2)
+    b = forms.CharField(max_length=2)
+    bm = forms.CharField(max_length=2)
+    cp = forms.CharField(max_length=2)
+    c = forms.CharField(max_length=2)
+    cm = forms.CharField(max_length=2)
+    d = forms.CharField(max_length=2)
+    f = forms.CharField(max_length=2)
     def clean(self):
-        pass
-
+	ap=form.clean_data['ap']
+	a=form.clean_data['a']
+	am=form.clean_data['am']
+	bp=form.clean_data['bp']
+	b=form.clean_data['b']
+	bm=form.clean_data['bm']
+	cp=form.clean_data['cp']
+	c=form.clean_data['c']
+	cm=form.clean_data['cm']
+	d=form.clean_data['d']
+	f=form.clean_data['f']
+        if ap not in Letter_Grade_Choices:
+		raise forms.ValidationError("Please input valid letter grade")
+	return ap
+	if a not in Letter_Grade_Choices:
+		raise forms.ValidationError("Please input valid letter grade")
+	return a
+	if am not in Letter_Grade_Choices:
+		raise forms.ValidationError("Please input valid letter grade")
+	return am
+	if bp not in Letter_Grade_Choices:
+		raise forms.ValidationError("Please input valid letter grade")
+	return bp
+	if b not in Letter_Grade_Choices:
+		raise forms.ValidationError("Please input valid letter grade")
+	return b
+	if bm not in Letter_Grade_Choices:
+		raise forms.ValidationError("Please input valid letter grade")
+	return bm
+	if cp not in Letter_Grade_Choices:
+		raise forms.ValidationError("Please input valid letter grade")
+	return cp
+	if c not in Letter_Grade_Choices:
+		raise forms.ValidationError("Please input valid letter grade")
+	return c
+	if cm not in Letter_Grade_Choices:
+		raise forms.ValidationError("Please input valid letter grade")
+	return cm
+	if d not in Letter_Grade_Choices:
+		raise forms.ValidationError("Please input valid letter grade")
+	return d
+	if f not in Letter_Grade_Choices:
+		raise forms.ValidationError("Please input valid letter grade")
+	return f

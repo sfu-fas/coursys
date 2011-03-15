@@ -10,7 +10,8 @@ from courselib.auth import *
 from grades.models import ACTIVITY_STATUS, all_activities_filter, Activity, \
                         NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity,ACTIVITY_TYPES
 from grades.forms import NumericActivityForm, LetterActivityForm, CalNumericActivityForm, \
-                         ActivityFormEntry, FormulaFormEntry, StudentSearchForm, FORMTYPE, GROUP_STATUS_MAP, URLForm, CalLetterActivityForm, Activity_ChoiceForm
+                         ActivityFormEntry, FormulaFormEntry, StudentSearchForm, FORMTYPE, GROUP_STATUS_MAP, URLForm, CalLetterActivityForm, Activity_ChoiceForm, \
+                         LetterCutoffForm
 from grades.models import *
 from grades.utils import StudentActivityInfo, reorder_course_activities, create_StudentActivityInfo_list, \
                         ORDER_TYPE, FormulaTesterActivityEntry, FakeActivity, generate_numeric_activity_stat
@@ -333,18 +334,8 @@ def activity_stat(request, course_slug, activity_slug):
 @requires_course_staff_by_slug
 def activity_choice(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-   
-   # if request.method == 'POST': # If the form has been submitted...
-    form = Activity_ChoiceForm(request.POST) # A form bound to the POST data
-    choice=form.fields['choice']
-    if choice == "NumericActivity":
-         #   messages.success(request, 'New activity "%s" added' % form.cleaned_data['choices'])
-        return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
-    context = {'course': course, 'form': form, 'form_type': FORMTYPE['add']}
+    context = {'course': course}
     return render_to_response('grades/activity_choice.html', context, context_instance=RequestContext(request))
-
-    
-
 
 @requires_course_staff_by_slug
 def add_numeric_activity(request, course_slug):
@@ -628,6 +619,10 @@ def _populate_activity_from_formdata(activity, data):
 def edit_activity(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activities = all_activities_filter(slug=activity_slug, offering=course)
+    numact_choices = [(na.pk, na.name) for na in NumericActivity.objects.filter(offering=course)]
+    examact_choices = [(0, "--")] + [(na.pk, na.name) for na in Activity.objects.filter(offering=course)]
+    cutoff=LetterCutoffForm()
+
     if (len(activities) == 1):
         activity = activities[0]
                 
@@ -642,8 +637,11 @@ def edit_activity(request, course_slug, activity_slug):
                 form.activate_editform_validation(course_slug, activity_slug)
             elif isinstance(activity, LetterActivity):
                 form = LetterActivityForm(request.POST) # A form bound to the POST data
+                form.activate_editform_validation(course_slug, activity_slug)              
+            elif isinstance(activity, CalLetterActivity):
+                form = CalLetterActivityForm(request.POST) # A form bound to the POST data
                 form.activate_editform_validation(course_slug, activity_slug)
-            if form.is_valid(): # All validation rules pass
+            if  form.is_valid(): # All validation rules pass
                 _populate_activity_from_formdata(activity, form.cleaned_data)
                 activity.save()
                 #LOG EVENT#
@@ -676,10 +674,12 @@ def edit_activity(request, course_slug, activity_slug):
         elif isinstance(activity, NumericActivity):
             context = {'course': course, 'activity': activity, 'form': form, 'form_type': FORMTYPE['edit'], 'from_page': from_page}
             return render_to_response('grades/numeric_activity_form.html', context, context_instance=RequestContext(request))
+        elif isinstance(activity, CalLetterActivity):
+            context = {'course': course, 'activity': activity, 'form': form, 'form_type': FORMTYPE['edit'], 'from_page': from_page, 'cutoff': cutoff}
+            return render_to_response('grades/cal_letter_activity_form.html', context, context_instance=RequestContext(request))
         elif isinstance(activity, LetterActivity):
             context = {'course': course, 'activity': activity, 'form': form, 'form_type': FORMTYPE['edit'], 'from_page': from_page}
-            return render_to_response('grades/letter_activity_form.html', context, context_instance=RequestContext(request))
-        
+            return render_to_response('grades/letter_activity_form.html', context, context_instance=RequestContext(request))       
     else:
         return NotFoundResponse(request)
     
@@ -956,10 +956,5 @@ def student_info(request, course_slug, userid):
 
     context = {'course': course, 'member': member, 'grade_info': grade_info}
     return render_to_response('grades/student_info.html', context, context_instance=RequestContext(request))
-
-
-
-
-
 
 

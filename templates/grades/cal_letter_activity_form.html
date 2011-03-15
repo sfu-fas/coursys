@@ -28,6 +28,7 @@ $(document).ready(function() {
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
 {% ifequal form_type 'add' %}
+<li>&gt; <a href="{% url grades.views.activity_choice course_slug=course.slug %}">Choose the type of activity</a></li>
 <li>&gt; Add Activity</li>
 {% endifequal %}
 {% if activity %}
@@ -59,8 +60,43 @@ $(document).ready(function() {
                 {{form.short_name|activity_field}}
                 {{form.status|activity_field}}
                 {{form.url|activity_field}}
-                {{form.numeric_activity|activity_field}}
+                {{form.numeric_activity|activity_field}}	
                 {{form.exam_activity|activity_field}}
+        
+        
+        {% ifequal form_type 'edit' %}
+        <div>
+	A+: {{cutoff.ap}} {{cutoff.ap.errors}}
+	</br>
+	A: {{cutoff.a}} {{cutoff.a.errors}}
+	</br>
+	A-: {{cutoff.am}} {{cutoff.am.errors}}
+	</br>
+	</div>
+	<div>
+	B+: {{cutoff.bp}} {{cutoff.bp.errors}}
+	</br>
+	B: {{cutoff.b}} {{cutoff.b.errors}}
+	</br>
+	B-: {{cutoff.bm}} {{cutoff.bm.errors}}
+	</br>
+	</div>
+	<div>
+	C+: {{cutoff.cp}} {{cutoff.cp.errors}}
+	</br>
+	C: {{cutoff.c}} {{cutoff.c.errors}}
+	</br>
+	C-: {{cutoff.cm}} {{cutoff.cm.errors}}
+	</br>
+	</div>
+	<div>
+	D :  {{cutoff.d}} {{cutoff.d.errors}}
+	</div>
+	<div>
+	F :  {{cutoff.f}} {{cutoff.f.errors}}
+	</div>
+	{% endifequal %}
+	
                 <li>
                     <input class="submit" type="submit" value="Submit" />
                 </li>
@@ -69,6 +105,11 @@ $(document).ready(function() {
     </form>
 </div>
   <p>
-    <a class="button" href="{% url grades.views.course_info course_slug=course.slug %}">Back</a>
+    {% ifequal form_type 'add' %}
+    <a class="button" href="{% url grades.views.activity_choice course_slug=course.slug %}">Back</a>
+    {% endifequal %}
+    {% ifequal form_type 'edit' %}
+    <a class="button" href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">Back</a>
+    {% endifequal %}
   </p>
 {% endblock %}

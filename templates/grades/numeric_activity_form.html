@@ -32,6 +32,7 @@ $(document).ready(function() {
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
 {% ifequal form_type 'add' %}
+<li>&gt; <a href="{% url grades.views.activity_choice course_slug=course.slug %}">Choose the type of activity</a></li>
 <li>&gt; Add Activity</li>
 {% endifequal %}
 {% if activity %}
@@ -75,6 +76,11 @@ $(document).ready(function() {
     </form>
 </div>
   <p>
-    <a class="button" href="{% url grades.views.course_info course_slug=course.slug %}">Back</a>
+    {% ifequal form_type 'add' %}
+    <a class="button" href="{% url grades.views.activity_choice course_slug=course.slug %}">Back</a>
+    {% endifequal %}
+    {% ifequal form_type 'edit' %}
+    <a class="button" href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">Back</a>
+    {% endifequal %}
   </p>
 {% endblock %}
