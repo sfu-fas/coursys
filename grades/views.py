@@ -432,7 +432,6 @@ def add_cal_numeric_activity(request, course_slug):
     context = {'course': course, 'form': form, 'numeric_activities': numeric_activities, 'form_type': FORMTYPE['add']}
     return render_to_response('grades/cal_numeric_activity_form.html', context, context_instance=RequestContext(request))
 
-######################################YU LIU####################################3
 @requires_course_staff_by_slug
 def add_cal_letter_activity(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
@@ -456,7 +455,9 @@ def add_cal_letter_activity(request, course_slug):
                                                 short_name=form.cleaned_data['short_name'],
                                                 status=form.cleaned_data['status'],
                                                 url=form.cleaned_data['url'],
-                                                                                                offering=course, 
+                                                #numeric_activity=form.cleaned_data['numeric_activity'],
+                                                #exam_activity=form.cleaned_data['exam_activity'],
+                                                offering=course, 
                                                 position=position,
                                                 group=False)
             except NotImplementedError:
@@ -627,10 +628,10 @@ def _populate_activity_from_formdata(activity, data):
 def edit_activity(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activities = all_activities_filter(slug=activity_slug, offering=course)
-    numact_choices = [(na.pk, na.name) for na in NumericActivity.objects.filter(offering=course)]
-    examact_choices = [(0, "--")] + [(na.pk, na.name) for na in Activity.objects.filter(offering=course)]
 #    cutoff=LetterCutoffForm()
-
+    #numact_choices = [(na.pk, na.name) for na in NumericActivity.objects.filter(offering=course)]
+    #examact_choices = [(0, "--")] + [(na.pk, na.name) for na in Activity.objects.filter(offering=course)]
+    
     if (len(activities) == 1):
         activity = activities[0]
                 
@@ -653,7 +654,8 @@ def edit_activity(request, course_slug, activity_slug):
                 form = LetterActivityForm(request.POST) # A form bound to the POST data
                 form.activate_editform_validation(course_slug, activity_slug)              
 
-            if  form.is_valid(): # All validation rules pass
+            
+            if  form.is_valid(): # All validation rules pass                	
                 _populate_activity_from_formdata(activity, form.cleaned_data)
                 activity.save()
                 #LOG EVENT#
@@ -682,11 +684,14 @@ def edit_activity(request, course_slug, activity_slug):
                 # set initial value in form to current value
             elif isinstance(activity, LetterActivity):
                 form = LetterActivityForm(datadict)
+            elif isinstance(activity, CalLetterActivity):
+                form = CalLetterActivityForm(datadict)
+                form.fields['numeric_activity'].choices = numact_choices
+                form.fields['exam_activity'].choices = examact_choices
         
         if isinstance(activity, CalNumericActivity):
             numeric_activities = NumericActivity.objects.exclude(slug=activity_slug).filter(offering=course)
-            context = {'course': course, 'activity': activity, 'form': form, 'numeric_activities': numeric_activities,
-                       'form_type': FORMTYPE['edit'], 'from_page': from_page}
+            context = {'course': course, 'activity': activity, 'form': form, 'numeric_activities': numeric_activities, 'form_type': FORMTYPE['edit'], 'from_page': from_page}
             return render_to_response('grades/cal_numeric_activity_form.html', context, context_instance=RequestContext(request))
         elif isinstance(activity, NumericActivity):
             context = {'course': course, 'activity': activity, 'form': form, 'form_type': FORMTYPE['edit'], 'from_page': from_page}

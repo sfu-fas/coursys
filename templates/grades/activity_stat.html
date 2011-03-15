@@ -23,10 +23,41 @@
 
 {% block content %}
 
-{% if display_summary %}
-{% if activity_stat %}
-<h2 id="summary">Summary Statistics</h2>
+{% if activity_stat.count %}
+	{% if display_summary %}
+		{% if activity_stat %}
+		<h2 id="summary">Summary Statistics</h2>
 
+		<div class="table_container">
+    		<table class="info">
+        	<tbody>
+            		<tr>
+                		<th class="ui-state-default">Mean Grade</th>
+                		<td>{{ activity_stat.average }}</td>
+            		</tr>
+            		<tr>
+           		     	<th class="ui-state-default">Median Grade</th>
+                		<td>{{ activity_stat.median }}</td>
+            		</tr>
+            		<tr>
+                		<th class="ui-state-default">Standard Deviation</th>
+                		<td>{{ activity_stat.stddev }}</td>
+            		</tr>
+            		<tr>
+                		<th class="ui-state-default">Minimum Grade</th>
+                		<td>{{ activity_stat.min }}</td>
+            		</tr>
+            		<tr>
+                		<th class="ui-state-default">Maximum Grade</th>
+                		<td>{{ activity_stat.max }}</td>
+            		</tr>
+            		<tr>
+                		<th class="ui-state-default">Grades Received</th>
+                		<td>{{ activity_stat.count }}</td>
+            		</tr>
+        	</tbody>
+    		</table>
+		</div>
 
 <div class="table_container">
     <table class="info">
@@ -101,7 +132,7 @@
 </table>
 {% endif %}
 {% else %}
-<p>Statistics is not available due to insufficient students</p>
+	<p>Statistics is not available due to insufficient students</p>
 {% endif %}
 {% endblock %}
 

@@ -215,7 +215,6 @@ class CalLetterActivityForm(ActivityForm):
     
     numeric_activity = forms.ChoiceField(choices=[])
     exam_activity = forms.ChoiceField(choices=[])
-
     
     def activate_addform_validation(self, course_slug):
         super(CalLetterActivityForm, self).activate_addform_validation(course_slug)
@@ -234,9 +233,6 @@ class CalLetterActivityForm(ActivityForm):
                 except ValidationError as e:
                     raise forms.ValidationError(e.args[0])
         return formula
-
-
-
 
 ##############################################################################################    
 class ActivityFormEntry(forms.Form):
