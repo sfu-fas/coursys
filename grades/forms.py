@@ -284,17 +284,17 @@ class URLForm(forms.Form):
 
 
 class LetterCutoffForm(forms.Form):
-    ap = forms.CharField(max_length=2)
-    a = forms.CharField(max_length=2)
-    am = forms.CharField(max_length=2)
-    bp =forms.CharField(max_length=2)
-    b = forms.CharField(max_length=2)
-    bm = forms.CharField(max_length=2)
-    cp = forms.CharField(max_length=2)
-    c = forms.CharField(max_length=2)
-    cm = forms.CharField(max_length=2)
-    d = forms.CharField(max_length=2)
-    f = forms.CharField(max_length=2)
+    ap = forms.DecimalField(max_digits=3, decimal_places=2)
+    a = forms.DecimalField(max_digits=2, decimal_places=2)
+    am = forms.DecimalField(max_digits=2, decimal_places=2)
+    bp =forms.DecimalField(max_digits=2, decimal_places=2)
+    b = forms.DecimalField(max_digits=2, decimal_places=2)
+    bm = forms.DecimalField(max_digits=2, decimal_places=2)
+    cp = forms.DecimalField(max_digits=2, decimal_places=2)
+    c = forms.DecimalField(max_digits=2, decimal_places=2)
+    cm = forms.DecimalField(max_digits=2, decimal_places=2)
+    d = forms.DecimalField(max_digits=2, decimal_places=2)
+    f = forms.DecimalField(max_digits=2, decimal_places=2)
     def clean(self):
 	ap=form.clean_data['ap']
 	a=form.clean_data['a']
@@ -307,36 +307,36 @@ class LetterCutoffForm(forms.Form):
 	cm=form.clean_data['cm']
 	d=form.clean_data['d']
 	f=form.clean_data['f']
-        if ap not in Letter_Grade_Choices:
+        if ap>100 or ap<0:
 		raise forms.ValidationError("Please input valid letter grade")
 	return ap
-	if a not in Letter_Grade_Choices:
+	if a>100 or a<0:
 		raise forms.ValidationError("Please input valid letter grade")
 	return a
-	if am not in Letter_Grade_Choices:
+	if am>100 or am<0:
 		raise forms.ValidationError("Please input valid letter grade")
 	return am
-	if bp not in Letter_Grade_Choices:
+	if bp>100 or bp<0:
 		raise forms.ValidationError("Please input valid letter grade")
 	return bp
-	if b not in Letter_Grade_Choices:
+	if b>100 or b<0:
 		raise forms.ValidationError("Please input valid letter grade")
 	return b
-	if bm not in Letter_Grade_Choices:
+	if bm>100 or bm<0:
 		raise forms.ValidationError("Please input valid letter grade")
 	return bm
-	if cp not in Letter_Grade_Choices:
+	if cp>100 or cp<0:
 		raise forms.ValidationError("Please input valid letter grade")
 	return cp
-	if c not in Letter_Grade_Choices:
+	if c>100 or c<0:
 		raise forms.ValidationError("Please input valid letter grade")
 	return c
-	if cm not in Letter_Grade_Choices:
+	if cm>100 or cm<0:
 		raise forms.ValidationError("Please input valid letter grade")
 	return cm
-	if d not in Letter_Grade_Choices:
+	if d>100 or d<0:
 		raise forms.ValidationError("Please input valid letter grade")
 	return d
-	if f not in Letter_Grade_Choices:
+	if f>100 or f<0:
 		raise forms.ValidationError("Please input valid letter grade")
 	return f
