@@ -17,3 +17,36 @@ planning workflow:
 {{o.form.instructor}}
 <input type="submit" value="Assign" />
 </form>
+
+
+
+
+instructors = []
+for i in possible_instructors:
+    data = {}
+    data['intention'] = TeachingIntention.objects.get(...)
+    data['teachable'] = TeachingCapability.objects.get(...)
+
+
+
+<form>
+<ul>
+{% for data in instructors %}
+<li>
+<p><input type="radio" name="instr" value="{{data.intention.person.userid}}" />
+{{data.intention.person.name }}
+</p>
+</li>
+{% endfor %}
+<li>
+<p><input type="radio" name="instr" value="otheruser" />
+Other instructor userid: <input type="text" name="userid" /></p>
+</li>
+</ul>
+</form>
+
+
+
+
+
+
