@@ -514,12 +514,38 @@ LETTER_POSITION = {
 # make sure every possible letter has a sort order
 assert set(LETTER_POSITION.keys()) == LETTER_GRADE_CHOICES_IN
 
+# to generate version of LETTER_POSITION in media/js/core.js:
+# ./manage.py shell
+# from grades.models import *
+# import json
+# print json.dumps(LETTER_POSITION)
+
 def sorted_letters(grades):
     """
     Sort the collection of grades in a sensible order.  Returns a sorted list.
     
     Decorate-sort-undecorate pattern.
     """
-    decorated = [(LETTER_POSITION[g.letter_grade], g) for g in grades]
+    decorated = [(LETTER_POSITION[g.letter_grade], g) for g in grades if g.flag!="NOGR"]
     decorated.sort()
-    return [g for i,g in decorated]
+    return [g for i,g in decorated] + [g for g in grades if g.flag=="NOGR"]
+
+def median_letters(grades):
+    """
+    Return a string representing the median of the letter grades.
+    """
+    grades_s = sorted_letters([g for g in grades if g.flag!="NOGR"])
+    l = len(grades_s)
+    if l == 0:
+        return u"\u2014"
+    elif l % 2 == 1:
+        return grades_s[l//2].letter_grade
+    else:
+        g1 = grades_s[l//2 - 1].letter_grade        
+        g2 = grades_s[l//2].letter_grade
+        if g1 == g2:
+            return g1
+        else:
+            # median on a boundary; report as "B/B-"
+            return g1 + "/" + g2
+

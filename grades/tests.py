@@ -424,11 +424,11 @@ class GradesTest(TestCase):
         g.save()
         g = LetterGrade(activity=a, member=ms[7], letter_grade="DE", flag="GRAD")
         g.save()
-        g = LetterGrade(activity=a, member=ms[8], letter_grade="D", flag="GRAD")
+        g = LetterGrade(activity=a, member=ms[8], letter_grade="C-", flag="GRAD")
         g.save()
         g = LetterGrade(activity=a, member=ms[9], letter_grade="N", flag="GRAD")
         g.save()
-        g = LetterGrade(activity=a, member=ms[10], letter_grade="CC", flag="GRAD")
+        g = LetterGrade(activity=a, member=ms[10], letter_grade="WE", flag="GRAD")
         g.save()
         g = LetterGrade(activity=a, member=ms[11], letter_grade="P", flag="GRAD")
         g.save()
@@ -438,11 +438,35 @@ class GradesTest(TestCase):
         g.save()
         g = LetterGrade(activity=a, member=ms[14], letter_grade="A", flag="GRAD")
         g.save()
+        g = LetterGrade(activity=a, member=ms[15], letter_grade="IP", flag="NOGR")
+        g.save()
+        g = LetterGrade(activity=a, member=ms[16], letter_grade="IP", flag="NOGR")
+        g.save()
+        g = LetterGrade(activity=a, member=ms[17], letter_grade="IP", flag="NOGR")
+        g.save()
         
         gs = LetterGrade.objects.filter(activity=a)
         gs_sort = sorted_letters(gs)
         letters = [g.letter_grade for g in gs_sort]
-        self.assertEquals(letters, ['A+', 'A', 'A', 'B+', 'B', 'B-', 'D', 'D', 'P', 'F', 'DE', 'N', 'FD', 'CC', 'AE'])
+        self.assertEquals(letters, ['A+', 'A', 'A', 'B+', 'B', 'B-', 'C-', 'D', 'P', 'F', 'DE', 'N', 'FD', 'WE', 'AE', "IP", "IP", "IP"])
+        
+        # sort by name for median testing (so we know which subsets we're grabbing)
+        gs = [(g.member.person.first_name, g) for g in gs]
+        gs.sort()
+        gs = [g for u,g in gs]
+
+        # odd-length case
+        self.assertEquals(median_letters(gs[0:5]), "B")
+        # even length with median at boundary
+        self.assertEquals(median_letters(gs[0:6]), "B+/B")
+        # even length with median not at boundary
+        grades = [gs[1], gs[2], gs[5], gs[14]] # [A, C-, A+, A]
+        self.assertEquals(median_letters(grades), "A")
+        # empty list
+        self.assertEquals(median_letters([]), u"\u2014")
+        # with some NOGR in there: should be ignored
+        self.assertEquals(median_letters([gs[15], gs[16]]), u"\u2014")
+        self.assertEquals(median_letters(gs), "D")
 
 
 
