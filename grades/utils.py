@@ -360,28 +360,29 @@ def generate_grade_range_stat_lettergrade(student_grade_list):
                              GradeRangeStat('C', 0), GradeRangeStat('C+', 0), GradeRangeStat('B-', 0),
                              GradeRangeStat('B', 0), GradeRangeStat('B+', 0), GradeRangeStat('A-', 0),
                              GradeRangeStat('A', 0),GradeRangeStat('A+', 0)]
+
         for student_grade in student_grade_list:
-            if student_grade is 'A+':
+            if student_grade == 'A+':
                 grade_range_stat_list[0].stud_count += 1
-            elif student_grade is 'A':
+            elif student_grade == 'A':
                 grade_range_stat_list[1].stud_count += 1
-            elif student_grade is 'A-':
+            elif student_grade == 'A-':
                 grade_range_stat_list[2].stud_count += 1
-            elif student_grade is 'B+':
+            elif student_grade == 'B+':
                 grade_range_stat_list[3].stud_count += 1
-            elif student_grade is 'B':
+            elif student_grade == 'B':
                 grade_range_stat_list[4].stud_count += 1
-            elif student_grade is 'B-':
+            elif student_grade == 'B-':
                 grade_range_stat_list[5].stud_count += 1
-            elif student_grade is 'C+':
+            elif student_grade == 'C+':
                 grade_range_stat_list[6].stud_count += 1
-            elif student_grade is 'C':
+            elif student_grade == 'C':
                 grade_range_stat_list[7].stud_count += 1
-            elif student_grade is 'C-':
+            elif student_grade == 'C-':
                 grade_range_stat_list[8].stud_count += 1
-            elif student_grade is 'D':
+            elif student_grade == 'D':
                 grade_range_stat_list[9].stud_count += 1
-            elif student_grade is 'F':
+            elif student_grade == 'F':
                 grade_range_stat_list[10].stud_count += 1
         return grade_range_stat_list
 
