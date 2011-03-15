@@ -355,13 +355,14 @@ def generate_grade_range_stat(student_grade_list, grade_range=10):
 #                grade_range_stat_list[9].stud_count += 1
 #        return grade_range_stat_list
     
-def generate_grade_range_stat_lettergrade(student_grade_list):
-        grade_range_stat_list = [GradeRangeStat('F', 0), GradeRangeStat('D', 0), GradeRangeStat('C-', 0),
+def generate_grade_range_stat_lettergrade(student_lettergrade_list,grade_range=11):
+	if grade_range ==11:
+            grade_range_stat_list = [GradeRangeStat('F', 0), GradeRangeStat('D', 0), GradeRangeStat('C-', 0),
                              GradeRangeStat('C', 0), GradeRangeStat('C+', 0), GradeRangeStat('B-', 0),
                              GradeRangeStat('B', 0), GradeRangeStat('B+', 0), GradeRangeStat('A-', 0),
                              GradeRangeStat('A', 0),GradeRangeStat('A+', 0)]
 
-        for student_grade in student_grade_list:
+        for student_grade in student_lettergrade_list:
             if student_grade == 'A+':
                 grade_range_stat_list[10].stud_count += 1
             elif student_grade == 'A':
