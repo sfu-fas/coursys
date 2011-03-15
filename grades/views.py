@@ -693,7 +693,6 @@ def edit_activity(request, course_slug, activity_slug):
             return render_to_response('grades/numeric_activity_form.html', context, context_instance=RequestContext(request))
         elif isinstance(activity, CalLetterActivity):
             context = {'course': course, 'activity': activity, 'form': form, 'form_type': FORMTYPE['edit'], 'from_page': from_page}
-            print form.fields
             return render_to_response('grades/cal_letter_activity_form.html', context, context_instance=RequestContext(request))
         elif isinstance(activity, LetterActivity):
             context = {'course': course, 'activity': activity, 'form': form, 'form_type': FORMTYPE['edit'], 'from_page': from_page}
