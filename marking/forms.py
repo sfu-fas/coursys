@@ -133,7 +133,7 @@ class BaseCommonProblemFormSet(BaseModelFormSet):
                           
 
 class MarkEntryForm(forms.Form):
-    value = forms.DecimalField(max_digits=5, decimal_places=2, required=False)
+    value = forms.DecimalField(max_digits=5, decimal_places=2, required=False, widget=forms.TextInput(attrs={'size':6}))
 
 class UploadGradeFileForm(forms.Form):
     file = forms.FileField(required=True)
@@ -222,7 +222,7 @@ class GradeStatusForm_LetterGrade(forms.ModelForm):
 
 
 class MarkEntryForm_LetterGrade(forms.Form):
-    value = forms.CharField(required=False,max_length=2)
+    value = forms.CharField(required=False,max_length=2, widget=forms.TextInput(attrs={'size':3}))
     
     def clean_value(self):
         grade = self.cleaned_data['value']
