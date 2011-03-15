@@ -267,6 +267,7 @@ def generate_numeric_activity_stat(activity):
                         format_number(student_grade_list[student_grade_list_count - 1], _DECIMAL_PLACE),
                         format_number(median, _DECIMAL_PLACE),
                         format_number(stddev, _DECIMAL_PLACE), grade_range_stat_list, student_grade_list_count)
+
     
 def generate_grade_range_stat(student_grade_list, grade_range=10):
     """

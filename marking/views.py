@@ -998,6 +998,51 @@ def export_csv(request, course_slug, activity_slug):
 
     return response
 
+import csv
+from grades.models import FLAG_CHOICES
+@requires_course_staff_by_slug
+def export_csv_lettergrade(request, course_slug, activity_slug):    
+    course = get_object_or_404(CourseOffering, slug = course_slug)    
+    activity = get_object_or_404(LetterActivity, offering = course, slug = activity_slug)   
+    # Create the HttpResponse object with the appropriate CSV header.
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=%s_%s.csv' % (course_slug, activity_slug,)
+
+    writer = csv.writer(response)
+    if activity.group:
+        writer.writerow(['Student ID', 'User ID', 'Student Name', 'Grade', 'Group', 'Group ID'])
+        gms = GroupMember.objects.filter(activity=activity).select_related('student__person', 'group')
+        gms = dict((gm.student.person.userid, gm) for gm in gms)
+    else:
+        writer.writerow(['Student ID', 'User ID', 'Student Name', 'Grade'])
+    
+    student_members = Member.objects.filter(offering = course, role = 'STUD').select_related('person')
+    for std in student_members:
+        row = [std.person.emplid, std.person.userid, std.person.name()]
+        try: 
+            lgrade = LetterGrade.objects.get(activity = activity, member = std)                  
+        except LetterGrade.DoesNotExist: #if the NumericGrade does not exist yet,
+            row.append('no grade')
+        else:
+            if lgrade.flag == 'GRAD' or lgrade.flag == 'CALC':
+                row.append(lgrade.letter_grade)
+            elif lgrade.flag == 'NOGR':
+                row.append('no grade')
+            else:
+                row.append(lgrade.flag)
+        
+        if activity.group:
+            if std.person.userid in gms:
+                row.append(gms[std.person.userid].group.name)
+                row.append(gms[std.person.userid].group.slug)
+            else:
+                row.append('')
+                row.append('')
+
+        writer.writerow(row)
+
+    return response
+
 @requires_course_staff_by_slug
 def mark_all_groups(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)

@@ -152,6 +152,7 @@ urlpatterns += patterns('',
 
     url(r'^' + COURSE_ACTIVITY_SLUG + '/gradestatus/' + USERID_SLUG + '/$', 'marking.views.change_grade_status'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/csv$', 'marking.views.export_csv'),
+    url(r'^' + COURSE_ACTIVITY_SLUG + '/csv_lettergrade$', 'marking.views.export_csv_lettergrade'),
     url(r'^' + COURSE_SLUG + '/_copysetup/$', 'marking.views.copy_course_setup'),
 
     url(r'^discipline/$', 'discipline.views.all_cases'),

@@ -138,7 +138,12 @@
 	    {% endif %}
 
 	    <li class="newsec"><a href="{% url grades.views.activity_stat course_slug=course.slug activity_slug=activity.slug %}">Display Statistics</a></li> 
-	    <li><a href="{% url marking.views.export_csv course_slug=course.slug, activity_slug=activity.slug%}">Export Grades</a></li>
+                 {% if activity.is_numeric %}		    	<li><a href="{% url marking.views.export_csv course_slug=course.slug, activity_slug=activity.slug%}">Export Grades</a></li> 
+		    	{% else %}
+		    	<li><a href="{% url marking.views.export_csv_lettergrade course_slug=course.slug, activity_slug=activity.slug%}">Export Grades</a></li>
+		    	{% endif %}
+
+	 
     </ul>
 </div>
 {% endblock %}
