@@ -38,6 +38,15 @@ class ActivityStat:
         self.stddev = stddev
         self.grade_range_stat_list = grade_range_stat_list
         self.count = count
+
+class ActivityStatlettergrade:
+    """
+    Object holding activity stat info, used as context object in template
+    """
+    def __init__(self, median, stddev, grade_range_stat_list, count):
+        self.median = median
+        self.grade_range_stat_list = grade_range_stat_list
+        self.count = count
         
 class StudentActivityInfo:
     """
@@ -268,6 +277,19 @@ def generate_numeric_activity_stat(activity):
                         format_number(median, _DECIMAL_PLACE),
                         format_number(stddev, _DECIMAL_PLACE), grade_range_stat_list, student_grade_list_count)
 
+def generate_letter_activity_stat(activity):
+    """
+    This function fetch statistics of the numeric activity.
+    """
+    student_grade_list = fetch_students_grade(activity)
+    if not student_grade_list:
+        return
+
+    student_grade_list_count = len(student_grade_list)
+
+    grade_range_stat_list = generate_grade_range_stat_lettergrade(student_grade_list)
+
+    return ActivityStatlettergrade(grade_range_stat_list, student_grade_list_count)
     
 def generate_grade_range_stat(student_grade_list, grade_range=10):
     """
@@ -329,6 +351,36 @@ def generate_grade_range_stat(student_grade_list, grade_range=10):
 #            elif 91 <= student_grade:
 #                grade_range_stat_list[9].stud_count += 1
 #        return grade_range_stat_list
+    
+def generate_grade_range_stat_lettergrade(student_grade_list):    if grade_range == 10:
+        grade_range_stat_list = [GradeRangeStat('0-10', 0), GradeRangeStat('11-20', 0), GradeRangeStat('21-30', 0),
+                             GradeRangeStat('31-40', 0), GradeRangeStat('41-50', 0), GradeRangeStat('51-60', 0),
+                             GradeRangeStat('61-70', 0), GradeRangeStat('71-80', 0), GradeRangeStat('81-90', 0),
+                             GradeRangeStat('91-100', 0)]
+        for student_grade in student_grade_list:
+            if student_grade is 'A+':
+                grade_range_stat_list[0].stud_count += 1
+            elif student_grade is 'A':
+                grade_range_stat_list[1].stud_count += 1
+            elif student_grade is 'A-':
+                grade_range_stat_list[2].stud_count += 1
+            elif student_grade is 'B+':
+                grade_range_stat_list[3].stud_count += 1
+            elif student_grade is 'B':
+                grade_range_stat_list[4].stud_count += 1
+            elif student_grade is 'B-':
+                grade_range_stat_list[5].stud_count += 1
+            elif student_grade is 'C+':
+                grade_range_stat_list[6].stud_count += 1
+            elif student_grade is 'C':
+                grade_range_stat_list[7].stud_count += 1
+            elif student_grade is 'C-':
+                grade_range_stat_list[8].stud_count += 1
+            elif student_grade is 'D':
+                grade_range_stat_list[9].stud_count += 1
+            elif student_grade is 'F':
+                grade_range_stat_list[10].stud_count += 1
+        return grade_range_stat_list_lettergrade
 
 def fetch_students_numeric_grade(activity):
     """
@@ -336,19 +388,42 @@ def fetch_students_numeric_grade(activity):
     have any grade yet, the numeric grade is default to 0.
     """
     _DEFAULT_NUMERIC_GRADE = 0
-    if not isinstance(activity, NumericActivity):
-        raise TypeError('NumericActivity type is required')
+
     student_list = activity.offering.members.filter(person__role='STUD')
-    numeric_grade_list = NumericGrade.objects.filter(activity=activity).exclude(flag="NOGR")\
-                        .select_related('member','member__person')
+    grade_list = NumericGrade.objects.filter(activity=activity).exclude(flag="NOGR")\
+                        .select_related('member','member__person') 
     
     student_grade_list = []
     for student in student_list:
         student_found = False
-        for numeric_grade in numeric_grade_list:
-            if numeric_grade.member.person == student:
+        for grade in grade_list:
+            if grade.member.person == student:
                 student_found = True
-                student_grade_list.append(numeric_grade.value)
+                student_grade_list.append(grade.value)
+                break
+        #if not student_found:
+        #    student_grade_list.append(_DEFAULT_NUMERIC_GRADE)
+    
+    return student_grade_list
+
+def fetch_students_letter_grade(activity):
+    """
+    This function return a list of all students' grade in a course activity. If student does not
+    have any grade yet, the numeric grade is default to 0.
+    """
+
+
+    student_list = activity.offering.members.filter(person__role='STUD')
+    grade_list = LetterGrade.objects.filter(activity=activity).exclude(flag="NOGR")\
+                        .select_related('member','member__person') 
+    
+    student_grade_list = []
+    for student in student_list:
+        student_found = False
+        for grade in grade_list:
+            if grade.member.person == student:
+                student_found = True
+                student_grade_list.append(grade.letter_grade)
                 break
         #if not student_found:
         #    student_grade_list.append(_DEFAULT_NUMERIC_GRADE)
@@ -364,6 +439,8 @@ def format_number(value, decimal_places):
         return u'%s' % str(value.quantize(decimal.Decimal(".1") ** decimal_places, context=context))
     else:
         return u"%.*f" % (decimal_places, value)
+
+
 
 class ValidationError(Exception):
     pass

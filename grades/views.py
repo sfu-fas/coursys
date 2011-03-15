@@ -14,7 +14,7 @@ from grades.forms import NumericActivityForm, LetterActivityForm, CalNumericActi
                          LetterCutoffForm
 from grades.models import *
 from grades.utils import StudentActivityInfo, reorder_course_activities, create_StudentActivityInfo_list, \
-                        ORDER_TYPE, FormulaTesterActivityEntry, FakeActivity, generate_numeric_activity_stat
+                        ORDER_TYPE, FormulaTesterActivityEntry, FakeActivity, generate_numeric_activity_stat,generate_letter_activity_stat
 from grades.utils import ValidationError, parse_and_validate_formula, calculate_numeric_grade
 from marking.models import get_group_mark, StudentActivityMark, GroupActivityMark, ActivityComponent
 from groups.models import *
@@ -251,6 +251,7 @@ def _activity_info_student(request, course_slug, activity_slug):
     
     # only display summary stats for courses with at least STUD_NUM_TO_DISP_ACTSTAT grades received
     reason_msg = ''
+    
     activity_stat = generate_numeric_activity_stat(activity)
     if activity_stat is None or activity_stat.count < STUD_NUM_TO_DISP_ACTSTAT or activity.status!="RLS":
         if activity_stat is None or activity_stat.count < STUD_NUM_TO_DISP_ACTSTAT:
@@ -326,7 +327,10 @@ def activity_stat(request, course_slug, activity_slug):
     activity = activities[0]
     display_summary = True # always display for staff
     
-    activity_stat = generate_numeric_activity_stat(activity)
+    if not activity.is_numeric:
+       activity_stat = generate_letter_activity_stat(activity)
+    else:
+       activity_stat = generate_numeric_activity_stat(activity)
 
     context = {'course': course, 'activity': activity, 'activity_stat': activity_stat, 'display_summary': display_summary}
     return render_to_response('grades/activity_stat.html', context, context_instance=RequestContext(request))
