@@ -629,7 +629,7 @@ def edit_activity(request, course_slug, activity_slug):
     activities = all_activities_filter(slug=activity_slug, offering=course)
     numact_choices = [(na.pk, na.name) for na in NumericActivity.objects.filter(offering=course)]
     examact_choices = [(0, "--")] + [(na.pk, na.name) for na in Activity.objects.filter(offering=course)]
-    cutoff=LetterCutoffForm()
+#    cutoff=LetterCutoffForm()
 
     if (len(activities) == 1):
         activity = activities[0]
@@ -643,12 +643,16 @@ def edit_activity(request, course_slug, activity_slug):
             elif isinstance(activity, NumericActivity):
                 form = NumericActivityForm(request.POST) # A form bound to the POST data
                 form.activate_editform_validation(course_slug, activity_slug)
+            elif isinstance(activity, CalLetterActivity):
+                form = CalLetterActivityForm(request.POST) # A form bound to the POST data
+                form.fields['numeric_activity'].choices = numact_choices
+                form.fields['exam_activity'].choices = examact_choices
+
+                form.activate_editform_validation(course_slug, activity_slug)
             elif isinstance(activity, LetterActivity):
                 form = LetterActivityForm(request.POST) # A form bound to the POST data
                 form.activate_editform_validation(course_slug, activity_slug)              
-            elif isinstance(activity, CalLetterActivity):
-                form = CalLetterActivityForm(request.POST) # A form bound to the POST data
-                form.activate_editform_validation(course_slug, activity_slug)
+
             if  form.is_valid(): # All validation rules pass
                 _populate_activity_from_formdata(activity, form.cleaned_data)
                 activity.save()
@@ -671,6 +675,11 @@ def edit_activity(request, course_slug, activity_slug):
                 form = CalNumericActivityForm(datadict)
             elif isinstance(activity, NumericActivity):
                 form = NumericActivityForm(datadict)
+            elif isinstance(activity, CalLetterActivity):
+                form = CalLetterActivityForm(datadict)
+                form.fields['numeric_activity'].choices = numact_choices
+                form.fields['exam_activity'].choices = examact_choices
+                # set initial value in form to current value
             elif isinstance(activity, LetterActivity):
                 form = LetterActivityForm(datadict)
         
@@ -683,7 +692,8 @@ def edit_activity(request, course_slug, activity_slug):
             context = {'course': course, 'activity': activity, 'form': form, 'form_type': FORMTYPE['edit'], 'from_page': from_page}
             return render_to_response('grades/numeric_activity_form.html', context, context_instance=RequestContext(request))
         elif isinstance(activity, CalLetterActivity):
-            context = {'course': course, 'activity': activity, 'form': form, 'form_type': FORMTYPE['edit'], 'from_page': from_page, 'cutoff': cutoff}
+            context = {'course': course, 'activity': activity, 'form': form, 'form_type': FORMTYPE['edit'], 'from_page': from_page}
+            print form.fields
             return render_to_response('grades/cal_letter_activity_form.html', context, context_instance=RequestContext(request))
         elif isinstance(activity, LetterActivity):
             context = {'course': course, 'activity': activity, 'form': form, 'form_type': FORMTYPE['edit'], 'from_page': from_page}
