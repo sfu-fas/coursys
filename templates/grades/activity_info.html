@@ -277,9 +277,9 @@
 				{% endif %}
 			{% else %}
 				{% if activity.is_numeric %}
-					<a>&mdash;/{{activity.max_grade}}</a>
+					<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">&mdash;/{{activity.max_grade}}</a>
 				{% else %}
-					<a>&mdash;</a>
+					<a href="{% url marking.views.change_grade_status_lettergrade course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">&mdash;</a>
 				{% endif %}
 			{% endif %}	   
 		    {% else %}
@@ -290,7 +290,11 @@
 					<a href="{% url marking.views.change_grade_status_lettergrade course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">{{ grade.display_staff }}</a>
 				{% endif %}
 			{% else %}
-				<a>{{ grade.display_staff }}</a>
+				{% if activity.is_numeric %}
+					<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">{{ grade.display_staff }}</a>
+				{% else %}
+					<a href="{% url marking.views.change_grade_status_lettergrade course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">{{ grade.display_staff }}</a>
+				{% endif %}
 			{% endif %}
 		    {% endif %}
 		    
