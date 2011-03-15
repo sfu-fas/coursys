@@ -216,8 +216,10 @@ class GradesTest(TestCase):
         # course main screen
         url = reverse('grades.views.course_info', kwargs={'course_slug': c.slug})
         response = basic_page_tests(self, client, url)
-        url = reverse('grades.views.add_numeric_activity', kwargs={'course_slug': c.slug})
+        url = reverse('grades.views.activity_choice', kwargs={'course_slug': c.slug})
         self.assertContains(response, 'href="' + url +'"')
+        url = reverse('grades.views.add_numeric_activity', kwargs={'course_slug': c.slug})
+        response = basic_page_tests(self, client, url)
         
         # add activity
         import datetime
@@ -390,6 +392,57 @@ class GradesTest(TestCase):
         cs = a.get_cutoffs()
         self.assertAlmostEquals(float(cs[1]), 90.333333333333)
 
+    def test_sort_letter(self):
+        """
+        Test sorting letter grades
+        """
+        s, c = create_offering()
+        
+        a = LetterActivity(name="Assignment 1", short_name="A1", status="RLS", offering=c, position=2, due_date=None, group=False)
+        a.save()
+
+        ms = []
+        for i in range(20):
+            p = Person.objects.get(userid="0aaa%i"%i)
+            m = Member(person=p, offering=c, role="STUD", added_reason="UNK")
+            m.save()
+            ms.append(m)
+        
+        g = LetterGrade(activity=a, member=ms[0], letter_grade="B+", flag="GRAD")
+        g.save()
+        g = LetterGrade(activity=a, member=ms[1], letter_grade="A", flag="GRAD")
+        g.save()
+        g = LetterGrade(activity=a, member=ms[2], letter_grade="D", flag="GRAD")
+        g.save()
+        g = LetterGrade(activity=a, member=ms[3], letter_grade="B-", flag="GRAD")
+        g.save()
+        g = LetterGrade(activity=a, member=ms[4], letter_grade="B", flag="GRAD")
+        g.save()
+        g = LetterGrade(activity=a, member=ms[5], letter_grade="A+", flag="GRAD")
+        g.save()
+        g = LetterGrade(activity=a, member=ms[6], letter_grade="F", flag="GRAD")
+        g.save()
+        g = LetterGrade(activity=a, member=ms[7], letter_grade="DE", flag="GRAD")
+        g.save()
+        g = LetterGrade(activity=a, member=ms[8], letter_grade="D", flag="GRAD")
+        g.save()
+        g = LetterGrade(activity=a, member=ms[9], letter_grade="N", flag="GRAD")
+        g.save()
+        g = LetterGrade(activity=a, member=ms[10], letter_grade="CC", flag="GRAD")
+        g.save()
+        g = LetterGrade(activity=a, member=ms[11], letter_grade="P", flag="GRAD")
+        g.save()
+        g = LetterGrade(activity=a, member=ms[12], letter_grade="AE", flag="GRAD")
+        g.save()
+        g = LetterGrade(activity=a, member=ms[13], letter_grade="FD", flag="GRAD")
+        g.save()
+        g = LetterGrade(activity=a, member=ms[14], letter_grade="A", flag="GRAD")
+        g.save()
+        
+        gs = LetterGrade.objects.filter(activity=a)
+        gs_sort = sorted_letters(gs)
+        letters = [g.letter_grade for g in gs_sort]
+        self.assertEquals(letters, ['A+', 'A', 'A', 'B+', 'B', 'B-', 'D', 'D', 'P', 'F', 'DE', 'N', 'FD', 'CC', 'AE'])
 
 
 

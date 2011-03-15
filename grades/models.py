@@ -281,7 +281,7 @@ class CalLetterActivity(LetterActivity):
     """
     Activity with a calculated letter grade which is the final letter grade of the course offering
     """
-    numeric_activity = models.ForeignKey(LetterActivity, related_name='letter_source_set')
+    numeric_activity = models.ForeignKey(NumericActivity, related_name='numeric_source_set')
     exam_activity = models.ForeignKey(Activity, null=True, related_name='exam_set')
     letter_cutoffs = models.CharField(max_length=500, help_text='parsed formula to calculate final letter grade', default='[95, 90, 85, 80, 75, 70, 65, 60, 55, 50]')
 
@@ -469,8 +469,6 @@ class LetterGrade(models.Model):
     class Meta:
         unique_together = (('activity', 'member'), )
 
-##############################Yu Liu Added#########################################################  
-
 NumericActivity.GradeClass = NumericGrade
 LetterActivity.GradeClass = LetterGrade
 
@@ -484,3 +482,44 @@ def neaten_activity_positions(course):
         a.save()
         count += 1
 
+LETTER_POSITION = {
+    'A+': 0,
+    'A': 1,
+    'A-': 2,
+    'B+': 3,
+    'B': 4,
+    'B-': 5,
+    'C+': 6,
+    'C': 7,
+    'C-': 8,
+    'D': 9,
+    'F': 11,
+    'FD': 14,
+    'N': 13,
+    'P': 10,
+    'W': 15,
+    'AE': 17,
+    'AU': 17,
+    'CC': 17,
+    'CF': 17,
+    'CN': 17,
+    'CR': 17,
+    'FX': 17,
+    'WD': 15,
+    'WE': 15,
+    'DE': 12,
+    'GN': 16,
+    'IP': 16
+    }
+# make sure every possible letter has a sort order
+assert set(LETTER_POSITION.keys()) == LETTER_GRADE_CHOICES_IN
+
+def sorted_letters(grades):
+    """
+    Sort the collection of grades in a sensible order.  Returns a sorted list.
+    
+    Decorate-sort-undecorate pattern.
+    """
+    decorated = [(LETTER_POSITION[g.letter_grade], g) for g in grades]
+    decorated.sort()
+    return [g for i,g in decorated]
