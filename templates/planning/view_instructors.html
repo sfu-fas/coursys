@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load grade_student %}
+{% load form_display %}
+
+{% load markup %}
+
+{% block title %}Assign Instructors{% endblock %}
+{% block h1 %}Assign Instructors{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li><li>&gt; {{ semester_plan.name }} in {{semester_plan.semester.label}}</li><li>&gt; Assign Instructors</li>{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#courses').dataTable( {
+    'bPaginate': true,
+    'bInfo': true,
+    'bLengthChange': true,
+    "bJQueryUI": true,
+	"sPaginationType": "full_numbers",
+	"iDisplayLength" : 50
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block content %}
+
+<div class="datatable_container">
+	
+	
+    <h2>{{ semester_plan.semester.label }} </br> {{ semester_plan.name }} </br> {{ course_info.course }} {{ course_info.section }} </h2>
+	
+	<h3> Current Assigned Instructor: {{ course_info.instructor }} </h3>
+	
+	<div id="form_container">
+	    <form action="{}" method="post">{% csrf_token %}
+	        <fieldset>
+	            <legend>Capable Instructors</legend>
+				{{form|as_dl}}
+	            <div><input class="submit" type="submit" value="Assign" /></div>
+	        </fieldset>
+	    </form>
+
+	</div>
+
+</div>
+
+
+{% endblock%}
+
+
