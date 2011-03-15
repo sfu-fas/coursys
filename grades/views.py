@@ -327,10 +327,10 @@ def activity_stat(request, course_slug, activity_slug):
     activity = activities[0]
     display_summary = True # always display for staff
     
-    #if not activity.is_numeric:
-    activity_stat = generate_letter_activity_stat(activity)
-   # else:
-      # activity_stat = generate_numeric_activity_stat(activity)
+    if activity.is_numeric():
+        activity_stat = generate_numeric_activity_stat(activity)
+    else:
+        activity_stat = generate_letter_activity_stat(activity)
 
     context = {'course': course, 'activity': activity, 'activity_stat': activity_stat, 'display_summary': display_summary}
     return render_to_response('grades/activity_stat.html', context, context_instance=RequestContext(request))

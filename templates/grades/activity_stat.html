@@ -63,6 +63,7 @@
 <span class='histogram_memo'>(refresh the page if histogram is not displayed properly)</span>
 <table class="data info" style="width: 500px; border-collapse: collapse;">
     <caption>Grade Range</caption>
+    {% if activity.is_numeric %}
     <thead>
 	<tr>
 	    <td></td>
@@ -79,6 +80,24 @@
 	    {% endfor %}
 	</tr>
     </tbody>
+    {% else %}
+    <thead>
+	<tr>
+	    <td></td>
+	    {% for grade_range_stat in activity_stat.grade_range_stat_list %}
+	    <th scope="col">{{ grade_range_stat.grade_range }}</th>
+	    {% endfor %}
+	</tr>
+    </thead>
+    <tbody>
+	<tr>
+	    <th scope="row">{{ activity.name }}</th>
+	    {% for grade_range_stat in activity_stat.grade_range_stat_list %}
+	    <td>{{ grade_range_stat.stud_count }}</td>
+	    {% endfor %}
+	</tr>
+    </tbody>
+    {% endif%}
 </table>
 {% endif %}
 {% else %}

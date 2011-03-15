@@ -356,10 +356,10 @@ def generate_grade_range_stat(student_grade_list, grade_range=10):
 #        return grade_range_stat_list
     
 def generate_grade_range_stat_lettergrade(student_grade_list):
-        grade_range_stat_list = [GradeRangeStat('0-10', 0), GradeRangeStat('11-20', 0), GradeRangeStat('21-30', 0),
-                             GradeRangeStat('31-40', 0), GradeRangeStat('41-50', 0), GradeRangeStat('51-60', 0),
-                             GradeRangeStat('61-70', 0), GradeRangeStat('71-80', 0), GradeRangeStat('81-90', 0),
-                             GradeRangeStat('91-100', 0)]
+        grade_range_stat_list = [GradeRangeStat('F', 0), GradeRangeStat('D', 0), GradeRangeStat('C-', 0),
+                             GradeRangeStat('C', 0), GradeRangeStat('C+', 0), GradeRangeStat('B-', 0),
+                             GradeRangeStat('B', 0), GradeRangeStat('B+', 0), GradeRangeStat('A-', 0),
+                             GradeRangeStat('A', 0),GradeRangeStat('A+', 0)]
         for student_grade in student_grade_list:
             if student_grade is 'A+':
                 grade_range_stat_list[0].stud_count += 1
