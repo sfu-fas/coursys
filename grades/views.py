@@ -252,7 +252,11 @@ def _activity_info_student(request, course_slug, activity_slug):
     # only display summary stats for courses with at least STUD_NUM_TO_DISP_ACTSTAT grades received
     reason_msg = ''
     
-    activity_stat = generate_numeric_activity_stat(activity)
+    if activity.is_numeric():
+       activity_stat = generate_numeric_activity_stat(activity)
+    else:
+       activity_stat = generate_letter_activity_stat(activity)
+
     if activity_stat is None or activity_stat.count < STUD_NUM_TO_DISP_ACTSTAT or activity.status!="RLS":
         if activity_stat is None or activity_stat.count < STUD_NUM_TO_DISP_ACTSTAT:
             reason_msg = 'Summary statistics disabled for small classes.'

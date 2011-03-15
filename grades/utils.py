@@ -125,7 +125,7 @@ class StudentActivityInfo:
         if isinstance(self.activity, NumericActivity):
             self.activity_stat = generate_numeric_activity_stat(self.activity)
         else:
-            self.activity_stat = None
+            self.activity_stat = generate_letter_activity_stat(self.activity)
             
         return self
     
