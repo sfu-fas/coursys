@@ -308,35 +308,35 @@ class LetterCutoffForm(forms.Form):
 	d=form.clean_data['d']
 	f=form.clean_data['f']
         if ap>100 or ap<0:
-		raise forms.ValidationError("Please input valid letter grade")
+		raise forms.ValidationError("Please input valid numberic grade")
 	return ap
 	if a>100 or a<0:
-		raise forms.ValidationError("Please input valid letter grade")
+		raise forms.ValidationError("Please input valid numberic grade")
 	return a
 	if am>100 or am<0:
-		raise forms.ValidationError("Please input valid letter grade")
+		raise forms.ValidationError("Please input valid numberic grade")
 	return am
 	if bp>100 or bp<0:
-		raise forms.ValidationError("Please input valid letter grade")
+		raise forms.ValidationError("Please input valid numberic grade")
 	return bp
 	if b>100 or b<0:
-		raise forms.ValidationError("Please input valid letter grade")
+		raise forms.ValidationError("Please input valid numberic grade")
 	return b
 	if bm>100 or bm<0:
-		raise forms.ValidationError("Please input valid letter grade")
+		raise forms.ValidationError("Please input valid numberic grade")
 	return bm
 	if cp>100 or cp<0:
-		raise forms.ValidationError("Please input valid letter grade")
+		raise forms.ValidationError("Please input valid numberic grade")
 	return cp
 	if c>100 or c<0:
-		raise forms.ValidationError("Please input valid letter grade")
+		raise forms.ValidationError("Please input valid numberic grade")
 	return c
 	if cm>100 or cm<0:
-		raise forms.ValidationError("Please input valid letter grade")
+		raise forms.ValidationError("Please input valid numberic grade")
 	return cm
 	if d>100 or d<0:
-		raise forms.ValidationError("Please input valid letter grade")
+		raise forms.ValidationError("Please input valid numberic grade")
 	return d
 	if f>100 or f<0:
-		raise forms.ValidationError("Please input valid letter grade")
+		raise forms.ValidationError("Please input valid numberic grade")
 	return f
