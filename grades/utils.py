@@ -43,8 +43,7 @@ class ActivityStatlettergrade:
     """
     Object holding activity stat info, used as context object in template
     """
-    def __init__(self, median, stddev, grade_range_stat_list, count):
-        self.median = median
+    def __init__(self,grade_range_stat_list, count):
         self.grade_range_stat_list = grade_range_stat_list
         self.count = count
         
@@ -276,12 +275,12 @@ def generate_numeric_activity_stat(activity):
                         format_number(student_grade_list[student_grade_list_count - 1], _DECIMAL_PLACE),
                         format_number(median, _DECIMAL_PLACE),
                         format_number(stddev, _DECIMAL_PLACE), grade_range_stat_list, student_grade_list_count)
-
+##########################################################################################################################
 def generate_letter_activity_stat(activity):
     """
     This function fetch statistics of the numeric activity.
     """
-    student_grade_list = fetch_students_grade(activity)
+    student_grade_list = fetch_students_letter_grade(activity)
     if not student_grade_list:
         return
 
@@ -291,6 +290,10 @@ def generate_letter_activity_stat(activity):
 
     return ActivityStatlettergrade(grade_range_stat_list, student_grade_list_count)
     
+
+   
+    
+############################################################################################################################    
 def generate_grade_range_stat(student_grade_list, grade_range=10):
     """
     This function return a order list of GradeRangeStat according to the grade_range param.
@@ -352,7 +355,7 @@ def generate_grade_range_stat(student_grade_list, grade_range=10):
 #                grade_range_stat_list[9].stud_count += 1
 #        return grade_range_stat_list
     
-def generate_grade_range_stat_lettergrade(student_grade_list):    if grade_range == 10:
+def generate_grade_range_stat_lettergrade(student_grade_list):
         grade_range_stat_list = [GradeRangeStat('0-10', 0), GradeRangeStat('11-20', 0), GradeRangeStat('21-30', 0),
                              GradeRangeStat('31-40', 0), GradeRangeStat('41-50', 0), GradeRangeStat('51-60', 0),
                              GradeRangeStat('61-70', 0), GradeRangeStat('71-80', 0), GradeRangeStat('81-90', 0),
@@ -380,7 +383,7 @@ def generate_grade_range_stat_lettergrade(student_grade_list):    if grade_rang
                 grade_range_stat_list[9].stud_count += 1
             elif student_grade is 'F':
                 grade_range_stat_list[10].stud_count += 1
-        return grade_range_stat_list_lettergrade
+        return grade_range_stat_list
 
 def fetch_students_numeric_grade(activity):
     """
@@ -429,7 +432,10 @@ def fetch_students_letter_grade(activity):
         #    student_grade_list.append(_DEFAULT_NUMERIC_GRADE)
     
     return student_grade_list
-    
+
+######################################################################################################t
+
+###############################################################################################################   
 def format_number(value, decimal_places):
     """
     Formats a number into a string with the requisite number of decimal places.
