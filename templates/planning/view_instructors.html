@@ -37,11 +37,52 @@ $(document).ready(function() {
 	<h3> Current Assigned Instructor: {{ course_info.instructor }} </h3>
 	
 	<div id="form_container">
-	    <form action="{}" method="post">{% csrf_token %}
+	    <form action="{% url planning.views.submit_assigned_instructors semester=semester_plan.semester.name plan_slug=semester_plan.slug offering_id=course_info.id %}" method="post">{% csrf_token %}
 	        <fieldset>
 	            <legend>Capable Instructors</legend>
-				{{form|as_dl}}
+				{% for data in instructors %}
+					<p><input type="radio" name="instructor" value="{{data.instructor.instructor.userid}}" />
+					</br><b>Instructor:</b> 
+					{{data.instructor.instructor}}
+					</br><b>Current Assigned Courses:</b>
+					{% if data.current_courses %}
+						{% for i in data.current_courses %}
+							</br>
+							{{i.course}}
+						{% endfor %}
+					{% else %}
+						</br>
+						None
+					{% endif %}					
+					</br>
+					<b>Capable Courses:</b> 
+					{% for i in data.teachable %}
+						</br>
+						{{i.course}}
+						{% if i.note %}
+							( Note: {{i.note}} )
+						{% endif %}
+					{% endfor %}
+					</br>
+					<b>Teaching Intentions:</b> 
+					{% for i in data.intention %}
+						</br>
+						{{i.semester}}:
+						{{i.count}}
+						{% if i.note %}
+							( Note: {{i.note}} )
+						{% endif %}
+					{% endfor %}
+					</p>
+				{% endfor %}
+				{% if course_info.instructor %}
+					<p><input type="radio" name="instructor" value="None" />
+					</br>
+					<b>Clear Assigned Instructor</b>
+					</p>
+				{% endif %}
 	            <div><input class="submit" type="submit" value="Assign" /></div>
+
 	        </fieldset>
 	    </form>
 
