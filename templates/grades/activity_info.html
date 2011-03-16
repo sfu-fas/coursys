@@ -120,23 +120,13 @@ Column logic:
 	    {% endif %}
 	    
 	    {% if not activity.is_calculated %}
-	      {% if activity.is_numeric %}
-	    	<li><a href="{% url marking.views.mark_all_students course_slug=course.slug, activity_slug=activity.slug%}">Mark each Student</a></li>
-	      {% else %}
-	        <li><a href="{% url marking.views.mark_all_students_lettergrade course_slug=course.slug, activity_slug=activity.slug%}">Mark each Student</a></li>
-	      {% endif %}
+	    <li><a href="{% url marking.views.mark_all_students course_slug=course.slug, activity_slug=activity.slug%}">Mark each Student</a></li>
 	    {% endif %}
 	    
 	    {% if activity.group and not activity.is_calculated%}
-	    	    {% if activity.is_numeric %}
 		    	<li>
 		    	<a href="{% url marking.views.mark_all_groups course_slug=course.slug, activity_slug=activity.slug%}?from_page={{ from_page }}">Mark each Group</a>
 		    	</li>
-		    {% else %}
-		    	<li>
-		    	<a href="{% url marking.views.mark_all_groups_lettergrade course_slug=course.slug, activity_slug=activity.slug%}?from_page={{ from_page }}">Mark each Group</a>
-		    	</li>
-		    {% endif %}
 	    {% endif %}
 
 	    <li class="newsec"><a href="{% url grades.views.activity_stat course_slug=course.slug activity_slug=activity.slug %}">Display Statistics</a></li> 

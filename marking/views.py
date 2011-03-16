@@ -1045,9 +1045,24 @@ def export_csv_lettergrade(request, course_slug, activity_slug):
 
 @requires_course_staff_by_slug
 def mark_all_groups(request, course_slug, activity_slug):
-    course = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(NumericActivity, offering=course, slug=activity_slug)
+    """
+    Mark the whole class (by group).  Calls numeric/letter view as appropriate.
+    """
+    course = get_object_or_404(CourseOffering, slug = course_slug)
+    acts = all_activities_filter(course, slug=activity_slug)
+    if len(acts) != 1:
+        raise Http404('No such Activity.')
+    activity = acts[0]
     
+    if isinstance(activity, NumericActivity):
+        return _mark_all_groups_numeric(request, course, activity)
+    elif isinstance(activity, LetterActivity):
+        return _mark_all_groups_letter(request, course, activity)
+    else:
+        raise Http404('Unknown activity type.')
+
+
+def _mark_all_groups_numeric(request, course, activity):
     error_info = None
     rows=[]
     warning_info=[]
@@ -1103,7 +1118,7 @@ def mark_all_groups(request, course_slug, activity_slug):
                 messages.add_message(request, messages.SUCCESS, "Marks for all groups on %s saved (%s groups' grades updated)!" % (activity.name, updated))
             for warning in warning_info:
                 messages.add_message(request, messages.WARNING, warning)                    
-            return _redirct_response(request, course_slug, activity_slug)   
+            return _redirct_response(request, course.slug, activity.slug)   
         
     else: # for GET request
        for group in groups: 
@@ -1120,12 +1135,9 @@ def mark_all_groups(request, course_slug, activity_slug):
     return render_to_response("marking/mark_all_group.html",
                           {'course': course, 'activity': activity,'mark_all_rows': rows }, 
                           context_instance = RequestContext(request))
-#####################################################################################
-@requires_course_staff_by_slug
-def mark_all_groups_lettergrade(request, course_slug, activity_slug):
-    course = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(LetterActivity, offering=course, slug=activity_slug)
-    
+
+
+def _mark_all_groups_letter(request, course, activity):
     error_info = None
     rows=[]
     warning_info=[]
@@ -1180,7 +1192,7 @@ def mark_all_groups_lettergrade(request, course_slug, activity_slug):
                 messages.add_message(request, messages.SUCCESS, "Marks for all groups on %s saved (%s groups' grades updated)!" % (activity.name, updated))
             for warning in warning_info:
                 messages.add_message(request, messages.WARNING, warning)                    
-            return _redirct_response(request, course_slug, activity_slug)   
+            return _redirct_response(request, course.slug, activity.slug)   
         
     else: # for GET request
        for group in groups: 
@@ -1201,7 +1213,7 @@ def mark_all_groups_lettergrade(request, course_slug, activity_slug):
 
 # This is for marking groups with calculated letter grades
 @requires_course_staff_by_slug
-def mark_all_groups_cal_lettergrade (request, course_slug, activity_slug):
+def XXX_mark_all_groups_cal_lettergrade (request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(CalLetterActivity, offering=course, slug=activity_slug)
     rows = [] 
@@ -1213,7 +1225,7 @@ def mark_all_groups_cal_lettergrade (request, course_slug, activity_slug):
 
 #This is for marking students with calculated letter grades
 @requires_course_staff_by_slug
-def mark_all_students_cal_lettergrade(request, course_slug, activity_slug):
+def XXX_mark_all_students_cal_lettergrade(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug = course_slug)
     activity = get_object_or_404(CalLetterActivity, offering = course, slug = activity_slug)
     fileform = None
@@ -1225,7 +1237,7 @@ def mark_all_students_cal_lettergrade(request, course_slug, activity_slug):
 
 # This is for marking groups with calculated numeric grades
 @requires_course_staff_by_slug
-def mark_all_groups_cal (request, course_slug, activity_slug):
+def XXX_mark_all_groups_cal (request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(CalNumericActivity, offering=course, slug=activity_slug)
     rows = [] 
@@ -1237,7 +1249,7 @@ def mark_all_groups_cal (request, course_slug, activity_slug):
 
 #This is for marking students with calculated numeric grades
 @requires_course_staff_by_slug
-def mark_all_students_cal(request, course_slug, activity_slug):
+def XXX_mark_all_students_cal(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug = course_slug)
     activity = get_object_or_404(CalNumericActivity, offering = course, slug = activity_slug)
     fileform = None
@@ -1293,11 +1305,7 @@ def change_grade_status_lettergrade(request, course_slug, activity_slug, userid)
     return render_to_response("marking/grade_status_lettergrade.html", context,
                               context_instance=RequestContext(request))  
 
-@requires_course_staff_by_slug
-def mark_all_students_lettergrade(request, course_slug, activity_slug):
-    course = get_object_or_404(CourseOffering, slug = course_slug)
-    activity = get_object_or_404(LetterActivity, offering = course, slug = activity_slug)
-   
+def _mark_all_students_letter(request, course, activity):
     rows = []
     fileform = None
     imported_data = {} #may get filled with data from an imported file, a mapping from student's userid to grade
@@ -1361,7 +1369,7 @@ def mark_all_students_lettergrade(request, course_slug, activity_slug):
             #if valid_input == False:
             #   messages.add_message(request, messages.SUCCESS, "Not valid input exists, but was ignored. Please check for not updated one.")
                     
-            return _redirct_response(request, course_slug, activity_slug) 
+            return _redirct_response(request, course.slug, activity.slug) 
     
     else: 
         if request.method == 'POST': # for import
@@ -1423,13 +1431,27 @@ def calculate_lettergrade(request, course_slug, activity_slug):
 
 
 
-######################### Yu Liu Added #############################  
-
 @requires_course_staff_by_slug
 def mark_all_students(request, course_slug, activity_slug):
+    """
+    Mark the whole class (by student).  Calls numeric/letter view as appropriate.
+    """
     course = get_object_or_404(CourseOffering, slug = course_slug)
-    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)
+    acts = all_activities_filter(course, slug=activity_slug)
+    if len(acts) != 1:
+        raise Http404('No such Activity.')
+    activity = acts[0]
+    
+    if isinstance(activity, NumericActivity):
+        return _mark_all_students_numeric(request, course, activity)
+    elif isinstance(activity, LetterActivity):
+        return _mark_all_students_letter(request, course, activity)
+    else:
+        raise Http404('Unknown activity type.')
+
    
+
+def _mark_all_students_numeric(request, course, activity):
     rows = []
     fileform = None
     imported_data = {} #may get filled with data from an imported file, a mapping from student's userid to grade
@@ -1493,7 +1515,7 @@ def mark_all_students(request, course_slug, activity_slug):
                 for warning in warning_info:
                     messages.add_message(request, messages.WARNING, warning)
                     
-            return _redirct_response(request, course_slug, activity_slug) 
+            return _redirct_response(request, course.slug, activity.slug) 
     
     else: 
         if request.method == 'POST': # for import

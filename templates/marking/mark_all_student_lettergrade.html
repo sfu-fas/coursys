@@ -20,7 +20,7 @@ $(document).ready(function() {
 {% block marking_subbreadcrumbs %}<li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Mark All Students</li>{% endblock %}
 
 {% block content %}
-<form id="import_file_form" action="{%url marking.views.mark_all_students_lettergrade course_slug=course.slug activity_slug=activity.slug%}?import=true" method="post" enctype="multipart/form-data">{% csrf_token %}
+<form id="import_file_form" action="{%url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug%}?import=true" method="post" enctype="multipart/form-data">{% csrf_token %}
 {% if fileform.file.errors %}
 <div class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/>&nbsp;{{fileform.file.errors.0}}</div>
 {% endif %} 
@@ -31,9 +31,9 @@ $(document).ready(function() {
 </form>
 <p class="helptext">Imported file must be CSV (comma-separated values).  First column can be either student number or userid; second column is the grade.  Other columns will be ignored.</p>
 {% if too_many %}
-<a class="redbutton reset_button" href="{% url marking.views.mark_all_students_lettergrade course_slug=course.slug activity_slug=activity.slug %}">Reset</a>
+<a class="redbutton reset_button" href="{% url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug %}">Reset</a>
 {% endif %}
-<form id = "grades_form" action="{%url marking.views.mark_all_students_lettergrade course_slug=course.slug activity_slug=activity.slug%}" method="post">{% csrf_token %}
+<form id = "grades_form" action="{%url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug%}" method="post">{% csrf_token %}
 {%if too_many %}
 <input class="submit" type="submit" value="Submit" />
 {% endif %}
@@ -79,5 +79,5 @@ $(document).ready(function() {
 </div>
 <div><input class="submit" type="submit" value="Submit" /></div>
 </form>
-<a class="redbutton reset_button" href="{% url marking.views.mark_all_students_lettergrade course_slug=course.slug activity_slug=activity.slug %}">Reset</a>
+<a class="redbutton reset_button" href="{% url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug %}">Reset</a>
 {% endblock %}
