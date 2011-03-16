@@ -530,7 +530,11 @@ def calculate_all(request, course_slug, activity_slug):
     activity = get_object_or_404(CalNumericActivity, slug=activity_slug, offering=course, deleted=False)
     
     try:
-        calculate_numeric_grade(course,activity)
+        ignored = calculate_numeric_grade(course,activity)
+        if ignored==1:
+            messages.warning(request, "Did not calculate grade for 1 manually-graded student.")
+        else:
+            messages.warning(request, "Did not calculate grade for %i manually-graded students." % (ignored))
     except ValidationError as e:
         messages.error(request, e.args[0])
     except EvalException as e:

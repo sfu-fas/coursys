@@ -528,26 +528,32 @@ def calculate_numeric_grade(course, activity, student=None):
         student_list = Member.objects.filter(offering=course, role='STUD')
         numeric_grade_list = NumericGrade.objects.filter(activity = activity).select_related('member')
     
-    for student in student_list:
+    ignored = 0
+    for s in student_list:
         # calculate grade
         try:
-            result = eval_parse(parsed_expr, act_dict, student, activity.status=="RLS")
+            result = eval_parse(parsed_expr, act_dict, s, activity.status=="RLS")
             result = decimal.Decimal(str(result)) # convert to decimal
         except EvalException:
-            raise EvalException("Formula Error: Can not evaluate formula for student: '%s'" % student.person.name())
+            raise EvalException("Formula Error: Can not evaluate formula for student: '%s'" % s.person.name())
         
         # save grade
         member_found = False
         for numeric_grade in numeric_grade_list:
-            if numeric_grade.member == student:
-                member_found = True                
-                if result != numeric_grade.value:# only save when the value changes
+            if numeric_grade.member == s:
+                member_found = True     
+                if numeric_grade.flag == "GRAD":
+                    ignored += 1
+                elif result != numeric_grade.value:
+                    # ignore manually-set grades; only save when the value changes
                     numeric_grade.value = result
                     numeric_grade.save(newsitem=False)
                 break
         if not member_found:
-            numeric_grade = NumericGrade(activity=activity, member=student,
+            numeric_grade = NumericGrade(activity=activity, member=s,
                                          value=str(result), flag='CALC')
             numeric_grade.save(newsitem=False)
     if student != None:
         return StudentActivityInfo(student, activity, FLAGS['CALC'], numeric_grade.value, None).display_grade_staff()
+    else:
+        return ignored

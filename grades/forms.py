@@ -111,7 +111,7 @@ class ActivityForm(forms.Form):
         
         if new_group != old.group:
             # attempting to switch group <-> individual: make sure that's allowed
-            if old.due_date < datetime.datetime.now():
+            if old.due_date and old.due_date < datetime.datetime.now():
                 raise forms.ValidationError('Cannot change group/individual status: due date has passed.')
             if Submission.objects.filter(activity=old):
                 raise forms.ValidationError('Cannot change group/individual status: submissions have already been made.')
