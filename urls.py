@@ -75,6 +75,7 @@ urlpatterns += patterns('',
     url(r'^' + 'news/configure/new$', 'dashboard.views.create_news_url'),
     url(r'^' + 'news/configure/del$', 'dashboard.views.disable_news_url'),
     url(r'^' + 'news/(?P<token>[0-9a-f]{32})/' + USERID_SLUG + '$', 'dashboard.views.atom_feed'),
+    url(r'^' + 'calendar/(?P<token>[0-9a-f]{32})/' + USERID_SLUG + '$', 'dashboard.views.calendar_ical'),
     url(r'^' + 'docs/$', 'dashboard.views.list_docs'),
     url(r'^' + 'docs/(?P<doc_slug>' + SLUG_RE + ')$', 'dashboard.views.view_doc'),
 

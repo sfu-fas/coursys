@@ -7,7 +7,7 @@ from django.template import RequestContext
 from django.db.models import Count
 from django.views.decorators.cache import cache_page
 from django.conf import settings
-from coredata.models import Member, CourseOffering, Person, Role, Semester
+from coredata.models import Member, CourseOffering, Person, Role, Semester, MeetingTime
 from grades.models import Activity
 from courselib.auth import requires_course_staff_by_slug, requires_course_by_slug, NotFoundResponse
 from dashboard.models import NewsItem, UserConfig
@@ -15,6 +15,11 @@ from dashboard.forms import *
 from django.contrib import messages
 from log.models import LogEntry
 import random, datetime, time
+
+from icalendar import Calendar, Event
+from datetime import datetime
+import pytz
+local_tz = pytz.timezone(settings.TIME_ZONE)
 
 
 def _display_membership(m, today, student_cutoff):
@@ -117,6 +122,60 @@ def atom_feed(request, token, userid):
     return render_to_response("dashboard/atom_feed.xml", context, context_instance=RequestContext(request),mimetype="application/atom+xml")
 
 
+@cache_page(60 * 15)
+def calendar_ical(request, token, userid):
+    """
+    Return an iCalendar for this user, authenticated by the token in the URL
+    """
+    user = get_object_or_404(Person, userid=userid)
+    
+    # make sure the token in the URL (32 hex characters) matches the token stored in the DB
+    configs = UserConfig.objects.filter(user=user, key="calendar-token")
+    if not configs or configs[0].value != token:
+        # no token configured or wrong token provided
+        return NotFoundResponse(request)
+    #else:
+        # authenticated
+
+    memberships = Member.objects.filter(person=user).exclude(role="DROP")
+    classes = set((m.offering for m in memberships))
+    class_list = MeetingTime.objects.filter(offering__in=classes)
+    
+    cal = Calendar()
+    cal.add('prodid', '-//SFU Course Management System//courses.cs.sfu.ca//')
+    cal.add('version', '2.0')
+
+    for mt in class_list:
+      # for every day the class happens...
+        date = mt.start_day
+        i=0
+
+        e = Event()
+        if mt.exam:
+            e.add('summary', '%s exam' % (mt.offering.name()))
+        else:
+            e.add('summary', '%s lecture' % (mt.offering.name()))
+        
+        start = datetime(
+                year=date.year, month=date.month, day=date.day,
+                hour=mt.start_time.hour, minute=mt.start_time.minute, second=mt.start_time.second, 
+                tzinfo=local_tz)
+        e.add('dtstart', start)
+        end = datetime(
+                year=date.year, month=date.month, day=date.day,
+                hour=mt.end_time.hour, minute=mt.end_time.minute, second=mt.end_time.second, 
+                tzinfo=local_tz)
+        e.add('dtend', end)
+        
+        e.add('location', mt.offering.get_campus_display() + " " + mt.room)
+        e['uid'] = mt.offering.slug.replace("-","") + "-" + str(mt.id) + "-" + start.strftime("%Y%m%dT%H%M%S") + '@courses.cs.sfu.ca'
+
+        cal.add_component(e)
+
+    # add every assignment with a due datetime
+    
+    return HttpResponse(cal.as_string(), mimetype="text/plain") # text/calendar
+
 
 # Management of feed URL tokens
 
@@ -181,6 +240,7 @@ def disable_news_url(request):
 
     context = {'form': form}
     return render_to_response("dashboard/disable_news_url.html", context, context_instance=RequestContext(request))
+
 
 
 # documentation views
