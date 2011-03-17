@@ -17,7 +17,6 @@ from log.models import LogEntry
 import random, datetime, time
 
 from icalendar import Calendar, Event
-from datetime import datetime
 import pytz
 local_tz = pytz.timezone(settings.TIME_ZONE)
 
@@ -156,12 +155,12 @@ def calendar_ical(request, token, userid):
         else:
             e.add('summary', '%s lecture' % (mt.offering.name()))
         
-        start = datetime(
+        start = datetime.datetime(
                 year=date.year, month=date.month, day=date.day,
                 hour=mt.start_time.hour, minute=mt.start_time.minute, second=mt.start_time.second, 
                 tzinfo=local_tz)
         e.add('dtstart', start)
-        end = datetime(
+        end = datetime.datetime(
                 year=date.year, month=date.month, day=date.day,
                 hour=mt.end_time.hour, minute=mt.end_time.minute, second=mt.end_time.second, 
                 tzinfo=local_tz)
