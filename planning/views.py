@@ -145,6 +145,38 @@ def add_plan(request):
     return render_to_response("planning/add_plan.html",{'form':form},context_instance=RequestContext(request))
 
 @requires_role('PLAN')
+def copy_plan(request):
+    
+    if request.method == 'POST':
+	form = CopyPlanForm(request.POST)
+        if form.is_valid():
+	    plan = form.save()
+	    copied_plan_name = form.cleaned_data['copy_plan_from']
+	    copied_plan = SemesterPlan.objects.get(name=copied_plan_name)	    
+	    copied_courses = PlannedOffering.objects.filter(plan=copied_plan).order_by('course')
+	    
+	    for i in copied_courses:
+		
+		added_course = PlannedOffering(plan = plan, course = i.course, section = i.section, component = i.component, campus = i.campus, enrl_cap = i.enrl_cap)                
+		added_course.save()
+	    #return HttpResponse(copied_courses)
+	    
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                      description=("Copied course plan %s in %s") % (plan.name, plan.semester),
+                      related_object=plan)
+            l.save()
+            messages.add_message(request, messages.SUCCESS, 'New plan "%s" created.' % (plan.name))
+            return HttpResponseRedirect(reverse('planning.views.admin_index', kwargs={}))
+
+    else:
+        form = CopyPlanForm()
+
+
+    return render_to_response("planning/copy_plan.html",{'form':form},context_instance=RequestContext(request))
+    #return HttpResponse("Copy Plan")
+
+@requires_role('PLAN')
 def edit_plan(request, semester, plan_slug):
     plan = get_object_or_404(SemesterPlan, semester__name=semester, slug=plan_slug)
     if request.method == 'POST':
@@ -255,10 +287,13 @@ def submit_assigned_instructors(request, semester, plan_slug, offering_id):
 	pre_intention_count = PlannedOffering.objects.filter(plan = semester_plan, instructor = pre_instructor).count()
 	pre_teaching_intention = TeachingIntention.objects.get(semester = semester_plan.semester, instructor = pre_instructor)
  
-	if pre_intention_count >= pre_teaching_intention.count:
+	if pre_teaching_intention.note == "No intention for this semester but still be assigned by Planning Admin":
+	    pre_teaching_intention.delete()
+	else:	
+	    if pre_intention_count >= pre_teaching_intention.count:
 		pre_teaching_intention.intentionfull = True
 		pre_teaching_intention.save()
-	else:
+	    else:
 		pre_teaching_intention.intentionfull = False
 		pre_teaching_intention.save()
 
@@ -280,19 +315,21 @@ def submit_assigned_instructors(request, semester, plan_slug, offering_id):
     if pre_instructor != None:
         pre_intention_count = PlannedOffering.objects.filter(plan = semester_plan, instructor = pre_instructor).count()
         pre_teaching_intention = TeachingIntention.objects.get(semester = semester_plan.semester, instructor = pre_instructor)
-            
-        if pre_intention_count >= pre_teaching_intention.count:
-            pre_teaching_intention.intentionfull = True
-            pre_teaching_intention.save()
-        else:
-            pre_teaching_intention.intentionfull = False
-            pre_teaching_intention.save()
+
+	if pre_teaching_intention.note == "No intention for this semester but still be assigned by Planning Admin":
+	    pre_teaching_intention.delete()
+	else:
+            if pre_intention_count >= pre_teaching_intention.count:
+                pre_teaching_intention.intentionfull = True
+            	pre_teaching_intention.save()
+            else:
+            	pre_teaching_intention.intentionfull = False
+            	pre_teaching_intention.save()
     
     intention_count = PlannedOffering.objects.filter(plan = semester_plan, instructor = assigned_instructor).count()    
     if TeachingIntention.objects.filter(semester = semester_plan.semester, instructor = assigned_instructor):
         teaching_intentions = TeachingIntention.objects.filter(semester = semester_plan.semester, instructor = assigned_instructor)
         teaching_intention = teaching_intentions[0]
-        #teaching_intention_count = teaching_intention.count
 	
 	if intention_count >= teaching_intentions.count:
 	    teaching_intention.intentionfull = True
@@ -301,17 +338,15 @@ def submit_assigned_instructors(request, semester, plan_slug, offering_id):
 	    teaching_intention.intentionfull = False
             teaching_intention.save()
 
+
+        messages.add_message(request, messages.SUCCESS, 'Instructor Assinged Successfully.')
+        return HttpResponseRedirect(reverse(assign_instructors, kwargs={'semester':semester_plan.semester.name, 'plan_slug':semester_plan.slug}))
+
     else:
-	#messages.add_message(request, messages.WARING, 'There is no intention for this instructor.')
-        teaching_intentions = None
-        teaching_intention_count = 0
-
-    
-
-                    
-    messages.add_message(request, messages.SUCCESS, 'Instructor Assinged Successfully.')
-    return HttpResponseRedirect(reverse(assign_instructors, kwargs={'semester':semester_plan.semester.name, 'plan_slug':semester_plan.slug}))
-    #return HttpResponse(instructor_id)
+	add_intention = TeachingIntention(instructor = assigned_instructor, semester = semester_plan.semester, count = 1, intentionfull = True, note = "No intention for this semester but still be assigned by Planning Admin")
+	add_intention.save()
+	messages.add_message(request, messages.WARNING, 'There is no intention for this instructor.')
+        return HttpResponseRedirect(reverse(assign_instructors, kwargs={'semester':semester_plan.semester.name, 'plan_slug':semester_plan.slug}))
     
 @requires_role('PLAN')
 def activate_plan(request, plan_id):
@@ -347,15 +382,15 @@ def delete_plan(request, semester, plan_slug):
                   related_object=request.user)
         l.save()
 
-        messages.add_message(request, messages.SUCCESS, 'Plan Deleted.')
+    messages.add_message(request, messages.SUCCESS, 'Plan Deleted.')
     return HttpResponseRedirect(reverse(admin_index))
  
 @requires_role('PLAN')
 def view_instructors(request, semester, plan_slug, course_id):
     semester_plan = get_object_or_404(SemesterPlan, semester__name=semester, slug=plan_slug)
     course_name = get_object_or_404(Course, pk=course_id)
-    course_info = get_object_or_404(PlannedOffering, course=course_name, plan=semester_plan, component__in=['LEC', 'SEM', 'SEC', 'CAN'])
-
+    course_info = PlannedOffering.objects.get(course=course_name, plan=semester_plan, component__in=['LEC', 'SEM', 'SEC', 'CAN'])
+    
     instructor_list =  TeachingCapability.objects.filter(course=course_name).order_by('instructor')
 
     instructors = []

@@ -7,7 +7,7 @@
 {% block title %}Assign Instructors{% endblock %}
 {% block h1 %}Assign Instructors{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li><li>&gt; {{ semester_plan.name }} in {{semester_plan.semester.label}}</li><li>&gt; Assign Instructors</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li><li>&gt; <a href="{% url planning.views.assign_instructors semester=semester_plan.semester.name plan_slug=semester_plan.slug %}">{{ semester_plan.name }} in {{semester_plan.semester.label}}</a></li><li>&gt; Assign Instructors</li>{% endblock %}
 
 {% block actions %}
 {% endblock %}

@@ -35,6 +35,17 @@ class PlanBasicsForm(forms.ModelForm):
     class Meta:
         model = SemesterPlan
 
+class CopyPlanForm(forms.ModelForm):
+
+    copy_plan_from = forms.ChoiceField()
+    def __init__(self, *args, **kwargs):
+	super(CopyPlanForm, self).__init__(*args, **kwargs)
+        self.fields['copy_plan_from'] = forms.ChoiceField(choices=[(o.name, o.name) for o in SemesterPlan.objects.all()])
+    
+    class Meta:
+        model = SemesterPlan
+	fields = ('copy_plan_from','semester', 'name', 'visibility', 'active')
+
 
 class OfferingBasicsForm(forms.ModelForm):
 
@@ -55,13 +66,7 @@ class OfferingInstructorForm(forms.ModelForm):
         model = PlannedOffering
         fields = ('instructor')
 
-class ViewInstructorForm(forms.ModelForm):
-	
-	instructor = forms.ChoiceField(widget=RadioSelect())
-	class Meta:
-		model = TeachingIntention
-		exclude = ('intentionfull', 'semester', 'count', 'note')
-        fields = ('instructor')
+
 	
 	
 	
