@@ -444,6 +444,19 @@ class LetterGrade(models.Model):
             return "%s" % (self.letter_grade)
     def get_absolute_url(self):
         return reverse('grades.views.student_info', kwargs={'course_slug': self.offering.slug, 'userid': self.member.person.userid})
+
+    def display_with_percentage_student(self):
+        """
+        Display student grade with percentage from student view, e.g 12/15 (80.00%)
+        """
+        if self.activity.status == 'URLS':
+            return u'\u2014'
+        elif self.activity.status == "INVI":
+            raise RuntimeError, "Can't display invisible grade."
+        elif self.flag == "NOGR":
+            return u'\u2014'
+        else:
+            return '%s' % (self.letter_grade)     
     
     def save(self, newsitem=True):
         super(LetterGrade, self).save()
@@ -526,23 +539,23 @@ def sorted_letters(grades):
     
     Decorate-sort-undecorate pattern.
     """
-    decorated = [(LETTER_POSITION[g.letter_grade], g) for g in grades if g.flag!="NOGR"]
+    decorated = [(LETTER_POSITION[g], g) for g in grades]
     decorated.sort()
-    return [g for i,g in decorated] + [g for g in grades if g.flag=="NOGR"]
+    return [g for i,g in decorated] + [g for g in grades]
 
 def median_letters(grades):
     """
     Return a string representing the median of the letter grades.
     """
-    grades_s = sorted_letters([g for g in grades if g.flag!="NOGR"])
+    grades_s = sorted_letters([g for g in grades])
     l = len(grades_s)
     if l == 0:
         return u"\u2014"
-    elif l % 2 == 1:
-        return grades_s[l//2].letter_grade
+    elif (l/2) % 2 == 1:
+        return grades_s[(l/2-1)/2]
     else:
-        g1 = grades_s[l//2 - 1].letter_grade        
-        g2 = grades_s[l//2].letter_grade
+        g1 = grades_s[(l/2)/2-1]      
+        g2 = grades_s[(l/2)/2]
         if g1 == g2:
             return g1
         else:

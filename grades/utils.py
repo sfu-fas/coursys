@@ -4,7 +4,7 @@ This module collects classes and functions that are for the display purpose of G
 
 from grades.models import Activity, NumericActivity, LetterActivity, NumericGrade, \
                           LetterGrade, all_activities_filter, ACTIVITY_TYPES, FLAGS, \
-                          CalNumericActivity
+                          CalNumericActivity, median_letters
 from coredata.models import CourseOffering, Member
 from grades.formulas import parse, activities_dictionary, cols_used, eval_parse, EvalException
 from pyparsing import ParseException
@@ -43,9 +43,10 @@ class ActivityStatlettergrade:
     """
     Object holding activity stat info, used as context object in template
     """
-    def __init__(self,grade_range_stat_list, count):
+    def __init__(self,grade_range_stat_list, count,median):
         self.grade_range_stat_list = grade_range_stat_list
         self.count = count
+        self.median = median
         
 class StudentActivityInfo:
     """
@@ -286,8 +287,9 @@ def generate_letter_activity_stat(activity):
 
     student_grade_list_count = len(student_grade_list)
     grade_range_stat_list = generate_grade_range_stat_lettergrade(student_grade_list)
+    median=median_letters(student_grade_list)
 
-    return ActivityStatlettergrade(grade_range_stat_list, student_grade_list_count)
+    return ActivityStatlettergrade(grade_range_stat_list, student_grade_list_count,median)
     
 
    
