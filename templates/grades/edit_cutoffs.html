@@ -55,6 +55,18 @@ $(document).ready(function() {
         <fieldset>
         	<legend>Edit Cutoffs</legend>
         		<p class="requireindicator"><img src="{{MEDIA_URL}}/icons/required_star.gif" alt="required" />&nbsp;Indicates required field</p>
+        		<p>Max grade for {{activity.numeric_activity.name}}: {{activity.numeric_activity.max_grade}}</p>
+        		<table class="cutoffs">
+        		<tr>
+        		<td class="label">A+</td><td>{{cutoff.ap}}</td>
+        		<td class="label">A</td><td>{{cutoff.a}}</td>
+        		<td class="label">A-</td><td>{{cutoff.am}}</td>
+        		</tr>
+        		
+        		</table>
+        		
+        		
+        		
         		<ul>
         			<div>
 					A+: {{cutoff.ap}} {{cutoff.ap.errors}}
@@ -88,7 +100,7 @@ $(document).ready(function() {
 				</div>
 	
 				<div>
-					F :   {{cutoff.f}} {{cutoff.f.errors}}
+					F :   0 {{cutoff.f.errors}}
 				</div>
 	
 				<li>

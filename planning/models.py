@@ -74,6 +74,12 @@ class SemesterPlan(models.Model):
     active = models.BooleanField(default = False, help_text="The currently-active plan for this semester.")
     slug = AutoSlugField(populate_from='name', null=False, editable=False, unique_with='semester')
 
+    def save(self, *args, **kwargs):
+        #if self.active:
+        #    set all other plans for this semester to inactive
+        super(SemesterPlan, self).save(*args, **kwargs)
+        
+
     class Meta:
         ordering = ['-semester', 'name']
         unique_together = (('semester', 'name'),)

@@ -541,33 +541,36 @@ def sorted_letters(grades):
     """
     decorated = [(LETTER_POSITION[g], g) for g in grades]
     decorated.sort()
-    return [g for i,g in decorated] + [g for g in grades]
+    return [g for i,g in decorated]
 
-def median_letters(grades):
+def median_letters(sorted_grades):
     """
     Return a string representing the median of the letter grades.
     """
-    grades_s = sorted_letters([g for g in grades])
-    l = len(grades_s)/2
+    l = len(sorted_grades)
     if l == 0:
         return u"\u2014"
     elif l% 2 == 1:
         return grades_s[(l-1)/2]
     else:
-        g1 = grades_s[l/2-1]      
-        g2 = grades_s[l/2]
+        g1 = sorted_grades[l/2-1]      
+        g2 = sorted_grades[l/2]
         if g1 == g2:
             return g1
         else:
             # median on a boundary; report as "B/B-"
             return g1 + "/" + g2
 
+# sorted_grades = sorted_letters(grades)
+# median = median_letters(sorted_grades)
+
+
 def max_letters(grades):
     """
-    Return a string representing the median of the letter grades.
+    Return a string representing the max of the letter grades.
     """
-    grades_s = sorted_letters([g for g in grades])
-    l = len(grades_s)/2
+    grades_s = sorted_letters(grades)
+    l = len(grades_s)
     if l == 0:
         return u"\u2014"
     else:
@@ -575,10 +578,11 @@ def max_letters(grades):
 
 def min_letters(grades):
     """
-    Return a string representing the median of the letter grades.
+    Return a string representing the min of the letter grades.
     """
-    grades_s = sorted_letters([g for g in grades])
-    l = len(grades_s)/2
+    grades_s = sorted_letters(grades)
+    grades_s = [g for g in grades_s if LETTER_POSITION[g] <= 11]
+    l = len(grades_s)
     if l == 0:
         return u"\u2014"
     else:
