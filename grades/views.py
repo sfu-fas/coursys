@@ -348,10 +348,10 @@ def activity_choice(request, course_slug):
 @requires_course_staff_by_slug
 def edit_cutoffs(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(CalLetterActivity, slug=activity_slug, offering=course, deleted=False)
-    cutoffs=LetterCutoffForm()
-    context = {'course': course, 'activity': activity, 'form_type': FORMTYPE['edit'], 'cutoffs':cutoffs}
-
+    activity = get_object_or_404(CalLetterActivity, slug=activity_slug, offering=course, deleted=False)    
+    cutoffs = LetterCutoffForm()
+    
+    context = {'course': course, 'activity': activity, 'form_type': FORMTYPE['edit'], 'cutoff':cutoffs}
     return render_to_response('grades/edit_cutoffs.html', context, context_instance=RequestContext(request))
 
 @requires_course_staff_by_slug
@@ -447,7 +447,7 @@ def add_cal_letter_activity(request, course_slug):
     letter_activities = LetterActivity.objects.filter(offering=course)
     numact_choices = [(na.pk, na.name) for na in NumericActivity.objects.filter(offering=course)]
     examact_choices = [(0, "--")] + [(na.pk, na.name) for na in Activity.objects.filter(offering=course)]
-    
+    context = {'course': course, 'activity': activity, 'form': form, 'form_type': FORMTYPE['edit'], 'from_page': from_page}
     if request.method == 'POST': # If the form has been submitted...
         form = CalLetterActivityForm(request.POST) # A form bound to the POST data
         form.fields['numeric_activity'].choices = numact_choices
@@ -642,8 +642,8 @@ def edit_activity(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activities = all_activities_filter(slug=activity_slug, offering=course)
 #    cutoff=LetterCutoffForm()
-    #numact_choices = [(na.pk, na.name) for na in NumericActivity.objects.filter(offering=course)]
-    #examact_choices = [(0, "--")] + [(na.pk, na.name) for na in Activity.objects.filter(offering=course)]
+    numact_choices = [(na.pk, na.name) for na in NumericActivity.objects.filter(offering=course)]
+    examact_choices = [(0, "--")] + [(na.pk, na.name) for na in Activity.objects.filter(offering=course)]
     
     if (len(activities) == 1):
         activity = activities[0]
