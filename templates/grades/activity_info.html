@@ -109,6 +109,9 @@ Column logic:
 
 	    <li{% if activity.group %} class="newsec"{% endif %}><a href="{% url grades.views.edit_activity course_slug=course.slug activity_slug=activity.slug %}?from_page={{ from_page }}">Edit Activity Details</a></li>
 	    
+	    {% if activity.is_calculated and not activity.is_numeric%}
+	    <li><a href="{% url grades.views.edit_cutoffs course_slug=course.slug, activity_slug=activity.slug%}">Edit cutoffs</a></li>
+	    {% endif %}
 	    {% if not activity.is_calculated %}
 	    <li><a href="{% url submission.views.show_components course_slug=course.slug, activity_slug=activity.slug%}">Configure Submission</a></li>	    
 	    <li class="newsec">

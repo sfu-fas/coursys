@@ -346,6 +346,15 @@ def activity_choice(request, course_slug):
     return render_to_response('grades/activity_choice.html', context, context_instance=RequestContext(request))
 
 @requires_course_staff_by_slug
+def edit_cutoffs(request, course_slug, activity_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(CalLetterActivity, slug=activity_slug, offering=course, deleted=False)
+    cutoffs=LetterCutoffForm()
+    context = {'course': course, 'activity': activity, 'form_type': FORMTYPE['edit'], 'cutoffs':cutoffs}
+
+    return render_to_response('grades/edit_cutoffs.html', context, context_instance=RequestContext(request))
+
+@requires_course_staff_by_slug
 def add_numeric_activity(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
 
