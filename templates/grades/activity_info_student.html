@@ -90,18 +90,22 @@
 <div class="table_container">
     <table class="info">
         <tbody>
+            {% if activity.is_numeric %}
             <tr>
                 <th class="ui-state-default">Mean Grade</th>
                 <td>{{ activity_stat.average }}</td>
             </tr>
+            {% endif %}
             <tr>
                 <th class="ui-state-default">Median Grade</th>
                 <td>{{ activity_stat.median }}</td>
             </tr>
+            {% if activity.is_numeric %}
             <tr>
                 <th class="ui-state-default">Standard Deviation</th>
                 <td>{{ activity_stat.stddev }}</td>
             </tr>
+            {% endif %}
             <tr>
                 <th class="ui-state-default">Minimum Grade</th>
                 <td>{{ activity_stat.min }}</td>
