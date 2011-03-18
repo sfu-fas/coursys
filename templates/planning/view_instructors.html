@@ -41,11 +41,12 @@ $(document).ready(function() {
 	        <fieldset>
 	            <legend>Capable Instructors</legend>
 				{% for data in instructors %}
-					<p><input type="radio" name="instructor" value="{{data.instructor.instructor.userid}}" />
-					</br><b>Instructor:</b> 
-					{{data.instructor.instructor}}
-					</br><b>Current Assigned Courses:</b>
-					{% if data.current_courses %}
+					<p><input type="radio" name="instructor" value="{{data.instructor.instructor.userid}}" /></p>
+					<dl>
+					<dt>Instructor</dt>
+					<dd>{{data.instructor.instructor}}</dd>
+					<dt>Currently Assigned Courses</dt>
+					<dd>{% if data.current_courses %}
 						{% for i in data.current_courses %}
 							</br>
 							{{i.course}}
@@ -53,8 +54,8 @@ $(document).ready(function() {
 					{% else %}
 						</br>
 						None
-					{% endif %}					
-					</br>
+					{% endif %}					</dd>
+					</dl>
 					<b>Capable Courses:</b> 
 					{% for i in data.teachable %}
 						</br>
