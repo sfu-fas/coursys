@@ -1,0 +1,93 @@
+{% extends "grades/base.html" %}
+{% load grade_student %}
+
+{% block h1 %}
+Edit Cutoffs of {{ activity.name }}
+{% endblock %}
+{% block title %}
+Edit Cutoffs of {{ activity.name }}
+{% endblock %}
+
+{% block grades_headextra %}
+<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    addLinkClickStyleClass('a.redbutton', 'redbutton_onclick');
+    $("#id_due_date_0").datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.png',
+                                changeMonth: true, changeYear: true,
+                                dateFormat: 'yy-mm-dd', showOn: 'button'});
+    $('div.collapsible').collapsible();
+    $('div#helphandle').collapsible();
+    document.getElementById('testerlink').setAttribute('target', '_blank');
+});
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
+{% ifequal form_type 'add' %}
+<li>&gt; <a href="{% url grades.views.activity_choice course_slug=course.slug %}">Choose the type of activity</a></li>
+<li>&gt; Add Activity</li>
+{% endifequal %}
+{% if activity %}
+<li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li>
+{% endif %}
+{% ifequal form_type 'edit' %}
+<li>&gt; Edit</li>
+{% endifequal %}
+{% endblock %}
+
+
+{% block content %}
+<br/>
+
+<div id="form_container">
+    {% if cutoffs.non_field_errors %}
+
+        {% ifequal form_type 'edit' %}
+        <div>
+	A+: {{cutoff.ap}} {{cutoff.ap.errors}}
+	</br>
+	A: {{cutoff.a}} {{cutoff.a.errors}}
+	</br>
+	A-: {{cutoff.am}} {{cutoff.am.errors}}
+	</br>
+	</div>
+	<div>
+	B+: {{cutoff.bp}} {{cutoff.bp.errors}}
+	</br>
+	B: {{cutoff.b}} {{cutoff.b.errors}}
+	</br>
+	B-: {{cutoff.bm}} {{cutoff.bm.errors}}
+	</br>
+	</div>
+	<div>
+	C+: {{cutoff.cp}} {{cutoff.cp.errors}}
+	</br>
+	C: {{cutoff.c}} {{cutoff.c.errors}}
+	</br>
+	C-: {{cutoff.cm}} {{cutoff.cm.errors}}
+	</br>
+	</div>
+	<div>
+	D :  {{cutoff.d}} {{cutoff.d.errors}}
+	</div>
+	<div>
+	F :  {{cutoff.f}} {{cutoff.f.errors}}
+	</div>
+	{% endifequal %}
+	
+                <li>
+                    <input class="submit" type="submit" value="Submit" />
+                </li>
+            </ul>
+        </fieldset>
+    </form>
+    {% endif %}
+</div>
+  <p>
+    {% ifequal form_type 'edit' %}
+    <a class="button" href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">Back</a>
+    {% endifequal %}
+  </p>
+{% endblock %}
