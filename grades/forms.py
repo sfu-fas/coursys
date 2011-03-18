@@ -213,8 +213,10 @@ class CalLetterActivityForm(ActivityForm):
                                label=mark_safe('Status:' + _required_star),
                                help_text='visibility of grades/activity to students')
     
-    numeric_activity = forms.ChoiceField(choices=[])
-    exam_activity = forms.ChoiceField(choices=[])
+    numeric_activity = forms.ChoiceField(choices=[], label=mark_safe('Source Activity:' + _required_star),
+                                         help_text="numeric grades that these letters will be based on")
+    exam_activity = forms.ChoiceField(choices=[], required=False,
+                                      help_text="the course's exam: used to guess N and DE grades where appropriate.  Leave blank if you don't want these values guessed.")
     
     def activate_addform_validation(self, course_slug):
         super(CalLetterActivityForm, self).activate_addform_validation(course_slug)

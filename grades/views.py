@@ -358,7 +358,7 @@ def edit_cutoffs(request, course_slug, activity_slug):
 def add_numeric_activity(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
 
-    activities_list = [(None, '---'),]
+    activities_list = [(None, u'\u2014'),]
     activities = all_activities_filter(course)
     for a in activities:
         if a.group == True:
@@ -446,7 +446,7 @@ def add_cal_letter_activity(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     letter_activities = LetterActivity.objects.filter(offering=course)
     numact_choices = [(na.pk, na.name) for na in NumericActivity.objects.filter(offering=course)]
-    examact_choices = [(0, "--")] + [(na.pk, na.name) for na in Activity.objects.filter(offering=course)]
+    examact_choices = [(0, u'\u2014')] + [(na.pk, na.name) for na in Activity.objects.filter(offering=course)]
 
     if request.method == 'POST': # If the form has been submitted...
         form = CalLetterActivityForm(request.POST) # A form bound to the POST data
@@ -609,10 +609,13 @@ def _create_activity_formdatadict(activity):
     for (k, v) in GROUP_STATUS_MAP.items():
         if activity.group == v:
             data['group'] = k
-    if hasattr(activity, 'max_grade'):
+    if isinstance(activity, NumericActivity):
         data['max_grade'] = activity.max_grade
-    if hasattr(activity, 'formula'):
+    if isinstance(activity, CalNumericActivity):
         data['formula'] = activity.formula
+    if isinstance(activity, CalLetterActivity):
+        data['numeric_activity'] = activity.numeric_activity_id
+        data['exam_activity'] = activity.exam_activity_id
     return data
 
 def _populate_activity_from_formdata(activity, data):
@@ -636,18 +639,24 @@ def _populate_activity_from_formdata(activity, data):
         activity.formula = data['formula']
     if data.has_key('url'):
         activity.url = data['url']
+    if data.has_key('numeric_activity'):
+        activity.numeric_activity = NumericActivity.objects.get(pk=data['numeric_activity'])
+    if data.has_key('exam_activity'):
+        try:
+            activity.exam_activity = Activity.objects.get(pk=data['exam_activity'])
+        except Activity.DoesNotExist:
+            activity.exam_activity = None
 
 @requires_course_staff_by_slug
 def edit_activity(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activities = all_activities_filter(slug=activity_slug, offering=course)
-#    cutoff=LetterCutoffForm()
     numact_choices = [(na.pk, na.name) for na in NumericActivity.objects.filter(offering=course)]
-    examact_choices = [(0, "--")] + [(na.pk, na.name) for na in Activity.objects.filter(offering=course)]
+    examact_choices = [(0, u'\u2014')] + [(na.pk, na.name) for na in Activity.objects.filter(offering=course)]
     
     if (len(activities) == 1):
         activity = activities[0]
-                
+
         from_page = request.GET.get('from_page')
         
         if request.method == 'POST': # If the form has been submitted...
@@ -758,7 +767,7 @@ def release_activity(request, course_slug, activity_slug):
 def add_letter_activity(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     
-    activities_list = [(None, '---'),]
+    activities_list = [(None, u'\u2014'),]
     activities = all_activities_filter(course)
     for a in activities:
         if a.group == True:
