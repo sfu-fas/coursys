@@ -442,6 +442,8 @@ class LetterGrade(models.Model):
             return u'\u2014'
         else:
             return "%s" % (self.letter_grade)
+    display_staff_short = display_staff
+
     def get_absolute_url(self):
         return reverse('grades.views.student_info', kwargs={'course_slug': self.offering.slug, 'userid': self.member.person.userid})
 
