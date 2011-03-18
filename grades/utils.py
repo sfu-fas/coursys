@@ -4,7 +4,7 @@ This module collects classes and functions that are for the display purpose of G
 
 from grades.models import Activity, NumericActivity, LetterActivity, NumericGrade, \
                           LetterGrade, all_activities_filter, ACTIVITY_TYPES, FLAGS, \
-                          CalNumericActivity, median_letters
+                          CalNumericActivity, median_letters, min_letters, max_letters
 from coredata.models import CourseOffering, Member
 from grades.formulas import parse, activities_dictionary, cols_used, eval_parse, EvalException
 from pyparsing import ParseException
@@ -43,10 +43,13 @@ class ActivityStatlettergrade:
     """
     Object holding activity stat info, used as context object in template
     """
-    def __init__(self,grade_range_stat_list, count,median):
+    def __init__(self,grade_range_stat_list, count, median, min, max):
         self.grade_range_stat_list = grade_range_stat_list
         self.count = count
         self.median = median
+        self.min = min
+        self.max = max
+
         
 class StudentActivityInfo:
     """
@@ -288,8 +291,10 @@ def generate_letter_activity_stat(activity):
     student_grade_list_count = len(student_grade_list)
     grade_range_stat_list = generate_grade_range_stat_lettergrade(student_grade_list)
     median=median_letters(student_grade_list)
+    max=max_letters(student_grade_list)
+    min=min_letters(student_grade_list)
 
-    return ActivityStatlettergrade(grade_range_stat_list, student_grade_list_count,median)
+    return ActivityStatlettergrade(grade_range_stat_list, student_grade_list_count,median,max,min)
     
 
    
@@ -358,54 +363,39 @@ def generate_grade_range_stat(student_grade_list, grade_range=10):
     
 def generate_grade_range_stat_lettergrade(student_lettergrade_list,grade_range=11):
 	if grade_range ==11:
-            grade_range_stat_list = [GradeRangeStat('F', 0), GradeRangeStat('D', 0), GradeRangeStat('C-', 0),
+            grade_range_stat_list = [GradeRangeStat('ELSE', 0), GradeRangeStat('DE', 0), GradeRangeStat('F', 0), GradeRangeStat('D', 0), GradeRangeStat('C-', 0),
                              GradeRangeStat('C', 0), GradeRangeStat('C+', 0), GradeRangeStat('B-', 0),
                              GradeRangeStat('B', 0), GradeRangeStat('B+', 0), GradeRangeStat('A-', 0),
                              GradeRangeStat('A', 0),GradeRangeStat('A+', 0)]
 
         for student_grade in student_lettergrade_list:
             if student_grade == 'A+':
+                grade_range_stat_list[12].stud_count += 1
+            elif student_grade == 'A':
+                grade_range_stat_list[11].stud_count += 1
+            elif student_grade == 'A-':
                 grade_range_stat_list[10].stud_count += 1
-            elif student_grade == 'A':
-                grade_range_stat_list[9].stud_count += 1
-            elif student_grade == 'A-':
-                grade_range_stat_list[8].stud_count += 1
             elif student_grade == 'B+':
-                grade_range_stat_list[7].stud_count += 1
-            elif student_grade == 'B':
-                grade_range_stat_list[6].stud_count += 1
-            elif student_grade == 'B-':
-                grade_range_stat_list[5].stud_count += 1
-            elif student_grade == 'C+':
-                grade_range_stat_list[4].stud_count += 1
-            elif student_grade == 'C':
-                grade_range_stat_list[3].stud_count += 1
-            elif student_grade == 'C-':
-                grade_range_stat_list[2].stud_count += 1
-            elif student_grade == 'D':
-                grade_range_stat_list[1].stud_count += 1
-            elif student_grade == 'F':
-                grade_range_stat_list[0].stud_count += 1
-            elif student_grade == 'A':
                 grade_range_stat_list[9].stud_count += 1
-            elif student_grade == 'A-':
-                grade_range_stat_list[8].stud_count += 1
-            elif student_grade == 'B+':
-                grade_range_stat_list[7].stud_count += 1
             elif student_grade == 'B':
-                grade_range_stat_list[6].stud_count += 1
+                grade_range_stat_list[8].stud_count += 1
             elif student_grade == 'B-':
-                grade_range_stat_list[5].stud_count += 1
+                grade_range_stat_list[7].stud_count += 1
             elif student_grade == 'C+':
-                grade_range_stat_list[4].stud_count += 1
+                grade_range_stat_list[6].stud_count += 1
             elif student_grade == 'C':
-                grade_range_stat_list[3].stud_count += 1
+                grade_range_stat_list[5].stud_count += 1
             elif student_grade == 'C-':
-                grade_range_stat_list[2].stud_count += 1
+                grade_range_stat_list[4].stud_count += 1
             elif student_grade == 'D':
-                grade_range_stat_list[1].stud_count += 1
+                grade_range_stat_list[3].stud_count += 1
             elif student_grade == 'F':
+                grade_range_stat_list[2].stud_count += 1
+            elif student_grade == 'DE':
+                grade_range_stat_list[1].stud_count += 1
+            else :
                 grade_range_stat_list[0].stud_count += 1
+
         return grade_range_stat_list
 
 def fetch_students_numeric_grade(activity):

@@ -548,17 +548,40 @@ def median_letters(grades):
     Return a string representing the median of the letter grades.
     """
     grades_s = sorted_letters([g for g in grades])
-    l = len(grades_s)
+    l = len(grades_s)/2
     if l == 0:
         return u"\u2014"
-    elif (l/2) % 2 == 1:
-        return grades_s[(l/2-1)/2]
+    elif l% 2 == 1:
+        return grades_s[(l-1)/2]
     else:
-        g1 = grades_s[(l/2)/2-1]      
-        g2 = grades_s[(l/2)/2]
+        g1 = grades_s[l/2-1]      
+        g2 = grades_s[l/2]
         if g1 == g2:
             return g1
         else:
             # median on a boundary; report as "B/B-"
             return g1 + "/" + g2
+
+def max_letters(grades):
+    """
+    Return a string representing the median of the letter grades.
+    """
+    grades_s = sorted_letters([g for g in grades])
+    l = len(grades_s)/2
+    if l == 0:
+        return u"\u2014"
+    else:
+        return grades_s[l-1]
+
+def min_letters(grades):
+    """
+    Return a string representing the median of the letter grades.
+    """
+    grades_s = sorted_letters([g for g in grades])
+    l = len(grades_s)/2
+    if l == 0:
+        return u"\u2014"
+    else:
+        return grades_s[0]
+
 
