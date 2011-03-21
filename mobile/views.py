@@ -9,6 +9,7 @@ from grades.models import ACTIVITY_STATUS, all_activities_filter, Activity
 from groups.models import *
 from submission.models import GroupSubmission, StudentSubmission
 from datetime import datetime
+from submission.models import *
 
 from dashboard.views import _get_memberships, _get_news_list, _get_roles
 
@@ -43,7 +44,12 @@ def _course_info_student(request, course_slug):
     student = Member.objects.get(offering=course, person__userid=request.user.username, role='STUD')
     activities_info = []
     for activity in activities:
-        activities_info.append({'activity':activity, 'grade': activity.display_grade_student(student.person)})
+        submission, submitted_components = get_current_submission(student, activity)
+        if submission == None:
+            submitted = "No"
+        else:
+            submitted = "yes"
+        activities_info.append({'activity':activity, 'grade': activity.display_grade_student(student.person), 'submitted' : submitted})
     context = {'course': course, 'activities_info':activities_info}
     return render_to_response('mobile/course_info_student.html', context, context_instance=RequestContext(request))
 
