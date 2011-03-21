@@ -895,7 +895,10 @@ def all_grades_csv(request, course_slug):
                 if gr.flag=='NOGR':
                     g = ''
                 else:
-                    g = gr.value
+                    if a.is_numeric():
+                       g = gr.value
+                    else:
+                       g=gr.letter_grade
             except KeyError:
                 g = ''
             row.append(g)
