@@ -23,7 +23,7 @@
     <h1 id="PageTitle">{% block h1 %}Course Management System{% endblock %}</h1>
     <div id="sysmenu">{% if user %}Logged in as {{user.username}}. {% endif %}<a href="/logout/">Logout</a></div>
     <div id="main">{% block content%}{% endblock %}</div>
-    <div id="footer"><a href="{{request.get_full_path|demobilize_url}}">Switch to standard view</a> | &copy; Simon Fraser University</div>
+    <div id="footer">{% block standardview %}<a href="{{request.get_full_path|demobilize_url}}">Switch to standard view</a> | {% endblock %}&copy; Simon Fraser University</div>
 </div>
 </div>
 </body> 

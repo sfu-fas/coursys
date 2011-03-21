@@ -22,7 +22,7 @@ def index(request):
 
     context = {'memberships': memberships ,'news_list': news_list, 'roles': roles}
     return render_to_response('mobile/dashboard.html',
-        context, context_instance=RequestContext(request));
+        context, context_instance=RequestContext(request))
 
 @login_required
 @gzip_page
@@ -35,11 +35,21 @@ def course_info(request,course_slug):
         return ForbiddenResponse(request)
 
 def _course_info_student(request, course_slug):
-    return HttpResponse('Student View')
+    """
+    Course front page for student
+    """
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activities = all_activities_filter(offering=course)
+    student = Member.objects.get(offering=course, person__userid=request.user.username, role='STUD')
+    activities_info = []
+    for activity in activities:
+        activities_info.append({'activity':activity, 'grade': activity.display_grade_student(student.person)})
+    context = {'course': course, 'activities_info':activities_info}
+    return render_to_response('mobile/course_info_student.html', context, context_instance=RequestContext(request))
 
 def _course_info_staff(request, course_slug):
     """
-    Course front page
+    Course front page for staff
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activities = all_activities_filter(offering=course)
