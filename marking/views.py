@@ -998,8 +998,33 @@ def export_csv(request, course_slug, activity_slug):
 
     return response
 
-import csv
-from grades.models import FLAG_CHOICES
+@requires_course_staff_by_slug
+def export_sims(request, course_slug, activity_slug):
+    course = get_object_or_404(CourseOffering, slug = course_slug)    
+    activity = get_object_or_404(LetterActivity, offering = course, slug = activity_slug)
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=%s_%s_sims.csv' % (course_slug, activity_slug,)
+    
+    writer = csv.writer(response)
+    student_members = Member.objects.filter(offering = course, role = 'STUD').select_related('person')
+    for std in student_members:
+        row = [course.subject, course.number, course.section, std.person.emplid]
+        try: 
+            lgrade = LetterGrade.objects.get(activity = activity, member = std)                  
+        except LetterGrade.DoesNotExist: #if the LetterGrade does not exist yet,
+            row.append('')
+        else:
+            if lgrade.flag == 'NOGR':
+                row.append('')
+            else:
+                row.append(lgrade.letter_grade)
+        
+        row.append(std.person.name())
+        row.append(std.person.userid)
+        writer.writerow(row)
+
+    return response
+
 @requires_course_staff_by_slug
 def export_csv_lettergrade(request, course_slug, activity_slug):    
     course = get_object_or_404(CourseOffering, slug = course_slug)    
@@ -1009,6 +1034,7 @@ def export_csv_lettergrade(request, course_slug, activity_slug):
     response['Content-Disposition'] = 'attachment; filename=%s_%s.csv' % (course_slug, activity_slug,)
 
     writer = csv.writer(response)
+    
     if activity.group:
         writer.writerow(['Student ID', 'User ID', 'Student Name', 'Grade', 'Group', 'Group ID'])
         gms = GroupMember.objects.filter(activity=activity).select_related('student__person', 'group')
@@ -1021,7 +1047,7 @@ def export_csv_lettergrade(request, course_slug, activity_slug):
         row = [std.person.emplid, std.person.userid, std.person.name()]
         try: 
             lgrade = LetterGrade.objects.get(activity = activity, member = std)                  
-        except LetterGrade.DoesNotExist: #if the NumericGrade does not exist yet,
+        except LetterGrade.DoesNotExist: #if the LetterGrade does not exist yet,
             row.append('no grade')
         else:
             if lgrade.flag == 'GRAD' or lgrade.flag == 'CALC':

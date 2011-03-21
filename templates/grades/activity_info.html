@@ -137,6 +137,7 @@ Column logic:
 		    	<li><a href="{% url marking.views.export_csv course_slug=course.slug, activity_slug=activity.slug%}">Export Grades</a></li> 
 		 {% else %}
 		    	<li><a href="{% url marking.views.export_csv_lettergrade course_slug=course.slug, activity_slug=activity.slug%}">Export Grades</a></li>
+		    	<li><a href="{% url marking.views.export_sims course_slug=course.slug, activity_slug=activity.slug%}">Export for SIMS</a></li>
 		 {% endif %}
 
 	 
