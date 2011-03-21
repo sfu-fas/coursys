@@ -4,7 +4,7 @@ This module collects classes and functions that are for the display purpose of G
 
 from grades.models import Activity, NumericActivity, LetterActivity, NumericGrade, \
                           LetterGrade, all_activities_filter, ACTIVITY_TYPES, FLAGS, \
-                          CalNumericActivity, median_letters, min_letters, max_letters
+                          CalNumericActivity, median_letters, min_letters, max_letters,sorted_letters
 from coredata.models import CourseOffering, Member
 from grades.formulas import parse, activities_dictionary, cols_used, eval_parse, EvalException
 from pyparsing import ParseException
@@ -285,14 +285,15 @@ def generate_letter_activity_stat(activity):
     This function fetch statistics of the numeric activity.
     """
     student_grade_list = fetch_students_letter_grade(activity)
-    if not student_grade_list:
+    sorted_grades = sorted_letters(student_grade_list) 
+    if not sorted_grades:
         return
 
     student_grade_list_count = len(student_grade_list)
     grade_range_stat_list = generate_grade_range_stat_lettergrade(student_grade_list)
-    median=median_letters(student_grade_list)
-    max=max_letters(student_grade_list)
-    min=min_letters(student_grade_list)
+    median=median_letters(sorted_grades)
+    max=max_letters(sorted_grades)
+    min=min_letters(sorted_grades)
 
     return ActivityStatlettergrade(grade_range_stat_list, student_grade_list_count,median,max,min)
     
