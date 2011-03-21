@@ -55,54 +55,32 @@ $(document).ready(function() {
         <fieldset>
         	<legend>Edit Cutoffs</legend>
         		<p class="requireindicator"><img src="{{MEDIA_URL}}/icons/required_star.gif" alt="required" />&nbsp;Indicates required field</p>
+        		<ul>
         		<p>Max grade for {{activity.numeric_activity.name}}: {{activity.numeric_activity.max_grade}}</p>
-        		<table class="cutoffs">
+        		<table class="info">
         		<tr>
-        		<td class="label">A+</td><td>{{cutoff.ap}}</td>
-        		<td class="label">A</td><td>{{cutoff.a}}</td>
-        		<td class="label">A-</td><td>{{cutoff.am}}</td>
+        		<td class="label">A+</td><td>{{cutoff.ap}} {{cutoff.ap.errors}}</td>
+        		<td class="label">A</td><td>{{cutoff.a}} {{cutoff.a.errors}}</td>
+        		<td class="label">A-</td><td>{{cutoff.am}} {{cutoff.am.errors}}</td>
         		</tr>
         		
-        		</table>
+        		<tr>
+        		<td class="label">B+</td><td>{{cutoff.bp}} {{cutoff.bp.errors}}</td>
+        		<td class="label">B</td><td>{{cutoff.b}} {{cutoff.b.errors}}</td>
+        		<td class="label">B-</td><td>{{cutoff.bm}} {{cutoff.bm.errors}}</td>
+        		</tr>
         		
+        		<tr>
+        		<td class="label">C+</td><td>{{cutoff.cp}} {{cutoff.cp.errors}}</td>
+        		<td class="label">C</td><td>{{cutoff.c}} {{cutoff.c.errors}}</td>
+        		<td class="label">C-</td><td>{{cutoff.cm}} {{cutoff.cm.errors}}</td>
+        		</tr>
         		
-        		
-        		<ul>
-        			<div>
-					A+: {{cutoff.ap}} {{cutoff.ap.errors}}
-					</br>
-					A: {{cutoff.a}} {{cutoff.a.errors}}
-					</br>
-					A-: {{cutoff.am}} {{cutoff.am.errors}}
-					</br>
-				</div>
-	
-				<div>
-					B+: {{cutoff.bp}} {{cutoff.bp.errors}}
-					</br>
-					B: {{cutoff.b}} {{cutoff.b.errors}}
-					</br>
-					B-: {{cutoff.bm}} {{cutoff.bm.errors}}
-					</br>
-				</div>
-	
-				<div>
-					C+: {{cutoff.cp}} {{cutoff.cp.errors}}
-					</br>
-					C: {{cutoff.c}} {{cutoff.c.errors}}
-					</br>
-					C-: {{cutoff.cm}} {{cutoff.cm.errors}}
-					</br>
-				</div>
-	
-				<div>
-					D :   {{cutoff.d}} {{cutoff.d.errors}}
-				</div>
-	
-				<div>
-					F :   0 {{cutoff.f.errors}}
-				</div>
-	
+        		<tr>
+        		<td class="label">D</td><td>{{cutoff.d}} {{cutoff.d.errors}}</td>
+        		<td class="label">F</td><td>0</td>
+        		</tr>
+        		</table>	
 				<li>
         				<input class="submit" type="submit" value="Submit" />
         			</li>
