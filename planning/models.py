@@ -75,13 +75,17 @@ class SemesterPlan(models.Model):
     slug = AutoSlugField(populate_from='name', null=False, editable=False, unique_with='semester')
 
     def save(self, *args, **kwargs):
-        #if self.active:
-        #    set all other plans for this semester to inactive
-        super(SemesterPlan, self).save(*args, **kwargs)
-        
-
+        if self.active:
+            super(SemesterPlan, self).save(*args, **kwargs)
+            other_plans = SemesterPlan.objects.filter(semester = self.semester, active = True).exclude(pk = self.id)
+            for other_plan in other_plans:
+	        other_plan.active = False
+                super(SemesterPlan, other_plan).save(*args, **kwargs)
+        else:
+            super(SemesterPlan, self).save(*args, **kwargs)
+     
     class Meta:
-        ordering = ['-semester', 'name']
+        ordering = ['semester', 'name']
         unique_together = (('semester', 'name'),)
 
 class PlannedOffering(models.Model):

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% load markup %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#plans').dataTable( {
+    'bPaginate': true,
+    'bInfo': false,
+    'bLengthChange': true,
+    "bJQueryUI": true,
+	"sPaginationType": "full_numbers",
+	"iDisplayLength" : 10
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block title %}Semester Plans{% endblock %}
+{% block h1 %}Semester Plans{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; Semester Plans</li>{% endblock %}
+
+
+
+
+{% block content %}
+
+<div class="datatable_container">
+    <h2>Course Plans</h2>
+    <table class="display" id="plans">
+        <thead>
+            <tr>
+                <th scope="col">Plan Name</th>
+                <th scope="col">Semester</th>
+                <th scope="col">Visibility</th>
+
+            </tr>
+        </thead>
+
+        <tbody>
+		{% for plan in plan_list %}
+
+		<tr>
+			<td><a href="{% url planning.views.view_semester_plan semester=plan.semester.name plan_slug=plan.slug %}">{{ plan.name }}</a></td>
+			<td>{{ plan.semester.label }}</td>
+			<td>{{ plan.get_visibility_display }}</td>
+
+		</tr>		
+		{%endfor%}
+
+        </tbody>
+    </table>
+</div>
+
+{% endblock content %}

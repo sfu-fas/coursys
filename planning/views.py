@@ -130,8 +130,10 @@ def add_plan(request):
     if request.method == 'POST':
         form = PlanBasicsForm(request.POST)
         if form.is_valid():
+            semester = form.cleaned_data['semester']
+            other_plans = SemesterPlan.objects.filter(semester = semester, active = True)
             plan = form.save()
-            
+
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
                       description=("Created course plan %s in %s") % (plan.name, plan.semester),
@@ -150,11 +152,13 @@ def copy_plan(request):
     if request.method == 'POST':
 	form = CopyPlanForm(request.POST)
         if form.is_valid():
-	    plan = form.save()
+	    #plan = form.save()
 	    copied_plan_name = form.cleaned_data['copy_plan_from']
 	    copied_plan = SemesterPlan.objects.get(name=copied_plan_name)	    
 	    copied_courses = PlannedOffering.objects.filter(plan=copied_plan).order_by('course')
-	    
+	    other_plans = SemesterPlan.objects.filter(semester = copied_plan.semester, active = True).exclude(pk = copied_plan.id)
+	    plan = form.save()
+	
 	    for i in copied_courses:
 		
 		added_course = PlannedOffering(plan = plan, course = i.course, section = i.section, component = i.component, campus = i.campus, enrl_cap = i.enrl_cap)                
@@ -179,6 +183,7 @@ def copy_plan(request):
 @requires_role('PLAN')
 def edit_plan(request, semester, plan_slug):
     plan = get_object_or_404(SemesterPlan, semester__name=semester, slug=plan_slug)
+    other_plans = SemesterPlan.objects.filter(semester = plan.semester, active = True).exclude(pk = plan.id)
     if request.method == 'POST':
         form = PlanBasicsForm(request.POST, instance=plan)
         if form.is_valid():
@@ -354,9 +359,14 @@ def activate_plan(request, plan_id):
     semester_plan = get_object_or_404(SemesterPlan, pk = plan_id)
 
     semester_plan.active = True
-    semester_plan.save()
+    other_plans = SemesterPlan.objects.filter(semester = semester_plan.semester, active = True).exclude(pk = plan_id)
 
-    messages.add_message(request, messages.SUCCESS, 'Plan Activated Successfully.')
+    semester_plan.save()
+    
+    messages.add_message(request, messages.SUCCESS, '%s Activated Successfully.' % (semester_plan.name))
+    for other_plan in other_plans:
+        messages.add_message(request, messages.SUCCESS, '%s Inactivated Successfully.' % (other_plan.name))
+
     return HttpResponseRedirect(reverse(admin_index))
     
 @requires_role('PLAN')
@@ -367,7 +377,7 @@ def inactivate_plan(request, plan_id):
     semester_plan.active = False
     semester_plan.save()
 
-    messages.add_message(request, messages.SUCCESS, 'Plan Inactivated Successfully.')
+    messages.add_message(request, messages.SUCCESS, '%s Inactivated Successfully.' % (semester_plan.name))
     return HttpResponseRedirect(reverse(admin_index))
 
 @requires_role('PLAN')
@@ -403,6 +413,71 @@ def view_instructors(request, semester, plan_slug, course_id):
         instructors.append(data)
 	
     return render_to_response("planning/view_instructors.html",{'semester_plan': semester_plan, 'course_info':course_info, 'instructor_list':instructor_list, 'instructors':instructors},context_instance=RequestContext(request))
+
+#********************************************View Semester Plans************************************************************
+@requires_role('PLAN')
+def semester_plan_index(request):
+
+    userid = request.user.username
+    plan_list = SemesterPlan.objects.filter(active = True).exclude().order_by('semester')
+
+    return render_to_response("planning/semester_plan_index.html",{'userid':userid, 'plan_list':plan_list},context_instance=RequestContext(request))
+
+@requires_role('PLAN')
+def view_semester_plan(request, semester, plan_slug):
+
+    plan = SemesterPlan.objects.get(semester__name=semester, slug=plan_slug)
+    planned_courses_list = PlannedOffering.objects.filter(plan=plan)
+    if request.method == 'POST':
+        form = OfferingBasicsForm(request.POST)
+        form2 = form
+        if form.is_valid():
+            offering = form.save(commit=False)
+            offering.plan = plan
+            num_of_lab = form.cleaned_data['lab_sections']
+            offering.save()
+            form.save_m2m()
+
+            i = 0
+            num_of_lab = int(num_of_lab)
+            if num_of_lab != 0:
+                for i in range(num_of_lab):
+
+
+                    course = form.cleaned_data['course']
+                    section = form.cleaned_data['section'][:2] + "%02i" % (i+1)    
+                    component = "LAB"    
+                    campus = form.cleaned_data['campus']
+                    enrl_cap = form.cleaned_data['enrl_cap']
+
+
+                    added_lab_section = PlannedOffering(plan = plan, course = course, section = section, component = component, campus = campus, enrl_cap = enrl_cap)
+                    added_lab_section.save();
+
+                #LOG EVENT#
+                l = LogEntry(userid=request.user.username,
+                      description=("added offering %s in %s") % (offering.course, offering.plan),
+                      related_object=plan)
+                l.save()
+                    
+                messages.add_message(request, messages.SUCCESS, 'Added course %s.' % (offering.course))
+                #return HttpResponseRedirect(reverse('planning.views.admin_index', kwargs={}))
+            else:
+                form = OfferingBasicsForm()
+    else:
+        form = OfferingBasicsForm()
+    
+    
+    return render_to_response("planning/view_semester_plan.html",{'form':form, 'plan':plan, 'planned_courses_list':planned_courses_list},context_instance=RequestContext(request))
+
+
+
+
+
+
+
+
+
 
 
 

@@ -14,6 +14,7 @@
 
     {% if 'FAC' in roles or 'SESS' in roles or 'COOP' in roles %}<li><a href="{% url planning.views.instructor_index %}">Teaching Preferences</a></li>{% endif %}
     {% if 'PLAN' in roles %}<li><a href="{% url planning.views.admin_index %}">Course Planning</a></li>{% endif %}
+    {% if 'PLAN' in roles %}<li><a href="{% url planning.views.semester_plan_index %}">Semester Plans</a></li>{% endif %}
     {% if 'DISC' in roles %}<li><a href="{% url discipline.views.all_cases %}">Discipline Cases</a></li>{% endif %}
     {% if 'SYSA' in roles %}<li><a href="{% url coredata.views.sysadmin %}">System Administration</a></li>{% endif %}
     </ul>

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+
+{% load markup %}
+
+{% block title %}View Semester Plan{% endblock %}
+{% block h1 %}View Semester Plan{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url planning.views.semester_plan_index %}">Semester Plans</a></li><li>&gt; {{ plan.name }} in {{plan.semester.label}}</li>{% endblock %}
+
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#courses').dataTable( {
+    'bPaginate': true,
+    'bInfo': false,
+    'bLengthChange': true,
+    "bJQueryUI": true,
+	"sPaginationType": "full_numbers",
+	"iDisplayLength" : 10
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block content %}
+
+<div class="datatable_container">
+    <h2>{{ semester_plan.semester.label }} </br> {{ semester_plan.name }}</h2>
+    <table class="display" id="courses">
+        <thead>
+            <tr>
+                <th scope="col">Course Name</th>
+                <th scope="col">Section</th>
+                <th scope="col">Campus</th>
+                <th scope="col">Component</th>
+                <th scope="col">Instructor</th>
+
+
+            </tr>
+        </thead>
+
+        <tbody>
+		{% for planned_course in planned_courses_list %}
+
+		<tr>
+			<td>{{ planned_course.course }}</td>
+			<td>{{ planned_course.section }}</td>
+			<td>{{ planned_course.get_campus_display }}</td>
+			<td>{{ planned_course.get_component_display }}</td>
+			<td>{{ planned_course.instructor }}</td>
+		</tr>
+		
+		{%endfor%}
+
+        </tbody>
+    </table>
+</div>
+
+{% endblock%}
+
+

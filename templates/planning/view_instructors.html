@@ -38,50 +38,50 @@ $(document).ready(function() {
 	
 	<div id="form_container">
 	    <form action="{% url planning.views.submit_assigned_instructors semester=semester_plan.semester.name plan_slug=semester_plan.slug offering_id=course_info.id %}" method="post">{% csrf_token %}
-	        <fieldset>
+	        <fieldset style="padding-left:20px">
 	            <legend>Capable Instructors</legend>
 				{% for data in instructors %}
-					<p><input type="radio" name="instructor" value="{{data.instructor.instructor.userid}}" /></p>
+					
 					<dl>
-					<dt>Instructor</dt>
-					<dd>{{data.instructor.instructor}}</dd>
-					<dt>Currently Assigned Courses</dt>
-					<dd>{% if data.current_courses %}
-						{% for i in data.current_courses %}
-							</br>
-							{{i.course}}
-						{% endfor %}
-					{% else %}
-						</br>
-						None
-					{% endif %}					</dd>
-					</dl>
-					<b>Capable Courses:</b> 
-					{% for i in data.teachable %}
-						</br>
-						{{i.course}}
-						{% if i.note %}
-							( Note: {{i.note}} )
-						{% endif %}
-					{% endfor %}
-					</br>
-					<b>Teaching Intentions:</b> 
-					{% for i in data.intention %}
-						</br>
-						{{i.semester}}:
-						{{i.count}}
-						{% if i.note %}
-							( Note: {{i.note}} )
-						{% endif %}
-					{% endfor %}
-					</p>
+					<dt><input type="radio" name="instructor" value="{{data.instructor.instructor.userid}}" /></dt>
+					<dt>Instructor:</dt>
+						<dd>{{data.instructor.instructor}}</dd>
+					<dt>Currently Assigned Courses:</dt>
+						<dd>{% if data.current_courses %}
+								{% for i in data.current_courses %}
+								{{i.course}}
+								</br>
+								{% endfor %}
+							{% else %}
+								None
+							{% endif %}
+						</dd>
+					<dt>Capable Courses:</dt>
+						<dd>{% for i in data.teachable %}
+								{{i.course}}
+								{% if i.note %}
+									( Note: {{i.note}} )
+								{% endif %}
+								</br>
+							{% endfor %}
+						</dd>
+					<dt>Teaching Intentions:</dt>
+						<dd>{% for i in data.intention %}
+								{{i.semester}}:
+								{{i.count}}
+								{% if i.note %}
+									( Note: {{i.note}} )
+								{% endif %}
+								</br>
+							{% endfor %}							
+						</dd>
+					
 				{% endfor %}
 				{% if course_info.instructor %}
-					<p><input type="radio" name="instructor" value="None" />
-					</br>
-					<b>Clear Assigned Instructor</b>
-					</p>
+					<dt><input type="radio" name="instructor" value="None" /></dt>
+					<dt>Clear Assigned Instructor</dt>
 				{% endif %}
+				</dl>
 	            <div><input class="submit" type="submit" value="Assign" /></div>
 
 	        </fieldset>
