@@ -13,8 +13,7 @@ from forms import *
 from django.forms.models import modelformset_factory
 from django.contrib import messages
 from django.db.models import Q
-import decimal
-
+import decimal, csv
 
    
 # request to views in the marking may comes from different pages, for POST request, we need to redirect to the right page
@@ -953,15 +952,30 @@ def mark_history_group(request, course_slug, activity_slug, group_slug):
     context.update(mark_history_info)    
     return render_to_response("marking/mark_history_group.html", context, context_instance = RequestContext(request))
     
-import csv
-from grades.models import FLAG_CHOICES
+
 @requires_course_staff_by_slug
-def export_csv(request, course_slug, activity_slug):    
-    course = get_object_or_404(CourseOffering, slug = course_slug)    
-    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug)   
+def export_csv(request, course_slug, activity_slug):
+    """
+    Export grades in CSV.  Calls numeric/letter view as appropriate.
+    """
+    course = get_object_or_404(CourseOffering, slug = course_slug)
+    acts = all_activities_filter(course, slug=activity_slug)
+    if len(acts) != 1:
+        raise Http404('No such Activity.')
+    activity = acts[0]
+    
+    if isinstance(activity, NumericActivity):
+        return _export_csv_numeric(request, course, activity)
+    elif isinstance(activity, LetterActivity):
+        return _export_csv_letter(request, course, activity)
+    else:
+        raise Http404('Unknown activity type.')
+
+
+def _export_csv_numeric(request, course, activity):    
     # Create the HttpResponse object with the appropriate CSV header.
     response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=%s_%s.csv' % (course_slug, activity_slug,)
+    response['Content-Disposition'] = 'attachment; filename=%s_%s.csv' % (course.slug, activity.slug,)
 
     writer = csv.writer(response)
     if activity.group:
@@ -998,40 +1012,11 @@ def export_csv(request, course_slug, activity_slug):
 
     return response
 
-@requires_course_staff_by_slug
-def export_sims(request, course_slug, activity_slug):
-    course = get_object_or_404(CourseOffering, slug = course_slug)    
-    activity = get_object_or_404(LetterActivity, offering = course, slug = activity_slug)
-    response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=%s_%s_sims.csv' % (course_slug, activity_slug,)
-    
-    writer = csv.writer(response)
-    student_members = Member.objects.filter(offering = course, role = 'STUD').select_related('person')
-    for std in student_members:
-        row = [course.subject, course.number, course.section, std.person.emplid]
-        try: 
-            lgrade = LetterGrade.objects.get(activity = activity, member = std)                  
-        except LetterGrade.DoesNotExist: #if the LetterGrade does not exist yet,
-            row.append('')
-        else:
-            if lgrade.flag == 'NOGR':
-                row.append('')
-            else:
-                row.append(lgrade.letter_grade)
-        
-        row.append(std.person.name())
-        row.append(std.person.userid)
-        writer.writerow(row)
 
-    return response
-
-@requires_course_staff_by_slug
-def export_csv_lettergrade(request, course_slug, activity_slug):    
-    course = get_object_or_404(CourseOffering, slug = course_slug)    
-    activity = get_object_or_404(LetterActivity, offering = course, slug = activity_slug)   
+def _export_csv_letter(request, course, activity):
     # Create the HttpResponse object with the appropriate CSV header.
     response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=%s_%s.csv' % (course_slug, activity_slug,)
+    response['Content-Disposition'] = 'attachment; filename=%s_%s.csv' % (course.slug, activity.slug,)
 
     writer = csv.writer(response)
     
@@ -1068,6 +1053,39 @@ def export_csv_lettergrade(request, course_slug, activity_slug):
         writer.writerow(row)
 
     return response
+
+
+@requires_course_staff_by_slug
+def export_sims(request, course_slug, activity_slug):
+    """
+    Produce CSV export format for SIMS/goSFU.
+    """
+    course = get_object_or_404(CourseOffering, slug = course_slug)    
+    activity = get_object_or_404(LetterActivity, offering = course, slug = activity_slug)
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=%s_%s_sims.csv' % (course_slug, activity_slug,)
+    
+    writer = csv.writer(response)
+    student_members = Member.objects.filter(offering = course, role = 'STUD').select_related('person')
+    for std in student_members:
+        row = [course.subject, course.number, course.section, std.person.emplid]
+        try: 
+            lgrade = LetterGrade.objects.get(activity = activity, member = std)                  
+        except LetterGrade.DoesNotExist: #if the LetterGrade does not exist yet,
+            row.append('')
+        else:
+            if lgrade.flag == 'NOGR':
+                row.append('')
+            else:
+                row.append(lgrade.letter_grade)
+        
+        row.append(std.person.name())
+        row.append(std.person.userid)
+        writer.writerow(row)
+
+    return response
+
+
 
 @requires_course_staff_by_slug
 def mark_all_groups(request, course_slug, activity_slug):
