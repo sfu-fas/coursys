@@ -6,16 +6,14 @@
 {{course.subject}} {{course.number}} {{course.section}} {% endblock %}
 {% block content%}
 
+<a href ="{% url mobile.views.index %}">back</a>
 
 <div class="datatable_container">
 
     <h2>Course Activities</h2>
     {% for activity_info in activities_info %}
-        {% with activity_info.activity as activity %}
-            {% comment %}
-                <a href="{% url mobile.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">
-            {% endcomment %}
-            <a href="{% url mobile.views.course_info course_slug=course.slug %}">{{activity.name}}</a>
+        {% with activity_info.activity as activity %}            
+                <a href="{% url mobile.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">{{ activity.name }}</a>
             <ul>
                 <li>
                     Status: {{ activity.get_status_display }}
@@ -49,4 +47,5 @@
 
     {% endfor %}
 </div>
+<a href ="{% url mobile.views.index %}">back</a>
 {% endblock %}

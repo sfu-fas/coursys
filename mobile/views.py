@@ -89,3 +89,47 @@ def _course_info_staff(request, course_slug):
     context = {'course': course, 'activities_info': activities_info}
     return render_to_response("mobile/course_info_staff.html", context,
                               context_instance=RequestContext(request))
+
+
+@login_required
+@gzip_page
+def activity_info(request, course_slug, activity_slug):
+    if is_course_student_by_slug(request, course_slug):
+        return _activity_info_student(request, course_slug, activity_slug)
+    elif is_course_staff_by_slug(request, course_slug):
+        return _activity_info_staff(request, course_slug, activity_slug)
+
+@login_required
+@gzip_page
+def _activity_info_student(request, course_slug, activity_slug):
+    return HttpResponse('Student View')
+
+def _activity_info_staff(request, course_slug, activity_slug):
+    """
+    activity detail page
+    """
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activities = all_activities_filter(slug=activity_slug, offering=course)
+    if len(activities) != 1:
+        return NotFoundResponse(request)
+
+    activity = activities[0]
+
+    context = {'course': course, 'activity': activity}
+    return render_to_response("mobile/activity_info_staff.html", context,
+                            context_instance=RequestContext(request))
+
+
+def student_activity_info(request, course_slug, activity_slug):
+#    course = get_object_or_404(CourseOffering, slug=course_slug)
+#    activities = all_activities_filter(slug=activity_slug, offering=course)
+#    if len(activities) != 1:
+#        return NotFoundResponse(request)
+#
+#    activity = activities[0]
+#    student_info = request.GET.get('q')
+#
+#    student =
+
+
+    return HttpResponse("student search")
