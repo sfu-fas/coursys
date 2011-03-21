@@ -295,7 +295,7 @@ def generate_letter_activity_stat(activity):
     max=max_letters(sorted_grades)
     min=min_letters(sorted_grades)
 
-    return ActivityStatlettergrade(grade_range_stat_list, student_grade_list_count,median,max,min)
+    return ActivityStatlettergrade(grade_range_stat_list, student_grade_list_count,median,min,max)
     
 
    
