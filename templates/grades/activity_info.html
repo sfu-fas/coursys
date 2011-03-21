@@ -133,7 +133,7 @@ Column logic:
 	    {% endif %}
 
 	    <li class="newsec"><a href="{% url grades.views.activity_stat course_slug=course.slug activity_slug=activity.slug %}">Display Statistics</a></li> 
-	    <li><a href="{% url marking.views.export_csv course_slug=course.slug, activity_slug=activity.slug%}">Export Grades</a></li> 
+		    	<li><a href="{% url marking.views.export_csv course_slug=course.slug, activity_slug=activity.slug%}">Export Grades</a></li> 
                  {% if not activity.is_numeric %}
 		    	<li><a href="{% url marking.views.export_sims course_slug=course.slug, activity_slug=activity.slug%}">Export for SIMS</a></li>
 		 {% endif %}
@@ -266,13 +266,13 @@ Column logic:
 				{% if activity.is_numeric %}
 					<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">&mdash;/{{activity.max_grade}}</a>
 				{% else %}
-					<a href="{% url marking.views.change_grade_status_lettergrade course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">&mdash;</a>
+					<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">&mdash;</a>
 				{% endif %}
 			{% else %}
 				{% if activity.is_numeric %}
 					<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">&mdash;/{{activity.max_grade}}</a>
 				{% else %}
-					<a href="{% url marking.views.change_grade_status_lettergrade course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">&mdash;</a>
+					<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">&mdash;</a>
 				{% endif %}
 			{% endif %}	   
 		    {% else %}
@@ -280,13 +280,13 @@ Column logic:
 		    		{% if activity.is_numeric %}
 					<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">{{ grade.display_staff }}</a>
 				{% else %}
-					<a href="{% url marking.views.change_grade_status_lettergrade course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">{{ grade.display_staff }}</a>
+					<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">{{ grade.display_staff }}</a>
 				{% endif %}
 			{% else %}
 				{% if activity.is_numeric %}
 					<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">{{ grade.display_staff }}</a>
 				{% else %}
-					<a href="{% url marking.views.change_grade_status_lettergrade course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">{{ grade.display_staff }}</a>
+					<a href="{% url marking.views.change_grade_status course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}?from_page={{from_page}}" title="edit grade">{{ grade.display_staff }}</a>
 				{% endif %}
 			{% endif %}
 		    {% endif %}

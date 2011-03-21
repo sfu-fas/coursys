@@ -491,11 +491,28 @@ def XXX_save_marking_results(activity, activity_mark, final_mark, marker_ident, 
        description="edited grade on %s for %s changed to %s" % \
       (activity, mark_receiver_ident, final_mark), related_object=activity_mark)                     
     l.save()   
-      
-@requires_course_staff_by_slug      
+
+
+@requires_course_staff_by_slug
 def change_grade_status(request, course_slug, activity_slug, userid):
-    course = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(NumericActivity, offering=course, slug=activity_slug)
+    """
+    Grade status form.  Calls numeric/letter view as appropriate.
+    """
+    course = get_object_or_404(CourseOffering, slug = course_slug)
+    acts = all_activities_filter(course, slug=activity_slug)
+    if len(acts) != 1:
+        raise Http404('No such Activity.')
+    activity = acts[0]
+    
+    if isinstance(activity, NumericActivity):
+        return _change_grade_status_numeric(request, course, activity, userid)
+    elif isinstance(activity, LetterActivity):
+        return _change_grade_status_letter(request, course, activity, userid)
+    else:
+        raise Http404('Unknown activity type.')
+
+ 
+def _change_grade_status_numeric(request, course, activity, userid):
     member = get_object_or_404(Member, offering=course, person__userid = userid, role = 'STUD')
     grades = NumericGrade.objects.filter(activity=activity, member=member)
     if grades:
@@ -521,7 +538,7 @@ def change_grade_status(request, course_slug, activity_slug, userid):
                 
             messages.add_message(request, messages.SUCCESS, 
                'Grade status for student %s on %s changed!' % (userid, activity.name,))                           
-            return _redirct_response(request, course_slug, activity_slug)        
+            return _redirct_response(request, course.slug, activity.slug)        
     else:
         status_form = GradeStatusForm(instance=numeric_grade, prefix='grade-status')
         
@@ -532,6 +549,46 @@ def change_grade_status(request, course_slug, activity_slug, userid):
                'status_form': status_form}
     return render_to_response("marking/grade_status.html", context,
                               context_instance=RequestContext(request))  
+
+
+def _change_grade_status_letter(request, course, activity, userid):
+    member = get_object_or_404(Member, offering=course, person__userid = userid, role = 'STUD')
+    grades = LetterGrade.objects.filter(activity=activity, member=member)
+    if grades:
+        letter_grade = grades[0]
+    else:
+        letter_grade = LetterGrade(activity=activity, member=member, flag="GRAD")
+    
+    if 'status' in request.GET:
+        letter_grade.flag = request.GET['status']
+    error = None
+    if request.method == 'POST':
+        status_form = GradeStatusForm_LetterGrade(data=request.POST, instance=letter_grade, prefix='grade-status')
+        if not status_form.is_valid(): 
+            error = 'Error found'
+        else:            
+            status_form.save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("changed the grade of student %s to %s (%s) on %s.  Comment: '%s'") % 
+                              (userid, letter_grade.letter_grade, FLAGS[letter_grade.flag], activity, letter_grade.comment),
+                  related_object=letter_grade)
+            l.save()
+                
+            messages.add_message(request, messages.SUCCESS, 
+               'Grade status for student %s on %s changed!' % (userid, activity.name,))                           
+            return _redirct_response(request, course.slug, activity.slug)        
+    else:
+        status_form = GradeStatusForm_LetterGrade(instance=letter_grade, prefix='grade-status')
+        
+    if error:        
+        messages.add_message(request, messages.ERROR, error)    
+    context = {'course':course,'activity' : activity,\
+               'student' : member.person, 'current_status' : FLAGS[letter_grade.flag],
+               'status_form': status_form}
+    return render_to_response("marking/grade_status_lettergrade.html", context,
+                              context_instance=RequestContext(request))  
+
 
 def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
     """
@@ -1305,47 +1362,6 @@ def XXX_mark_all_students_cal(request, course_slug, activity_slug):
         
 #This is for change grade status of letter grades
 
-
-@requires_course_staff_by_slug      
-def change_grade_status_lettergrade(request, course_slug, activity_slug, userid):
-    course = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(LetterActivity, offering=course, slug=activity_slug)
-    member = get_object_or_404(Member, offering=course, person__userid = userid, role = 'STUD')
-    grades = LetterGrade.objects.filter(activity=activity, member=member)
-    if grades:
-        letter_grade = grades[0]
-    else:
-        letter_grade = LetterGrade(activity=activity, member=member, flag="GRAD")
-    
-    if 'status' in request.GET:
-        letter_grade.flag = request.GET['status']
-    error = None
-    if request.method == 'POST':
-        status_form = GradeStatusForm_LetterGrade(data=request.POST, instance=letter_grade, prefix='grade-status')
-        if not status_form.is_valid(): 
-            error = 'Error found'
-        else:            
-            status_form.save()
-            #LOG EVENT#
-            l = LogEntry(userid=request.user.username,
-                  description=("changed the grade of student %s to %s (%s) on %s.  Comment: '%s'") % 
-                              (userid, letter_grade.letter_grade, FLAGS[letter_grade.flag], activity, letter_grade.comment),
-                  related_object=letter_grade)
-            l.save()
-                
-            messages.add_message(request, messages.SUCCESS, 
-               'Grade status for student %s on %s changed!' % (userid, activity.name,))                           
-            return _redirct_response(request, course_slug, activity_slug)        
-    else:
-        status_form = GradeStatusForm_LetterGrade(instance=letter_grade, prefix='grade-status')
-        
-    if error:        
-        messages.add_message(request, messages.ERROR, error)    
-    context = {'course':course,'activity' : activity,\
-               'student' : member.person, 'current_status' : FLAGS[letter_grade.flag],
-               'status_form': status_form}
-    return render_to_response("marking/grade_status_lettergrade.html", context,
-                              context_instance=RequestContext(request))  
 
 def _mark_all_students_letter(request, course, activity):
     rows = []

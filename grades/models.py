@@ -25,33 +25,33 @@ ACTIVITY_STATUS = dict(ACTIVITY_STATUS_CHOICES)
 # but see also overridden get_status_display method on Activity
 
 LETTER_GRADE_CHOICES = [
-    ('A+', 'A+ - Excellent performance'),
-    ('A', 'A - Excellent performance'),
-    ('A-', 'A- - Excellent performance'),
-    ('B+', 'B+ - Good performance'),
-    ('B', 'B - Good performance'),
-    ('B-', 'B- - Good performance'),
-    ('C+', 'C+ - Satisfactory performance'),
-    ('C', 'C - Satisfactory performance'),
-    ('C-', 'C- - Marginal performance'),
-    ('D', 'D - Marginal performance'),
-    ('F', 'F - Fail(Unsatisfactory performance)'),
-    ('FD', 'FD - Fail(Academic discipline)'),
-    ('N', 'N - Did not write exam or did not complete course'),
-    ('P', 'P - Satisfactory performance or better (pass, ungraded)'),
-    ('W', 'W - Withdrawn'),
-    ('AE', 'AE - Aegrotat standing, compassionate pass'),
-    ('AU', 'AU - Audit'),
-    ('CC', 'CC - Course challenge'),
-    ('CF', 'CF - Course challenge fail'),
-    ('CN', 'CN - Did not complete challenge'),
-    ('CR', 'CR - Credit without grade'),
-    ('FX', 'FX - Formal exchange'),
-    ('WD', 'WD - Withdrawal'),
-    ('WE', 'WE - Withdrawal under extenuating circumstances'),
-    ('DE', 'DE - Deferred grade'),
-    ('GN', 'GN - Grade not reported'),
-    ('IP', 'IP - In progress') ]
+    ('A+', 'A+ (Excellent performance)'),
+    ('A', 'A (Excellent performance)'),
+    ('A-', 'A- (Excellent performance)'),
+    ('B+', 'B+ (Good performance)'),
+    ('B', 'B (Good performance)'),
+    ('B-', 'B- (Good performance)'),
+    ('C+', 'C+ (Satisfactory performance)'),
+    ('C', 'C (Satisfactory performance)'),
+    ('C-', 'C- (Marginal performance)'),
+    ('D', 'D (Marginal performance)'),
+    ('F', 'F (Fail(Unsatisfactory performance))'),
+    ('FD', 'FD (Fail(Academic discipline))'),
+    ('N', 'N (Did not write exam or did not complete course)'),
+    ('P', 'P (Satisfactory performance or better (pass, ungraded))'),
+    ('W', 'W (Withdrawn)'),
+    ('AE', 'AE (Aegrotat standing, compassionate pass)'),
+    ('AU', 'AU (Audit)'),
+    ('CC', 'CC (Course challenge)'),
+    ('CF', 'CF (Course challenge fail)'),
+    ('CN', 'CN (Did not complete challenge)'),
+    ('CR', 'CR (Credit without grade)'),
+    ('FX', 'FX (Formal exchange)'),
+    ('WD', 'WD (Withdrawal)'),
+    ('WE', 'WE (Withdrawal under extenuating circumstances)'),
+    ('DE', 'DE (Deferred grade)'),
+    ('GN', 'GN (Grade not reported)'),
+    ('IP', 'IP (In progress)') ]
 LETTER_GRADE = dict(LETTER_GRADE_CHOICES)
 LETTER_GRADE_CHOICES_IN = set(LETTER_GRADE.keys())
 
@@ -552,7 +552,7 @@ def median_letters(sorted_grades):
     l = len(sorted_grades)
     if l == 0:
         return u"\u2014"
-    elif l% 2 == 1:
+    elif l%2 == 1:
         return sorted_grades[(l-1)/2]
     else:
         g1 = sorted_grades[l/2-1]      
