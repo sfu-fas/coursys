@@ -15,7 +15,7 @@ from grades.forms import NumericActivityForm, LetterActivityForm, CalNumericActi
 from grades.models import *
 from grades.utils import StudentActivityInfo, reorder_course_activities, create_StudentActivityInfo_list, \
                         ORDER_TYPE, FormulaTesterActivityEntry, FakeActivity, generate_numeric_activity_stat,generate_letter_activity_stat
-from grades.utils import ValidationError, parse_and_validate_formula, calculate_numeric_grade
+from grades.utils import ValidationError, parse_and_validate_formula, calculate_numeric_grade,calculate_letter_grade
 from marking.models import get_group_mark, StudentActivityMark, GroupActivityMark, ActivityComponent
 from groups.models import *
 from submission.models import SubmissionComponent, GroupSubmission, StudentSubmission, get_current_submission

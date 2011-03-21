@@ -448,7 +448,53 @@ def fetch_students_letter_grade(activity):
     return student_grade_list
 
 ######################################################################################################t
+def calculate_letter_grade(course, activity):
+    """
+    Calculate all the student's grade in the course's CalletterActivity.
+    If student param is specified, this student's grade is calculated instead
+    of the whole class, please also make sure this student is in the course
+    before passing the student param.
+    """
+    if not isinstance(course, CourseOffering):
+        raise TypeError('CourseOffering type is required')
+    if not isinstance(activity, CalLetterActivity):
+        raise TypeError('CalLetterActivity type is required')
+ # calculate for all student
+    student_list = Member.objects.filter(offering=course, role='STUD')
+    letter_grade_list = LetterGrade.objects.filter(activity = activity).select_related('member')
+    
+    ignored = 0
+    for s in student_list:
+        # calculate grade
 
+        result = generate_lettergrades(s,activity)
+        
+        # save grade
+        member_found = False
+        for letter_grade in letter_grade_list:
+            if letter_grade.member == s:
+                member_found = True     
+                if letter_grade.flag == "GRAD":
+                    ignored += 1
+                elif result != letter_grade.letter_grade:
+                    # ignore manually-set grades; only save when the value changes
+                    letter_grade.letter_grade = result
+                    letter_grade.save(newsitem=False)
+                break
+        if not member_found:
+            letter_grade = LetterGrade(activity=activity, member=s,
+                                         letter_grade=result, flag='CALC')
+            letter_grade.save(newsitem=False)
+    return ignored
+
+def generate_lettergrades(s,activity):
+    
+
+
+
+
+
+    return 0
 ###############################################################################################################   
 def format_number(value, decimal_places):
     """

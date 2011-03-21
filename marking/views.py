@@ -1261,9 +1261,7 @@ def XXX_mark_all_students_cal(request, course_slug, activity_slug):
         
 #This is for change grade status of letter grades
 
-######################### Henry Added #############################    
 
-######################### Yu Liu Added #############################  
 @requires_course_staff_by_slug      
 def change_grade_status_lettergrade(request, course_slug, activity_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
