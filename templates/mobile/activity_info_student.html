@@ -75,8 +75,9 @@
 {% else %}
 <p class="empty">{{ reason_msg }}</p>
 {% endif %}
+<a href ="{% url mobile.views.course_info course_slug=course.slug %}">back</a>
 {% endblock %}
 
 
-<a href ="{% url mobile.views.course_info course_slug=course.slug %}">back</a>
+
 
