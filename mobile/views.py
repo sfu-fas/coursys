@@ -167,6 +167,7 @@ def _activity_info_staff(request, course_slug, activity_slug):
     """
     activity detail page
     """
+    STUD_NUM_TO_DISP_ACTSTAT = 10
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activities = all_activities_filter(slug=activity_slug, offering=course)
     if len(activities) != 1:
@@ -174,19 +175,29 @@ def _activity_info_staff(request, course_slug, activity_slug):
 
     activity = activities[0]
 
-    context = {'course': course, 'activity': activity}
+    reason_msg = ''
+
+    if activity.is_numeric():
+       activity_stat = generate_numeric_activity_stat(activity)
+    else:
+       activity_stat = generate_letter_activity_stat(activity)
+
+    if activity_stat is None or activity_stat.count < STUD_NUM_TO_DISP_ACTSTAT or activity.status!="RLS":
+        if activity_stat is None or activity_stat.count < STUD_NUM_TO_DISP_ACTSTAT:
+            reason_msg = 'Summary statistics disabled for small classes.'
+        elif activity.status != 'RLS':
+            reason_msg = 'Summary statistics disabled for unreleased activities.'
+        activity_stat = None
+
+    context = {'course': course, 'activity': activity, 'activity_stat': activity_stat, 'reason_msg': reason_msg}
     return render_to_response("mobile/activity_info_staff.html", context,
                             context_instance=RequestContext(request))
 
-@login_required
+@requires_course_staff_by_slug
 @gzip_page
-def student_activity_search(request, course_slug, activity_slug):
+def student_search(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    activities = all_activities_filter(slug=activity_slug, offering=course)
-    if len(activities) != 1:
-        return NotFoundResponse(request)
-
-    activity = activities[0]
+    activities = all_activities_filter(offering=course)
 
     q = request.GET.get('q')
     q = q.encode('ascii','ignore')
@@ -196,9 +207,9 @@ def student_activity_search(request, course_slug, activity_slug):
     except:
         return HttpResponse("Please check your input.")
     if keywords == None :
-        context = {'course': course, 'activity': activity}
+        context = {'course': course, 'activities': activities}
     else:
-        students = Member.objects.filter(role="STUD", offering=activity.offering).select_related('person')
+        students = Member.objects.filter(role="STUD", offering=course).select_related('person')
         for kw in keywords:
             new_list = []
             for s in students:
@@ -212,18 +223,34 @@ def student_activity_search(request, course_slug, activity_slug):
             students = new_list[:]
 
 
-    context = {'course': course, 'activity': activity, 'student_list':students}
+    context = {'course': course, 'activities': activities, 'student_list':students}
     return render_to_response("mobile/search_student.html", context,
                             context_instance=RequestContext(request))
 
-@login_required
+@requires_course_staff_by_slug
 @gzip_page
-def student_activity_info(request, course_slug, activity_slug, userid):
+def student_info(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    activities = all_activities_filter(slug=activity_slug, offering=course)
-    if len(activities) != 1:
-        return NotFoundResponse(request)
-    activity = activities[0]
+    activities = all_activities_filter(offering=course)
     student = Member.objects.get(offering=course, person__userid=userid, role='STUD')
-    return HttpResponse(student.person.last_name)
+
+    activities_info = []
+    for activity in activities:
+        grade = (activity.GradeClass).objects.filter(activity=activity, member=student)
+        if activity.status != "RLS" or not grade:
+            # shouldn't display or nothing in database: create temporary nograde object for the template
+            grade = (activity.GradeClass)(activity=activity, member=student, flag="NOGR")
+        else:
+            grade = grade[0]
+
+        submission, submitted_components = get_current_submission(student, activity)
+        if submission == None:
+            submitted = "No"
+        else:
+            submitted = "yes"
+        activities_info.append({'activity' : activity, 'grade' : grade, 'submitted' : submitted})
+    
+    context = {'course': course, 'activities_info': activities_info, 'student' : student}
+    return render_to_response("mobile/student_info.html", context,
+                            context_instance=RequestContext(request))
     

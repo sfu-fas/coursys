@@ -9,39 +9,77 @@
 <a href ="{% url mobile.views.course_info course_slug=course.slug %}">back</a>
 
 <div class="datatable_container">
-
-    <ul>
-        <li>
-            <label>Activity Type:</label>{{ activity.type_long }}
-        </li>
-        <li>
-            <label>Short Name:</label>{{ activity.short_name }}
-        </li>
-        <li>
-            <label>Status:</label>{{activity.get_status_display}}
-        </li>
-        <li>
-            <label>Due Date:</label>{{activity.due_date}}
-        </li>
-        <li>
-            <label>Percentage:</label>{% if activity.percent %}{{activity.percent}}%{% else %}unknown{% endif %}
-        </li>
-        <li>
-            <label>Group Activity:</label>{% if activity.group %}Yes{% else %}No{% endif %}
-        </li>
-        <li>
-            <label>Maximum Grade:</label>{{activity.max_grade}}
-        </li>
-    </ul>
-    
+    <table class="info">
+        <tbody>
+            {% if activity.is_numeric %}
+            <tr>
+                <th class="ui-state-default">Activity Type:</th>
+                <td>{{ activity.type_long }}</td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Short Name:</th>
+                <td>{{ activity.short_name }}</td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Status:</th>
+                <td>{{activity.get_status_display}}</td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Due Date:</th>
+                <td>{{activity.due_date}}</td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Percentage:</th>
+                <td>{% if activity.percent %}{{activity.percent}}%{% else %}unknown{% endif %}</td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Group Activity:</th>
+                <td>{% if activity.group %}Yes{% else %}No{% endif %}</td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Maximum Grade:</th>
+                <td>{{activity.max_grade}}</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
 </div>
 
-<div id ="search">
-  <form action="{% url mobile.views.student_activity_search course_slug=course.slug activity_slug=activity.slug%}" method="get">
-  Search Student: <input type="text" name="q" />
-  <input type="submit" value="Search" />
-</form>
+<h2>Summary Statistics</h2>
+{% if activity_stat %}
+    <div class="table_container">
+        <table class="info">
+            <tbody>
+                {% if activity.is_numeric %}
+                <tr>
+                    <th class="ui-state-default">Mean Grade</th>
+                    <td>{{ activity_stat.average }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <th class="ui-state-default">Median Grade</th>
+                    <td>{{ activity_stat.median }}</td>
+                </tr>
+                {% if activity.is_numeric %}
+                <tr>
+                    <th class="ui-state-default">Standard Deviation</th>
+                    <td>{{ activity_stat.stddev }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <th class="ui-state-default">Minimum Grade</th>
+                    <td>{{ activity_stat.min }}</td>
+                </tr>
+                <tr>
+                    <th class="ui-state-default">Maximum Grade</th>
+                    <td>{{ activity_stat.max }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <p class="empty">{{ reason_msg }}</p>
+{% endif %}
 
-</div>
 <a href ="{% url mobile.views.course_info course_slug=course.slug %}">back</a>
 {% endblock %}

@@ -13,7 +13,7 @@
     <h2>Course Activities</h2>
     {% for activity_info in activities_info %}
         {% with activity_info.activity as activity %}            
-                <a href="{% url mobile.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">{{ activity.name }}</a>
+                <h2><a href="{% url mobile.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">{{ activity.name }}</a></h2>
             <ul>
                 <li>
                     Status: {{ activity.get_status_display }}
@@ -47,5 +47,13 @@
 
     {% endfor %}
 </div>
+
+<div id ="search">
+  <form action="{% url mobile.views.student_search course_slug=course.slug %}" method="get">
+  <h2>Search Student: </h2>
+  <input type="text" name="q" />
+  <input type="submit" value="Search" />
+</form>
+    
 <a href ="{% url mobile.views.index %}">back</a>
 {% endblock %}
