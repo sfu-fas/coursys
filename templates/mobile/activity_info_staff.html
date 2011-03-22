@@ -1,0 +1,47 @@
+{% extends "mobile/base.html" %}
+{% load mobile_tags %}
+
+{% block title %}{{ activity.name }} Information{% endblock %}
+{% block h1 %}{{ activity.name }} Information{% endblock %}
+
+{% block content%}
+
+<a href ="{% url mobile.views.course_info course_slug=course.slug %}">back</a>
+
+<div class="datatable_container">
+
+    <ul>
+        <li>
+            <label>Activity Type:</label>{{ activity.type_long }}
+        </li>
+        <li>
+            <label>Short Name:</label>{{ activity.short_name }}
+        </li>
+        <li>
+            <label>Status:</label>{{activity.get_status_display}}
+        </li>
+        <li>
+            <label>Due Date:</label>{{activity.due_date}}
+        </li>
+        <li>
+            <label>Percentage:</label>{% if activity.percent %}{{activity.percent}}%{% else %}unknown{% endif %}
+        </li>
+        <li>
+            <label>Group Activity:</label>{% if activity.group %}Yes{% else %}No{% endif %}
+        </li>
+        <li>
+            <label>Maximum Grade:</label>{{activity.max_grade}}
+        </li>
+    </ul>
+    
+</div>
+
+<div id ="search">
+  <form action="{% url mobile.views.student_activity_search course_slug=course.slug activity_slug=activity.slug%}" method="get">
+  Search Student: <input type="text" name="q" />
+  <input type="submit" value="Search" />
+</form>
+
+</div>
+<a href ="{% url mobile.views.course_info course_slug=course.slug %}">back</a>
+{% endblock %}

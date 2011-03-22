@@ -1,0 +1,33 @@
+{% extends "mobile/base.html" %}
+{% load mobile_tags %}
+
+{% block title %} Search {% endblock %}
+{%comment%}
+{% block h1 %}{% endblock %}
+{%endcomment%}
+{% block content%}
+
+<a href ="{% url mobile.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">back</a>
+
+<div id ="search">
+  <form action="{% url mobile.views.student_activity_search course_slug=course.slug activity_slug=activity.slug%}" method="get">
+  Search Student: <input type="text" name="q" />
+  <input type="submit" value="Search" />
+</form>
+
+</div>
+
+<div>
+    {% for member in student_list %}
+    <div>
+        <a href ="{% url mobile.views.student_activity_info course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}">{{member.person.userid}}</a><br>
+            Name:{{member.person.first_name}} {{member.person.last_name}}<br>
+            student ID: {{member.person.emplid}} 
+    </div>
+    <br />
+    {% endfor %}
+</div>
+<a href ="{% url mobile.views.activity_info course_slug=course.slug activity_slug=activity.slug %}">back</a>
+{% endblock %}
+
+{% block standardview %}{% endblock %}
