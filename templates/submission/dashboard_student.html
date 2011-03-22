@@ -60,11 +60,13 @@
                     <legend>New Submission</legend>
                     {% for data in component_form_list %}
                         <h2>{{data.comp.title}}</h2>
-                        {% if data.comp.description %}<div><label>Description:</label><p>{{data.comp.description}}</p></div>{% endif %}
-                        {% if data.comp.max_size %}<div><label>Max File Size:</label><p>{{data.comp.max_size}} KB</p></div>{% endif %}
-                        {% if data.comp.allowed %}<div><label>Allowed File Types:</label><p>{{data.comp.allowed}}</p></div>{% endif %}
-                        {% if data.comp.specified_filename %}<div><label>Specified File Name:</label><p>{{data.comp.specified_filename}}</p></div>{% endif %}
+                        <ul>
+                        {% if data.comp.description %}<li><label>Description:</label><div>{{data.comp.description}}</div></li>{% endif %}
+                        {% if data.comp.max_size %}<li><label>Max File Size:</label><div>{{data.comp.max_size}} KB</div></li>{% endif %}
+                        {% if data.comp.allowed %}<li><label>Allowed File Types:</label><div>{{data.comp.allowed}}</div></li>{% endif %}
+                        {% if data.comp.specified_filename %}<li><label>Specified File Name:</label><p>{{data.comp.specified_filename}}</div></li>{% endif %}
                         {{data.form.as_ul}}
+                        </ul>
                     {% endfor %}
                 <input type ="submit" value ="Submit" class ="submit"/>
                 </fieldset>

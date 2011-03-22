@@ -134,42 +134,30 @@ class SubmissionTest(TestCase):
         """
         Test file type inference function
         """
-        ftype = filetype(StringIO.StringIO(TGZ_FILE))
+        fh = StringIO.StringIO(TGZ_FILE)
+        fh.name = "something.tar.gz"
+        ftype = filetype(fh)
         self.assertEqual(ftype, "TGZ")
-        ftype = filetype(StringIO.StringIO(GZ_FILE))
+        
+        fh = StringIO.StringIO(GZ_FILE)
+        fh.name = "something.gz"
+        ftype = filetype(fh)
         self.assertEqual(ftype, "GZIP")
-        ftype = filetype(StringIO.StringIO(ZIP_FILE))
+        
+        fh = StringIO.StringIO(ZIP_FILE)
+        fh.name = "something.zip"
+        ftype = filetype(fh)
         self.assertEqual(ftype, "ZIP")
-        ftype = filetype(StringIO.StringIO(RAR_FILE))
+        
+        fh = StringIO.StringIO(RAR_FILE)
+        fh.name = "something.rar"
+        ftype = filetype(fh)
         self.assertEqual(ftype, "RAR")
-        ftype = filetype(StringIO.StringIO(PDF_FILE))
+        
+        fh = StringIO.StringIO(PDF_FILE)
+        fh.name = "something.pdf"
+        ftype = filetype(fh)
         self.assertEqual(ftype, "PDF")
-
-#    def test_student_submission(self):
-#        """
-#        Test functions for student submission
-#        """
-#        s, course = create_offering()
-#        a1 = NumericActivity(name="Assignment 1", short_name="A1", status="RLS", offering=course, position=2, max_grade=15, due_date="2010-04-01")
-#        a1.save()
-#        a2 = NumericActivity(name="Assignment 2", short_name="A2", status="RLS", offering=course, position=1, max_grade=15, due_date="2010-03-01")
-#        a2.save()
-#        p = Person.objects.get(userid="ggbaker")
-#        member = Member(person=p, offering=course, role="INST", career="NONS", added_reason="UNK")
-#        member.save()
-#        c1 = URL.Component(activity=a1, title="URL Link", position=8)
-#        c1.save()
-#        c2 = Archive.Component(activity=a1, title="Archive File", position=1, max_size=100000)
-#        c2.save()
-#        c3 = Code.Component(activity=a1, title="Code File", position=3, max_size=2000, allowed=".py")
-#        c3.save()
-#
-#        userid = "0aaa0"
-#        m = Member(person=p, offering=c, role="STUD", credits=3, career="UGRD", added_reason="UNK")
-#
-#        client = Client()
-#        client.login(ticket = "0aaa0", service = CAS_SERVER_URL)
-
 
 
 
@@ -177,10 +165,11 @@ class SubmissionTest(TestCase):
         """
         test if group submission can be viewed by group member and non group member
         """
+        now = datetime.datetime.now()
         s, course = create_offering()
-        a1 = NumericActivity(name="Assignment 1", short_name="A1", status="RLS", offering=course, position=2, max_grade=15, due_date="2010-04-01", group=True)
+        a1 = NumericActivity(name="Assignment 1", short_name="A1", status="RLS", offering=course, position=2, max_grade=15, due_date=now, group=True)
         a1.save()
-        a2 = NumericActivity(name="Assignment 2", short_name="A2", status="RLS", offering=course, position=1, max_grade=15, due_date="2010-03-01", group=True)
+        a2 = NumericActivity(name="Assignment 2", short_name="A2", status="RLS", offering=course, position=1, max_grade=15, due_date=now, group=True)
         a2.save()
         p = Person.objects.get(userid="ggbaker")
         member = Member(person=p, offering=course, role="INST", career="NONS", added_reason="UNK")

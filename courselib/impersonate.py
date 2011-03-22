@@ -21,7 +21,7 @@ class ImpersonateMiddleware(object):
             # impersonation requested: check if it's allowed
             userid = request.GET["__impersonate"]
             match = course_path_re.match(request.path)
-            if has_global_role('SYSA', request.user):
+            if has_global_role('SYSA', request):
                 # for sysadmins: yes.
                 pass
             elif match:
@@ -59,7 +59,7 @@ class ImpersonateMiddleware(object):
 
     def process_response(self, request, response):
         if isinstance(response, HttpResponseRedirect):
-            if  "__impersonate" in request.GET and has_role('SYSA', request.user):
+            if  "__impersonate" in request.GET and has_global_role('SYSA', request):
                 location = response["Location"]
                 if "?" in location:
                     location += "&"

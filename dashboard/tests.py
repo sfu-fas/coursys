@@ -107,7 +107,7 @@ class DashboardTest(TestCase):
         response = client.get(url)
         self.assertEquals(response.status_code, 403)
         # ...but can impersonate instructor
-        response = client.get(url, {"__impersonate": "diana"})        
+        response = client.get(url, {"__impersonate": "diana"})
         self.assertEquals(response.status_code, 200)
         self.assertContains(response, 'Logged in as diana')
 
