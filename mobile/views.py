@@ -10,6 +10,7 @@ from groups.models import *
 from submission.models import GroupSubmission, StudentSubmission
 from datetime import datetime
 from submission.models import *
+from grades.utils import generate_numeric_activity_stat,generate_letter_activity_stat
 
 from dashboard.views import _get_memberships, _get_news_list, _get_roles
 
@@ -35,6 +36,9 @@ def course_info(request,course_slug):
     else:
         return ForbiddenResponse(request)
 
+
+@login_required
+@gzip_page
 def _course_info_student(request, course_slug):
     """
     Course front page for student
@@ -53,6 +57,8 @@ def _course_info_student(request, course_slug):
     context = {'course': course, 'activities_info':activities_info}
     return render_to_response('mobile/course_info_student.html', context, context_instance=RequestContext(request))
 
+@login_required
+@gzip_page
 def _course_info_staff(request, course_slug):
     """
     Course front page for staff
@@ -119,7 +125,41 @@ def activity_info(request, course_slug, activity_slug):
 @login_required
 @gzip_page
 def _activity_info_student(request, course_slug, activity_slug):
-    return HttpResponse('Student View')
+    # Course should have this number to student to display the activity statistics, including histogram
+    STUD_NUM_TO_DISP_ACTSTAT = 10
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activities = all_activities_filter(slug=activity_slug, offering=course)
+    if len(activities) != 1:
+        return NotFoundResponse(request)
+    activity = activities[0]
+    student = Member.objects.get(offering=course, person__userid=request.user.username, role='STUD')
+    grade = (activity.GradeClass).objects.filter(activity=activity, member=student)
+    if activity.status != "RLS" or not grade:
+        # shouldn't display or nothing in database: create temporary nograde object for the template
+        grade = (activity.GradeClass)(activity=activity, member=student, flag="NOGR")
+    else:
+        grade = grade[0]
+        
+    reason_msg = ''
+
+    if activity.is_numeric():
+       activity_stat = generate_numeric_activity_stat(activity)
+    else:
+       activity_stat = generate_letter_activity_stat(activity)
+
+    if activity_stat is None or activity_stat.count < STUD_NUM_TO_DISP_ACTSTAT or activity.status!="RLS":
+        if activity_stat is None or activity_stat.count < STUD_NUM_TO_DISP_ACTSTAT:
+            reason_msg = 'Summary statistics disabled for small classes.'
+        elif activity.status != 'RLS':
+            reason_msg = 'Summary statistics disabled for unreleased activities.'
+        activity_stat = None
+
+#    context = {'course': course, 'activity': activity, 'grade': activity.display_grade_student(student.person)}
+    context = {'course': course, 'activity': activity, 'grade': grade,
+               'activity_stat': activity_stat, 'reason_msg': reason_msg}
+    return render_to_response("mobile/activity_info_student.html", context,
+                              context_instance=RequestContext(request))
+    
 
 @login_required
 @gzip_page
@@ -176,6 +216,8 @@ def student_activity_search(request, course_slug, activity_slug):
     return render_to_response("mobile/search_student.html", context,
                             context_instance=RequestContext(request))
 
+@login_required
+@gzip_page
 def student_activity_info(request, course_slug, activity_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activities = all_activities_filter(slug=activity_slug, offering=course)
