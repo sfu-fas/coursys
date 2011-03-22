@@ -20,3 +20,12 @@ def demobilize_url(url):
         return url[2:]
     else:
         return url
+
+def mobile_if_possible(url):
+    # note: badly broken.
+    murl = mobilize_url(url)
+    try:
+        find_view_function_for(murl)
+        return murl
+    except NotFoundError:
+        return None

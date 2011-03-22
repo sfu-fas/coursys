@@ -300,6 +300,9 @@ class CalLetterActivity(LetterActivity):
     def get_cutoffs(self):
         """
         Get the list of grade cutoffs: 10 values, lower-bounds for A+, A, A-, B+, ..., as decimal.Decimal
+        
+        cutoffs = activity.get_cutoffs()
+        cutoffs[0] == decimal.Decimal("95")
         """
         return [decimal.Decimal(g) for g in json.loads(self.letter_cutoffs)]
 
