@@ -286,15 +286,14 @@ def submit_assigned_instructors(request, semester, plan_slug, offering_id):
     
     instructor_id = request.POST['instructor']
     if instructor_id == "None":
-	pre_instructor = course.instructor
 	course.instructor = None
 	course.save()
-
-        if PlannedOffering.objects.filter(plan = semester_plan, course = course.course, instructor = pre_instructor, component__in = ['LAB', 'TUT']):
-            labs = PlannedOffering.objects.filter(plan = semester_plan, course = course.course, instructor = pre_instructor, component__in = ['LAB', 'TUT'])
-            for lab in labs:
-                lab.instructor = None
-                lab.save()
+	
+	offering_section = course.section[0:2] # e.g. "D1"
+	labs = PlannedOffering.objects.filter(plan=semester_plan, course=course.course, component__in=['LAB', 'TUT'], section__startswith=offering_section)
+        for lab in labs:
+            lab.instructor = None
+            lab.save()
 
        
 	pre_intention_count = PlannedOffering.objects.filter(plan = semester_plan, instructor = pre_instructor).count()
@@ -373,6 +372,7 @@ def activate_plan(request, plan_id):
 
     semester_plan.active = True
     other_plans = SemesterPlan.objects.filter(semester = semester_plan.semester, active = True).exclude(pk = plan_id)
+    other_plans = list(other_plans)
 
     semester_plan.save()
     
