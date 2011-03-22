@@ -22,9 +22,9 @@ def validate_content(testcase, data, page_descr="unknown page"):
         parser = etree.XMLParser(dtd_validation=True, no_network=True)
         etree.fromstring(data_system, parser=parser)
     except etree.XMLSyntaxError as e:
-        print "-"*40
-        print data
-        print "-"*40
+        #print "-"*40
+        #print data
+        #print "-"*40
         fh = open("tmp-validation.html", "w")
         fh.write(data)
         fh.close()

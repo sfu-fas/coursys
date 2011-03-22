@@ -54,3 +54,28 @@ function nolinkletter_cmp(x,y) {
 jQuery.fn.dataTableExt.oSort['by-nolinkletter-asc']  = function(x,y) { return nolinkletter_cmp(x,y) };
 jQuery.fn.dataTableExt.oSort['by-nolinkletter-desc'] = function(x,y) { return nolinkletter_cmp(y,x) };
 
+// toggle display of news item bodies
+function togglenews(e, elt) {
+  var event = e || window.event;
+  // http://www.quirksmode.org/js/events_properties.html
+  var targ, i, more;
+  if (event.target) targ = event.target;
+  else if (event.srcElement) targ = event.srcElement;
+  if (targ.nodeType == 3) // defeat Safari bug
+    targ = targ.parentNode;
+  
+  newsitem = targ.parentNode.parentNode;
+  var divs = newsitem.getElementsByTagName('div');
+  for(i=0; i<divs.length; i++) {
+     if ( divs[i].className == 'newsmore' ) {
+       more = divs[i];
+     }
+  }
+  if (window.getComputedStyle(more, null).getPropertyValue('display') == 'none') {
+    more.style.display = "block";
+    targ.innerHTML = "-";
+  } else {
+    more.style.display = "none";
+    targ.innerHTML = "+";
+  }
+}

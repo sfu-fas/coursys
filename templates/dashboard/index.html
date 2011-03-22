@@ -1,6 +1,16 @@
 {% extends "base.html" %}
 {% load markup %}
 
+{% block headextra %}<script type="text/javascript">
+//<![CDATA[
+$(document).ready(function() {
+  $("div.newsitem h3").prepend('<a class="morenews" onclick="javascript:togglenews(event,this)">+</a>');
+});
+
+
+//]]></script>
+{% endblock %}
+
 {% block title %}Course Management System{% endblock %}
 {% block h1 %}Course Management System{% endblock %}
 
@@ -32,8 +42,10 @@
    	{%else%}
    		<h3>{{news.course.name}}: {{news.title}}</h3>
    	{% endif %}
+    <div class="newsmore">
     <div class="newsdate">{{news.published|date:'r'}}</div>
     <div class="newscontent">{{news.content_xhtml}}</div>
+    </div>
     </div>
   {% endfor %}
    

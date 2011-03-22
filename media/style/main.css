@@ -150,24 +150,18 @@ div#messages .info {
 }
 
 div#newsitems {
-  clear: both;
+  clear: left;
+  margin-right: 220px;
 }
 div#newsitems div {
   /*margin: 0 2em;*/
-  clear: right;
 }
 div#newsitems .newsitem {
-    background-color: #e1f3f7;
-    margin: 6px 1em;
-    padding: 0.5em 1em;
-    border-bottom: 5px solid #69B8D6;
     line-height: 1.4em;
 }
 div#newsitems .newsitem h3 {
     color: #444;
-    margin: 0;
-    font-size: 1.3em;
-    font-weight: bold;
+    margin: 0.25em 0 0 0;
 }
 div#newsitems .newsitem p {
     color: #111;
@@ -178,6 +172,17 @@ div#newsitems .newsitem p {
 div#newsitems .newsitem .newsdate {
     color: #666;
     font-size: 0.8em;
+}
+div#newsitems .newsitem .newscontent {
+  margin-bottom: 1em;
+}
+div#newsitems .newsmore {
+  display: none;
+  margin-left: 1.25em;
+}
+div#newsitems a.morenews {
+  font-family: monospace;
+  margin-right: 0.5em;
 }
 
 
@@ -1247,7 +1252,7 @@ div.letter p {
 /* styles of titles, texts, etc., override SFU's template' */
 #main h2 {
     font-family: 'Lucida Grande', Lucida, Arial, Verdana, sans-serif;
-    margin: 2em 0 0 0;
+    margin: 1.5em 0 0 0;
     padding: 0em;
 }
 #main h3 {
