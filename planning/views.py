@@ -317,6 +317,11 @@ def submit_assigned_instructors(request, semester, plan_slug, offering_id):
     course.instructor = assigned_instructor
     course.save()
 
+    labs = PlannedOffering.objects.filter(plan = semester_plan, course = course)
+    for lab in labs:
+        lab.instructor = assigned_instructor
+        lab.save()
+
     if pre_instructor != None:
         pre_intention_count = PlannedOffering.objects.filter(plan = semester_plan, instructor = pre_instructor).count()
         pre_teaching_intention = TeachingIntention.objects.get(semester = semester_plan.semester, instructor = pre_instructor)
@@ -428,47 +433,8 @@ def view_semester_plan(request, semester, plan_slug):
 
     plan = SemesterPlan.objects.get(semester__name=semester, slug=plan_slug)
     planned_courses_list = PlannedOffering.objects.filter(plan=plan)
-    if request.method == 'POST':
-        form = OfferingBasicsForm(request.POST)
-        form2 = form
-        if form.is_valid():
-            offering = form.save(commit=False)
-            offering.plan = plan
-            num_of_lab = form.cleaned_data['lab_sections']
-            offering.save()
-            form.save_m2m()
-
-            i = 0
-            num_of_lab = int(num_of_lab)
-            if num_of_lab != 0:
-                for i in range(num_of_lab):
-
-
-                    course = form.cleaned_data['course']
-                    section = form.cleaned_data['section'][:2] + "%02i" % (i+1)    
-                    component = "LAB"    
-                    campus = form.cleaned_data['campus']
-                    enrl_cap = form.cleaned_data['enrl_cap']
-
-
-                    added_lab_section = PlannedOffering(plan = plan, course = course, section = section, component = component, campus = campus, enrl_cap = enrl_cap)
-                    added_lab_section.save();
-
-                #LOG EVENT#
-                l = LogEntry(userid=request.user.username,
-                      description=("added offering %s in %s") % (offering.course, offering.plan),
-                      related_object=plan)
-                l.save()
-                    
-                messages.add_message(request, messages.SUCCESS, 'Added course %s.' % (offering.course))
-                #return HttpResponseRedirect(reverse('planning.views.admin_index', kwargs={}))
-            else:
-                form = OfferingBasicsForm()
-    else:
-        form = OfferingBasicsForm()
-    
-    
-    return render_to_response("planning/view_semester_plan.html",{'form':form, 'plan':plan, 'planned_courses_list':planned_courses_list},context_instance=RequestContext(request))
+        
+    return render_to_response("planning/view_semester_plan.html",{'plan':plan, 'planned_courses_list':planned_courses_list},context_instance=RequestContext(request))
 
 
 

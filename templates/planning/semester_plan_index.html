@@ -40,15 +40,20 @@ $(document).ready(function() {
         </thead>
 
         <tbody>
-		{% for plan in plan_list %}
+		{% if plan_list %}
+			{% for plan in plan_list %}
+			<tr>
+				<td><a href="{% url planning.views.view_semester_plan semester=plan.semester.name plan_slug=plan.slug %}">{{ plan.name }}</a></td>
+				<td>{{ plan.semester.label }}</td>
+				<td>{{ plan.get_visibility_display }}</td>
 
-		<tr>
-			<td><a href="{% url planning.views.view_semester_plan semester=plan.semester.name plan_slug=plan.slug %}">{{ plan.name }}</a></td>
-			<td>{{ plan.semester.label }}</td>
-			<td>{{ plan.get_visibility_display }}</td>
+			</tr>		
+			{%endfor%}
+		{% else %}
+			
+			<h5>No Plan Has Been Activated</h5>
 
-		</tr>		
-		{%endfor%}
+		{% endif %}
 
         </tbody>
     </table>
