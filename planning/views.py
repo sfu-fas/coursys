@@ -289,6 +289,14 @@ def submit_assigned_instructors(request, semester, plan_slug, offering_id):
 	pre_instructor = course.instructor
 	course.instructor = None
 	course.save()
+
+        if PlannedOffering.objects.filter(plan = semester_plan, course = course.course, instructor = pre_instructor, component__in = ['LAB', 'TUT']):
+            labs = PlannedOffering.objects.filter(plan = semester_plan, course = course.course, instructor = pre_instructor, component__in = ['LAB', 'TUT'])
+            for lab in labs:
+                lab.instructor = None
+                lab.save()
+
+       
 	pre_intention_count = PlannedOffering.objects.filter(plan = semester_plan, instructor = pre_instructor).count()
 	pre_teaching_intention = TeachingIntention.objects.get(semester = semester_plan.semester, instructor = pre_instructor)
  
@@ -317,7 +325,7 @@ def submit_assigned_instructors(request, semester, plan_slug, offering_id):
     course.instructor = assigned_instructor
     course.save()
 
-    labs = PlannedOffering.objects.filter(plan = semester_plan, course = course)
+    labs = PlannedOffering.objects.filter(plan = semester_plan, course = course.course)
     for lab in labs:
         lab.instructor = assigned_instructor
         lab.save()
