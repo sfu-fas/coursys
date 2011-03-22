@@ -45,6 +45,7 @@ def _course_info_student(request, course_slug):
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activities = all_activities_filter(offering=course)
+    activities = [a for a in activities if a.status in ['RLS', 'URLS']]
     student = Member.objects.get(offering=course, person__userid=request.user.username, role='STUD')
     activities_info = []
     for activity in activities:
@@ -132,6 +133,8 @@ def _activity_info_student(request, course_slug, activity_slug):
     if len(activities) != 1:
         return NotFoundResponse(request)
     activity = activities[0]
+    if activity.status=="INVI":
+        return NotFoundResponse(request)
     student = Member.objects.get(offering=course, person__userid=request.user.username, role='STUD')
     grade = (activity.GradeClass).objects.filter(activity=activity, member=student)
     if activity.status != "RLS" or not grade:
