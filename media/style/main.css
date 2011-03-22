@@ -1266,3 +1266,21 @@ ul {
 .hidden {
     display: none;
 }
+
+table.cutoffs thead th {
+  border: 0;
+}
+table.cutoffs tbody th {
+  border: 0;
+  font-weight: bold;
+  text-align: left;
+}
+table.cutoffs tbody th {
+  border: 0;
+}
+table.cutoffs thead th, table.cutoffs thead td, table.cutoffs tbody th, table.cutoffs tbody td{
+  border: 0;
+}
+table.cutoffs {
+  border: 0;
+}
