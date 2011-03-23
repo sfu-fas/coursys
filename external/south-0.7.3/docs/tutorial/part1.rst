@@ -124,5 +124,14 @@ Now, apply it::
 With that, our new column is created; again, go and check, you'll be able to
 add Knights who can dance whenever they're able.
 
+Converting existing apps
+------------------------
+
+Sometimes, especially when introducting South into a project, you will want
+to use it for existing apps - ones for which the tables have already been created.
+
+This is different from adding migrations to an all-new app, and you should
+see the :ref:`converting-an-app` page for more information on how to do it.
+
 Once you're happy with this basic usage of South, move on to
 :ref:`tutorial-part-2`.

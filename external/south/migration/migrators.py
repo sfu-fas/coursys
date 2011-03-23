@@ -149,8 +149,9 @@ class DryRunMigrator(MigratorWrapper):
         self._ignore_fail = ignore_fail
 
     def _run_migration(self, migration):
-        if migration.no_dry_run() and self.verbosity:
-            print " - Migration '%s' is marked for no-dry-run." % migration
+        if migration.no_dry_run():
+            if self.verbosity:
+                print " - Migration '%s' is marked for no-dry-run." % migration
             return
         south.db.db.dry_run = True
         if self._ignore_fail:
@@ -197,7 +198,7 @@ class FakeMigrator(MigratorWrapper):
 
 class LoadInitialDataMigrator(MigratorWrapper):
     
-    def load_initial_data(self, target):
+    def load_initial_data(self, target, db='default'):
         if target is None or target != target.migrations[-1]:
             return
         # Load initial data, if we ended up at target
@@ -210,7 +211,7 @@ class LoadInitialDataMigrator(MigratorWrapper):
         models.get_apps = new_get_apps
         loaddata.get_apps = new_get_apps
         try:
-            call_command('loaddata', 'initial_data', verbosity=self.verbosity)
+            call_command('loaddata', 'initial_data', verbosity=self.verbosity, database=db)
         finally:
             models.get_apps = old_get_apps
             loaddata.get_apps = old_get_apps
@@ -219,7 +220,7 @@ class LoadInitialDataMigrator(MigratorWrapper):
         migrator = self._migrator
         result = migrator.__class__.migrate_many(migrator, target, migrations, database)
         if result:
-            self.load_initial_data(target)
+            self.load_initial_data(target, db=database)
         return True
 
 

@@ -36,17 +36,6 @@ def problems(pending, done):
         if last and migration not in done:
             yield last, migration
 
-def problems(pending, done):
-    last = None
-    if not pending:
-        raise StopIteration()
-    for migration in pending:
-        if migration in done:
-            last = migration
-            continue
-        if last and migration not in done:
-            yield last, migration
-
 def forwards_problems(pending, done, verbosity):
     """
     Takes the list of linearised pending migrations, and the set of done ones,
@@ -209,7 +198,8 @@ def migrate_app(migrations, target_name=None, merge=False, fake=False, db_dry_ru
         # If we have initial data enabled, and we're at the most recent
         # migration, do initial data.
         # Note: We use a fake Forwards() migrator here. It's never used really.
-        migrator = LoadInitialDataMigrator(migrator=Forwards(verbosity=verbosity))
-        migrator.load_initial_data(target)
+        if load_initial_data:
+            migrator = LoadInitialDataMigrator(migrator=Forwards(verbosity=verbosity))
+            migrator.load_initial_data(target)
         # Send signal.
         post_migrate.send(None, app=app_label)

@@ -15,9 +15,10 @@ post_migrate = Signal(providing_args=["app"])
 ran_migration = Signal(providing_args=["app","migration","method"])
 
 # Compatibility code for django.contrib.auth
-if 'django.contrib.auth' in settings.INSTALLED_APPS:
-    def create_permissions_compat(app, **kwargs):
-        from django.db.models import get_app
-        from django.contrib.auth.management import create_permissions
-        create_permissions(get_app(app), (), 0)
-    post_migrate.connect(create_permissions_compat)
+# Is causing strange errors, removing for now (we might need to fix up orm first)
+#if 'django.contrib.auth' in settings.INSTALLED_APPS:
+    #def create_permissions_compat(app, **kwargs):
+        #from django.db.models import get_app
+        #from django.contrib.auth.management import create_permissions
+        #create_permissions(get_app(app), (), 0)
+    #post_migrate.connect(create_permissions_compat)

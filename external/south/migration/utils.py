@@ -63,63 +63,21 @@ def flatten(*stack):
             stack.appendleft(x)
         else:
             yield x
-    
 
-def _dfs(start, get_children):
-    # Prepend ourselves to the result
+def _dfs(start, get_children, path):
+    if start in path:
+        raise exceptions.CircularDependency(path[path.index(start):] + [start])
+    path.append(start)
     yield start
     children = sorted(get_children(start), key=lambda x: str(x))
     if children:
         # We need to apply all the migrations this one depends on
-        yield (_dfs(n, get_children) for n in children)
+            yield (_dfs(n, get_children, path) for n in children)
+    path.pop()
 
 def dfs(start, get_children):
-    return flatten(_dfs(start, get_children))
-
-def detect_cycles(iterable):
-    result = []
-    i = iter(iterable)
-    try:
-        # Point to the tortoise
-        tortoise = 0
-        result.append(i.next())
-        # Point to the hare
-        hare = 1
-        result.append(i.next())
-        # Start looking for cycles
-        power = 1
-        while True:
-            # Use Richard P. Brent's algorithm to find an element that
-            # repeats.
-            while result[tortoise] != result[hare]:
-                if power == (hare - tortoise):
-                    tortoise = hare
-                    power *= 2
-                hare += 1
-                result.append(i.next())
-            # Brent assumes the sequence is stateless, but since we're
-            # dealing with a DFS tree, we need to make sure that all
-            # the items between `tortoise` and `hare` are identical.
-            cycle = True
-            for j in xrange(0, hare - tortoise + 1):
-                tortoise += 1
-                hare += 1
-                result.append(i.next())
-                if result[tortoise] != result[hare]:
-                    # False alarm: no cycle here.
-                    cycle = False
-                    power = 1
-                    tortoise = hare
-                    hare += 1
-                    result.append(i.next())
-                    break
-            # Both loops are done, so we must have a cycle
-            if cycle:
-                raise exceptions.CircularDependency(result[tortoise:hare+1])
-    except StopIteration:
-        # Return when `iterable` is exhausted. Obviously, there are no cycles.
-        return result
+    return flatten(_dfs(start, get_children, []))
 
 def depends(start, get_children):
-    result = SortedSet(reversed(detect_cycles(dfs(start, get_children))))
+    result = SortedSet(reversed(list(dfs(start, get_children))))
     return list(result)

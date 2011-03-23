@@ -1,0 +1,51 @@
+
+.. _0-7-2-release-notes:
+
+===========
+South 0.7.2
+===========
+
+This is a minor new release of South, and the second bugfix release for the 
+:ref:`0.7 series <0-7-release-notes>`.
+
+
+Backwards incompatible changes
+==============================
+
+None.
+
+
+Changes
+=======
+
+Ordering of actions
+-------------------
+
+A few issues with ordering of index deletion versus field/table deletion have
+now been fixed, so hopefully things will delete or migrate backwards first time.
+
+blank
+-----
+
+If you have a CharField or TextField with blank=True, you now no longer need
+to specify a default value. In addition, changes to blank no longer trigger
+an alteration migration for that field, since it doesn't affect the database.
+
+Schemas
+-------
+
+South should now work if you aren't using the 'public' schema; you'll need to
+set the SCHEMA database setting first, though.
+
+Arguments
+---------
+
+A bit of tidying up has been done for arguments; `migrate` now accepts `--noinput`
+and `convert_to_south` accepts the ghost migration options.
+
+Other changes
+-------------
+
+A whole assortment of minor bugs has been fixed; for the complete list, see
+the `milestone in our Trac <http://south.aeracode.org/query?group=status&milestone=0.7.2>`_.
+

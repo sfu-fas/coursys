@@ -11,7 +11,8 @@ engine_modules = {
     'django.db.backends.sqlite3': 'sqlite3',
     'django.db.backends.mysql': 'mysql',
     'django.db.backends.oracle': 'oracle',
-    'sql_server.pyodbc': 'sql_server.pyodbc',
+    'sql_server.pyodbc': 'sql_server.pyodbc', #django-pyodbc
+    'sqlserver_ado': 'sql_server.pyodbc', #django-mssql
     'django.contrib.gis.db.backends.postgis': 'postgresql_psycopg2',
     'django.contrib.gis.db.backends.spatialite': 'sqlite3',
     'django.contrib.gis.db.backends.mysql': 'mysql',

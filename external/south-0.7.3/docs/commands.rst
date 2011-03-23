@@ -60,7 +60,7 @@ Options
  - ``--no-initial-data``: Doesn't load in any initial data fixtures after a
    full upwards migration, if there are any.
  - ``--fake``: Records the migration sequence as having been applied, but
-   doesn't actually run it. Useful for ConvertingAnApp.
+   doesn't actually run it. Useful for :ref:`converting-an-app`.
  - ``--db-dry-run``: Loads and runs the migration, but doesn't actually
    access the database (the SQL generated is thrown away at the last minute).
    The migration is also not recorded as being run; this is useful for
@@ -78,14 +78,14 @@ migration up to 0004 to make sure her local copy is up-to-date, and then updates
 her code from (say) Subversion. In the meantime, her coworker Bob has written a
 migration 0003_baz, which gets pulled in.
 
-Now, there's a problem. 0003_phou should have been applied before 0004_bar,
+Now, there's a problem. 0003_baz should have been applied before 0004_bar,
 but it hasn't been; in this situation, South will helpfully say something like::
 
   Running migrations for aeblog:
    - Current migration: 5 (after 0004_bar)
    - Target migration: 5 (after 0004_bar)
    ! These migrations should have been applied already, but aren't:
-     - 0003_phou
+     - 0003_baz
    ! Please re-run migrate with one of these switches:
      --skip: Ignore this migration mismatch and keep going
      --merge: Just apply the missing migrations out of order
@@ -134,7 +134,7 @@ you; if you like, you can ignore it and write everything youself, in which
 case we wish you good luck, and happy typing.
 
 However, if you have a sense of reason, you'll realise that having the large
-majority of your migrations written for you in undoubtedly a good thing.
+majority of your migrations written for you is undoubtedly a good thing.
 
 The main use of schemamigration is when you've just finished your shiny new
 models.py and want to load up your database. In vanilla Django, you'd just run
@@ -219,8 +219,8 @@ This command can be particularly helpful to examine complex dependency sets
 between lots of different apps [#]_.
 
  .. [#] This command was written and used for the first time while helping the
-        debug the rather complex set of dependencies in django-cms; it's quite
-        a sight to behold.
+        debug the rather complex set of dependencies in django-cms; it's
+        `quite a sight to behold <http://i.imgur.com/nrmoR.png>`_.
 
 Options
 ^^^^^^^
@@ -245,3 +245,15 @@ Options
 ^^^^^^^
 
  - ``--all``: Makes syncdb operate on all apps, not just unmigrated ones.
+ 
+
+convert_to_south
+----------------
+
+An alias command that both creates an initial migration for an app and then
+fake-applies it. Takes one argument, the app label of the app to convert::
+ 
+ ./manage.py convert_to_south myapp
+
+There's more documentation on how to use this in the :ref:`converting-an-app`
+section.

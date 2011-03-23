@@ -5,8 +5,8 @@
 South 0.7.1
 ===========
 
-This is a minor new release of South, and the first bugfix release for the 0.7
-series.
+This is a minor new release of South, and the first bugfix release for the 
+:ref:`0.7 series <0-7-release-notes>`.
 
 
 Backwards incompatible changes
@@ -57,5 +57,5 @@ Other changes
 -------------
 
 A whole assortment of minor bugs has been fixed; for the complete list, see
-the `milestone in our Trac <http://south.aeracode.org/query?group=status&milestone=0.7.1`_.
+the `milestone in our Trac <http://south.aeracode.org/query?group=status&milestone=0.7.1>`_.
 

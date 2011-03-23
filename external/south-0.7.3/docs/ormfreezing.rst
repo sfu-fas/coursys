@@ -64,3 +64,21 @@ Note that you can only access models that have been frozen; South automatically
 includes anything that could be reaches via foreign keys or many-to-many
 relationships, but if you want to add other models in, simply pass ``--freeze appname``
 to the ``./manage.py datamigration`` command.
+
+Frozen Meta Attributes
+----------------------
+
+As well as freezing fields (for which South has a whole slew of rules on
+what to freeze - see :ref:`extending-introspection`), it also freezes certain
+meta attributes of a model (the ones which we think will have an impact on the
+table schema or your frozen ORM use).
+
+Currently, South freezes::
+
+ db_table
+ db_tablespace
+ unique_together
+ ordering
+
+If there's something else you think should be frozen in the Meta, but which
+isn't, file a bug and we'll look into it.

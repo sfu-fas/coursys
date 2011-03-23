@@ -22,6 +22,10 @@ you upgrade; read more about this at :ref:`custom-fields`. You may also wish to
 change your old migration files and insert the full path to custom field classes
 in the ``models`` dictionary entries, to prevent future issues.
 
+Finally, migration names must now not contain any dashes (or other characters
+invalid in Python module names) - if they do, you'll need to rename them and
+also fix the appropriate entries in your south_migrationhistory table.
+
 
 Major changes
 =============

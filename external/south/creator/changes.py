@@ -114,8 +114,8 @@ class AutoChanges(BaseChanges):
         for key in self.old_defs:
             if key not in self.new_defs:
                 # We shouldn't delete it if it was managed=False
-                if self.old_defs[key].get("Meta", {}).get("managed", "True") != "False":
-                    old_fields, old_meta, old_m2ms = self.split_model_def(self.old_orm[key], self.old_defs[key])
+                old_fields, old_meta, old_m2ms = self.split_model_def(self.old_orm[key], self.old_defs[key])
+                if old_meta.get("managed", "True") != "False":
                     # Alright, delete it.
                     yield ("DeleteModel", {
                         "model": self.old_orm[key], 
@@ -127,6 +127,18 @@ class AutoChanges(BaseChanges):
                         field = self.old_orm[key + ":" + fieldname]
                         if auto_through(field):
                             yield ("DeleteM2M", {"model": self.old_orm[key], "field": field})
+                    # And any unique constraints it had 
+                    unique_together = eval(old_meta.get("unique_together", "[]"))
+                    if unique_together:
+                        # If it's only a single tuple, make it into the longer one
+                        if isinstance(unique_together[0], basestring):
+                            unique_together = [unique_together]
+                        # For each combination, make an action for it
+                        for fields in unique_together:
+                            yield ("DeleteUnique", {
+                                "model": self.old_orm[key],
+                                "fields": [self.old_orm[key]._meta.get_field_by_name(x)[0] for x in fields],
+                            })
                 # We always add it in here so we ignore it later
                 deleted_models.add(key)
         
@@ -134,8 +146,8 @@ class AutoChanges(BaseChanges):
         for key in self.new_defs:
             if key not in self.old_defs:
                 # We shouldn't add it if it's managed=False
-                if self.new_defs[key].get("Meta", {}).get("managed", "True") != "False":
-                    new_fields, new_meta, new_m2ms = self.split_model_def(self.current_model_from_key(key), self.new_defs[key])
+                new_fields, new_meta, new_m2ms = self.split_model_def(self.current_model_from_key(key), self.new_defs[key])
+                if new_meta.get("managed", "True") != "False":
                     yield ("AddModel", {
                         "model": self.current_model_from_key(key), 
                         "model_def": new_fields,
@@ -146,12 +158,22 @@ class AutoChanges(BaseChanges):
                         field = self.current_field_from_key(key, fieldname)
                         if auto_through(field):
                             yield ("AddM2M", {"model": self.current_model_from_key(key), "field": field})
+                    # And any unique constraints it has 
+                    unique_together = eval(new_meta.get("unique_together", "[]"))
+                    if unique_together:
+                        # If it's only a single tuple, make it into the longer one
+                        if isinstance(unique_together[0], basestring):
+                            unique_together = [unique_together]
+                        # For each combination, make an action for it
+                        for fields in unique_together:
+                            yield ("AddUnique", {
+                                "model": self.current_model_from_key(key),
+                                "fields": [self.current_model_from_key(key)._meta.get_field_by_name(x)[0] for x in fields],
+                            })
         
         # Now, for every model that's stayed the same, check its fields.
         for key in self.old_defs:
             if key not in deleted_models:
-                
-                still_there = set()
                 
                 old_fields, old_meta, old_m2ms = self.split_model_def(self.old_orm[key], self.old_defs[key])
                 new_fields, new_meta, new_m2ms = self.split_model_def(self.current_model_from_key(key), self.new_defs[key])
@@ -364,7 +386,7 @@ class ManualChanges(BaseChanges):
             bits.append('add_field_%s' % field_name)
         for index_name in self.added_indexes:
             bits.append('add_index_%s' % index_name)
-        return '_'.join(bits)
+        return '_'.join(bits).replace('.', '_')
     
     def get_changes(self):
         # Get the model defs so we can use them for the yield later

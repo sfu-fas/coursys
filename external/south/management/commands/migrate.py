@@ -52,9 +52,6 @@ class Command(BaseCommand):
     args = "[appname] [migrationname|zero] [--all] [--list] [--skip] [--merge] [--no-initial-data] [--fake] [--db-dry-run] [--database=dbalias]"
 
     def handle(self, app=None, target=None, skip=False, merge=False, backwards=False, fake=False, db_dry_run=False, show_list=False, database=DEFAULT_DB_ALIAS, delete_ghosts=False, ignore_ghosts=False, **options):
-
-        # Work out what the resolve mode is
-        resolve_mode = merge and "merge" or (skip and "skip" or None)
         
         # NOTE: THIS IS DUPLICATED FROM django.core.management.commands.syncdb
         # This code imports any module named 'management' in INSTALLED_APPS.
@@ -95,7 +92,6 @@ class Command(BaseCommand):
             for app in apps:
                 result = migration.migrate_app(
                     app,
-                    #resolve_mode = resolve_mode,
                     target_name = target,
                     fake = fake,
                     db_dry_run = db_dry_run,

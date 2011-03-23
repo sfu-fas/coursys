@@ -59,14 +59,18 @@ main ``Field`` class (which all fields inherit from), while specific options
 (such as ``max_length``) are defined on the specific fields they apply to
 (in this case, ``CharField``).
 
-If your custom field inherits from a core Django field, and doesn't add any new
+If your custom field inherits from a core Django field, or another field for
+which there are already introspection rules, and it doesn't add any new
 attributes, then you probably won't have to add any rules for it, as it will
-inherit all those from its parents.
+inherit all those from its parents. In this case, a call like this should work::
 
-However, South first checks that it has explicitly been told a class is
-introspectable first; even though it will probably have rules defined (since it
-inherits from Field, at least), there's no way to guarantee that it knows about
-all of the possible rules until it has been told so.
+ from south.modelsinspector import add_introspection_rules
+ add_introspection_rules([], ["^myapp\.stuff\.fields\.SomeNewField"])
+
+Note that you must always specify a field as allowed, even if specifies no
+new rules of its own - the alternative is that South must presume all fields
+without any new rules specified only have the options of their parents, which
+is wrong some of the time.
 
 Thus, there are two stages to adding support for your custom field to South;
 firstly, adding some rules for the new arguments it introduces (or possibly
@@ -79,7 +83,7 @@ Rules
 Rules are what make up the core logic of the introspector; you'll need to pass
 South a (possibly empty) list of them. They consist of a tuple, containing:
 
- - A class or tuple of classes to which the rules apply (remember, the rules
+ - A tuple or list of one or more classes to which the rules apply (remember, the rules
    apply to the specified classes and all subclasses of them).
    
  - Rules for recovering positional arguments, in order of the arguments (you are

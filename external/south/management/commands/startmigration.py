@@ -24,7 +24,7 @@ class Command(BaseCommand):
         make_option('--stdout', action='store_true', dest='stdout', default=False,
             help='Print the migration to stdout instead of writing it to a file.'),
     )
-    help = "Depereciated command"
+    help = "Deprecated command"
     
     def handle(self, app=None, name="", added_model_list=None, added_field_list=None, initial=False, freeze_list=None, auto=False, stdout=False, added_index_list=None, **options):
         

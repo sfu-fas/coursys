@@ -8,7 +8,6 @@ import re
 import string
 import random
 import inspect
-import parser
 from optparse import make_option
 
 try:
