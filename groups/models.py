@@ -82,20 +82,8 @@ def all_activities(members):
     """
     Return all activities for this set of group members.  i.e. all activities that any member is a member for.
     """
-    return set(m.activity for m in members)
+    return set(m.activity for m in members if m.activity.deleted==False)
 
-def xxx_add_activity_to_group_auto(activity, course):
-    """
-    if the groupForSemester bool value in Group model is true, then when a new group activity is created, it will call this add_activity_to_group_auto function to create corresponding GroupMembers for that activity.
-    """
-    groups = Group.objects.filter(courseoffering = course, groupForSemester = True)
-    for group in groups:
-	groupMembers = GroupMember.objects.filter(group = group)
-	unique_students = set(groupMember.student for groupMember in groupMembers)
-	for student in unique_students:
-	    groupMember = GroupMember(group=group, student=student, confirmed=True, activity=activity)
-	    groupMember.save()
-    return
 
 def add_activity_to_group(activity1, activity2, course):
     """

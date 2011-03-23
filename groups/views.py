@@ -62,7 +62,7 @@ def _groupmanage_staff(request, course_slug, activity_slug=None):
 
     allmembers = GroupMember.objects.filter(group__courseoffering=course).select_related('group', 'student', 'student__person', 'activity')
     if activity_slug:
-        activity = get_object_or_404(Activity, offering=course, slug=activity_slug)
+        activity = get_object_or_404(Activity, offering=course, slug=activity_slug, deleted=False)
         members = allmembers.filter(activity=activity)
     else:
         activity = None
@@ -213,7 +213,7 @@ def submit(request,course_slug):
     else:
         # find selected activities
         selected_act = []
-        activities = Activity.objects.filter(offering=course, group=True)
+        activities = Activity.objects.filter(offering=course, group=True, deleted=False)
         if not is_course_staff_by_slug(request, course_slug):
             activities = activities.exclude(status='INVI')
 
@@ -478,39 +478,6 @@ def change_name(request, course_slug, group_slug):
                                   {'groupForm' : groupForm, 'course' : course, 'group' : group}, \
                                   context_instance=RequestContext(request))
 
-@requires_course_staff_by_slug
-def XXX_switch_group(request, course_slug, group_slug):
-    #Change the group's name
-    course = get_object_or_404(CourseOffering, slug = course_slug)
-    group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
-    students = GroupMember.objects.filter(group = group)
-    groupid = group.id
-    group_qset = Group.objects.filter(courseoffering = course) \
-        .select_related('courseoffering')
-
-    from django import forms
-    class StudentGroupForm(forms.Form):
-        group = forms.ModelChoiceField(queryset = group_qset, initial = groupid)
-
-    if request.method == "POST":
-        for student in students:
-            studentGroupForm = StudentGroupForm(request.POST, prefix = student.student.person.userid)
-            if studentGroupForm.is_valid():
-                student.group = studentGroupForm.cleaned_data['group']
-                student.save()
-        return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
-
-    else:
-        studentList = []
-        for student in students:
-            studentGroupForm = StudentGroupForm(prefix = student.student.person.userid)
-            studentList.append({'studentGroupForm': studentGroupForm, 'first_name' : student.student.person.first_name,\
-                                 'last_name' : student.student.person.last_name, 'userid' : student.student.person.userid,\
-                                 'emplid' : student.student.person.emplid})
-
-        return render_to_response('groups/switch_group.html', \
-                          {'course':course, 'group' : group, 'studentList':studentList}, \
-                          context_instance = RequestContext(request))
 
 @requires_course_staff_by_slug
 def assign_student(request, course_slug, group_slug):

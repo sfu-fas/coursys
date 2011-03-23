@@ -38,7 +38,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
     if userid == None:
         userid = request.user.username
     course = get_object_or_404(CourseOffering, slug = course_slug)
-    activity = get_object_or_404(course.activity_set,slug = activity_slug)
+    activity = get_object_or_404(course.activity_set,slug = activity_slug, deleted=False)
     student = get_object_or_404(Person, userid=userid)
     cansubmit = True
 
@@ -172,7 +172,7 @@ def show_components_submission_history(request, course_slug, activity_slug, user
     if userid is None:
         userid = request.GET.get('userid')
     course = get_object_or_404(CourseOffering, slug = course_slug)
-    activity = get_object_or_404(course.activity_set,slug = activity_slug)
+    activity = get_object_or_404(course.activity_set,slug = activity_slug, deleted=False)
     staff = False
 
     if userid is None:
@@ -209,8 +209,8 @@ def _show_components_staff(request, course_slug, activity_slug):
     Show all the components of this activity
     Responsible for updating position
     """
-    course = get_object_or_404(CourseOffering, slug = course_slug)
-    activity = get_object_or_404(course.activity_set,slug = activity_slug)
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(course.activity_set, slug=activity_slug, deleted=False)
 
     #if POST, update the positions
     if request.method == 'POST':
@@ -238,7 +238,7 @@ def _show_components_staff(request, course_slug, activity_slug):
 @requires_course_staff_by_slug
 def edit_single(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(course.activity_set, slug = activity_slug)
+    activity = get_object_or_404(course.activity_set, slug = activity_slug, deleted=False)
     component_list = select_all_components(activity)
 
     #get component
@@ -279,7 +279,7 @@ def edit_single(request, course_slug, activity_slug):
 @requires_course_staff_by_slug
 def add_component(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(course.activity_set, slug = activity_slug)
+    activity = get_object_or_404(course.activity_set, slug = activity_slug, deleted=False)
 
     #default, Archive
     typelabel = request.GET.get('type')
@@ -326,7 +326,7 @@ def get_submission(submission_id):
 @requires_course_by_slug
 def download_file(request, course_slug, activity_slug, component_slug=None, submission_id=None, userid=None):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(course.activity_set, slug = activity_slug)
+    activity = get_object_or_404(course.activity_set, slug = activity_slug, deleted=False)
     staff = False
     if is_course_staff_by_slug(request, course_slug):
         staff = True
@@ -376,7 +376,7 @@ def download_file(request, course_slug, activity_slug, component_slug=None, subm
 @requires_course_staff_by_slug
 def download_activity_files(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(course.activity_set, slug=activity_slug)
+    activity = get_object_or_404(course.activity_set, slug=activity_slug, deleted=False)
 
     return generate_activity_zip(activity)
 
@@ -391,7 +391,7 @@ def show_student_history_staff(request, course_slug, activity_slug, userid):
 @requires_course_staff_by_slug
 def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, group_slug=None):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(course.activity_set, slug=activity_slug)
+    activity = get_object_or_404(course.activity_set, slug=activity_slug, deleted=False)
 
     # get the urlencode
     qDict = request.GET
