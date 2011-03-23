@@ -1268,7 +1268,9 @@ a img {
 ul {
   margin-top: 1em;
 }
-
+#container blockquote {
+  width: auto;
+}
 .hidden {
     display: none;
 }

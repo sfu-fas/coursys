@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Course Management System: Calculating Grades{% endblock %}
+{% block h1 %}Course Management System: Calculating Grades{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url dashboard.views.list_docs %}">Docs</a></li><li>&gt; Calculating Grades</li>{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+
+<p>Numeric grades can be calculated in a <dfn>calculated numeric activity</dfn>.  To create one, select &ldquo;Add Activity&rdquo; in your course info page, and select the &ldquo;Calculated Numeric Activity&rdquo; activity type.</p>
+<p>Along with the usual activity options, you can enter a formula for a calculated numeric activity.</p>
+
+<h2 id="formulabasics">Formulas: Really Basic Help</h2>
+
+<p>For most courses, the final grade formula will be something like this (using the names/short names for each activity in your course):</p>
+<blockquote><p>
+  <code>
+  {% for a in course.activity_set.all %}
+  [{{a.short_name}}.final] {% if not forloop.last %}+{% endif %} 
+  {% empty %}
+  [A1.final] + [A2.final] + [A3.final] + [Midterm.final] + [Exam.final]
+  {% endfor %}
+</code>
+</p></blockquote>
+
+
+
+
+<h2 id="formulamore">Formulas: More Details</h2>
+
+<p>The basic things you need are:</p>
+<ul>
+  <li><p>Arithmetic operations (<code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>) work the way you'd expect.</p></li>
+  <li><p>You can use values from other numeric activities by putting their name (or short name) in square brackets.
+  {% if course and act1 and act2 %}
+  For example, in your {{course.name}} course, you can add the {{act1.name}} and {{act2.name}} grades together in <em>any</em> of these ways:</p>
+  <blockquote><p>
+    <code>[{{act1.name}}] + [{{act2.name}}]</code><br />
+    <code>[{{act1.name}}] + [{{act2.short_name}}]</code><br />
+    <code>[{{act1.short_name}}] + [{{act2.short_name}}]</code>
+  </p></blockquote>
+  {% else %}{% if course and act1 %}
+  For example, in your {{course.name}} course, you can use the {{act1.name}} grade in <em>either</em> of these ways:</p>
+  <blockquote><p>
+    <code>[{{act1.name}}] + 2</code><br />
+    <code>[{{act1.short_name}}] + 2</code>
+  </p></blockquote>
+  {% else %}
+  For example, if you have an activity called &ldquo;Assignment 1&rdquo; with short name &ldquo;A1&rdquo;, you can use the grade in <em>either</em> of these ways:</p>
+  <blockquote><p>
+    <code>[Assignment 1] + 2</code><br />
+    <code>[A1] + 2</code>
+  </p></blockquote>
+  {% endif %}{% endif %}
+  </li>
+  <li>
+  <p>You can get the maximum grade for an activity (what it is marked out of) by appending &ldquo;<code>.max</code>&rdquo; to its name and its percent (that you entered as the percent of the total grade) by appending &ldquo;<code>.percent</code>&rdquo; like this:</p>
+  {% if course and act1 %}
+  <blockquote><p>
+    <code>[{{act1.short_name}}]/[{{act1.short_name}}.max]*100</code><br />
+    <code>[{{act1.short_name}}]*[{{act1.short_name}}.percent]</code>
+  </p></blockquote>
+  {% else %}
+  <blockquote><p>
+    <code>[A1]/[A1.max]*100</code><br />
+    <code>[A1]*[A1.percent]</code>
+  </p></blockquote>
+  {% endif %}
+  </li>
+  <li>
+  <p>To get an activity's contribution to the final mark of the course, &ldquo;<code>.final</code>&rdquo; to its name.  That is, these are equivalent calculations:</p>
+  {% if course and act1 %}
+  <blockquote><p>
+    <code>[{{act1.short_name}}]/[{{act1.short_name}}.max]*[{{act1.short_name}}.percent]</code><br />
+    <code>[{{act1.short_name}}.final]</code>
+  </p></blockquote>
+  {% else %}
+  <blockquote><p>
+    <code>[A1]/[A1.max]*[A1.percent]</code><br />
+    <code>[A1.final]</code>
+  </p></blockquote>
+  {% endif %}
+  </li>
+</ul>
+
+
+<h2 id="formuladetails">Formulas: Everything</h2>
+<p>At the bottom of this screen, you'll see a &ldquo;Formula Help&rdquo; section that you can expand: it has the full details.</p>
+
+
+
+
+{% endblock %}

@@ -253,7 +253,7 @@ def view_doc(request, doc_slug):
     
     # set up useful context variables for this doc
     if doc_slug == "submission":
-        instructor = Member.objects.filter(person__userid=request.user.username, offering__graded=True, role="INST")
+        instructor = Member.objects.filter(person__userid=request.user.username, offering__graded=True, role__in=["INST","TA"])
         offerings = [m.offering for m in instructor]
         activities = Activity.objects.filter(offering__in=offerings).annotate(Count('submissioncomponent')).order_by('-offering__semester', '-due_date')
         # decorate to prefer (1) submission configured, (2) has due date.
@@ -269,7 +269,7 @@ def view_doc(request, doc_slug):
             context['cslug'] = sem.name + '-cmpt-001-d100' # a sample contemporary course slug 
 
     elif doc_slug == "impersonate":
-        instructor = Member.objects.filter(person__userid=request.user.username, offering__graded=True, role="INST")
+        instructor = Member.objects.filter(person__userid=request.user.username, offering__graded=True, role__in=["INST","TA"])
         offerings = [(Member.objects.filter(offering=m.offering, role="STUD"), m.offering) for m in instructor]
         offerings = [(students.count()>0, course.semester.name, students, course) for students, course in offerings]
         offerings.sort()
@@ -282,6 +282,32 @@ def view_doc(request, doc_slug):
         else:
             sem = Semester.objects.all().reverse()[0]
             context['cslug'] = sem.name + '-cmpt-001-d100' # a sample contemporary course slug 
+
+    elif doc_slug == "calc_numeric":
+        instructor = Member.objects.filter(person__userid=request.user.username, offering__graded=True, role__in=["INST","TA"])
+        offering_ids = [m.offering.id for m in instructor]
+        offerings = CourseOffering.objects.filter(id__in=offering_ids).annotate(Count('activity'))
+        # decorate to prefer (1) recent offerings, (2) many activities
+        offerings = [(o.semester, o.activity__count, o) for o in offerings if o.activity__count>0]
+        offerings.sort()
+        if offerings:
+            sem, count, course = offerings[0]
+            context['course'] = course
+            activities = course.activity_set.filter(deleted=False)
+            if activities.count() > 1:
+                context['act1'] = activities[0]
+                context['act2'] = activities[1]
+            elif activities.count() > 0:
+                context['act1'] = activities[0]
+                context['act2'] = None
+            else:
+                context['act1'] = None
+                context['act2'] = None
+           
+        else:
+            context['course'] = None
+            context['act1'] = None
+            context['act2'] = None
 
     return render_to_response("docs/doc_" + doc_slug + ".html", context, context_instance=RequestContext(request))
     

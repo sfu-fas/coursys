@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Course Management System: Final Letter Grades{% endblock %}
+{% block h1 %}Course Management System: Final Letter Grades{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url dashboard.views.list_docs %}">Docs</a></li><li>&gt; Final Letter Grades</li>{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+<p>Letter grades can be calculated in a <dfn>calculated letter activity</dfn>.  To create one, select &ldquo;Add Activity&rdquo; in your course info page, and select the &ldquo;Calculated Letter Activity&rdquo; activity type.</p>
+
+
+<h2 id="source">The Source Activity</h2>
+<p>
+This activity is the one that is used to decide on letter grades.  It will likely be the final percentage for your course, either 
+<a href="{% url dashboard.views.view_doc doc_slug='calc_numeric' %}">calculated by the system</a> or imported from a spreadsheet.
+</p>
+
+<h2 id="cutoffs">Grade Cutoffs</h2>
+
+
+<h2 id="exam">The Exam Activity</h2>
+<p>You can optionally set an <dfn>exam activity</dfn> for the calculated letter grade.  This should likely be the final exam grade for the course.  This value is used to guess at the special cases for SFU's final grade values.</p>
+<p>The logic is this:</p>
+<ol>
+  <li>If the student has &ldquo;no grade&rdquo; for the exam, they will be given an N (incomplete).</li>
+  <li>If the student has an &ldquo;excused&rdquo; for the exam, they will be given an DE (deferred exam).</li>
+  <li>Otherwise, they will have their letter grade calculated based on the source activity as usual.</li>
+</ol>
+
+
+{% endblock %}
