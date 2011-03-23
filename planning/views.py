@@ -286,6 +286,7 @@ def submit_assigned_instructors(request, semester, plan_slug, offering_id):
     
     instructor_id = request.POST['instructor']
     if instructor_id == "None":
+        pre_instructor = course.instructor
 	course.instructor = None
 	course.save()
 	
@@ -324,7 +325,8 @@ def submit_assigned_instructors(request, semester, plan_slug, offering_id):
     course.instructor = assigned_instructor
     course.save()
 
-    labs = PlannedOffering.objects.filter(plan = semester_plan, course = course.course)
+    offering_section = course.section[0:2] # e.g. "D1"
+    labs = PlannedOffering.objects.filter(plan=semester_plan, course=course.course, component__in=['LAB', 'TUT'], section__startswith=offering_section)
     for lab in labs:
         lab.instructor = assigned_instructor
         lab.save()
@@ -428,15 +430,35 @@ def view_instructors(request, semester, plan_slug, course_id):
     return render_to_response("planning/view_instructors.html",{'semester_plan': semester_plan, 'course_info':course_info, 'instructor_list':instructor_list, 'instructors':instructors},context_instance=RequestContext(request))
 
 #********************************************View Semester Plans************************************************************
-@requires_role('PLAN')
+@login_required
 def semester_plan_index(request):
 
     userid = request.user.username
-    plan_list = SemesterPlan.objects.filter(active = True).exclude().order_by('semester')
+    person = get_object_or_404(Person, userid=userid)
+    roles = Role.objects.filter(person=person)
+
+
+    admin = 0
+    inst = 0
+
+    for role in roles:
+        if role.role == 'PLAN':
+            admin = 1
+        elif role.role == 'FAC' or role.role == 'SESS':
+            inst = 1
+
+    if admin == 1 and inst == 0:
+    	plan_list = SemesterPlan.objects.filter(active=True, visibility='ADMI').order_by('semester')
+    elif admin == 1 and inst == 1:
+	plan_list = SemesterPlan.objects.filter(active=True, visibility__in=['ADMI', 'INST']).order_by('semester')
+    elif inst == 1 and admin == 0:
+	plan_list = SemesterPlan.objects.filter(active=True, visibility='INST').order_by('semester')
+    elif admin == 0 and inst == 0:
+    	plan_list = SemesterPlan.objects.filter(active=True, visibility='ALL').order_by('semester')
 
     return render_to_response("planning/semester_plan_index.html",{'userid':userid, 'plan_list':plan_list},context_instance=RequestContext(request))
 
-@requires_role('PLAN')
+@login_required
 def view_semester_plan(request, semester, plan_slug):
 
     plan = SemesterPlan.objects.get(semester__name=semester, slug=plan_slug)

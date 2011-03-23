@@ -1292,3 +1292,31 @@ table.cutoffs thead th, table.cutoffs thead td, table.cutoffs tbody th, table.cu
 table.cutoffs {
   border: 0;
 }
+
+
+table.inst_table thead th {
+  font-weight: bold;
+}
+table.inst_table tbody th {
+  font-weight: bold;
+  text-align: left;
+}
+
+table.inst_table thead th, table.inst_table thead td, table.inst_table tbody td{
+  border-color:#ccc;
+  text-align: left;
+  vertical-align: middle;
+}
+table.inst_table {
+  border-color: #ccc;
+  width: 100%;
+}
+div#main table.inst_table p {
+  padding: 0;
+  margin: 0;
+}
+div#main table.inst_table p input {
+  float: right;
+  font-size: 75%;
+  padding: 0;
+}

@@ -25,7 +25,18 @@ $(document).ready(function() {
   } );
 } );
 </script>
+
+<style type="text/css">
+<!--
+/* All id selectors are defined with 
+a pound symbol (#) before their name */
+
+#radio_style { text-align: center;}
+
+-->
+</style>
 {% endblock %}
+
 
 {% block content %}
 
@@ -38,53 +49,87 @@ $(document).ready(function() {
 	
 	<div id="form_container">
 	    <form action="{% url planning.views.submit_assigned_instructors semester=semester_plan.semester.name plan_slug=semester_plan.slug offering_id=course_info.id %}" method="post">{% csrf_token %}
-	        <fieldset style="padding-left:20px">
-	            <legend>Capable Instructors</legend>
-				{% for data in instructors %}
-					
-					<dl>
-					<dt><input type="radio" name="instructor" value="{{data.instructor.instructor.userid}}" /></dt>
-					<dt>Instructor:</dt>
-						<dd>{{data.instructor.instructor}}</dd>
-					<dt>Currently Assigned Courses:</dt>
-						<dd>{% if data.current_courses %}
-								{% for i in data.current_courses %}
-								{{i.course}}
-								</br>
-								{% endfor %}
-							{% else %}
-								None
-							{% endif %}
-						</dd>
-					<dt>Capable Courses:</dt>
-						<dd>{% for i in data.teachable %}
-								{{i.course}}
-								{% if i.note %}
-									( Note: {{i.note}} )
-								{% endif %}
-								</br>
-							{% endfor %}
-						</dd>
-					<dt>Teaching Intentions:</dt>
-						<dd>{% for i in data.intention %}
-								{{i.semester}}:
-								{{i.count}}
-								{% if i.note %}
-									( Note: {{i.note}} )
-								{% endif %}
-								</br>
-							{% endfor %}							
-						</dd>
-					
-				{% endfor %}
-				{% if course_info.instructor %}
-					<dt><input type="radio" name="instructor" value="None" /></dt>
-					<dt>Clear Assigned Instructor</dt>
-				{% endif %}
-				</dl>
-	            <div><input class="submit" type="submit" value="Assign" /></div>
 
-	        </fieldset>
+		<table class='inst_table'>
+			<tbody>
+				<tr>
+					<th>Select</th>
+					<th>Capable Instructors</th>
+					<th>Currently Assigned Courses</th>
+					<th>Capable Courses</th>
+					<th>Teaching Intentions</th>
+
+				</tr>
+				{% for data in instructors %}
+				<tr>
+					<td id=radio_style><input type="radio" name="instructor" value="{{data.instructor.instructor.userid}}" /></td>
+					<td>
+					{% if data.instructor.instructor = course_info.instructor %}	
+						<b>{{data.instructor.instructor}}</b>
+					{% else %}
+						{{data.instructor.instructor}}
+					{% endif %}
+					</td>
+					<td>
+					{% if data.current_courses %}
+						{% for i in data.current_courses %}
+							{%  if i.course == course_info.course %}
+								<b>{{i.course.subject}} {{i.course.number}} {{i.get_component_display}}
+								</br></b>
+							{% else %}
+								{{i.course.subject}} {{i.course.number}} {{i.get_component_display}}
+								</br>
+							{% endif %}
+						{% endfor %}
+					{% else %}
+						None
+					{% endif %}
+					</td>
+					<td>
+					{% for i in data.teachable %}
+						{%  if i.course == course_info.course %}
+							<b>{{i.course.subject}} {{i.course.number}}
+							{% if i.note %}
+							( Note: {{i.note}} )
+							{% endif %}
+							</br></b>							
+						{% else %}
+							{{i.course.subject}} {{i.course.number}}
+							{% if i.note %}
+							( Note: {{i.note}} )
+							{% endif %}
+							</br>
+						{% endif %}
+					{% endfor %}
+					</td>
+					<td>
+					{% for i in data.intention %}
+						{% if i.semester == semester_plan.semester %}
+							<b>{{i.semester}}:
+							{{i.count}}
+							{% if i.note %}
+								( Note: {{i.note}} )
+							{% endif %}</br></b>
+						{% else %}
+							{{i.semester}}:
+							{{i.count}}
+							{% if i.note %}
+								( Note: {{i.note}} )
+							{% endif %}
+							</br>
+						{% endif %}
+					{% endfor %}
+					</td>
+				</tr>
+				{%endfor%}
+				{% if course_info.instructor %}
+					<td id=radio_style><input type="radio" name="instructor" value="None" /></td>
+					<td>Clear Assigned Instructor</td>
+				{% endif %}
+		    </tbody>
+		</table>
+
+		<div><input class="submit" type="submit" value="Assign" /></div>
 	    </form>
 
 	</div>
