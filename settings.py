@@ -126,7 +126,7 @@ INSTALLED_APPS = (
     'planning',
     'discipline',
     'mobile',
-    'advisors',
+    #'advisors',
 #----------------
 #'advisors_B'
 #----------------

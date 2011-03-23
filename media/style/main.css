@@ -182,6 +182,7 @@ div#newsitems .newsmore {
 }
 div#newsitems a.morenews {
   font-family: monospace;
+  font-weight: bold;
   margin-right: 0.5em;
 }
 

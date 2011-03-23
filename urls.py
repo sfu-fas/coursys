@@ -9,24 +9,7 @@ from courselib.urlparts import *
 
 handler404 = 'courselib.auth.NotFoundResponse'
 
-#---------------------------------------
-
-from advisors.models import *
-
-
-urlpatterns = patterns('advisors.views',
-    url(r'^advisors/$','index'),
-    url(r'^view/$', 'search'),
-	url(r'^search_detail/' + USERID_SLUG + '$', 'view_notes'),
-	url(r'^success/' + USERID_SLUG + '$', 'add_notes'),
-	url(r'^delete_notes/' + USERID_SLUG + '/(?P<note_id>\w+)/$', 'delete_notes'),
-#    (r'^(?P<advisor_id>\w+)/(?P<student_id>\w+)/create/$','create'),
-#    (r'^(?P<advisor_id>\w+)/(?P<student_id>\w+)/submit/$', 'submit'),
-#    (r'^search_form/$', 'search_form'),
-#    (r'^search/$', 'search_result'),
-
-)
-#---------------------------------------
+urlpatterns = patterns('')
 
 urlpatterns += patterns('planning.views',
 	
@@ -35,7 +18,6 @@ urlpatterns += patterns('planning.views',
 	url(r'^teaching/semesters$', 'edit_intention'),
 	url(r'^teaching/submit_intention$', 'submit_intention'),
 	url(r'^teaching/teachable/delete/(?P<course_id>\w+)/$', 'delete_course_from_capability'),
-	
 	
 	url(r'^planning/$', 'admin_index'),
 	url(r'^planning/new_course$', 'add_course'),
@@ -55,13 +37,6 @@ urlpatterns += patterns('planning.views',
 
 	url(r'^semester_plans/$', 'semester_plan_index'),
 	url(r'^semester_plans/' + SEMESTER + '/' + PLAN_SLUG + '/view$', 'view_semester_plan'),
-	
-	
-	
-	
-	
-	
-	
 )
 
 
