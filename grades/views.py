@@ -729,6 +729,35 @@ def edit_activity(request, course_slug, activity_slug):
     
 
 @requires_course_staff_by_slug
+def delete_activity(request, course_slug, activity_slug):
+    """
+    Flag activity as deleted
+    """
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=course)
+
+    if request.method == 'POST':
+        if not Member.objects.filter(offering=course, person__userid=request.user.username, role="INST"):
+            # only instructors can delete
+            return ForbiddenResponse(request, "Only instructors can delete activities")
+    
+        activity.deleted = True
+        activity.save()
+        messages.success(request, 'Activity deleted.  It can be restored by the system adminstrator in an emergency.')
+
+        #LOG EVENT#
+        l = LogEntry(userid=request.user.username,
+              description=("activity %s marked deleted") % (activity),
+              related_object=course)
+        l.save()
+
+        return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course.slug}))
+
+    else:
+        return ForbiddenResponse(request)
+
+
+@requires_course_staff_by_slug
 def release_activity(request, course_slug, activity_slug):
     """
     Bump activity status: INVI -> URLS, URLS -> RLS.

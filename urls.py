@@ -99,6 +99,7 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_ACTIVITY_SLUG + '/edit_cutoffs$', 'grades.views.edit_cutoffs'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/groups$', 'grades.views.activity_info_with_groups'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/release$', 'grades.views.release_activity'),
+    url(r'^' + COURSE_ACTIVITY_SLUG + '/delete$', 'grades.views.delete_activity'),
 
     url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/$', 'submission.views.show_components'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/history$', 'submission.views.show_components_submission_history'),
