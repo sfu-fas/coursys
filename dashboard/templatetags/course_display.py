@@ -59,7 +59,7 @@ FIELD_AS_TD_TEMPLATE = Template('''<td>
                            {% endif %}
                         {{ field }}
                 </td>''')
-FIELD_AS_TD_TEMPLATE_HIDDEN = Template('<td class ="hidden">{{ field }}</td>')
+FIELD_AS_TD_TEMPLATE_HIDDEN = Template('<td class="hidden">{{ field }}</td>')
 
 @register.filter
 def display_form_as_row(form, arg=None):

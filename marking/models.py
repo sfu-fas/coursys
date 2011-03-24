@@ -11,6 +11,7 @@ from django.db.models import Q
 from submission.models import select_all_components
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
+from autoslug import AutoSlugField
 import os.path
 
 MarkingSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
@@ -26,6 +27,8 @@ class ActivityComponent(models.Model):
     position = models.IntegerField(null = True, default = 0, blank =True)    
     # set this flag if it is deleted by the user
     deleted = models.BooleanField(null = False, db_index = True, default = False)
+    slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with='numeric_activity')
+    
     def __unicode__(self):        
         return self.title
     def delete(self, *args, **kwargs):
@@ -46,7 +49,7 @@ class CommonProblem(models.Model):
     def __unicode__(self):
         return "common problem %s for %s" % (self.title, self.activity_component)
 
-# 
+
 def attachment_upload_to(instance, filename):
     """
     callback to avoid path in the filename(that we have append folder structure to) being striped 
