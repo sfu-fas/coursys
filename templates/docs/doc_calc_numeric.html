@@ -16,10 +16,10 @@
 
 <h2 id="formulabasics">Formulas: Really Basic Help</h2>
 
-<p>For most courses, the final grade formula will be something like this (using the names/short names for each activity in your course):</p>
+<p>For most courses, the final grade formula will be something like this (using the names/short names for each activity in your course{% if activities %}, using your {{course.name}} course as an example{% endif %}):</p>
 <blockquote><p>
   <code>
-  {% for a in course.activity_set.all %}
+  {% for a in activities %}
   [{{a.short_name}}.final] {% if not forloop.last %}+{% endif %} 
   {% empty %}
   [A1.final] + [A2.final] + [A3.final] + [Midterm.final] + [Exam.final]
@@ -89,8 +89,16 @@
 
 
 <h2 id="formuladetails">Formulas: Everything</h2>
-<p>At the bottom of this screen, you'll see a &ldquo;Formula Help&rdquo; section that you can expand: it has the full details.</p>
+<p>There are more functions and options available than described above.</p>
+<p>At the bottom of the &ldquo;Edit Activity Details&rdquo; screen, you'll see a &ldquo;Formula Help&rdquo; section that you can expand: it has the full details.</p>
 
+
+<h2 id="calculating">Calculating Grades</h2>
+<p>Grades are <strong>not</strong> calculated/recalcualted automatically: click the &ldquo;Calculate all&rdquo; button on the activity info page.</p>
+
+<h2 id="override">Overriding Calculated Grades</h2>
+<p>If you would like to manually enter grades for individual students (who have a special-case grading scheme for example), you can click on their grade in the grade list. Enter their grade and change the grade status to &ldquo;graded&rdquo; (or &ldquo;excused&rdquo; or &ldquo;academic dishonesty&rdquo;).</p>
+<p>Only grades that were previously calcuated will be changed when you click &ldquo;Calculate all&rdquo;. Manually-entered grades with a different status will be left as they are.</p>
 
 
 

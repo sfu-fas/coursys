@@ -294,6 +294,7 @@ def view_doc(request, doc_slug):
             sem, count, course = offerings[0]
             context['course'] = course
             activities = course.activity_set.filter(deleted=False)
+            context['activities'] = activities
             if activities.count() > 1:
                 context['act1'] = activities[0]
                 context['act2'] = activities[1]

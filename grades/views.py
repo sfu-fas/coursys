@@ -542,7 +542,7 @@ def calculate_all(request, course_slug, activity_slug):
         ignored = calculate_numeric_grade(course,activity)
         if ignored==1:
             messages.warning(request, "Did not calculate grade for 1 manually-graded student.")
-        else:
+        elif ignored>1:
             messages.warning(request, "Did not calculate grade for %i manually-graded students." % (ignored))
     except ValidationError as e:
         messages.error(request, e.args[0])
