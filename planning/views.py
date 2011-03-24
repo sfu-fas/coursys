@@ -447,10 +447,8 @@ def semester_plan_index(request):
         elif role.role == 'FAC' or role.role == 'SESS':
             inst = 1
 
-    if admin == 1 and inst == 0:
-    	plan_list = SemesterPlan.objects.filter(active=True, visibility='ADMI').order_by('semester')
-    elif admin == 1 and inst == 1:
-	plan_list = SemesterPlan.objects.filter(active=True, visibility__in=['ADMI', 'INST']).order_by('semester')
+    if admin == 1:
+	plan_list = SemesterPlan.objects.filter(active=True, visibility__in=['ADMI', 'INST', 'ALL']).order_by('semester')
     elif inst == 1 and admin == 0:
 	plan_list = SemesterPlan.objects.filter(active=True, visibility='INST').order_by('semester')
     elif admin == 0 and inst == 0:
