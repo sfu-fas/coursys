@@ -1393,12 +1393,13 @@ def import_marks(request, course_slug, activity_slug):
     if request.method == 'POST':
         form = ImportMarkFileForm(data=request.POST, files=request.FILES, activity=activity, userid=request.user.username)
         if form.is_valid():
-            # validation function builds all the objects we need: just save them now.
-            ams, amcs = form.cleaned_data['file']
+            # validation function builds all the objects we need: just save them now that we know everything is okay.
+            ams, amcs, ngs = form.cleaned_data['file']
             count = 0
+            for ng in ngs:
+                ng.save()
             for am in ams:
                 if isinstance(am, StudentActivityMark):
-                    am.numeric_grade.save()
                     am.numeric_grade_id = am.numeric_grade.id
                 am.save()
                 count += 1

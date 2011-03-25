@@ -176,6 +176,7 @@ class ActivityComponentMark(models.Model):
         
     class Meta:
         unique_together = (('activity_mark', 'activity_component'),)
+        ordering = ('activity_component',)
 
 ##############################Yu Liu Added#########################################################  
 class ActivityMark_LetterGrade(models.Model):
@@ -457,8 +458,7 @@ def activity_marks_from_JSON(activity, userid, data):
     """
     Build ActivityMark and ActivityComponentMark objects from imported JSON data.
     
-    Return two lists: all ActivityMarks and all ActivityComponentMark *not yet saved*.
-    StudentActivityMark.numeric_activity also not yet saved.
+    Return three lists: all ActivityMarks and all ActivityComponentMark and all NumericGrades *all not yet saved*.
     """
     if not isinstance(data, list):
         raise ValidationError(u'Outer JSON data structure must be an array.')
@@ -469,6 +469,7 @@ def activity_marks_from_JSON(activity, userid, data):
     components = dict((ac.slug, ac) for ac in components)
     activity_marks = []
     activity_component_marks = []
+    numeric_grades = []
     for markdata in data:
         if not isinstance(markdata, dict):
             raise ValidationError(u'Elements of array must be JSON objects.')
@@ -476,7 +477,10 @@ def activity_marks_from_JSON(activity, userid, data):
         # build the ActivityMark object and populate as much as possible for now.
         if activity.group and 'group' in markdata:
             # GroupActivityMark
-            group = Group.objects.get(slug=markdata['group'], courseoffering=activity.offering)
+            try:
+                group = Group.objects.get(slug=markdata['group'], courseoffering=activity.offering)
+            except Group.DoesNotExist:
+                raise ValidationError(u'Group with id "%s" not found.' % (markdata['group']))
             am = GroupActivityMark(activity=activity, numeric_activity=activity, group=group, created_by=userid)
             recordid = markdata['group']
 
@@ -486,15 +490,7 @@ def activity_marks_from_JSON(activity, userid, data):
                 member = Member.objects.get(person__userid=markdata['userid'], offering=activity.offering, role="STUD")
             except Member.DoesNotExist:
                 raise ValidationError(u'Userid %s not in course.' % (markdata['userid']))
-
-            grades = NumericGrade.objects.filter(activity=activity, member=member)
-            if grades:
-                numeric_grade = grades[0]
-                numeric_grade.flag = "GRAD"
-            else:
-                numeric_grade = NumericGrade(activity=activity, member=member, flag="GRAD")
-
-            am = StudentActivityMark(activity=activity, numeric_grade=numeric_grade, created_by=userid)
+            am = StudentActivityMark(activity=activity, created_by=userid)
             recordid = markdata['userid']
         else:
             raise ValidationError(u'Must specify "userid" or "group" for mark.')
@@ -541,11 +537,31 @@ def activity_marks_from_JSON(activity, userid, data):
             cm.value = decimal.Decimal(0)
             cm.comment = ''
         
-        # put the total mark in place
+        # put the total mark and numeric grade objects in place
         am.mark = decimal.Decimal(str(mark_total))
+        value = decimal.Decimal(str(mark_total))
         if isinstance(am, StudentActivityMark):
-            am.numeric_grade.value = decimal.Decimal(str(mark_total))
+            grades = NumericGrade.objects.filter(activity=activity, member=member)
+            if grades:
+                numeric_grade = grades[0]
+                numeric_grade.flag = "GRAD"
+            else:
+                numeric_grade = NumericGrade(activity=activity, member=member, flag="GRAD")
 
+            numeric_grade.value = value
+            am.numeric_grade = numeric_grade
+            numeric_grades.append(numeric_grade)
 
-    return (activity_marks, activity_component_marks)
+        else:
+            group_members = GroupMember.objects.filter(group=group, activity=activity, confirmed=True)
+            for g_member in group_members:
+                try:            
+                    ngrade = NumericGrade.objects.get(activity=activity, member=g_member.student)
+                except NumericGrade.DoesNotExist: 
+                    ngrade = NumericGrade(activity=activity, member=g_member.student)
+                ngrade.value = value
+                ngrade.flag = 'GRAD'
+                numeric_grades.append(ngrade)
+
+    return (activity_marks, activity_component_marks, numeric_grades)
 
