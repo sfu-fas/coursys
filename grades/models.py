@@ -283,7 +283,7 @@ class CalLetterActivity(LetterActivity):
     """
     numeric_activity = models.ForeignKey(NumericActivity, related_name='numeric_source')
     exam_activity = models.ForeignKey(Activity, null=True, related_name='exam_activity')
-    letter_cutoffs = models.CharField(max_length=500, help_text='parsed formula to calculate final letter grade', default='[95, 90, 85, 80, 75, 70, 65, 60, 55, 50]')
+    cutoffs = models.CharField(max_length=500, help_text='parsed formula to calculate final letter grade', default='[95, 90, 85, 80, 75, 70, 65, 60, 55, 50]')
 
     def is_calculated(self):
         return True

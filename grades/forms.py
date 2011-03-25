@@ -226,15 +226,7 @@ class CalLetterActivityForm(ActivityForm):
         super(CalLetterActivityForm, self).activate_editform_validation(course_slug, activity_slug)
         self._course_letter_activities = LetterActivity.objects.exclude(slug=activity_slug).filter(offering__slug=course_slug)
     
-    def clean_formula(self):
-        formula = self.cleaned_data['formula']
-        if formula:
-            if self._addform_validate or self._editform_validate:
-                try:
-                    parse_and_validate_formula(formula, self._course_letter_activities)
-                except ValidationError as e:
-                    raise forms.ValidationError(e.args[0])
-        return formula
+
 
 ##############################################################################################    
 class ActivityFormEntry(forms.Form):
@@ -281,60 +273,85 @@ class URLForm(forms.Form):
                                  widget=forms.TextInput(attrs={'size':'60'}))
 
 
-class LetterCutoffForm(forms.Form):
-    ap = forms.DecimalField(max_digits=3, decimal_places=2)
-    a = forms.DecimalField(max_digits=2, decimal_places=2)
-    am = forms.DecimalField(max_digits=2, decimal_places=2)
-    bp =forms.DecimalField(max_digits=2, decimal_places=2)
-    b = forms.DecimalField(max_digits=2, decimal_places=2)
-    bm = forms.DecimalField(max_digits=2, decimal_places=2)
-    cp = forms.DecimalField(max_digits=2, decimal_places=2)
-    c = forms.DecimalField(max_digits=2, decimal_places=2)
-    cm = forms.DecimalField(max_digits=2, decimal_places=2)
-    d = forms.DecimalField(max_digits=2, decimal_places=2)
-    f = forms.DecimalField(max_digits=2, decimal_places=2)
-    def clean(self):
-	ap=form.clean_data['ap']
-	a=form.clean_data['a']
-	am=form.clean_data['am']
-	bp=form.clean_data['bp']
-	b=form.clean_data['b']
-	bm=form.clean_data['bm']
-	cp=form.clean_data['cp']
-	c=form.clean_data['c']
-	cm=form.clean_data['cm']
-	d=form.clean_data['d']
-	f=form.clean_data['f']
+class CutoffForm(forms.Form):
+    ap = forms.DecimalField(max_digits=4, decimal_places=2,required=True)
+    a = forms.DecimalField(max_digits=4, decimal_places=2)
+    am = forms.DecimalField(max_digits=4, decimal_places=2)
+    bp =forms.DecimalField(max_digits=4, decimal_places=2)
+    b = forms.DecimalField(max_digits=4, decimal_places=2)
+    bm = forms.DecimalField(max_digits=4, decimal_places=2)
+    cp = forms.DecimalField(max_digits=4, decimal_places=2)
+    c = forms.DecimalField(max_digits=4, decimal_places=2)
+    cm = forms.DecimalField(max_digits=4, decimal_places=2)
+    d = forms.DecimalField(max_digits=4, decimal_places=2)
+
+
+    def clean_ap(self):
+	ap=self.cleaned_data['ap']
         if ap>100 or ap<0:
-		raise forms.ValidationError("Please input valid numberic grade")
-	return ap
-	if a>100 or a<0:
-		raise forms.ValidationError("Please input valid numberic grade")
-	return a
-	if am>100 or am<0:
-		raise forms.ValidationError("Please input valid numberic grade")
-	return am
-	if bp>100 or bp<0:
-		raise forms.ValidationError("Please input valid numberic grade")
-	return bp
-	if b>100 or b<0:
-		raise forms.ValidationError("Please input valid numberic grade")
-	return b
-	if bm>100 or bm<0:
-		raise forms.ValidationError("Please input valid numberic grade")
-	return bm
-	if cp>100 or cp<0:
-		raise forms.ValidationError("Please input valid numberic grade")
-	return cp
-	if c>100 or c<0:
-		raise forms.ValidationError("Please input valid numberic grade")
-	return c
-	if cm>100 or cm<0:
-		raise forms.ValidationError("Please input valid numberic grade")
-	return cm
-	if d>100 or d<0:
-		raise forms.ValidationError("Please input valid numberic grade")
-	return d
-	if f>100 or f<0:
-		raise forms.ValidationError("Please input valid numberic grade")
-	return f
+           raise forms.ValidationError('Please input valid numberic grade')
+        return ap
+
+
+    def clean_ap(self):
+	ap=self.cleaned_data['ap']
+        if ap>100 or ap<0:
+           raise forms.ValidationError('Please input valid numberic grade')
+        return ap
+
+    def clean_a(self):
+	a=self.cleaned_data['a']
+        if a>100 or a<0:
+           raise forms.ValidationError('Please input valid numberic grade')
+        return a
+
+    def clean_am(self):
+	am=self.cleaned_data['am']
+        if am>100 or am<0:
+           raise forms.ValidationError('Please input valid numberic grade')
+        return am
+
+    def clean_bp(self):
+	bp=self.cleaned_data['bp']
+        if bp>100 or bp<0:
+           raise forms.ValidationError('Please input valid numberic grade')
+        return bp
+
+    def clean_b(self):
+	b=self.cleaned_data['b']
+        if b>100 or b<0:
+           raise forms.ValidationError('Please input valid numberic grade')
+        return b
+
+    def clean_bm(self):
+	bm=self.cleaned_data['bm']
+        if bm>100 or bm<0:
+           raise forms.ValidationError('Please input valid numberic grade')
+        return bm
+
+    def clean_cp(self):
+	cp=self.cleaned_data['cp']
+        if cp>100 or cp<0:
+           raise forms.ValidationError('Please input valid numberic grade')
+        return cp
+
+    def clean_c(self):
+	c=self.cleaned_data['c']
+        if c>100 or c<0:
+           raise forms.ValidationError('Please input valid numberic grade')
+        return c
+
+    def clean_cm(self):
+	cm=self.cleaned_data['cm']
+        if cm>100 or cm<0:
+           raise forms.ValidationError('Please input valid numberic grade')
+        return cm
+
+    def clean_d(self):
+	d=self.cleaned_data['d']
+        if d>100 or d<0:
+           raise forms.ValidationError('Please input valid numberic grade')
+        return d
+
+
+
