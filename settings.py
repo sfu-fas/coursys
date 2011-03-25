@@ -83,7 +83,7 @@ MIDDLEWARE_CLASSES = (
     'django_cas.middleware.CASMiddleware',
     #'throttle.CacheThrottler',
     'courselib.impersonate.ImpersonateMiddleware',
-    'courselib.mobile_detection.MobileDetectionMiddleware'
+    #'courselib.mobile_detection.MobileDetectionMiddleware'
 )
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
