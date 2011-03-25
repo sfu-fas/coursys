@@ -30,14 +30,16 @@ class MobileDetectionMiddleware(object):
             request.is_mobile = False
         else:
             request.is_mobile = True
-            try:
-                referer = urlparse.urlparse(request.META.get('HTTP_REFERER'))
-                uri = urlparse.urlparse(request.build_absolute_uri())
-            except:
+
+            # If user switch between mobile/non-mobile, remember this with cookies 
+            HTTP_REFERER = request.META.get('HTTP_REFERER')
+            if HTTP_REFERER is None:
                 return
-            
+            referer = urlparse.urlparse(HTTP_REFERER)
+            uri = urlparse.urlparse(request.build_absolute_uri())
             if uri.netloc != referer.netloc:
                 return
+
             # if from mobile to non-mobile, set Cookies
             if referer.path == "/m" + uri.path:
                 # print 'mo -> no'
@@ -55,9 +57,10 @@ class MobileDetectionMiddleware(object):
         # set cookies for 'no-mobile'
         if 'no-mobile' in request.COOKIES\
             and hasattr(request, '_new_cookies') and request._new_cookies is True:
-            print 'set cookies!'
+            # print 'set cookies!'
             if request.COOKIES['no-mobile'] == "Yes":
                 response.set_cookie('no-mobile', 'Yes', max_age=3600*24*7) # for 7 days
             else:
                 response.delete_cookie('no-mobile')
         return response
+
