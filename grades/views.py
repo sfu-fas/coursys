@@ -366,7 +366,7 @@ def edit_cutoffs(request, course_slug, activity_slug):
            d=form.cleaned_data['d'] 
            f=0     
            cutoffs=[ap,a,am,bp,b,bm,cp,c,cm,d,f]
-           activity.letter_cutoffs=cutoffs
+           activity.letter_cutoffs[0]=ap
            #_populate_activity_from_formdata(activity, form.cleaned_data)
            #activity.save()
            #LOG EVENT#

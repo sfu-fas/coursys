@@ -292,13 +292,6 @@ class CutoffForm(forms.Form):
            raise forms.ValidationError('Please input valid numberic grade')
         return ap
 
-
-    def clean_ap(self):
-	ap=self.cleaned_data['ap']
-        if ap>100 or ap<0:
-           raise forms.ValidationError('Please input valid numberic grade')
-        return ap
-
     def clean_a(self):
 	a=self.cleaned_data['a']
         if a>100 or a<0:
