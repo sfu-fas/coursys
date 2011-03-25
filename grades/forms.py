@@ -6,7 +6,7 @@ import pickle
 from grades.formulas import parse, activities_dictionary, cols_used
 from pyparsing import ParseException
 from django.forms.util import ErrorList
-import datetime
+import datetime, decimal
 from grades.utils import parse_and_validate_formula, ValidationError
 from submission.models import Submission
 
@@ -290,7 +290,7 @@ class CutoffForm(forms.Form):
 	ap=self.cleaned_data['ap']
         if ap>100 or ap<0:
            raise forms.ValidationError('Please input valid numberic grade')
-        return ap
+        return decimal.Decimal(ap)
 
     def clean_a(self):
 	a=self.cleaned_data['a']

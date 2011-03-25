@@ -54,6 +54,9 @@ function nolinkletter_cmp(x,y) {
 jQuery.fn.dataTableExt.oSort['by-nolinkletter-asc']  = function(x,y) { return nolinkletter_cmp(x,y) };
 jQuery.fn.dataTableExt.oSort['by-nolinkletter-desc'] = function(x,y) { return nolinkletter_cmp(y,x) };
 
+jQuery.fn.dataTableExt.oSort['by-letter-asc']  = function(x,y) { return letter_cmp(x,y) };
+jQuery.fn.dataTableExt.oSort['by-letter-desc'] = function(x,y) { return letter_cmp(y,x) };
+
 // toggle display of news item bodies
 function togglenews(e, elt) {
   var event = e || window.event;

@@ -19,7 +19,7 @@
 		    null,
 		    null,
 		    {% for a in activities %}
-		    {"sWidth": "0"}{% if not forloop.last %},{% endif %}
+		    {"sWidth": "0"{% if not a.is_numeric%}, "sType": "by-letter"{% endif %}}{% if not forloop.last %},{% endif %}
 		    {% endfor %}
 		]
 	});

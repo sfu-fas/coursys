@@ -365,7 +365,8 @@ def edit_cutoffs(request, course_slug, activity_slug):
            cm=form.cleaned_data['cm']  
            d=form.cleaned_data['d'] 
            f=0     
-           cutoffs=[ap,a,am,bp,b,bm,cp,c,cm,d,f]
+           cutoffs=[ap,a,am,bp,b,bm,cp,c,cm,d]
+           activity.set_cutoffs(cutoffs)
            #activity.letter_cutoffs[0]=ap
            #_populate_activity_from_formdata(activity, form.cleaned_data)
            #activity.save()
@@ -378,10 +379,10 @@ def edit_cutoffs(request, course_slug, activity_slug):
            messages.success(request, "Cutoffs of %s updated" % activity.name)
     else:
        form=CutoffForm()
-    #context = {'course': course, 'activity': activity, 'form_type': FORMTYPE['edit'], 'cutoff':form}
+    context = {'course': course, 'activity': activity, 'form_type': FORMTYPE['edit'], 'cutoff':form}
     cutoffs=activity.get_cutoffs()
-    return HttpResponse(cutoffs)
-    #return render_to_response('grades/edit_cutoffs.html', context, context_instance=RequestContext(request))
+    #return HttpResponse(cutoffs)
+    return render_to_response('grades/edit_cutoffs.html', context, context_instance=RequestContext(request))
 
 @requires_course_staff_by_slug
 def add_numeric_activity(request, course_slug):
