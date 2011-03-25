@@ -7,7 +7,7 @@
 {%endcomment%}
 {% block content%}
 
-<a href ="{% url mobile.views.course_info course_slug=course.slug %}">back</a>
+<a class="back" href="{% url mobile.views.course_info course_slug=course.slug %}">back</a>
 
 <div id ="search">
   <form action="{% url mobile.views.student_search course_slug=course.slug %}" method="get">
@@ -31,7 +31,7 @@
     {% endif %}
     
 </div>
-<a href ="{% url mobile.views.course_info course_slug=course.slug %}">back</a>
+<a class="back" href="{% url mobile.views.course_info course_slug=course.slug %}">back</a>
 {% endblock %}
 
 {% block standardview %}{% endblock %}

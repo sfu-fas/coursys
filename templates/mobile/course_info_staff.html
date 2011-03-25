@@ -6,7 +6,7 @@
 {{course.subject}} {{course.number}} {{course.section}} {% endblock %}
 {% block content%}
 
-<a href ="{% url mobile.views.index %}">back</a>
+<a class="back" href="{% url mobile.views.index %}">back</a>
 
 <div class="datatable_container">
 
@@ -55,5 +55,5 @@
   </form>
 </div>
     
-<a href ="{% url mobile.views.index %}">back</a>
+<a class="back" href="{% url mobile.views.index %}">back</a>
 {% endblock %}

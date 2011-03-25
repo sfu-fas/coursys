@@ -38,6 +38,14 @@ def _display_membership(m, today, student_cutoff):
 
 @login_required
 def index(request):
+    # if a mobile device request for a non-mobile page
+    # check the cookie, continue only when 'no-mobile' is set to 'Yes'
+    if request.is_mobile:
+        if "no-mobile" in request.COOKIES and request.COOKIES["no-mobile"] == "Yes":
+            pass
+        else:
+            return HttpResponseRedirect(reverse('mobile.views.index'))
+        
     userid = request.user.username
     memberships = _get_memberships(userid)
     news_list = _get_news_list(userid, 5)

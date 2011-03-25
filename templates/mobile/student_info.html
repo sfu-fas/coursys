@@ -11,7 +11,7 @@ Student: {{ student.person.first_name}}&nbsp;{{ student.person.last_name}}
 
 {% block content%}
 
-<a href ="{% url mobile.views.course_info course_slug=course.slug %}">back</a>
+<a class="back" href="{% url mobile.views.course_info course_slug=course.slug %}">back</a>
 
 <div class="datatable_container">
     {% for activity_info in activities_info %}
@@ -34,6 +34,6 @@ Student: {{ student.person.first_name}}&nbsp;{{ student.person.last_name}}
     {% endfor %}
 </div>
 
-<a href ="{% url mobile.views.course_info course_slug=course.slug %}">back</a>
+<a class="back" href="{% url mobile.views.course_info course_slug=course.slug %}">back</a>
 
 {% endblock %}

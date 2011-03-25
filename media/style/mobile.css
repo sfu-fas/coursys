@@ -1,3 +1,17 @@
+#sysmenu {
+    float:right;
+    line-height:2em;
+    padding-right: 0.5em;
+    color: white
+}
+#sysmenu a {
+    color: white;
+}
+
+a.back {
+    float: right;
+}
+
 #absWrapper {
     border-top: 2em solid #B5111A;
 }
@@ -12,6 +26,11 @@
 #container a {
     color: #0054A6;
     text-decoration: none;
+}
+
+#footer {
+    clear: right;
+    padding-top: 1em;
 }
 
 /* styles of titles, texts, etc. */

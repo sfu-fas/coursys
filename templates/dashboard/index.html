@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load markup %}
+{% load mobile_tags %}
 
 {% block headextra %}<script type="text/javascript">
 //<![CDATA[
@@ -32,6 +33,11 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
+
+{% if request.is_mobile %}
+    <div>Browsing on a mobile device? <a href="{{ request.REQUEST.url|mobilize_url }}">Visit our mobile site.</a></div>
+{% endif %}
+
 {% if news_list%}
 <div id="newsitems">
 <h2>Latest news</h2>
@@ -61,5 +67,7 @@ $(document).ready(function() {
   {% endfor %}
   </ul>
 {% endfor %}
+
+
 
 {% endblock %}
