@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, NumericGrade,LetterGrade,LETTER_GRADE_CHOICES
 from grades.models import all_activities_filter, neaten_activity_positions
 #from submission.models import SubmissionComponent, COMPONENT_TYPES
-from coredata.models import Semester
+from coredata.models import Semester, Member
 from groups.models import Group, GroupMember
 from datetime import datetime
 from django.db.models import Q
@@ -12,7 +12,7 @@ from submission.models import select_all_components
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from autoslug import AutoSlugField
-import os.path
+import os.path, decimal
 
 MarkingSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
@@ -450,4 +450,102 @@ def copyCourseSetup(course_copy_from, course_copy_to):
 #        activity.exam_activity = Activity.objects.get(offering=course_copy_to, name=related_exam.name)
 #        activity.save()
          
+
+
+from django.forms import ValidationError
+def activity_marks_from_JSON(activity, userid, data):
+    """
+    Build ActivityMark and ActivityComponentMark objects from imported JSON data.
     
+    Return two lists: all ActivityMarks and all ActivityComponentMark *not yet saved*.
+    StudentActivityMark.numeric_activity also not yet saved.
+    """
+    if not isinstance(data, list):
+        raise ValidationError(u'Outer JSON data structure must be an array.')
+
+    # All the ActivityMark and ActivityComponentMark objects get built here:
+    # we basically have to do this work to validate anyway.
+    components = ActivityComponent.objects.filter(numeric_activity=activity, deleted=False)
+    components = dict((ac.slug, ac) for ac in components)
+    activity_marks = []
+    activity_component_marks = []
+    for markdata in data:
+        if not isinstance(markdata, dict):
+            raise ValidationError(u'Elements of array must be JSON objects.')
+
+        # build the ActivityMark object and populate as much as possible for now.
+        if activity.group and 'group' in markdata:
+            # GroupActivityMark
+            group = Group.objects.get(slug=markdata['group'], courseoffering=activity.offering)
+            am = GroupActivityMark(activity=activity, numeric_activity=activity, group=group, created_by=userid)
+            recordid = markdata['group']
+
+        elif 'userid' in markdata:
+            # StudentActivityMark
+            try:
+                member = Member.objects.get(person__userid=markdata['userid'], offering=activity.offering, role="STUD")
+            except Member.DoesNotExist:
+                raise ValidationError(u'Userid %s not in course.' % (markdata['userid']))
+
+            grades = NumericGrade.objects.filter(activity=activity, member=member)
+            if grades:
+                numeric_grade = grades[0]
+                numeric_grade.flag = "GRAD"
+            else:
+                numeric_grade = NumericGrade(activity=activity, member=member, flag="GRAD")
+
+            am = StudentActivityMark(activity=activity, numeric_grade=numeric_grade, created_by=userid)
+            recordid = markdata['userid']
+        else:
+            raise ValidationError(u'Must specify "userid" or "group" for mark.')
+
+        activity_marks.append(am)
+
+        # build ActivityComponentMarks
+        found_comp_slugs = set()
+        mark_total = 0
+        for slug in markdata:
+            if slug in ['userid', 'group']:
+                continue
+
+            if slug in components and slug not in found_comp_slugs:
+                comp = components[slug]
+                found_comp_slugs.add(slug)
+            elif slug in components:
+                # shouldn't happend because JSON lib forces unique keys, but let's be extra safe...
+                raise ValidationError(u'Multiple values given for "%s" in record for "%s".' % (slug, recordid))
+            else:
+                raise ValidationError(u'Mark component "%s" not found in record for "%s".' % (slug, recordid))
+
+            cm = ActivityComponentMark(activity_mark=am, activity_component=comp)
+            activity_component_marks.append(cm)
+
+            componentdata = markdata[slug]
+            if not isinstance(componentdata, dict):
+                raise ValidationError(u'Mark component data must be JSON object (in "%s" for "%s").' % (slug, recordid))
+
+            if 'mark' not in componentdata:
+                raise ValidationError(u'Must give "mark" for "%s" in record for "%s".' % (comp.title, recordid))
+            #try:
+            value = decimal.Decimal(str(componentdata['mark']))
+
+            cm.value = value
+            mark_total += float(componentdata['mark'])
+            if 'comment' in componentdata:
+                cm.comment = unicode(componentdata['comment'])
+
+        for slug in set(components.keys()) - found_comp_slugs:
+            # handle missing components
+            cm = ActivityComponentMark(activity_mark=am, activity_component=components[slug])
+            activity_component_marks.append(cm)
+            cm.value = decimal.Decimal(0)
+            cm.comment = ''
+        
+        # put the total mark in place
+        am.mark = decimal.Decimal(str(mark_total))
+        if isinstance(am, StudentActivityMark):
+            am.numeric_grade.value = decimal.Decimal(str(mark_total))
+
+
+    return (activity_marks, activity_component_marks)
+

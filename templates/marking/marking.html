@@ -33,7 +33,7 @@ function append_problem(n, content)
 	     <fieldset>
 	     <legend>{{entry.component.title}}</legend> 
 		     <ul class = "component">
-		        <li>{{entry.component.description}}</li>
+		        <li>{{entry.component.description|linebreaks}}</li>
 		        <li class="component_mark"> 
 		        	Mark {{entry.form.value}} Out of {{entry.component.max_mark}}
 		        	{% if entry.form.value.errors %}		        	

@@ -1378,5 +1378,52 @@ def _compose_imported_grades(file, students_qset, data_to_return):
     return None   
 
 
+
+@requires_course_staff_by_slug
+def import_marks(request, course_slug, activity_slug):
+    """
+    Import JSON marking data
+    """
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    acts = all_activities_filter(course, slug=activity_slug)
+    if len(acts) != 1:
+        raise Http404('No such Activity.')
+    activity = acts[0]
+    
+    if request.method == 'POST':
+        form = ImportMarkFileForm(data=request.POST, files=request.FILES, activity=activity, userid=request.user.username)
+        if form.is_valid():
+            # validation function builds all the objects we need: just save them now.
+            ams, amcs = form.cleaned_data['file']
+            count = 0
+            for am in ams:
+                if isinstance(am, StudentActivityMark):
+                    am.numeric_grade.save()
+                    am.numeric_grade_id = am.numeric_grade.id
+                am.save()
+                count += 1
+            for amc in amcs:
+                amc.activity_mark_id = amc.activity_mark.id
+                amc.save()
             
-        
+            #LOG EVENT
+            l = LogEntry(userid=request.user.username,
+                  description=("Imported sets fo %i mark data for %s in %s") % (count, activity, course),
+                  related_object=activity)
+            l.save()                  
+           
+            messages.add_message(request, messages.SUCCESS, "Successfully imported %i marks." % (count))
+            
+            return _redirct_response(request, course_slug, activity_slug)
+    else:
+        form = ImportMarkFileForm(activity=activity, userid=request.user.username)
+    
+    groups = None
+    if activity.group:
+        # collect groups so we can report slugs
+        groups = set((gm.group for gm in GroupMember.objects.filter(activity=activity)))
+    
+    components = ActivityComponent.objects.filter(numeric_activity=activity, deleted=False)
+    context = {'course': course, 'activity': activity, 'components': components, 'groups': groups, 'form': form}
+    return render_to_response("marking/import_marks.html", context, context_instance=RequestContext(request))
+

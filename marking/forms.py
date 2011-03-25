@@ -3,7 +3,7 @@ from django.forms import ModelForm
 from django import forms
 from django.forms.models import BaseModelFormSet
 from grades.models import FLAG_CHOICES, CalNumericActivity,LETTER_GRADE_CHOICES_IN
-
+import json
 
 class ActivityComponentMarkForm(ModelForm):
     
@@ -149,10 +149,38 @@ class ImportFileForm(forms.Form):
     file = forms.FileField(required=True)
     def clean_file(self):        
         file = self.cleaned_data['file']
+
         if file != None and (not file.name.endswith('.json')) and\
            (not file.name.endswith('.JSON')):
             raise forms.ValidationError(u"Only .json files are permitted")
-        return file    
+        return file
+
+class ImportMarkFileForm(forms.Form):
+    file = forms.FileField(required=True)
+
+    def __init__(self, activity, userid, *args, **kwargs):
+        super(ImportMarkFileForm, self).__init__(*args, **kwargs)
+        self.activity = activity
+        self.userid = userid
+    
+    def clean_file(self):        
+        file = self.cleaned_data['file']
+
+        if file != None and (not file.name.endswith('.json')) and\
+           (not file.name.endswith('.JSON')):
+            raise forms.ValidationError(u"Only .json files are permitted")
+        
+        try:
+            data = file.read().decode('utf-8')
+        except UnicodeDecodeError:
+            raise forms.ValidationError(u"Bad UTF-8 data in file.")
+        
+        try:
+            data = json.loads(data)
+        except ValueError as e:
+            raise forms.ValidationError(u'JSON decoding error.  Exception was: "' + str(e) + '"')
+
+        return activity_marks_from_JSON(self.activity, self.userid, data)
 
 
 from django.utils.safestring import mark_safe
