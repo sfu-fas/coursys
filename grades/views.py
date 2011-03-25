@@ -366,6 +366,7 @@ def edit_cutoffs(request, course_slug, activity_slug):
            d=form.cleaned_data['d'] 
            f=0     
            cutoffs=[ap,a,am,bp,b,bm,cp,c,cm,d,f]
+           activity.letter_cutoffs=cutoffs
            #_populate_activity_from_formdata(activity, form.cleaned_data)
            #activity.save()
            #LOG EVENT#
@@ -377,10 +378,10 @@ def edit_cutoffs(request, course_slug, activity_slug):
            messages.success(request, "Cutoffs of %s updated" % activity.name)
     else:
        form=CutoffForm()
-    context = {'course': course, 'activity': activity, 'form_type': FORMTYPE['edit'], 'cutoff':form}
-    
-    #return HttpResponse(cutoff)
-    return render_to_response('grades/edit_cutoffs.html', context, context_instance=RequestContext(request))
+    #context = {'course': course, 'activity': activity, 'form_type': FORMTYPE['edit'], 'cutoff':form}
+    cutoffs=activity.get_cutoffs()
+    return HttpResponse(cutoffs)
+    #return render_to_response('grades/edit_cutoffs.html', context, context_instance=RequestContext(request))
 
 @requires_course_staff_by_slug
 def add_numeric_activity(request, course_slug):
@@ -674,6 +675,8 @@ def _populate_activity_from_formdata(activity, data):
             activity.exam_activity = Activity.objects.get(pk=data['exam_activity'])
         except Activity.DoesNotExist:
             activity.exam_activity = None
+    if data.has_key('ap'):
+        activity.letter_cutoffs['ap'] = data['ap']
 
 
 @requires_course_staff_by_slug
