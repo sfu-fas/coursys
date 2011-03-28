@@ -584,6 +584,24 @@ def calculate_all(request, course_slug, activity_slug):
     return HttpResponseRedirect(activity.get_absolute_url())
 
 @requires_course_staff_by_slug
+def calculate_all_lettergrade(request, course_slug, activity_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(CalLetterActivity, slug=activity_slug, offering=course, deleted=False)
+    
+    try:
+        ignored = calculate_letter_grade(course,activity)
+        if ignored==1:
+            messages.warning(request, "Did not calculate letter grade for 1 manually-graded student.")
+        elif ignored>1:
+            messages.warning(request, "Did not calculate letter grade for %i manually-graded students." % (ignored))
+    except ValidationError as e:
+        messages.error(request, e.args[0])
+    except NotImplementedError:
+        return NotFoundResponse(request)
+
+    return HttpResponseRedirect(activity.get_absolute_url())
+
+@requires_course_staff_by_slug
 def calculate_individual(request, course_slug, activity_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(CalNumericActivity, slug=activity_slug, offering=course, deleted=False)

@@ -4,7 +4,7 @@ This module collects classes and functions that are for the display purpose of G
 
 from grades.models import Activity, NumericActivity, LetterActivity, NumericGrade, \
                           LetterGrade, all_activities_filter, ACTIVITY_TYPES, FLAGS, \
-                          CalNumericActivity, median_letters, min_letters, max_letters,sorted_letters
+                          CalNumericActivity,CalLetterActivity, median_letters, min_letters, max_letters,sorted_letters
 from coredata.models import CourseOffering, Member
 from grades.formulas import parse, activities_dictionary, cols_used, eval_parse, EvalException
 from pyparsing import ParseException
@@ -460,9 +460,7 @@ def calculate_letter_grade(course, activity):
     if not isinstance(activity, CalLetterActivity):
         raise TypeError('CalLetterActivity type is required')
  # calculate for all student
-    student_list = Member.objects.filter(offering=course, role='STUD')
-    letter_grade_list = LetterGrade.objects.filter(activity = activity).select_related('member')
-    
+    student_list = Member.objects.filter(offering=course, role='STUD')   
     ignored = 0
     for s in student_list:
         # calculate grade
@@ -488,13 +486,18 @@ def calculate_letter_grade(course, activity):
     return ignored
 
 def generate_lettergrades(s,activity):
+    cutoffs=activity.get_cutoffs()
+    numeric_source=activity.numeric_activity
+    exam_activity=activity.exam_activity
     
+    if exam_activity.value==0:
+       letter_grade='N'
 
 
 
 
 
-    return 0
+    return letter_grade
 ###############################################################################################################   
 def format_number(value, decimal_places):
     """
