@@ -1,7 +1,10 @@
 from django.db import models
-from coredata.models import Person, Role, Semester, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES 
+from coredata.models import Person, Role, Semester, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES, Member
 from django.forms import ModelForm
 from autoslug import AutoSlugField
+from dashboard.models import *
+from django.core.urlresolvers import reverse
+
 
 class Course(models.Model):
     """
@@ -74,14 +77,32 @@ class SemesterPlan(models.Model):
     active = models.BooleanField(default = False, help_text="The currently-active plan for this semester.")
     slug = AutoSlugField(populate_from='name', null=False, editable=False, unique_with='semester')
 
+    def get_absolute_url(self):
+        return reverse('planning.views.semester_plan_index')
+
+
     def save(self, *args, **kwargs):
         super(SemesterPlan, self).save(*args, **kwargs)
         if self.active:
-            other_plans = SemesterPlan.objects.filter(semester = self.semester, active = True).exclude(pk = self.id)
+            other_plans = SemesterPlan.objects.filter(semester=self.semester, active=True).exclude(pk = self.id)
             for other_plan in other_plans:
 	        other_plan.active = False
                 super(SemesterPlan, other_plan).save(*args, **kwargs)
-     
+            
+            if self.visibility == 'ADMI':
+                mem_list = Role.objects.filter(role='PLAN').order_by('person')
+            elif self.visibility == 'INST':
+                mem_list = Role.objects.filter(role__in=['FAC', 'SESS', 'PLAN']).order_by('person')
+            elif self.visibility == 'ALL':
+                mem_list = Member.objects.filter().order_by('person')
+
+            prev_mem = None
+            for i in mem_list:
+                if i.person != prev_mem:
+                    n = NewsItem(user=i.person, author=None, source_app="planning", title="Semester plan: %s for %s is available" % (self.name, self.semester), content="%s for %s has been released" % (self.name, self.semester), url=self.get_absolute_url())
+                    prev_mem = i.person
+                    n.save()
+
     class Meta:
         ordering = ['semester', 'name']
         unique_together = (('semester', 'name'),)

@@ -16,6 +16,7 @@ from django.template import Context, loader
 from django.db.models import query
 from django.core.files.uploadedfile import SimpleUploadedFile
 from datetime import datetime
+from dashboard.models import *
 
 @requires_instructor
 def instructor_index(request):

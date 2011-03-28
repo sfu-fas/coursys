@@ -21,7 +21,7 @@
 <div id="intention" class="table_container">
 	<h2>Teaching Intention</h2>
 
-		<table class = "info">
+		<table class = "inst_table">
 			<tbody>
 				<tr>
 					<th>Semester</th>
@@ -34,7 +34,7 @@
 				<td>{{ intention.semester.label }}</td>
 				<td>{{ intention.count }}</td>
 				<td>{{ intention.note|linebreaks }}</td>
-				<td><a href="">Course Schedule</a></td>
+				<td><a href="{% url planning.views.semester_plan_index %}">Course Schedule</a></td>
 			{%endfor%}
 				</tr>
 

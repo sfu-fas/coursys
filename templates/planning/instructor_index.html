@@ -27,7 +27,7 @@
 	<h2>Teachable Courses</h2>
 	<p>This should be a complete list of courses you are able to teach.</p>
     
-		<table class = "info">
+		<table class = "inst_table">
 			<tbody>
 				<tr>
 					<th>Course</th>
@@ -45,7 +45,7 @@
 	<h2>Semester Plans</h2>
 	<p>This should be a list of the number of courses you intend to teach in upcoming semesters.</p>
 
-		<table class = "info">
+		<table class = "inst_table">
 			<tbody>
 				<tr>
 					<th>Semester</th>
@@ -56,7 +56,7 @@
 			<tr>
 				<td>{{ intention.semester.label }}</td>
 				<td>{{ intention.count }}</td>
-				<td><a href="">Course Schedule</a></td>
+				<td><a href="{% url planning.views.semester_plan_index %}">Course Schedule</a></td>
 			{%endfor%}
 				</tr>
 
