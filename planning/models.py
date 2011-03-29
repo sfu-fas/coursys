@@ -96,12 +96,10 @@ class SemesterPlan(models.Model):
             elif self.visibility == 'ALL':
                 mem_list = Member.objects.filter().order_by('person')
 
-            prev_mem = None
-            for i in mem_list:
-                if i.person != prev_mem:
-                    n = NewsItem(user=i.person, author=None, source_app="planning", title="Semester plan: %s for %s is available" % (self.name, self.semester), content="%s for %s has been released" % (self.name, self.semester), url=self.get_absolute_url())
-                    prev_mem = i.person
-                    n.save()
+            mem_set = set([i.person for i in mem_list])
+            for m in mem_set:
+                n = NewsItem(user=m, author=None, source_app="planning", title="Semester plan: %s for %s is available" % (self.name, self.semester), content="%s for %s has been released" % (self.name, self.semester), url=self.get_absolute_url())
+                n.save()
 
     class Meta:
         ordering = ['semester', 'name']
