@@ -1274,7 +1274,7 @@ ul {
 .hidden {
     display: none;
 }
-
+/* This is for the form in edit.html page */
 table.cutoffs thead th {
   border: 0;
 }

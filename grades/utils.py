@@ -447,7 +447,6 @@ def fetch_students_letter_grade(activity):
     
     return student_grade_list
 
-######################################################################################################t
 def calculate_letter_grade(course, activity):
     """
     Calculate all the student's grade in the course's CalletterActivity.
@@ -459,13 +458,17 @@ def calculate_letter_grade(course, activity):
         raise TypeError('CourseOffering type is required')
     if not isinstance(activity, CalLetterActivity):
         raise TypeError('CalLetterActivity type is required')
- # calculate for all student
-    student_list = Member.objects.filter(offering=course, role='STUD')   
+
+ # calculate for all student
+    student_list = Member.objects.filter(offering=course, role='STUD')
+    letter_grade_list = LetterGrade.objects.filter(activity = activity).select_related('member') 
+   
     ignored = 0
     for s in student_list:
         # calculate grade
 
-        result = generate_lettergrades(s,activity)
+        result = generate_lettergrades(s,activity)
+
         
         # save grade
         member_found = False
@@ -486,17 +489,18 @@ def calculate_letter_grade(course, activity):
     return ignored
 
 def generate_lettergrades(s,activity):
+    """
     cutoffs=activity.get_cutoffs()
     numeric_source=activity.numeric_activity
     exam_activity=activity.exam_activity
     
-    if exam_activity.value==0:
-       letter_grade='N'
-
-
-
-
-
+    grade = NumericGrade.objects.filter(activity=exam_activity,member=s)
+    
+    #if grade.flag=='NOGR':
+    letter_grade='N'
+    #else :
+    letter_grade='A'
+    """
     return letter_grade
 ###############################################################################################################   
 def format_number(value, decimal_places):
