@@ -499,23 +499,23 @@ def generate_lettergrades(s,activity):
 
     if len(exam_grade)==0:
        letter_grade='N'
-    elif grade[0].value>cutoffs[0]:
+    elif grade[0].value>=cutoffs[0]:
        letter_grade='A+'
-    elif grade[0].value>cutoffs[1]:
+    elif grade[0].value>=cutoffs[1]:
        letter_grade='A'
-    elif grade[0].value>cutoffs[2]:
+    elif grade[0].value>=cutoffs[2]:
        letter_grade='A-'
-    elif grade[0].value>cutoffs[3]:
+    elif grade[0].value>=cutoffs[3]:
        letter_grade='B+'
-    elif grade[0].value>cutoffs[4]:
+    elif grade[0].value>=cutoffs[4]:
        letter_grade='B'
-    elif grade[0].value>cutoffs[5]:
+    elif grade[0].value>=cutoffs[5]:
        letter_grade='B-'
-    elif grade[0].value>cutoffs[6]:
+    elif grade[0].value>=cutoffs[6]:
        letter_grade='C+'
-    elif grade[0].value>cutoffs[7]:
+    elif grade[0].value>=cutoffs[7]:
        letter_grade='C-'
-    elif grade[0].value>cutoffs[8]:
+    elif grade[0].value>=cutoffs[8]:
        letter_grade='D'
     else:
        letter_grade='F'
