@@ -662,8 +662,8 @@ def _create_activity_formdatadict(activity):
     if isinstance(activity, CalNumericActivity):
         data['formula'] = activity.formula
     if isinstance(activity, CalLetterActivity):
-        data['numeric_activity'] = activity.numeric_activity
-        data['exam_activity'] = activity.exam_activity
+        data['numeric_activity'] = activity.numeric_activity_id
+        data['exam_activity'] = activity.exam_activity_id
     return data
 
 

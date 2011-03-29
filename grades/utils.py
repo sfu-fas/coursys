@@ -494,12 +494,31 @@ def generate_lettergrades(s,activity):
     numeric_source = activity.numeric_activity
     exam_activity=activity.exam_activity
     ap=cutoffs[0]
-    grade = NumericGrade.objects.filter(activity=numeric_source, member=s)
-    
-    if len(grade)==0:
+    exam_grade = NumericGrade.objects.filter(activity=exam_activity, member=s) or LetterGrade.objects.filter(activity=exam_activity, member=s) 
+    grade=NumericGrade.objects.filter(activity=numeric_source, member=s)
+
+    if len(exam_grade)==0:
        letter_grade='N'
-    elif decimal.Decimal(grade[0].value)<ap :
-       letter_grade=grade[0].value
+    elif grade[0].value>cutoffs[0]:
+       letter_grade='A+'
+    elif grade[0].value>cutoffs[1]:
+       letter_grade='A'
+    elif grade[0].value>cutoffs[2]:
+       letter_grade='A-'
+    elif grade[0].value>cutoffs[3]:
+       letter_grade='B+'
+    elif grade[0].value>cutoffs[4]:
+       letter_grade='B'
+    elif grade[0].value>cutoffs[5]:
+       letter_grade='B-'
+    elif grade[0].value>cutoffs[6]:
+       letter_grade='C+'
+    elif grade[0].value>cutoffs[7]:
+       letter_grade='C-'
+    elif grade[0].value>cutoffs[8]:
+       letter_grade='D'
+    else:
+       letter_grade='F'
     
     return  letter_grade
 ###############################################################################################################   
