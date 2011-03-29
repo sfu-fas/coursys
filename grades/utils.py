@@ -494,14 +494,14 @@ def generate_lettergrades(s,activity):
     numeric_source = activity.numeric_activity
     exam_activity=activity.exam_activity
     
-    grade = NumericGrade.objects.filter(activity=numeric_source)
+    grade = NumericGrade.objects.get(activity=exam_activity, member=s)
     
     #if grade.flag=='NOGR':
     #letter_grade='N'
     #else :
     #letter_grade='A'
     
-    return  numeric_source
+    return  grade.flag
 ###############################################################################################################   
 def format_number(value, decimal_places):
     """
