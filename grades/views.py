@@ -494,8 +494,8 @@ def add_cal_letter_activity(request, course_slug):
                                                 short_name=form.cleaned_data['short_name'],
                                                 status=form.cleaned_data['status'],
                                                 url=form.cleaned_data['url'],
-                                                #numeric_activity=form.cleaned_data['numeric_activity'],
-                                                #exam_activity=form.cleaned_data['exam_activity'],
+                                                numeric_activity=NumericActivity.objects.get(pk=form.cleaned_data['numeric_activity']),
+                                                exam_activity=Activity.objects.get(pk=form.cleaned_data['exam_activity']),
                                                 offering=course, 
                                                 position=position,
                                                 group=False)
@@ -662,9 +662,11 @@ def _create_activity_formdatadict(activity):
     if isinstance(activity, CalNumericActivity):
         data['formula'] = activity.formula
     if isinstance(activity, CalLetterActivity):
-        data['numeric_activity'] = activity.numeric_activity_id
-        data['exam_activity'] = activity.exam_activity_id
+        data['numeric_activity'] = activity.numeric_activity
+        data['exam_activity'] = activity.exam_activity
     return data
+
+
 
 def _populate_activity_from_formdata(activity, data):
     if not [activity for activity_type in ACTIVITY_TYPES if isinstance(activity, activity_type)]:
@@ -694,8 +696,7 @@ def _populate_activity_from_formdata(activity, data):
             activity.exam_activity = Activity.objects.get(pk=data['exam_activity'])
         except Activity.DoesNotExist:
             activity.exam_activity = None
-    if data.has_key('ap'):
-        activity.letter_cutoffs['ap'] = data['ap']
+
 
 
 @requires_course_staff_by_slug

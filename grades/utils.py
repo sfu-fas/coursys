@@ -489,19 +489,19 @@ def calculate_letter_grade(course, activity):
     return ignored
 
 def generate_lettergrades(s,activity):
-    """
+    
     cutoffs=activity.get_cutoffs()
-    numeric_source=activity.numeric_activity
+    numeric_source = activity.numeric_activity
     exam_activity=activity.exam_activity
     
-    grade = NumericGrade.objects.filter(activity=exam_activity,member=s)
+    grade = NumericGrade.objects.filter(activity=numeric_source)
     
     #if grade.flag=='NOGR':
-    letter_grade='N'
+    #letter_grade='N'
     #else :
-    letter_grade='A'
-    """
-    return letter_grade
+    #letter_grade='A'
+    
+    return  numeric_source
 ###############################################################################################################   
 def format_number(value, decimal_places):
     """
