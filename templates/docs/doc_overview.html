@@ -23,9 +23,13 @@
 <p>See the <a href="{% url dashboard.views.view_doc doc_slug='submission' %}">assignment submission documentation</a> for more information.</p>
 
 <h2 id="marking">Assignment Marking</h2>
-
+<p>The &ldquo;marking&rdquo; features allow the instructor (or TAs) to set up a marking scheme (or &ldquo;<a href="http://en.wikipedia.org/wiki/Rubric_%28academic%29">rubric</a>&rdquo;) for an activity.</p>
+<p>Each part of the activity will be a <dfn>component</dfn> of the marking scheme.  For each component, the instructor will give a description of what is expected and a maximum mark.</p>
+<p>Then the TA (or instructor) can mark each student against that marking scheme, giving a mark and comment on each component.</p>
+<p>This is used to calculate the student's mark on the activity.  When grades are released, students will be able to see the marking scheme, with their marks and comments as feedback on their work.</p>
 
 <h2 id="groups">Groups</h2>
-
+<p>All of the above can be based on either individual work or group work.  If a &ldquo;group&rdquo; activity is created, student will be able to form groups for each activity (or for keep groups across multiple activities if desired).  Instructors and TAs can manage groups as well, adding and removing members if necessary.</p>
+<p>Student can then submit and receive marks as a group.</p>
 
 {% endblock %}
