@@ -537,7 +537,7 @@ def format_number(value, decimal_places):
 class ValidationError(Exception):
     pass
 
-def parse_and_validate_formula(formula, numeric_activities):
+def parse_and_validate_formula(formula, course, activity, numeric_activities):
     """
     Handy function to parse the formula and validate if the activity references
     in the formula are in the numeric_activities list
@@ -545,18 +545,18 @@ def parse_and_validate_formula(formula, numeric_activities):
     
     May raise exception: ParseException, ValidateError
     """
-    for activity in numeric_activities:
-        if not isinstance(activity, NumericActivity):
+    for a in numeric_activities:
+        if not isinstance(a, NumericActivity):
             raise TypeError(u'NumericActivity list is required')
     try:
-        parsed_expr = parse(formula)
+        parsed_expr = parse(formula, course, activity)
         activities_dict = activities_dictionary(numeric_activities)
         cols = set([])
         cols = cols_used(parsed_expr)
         for col in cols:
             if not col in activities_dict:
                 raise ValidationError(u'Invalid activity reference')
-    except ParseException:
+    except ParseException as e:
         raise ValidationError(u'Incorrect formula syntax')
     return parsed_expr
 
@@ -575,7 +575,7 @@ def calculate_numeric_grade(course, activity, student=None):
     numeric_activities = NumericActivity.objects.filter(offering=course, deleted=False)
     act_dict = activities_dictionary(numeric_activities)
     try:
-        parsed_expr = parse_and_validate_formula(activity.formula, numeric_activities)
+        parsed_expr = parse_and_validate_formula(activity.formula, activity.offering, activity, numeric_activities)
     except ValidationError as e:
         raise ValidationError('Formula Error: ' + e.args[0])
         
@@ -597,7 +597,7 @@ def calculate_numeric_grade(course, activity, student=None):
     for s in student_list:
         # calculate grade
         try:
-            result = eval_parse(parsed_expr, act_dict, s, activity.status=="RLS")
+            result = eval_parse(parsed_expr, activity, act_dict, s, activity.status=="RLS")
             result = decimal.Decimal(str(result)) # convert to decimal
         except EvalException:
             raise EvalException("Formula Error: Can not evaluate formula for student: '%s'" % s.person.name())

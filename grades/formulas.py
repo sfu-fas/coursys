@@ -13,6 +13,7 @@
 
 from pyparsing import ParseException
 import itertools
+from grades.models import NumericActivity
 
 class EvalException(Exception):
     pass
@@ -48,6 +49,17 @@ def create_parser():
         else:
 	    return ("col", set([col]), col, 'val')
 
+    def actionflag_parse(toks):
+        """
+        Parse the {activitytotal} special case
+        """
+        flag = toks[0][0]
+        if flag == 'activitytotal':
+            # dependant activity True is a flag meaning "everything": fixed later.
+            return ("flag", set([True]), flag)
+    
+        raise ParseException, "Unknown flag ({...})."
+
     def real_parse(toks):
 	return ("num", set(), float(''.join(toks)))
 
@@ -78,12 +90,13 @@ def create_parser():
     number = (real | integer).setParseAction(real_parse) # all numbers treated as floats to avoid integer arithmetic rounding
 
     # Allow anything except ']' in column names.  Let the limitations on sane column names be enforced somewhere else.
+    actionflag = Group(Suppress('{') + CharsNotIn('}') + Suppress('}') ).setParseAction(actionflag_parse)
     column = Group(Suppress('[') + CharsNotIn(']') + Suppress(']') ).setParseAction(column_parse)
     expr = Forward()
     function_name = ( CaselessLiteral("SUM") | CaselessLiteral("AVG") | CaselessLiteral("MAX")
             | CaselessLiteral("MIN") | CaselessLiteral("BEST") )
     function = Group(function_name + Suppress('(') + delimitedList(expr) + Suppress(')')).setParseAction(func_parse)
-    operand = number | column | function
+    operand = number | column | function | actionflag
 
     signop = Literal("+") | Literal("-")
     multop = Literal("*") | Literal("/")
@@ -100,11 +113,26 @@ def create_parser():
 
 parser = create_parser()
 
-def parse(expr):
+def fix_used_acts(parsed, course, activity):
+    """
+    Fix the list of used activities: True is a flag for "all other activities that contribute to final percent"
+    """
+    acts = parsed[1]
+    if True in acts:
+        acts.remove(True)
+        all_na = NumericActivity.objects.filter(offering=course, percent__gt=0).exclude(deleted=True)
+        if activity is None:
+            acts.update([a.short_name for a in all_na])
+        else:
+            acts.update([a.short_name for a in all_na if a.id != activity.id])
+
+def parse(expr, course, activity):
     """
     Parse expression and return parse tree.
     """
-    return parser.parseString(expr)[0]
+    parsed = parser.parseString(expr)[0]
+    fix_used_acts(parsed, course, activity)
+    return parsed
 
 def cols_used(tree):
     """
@@ -137,7 +165,7 @@ def visible_grade(act, member, visible):
         return float(grade.value)
     
 
-def eval_parse(tree, act_dict, member, visible):
+def eval_parse(tree, activity, act_dict, member, visible):
     """
     Evaluate an expression given its parse tree and dictionary of column values.  "visible" indicates whether the activity in question is visible to students or not.
     
@@ -147,9 +175,9 @@ def eval_parse(tree, act_dict, member, visible):
     """
     t = tree[0]
     if t == 'sign' and tree[2] == '+':
-        return eval_parse(tree[3], act_dict, member, visible)
+        return eval_parse(tree[3], activity, act_dict, member, visible)
     elif t == 'sign' and tree[2] == '-':
-        return -eval_parse(tree[3], act_dict, member, visible)
+        return -eval_parse(tree[3], activity, act_dict, member, visible)
     elif t == 'col':
         act = act_dict[tree[2]]
         part = tree[3]
@@ -177,11 +205,11 @@ def eval_parse(tree, act_dict, member, visible):
         expr.pop() # remove the 'expr' marker
         expr.pop() # remove the column set
         # extract first term
-        val = eval_parse(expr.pop(), act_dict, member, visible)
+        val = eval_parse(expr.pop(), activity, act_dict, member, visible)
         while expr:
             # extract operator/operand pairs until they're all gone
             operator = expr.pop()
-            operand = eval_parse(expr.pop(), act_dict, member, visible)
+            operand = eval_parse(expr.pop(), activity, act_dict, member, visible)
             if operator == "+":
                 val += operand
             elif operator == "-":
@@ -196,25 +224,38 @@ def eval_parse(tree, act_dict, member, visible):
     elif t == 'func':
         func = tree[2]
         if func == 'SUM':
-            return sum(eval_parse(t, act_dict, member, visible) for t in tree[3:])
+            return sum(eval_parse(t, activity, act_dict, member, visible) for t in tree[3:])
         elif func == 'MAX':
-            return max(eval_parse(t, act_dict, member, visible) for t in tree[3:])
+            return max(eval_parse(t, activity, act_dict, member, visible) for t in tree[3:])
         elif func == 'MIN':
-            return min(eval_parse(t, act_dict, member, visible) for t in tree[3:])
+            return min(eval_parse(t, activity, act_dict, member, visible) for t in tree[3:])
         elif func == 'AVG':
-            return sum(eval_parse(t, act_dict, member, visible) for t in tree[3:]) / (len(tree)-3)
+            return sum(eval_parse(t, activity, act_dict, member, visible) for t in tree[3:]) / (len(tree)-3)
         elif func == 'BEST':
             # round first argument to an int: it's the number of best items to pick
-            n = int(round( eval_parse(tree[3], act_dict, member, visible) ) + 0.1)
+            n = int(round( eval_parse(tree[3], activity, act_dict, member, visible) ) + 0.1)
             if n < 1:
                 raise EvalException, 'Bad number of "best" selected, %i.'%(n,)
             if n > len(tree)-4:
                 raise EvalException, "Not enough arguments to choose %i best."%(n,)
-            marks = [eval_parse(t, act_dict, member, visible) for t in tree[4:]]
+            marks = [eval_parse(t, activity, act_dict, member, visible) for t in tree[4:]]
             marks.sort()
             return sum(marks[-n:])
         else:
             raise EvalException, "Unknown function in parse tree: %s"%(func,)
+    elif t == 'flag':
+        flag = tree[2]
+        if flag == 'activitytotal':
+            # total [activity.final] for all activities
+            total = 0.0
+            fix_used_acts(tree, activity.offering, activity)
+            for label in tree[1]:
+                act = act_dict[label]
+                grade = visible_grade(act, member, visible)
+                total += grade/float(act.max_grade) * float(act.percent)
+            return total
+        else:
+            raise EvalException, "Unknown flag in parse tree: %s"%(func,)
     else:
         raise EvalException, "Unknown element in parse tree: %s"%(tree,)
     

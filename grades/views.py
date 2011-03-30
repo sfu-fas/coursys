@@ -555,7 +555,7 @@ def formula_tester(request, course_slug):
             
 
         formula_form_entry = FormulaFormEntry(request.POST)
-        formula_form_entry.activate_form_entry_validation(course_slug)
+        formula_form_entry.activate_form_entry_validation(course_slug, activity)
         
         if not formula_form_entry.is_valid():
             has_error = True

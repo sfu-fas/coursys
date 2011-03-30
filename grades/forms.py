@@ -1,6 +1,7 @@
 from django import forms
 from django.conf import settings
-from grades.models import ACTIVITY_STATUS_CHOICES, NumericActivity, LetterActivity, Activity, NumericGrade, LetterGrade,ACTIVITY_TYPES, LETTER_GRADE_CHOICES
+from grades.models import ACTIVITY_STATUS_CHOICES, NumericActivity, LetterActivity, CalNumericActivity, Activity, NumericGrade, LetterGrade,ACTIVITY_TYPES, LETTER_GRADE_CHOICES
+from coredata.models import CourseOffering
 from django.utils.safestring import mark_safe
 import pickle
 from grades.formulas import parse, activities_dictionary, cols_used
@@ -192,17 +193,22 @@ class CalNumericActivityForm(ActivityForm):
     def activate_addform_validation(self, course_slug):
         super(CalNumericActivityForm, self).activate_addform_validation(course_slug)
         self._course_numeric_activities = NumericActivity.objects.filter(offering__slug=course_slug)
+        self.activity = None
+        self.course = CourseOffering.objects.get(slug=course_slug)
         
     def activate_editform_validation(self, course_slug, activity_slug):
         super(CalNumericActivityForm, self).activate_editform_validation(course_slug, activity_slug)
         self._course_numeric_activities = NumericActivity.objects.exclude(slug=activity_slug).filter(offering__slug=course_slug)
+        self.activity = CalNumericActivity.objects.get(offering__slug=course_slug, slug=activity_slug)
+        self.course = self.activity.offering
+    
     
     def clean_formula(self):
         formula = self.cleaned_data['formula']
         if formula:
             if self._addform_validate or self._editform_validate:
                 try:
-                    parse_and_validate_formula(formula, self._course_numeric_activities)
+                    parse_and_validate_formula(formula, self.course, self.activity, self._course_numeric_activities)
                 except ValidationError as e:
                     raise forms.ValidationError(e.args[0])
         return formula
@@ -247,16 +253,17 @@ class FormulaFormEntry(forms.Form):
         super(FormulaFormEntry, self).__init__(*args, **kwargs)
         self._form_entry_validate = False
     
-    def activate_form_entry_validation(self, course_slug):
+    def activate_form_entry_validation(self, course_slug, activity):
         self._form_entry_validate = True
         self._course_numeric_activities = NumericActivity.objects.filter(offering__slug=course_slug)
+        self.activity = activity
     
     def clean_formula(self):
         formula = self.cleaned_data['formula']
         if formula:
             if self._form_entry_validate:
                 try:
-                    parsed_expr = parse_and_validate_formula(formula, self._course_numeric_activities)
+                    parsed_expr = parse_and_validate_formula(formula, self.activity, self._course_numeric_activities)
                 except ValidationError as e:
                     raise forms.ValidationError(e.args[0])
                 else:
