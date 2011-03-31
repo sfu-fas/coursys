@@ -80,6 +80,8 @@ def _course_info_staff(request, course_slug):
     activities = all_activities_filter(offering=course)
     any_group = True in [a.group for a in activities]
     
+    raise KeyError, "foo"
+    
     # Non Ajax way to reorder activity, please also see reorder_activity view function for ajax way to reorder
     order = None  
     act = None  

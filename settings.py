@@ -9,7 +9,7 @@ DEPLOYED = hostname == 'courses'
 sys.path.append( os.path.join(os.path.dirname(__file__), 'external') )
 
 ADMINS = (
-    # ('Your Name', 'your_email@domain.com'),
+    ('Greg Baker', 'ggbaker@sfu.ca'),
 )
 
 MANAGERS = ADMINS
@@ -146,6 +146,7 @@ SESSION_COOKIE_AGE = 86400 # 24 hours
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 if DEPLOYED:
+    MIDDLEWARE_CLASSES = ('courselib.exception_middleware.ExceptionMiddleware',) + MIDDLEWARE_CLASSES
     SUBMISSION_PATH = '/home/ggbaker/submitted_files'
     CACHE_BACKEND = 'memcached://127.0.0.1:22122/'
     BASE_ABS_URL = "https://courses.cs.sfu.ca"
