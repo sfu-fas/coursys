@@ -9,7 +9,7 @@ DEPLOYED = hostname == 'courses'
 sys.path.append( os.path.join(os.path.dirname(__file__), 'external') )
 
 ADMINS = (
-    ('Greg Baker', 'ggbaker@sfu.ca'),
+    #('Greg Baker', 'ggbaker@sfu.ca'),
 )
 
 MANAGERS = ADMINS
