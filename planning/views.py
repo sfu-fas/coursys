@@ -425,7 +425,7 @@ def view_instructors(request, semester, plan_slug, course_id):
         data['instructor'] = i
         data['intention'] = TeachingIntention.objects.filter(instructor = i.instructor).order_by('semester')
         data['teachable'] = TeachingCapability.objects.filter(instructor = i.instructor).order_by('course')
-	data['current_courses'] = PlannedOffering.objects.filter(plan = semester_plan, instructor = i.instructor)
+	data['current_courses'] = PlannedOffering.objects.filter(plan = semester_plan, instructor = i.instructor, component="LEC")
         instructors.append(data)
 	
     return render_to_response("planning/view_instructors.html",{'semester_plan': semester_plan, 'course_info':course_info, 'instructor_list':instructor_list, 'instructors':instructors},context_instance=RequestContext(request))

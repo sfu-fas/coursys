@@ -4,35 +4,18 @@
 
 {% load markup %}
 
-{% block title %}Assign Instructors{% endblock %}
-{% block h1 %}Assign Instructors{% endblock %}
+{% block title %}Instructor for {{ course_info.course.subject }} {{ course_info.course.number }} {{ course_info.section }}{% endblock %}
+{% block h1 %}Instructor for {{ course_info.course.subject }} {{ course_info.course.number }} {{ course_info.section }}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li><li>&gt; <a href="{% url planning.views.assign_instructors semester=semester_plan.semester.name plan_slug=semester_plan.slug %}">{{ semester_plan.name }} in {{semester_plan.semester.label}}</a></li><li>&gt; Assign Instructors</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li><li>&gt; <a href="{% url planning.views.assign_instructors semester=semester_plan.semester.name plan_slug=semester_plan.slug %}">{{ semester_plan.name }} in {{semester_plan.semester.label}}</a></li><li>&gt; Instructor for {{ course_info.course.subject }} {{ course_info.course.number }} {{ course_info.section }}</li>{% endblock %}
 
 {% block actions %}
 {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
-$(document).ready(function() {
-  $('#courses').dataTable( {
-    'bPaginate': true,
-    'bInfo': true,
-    'bLengthChange': true,
-    "bJQueryUI": true,
-	"sPaginationType": "full_numbers",
-	"iDisplayLength" : 50
-  } );
-} );
-</script>
-
 <style type="text/css">
 <!--
-/* All id selectors are defined with 
-a pound symbol (#) before their name */
-
-#radio_style { text-align: center;}
-
+table.inst_table .radiocell { text-align: center;}
 -->
 </style>
 {% endblock %}
@@ -40,12 +23,14 @@ a pound symbol (#) before their name */
 
 {% block content %}
 
+<p><b>Semester plan</b>:  {{ semester_plan.name }} in {{ semester_plan.semester.label }} </p>
+<p><b>Currently Assigned Instructor</b>: {{ course_info.instructor }} </p>
+
 <div class="datatable_container">
 	
 	
-    <h2>{{ semester_plan.semester.label }} </br> {{ semester_plan.name }} </br> {{ course_info.course }} {{ course_info.section }} </h2>
+
 	
-	<h3> Current Assigned Instructor: {{ course_info.instructor }} </h3>
 	
 	<div id="form_container">
 	    <form action="{% url planning.views.submit_assigned_instructors semester=semester_plan.semester.name plan_slug=semester_plan.slug offering_id=course_info.id %}" method="post">{% csrf_token %}
@@ -62,7 +47,7 @@ a pound symbol (#) before their name */
 				</tr>
 				{% for data in instructors %}
 				<tr>
-					<td id=radio_style><input type="radio" name="instructor" value="{{data.instructor.instructor.userid}}" /></td>
+					<td class="radiocell"><input type="radio" name="instructor" value="{{data.instructor.instructor.userid}}" /></td>
 					<td>
 					{% if data.instructor.instructor = course_info.instructor %}	
 						<b>{{data.instructor.instructor}}</b>
@@ -74,11 +59,11 @@ a pound symbol (#) before their name */
 					{% if data.current_courses %}
 						{% for i in data.current_courses %}
 							{%  if i.course == course_info.course %}
-								<b>{{i.course.subject}} {{i.course.number}} {{i.get_component_display}}
-								</br></b>
+								<b>{{i.course.subject}} {{i.course.number}}</b>
+								<br/>
 							{% else %}
-								{{i.course.subject}} {{i.course.number}} {{i.get_component_display}}
-								</br>
+								{{i.course.subject}} {{i.course.number}}
+								<br/>
 							{% endif %}
 						{% endfor %}
 					{% else %}
@@ -90,15 +75,15 @@ a pound symbol (#) before their name */
 						{%  if i.course == course_info.course %}
 							<b>{{i.course.subject}} {{i.course.number}}
 							{% if i.note %}
-							( Note: {{i.note}} )
+							(Note: {{i.note}})
 							{% endif %}
-							</br></b>							
+							</b><br/>						
 						{% else %}
 							{{i.course.subject}} {{i.course.number}}
 							{% if i.note %}
-							( Note: {{i.note}} )
+							(Note: {{i.note}})
 							{% endif %}
-							</br>
+							<br/>
 						{% endif %}
 					{% endfor %}
 					</td>
@@ -108,23 +93,25 @@ a pound symbol (#) before their name */
 							<b>{{i.semester}}:
 							{{i.count}}
 							{% if i.note %}
-								( Note: {{i.note}} )
-							{% endif %}</br></b>
+								(Note: {{i.note}})
+							{% endif %}</b><br/>
 						{% else %}
 							{{i.semester}}:
 							{{i.count}}
 							{% if i.note %}
-								( Note: {{i.note}} )
+								(Note: {{i.note}})
 							{% endif %}
-							</br>
+							<br/>
 						{% endif %}
 					{% endfor %}
 					</td>
 				</tr>
 				{%endfor%}
 				{% if course_info.instructor %}
-					<td id=radio_style><input type="radio" name="instructor" value="None" /></td>
+				<tr>
+					<td class="radiocell"><input type="radio" name="instructor" value="None" /></td>
 					<td>Clear Assigned Instructor</td>
+				</tr>
 				{% endif %}
 		    </tbody>
 		</table>

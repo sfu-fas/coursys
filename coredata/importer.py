@@ -38,6 +38,7 @@ def decode(s):
     return s.decode('latin1')
 
 def create_semesters():
+    # http://students.sfu.ca/calendar/for_students/dates.html
     s = Semester.objects.filter(name="1094")
     if not s:
         s = Semester(name="1094", start=datetime.date(2009, 5, 4), end=datetime.date(2009, 8, 4))
@@ -91,6 +92,35 @@ def create_semesters():
         wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2011, 5, 9))
         wk.save()
 
+    s = Semester.objects.filter(name="1117")
+    if not s:
+        s = Semester(name="1117", start=datetime.date(2011, 9, 6), end=datetime.date(2011, 12, 5))
+        s.save()
+        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2011, 9, 5))
+        wk.save()
+
+    s = Semester.objects.filter(name="1121")
+    if not s:
+        s = Semester(name="1121", start=datetime.date(2012, 1, 5), end=datetime.date(2012, 4, 11))
+        s.save()
+        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2012, 1, 9))
+        wk.save()
+        wk = SemesterWeek(semester=s, week=6, monday=datetime.date(2012, 2, 20))
+        wk.save()
+
+    s = Semester.objects.filter(name="1124")
+    if not s:
+        s = Semester(name="1124", start=datetime.date(2012, 5, 7), end=datetime.date(2012, 8, 3))
+        s.save()
+        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2012, 5, 7))
+        wk.save()
+
+    s = Semester.objects.filter(name="1127")
+    if not s:
+        s = Semester(name="1127", start=datetime.date(2012, 9, 4), end=datetime.date(2012, 12, 3))
+        s.save()
+        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2012, 9, 3))
+        wk.save()
 
 
 def find_offering_by_crse_id(crse_id, section, semester):

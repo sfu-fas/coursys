@@ -268,7 +268,7 @@ class CalNumericActivity(NumericActivity):
     """
     Activity with a calculated numeric grade which is the final numeric grade of the course offering
     """
-    formula = models.CharField(max_length=250, help_text='parsed formula to calculate final numeric grade', default="[[activitytotal]]")
+    formula = models.TextField(help_text='parsed formula to calculate final numeric grade', default="[[activitytotal]]")
 
     def is_calculated(self):
         return True

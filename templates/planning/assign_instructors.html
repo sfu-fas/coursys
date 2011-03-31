@@ -40,7 +40,7 @@ $(document).ready(function() {
                 <th scope="col">Section</th>
 				<th scope="col">Component</th>
                 <th scope="col">Assigned Instructors</th>
-                <th scope="col">Capable Instructors</th>
+                <th scope="col">Edit Instructor</th>
 
 
 
@@ -60,11 +60,7 @@ $(document).ready(function() {
 			
 			<td>
 				{% if o.offering.component != "LAB" and o.offering.component != "TUT" %}
-				<form action="{% url planning.views.view_instructors semester=semester_plan.semester.name plan_slug=semester_plan.slug course_id=o.offering.course.id %}" method="post">{% csrf_token %}
-				
-				<input type="submit" value="Assign Instructors" />
-				
-				</form>
+				<a href="{% url planning.views.view_instructors semester=semester_plan.semester.name plan_slug=semester_plan.slug course_id=o.offering.course.id %}">Assign Instructor</a>
 				{% endif %}
 			</td>
 			

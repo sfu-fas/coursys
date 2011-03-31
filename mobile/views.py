@@ -185,13 +185,6 @@ def _activity_info_staff(request, course_slug, activity_slug):
     else:
        activity_stat = generate_letter_activity_stat(activity)
 
-    if activity_stat is None or activity_stat.count < STUD_NUM_TO_DISP_ACTSTAT or activity.status!="RLS":
-        if activity_stat is None or activity_stat.count < STUD_NUM_TO_DISP_ACTSTAT:
-            reason_msg = 'Summary statistics disabled for small classes.'
-        elif activity.status != 'RLS':
-            reason_msg = 'Summary statistics disabled for unreleased activities.'
-        activity_stat = None
-
     context = {'course': course, 'activity': activity, 'activity_stat': activity_stat, 'reason_msg': reason_msg}
     return render_to_response("mobile/activity_info_staff.html", context,
                             context_instance=RequestContext(request))
