@@ -44,7 +44,7 @@ class SubmittedURL(SubmittedComponent):
             fn = os.path.join(prefix, fn)
         zipfile.writestr(fn, content)
 
-from django.core.validators import URLValidator
+from submission.models.url_validator import QuickURLValidator
 # class containing all pieces for this submission type
 class URL:
     label = "url"
@@ -84,7 +84,7 @@ class URL:
 
             if self.component.check:
                 # instructor asked to check that URLs really exist: do it.
-                validator = URLValidator(verify_exists=True)
+                validator = QuickURLValidator(verify_exists=True)
                 try:
                     validator(url) # throws ValidationError if there's a problem
                 except forms.ValidationError:
