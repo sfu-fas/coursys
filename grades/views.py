@@ -14,7 +14,8 @@ from grades.forms import NumericActivityForm, LetterActivityForm, CalNumericActi
                          CutoffForm
 from grades.models import *
 from grades.utils import StudentActivityInfo, reorder_course_activities, create_StudentActivityInfo_list, \
-                        ORDER_TYPE, FormulaTesterActivityEntry, FakeActivity, generate_numeric_activity_stat,generate_letter_activity_stat
+                        ORDER_TYPE, FormulaTesterActivityEntry, FakeActivity, FakeEvalActivity, \
+                        generate_numeric_activity_stat,generate_letter_activity_stat
 from grades.utils import ValidationError, parse_and_validate_formula, calculate_numeric_grade,calculate_letter_grade
 from marking.models import get_group_mark, StudentActivityMark, GroupActivityMark, ActivityComponent
 from groups.models import *
@@ -482,7 +483,7 @@ def add_cal_numeric_activity(request, course_slug):
         else:
             messages.error(request, "Please correct the error below")
     else:
-        form = CalNumericActivityForm()
+        form = CalNumericActivityForm(initial={'formula': '[[activitytotal]]'})
     context = {'course': course, 'form': form, 'numeric_activities': numeric_activities, 'form_type': FORMTYPE['add']}
     return render_to_response('grades/cal_numeric_activity_form.html', context, context_instance=RequestContext(request))
 
@@ -555,7 +556,7 @@ def formula_tester(request, course_slug):
             
 
         formula_form_entry = FormulaFormEntry(request.POST)
-        formula_form_entry.activate_form_entry_validation(course_slug, activity)
+        formula_form_entry.activate_form_entry_validation(course_slug, None)
         
         if not formula_form_entry.is_valid():
             has_error = True
@@ -565,7 +566,7 @@ def formula_tester(request, course_slug):
             parsed_expr = pickle.loads(formula_form_entry.pickled_formula)
             act_dict = activities_dictionary(faked_activities)
             try:
-                result = eval_parse(parsed_expr, act_dict, None, True)
+                result = eval_parse(parsed_expr, FakeEvalActivity(course), act_dict, None, True)
             except EvalException:
                 messages.error(request,  "Can not evaluate formula")
     else:

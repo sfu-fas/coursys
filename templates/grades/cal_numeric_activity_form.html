@@ -19,7 +19,6 @@ $(document).ready(function() {
                                 changeMonth: true, changeYear: true,
                                 dateFormat: 'yy-mm-dd', showOn: 'button'});
     $('div.collapsible').collapsible();
-    $('div#helphandle').collapsible();
     document.getElementById('testerlink').setAttribute('target', '_blank');
 });
 </script>
@@ -28,8 +27,7 @@ $(document).ready(function() {
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
 {% ifequal form_type 'add' %}
-<li>&gt; <a href="{% url grades.views.activity_choice course_slug=course.slug %}">Choose the type of activity</a></li>
-<li>&gt; Add Activity</li>
+<li>&gt; Add Calculated Numeric Activity</li>
 {% endifequal %}
 {% if activity %}
 <li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li>
@@ -117,7 +115,6 @@ $(document).ready(function() {
 
 <h2 id="help">Formula Help</h2>
 
-<div id="helphandle">the formula help</div>
 <div id="formulahelp">
 {% include "grades/formula-help.html" %}
 </div>

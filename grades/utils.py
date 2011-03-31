@@ -158,6 +158,9 @@ class FakeActivity(object):
         self.percent = percent
         grade = FakeGrade(value)
         self.numericgrade_set = FakeGradeSet(grade)
+class FakeEvalActivity(object):
+    def __init__(self, course):
+        self.offering = course
 
 
 def reorder_course_activities(ordered_activities, activity_slug, order):

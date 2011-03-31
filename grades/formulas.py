@@ -51,14 +51,14 @@ def create_parser():
 
     def actionflag_parse(toks):
         """
-        Parse the {activitytotal} special case
+        Parse the [[activitytotal]] special case
         """
         flag = toks[0][0]
         if flag == 'activitytotal':
             # dependant activity True is a flag meaning "everything": fixed later.
             return ("flag", set([True]), flag)
     
-        raise ParseException, "Unknown flag ({...})."
+        raise ParseException, "Unknown flag ([[...]])."
 
     def real_parse(toks):
 	return ("num", set(), float(''.join(toks)))
@@ -90,8 +90,8 @@ def create_parser():
     number = (real | integer).setParseAction(real_parse) # all numbers treated as floats to avoid integer arithmetic rounding
 
     # Allow anything except ']' in column names.  Let the limitations on sane column names be enforced somewhere else.
-    actionflag = Group(Suppress('{') + CharsNotIn('}') + Suppress('}') ).setParseAction(actionflag_parse)
-    column = Group(Suppress('[') + CharsNotIn(']') + Suppress(']') ).setParseAction(column_parse)
+    actionflag = Group(Suppress('[[') + CharsNotIn('[]') + Suppress(']]') ).setParseAction(actionflag_parse)
+    column = Group(Suppress('[') + CharsNotIn('[]') + Suppress(']') ).setParseAction(column_parse)
     expr = Forward()
     function_name = ( CaselessLiteral("SUM") | CaselessLiteral("AVG") | CaselessLiteral("MAX")
             | CaselessLiteral("MIN") | CaselessLiteral("BEST") )

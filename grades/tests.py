@@ -48,24 +48,27 @@ class GradesTest(TestCase):
         m = Member(person=p, offering=c, role="STUD", credits=3, added_reason="UNK")
         m.save()
        
-        a = NumericActivity(name="Paragraph", short_name=u"\u00b6", status="RLS", offering=c, position=3, max_grade=40)
+        a = NumericActivity(name="Paragraph", short_name=u"\u00b6", status="RLS", offering=c, position=3, max_grade=40, percent=5)
         a.save()
         g = NumericGrade(activity=a, member=m, value="4.5", flag="CALC")
         g.save()
-        a = NumericActivity(name="Assignment #1", short_name="A1", status="RLS", offering=c, position=1, max_grade=15)
-        a.save()
-        g = NumericGrade(activity=a, member=m, value=10, flag="GRAD")
+        a1 = NumericActivity(name="Assignment #1", short_name="A1", status="RLS", offering=c, position=1, max_grade=15, percent=10)
+        a1.save()
+        g = NumericGrade(activity=a1, member=m, value=10, flag="GRAD")
         g.save()
-        a = NumericActivity(name="Assignment #2", short_name="A2", status="URLS", offering=c, position=2, max_grade=40)
-        a.save()
-        g = NumericGrade(activity=a, member=m, value=30, flag="GRAD")
+        a2 = NumericActivity(name="Assignment #2", short_name="A2", status="URLS", offering=c, position=2, max_grade=40, percent=20)
+        a2.save()
+        g = NumericGrade(activity=a2, member=m, value=30, flag="GRAD")
         g.save()
+        
+        ca = CalNumericActivity(name="Final Grade", short_name=u"FG", status="RLS", offering=c, position=4, max_grade=1)
+        ca.save()
         
         activities = NumericActivity.objects.filter(offering=c)
         act_dict = activities_dictionary(activities)
         
         # make sure a formula can be pickled and unpickled safely (i.e. can be cached)
-        tree = parse("sum([Assignment #1], [A1], [A2])/20*-3")
+        tree = parse("sum([Assignment #1], [A1], [A2])/20*-3", c, ca)
         p = pickle.dumps(tree)
         tree2 = pickle.loads(p)
         self.assertEqual(tree, tree2)
@@ -74,60 +77,67 @@ class GradesTest(TestCase):
         
         # test parsing and evaluation to make sure we get the right values out
         for expr, correct in test_formulas:
-            tree = parse(expr)
-            res = eval_parse(tree, act_dict, m, False)
+            tree = parse(expr, c, ca)
+            res = eval_parse(tree, ca, act_dict, m, False)
             self.assertAlmostEqual(correct, res, msg=u"Incorrect result for %s"%(expr,))
 
         # test some badly-formed stuff for appropriate exceptions
-        tree = parse("1 + BEST(3, [A1], [A2])")
-        self.assertRaises(EvalException, eval_parse, tree, act_dict, m, True)
-        tree = parse("1 + BEST(0, [A1], [A2])")
-        self.assertRaises(EvalException, eval_parse, tree, act_dict, m, True)
-        tree = parse("[Foo] /2")
-        self.assertRaises(KeyError, eval_parse, tree, act_dict, m, True)
-        tree = parse("[a1] /2")
-        self.assertRaises(KeyError, eval_parse, tree, act_dict, m, True)
+        tree = parse("1 + BEST(3, [A1], [A2])", c, ca)
+        self.assertRaises(EvalException, eval_parse, tree, ca, act_dict, m, True)
+        tree = parse("1 + BEST(0, [A1], [A2])", c, ca)
+        self.assertRaises(EvalException, eval_parse, tree, ca, act_dict, m, True)
+        tree = parse("[Foo] /2", c, ca)
+        self.assertRaises(KeyError, eval_parse, tree, ca, act_dict, m, True)
+        tree = parse("[a1] /2", c, ca)
+        self.assertRaises(KeyError, eval_parse, tree, ca, act_dict, m, True)
         
-        self.assertRaises(ParseException, parse, "AVG()")
-        self.assertRaises(ParseException, parse, "(2+3*84")
-        self.assertRaises(ParseException, parse, "2+3**84")
-        self.assertRaises(ParseException, parse, "AVG(2,3,4")
+        self.assertRaises(ParseException, parse, "AVG()", c, ca)
+        self.assertRaises(ParseException, parse, "(2+3*84", c, ca)
+        self.assertRaises(ParseException, parse, "2+3**84", c, ca)
+        self.assertRaises(ParseException, parse, "AVG(2,3,4", c, ca)
+        self.assertRaises(ParseException, parse, "{something}", c, ca)
         
         # test visible/invisible switching
-        tree = parse("[Assignment #2]")
-        res = eval_parse(tree, act_dict, m, True)
+        tree = parse("[Assignment #2]", c, ca)
+        res = eval_parse(tree, ca, act_dict, m, True)
         self.assertAlmostEqual(res, 0.0)
-        res = eval_parse(tree, act_dict, m, False)
+        res = eval_parse(tree, ca, act_dict, m, False)
         self.assertAlmostEqual(res, 30.0)
 
         # test unreleased/missing grade conditions
         expr = "[Assignment #2]"
-        tree = parse(expr)
+        tree = parse(expr, c, ca)
         
         # unrelased assignment (with grade)
-        a.status='URLS'
-        a.save()
+        a2.status='URLS'
+        a2.save()
         activities = NumericActivity.objects.filter(offering=c)
         act_dict = activities_dictionary(activities)
-        res = eval_parse(tree, act_dict, m, True)
+        res = eval_parse(tree, ca, act_dict, m, True)
         self.assertAlmostEqual(res, 0.0)
         
         # explicit no grade (relased assignment)
         g.flag="NOGR"
         g.save()
-        a.status='RLS'
-        a.save()
+        a2.status='RLS'
+        a2.save()
         activities = NumericActivity.objects.filter(offering=c)
         act_dict = activities_dictionary(activities)
-        res = eval_parse(tree, act_dict, m, True)
+        res = eval_parse(tree, ca, act_dict, m, True)
         self.assertAlmostEqual(res, 0.0)
 
         # no grade in database (relased assignment)
         g.delete()
         activities = NumericActivity.objects.filter(offering=c)
         act_dict = activities_dictionary(activities)
-        res = eval_parse(tree, act_dict, m, True)
+        res = eval_parse(tree, ca, act_dict, m, True)
         self.assertAlmostEqual(res, 0.0)
+        
+        # test [[activitytotal]]
+        expr = "[[activitytotal]]"
+        tree = parse(expr, c, ca)
+        res = eval_parse(tree, ca, act_dict, m, True)
+        self.assertAlmostEqual(res, 7.229166666)
         
 
     def test_activities(self):

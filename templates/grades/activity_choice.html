@@ -23,21 +23,18 @@ $(document).ready(function() {
 </script>
 {% endblock %}
 
-{% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
-<li>&gt; Choose the type of activity</li>
-{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; Type of activity</li>{% endblock %}
 
 
 {% block content %}
 <div>
 
-
+<ul>
     <li><a href="{% url grades.views.add_numeric_activity course_slug=course.slug %}">Numeric Graded Activity</a></li>
     <li><a href="{% url grades.views.add_letter_activity course_slug=course.slug %}">Letter Graded Activity</a></li>
     <li><a href="{% url grades.views.add_cal_numeric_activity course_slug=course.slug %}">Calculated Numeric Activity</a></li>
     <li><a href="{% url grades.views.add_cal_letter_activity course_slug=course.slug %}">Calculated Letter Graded Activity</a></li>
-
+</ul>
 </div>
   <p>
     <a class="button" href="{% url grades.views.course_info course_slug=course.slug %}">Back</a>

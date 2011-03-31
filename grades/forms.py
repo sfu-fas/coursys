@@ -257,13 +257,14 @@ class FormulaFormEntry(forms.Form):
         self._form_entry_validate = True
         self._course_numeric_activities = NumericActivity.objects.filter(offering__slug=course_slug)
         self.activity = activity
+        self.course = CourseOffering.objects.get(slug=course_slug)
     
     def clean_formula(self):
         formula = self.cleaned_data['formula']
         if formula:
             if self._form_entry_validate:
                 try:
-                    parsed_expr = parse_and_validate_formula(formula, self.activity, self._course_numeric_activities)
+                    parsed_expr = parse_and_validate_formula(formula, self.course, self.activity, self._course_numeric_activities)
                 except ValidationError as e:
                     raise forms.ValidationError(e.args[0])
                 else:
