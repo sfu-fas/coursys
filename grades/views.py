@@ -373,7 +373,8 @@ def edit_cutoffs(request, course_slug, activity_slug):
        cutoffsdict=_cutoffsdict(cutoff)
        form=CutoffForm(cutoffsdict)
 
-    source_grades ='[' + ",".join(["%.2f" % (g.value) for g in activity.numeric_activity.numericgrade_set.exclude(flag="NOGR")]) + ']'
+    source_grades = activity.numeric_activity.numericgrade_set.exclude(flag="NOGR")
+    source_grades = '[' + ", ".join(["%.2f" % (g.value) for g in source_grades]) + ']'
 
     context = {'course': course, 'activity': activity, 'cutoff':form, 'source_grades': source_grades}
     return render_to_response('grades/edit_cutoffs.html', context, context_instance=RequestContext(request))
