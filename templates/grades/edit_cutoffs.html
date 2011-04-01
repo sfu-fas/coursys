@@ -9,17 +9,78 @@ Edit Cutoffs of {{ activity.name }}
 {% endblock %}
 
 {% block grades_headextra %}
-<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
+<link rel="stylesheet" href="{{MEDIA_URL}}visualize/css/visualize.css" type="text/css" />
+<!--[if IE]><script type="text/javascript" src="{{MEDIA_URL}}visualize/excanvas.compiled.js"></script><![endif]-->
+<script type="text/javascript" src="{{MEDIA_URL}}visualize/visualize.jQuery.js"></script>
 <script type="text/javascript">
-$(document).ready(function() {
-    addLinkClickStyleClass('a.redbutton', 'redbutton_onclick');
-    $("#id_due_date_0").datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.png',
-                                changeMonth: true, changeYear: true,
-                                dateFormat: 'yy-mm-dd', showOn: 'button'});
-    $('div.collapsible').collapsible();
-    $('div#helphandle').collapsible();
-    document.getElementById('testerlink').setAttribute('target', '_blank');
-});
+/**
+ * Copyright (c) Mozilla Foundation http://www.mozilla.org/
+ * This code is available under the terms of the MIT License
+ */
+if (!Array.prototype.filter) {
+    Array.prototype.filter = function(fun /*, thisp*/) {
+        var len = this.length >>> 0;
+        if (typeof fun != "function") {
+            throw new TypeError();
+        }
+
+        var res = [];
+        var thisp = arguments[1];
+        for (var i = 0; i < len; i++) {
+            if (i in this) {
+                var val = this[i]; // in case fun mutates this
+                if (fun.call(thisp, val, i, this)) {
+                    res.push(val);
+                }
+            }
+        }
+
+        return res;
+    };
+}
+
+
+  var source_grades = {{source_grades}};
+  var histo_cells;
+  function valof(id) {
+    return parseFloat(document.getElementById("id_" + id).value);
+  }
+  function histotd(id) {
+    return document.getElementById("histo_" + id);
+  }
+
+  $(document).ready(function() {
+    $("table.histo").hide();
+    $("table.histo").visualize({'height': '300px'});
+    histo_cells = [histotd('ap'), histotd('a'), histotd('am'), histotd('bp'), histotd('b'), histotd('bm'), histotd('cp'), histotd('c'), histotd('cm'), histotd('d'), histotd('f')];
+    recalculate_histo();
+  });
+
+  function recalculate_histo() {
+    var cutoffs = [valof('ap'), valof('a'), valof('am'), valof('bp'), valof('b'), valof('bm'), valof('cp'), valof('c'), valof('cm'), valof('d'), 0.0];
+    var i, j, g;
+    
+    // create array of histogram counts
+    counts = Array()
+    for(i=0; i<histo_cells.length; i++) {
+      counts.push(0);
+    }
+    for(i=0; i<source_grades.length; i++) {
+      g = source_grades[i];
+      for(j=0; j<cutoffs.length; j++) {
+        if (g > cutoffs[j]) {
+          counts[j] += 1;
+          break;
+        }
+      }
+    }
+    
+    // put counts into cells
+    for(i=0; i<histo_cells.length; i++) {
+      histo_cells[i].innerHTML = counts[histo_cells.length - i - 1];
+    }
+    $('.visualize').trigger('visualizeRefresh');
+  }
 </script>
 {% endblock %}
 
@@ -35,7 +96,7 @@ $(document).ready(function() {
     {% endif %}
     
         <form action="{% url grades.views.edit_cutoffs course_slug=course.slug activity_slug=activity.slug %}"
-                method="post">{% csrf_token %}
+                method="post" onchange="recalculate_histo();">{% csrf_token %}
         <fieldset>
         	<legend>Lower bounds for each grade</legend>
         		<ul>
@@ -73,7 +134,46 @@ $(document).ready(function() {
         </form>
 </div>
 
-<p>
-    	<a class="button" href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">Back</a>
-</p>
+		
+<h2 id="histo">Histogram</h2>
+
+<p>Note: N and DE grades are not calculated in this view; there may be roundoff problems here that are not present when you calculate actual grades.</p>
+<table class="histo info" style="width: 500px; border-collapse: collapse;">
+    <caption>Letter Grades</caption>
+    
+    <thead>
+	<tr>
+	    <td></td>
+	    <th scope="col">F</th>
+	    <th scope="col">D</th>
+	    <th scope="col">C-</th>
+	    <th scope="col">C</th>
+	    <th scope="col">C+</th>
+	    <th scope="col">B-</th>
+	    <th scope="col">B</th>
+	    <th scope="col">B+</th>
+	    <th scope="col">A-</th>
+	    <th scope="col">A</th>
+	    <th scope="col">A+</th>
+	</tr>
+    </thead>
+    <tbody>
+	<tr>
+	    <th scope="row">Grade</th>
+	    <td id="histo_ap">0</td>
+	    <td id="histo_a">0</td>
+	    <td id="histo_am">0</td>
+	    <td id="histo_bp">0</td>
+	    <td id="histo_b">0</td>
+	    <td id="histo_bm">0</td>
+	    <td id="histo_cp">0</td>
+	    <td id="histo_c">0</td>
+	    <td id="histo_cm">0</td>
+	    <td id="histo_d">0</td>
+	    <td id="histo_f">0</td>
+	</tr>
+    </tbody>
+    
+
+</table>
 {% endblock %}

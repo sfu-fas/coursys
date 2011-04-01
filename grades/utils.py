@@ -367,7 +367,7 @@ def generate_grade_range_stat(student_grade_list, grade_range=10):
     
 def generate_grade_range_stat_lettergrade(student_lettergrade_list,grade_range=11):
 	if grade_range ==11:
-            grade_range_stat_list = [GradeRangeStat('ELSE', 0), GradeRangeStat('DE', 0), GradeRangeStat('F', 0), GradeRangeStat('D', 0), GradeRangeStat('C-', 0),
+            grade_range_stat_list = [GradeRangeStat('other', 0), GradeRangeStat('DE', 0), GradeRangeStat('F', 0), GradeRangeStat('D', 0), GradeRangeStat('C-', 0),
                              GradeRangeStat('C', 0), GradeRangeStat('C+', 0), GradeRangeStat('B-', 0),
                              GradeRangeStat('B', 0), GradeRangeStat('B+', 0), GradeRangeStat('A-', 0),
                              GradeRangeStat('A', 0),GradeRangeStat('A+', 0)]

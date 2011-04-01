@@ -466,7 +466,7 @@ $.fn.visualize = function(options, container){
 				}
 				else {
 					// for vertical, translate to the top left corner.
-					ctx.translate(0, zeroLoc);
+					if (zeroLoc) ctx.translate(0, zeroLoc);
 				}
 
 				// Don't attempt to draw anything if all the values are zero,
