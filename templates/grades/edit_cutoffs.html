@@ -50,9 +50,13 @@ if (!Array.prototype.filter) {
   }
 
   $(document).ready(function() {
+    var i;
     $("table.histo").hide();
     $("table.histo").visualize({'height': '300px'});
     histo_cells = [histotd('ap'), histotd('a'), histotd('am'), histotd('bp'), histotd('b'), histotd('bm'), histotd('cp'), histotd('c'), histotd('cm'), histotd('d'), histotd('f')];
+    for(i=0; i<source_grades.length; i++) {
+      source_grades[i] += 0.00000001;
+    }
     recalculate_histo();
   });
 
