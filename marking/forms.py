@@ -238,7 +238,7 @@ class GradeStatusForm_LetterGrade(forms.ModelForm):
         
        
         if flag == 'CALC':
-            isCalActivity = CalNumericActivity.objects.filter(id=self.instance.activity.id).count() != 0
+            isCalActivity = CalLetterActivity.objects.filter(id=self.instance.activity.id).count() != 0
             if not isCalActivity:
                 raise forms.ValidationError(u'Option "calculated" is only for "calculated activity". Please use "graded".')            
         

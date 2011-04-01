@@ -4,7 +4,12 @@
 {% block title %}Student Search{% endblock %}
 {% block h1 %}Student Search{% endblock %}
 
-{% block grades_headextra %}{% endblock %}
+{% block grades_headextra %}<script type="text/javascript">
+//<![CDATA[
+$(document).ready(function() {
+  document.getElementById("id_search").focus();
+});
+//]]></script>{% endblock %}
 {% block actions %}{% endblock %}
 
 {% block subbreadcrumbs %}<li>&gt; <a href="{{course.get_absolute_url}}">{{ course.name }}</a></li><li>&gt; Student Search</li>{% endblock %}

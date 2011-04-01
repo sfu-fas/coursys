@@ -472,17 +472,17 @@ def calculate_letter_grade(course, activity):
 
         result = generate_lettergrades(s,activity)
 
-        
         # save grade
         member_found = False
         for letter_grade in letter_grade_list:
             if letter_grade.member == s:
                 member_found = True     
-                if letter_grade.flag == "GRAD":
+                if letter_grade.flag not in ["NOGR", "CALC"]:
                     ignored += 1
-                elif result != letter_grade.letter_grade:
+                elif result != letter_grade.letter_grade or letter_grade.flag != "CALC":
                     # ignore manually-set grades; only save when the value changes
                     letter_grade.letter_grade = result
+                    letter_grade.flag = "CALC"
                     letter_grade.save(newsitem=False)
                 break
         if not member_found:
@@ -496,34 +496,46 @@ def generate_lettergrades(s,activity):
     cutoffs=activity.get_cutoffs()
     numeric_source = activity.numeric_activity
     exam_activity=activity.exam_activity
-    ap=cutoffs[0]
-    exam_grade = NumericGrade.objects.filter(activity=exam_activity, member=s) or LetterGrade.objects.filter(activity=exam_activity, member=s) 
-    grade=NumericGrade.objects.filter(activity=numeric_source, member=s)
+    
+    if exam_activity:
+        # handle the N and DE logic from the exam activity
+        exam_grades = NumericGrade.objects.filter(activity=exam_activity, member=s) or LetterGrade.objects.filter(activity=exam_activity, member=s)
+        if len(exam_grades)==0 or exam_grades[0].flag == 'NOGR':
+            return 'N'
+        elif exam_grades[0].flag == 'EXCU':
+            return 'DE'
 
-    if len(exam_grade)==0:
-       letter_grade='N'
-    elif grade[0].value>=cutoffs[0]:
+    grades = NumericGrade.objects.filter(activity=numeric_source, member=s)
+    if len(grades)==0 or grades[0].flag=='NOGR':
+        return 'N'
+
+    grade = grades[0].value
+
+    if grade>=cutoffs[0]:
        letter_grade='A+'
-    elif grade[0].value>=cutoffs[1]:
+    elif grade>=cutoffs[1]:
        letter_grade='A'
-    elif grade[0].value>=cutoffs[2]:
+    elif grade>=cutoffs[2]:
        letter_grade='A-'
-    elif grade[0].value>=cutoffs[3]:
+    elif grade>=cutoffs[3]:
        letter_grade='B+'
-    elif grade[0].value>=cutoffs[4]:
+    elif grade>=cutoffs[4]:
        letter_grade='B'
-    elif grade[0].value>=cutoffs[5]:
+    elif grade>=cutoffs[5]:
        letter_grade='B-'
-    elif grade[0].value>=cutoffs[6]:
+    elif grade>=cutoffs[6]:
        letter_grade='C+'
-    elif grade[0].value>=cutoffs[7]:
+    elif grade>=cutoffs[7]:
+       letter_grade='C'
+    elif grade>=cutoffs[8]:
        letter_grade='C-'
-    elif grade[0].value>=cutoffs[8]:
+    elif grade>=cutoffs[9]:
        letter_grade='D'
     else:
        letter_grade='F'
     
-    return  letter_grade
+    return letter_grade
+
 ###############################################################################################################   
 def format_number(value, decimal_places):
     """
@@ -610,11 +622,12 @@ def calculate_numeric_grade(course, activity, student=None):
         for numeric_grade in numeric_grade_list:
             if numeric_grade.member == s:
                 member_found = True     
-                if numeric_grade.flag == "GRAD":
+                if numeric_grade.flag not in ["NOGR", "CALC"]:
                     ignored += 1
-                elif result != numeric_grade.value:
+                elif result != numeric_grade.value or numeric_grade.flag != "CALC":
                     # ignore manually-set grades; only save when the value changes
                     numeric_grade.value = result
+                    numeric_grade.flag = "CALC"
                     numeric_grade.save(newsitem=False)
                 break
         if not member_found:
