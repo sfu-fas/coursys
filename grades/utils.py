@@ -477,7 +477,7 @@ def calculate_letter_grade(course, activity):
         for letter_grade in letter_grade_list:
             if letter_grade.member == s:
                 member_found = True     
-                if letter_grade.flag not in ["NOGR", "CALC"]:
+                if letter_grade.flag != "CALC":
                     ignored += 1
                 elif result != letter_grade.letter_grade or letter_grade.flag != "CALC":
                     # ignore manually-set grades; only save when the value changes
@@ -622,7 +622,7 @@ def calculate_numeric_grade(course, activity, student=None):
         for numeric_grade in numeric_grade_list:
             if numeric_grade.member == s:
                 member_found = True     
-                if numeric_grade.flag not in ["NOGR", "CALC"]:
+                if numeric_grade.flag != "CALC":
                     ignored += 1
                 elif result != numeric_grade.value or numeric_grade.flag != "CALC":
                     # ignore manually-set grades; only save when the value changes
