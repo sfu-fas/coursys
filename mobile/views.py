@@ -233,7 +233,7 @@ def student_info(request, course_slug, userid):
     activities_info = []
     for activity in activities:
         grade = (activity.GradeClass).objects.filter(activity=activity, member=student)
-        if activity.status != "RLS" or not grade:
+        if not grade:
             # shouldn't display or nothing in database: create temporary nograde object for the template
             grade = (activity.GradeClass)(activity=activity, member=student, flag="NOGR")
         else:
