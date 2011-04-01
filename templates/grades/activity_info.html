@@ -213,7 +213,21 @@ Column logic:
                 <a class="editlink" href="{% url marking.views.manage_activity_components course_slug=course.slug,activity_slug=activity.slug%}">Configure Marking</a>
                 </td>
             </tr>
-            {% endif %}         
+            {% endif %}
+            {% if activity.is_calculated and not activity.is_numeric %}
+            <tr>
+                <th class="ui-state-default">Numeric Source</th>
+                <td><a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.numeric_activity.slug %}">{{activity.numeric_activity.name}}</a></td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Exam Activity</th>
+                {% if activity.exam_activity %}
+                <td><a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.exam_activity.slug %}">{{activity.exam_activity.name}}</a></td>
+                {% else %}
+                <td class="empty">None</td>
+                {% endif %}
+            </tr>
+            {% endif %}
             {% if activity.url %}
             <tr>
                 <th class="ui-state-default">More Information</th>

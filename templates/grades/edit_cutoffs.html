@@ -23,37 +23,21 @@ $(document).ready(function() {
 </script>
 {% endblock %}
 
-{% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
-{% ifequal form_type 'add' %}
-<li>&gt; <a href="{% url grades.views.activity_choice course_slug=course.slug %}">Choose the type of activity</a></li>
-<li>&gt; Add Activity</li>
-{% endifequal %}
-{% if activity %}
-<li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li>
-{% endif %}
-{% ifequal form_type 'edit' %}
-<li>&gt; Edit</li>
-{% endifequal %}
-{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li><li>&gt; Edit cutoffs</li>{% endblock %}
 
 
 {% block content %}
 <br/>
 
 <div id="form_container">
-    {% if cutoffs.non_field_errors %}
-        <p class="errorindicator">
-        	<img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
-        	{{ form.non_field_errors }}
-    	</p>
+    {% if cutoff.non_field_errors %}
+    {{ cutoff.non_field_errors }}
     {% endif %}
     
-    {% ifequal form_type 'edit' %}
         <form action="{% url grades.views.edit_cutoffs course_slug=course.slug activity_slug=activity.slug %}"
                 method="post">{% csrf_token %}
         <fieldset>
-        	<legend>Edit Cutoffs and Set Lower Bounds</legend>
+        	<legend>Lower bounds for each grade</legend>
         		<ul>
         		<p>Max grade for {{activity.numeric_activity.name}}: {{activity.numeric_activity.max_grade}}</p>
         		<table class="cutoffs">
@@ -77,7 +61,7 @@ $(document).ready(function() {
         		
         		<tr>
         		<td class="label">D</td><td>{{cutoff.d}} {{cutoff.d.errors}}</td>
-        		<td class="label">F</td><td>0</td>
+        		<td class="label">F</td><td><input type="text" value="0" disabled="disabled" /></td>
         		</tr>
         		</table>	
 				<li>
@@ -87,12 +71,9 @@ $(document).ready(function() {
         </fieldset>
         
         </form>
-	{% endifequal %}
 </div>
 
 <p>
-    {% ifequal form_type 'edit' %}
     	<a class="button" href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">Back</a>
-    {% endifequal %}
 </p>
 {% endblock %}

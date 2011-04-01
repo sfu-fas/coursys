@@ -1289,8 +1289,18 @@ table.cutoffs tbody th {
 table.cutoffs thead th, table.cutoffs thead td, table.cutoffs tbody th, table.cutoffs tbody td{
   border: 0;
 }
+table.cutoffs td {
+  vertical-align: middle
+}
+table.cutoffs td.label {
+  padding-left: 2em;
+}
 table.cutoffs {
   border: 0;
+}
+table.cutoffs input {
+  width: 6em;
+  text-align: right;
 }
 
 

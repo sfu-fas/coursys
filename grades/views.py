@@ -354,36 +354,26 @@ def edit_cutoffs(request, course_slug, activity_slug):
     activity = get_object_or_404(CalLetterActivity, slug=activity_slug, offering=course, deleted=False)    
     if request.method == 'POST':
        form = CutoffForm(request.POST)
-       if  form.is_valid(): # All validation rules pass    
-           ap=form.cleaned_data['ap']
-           a=form.cleaned_data['a']    
-           am=form.cleaned_data['am']   
-           bp=form.cleaned_data['bp'] 
-           b=form.cleaned_data['b']     
-           bm=form.cleaned_data['bm']   
-           cp=form.cleaned_data['cp']   
-           c=form.cleaned_data['c'] 
-           cm=form.cleaned_data['cm']  
-           d=form.cleaned_data['d'] 
-           f=0     
-           cutoffs=[ap,a,am,bp,b,bm,cp,c,cm,d]
-           activity.set_cutoffs(cutoffs)
+       if form.is_valid(): # All validation rules pass
+           activity.set_cutoffs(form.cleaned_data['cutoffs'])
            activity.save()
-           #LOG EVENT#
            
+           if form.cleaned_data['ap'] > activity.numeric_activity.max_grade:
+               messages.warning(request, "Some grade cutoffs are higher than the maximum grade for %s." % (activity.numeric_activity.name))
+
+           #LOG EVENT#
            l = LogEntry(userid=request.user.username,
-           description=("edited %s") % (activity),
+           description=("edited %s cutoffs") % (activity),
            related_object=activity)
            l.save()
-           messages.success(request, "Cutoffs of %s updated" % activity.name)
+           messages.success(request, "Grade cutoffs updated.")
+           return HttpResponseRedirect(reverse('grades.views.activity_info', kwargs={'course_slug': course.slug, 'activity_slug': activity.slug}))
     else:
        cutoff=activity.get_cutoffs()
        cutoffsdict=_cutoffsdict(cutoff)
        form=CutoffForm(cutoffsdict)
 
-    context = {'course': course, 'activity': activity, 'form_type': FORMTYPE['edit'], 'cutoff':form}
-   #cutoffs=activity.get_cutoffs()
-    #return HttpResponse(cutoffs)
+    context = {'course': course, 'activity': activity, 'cutoff':form}
     return render_to_response('grades/edit_cutoffs.html', context, context_instance=RequestContext(request))
 
 def _cutoffsdict(cutoff):

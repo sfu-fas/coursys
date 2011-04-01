@@ -282,76 +282,93 @@ class URLForm(forms.Form):
 
 
 class CutoffForm(forms.Form):
-    ap = forms.DecimalField(max_digits=4, decimal_places=2,required=True)
-    a = forms.DecimalField(max_digits=4, decimal_places=2)
-    am = forms.DecimalField(max_digits=4, decimal_places=2)
-    bp =forms.DecimalField(max_digits=4, decimal_places=2)
-    b = forms.DecimalField(max_digits=4, decimal_places=2)
-    bm = forms.DecimalField(max_digits=4, decimal_places=2)
-    cp = forms.DecimalField(max_digits=4, decimal_places=2)
-    c = forms.DecimalField(max_digits=4, decimal_places=2)
-    cm = forms.DecimalField(max_digits=4, decimal_places=2)
-    d = forms.DecimalField(max_digits=4, decimal_places=2)
+    ap = forms.DecimalField(max_digits=6, decimal_places=2, required=True)
+    a = forms.DecimalField(max_digits=6, decimal_places=2, required=True)
+    am = forms.DecimalField(max_digits=6, decimal_places=2, required=True)
+    bp =forms.DecimalField(max_digits=6, decimal_places=2, required=True)
+    b = forms.DecimalField(max_digits=6, decimal_places=2, required=True)
+    bm = forms.DecimalField(max_digits=6, decimal_places=2, required=True)
+    cp = forms.DecimalField(max_digits=6, decimal_places=2, required=True)
+    c = forms.DecimalField(max_digits=6, decimal_places=2, required=True)
+    cm = forms.DecimalField(max_digits=6, decimal_places=2, required=True)
+    d = forms.DecimalField(max_digits=6, decimal_places=2, required=True)
+    
+    def clean(self):
+        try:
+            cutoffs = [self.cleaned_data['ap'], self.cleaned_data['a'],self.cleaned_data['am'],
+                       self.cleaned_data['bp'], self.cleaned_data['b'],self.cleaned_data['bm'],
+                       self.cleaned_data['cp'], self.cleaned_data['c'],self.cleaned_data['cm'],
+                       self.cleaned_data['d']]
+        except KeyError:
+            raise forms.ValidationError('Some cutoff values entered incorrectly.')
+        
+        cut_copy = cutoffs[:]
+        cut_copy.sort()
+        cut_copy.reverse()
+        if cut_copy != cutoffs:
+            raise forms.ValidationError('Grade cutoffs must be in decreasing numeric order.')
 
+        self.cleaned_data['cutoffs'] = cutoffs
+        return self.cleaned_data
 
     def clean_ap(self):
 	ap=self.cleaned_data['ap']
-        if ap>100 or ap<0:
-           raise forms.ValidationError('Please input valid numberic grade')
-        return decimal.Decimal(ap)
+        if ap<0:
+           raise forms.ValidationError('Grade cutoff must be positive.')
+        return ap
 
     def clean_a(self):
 	a=self.cleaned_data['a']
-        if a>100 or a<0:
-           raise forms.ValidationError('Please input valid numberic grade')
+        if a<0:
+           raise forms.ValidationError('Grade cutoff must be positive.')
         return a
 
     def clean_am(self):
 	am=self.cleaned_data['am']
-        if am>100 or am<0:
-           raise forms.ValidationError('Please input valid numberic grade')
+        if am<0:
+           raise forms.ValidationError('Grade cutoff must be positive.')
         return am
 
     def clean_bp(self):
 	bp=self.cleaned_data['bp']
-        if bp>100 or bp<0:
-           raise forms.ValidationError('Please input valid numberic grade')
+        if bp<0:
+           raise forms.ValidationError('Grade cutoff must be positive.')
         return bp
 
     def clean_b(self):
 	b=self.cleaned_data['b']
-        if b>100 or b<0:
-           raise forms.ValidationError('Please input valid numberic grade')
+        if b<0:
+           raise forms.ValidationError('Grade cutoff must be positive.')
         return b
 
     def clean_bm(self):
 	bm=self.cleaned_data['bm']
-        if bm>100 or bm<0:
-           raise forms.ValidationError('Please input valid numberic grade')
+        if bm<0:
+           raise forms.ValidationError('Grade cutoff must be positive.')
         return bm
 
     def clean_cp(self):
 	cp=self.cleaned_data['cp']
-        if cp>100 or cp<0:
-           raise forms.ValidationError('Please input valid numberic grade')
+        if cp<0:
+           raise forms.ValidationError('Grade cutoff must be positive.')
         return cp
 
     def clean_c(self):
 	c=self.cleaned_data['c']
         if c>100 or c<0:
-           raise forms.ValidationError('Please input valid numberic grade')
+           raise forms.ValidationError('Grade cutoff must be positive.')
         return c
 
     def clean_cm(self):
 	cm=self.cleaned_data['cm']
-        if cm>100 or cm<0:
-           raise forms.ValidationError('Please input valid numberic grade')
+        if cm<0:
+           raise forms.ValidationError('Grade cutoff must be positive.')
         return cm
 
     def clean_d(self):
 	d=self.cleaned_data['d']
-        if d>100 or d<0:
-           raise forms.ValidationError('Please input valid numberic grade')
+        if d<0:
+           raise forms.ValidationError('Grade cutoff must be positive.')
         return d
 
 
