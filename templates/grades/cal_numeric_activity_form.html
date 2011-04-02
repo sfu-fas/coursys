@@ -12,13 +12,14 @@
 
 {% block grades_headextra %}
 <script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
+<script type="text/javascript" src="{{MEDIA_URL}}js/formula.js"></script>
 <script type="text/javascript">
 $(document).ready(function() {
     addLinkClickStyleClass('a.redbutton', 'redbutton_onclick');
     $("#id_due_date_0").datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.png',
                                 changeMonth: true, changeYear: true,
                                 dateFormat: 'yy-mm-dd', showOn: 'button'});
-    $('div.collapsible').collapsible();
+    //$('div.collapsible').collapsible();
     document.getElementById('testerlink').setAttribute('target', '_blank');
 });
 </script>
@@ -70,30 +71,31 @@ $(document).ready(function() {
                         <div class="buttongroup">
                             <a href="{% url grades.views.formula_tester course_slug=course.slug %}" id="testerlink" class="redbutton">Formula Tester</a>
                         </div>
-                        <div class="collapsible">the list of applicable numeric activities:</div>
+                        <div class="collapsible">The applicable numeric activities:</div>
                         <div class="activity_reference_container">
                             <table class="info">
                                 <thead>
                                     <tr>
                                         <th scope="col">Name</th>
-                                        <th scope="col">Short Name</th>
-                                        <th scope="col">Max Grade</th>
-                                        <th scope="col">Percentage</th>
-                                        <th scope="col">Status</th>
+                                        <th scope="col">Max</th>
+                                        <th scope="col">%</th>
+                                        <th scope="col" colspan="4">Insert</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for numeric_activity in numeric_activities %}
                                     <tr>
                                         <td>{{ numeric_activity.name }}</td>
-                                        <td>{{ numeric_activity.short_name }}</td>
                                         <td>{{ numeric_activity.max_grade }}</td>
                                         {% if numeric_activity.percent %}
                                         <td>{{ numeric_activity.percent }}%</td>
                                         {% else %}
                                         <td>&mdash;</td>
                                         {% endif %}
-                                        <td>{{ numeric_activity.get_status_display }}</td>
+                                        <td><a href="javascript:insert_activity('{{numeric_activity.short_name|escapejs}}')" title="the grade the student received on {{numeric_activity.name}}">{{numeric_activity.short_name}} grade</a></td>
+                                        <td><a href="javascript:insert_max('{{numeric_activity.short_name|escapejs}}')" title="the maximum grade for {{numeric_activity.name}} (currently {{numeric_activity.max_grade}})">{{numeric_activity.short_name}} max</a></td>
+                                        <td><a href="javascript:insert_percent('{{numeric_activity.short_name|escapejs}}')" title="the &quot;percent&quot; for {{numeric_activity.name}} (currently {{numeric_activity.percent}})">{{numeric_activity.short_name}} percent</a></td>
+                                        <td><a href="javascript:insert_final('{{numeric_activity.short_name|escapejs}}')" title="the student's final grade contribution for {{numeric_activity.name}} (their grade / max * percent)">{{numeric_activity.short_name}} final</a></td>
                                     </tr>
                                     {% empty %}
                                     <tr>
