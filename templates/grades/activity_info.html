@@ -83,7 +83,7 @@ Column logic:
 	$('a.calculator').attr('href', 'javascript: return false;').click(function(){
 	    cal_link = $(this);
 	    /* post request */
-	    $.post("{% url grades.views.calculate_individual_ajax course_slug=course.slug activity_slug=activity.slug %}",		  	 
+	    $.post("{# url grades.views.calculate_individual_ajax course_slug=course.slug activity_slug=activity.slug #}",		  	 
 		    {'userid': cal_link.attr('id')});
 	});
 	{% endif %}

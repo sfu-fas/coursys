@@ -13,13 +13,12 @@
 	    "bPaginate": false,
 	    "aaSorting": [[1, "asc"]],
 	    "aoColumns": [
-		    { "bSearchable": false, "bSortable": false },
 		    null,
 		    null,
 		    null,
 		    null,
 		    {% for a in activities %}
-		    {"sWidth": "0"{% if not a.is_numeric%}, "sType": "by-letter"{% endif %}}{% if not forloop.last %},{% endif %}
+		    {"sType": {% if a.is_numeric%}"numeric"{% else %}"by-letter"{% endif %}}{% if not forloop.last %},{% endif %}
 		    {% endfor %}
 		]
 	});
@@ -43,7 +42,6 @@
     <table class="display" id="student_grades">
         <thead>
             <tr>
-                <th scope="col"><img src="{{MEDIA_URL}}icons/information.png" title="Details" alt="info" /></th>
                 <th scope="col">Last</th>
                 <th scope="col">First</th>
 		<th scope="col">User ID</th>
@@ -56,11 +54,10 @@
         <tbody>
         {% for s in students %}
         <tr>
-            <td><a href="{{s.get_absolute_url}}"><img src="{{MEDIA_URL}}icons/information.png" title="Details for {{s.person.name}}" alt="info" /></a></td>
             <td scope="row">{{s.person.last_name}}</td>
             <td scope="row">{{s.person.first_name}}</td>
             <td>{{s.person.userid}}</td>
-            <td>{{s.person.emplid}}</td>
+            <td><a href="{{s.get_absolute_url}}">{{s.person.emplid}}</a></td>
             {% for a in activities %}
               <td class="num">{% select_grade grades a.slug s.person.userid %}</td>
             {% endfor %}
