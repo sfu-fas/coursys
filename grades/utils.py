@@ -337,33 +337,6 @@ def generate_grade_range_stat(student_grade_list, grade_range=10):
         grade_range_stat_list[-1].stud_count += len([k for k in student_grade_list if k >= (i+1)*10])
         return grade_range_stat_list
 
-#    if grade_range == 10:
-#        grade_range_stat_list = [GradeRangeStat('0-10', 0), GradeRangeStat('11-20', 0), GradeRangeStat('21-30', 0),
-#                             GradeRangeStat('31-40', 0), GradeRangeStat('41-50', 0), GradeRangeStat('51-60', 0),
-#                             GradeRangeStat('61-70', 0), GradeRangeStat('71-80', 0), GradeRangeStat('81-90', 0),
-#                             GradeRangeStat('91-100', 0)]
-#        for student_grade in student_grade_list:
-#            if student_grade <= 10:
-#                grade_range_stat_list[0].stud_count += 1
-#            elif 11 <= student_grade and student_grade <=20:
-#                grade_range_stat_list[1].stud_count += 1
-#            elif 21 <= student_grade and student_grade <=30:
-#                grade_range_stat_list[2].stud_count += 1
-#            elif 31 <= student_grade and student_grade <=40:
-#                grade_range_stat_list[3].stud_count += 1
-#            elif 41 <= student_grade and student_grade <=50:
-#                grade_range_stat_list[4].stud_count += 1
-#            elif 51 <= student_grade and student_grade <=60:
-#                grade_range_stat_list[5].stud_count += 1
-#            elif 61 <= student_grade and student_grade <=70:
-#                grade_range_stat_list[6].stud_count += 1
-#            elif 71 <= student_grade and student_grade <=80:
-#                grade_range_stat_list[7].stud_count += 1
-#            elif 81 <= student_grade and student_grade <=90:
-#                grade_range_stat_list[8].stud_count += 1
-#            elif 91 <= student_grade:
-#                grade_range_stat_list[9].stud_count += 1
-#        return grade_range_stat_list
     
 def generate_grade_range_stat_lettergrade(student_lettergrade_list,grade_range=11):
 	if grade_range ==11:

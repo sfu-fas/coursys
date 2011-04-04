@@ -212,7 +212,7 @@ class CalNumericActivityForm(ActivityForm):
                 except ValidationError as e:
                     raise forms.ValidationError(e.args[0])
         return formula
-#################################################YU LIU Added#############################
+
 class CalLetterActivityForm(ActivityForm):
     # default status is invisible
     status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='INVI',

@@ -11,7 +11,7 @@ import itertools
 import datetime
 
 class DisciplineGroupForm(forms.ModelForm):
-    students = forms.MultipleChoiceField(choices=[], required=False)
+    students = forms.MultipleChoiceField(choices=[], required=False, widget=forms.SelectMultiple(attrs={'size': 15}))
     
     def __init__(self, offering, *args, **kwargs):
         super(DisciplineGroupForm, self).__init__(*args, **kwargs)
