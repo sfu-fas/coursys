@@ -4,7 +4,7 @@ from django.forms.widgets import Textarea, TextInput, FileInput
 from django.forms import ModelForm, URLField
 from django.conf import settings
 from django.utils.safestring import mark_safe
-import urllib
+import urllib, zipfile
 
 
 _required_star = '<em><img src="'+settings.MEDIA_URL+'icons/required_star.gif" alt="required"/></em>'
@@ -22,14 +22,22 @@ def filetype(fh):
     #TODO: replace with some real check
     if fh.name.endswith('.doc'):
         return "WORD"
-    if fh.name.endswith('.odt'):
-        return "OPENDOC"
     
     # methods extracted from the magic file (/usr/share/file/magic)
     # why not just check the filename?  Students seem to randomly rename.
     fh.seek(0)
     magic = fh.read(4)
     if magic=="PK\003\004" or magic=="PK00":
+        # it's ZIP: also look for ZIP-contained types
+        fh.seek(0)
+        zipf = zipfile.ZipFile(fh, "r")
+        try:
+            mimetype = zipf.read("mimetype")
+            if mimetype == "application/vnd.oasis.opendocument.text":
+                return "OPENDOC"
+        except KeyError:
+            pass
+
         return "ZIP"
     elif magic=="Rar!":
         return "RAR"
