@@ -12,12 +12,13 @@ from django.http import HttpResponse
 
 from base import SubmissionComponent, Submission, StudentSubmission, GroupSubmission, SubmittedComponent
 
-from url import *
-from archive import *
-from pdf import *
-from code import *
-from word import *
-ALL_TYPE_CLASSES = [Archive, URL, PDF, Code, Word]
+from url import URL
+from archive import Archive
+from pdf import PDF
+from code import Code
+from word import Word
+from image import Image
+ALL_TYPE_CLASSES = [Archive, URL, PDF, Code, Word, Image]
 
 def find_type_by_label(label):
     """

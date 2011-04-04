@@ -43,6 +43,12 @@ def filetype(fh):
             return "GZIP"
     elif magic=="%PDF":
         return "PDF"
+    elif magic in ["\377\330\377\340", "\377\330\377\356"]:
+        return "JPEG"
+    elif magic=="\211PNG":
+        return "PNG"
+    elif magic=="GIF8":
+        return "GIF"
   
     fh.seek(257)
     if fh.read(5)=="ustar":
