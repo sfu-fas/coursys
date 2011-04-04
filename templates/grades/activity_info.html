@@ -14,12 +14,16 @@ Column logic:
     Student #
   if group assignment:
     Group
+  if calculated letter
+    source grade
   always:
     Grade (may be letter or number)
   if graded numeric:
     Marking
   if not calculated:
     Submission
+  if calculated numeric
+    Calculate
 
 {% endcomment %}
 
@@ -52,9 +56,11 @@ Column logic:
 		    null,
 		    { "sType": "by-nolink" },
 		    {% if activity.group %}null,{% endif %}
+		    {% if not activity.is_numeric and activity.is_calculated %}null,{% endif %}
 		    {% if activity.is_numeric %}{ "sType": "by-nolinkmark" }{% else %}{ "sType": "by-nolinkletter" }{% endif %}
 		    {% if not activity.is_calculated and activity.is_numeric %},{ "bSortable": false }{% endif %}
 		    {% if not activity.is_calculated %},{ "bSortable": false }{% endif %}
+		    {% if activity.is_calculated and activity.is_numeric %},{ "bSortable": false }{% endif %}
 		]
 	});
 	
@@ -80,11 +86,14 @@ Column logic:
 	    cal_link = $('#'+fetchUserId(settings.data));
 	    cal_link.parent().children('.ajax_status').text(xhr.status + " " + xhr.statusText);
 	});
-	$('a.calculator').attr('href', 'javascript: return false;').click(function(){
-	    cal_link = $(this);
+	$('a.calculator').attr('href', 'javascript:').click(function(){
+	    var cal_link = $(this);
+	    var userid = cal_link.attr('id').substring(5);
 	    /* post request */
-	    $.post("{# url grades.views.calculate_individual_ajax course_slug=course.slug activity_slug=activity.slug #}",		  	 
-		    {'userid': cal_link.attr('id')});
+	    $.post("{% url grades.views.calculate_individual_ajax course_slug=course.slug activity_slug=activity.slug %}",		  		    {'userid': userid, 'csrfmiddlewaretoken': "{{csrf_token}}"},
+	    function(data, textStatus, jqXHR){
+	      $("#grade-"+userid+">a").html(data);
+	    });
 	});
 	{% endif %}
     });
@@ -258,13 +267,21 @@ Column logic:
                 <th scope="col">First name</th>
 		<th scope="col">User ID</th>
 		<th scope="col">Stu #</th>
-		{% if activity.group %}<th scope="col">Group</th>{% endif %}
+		{% if activity.group %}
+		  <th scope="col">Group</th>
+		{% endif %}
+		{% if not activity.is_numeric and activity.is_calculated %}
+		  <th scope="col"><a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.numeric_activity.slug %}">{{activity.numeric_activity.short_name}}</a> Grade</th>
+		{% endif %}
 		<th scope="col">Grade</th>
 		{% if not activity.is_calculated and activity.is_numeric %}
 		  <th scope="col"{% if not mark_comps %} class="disabled"{% endif %}>Marking</th>
 		{% endif %}
 		{% if not activity.is_calculated %}
 		  <th scope="col"{% if not sub_comps %} class="disabled"{% endif %}>Submission</th>
+		{% endif %}
+		{% if activity.is_calculated and activity.is_numeric %}
+		  <th scope="col">Calculate</th>
 		{% endif %}
             </tr>
 	</thead>
@@ -283,7 +300,16 @@ Column logic:
 		  {% if group %}{{group}}{% else %}&mdash;{% endif %}
 		  {% endwith %}</td>
 		{% endif %}
-		<td>
+		{% if not activity.is_numeric and activity.is_calculated %}<td>
+		  {% with source_grades|hash:userid as sgrade %}
+		  {% if not sgrade or sgrade.flag == 'NOGR'%}
+		    &mdash;/{{activity.max_grade}}
+		  {% else %}
+		    {{ sgrade.display_staff }}
+		  {% endif %}
+		  {% endwith %}
+		</td>{% endif %}
+		<td id="grade-{{ member.person.userid }}">
 		    {% if not grade or grade.flag == 'NOGR'%}
 			{% if not activity.is_calculated %}
 				{% if activity.is_numeric %}
@@ -341,11 +367,14 @@ Column logic:
 		  {% if sub_comps %}
 		  <td class="iconcell">
 		    {% if submitted|hash:userid %}<a href="{% url submission.views.show_student_submission_staff course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="view details" alt="View" /></a>
-		    <a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="download ZIP" alt="Download" /></a>{% endif %}
+		    <a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug userid=member.person.userid %}" class="calculate"><img src="{{MEDIA_URL}}icons/page_compressed.png" title="download ZIP" alt="Download" /></a>{% endif %}
 		  </td>
 		  {% else %}
 		  <td class="iconcell disabled"></td>
 		  {% endif %}
+		{% endif %}
+		{% if activity.is_calculated and activity.is_numeric %}
+		  <td class="iconcell"><a href="" class="calculator" id="calc-{{member.person.userid }}"><img src="{{MEDIA_URL}}icons/calculator.png" title="recalculate this student" /></a></td>
 		{% endif %}
 	    </tr>
 	    {% endwith %}
@@ -358,9 +387,11 @@ Column logic:
 		<td></td>
 		<td></td>
 		{% if activity.group %}<td></td>{% endif %}
+		{% if not activity.is_numeric and activity.is_calculated %}<td></td>{% endif %}
 		<td></td>
 		{% if not activity.is_calculated and activity.is_numeric %}<td></td>{% endif %}
 		{% if not activity.is_calculated %}<td></td>{% endif %}
+		{% if activity.is_calculated and activity.is_numeric %}<td></td>{% endif %}
 	    </tr>
 	    {% endfor %}
         </tbody>

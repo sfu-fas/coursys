@@ -183,6 +183,13 @@ def _activity_info_staff(request, course_slug, activity_slug):
     for g in grades_list:
         grades[g.member.person.userid] = g
 
+    source_grades = {}
+    if activity.is_calculated() and not activity.is_numeric():
+        # calculated letter needs source grades too
+        source_list = activity.numeric_activity.numericgrade_set.filter().select_related('member__person', 'activity')
+        for g in source_list:
+            source_grades[g.member.person.userid] = g
+
     # collect group membership info
     group_membership = {}
     if activity.group:
@@ -223,7 +230,7 @@ def _activity_info_staff(request, course_slug, activity_slug):
                 marked[m.student.person.userid] = True
             
 
-    context = {'course': course, 'activity': activity, 'students': students, 'grades': grades,
+    context = {'course': course, 'activity': activity, 'students': students, 'grades': grades, 'source_grades': source_grades,
                'activity_view_type': 'individual', 'group_membership': group_membership,
                'from_page': FROMPAGE['activityinfo'],
                'sub_comps': sub_comps, 'mark_comps': mark_comps,
@@ -616,23 +623,7 @@ def calculate_all_lettergrades(request, course_slug, activity_slug):
 
     return HttpResponseRedirect(activity.get_absolute_url())
 
-@requires_course_staff_by_slug
-def calculate_individual(request, course_slug, activity_slug, userid):
-    course = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(CalNumericActivity, slug=activity_slug, offering=course, deleted=False)
-    member = get_object_or_404(Member, offering = course, person__userid=userid, role='STUD')
-   
-    try:
-        calculate_numeric_grade(course,activity, member)
-    except ValidationError as e:
-        messages.error(request, e.args[0])
-    except EvalException as e:
-        messages.error(request, e.args[0])
-    except NotImplementedError:
-        return NotFoundResponse(request)
 
-    return HttpResponseRedirect(activity.get_absolute_url())
-    
 @requires_course_staff_by_slug
 def calculate_individual_ajax(request, course_slug, activity_slug):
     """
