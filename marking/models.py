@@ -36,6 +36,13 @@ class ActivityComponent(models.Model):
     class Meta:
         verbose_name_plural = "Activity Marking Components"
         ordering = ['numeric_activity', 'deleted', 'position']
+    
+    def save(self, *args, **kwargs):
+        if self.position == 0:
+            others = ActivityComponent.objects.filter(numeric_activity=self.numeric_activity).exclude(pk=self.pk)
+            maxpos = others.aggregate(models.Max('position'))['position__max']
+            self.position = maxpos + 1
+        super(ActivityComponent, self).save(*args, **kwargs)
          
 class CommonProblem(models.Model):
     """
