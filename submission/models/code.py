@@ -51,7 +51,10 @@ class SubmittedCode(SubmittedComponent):
     def get_url(self):
         return self.code.url
     def get_size(self):
-        return self.code.size
+        try:
+            return self.image.size
+        except OSError:
+            return None
     def get_filename(self):
         return os.path.split(self.code.name)[1]
 

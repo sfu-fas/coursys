@@ -33,7 +33,10 @@ class SubmittedImage(SubmittedComponent):
     def get_url(self):
         return self.image.url
     def get_size(self):
-        return self.image.size
+        try:
+            return self.image.size
+        except OSError:
+            return None
     def get_filename(self):
         return os.path.split(self.image.name)[1]
 

@@ -186,9 +186,16 @@ class SubmittedComponent(models.Model):
         """
         path, filename = os.path.split(upfile.name)
         response['Content-Disposition'] = 'inline; filename=' + filename
-        fh = open(upfile.path, "r")
+        try:
+            fh = open(upfile.path, "r")
+        except IOError:
+            response['Content-type'] = "text/plain"
+            response.write("File missing. Has likely been archived.")
+            return
+
         for data in fh:
             response.write(data)
+
     def file_filename(self, upfile, prefix=None):
         """
         Come up with a filename for the uploaded file in a ZIP archive.

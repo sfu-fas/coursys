@@ -25,7 +25,10 @@ class SubmittedPDF(SubmittedComponent):
     def get_url(self):
         return self.pdf.url
     def get_size(self):
-        return self.pdf.size
+        try:
+            return self.pdf.size
+        except OSError:
+            return None
     def get_filename(self):
         return os.path.split(self.pdf.name)[1]
 

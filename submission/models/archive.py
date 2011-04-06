@@ -32,7 +32,10 @@ class SubmittedArchive(SubmittedComponent):
     def get_url(self):
         return self.archive.url
     def get_size(self):
-        return self.archive.size
+        try:
+            return self.archive.size
+        except OSError:
+            return None
     def get_filename(self):
         return os.path.split(self.archive.name)[1]
 

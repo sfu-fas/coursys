@@ -31,7 +31,10 @@ class SubmittedWord(SubmittedComponent):
     def get_url(self):
         return self.word.url
     def get_size(self):
-        return self.word.size
+        try:
+            return self.word.size
+        except OSError:
+            return None
     def get_filename(self):
         return os.path.split(self.word.name)[1]
 
