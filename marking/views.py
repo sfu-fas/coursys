@@ -13,7 +13,7 @@ from forms import *
 from django.forms.models import modelformset_factory
 from django.contrib import messages
 from django.db.models import Q
-import decimal, csv
+import decimal, csv, io
 
    
 # request to views in the marking may comes from different pages, for POST request, we need to redirect to the right page
@@ -1347,10 +1347,10 @@ def _mark_all_students_numeric(request, course, activity):
     return render_to_response("marking/mark_all_student.html",{'course': course, 'activity': activity,\
                               'fileform' : fileform,'too_many': len(rows) >= 100,\
                               'mark_all_rows': rows }, context_instance = RequestContext(request))
- 
+
 def _compose_imported_grades(file, students_qset, data_to_return):
-    
-    reader = csv.reader(file)   
+    fh = io.StringIO(file.read(), newline=None)
+    reader = csv.reader(fh)   
     try:  
         read = 1;
         for row in reader:            
