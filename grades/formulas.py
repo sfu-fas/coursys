@@ -217,7 +217,10 @@ def eval_parse(tree, activity, act_dict, member, visible):
             elif operator == "*":
                 val *= operand
             elif operator == "/":
-                val /= operand
+                if operand==0:
+                    val = 0
+                else:
+                    val /= operand
             else:
                 raise EvalException, "Unknown operator in parse tree: %s"%(operator,)
         return val
