@@ -620,7 +620,7 @@ def calculate_all(request, course_slug, activity_slug):
 
     return HttpResponseRedirect(activity.get_absolute_url())
 
-'''
+
 @requires_course_staff_by_slug
 def calculate_all_lettergrades(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
@@ -638,7 +638,7 @@ def calculate_all_lettergrades(request, course_slug, activity_slug):
         return NotFoundResponse(request)
 
     return HttpResponseRedirect(activity.get_absolute_url())
-'''
+
 
 
 @requires_course_staff_by_slug
