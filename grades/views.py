@@ -374,6 +374,21 @@ def edit_cutoffs(request, course_slug, activity_slug):
            related_object=activity)
            l.save()
            messages.success(request, "Grade cutoffs updated.")
+
+    
+           try:
+               ignored = calculate_letter_grade(course,activity)
+               if ignored==1:
+                  messages.warning(request, "Did not calculate letter grade for 1 manually-graded student.")
+               elif ignored>1:
+                  messages.warning(request, "Did not calculate letter grade for %i manually-graded students." % (ignored))
+           except ValidationError as e:
+               messages.error(request, e.args[0])
+           except NotImplementedError:
+               return NotFoundResponse(request)
+
+
+
            return HttpResponseRedirect(reverse('grades.views.activity_info', kwargs={'course_slug': course.slug, 'activity_slug': activity.slug}))
     else:
        cutoff=activity.get_cutoffs()
@@ -605,6 +620,7 @@ def calculate_all(request, course_slug, activity_slug):
 
     return HttpResponseRedirect(activity.get_absolute_url())
 
+'''
 @requires_course_staff_by_slug
 def calculate_all_lettergrades(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
@@ -622,6 +638,7 @@ def calculate_all_lettergrades(request, course_slug, activity_slug):
         return NotFoundResponse(request)
 
     return HttpResponseRedirect(activity.get_absolute_url())
+'''
 
 
 @requires_course_staff_by_slug
