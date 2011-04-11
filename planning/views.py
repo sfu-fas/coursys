@@ -51,7 +51,7 @@ def edit_capability(request):
 @requires_instructor
 def edit_intention(request):
     instructor = get_object_or_404(Person, userid=request.user.username)
-    semester_list = Semester.objects.filter()
+    semester_list = Semester.objects.filter(start__gt=datetime.now())
     intention_list = TeachingIntention.objects.filter(instructor = instructor).order_by('semester')
     
     if request.method == 'POST':
@@ -69,6 +69,7 @@ def edit_intention(request):
             return HttpResponseRedirect(reverse('planning.views.edit_intention', kwargs={}))
     else:
         form = IntentionForm(initial={'instructor':instructor})
+        form.fields['semester'].choices = [(s.pk, s) for s in semester_list]
     
     return render_to_response("planning/add_intention.html",{'form':form, 'intention_list':intention_list},context_instance=RequestContext(request))
 

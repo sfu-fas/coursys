@@ -128,9 +128,6 @@ INSTALLED_APPS = (
     'discipline',
     'mobile',
     #'advisors',
-#----------------
-#'advisors_B'
-#----------------
 
 )
 if DEBUG:

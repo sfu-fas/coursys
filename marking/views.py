@@ -1401,18 +1401,24 @@ def import_marks(request, course_slug, activity_slug):
             for am in ams:
                 if isinstance(am, StudentActivityMark):
                     am.numeric_grade_id = am.numeric_grade.id
+                    #LOG EVENT
+                    l = LogEntry(userid=request.user.username,
+                          description=("Imported marking info for student %s on %s in %s") % (am.numeric_grade.member.person.userid, activity, course),
+                          related_object=activity)
+                    l.save()
+                else:
+                    #LOG EVENT
+                    l = LogEntry(userid=request.user.username,
+                          description=("Imported marking info for group %s on %s in %s") % (am.group.slug, activity, course),
+                          related_object=activity)
+                    l.save()
+
                 am.save()
                 count += 1
             for amc in amcs:
                 amc.activity_mark_id = amc.activity_mark.id
                 amc.save()
             
-            #LOG EVENT
-            l = LogEntry(userid=request.user.username,
-                  description=("Imported sets fo %i mark data for %s in %s") % (count, activity, course),
-                  related_object=activity)
-            l.save()                  
-           
             messages.add_message(request, messages.SUCCESS, "Successfully imported %i marks." % (count))
             
             return _redirct_response(request, course_slug, activity_slug)
@@ -1422,7 +1428,7 @@ def import_marks(request, course_slug, activity_slug):
     groups = None
     if activity.group:
         # collect groups so we can report slugs
-        groups = set((gm.group for gm in GroupMember.objects.filter(activity=activity)))
+        groups = set((gm.group for gm in GroupMember.objects.filter(activity=activity).select_related('group')))
     
     components = ActivityComponent.objects.filter(numeric_activity=activity, deleted=False)
     context = {'course': course, 'activity': activity, 'components': components, 'groups': groups, 'form': form}

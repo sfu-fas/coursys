@@ -2,6 +2,15 @@
  {
   "fields": {
    "field": "contact_email_text", 
+   "label": "previous semester", 
+   "text": "Your submissions for {{ACTIVITIES}} were very similar to submissions made by another student in a previous semester. This indicates that there is a violation of SFU's Code of Academic Integrity and Good Conduct, Policy S10.01. I take academic honesty very seriously and intend to pursue this apparent violation of SFU's standards for academic honesty.\r\n\r\nAs required by SFU Policy S10.02, Principles and Procedures for Academic Discipline, I am offering you the opportunity to meet with me to discuss this incident. You are not required to accept this offer. If you would like to meet, please contact me to make an appointment outside of my regular office hours.\r\n\r\nYou may wish to refer to SFU's policies and procedures on academic integrity,\r\n  http://www.sfu.ca/policies/Students/index.html .\r\nYou can also contact the Office of the Ombudsperson for assistance in navigating University procedures.\r\n"
+  }, 
+  "model": "discipline.disciplinetemplate", 
+  "pk": 15
+ }, 
+ {
+  "fields": {
+   "field": "contact_email_text", 
    "label": "exam copying", 
    "text": "During the {{ACTIVITIES}}, you were observed looking at another student's paper. This indicates that there is a violation of SFU's Code of Academic Integrity and Good Conduct, Policy S10.01. I take academic honesty very seriously and intend to pursue this apparent violation of SFU's standards for academic honesty.\r\n\r\nAs required by SFU Policy S10.02, Principles and Procedures for Academic Discipline, I am offering you the opportunity to meet with me to discuss this incident. You are not required to accept this offer. If you would like to meet, please contact me to make an appointment outside of my regular office hours.\r\n\r\nYou may wish to refer to SFU's policies and procedures on academic integrity,\r\n  http://www.sfu.ca/policies/Students/index.html .\r\nYou can also contact the Office of the Ombudsperson for assistance in navigating University procedures.\r\n"
   }, 
@@ -74,6 +83,15 @@
  {
   "fields": {
    "field": "facts", 
+   "label": "passed along", 
+   "text": "{{FNAME}} gave his/her solutions to {{ACTIVITIES}} to another student. That student submitted this work in a later semester."
+  }, 
+  "model": "discipline.disciplinetemplate", 
+  "pk": 17
+ }, 
+ {
+  "fields": {
+   "field": "facts", 
    "label": "copied (without knowledge)", 
    "text": "{{FNAME}} copied the work of another student on {{ACTIVITIES}} without his/her knowledge.  Both students submitted the work as their own."
   }, 
@@ -106,6 +124,15 @@
   }, 
   "model": "discipline.disciplinetemplate", 
   "pk": 4
+ }, 
+ {
+  "fields": {
+   "field": "meeting_summary", 
+   "label": "quote email", 
+   "text": "The student explained the situation in his/her email:\r\n\r\nbq. PASTE QUOTE HERE"
+  }, 
+  "model": "discipline.disciplinetemplate", 
+  "pk": 16
  }, 
  {
   "fields": {
