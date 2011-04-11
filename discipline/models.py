@@ -191,6 +191,7 @@ class DisciplineCaseBase(models.Model):
     instructor = models.ForeignKey(Person, help_text="The instructor who created this case.")
     offering = models.ForeignKey(CourseOffering)
     notes = models.TextField(blank=True, null=True, help_text='Notes about the case (private notes, '+TEXTILENOTE+').')
+    #notes_public = models.TextField(blank=True, null=True, help_text='Notes about the case (public notes, '+TEXTILENOTE+').')
     def autoslug(self):
         return self.student.userid
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='offering')

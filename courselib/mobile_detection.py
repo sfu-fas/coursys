@@ -23,6 +23,15 @@ def _get_user_agent(request):
   return request.META.get('HTTP_X_OPERAMINI_PHONE_UA') or \
          request.META.get('HTTP_X_SKYFIRE_PHONE') or \
          request.META.get('HTTP_USER_AGENT', '')
+
+
+#            if 'no-mobile' not in request.COOKIES \
+#                    and not request.path.startswith('/media/') \
+#                    and not request.path.startswith('/m/'):
+#                mobile = urlparse.ParseResult(scheme=uri.scheme, netloc=uri.netloc, 
+#                        path="/m"+uri.path, params=uri.params,
+#                        query=uri.query, fragment=uri.fragment)
+#                return HttpResponseRedirect(urlparse.urlunparse(mobile))
          
 class MobileDetectionMiddleware(object):
     def process_request(self, request):

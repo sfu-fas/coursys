@@ -4,6 +4,9 @@ register = template.Library()
 from settings import MEDIA_URL
 from django.template import Context, Template
 from django.utils.safestring import mark_safe
+from django.utils.html import escape
+from django.core.urlresolvers import get_resolver, Resolver404
+resolver = get_resolver(None)
 
 @register.filter
 def mobilize_url(url):
@@ -21,11 +24,12 @@ def demobilize_url(url):
     else:
         return url
 
-def mobile_if_possible(url):
-    # note: badly broken.
+@register.filter
+def mobile_link(url):
     murl = mobilize_url(url)
     try:
-        find_view_function_for(murl)
-        return murl
-    except NotFoundError:
-        return None
+        resolver.resolve(murl) # throws Resolver404 if can't resolve URL
+        return mark_safe('<a href="%s">mobile page</a>' % (escape(murl)))
+    except Resolver404:
+        return mark_safe('<a href="/m/">mobile site</a>')
+
