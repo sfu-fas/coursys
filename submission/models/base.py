@@ -118,7 +118,7 @@ class GroupSubmission(Submission):
         new_submit = (self.id is None)
         super(GroupSubmission, self).save()
         if new_submit:
-            member_list = GroupMember.objects.exclude(student = self.creator).filter(group = self.group)
+            member_list = GroupMember.objects.exclude(student=self.creator).filter(group=self.group, activity=self.activity)
             for member in member_list:
                 n = NewsItem(user = member.student.person, author=self.creator.person, course=member.group.courseoffering,
                     source_app="group submission", title="New Group Submission",
