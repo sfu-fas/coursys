@@ -97,5 +97,17 @@
 </div>
 
 
+{% if group_memberships %}
+<h2 id="groups">Group Memberships</h2>
+{% regroup group_memberships by group as groups %}
+<ul>
+{% for info in groups %}
+<li>
+  {{info.grouper.name}}
+  ({% for gm in info.list %}{{ gm.activity.name }}{% if not forloop.last %}, {% endif %}{% endfor %})
+</li>
+{% endfor %}
+</ul>
+{% endif %}
 
 {% endblock %}

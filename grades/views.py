@@ -1084,26 +1084,9 @@ def student_info(request, course_slug, userid):
             if GroupActivityMark.objects.filter(activity=a, group=gm.group):
                 info['marked'] = True
 
+    group_memberships = GroupMember.objects.filter(student__person__userid=userid, activity__offering__slug=course_slug)
 
-    # collect marking status
-    #mark_comps = [ac.title for ac in ActivityComponent.objects.filter(numeric_activity=activity, deleted=False)]
-    #marked = {}
-    #marks = StudentActivityMark.objects.filter(activity=activity).select_related('numeric_grade__member__person')
-    #for m in marks:
-    #    marked[m.numeric_grade.member.person.userid] = True
-    #if activity.group:
-    #    # also collect group marks: attribute to both the group and members
-    #    marks = GroupActivityMark.objects.filter(activity=activity).select_related('group')
-    #    for m in marks:
-    #        marked[m.group.slug] = True
-    #        members = m.group.groupmember_set.filter(activity=activity).select_related('student__person')
-    #        for m in members:
-    #            marked[m.student.person.userid] = True
-
-
-
-
-    context = {'course': course, 'member': member, 'grade_info': grade_info}
+    context = {'course': course, 'member': member, 'grade_info': grade_info, 'group_memberships': group_memberships}
     return render_to_response('grades/student_info.html', context, context_instance=RequestContext(request))
 
 
