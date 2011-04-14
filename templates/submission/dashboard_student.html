@@ -64,7 +64,7 @@
                         {% if data.comp.description %}<li><label>Description:</label><div>{{data.comp.description}}</div></li>{% endif %}
                         {% if data.comp.max_size %}<li><label>Max File Size:</label><div>{{data.comp.max_size}} KB</div></li>{% endif %}
                         {% if data.comp.allowed %}<li><label>Allowed File Types:</label><div>{{data.comp.allowed}}</div></li>{% endif %}
-                        {% if data.comp.specified_filename %}<li><label>Specified File Name:</label><p>{{data.comp.specified_filename}}</div></li>{% endif %}
+                        {% if data.comp.specified_filename %}<li><label>Specified File Name:</label><div>{{data.comp.specified_filename}}</div></li>{% endif %}
                         {{data.form.as_ul}}
                         </ul>
                     {% endfor %}
