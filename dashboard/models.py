@@ -21,6 +21,7 @@ def new_feed_token():
     """
     Generate a random token for the feed URL
     """
+    random.seed()
     n = random.getrandbits(128)
     return "%032x" % (n)
 

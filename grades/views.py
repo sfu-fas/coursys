@@ -469,7 +469,7 @@ def add_numeric_activity(request, course_slug):
 @requires_course_staff_by_slug
 def add_cal_numeric_activity(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    numeric_activities = NumericActivity.objects.filter(offering=course)
+    numeric_activities = NumericActivity.objects.filter(offering=course, deleted=False)
     
     if request.method == 'POST': # If the form has been submitted...
         form = CalNumericActivityForm(request.POST) # A form bound to the POST data
@@ -785,7 +785,7 @@ def edit_activity(request, course_slug, activity_slug):
                 form.fields['exam_activity'].choices = examact_choices
         
         if isinstance(activity, CalNumericActivity):
-            numeric_activities = NumericActivity.objects.exclude(slug=activity_slug).filter(offering=course)
+            numeric_activities = NumericActivity.objects.exclude(slug=activity_slug).filter(offering=course, deleted=False)
             context = {'course': course, 'activity': activity, 'form': form, 'numeric_activities': numeric_activities, 'form_type': FORMTYPE['edit'], 'from_page': from_page}
             return render_to_response('grades/cal_numeric_activity_form.html', context, context_instance=RequestContext(request))
         elif isinstance(activity, NumericActivity):
