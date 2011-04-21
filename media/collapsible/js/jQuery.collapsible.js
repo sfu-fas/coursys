@@ -27,7 +27,7 @@ $.fn.collapsible = function(){
 					.addClass('collapsible-heading-collapsed')
 					.find('.collapsible-heading-status').text('Show ');
 										
-				collapsibleContent.slideUp(function(){
+				collapsibleContent.slideUp(0, function(){
 					$(this).addClass('collapsible-content-collapsed').removeAttr('style').attr('aria-hidden',true);
 				});
 			})
@@ -37,7 +37,7 @@ $.fn.collapsible = function(){
 					.find('.collapsible-heading-status').text('Hide ');
 										
 				collapsibleContent
-					.slideDown(function(){
+					.slideDown(0, function(){
 						$(this).removeClass('collapsible-content-collapsed').removeAttr('style').attr('aria-hidden',false);
 					});
 			})
@@ -51,5 +51,9 @@ $.fn.collapsible = function(){
 				return false;
 			})
 			.trigger('collapse');
+
+		collapsibleHeading.find('a').click(function() {
+			window.location = this.href;
+		});
 	});	
 };	

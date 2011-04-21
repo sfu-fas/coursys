@@ -2,10 +2,15 @@
 {% load markup %}
 {% load mobile_tags %}
 
-{% block headextra %}<script type="text/javascript">
+{% block headextra %}
+<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
+<script type="text/javascript">
 //<![CDATA[
+
 $(document).ready(function() {
-  $("div.newsitem h3").prepend('<a class="morenews" onclick="javascript:togglenews(event,this)">+</a>');
+  $("div.newsitem h3").collapsible();
+  $("h2.semester").collapsible();
+  $("h2.timely").trigger('expand');
 });
 
 
@@ -39,8 +44,8 @@ $(document).ready(function() {
 {% endif %}
 
 {% if news_list%}
-<div id="newsitems">
 <h2>Latest news</h2>
+<div id="newsitems">
   {% for news in news_list %}
     <div class="newsitem">
    	{%if news.url%}
@@ -60,7 +65,7 @@ $(document).ready(function() {
 
 {% regroup memberships by offering.semester as by_semester %}
 {% for semester in by_semester %}
-  <h2 id="semester-{{semester.grouper.name}}">{{semester.grouper.label}}</h2>
+  <h2 class="semester{% if semester.grouper.timely %} timely{% endif %}" id="semester-{{semester.grouper.name}}">{{semester.grouper.label}}</h2>
   <ul>
   {% for membership in semester.list %}
     <li><a href="{{membership.offering.get_absolute_url}}">{{membership.offering.name}}</a></li>

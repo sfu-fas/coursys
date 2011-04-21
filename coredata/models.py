@@ -70,6 +70,14 @@ class Semester(models.Model):
     def __unicode__(self):
         return self.label()
     
+    def timely(self):
+        """
+        Is this semester temporally relevant (for display in menu)?
+        """
+        today = datetime.date.today()
+        month_ago = today.replace(month=today.month-1)
+        return self.end > month_ago and self.start < today
+    
     def week_weekday(self, dt):
         """
         Given a datetime, return the week-of-semester and day-of-week (with 0=Monday).

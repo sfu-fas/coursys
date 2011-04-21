@@ -152,6 +152,7 @@ div#messages .info {
 div#newsitems {
   clear: left;
   margin-right: 220px;
+  margin-left: 2em;
 }
 div#newsitems div {
   /*margin: 0 2em;*/
@@ -177,13 +178,18 @@ div#newsitems .newsitem .newscontent {
   margin-bottom: 1em;
 }
 div#newsitems .newsmore {
-  display: none;
   margin-left: 1.25em;
 }
 div#newsitems a.morenews {
   font-family: monospace;
   font-weight: bold;
   margin-right: 0.5em;
+}
+div#newsitems .collapsible-heading-status {
+  display: none;
+}
+h2.semester .collapsible-heading-status {
+  display: none;
 }
 
 
