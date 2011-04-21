@@ -78,7 +78,7 @@ class SemesterPlan(models.Model):
     slug = AutoSlugField(populate_from='name', null=False, editable=False, unique_with='semester')
 
     def get_absolute_url(self):
-        return reverse('planning.views.semester_plan_index')
+        return reverse('planning.views.view_semester_plan', kwargs={'semester': self.semester.name})
 
 
     def save(self, *args, **kwargs):

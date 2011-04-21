@@ -459,9 +459,9 @@ def semester_plan_index(request):
     return render_to_response("planning/semester_plan_index.html",{'userid':userid, 'plan_list':plan_list},context_instance=RequestContext(request))
 
 @login_required
-def view_semester_plan(request, semester, plan_slug):
+def view_semester_plan(request, semester):
 
-    plan = SemesterPlan.objects.get(semester__name=semester, slug=plan_slug)
+    plan = SemesterPlan.objects.get(semester__name=semester, active=True)
     planned_courses_list = PlannedOffering.objects.filter(plan=plan)
         
     return render_to_response("planning/view_semester_plan.html",{'plan':plan, 'planned_courses_list':planned_courses_list},context_instance=RequestContext(request))

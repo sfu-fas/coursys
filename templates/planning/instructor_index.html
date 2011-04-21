@@ -56,7 +56,7 @@
 			<tr>
 				<td>{{ intention.semester.label }}</td>
 				<td>{{ intention.count }}</td>
-				<td><a href="{% url planning.views.semester_plan_index %}">Course Schedule</a></td>
+				<td><a href="{% url planning.views.view_semester_plan semester=intention.semester.name %}">Course Schedule</a></td>
 			{%endfor%}
 				</tr>
 
