@@ -30,6 +30,8 @@ test_formulas = [ # expression, correct-result pairs
         (u"BEST(2, [A1], [\u00b6],[A2], 12,-123)", 42),
         (u"BEST(3, [A1], [\u00b6],[A2], 12,123   )  ", 165),
         (u"[\u00b6] + 1", 5.5),
+        (u"BEST(4, 1.0, 0.8, 0.0, 1.0, 0.5)", 3.3),
+        (u"BEST(4, 1.0, 0.2, 0.5, 0.0,	0.0)", 1.7)
         ]
 
 class GradesTest(TestCase):

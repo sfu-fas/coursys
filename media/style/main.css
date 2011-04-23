@@ -397,12 +397,6 @@ table.activity_box_info {
   margin: 2em 2em 4em 2em;
 }
 
-.histogram_memo {
-  color: gray;
-  font-size: 0.9em;
-  font-style: italic;
-}
-
 .ajax_status{
   padding-left: 1em;
   color: gray;

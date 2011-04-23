@@ -16,7 +16,7 @@
 <script type="text/javascript">
     $(document).ready(function() {
 	$("table.data").hide();
-        $("table.data").visualize({'height': '300px'});
+        $("table.data").visualize({'height': '300px', appendTitle: false, appendKey: false});
     });
 </script>
 {% endblock %}
@@ -84,7 +84,6 @@
 		{% endif %}
 		
 <h2 id="histo">Histogram</h2>
-<span class='histogram_memo'>(refresh the page if histogram is not displayed properly)</span>
 <table class="data info" style="width: 500px; border-collapse: collapse;">
     <caption>Grade Range</caption>
     {% if activity.is_numeric %}
