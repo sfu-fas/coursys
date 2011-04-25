@@ -76,7 +76,8 @@ class Semester(models.Model):
         """
         today = datetime.date.today()
         month_ago = today.replace(month=today.month-1)
-        return self.end > month_ago and self.start < today
+        next_week = today + datetime.timedelta(days=7)
+        return self.end > month_ago and self.start < next_week
     
     def week_weekday(self, dt):
         """

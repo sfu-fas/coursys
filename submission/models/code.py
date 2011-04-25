@@ -28,13 +28,14 @@ CODE_TYPES = [
     (".css", "CSS (.css)"),
     (".inc", "HC11 Source (.inc)"),
     (".cct", "Designworks Circuit (.cct)"),
-    (".jpg", "JPEG images (.jpg)"),
+#    (".jpg", "JPEG images (.jpg)"),
+    (".json", "JSON data file (.json)"),
 ]
 
 class CodeComponent(SubmissionComponent):
     "A Source Code submission component"
     max_size = models.PositiveIntegerField(help_text="Maximum size of the Code file, in kB.", null=False, default=2000)
-    allowed = models.CharField(max_length=500, null=False, help_text='Accepted file extensions.')
+    allowed = models.CharField(max_length=500, null=False, help_text='Accepted file extensions. [Contact system admins if you need more file types here.]')
     # allowed_types = {} # not in use
     class Meta:
         app_label = 'submission'
@@ -92,7 +93,7 @@ class Code:
             self.fields['max_size'].widget = TextInput(attrs={'style':'width:5em'})
             self.fields['max_size'].label=mark_safe("Max size"+submission.forms._required_star)
 
-            self.fields['allowed'].widget = SelectMultiple(choices=CODE_TYPES, attrs={'style':'width:40em'})
+            self.fields['allowed'].widget = SelectMultiple(choices=CODE_TYPES, attrs={'style':'width:40em', 'size': 15})
             self.initial['allowed'] = self._initial_allowed
             self.fields['allowed'].label=mark_safe("Allowed Types"+submission.forms._required_star)
 
@@ -178,7 +179,8 @@ class Code:
                 raise forms.ValidationError("No file submitted.")
             if not self.check_size(data):
                 raise forms.ValidationError("File size exceeded max size, component can not be uploaded.")
-            
+            self.check_filename(data)
+
             # get allowed file types
             upload_ext = splitext(data.name)[1]
             t = CodeComponent.objects.filter(id=self.prefix)

@@ -22,7 +22,7 @@ from groups.models import *
 from submission.models import SubmissionComponent, GroupSubmission, StudentSubmission, get_current_submission
 from log.models import LogEntry
 from django.contrib import messages
-import pickle
+import pickle, datetime
 from grades.formulas import EvalException, activities_dictionary, eval_parse
 
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
@@ -458,6 +458,8 @@ def add_numeric_activity(request, course_slug):
                 return NotFoundResponse(request)
             
             messages.success(request, 'New activity "%s" added' % a.name)
+            _semester_date_warning(request, a)
+            
             return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
         else:
             messages.error(request, "Please correct the error below")
@@ -720,6 +722,19 @@ def _populate_activity_from_formdata(activity, data):
         except Activity.DoesNotExist:
             activity.exam_activity = None
 
+def _semester_date_warning(request, activity):
+    """
+    Generate warnings for this request if activity due date is outside semester boundaries.
+    """
+    if not activity.due_date:
+        return
+
+    if activity.due_date > datetime.datetime.combine(
+            activity.offering.semester.end, datetime.time(23,59,59)):
+        messages.warning(request, "Activity is due after the end of the semester.")
+    if activity.due_date and activity.due_date < datetime.datetime.combine(
+            activity.offering.semester.end, datetime.time(0,0,0)):
+        messages.warning(request, "Activity is due before the start of the semester.")
 
 
 @requires_course_staff_by_slug
@@ -752,6 +767,7 @@ def edit_activity(request, course_slug, activity_slug):
             
             if  form.is_valid(): # All validation rules pass                	
                 _populate_activity_from_formdata(activity, form.cleaned_data)
+                
                 activity.save()
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
@@ -759,6 +775,8 @@ def edit_activity(request, course_slug, activity_slug):
                       related_object=activity)
                 l.save()
                 messages.success(request, "Details of %s updated" % activity.name)
+                _semester_date_warning(request, activity)
+
                 if from_page == FROMPAGE['course']:
                     return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
                 else:
@@ -904,6 +922,8 @@ def add_letter_activity(request, course_slug):
                       related_object=a)
                 l.save()
                 messages.success(request, 'New activity "%s" added' % a.name)
+                _semester_date_warning(request, a)
+                
                 return HttpResponseRedirect(reverse('grades.views.course_info',
                                                 kwargs={'course_slug': course_slug}))
     else:
