@@ -358,31 +358,31 @@ class GradesTest(TestCase):
         student_grade_list = [10, 10, 10, 100, 100, 0, 0, 5, 20]
         grade_range_list = generate_grade_range_stat(student_grade_list, 10)
         res = [(i.grade_range, i.stud_count) for i in grade_range_list]
-        expect = [('0-10',3), ('10-20',3), ('20-30',1), ('30-40',0), ('40-50',0), ('50-60',0), ('60-70',0),('70-80',0),('80-90',0),('90-100',2)]
+        expect = [(u'0\u201310',3), (u'10\u201320',3), (u'20\u201330',1), (u'30\u201340',0), (u'40\u201350',0), (u'50\u201360',0), (u'60\u201370',0),(u'70\u201380',0),(u'80\u201390',0),(u'90\u2013100',2)]
         self.assertEquals(res, expect)
 
         student_grade_list = [10, 10, 10, 100.01, 100, 0, 0, 5, 20]
         grade_range_list = generate_grade_range_stat(student_grade_list, 10)
         res = [(i.grade_range, i.stud_count) for i in grade_range_list]
-        expect = [('0-10',3), ('10-20',3), ('20-30',1), ('30-40',0), ('40-50',0), ('50-60',0), ('60-70',0),('70-80',0),('80-90',0),('90-100',0),('100-110',2)]
+        expect = [(u'0\u201310',3), (u'10\u201320',3), (u'20\u201330',1), (u'30\u201340',0), (u'40\u201350',0), (u'50\u201360',0), (u'60\u201370',0),(u'70\u201380',0),(u'80\u201390',0),(u'90\u2013100',1),('>100',1)]
         self.assertEquals(res, expect)
 
         student_grade_list = [20, 20, 20, 20, 20, 20, 20, 20, 20]
         grade_range_list = generate_grade_range_stat(student_grade_list, 10)
         res = [(i.grade_range, i.stud_count) for i in grade_range_list]
-        expect = [('0-10',0), ('10-20',0), ('20-30',9), ('30-40',0), ('40-50',0), ('50-60',0), ('60-70',0),('70-80',0),('80-90',0),('90-100',0)]
+        expect = [(u'0\u201310',0), (u'10\u201320',0), (u'20\u201330',9), (u'30\u201340',0), (u'40\u201350',0), (u'50\u201360',0), (u'60\u201370',0),(u'70\u201380',0),(u'80\u201390',0),(u'90\u2013100',0)]
         self.assertEquals(res, expect)
 
         student_grade_list = [-20, -20, -20, -20, -10, -10, -10, -10]
         grade_range_list = generate_grade_range_stat(student_grade_list, 10)
         res = [(i.grade_range, i.stud_count) for i in grade_range_list]
-        expect = [('-20--10',4),('-10-0',4), ('0-10',0), ('10-20',0), ('20-30',0), ('30-40',0), ('40-50',0), ('50-60',0), ('60-70',0),('70-80',0),('80-90',0),('90-100',0)]
+        expect = [('<0',8), (u'0\u201310',0), (u'10\u201320',0), (u'20\u201330',0), (u'30\u201340',0), (u'40\u201350',0), (u'50\u201360',0), (u'60\u201370',0),(u'70\u201380',0),(u'80\u201390',0),(u'90\u2013100',0)]
         self.assertEquals(res, expect)
 
         student_grade_list = [-20.1, -20, -20, -20, -10, -10, -10, -10]
         grade_range_list = generate_grade_range_stat(student_grade_list, 10)
         res = [(i.grade_range, i.stud_count) for i in grade_range_list]
-        expect = [('-30--20',1), ('-20--10',3), ('-10-0',4), ('0-10',0), ('10-20',0), ('20-30',0), ('30-40',0), ('40-50',0), ('50-60',0), ('60-70',0),('70-80',0),('80-90',0),('90-100',0)]
+        expect = [('<0',8), (u'0\u201310',0), (u'10\u201320',0), (u'20\u201330',0), (u'30\u201340',0), (u'40\u201350',0), (u'50\u201360',0), (u'60\u201370',0),(u'70\u201380',0),(u'80\u201390',0),(u'90\u2013100',0)]
         self.assertEquals(res, expect)
 
     def test_calc_letter(self):
@@ -440,13 +440,13 @@ class GradesTest(TestCase):
         g.save()
         g = LetterGrade(activity=a, member=ms[9], letter_grade="N", flag="GRAD")
         g.save()
-        g = LetterGrade(activity=a, member=ms[10], letter_grade="WE", flag="GRAD")
+        g = LetterGrade(activity=a, member=ms[10], letter_grade="N", flag="GRAD")
         g.save()
         g = LetterGrade(activity=a, member=ms[11], letter_grade="P", flag="GRAD")
         g.save()
-        g = LetterGrade(activity=a, member=ms[12], letter_grade="AE", flag="GRAD")
+        g = LetterGrade(activity=a, member=ms[12], letter_grade="GN", flag="GRAD")
         g.save()
-        g = LetterGrade(activity=a, member=ms[13], letter_grade="FD", flag="GRAD")
+        g = LetterGrade(activity=a, member=ms[13], letter_grade="N", flag="GRAD")
         g.save()
         g = LetterGrade(activity=a, member=ms[14], letter_grade="A", flag="GRAD")
         g.save()
@@ -454,7 +454,7 @@ class GradesTest(TestCase):
         g_objs = LetterGrade.objects.filter(activity=a)
         gs = [g.letter_grade for g in g_objs]
         gs_sort = sorted_letters(gs)
-        self.assertEquals(gs_sort, ['A+', 'A', 'A', 'B+', 'B', 'B-', 'C-', 'D', 'P', 'F', 'DE', 'N', 'FD', 'WE', 'AE'])
+        self.assertEquals(gs_sort, ['A+', 'A', 'A', 'B+', 'B', 'B-', 'C-', 'D', 'P', 'F', 'DE', 'N', 'N', 'N', 'GN'])
         
         # pre-sort by name for median testing (so we know which subsets we're grabbing)
         gs = [(g.member.person.first_name, g.letter_grade) for g in g_objs]

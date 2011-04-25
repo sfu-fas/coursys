@@ -312,30 +312,38 @@ def generate_grade_range_stat(student_grade_list, grade_range=10):
     normalized to 100 based. E.g. the function will gerenate a grade range list:
     ('0-10', 1), ('11-20', 2), ('21-30', 0), ('31-40', 1), ('41-50', 5),
     ('51-60', 10), ('61-70', 12), ('71-80', 7), ('81-90', 3), ('91-100', 1)
-    """
-    """
+
     The ranges except the last one are half-open ranges. Say:
     [0,10), [10,20), [20,30), [30,40), [40,50), [50,60), [60,70), [70,80), [80,90), [90,100]
     """
     if not grade_range in _SUPPORTED_GRADE_RANGE:
         return
     EPS = 1e-6
-    if grade_range == 10:
-        lower = float(min(student_grade_list))/10.0
-        upper = float(max(student_grade_list))/10.0
-        if lower < int(lower) - EPS:
-            lower -= 1
-        lower = int(min(lower, 0))
-        if upper > int(upper) + EPS:
-            upper += 1
-        upper = int(max(upper, grade_range))
-
-        grade_range_stat_list = []
-        for i in range(lower, upper):
-            stud_count = len([k for k in student_grade_list if k >= i*10 and k < (i+1)*10])
-            grade_range_stat_list.append(GradeRangeStat('%d-%d' % (i * 10, (i + 1) * 10), stud_count))
-        grade_range_stat_list[-1].stud_count += len([k for k in student_grade_list if k >= (i+1)*10])
-        return grade_range_stat_list
+    
+    stats = [GradeRangeStat(u"<0", 0)] \
+            + [GradeRangeStat(u"%i\u2013%i" % (i*grade_range,(i+1)*grade_range), 0) for i in range(grade_range)] \
+            + [GradeRangeStat(u">100", 0)]
+    for g in student_grade_list:
+        # extreme cases:
+        if g < 0:
+            stats[0].stud_count += 1
+        elif g > 100:
+            stats[-1].stud_count += 1
+        else:
+            # other grade_range bins:
+            bin = int(g//10 + EPS)
+            if bin == grade_range:
+                # move 100% down into x-100 bin
+                bin -= 1
+            stats[bin+1].stud_count += 1
+    
+    # remove extreme bins if not used
+    if stats[0].stud_count == 0:
+        stats = stats[1:]
+    if stats[-1].stud_count == 0:
+        stats = stats[:-1]
+    
+    return stats
 
     
 def generate_grade_range_stat_lettergrade(student_lettergrade_list,grade_range=11):
