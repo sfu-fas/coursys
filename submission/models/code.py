@@ -14,6 +14,7 @@ CODE_TYPES = [
     (".java", "Java Source (.java)"),
     (".class", "Java Bytecode (.class)"),
     (".cpp", "C++ (.cpp)"),
+    (".cc", "C++ (.cc)"),
     (".c", "C (.c)"),
     (".h", "C header (.h)"),
     (".py", "Python (.py)"),
