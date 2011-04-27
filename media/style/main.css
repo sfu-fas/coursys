@@ -185,10 +185,7 @@ div#newsitems a.morenews {
   font-weight: bold;
   margin-right: 0.5em;
 }
-div#newsitems .collapsible-heading-status {
-  display: none;
-}
-h2.semester .collapsible-heading-status {
+div#newsitems .collapsible-heading-status, h2.semester .collapsible-heading-status, h2#data .collapsible-heading-status{
   display: none;
 }
 
