@@ -82,3 +82,39 @@ function togglenews(e, elt) {
     targ.innerHTML = "+";
   }
 }
+
+/* http://stackoverflow.com/questions/1418050/string-strip-for-javascript */
+if(typeof(String.prototype.trim) === "undefined")
+{
+    String.prototype.trim = function() 
+    {
+        return String(this).replace(/^\s+|\s+$/g, '');
+    };
+}
+
+/* jQuery Datatables sorting by something/nothing */
+function mark_anything(x,y) {
+  var xt = x.trim();
+  var yt = y.trim();
+  if ( xt == "" && yt == "") { return 0;
+  } else if ( xt == "" ) { return 1;
+  } else if ( yt == "" ) { return -1;
+  } else { return 0; }    
+}
+jQuery.fn.dataTableExt.oSort['by-anything-asc']  = function(x,y) { return mark_anything(x,y) };
+jQuery.fn.dataTableExt.oSort['by-anything-desc'] = function(x,y) { return mark_anything(y,x) };
+
+/* jQuery Datatables sorting by marking link */
+function mark_marklink(x,y) {
+  var xp = x.indexOf("magnifier.png");
+  var yp = y.indexOf("magnifier.png");
+  console.log(x);
+  console.log(xp);
+  if ( xp == -1 && yp == -1) { return 0;
+  } else if ( xp == -1 ) { return 1;
+  } else if ( yp == -1 ) { return -1;
+  } else { return 0; }    
+}
+jQuery.fn.dataTableExt.oSort['by-marklink-asc']  = function(x,y) { return mark_marklink(x,y) };
+jQuery.fn.dataTableExt.oSort['by-marklink-desc'] = function(x,y) { return mark_marklink(y,x) };
+

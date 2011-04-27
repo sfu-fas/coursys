@@ -38,9 +38,6 @@ div .group_info_area{
     background-image: url('../images/grades/bluep.png');
 }
 
-div ul.group_member_list{
-	list-style-image: url('../icons/bullet.png');
-} 
 
 
 /* CSS for system elements */

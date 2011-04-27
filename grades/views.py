@@ -193,7 +193,7 @@ def _activity_info_staff(request, course_slug, activity_slug):
     # collect group membership info
     group_membership = {}
     if activity.group:
-        gms = GroupMember.objects.filter(activity=activity, confirmed=True).select_related('group', 'student__person')
+        gms = GroupMember.objects.filter(activity=activity, confirmed=True).select_related('group', 'student__person', 'group__courseoffering')
         for gm in gms:
             group_membership[gm.student.person.userid] = gm.group
 
@@ -289,7 +289,7 @@ def activity_info_with_groups(request, course_slug, activity_slug):
         return NotFoundResponse(request)
 
     # build list of group grades information
-    all_members = GroupMember.objects.select_related('group', 'student__person').filter(activity = activity, confirmed = True)
+    all_members = GroupMember.objects.select_related('group', 'student__person', 'group__courseoffering').filter(activity = activity, confirmed = True)
     groups_found = {}
     grouped_students = 0
     for member in all_members:
@@ -320,11 +320,16 @@ def activity_info_with_groups(request, course_slug, activity_slug):
         activity_type = ACTIVITY_TYPE['NG']
     elif isinstance(activity, LetterActivity):
         activity_type = ACTIVITY_TYPE['LG']
+    
+    # more activity info for display
+    sub_comps = [sc.title for sc in SubmissionComponent.objects.filter(activity=activity, deleted=False)]
+    mark_comps = [ac.title for ac in ActivityComponent.objects.filter(numeric_activity=activity, deleted=False)]
 
     context = {'course': course, 'activity_type': activity_type, 
                'activity': activity, 'ungrouped_students': ungrouped_students,
                'activity_view_type': 'group',
                'group_grade_info_list': groups_found.values(), 'from_page': FROMPAGE['activityinfo_group'],
+               'sub_comps': sub_comps, 'mark_comps': mark_comps,
                'submitted': submitted}
     return render_to_response('grades/activity_info_with_groups.html', context, context_instance=RequestContext(request))
 

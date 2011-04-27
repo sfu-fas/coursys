@@ -12,8 +12,8 @@
 			"iDisplayLength" : 50,
             "aoColumns": [
 		    null,
-		    { "sType": "by-mark" },
-            { "sWidth": "3em" }
+		    { "sType": "by-mark", "sWidth": "8em" },
+                    { "sType": "by-anything", "sWidth": "8em" }
             ]
 		});
 		$('div.collapsible').collapsible();		
@@ -27,17 +27,17 @@
     <table class="display" id="group_grades">
         <thead>
            <tr>
-            <th>Group Name</th>
-			<th>Grade</th>
-			<th><img src="{{MEDIA_URL}}icons/disk_multiple.png" title="Submission" alt="Submission" /></th>
-            </tr>
-	    </thead>
+           <th>Group</th>
+           <th>Marking</th>
+           <th>Submission</th>
+           </tr>
+	</thead>
         <tbody>
 	    {% for group_grade_info in group_grade_info_list %}
 	    {% with group_grade_info.group as group %}
 		    <tr>
 			<td scope="row">
-				<a href="#">{{ group.name }}</a>
+				<a href="{{group.get_absolute_url}}">{{ group.name }}</a>
 		    	<div class="collapsible"></div>
 		    	<div>
 		    	    <ul class="group_member_list">
@@ -73,7 +73,4 @@
         </tbody>
     </table>
 </div>
-<h2>
-There are still {{ungrouped_students}} students left who is in no group!
-<h2>
 {% endblock %}

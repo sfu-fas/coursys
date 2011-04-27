@@ -58,8 +58,8 @@ Column logic:
 		    {% if activity.group %}null,{% endif %}
 		    {% if not activity.is_numeric and activity.is_calculated %}null,{% endif %}
 		    {% if activity.is_numeric %}{ "sType": "by-nolinkmark" }{% else %}{ "sType": "by-nolinkletter" }{% endif %}
-		    {% if not activity.is_calculated and activity.is_numeric %},{ "bSortable": false }{% endif %}
-		    {% if not activity.is_calculated %},{ "bSortable": false }{% endif %}
+		    {% if not activity.is_calculated and activity.is_numeric %},{ "sType": "by-marklink" }{% endif %}
+		    {% if not activity.is_calculated %},{ "sType": "by-anything" }{% endif %}
 		    {% if activity.is_calculated and activity.is_numeric %},{ "bSortable": false }{% endif %}
 		]
 	});
@@ -299,7 +299,7 @@ Column logic:
 
 		{% if activity.group %}
 		  <td>{% with group_membership|hash:userid as group %}
-		  {% if group %}{{group}}{% else %}&mdash;{% endif %}
+		  {% if group %}<a href="{{group.get_absolute_url}}">{{group}}</a>{% else %}&mdash;{% endif %}
 		  {% endwith %}</td>
 		{% endif %}
 		{% if not activity.is_numeric and activity.is_calculated %}<td>

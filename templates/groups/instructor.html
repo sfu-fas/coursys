@@ -30,7 +30,7 @@ $(document).ready(function() {
 <div id="grouplist">
   {% if groupList %}
   {% for info in groupList %}
-  <h3 id="info.group.slug">{{ info.group.name }}</h3>
+  <h3 id="{{info.group.slug}}">{{ info.group.name }}</h3>
   <p>For {% for activity in info.activities %}{{ activity.name }}{% if forloop.last %}{% else %}, {% endif %}{% endfor %}</p>
           <ul>
               {% for m in info.unique_members %}
@@ -70,7 +70,10 @@ $(document).ready(function() {
   </p>
 
 <h2 id="data">Group Data</h2>
-<pre id="datafile">
-{% for info in groupList %}{{info.group.slug}}: {{ info.userids }}
-{% endfor %}</pre>
+<div>
+<p>This is a machine-readable list of group members that you can copy-and-paste. [Does this format make sense? Anybody want something different?]</p>
+<blockquote><pre>{% for info in groupList %}{{info.group.slug}}: {{ info.userids }}
+{% endfor %}</pre></blockquote>
+
+</div>
 {% endblock %}
