@@ -7,11 +7,9 @@
 {% block title %}{{activity.name}}: Import Marking Details{% endblock %}
 {% block h1 %}{{activity.name}}: Import Marking Details{% endblock %}
 
-{% block marking_subbreadcrumbs %}
-<li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Import Marking Details</li>
-{% endblock %}
-{% block content %}
+{% block marking_subbreadcrumbs %}<li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Import Marking Details</li>{% endblock %}
 
+{% block content %}
 <form action="{% url marking.views.import_marks course_slug=course.slug activity_slug=activity.slug %}" method="post" enctype="multipart/form-data">{% csrf_token %}
 <p>{{form.file}} {{form.file.errors}}</p>
 <p><input class ="submit" type="submit" value="Submit" /></p>
@@ -27,11 +25,15 @@
   },
   {
     {% if activity.group %}"group": "g-grouptwo",{% else %}"userid": "def1",{% endif %}{% for c in components %}
-    "{{c.slug}}": {"mark": {{c.max_mark|floatformat:2}}, "comment": "Comment on {{c.title}}."}{% if not forloop.last %},{% endif %}{% endfor %}
+    "{{c.slug}}": {"mark": {{c.max_mark|floatformat:2}}, "comment": "Comment on {{c.title}}."},{% endfor %}
+    "late_percent": 0.0,
+    "mark_penalty": 0.0,
+    "mark_penalty_reason": "Reason for mark penalty",
+    "overall_comment": "Overall comment on the assignment."
   }
 ]
 </pre></blockquote>
-<p>Mark components may be omitted: they will be graded zero with no comment.  Comments can be empty or omitted.</p>
+<p>Mark components may be omitted: they will be graded zero with no comment.  Comments can be empty or omitted. The <code>late_penalty</code> and other additional details can be omitted.</p>
 {% if activity.group %}
 <p>The labels for the groups are:</p>
 <ul>

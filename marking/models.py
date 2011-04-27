@@ -76,9 +76,9 @@ class ActivityMark(models.Model):
     General Marking class for one numeric activity 
     """
     overall_comment = models.TextField(null = True, max_length = 1000, blank = True)
-    late_penalty = models.DecimalField(max_digits=5, decimal_places=2, null = True, default = 0, blank = True, help_text='Percentage to deduct from the total mark got due to late submission')
-    mark_adjustment = models.DecimalField(max_digits=5, decimal_places=2, null = True, default = 0, blank = True, help_text='Points to deduct for any special reasons')
-    mark_adjustment_reason = models.TextField(null = True, max_length = 1000, blank = True)
+    late_penalty = models.DecimalField(max_digits=5, decimal_places=2, null = True, default = 0, blank = True, help_text='Percentage to deduct from the total due to late submission')
+    mark_adjustment = models.DecimalField(max_digits=5, decimal_places=2, null = True, default = 0, blank = True, verbose_name="Mark Penalty", help_text='Points to deduct for any special reasons (may be negative for bonus)')
+    mark_adjustment_reason = models.TextField(null = True, max_length = 1000, blank = True, verbose_name="Mark Penalty Reason")
     file_attachment = models.FileField(storage=MarkingSystemStorage, null = True, upload_to=attachment_upload_to, blank=True, max_length=500)
     file_mediatype = models.CharField(null=True, blank=True, max_length=200)
     created_by = models.CharField(max_length=8, null=False, help_text='Userid who gives the mark')
@@ -510,8 +510,31 @@ def activity_marks_from_JSON(activity, userid, data):
         # build ActivityComponentMarks
         found_comp_slugs = set()
         mark_total = 0
+        late_percent = decimal.Decimal(0)
+        mark_penalty = decimal.Decimal(0)
+        mark_penalty_reason = ""
+        overall_comment = ""
         for slug in markdata:
+            # handle special-case slugs (that don't represent MarkComponents)
             if slug in ['userid', 'group']:
+                continue
+            elif slug=="late_percent":
+                try:
+                    late_percent = decimal.Decimal(str(markdata[slug]))
+                except decimal.InvalidOperation:
+                    raise ValidationError(u'Value for "late_percent" must be numeric in record for "%s".' % (recordid))
+                continue
+            elif slug=="mark_penalty":
+                try:
+                    mark_penalty = decimal.Decimal(str(markdata[slug]))
+                except decimal.InvalidOperation:
+                    raise ValidationError(u'Value for "mark_penalty" must be numeric in record for "%s".' % (recordid))
+                continue
+            elif slug=="mark_penalty_reason":
+                mark_penalty_reason = unicode(markdata[slug])
+                continue
+            elif slug=="overall_comment":
+                overall_comment = unicode(markdata[slug])
                 continue
 
             if slug in components and slug not in found_comp_slugs:
@@ -532,8 +555,11 @@ def activity_marks_from_JSON(activity, userid, data):
 
             if 'mark' not in componentdata:
                 raise ValidationError(u'Must give "mark" for "%s" in record for "%s".' % (comp.title, recordid))
-            #try:
-            value = decimal.Decimal(str(componentdata['mark']))
+            
+            try:
+                value = decimal.Decimal(str(componentdata['mark']))
+            except decimal.InvalidOperation:
+                raise ValidationError(u'Value for "mark" must be numeric for "%s" in record for "%s".' % (comp.title, recordid))
 
             cm.value = value
             mark_total += float(componentdata['mark'])
@@ -547,9 +573,17 @@ def activity_marks_from_JSON(activity, userid, data):
             cm.value = decimal.Decimal(0)
             cm.comment = ''
         
+        am.late_penalty = late_percent
+        am.mark_adjustment = mark_penalty
+        am.mark_adjustment_reason = mark_penalty_reason
+        am.overall_comment = overall_comment
+        
+        mark_total = (1-late_percent/decimal.Decimal(100)) * \
+                  (decimal.Decimal(str(mark_total)) - mark_penalty)
+        
         # put the total mark and numeric grade objects in place
-        am.mark = decimal.Decimal(str(mark_total))
-        value = decimal.Decimal(str(mark_total))
+        am.mark = mark_total
+        value = mark_total
         if isinstance(am, StudentActivityMark):
             grades = NumericGrade.objects.filter(activity=activity, member=member)
             if grades:

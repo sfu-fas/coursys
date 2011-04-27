@@ -64,20 +64,20 @@ Group {{group.name}} marked on {{activity.name}}
            </td>
         </tr>    
 		<tr>
-		  <th class="ui-state-default">Late Penalty</th>
+		  <th class="ui-state-default">Late Percent</th>
 		  <td> 
 			 {{ activity_mark.late_penalty }}%
 	      </td>
 	    </tr>
 	    {% if activity_mark.mark_adjustment != 0 or activity_mark.mark_adjustment_reason != '' %}
 	    <tr>
-		  <th class="ui-state-default">Adjustment Mark</th>
+		  <th class="ui-state-default">Mark Penalty</th>
 		  <td> 
 			 {{ activity_mark.mark_adjustment }}
 	      </td>
 	    </tr>
 	    <tr>
-		  <th class="ui-state-default">Adjustment Mark Reason</th>
+		  <th class="ui-state-default">Mark Penalty Reason</th>
 		  <td> 
 			 {{ activity_mark.mark_adjustment_reason|linebreaks }}	
 	      </td>
