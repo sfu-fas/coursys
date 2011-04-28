@@ -9,7 +9,7 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         
         # Adding field 'CourseOffering.config'
-        db.add_column('coredata_courseoffering', 'config', self.gf('jsonfield.JSONField')(default={}, null=True, blank=True), keep_default=False)
+        db.add_column('coredata_courseoffering', 'config', self.gf('jsonfield.JSONField')(default={}, null=False, blank=False), keep_default=False)
 
 
     def backwards(self, orm):

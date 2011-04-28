@@ -194,7 +194,7 @@ class CourseOffering(models.Model):
     wait_tot = models.PositiveSmallIntegerField()
 
     members = models.ManyToManyField(Person, related_name="member", through="Member")
-    config = JSONField(null=True, blank=True, default={}) # addition configuration stuff
+    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
       # c.config['url']: URL of course home page
       # c.config['department']: department responsible for course (used by discipline module)
     
