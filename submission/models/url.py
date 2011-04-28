@@ -49,6 +49,7 @@ from submission.models.url_validator import QuickURLValidator
 class URL:
     label = "url"
     name = "URL"
+    descr = "a web page address"
     Component = URLComponent
     SubmittedComponent = SubmittedURL
 

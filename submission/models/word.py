@@ -56,6 +56,7 @@ class SubmittedWord(SubmittedComponent):
 class Word:
     label = "word"
     name = "Word"
+    descr = "a MS Word or OpenDocument file"
     Component = WordComponent
     SubmittedComponent = SubmittedWord
     

@@ -57,6 +57,7 @@ class SubmittedArchive(SubmittedComponent):
 class Archive:
     label = "archive"
     name = "Archive"
+    descr = "an archive file (TGZ/ZIP/RAR)"
     Component = ArchiveComponent
     SubmittedComponent = SubmittedArchive
     

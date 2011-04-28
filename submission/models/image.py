@@ -57,6 +57,7 @@ class SubmittedImage(SubmittedComponent):
 class Image:
     label = "image"
     name = "Image"
+    descr = "an image file (PNG/GIF/JPEG)"
     Component = ImageComponent
     SubmittedComponent = SubmittedImage
     

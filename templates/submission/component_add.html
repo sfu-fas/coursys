@@ -19,21 +19,23 @@
 {% block subbreadcrumbs %}<li>&gt; <a href="{{ course.get_absolute_url }}">{{course.name}}</a></li><li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; <a href="{% url submission.views.show_components course_slug=course.slug activity_slug=activity.slug %}">Submission Components</a></li><li>&gt; New</li>{% endblock %}
 
 {% block content %}
-<h2>Select Component Type:</h2>
 
-<ul class="add_nav">
+{% if not type %}
+<h2>Select Type of Submission Component:</h2>
+<ul>
 {% for t in types %}
-  <li><a href="?type={{t.label}}" class="button"{% ifequal t.label type.label %}id="current_type"{% endifequal %} onclick="readField()">{{t.name}}</a></li>
+  <li><a href="?type={{t.label}}">{{t.name}}</a>: {{t.descr}}</li>
 {% endfor %}
 </ul>
 
-{%if type%}
+{% else %}
 <div id="form_container">
 <div id="add_submission_component_container">
 
 <form action="" method="post">{% csrf_token %}
 <fieldset>
-    <legend>Add Component</legend>
+    <legend>New {{type.name}} Component</legend>
+    <p>Details for {{type.descr}} submission.</p>
     {{form|display_form}}
     
     

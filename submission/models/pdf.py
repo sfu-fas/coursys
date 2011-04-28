@@ -43,6 +43,7 @@ class SubmittedPDF(SubmittedComponent):
 class PDF:
     label = "pdf"
     name = "PDF"
+    descr = "an Acrobat document"
     Component = PDFComponent
     SubmittedComponent = SubmittedPDF
     

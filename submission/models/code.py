@@ -80,6 +80,7 @@ FIELD_TEMPLATE = Template('''<li>
 class Code:
     label = "code"
     name = "Code"
+    descr = "a source code file"
     Component = CodeComponent
     SubmittedComponent = SubmittedCode
 
