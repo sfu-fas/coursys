@@ -1,26 +1,30 @@
 Here is a quick description of what is in the project:
 
-EXTERNAL APPS
-autoslug: adds AutoSlugField field type
-django_cas: CAS authentication
-timezones: adds TimeZoneField field type; requires PyTZ
-external: the original unpacked directories for the above modules (minus the core code)
-
 COURSE MANAGEMENT APPS
 coredata: data on course offerings and enrolment; imported from goSFU or set by admins
   coredata/importer.py: program to do the import from goSFU
-  coredata/fake_importer.py: program to do the import from goSFU, faking some things for development.
 dashboard: responsible for display of front page, main course pages, news items
-grades: management of course grades
-marking:
-submission:
-groups:
+discipline: handling academic dishonesty cases
+grades: management of course activities and grades
+groups: handling groups so assignments can be group-based
+log: finer-grained logging for the system
+marking: finer-grained marking with a rubric
+mobile: some read-only views for mobile devices
+planning: planning of courses, assigning instructors, etc.
+submission: submission of work (for later grading)
+
+OTHER TOP-LEVEL FILES/DIRECTORIES
+courselib: various library code for the system
+docs: reports written on the system by DDP students
+external: external code used by the system
+media: static web files (CSS, JS, images, etc.)
+old: practice/warmup modules written that are no longer used.
+serialize.py: code to create more JSON data for test_data.json.  See comments in the file.
+tools: various scripts that have been used to manage the data as necessary
 
 OTHER
-initial_data.json: basic data: semesters from 1094 to 1107
+initial_data.json: basic data, semesters from 1094 to 1107
 test_data.json: data used for testing/devel
-serialize.py: code to create more JSON data for test_data.json.  See comments in the file.
-media: static web files (CSS, JS, images, etc.)
 
 All other files are the standard Django setup.
  
