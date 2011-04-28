@@ -28,13 +28,25 @@ code.file {
 <dt>Additional packages installed</dt>
   <dd>Like this:
   <blockquote><pre>dpkg --purge apache2.2-bin apache2.2-common apache2-utils apache2 apache2-mpm-worker apache2.2-common
-apt-get install nginx python-flup subversion python-mysqldb python-tz memcached python-memcache</pre></blockquote></dd>
+apt-get install nginx python-flup subversion python-mysqldb mysql-client-5.1 python-tz memcached python-memcache stunnel4</pre></blockquote></dd>
 <dt>Django Package</dt>
   <dd>System requires Django &ge;1.2, so newer package was downloaded separately from <a href="http://packages.ubuntu.com/search?keywords=python-django&amp;searchon=names&amp;suite=all&amp;section=all">Ubuntu package repository</a>.
   <blockquote><pre>dpkg -i python-django_1.2.3-1ubuntu0.2.10.10.2_all.deb</pre></blockquote>
   </dd>
 <dt>Memcached</dt>
   <dd>In <code class="file">/etc/memcached.conf</code>, change the port to 22122.</dd>
+<dt>Stunnel config for MySQL</dt>
+  <dd>In <code class="file">/etc/default/stunnel4</code>, enable stunnel.  Add this to <code class="file">/etc/stunnel/stunnel.conf</code> and remove other services and <code>cert</code> line:
+  <blockquote><pre>cert = /etc/stunnel/stunnel.pem
+
+client = yes
+
+[mysqls]
+accept  = 127.0.0.1:4000
+connect = onara.cs.sfu.ca:5000</pre></blockquote>
+  <p>Copy the <code class="file">/etc/default/stunnel.pem</code> cretificate.</p>
+  <blockquote><pre>chmod 0600 /etc/default/stunnel.pem</pre></blockquote>
+  </dd>
 <dt></dt>
   <dd></dd>
 <dt></dt>
@@ -52,7 +64,8 @@ apt-get install nginx python-flup subversion python-mysqldb python-tz memcached 
 <dt>SSL certificates</dt>
   <dd>The <code>.cs.sfu.ca</code> wildcard SSL certificates in <code class="file">/etc/nginx/cert.pem</code> and <code class="file">/etc/nginx/cert.key</code>.  Certificate installation checked with <a href="http://www.digicert.com/help/">Digicert Certificate Tester</a>.
   <blockquote><pre>chown root.root /etc/nginx/cert.*
-chmod 0600 /etc/nginx/cert.*</pre></blockquote></dd>
+chmod 0600 /etc/nginx/cert.*</pre></blockquote>
+  <p>Note: <code class="file">.pem</code> and <code class="file">.cert</code> files are apparently the same thing: no need to convert.</p></dd>
 <dt>Server Config</dt>
   <dd>Main configuration file for server setup, <code class="file">/etc/nginx/sites-enabled/default</code> restored from <a href="etc_nginx_sites-enabled_default">version on old server</a>.</dd>
 <dt></dt>

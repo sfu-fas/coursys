@@ -3,26 +3,26 @@
 {% block jsextra %}
 $(document).ready(function() {
   setup_templates("penalty_reason");
-  setup_groupmembers("instr_penalty");
-  setup_groupmembers("refer_chair");
+  setup_groupmembers("penalty");
+  setup_groupmembers("refer");
   form_change();
 })
 
 function form_change() {
   // suggest assigning F if doing referral
-  var penalty = $("input[name=instr_penalty]:checked").val();
-  var refer = $("#id_refer_chair:checked").val();
+  var penalty = $("input[name=penalty]:checked").val();
+  var refer = $("#id_refer:checked").val();
   var div = $('#warning');
   if ( refer == "on" && penalty != "ZERO" ) {
-    div.html('If referring to the Chair/Director, it is strongly recommended that you assign the maximum penalty available, since you are referring <em>for further penalty</em>.  You should assign <em>and implement</em> this penalty: the Chair/Director may later assign further penalty.');
+    div.html('If referring the case on, it is strongly recommended that you assign the maximum penalty available, since you are referring <em>for further penalty</em>.  You should assign <em>and implement</em> this penalty: further penalty may or may not be assigned later.');
   } else {
     div.html('');
   }
 }
 {% endblock %}
 
-{% block title %}Dishonesty Case for {{case.student.name}}: Edit Instructor Penalty{% endblock %}
-{% block h1 %}Dishonesty Case for {{case.student.name}}: Edit Instructor Penalty{% endblock %}
+{% block title %}Dishonesty Case for {{case.student.name}}: Edit Penalty{% endblock %}
+{% block h1 %}Dishonesty Case for {{case.student.name}}: Edit Penalty{% endblock %}
 {% block editlabel %}Instructor Penalty{% endblock %}
 
 {% block actions %}{% endblock %}
@@ -44,17 +44,17 @@ function form_change() {
 <p>Please consider consulting with the departmental Academic Integrity Advisor or Chair before deciding penlaty.</p>
 
 <div id="form_container">
-    <form action="{% url discipline.views.edit_case_info field='instr_penalty' course_slug=course.slug case_slug=case.slug %}" method="post" onchange="form_change();">{% csrf_token %}
+    <form action="{% url discipline.views.edit_case_info field='penalty' course_slug=course.slug case_slug=case.slug %}" method="post" onchange="form_change();">{% csrf_token %}
     <hr class="fieldsep" />
-    <div class="discside" id="group_instr_penalty"></div>
-    <p>{{ form.instr_penalty.help_text }}
-    	{{ form.instr_penalty }}</p>
+    <div class="discside" id="group_penalty"></div>
+    <p>{{ form.penalty.help_text }}
+    	{{ form.penalty }}</p>
 
     <hr class="fieldsep" />
-    <div class="discside" id="group_refer_chair"></div>
-    <p>{{ form.refer_chair.help_text }}
-    	{{ form.refer_chair }}</p>
-    <p class="helptext">The case may be referred to the Chair/Director if you &ldquo;believe that a penalty is warranted beyond that provided for [above]&rdquo;.</p>
+    <div class="discside" id="group_refer"></div>
+    <p>{{ form.refer.help_text }}
+    	{{ form.refer }}</p>
+    <p class="helptext">The case may be referred on if you &ldquo;believe that a penalty is warranted beyond that provided for [above]&rdquo;.</p>
     <p class="actionwarning" id="warning"></p>
     
     <hr class="fieldsep" />

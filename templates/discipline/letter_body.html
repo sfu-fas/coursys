@@ -19,12 +19,16 @@ http://en.wikipedia.org/wiki/HTML_e-mail
   <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Student Number:</span> {% if case.student.emplid %}{{case.student.emplid}}{% else %}unknown{% endif %}</td>
 </tr>
 <tr>
-  <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Instructor:</span> {{case.instructor.sortname}}</td>
-  <td colspan="2" style="border: 1px solid black"><span style="font-weight: bold">Instructor Email:</span> {{case.instructor.email}}</td>
+  <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Instructor:</span> {{case.owner.sortname}}</td>
+  <td colspan="2" style="border: 1px solid black"><span style="font-weight: bold">Instructor Email:</span> {{case.owner.email}}</td>
 </tr>
 </table>
 
 <dl>
+{% if case.notes_public %}
+<dt style="font-weight: bold">Notes</dt>
+  <dd>{{case|format_field:'notes_public'}}</dd>
+{% endif %}
 <dt style="font-weight: bold">Meeting with student</dt>
   <dd>
     {% if case.response == "NONE" %}

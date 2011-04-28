@@ -220,6 +220,15 @@ class CourseOffering(models.Model):
         return (m.person for m in self.member_set.filter(role="TA"))
     def student_count(self):
         return self.members.filter(person__role='STUD').count()
+    def department(self):
+        """
+        Who is the controlling department?
+        """
+        if 'department' in self.config:
+            return self.config['department']
+        else:
+            return self.subject
+
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
 
@@ -328,6 +337,7 @@ class Role(models.Model):
         ('COOP', 'Co-op Staff'),
         ('PLAN', 'Planning Administrator'),
         ('DISC', 'Discipline Case Administrator'),
+        ('DICC', 'Discipline Case Contact'),
         ('ADMN', 'Departmental Administrator'),
         ('SYSA', 'System Administrator'),
         ('NONE', 'none'),

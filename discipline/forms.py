@@ -47,13 +47,13 @@ class DisciplineCaseForm(forms.ModelForm):
         return members[0].person
     
     class Meta:
-        model = DisciplineCase
+        model = DisciplineCaseInstrStudent
         fields = ("student", "group")
 
 
-class DisciplineNonStudentCaseForm(forms.ModelForm):
+class DisciplineInstrNonStudentCaseForm(forms.ModelForm):
     class Meta:
-        model = DisciplineCaseNonStudent
+        model = DisciplineCaseInstrNonStudent
         fields = ("emplid", "userid", "email", "last_name", "first_name", "group")
 
 
@@ -71,10 +71,11 @@ class TemplateForm(forms.ModelForm):
 
 class CaseNotesForm(forms.ModelForm):
     class Meta:
-        model = DisciplineCase
-        fields = ("notes",)
+        model = DisciplineCaseBase
+        fields = ("notes", "notes_public")
         widgets = {
-            'notes': forms.Textarea(attrs={'cols':'80', 'rows':'20'}),
+            'notes': forms.Textarea(attrs={'cols':'80', 'rows':'15'}),
+            'notes_public': forms.Textarea(attrs={'cols':'80', 'rows':'15'}),
         }
 class CaseContactedForm(forms.ModelForm):
     def clean(self):
@@ -93,7 +94,7 @@ class CaseContactedForm(forms.ModelForm):
         return self.cleaned_data
 
     class Meta:
-        model = DisciplineCase
+        model = DisciplineCaseBase
         fields = ("contacted", "contact_date", "contact_email_text")
         widgets = {
             'contacted': forms.RadioSelect(),
@@ -101,7 +102,7 @@ class CaseContactedForm(forms.ModelForm):
         }
 class CaseResponseForm(forms.ModelForm):
     class Meta:
-        model = DisciplineCase
+        model = DisciplineCaseBase
         fields = ("response",)
         widgets = {
             'response': forms.RadioSelect(),
@@ -114,7 +115,7 @@ class CaseMeetingForm(forms.ModelForm):
         return date
 
     class Meta:
-        model = DisciplineCase
+        model = DisciplineCaseBase
         fields = ("meeting_date", "meeting_summary", "meeting_notes")
         widgets = {
             'meeting_summary': forms.Textarea(attrs={'cols':'80', 'rows':'10'}),
@@ -122,17 +123,17 @@ class CaseMeetingForm(forms.ModelForm):
         }
 class CaseFactsForm(forms.ModelForm):
     class Meta:
-        model = DisciplineCase
+        model = DisciplineCaseBase
         fields = ("facts",)
         widgets = {
             'facts': forms.Textarea(attrs={'cols':'80', 'rows':'20'}),
         }
-class CaseInstrPenaltyForm(forms.ModelForm):
+class CasePenaltyForm(forms.ModelForm):
     class Meta:
-        model = DisciplineCase
-        fields = ("instr_penalty", "refer_chair", "penalty_reason")
+        model = DisciplineCaseBase
+        fields = ("penalty", "refer", "penalty_reason")
         widgets = {
-            'instr_penalty': forms.RadioSelect(),
+            'penalty': forms.RadioSelect(),
             'penalty_reason': forms.Textarea(attrs={'cols':'80', 'rows':'10'}),
         }
 class CaseLetterReviewForm(forms.ModelForm):
@@ -142,7 +143,7 @@ class CaseLetterReviewForm(forms.ModelForm):
             # cannot set to true if other required fields not filled in
             case = self.instance
             step = case.next_step()
-            if step in INSTR_STEPS:
+            if step in PRE_LETTER_STEPS:
                 raise forms.ValidationError(
                     mark_safe('Cannot finalize letter: have not entered <a href="%s">%s</a>.'
                         % (reverse('discipline.views.edit_case_info',
@@ -152,7 +153,7 @@ class CaseLetterReviewForm(forms.ModelForm):
         return review
 
     class Meta:
-        model = DisciplineCase
+        model = DisciplineCaseBase
         fields = ("letter_review",)
 
 class CaseLetterSentForm(forms.ModelForm):
@@ -178,7 +179,7 @@ class CaseLetterSentForm(forms.ModelForm):
         return self.cleaned_data
 
     class Meta:
-        model = DisciplineCase
+        model = DisciplineCaseBase
         fields = ("letter_sent","letter_date","letter_text")
         widgets = {
             'letter_sent': forms.RadioSelect(),
@@ -187,7 +188,7 @@ class CaseLetterSentForm(forms.ModelForm):
 class CasePenaltyImplementedForm(forms.ModelForm):
     def clean_penalty_implemented(self):
         impl = self.cleaned_data['penalty_implemented']
-        if impl and self.instance.instr_penalty!="NONE" and self.instance.letter_sent=="WAIT":
+        if impl and self.instance.penalty!="NONE" and self.instance.letter_sent=="WAIT":
             # cannot set to true if letter not sent
             raise forms.ValidationError(
                 mark_safe('Cannot implement penalty: have not <a href="%s">sent letter</a>.'
@@ -197,10 +198,10 @@ class CasePenaltyImplementedForm(forms.ModelForm):
         return impl
 
     class Meta:
-        model = DisciplineCase
+        model = DisciplineCaseBase
         fields = ("penalty_implemented",)
 
-
+"""
 class CaseChairNotesForm(forms.ModelForm):
     class Meta:
         model = DisciplineCase
@@ -257,7 +258,7 @@ class CaseChairLetterReviewForm(forms.ModelForm):
         model = DisciplineCase
         fields = ("chair_letter_review",)
 
-
+"""
 
 class CaseRelatedForm(forms.Form):
     activities = forms.MultipleChoiceField(label="Activities in the course", widget=forms.SelectMultiple(attrs={'size':'8'}), required=False)
@@ -299,16 +300,16 @@ STEP_FORM = { # map of field -> form for editing it (all ModelForm for Disciplin
         'response': CaseResponseForm,
         'meeting': CaseMeetingForm,
         'facts': CaseFactsForm,
-        'instr_penalty': CaseInstrPenaltyForm,
+        'penalty': CasePenaltyForm,
         'letter_review': CaseLetterReviewForm,
         'letter_sent': CaseLetterSentForm,
         'penalty_implemented': CasePenaltyImplementedForm,
 
-        'chair_notes': CaseChairNotesForm,
-        'chair_meeting': CaseChairMeetingForm,
-        'chair_facts': CaseChairFactsForm,
-        'chair_penalty': CaseChairPenaltyForm,
-        'chair_letter_review': CaseChairLetterReviewForm,
+        #'chair_notes': CaseChairNotesForm,
+        #'chair_meeting': CaseChairMeetingForm,
+        #'chair_facts': CaseChairFactsForm,
+        #'chair_penalty': CaseChairPenaltyForm,
+        #'chair_letter_review': CaseChairLetterReviewForm,
         }
 
 

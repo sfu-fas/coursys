@@ -50,7 +50,7 @@ def newgroup(request, course_slug):
             for userid in form.cleaned_data['students']:
                 # create case for each student in the group
                 student = Member.objects.get(offering=course, person__userid=userid)
-                case = DisciplineCase(student=student.person, group=group, instructor=instructor, offering=course)
+                case = DisciplineCaseInstrStudent(student=student.person, group=group, owner=instructor, offering=course)
                 case.save()
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
@@ -83,7 +83,7 @@ def new(request, course_slug):
         if form.is_valid():
             instructor = Person.objects.get(userid=request.user.username)
             case = form.save(commit=False)
-            case.instructor = instructor
+            case.owner = instructor
             case.offering = course
             case.save()
             form.save_m2m()
@@ -171,14 +171,14 @@ def edit_case_info(request, course_slug, case_slug, field):
 
     # permisson checks
     roles = request.session['discipline-'+course_slug]
-    if field in INSTR_STEPS+INSTR_FINAL:
-        if case.instr_done():
+    if isinstance(case, DisciplineCaseInstr):
+        if case.done():
             # once instructor finished, don't allow editing those fields
             return ForbiddenResponse(request, "case is closed to instructor: cannot edit this field")
         elif "INSTR" not in roles:
             # only instructor can edit those fields
             return ForbiddenResponse(request, "only the instructor can edit this field")
-    if field in CHAIR_STEPS+CHAIR_FINAL:
+    if isinstance(case, DisciplineCaseChair):
         if "DEPT" not in roles:
             # only discipline admins can edit chair fields
             return ForbiddenResponse(request, "only the Chair (or delegate) can edit this field")
@@ -187,18 +187,12 @@ def edit_case_info(request, course_slug, case_slug, field):
     if request.method == 'POST':
         form = FormClass(request.POST, instance=case)
         if form.is_valid():
-            c=form.save()
-            if field in INSTR_STEPS:
+            c = form.save()
+            if field in PRE_LETTER_STEPS:
                 # letter hasn't been reviewed if anything changes
                 c.letter_review = False
                 c.letter_sent = 'WAIT'
                 c.penalty_implemented = False
-                c.save()
-            if field in CHAIR_STEPS:
-                # letter hasn't been reviewed if anything changes
-                c.chair_letter_review = False
-                c.chair_letter_sent = 'WAIT'
-                c.chair_penalty_implemented = False
                 c.save()
 
             #LOG EVENT#
@@ -221,7 +215,7 @@ def edit_case_info(request, course_slug, case_slug, field):
                 if len(cases) != 1 or cases[0].group != case.group:
                     continue
                 c0 = cases[0].subclass()
-                if c0.instr_done():
+                if c0.done():
                     messages.add_message(request, messages.ERROR,
                         "Case for %s is finished: cannot update %s." % (c0.student.name(), STEP_DESC[field]))
                     continue
@@ -231,7 +225,7 @@ def edit_case_info(request, course_slug, case_slug, field):
                     also_contact.append(c0)
                 else:
                     setattr(c0, field, form.cleaned_data[field])
-                    if field in INSTR_STEPS:
+                    if field in PRE_LETTER_STEPS:
                         c0.letter_review = False
                     c0.save()
                     messages.add_message(request, messages.SUCCESS,
@@ -265,7 +259,7 @@ def edit_case_info(request, course_slug, case_slug, field):
                                 reverse('discipline.views.edit_case_info',
                                     kwargs={'field': 'contacted', 'course_slug': course_slug, 'case_slug': c0.slug}))))
             
-            if field in CHAIR_STEPS+CHAIR_FINAL:
+            if isinstance(case, DisciplineCaseChair):
                 return HttpResponseRedirect(reverse('discipline.views.show_chair', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
             else:
                 return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
@@ -345,7 +339,7 @@ def edit_related(request, course_slug, case_slug):
     case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
     case = case.subclass()
 
-    if case.instr_done():
+    if case.done():
         # once case is closed, don't allow editing
         return ForbiddenResponse(request)
     
@@ -443,7 +437,7 @@ def edit_attach(request, course_slug, case_slug):
     attach_pub = CaseAttachment.objects.filter(case=case, public=True)
     attach_pri = CaseAttachment.objects.filter(case=case, public=False)
 
-    if case.instr_done() and "DEPT" not in request.session['discipline-'+course_slug]:
+    if case.done() and "DEPT" not in request.session['discipline-'+course_slug]:
         # once case is closed, don't allow editing
         return ForbiddenResponse(request)
 

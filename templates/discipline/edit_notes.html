@@ -3,6 +3,7 @@
 {% block jsextra %}
 $(document).ready(function() {
   setup_templates("notes");
+  setup_templates("notes_public");
 })
 {% endblock %}
 
@@ -18,6 +19,13 @@ $(document).ready(function() {
     <div class="discside" id="group_notes"></div>
     <blockquote>{{ form.notes }}</blockquote>
     <p class="helptext">{{ form.notes.help_text|safe }}</p>
+
+    <p>{{ form.notes_public.label }}:</p>
+    <div class="discside" id="templates_notes_public"></div>
+    <div class="discside" id="group_notes_public"></div>
+    <blockquote>{{ form.notes_public }}</blockquote>
+    <p class="helptext">{{ form.notes_public.help_text|safe }}</p>
+
     <p><input type="submit" value="Update Notes" /></p>
     </form>
 </div>

@@ -36,15 +36,15 @@
   <td>{% if case.group %}<a href="{% url discipline.views.showgroup course_slug=course.slug group_slug=case.group.slug %}">{{ case.group.name }}</a>{% else %}&mdash;{% endif %}</td>
 </tr>
 <tr>
-  <th class="ui-state-default">Instructor</th>
-  <td>{{ case.instructor.name }}</td>
+  <th class="ui-state-default">Case Owner</th>
+  <td>{{ case.owner.name }}</td>
 </tr>
 </tbody>
 </table>
 </div>
 
 <div id="nextstep">
-{% if not case.instr_done %}
+{% if not case.done %}
 Suggested next step is to <a href="{{case.next_step_url}}">{{case.next_step_text}}</a>.
   {% if case.next_step == 'contacted' or case.next_step == 'response' %}
   Optional but useful: Enter <a href="{% url discipline.views.edit_related course_slug=course.slug case_slug=case.slug %}">related items</a> or <a href="{% url discipline.views.edit_attach course_slug=course.slug case_slug=case.slug %}">attach files</a>.
@@ -60,6 +60,8 @@ Suggested next step is to <a href="{{case.next_step_url}}">{{case.next_step_text
 <div class="showcase">
 <h2 id="notes">Notes</h2>
 <dl>
+<dt>Case Notes (public)</dt>
+<dd>{{case|edit_link:'notes_public'}}{{case|format_field:'notes_public'}}</dd>
 <dt>Case Notes (private)</dt>
 <dd>{{case|edit_link:'notes'}}{{case|format_field:'notes'}}</dd>
 <dt>Related Items (private)</dt>
@@ -106,11 +108,11 @@ Suggested next step is to <a href="{{case.next_step_url}}">{{case.next_step_text
 <dt>Facts of case (included in letter)</dt>
 <dd>{{case|edit_link:'facts'}}{{case|format_field:'facts'}}</dd>
 <dt>Penalty assigned by instructor</dt>
-<dd>{{case|edit_link:'instr_penalty'}}<p>{{case.get_instr_penalty_display}}</p></dd>
+<dd>{{case|edit_link:'penalty'}}<p>{{case.get_penalty_display}}</p></dd>
 <dt>Refer to Chair/Director?</dt>
-<dd>{{case|edit_link:'instr_penalty'}}<p>{{case.get_refer_chair_display}}</p></dd>
+<dd>{{case|edit_link:'penalty'}}<p>{{case.get_refer_display}}</p></dd>
 <dt>Penalty Rationale (included in letter)</dt>
-<dd>{{case|edit_link:'instr_penalty'}}{{case|format_field:'penalty_reason'}}</dd>
+<dd>{{case|edit_link:'penalty'}}{{case|format_field:'penalty_reason'}}</dd>
 </dl>
 
 <h2 id="facts">Finalizing Case</h2>
