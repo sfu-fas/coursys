@@ -1,0 +1,8 @@
+#!/bin/sh
+FASTCGI_ROOT=/home/ggbaker/fastcgi
+APP_ROOT=/home/ggbaker/courses
+kill `cat ${FASTCGI_ROOT}/server.pid`
+chown -R www-data ${FASTCGI_ROOT}
+chmod 0700 ${FASTCGI_ROOT}/*
+su www-data -c "cd ${APP_ROOT}; ${APP_ROOT}/manage.py runfcgi method=prefork socket=${FASTCGI_ROOT}/server.sock pidfile=${FASTCGI_ROOT}/server.pid"
+

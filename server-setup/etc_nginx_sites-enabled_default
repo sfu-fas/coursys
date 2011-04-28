@@ -1,0 +1,45 @@
+server {
+	# redirect HTTP to HTTPS
+	listen 80;
+	server_name courses.cs.sfu.ca;
+	location / {
+		rewrite ^/(.*) https://courses.cs.sfu.ca$request_uri? permanent;
+	}
+}
+
+server {
+	# the real HTTPS server
+	server_name  courses.cs.sfu.ca;
+	listen   443;
+	ssl on;
+	ssl_certificate      /etc/nginx/cert.pem;
+	ssl_certificate_key  /etc/nginx/cert.key;
+
+	access_log /var/log/nginx/localhost.access.log;
+	error_log /var/log/nginx/error.log warn;
+
+	#upload_max_file_size 50m;
+	client_max_body_size 50m;
+	client_body_buffer_size 1024k;
+
+	location /media {
+		root /home/ggbaker/static/;
+		expires 1h;
+		gzip             on;
+		gzip_min_length  1000;
+		gzip_proxied     expired no-cache no-store private auth;
+		gzip_types       application/x-javascript application/javascript text/javascript text/css;
+		gzip_disable     "MSIE [1-6]\.";
+	}
+	location /adminmedia {
+		root /home/ggbaker/static/;
+		expires 6h;
+	}
+
+	location / {
+		# host and port to fastcgi server
+		fastcgi_pass unix:/home/ggbaker/fastcgi/server.sock;
+		include fastcgi_params;
+	}
+
+}

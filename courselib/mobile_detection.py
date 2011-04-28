@@ -12,11 +12,10 @@ def _is_desktop(user_agent):
   Anything that looks like a phone isn't a desktop.
   Anything that looks like a desktop probably is.
   Anything that looks like a bot should default to desktop.
-
   """
   return not bool(RE_MOBILE.search(user_agent)) and \
     bool(RE_DESKTOP.search(user_agent)) or \
-    bool(RE_BOT.search(user_agent))
+    bool(RE_BOT.search(user_agent)) or user_agent==''
 
 def _get_user_agent(request):
   # Some mobile browsers put the User-Agent in a HTTP-X header

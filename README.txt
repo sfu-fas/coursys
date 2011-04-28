@@ -20,11 +20,8 @@ external: external code used by the system
 media: static web files (CSS, JS, images, etc.)
 old: practice/warmup modules written that are no longer used.
 serialize.py: code to create more JSON data for test_data.json.  See comments in the file.
+server-setup: description of how the production server is configured.
 tools: various scripts that have been used to manage the data as necessary
 
-OTHER
-initial_data.json: basic data, semesters from 1094 to 1107
-test_data.json: data used for testing/devel
+Other files are the standard Django setup.
 
-All other files are the standard Django setup.
- 

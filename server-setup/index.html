@@ -1,0 +1,116 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Course Management Server Config</title>
+<style type="text/css">
+h2 {
+  margin-top: 2em;
+}
+dt {
+  margin-top: 1em;
+  font-weight: bold;
+}
+code.file {
+  font-weight: bold;
+}
+</style>
+</head>
+<body>
+<h1>Course Management Server Config</h1>
+
+<p>This document describes the setup of the <code>courses.cs.sfu.ca</code> server as done in April/May 2011 by Greg Baker.</p>
+
+<h2 id="base">Base System Setup</h2>
+<dl>
+<dt>Base system</dt>
+  <dd>Ubuntu 10.04 Lucid LTS (as provided by CSTS).</dd>
+<dt>Additional packages installed</dt>
+  <dd>Like this:
+  <blockquote><pre>dpkg --purge apache2.2-bin apache2.2-common apache2-utils apache2 apache2-mpm-worker apache2.2-common
+apt-get install nginx python-flup subversion python-mysqldb python-tz memcached python-memcache</pre></blockquote></dd>
+<dt>Django Package</dt>
+  <dd>System requires Django &ge;1.2, so newer package was downloaded separately from <a href="http://packages.ubuntu.com/search?keywords=python-django&amp;searchon=names&amp;suite=all&amp;section=all">Ubuntu package repository</a>.
+  <blockquote><pre>dpkg -i python-django_1.2.3-1ubuntu0.2.10.10.2_all.deb</pre></blockquote>
+  </dd>
+<dt>Memcached</dt>
+  <dd>In <code class="file">/etc/memcached.conf</code>, change the port to 22122.</dd>
+<dt></dt>
+  <dd></dd>
+<dt></dt>
+  <dd></dd>
+<dt></dt>
+  <dd></dd>
+<dt></dt>
+  <dd></dd>
+</dl>
+
+<h2 id="nginx">NGINX Web Server</h2>
+<dl>
+<dt>Base Config Changes</dt>
+  <dd>Commented out the <code>SCRIPT_NAME</code> line in <code class="file">/etc/nginx/fastcgi_params</code>.  Python/Django FastCGI apps fail without doing this.</dd>
+<dt>SSL certificates</dt>
+  <dd>The <code>.cs.sfu.ca</code> wildcard SSL certificates in <code class="file">/etc/nginx/cert.pem</code> and <code class="file">/etc/nginx/cert.key</code>.  Certificate installation checked with <a href="http://www.digicert.com/help/">Digicert Certificate Tester</a>.
+  <blockquote><pre>chown root.root /etc/nginx/cert.*
+chmod 0600 /etc/nginx/cert.*</pre></blockquote></dd>
+<dt>Server Config</dt>
+  <dd>Main configuration file for server setup, <code class="file">/etc/nginx/sites-enabled/default</code> restored from <a href="etc_nginx_sites-enabled_default">version on old server</a>.</dd>
+<dt></dt>
+  <dd></dd>
+<dt></dt>
+  <dd></dd>
+<dt></dt>
+  <dd></dd>
+<dt></dt>
+  <dd></dd>
+<dt></dt>
+  <dd></dd>
+<dt></dt>
+  <dd></dd>
+</dl>
+
+<h2 id="fastcgi">FastCGI Process</h2>
+<dl>
+<dt>Startup Script</dt>
+  <dd>In <code class="file">~/fastcgi/</code>, put <a href="startfs.txt">the start/stop script <code class="file">startfs.sh</code></a>.
+  <blockquote><pre>chmod 0755 ~/fastcgi/startfs.sh
+chmod 0711 ~</pre>
+  </blockquote>
+  </dd>
+<dt></dt>
+  <dd></dd>
+<dt></dt>
+  <dd></dd>
+<dt></dt>
+  <dd></dd>
+<dt></dt>
+  <dd></dd>
+<dt></dt>
+  <dd></dd>
+</dl>
+
+<h2 id="fastcgi">Actual Application</h2>
+<dl>
+<dt>Code</dt>
+  <dd>Code checked out from Subversion repository:
+  <blockquote><pre>svn co https://cs-svn.cs.sfu.ca/svn/courseman/trunk/courses /home/ggbaker/courses</pre></blockquote>
+  <p>But somebody following these instructions: <strong>check the Subversion URL</strong>!  Stable tags are created when serious development is going on&mdash;that might be the right one to use.</p>
+  </dd>
+<dt>Data Importer</dt>
+  <dd>
+  <p>Create a file <code class="file">~/dbpass</code> with two lines: (1) password for course management data view, (2) password for TA database.  This file is read by the importer (to avoid having those passwords in the Subversion repo).</p>
+  </dd>
+<dt></dt>
+  <dd></dd>
+<dt></dt>
+  <dd></dd>
+<dt></dt>
+  <dd></dd>
+<dt></dt>
+  <dd></dd>
+</dl>
+
+</body>
+</html>
+
+
