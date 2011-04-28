@@ -64,10 +64,10 @@
                     {{ ta.name }} (<a href="mailto:{{ ta.email }}">{{ ta.email }}</a>){% if not forloop.last %},{% endif %}
                     {% endfor %}</td>
             </tr>
-            {% if course.url %}
+            {% if course.config.url %}
             <tr>
                 <th scope="row">Course home page</th>
-                <td>{{ course.url|urlize }}</td>
+                <td>{{ course.config.url|urlize }}</td>
             </tr>
             {% endif %}
         </tbody>

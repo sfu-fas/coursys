@@ -7,7 +7,7 @@ from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.core.cache import cache
 from datetime import datetime, timedelta
-#from jsonfield import JSONField
+from jsonfield import JSONField
 import decimal, json
 
 FLAG_CHOICES = [
@@ -72,7 +72,7 @@ class Activity(models.Model):
     group = models.BooleanField(null=False, default=False)
     deleted = models.BooleanField(null = False, db_index = True, default=False)
     url = models.URLField(verify_exists=True, null=True)
-    #config = JSONField(null=True, blank=True) # addition configuration stuff to do:
+    config = JSONField(null=True, blank=True, default={}) # addition configuration stuff to do:
       # showstats (boolean, default False): show students summary stats for this activity?
       # showformula (boolean, default False): show students formula/cutoffs for this activity?
     

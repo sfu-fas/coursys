@@ -116,7 +116,7 @@ def course_url(request, course_slug):
     if request.method=="POST":
         form = URLForm(request.POST)
         if form.is_valid():
-            course.url = form.cleaned_data['url'] 
+            course.config['url'] = form.cleaned_data['url'] 
             course.save()
             messages.success(request, 'Course home page updated')
 
@@ -128,7 +128,10 @@ def course_url(request, course_slug):
 
             return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
     else:
-        form = URLForm({'url':course.url})
+        url = ''
+        if 'url' in course.config:
+            url = course.config['url']
+        form = URLForm({'url': url})
     
     context = {'course': course, 'form': form}
     return render_to_response("grades/course_url.html", context,
@@ -683,7 +686,10 @@ def _create_activity_formdatadict(activity):
     data['status'] = activity.status
     data['due_date'] = activity.due_date
     data['percent'] = activity.percent
-    data['url'] = activity.url
+    data['url'] = ''
+    if 'url' in activity.config:
+        data['url'] = activity.config['url']
+
     for (k, v) in GROUP_STATUS_MAP.items():
         if activity.group == v:
             data['group'] = k
@@ -718,7 +724,7 @@ def _populate_activity_from_formdata(activity, data):
     if data.has_key('formula'):
         activity.formula = data['formula']
     if data.has_key('url'):
-        activity.url = data['url']
+        activity.config['url'] = data['url']
     if data.has_key('numeric_activity'):
         activity.numeric_activity = NumericActivity.objects.get(pk=data['numeric_activity'])
     if data.has_key('exam_activity'):

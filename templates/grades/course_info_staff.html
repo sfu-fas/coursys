@@ -162,7 +162,7 @@
             </tr>
             <tr>
                 <th scope="row">Course home page</th>
-                <td>{% if course.url %}{{ course.url|urlize }}{% endif %}</td>
+                <td>{% if course.config.url %}{{ course.config.url|urlize }}{% endif %}</td>
             </tr>
         </tbody>
     </table>

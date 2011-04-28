@@ -6,6 +6,7 @@ from django.conf import settings
 import datetime
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
+from jsonfield import JSONField
 
 class Person(models.Model):
     """
@@ -193,9 +194,9 @@ class CourseOffering(models.Model):
     wait_tot = models.PositiveSmallIntegerField()
 
     members = models.ManyToManyField(Person, related_name="member", through="Member")
-    url = models.URLField(verify_exists=True, null=True)
-    department = models.CharField(max_length=4, null=True, blank=True,
-        help_text='The department in charge of this offering.') # used only by discipline module
+    config = JSONField(null=True, blank=True, default={}) # addition configuration stuff
+      # c.config['url']: URL of course home page
+      # c.config['department']: department responsible for course (used by discipline module)
     
     def autoslug(self):
         words = [str(s).lower() for s in self.semester.name, self.subject, self.number, self.section]
