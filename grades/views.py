@@ -22,7 +22,7 @@ from groups.models import *
 from submission.models import SubmissionComponent, GroupSubmission, StudentSubmission, get_current_submission
 from log.models import LogEntry
 from django.contrib import messages
-import pickle, datetime
+import pickle, datetime, csv
 from grades.formulas import EvalException, activities_dictionary, eval_parse
 
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
@@ -268,11 +268,14 @@ def _activity_info_student(request, course_slug, activity_slug):
     else:
        activity_stat = generate_letter_activity_stat(activity)
 
-    if activity_stat is None or activity_stat.count < STUD_NUM_TO_DISP_ACTSTAT or activity.status!="RLS":
-        if activity_stat is None or activity_stat.count < STUD_NUM_TO_DISP_ACTSTAT:
-            reason_msg = 'Summary statistics disabled for small classes.'
-        elif activity.status != 'RLS':
-            reason_msg = 'Summary statistics disabled for unreleased activities.'
+    if activity_stat is None or activity_stat.count < STUD_NUM_TO_DISP_ACTSTAT:
+        reason_msg = 'Summary statistics disabled for small classes.'
+        activity_stat = None
+    elif activity.status != 'RLS':
+        reason_msg = 'Summary statistics disabled for unreleased activities.'
+        activity_stat = None
+    elif 'showstats' in activity.config and not activity.config['showstats']:
+        reason_msg = 'Summary statistics disabled for this activity by instructor.'
         activity_stat = None
 
     context = {'course': course, 'activity': activity, 'grade': grade,
@@ -360,8 +363,6 @@ def activity_choice(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     context = {'course': course}
     return render_to_response('grades/activity_choice.html', context, context_instance=RequestContext(request))
-
-from django.http import HttpResponse
 
 @requires_course_staff_by_slug
 def edit_cutoffs(request, course_slug, activity_slug):
@@ -944,35 +945,35 @@ def add_letter_activity(request, course_slug):
     context = {'course': course, 'form': form, 'form_type': FORMTYPE['add']}
     return render_to_response('grades/letter_activity_form.html', context, context_instance=RequestContext(request))
 
-@requires_course_staff_by_slug
-def delete_activity_review(request, course_slug, activity_slug):
-    course = get_object_or_404(CourseOffering, slug=course_slug)
-    activities = all_activities_filter(offering=course, slug=activity_slug)
-    if (len(activities) == 1):
-        activity = activities[0]
-        if isinstance(activity, CalNumericActivity):
-            activity_type = ACTIVITY_TYPE['CNG']
-        elif isinstance(activity, NumericActivity):
-            activity_type = ACTIVITY_TYPE['NG']
-        elif isinstance(activity, LetterActivity):
-            activity_type = ACTIVITY_TYPE['LG']
-        context = {'course': course, 'activity_type': activity_type, 'activity': activities[0]}
-        return render_to_response('grades/delete_activity_review.html', context, context_instance=RequestContext(request))
-    else:
-        return NotFoundResponse(request)
+#@requires_course_staff_by_slug
+#def delete_activity_review(request, course_slug, activity_slug):
+#    course = get_object_or_404(CourseOffering, slug=course_slug)
+#    activities = all_activities_filter(offering=course, slug=activity_slug)
+#    if (len(activities) == 1):
+#        activity = activities[0]
+#        if isinstance(activity, CalNumericActivity):
+#            activity_type = ACTIVITY_TYPE['CNG']
+#        elif isinstance(activity, NumericActivity):
+#            activity_type = ACTIVITY_TYPE['NG']
+#        elif isinstance(activity, LetterActivity):
+#            activity_type = ACTIVITY_TYPE['LG']
+#        context = {'course': course, 'activity_type': activity_type, 'activity': activities[0]}
+#        return render_to_response('grades/delete_activity_review.html', context, context_instance=RequestContext(request))
+#    else:
+#        return NotFoundResponse(request)
 
-@requires_course_staff_by_slug
-def delete_activity_confirm(request, course_slug, activity_slug):
-    course = get_object_or_404(CourseOffering, slug=course_slug)
-    activity = get_object_or_404(Activity, offering=course, slug=activity_slug)
-    activity.deleted = True
-    activity.save()
-    #LOG EVENT#
-    l = LogEntry(userid=request.user.username,
-          description=("deleted %s") % (activity),
-          related_object=activity)
-    l.save()
-    return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
+#@requires_course_staff_by_slug
+#def delete_activity_confirm(request, course_slug, activity_slug):
+#    course = get_object_or_404(CourseOffering, slug=course_slug)
+#    activity = get_object_or_404(Activity, offering=course, slug=activity_slug)
+#    activity.deleted = True
+#    activity.save()
+#    #LOG EVENT#
+#    l = LogEntry(userid=request.user.username,
+#          description=("deleted %s") % (activity),
+#          related_object=activity)
+#    l.save()
+#    return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
 
 @requires_course_staff_by_slug
 def all_grades(request, course_slug):
@@ -994,7 +995,6 @@ def all_grades(request, course_slug):
     context = {'course': course, 'students': students, 'activities': activities, 'grades': grades}
     return render_to_response('grades/all_grades.html', context, context_instance=RequestContext(request))
 
-import csv
 @requires_course_staff_by_slug
 def all_grades_csv(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
