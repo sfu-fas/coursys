@@ -1,57 +1,41 @@
-# from http://paltman.com/2010/feb/25/how-to-store-arbitrary-data-in-a-django-model/
+# from http://djangosnippets.org/snippets/1478/
 
 from django.db import models
+from django.core.serializers.json import DjangoJSONEncoder
 #from django.utils import simplejson as json
 import json
-from django.conf import settings
-from datetime import datetime
-
-class JSONEncoder(json.JSONEncoder):
-   def default(self, obj):
-       if isinstance(obj, datetime):
-           return obj.strftime('%Y-%m-%d %H:%M:%S')
-       elif isinstance(obj, datetime.date):
-           return obj.strftime('%Y-%m-%d')
-       elif isinstance(obj, datetime.time):
-           return obj.strftime('%H:%M:%S')
-       return json.JSONEncoder.default(self, obj)
-
 
 class JSONField(models.TextField):
-   def _dumps(self, data):
-       return JSONEncoder().encode(data)
+    """JSONField is a generic textfield that neatly serializes/unserializes
+    JSON objects seamlessly"""
 
-   def _loads(self, str):
-       return json.loads(str, encoding=settings.DEFAULT_CHARSET)
+    # Used so to_python() is called
+    __metaclass__ = models.SubfieldBase
 
-   def db_type(self):
-       return 'text'
+    def to_python(self, value):
+        """Convert our string value to JSON after we load it from the DB"""
 
-   def pre_save(self, model_instance, add):
-       value = getattr(model_instance, self.attname, None)
-       return self._dumps(value)
+        if value == "":
+            return None
 
-   def contribute_to_class(self, cls, name):
-       self.class_name = cls
-       super(JSONField, self).contribute_to_class(cls, name)
-       models.signals.post_init.connect(self.post_init)
+        try:
+            if isinstance(value, basestring):
+                return json.loads(value)
+        except ValueError:
+            pass
 
-       def get_json(model_instance):
-           return self._dumps(getattr(model_instance, self.attname, None))
-       setattr(cls, 'get_%s_json' % self.name, get_json)
+        return value
 
-       def set_json(model_instance, json):
-           return setattr(model_instance, self.attname, self._loads(json))
-       setattr(cls, 'set_%s_json' % self.name, set_json)
+    def get_db_prep_save(self, value):
+        """Convert our JSON object to a string before we save"""
 
-   def post_init(self, **kwargs):
-       if 'sender' in kwargs and 'instance' in kwargs:
-           if kwargs['sender'] == self.class_name and hasattr(kwargs['instance'], self.attname):
-               value = self.value_from_object(kwargs['instance'])
-               if (value):
-                   setattr(kwargs['instance'], self.attname, self._loads(value))
-               else:
-                   setattr(kwargs['instance'], self.attname, None)
+        if value == "":
+            return None
+
+        if isinstance(value, dict):
+            value = json.dumps(value, cls=DjangoJSONEncoder)
+
+        return super(JSONField, self).get_db_prep_save(value)
 
 
 # from http://south.aeracode.org/wiki/MyFieldsDontWork

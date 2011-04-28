@@ -752,6 +752,7 @@ def _semester_date_warning(request, activity):
 def edit_activity(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activities = all_activities_filter(slug=activity_slug, offering=course)
+
     numact_choices = [(na.pk, na.name) for na in NumericActivity.objects.filter(offering=course, deleted=False)]
     examact_choices = [(0, u'\u2014')] + [(na.pk, na.name) for na in Activity.objects.filter(offering=course, deleted=False)]
     if (len(activities) == 1):

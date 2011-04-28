@@ -50,10 +50,10 @@
                 <th class="ui-state-default">Percentage</th>
                 <td>{% if activity.percent %}{{activity.percent}}%{% else %}unknown{% endif %}</td>
             </tr>
-            {% if activity.url %}
+            {% if activity.config.url %}
             <tr>
                 <th class="ui-state-default">More Information</th>
-                <td>{{activity.url|urlize}}</td>
+                <td>{{activity.config.url|urlize}}</td>
             </tr>
             {% endif %}
             

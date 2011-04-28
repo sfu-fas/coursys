@@ -52,7 +52,7 @@ if (!Array.prototype.filter) {
   $(document).ready(function() {
     var i;
     $("table.histo").hide();
-    $("table.histo").visualize({'height': '300px'});
+    $("table.histo").visualize({'height': '300px', appendTitle: false, appendKey: false});
     histo_cells = [histotd('ap'), histotd('a'), histotd('am'), histotd('bp'), histotd('b'), histotd('bm'), histotd('cp'), histotd('c'), histotd('cm'), histotd('d'), histotd('f')];
     for(i=0; i<source_grades.length; i++) {
       source_grades[i] += 0.00000001;
@@ -104,8 +104,10 @@ if (!Array.prototype.filter) {
         <fieldset>
         	<legend>Lower bounds for each grade</legend>
         		<ul>
-        		<p>Max grade for {{activity.numeric_activity.name}}: {{activity.numeric_activity.max_grade}}</p>
         		<table class="cutoffs">
+        		<tr>
+        		<td class="label">Max</td><td><input type="text" value="{{activity.numeric_activity.max_grade}}" disabled="disabled" /></td>
+        		</tr>
         		<tr>
         		<td class="label">A+</td><td>{{cutoff.ap}} {{cutoff.ap.errors}}</td>
         		<td class="label">A</td><td>{{cutoff.a}} {{cutoff.a.errors}}</td>
@@ -128,7 +130,7 @@ if (!Array.prototype.filter) {
         		<td class="label">D</td><td>{{cutoff.d}} {{cutoff.d.errors}}</td>
         		<td class="label">F</td><td><input type="text" value="0" disabled="disabled" /></td>
         		</tr>
-        		</table>	
+        		</table>
 				<li>
         				<input class="submit" type="submit" value="Submit" />
         			</li>
@@ -139,7 +141,7 @@ if (!Array.prototype.filter) {
 </div>
 
 		
-<h2 id="histo">Histogram</h2>
+<h2 id="histo">Live Histogram</h2>
 
 <p>Note: N and DE grades are not calculated in this view; there may be roundoff problems here that are not present when you calculate actual grades.</p>
 <table class="histo info" style="width: 500px; border-collapse: collapse;">

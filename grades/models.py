@@ -75,6 +75,7 @@ class Activity(models.Model):
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
       # a.config['showstats'] (boolean, default True): show students summary stats for this activity?
       # a.config['showformula'] (boolean, default False): show students formula/cutoffs for this activity?
+      # TODO: above are not actually implemented yet
     
     offering = models.ForeignKey(CourseOffering)
 

@@ -237,10 +237,10 @@ Column logic:
                 {% endif %}
             </tr>
             {% endif %}
-            {% if activity.url %}
+            {% if activity.config.url %}
             <tr>
                 <th class="ui-state-default">More Information</th>
-                <td>{{activity.url|urlize}}</td>
+                <td>{{activity.config.url|urlize}}</td>
             </tr>
             {% endif %}
         </tbody>
