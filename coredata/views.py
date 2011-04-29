@@ -105,6 +105,8 @@ def members_list(request):
 
 @requires_global_role("SYSA")
 def edit_member(request, member_id=None):
+    offering_choices = [(c.id, unicode(c)) for c in CourseOffering.objects.filter(graded=True).exclude(component="CAN")]
+
     if member_id:
         member = get_object_or_404(Member, id=member_id)
     else:
@@ -112,6 +114,7 @@ def edit_member(request, member_id=None):
 
     if request.method == 'POST':
         form = MemberForm(request.POST, instance=member)
+        form.fields['offering'].choices = offering_choices
         if form.is_valid():
             form.save()
             #LOG EVENT#
@@ -124,7 +127,8 @@ def edit_member(request, member_id=None):
         form = MemberForm(instance=member, initial={'person': member.person.userid})
     else:
         form = MemberForm()
-
+    
+    form.fields['offering'].choices = offering_choices
     return render_to_response('coredata/edit_member.html', {'form': form, 'member': member}, context_instance=RequestContext(request))
 
 

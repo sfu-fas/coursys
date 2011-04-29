@@ -290,8 +290,11 @@ class Member(models.Model):
         if self.role == 'DROP':
             return
         others = Member.objects.filter(person=self.person, offering=self.offering, role=self.role)
+        if self.pk:
+            others = others.exclude(pk=self.pk)
+
         if others:
-            raise ValidationError('There is another membership with this reason, offering, and role.  These must be unique for a membership (unless role is "dropped").')
+            raise ValidationError('There is another membership with this person, offering, and role.  These must be unique for a membership (unless role is "dropped").')
 
     class Meta:
         #unique_together = (('person', 'offering', 'role'),)  # now handled by self.clean()
@@ -339,7 +342,7 @@ class Role(models.Model):
         ('COOP', 'Co-op Staff'),
         ('PLAN', 'Planning Administrator'),
         ('DISC', 'Discipline Case Administrator'),
-        ('DICC', 'Discipline Case Contact'),
+        ('DICC', 'Discipline Case Filer (BCC)'),
         ('ADMN', 'Departmental Administrator'),
         ('SYSA', 'System Administrator'),
         ('NONE', 'none'),
