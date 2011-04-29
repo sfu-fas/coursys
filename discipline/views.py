@@ -231,7 +231,7 @@ def edit_case_info(request, course_slug, case_slug, field):
                     
             if hasattr(c, 'send_letter_now'):
                 # send instructor's letter
-                c.send_letter()
+                c.send_letter(_currentuser(request))
                 messages.add_message(request, messages.INFO, "Letter sent to student summarizing case.")
 
             if hasattr(c, 'send_contact_mail'):
@@ -271,8 +271,16 @@ def edit_case_info(request, course_slug, case_slug, field):
     
     context = {'course': course, 'case': case, 'form': form,
         'templatesJSON': mark_safe(tempaltesJSON), 'groupmembersJSON': mark_safe(groupmembersJSON), 'hasRelAct': hasRelAct}
+    if field == 'letter_review':
+        context['currentuser'] = _currentuser(request)
     return render_to_response("discipline/edit_"+field+".html", context, context_instance=RequestContext(request))
 
+
+def _currentuser(request):
+    """
+    Return Person associated with the current request
+    """
+    return Person.objects.get(userid=request.user.username)
 
 def _set_related_items(request, case, course, form):
     """
@@ -337,7 +345,7 @@ def edit_related(request, course_slug, case_slug):
     case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
     case = case.subclass()
 
-    if case.done():
+    if not case.can_edit('related'):
         # once case is closed, don't allow editing
         return ForbiddenResponse(request)
     
@@ -435,7 +443,7 @@ def edit_attach(request, course_slug, case_slug):
     attach_pub = CaseAttachment.objects.filter(case=case, public=True)
     attach_pri = CaseAttachment.objects.filter(case=case, public=False)
 
-    if case.done() and "DEPT" not in request.session['discipline-'+course_slug]:
+    if not case.can_edit('attach'):
         # once case is closed, don't allow editing
         return ForbiddenResponse(request)
 
@@ -450,7 +458,7 @@ def new_file(request, course_slug, case_slug):
     case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
     case = case.subclass()
 
-    if case.instr_done() and "DEPT" not in request.session['discipline-'+course_slug]:
+    if not case.can_edit('attach'):
         # once case is closed, don't allow editing
         return ForbiddenResponse(request)
 
@@ -506,7 +514,7 @@ def edit_file(request, course_slug, case_slug, fileid):
     case = case.subclass()
     attach = get_object_or_404(CaseAttachment, case__slug=case_slug, case__offering__slug=course_slug, id=fileid)
 
-    if case.instr_done() and "DEPT" not in request.session['discipline-'+course_slug]:
+    if not case.can_edit('attach'):
         # once case is closed, don't allow editing
         return ForbiddenResponse(request)
 

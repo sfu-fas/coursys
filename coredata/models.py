@@ -27,6 +27,8 @@ class Person(models.Model):
         return "%s %s" % (self.pref_first_name, self.last_name)
     def sortname(self):
         return "%s, %s" % (self.last_name, self.pref_first_name)
+    def initials(self):
+        return "%s%s" % (self.first_name[0], self.last_name[0])
     def email(self):
         return "%s@sfu.ca" % (self.userid)
     def full_email(self):

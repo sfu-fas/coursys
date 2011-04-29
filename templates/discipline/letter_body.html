@@ -7,11 +7,12 @@ http://en.wikipedia.org/wiki/HTML_e-mail
 <table style="width: 100%; border-collapse: collapse;">
 <tr>
   <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Course:</span> {{case.offering.subject}} {{case.offering.number}}</td>
-  <td colspan="2" style="border: 1px solid black"><span style="font-weight: bold">Title:</span> {{case.offering.title}}</td>
+  <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Section:</span> {{case.offering.section}}</td>
+  <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Date:</span> {% now "Y-m-d" %}</td>
 </tr>
 <tr>
-  <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Section:</span> {{case.offering.section}}</td>
-  <td colspan="2" style="border: 1px solid black"><span style="font-weight: bold">Semester:</span> {{case.offering.semester.label}} ({{case.offering.semester.name}})</td>
+  <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Semester:</span> {{case.offering.semester.label}} ({{case.offering.semester.name}})</td>
+  <td colspan="2" style="border: 1px solid black"><span style="font-weight: bold">Course Title:</span> {{case.offering.title}}</td>
 </tr>
 <tr>
   <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Student Name:</span> {{case.student.sortname}}</td>
@@ -20,7 +21,8 @@ http://en.wikipedia.org/wiki/HTML_e-mail
 </tr>
 <tr>
   <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Instructor:</span> {{case.owner.sortname}}</td>
-  <td colspan="2" style="border: 1px solid black"><span style="font-weight: bold">Instructor Email:</span> {{case.owner.email}}</td>
+  <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Instructor Email:</span> {{case.owner.email}}</td>
+  <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Case ID:</span> CMS{{case.id|leading_zeros:4}}</td>
 </tr>
 </table>
 
@@ -56,15 +58,20 @@ http://en.wikipedia.org/wiki/HTML_e-mail
   </dd>
 <dt style="font-weight: bold">Case referred to Chair/Director?</dt>
   <dd><p>{{case.get_refer_display}}</p></dd>
-<p>This report will be retained by the University and, in the event of any further reports of academic dishonesty, it may be used to determine a penalty for the subsequent academic dishonesty.</p>
+</dl>
+<p>This report will be retained by the University and, in the event of any further reports of academic dishonesty, it may be used to determine a penalty for the subsequent academic dishonesty.
+Information about the appeal process can be found in the Academic Honesty and Student Conduct policies: <a href="http://www.sfu.ca/policies/gazette/student.html">http://www.sfu.ca/policies/gazette/student.html</a>&nbsp;.</p>
+<p style="font-style: italic">{{case.owner.name}}, {% now "Y-m-d" %}.</p>
+{% if currentuser != case.owner %}<p>{{case.owner.initials|upper}}:{{currentuser.initials|lower}}</p>{% endif %}
 {% if case.public_attachments %}
+<dl>
 <dt style="font-weight: bold">Enclosed</dt>
   <dd><ul>
   {% for f in case.public_attachments %}
   <li>{{f.name}} ({{f.filename}}, {{f.attachment.size|filesizeformat}})</li>
   {% endfor %}
   </ul></dd>
-{% endif %}
 </dl>
+{% endif %}
 
 

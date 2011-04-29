@@ -442,11 +442,11 @@ class DisciplineCaseInstr(DisciplineCaseBase):
         
         email.send(fail_silently=False)
 
-    def send_letter(self):
+    def send_letter(self, currentuser):
         """
         Send instructor's letter to the student and CC instructor
         """
-        html_body = render_to_string('discipline/letter_body.html', { 'case': self })
+        html_body = render_to_string('discipline/letter_body.html', { 'case': self, 'currentuser': currentuser })
         text_body = "Letter is included here as an HTML message, or can be viewed online at this URL:\n%s" %\
             (settings.BASE_ABS_URL + reverse('discipline.views.view_letter', kwargs={'course_slug': self.offering.slug, 'case_slug': self.slug}))
         self.letter_text = html_body
