@@ -342,7 +342,7 @@ class Role(models.Model):
         ('COOP', 'Co-op Staff'),
         ('PLAN', 'Planning Administrator'),
         ('DISC', 'Discipline Case Administrator'),
-        ('DICC', 'Discipline Case Filer (BCC)'),
+        ('DICC', 'Discipline Case Filer (email BCC)'),
         ('ADMN', 'Departmental Administrator'),
         ('SYSA', 'System Administrator'),
         ('NONE', 'none'),

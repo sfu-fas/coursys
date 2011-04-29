@@ -141,7 +141,8 @@ STEP_DESC = { # map of field/form -> description of what is being edited
         #'chair_letter_review': 'review status',
         }
 TEMPLATE_FIELDS = { # fields that can have a template associated with them
-        'notes': 'instructor notes',
+        'notes': 'private notes',
+        'notes_public': 'public notes',
         'contact_email_text': 'initial contact email',
         'response': 'student response details',
         'meeting_summary': 'student meeting/email summary',
@@ -359,6 +360,7 @@ class DisciplineCaseBase(models.Model):
             'FNAME': self.student.first_name,
             'LNAME': self.student.last_name,
             'COURSE': self.offering.subject + " " + self.offering.number,
+            'SEMESTER': self.offering.semester.label(),
             }
         
         # get list of activities as English
@@ -380,7 +382,7 @@ class DisciplineCaseBase(models.Model):
         """
         Return field with substitutions as promised.
         """
-        SUB_FIELDS = ['LNAME', 'FNAME', 'COURSE', 'ACTIVITIES']
+        SUB_FIELDS = ['LNAME', 'FNAME', 'COURSE', 'ACTIVITIES', 'SEMESTER']
         if not hasattr(self, 'infodict'):
             self.create_infodict()
 
@@ -598,7 +600,7 @@ class DisciplineTemplate(models.Model):
             verbose_name="Field", help_text="The field this template applies to")
     label = models.CharField(max_length=50, null=False,
             verbose_name="Label", help_text="A short label for the menu of templates")
-    text = models.TextField(blank=True, null=True,
+    text = models.TextField(blank=False, null=False,
             verbose_name="Text", help_text='The text for the template.  Templates can contain '+TEXTILENOTE+' (except the initial contact email) and substitutions described below.')
     class Meta:
         unique_together = (("field", "label"),)
