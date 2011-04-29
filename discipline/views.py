@@ -17,10 +17,10 @@ import re
 @requires_discipline_user
 def index(request, course_slug):
     """
-    List of cases for the course
+    Instructor's list of cases for the course
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    cases = DisciplineCaseBase.objects.filter(offering=course)
+    cases = DisciplineCaseInstr.objects.filter(offering=course)
     cases = [c.subclass() for c in cases]
     groups = DisciplineGroup.objects.filter(offering=course)
     
@@ -171,17 +171,15 @@ def edit_case_info(request, course_slug, case_slug, field):
 
     # permisson checks
     roles = request.session['discipline-'+course_slug]
-    if isinstance(case, DisciplineCaseInstr):
-        if case.done():
-            # once instructor finished, don't allow editing those fields
-            return ForbiddenResponse(request, "case is closed to instructor: cannot edit this field")
-        elif "INSTR" not in roles:
-            # only instructor can edit those fields
-            return ForbiddenResponse(request, "only the instructor can edit this field")
-    if isinstance(case, DisciplineCaseChair):
-        if "DEPT" not in roles:
-            # only discipline admins can edit chair fields
-            return ForbiddenResponse(request, "only the Chair (or delegate) can edit this field")
+    if not case.can_edit(field):
+        # once instructor finished, don't allow editing those fields
+        return ForbiddenResponse(request, "letter has been sent: cannot edit this field")
+    elif isinstance(case, DisciplineCaseInstr) and "INSTR" not in roles:
+        # only instructor can edit those fields
+        return ForbiddenResponse(request, "only the instructor can edit this field")
+    elif isinstance(case, DisciplineCaseChair) and "DEPT" not in roles:
+        # only discipline admins can edit chair fields
+        return ForbiddenResponse(request, "only the Chair (or delegate) can edit this field")
 
     FormClass = STEP_FORM[field]
     if request.method == 'POST':

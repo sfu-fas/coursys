@@ -30,7 +30,7 @@ def edit_link(case, field):
     """
     An "edit this thing" link for the corresponding field
     """
-    if case.done():
+    if not case.can_edit(field):
         return ""
     return mark_safe('<p class="editlink"><a href="%s">Edit %s</a></p>' % (reverse('discipline.views.edit_case_info',
             kwargs={'course_slug':case.offering.slug, 'case_slug': case.slug, 'field': STEP_VIEW[field]}), STEP_DESC[field]))

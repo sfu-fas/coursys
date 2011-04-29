@@ -49,13 +49,13 @@ http://en.wikipedia.org/wiki/HTML_e-mail
 <dt style="font-weight: bold">Penalty assigned by instructor</dt>
   <dd>
   {% if case.penalty_reason %}
-  <p>Penalty: {{case.get_instr_penalty_display}}.</p>{{case|format_field:'penalty_reason'}}
+  <p>Penalty: {{case.get_penalty_display}}.</p>{{case|format_field:'penalty_reason'}}
   {% else %}
-   <p>{{case.get_instr_penalty_display|capfirst}}.</p>
+   <p>{{case.get_penalty_display|capfirst}}.</p>
   {% endif %}
   </dd>
 <dt style="font-weight: bold">Case referred to Chair/Director?</dt>
-  <dd><p>{{case.get_refer_chair_display}}</p></dd>
+  <dd><p>{{case.get_refer_display}}</p></dd>
 <p>This report will be retained by the University and, in the event of any further reports of academic dishonesty, it may be used to determine a penalty for the subsequent academic dishonesty.</p>
 {% if case.public_attachments %}
 <dt style="font-weight: bold">Enclosed</dt>

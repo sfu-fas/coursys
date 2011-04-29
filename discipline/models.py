@@ -278,6 +278,16 @@ class DisciplineCaseBase(models.Model):
     def get_penalty_implemented_display(self):
         return "Yes" if self.penalty_implemented else "No"
 
+    def done(self):
+        return self.penalty_implemented
+    def can_edit(self, field):
+        """
+        Can this field be modified for this case?
+        
+        Logic: after letter sent, can only modify penalty implemented status.  After that, nothing.
+        """
+        return not self.penalty_implemented and not (self.letter_sent!="WAIT" and field != 'penalty_implemented')
+
     def public_attachments(self):
         return CaseAttachment.objects.filter(case=self, public=True)
     def related_activities(self):
@@ -389,9 +399,6 @@ class DisciplineCaseInstr(DisciplineCaseBase):
     """
     An instructor's case
     """
-    def done(self):
-        return self.penalty_implemented
-
     def next_step(self):
         """
         Return next field that should be dealt with
