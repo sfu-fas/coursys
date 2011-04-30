@@ -4,6 +4,7 @@ This is used and an HTML email body: everything that happens here must work in e
 http://en.wikipedia.org/wiki/HTML_e-mail
 {% endcomment %}
 
+<h1 style="font-size: 125%; color: black; padding: 0; margin: 0.5em 0;">Academic Dishonesty Report By {{case.typelabel|capfirst}}</h1>
 <table style="width: 100%; border-collapse: collapse;">
 <tr>
   <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Course:</span> {{case.offering.subject}} {{case.offering.number}}</td>
@@ -64,14 +65,12 @@ Information about the appeal process can be found in the Academic Honesty and St
 <p style="font-style: italic">{{case.owner.name}}, {% now "Y-m-d" %}.</p>
 {% if currentuser != case.owner %}<p>{{case.owner.initials|upper}}:{{currentuser.initials|lower}}</p>{% endif %}
 {% if case.public_attachments %}
-<dl>
-<dt style="font-weight: bold">Enclosed</dt>
-  <dd><ul>
+<p>Enclosed:</p>
+<ul>
   {% for f in case.public_attachments %}
   <li>{{f.name}} ({{f.filename}}, {{f.attachment.size|filesizeformat}})</li>
   {% endfor %}
-  </ul></dd>
-</dl>
+</ul>
 {% endif %}
 
 

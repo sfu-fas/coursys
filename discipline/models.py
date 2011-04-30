@@ -54,7 +54,7 @@ SS_STATE_CHOICES = (
         ('SCOD', 'Case sent to SCODA'),
         ('DONE', 'Case completed'),
         )
-PRE_LETTER_STEPS = ['contacted', 'response', 'meeting', 'meeting_date', 'meeting_summary', 'facts', 'penalty']
+PRE_LETTER_STEPS = ['related', 'attach', 'notes', 'contacted', 'response', 'meeting', 'meeting_date', 'meeting_summary', 'facts', 'penalty']
 #FINAL_STEPS = ['letter_review', 'letter_sent', 'penalty_implemented']
 #CHAIR_STEPS = ['chair_notes', 'chair_meeting', 'chair_meeting_date', 'chair_meeting_summary', 'chair_facts', 'chair_penalty']
 #CHAIR_FINAL = ['chair_letter_review', 'chair_letter_sent']
@@ -401,6 +401,8 @@ class DisciplineCaseInstr(DisciplineCaseBase):
     """
     An instructor's case
     """
+    typelabel = "instructor"
+
     def next_step(self):
         """
         Return next field that should be dealt with

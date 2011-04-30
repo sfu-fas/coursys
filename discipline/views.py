@@ -213,7 +213,7 @@ def edit_case_info(request, course_slug, case_slug, field):
                 if len(cases) != 1 or cases[0].group != case.group:
                     continue
                 c0 = cases[0].subclass()
-                if c0.done():
+                if c0.can_edit(field):
                     messages.add_message(request, messages.ERROR,
                         "Case for %s is finished: cannot update %s." % (c0.student.name(), STEP_DESC[field]))
                     continue
@@ -336,6 +336,11 @@ def _set_related_items(request, case, course, form):
           related_object=case)
     l.save()
 
+    case.letter_review = False
+    case.letter_sent = 'WAIT'
+    case.penalty_implemented = False
+    case.save()
+
 @requires_discipline_user
 def edit_related(request, course_slug, case_slug):
     """
@@ -367,13 +372,13 @@ def edit_related(request, course_slug, case_slug):
                 if len(cases) != 1 or cases[0].group != case.group:
                     continue
                 c0 = cases[0].subclass()
-                if c0.instr_done():
+                if c0.can_edit('related'):
                     messages.add_message(request, messages.ERROR,
                         "Case for %s is finished: cannot update %s." % (c0.student.name(), STEP_DESC[field]))
                     continue
 
                 _set_related_items(request, c0, course, form)
-                if field in INSTR_STEPS:
+                if field in PRE_LETTER_STEPS:
                     c0.letter_review = False
                 c0.save()
                 messages.add_message(request, messages.SUCCESS,
@@ -469,6 +474,11 @@ def new_file(request, course_slug, case_slug):
             mediatype = request.FILES['attachment'].content_type
             f.mediatype = mediatype
             f.save()
+
+            case.letter_review = False
+            case.letter_sent = 'WAIT'
+            case.penalty_implemented = False
+            case.save()
             
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
@@ -522,6 +532,11 @@ def edit_file(request, course_slug, case_slug, fileid):
         form = EditAttachFileForm(request.POST, request.FILES, instance=attach)
         if form.is_valid():
             f = form.save()
+
+            case.letter_review = False
+            case.letter_sent = 'WAIT'
+            case.penalty_implemented = False
+            case.save()
             
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
