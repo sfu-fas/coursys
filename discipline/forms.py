@@ -110,6 +110,8 @@ class CaseResponseForm(forms.ModelForm):
 class CaseMeetingForm(forms.ModelForm):
     def clean_meeting_date(self):
         date = self.cleaned_data['meeting_date']
+        if not date:
+            return date
         if date > datetime.date.today():
             raise forms.ValidationError("Cannot select meeting/email date in the future.")
         return date

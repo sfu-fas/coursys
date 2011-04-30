@@ -44,8 +44,3 @@ def chair_edit_link(case, field):
         return ""
     return mark_safe('<p class="editlink"><a href="%s">Edit %s</a></p>' % (reverse('discipline.views.edit_case_info',
             kwargs={'course_slug':case.offering.slug, 'case_slug': case.slug, 'field': STEP_VIEW[field]}), STEP_DESC[field]))
-
-# http://djangosnippets.org/snippets/543/
-@register.filter
-def leading_zeros(value, desired_digits):
-    return str(value).zfill(desired_digits)

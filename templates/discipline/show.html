@@ -25,7 +25,7 @@
 </tr>
 <tr>
   <th class="ui-state-default">Student Number</th>
-  <td>{{ case.student.emplid }}</td>
+  <td><a href="{% url grades.views.student_info course_slug=case.offering.slug userid=case.student.userid %}">{{ case.student.emplid }}</a></td>
 </tr>
 <tr>
   <th class="ui-state-default">Course Offering</th>
@@ -52,7 +52,7 @@ Suggested next step is to <a href="{{case.next_step_url}}">{{case.next_step_text
 {% else %}
     Case is completed.
     {% if case.letter_sent == 'MAIL' %}
-      <a href="{% url discipline.views.view_letter course_slug=course.slug case_slug=case.slug %}">View instructor's letter</a>.
+      <a href="{% url discipline.views.view_letter course_slug=course.slug case_slug=case.slug %}">View the letter that was sent</a>.
     {% endif %}
 {% endif %}
 </div>

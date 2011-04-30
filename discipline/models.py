@@ -54,10 +54,8 @@ SS_STATE_CHOICES = (
         ('SCOD', 'Case sent to SCODA'),
         ('DONE', 'Case completed'),
         )
-PRE_LETTER_STEPS = ['related', 'attach', 'notes', 'contacted', 'response', 'meeting', 'meeting_date', 'meeting_summary', 'facts', 'penalty']
-#FINAL_STEPS = ['letter_review', 'letter_sent', 'penalty_implemented']
-#CHAIR_STEPS = ['chair_notes', 'chair_meeting', 'chair_meeting_date', 'chair_meeting_summary', 'chair_facts', 'chair_penalty']
-#CHAIR_FINAL = ['chair_letter_review', 'chair_letter_sent']
+PRE_LETTER_STEPS = ['related', 'attach', 'notes', 'contacted', 'response', 'meeting', 'meeting_date', 'meeting_summary', 'facts', 'penalty'] # These fields affect the letter: if they are changed, letter must be re-reviewed; after letter sent, can't be changed.
+
 DisciplineSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
 STEP_VIEW = { # map of field/form -> view function ("edit_foo") that is used to edit it.
@@ -100,7 +98,7 @@ STEP_TEXT = { # map of field -> description of the step
         'facts': "summarize the facts of the case",
         'penalty': 'assign a penalty',
         'letter_review': 'review letter to student',
-        'letter_sent': "send instructor's letter",
+        'letter_sent': "send the letter",
         'penalty_implemented': "confirm penalty has been implemented",
 
         #'chair_meeting_date': "enter details of the chair's meeting",
@@ -130,7 +128,7 @@ STEP_DESC = { # map of field/form -> description of what is being edited
         'refer': 'Chair/Director referral',
         'penalty_reason': 'penalty rationale',
         'letter_review': 'review status',
-        'letter_sent': "instructor's letter status",
+        'letter_sent': "letter status",
         'penalty_implemented': 'penalty confirmation',
 
         #'chair_notes': "chair's notes",
@@ -186,10 +184,12 @@ class DisciplineCaseBase(models.Model):
         """
         Return the specific subclass version of this object.
         """
-        try:
-            case = DisciplineCaseInstrStudent.objects.get(id=self.id)
-        except DisciplineCaseInstrStudent.DoesNotExist:
-            case = DisciplineCaseInstrNonStudent.objects.get(id=self.id)
+        for CaseClass in [DisciplineCaseInstrStudent, DisciplineCaseInstrNonStudent]:
+            try:
+                return CaseClass.objects.get(id=self.id)
+            except CaseClass.DoesNotExist:
+                pass
+
         return case
     
     owner = models.ForeignKey(Person, help_text="The person who created/owns this case.")
@@ -220,7 +220,7 @@ class DisciplineCaseBase(models.Model):
             verbose_name="Instructor Penalty",
             help_text='Penalty assigned by the instructor for this case.')
     refer = models.BooleanField(default=False, help_text='Refer this case to the Chair/Director?', verbose_name="Refer to chair?")
-    penalty_reason = models.TextField(blank=True, null=True, verbose_name="Penalty Rationale",
+    penalty_reason = models.TextField(blank=True, null=True, verbose_name="Penalty Rationale/Details",
             help_text='Rationale for assigned penalty, or notes/details concerning penalty.  Optional but recommended. (included in letter, '+TEXTILENOTE+')')
     
     letter_review = models.BooleanField(default=False, verbose_name="Reviewed?", 
@@ -280,7 +280,7 @@ class DisciplineCaseBase(models.Model):
         return "Yes" if self.penalty_implemented else "No"
 
     def done(self):
-        return self.penalty_implemented
+        return self.penalty=="NONE" or self.penalty_implemented
     def can_edit(self, field):
         """
         Can this field be modified for this case?
@@ -288,22 +288,17 @@ class DisciplineCaseBase(models.Model):
         Logic: after letter sent, can only modify penalty implemented status.  After that, nothing.
         """
         return not self.penalty_implemented and not (self.letter_sent!="WAIT" and field != 'penalty_implemented')
+    def caseid(self):
+        if self.contact_date:
+            year = "%4i" % (self.contact_date.year)
+        else:
+            year = "xxxx"
+        return "CMS-%s-%04i" % (year, self.pk)
 
     def public_attachments(self):
         return CaseAttachment.objects.filter(case=self, public=True)
     def related_activities(self):
         return [ro for ro in self.relatedobject_set.all() if isinstance(ro.content_object, Activity)]
-
-    def XXX_open_for_display(self):
-        """
-        list of people this case needs attention from
-        """
-        roles = []
-        if not self.instr_done():
-            roles.append("instructor")
-        if not self.chair_done() and self.refer_chair and self.letter_sent != 'WAIT':
-            roles.append("chair")
-        return roles
     
     def groupmembersJSON(self):
         """
@@ -423,7 +418,7 @@ class DisciplineCaseInstr(DisciplineCaseBase):
             return "letter_review"
         elif self.penalty!="NONE" and self.letter_sent=="WAIT":
             return "letter_sent"
-        elif not self.penalty_implemented:
+        elif self.penalty!="NONE" and not self.penalty_implemented:
             return "penalty_implemented"
 
     def next_step_url(self):
