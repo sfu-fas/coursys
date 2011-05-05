@@ -68,8 +68,13 @@ chmod 0600 /etc/nginx/cert.*</pre></blockquote>
   <p>Note: <code class="file">.pem</code> and <code class="file">.cert</code> files are apparently the same thing: no need to convert.</p></dd>
 <dt>Server Config</dt>
   <dd>Main configuration file for server setup, <code class="file">/etc/nginx/sites-enabled/default</code> restored from <a href="etc_nginx_sites-enabled_default">version on old server</a>.</dd>
-<dt></dt>
-  <dd></dd>
+<dt>Static Content</dt>
+  <dd>Static content is searched for in <code class="file">~/static/</code> so create some appropriate symlinks there:
+  <blockquote><pre>mkdir ~/static
+cd ~/static
+ln -s ../courses/media media
+ln -s /usr/share/pyshared/django/contrib/admin/media adminmedia</pre></blockquote>
+  </dd>
 <dt></dt>
   <dd></dd>
 <dt></dt>
