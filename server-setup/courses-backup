@@ -1,0 +1,90 @@
+#!/bin/bash
+
+SUBMITS=/home/ggbaker/submitted_files
+CONFIG=/etc/nginx
+CODE=/home/ggbaker/courses
+TMP=/var/tmp/historytmp
+MKDUMP=/home/ggbaker/mkdump
+REPO=file:///home/ggbaker/history
+export LC_CTYPE=en_US.UTF-8
+
+set -e
+CO=${TMP}/repo
+SUBMITR=${CO}/sub
+CONFIGR=${CO}
+CODER=${CO}/code
+DUMP=${CO}/db.dump
+if [ \! -d ${TMP} ]; then
+  mkdir ${TMP};
+fi
+chmod 0700 ${TMP}
+
+QUICK=0
+if [ "$1" = "--quick" ] ; then
+  QUICK=1
+fi
+
+# get repo up to date
+echo "update repo"
+if [ -d ${CO} ]; then
+  if [ "$QUICK" -ne 1 ]; then
+    svn up -q ${CO}
+  fi
+else
+  svn co -q ${REPO} ${CO}
+fi
+
+# update DB dump
+echo "dump database"
+${MKDUMP} > ${DUMP}
+
+if [ "$QUICK" -eq 1 ]; then
+  svn ci -q -m "Quick automated update at `date +"%D %T"`" ${DUMP}
+  exit 0;
+fi
+
+
+# update the repo from server
+#echo "rsync submissions"
+#rsync -aPq --exclude .svn --delete ${SUBMITS} ${SUBMITR} 2>/dev/null \
+#  || true  # ignore rsync errors and continue
+
+# update server config
+echo "rsync server config"
+rsync -aPq --exclude .svn --delete ${CONFIG} ${CONFIGR} 2>/dev/null \
+  || true  # ignore rsync errors and continue
+
+# update code
+echo "rsync code"
+rsync -aPq --exclude .svn --exclude "*.pyc" --delete ${CODE} ${CODER} 2>/dev/null \
+  || true  # ignore rsync errors and continue
+
+echo "chmod"
+chmod -R u+w ${CO}
+
+#find ${CO}
+#svn st ${CO}
+
+# add new files to repo
+echo "svn add"
+svn status ${CO} \
+  | egrep "^\?" \
+  | sed "s/\? */\"/" \
+  | sed "s/$/\"/" \
+  | xargs -r -n 1 svn -q add 2>&1
+
+# remove deleted files from repo (shouldn't be happening, except for manual data cleanups)
+echo "svn rm"
+svn status ${CO} \
+  | egrep "^\!" \
+  | sed "s/\! */\"/" \
+  | sed "s/$/\"/" \
+  | xargs -r -n 1 svn -q del 2>&1
+
+# commit
+#svn st ${CO}
+echo "svn ci"
+svn ci -q -m "Automated update at `date +"%D %T"`" ${CO}
+
+# clean up
+#rm -rf ${TMP}

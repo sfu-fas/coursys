@@ -102,7 +102,7 @@ chmod 0711 ~</pre>
   <dd></dd>
 </dl>
 
-<h2 id="fastcgi">Actual Application</h2>
+<h2 id="app">Actual Application</h2>
 <dl>
 <dt>Code</dt>
   <dd>Code checked out from Subversion repository:
@@ -113,14 +113,21 @@ chmod 0711 ~</pre>
   <dd>
   <p>Create a file <code class="file">~/dbpass</code> with two lines: (1) password for course management data view, (2) password for TA database.  This file is read by the importer (to avoid having those passwords in the Subversion repo).</p>
   </dd>
-<dt></dt>
-  <dd></dd>
-<dt></dt>
-  <dd></dd>
-<dt></dt>
-  <dd></dd>
-<dt></dt>
-  <dd></dd>
+<dt>Crontab</dt>
+  <dd>
+  <blockquote><pre>30 4 * * * cd /home/ggbaker/courses/ && python coredata/importer.py &lt; /home/ggbaker/dbpass
+30 * * * * nice ionice -c 3 /home/ggbaker/bin/courses-backup</pre></blockquote>
+  <p>This requires <a href="courses-backup">my backup script, <code class="file">courses-backup</code></a>.</p>
+  </dd>
+<dt>DB dumps</dt>
+  <dd><blockquote><pre>mysqldump --user=courseuser --password="<var>DBPASS</var>" --port=4000 --host=127.0.0.1 --skip-extended-insert course_management \
+   | grep -v "INSERT INTO \`django_session\`" | grep -v "^-- Dump completed on"</pre></blockquote></dd>
+<dt>App startup</dt>
+  <dd>Add this to <code class="file">/etc/rc.local</code>:
+  <blockquote><pre>/home/ggbaker/fastcgi/startfs.sh</pre></blockquote>
+  </dd>
+<dt>Submitted Files</dt>
+  <dd>Submitted files from old server were copied to new server. New location must match <code>SUBMISSION_PATH</code> in <code class="file">settings.py</code>.</dd>
 </dl>
 
 </body>
