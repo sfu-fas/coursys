@@ -10,6 +10,8 @@ class Migration(DataMigration):
         "Write your forwards methods here."
         for c in orm.CourseOffering.objects.all():
             if c.url:
+                if c.config == None:
+                    c.config = {}
                 c.config['url'] = c.url
                 c.save()
 
