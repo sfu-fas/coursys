@@ -6,6 +6,7 @@ CODE=/home/ggbaker/courses
 TMP=/var/tmp/historytmp
 MKDUMP=/home/ggbaker/mkdump
 REPO=file:///home/ggbaker/history
+DBPASS=`sed '1,2d' < ~/dbpass`
 export LC_CTYPE=en_US.UTF-8
 
 set -e
@@ -36,7 +37,9 @@ fi
 
 # update DB dump
 echo "dump database"
-${MKDUMP} > ${DUMP}
+mysqldump --user=courseuser --password="${DBPASS}" --port=4000 --host=127.0.0.1 \
+  --skip-extended-insert course_management \
+  | grep -v "^INSERT INTO \`django_session\`" | grep -v "^-- Dump completed on" > ${DUMP}
 
 if [ "$QUICK" -eq 1 ]; then
   svn ci -q -m "Quick automated update at `date +"%D %T"`" ${DUMP}
