@@ -35,7 +35,7 @@ def decode(s):
     """
     Turn database string into proper Unicode.
     """
-    return s.decode('latin1')
+    return s.decode('utf8')
 
 def create_semesters():
     # http://students.sfu.ca/calendar/for_students/dates.html
@@ -178,9 +178,9 @@ def import_offerings(db):
         graded = section.endswith("00")
 
         # make sure the data is as we expect:
-        if not CourseOffering.CAMPUSES.has_key(campus):
+        if not CAMPUSES.has_key(campus):
             raise KeyError, "Unknown campus: %r." % (campus)
-        if not CourseOffering.COMPONENTS.has_key(component):
+        if not COMPONENTS.has_key(component):
             raise KeyError, "Unknown course component: %r." % (component)
 
         if cancel_dt != "None":
@@ -472,7 +472,7 @@ def main():
     import_offerings(db)
     time.sleep(1)
     print "importing meeting times"
-    import_meeting_times(db)
+    #import_meeting_times(db)
     time.sleep(1)
     print "importing instructors"
     members += import_instructors(db)
@@ -492,7 +492,7 @@ def main():
         p = Person.objects.get(userid=userid)
         r = Role.objects.filter(person=p, role="SYSA")
         if not r:
-            r = Role(person=p, role="SYSA")
+            r = Role(person=p, role="SYSA", department="!!!!")
             r.save()
     
     time.sleep(1)
