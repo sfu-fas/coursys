@@ -19,7 +19,7 @@ class Migration(DataMigration):
     def backwards(self, orm):
         "Write your backwards methods here."
         for c in orm.CourseOffering.objects.all():
-            if 'url' in c.config:
+            if c.config is not None and 'url' in c.config:
                 c.url = c.config['url']
                 c.save()
 
