@@ -1,0 +1,6 @@
+#!/bin/bash
+
+DBPASS=`sed '1,2d' < ~/dbpass`
+
+mysqldump --user=courseuser --password="${DBPASS}" --port=4000 --host=127.0.0.1 --skip-extended-insert course_management \
+   | grep -v "INSERT INTO \`django_session\`" | grep -v "^-- Dump completed on"
