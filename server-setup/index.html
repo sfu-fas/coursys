@@ -47,14 +47,6 @@ connect = onara.cs.sfu.ca:5000</pre></blockquote>
   <p>Copy the <code class="file">/etc/default/stunnel.pem</code> cretificate.</p>
   <blockquote><pre>chmod 0600 /etc/default/stunnel.pem</pre></blockquote>
   </dd>
-<dt></dt>
-  <dd></dd>
-<dt></dt>
-  <dd></dd>
-<dt></dt>
-  <dd></dd>
-<dt></dt>
-  <dd></dd>
 </dl>
 
 <h2 id="nginx">NGINX Web Server</h2>
@@ -73,18 +65,8 @@ chmod 0600 /etc/nginx/cert.*</pre></blockquote>
   <blockquote><pre>mkdir ~/static
 cd ~/static
 ln -s ../courses/media media
-ln -s /usr/share/pyshared/django/contrib/admin/media adminmedia</pre></blockquote>
+ln -s /usr/share/pyshared/django/contrib/admin/media adminmedia # not really used</pre></blockquote>
   </dd>
-<dt></dt>
-  <dd></dd>
-<dt></dt>
-  <dd></dd>
-<dt></dt>
-  <dd></dd>
-<dt></dt>
-  <dd></dd>
-<dt></dt>
-  <dd></dd>
 </dl>
 
 <h2 id="fastcgi">FastCGI Process</h2>
@@ -95,16 +77,10 @@ ln -s /usr/share/pyshared/django/contrib/admin/media adminmedia</pre></blockquot
 chmod 0711 ~</pre>
   </blockquote>
   </dd>
-<dt></dt>
-  <dd></dd>
-<dt></dt>
-  <dd></dd>
-<dt></dt>
-  <dd></dd>
-<dt></dt>
-  <dd></dd>
-<dt></dt>
-  <dd></dd>
+<dt>App startup</dt>
+  <dd>Add this to <code class="file">/etc/rc.local</code>:
+  <blockquote><pre>/home/ggbaker/fastcgi/startfs.sh</pre></blockquote>
+  </dd>
 </dl>
 
 <h2 id="app">Actual Application</h2>
@@ -113,26 +89,21 @@ chmod 0711 ~</pre>
   <dd>Code checked out from Subversion repository:
   <blockquote><pre>svn co https://cs-svn.cs.sfu.ca/svn/courseman/trunk/courses /home/ggbaker/courses</pre></blockquote>
   <p>But somebody following these instructions: <strong>check the Subversion URL</strong>!  Stable tags are created when serious development is going on&mdash;that might be the right one to use.</p>
-  </dd>
-<dt>Data Importer</dt>
-  <dd>
-  <p>Create a file <code class="file">~/dbpass</code> with two lines: (1) password for course management data view, (2) password for TA database.  This file is read by the importer (to avoid having those passwords in the Subversion repo).</p>
-  </dd>
-<dt>Crontab</dt>
-  <dd>
-  <blockquote><pre>30 4 * * * cd /home/ggbaker/courses/ && python coredata/importer.py &lt; /home/ggbaker/dbpass
-30 * * * * nice ionice -c 3 /home/ggbaker/bin/courses-backup</pre></blockquote>
-  <p>This requires <a href="courses-backup">my backup script, <code class="file">courses-backup</code></a>.</p>
-  </dd>
-<dt>DB dumps</dt>
-  <dd><blockquote><pre>mysqldump --user=courseuser --password="<var>DBPASS</var>" --port=4000 --host=127.0.0.1 --skip-extended-insert course_management \
-   | grep -v "INSERT INTO \`django_session\`" | grep -v "^-- Dump completed on"</pre></blockquote></dd>
-<dt>App startup</dt>
-  <dd>Add this to <code class="file">/etc/rc.local</code>:
-  <blockquote><pre>/home/ggbaker/fastcgi/startfs.sh</pre></blockquote>
+  <p>The only necessary change to the code is setting the database password in <code class="file">settings.py</code>.</p>
   </dd>
 <dt>Submitted Files</dt>
   <dd>Submitted files from old server were copied to new server (at <code class="file">/data/submitted_files/</code>). New location must match <code>SUBMISSION_PATH</code> in <code class="file">settings.py</code>.</dd>
+<dt>Data Backup</dt>
+  <dd>The database (and some other info) is backed up hourly (in the crontab below) to a local Subversion repository.  That is in <code class="file">~/history</code> and needed to be copied over.</dd>
+<dt>Crontab</dt>
+  <dd>
+  Create a file <code class="file">~/dbpass</code> with three lines: (1) password for course management data view, (2) password for TA database, (3) the password for the app's main database.  This file is read by the importer and other scripts (to avoid having those passwords in the Subversion repo).
+  <p>This crontab needs to be set to import and backup everything:</p>
+  <blockquote><pre>30 4 * * * cd /home/ggbaker/courses/ && python coredata/importer.py &lt; /home/ggbaker/dbpass
+30 * * * * nice ionice -c 3 /home/ggbaker/courses/server-setup/courses-backup</pre></blockquote>
+  <p>This requires <a href="courses-backup">my backup script, <code class="file">courses-backup</code></a>.</p>
+  <p>There is also a <a href="mkdump">script <code class="file">mkdump</code></a> that will create a database dump if needed.</p>
+  </dd>
 </dl>
 
 </body>

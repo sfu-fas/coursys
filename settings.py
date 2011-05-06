@@ -16,11 +16,11 @@ MANAGERS = ADMINS
 
 if DEPLOYED:
     DATABASE_ENGINE = 'mysql'
-    DATABASE_NAME = '?????'
-    DATABASE_USER = '?????'
+    DATABASE_NAME = 'course_management'
+    DATABASE_USER = 'courseuser'
     DATABASE_PASSWORD = '?????'
     DATABASE_HOST = '127.0.0.1'
-    DATABASE_PORT = '3306'
+    DATABASE_PORT = '4000'
 else:
     DATABASE_ENGINE = 'sqlite3'
     DATABASE_NAME = 'db.sqlite'

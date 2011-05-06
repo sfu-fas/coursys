@@ -65,9 +65,6 @@ rsync -aPq --exclude .svn --exclude "*.pyc" --delete ${CODE} ${CODER} 2>/dev/nul
 echo "chmod"
 chmod -R u+w ${CO}
 
-#find ${CO}
-#svn st ${CO}
-
 # add new files to repo
 echo "svn add"
 svn status ${CO} \
