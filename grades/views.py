@@ -744,8 +744,8 @@ def _semester_date_warning(request, activity):
     if activity.due_date > datetime.datetime.combine(
             activity.offering.semester.end, datetime.time(23,59,59)):
         messages.warning(request, "Activity is due after the end of the semester.")
-    if activity.due_date and activity.due_date < datetime.datetime.combine(
-            activity.offering.semester.end, datetime.time(0,0,0)):
+    if activity.due_date < datetime.datetime.combine(
+            activity.offering.semester.start, datetime.time(0,0,0)):
         messages.warning(request, "Activity is due before the start of the semester.")
 
 
