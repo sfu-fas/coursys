@@ -144,7 +144,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 if DEPLOYED:
     MIDDLEWARE_CLASSES = ('courselib.exception_middleware.ExceptionMiddleware',) + MIDDLEWARE_CLASSES
-    SUBMISSION_PATH = '/home/ggbaker/submitted_files'
+    SUBMISSION_PATH = '/data/submitted_files'
     CACHE_BACKEND = 'memcached://127.0.0.1:22122/'
     BASE_ABS_URL = "https://courses.cs.sfu.ca"
     SESSION_COOKIE_SECURE = True

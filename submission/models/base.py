@@ -190,7 +190,7 @@ class SubmittedComponent(models.Model):
             fh = open(upfile.path, "r")
         except IOError:
             response['Content-type'] = "text/plain"
-            response.write("File missing. Has likely been archived.")
+            response.write("File missing. It has likely been archived.")
             return
 
         for data in fh:
