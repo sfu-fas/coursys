@@ -199,6 +199,7 @@ class CourseOffering(models.Model):
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
       # c.config['url']: URL of course home page
       # c.config['department']: department responsible for course (used by discipline module)
+      # c.config['taemail']: TAs' contact email (if not their personal email)
     
     def autoslug(self):
         words = [str(s).lower() for s in self.semester.name, self.subject, self.number, self.section]
