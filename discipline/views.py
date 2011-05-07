@@ -109,12 +109,12 @@ def new_nonstudent(request, course_slug):
     group_choices = [('', u'\u2014')] + [(g.id, g.name) for g in DisciplineGroup.objects.filter(offering=course)]
     
     if request.method == 'POST':
-        form = DisciplineNonStudentCaseForm(data=request.POST)
+        form = DisciplineInstrNonStudentCaseForm(data=request.POST)
         form.fields['group'].choices = group_choices
         if form.is_valid():
             instructor = Person.objects.get(userid=request.user.username)
             case = form.save(commit=False)
-            case.instructor = instructor
+            case.owner = instructor
             case.offering = course
             case.slug = defaultfilters.slugify(case.first_name + " " + case.last_name)
             case.save()
@@ -127,7 +127,7 @@ def new_nonstudent(request, course_slug):
             return HttpResponseRedirect(reverse('discipline.views.show', kwargs={'course_slug': course_slug, 'case_slug': case.slug}))
 
     else:
-        form = DisciplineNonStudentCaseForm()
+        form = DisciplineInstrNonStudentCaseForm()
     
     form.fields['group'].choices = group_choices
     context = {'course': course, 'form': form}
@@ -213,7 +213,7 @@ def edit_case_info(request, course_slug, case_slug, field):
                 if len(cases) != 1 or cases[0].group != case.group:
                     continue
                 c0 = cases[0].subclass()
-                if c0.can_edit(field):
+                if not c0.can_edit(field):
                     messages.add_message(request, messages.ERROR,
                         "Case for %s is finished: cannot update %s." % (c0.student.name(), STEP_DESC[field]))
                     continue
@@ -372,7 +372,7 @@ def edit_related(request, course_slug, case_slug):
                 if len(cases) != 1 or cases[0].group != case.group:
                     continue
                 c0 = cases[0].subclass()
-                if c0.can_edit('related'):
+                if not c0.can_edit('related'):
                     messages.add_message(request, messages.ERROR,
                         "Case for %s is finished: cannot update %s." % (c0.student.name(), STEP_DESC[field]))
                     continue

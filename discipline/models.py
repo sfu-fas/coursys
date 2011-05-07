@@ -477,6 +477,8 @@ class DisciplineCaseInstr(DisciplineCaseBase):
 
 class DisciplineCaseInstrStudent(DisciplineCaseInstr):
     student = models.ForeignKey(Person, help_text="The student this case concerns.")
+    def is_in_course(self):
+        return True
     
     def student_userid(self):
         return self.student.userid
@@ -488,8 +490,10 @@ class DisciplineCaseInstrNonStudent(DisciplineCaseInstr):
     last_name = models.CharField(max_length=32)
     first_name = models.CharField(max_length=32)
     
+    def is_in_course(self):
+        return False
     def __init__(self, *args, **kwargs):
-        super(DisciplineCaseNonStudent, self).__init__(*args, **kwargs)
+        super(DisciplineCaseInstrNonStudent, self).__init__(*args, **kwargs)
         self.student = self.FakePerson()
         self.student.emplid = self.emplid
         self.student.userid = self.userid
@@ -506,6 +510,8 @@ class DisciplineCaseInstrNonStudent(DisciplineCaseInstr):
         """
         def email(self):
             return self.emailaddr
+        def full_email(self):
+            return "%s <%s>" % (self.name(), self.emailaddr)
         def name(self):
             return "%s %s" % (self.first_name, self.last_name)
         def sortname(self):

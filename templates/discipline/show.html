@@ -25,7 +25,8 @@
 </tr>
 <tr>
   <th class="ui-state-default">Student Number</th>
-  <td><a href="{% url grades.views.student_info course_slug=case.offering.slug userid=case.student.userid %}">{{ case.student.emplid }}</a></td>
+  <td>
+  {% if case.is_in_course %}<a href="{% url grades.views.student_info course_slug=case.offering.slug userid=case.student.userid %}">{{ case.student.emplid }}</a>{% else %}{{ case.student.emplid }}{% endif %}</td>
 </tr>
 <tr>
   <th class="ui-state-default">Course Offering</th>
