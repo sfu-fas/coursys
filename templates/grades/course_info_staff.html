@@ -147,7 +147,7 @@
             <tr>
                 <th scope="row">Instructor(s)</th>
                 <td>{% for instructor in course.instructors %}
-                    {{ instructor.name }} &lt;<a href="mailto:{{ instructor.email }}">{{ instructor.email }}</a>&gt;{% if not forloop.first %}, {% endif %}
+                    {{ instructor.name }} &lt;<a href="mailto:{{ instructor.email }}">{{ instructor.email }}</a>&gt;{% if not forloop.last %}, {% endif %}
                     {% endfor %}</td>
             </tr>
             <tr>

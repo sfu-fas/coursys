@@ -388,6 +388,10 @@ def copy_activity(source_activity, source_course_offering, target_course_offerin
     new_activity.id = None
     new_activity.pk = None
     new_activity.activity_ptr_id = None
+    if hasattr(new_activity, 'numericactivity_ptr_id'):
+        new_activity.numericactivity_ptr_id = None
+    if hasattr(new_activity, 'letteractivity_ptr_id'):
+        new_activity.letteractivity_ptr_id = None
 
     if source_activity.status=="INVI":
         new_activity.status = 'INVI'        
