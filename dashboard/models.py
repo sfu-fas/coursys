@@ -94,7 +94,7 @@ class UserConfig(models.Model):
     """
     user = models.ForeignKey(Person, null=False)
     key = models.CharField(max_length=20, db_index=True, null=False)
-    value = models.CharField(max_length=200)
+    value = models.TextField()
     class Meta:
         unique_together = (("user", "key"),)
 

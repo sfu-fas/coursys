@@ -14,7 +14,7 @@ from dashboard.models import NewsItem, UserConfig
 from dashboard.forms import *
 from django.contrib import messages
 from log.models import LogEntry
-import random, datetime, time
+import random, datetime, time, json
 
 from icalendar import Calendar, Event
 import pytz
@@ -130,7 +130,22 @@ def atom_feed(request, token, userid):
     return render_to_response("dashboard/atom_feed.xml", context, context_instance=RequestContext(request),mimetype="application/atom+xml")
 
 
-@cache_page(60 * 15)
+def _weekday_range(start_date, end_date, wkday):
+    """
+    Return weekly days from start_date to end_date, on given day of week.
+    """
+    # make sure we've got the right weekday to start with
+    date = start_date
+    while wkday != date.weekday():
+        date += datetime.timedelta(days=1)
+
+    # go through the weeks
+    while date <= end_date:
+        yield date
+        date += datetime.timedelta(7)
+
+
+#@cache_page(60 * 15)
 def calendar_ical(request, token, userid):
     """
     Return an iCalendar for this user, authenticated by the token in the URL
@@ -138,9 +153,14 @@ def calendar_ical(request, token, userid):
     user = get_object_or_404(Person, userid=userid)
     
     # make sure the token in the URL (32 hex characters) matches the token stored in the DB
-    configs = UserConfig.objects.filter(user=user, key="calendar-token")
-    if not configs or configs[0].value != token:
-        # no token configured or wrong token provided
+    configs = UserConfig.objects.filter(user=user, key="calendar-config")
+    if not configs:
+        # no calendar stuff configured
+        return NotFoundResponse(request)
+
+    config = json.loads(configs[0].value)
+    if 'token' not in config or config['token'] != token:
+        # no token set or wrong token provided
         return NotFoundResponse(request)
     #else:
         # authenticated
@@ -154,35 +174,32 @@ def calendar_ical(request, token, userid):
     cal.add('version', '2.0')
 
     for mt in class_list:
-      # for every day the class happens...
-        date = mt.start_day
-        i=0
-
-        e = Event()
-        if mt.exam:
-            e.add('summary', '%s exam' % (mt.offering.name()))
-        else:
-            e.add('summary', '%s lecture' % (mt.offering.name()))
+        for date in _weekday_range(mt.start_day, mt.end_day, mt.weekday): # for every day the class happens...
+            e = Event()
+            if mt.exam:
+                e.add('summary', '%s exam' % (mt.offering.name()))
+            else:
+                e.add('summary', '%s lecture' % (mt.offering.name()))
         
-        start = datetime.datetime(
-                year=date.year, month=date.month, day=date.day,
-                hour=mt.start_time.hour, minute=mt.start_time.minute, second=mt.start_time.second, 
-                tzinfo=local_tz)
-        e.add('dtstart', start)
-        end = datetime.datetime(
-                year=date.year, month=date.month, day=date.day,
-                hour=mt.end_time.hour, minute=mt.end_time.minute, second=mt.end_time.second, 
-                tzinfo=local_tz)
-        e.add('dtend', end)
+            start = datetime.datetime(
+                    year=date.year, month=date.month, day=date.day,
+                    hour=mt.start_time.hour, minute=mt.start_time.minute, second=mt.start_time.second, 
+                    tzinfo=local_tz)
+            e.add('dtstart', start)
+            end = datetime.datetime(
+                    year=date.year, month=date.month, day=date.day,
+                    hour=mt.end_time.hour, minute=mt.end_time.minute, second=mt.end_time.second, 
+                    tzinfo=local_tz)
+            e.add('dtend', end)
         
-        e.add('location', mt.offering.get_campus_display() + " " + mt.room)
-        e['uid'] = mt.offering.slug.replace("-","") + "-" + str(mt.id) + "-" + start.strftime("%Y%m%dT%H%M%S") + '@courses.cs.sfu.ca'
+            e.add('location', mt.offering.get_campus_display() + " " + mt.room)
+            e['uid'] = mt.offering.slug.replace("-","") + "-" + str(mt.id) + "-" + start.strftime("%Y%m%dT%H%M%S") + '@courses.cs.sfu.ca'
 
-        cal.add_component(e)
+            cal.add_component(e)
 
     # add every assignment with a due datetime
     
-    return HttpResponse(cal.as_string(), mimetype="text/plain") # text/calendar
+    return HttpResponse(cal.as_string(), mimetype="text/calendar") # 
 
 
 # Management of feed URL tokens
