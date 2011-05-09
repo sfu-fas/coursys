@@ -18,8 +18,6 @@ import random, datetime, time, json
 
 from icalendar import Calendar, Event
 import pytz
-local_tz = pytz.timezone(settings.TIME_ZONE)
-
 
 def _display_membership(m, today, student_cutoff):
     """
@@ -150,6 +148,7 @@ def calendar_ical(request, token, userid):
     """
     Return an iCalendar for this user, authenticated by the token in the URL
     """
+    local_tz = pytz.timezone(settings.TIME_ZONE)
     user = get_object_or_404(Person, userid=userid)
     
     # make sure the token in the URL (32 hex characters) matches the token stored in the DB
@@ -165,7 +164,7 @@ def calendar_ical(request, token, userid):
     #else:
         # authenticated
 
-    memberships = Member.objects.filter(person=user).exclude(role="DROP")
+    memberships = Member.objects.filter(person=user, offering__graded=True).exclude(role="DROP")
     classes = set((m.offering for m in memberships))
     class_list = MeetingTime.objects.filter(offering__in=classes)
     
@@ -181,15 +180,9 @@ def calendar_ical(request, token, userid):
             else:
                 e.add('summary', '%s lecture' % (mt.offering.name()))
         
-            start = datetime.datetime(
-                    year=date.year, month=date.month, day=date.day,
-                    hour=mt.start_time.hour, minute=mt.start_time.minute, second=mt.start_time.second, 
-                    tzinfo=local_tz)
+            start = local_tz.localize(datetime.datetime.combine(date, mt.start_time))
             e.add('dtstart', start)
-            end = datetime.datetime(
-                    year=date.year, month=date.month, day=date.day,
-                    hour=mt.end_time.hour, minute=mt.end_time.minute, second=mt.end_time.second, 
-                    tzinfo=local_tz)
+            end = local_tz.localize(datetime.datetime.combine(date, mt.end_time))
             e.add('dtend', end)
         
             e.add('location', mt.offering.get_campus_display() + " " + mt.room)
@@ -199,7 +192,7 @@ def calendar_ical(request, token, userid):
 
     # add every assignment with a due datetime
     
-    return HttpResponse(cal.as_string(), mimetype="text/calendar") # 
+    return HttpResponse(cal.as_string(), mimetype="text/calendar")
 
 
 # Management of feed URL tokens
@@ -255,7 +248,6 @@ def disable_news_url(request):
     if request.method == 'POST':
         form = FeedSetupForm(request.POST)
         if form.is_valid():
-            token = new_feed_token()
             configs = UserConfig.objects.filter(user=user, key="feed-token")
             configs.delete()
             messages.add_message(request, messages.SUCCESS, 'External feed disabled.')
