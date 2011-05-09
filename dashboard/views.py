@@ -186,6 +186,22 @@ def calendar_ical(request, token, userid):
             cal.add_component(e)
 
     # add every assignment with a due datetime
+    due_length = datetime.timedelta(minutes=1)
+    for m in memberships:
+        for a in m.offering.activity_set.all():
+            if not a.due_date:
+                continue
+            print a.due_date
+            
+            e = Event()
+            e.add('summary', '%s: %s due' % (a.offering.name(), a.name))
+            start = local_tz.localize(a.due_date)
+            e.add('dtstart', start)
+            end = local_tz.localize(a.due_date + due_length)
+            e.add('dtend', end)
+            e['uid'] = a.offering.slug.replace("-","") + "-" + str(a.id) + "-" + a.slug.replace("-","") + '@courses.cs.sfu.ca'
+            
+            cal.add_component(e)
     
     return HttpResponse(cal.as_string(), mimetype="text/calendar")
 
