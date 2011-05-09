@@ -1,4 +1,4 @@
-import sys, os, datetime, string, time
+import sys, os, datetime, string, time, copy
 import MySQLdb
 sys.path.append(".")
 sys.path.append("..")
@@ -10,6 +10,26 @@ from django.contrib.sessions.models import Session
 
 # these users will be given sysadmin role (for bootstrapping)
 sysadmin = ["ggbaker"]
+
+# artificial combined sections to create: kwargs for CourseOffering creation,
+# plus 'subsections' list of sections we're combining.
+combined_sections = [
+        {
+            'subject': 'CMPT', 'number': '125', 'section': 'X100',
+            'semester': Semester.objects.get(name="1114"),
+            'component': 'LEC', 'graded': True, 
+            'crse_id': 32760, 'class_nbr': 32760,
+            'title': 'Intro CS/Progr(combined)',
+            'campus': 'BRNBY',
+            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+            'config': {},
+            'subsections': [
+                CourseOffering.objects.get(slug='1114-cmpt-125-d100'),
+                CourseOffering.objects.get(slug='1114-cmpt-126-d100')
+            ]
+        },
+        ]
+
 
 import_host = '127.0.0.1'      
 import_user = 'ggbaker'
@@ -159,9 +179,11 @@ def fix_emplid(db):
     for p in people:
         print " ", p.userid
         db.execute('SELECT emplid FROM v_ps_personal_data WHERE username=%s', p.userid)
-        emplid, = db.fetchone()
-        p.emplid = emplid
-        p.save()
+        row = db.fetchone()
+        if row:
+            emplid, = row
+            p.emplid = emplid
+            p.save()
 
 def import_offerings(db):
     """
@@ -248,7 +270,13 @@ def import_meeting_times(db):
             elif len(m_old)==1:
                 # new data: just replace.
                 m_old = m_old[0]
-                m_old.delete()
+                if m_old.start_day==start_dt and m_old.end_day==end_dt and m_old.room==room \
+                        and m_old.exam == (stnd_mtg_pat in ["EXAM","MIDT"]):
+                    # unchanged: leave it.
+                    continue
+                else:
+                    # it has changed: remove and replace.
+                    m_old.delete()
             
             m = MeetingTime(offering=c, weekday=wkd, start_day=start_dt, end_day=end_dt,
                             start_time=start, end_time=end, room=room)
@@ -446,7 +474,56 @@ def import_people(db, members):
     db.execute('SELECT username, emplid, last_name, first_name, middle_name, pref_first_name FROM v_ps_personal_data WHERE username<"a" or username>"zzzzzzzz"')
     for userid, emplid, last_name, first_name, middle_name, pref_first_name in db:
         handle_person(membership, userid, emplid, last_name, first_name, middle_name, pref_first_name)
-    
+
+
+def combine_sections(db):
+    """
+    Combine sections in the database to co-offered courses look the same.
+    """
+    for info in combined_sections:
+        # create the section if necessary
+        courses = CourseOffering.objects.filter(subject=info['subject'], number=info['number'], section=info['section'], semester=info['semester'], component=info['component'], campus=info['campus'])
+        if courses:
+            course = courses[0]
+        else:
+            kwargs = copy.copy(info)
+            del kwargs['subsections']
+            course = CourseOffering(**kwargs)
+            course.save()
+        
+        cap_total = 0
+        tot_total = 0
+        wait_total = 0
+        for sub in info['subsections']:
+            cap_total += sub.enrl_cap
+            tot_total += sub.enrl_tot
+            wait_total += sub.wait_tot
+            for m in sub.member_set.all():
+                old_ms = course.member_set.filter(offering=course, person=m.person)
+                if old_ms:
+                    # was already a member: update.
+                    old_m = old_ms[0]
+                    old_m.role = m.role
+                    old_m.credits = m.credits
+                    old_m.career = m.career
+                    old_m.added_reason = m.added_reason
+                    old_m.save()
+                else:
+                    # new membership: duplicate into combined
+                    new_m = Member(offering=course, person=m.person, role=m.role,
+                            credits=m.credits, career=m.career, added_reason=m.added_reason)
+                    new_m.save()
+
+        # update totals        
+        course.enrl_cap = cap_total
+        course.tot_total = tot_total
+        course.wait_total = wait_total
+        course.save()
+
+
+
+
+
 @transaction.commit_on_success
 def main():
     dbpasswd = raw_input()
@@ -472,7 +549,7 @@ def main():
     import_offerings(db)
     time.sleep(1)
     print "importing meeting times"
-    #import_meeting_times(db)
+    import_meeting_times(db)
     time.sleep(1)
     print "importing instructors"
     members += import_instructors(db)
@@ -485,6 +562,10 @@ def main():
     time.sleep(1)  
     print "importing personal info"
     import_people(db, members)
+    time.sleep(1)
+    
+    print "creating combined sections"
+    combine_sections(db)
     
     time.sleep(1)
     print "giving sysadmin permissions"
