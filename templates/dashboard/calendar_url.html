@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load markup %}
+
+{% block title %}Activate External Calendar{% endblock %}
+{% block h1 %}Activate External Calendar{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url dashboard.views.calendar_config %}">Calendar</a></li><li>&gt; Configure URL</li>{% endblock %}
+
+{% block content %}
+
+<p>
+Activating the external calendar may cause privacy concerns.  You will be given a URL that can be used to access your personalized calendar.  Please note that:
+</p>
+<ul>
+<li>The generated URL will contain a long string of random characters that would be essentially impossible to guess.</li>
+<li>This URL can be <strong>accessed with no further authentication</strong> (username or password).  It is your responsibility to keep this URL private.</li>
+<li><strong>Be careful with social networking features</strong> (like Google Reader's ability to &ldquo;share&rdquo; items).  These will reveal the details of your feed and likely give others the information they need to view any of your news stories.</li>
+<li>Your feed can be deactivated or be moved to a different URL at any time.</li>
+</ul>
+
+<form action="{% url dashboard.views.create_calendar_url %}" method="post">{% csrf_token %}
+    {% for field in form.visible_fields %}
+        <div class="field">
+            {{ field }} I agree to activate the external calendar and be responsible for its privacy.
+            {{ field.errors }}
+        </div>
+    {% endfor %}
+    <p><input type="submit" value="Create Calendar URL" /></p>
+</form>
+
+
+{% endblock %}

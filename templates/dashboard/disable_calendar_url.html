@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load markup %}
+
+{% block title %}Disable External Calendar{% endblock %}
+{% block h1 %}Disable External Calendar{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url dashboard.views.calendar_config %}">Calendar</a></li><li>&gt; Configure URL</li>{% endblock %}
+
+{% block content %}
+
+<form action="{% url dashboard.views.disable_calendar_url %}" method="post">{% csrf_token %}
+    {% for field in form.visible_fields %}
+        <div class="field">
+            {{ field }} Disable my external calendar.
+            {{ field.errors }}
+        </div>
+    {% endfor %}
+    <p><input type="submit" value="Disable Calendar URL" /></p>
+</form>
+
+
+{% endblock %}

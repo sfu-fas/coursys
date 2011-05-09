@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load markup %}
+
+{% block title %}Configure Calendar{% endblock %}
+{% block h1 %}Configure Calendar{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; Configure Calendar</li>{% endblock %}
+
+{% block actions %}
+<div id="actions">
+<h2>Actions</h2>
+<ul>
+{% if token %}
+<li><a href="{% url dashboard.views.create_calendar_url %}">Change calendar URL</a></li>
+<li><a href="{% url dashboard.views.disable_calendar_url %}">Disable external calendar </a></li>
+{% else %}
+<li><a href="{% url dashboard.views.create_calendar_url %}">Activate external calendar</a></li>
+{% endif %}
+</ul>
+</div>
+{% endblock %}
+
+{% block content %}
+{% if token %}
+<p>Your external calendar is currently enabled at this URL:</p>
+<blockquote>
+<a href="{% url dashboard.views.calendar_ical token=token userid=userid %}">{{server_url}}{% url dashboard.views.calendar_ical token=token userid=userid %}</a>
+</blockquote>
+{% else %}
+<p>You do not currently have the external calendar configured.</p>
+{% endif %}
+
+
+{% endblock %}

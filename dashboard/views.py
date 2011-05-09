@@ -152,12 +152,7 @@ def calendar_ical(request, token, userid):
     user = get_object_or_404(Person, userid=userid)
     
     # make sure the token in the URL (32 hex characters) matches the token stored in the DB
-    configs = UserConfig.objects.filter(user=user, key="calendar-config")
-    if not configs:
-        # no calendar stuff configured
-        return NotFoundResponse(request)
-
-    config = json.loads(configs[0].value)
+    config = _get_calendar_config(user)
     if 'token' not in config or config['token'] != token:
         # no token set or wrong token provided
         return NotFoundResponse(request)
@@ -193,6 +188,82 @@ def calendar_ical(request, token, userid):
     # add every assignment with a due datetime
     
     return HttpResponse(cal.as_string(), mimetype="text/calendar")
+
+
+def _get_calendar_config(user):
+    configs = UserConfig.objects.filter(user=user, key="calendar-config")
+    if not configs:
+        return {}
+    else:
+        return json.loads(configs[0].value)
+
+
+@login_required
+def calendar_config(request):
+    user = get_object_or_404(Person, userid=request.user.username)
+    config = _get_calendar_config(user)
+    if 'token' not in config:
+        token = None
+    else:
+        token = config['token']
+    
+    context={'token': token, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL}
+    return render_to_response("dashboard/calendar_config.html", context, context_instance=RequestContext(request))
+
+
+
+@login_required
+def create_calendar_url(request):
+    user = get_object_or_404(Person, userid=request.user.username)
+    config = _get_calendar_config(user)
+    if request.method == 'POST':
+        form = FeedSetupForm(request.POST)
+        if form.is_valid():
+            token = new_feed_token()
+            config['token'] = token
+            uc = UserConfig.objects.filter(user=user, key="calendar-config")
+            if uc:
+                uc = uc[0]
+                uc.value = json.dumps(config)
+            else:
+                uc = UserConfig(user=user, key="calendar-config", value=json.dumps(config))
+            uc.save()
+            messages.add_message(request, messages.SUCCESS, 'Calendar URL configured.')
+            return HttpResponseRedirect(reverse(calendar_config))
+    else:
+        if 'token' in config:
+            # pre-check if we're changing the token
+            form = FeedSetupForm({'agree': True})
+        else:
+            form = FeedSetupForm()
+
+    context = {'form': form}
+    return render_to_response("dashboard/calendar_url.html", context, context_instance=RequestContext(request))
+
+
+@login_required
+def disable_calendar_url(request):
+    user = get_object_or_404(Person, userid=request.user.username)
+    config = _get_calendar_config(user)
+    if request.method == 'POST':
+        form = FeedSetupForm(request.POST)
+        if form.is_valid():
+            if 'token' in config:
+                del config['token']
+                uc = UserConfig.objects.filter(user=user, key="calendar-config")
+                if uc:
+                    uc = uc[0]
+                    uc.value = json.dumps(config)
+                    uc.save()
+
+            messages.add_message(request, messages.SUCCESS, 'External calendar disabled.')
+            return HttpResponseRedirect(reverse(calendar_config))
+    else:
+        form = FeedSetupForm({'agree': True})
+
+    context = {'form': form}
+    return render_to_response("dashboard/disable_calendar_url.html", context, context_instance=RequestContext(request))
+
 
 
 # Management of feed URL tokens
