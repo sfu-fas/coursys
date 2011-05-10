@@ -209,7 +209,7 @@ def calendar_ical(request, token, userid):
             e.add('dtstart', start)
             end = local_tz.localize(a.due_date + due_length)
             e.add('dtend', end)
-            e['uid'] = a.offering.slug.replace("-","") + "-" + str(a.id) + "-" + a.slug.replace("-","") + '@courses.cs.sfu.ca'
+            e['uid'] = a.offering.slug.replace("-","") + "-" + str(a.id) + "-" + a.slug.replace("-","") + "-" + a.due_date.strftime("%Y%m%dT%H%M%S") + '@courses.cs.sfu.ca'
             
             cal.add_component(e)
     

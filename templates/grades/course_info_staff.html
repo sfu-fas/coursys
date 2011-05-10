@@ -42,7 +42,7 @@
 		 /* post request */
 		 if(i > 0){
 			$.post("{% url grades.views.reorder_activity course_slug=course.slug %}",
-				{'id_up': act_ids[i], 'id_down': act_ids[i-1]}, 
+				{'id_up': act_ids[i], 'id_down': act_ids[i-1], 'csrfmiddlewaretoken': "{{csrf_token}}"}, 
 				function(data){ /* request success callback: swap rows */					 				
 					 /* swap the content of the current row and the previous row(except for the first column) */				
 					 var row = oTable.fnGetNodes(i);
@@ -73,7 +73,7 @@
 		 if(i < {{activities_info|length}}-1){
 		 /* post request */
 			$.post("{% url grades.views.reorder_activity course_slug=course.slug %}",		  	 
-				{'id_up': act_ids[i+1], 'id_down': act_ids[i]},
+				{'id_up': act_ids[i+1], 'id_down': act_ids[i], 'csrfmiddlewaretoken': "{{csrf_token}}"},
 				function(data){ /* request success callback: swap rows */  		 	 
 				     /* swap the content of the current row and the next row(except for the first column) */
 					 var row = oTable.fnGetNodes(i);
