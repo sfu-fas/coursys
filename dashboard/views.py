@@ -16,7 +16,7 @@ from django.contrib import messages
 from log.models import LogEntry
 import random, datetime, time, json
 
-from icalendar import Calendar, Event
+from icalendar import Calendar, Event, Alarm
 import pytz
 
 def _display_membership(m, today, student_cutoff):
@@ -143,7 +143,7 @@ def _weekday_range(start_date, end_date, wkday):
         date += datetime.timedelta(7)
 
 
-#@cache_page(60 * 15)
+@cache_page(60*60*6)
 def calendar_ical(request, token, userid):
     """
     Return an iCalendar for this user, authenticated by the token in the URL
@@ -171,9 +171,10 @@ def calendar_ical(request, token, userid):
         for date in _weekday_range(mt.start_day, mt.end_day, mt.weekday): # for every day the class happens...
             e = Event()
             if mt.exam:
-                e.add('summary', '%s exam' % (mt.offering.name()))
+                summary = '%s exam' % (mt.offering.name())
             else:
-                e.add('summary', '%s lecture' % (mt.offering.name()))
+                summary = '%s lecture' % (mt.offering.name())
+            e.add('summary', summary)
         
             start = local_tz.localize(datetime.datetime.combine(date, mt.start_time))
             e.add('dtstart', start)
@@ -183,12 +184,21 @@ def calendar_ical(request, token, userid):
             e.add('location', mt.offering.get_campus_display() + " " + mt.room)
             e['uid'] = mt.offering.slug.replace("-","") + "-" + str(mt.id) + "-" + start.strftime("%Y%m%dT%H%M%S") + '@courses.cs.sfu.ca'
 
+            alarm = local_tz.localize(datetime.datetime.combine(date, mt.start_time) - datetime.timedelta(minutes=10))
+            
+            a = Alarm()
+            #a.add('trigger', start)
+            a.add('trigger', alarm)
+            a.add('action', 'DISPLAY')
+            a.add('description', summary)
+            #e.add_component(a)
+
             cal.add_component(e)
 
     # add every assignment with a due datetime
     due_length = datetime.timedelta(minutes=1)
     for m in memberships:
-        for a in m.offering.activity_set.all():
+        for a in m.offering.activity_set.filter(deleted=False):
             if not a.due_date:
                 continue
             print a.due_date
