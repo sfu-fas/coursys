@@ -108,7 +108,7 @@ def is_course_member_by_slug(request, course_slug, **kwargs):
     """
     Return True if user is any kind of member (non-dropped) from course indicated by 'course_slug' keyword.
     """
-    memberships = Member.objects.exclude(role="DROP", offering__component="CAN").filter(offering__slug=course_slug, person__userid=request.user.username)
+    memberships = Member.objects.exclude(role="DROP", offering__component="CAN").filter(offering__slug=course_slug, person__userid=request.user.username, offering__graded=True)
     count = memberships.count()
     return count>0
 
@@ -126,7 +126,7 @@ def is_course_student_by_slug(request, course_slug, **kwargs):
     """
     Return True if user is student from course indicated by 'course_slug' keyword.
     """
-    memberships = Member.objects.filter(offering__slug=course_slug, person__userid=request.user.username, role="STUD").exclude(offering__component="CAN")
+    memberships = Member.objects.filter(offering__slug=course_slug, person__userid=request.user.username, role="STUD", offering__graded=True).exclude(offering__component="CAN")
     count = memberships.count()
     return count>0
 
@@ -145,7 +145,7 @@ def is_course_staff_by_slug(request, course_slug, **kwargs):
     Return True if user is a staff member (instructor, TA, approver) from course indicated by 'course_slug' keyword.
     """
     memberships = Member.objects.filter(offering__slug=course_slug, person__userid=request.user.username,
-            role__in=['INST', 'TA', 'APPR']).exclude(offering__component="CAN")
+            role__in=['INST', 'TA', 'APPR'], offering__graded=True).exclude(offering__component="CAN")
     count = memberships.count()
     return count>0
 

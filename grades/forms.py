@@ -132,7 +132,7 @@ class NumericActivityForm(ActivityForm):
                                label=mark_safe('Status:' + _required_star),
                                help_text='visibility of grades/activity to students')
     due_date = forms.SplitDateTimeField(label=mark_safe('Due date:'), required=False,
-                                        help_text='Time format: HH:MM:SS',
+                                        help_text='Time format: HH:MM:SS, 24-hour time',
                                         widget=CustomSplitDateTimeWidget())
     max_grade = forms.DecimalField(max_digits=5, decimal_places=2, label=mark_safe('Maximum grade:' + _required_star),
                                    help_text='maximum grade for the activity',

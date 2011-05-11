@@ -59,7 +59,7 @@ $(document).ready(function() {
   <thead><tr><th scope="col">Course</th><th scope="col">Semester</th><th scope="col">Role</th><th scope="col">Reason</th><th scope="col">Actions</th></tr></thead>
   <tbody>
   {% for m in memberships %}
-  <tr><td scope="row">{{m.offering.name}}</td><td>{{m.offering.semester}}</td><td>{{m.get_role_display}}</td><td>{{m.get_added_reason_display}}</td><td><a href="{% url coredata.views.edit_member member_id=m.id %}">Edit</a></td>
+  <tr><td scope="row">{{m.offering.name}}</td><td>{{m.offering.semester}}</td><td>{{m.get_role_display}}</td><td>{{m.get_added_reason_display}}</td><td><a href="{% url coredata.views.edit_member member_id=m.id %}">Edit</a></td></tr>
   {% endfor %}
   </tbody>
 </table>
@@ -69,7 +69,7 @@ $(document).ready(function() {
 <p class="empty">Not a member of any courses.</p>
 {% endif %}
 
-<h2 id="member">Roles</h2>
+<h2 id="roles">Roles</h2>
 {% if roles %}
 <ul>
   {% for r in roles %}

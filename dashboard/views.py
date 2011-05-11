@@ -184,13 +184,12 @@ def calendar_ical(request, token, userid):
             e.add('location', mt.offering.get_campus_display() + " " + mt.room)
             e['uid'] = mt.offering.slug.replace("-","") + "-" + str(mt.id) + "-" + start.strftime("%Y%m%dT%H%M%S") + '@courses.cs.sfu.ca'
 
-            alarm = local_tz.localize(datetime.datetime.combine(date, mt.start_time) - datetime.timedelta(minutes=10))
-            
-            a = Alarm()
+            #alarm = local_tz.localize(datetime.datetime.combine(date, mt.start_time) - datetime.timedelta(minutes=10))
+            #a = Alarm()
             #a.add('trigger', start)
-            a.add('trigger', alarm)
-            a.add('action', 'DISPLAY')
-            a.add('description', summary)
+            #a.add('trigger', alarm)
+            #a.add('action', 'DISPLAY')
+            #a.add('description', summary)
             #e.add_component(a)
 
             cal.add_component(e)
@@ -205,9 +204,9 @@ def calendar_ical(request, token, userid):
             
             e = Event()
             e.add('summary', '%s: %s due' % (a.offering.name(), a.name))
-            start = local_tz.localize(a.due_date)
+            start = local_tz.localize(a.due_date - due_length)
             e.add('dtstart', start)
-            end = local_tz.localize(a.due_date + due_length)
+            end = local_tz.localize(a.due_date)
             e.add('dtend', end)
             e['uid'] = a.offering.slug.replace("-","") + "-" + str(a.id) + "-" + a.slug.replace("-","") + "-" + a.due_date.strftime("%Y%m%dT%H%M%S") + '@courses.cs.sfu.ca'
             
