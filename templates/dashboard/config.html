@@ -33,8 +33,10 @@
 <blockquote>
 <p><a href="{% url dashboard.views.atom_feed token=newstoken userid=userid %}">{{server_url}}{% url dashboard.views.atom_feed token=newstoken userid=userid %}</a></p>
 </blockquote>
+<p>You can subscribe to this feed URL in a feed reader like <a href="http://www.google.com/reader/">Google Reader</a> or another <a href="http://en.wikipedia.org/wiki/Comparison_of_feed_aggregators">feed aggregator</a> (that supports Atom&nbsp;2.0 feeds).</p>
 {% else %}
 <p>You do not currently have the external news feed configured.</p>
+<p>The news feed can be used to subscribe to your news items (like new grades) in a feed reader like <a href="http://www.google.com/reader/">Google Reader</a> or another <a href="http://en.wikipedia.org/wiki/Comparison_of_feed_aggregators">feed aggregator</a> (that supports Atom&nbsp;2.0 feeds).</p>
 {% endif %}
 
 <h2 id="extcalendar">External Calendar</h2>
@@ -44,11 +46,15 @@
 <p><a href="{% url dashboard.views.calendar_ical token=caltoken userid=userid %}">{{server_url}}{% url dashboard.views.calendar_ical token=caltoken userid=userid %}</a></p>
 </blockquote>
 <p>
-It's probably <strong>better to subscribe to this URL</strong> instead of saving the file.
-The iCalendar file will contain due dates/times for any assignments in your courses so if you save the file, these won't be updated if the instructor changes them (or adds more assignments).</p>
+It's probably <strong>better to subscribe to this URL</strong> in your calendaring app, instead of saving the file.
+The iCalendar file will contain due dates/times for any assignments in your courses so if you save the file, these won't be updated if the instructor changes them (or adds more assignments). You also won't get changes to exam rooms that are made during the semester.</p>
 {% else %}
 <p>You do not currently have the external calendar configured.</p>
+<p>If you enable the external calendar, you will get a URL that you can subscribe to in a calendaring app like <a href="https://www.google.com/calendar">Google Calendar</a> or <a href="http://en.wikipedia.org/wiki/List_of_applications_with_iCalendar_support">another calendar app</a> (that supports iCalendar).</p>
 {% endif %}
 
+<p>You can subscribe to this calendar in <a href="https://connect.sfu.ca/">SFU Connect</a> as well.
+Select the Calendar tab then Create a new calendar.  Check &ldquo;Synchronise appointments from remote calendar&rdquo; and enter your calendar URL.
+</p>
 
 {% endblock %}

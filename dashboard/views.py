@@ -185,8 +185,8 @@ def calendar_ical(request, token, userid):
     class_list = MeetingTime.objects.filter(offering__in=classes)
     
     cal = Calendar()
-    cal.add('prodid', '-//SFU Course Management System//courses.cs.sfu.ca//')
     cal.add('version', '2.0')
+    cal.add('prodid', '-//SFU Course Management System//courses.cs.sfu.ca//')
 
     for mt in class_list:
         for date in _weekday_range(mt.start_day, mt.end_day, mt.weekday): # for every day the class happens...

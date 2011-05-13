@@ -24,7 +24,7 @@ server {
 
 	location /media {
 		root /home/ggbaker/static/;
-		expires 1h;
+		expires 12h;
 		gzip             on;
 		gzip_min_length  1000;
 		gzip_proxied     expired no-cache no-store private auth;

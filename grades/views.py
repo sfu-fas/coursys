@@ -741,8 +741,9 @@ def _semester_date_warning(request, activity):
     if not activity.due_date:
         return
 
+    # don't warn for 24 hours after the last day of classes (start of last day + 48 hours)
     if activity.due_date > datetime.datetime.combine(
-            activity.offering.semester.end, datetime.time(23,59,59)):
+            activity.offering.semester.end, datetime.time(0,0,0)) + datetime.timedelta(hours=48):
         messages.warning(request, "Activity is due after the end of the semester.")
     if activity.due_date < datetime.datetime.combine(
             activity.offering.semester.start, datetime.time(0,0,0)):
