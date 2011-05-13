@@ -200,7 +200,7 @@ class CoredataTest(TestCase):
 
         url = reverse('coredata.views.role_list')
         response = basic_page_tests(self, client, url)
-        self.assertContains(response, '<td scope="row">Lname, Fname</td><td>System Administrator</td>')
+        self.assertContains(response, 'Lname, Fname</a></td><td>System Administrator</td>')
 
         # add a new role with the front end
         url = reverse('coredata.views.new_role')
