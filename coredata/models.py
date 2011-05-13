@@ -290,6 +290,8 @@ class Member(models.Model):
         """
         if self.role == 'DROP':
             return
+        if not hasattr(self, 'person'):
+            raise ValidationError('No person set.')
         others = Member.objects.filter(person=self.person, offering=self.offering, role=self.role)
         if self.pk:
             others = others.exclude(pk=self.pk)

@@ -22,10 +22,13 @@
 
 {% block content %}
 {% if token %}
-<p>Your external calendar is currently enabled at this URL:</p>
+<p>You can get your calendar as iCalendar at this URL:</p>
 <blockquote>
 <a href="{% url dashboard.views.calendar_ical token=token userid=userid %}">{{server_url}}{% url dashboard.views.calendar_ical token=token userid=userid %}</a>
 </blockquote>
+<p>
+It's probably <strong>better to subscribe to this URL</strong> instead of saving the file.
+The iCalendar file will contain due dates/times for any assignments in your courses so if you save the file, these won't be updated.</p>
 {% else %}
 <p>You do not currently have the external calendar configured.</p>
 {% endif %}

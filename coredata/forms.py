@@ -18,6 +18,7 @@ class RoleForm(forms.ModelForm):
 class MemberForm(forms.ModelForm):
     person = forms.CharField(min_length=1, max_length=8, label='SFU Userid')
     
+    
     def clean_person(self):
         userid = self.cleaned_data['person']
         person = Person.objects.filter(userid=userid)
