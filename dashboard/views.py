@@ -123,7 +123,7 @@ def new_message(request, course_slug):
 
 
 @cache_page(60 * 15)
-def atom_feed(request, token, userid):
+def atom_feed(request, token, userid, course_slug=None):
     """
     Return an Atom feed for this user, authenticated by the token in the URL
     """
@@ -137,7 +137,12 @@ def atom_feed(request, token, userid):
     #else:
         # authenticated
 
-    news_list = NewsItem.objects.filter(user=user).order_by('-updated')[:20]
+    news_list = NewsItem.objects.filter(user=user).order_by('-updated')
+    course = None
+    if course_slug:
+        course = get_object_or_404(CourseOffering, slug=course_slug)
+        news_list = news_list.filter(course=course)
+    news_list = news_list[:20]
     
     if news_list:
         updated = news_list[0].rfc_updated()
@@ -145,7 +150,7 @@ def atom_feed(request, token, userid):
         # no news items -> no recent updates.
         updated = '2000-01-01T00:00:00Z'
 
-    context = {"news_list": news_list, 'person': user, 'updated': updated, 'server_url': settings.BASE_ABS_URL}
+    context = {"news_list": news_list, 'person': user, 'updated': updated, 'course': course, 'server_url': settings.BASE_ABS_URL}
     return render_to_response("dashboard/atom_feed.xml", context, context_instance=RequestContext(request),mimetype="application/atom+xml")
 
 
