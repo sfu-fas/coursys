@@ -53,6 +53,27 @@ def index(request):
     context = {'memberships': memberships, 'staff_memberships': staff_memberships, 'news_list': news_list, 'roles': roles}
     return render_to_response("dashboard/index.html",context,context_instance=RequestContext(request))
 
+
+def config(request):
+    user = get_object_or_404(Person, userid=request.user.username)
+    # calendar config
+    config = _get_calendar_config(user)
+    if 'token' not in config:
+        caltoken = None
+    else:
+        caltoken = config['token']
+
+    # news config
+    configs = UserConfig.objects.filter(user=user, key="feed-token")
+    if not configs:
+        newstoken = None
+    else:
+        newstoken = configs[0].value
+    
+    context={'caltoken': caltoken, 'newstoken': newstoken, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL}
+    return render_to_response("dashboard/config.html", context, context_instance=RequestContext(request))
+
+
 def _get_memberships(userid):
     today = datetime.date.today()
     past1 = today.replace(year=today.year-1) # 1 year ago
@@ -223,17 +244,17 @@ def _get_calendar_config(user):
         return json.loads(configs[0].value)
 
 
-@login_required
-def calendar_config(request):
-    user = get_object_or_404(Person, userid=request.user.username)
-    config = _get_calendar_config(user)
-    if 'token' not in config:
-        token = None
-    else:
-        token = config['token']
-    
-    context={'token': token, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL}
-    return render_to_response("dashboard/calendar_config.html", context, context_instance=RequestContext(request))
+#@login_required
+#def calendar_config(request):
+#    user = get_object_or_404(Person, userid=request.user.username)
+#    config = _get_calendar_config(user)
+#    if 'token' not in config:
+#        token = None
+#    else:
+#        token = config['token']
+#    
+#    context={'token': token, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL}
+#    return render_to_response("dashboard/calendar_config.html", context, context_instance=RequestContext(request))
 
 
 
@@ -254,7 +275,7 @@ def create_calendar_url(request):
                 uc = UserConfig(user=user, key="calendar-config", value=json.dumps(config))
             uc.save()
             messages.add_message(request, messages.SUCCESS, 'Calendar URL configured.')
-            return HttpResponseRedirect(reverse(calendar_config))
+            return HttpResponseRedirect(reverse('dashboard.views.config'))
     else:
         if 'token' in config:
             # pre-check if we're changing the token
@@ -282,7 +303,7 @@ def disable_calendar_url(request):
                     uc.save()
 
             messages.add_message(request, messages.SUCCESS, 'External calendar disabled.')
-            return HttpResponseRedirect(reverse(calendar_config))
+            return HttpResponseRedirect(reverse('dashboard.views.config'))
     else:
         form = FeedSetupForm({'agree': True})
 
@@ -300,17 +321,17 @@ def news_list(request):
     
     return render_to_response("dashboard/all_news.html", {"news_list": news_list}, context_instance=RequestContext(request))
 
-@login_required
-def news_config(request):
-    user = get_object_or_404(Person, userid=request.user.username)
-    configs = UserConfig.objects.filter(user=user, key="feed-token")
-    if not configs:
-        token = None
-    else:
-        token = configs[0].value
-    
-    context={'token': token, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL}
-    return render_to_response("dashboard/news_config.html", context, context_instance=RequestContext(request))
+#@login_required
+#def news_config(request):
+#    user = get_object_or_404(Person, userid=request.user.username)
+#    configs = UserConfig.objects.filter(user=user, key="feed-token")
+#    if not configs:
+#        token = None
+#    else:
+#        token = configs[0].value
+#    
+#    context={'token': token, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL}
+#    return render_to_response("dashboard/news_config.html", context, context_instance=RequestContext(request))
 
 @login_required
 def create_news_url(request):
@@ -327,7 +348,7 @@ def create_news_url(request):
                 c = UserConfig(user=user, key="feed-token", value=token)
             c.save()
             messages.add_message(request, messages.SUCCESS, 'Feed URL configured.')
-            return HttpResponseRedirect(reverse(news_config))
+            return HttpResponseRedirect(reverse('dashboard.views.config'))
     else:
         if configs:
             # pre-check if we're changing the token
@@ -347,7 +368,7 @@ def disable_news_url(request):
             configs = UserConfig.objects.filter(user=user, key="feed-token")
             configs.delete()
             messages.add_message(request, messages.SUCCESS, 'External feed disabled.')
-            return HttpResponseRedirect(reverse(news_config))
+            return HttpResponseRedirect(reverse('dashboard.views.config'))
     else:
         form = FeedSetupForm({'agree': True})
 

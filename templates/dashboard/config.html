@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load markup %}
+
+{% block title %}User Configuration{% endblock %}
+{% block h1 %}User Configuration{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; User Configuration</li>{% endblock %}
+
+{% block actions %}
+<div id="actions">
+<h2>Actions</h2>
+<ul>
+{% if newstoken %}
+<li><a href="{% url dashboard.views.create_news_url %}">Change news feed URL</a></li>
+<li><a href="{% url dashboard.views.disable_news_url %}">Disable external news feed </a></li>
+{% else %}
+<li><a href="{% url dashboard.views.create_news_url %}">Activate external news feed</a></li>
+{% endif %}
+{% if caltoken %}
+<li class="newsec"><a href="{% url dashboard.views.create_calendar_url %}">Change calendar URL</a></li>
+<li><a href="{% url dashboard.views.disable_calendar_url %}">Disable external calendar</a></li>
+{% else %}
+<li class="newsec"><a href="{% url dashboard.views.create_calendar_url %}">Activate external calendar</a></li>
+{% endif %}
+</ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<h2 id="newsfeed">News Feed</h2>
+{% if newstoken %}
+<p>Your external news feed is currently enabled at this URL:</p>
+<blockquote>
+<p><a href="{% url dashboard.views.atom_feed token=newstoken userid=userid %}">{{server_url}}{% url dashboard.views.atom_feed token=newstoken userid=userid %}</a></p>
+</blockquote>
+{% else %}
+<p>You do not currently have the external news feed configured.</p>
+{% endif %}
+
+<h2 id="extcalendar">External Calendar</h2>
+{% if caltoken %}
+<p>You can get your calendar as iCalendar at this URL:</p>
+<blockquote>
+<p><a href="{% url dashboard.views.calendar_ical token=caltoken userid=userid %}">{{server_url}}{% url dashboard.views.calendar_ical token=caltoken userid=userid %}</a></p>
+</blockquote>
+<p>
+It's probably <strong>better to subscribe to this URL</strong> instead of saving the file.
+The iCalendar file will contain due dates/times for any assignments in your courses so if you save the file, these won't be updated if the instructor changes them (or adds more assignments).</p>
+{% else %}
+<p>You do not currently have the external calendar configured.</p>
+{% endif %}
+
+
+{% endblock %}
