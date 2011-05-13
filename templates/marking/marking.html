@@ -3,11 +3,28 @@
 
 {% block marking_header_extra %}
 <script type="text/javascript">
-function append_problem(n, content)
-{       
-    var comments = document.getElementsByTagName("textarea");    
-	var oldconent = comments[n-1].value;	
-	comments[n-1].value += (oldconent == '' ? '' : '; ') + content;
+function append_problem(n, penalty, content, outof) {
+  // handle comment
+  var comment = $("#id_cmp-" + n + "-comment");
+  var text = comment.val();
+  if ( text != "" ) { text += "; " }
+  text += content;
+  comment.val(text);
+  
+  // handle mark
+  var value = $("#id_cmp-" + n + "-value");
+  if ( penalty == 0 ) { return; }
+  mark = parseFloat(value.val());
+  if ( isNaN(mark) ) {
+    // logic: negative penalty must mean we're marking from 0 up; positive from max mark down.
+    if ( penalty<0 ) {
+      mark = 0.0;
+    } else {
+      mark = outof;
+    }
+  }
+  mark -= penalty;
+  value.val(mark);
 }
 </script>
 {% endblock%}
@@ -19,8 +36,8 @@ function append_problem(n, content)
 
 {% block content %}
      
-<div id = "form_container">
-<div id = "marking_container">
+<div id="form_container">
+<div id="marking_container">
 <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
      {% if group %}
         <h2> Mark for Group: {{group}} </h2> 
@@ -32,7 +49,7 @@ function append_problem(n, content)
 	 {% for entry in component_data %}  	     
 	     <fieldset>
 	     <legend>{{entry.component.title}}</legend> 
-		     <ul class = "component">
+		     <ul class="component">
 		        <li>{{entry.component.description|linebreaks}}</li>
 		        <li class="component_mark"> 
 		        	Mark {{entry.form.value}} Out of {{entry.component.max_mark}}
@@ -40,15 +57,15 @@ function append_problem(n, content)
 		        	<div class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/>&nbsp;{{entry.form.value.errors.0}}</div>	        	
 		        	{% endif %}
 		        </li>
-		        <li class = "common_problems">
+		        <li class="common_problems">
 			    {% with forloop.counter as pos %}
 			    Common problems:    
 			    <div>
 			    {% for problem in entry.common_problems %}			    	
-			        <input class="common_problem" type="button" value="{{problem.title|escape}}" title="{{problem.description|escape}}{%if problem.penalty%} (penalty: {{problem.penalty}} points){%endif%}" 
-			        onclick="append_problem({{pos}}, '{{problem.description|escapejs}}{%if problem.penalty%}(penalty: {{problem.penalty}} points){%endif%}');"/>
+			        <input class="common_problem" type="button" value="{{problem.title}}" title="{{problem.description}}{%if problem.penalty%} [penalty: {{problem.penalty}}]{%endif%}" 
+			        onclick="append_problem({{pos}}, {{problem.penalty}}, '{{problem.description|escapejs}}', {{entry.component.max_mark}});"/>
 			    {% endfor %}
-			    <a href="{% url marking.views.manage_common_problems course_slug=course.slug activity_slug=activity.slug%}" title = "Manage common problems">Manage...</a>
+			    <a href="{% url marking.views.manage_common_problems course_slug=course.slug activity_slug=activity.slug%}" title="Manage common problems">Manage&hellip;</a>
 			    </div>			    
 			    {% endwith %}			    
 			    </li>

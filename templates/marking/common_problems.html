@@ -32,7 +32,7 @@
 		    var selected = $(this).val();
 			if(selected > 0){
 				var index = find_component_index(selected);
-				$(this).parent().children('p').html("total: " + component_max_marks[index]);
+				$(this).parent().children('p').html("out of " + component_max_marks[index]);
 			}
 		});
 				
@@ -42,7 +42,7 @@
 		    info.hide();
 		    if(selected > 0){ /*some component selected*/
 		    	var index = find_component_index(selected);		    	
-				info.html("total: " + component_max_marks[index]);				
+				info.html("out of " + component_max_marks[index]);				
 				info.show();				
 			}
 		});

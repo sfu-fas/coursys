@@ -125,11 +125,9 @@ class BaseCommonProblemFormSet(BaseModelFormSet):
                 continue
             
             penalty = form.cleaned_data['penalty']                      
-            if penalty:           
-                if penalty < 0:
-                    raise forms.ValidationError(u"Penalty of a common problem must not be negative")
-                if penalty > component.max_mark:
-                    raise forms.ValidationError(u"Penalty of a common problem must not exceed its corresponding component")
+            if penalty:
+                if not (-component.max_mark < penalty < component.max_mark):
+                    raise forms.ValidationError(u"Penalty of a common problem cannot not exceed its corresponding component")
                           
 
 class MarkEntryForm(forms.Form):
