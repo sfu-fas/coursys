@@ -104,6 +104,9 @@ def _course_info_staff(request, course_slug):
         elif isinstance(activity, LetterActivity):
             activities_info.append({'activity':activity, 'type':ACTIVITY_TYPE['LG']})
     
+    if len(activities) == 0:
+        messages.info(request, "Students won't see this course in their menu on the front page. As soon as some activities have been added, they will see a link to the course info page.")
+    
     context = {'course': course, 'activities_info': activities_info, 'from_page': FROMPAGE['course'],
                'order_type': ORDER_TYPE, 'any_group': any_group, 'total_percent': total_percent}
     return render_to_response("grades/course_info_staff.html", context,
