@@ -31,7 +31,7 @@ $(document).ready(function() {
   {% if groupList %}
   {% for info in groupList %}
   <h3 id="{{info.group.slug}}">{{ info.group.name }}</h3>
-  <p>For {% for activity in info.activities %}{{ activity.name }}{% if forloop.last %}{% else %}, {% endif %}{% endfor %}</p>
+  {% if not activity %}<p>For {% for activity in info.activities %}{{ activity.name }}{% if forloop.last %}{% else %}, {% endif %}{% endfor %}</p>{% endif %}
           <ul>
               {% for m in info.unique_members %}
               <li><a href="{% url grades.views.student_info course_slug=course.slug userid=m.member.person.userid %}">{{ m.member.person.name }}</a>, {{ m.member.person.userid }} {% if not m.confirmed %}(unconfirmed){% endif %}

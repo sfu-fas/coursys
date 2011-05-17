@@ -1,4 +1,3 @@
-# Create your views here.
 from django.contrib.auth.decorators import login_required
 from coredata.models import Member, Person, CourseOffering
 from groups.models import *
@@ -89,7 +88,7 @@ def _groupmanage_staff(request, course_slug, activity_slug=None):
 
     groupList = []
     for group in groups_populated:
-        gmembers = allmembers.filter(group=group)
+        gmembers = members.filter(group=group)
         all_act = all_activities(gmembers)
         unique_members = []
         for s in set(m.student for m in gmembers):
