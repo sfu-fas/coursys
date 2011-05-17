@@ -77,7 +77,7 @@ $(document).ready(function() {
                                 <thead>
                                     <tr>
                                         <th scope="col">Name</th>
-                                        <th scope="col">Max</th>
+                                        <th scope="col">Out of</th>
                                         <th scope="col">%</th>
                                         <th scope="col" colspan="4">Insert</th>
                                     </tr>
@@ -93,7 +93,7 @@ $(document).ready(function() {
                                         <td>&mdash;</td>
                                         {% endif %}
                                         <td><a href="javascript:insert_activity('{{numeric_activity.short_name|escapejs}}')" title="the grade the student received on {{numeric_activity.name}}">{{numeric_activity.short_name}} grade</a></td>
-                                        <td><a href="javascript:insert_max('{{numeric_activity.short_name|escapejs}}')" title="the maximum grade for {{numeric_activity.name}} (currently {{numeric_activity.max_grade}})">{{numeric_activity.short_name}} max</a></td>
+                                        <td><a href="javascript:insert_max('{{numeric_activity.short_name|escapejs}}')" title="the maximum grade for {{numeric_activity.name}} (currently {{numeric_activity.max_grade}})">{{numeric_activity.short_name}} out of</a></td>
                                         <td><a href="javascript:insert_percent('{{numeric_activity.short_name|escapejs}}')" title="the &quot;percent&quot; for {{numeric_activity.name}} (currently {{numeric_activity.percent}})">{{numeric_activity.short_name}} percent</a></td>
                                         <td><a href="javascript:insert_final('{{numeric_activity.short_name|escapejs}}')" title="the student's final grade contribution for {{numeric_activity.name}} (their grade / max * percent)">{{numeric_activity.short_name}} final</a></td>
                                     </tr>

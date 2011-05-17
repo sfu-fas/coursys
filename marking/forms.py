@@ -84,8 +84,9 @@ class BaseCommonProblemFormSet(BaseModelFormSet):
     
     def __init__(self, activity_components, *args, **kwargs):
         super(BaseCommonProblemFormSet, self).__init__(*args, **kwargs)
-        if activity_components:
-            for form in self.forms:
+        for form in self.forms:
+            form.fields['penalty'].widget.attrs['size'] = 5
+            if activity_components:
                 # limit the choices of activity components
                 form.fields['activity_component'].queryset = activity_components
     
