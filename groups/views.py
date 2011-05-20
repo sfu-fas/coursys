@@ -312,6 +312,9 @@ def join(request, course_slug, group_slug):
     group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
     person = get_object_or_404(Person, userid = request.user.username)
     member = get_object_or_404(Member, person = person, offering=course)
+    
+    if request.method != "POST":
+        return HttpResponseForbidden()
 
     for groupMember in GroupMember.objects.filter(group = group, student = member):
         groupMember.confirmed = True
@@ -331,6 +334,9 @@ def reject(request, course_slug, group_slug):
     group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
     person = get_object_or_404(Person, userid = request.user.username)
     member = get_object_or_404(Member, person = person, offering=course)
+
+    if request.method != "POST":
+        return HttpResponseForbidden()
 
     # delete membership on reject
     GroupMember.objects.filter(group = group, student = member).delete()

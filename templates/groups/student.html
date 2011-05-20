@@ -36,16 +36,20 @@
               </li>
               {% endfor %}
           </ul>
-          <p>
           {% if info.need_conf %}
-          You have not confirmed membership in this group.</p><p>
-          [<a href="{% url groups.views.join course_slug=course.slug,group_slug=info.group.slug %}">Join Group</a> |
-          <a href="{% url groups.views.reject course_slug=course.slug,group_slug=info.group.slug %}">Reject Invitation</a>]
+          <p>You have not confirmed membership in this group.</p>
+          <form action="{% url groups.views.join course_slug=course.slug group_slug=info.group.slug %}" method="post">{% csrf_token %}
+          <p><input type="submit" value="Join Group" onclick="return confirmSubmit('join the group')" /></p>
+          </form>
+          <form action="{% url groups.views.reject course_slug=course.slug group_slug=info.group.slug %}" method="post">{% csrf_token %}
+          <p><input type="submit" value="Reject Invitation" onclick="return confirmSubmit('reject the invitation')" /></p>
+          </form>
           {% else %}
+          <p>
           [<a href="{% url groups.views.invite course_slug=course.slug group_slug=info.group.slug %}">Invite Member</a> |
           <a href="{% url groups.views.remove_student course_slug=course.slug group_slug=info.group.slug %}">Remove Members</a>]
-          {% endif %}
           </p>
+          {% endif %}
     {% endfor %}
   {% else %}
     <p class="empty">You don't belong to any group in this course.</p>

@@ -1,3 +1,11 @@
+function confirmSubmit(action) {
+  if (confirm("Are you sure you wish to " + action + "?"))
+    return true;
+  else
+    return false;
+}
+
+
 /* jQuery Datatables sorting by mark (e.g. "4.5/10") */
 function mark_cmp(x,y) {
   xn = parseFloat(x.split("/", 1), 10)
