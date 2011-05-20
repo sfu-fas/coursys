@@ -2,12 +2,20 @@
 {% load course_display %}
 
 {% block title %}Change Grade Status{% endblock %}
-
 {% block h1 %}Change Grade Status{% endblock %}
 
-{% block marking_subbreadcrumbs %}
-<li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Change Grade Status</li>
+{% block headextra %}
+<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
+<script type="text/javascript">
+//<![CDATA[
+
+$(document).ready(function() {
+  $("p#statushandle").collapsible();
+});
+//]]></script>
 {% endblock %}
+
+{% block marking_subbreadcrumbs %}<li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Change Grade Status</li>{% endblock %}
 
 {% block content %}
 
@@ -54,6 +62,39 @@
 		 {{status_form|display_form}}
 		</fieldset> 
     </form>
+</div>
+
+<h2 id="status">Status Descriptions</h2>
+<p id="statushandle">status descriptions.</p>
+<div>
+{% if activity.is_calculated %}
+<p>For a calculated letter activity like this, the status values have the following semantics:</p>
+<dl>
+<dt>calculated</dt>
+<dd>Grade has been calculated by the system. This value <strong>will</strong> be updated if you recalculate grades for the class.</dd>
+<dt>no grade</dt>
+<dd>No grade assigned for this activity. Any grade entered is ignored. This value <strong>will not</strong> be updated if you recalculate grades for the class.</dd>
+<dt>graded</dt>
+<dd>Student's grade has been manually overridden. This value <strong>will not</strong> be updated if you recalculate grades for the class.</dd>
+<dt>excused</dt>
+<dd>Student has been excused from this piece of work.  Status does not affect calculations: used for your own record keeping. This value <strong>will not</strong> be updated if you recalculate grades for the class.</dd>
+<dt>academic dishonesty</dt>
+<dd>Grade is affected by academic dishonesty on this piece of work. Status does not affect calculations: used for your own record keeping. This value <strong>will not</strong> be updated if you recalculate grades for the class.</dd>
+</dl>
+<p>If you have manually entered a grade (i.e. the status is not &ldquo;calculated&rdquo;) and you want to revert to a automatically calculated grade, set the status to &ldquo;calculated&rdquo; and then recalculate grades for the class.</p>
+{% else %}
+<p>For a letter graded activity like this, the status values have the following semantics:</p>
+<dl>
+<dt>no grade</dt>
+<dd>No grade assigned for this activity. Any grade entered is ignored: GN might be a reasonable value to set.</dd>
+<dt>graded</dt>
+<dd>Student has received this grade.</dd>
+<dt>excused</dt>
+<dd>Student has been excused from this piece of work.  Status does not affect calculations: used for your own record keeping.</dd>
+<dt>academic dishonesty</dt>
+<dd>Grade is affected by academic dishonesty on this piece of work.  Status does not affect calculations: used for your own record keeping.</dd>
+</dl>
+{% endif %}
 </div>
 
 {% endblock %}
