@@ -491,7 +491,7 @@ def change_name(request, course_slug, group_slug):
 @requires_course_staff_by_slug
 def assign_student(request, course_slug, group_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    group = get_object_or_404(Group, slug=group_slug)
+    group = get_object_or_404(Group, slug=group_slug, courseoffering=course)
     activities = Activity.objects.filter(offering=course, group=True, deleted=False)
     members = Member.objects.filter(offering=course, role='STUD').select_related('person')
 
