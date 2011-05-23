@@ -31,7 +31,13 @@ CODE_TYPES = [
     (".cct", "Designworks Circuit (.cct)"),
 #    (".jpg", "JPEG images (.jpg)"),
     (".json", "JSON data file (.json)"),
+    (".go", "Go (.go)"),
+    (".lisp", "LISP (.lisp)"),
+    (".mk", "Makefile (.mk)"),
 ]
+CODE_TYPES = [(desc,ext) for (ext,desc) in CODE_TYPES]
+CODE_TYPES.sort()
+CODE_TYPES = [(ext,desc) for (desc,ext) in CODE_TYPES]
 
 class CodeComponent(SubmissionComponent):
     "A Source Code submission component"
