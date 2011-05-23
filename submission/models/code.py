@@ -33,7 +33,7 @@ CODE_TYPES = [
     (".json", "JSON data file (.json)"),
     (".go", "Go (.go)"),
     (".lisp", "LISP (.lisp)"),
-    (".mk", "Makefile (.mk)"),
+    ("Makefile", "Makefile (Makefile)"),
 ]
 CODE_TYPES = [(desc,ext) for (ext,desc) in CODE_TYPES]
 CODE_TYPES.sort()
@@ -193,8 +193,8 @@ class Code:
             upload_ext = splitext(data.name)[1]
             t = CodeComponent.objects.filter(id=self.prefix)
             allowed_list = t[0].allowed.split(",")
-            
-            if upload_ext not in allowed_list:
+            name_okay = False
+            if not any([data.name.endswith(ext) for ext in allowed_list]):
                 msg = None
                 msg_allowed = "Allowed types are:"
                 for k in CODE_TYPES:

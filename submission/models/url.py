@@ -23,7 +23,7 @@ class SubmittedURL(SubmittedComponent):
     def get_size(self):
         return None
     def get_filename(self):
-        return None
+        return "link"
     
     def download_response(self):
         response = HttpResponse(mimetype="text/html")
