@@ -106,7 +106,7 @@
                     {% if pair.1.get_size %}
                         <li><label>File Size:</label>{{pair.1.get_size|filesizeformat}} </li>
                     {% endif %}
-                    <li><img src="{{MEDIA_URL}}icons/attach.png" alt="download" /><a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug component_slug=pair.0.slug submission_id=pair.1.submission.id %}">Download {{ pair.1.get_filename }}</a></li>
+                    <li><img src="{{MEDIA_URL}}icons/attach.png" alt="download" /><a href="{% url submission.views.download_file course_slug=course.slug activity_slug=activity.slug component_slug=pair.0.slug submission_id=pair.1.submission.id %}">Download {% if pair.1.get_filename %}{{ pair.1.get_filename }}{% else %}submission{% endif %}</a></li>
                 </ul>
             </div>
 

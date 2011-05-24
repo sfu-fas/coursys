@@ -23,6 +23,8 @@ class SubmittedURL(SubmittedComponent):
     def get_size(self):
         return None
     def get_filename(self):
+        return None
+    def get_filename_display(self):
         return "link"
     
     def download_response(self):
