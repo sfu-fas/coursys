@@ -78,7 +78,7 @@ class Semester(models.Model):
         Is this semester temporally relevant (for display in menu)?
         """
         today = datetime.date.today()
-        month_ago = today.replace(month=today.month-2)
+        month_ago = today - datetime.timedelta(days=40)
         next_week = today + datetime.timedelta(days=7)
         return self.end > month_ago and self.start < next_week
     
