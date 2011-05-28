@@ -1,5 +1,7 @@
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
+from django.utils.encoding import smart_unicode
+import urlparse
 
 class QuickURLValidator(URLValidator):
     """
