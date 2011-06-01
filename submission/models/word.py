@@ -9,14 +9,13 @@ class WordComponent(SubmissionComponent):
     "A Word/OpenDoc file submission component"
     max_size = models.PositiveIntegerField(help_text="Maximum size of the Word/OpenDoc file, in kB.", null=False, default=10000)
     allowed_types = {
-            "WORD": [".doc"], #TODO: ".docx", do we need this?
+            "WORD": [".doc", '.docx'],
             "OPENDOC": [".odt"]
             }
     mime_types = {
             ".doc": "application/msword",
-            #".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             ".odt": "application/vnd.oasis.opendocument.text", 
-            #TODO: or application/x-vnd.oasis.opendocument.text?
             }
     class Meta:
         app_label = 'submission'

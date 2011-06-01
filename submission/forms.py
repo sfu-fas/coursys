@@ -20,7 +20,7 @@ def filetype(fh):
     Do some magic to guess the filetype.  Argument must be an open file-like object.
     """
     #TODO: replace with some real check
-    if fh.name.endswith('.doc'):
+    if fh.name.endswith('.doc') or fh.name.endswith('.docx'):
         return "WORD"
     
     # methods extracted from the magic file (/usr/share/file/magic)
