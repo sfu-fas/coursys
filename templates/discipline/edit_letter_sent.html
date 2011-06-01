@@ -21,7 +21,7 @@ function sent_change() {
     date.hide();
     text.hide();
   } else if ( value=="MAIL" ) {
-    div.html( 'Submitting will cause the email to be sent to the student (as well as instructor, the department, and Student Services for filing).' );
+    div.html( 'Submitting will cause <a href="{% url discipline.views.edit_case_info course_slug=course.slug case_slug=case.slug field="letter_review" %}">the letter you reviewed</a> to be sent to the student (as well as instructor, the department, and Student Services for filing).' );
     submit.val("Email the student");
     date.hide();
     text.hide();

@@ -45,8 +45,8 @@ def ForbiddenResponse(request, errormsg=None):
     resp.status_code = 403
     return resp
 
-def NotFoundResponse(request):
-    resp = render_to_response('404.html', context_instance=RequestContext(request))
+def NotFoundResponse(request, errormsg=None):
+    resp = render_to_response('404.html', {'errormsg': errormsg}, context_instance=RequestContext(request))
     resp.status_code = 404
     return resp
 

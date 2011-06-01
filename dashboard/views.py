@@ -55,7 +55,12 @@ def index(request):
 
 
 def config(request):
-    user = get_object_or_404(Person, userid=request.user.username)
+    users = Person.objects.filter(userid=request.user.username)
+    if users.count() == 1:
+        user = users[0]
+    else:
+        return NotFoundResponse(request, errormsg="Your account is not known to this system.  There is nothing to configure.")
+
     # calendar config
     config = _get_calendar_config(user)
     if 'token' not in config:
