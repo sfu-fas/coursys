@@ -16,8 +16,8 @@ import string, os, datetime, json
 
 CONTACT_CHOICES = (
         ('NONE', 'Not yet contacted'),
-        ('MAIL', 'Student emailed (by system)'),
-        ('OTHR', 'Instructor contacted student (outside of this system)'),
+        ('MAIL', 'Email student through this system'),
+        ('OTHR', 'Instructor will contact student (outside of this system)'),
         )
 RESPONSE_CHOICES = (
         ('WAIT', 'Waiting for response'),

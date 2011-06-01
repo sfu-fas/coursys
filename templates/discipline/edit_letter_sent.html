@@ -13,23 +13,23 @@ function sent_change() {
   var value = $('input:radio[name=letter_sent]:checked').val();
   var div = $('#warning');
   var submit = $('#submitbutton');
-  var date = $('#id_letter_date');
-  var text = $('#id_letter_text');
+  var date = $('#date_div');
+  var text = $('#text_div');
   if ( value=="WAIT" ) {
     div.html( "" );
-    submit.val("Update Letter Status");
-    date.attr("disabled", true);
-    text.attr("disabled", true);
+    submit.val("Save letter status");
+    date.hide();
+    text.hide();
   } else if ( value=="MAIL" ) {
-    div.html( 'Submitting with "Letter emailed (by system)" selected will cause the official letter to be sent to the student (and instructor).' );
-    submit.val("Update Letter Status and EMAIL THE STUDENT");
-    date.attr("disabled", true);
-    text.attr("disabled", true);
+    div.html( 'Submitting will cause the email to be sent to the student (as well as instructor, the department, and Student Services for filing).' );
+    submit.val("Email the student");
+    date.hide();
+    text.hide();
   } else if ( value=="OTHR" ) {
     div.html( 'Enter information about how the student was contacted below.' );
-    submit.val("Update Letter Status");
-    date.attr("disabled", false);
-    text.attr("disabled", false);
+    submit.val("Save letter details");
+    date.show();
+    text.show();
   }
 }
 {% endblock %}
@@ -45,14 +45,18 @@ function sent_change() {
     <p>{{ form.letter_sent.help_text }}
     	{{ form.letter_sent }}</p>
     <p class="actionwarning" id="warning"></p>
-
+    
+    <div id="date_div">
     <p>{{ form.letter_date.label }}: {{ form.letter_date }}</p>
     {{form.letter_date.errors}}
     <p class="helptext">{{ form.letter_date.help_text|safe }}</p>
-
+    </div>
+    
+    <div id="text_div">
     <hr class="fieldsep" />
     <p>Details of letter delivery:</p>
     <blockquote>{{ form.letter_text }}</blockquote>
+    </div>
 
     <p><input type="submit" value="Update Letter Status" id="submitbutton" /></p>
     </form>
