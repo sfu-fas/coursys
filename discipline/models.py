@@ -45,8 +45,8 @@ CHAIR_PENALTY_CHOICES = (
         )
 LETTER_CHOICES = (
         ('WAIT', 'Not yet sent'),
-        ('MAIL', 'Letter emailed (by system)'),
-        ('OTHR', 'Letter delivered (outside of this system)'),
+        ('MAIL', 'Letter emailed through this system'),
+        ('OTHR', 'Instructor will deliver letter (outside of this system)'),
         )
 SS_STATE_CHOICES = (
         ('WAIT', 'Waiting for instructor/chair'),

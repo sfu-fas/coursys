@@ -26,7 +26,7 @@ function sent_change() {
     date.hide();
     text.hide();
   } else if ( value=="OTHR" ) {
-    div.html( 'Enter information about how the student was contacted below.' );
+    div.html( 'Enter information about how the student was contacted below. Please ensure that the letter is delivered to the student, your department, and Student Services.' );
     submit.val("Save letter details");
     date.show();
     text.show();
@@ -42,8 +42,8 @@ function sent_change() {
 <div id="form_container">
     <form action="{% url discipline.views.edit_case_info field='letter_sent' course_slug=course.slug case_slug=case.slug %}" method="post" onchange="sent_change()">{% csrf_token %}
     {{ form.non_field_errors }}
-    <p>{{ form.letter_sent.help_text }}
-    	{{ form.letter_sent }}</p>
+    <p>How will the letter be sent to the student?</p>
+    {{ form.letter_sent }}
     <p class="actionwarning" id="warning"></p>
     
     <div id="date_div">
