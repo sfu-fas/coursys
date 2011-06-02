@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
 from django.db.models import Count
 from django.views.decorators.cache import cache_page
+from django.views.decorators.gzip import gzip_page
 from django.conf import settings
 from coredata.models import Member, CourseOffering, Person, Role, Semester, MeetingTime
 from grades.models import Activity, NumericActivity
@@ -460,10 +461,12 @@ def view_doc(request, doc_slug):
 
 # data export views
 # public data, so no authentication done
+@gzip_page
 def courses_json(request, semester):
     courses = CourseOffering.objects.filter(semester__name=semester).exclude(component="CAN")
     resp = HttpResponse(mimetype="application/json")
+    resp['Content-Disposition'] = 'inline; filename=' + semester + '.json'
     crs_data = (c.export_dict() for c in courses)
-    json.dump({'data': list(crs_data)}, resp, indent=1)
+    json.dump({'courses': list(crs_data)}, resp, indent=1)
     return resp
 
