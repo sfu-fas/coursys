@@ -456,5 +456,14 @@ def view_doc(request, doc_slug):
             context['act2'] = None
 
     return render_to_response("docs/doc_" + doc_slug + ".html", context, context_instance=RequestContext(request))
-    
-    
+
+
+# data export views
+# public data, so no authentication done
+def courses_json(request, semester):
+    courses = CourseOffering.objects.filter(semester__name=semester).exclude(component="CAN")
+    resp = HttpResponse(mimetype="application/json")
+    crs_data = (c.export_dict() for c in courses)
+    json.dump({'data': list(crs_data)}, resp)
+    return resp
+

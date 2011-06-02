@@ -231,7 +231,23 @@ class CourseOffering(models.Model):
             return self.config['department']
         else:
             return self.subject
-
+    
+    def export_dict(self):
+        """
+        Produce dictionary of data about offering that can be serialized as JSON
+        """
+        d = {}
+        d['subject'] = self.subject
+        d['number'] = self.number
+        d['section'] = self.section
+        d['semester'] = self.semester.name
+        d['component'] = self.component
+        d['title'] = self.title
+        d['campus'] = self.campus
+        d['meetingtimes'] = [m.export_dict() for m in self.meetingtime_set.all()]
+        d['instructors'] = [{'userid': m.person.userid, 'name': m.person.name()} for m in self.member_set.filter(role="INST")]
+        return d
+    
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
 
@@ -333,6 +349,20 @@ class MeetingTime(models.Model):
     class Meta:
         ordering = ['weekday']
         #unique_together = (('offering', 'weekday', 'start_time'), ('offering', 'weekday', 'end_time'))
+    
+    def export_dict(self):
+        """
+        Produce dictionary of data about meeting time that can be serialized as JSON
+        """
+        d = {}
+        d['weekday'] = self.weekday
+        d['start_day'] = str(self.start_day)
+        d['end_day'] = str(self.end_day)
+        d['start_time'] = str(self.start_time)
+        d['end_time'] = str(self.end_time)
+        d['room'] = self.room
+        d['type'] = "EXAM" if self.exam else "LEC"
+        return d
 
 class Role(models.Model):
     """
