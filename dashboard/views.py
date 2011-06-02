@@ -464,6 +464,6 @@ def courses_json(request, semester):
     courses = CourseOffering.objects.filter(semester__name=semester).exclude(component="CAN")
     resp = HttpResponse(mimetype="application/json")
     crs_data = (c.export_dict() for c in courses)
-    json.dump({'data': list(crs_data)}, resp)
+    json.dump({'data': list(crs_data)}, resp, indent=1)
     return resp
 
