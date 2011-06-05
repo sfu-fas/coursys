@@ -10,7 +10,8 @@ from django.views.decorators.gzip import gzip_page
 from django.conf import settings
 from coredata.models import Member, CourseOffering, Person, Role, Semester, MeetingTime
 from grades.models import Activity, NumericActivity
-from courselib.auth import requires_course_staff_by_slug, requires_course_by_slug, NotFoundResponse
+from groups.models import Group, GroupMember
+from courselib.auth import requires_course_staff_by_slug, requires_course_by_slug, NotFoundResponse, ForbiddenResponse
 from dashboard.models import NewsItem, UserConfig
 from dashboard.forms import *
 from django.contrib import messages
@@ -468,5 +469,62 @@ def courses_json(request, semester):
     resp['Content-Disposition'] = 'inline; filename=' + semester + '.json'
     crs_data = (c.export_dict() for c in courses)
     json.dump({'courses': list(crs_data)}, resp, indent=1)
+    return resp
+
+# only accessible from the SVN server
+def repo_list_json(request, semester):
+    """
+    JSON-formatted list of all SVN repositories that should exist for this semester (and permissions).
+    """
+    if settings.SVN_SERVER_IP != request.META['REMOTE_ADDR']:
+        return ForbiddenResponse(request)
+    
+    resp = HttpResponse(mimetype="text/plain")
+    sem = get_object_or_404(Semester, name=semester)
+    
+    # build list of instructors/TAs
+    #crs = CourseOffering.objects.filter(semester=sem).exclude(component="CAN")
+    members = Member.objects.filter(offering__semester=sem, role__in=["INST","TA"], offering__graded=True).select_related('person', 'offering')
+    instr = {}
+    for m in members:
+        key = m.offering.slug
+        if key not in instr:
+            instr[key] = []
+        instr[key].append(m.person.userid)
+    
+    # list of individual repositories
+    members = Member.objects.filter(offering__semester=sem, role="STUD", offering__graded=True).select_related('person', 'offering')
+    indiv = [{'course':m.offering.slug, 'userid':m.person.userid, 'instr': instr.get(m.offering.slug, [])} for m in members]
+    resp.write('{"indiv":')
+    json.dump(indiv, resp, indent=1)
+    resp.write(', "group":')
+    
+    # list of group repositories
+    gms = GroupMember.objects.filter(activity__offering__semester=sem)
+    group_memb = {}
+    group_crs = {}
+    group_label = {}
+    for gm in gms:
+        key = gm.activity.offering.slug + "_" + gm.group.slug
+        if key not in group_memb:
+            group_memb[key] = set()
+        group_memb[key].add(gm.student.person.userid)
+        group_crs[key] = gm.activity.offering.slug
+        group_label[key] = gm.group.slug
+    
+    groups = []
+    for g in group_memb:
+        members = list(group_memb[g])
+        crs = group_crs[g]
+        label = group_label[g]
+        groups.append({'label':label, 'course':crs, 'members': members, 'instr': instr.get(crs, [])})
+    
+    json.dump(groups, resp, indent=1)
+    resp.write("}")
+    
+    #courses = CourseOffering.objects.filter(semester__name=semester).exclude(component="CAN")
+    #resp['Content-Disposition'] = 'inline; filename=' + semester + '.json'
+    #crs_data = (c.export_dict() for c in courses)
+    #json.dump({'courses': list(crs_data)}, resp, indent=1)
     return resp
 

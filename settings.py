@@ -149,6 +149,7 @@ if DEPLOYED:
     BASE_ABS_URL = "https://courses.cs.sfu.ca"
     SESSION_COOKIE_SECURE = True
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    SVN_SERVER_IP = 'svn.cs.sfu.ca'
 else:
     #MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('contrib.profiling.ProfileMiddleware',)
     SUBMISSION_PATH = "submitted_files"
@@ -156,6 +157,7 @@ else:
     CACHE_BACKEND = 'locmem://'
     BASE_ABS_URL = "http://localhost:8000"
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    SVN_SERVER_IP = '127.0.0.1'
 
 
 CAS_SERVER_URL = "https://cas.sfu.ca/cgi-bin/WebObjects/cas.woa/wa/"
