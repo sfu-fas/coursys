@@ -245,7 +245,7 @@ class CourseOffering(models.Model):
         d['title'] = self.title
         d['campus'] = self.campus
         d['meetingtimes'] = [m.export_dict() for m in self.meetingtime_set.all()]
-        d['instructors'] = [{'userid': m.person.userid, 'name': m.person.name()} for m in self.member_set.filter(role="INST")]
+        d['instructors'] = [{'userid': m.person.userid, 'name': m.person.name()} for m in self.member_set.filter(role="INST").select_related('person')]
         return d
     
     def delete(self, *args, **kwargs):

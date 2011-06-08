@@ -554,31 +554,36 @@ def edit_file(request, course_slug, case_slug, fileid):
 
 
 
-# Discipline admin views
+# Discipline chair/admin views
 
 @requires_role("DISC")
-def all_cases(request):
+def chair_index(request):
     # discipline admin for these departments
     depts = set([r.department for r in Role.objects.filter(person__userid=request.user.username, role="DISC")])
 
     # TODO: filter based on offering.department instead (once it's populated sensibly)
-    cases = DisciplineCaseBase.objects.filter(offering__subject__in=depts)
+    cases = DisciplineCaseInstr.objects.filter(offering__subject__in=depts)
     cases = [c.subclass() for c in cases]
     context = {'cases': cases}
-    return render_to_response("discipline/all_cases.html", context, context_instance=RequestContext(request))
+    return render_to_response("discipline/chair-index.html", context, context_instance=RequestContext(request))
     
 @requires_role("DISC")
-def show_chair(request, course_slug, case_slug):
+def chair_show(request, course_slug, case_slug):
+    pass
+
+@requires_role("DISC")
+def chair_show_instr(request, course_slug, case_slug):
     """
-    Display current case status
+    Display instructor's case for Chair
     """
     course = get_object_or_404(CourseOffering, slug=course_slug)
     case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
     case = case.subclass()
     roles = request.session['discipline-'+course_slug] # get roles from session
+    case.ro_display = True
     
-    context = {'course': course, 'case': case, 'roles': roles}
-    return render_to_response("discipline/show_chair.html", context, context_instance=RequestContext(request))
+    context = {'course': course, 'case': case, 'roles': roles, 'chair': True}
+    return render_to_response("discipline/show.html", context, context_instance=RequestContext(request))
 
 
 

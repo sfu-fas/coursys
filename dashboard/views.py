@@ -463,8 +463,10 @@ def view_doc(request, doc_slug):
 # data export views
 # public data, so no authentication done
 @gzip_page
+@cache_page(60 * 60 * 6)
 def courses_json(request, semester):
-    courses = CourseOffering.objects.filter(semester__name=semester).exclude(component="CAN")
+    courses = CourseOffering.objects.filter(semester__name=semester).exclude(component="CAN") \
+              .select_related('semester')
     resp = HttpResponse(mimetype="application/json")
     resp['Content-Disposition'] = 'inline; filename=' + semester + '.json'
     crs_data = (c.export_dict() for c in courses)

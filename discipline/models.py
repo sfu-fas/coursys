@@ -232,6 +232,8 @@ class DisciplineCaseBase(models.Model):
     penalty_implemented = models.BooleanField(default=False, verbose_name="Penalty Implemented?", 
             help_text='Has instructor implemented the assigned penalty?')
     
+    ro_display = False # set in some views to prevent unnecessary links
+    
     """
     # fields for chair/director
     chair_notes = models.TextField(blank=True, null=True, help_text='Notes about the case (private notes, '+TEXTILENOTE+').')
