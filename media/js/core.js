@@ -1,8 +1,5 @@
 function confirmSubmit(action) {
-  if (confirm("Are you sure you wish to " + action + "?"))
-    return true;
-  else
-    return false;
+  return confirm("Are you sure you wish to " + action + "?");
 }
 
 

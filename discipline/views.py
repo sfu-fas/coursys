@@ -562,11 +562,27 @@ def chair_index(request):
     depts = set([r.department for r in Role.objects.filter(person__userid=request.user.username, role="DISC")])
 
     # TODO: filter based on offering.department instead (once it's populated sensibly)
-    cases = DisciplineCaseInstr.objects.filter(offering__subject__in=depts)
-    cases = [c.subclass() for c in cases]
-    context = {'cases': cases}
+    instr_cases = DisciplineCaseInstr.objects.filter(offering__subject__in=depts)
+    instr_cases = [c.subclass() for c in instr_cases]
+    
+    context = {'instr_cases': instr_cases}
     return render_to_response("discipline/chair-index.html", context, context_instance=RequestContext(request))
     
+@requires_role("DISC")
+def chair_create(request, course_slug, case_slug):
+    instr_case = get_object_or_404(DisciplineCaseInstr, slug=case_slug, offering__slug=course_slug).subclass()
+    if request.method == 'POST':
+        chair_case = instr_case.create_chair_case(request.user.username)
+        chair_case.save()
+        
+        #LOG EVENT#
+        l = LogEntry(userid=request.user.username,
+              description=("created chair's case %s in %s") % (chair_case.slug, chair_case.offering),
+              related_object=chair_case)
+        l.save()
+        messages.add_message(request, messages.SUCCESS, "Created Chair's case.")
+        return HttpResponseRedirect(reverse('discipline.views.chair_show', kwargs={'course_slug': course_slug, 'case_slug': chair_case.slug}))
+
 @requires_role("DISC")
 def chair_show(request, course_slug, case_slug):
     pass

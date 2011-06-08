@@ -58,6 +58,9 @@ Suggested next step is to <a href="{{case.next_step_url}}">{{case.next_step_text
     {% endif %}
 {% endif %}
 </div>
+{% else %}
+{% if case.letter_sent == 'MAIL' %}
+<div id="nextstep">Instructor's letter has been sent. <a href="{% url discipline.views.view_letter course_slug=course.slug case_slug=case.slug %}">View the letter</a>.</div>{% endif %}
 {% endif %}
 
 <div class="showcase">

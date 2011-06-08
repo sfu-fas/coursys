@@ -1320,5 +1320,14 @@ div#main table.inst_table p {
 div#main table.inst_table p input {
   float: right;
   font-size: 75%;
+  padding: 0 !important;
+}
+td.miniaction, td.miniaction p {
+  margin: 2px !important;
+  padding: 0 !important;
+  text-align: center;
+}
+td.miniaction input {
+  font-size: 75%;
   padding: 0;
 }

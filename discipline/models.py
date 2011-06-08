@@ -184,7 +184,7 @@ class DisciplineCaseBase(models.Model):
         """
         Return the specific subclass version of this object.
         """
-        for CaseClass in [DisciplineCaseInstrStudent, DisciplineCaseInstrNonStudent]:
+        for CaseClass in [DisciplineCaseInstrStudent, DisciplineCaseInstrNonStudent, DisciplineCaseChairStudent, DisciplineCaseChairNonStudent]:
             try:
                 return CaseClass.objects.get(id=self.id)
             except CaseClass.DoesNotExist:
@@ -428,6 +428,16 @@ class DisciplineCaseInstr(DisciplineCaseBase):
         return reverse('discipline.views.edit_case_info',
             kwargs={'field': STEP_VIEW[self.next_step()], 'course_slug':self.offering.slug, 'case_slug': self.slug})
 
+    def chair_case(self):
+        """
+        Related Chair's case (or None)
+        """
+        cases = DisciplineCaseChair.objects.filter(instr_case=self)
+        print cases
+        if cases:
+            return cases[0]
+        return None
+
     def send_contact_email(self):
         """
         Send contact email to the student and CC instructor
@@ -475,8 +485,6 @@ class DisciplineCaseInstr(DisciplineCaseBase):
         
         email.send(fail_silently=False)
 
-
-
 class DisciplineCaseInstrStudent(DisciplineCaseInstr):
     student = models.ForeignKey(Person, help_text="The student this case concerns.")
     def is_in_course(self):
@@ -485,54 +493,90 @@ class DisciplineCaseInstrStudent(DisciplineCaseInstr):
     def student_userid(self):
         return self.student.userid
 
+    def create_chair_case(self, userid):
+        """
+        Create and return the Chair's case corresponding to self.
+        """
+        case = DisciplineCaseChairStudent()
+        case.student = self.student
+        case.offering = self.offering
+        case.slug = self.slug
+        case.group = self.group
+        case.owner = Person.objects.get(userid=userid)
+        case.instr_case = self
+        return case
+
+class _FakePerson(object):
+    """
+    An object enough like a coredata.models.Person to be used in its place
+    """
+    def populate_from(self, obj):
+        """
+        Use data from the case object to populate fields needed here.
+        """
+        self.emplid = obj.emplid
+        self.userid = obj.userid
+        self.last_name = obj.last_name
+        self.first_name = obj.first_name
+        self.emailaddr = obj.email
+            
+    def email(self):
+        return self.emailaddr
+    def full_email(self):
+        return "%s <%s>" % (self.name(), self.emailaddr)
+    def name(self):
+        return "%s %s" % (self.first_name, self.last_name)
+    def sortname(self):
+        return "%s, %s" % (self.last_name, self.first_name)
+
+
 class DisciplineCaseInstrNonStudent(DisciplineCaseInstr):
     emplid = models.PositiveIntegerField(max_length=9, null=True, blank=True, verbose_name="Student Number", help_text="SFU student number, if known")
     userid = models.CharField(max_length=8, null=True, blank=True, help_text='SFU Unix userid, if known')
     email = models.EmailField(null=False, blank=False)
     last_name = models.CharField(max_length=32)
     first_name = models.CharField(max_length=32)
-    
+
     def is_in_course(self):
         return False
-    def __init__(self, *args, **kwargs):
-        super(DisciplineCaseInstrNonStudent, self).__init__(*args, **kwargs)
-        self.student = self.FakePerson()
-        self.student.emplid = self.emplid
-        self.student.userid = self.userid
-        self.student.last_name = self.last_name
-        self.student.first_name = self.first_name
-        self.student.emailaddr = self.email
-
     def student_userid(self):
         return self.email
+    def __init__(self, *args, **kwargs):
+        super(DisciplineCaseInstrNonStudent, self).__init__(*args, **kwargs)
+        self.student = _FakePerson()
+        self.student.populate_from(self)
+
         
-    class FakePerson(object):
-        """
-        An object enough like a coredata.models.Person to be used in its place
-        """
-        def email(self):
-            return self.emailaddr
-        def full_email(self):
-            return "%s <%s>" % (self.name(), self.emailaddr)
-        def name(self):
-            return "%s %s" % (self.first_name, self.last_name)
-        def sortname(self):
-            return "%s, %s" % (self.last_name, self.first_name)
-        
-
-
-
-
 
 
 class DisciplineCaseChair(DisciplineCaseBase):
     """
     An chair's case
     """
-    pass
+    instr_case = models.ForeignKey(DisciplineCaseInstr, help_text="The instructor's case that triggered this case", default=0)
 
+class DisciplineCaseChairStudent(DisciplineCaseChair):
+    student = models.ForeignKey(Person, help_text="The student this case concerns.")
+    def is_in_course(self):
+        return True
+    def student_userid(self):
+        return self.student.userid
 
+class DisciplineCaseChairNonStudent(DisciplineCaseChair):
+    emplid = models.PositiveIntegerField(max_length=9, null=True, blank=True, verbose_name="Student Number", help_text="SFU student number, if known")
+    userid = models.CharField(max_length=8, null=True, blank=True, help_text='SFU Unix userid, if known')
+    email = models.EmailField(null=False, blank=False)
+    last_name = models.CharField(max_length=32)
+    first_name = models.CharField(max_length=32)
 
+    def is_in_course(self):
+        return False
+    def student_userid(self):
+        return self.email
+    def __init__(self, *args, **kwargs):
+        super(DisciplineCaseChairNonStudent, self).__init__(*args, **kwargs)
+        self.student = _FakePerson()
+        self.student.populate_from(self)
 
 
 
