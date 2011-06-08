@@ -579,7 +579,7 @@ def chair_show_instr(request, course_slug, case_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     case = get_object_or_404(DisciplineCaseBase, slug=case_slug, offering__slug=course_slug)
     case = case.subclass()
-    roles = request.session['discipline-'+course_slug] # get roles from session
+    roles = ["DEPT"]
     case.ro_display = True
     
     context = {'course': course, 'case': case, 'roles': roles, 'chair': True}
