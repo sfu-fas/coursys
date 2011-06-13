@@ -570,7 +570,8 @@ def chair_index(request):
     
 @requires_role("DISC")
 def chair_create(request, course_slug, case_slug):
-    instr_case = get_object_or_404(DisciplineCaseInstr, slug=case_slug, offering__slug=course_slug).subclass()
+    instr_case = get_object_or_404(DisciplineCaseInstr, slug=case_slug, offering__slug=course_slug)
+    instr_case = instr_case.subclass()
     if request.method == 'POST':
         chair_case = instr_case.create_chair_case(request.user.username)
         chair_case.save()
@@ -582,10 +583,16 @@ def chair_create(request, course_slug, case_slug):
         l.save()
         messages.add_message(request, messages.SUCCESS, "Created Chair's case.")
         return HttpResponseRedirect(reverse('discipline.views.chair_show', kwargs={'course_slug': course_slug, 'case_slug': chair_case.slug}))
+        
+    return HttpResponseRedirect(reverse('discipline.views.chair_index', kwargs={}))
 
 @requires_role("DISC")
 def chair_show(request, course_slug, case_slug):
-    pass
+    case = get_object_or_404(DisciplineCaseChair, slug=case_slug, offering__slug=course_slug)
+    case = case.subclass()
+    
+    context = {'case': case}
+    return render_to_response("discipline/chair-show.html", context, context_instance=RequestContext(request))
 
 @requires_role("DISC")
 def chair_show_instr(request, course_slug, case_slug):
