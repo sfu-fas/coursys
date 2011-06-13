@@ -263,7 +263,7 @@ def import_components(request, course_slug, activity_slug):
     Quick (but not pretty) view to allow importing marking setup from the old system.  Not well tested, but seems to work well enough.
     """
     course = get_object_or_404(CourseOffering, slug = course_slug)
-    activity = get_object_or_404(NumericalActivity, offering = course, slug = activity_slug, deleted=False)
+    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug, deleted=False)
 
     if request.method == "POST":
         import json
