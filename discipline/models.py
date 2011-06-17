@@ -110,6 +110,19 @@ STEP_TEXT = { # map of field -> description of the step
         #'chair_letter_review': 'review letter to student',
         #'chair_letter_sent': "send chair's letter",
         }
+STEP_SHORT = { # map of field -> position and short description of the step
+        'notes': (0, 'your notes'),
+        'notes_public': (0, 'your notes'),
+        'contacted': (1, 'contact'),
+        'response': (2, "student's response"),
+        'meeting_date': (3, "meeting/email"),
+        'meeting_summary': (4, "meeting/email"),
+        'facts': (5, "facts"),
+        'penalty': (6, 'penalty'),
+        'letter_review': (7, 'review letter'),
+        'letter_sent': (8, "send letter"),
+        'penalty_implemented': (9, "give penalty"),
+        }
 STEP_DESC = { # map of field/form -> description of what is being edited
         'notes': 'notes',
         'notes_public': 'notes',
@@ -427,6 +440,11 @@ class DisciplineCaseInstr(DisciplineCaseBase):
         "The URL to edit view for the next step."
         return reverse('discipline.views.edit_case_info',
             kwargs={'field': STEP_VIEW[self.next_step()], 'course_slug':self.offering.slug, 'case_slug': self.slug})
+
+    def next_step_short(self):
+        "The short description of the next step, used by index view."
+        short = STEP_SHORT[self.next_step()]
+        return (10-short[0], short[1])
 
     def chair_case(self):
         """

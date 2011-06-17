@@ -49,10 +49,12 @@ $(document).ready(function() {
 <h2 id="cases">Cases</h2>
 <div class="datatable_container">
 <table id="casestable" class="display">
-  <thead><tr><th scope="col">Done?</th><th scope="col">Name</th><th scope="col">Student #</th><th scope="col">Userid</th><th scope="col">Cluster</th></tr></thead>
+  <thead><tr><th scope="col">Next Step</th><th scope="col">Name</th><th scope="col">Student #</th><th scope="col">Userid</th><th scope="col">Cluster</th></tr></thead>
   <tbody>
   {% for c in cases %}
-  <tr><td>{% if c.done %}Done{% endif %}</td><td><a href="{% url discipline.views.show course_slug=course.slug case_slug=c.slug %}">{{c.student.sortname}}</a></td><td>{{c.student.emplid}}</td><td>{{c.student.userid}}</td><td>{{c.group.name}}</td>
+  <tr>
+  <td>{% if not c.done %}{% with c.next_step_short as ss%}<span style="display:none;">{{ss.0}}</span>{{ss.1}}{% endwith %}{% endif %}</td>
+  <td><a href="{% url discipline.views.show course_slug=course.slug case_slug=c.slug %}">{{c.student.sortname}}</a></td><td>{{c.student.emplid}}</td><td>{{c.student.userid}}</td><td>{{c.group.name}}</td>
   {% endfor %}
   </tbody>
 </table>
