@@ -185,7 +185,7 @@ urlpatterns += patterns('',
 if not settings.DEPLOYED:
     # URLs for development only:
     urlpatterns += patterns('',
-        (r'^admin/(.*)', admin.site.root),
+        #(r'^admin/(.*)', admin.site.root),
         (r'^media/(?P<path>.*)$', 'django.views.static.serve',
             {'document_root': settings.MEDIA_ROOT}),
     )

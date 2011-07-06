@@ -64,7 +64,7 @@ class OfferingBasicsForm(forms.ModelForm):
 class OfferingInstructorForm(forms.ModelForm):
     class Meta:
         model = PlannedOffering
-        fields = ('instructor')
+        fields = ('instructor',)
 
 
 	
