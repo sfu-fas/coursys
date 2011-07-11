@@ -1,19 +1,19 @@
 {% load discipline_filters %}
 {% comment %}
-This is used and an HTML email body: everything that happens here must work in email clients
+This is used as an HTML email body: everything that happens here must work in email clients
 http://en.wikipedia.org/wiki/HTML_e-mail
 {% endcomment %}
 
 <h1 style="font-size: 125%; color: black; padding: 0; margin: 0.5em 0;">Academic Dishonesty Report By {{case.typelabel|capfirst}}</h1>
 <table style="width: 100%; border-collapse: collapse;">
 <tr>
-  <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Course:</span> {{case.offering.subject}} {{case.offering.number}}</td>
-  <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Section:</span> {{case.offering.section}}</td>
+  <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Course:</span> {{case.get_origsection.subject}} {{case.get_origsection.number}}</td>
+  <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Section:</span> {{case.get_origsection.section}}</td>
   <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Date:</span> {% now "Y-m-d" %}</td>
 </tr>
 <tr>
-  <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Semester:</span> {{case.offering.semester.label}} ({{case.offering.semester.name}})</td>
-  <td colspan="2" style="border: 1px solid black"><span style="font-weight: bold">Course Title:</span> {{case.offering.title}}</td>
+  <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Semester:</span> {{case.get_origsection.semester.label}} ({{case.get_origsection.semester.name}})</td>
+  <td colspan="2" style="border: 1px solid black"><span style="font-weight: bold">Course Title:</span> {{case.get_origsection.title}}</td>
 </tr>
 <tr>
   <td colspan="1" style="border: 1px solid black"><span style="font-weight: bold">Student Name:</span> {{case.student.sortname}}</td>

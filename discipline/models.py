@@ -246,6 +246,7 @@ class DisciplineCaseBase(models.Model):
             help_text='Has instructor implemented the assigned penalty?')
     
     ro_display = False # set in some views to prevent unnecessary links
+    origsection = None # cache for get_origsection
     
     """
     # fields for chair/director
@@ -286,6 +287,12 @@ class DisciplineCaseBase(models.Model):
 
     def get_absolute_url(self):
         return reverse('discipline.views.show', kwargs={'course_slug': self.student.offering.slug, 'case_slug': self.slug})
+    def get_origsection(self):
+        if not self.origsection:
+            # no cached section: look up
+            self.origsection = self.membership().get_origsection()
+        
+        return self.origsection
 
     def get_refer_display(self):
         return "Yes" if self.refer else "No"
@@ -451,7 +458,6 @@ class DisciplineCaseInstr(DisciplineCaseBase):
         Related Chair's case (or None)
         """
         cases = DisciplineCaseChair.objects.filter(instr_case=self)
-        print cases
         if cases:
             return cases[0]
         return None
@@ -510,6 +516,8 @@ class DisciplineCaseInstrStudent(DisciplineCaseInstr):
     
     def student_userid(self):
         return self.student.userid
+    def membership(self):
+        return Member.objects.get(offering=self.offering, person=self.student)
 
     def create_chair_case(self, userid):
         """
@@ -547,6 +555,22 @@ class _FakePerson(object):
     def sortname(self):
         return "%s, %s" % (self.last_name, self.first_name)
 
+class _FakeMember(object):
+    """
+    An object enough like a coredata.models.Member to be used in its place
+    """
+    def populate_from(self, obj):
+        """
+        Use data from the case object to populate fields needed here.
+        """
+        if not hasattr(obj, 'offering'):
+            return
+        
+        self.offering = obj.offering
+
+    def get_origsection(self):
+        return self.offering
+
 
 class DisciplineCaseInstrNonStudent(DisciplineCaseInstr):
     emplid = models.PositiveIntegerField(max_length=9, null=True, blank=True, verbose_name="Student Number", help_text="SFU student number, if known")
@@ -559,10 +583,15 @@ class DisciplineCaseInstrNonStudent(DisciplineCaseInstr):
         return False
     def student_userid(self):
         return self.email
+    def membership(self):
+        return self.member
+
     def __init__(self, *args, **kwargs):
         super(DisciplineCaseInstrNonStudent, self).__init__(*args, **kwargs)
         self.student = _FakePerson()
         self.student.populate_from(self)
+        self.member = _FakeMember()
+        self.member.populate_from(self)
 
         
 

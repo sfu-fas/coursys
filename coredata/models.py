@@ -294,6 +294,11 @@ class Member(models.Model):
         help_text='Number of credits this course is worth.')
     career = models.CharField(max_length=4, choices=CAREER_CHOICES)
     added_reason = models.CharField(max_length=4, choices=REASON_CHOICES)
+    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+      # m.config['origsection']: The originating section (for crosslisted sections combined here)
+      #     represented as a CourseOffering.slug
+      #     default: self.offering (if accessed by m.get_origsection())
+
     def __unicode__(self):
         return "%s (%s) in %s" % (self.person.userid, self.person.emplid, self.offering,)
     def short_str(self):
@@ -314,6 +319,15 @@ class Member(models.Model):
 
         if others:
             raise ValidationError('There is another membership with this person, offering, and role.  These must be unique for a membership (unless role is "dropped").')
+
+    def get_origsection(self):
+        """
+        The real CourseOffering for this student (for crosslisted sections combined in this system).
+        """
+        if 'origsection' in self.config:
+            return CourseOffering.objects.get(slug=self.config['origsection'])
+        else:
+            return self.offering
 
     class Meta:
         #unique_together = (('person', 'offering', 'role'),)  # now handled by self.clean()
