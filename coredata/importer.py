@@ -507,11 +507,13 @@ def combine_sections(db):
                     old_m.credits = m.credits
                     old_m.career = m.career
                     old_m.added_reason = m.added_reason
+                    old_m.config['origsection'] = sub.slug
                     old_m.save()
                 else:
                     # new membership: duplicate into combined
                     new_m = Member(offering=course, person=m.person, role=m.role,
                             credits=m.credits, career=m.career, added_reason=m.added_reason)
+                    new_m.config['origsection'] = sub.slug
                     new_m.save()
 
         # update totals        

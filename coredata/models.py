@@ -215,7 +215,11 @@ class CourseOffering(models.Model):
       # c.config['taemail']: TAs' contact email (if not their personal email)
     
     def autoslug(self):
-        words = [str(s).lower() for s in self.semester.slugform(), self.subject, self.number, self.section]
+        # changed slug format for fall 2011
+        if self.semester.name >= "1117":
+            words = [str(s).lower() for s in self.semester.slugform(), self.subject, self.number, self.section]
+        else:
+            words = [str(s).lower() for s in self.semester.name, self.subject, self.number, self.section]
         return '-'.join(words)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False)
 
