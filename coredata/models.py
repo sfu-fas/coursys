@@ -52,6 +52,11 @@ class Semester(models.Model):
         '4': 'Summer',
         '7': 'Fall',
         }
+    slug_lookup = {
+        '1': 'sp',
+        '4': 'su',
+        '7': 'fa',
+        }
     name = models.CharField(max_length=4, null=False, db_index=True, unique=True,
         help_text='Semester name should be in the form "1097".')
     start = models.DateField(help_text='First day of classes.')
@@ -69,6 +74,14 @@ class Semester(models.Model):
         year = 1900 + int(name[0:3])
         semester = self.label_lookup[name[3]]
         return semester + " " + str(year)
+    def slugform(self):
+        """
+        The slug version of the semester, e.g. "2010su".
+        """
+        name = str(self.name)
+        year = 1900 + int(name[0:3])
+        semester = self.slug_lookup[name[3]]
+        return str(year) + semester
 
     def __unicode__(self):
         return self.label()
@@ -202,7 +215,7 @@ class CourseOffering(models.Model):
       # c.config['taemail']: TAs' contact email (if not their personal email)
     
     def autoslug(self):
-        words = [str(s).lower() for s in self.semester.name, self.subject, self.number, self.section]
+        words = [str(s).lower() for s in self.semester.slugform(), self.subject, self.number, self.section]
         return '-'.join(words)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False)
 
