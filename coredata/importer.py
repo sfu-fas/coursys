@@ -7,9 +7,13 @@ from coredata.models import *
 from dashboard.models import NewsItem
 from django.db import transaction
 from django.contrib.sessions.models import Session
+today = datetime.date.today()
 
 # these users will be given sysadmin role (for bootstrapping)
 sysadmin = ["ggbaker"]
+
+# first term we care about in import
+FIRSTTERM = "1104"
 
 # artificial combined sections to create: kwargs for CourseOffering creation,
 # plus 'subsections' list of sections we're combining.
@@ -50,6 +54,16 @@ v_ps_class_instr: only getting primary/printing instructors
 pref_first_name always empty
 SELECT * FROM v_ps_personal_data v where length(pref_first_name)>0 LIMIT 100
 """
+
+def import_semester(sems):
+    """
+    Should this QuerySet of semesters be imported?
+    """
+    if not sems:
+        return False
+    s = sems[0]
+    return s.end >= today
+    #return True
 
 def decode(s):
     """
@@ -189,11 +203,12 @@ def import_offerings(db):
     """
     Import course offerings
     """
-    db.execute('SELECT subject, catalog_nbr, class_section, strm, crse_id, class_nbr, ssr_component, descr, campus, enrl_cap, enrl_tot, wait_tot, cancel_dt FROM v_ps_class_tbl')
+    db.execute('SELECT subject, catalog_nbr, class_section, strm, crse_id, class_nbr, ssr_component, descr, campus, enrl_cap, enrl_tot, wait_tot, cancel_dt FROM v_ps_class_tbl WHERE strm>="'+FIRSTTERM+'"')
     for subject, number, section, strm, crse_id, class_nbr, component, title, campus, enrl_cap, enrl_tot, wait_tot, cancel_dt in db:
         # only import for defined semesters.
         semesters = Semester.objects.filter(name=strm)
-        if not semesters:
+        #print semesters, import_semester(semesters)
+        if not import_semester(semesters):
             continue
         semester = semesters[0]
         
@@ -254,10 +269,10 @@ def import_meeting_times(db):
     """
     Import course meeting times
     """
-    db.execute('SELECT crse_id, class_section, strm, meeting_time_start, meeting_time_end, facility_id, mon,tues,wed,thurs,fri,sat,sun, start_dt, end_dt, stnd_mtg_pat FROM v_ps_class_mtg_pat')
+    db.execute('SELECT crse_id, class_section, strm, meeting_time_start, meeting_time_end, facility_id, mon,tues,wed,thurs,fri,sat,sun, start_dt, end_dt, stnd_mtg_pat FROM v_ps_class_mtg_pat WHERE strm>="'+FIRSTTERM+'"')
     for crse_id, section, strm, start, end, room, mon,tues,wed,thurs,fri,sat,sun, start_dt, end_dt, stnd_mtg_pat in db:
         semester = Semester.objects.filter(name=strm)
-        if not semester:
+        if not import_semester(semester):
             continue
         semester = semester[0]
         c = find_offering_by_crse_id(crse_id, section, semester)
@@ -288,13 +303,13 @@ def import_instructors(db):
     """
     Import course instructors
     """
-    n = db.execute('SELECT crse_id, class_section, strm, emplid, instr_role, sched_print_instr FROM v_ps_class_instr')
+    n = db.execute('SELECT crse_id, class_section, strm, emplid, instr_role, sched_print_instr FROM v_ps_class_instr WHERE strm>="'+FIRSTTERM+'"')
     members = []
 
     for crse_id, section, strm, emplid, instr_role, print_instr in db:
         # only import for defined semesters.
         semester = Semester.objects.filter(name=strm)
-        if not semester:
+        if not import_semester(semester):
             continue
 
         c = find_offering_by_crse_id(crse_id, section, semester)
@@ -330,12 +345,12 @@ def import_tas(dbpasswd):
              passwd=dbpasswd, db=ta_name, port=ta_port)
     db = dbconn.cursor()
     
-    db.execute('SELECT strm, emplid, subject, catalog_nbr, class_section FROM ta_data')
+    db.execute('SELECT strm, emplid, subject, catalog_nbr, class_section FROM ta_data WHERE strm>="'+FIRSTTERM+'"')
     members = []
     for strm, emplid, subject, catalog_nbr, class_section in db:
         class_section = class_section+"00"
         semester = Semester.objects.filter(name=strm)
-        if not semester:
+        if not import_semester(semester):
             continue
 
         # there's some fuzziness in the courseoffering mapping here: 376 vs 376W, D100 vs G100
@@ -374,12 +389,12 @@ def import_students(db):
     """
     Import students in course
     """
-    db.execute('SELECT class_nbr, strm, emplid, acad_career, unt_taken FROM v_ps_stdnt_enrl WHERE strm>="1097" and stdnt_enrl_status="E"')
+    db.execute('SELECT class_nbr, strm, emplid, acad_career, unt_taken FROM v_ps_stdnt_enrl WHERE strm>="'+FIRSTTERM+'" and stdnt_enrl_status="E"')
     members = []
     for class_nbr, strm, emplid, acad_career, unt_taken in db:
         # only import for defined semesters.
         semester = Semester.objects.filter(name=strm)
-        if not semester:
+        if not import_semester(semester):
             continue
 
         # make sure the data is as we expect:
@@ -541,7 +556,10 @@ def main():
     time.sleep(1)
     
     # Drop everybody (and re-add later if they're still around)
-    Member.objects.filter(added_reason="AUTO").update(role="DROP")
+    #Member.objects.filter(added_reason="AUTO").update(role="DROP")
+    for s in Semester.objects.all():
+        if import_semester([s]):
+            Member.objects.filter(added_reason="AUTO", offering__semester=s).update(role="DROP")
     
     # People to fetch: manually-added members of courses (and everybody else we find later)
     members = [(m.person.emplid, m.offering) for m in Member.objects.exclude(added_reason="AUTO")]
