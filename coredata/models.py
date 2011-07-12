@@ -217,7 +217,7 @@ class CourseOffering(models.Model):
     def autoslug(self):
         # changed slug format for fall 2011
         if self.semester.name >= "1117":
-            words = [str(s).lower() for s in self.semester.slugform(), self.subject, self.number, self.section]
+            words = [str(s).lower() for s in self.semester.slugform(), self.subject, self.number, self.section[:2]]
         else:
             words = [str(s).lower() for s in self.semester.name, self.subject, self.number, self.section]
         return '-'.join(words)
