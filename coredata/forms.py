@@ -29,6 +29,7 @@ class MemberForm(forms.ModelForm):
     
     class Meta:
         model = Member
+        exclude = ('config',)
 
 class PersonForm(forms.ModelForm):
     emplid = forms.CharField(max_length=9,
