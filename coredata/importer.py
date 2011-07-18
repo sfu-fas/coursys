@@ -8,12 +8,14 @@ from dashboard.models import NewsItem
 from django.db import transaction
 from django.contrib.sessions.models import Session
 today = datetime.date.today()
+cutoff = today - datetime.timedelta(days=30)
 
 # these users will be given sysadmin role (for bootstrapping)
 sysadmin = ["ggbaker"]
 
 # first term we care about in import
 FIRSTTERM = "1104"
+DATA_WHERE = '(subject="CMPT" or subject="MACM") and strm>="'+FIRSTTERM+'"'
 
 # artificial combined sections to create: kwargs for CourseOffering creation,
 # plus 'subsections' list of sections we're combining.
@@ -62,8 +64,7 @@ def import_semester(sems):
     if not sems:
         return False
     s = sems[0]
-    return s.end >= today
-    #return True
+    return s.end >= cutoff
 
 def decode(s):
     """
@@ -203,7 +204,7 @@ def import_offerings(db):
     """
     Import course offerings
     """
-    db.execute('SELECT subject, catalog_nbr, class_section, strm, crse_id, class_nbr, ssr_component, descr, campus, enrl_cap, enrl_tot, wait_tot, cancel_dt FROM v_ps_class_tbl WHERE strm>="'+FIRSTTERM+'"')
+    db.execute('SELECT subject, catalog_nbr, class_section, strm, crse_id, class_nbr, ssr_component, descr, campus, enrl_cap, enrl_tot, wait_tot, cancel_dt FROM v_ps_class_tbl WHERE ' + DATA_WHERE)
     for subject, number, section, strm, crse_id, class_nbr, component, title, campus, enrl_cap, enrl_tot, wait_tot, cancel_dt in db:
         # only import for defined semesters.
         semesters = Semester.objects.filter(name=strm)
@@ -270,6 +271,9 @@ def import_meeting_times(db):
     Import course meeting times
     """
     db.execute('SELECT crse_id, class_section, strm, meeting_time_start, meeting_time_end, facility_id, mon,tues,wed,thurs,fri,sat,sun, start_dt, end_dt, stnd_mtg_pat FROM v_ps_class_mtg_pat WHERE strm>="'+FIRSTTERM+'"')
+    # keep track of meetings we've found, so we can remove old (non-importing semesters and changed/gone)
+    found_mtg = set()
+
     for crse_id, section, strm, start, end, room, mon,tues,wed,thurs,fri,sat,sun, start_dt, end_dt, stnd_mtg_pat in db:
         semester = Semester.objects.filter(name=strm)
         if not import_semester(semester):
@@ -288,6 +292,7 @@ def import_meeting_times(db):
                 if m_old.start_day==start_dt and m_old.end_day==end_dt and m_old.room==room \
                         and m_old.exam == (stnd_mtg_pat in ["EXAM","MIDT"]):
                     # unchanged: leave it.
+                    found_mtg.add(m_old.id)
                     continue
                 else:
                     # it has changed: remove and replace.
@@ -297,6 +302,10 @@ def import_meeting_times(db):
                             start_time=start, end_time=end, room=room)
             m.exam = stnd_mtg_pat in ["EXAM","MIDT"]
             m.save()
+            found_mtg.add(m.id)
+    
+    # delete any meeting times we haven't found in the DB
+    MeetingTime.objects.exclude(id__in=found_mtg).delete()
 
 
 def import_instructors(db):

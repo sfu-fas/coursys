@@ -1,4 +1,4 @@
-COURSE_SLUG_RE = '(?:\d{4}|\d{4}[a-z]{2})-[a-z]{2,4}-\w{3,4}-[a-z]\d{3}'
+COURSE_SLUG_RE = '(?:\d{4}|\d{4}[a-z]{2})-[a-z]{2,4}-\w{3,4}-[a-z]\d{1,3}'
 SLUG_RE = '[\w-]+'
 ACTIVITY_SLUG_RE = SLUG_RE
 GROUP_SLUG_RE =  'g-[\w-]+'
