@@ -114,7 +114,7 @@ class SubmissionForm(ModelForm):
         # check if the submitted file matches specified file name
         specified_filename = self.component.specified_filename.strip()
         if specified_filename and len(specified_filename) > 0 and data.name != specified_filename:
-            raise forms.ValidationError('File name incorrect.  It must be "%s".' % (specified_filename))
+            raise forms.ValidationError('File name incorrect.  This file is named "%s" but must be submitted with filename "%s".' % (data.name, specified_filename))
 
     def check_uploaded_data(self, data):
         if self.check_is_empty(data):
