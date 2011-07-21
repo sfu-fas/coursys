@@ -16,7 +16,7 @@ sysadmin = ["ggbaker"]
 
 # first term we care about in import
 FIRSTTERM = "1104"
-DATA_WHERE = '(subject="CMPT" or subject="MACM") and strm>="'+FIRSTTERM+'"'
+DATA_WHERE = '(subject="CMPT" or subject="MACM" or subject="CRIM") and strm>="'+FIRSTTERM+'"'
 
 # artificial combined sections to create: kwargs for CourseOffering creation,
 # plus 'subsections' list of sections we're combining.
@@ -61,52 +61,6 @@ def decode(s):
 @transaction.commit_on_success
 def create_semesters():
     # http://students.sfu.ca/calendar/for_students/dates.html
-    s = Semester.objects.filter(name="1094")
-    if not s:
-        s = Semester(name="1094", start=datetime.date(2009, 5, 4), end=datetime.date(2009, 8, 4))
-        s.save()
-        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2009, 5, 4))
-        wk.save()
-
-    s = Semester.objects.filter(name="1097")
-    if not s:
-        s = Semester(name="1097", start=datetime.date(2009, 9, 8), end=datetime.date(2009, 12, 7))
-        s.save()
-        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2009, 9, 7))
-        wk.save()
-
-    s = Semester.objects.filter(name="1101")
-    if not s:
-        s = Semester(name="1101", start=datetime.date(2010, 1, 4), end=datetime.date(2010, 4, 16))
-        s.save()
-        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2010, 1, 4))
-        wk.save()
-        wk = SemesterWeek(semester=s, week=7, monday=datetime.date(2010, 3, 1))
-        wk.save()
-
-    s = Semester.objects.filter(name="1104")
-    if not s:
-        s = Semester(name="1104", start=datetime.date(2010, 5, 12), end=datetime.date(2010, 8, 11))
-        s.save()
-        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2010, 5, 10))
-        wk.save()
-
-    s = Semester.objects.filter(name="1107")
-    if not s:
-        s = Semester(name="1107", start=datetime.date(2010, 9, 7), end=datetime.date(2010, 12, 6))
-        s.save()
-        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2010, 9, 6))
-        wk.save()
-
-    s = Semester.objects.filter(name="1111")
-    if not s:
-        s = Semester(name="1111", start=datetime.date(2011, 1, 4), end=datetime.date(2011, 4, 7))
-        s.save()
-        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2011, 1, 3))
-        wk.save()
-        wk = SemesterWeek(semester=s, week=8, monday=datetime.date(2011, 2, 28))
-        wk.save()
-
     s = Semester.objects.filter(name="1114")
     if not s:
         s = Semester(name="1114", start=datetime.date(2011, 5, 9), end=datetime.date(2011, 8, 8))
@@ -290,40 +244,157 @@ def get_person(db, emplid):
 
 
 
+def import_meeting_times(db, offering):
+    """
+    Import course meeting times
+    """
+    db.execute('SELECT meeting_time_start, meeting_time_end, facility_id, mon,tues,wed,thurs,fri,sat,sun, start_dt, end_dt, stnd_mtg_pat FROM ps_class_mtg_pat WHERE crse_id=%s and class_section=%s and strm=%s', (offering.crse_id, offering.section, offering.semester.name))
+    # keep track of meetings we've found, so we can remove old (non-importing semesters and changed/gone)
+    found_mtg = set()
+
+    for start, end, room, mon,tues,wed,thurs,fri,sat,sun, start_dt, end_dt, stnd_mtg_pat in db:
+        wkdays = [n for n, day in zip(range(7), (mon,tues,wed,thurs,fri,sat,sun)) if day=='Y']
+        for wkd in wkdays:
+            m_old = MeetingTime.objects.filter(offering=offering, weekday=wkd, start_time=start, end_time=end)
+            if len(m_old)>1:
+                raise KeyError, "Already duplicate meeting: %r" % (m_old)
+            elif len(m_old)==1:
+                # new data: just replace.
+                m_old = m_old[0]
+                if m_old.start_day==start_dt and m_old.end_day==end_dt and m_old.room==room \
+                        and m_old.exam == (stnd_mtg_pat in ["EXAM","MIDT"]):
+                    # unchanged: leave it.
+                    found_mtg.add(m_old.id)
+                    continue
+                else:
+                    # it has changed: remove and replace.
+                    m_old.delete()
+            
+            m = MeetingTime(offering=offering, weekday=wkd, start_day=start_dt, end_day=end_dt,
+                            start_time=start, end_time=end, room=room)
+            m.exam = stnd_mtg_pat in ["EXAM","MIDT"]
+            m.save()
+            found_mtg.add(m.id)
+    
+    # delete any meeting times we haven't found in the DB
+    MeetingTime.objects.filter(offering=offering).exclude(id__in=found_mtg).delete()
+
+
+
+
+
+
+
+
+def ensure_member(person, offering, role, credits, added_reason, career):
+    """
+    Make sure this member exists with the right properties.
+    """
+    m_old = Member.objects.filter(person=person, offering=offering)
+
+    if len(m_old)>1:
+        raise KeyError, "Already duplicate instructor entries: %r" % (m_old)
+    elif len(m_old)==1:
+        m = m_old[0]
+        m.credits = 0
+        m.added_reason = "AUTO"
+        m.career = "NONS"
+        m.role = role
+    else:
+        m = Member(person=person, offering=offering, role=role,
+                credits=0, added_reason="AUTO", career="NONS")
+    
+    m.save()
+
+
 def import_instructors(db, offering):
     n = db.execute('SELECT emplid, instr_role, sched_print_instr FROM ps_class_instr WHERE crse_id=%s and class_section=%s and strm=%s', (offering.crse_id, offering.section, offering.semester.name))
     
     for emplid, instr_role, print_instr in db:
         p = get_person(db, emplid)
-        m_old = Member.objects.filter(person=p, offering=offering)
+        ensure_member(p, offering, "INST", 0, "AUTO", "NONS")
 
-        if len(m_old)>1:
-            raise KeyError, "Already duplicate instructor entries: %r" % (m_old)
-        elif len(m_old)==1:
-            m = m_old[0]
-            m.credits = 0
-            m.added_reason = "AUTO"
-            m.career = "NONS"
-            m.role = "INST"
-        else:
-            m = Member(person=p, offering=offering, role="INST",
-                    credits=0, added_reason="AUTO", career="NONS")
-        
-        m.save()
+
+def import_tas(db, tadb, offering):
+    tadb.execute('SELECT emplid FROM ta_data WHERE strm=%s and subject=%s and catalog_nbr REGEXP %s and class_section=%s', (offering.semester.name, offering.subject, unicode(offering.number)+"W?", offering.section[0:2]))
+    for emplid, in tadb:
+        p = get_person(db, emplid)
+        ensure_member(p, offering, "TA", 0, "AUTO", "NONS")
+
+
+def import_students(db, offering):
+    n = db.execute('SELECT emplid, acad_career, unt_taken FROM ps_stdnt_enrl WHERE class_nbr=%s and strm=%s and class_section=%s and stdnt_enrl_status="E"', (offering.class_nbr, offering.semester.name, offering.section))
+    
+    for emplid, acad_career, unt_taken in db:
+        p = get_person(db, emplid)
+        ensure_member(p, offering, "STUD", unt_taken, "AUTO", acad_career)
 
 
 
 @transaction.commit_on_success
-def import_members(db, offering):
+def import_members(db, tadb, offering):
     """
     Import all members of the course: instructors, TAs, students.
     """
+    print " ", offering
     # drop all automatically-added members: will be re-added later on import
-    Member.objects.filter(added_reason="AUTO", offering=offering).update(added_reason='DROP')
+    Member.objects.filter(added_reason="AUTO", offering=offering).update(role='DROP')
     
     import_instructors(db, offering)
+    import_tas(db, tadb, offering)
+    import_students(db, offering)
+    import_meeting_times(db, offering)
     
     
+@transaction.commit_on_success
+def combine_sections(db):
+    """
+    Combine sections in the database to co-offered courses look the same.
+    """
+    for info in combined_sections:
+        # create the section if necessary
+        courses = CourseOffering.objects.filter(subject=info['subject'], number=info['number'], section=info['section'], semester=info['semester'], component=info['component'], campus=info['campus'])
+        if courses:
+            course = courses[0]
+        else:
+            kwargs = copy.copy(info)
+            del kwargs['subsections']
+            course = CourseOffering(**kwargs)
+            course.save()
+        
+        cap_total = 0
+        tot_total = 0
+        wait_total = 0
+        for sub in info['subsections']:
+            cap_total += sub.enrl_cap
+            tot_total += sub.enrl_tot
+            wait_total += sub.wait_tot
+            for m in sub.member_set.all():
+                old_ms = course.member_set.filter(offering=course, person=m.person)
+                if old_ms:
+                    # was already a member: update.
+                    old_m = old_ms[0]
+                    old_m.role = m.role
+                    old_m.credits = m.credits
+                    old_m.career = m.career
+                    old_m.added_reason = m.added_reason
+                    old_m.config['origsection'] = sub.slug
+                    old_m.save()
+                else:
+                    # new membership: duplicate into combined
+                    new_m = Member(offering=course, person=m.person, role=m.role,
+                            credits=m.credits, career=m.career, added_reason=m.added_reason)
+                    new_m.config['origsection'] = sub.slug
+                    new_m.save()
+
+        # update totals        
+        course.enrl_cap = cap_total
+        course.tot_total = tot_total
+        course.wait_total = wait_total
+        course.save()
+
+
+
 
 
 
@@ -335,17 +406,40 @@ def main():
     dbconn = MySQLdb.connect(host=import_host, user=import_user,
              passwd=dbpasswd, db=import_name, port=import_port)
     db = dbconn.cursor()
+    tadbconn = MySQLdb.connect(host=ta_host, user=ta_user,
+             passwd=tapasswd, db=ta_name, port=ta_port)
+    tadb = tadbconn.cursor()
 
     print "fixing any unknown emplids"
     fix_emplid(db)
     time.sleep(1)
     
     print "importing course offering list"
-    #offerings = import_offerings(db)
-    offerings = set([CourseOffering.objects.get(slug="1114-cmpt-496-d100")])
+    offerings = import_offerings(db)
+    offerings = list(offerings)
+    offerings.sort()
+
+    print "importing course members"
     for o in offerings:
-        import_members(db, o)
+        import_members(db, tadb, o)
     
+    print "combining joint offerings"
+    combine_sections(db)
+    
+    print "giving sysadmin permissions"
+    for userid in sysadmin:
+        p = Person.objects.get(userid=userid)
+        r = Role.objects.filter(person=p, role="SYSA")
+        if not r:
+            r = Role(person=p, role="SYSA", department="!!!!")
+            r.save()
+    
+    # cleanup sessions table
+    Session.objects.filter(expire_date__lt=datetime.datetime.now()).delete()
+    # cleanup old news items
+    NewsItem.objects.filter(updated__lt=datetime.datetime.now()-datetime.timedelta(days=60)).delete()
+    
+    print len(imported_people)
 
     # People to fetch: manually-added members of courses (and everybody else we find later)
     #members = [(m.person.emplid, m.offering) for m in Member.objects.exclude(added_reason="AUTO")]
