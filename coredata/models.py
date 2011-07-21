@@ -170,6 +170,7 @@ COMPONENT_CHOICES = (
         ('TUT', 'Tutorial'),
         ('SEM', 'Seminar'),
         ('SEC', 'Section'), # "Section"?  ~= lecture?
+        ('PRA', 'Practicum'),
         #('OPL', 'Open Lab'),
         #('FLD', 'Field School'),
         ('CAN', 'Cancelled')
@@ -267,6 +268,12 @@ class CourseOffering(models.Model):
     
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+
+    def __cmp__(self, other):
+        return cmp(other.semester.name, self.semester.name) \
+            or cmp(self.subject, other.subject) \
+            or cmp(self.number, other.number) \
+            or cmp(self.section, other.section)
 
     class Meta:
         ordering = ['-semester', 'subject', 'number', 'section']
