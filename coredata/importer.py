@@ -296,13 +296,13 @@ def ensure_member(person, offering, role, credits, added_reason, career):
         raise KeyError, "Already duplicate instructor entries: %r" % (m_old)
     elif len(m_old)==1:
         m = m_old[0]
-        m.credits = 0
-        m.added_reason = "AUTO"
-        m.career = "NONS"
+        m.credits = credits
+        m.added_reason = added_reason
+        m.career = career
         m.role = role
     else:
         m = Member(person=person, offering=offering, role=role,
-                credits=0, added_reason="AUTO", career="NONS")
+                credits=credits, added_reason=added_reason, career=career)
     
     m.save()
 

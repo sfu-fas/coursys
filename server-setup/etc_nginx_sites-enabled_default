@@ -14,7 +14,7 @@ server {
 	ssl on;
 	ssl_certificate      /etc/nginx/cert.pem;
 	ssl_certificate_key  /etc/nginx/cert.key;
-
+	
 	access_log /var/log/nginx/localhost.access.log;
 	error_log /var/log/nginx/error.log warn;
 
@@ -24,12 +24,13 @@ server {
 
 	location /media {
 		root /home/ggbaker/static/;
-		expires 12h;
+		expires 1d;
 		gzip             on;
 		gzip_min_length  1000;
 		gzip_proxied     expired no-cache no-store private auth;
 		gzip_types       application/x-javascript application/javascript text/javascript text/css;
 		gzip_disable     "MSIE [1-6]\.";
+		add_header Cache-Control "public";
 	}
 	location /adminmedia {
 		root /home/ggbaker/static/;
@@ -43,3 +44,4 @@ server {
 	}
 
 }
+
