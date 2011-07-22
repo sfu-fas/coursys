@@ -10,4 +10,4 @@ courses = CourseOffering.objects.all()
 for c in courses:
     print c.slug
     c.slug = None
-    #c.save()
+    c.save()

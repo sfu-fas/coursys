@@ -769,19 +769,16 @@ def edit_activity(request, course_slug, activity_slug):
         if request.method == 'POST': # If the form has been submitted...
             if isinstance(activity, CalNumericActivity):
                 form = CalNumericActivityForm(request.POST) # A form bound to the POST data
-                form.activate_editform_validation(course_slug, activity_slug)
             elif isinstance(activity, NumericActivity):
                 form = NumericActivityForm(request.POST) # A form bound to the POST data
-                form.activate_editform_validation(course_slug, activity_slug)
             elif isinstance(activity, CalLetterActivity):
                 form = CalLetterActivityForm(request.POST) # A form bound to the POST data
                 form.fields['numeric_activity'].choices = numact_choices
                 form.fields['exam_activity'].choices = examact_choices
-                form.activate_editform_validation(course_slug, activity_slug)
             elif isinstance(activity, LetterActivity):
                 form = LetterActivityForm(request.POST) # A form bound to the POST data
-                form.activate_editform_validation(course_slug, activity_slug)              
 
+            form.activate_editform_validation(course_slug, activity_slug)
             
             if  form.is_valid(): # All validation rules pass                	
                 _populate_activity_from_formdata(activity, form.cleaned_data)
@@ -819,6 +816,8 @@ def edit_activity(request, course_slug, activity_slug):
                 form = CalLetterActivityForm(datadict)
                 form.fields['numeric_activity'].choices = numact_choices
                 form.fields['exam_activity'].choices = examact_choices
+
+            form.activate_editform_validation(course_slug, activity_slug)
         
         if isinstance(activity, CalNumericActivity):
             numeric_activities = NumericActivity.objects.exclude(slug=activity_slug).filter(offering=course, deleted=False)
