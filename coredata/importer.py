@@ -14,7 +14,7 @@ cutoff = today - datetime.timedelta(days=30)
 # these users will be given sysadmin role (for bootstrapping)
 sysadmin = ["ggbaker"]
 
-# first term we care about in import
+# first term we care even vaguely about in import (further selection happens later too)
 FIRSTTERM = "1104"
 DATA_WHERE = '(subject="CMPT" or subject="MACM" or subject="CRIM") and strm>="'+FIRSTTERM+'"'
 
