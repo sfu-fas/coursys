@@ -160,6 +160,7 @@ class FakeActivity(object):
         self.numericgrade_set = FakeGradeSet(grade)
 class FakeEvalActivity(object):
     def __init__(self, course):
+        self.id = -1
         self.offering = course
 
 

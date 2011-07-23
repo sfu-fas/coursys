@@ -2,7 +2,7 @@
 {% load course_display %}
 
 {% block marking_header_extra %}
-<script type="text/javascript">
+<script type="text/javascript">//<![CDATA[
 function append_problem(n, penalty, content, outof) {
   // handle comment
   var comment = $("#id_cmp-" + n + "-comment");
@@ -26,7 +26,7 @@ function append_problem(n, penalty, content, outof) {
   mark -= penalty;
   value.val(mark);
 }
-</script>
+//]]></script>
 {% endblock%}
 
 {% block title %}{{activity.name}} Marking {% endblock %}
