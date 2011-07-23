@@ -106,16 +106,6 @@
     {% endif %}
   </tr>
   <tr>
-    <th class="ui-state-default">Grades Given</th>
-    <td>
-      {% if activity.group %}
-      {{ submark_stat.studentgrades }} (individual students)
-      {% else %}
-      {{ submark_stat.studentgrades }}
-      {% endif %}
-    </td>
-  </tr>
-  <tr>
     <th class="ui-state-default">Detailed Marks Given</th>
     {% if submark_stat.markable %}
       <td>
