@@ -28,13 +28,15 @@ code.file {
 <dt>Additional packages installed</dt>
   <dd>Like this:
   <blockquote><pre>dpkg --purge apache2.2-bin apache2.2-common apache2-utils apache2 apache2-mpm-worker apache2.2-common
-apt-get install nginx python-flup subversion python-mysqldb mysql-client-5.1 python-tz memcached python-memcache stunnel4</pre></blockquote></dd>
+apt-get install nginx python-flup subversion python-mysqldb mysql-client-5.1 python-tz memcached python-memcache stunnel4 postfix</pre></blockquote></dd>
 <dt>Django Package</dt>
   <dd>System requires Django &ge;1.2, so newer package was downloaded separately from <a href="http://packages.ubuntu.com/search?keywords=python-django&amp;searchon=names&amp;suite=all&amp;section=all">Ubuntu package repository</a>.
   <blockquote><pre>dpkg -i python-django_1.2.3-1ubuntu0.2.10.10.2_all.deb</pre></blockquote>
   </dd>
 <dt>Memcached</dt>
   <dd>In <code class="file">/etc/memcached.conf</code>, change the port to 22122.</dd>
+<dt>Mail Server</dt>
+  <dd>Configure Postfix with smarthost mailgate.sfu.ca.</dd>
 <dt>Stunnel config for MySQL</dt>
   <dd>In <code class="file">/etc/default/stunnel4</code>, enable stunnel.  Add this to <code class="file">/etc/stunnel/stunnel.conf</code> and remove other services and <code>cert</code> line:
   <blockquote><pre>cert = /etc/stunnel/stunnel.pem
@@ -99,7 +101,8 @@ chmod 0711 ~</pre>
   <dd>
   Create a file <code class="file">~/dbpass</code> with three lines: (1) password for course management data view, (2) password for TA database, (3) the password for the app's main database.  This file is read by the importer and other scripts (to avoid having those passwords in the Subversion repo).
   <p>This crontab needs to be set to import and backup everything:</p>
-  <blockquote><pre>30 4 * * * cd /home/ggbaker/courses/ && python coredata/importer.py &lt; /home/ggbaker/dbpass
+  <blockquote><pre>MAILTO=ggbaker@sfu.ca
+30 4 * * * cd /home/ggbaker/courses/ && python coredata/importer.py &lt; /home/ggbaker/dbpass
 30 * * * * nice ionice -c 3 /home/ggbaker/courses/server-setup/courses-backup</pre></blockquote>
   <p>This requires <a href="courses-backup">my backup script, <code class="file">courses-backup</code></a>.</p>
   <p>There is also a <a href="mkdump">script <code class="file">mkdump</code></a> that will create a database dump if needed.</p>

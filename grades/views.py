@@ -19,7 +19,7 @@ from grades.utils import StudentActivityInfo, reorder_course_activities, create_
 from grades.utils import ValidationError, parse_and_validate_formula, calculate_numeric_grade,calculate_letter_grade
 from marking.models import get_group_mark, StudentActivityMark, GroupActivityMark, ActivityComponent
 from groups.models import *
-from submission.models import SubmissionComponent, GroupSubmission, StudentSubmission, get_current_submission
+from submission.models import SubmissionComponent, Submission, GroupSubmission, StudentSubmission, get_current_submission
 from log.models import LogEntry
 from django.contrib import messages
 import pickle, datetime, csv
@@ -355,10 +355,26 @@ def activity_stat(request, course_slug, activity_slug):
     
     if activity.is_numeric():
         activity_stat = generate_numeric_activity_stat(activity)
+        GradeClass = NumericGrade
     else:
         activity_stat = generate_letter_activity_stat(activity)
+        GradeClass = LetterGrade
+    
+    submark_stat = {}
+    submark_stat['submittable'] = bool(SubmissionComponent.objects.filter(activity=activity))
+    submark_stat['studentsubmissons'] = len(set([s.member for s in StudentSubmission.objects.filter(activity=activity)]))
+    submark_stat['groupsubmissons'] = len(set([s.group for s in GroupSubmission.objects.filter(activity=activity)]))
+    
+    submark_stat['studentgrades'] = len(set([s.member for s in GradeClass.objects.filter(activity=activity)]))
+    if activity.is_numeric():
+        submark_stat['markable'] = bool(ActivityComponent.objects.filter(numeric_activity=activity))
+        submark_stat['studentmarks'] = len(set([s.numeric_grade.member for s in StudentActivityMark.objects.filter(activity=activity)]))
+        submark_stat['groupmarks'] = len(set([s.group for s in GroupActivityMark.objects.filter(activity=activity)]))
+    else:
+        submark_stat['markable'] = False
 
-    context = {'course': course, 'activity': activity, 'activity_stat': activity_stat, 'display_summary': display_summary}
+
+    context = {'course': course, 'activity': activity, 'activity_stat': activity_stat, 'display_summary': display_summary, 'submark_stat': submark_stat}
     return render_to_response('grades/activity_stat.html', context, context_instance=RequestContext(request))
 
 @requires_course_staff_by_slug
