@@ -40,6 +40,12 @@
                 <th class="ui-state-default">Student Number</th>
                 <td>{{ member.person.emplid }}</td>
             </tr>
+            {% if course.labtut %}
+	    <tr>
+                <th class="ui-state-default">Lab/Tutorial Section</th>
+                <td>{{ member.labtut_section }}</td>
+            </tr>
+            {% endif %}
 	    <tr>
                 <th class="ui-state-default">Email Address</th>
                 <td><a href="mailto:{{ member.person.email }}">{{ member.person.email }}</a></td>
