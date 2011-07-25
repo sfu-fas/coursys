@@ -1,6 +1,23 @@
 # do the import with fake data for development
+# suggestion execution:
+#   rm db.sqlite; echo "no" | ./manage.py syncdb; ./manage.py migrate; echo "dbpassword" | python coredata/fake-importer.py
 
-from importer import *
+import MySQLdb, random, string, socket, datetime, itertools
+from django.core import serializers
+from importer import import_host, import_name, import_user, import_port
+from importer import give_sysadmin, create_semesters, import_offerings, import_instructors, import_meeting_times
+from coredata.models import Member, Person, CourseOffering, Semester, MeetingTime
+from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity
+from submission.models.base import SubmissionComponent
+from submission.models.code import CodeComponent
+from submission.models.pdf import PDFComponent
+from marking.models import ActivityComponent
+from groups.models import Group, GroupMember
+
+FIRSTTERM = "1111"
+DATA_WHERE = '(subject="CMPT" or subject="MACM") and strm>="'+FIRSTTERM+'"'
+FULL_TEST_DATA = "1114-cmpt-120-d100"
+MIN_TEST_DATA = "1114-cmpt-165-c100"
 
 fakes = {}
 next_emplid = 100
@@ -29,103 +46,182 @@ def fake_emplids():
         p.emplid = fake_emplid(p.emplid)
         p.save()
 
-# http://www.fakenamegenerator.com/
-# TODO: Unicode, grad students (also TAs), same names
-students = [  # userid,last,middle,first,preffirst, courses
-    ['0kvm', 'Moore', 'Veronica', 'Kimberly', 'Kim',
-        [('1097-cmpt-165-d100', 'UGRD', 3), ('1097-cmpt-165-d103', 'UGRD', 0),
-         ('1097-cmpt-120-d100', 'UGRD', 3), ('1097-cmpt-120-d102', 'UGRD', 0),
-         ('1101-cmpt-125-d200', 'UGRD', 3), ('1101-cmpt-125-d203', 'UGRD', 0),
-         ('1101-cmpt-212-d100', 'UGRD', 3)]],
-    ['0changh', 'Han', '', 'Chang', 'Chang', [('1101-cmpt-426-d100', 'UGRD', 3)]],
-    ['0rjl23', 'Larkin', 'Jane', 'Rebecca', 'Becky', [('1101-cmpt-426-d100', 'UGRD', 3), ('1101-cmpt-475-e100', 'UGRD', 3)]],
-    ['0sta1234', "Tang", '', 'Shaiming', 'Steven', [('1097-cmpt-300-d100','UGRD',3), ('1097-cmpt-322w-d100','UGRD',3), ('1097-cmpt-371-d100','UGRD',3), ('1101-cmpt-371-d100','UGRD',3), ('1101-cmpt-441-d100','UGRD',3)]],
-    ['0kel', 'Kelowna', 'J', 'Robert', 'Bob', [('1097-cmpt-xx1-a100','UGRD',3)]],
-    ['0grad', 'Gradstudent', '', 'Douglas', 'Doug', [('1101-cmpt-711-g100','GRAD',3), ('1101-cmpt-880-g100','GRAD',3)]],
-    #['0', '', '', '', '', [(,,)]],
-    #['0', '', '', '', '', [(,,)]],
-    ]
-
-# put a bunch of students in CMPT 165
-for i in range(20):
-    if i%2 == 0:
-        crs = [('1101-cmpt-165-d100', 'UGRD', 3), ('1101-cmpt-165-d101', 'UGRD', 0)]
-    else:
-        crs = [('1101-cmpt-165-d100', 'UGRD', 3), ('1101-cmpt-165-d102', 'UGRD', 0)]
-
-    students.append( ['0aaa'+str(i), "Student", "Q", chr(65+i), chr(65+i), crs] )
-
-# put a bunch of students in CMPT 120
-for i in range(20):
-    crs = [('1101-cmpt-120-d100', 'UGRD', 3), ('1101-cmpt-120-d107', 'UGRD', 0)]
-    # ... and half of them in MACM 101
-    if i%2 == 0:
-        crs.append(('1101-macm-101-d100', 'UGRD', 3))
-    students.append( ['0bbb'+str(i), "Student", "X", chr(65+i)+chr(97+i), chr(65+i)+chr(97+i), crs] )
+def randname(l):
+    n = random.choice(string.ascii_uppercase)
+    for i in range(l-1):
+        n = n + random.choice(string.ascii_lowercase)
+    return n
 
 
-def create_students():
+def test_class_1(slug):
     """
-    import fake students
+    main test course: 40 students, TA, some assignments
     """
-    for userid,last,middle,first,preffirst,courses in students:
-        u = Person.objects.filter(userid=userid)
-        if len(u)>0:
-            continue
-        
-        p = Person(emplid=fake_emplid(), userid=userid, last_name=last, first_name=first, middle_name=middle, pref_first_name=preffirst)
-        p.save()
-        
-        for slug, career, credits in courses:
-            c = CourseOffering.objects.get(slug=slug)
-            m = Member(person=p, offering=c, role='STUD', credits=credits, career=career, added_reason="AUTO")
-            m.save()
-            
-def create_tas():
-    """
-    import fake TAs
-    """
-    p = Person.objects.get(userid="0grad")
-    c = CourseOffering.objects.get(slug='1101-cmpt-165-d100')
-    m = Member(person=p, offering=c, role='TA', credits=0, career='NONS', added_reason="AUTO")
-    m.save()
-
-
-def main(passwd=None):
-    if passwd == None:
-        raise NotImplementedError, "TODO: web form input"
+    crs = CourseOffering.objects.get(slug=slug)
     
+    crs.set_labtut(True)
+    crs.set_url("http://www.cs.sfu.ca/CC/165/common/")
+    crs.set_taemail("cmpt-165-contact@sfu.ca")
+    crs.save()
+    for i in range(40):
+        lab = "D1%02i" % (random.randint(1,4))
+        fname = randname(8)
+        p = Person(emplid=fake_emplid(), userid="0aaa%i"%(i), last_name="Student", first_name=fname, middle_name="", pref_first_name=fname[:4])
+        p.save()
+        m = Member(person=p, offering=crs, role="STUD", credits=3, career="UGRD", added_reason="AUTO",
+                labtut_section=lab)
+        m.save()
+    
+    # create a TA
+    p = Person(emplid=fake_emplid(), userid="0grad1", last_name="Gradstudent", first_name="Douglas", middle_name="", pref_first_name="Doug")
+    p.save()
+    m = Member(person=p, offering=crs, role="TA", credits=0, career="NONS", added_reason="AUTO",
+            labtut_section=None)
+    m.save()
+    
+    
+    # create example activities
+    crs.activity_set.all().update(deleted=True)
+    a1 = NumericActivity(offering=crs, name="Assignment 1", short_name="A1", status="RLS",
+        due_date=crs.semester.start + datetime.timedelta(days=60), percent=10, group=False,
+        max_grade=10, position=1)
+    a1.save()
+    a2 = NumericActivity(offering=crs, name="Assignment 2", short_name="A2", status="URLS",
+        due_date=crs.semester.start + datetime.timedelta(days=70), percent=10, group=True,
+        max_grade=20, position=2)
+    a2.save()
+    pr = LetterActivity(offering=crs, name="Project", short_name="Proj", status="URLS",
+        due_date=crs.semester.start + datetime.timedelta(days=80), percent=40, group=True, position=3)
+    pr.save()
+    re = LetterActivity(offering=crs, name="Report", short_name="Rep", status="URLS",
+        due_date=crs.semester.start + datetime.timedelta(days=81), percent=10, group=False, position=4)
+    re.save()
+    ex = NumericActivity(offering=crs, name="Final Exam", short_name="Exam", status="URLS",
+        due_date=None, percent=30, group=False, max_grade=90, position=5)
+    ex.save()
+    to = CalNumericActivity(offering=crs, name="Final Percent", short_name="Perc", status="INVI",
+        due_date=None, percent=0, group=False, max_grade=100, formula="[[activitytotal]]", position=6)
+    to.save()
+    to = CalLetterActivity(offering=crs, name="Letter Grade", short_name="Letter", status="INVI",
+        due_date=None, percent=0, group=False, numeric_activity=to, position=6)
+    to.save()
+    
+    # make A1 submittable and markable
+    s = CodeComponent(activity=a1, title="Code File", description="The code you're submitting.",
+        allowed=".py,.java")
+    s.save()
+    s = PDFComponent(activity=a1, title="Report", description="Report on what you did.",
+        specified_filename="report.pdf")
+    s.save()
+    
+    m = ActivityComponent(numeric_activity=a1, max_mark=5, title="Part 1", description="Part 1 was done well and seems to work.", position=1)
+    m.save()
+    m = ActivityComponent(numeric_activity=a1, max_mark=5, title="Part 2", description="Part 2 was done well and seems to work.", position=2)
+    m.save()
+    
+    # create some groups
+    g = Group(name="SomeGroup", courseoffering=crs, manager=Member.objects.get(offering=crs, person__userid="0aaa0"))
+    g.save()
+    for userid in ['0aaa0', '0aaa1', '0aaa5', '0aaa10']:
+        gm = GroupMember(group=g, student=Member.objects.get(offering=crs, person__userid=userid), confirmed=True, activity=a2)
+        gm.save()
+    
+    g = Group(name="AnotherGroup", courseoffering=crs, manager=Member.objects.get(offering=crs, person__userid="0aaa4"))
+    g.save()
+    for userid in ['0aaa4', '0aaa6', '0aaa7', '0aaa14']:
+        gm = GroupMember(group=g, student=Member.objects.get(offering=crs, person__userid=userid), confirmed=True, activity=a2)
+        gm.save()
+        gm = GroupMember(group=g, student=Member.objects.get(offering=crs, person__userid=userid), confirmed=True, activity=pr)
+        gm.save()
+    
+def test_class_2(slug):
+    """
+    another test course with jsut some student and no other config
+    """
+    crs = CourseOffering.objects.get(slug=slug)
+    for i in range(40):
+        lab = "D1%02i" % (random.randint(1,4))
+        fname = randname(8)
+        p = Person(emplid=fake_emplid(), userid="0bbb%i"%(i), last_name="Student", first_name=fname, middle_name="", pref_first_name=fname[:4])
+        p.save()
+        m = Member(person=p, offering=crs, role="STUD", credits=3, career="UGRD", added_reason="AUTO",
+                labtut_section=lab)
+        m.save()
+
+
+def create_classes():
+    # full test data for this course
+    test_class_1(FULL_TEST_DATA)
+    # minimal test data for this course
+    test_class_2(MIN_TEST_DATA)
+
+
+def import_offering(db, offering):
+    """
+    Import all data for the course: instructors meeting times.
+    """
+    # drop all automatically-added members: will be re-added later on import
+    Member.objects.filter(added_reason="AUTO", offering=offering).update(role='DROP')
+    
+    import_instructors(db, offering)
+    import_meeting_times(db, offering)
+
+
+def serialize(filename):
+    """
+    output JSON of everything we created
+    """
+    objs = itertools.chain(
+            Semester.objects.all(),
+            CourseOffering.objects.all(),
+            MeetingTime.objects.all(),
+            Person.objects.all(),
+            Member.objects.all(),
+            Activity.objects.all(),
+            NumericActivity.objects.all(),
+            LetterActivity.objects.all(),
+            CalNumericActivity.objects.all(),
+            CalLetterActivity.objects.all(),
+            SubmissionComponent.objects.all(),
+            CodeComponent.objects.all(),
+            PDFComponent.objects.all(),
+            ActivityComponent.objects.all(),
+            Group.objects.all(),
+            GroupMember.objects.all(),
+            )
+    
+    data = serializers.serialize("json", objs, sort_keys=True, indent=1)
+    fh = open(filename, "w")
+    fh.write(data)
+    fh.close()
+
+
+def main(passwd):
     create_semesters()
     dbconn = MySQLdb.connect(host=import_host, user=import_user,
              passwd=passwd, db=import_name, port=import_port)
     db = dbconn.cursor()
-    
-    # Drop everybody (and re-add later if they're still around)
-    Member.objects.filter(added_reason="AUTO").update(role="DROP")
-    
-    # People to fetch: manually-added members of courses (and everybody else we find later)
-    members = [(m.person.emplid, m.offering) for m in Member.objects.exclude(added_reason="AUTO")]
-    
     print "importing course offerings"
-    import_offerings(db)
-    print "importing meeting times"
-    #import_meeting_times(db)
-    print "importing instructors"
-    members += import_instructors(db)
+    offerings = import_offerings(db, DATA_WHERE)
     
-    print "importing personal info"
-    import_people(db, members)
+    for o in offerings:
+        import_offering(db, o)
+    
+    # should now have all the "real" people: fake their emplids
     fake_emplids()
     
-    print "importing fake students"
-    create_students()
-    create_tas()
+    print "creating fake classess"
+    create_classes()
+
+    print "giving sysadmin permissions"
+    give_sysadmin(['ggbaker'])
     
-    
-    
+    serialize("new-test.json")
 
 
 if __name__ == "__main__":
-    import getpass
-    passwd = getpass.getpass('Database password: ')
+    passwd = raw_input()
+    hostname = socket.gethostname()
+    if hostname == 'courses':
+        raise NotImplementedError, "Don't do that."
     main(passwd)

@@ -30,10 +30,10 @@ $(document).ready(function() {
 <div>
 
 <ul>
-    <li><a href="{% url grades.views.add_numeric_activity course_slug=course.slug %}">Numeric Graded Activity</a></li>
-    <li><a href="{% url grades.views.add_letter_activity course_slug=course.slug %}">Letter Graded Activity</a></li>
-    <li><a href="{% url grades.views.add_cal_numeric_activity course_slug=course.slug %}">Calculated Numeric Activity</a></li>
-    <li><a href="{% url grades.views.add_cal_letter_activity course_slug=course.slug %}">Calculated Letter Activity</a></li>
+    <li><a href="{% url grades.views.add_numeric_activity course_slug=course.slug %}">Numeric Graded Activity</a> <span class="helptext">(an activity where students or groups will receive a numeric grade)</span></li>
+    <li><a href="{% url grades.views.add_letter_activity course_slug=course.slug %}">Letter Graded Activity</a> <span class="helptext">(an activity where students or groups will receive a letter grade)</span></li>
+    <li><a href="{% url grades.views.add_cal_numeric_activity course_slug=course.slug %}">Calculated Numeric Activity</a> <span class="helptext">(a numeric grade calculated by a formula)</span></li>
+    <li><a href="{% url grades.views.add_cal_letter_activity course_slug=course.slug %}">Calculated Letter Activity</a><span class="helptext">(a letter grade calculated by specifying cutoffs for each grade)</span></li>
 </ul>
 </div>
   <p>

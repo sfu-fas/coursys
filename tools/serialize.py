@@ -1,5 +1,6 @@
 import os, itertools
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+sys.path.append('.')
 
 # create "objs" by selecting all objects you want to serialize
 from coredata.models import *

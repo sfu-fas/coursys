@@ -12,7 +12,7 @@ today = datetime.date.today()
 cutoff = today - datetime.timedelta(days=30)
 
 # these users will be given sysadmin role (for bootstrapping)
-sysadmin = ["ggbaker"]
+sysadmin = ["ggbaker", "sumo"]
 
 # first term we care even vaguely about in import (further selection happens later too)
 FIRSTTERM = "1104"
@@ -20,7 +20,9 @@ DATA_WHERE = '(subject="CMPT" or subject="MACM" or subject="CRIM") and strm>="'+
 
 # artificial combined sections to create: kwargs for CourseOffering creation,
 # plus 'subsections' list of sections we're combining.
-combined_sections = [
+
+try:
+    combined_sections = [
         {
             'subject': 'CMPT', 'number': '125', 'section': 'X100',
             'semester': Semester.objects.get(name="1114"),
@@ -36,7 +38,9 @@ combined_sections = [
             ]
         },
         ]
-
+except CourseOffering.DoesNotExist:
+    print "unable to build combined_sections"
+    combined_sections = []
 
 import_host = '127.0.0.1'      
 import_user = 'ggbaker'
@@ -126,7 +130,7 @@ def import_semester(sems):
 
 
 @transaction.commit_on_success
-def import_offerings(db):
+def import_offerings(db, DATA_WHERE):
     """
     Import course offerings.  Returns set of CourseOffering objects imported.
     """
@@ -410,11 +414,21 @@ def combine_sections(db):
         course.save()
 
 
-
-
+@transaction.commit_on_success
+def give_sysadmin(sysadmin):
+    """
+    Give specified users sysadmin role (for bootstrapping)
+    """
+    for userid in sysadmin:
+        p = Person.objects.get(userid=userid)
+        r = Role.objects.filter(person=p, role="SYSA")
+        if not r:
+            r = Role(person=p, role="SYSA", department="!!!!")
+            r.save()
 
 
 def main():
+    global DATA_WHERE, sysadmin
     dbpasswd = raw_input()
     tapasswd = raw_input()
 
@@ -431,7 +445,7 @@ def main():
     time.sleep(1)
     
     print "importing course offering list"
-    offerings = import_offerings(db)
+    offerings = import_offerings(db, DATA_WHERE)
     offerings = list(offerings)
     offerings.sort()
     #offerings = [CourseOffering.objects.get(slug="1114-cmpt-120-d100"), CourseOffering.objects.get(slug="1114-cmpt-470-d100")]
@@ -445,12 +459,7 @@ def main():
     combine_sections(db)
     
     print "giving sysadmin permissions"
-    for userid in sysadmin:
-        p = Person.objects.get(userid=userid)
-        r = Role.objects.filter(person=p, role="SYSA")
-        if not r:
-            r = Role(person=p, role="SYSA", department="!!!!")
-            r.save()
+    give_sysadmin(sysadmin)
     
     # cleanup sessions table
     Session.objects.filter(expire_date__lt=datetime.datetime.now()).delete()

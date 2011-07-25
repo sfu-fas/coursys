@@ -276,11 +276,11 @@ class StudentSearchForm(forms.Form):
              widget=forms.TextInput(attrs={'size':'15'}))
 
 class CourseConfigForm(forms.Form):
-    url = forms.URLField(required=False, verify_exists=True, label='URL:',
+    url = forms.URLField(required=False, verify_exists=True, label='Course URL:',
             help_text='Course home page address',
             widget=forms.TextInput(attrs={'size':'60'}))
     taemail = forms.EmailField(required=False, label="TA Contact Email:",
-            help_text="Email address to contact the TAs: set if you have a contact address and don't want to encourage use of TAs' individual addresses",)
+            help_text="Email address to contact the TAs: set if you have a central contact address/list and don't want to encourage use of TAs' individual emails",)
 
 
 class CutoffForm(forms.Form):
