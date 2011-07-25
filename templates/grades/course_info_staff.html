@@ -110,9 +110,9 @@
     <h2 class="heading">Actions</h2>
     <ul>
 	<li><a href="{% url marking.views.copy_course_setup course_slug=course.slug %}">Copy Course Setup</a></li>
-	<li><a href="{% url grades.views.course_url course_slug=course.slug %}">Edit Course URL</a></li>
+	<li><a href="{% url grades.views.course_config course_slug=course.slug %}">Edit Course Config</a></li>
         <li><a href="{% url grades.views.activity_choice course_slug=course.slug %}">Add Activity</a></li>
-        <li class="newsec"><a href="{% url grades.views.class_list course_slug=course.slug %}">Class List</a></li>
+        <li class="newsec"><a href="{% url grades.views.class_list course_slug=course.slug %}">Display Class List</a></li>
         <li><a href="{% url grades.views.all_grades course_slug=course.slug %}">Display All Grades</a></li>
         <li><a href="{% url grades.views.student_search course_slug=course.slug %}">Student Search</a></li>
 	<li class="newsec"><a href="{% url dashboard.views.new_message course_slug=course.slug %}">Create News Item</a></li>

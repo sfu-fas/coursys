@@ -228,6 +228,8 @@ class CourseOffering(models.Model):
     
     defaults = {'taemail': None, 'url': None, 'labtut': False}
     labtut, set_labtut = getter_setter('labtut')
+    url, set_url = getter_setter('url')
+    taemail, set_taemail = getter_setter('taemail')
     
     def autoslug(self):
         # changed slug format for fall 2011

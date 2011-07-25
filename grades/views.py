@@ -10,7 +10,7 @@ from courselib.auth import *
 from grades.models import ACTIVITY_STATUS, all_activities_filter, Activity, \
                         NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity,ACTIVITY_TYPES
 from grades.forms import NumericActivityForm, LetterActivityForm, CalNumericActivityForm, \
-                         ActivityFormEntry, FormulaFormEntry, StudentSearchForm, FORMTYPE, GROUP_STATUS_MAP, URLForm, CalLetterActivityForm, Activity_ChoiceForm, \
+                         ActivityFormEntry, FormulaFormEntry, StudentSearchForm, FORMTYPE, GROUP_STATUS_MAP, CourseConfigForm, CalLetterActivityForm, Activity_ChoiceForm, \
                          CutoffForm
 from grades.models import *
 from grades.utils import StudentActivityInfo, reorder_course_activities, create_StudentActivityInfo_list, \
@@ -114,30 +114,28 @@ def _course_info_staff(request, course_slug):
 
 
 @requires_course_staff_by_slug
-def course_url(request, course_slug):
+def course_config(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     if request.method=="POST":
-        form = URLForm(request.POST)
+        form = CourseConfigForm(request.POST)
         if form.is_valid():
-            course.config['url'] = form.cleaned_data['url'] 
+            course.set_url(form.cleaned_data['url'])
+            course.set_taemail(form.cleaned_data['taemail'])
             course.save()
-            messages.success(request, 'Course home page updated')
+            messages.success(request, 'Course config updated')
 
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=("updated URL for %s") % (course),
+                  description=("updated config for %s") % (course),
                   related_object=course)
             l.save()
 
             return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
     else:
-        url = ''
-        if 'url' in course.config:
-            url = course.config['url']
-        form = URLForm({'url': url})
+        form = CourseConfigForm({'url': course.url(), 'taemail': course.taemail()})
     
     context = {'course': course, 'form': form}
-    return render_to_response("grades/course_url.html", context,
+    return render_to_response("grades/course_config.html", context,
                               context_instance=RequestContext(request))
 
         
@@ -1063,9 +1061,9 @@ def all_grades_csv(request, course_slug):
 @requires_course_staff_by_slug
 def class_list(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    members = Member.objects.filter(offering=course, role="STUD").select_related('person')
+    members = Member.objects.filter(offering=course, role="STUD").select_related('person', 'offering')
     
-    gms = GroupMember.objects.filter(confirmed=True, student__offering=course).select_related('group')
+    gms = GroupMember.objects.filter(confirmed=True, student__offering=course).select_related('group', 'group__courseoffering')
     groups = {}
     for gm in gms:
         gs = groups.get(gm.student_id, set())

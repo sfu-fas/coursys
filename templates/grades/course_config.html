@@ -1,12 +1,12 @@
 {% extends "grades/base.html" %}
 {% load grade_student %}
 
-{% block h1 %}{{course.name}} URL{% endblock %}
-{% block title %}{{course.name}} URL{% endblock %}
+{% block h1 %}{{course.name}} Config{% endblock %}
+{% block title %}{{course.name}} Config{% endblock %}
 
 {% block grades_headextra %}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; Set Course URL</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; Edit Course Config</li>{% endblock %}
 
 
 {% block content %}
@@ -17,11 +17,12 @@
         {{ form.non_field_errors }}
     </p>
     {% endif %}
-    <form action="{% url grades.views.course_url course_slug=course.slug %}" method="post">{% csrf_token %}
+    <form action="{% url grades.views.course_config course_slug=course.slug %}" method="post">{% csrf_token %}
         <fieldset>
-            <legend>Course Home Page</legend>
+            <legend>Course Settings</legend>
             <ul>
                 {{form.url|activity_field}}
+                {{form.taemail|activity_field}}
                 <li>
                     <input class="submit" type="submit" value="Submit" />
                 </li>

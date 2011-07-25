@@ -275,10 +275,12 @@ class StudentSearchForm(forms.Form):
     search = forms.CharField(label="Userid or student number",
              widget=forms.TextInput(attrs={'size':'15'}))
 
-class URLForm(forms.Form):
+class CourseConfigForm(forms.Form):
     url = forms.URLField(required=False, verify_exists=True, label='URL:',
-                                 help_text='Course home page address',
-                                 widget=forms.TextInput(attrs={'size':'60'}))
+            help_text='Course home page address',
+            widget=forms.TextInput(attrs={'size':'60'}))
+    taemail = forms.EmailField(required=False, label="TA Contact Email:",
+            help_text="Email address to contact the TAs: set if you have a contact address and don't want to encourage use of TAs' individual addresses",)
 
 
 class CutoffForm(forms.Form):
