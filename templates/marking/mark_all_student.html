@@ -8,7 +8,7 @@ $(document).ready(function() {
 		"bJQueryUI": true,
 		"bSort": true,
 		"bPaginate": false,	/* turn off the pagination */
-		"aoColumns": [null, null, null, { "sType": "by-mark" }, { "bSearchable": false, "bSortable": false }]
+		"aoColumns": [null, null, null, null, { "sType": "by-mark" }, { "bSearchable": false, "bSortable": false }]
 	});
 });
 //]]>
@@ -41,9 +41,10 @@ $(document).ready(function() {
      <table class="display" id="all_marks">
         <thead class="form_head">
             <tr>
-                <th>Student Name</th>
-		<th>Student Number</th>
+                <th>Name</th>
+		<th>Student #</th>
 		<th>User ID</th>
+		{% if course.labtut %}<th>Lab/Tut</th>{% endif %}
 		<th>Current Grade</th>
 		<th>New Grade</th>
 	    </tr>
@@ -51,14 +52,16 @@ $(document).ready(function() {
         <tbody>
 	    {% for mark_row in mark_all_rows %}
 	    {% with mark_row.student as student %}
+	    {% with mark_row.member as member %}
 	    <tr>
 		<td>{{ student.sortname }}</td>
 		{% with mark_row.form as form %}
 		<td>{{ student.emplid }}</td>
 		<td>{{ student.userid }}</td>
+		{% if course.labtut %}<td>{{member.labtut_section}}</td>{% endif %}
 		<td>{{ mark_row.current_grade }}</td>
 		<td>
-		{{ form.value }} / {{activity.max_grade}}
+		{{ form.value }}&nbsp;/&nbsp;{{activity.max_grade}}
 		{% if form.value.errors %}
 		<div class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/>&nbsp;{{form.value.errors.0}}</div>
 		{% endif %} 
@@ -66,9 +69,11 @@ $(document).ready(function() {
 		{% endwith %}	    
 	    </tr>
 	    {%endwith%}
+	    {%endwith%}
 	    {% empty %}
 	    <tr>
 		<td class="empty">No students</td>
+		<td></td>
 		<td></td>
 		<td></td>
 		<td></td>

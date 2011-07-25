@@ -1126,7 +1126,7 @@ def _mark_all_students_letter(request, course, activity):
             else:
                 current_grade = lgrade.letter_grade                    
             lgrades.append(lgrade) 
-            rows.append({'student': student, 'current_grade' : current_grade, 'form' : entry_form})    
+            rows.append({'student': student, 'member': member, 'current_grade' : current_grade, 'form' : entry_form})    
        
         # save if needed 
         if error_info == None:
@@ -1190,14 +1190,14 @@ def _mark_all_students_letter(request, course, activity):
                 entry_form = MarkEntryForm_LetterGrade(initial = {'value': initial_value}, prefix = student.userid)
             else:
                 entry_form = MarkEntryForm_LetterGrade(prefix = student.userid)                                    
-            rows.append({'student': student, 'current_grade' : current_grade, 'form' : entry_form}) 
+            rows.append({'student': student, 'member': member, 'current_grade' : current_grade, 'form' : entry_form}) 
                
     if error_info:
         messages.add_message(request, messages.ERROR, error_info) 
 
     if fileform == None:
         fileform = UploadGradeFileForm_LetterGrade(prefix = 'import-file')   
-    
+
     return render_to_response("marking/mark_all_student_lettergrade.html",{'course': course, 'activity': activity,\
                               'fileform' : fileform,'too_many': len(rows) >= 100,\
                               'mark_all_rows': rows }, context_instance = RequestContext(request))
@@ -1253,26 +1253,26 @@ def _mark_all_students_numeric(request, course, activity):
     imported_data = {} #may get filled with data from an imported file, a mapping from student's userid to grade
     error_info = None 
     warning_info = []
-    memberships = Member.objects.select_related('person').filter(offering = course, role = 'STUD')    
+    memberships = Member.objects.select_related('person').filter(offering=course, role='STUD')   
     
     if request.method == 'POST' and request.GET.get('import') != 'true':
         ngrades = []   
         # get data from the mark entry forms
         for member in memberships: 
             student = member.person  
-            entry_form = MarkEntryForm(data = request.POST, prefix = student.userid)
+            entry_form = MarkEntryForm(data = request.POST, prefix=student.userid)
             if entry_form.is_valid() == False:
                 error_info = "Error found"           
             ngrade = None
             try:
-                ngrade = NumericGrade.objects.get(activity = activity, member = member)
+                ngrade = NumericGrade.objects.get(activity=activity, member=member)
             except NumericGrade.DoesNotExist:
                 current_grade = 'no grade'
             else:
                 current_grade = ngrade.value                    
             ngrades.append(ngrade) 
-            rows.append({'student': student, 'current_grade' : current_grade, 'form' : entry_form})    
-       
+            rows.append({'student': student, 'member': member, 'current_grade' : current_grade, 'form' : entry_form})
+
         # save if needed 
         if error_info == None:
             updated = 0                 
@@ -1336,7 +1336,7 @@ def _mark_all_students_numeric(request, course, activity):
                 entry_form = MarkEntryForm(initial = {'value': initial_value}, prefix = student.userid)
             else:
                 entry_form = MarkEntryForm(prefix = student.userid)                                    
-            rows.append({'student': student, 'current_grade' : current_grade, 'form' : entry_form}) 
+            rows.append({'student': student, 'member': member, 'current_grade' : current_grade, 'form' : entry_form}) 
                
     if error_info:
         messages.add_message(request, messages.ERROR, error_info) 

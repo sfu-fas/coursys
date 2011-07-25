@@ -187,6 +187,16 @@ CAMPUS_CHOICES = (
         )
 CAMPUSES = dict(CAMPUS_CHOICES)
 
+
+# tool to create convenient getters and setters for .config fields
+def getter_setter(field):
+    def getter(self):
+        return self.config[field] if field in self.config else self.defaults[field]
+    def setter(self, val):
+        self.config[field] = val
+    return getter, setter
+
+
 class CourseOffering(models.Model):
     subject = models.CharField(max_length=4, null=False, db_index=True,
         help_text='Subject code, like "CMPT" or "FAN".')
@@ -214,6 +224,10 @@ class CourseOffering(models.Model):
       # c.config['url']: URL of course home page
       # c.config['department']: department responsible for course (used by discipline module)
       # c.config['taemail']: TAs' contact email (if not their personal email)
+      # c.config['labtut']: are there lab sections? (default False)
+    
+    defaults = {'taemail': None, 'url': None, 'labtut': False}
+    labtut, set_labtut = getter_setter('labtut')
     
     def autoslug(self):
         # changed slug format for fall 2011
