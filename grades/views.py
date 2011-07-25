@@ -1061,6 +1061,28 @@ def all_grades_csv(request, course_slug):
     return response
 
 @requires_course_staff_by_slug
+def class_list(request, course_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    members = Member.objects.filter(offering=course, role="STUD").select_related('person')
+    
+    gms = GroupMember.objects.filter(confirmed=True, student__offering=course).select_related('group')
+    groups = {}
+    for gm in gms:
+        gs = groups.get(gm.student_id, set())
+        groups[gm.student_id] = gs
+        gs.add(gm.group)
+    print groups
+    
+    rows = []
+    for m in members:
+        data = {'member': m, 'groups': groups.get(m.id, [])}
+        rows.append(data)
+    
+    context = {'course': course, 'rows': rows}
+    return render_to_response('grades/class_list.html', context, context_instance=RequestContext(request))
+
+
+@requires_course_staff_by_slug
 def student_search(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     if request.method == 'POST':

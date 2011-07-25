@@ -1,0 +1,65 @@
+{% extends "grades/base.html" %}
+{% load grade_student %}
+
+{% block title %}{{ course.name }} Class List{% endblock %}
+{% block h1 %}{{ course.name }} Class List{% endblock %}
+
+{% block grades_headextra %}
+<script type="text/javascript">
+    $(document).ready(function() {
+	// activate dataTable ui
+	oTable = $('#students').dataTable({
+	    "bJQueryUI": true,
+	    "bPaginate": false,
+	    "aaSorting": [[0, "asc"], [1, "asc"]],
+	    "aoColumns": [
+		    null,
+		    null,
+		    null,
+		    null,
+		    {% if course.labtut %}null,{% endif %}
+		    null,
+		]
+	});
+    });
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; Class List</li>{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+<div class="datatable_container">
+    <table class="display" id="students">
+        <thead>
+            <tr>
+                <th scope="col">Last Name</th>
+                <th scope="col">First Name</th>
+		<th scope="col">User ID</th>
+		<th scope="col">Student #</th>
+		{% if course.labtut %}<th scope="col">Lab/Tutorial</th>{% endif %}
+		<th scope="col">Group(s)</th>
+            </tr>
+	</thead>
+        <tbody>
+        {% for data in rows %}
+        <tr>
+            <td scope="row">{{data.member.person.last_name}}</td>
+            <td scope="row">{{data.member.person.first_name}}</td>
+            <td>{{data.member.person.userid}}</td>
+            <td><a href="{{s.get_absolute_url}}">{{data.member.person.emplid}}</a></td>
+            {% if course.labtut %}<td>{{data.member.labtut_section}}</td>{% endif %}
+            <td>{% for g in data.groups %}
+            <a href="{{g.get_absolute_url}}">{{g.name}}</a>{% if not forloop.last %},{% endif %}
+            {% endfor %}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+
+{% endblock %}
