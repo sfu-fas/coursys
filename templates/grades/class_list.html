@@ -49,7 +49,7 @@
             <td scope="row">{{data.member.person.last_name}}</td>
             <td scope="row">{{data.member.person.first_name}}</td>
             <td>{{data.member.person.userid}}</td>
-            <td><a href="{{s.get_absolute_url}}">{{data.member.person.emplid}}</a></td>
+            <td><a href="{{data.member.get_absolute_url}}">{{data.member.person.emplid}}</a></td>
             {% if course.labtut %}<td>{{data.member.labtut_section}}</td>{% endif %}
             <td>{% for g in data.groups %}
             <a href="{{g.get_absolute_url}}">{{g.name}}</a>{% if not forloop.last %},{% endif %}
