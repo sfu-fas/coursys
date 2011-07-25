@@ -318,6 +318,8 @@ class Member(models.Model):
         help_text='Number of credits this course is worth.')
     career = models.CharField(max_length=4, choices=CAREER_CHOICES)
     added_reason = models.CharField(max_length=4, choices=REASON_CHOICES)
+    labtut_section = models.CharField(max_length=4, null=True, blank=True,
+        help_text='Section should be in the form "C101" or "D103".')
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
       # m.config['origsection']: The originating section (for crosslisted sections combined here)
       #     represented as a CourseOffering.slug
