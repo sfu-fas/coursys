@@ -286,7 +286,7 @@ def import_meeting_times(db, offering):
 
 
 
-def ensure_member(person, offering, role, credits, added_reason, career):
+def ensure_member(person, offering, role, credits, added_reason, career, labtut_section=None):
     """
     Make sure this member exists with the right properties.
     """
@@ -296,15 +296,23 @@ def ensure_member(person, offering, role, credits, added_reason, career):
         raise KeyError, "Already duplicate instructor entries: %r" % (m_old)
     elif len(m_old)==1:
         m = m_old[0]
+        m.role = role
+        m.labtut_section = labtut_section
         m.credits = credits
         m.added_reason = added_reason
         m.career = career
-        m.role = role
     else:
-        m = Member(person=person, offering=offering, role=role,
+        m = Member(person=person, offering=offering, role=role, labtut_section=labtut_section,
                 credits=credits, added_reason=added_reason, career=career)
     
+    # if offering is being given lab/tutorial sections, flag it as having them
+    # there must be some way to detect this in ps_class_tbl, but I can't see it.
+    if labtut_section and not offering.labtut():
+        offering.set_labtut(True)
+        offering.save()
+    
     m.save()
+    return m
 
 
 def import_instructors(db, offering):
@@ -323,18 +331,26 @@ def import_tas(db, tadb, offering):
 
 
 def import_students(db, offering):
-    n = db.execute('SELECT emplid, acad_career, unt_taken FROM ps_stdnt_enrl WHERE class_nbr=%s and strm=%s and class_section=%s and stdnt_enrl_status="E"', (offering.class_nbr, offering.semester.name, offering.section))
+    # find any lab/tutorial sections
+    n = db.execute('SELECT emplid, class_section FROM ps_stdnt_enrl WHERE subject=%s and catalog_nbr=%s and strm=%s and class_section LIKE %s and stdnt_enrl_status="E"', (offering.subject, offering.number, offering.semester.name, offering.section[0:2]+"%"))
+    labtut = {}
+    for emplid, section in db:
+        if section == offering.section:
+            # not interested in lecture section now.
+            continue
+        labtut[emplid] = section
     
+    n = db.execute('SELECT emplid, acad_career, unt_taken FROM ps_stdnt_enrl WHERE class_nbr=%s and strm=%s and class_section=%s and stdnt_enrl_status="E"', (offering.class_nbr, offering.semester.name, offering.section))
     for emplid, acad_career, unt_taken in db:
         p = get_person(db, emplid)
-        ensure_member(p, offering, "STUD", unt_taken, "AUTO", acad_career)
-
+        sec = labtut.get(emplid, None)
+        ensure_member(p, offering, "STUD", unt_taken, "AUTO", acad_career, labtut_section=sec)
 
 
 @transaction.commit_on_success
-def import_members(db, tadb, offering):
+def import_offering(db, tadb, offering):
     """
-    Import all members of the course: instructors, TAs, students.
+    Import all data for the course: instructors, TAs, students, meeting times.
     """
     print " ", offering
     # drop all automatically-added members: will be re-added later on import
@@ -418,10 +434,12 @@ def main():
     offerings = import_offerings(db)
     offerings = list(offerings)
     offerings.sort()
+    #offerings = [CourseOffering.objects.get(slug="1114-cmpt-120-d100"), CourseOffering.objects.get(slug="1114-cmpt-470-d100")]
 
     print "importing course members"
     for o in offerings:
-        import_members(db, tadb, o)
+        import_offering(db, tadb, o)
+        time.sleep(1)
     
     print "combining joint offerings"
     combine_sections(db)
