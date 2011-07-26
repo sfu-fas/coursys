@@ -19,7 +19,7 @@ from grades.utils import StudentActivityInfo, reorder_course_activities, create_
 from grades.utils import ValidationError, parse_and_validate_formula, calculate_numeric_grade,calculate_letter_grade
 from marking.models import get_group_mark, StudentActivityMark, GroupActivityMark, ActivityComponent
 from groups.models import *
-from submission.models import SubmissionComponent, Submission, GroupSubmission, StudentSubmission, get_current_submission
+from submission.models import SubmissionComponent, Submission, GroupSubmission, StudentSubmission, get_current_submission, select_all_submitted_components, select_all_components
 from log.models import LogEntry
 from django.contrib import messages
 import pickle, datetime, csv
@@ -358,10 +358,29 @@ def activity_stat(request, course_slug, activity_slug):
         activity_stat = generate_letter_activity_stat(activity)
         GradeClass = LetterGrade
     
+    # counts submissions (individual & group)
     submark_stat = {}
     submark_stat['submittable'] = bool(SubmissionComponent.objects.filter(activity=activity))
-    submark_stat['studentsubmissons'] = len(set([s.member for s in StudentSubmission.objects.filter(activity=activity)]))
-    submark_stat['groupsubmissons'] = len(set([s.group for s in GroupSubmission.objects.filter(activity=activity)]))
+    submark_stat['studentsubmissons'] = len(set((s.member for s in StudentSubmission.objects.filter(activity=activity))))
+    submark_stat['groupsubmissons'] = len(set((s.group for s in GroupSubmission.objects.filter(activity=activity))))
+    
+    # build counts of how many times each component has been submitted (by unique members/groups)
+    sub_comps = select_all_components(activity)
+    subed_comps = dict(((comp.id, set()) for comp in sub_comps))
+    # build dictionaries of submisson.id -> owner so we can look up quickly when scanning
+    subid_dict = dict(((s.id, ("s", s.member_id)) for s in StudentSubmission.objects.filter(activity=activity)))
+    subid_dict.update( dict(((s.id, ("g", s.group_id)) for s in GroupSubmission.objects.filter(activity=activity))) )
+    
+    # build sets of who has submitted each SubmissionComponent
+    for sc in select_all_submitted_components(activity=activity):
+        owner = subid_dict[sc.submission_id]
+        subed_comps[sc.component_id].add(owner)
+    
+    # actual list of components and counts
+    sub_comp_rows = []
+    for comp in sub_comps:
+        data = {'comp': comp, 'count': len(subed_comps[comp.id])}
+        sub_comp_rows.append(data)
     
     submark_stat['studentgrades'] = len(set([s.member for s in GradeClass.objects.filter(activity=activity)]))
     if activity.is_numeric():
@@ -372,7 +391,7 @@ def activity_stat(request, course_slug, activity_slug):
         submark_stat['markable'] = False
 
 
-    context = {'course': course, 'activity': activity, 'activity_stat': activity_stat, 'display_summary': display_summary, 'submark_stat': submark_stat}
+    context = {'course': course, 'activity': activity, 'activity_stat': activity_stat, 'display_summary': display_summary, 'submark_stat': submark_stat, 'sub_comp_rows': sub_comp_rows}
     return render_to_response('grades/activity_stat.html', context, context_instance=RequestContext(request))
 
 @requires_course_staff_by_slug

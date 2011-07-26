@@ -52,7 +52,7 @@ def select_all_submitted_components(activity):
     submitted_component = [] # list of submitted component
     found = set() # keep track of what has been found so we can exclude less-specific duplicates.
     for Type in ALL_TYPE_CLASSES:
-        subs = list(Type.SubmittedComponent.objects.filter(submission__activity = activity))
+        subs = list(Type.SubmittedComponent.objects.filter(submission__activity=activity))
         submitted_component.extend(s for s in subs if s.id not in found)
         found.update( (s.id for s in subs) )
     submitted_component.sort()
