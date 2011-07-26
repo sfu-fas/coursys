@@ -9,9 +9,8 @@ from django.core.urlresolvers import reverse
 
 class DashboardTest(TestCase):
     fixtures = ['test_data']
-
     def setUp(self):
-        pass
+        self.c_slug = '1114-cmpt-120-d100'
 
     def test_front_page(self):
         # log in as student "0aaa0"
@@ -22,7 +21,7 @@ class DashboardTest(TestCase):
         self.assertEquals(response.status_code, 200)
         
         # this student is in this course: check for a link to its page
-        c = CourseOffering.objects.get(slug='1101-cmpt-165-d100')
+        c = CourseOffering.objects.get(slug=self.c_slug)
         self.assertContains(response, '<a href="%s"' % (c.get_absolute_url()) )
 
         validate_content(self, response.content, "index page")
@@ -39,9 +38,9 @@ class DashboardTest(TestCase):
         response = client.get(c.get_absolute_url())
         self.assertEquals(response.status_code, 302)
 
-        # log in as student "0kvm"
-        client.login(ticket="0kvm", service=CAS_SERVER_URL)
-        p = Person.objects.get(userid="0kvm")
+        # log in as student "0aaa0"
+        client.login(ticket="0aaa0", service=CAS_SERVER_URL)
+        p = Person.objects.get(userid="0aaa0")
 
         # not in the course: should get 403 Forbidden
         response = client.get(c.get_absolute_url())
@@ -65,11 +64,11 @@ class DashboardTest(TestCase):
         Check the requires_course_staff_by_slug decorator.
         """
         # a URL and some members/non-members
-        url = "/1101-cmpt-165-d100/a1/marking/"
+        url = "/"+self.c_slug+"/a1/marking/"
         instr = "ggbaker"
-        ta = "0grad"
+        ta = "0grad1"
         student = "0aaa0"
-        nobody = "0kvm"
+        nobody = "0bbb6"
         
         client = Client()
 
@@ -99,49 +98,50 @@ class DashboardTest(TestCase):
         Test impersonation logic
         """
         client = Client()
-        url = reverse('groups.views.groupmanage', kwargs={'course_slug': '1101-cmpt-120-d100'})
+        url = reverse('groups.views.groupmanage', kwargs={'course_slug': self.c_slug})
 
         # login as a sysadmin
-        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        client.login(ticket="sumo", service=CAS_SERVER_URL)
         # not instructor, so can't really access
         response = client.get(url)
         self.assertEquals(response.status_code, 403)
         # ...but can impersonate instructor
-        response = client.get(url, {"__impersonate": "diana"})
+        response = client.get(url, {"__impersonate": "ggbaker"})
         self.assertEquals(response.status_code, 200)
-        self.assertContains(response, 'Logged in as diana')
+        self.assertContains(response, 'Logged in as ggbaker')
 
         # login as student
-        client.login(ticket="0bbb0", service=CAS_SERVER_URL)
+        client.login(ticket="0aaa0", service=CAS_SERVER_URL)
         # can access normally
         response = client.get(url)
         self.assertEquals(response.status_code, 200)
-        self.assertContains(response, 'Logged in as 0bbb0')
+        self.assertContains(response, 'Logged in as 0aaa0')
         # try to impersonate anybody: not allowed
-        response = client.get(url, {"__impersonate": "0bbb1"})
+        response = client.get(url, {"__impersonate": "0aaa1"})
         self.assertEquals(response.status_code, 403)
-        response = client.get(url, {"__impersonate": "diana"})
+        response = client.get(url, {"__impersonate": "ggbaker"})
         self.assertEquals(response.status_code, 403)
 
         # login as instructor
-        client.login(ticket="diana", service=CAS_SERVER_URL)
+        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
         # can access course page
         response = client.get(url)
         self.assertEquals(response.status_code, 200)
-        self.assertContains(response, 'Logged in as diana')
+        self.assertContains(response, 'Logged in as ggbaker')
         # try to impersonate non-student: not allowed
-        response = client.get(url, {"__impersonate": "0aaa0"})
+        response = client.get(url, {"__impersonate": "0bbb0"})
         self.assertEquals(response.status_code, 403)
         # try to impersonate student: should be them
-        response = client.get(url, {"__impersonate": "0bbb0"})
+        response = client.get(url, {"__impersonate": "0aaa0"})
         self.assertEquals(response.status_code, 200)
-        self.assertContains(response, 'Logged in as 0bbb0')
+        self.assertContains(response, 'Logged in as 0aaa0')
         
         # try some other course: shouldn't be able to impersonate
-        url = reverse('groups.views.groupmanage', kwargs={'course_slug': '1101-cmpt-165-d100'})
+        url = reverse('groups.views.groupmanage', kwargs={'course_slug': '1114-cmpt-310-d100'})
         response = client.get(url, {"__impersonate": "0aaa0"})
         self.assertEquals(response.status_code, 403)
-        # try non-course URL: shouldn't be able to impersonate
+        # try non-course URL as non-admin: shouldn't be able to impersonate
+        client.login(ticket="diana", service=CAS_SERVER_URL)
         url = reverse('dashboard.views.index', kwargs={})
         response = client.get(url, {"__impersonate": "0aaa0"})
         self.assertEquals(response.status_code, 403)

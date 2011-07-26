@@ -46,7 +46,7 @@ class GradesTest(TestCase):
         """
         # set up course and related data
         s, c = create_offering()
-        p = Person.objects.get(userid="0kvm")
+        p = Person.objects.get(userid="0aaa0")
         m = Member(person=p, offering=c, role="STUD", credits=3, added_reason="UNK")
         m.save()
        
@@ -178,7 +178,7 @@ class GradesTest(TestCase):
         p = Person.objects.get(userid="ggbaker")
         m = Member(person=p, offering=c, role="INST", added_reason="UNK")
         m.save()
-        p = Person.objects.get(userid="0kvm")
+        p = Person.objects.get(userid="0aaa0")
         m = Member(person=p, offering=c, role="STUD", added_reason="UNK")
         m.save()
         
@@ -190,13 +190,13 @@ class GradesTest(TestCase):
         self.assertContains(response, 'href="' + reverse('groups.views.groupmanage', kwargs={'course_slug':c.slug}) +'"')
 
         basic_page_tests(self, client, c.get_absolute_url())
-        basic_page_tests(self, client, c.get_absolute_url() + '_students/0kvm')
+        basic_page_tests(self, client, c.get_absolute_url() + '_students/0aaa0')
         basic_page_tests(self, client, reverse('grades.views.add_numeric_activity', kwargs={'course_slug':c.slug}))
         basic_page_tests(self, client, reverse('grades.views.add_letter_activity', kwargs={'course_slug':c.slug}))
 
         # test student pages
         client = Client()
-        client.login(ticket="0kvm", service=CAS_SERVER_URL)
+        client.login(ticket="0aaa0", service=CAS_SERVER_URL)
         response = basic_page_tests(self, client, '/' + c.slug + '/')
         self.assertContains(response, "Gregory Baker")
         self.assertContains(response, 'href="' + reverse('groups.views.groupmanage', kwargs={'course_slug':c.slug}) +'"')
@@ -211,7 +211,7 @@ class GradesTest(TestCase):
         Work through the site as an instructor
         """
         s, c = create_offering()
-        userid1 = "0kvm"
+        userid1 = "0bbb0"
         userid2 = "0aaa0"
         userid3 = "0aaa1"
         userid4 = "ggbaker"
@@ -304,7 +304,7 @@ class GradesTest(TestCase):
         p = Person.objects.get(userid="ggbaker")
         m = Member(person=p, offering=c, role="INST", added_reason="UNK")
         m.save()
-        p = Person.objects.get(userid="0kvm")
+        p = Person.objects.get(userid="0aaa0")
         m = Member(person=p, offering=c, role="STUD", added_reason="UNK")
         m.save()
         
@@ -456,8 +456,8 @@ class GradesTest(TestCase):
         gs_sort = sorted_letters(gs)
         self.assertEquals(gs_sort, ['A+', 'A', 'A', 'B+', 'B', 'B-', 'C-', 'D', 'P', 'F', 'DE', 'N', 'N', 'N', 'GN'])
         
-        # pre-sort by name for median testing (so we know which subsets we're grabbing)
-        gs = [(g.member.person.first_name, g.letter_grade) for g in g_objs]
+        # pre-sort by userid for median testing (so we know which subsets we're grabbing)
+        gs = [(int(g.member.person.userid[4:]), g.letter_grade) for g in g_objs]
         gs.sort()
         gs = [g for u,g in gs]
 

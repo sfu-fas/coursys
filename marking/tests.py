@@ -1,10 +1,3 @@
-"""
-This file demonstrates two different styles of tests (one doctest and one
-unittest). These will both pass when you run "manage.py test".
-
-Replace these with more appropriate tests for your application.
-"""
-
 from django.test import TestCase
 from django.test.client import Client
 from coredata.models import *
@@ -21,7 +14,7 @@ import decimal
 class BasicTest(TestCase):
     fixtures = ['test_data']    
     def setUp(self):
-        self.c_slug = '1101-cmpt-165-d100'
+        self.c_slug = '1114-cmpt-120-d100'
     
     def test_add_activity_components(self):
         

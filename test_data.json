@@ -8057,6 +8057,30 @@
  }, 
  {
   "fields": {
+   "emplid": 200020101, 
+   "first_name": "sumo", 
+   "last_name": "Kindersley", 
+   "middle_name": "", 
+   "pref_first_name": "sumo", 
+   "userid": "sumo"
+  }, 
+  "model": "coredata.person", 
+  "pk": 333
+ }, 
+ {
+  "fields": {
+   "emplid": 200020102, 
+   "first_name": "Danyu", 
+   "last_name": "Zhao", 
+   "middle_name": "", 
+   "pref_first_name": "Danyu", 
+   "userid": "dzhao"
+  }, 
+  "model": "coredata.person", 
+  "pk": 334
+ }, 
+ {
+  "fields": {
    "emplid": 200000102, 
    "first_name": "Bradley", 
    "last_name": "Bart", 
@@ -13440,5 +13464,32 @@
   }, 
   "model": "groups.groupmember", 
   "pk": 12
+ },
+ {
+  "fields": {
+   "department": "!!!!", 
+   "person": 10, 
+   "role": "SYSA"
+  }, 
+  "model": "coredata.role", 
+  "pk": 1
+ }, 
+ {
+  "fields": {
+   "department": "!!!!", 
+   "person": 333, 
+   "role": "SYSA"
+  }, 
+  "model": "coredata.role", 
+  "pk": 2
+ },
+ {
+  "fields": {
+   "department": "CMPT", 
+   "person": 334, 
+   "role": "ADVS"
+  }, 
+  "model": "coredata.role", 
+  "pk": 3
  }
 ]

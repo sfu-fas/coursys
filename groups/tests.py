@@ -21,7 +21,7 @@ class GroupTest(TestCase):
     fixtures = ['test_data']
 
     def setUp(self):
-        pass
+        self.c_slug = '1114-cmpt-120-d100'
 
     def test_group_models(self):
         """
@@ -35,7 +35,7 @@ class GroupTest(TestCase):
         a.save()
         a2 = a
         
-        userid1 = "0kvm"
+        userid1 = "0aaa4"
         userid2 = "0aaa0"
         userid3 = "0aaa1"
         userid4 = "0aaa2"
@@ -91,17 +91,17 @@ class GroupTest(TestCase):
         # check student-editable tests
         
         # test dates
-        m = Member.objects.get(offering=c, person__userid="0kvm")
+        m = Member.objects.get(offering=c, person__userid="0aaa0")
         gm = GroupMember.objects.get(group=g, student=m, activity=a1)
 
         a1.due_date = datetime.datetime.now() - datetime.timedelta(days=1) # yesterday
         a1.save()
-        self.assertTrue("passed" in gm.student_editable("0kvm"))
+        self.assertTrue("passed" in gm.student_editable("0aaa0"))
 
         a1.due_date = datetime.datetime.now() + datetime.timedelta(days=1) # tomorrow
         a1.save()
         gm = GroupMember.objects.get(group=g, student=m, activity=a1)
-        self.assertEqual(gm.student_editable("0kvm"), '')
+        self.assertEqual(gm.student_editable("0aaa0"), '')
 
         # not member for this activity
         self.assertTrue("not a member" in gm.student_editable("0aaa1"))
@@ -109,15 +109,15 @@ class GroupTest(TestCase):
         # already graded
         gr = NumericGrade(activity=a1, member=m, value=1, flag="GRAD")
         gr.save()
-        self.assertTrue("grade" in gm.student_editable("0kvm"))
+        self.assertTrue("grade" in gm.student_editable("0aaa0"))
         gr.flag="NOGR"
         gr.save()
-        self.assertEqual(gm.student_editable("0kvm"), '')
+        self.assertEqual(gm.student_editable("0aaa0"), '')
         
         # submission made
         s = GroupSubmission(group=g, creator=m, activity=a1)
         s.save()
-        self.assertTrue("submission" in gm.student_editable("0kvm"))
+        self.assertTrue("submission" in gm.student_editable("0aaa0"))
         
 
     def test_group_student(self):
@@ -131,7 +131,7 @@ class GroupTest(TestCase):
         a = NumericActivity(name="Assignment 2", short_name="A2", status="URLS", offering=c, position=6, max_grade=20, group=True)
         a.save()
         
-        userid1 = "0kvm"
+        userid1 = "0aaa6"
         userid2 = "0aaa0"
         userid3 = "0aaa1"
         userid4 = "0aaa2"
@@ -185,11 +185,11 @@ class GroupTest(TestCase):
         client.login(ticket=userid2, service=CAS_SERVER_URL)
         url = reverse('groups.views.groupmanage', kwargs={'course_slug': c.slug})
         response = basic_page_tests(self, client, url)
-        self.assertContains(response, "Kim Moore, 0kvm")
-        self.assertContains(response, "A Student, 0aaa0 (unconfirmed)")
+        self.assertContains(response, ", "+userid1)
+        self.assertContains(response, ", "+userid2+" (unconfirmed)")
         
         url = reverse('groups.views.join', kwargs={'course_slug': c.slug, 'group_slug':'g-test-group'})
-        response = client.get(url)
+        response = client.post(url)
         self.assertEquals(response.status_code, 302)
         
         gms = GroupMember.objects.filter(group__courseoffering=c, student__person__userid=userid2)
@@ -199,7 +199,7 @@ class GroupTest(TestCase):
         # log in as userid3 and reject
         client.login(ticket=userid3, service=CAS_SERVER_URL)
         url = reverse('groups.views.reject', kwargs={'course_slug': c.slug, 'group_slug':'g-test-group'})
-        response = client.get(url)
+        response = client.post(url)
         self.assertEquals(response.status_code, 302)
         
         gms = GroupMember.objects.filter(group__courseoffering=c, student__person__userid=userid3)
@@ -231,7 +231,7 @@ class GroupTest(TestCase):
         a = NumericActivity(name="Assignment 2", short_name="A2", status="URLS", offering=c, position=6, max_grade=20, group=True)
         a.save()
         
-        userid1 = "0kvm"
+        userid1 = "0aaa6"
         userid2 = "0aaa0"
         userid3 = "0aaa1"
         userid4 = "ggbaker"
@@ -258,7 +258,7 @@ class GroupTest(TestCase):
         # submit group create
         url = reverse('groups.views.submit', kwargs={'course_slug': c.slug})
         response = client.post(url, {"GroupName": "Test Group", "a1-selected": True, "a2-selected": False, 
-                '0kvm-selected': False, '0aaa0-selected': True, '0aaa1-selected': True})
+                '0aaa6-selected': False, '0aaa0-selected': True, '0aaa1-selected': True})
         self.assertEquals(response.status_code, 302)
 
         gs =  Group.objects.filter(courseoffering=c)
@@ -284,7 +284,7 @@ class GroupTest(TestCase):
         
         # submit add membership
         response = client.post(url, {"a1-selected": True, "a2-selected": True, 
-                '0kvm-selected': False, '0aaa0-selected': False, '0aaa1-selected': True})
+                '0aaa6-selected': False, '0aaa0-selected': False, '0aaa1-selected': True})
         self.assertEquals(response.status_code, 302)
         # both still in for A1
         gms = GroupMember.objects.filter(group__courseoffering=c, group=gs[0], activity__slug="a1")
@@ -298,7 +298,7 @@ class GroupTest(TestCase):
         response = basic_page_tests(self, client, url)
         
         # submit remove member
-        response = client.post(url, {'0kvm_a1-selected': True, '0aaa0_a1-selected': False, '0aaa1_a1-selected': True})
+        response = client.post(url, {'0aaa6_a1-selected': True, '0aaa0_a1-selected': False, '0aaa1_a1-selected': True})
         self.assertEquals(response.status_code, 302)
         # 0aaa1 gone for A1
         gms = GroupMember.objects.filter(group__courseoffering=c, group=gs[0], activity__slug="a1")
