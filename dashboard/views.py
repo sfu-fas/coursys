@@ -203,10 +203,7 @@ def calendar_ical(request, token, userid):
     for mt in class_list:
         for date in _weekday_range(mt.start_day, mt.end_day, mt.weekday): # for every day the class happens...
             e = Event()
-            if mt.exam:
-                summary = '%s exam' % (mt.offering.name())
-            else:
-                summary = '%s lecture' % (mt.offering.name())
+            summary = mt.offering.name() + " " + mt.get_meeting_type_display()
             e.add('summary', summary)
         
             start = local_tz.localize(datetime.datetime.combine(date, mt.start_time))
@@ -216,14 +213,6 @@ def calendar_ical(request, token, userid):
         
             e.add('location', mt.offering.get_campus_display() + " " + mt.room)
             e['uid'] = mt.offering.slug.replace("-","") + "-" + str(mt.id) + "-" + start.strftime("%Y%m%dT%H%M%S") + '@courses.cs.sfu.ca'
-
-            #alarm = local_tz.localize(datetime.datetime.combine(date, mt.start_time) - datetime.timedelta(minutes=10))
-            #a = Alarm()
-            #a.add('trigger', start)
-            #a.add('trigger', alarm)
-            #a.add('action', 'DISPLAY')
-            #a.add('description', summary)
-            #e.add_component(a)
 
             cal.add_component(e)
 
@@ -254,20 +243,6 @@ def _get_calendar_config(user):
         return {}
     else:
         return json.loads(configs[0].value)
-
-
-#@login_required
-#def calendar_config(request):
-#    user = get_object_or_404(Person, userid=request.user.username)
-#    config = _get_calendar_config(user)
-#    if 'token' not in config:
-#        token = None
-#    else:
-#        token = config['token']
-#    
-#    context={'token': token, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL}
-#    return render_to_response("dashboard/calendar_config.html", context, context_instance=RequestContext(request))
-
 
 
 @login_required
@@ -333,17 +308,6 @@ def news_list(request):
     
     return render_to_response("dashboard/all_news.html", {"news_list": news_list}, context_instance=RequestContext(request))
 
-#@login_required
-#def news_config(request):
-#    user = get_object_or_404(Person, userid=request.user.username)
-#    configs = UserConfig.objects.filter(user=user, key="feed-token")
-#    if not configs:
-#        token = None
-#    else:
-#        token = configs[0].value
-#    
-#    context={'token': token, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL}
-#    return render_to_response("dashboard/news_config.html", context, context_instance=RequestContext(request))
 
 @login_required
 def create_news_url(request):

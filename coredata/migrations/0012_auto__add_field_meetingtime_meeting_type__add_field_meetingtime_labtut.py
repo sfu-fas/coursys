@@ -1,25 +1,27 @@
 # encoding: utf-8
 import datetime
 from south.db import db
-from south.v2 import DataMigration
+from south.v2 import SchemaMigration
 from django.db import models
 
-class Migration(DataMigration):
+class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        for c in orm.CourseOffering.objects.all():
-            if c.config == None:
-                c.config = {}
-            if c.url:
-                c.config['url'] = c.url
-            c.save()
+        
+        # Adding field 'MeetingTime.meeting_type'
+        db.add_column('coredata_meetingtime', 'meeting_type', self.gf('django.db.models.fields.CharField')(default='LEC', max_length=4), keep_default=False)
+
+        # Adding field 'MeetingTime.labtut_section'
+        db.add_column('coredata_meetingtime', 'labtut_section', self.gf('django.db.models.fields.CharField')(max_length=4, null=True, blank=True), keep_default=False)
 
 
     def backwards(self, orm):
-        for c in orm.CourseOffering.objects.all():
-            if c.config is not None and 'url' in c.config:
-                c.url = c.config['url']
-                c.save()
+        
+        # Deleting field 'MeetingTime.meeting_type'
+        db.delete_column('coredata_meetingtime', 'meeting_type')
+
+        # Deleting field 'MeetingTime.labtut_section'
+        db.delete_column('coredata_meetingtime', 'labtut_section')
 
 
     models = {
@@ -28,9 +30,8 @@ class Migration(DataMigration):
             'campus': ('django.db.models.fields.CharField', [], {'max_length': '5'}),
             'class_nbr': ('django.db.models.fields.PositiveSmallIntegerField', [], {'db_index': 'True'}),
             'component': ('django.db.models.fields.CharField', [], {'max_length': '3'}),
-            'config': ('jsonfield.JSONField', [], {'default': '{}', 'null': 'True', 'blank': 'True'}),
+            'config': ('jsonfield.JSONField', [], {'default': '{}'}),
             'crse_id': ('django.db.models.fields.PositiveSmallIntegerField', [], {'db_index': 'True'}),
-            'department': ('django.db.models.fields.CharField', [], {'max_length': '4', 'null': 'True', 'blank': 'True'}),
             'enrl_cap': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
             'enrl_tot': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
             'graded': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
@@ -42,7 +43,6 @@ class Migration(DataMigration):
             'slug': ('autoslug.fields.AutoSlugField', [], {'max_length': '50', 'unique': 'False', 'unique_with': '()', 'db_index': 'True'}),
             'subject': ('django.db.models.fields.CharField', [], {'max_length': '4', 'db_index': 'True'}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '30'}),
-            'url': ('django.db.models.fields.URLField', [], {'max_length': '200', 'null': 'True'}),
             'wait_tot': ('django.db.models.fields.PositiveSmallIntegerField', [], {})
         },
         'coredata.meetingtime': {
@@ -51,6 +51,8 @@ class Migration(DataMigration):
             'end_time': ('django.db.models.fields.TimeField', [], {}),
             'exam': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'labtut_section': ('django.db.models.fields.CharField', [], {'max_length': '4', 'null': 'True', 'blank': 'True'}),
+            'meeting_type': ('django.db.models.fields.CharField', [], {'default': "'LEC'", 'max_length': '4'}),
             'offering': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.CourseOffering']"}),
             'room': ('django.db.models.fields.CharField', [], {'max_length': '20'}),
             'start_day': ('django.db.models.fields.DateField', [], {}),
@@ -61,8 +63,10 @@ class Migration(DataMigration):
             'Meta': {'ordering': "['offering', 'person']", 'object_name': 'Member'},
             'added_reason': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
             'career': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
+            'config': ('jsonfield.JSONField', [], {'default': '{}'}),
             'credits': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '3'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'labtut_section': ('django.db.models.fields.CharField', [], {'max_length': '4', 'null': 'True', 'blank': 'True'}),
             'offering': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.CourseOffering']"}),
             'person': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'person'", 'to': "orm['coredata.Person']"}),
             'role': ('django.db.models.fields.CharField', [], {'max_length': '4'})

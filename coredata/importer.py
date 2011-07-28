@@ -266,7 +266,7 @@ def import_meeting_times(db, offering):
                 # new data: just replace.
                 m_old = m_old[0]
                 if m_old.start_day==start_dt and m_old.end_day==end_dt and m_old.room==room \
-                        and m_old.exam == (stnd_mtg_pat in ["EXAM","MIDT"]):
+                        and m_old.meeting_time==stnd_mtg_pat:
                     # unchanged: leave it.
                     found_mtg.add(m_old.id)
                     continue
@@ -276,7 +276,8 @@ def import_meeting_times(db, offering):
             
             m = MeetingTime(offering=offering, weekday=wkd, start_day=start_dt, end_day=end_dt,
                             start_time=start, end_time=end, room=room)
-            m.exam = stnd_mtg_pat in ["EXAM","MIDT"]
+            assert stnd_mtg_pat in MEETINGTYPES
+            m.meeting_time = stnd_mtg_pat
             m.save()
             found_mtg.add(m.id)
     

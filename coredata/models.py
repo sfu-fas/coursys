@@ -388,6 +388,13 @@ WEEKDAY_CHOICES = (
         (6, 'Sunday'),
         )
 WEEKDAYS = dict(WEEKDAY_CHOICES)
+MEETINGTYPE_CHOICES = (
+        ("LEC", "Lecture"),
+        ("MIDT", "Midterm Exam"),
+        ("EXAM", "Final Exam"),
+        ("LAB", "Lab/Tutorial"),
+        )
+MEETINGTYPES = dict(MEETINGTYPE_CHOICES)
 class MeetingTime(models.Model):
     offering = models.ForeignKey(CourseOffering, null=False)
     weekday = models.PositiveSmallIntegerField(null=False, choices=WEEKDAY_CHOICES,
@@ -396,9 +403,11 @@ class MeetingTime(models.Model):
     end_time = models.TimeField(null=False, help_text='End time of the meeting')
     start_day = models.DateField(null=False, help_text='Starting day of the meeting')
     end_day = models.DateField(null=False, help_text='Ending day of the meeting')
-    #timezone = TimeZoneField(null=False)
     room = models.CharField(max_length=20, help_text='Room (or other location) for the meeting')
-    exam = models.BooleanField()
+    exam = models.BooleanField() # unused: use meeting_type instead
+    meeting_type = models.CharField(max_length=4, choices=MEETINGTYPE_CHOICES, default="LEC")
+    labtut_section = models.CharField(max_length=4, null=True, blank=True,
+        help_text='Section should be in the form "C101" or "D103".  None/blank for the non lab/tutorial events.')
     def __unicode__(self):
         return "%s %s %s-%s" % (unicode(self.offering), WEEKDAYS[self.weekday], self.start_time, self.end_time)
 
@@ -417,7 +426,7 @@ class MeetingTime(models.Model):
         d['start_time'] = str(self.start_time)
         d['end_time'] = str(self.end_time)
         d['room'] = self.room
-        d['type'] = "EXAM" if self.exam else "LEC"
+        d['type'] = self.meeting_time
         return d
 
 class Role(models.Model):
