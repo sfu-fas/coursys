@@ -246,7 +246,16 @@ def get_person(db, emplid):
         return p
 
 
-
+def fix_mtg_pat(section, stnd_mtg_pat):
+    """
+    Normalize SIMS stnd_mtg_pat to something we can deal with.
+    """
+    if stnd_mtg_pat in ['EXAM', 'MIDT']:
+        return stnd_mtg_pat
+    elif not section.endswith('00'):
+        raise NotImplementedError, "TODO"
+    else:
+        return 'LEC'
 
 def import_meeting_times(db, offering):
     """
@@ -258,6 +267,7 @@ def import_meeting_times(db, offering):
 
     for start, end, room, mon,tues,wed,thurs,fri,sat,sun, start_dt, end_dt, stnd_mtg_pat in db:
         wkdays = [n for n, day in zip(range(7), (mon,tues,wed,thurs,fri,sat,sun)) if day=='Y']
+        mtg_type = fix_mtg_pat(offering.section, stnd_mtg_pat)
         for wkd in wkdays:
             m_old = MeetingTime.objects.filter(offering=offering, weekday=wkd, start_time=start, end_time=end)
             if len(m_old)>1:
@@ -266,7 +276,7 @@ def import_meeting_times(db, offering):
                 # new data: just replace.
                 m_old = m_old[0]
                 if m_old.start_day==start_dt and m_old.end_day==end_dt and m_old.room==room \
-                        and m_old.meeting_time==stnd_mtg_pat:
+                        and m_old.meeting_type==mtg_type and m_old.labtut_section is None:
                     # unchanged: leave it.
                     found_mtg.add(m_old.id)
                     continue
@@ -275,9 +285,8 @@ def import_meeting_times(db, offering):
                     m_old.delete()
             
             m = MeetingTime(offering=offering, weekday=wkd, start_day=start_dt, end_day=end_dt,
-                            start_time=start, end_time=end, room=room)
-            assert stnd_mtg_pat in MEETINGTYPES
-            m.meeting_time = stnd_mtg_pat
+                            start_time=start, end_time=end, room=room, labtut_section=None)
+            m.meeting_type = mtg_type
             m.save()
             found_mtg.add(m.id)
     
@@ -443,7 +452,6 @@ def main():
 
     print "fixing any unknown emplids"
     fix_emplid(db)
-    time.sleep(1)
     
     print "importing course offering list"
     offerings = import_offerings(db, DATA_WHERE)
