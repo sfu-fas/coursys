@@ -18,20 +18,22 @@
 <h2 id="format" style="clear:right;">File Format</h2>
 <p>The import file must be a <a href="http://www.json.org/">JSON</a> file (UTF-8 encoded) with fields as follows:</p>
 <blockquote><pre>
-[
-  {
-    {% if activity.group %}"group": "g-groupone",{% else %}"userid": "abc1",{% endif %}{% for c in components %}
-    "{{c.slug}}": {"mark": {{c.max_mark|floatformat:2}}, "comment": "Comment on {{c.title}}."}{% if not forloop.last %},{% endif %}{% endfor %}
-  },
-  {
-    {% if activity.group %}"group": "g-grouptwo",{% else %}"userid": "def1",{% endif %}{% for c in components %}
-    "{{c.slug}}": {"mark": {{c.max_mark|floatformat:2}}, "comment": "Comment on {{c.title}}."},{% endfor %}
-    "late_percent": 0.0,
-    "mark_penalty": 0.0,
-    "mark_penalty_reason": "Reason for mark penalty",
-    "overall_comment": "Overall comment on the assignment."
-  }
-]
+{
+  "marks": [
+    {
+      {% if activity.group %}"group": "g-groupone",{% else %}"userid": "abc1",{% endif %}{% for c in components %}
+      "{{c.slug}}": {"mark": {{c.max_mark|floatformat:2}}, "comment": "Comment on {{c.title}}."}{% if not forloop.last %},{% endif %}{% endfor %}
+    },
+    {
+      {% if activity.group %}"group": "g-grouptwo",{% else %}"userid": "def1",{% endif %}{% for c in components %}
+      "{{c.slug}}": {"mark": {{c.max_mark|floatformat:2}}, "comment": "Comment on {{c.title}}."},{% endfor %}
+      "late_percent": 0.0,
+      "mark_penalty": 0.0,
+      "mark_penalty_reason": "Reason for mark penalty",
+      "overall_comment": "Overall comment on the assignment."
+    }
+  ]
+}
 </pre></blockquote>
 <p>Mark components may be omitted: they will be graded zero with no comment.  Comments can be empty or omitted. The <code>late_penalty</code> and other additional details can be omitted.</p>
 {% if activity.group %}

@@ -479,8 +479,12 @@ def activity_marks_from_JSON(activity, userid, data):
     
     Return three lists: all ActivityMarks and all ActivityComponentMark and all NumericGrades *all not yet saved*.
     """
-    if not isinstance(data, list):
-        raise ValidationError(u'Outer JSON data structure must be an array.')
+    if not isinstance(data, dict):
+        raise ValidationError(u'Outer JSON data structure must be an object.')
+    if 'marks' not in data:
+        raise ValidationError(u'Outer JSON data object must contain key "marks".')
+    if not isinstance(data['marks'], list):
+        raise ValidationError(u'Value for "marks" must be a list.')
 
     # All the ActivityMark and ActivityComponentMark objects get built here:
     # we basically have to do this work to validate anyway.
@@ -489,7 +493,7 @@ def activity_marks_from_JSON(activity, userid, data):
     activity_marks = []
     activity_component_marks = []
     numeric_grades = []
-    for markdata in data:
+    for markdata in data['marks']:
         if not isinstance(markdata, dict):
             raise ValidationError(u'Elements of array must be JSON objects.')
 
