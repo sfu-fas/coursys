@@ -222,7 +222,6 @@ def calendar_ical(request, token, userid):
         for a in m.offering.activity_set.filter(deleted=False):
             if not a.due_date:
                 continue
-            print a.due_date
             
             e = Event()
             e.add('summary', '%s: %s due' % (a.offering.name(), a.name))

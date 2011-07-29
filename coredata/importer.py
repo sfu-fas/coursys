@@ -246,37 +246,46 @@ def get_person(db, emplid):
         return p
 
 
-def fix_mtg_pat(section, stnd_mtg_pat):
+def fix_mtg_info(section, stnd_mtg_pat):
     """
-    Normalize SIMS stnd_mtg_pat to something we can deal with.
+    Normalize SIMS meeting data to something we can deal with.
     """
-    if stnd_mtg_pat in ['EXAM', 'MIDT']:
-        return stnd_mtg_pat
-    elif not section.endswith('00'):
-        raise NotImplementedError, "TODO"
+    # section: None for lecture/exams; lab/tutorial section for them.
+    if section.endswith("00"):
+        sec = None
     else:
-        return 'LEC'
+        sec = section
+
+    # meeting type: exams, lab/tutorials, other=lecture
+    if stnd_mtg_pat in ['EXAM', 'MIDT']:
+        mtype = stnd_mtg_pat
+    elif not section.endswith('00'):
+        mtype = 'LAB'
+    else:
+        mtype = 'LEC'
+    
+    return sec, mtype
 
 def import_meeting_times(db, offering):
     """
     Import course meeting times
     """
-    db.execute('SELECT meeting_time_start, meeting_time_end, facility_id, mon,tues,wed,thurs,fri,sat,sun, start_dt, end_dt, stnd_mtg_pat FROM ps_class_mtg_pat WHERE crse_id=%s and class_section=%s and strm=%s', (offering.crse_id, offering.section, offering.semester.name))
+    db.execute('SELECT meeting_time_start, meeting_time_end, facility_id, mon,tues,wed,thurs,fri,sat,sun, start_dt, end_dt, stnd_mtg_pat, class_section FROM ps_class_mtg_pat WHERE crse_id=%s and class_section like %s and strm=%s', (offering.crse_id, offering.section[0:2]+"%", offering.semester.name))
     # keep track of meetings we've found, so we can remove old (non-importing semesters and changed/gone)
     found_mtg = set()
-
-    for start, end, room, mon,tues,wed,thurs,fri,sat,sun, start_dt, end_dt, stnd_mtg_pat in db:
+    
+    for start,end, room, mon,tues,wed,thurs,fri,sat,sun, start_dt,end_dt, stnd_mtg_pat, class_section in db:
         wkdays = [n for n, day in zip(range(7), (mon,tues,wed,thurs,fri,sat,sun)) if day=='Y']
-        mtg_type = fix_mtg_pat(offering.section, stnd_mtg_pat)
+        labtut_section, mtg_type = fix_mtg_info(class_section, stnd_mtg_pat)
         for wkd in wkdays:
-            m_old = MeetingTime.objects.filter(offering=offering, weekday=wkd, start_time=start, end_time=end)
+            m_old = MeetingTime.objects.filter(offering=offering, weekday=wkd, start_time=start, end_time=end, labtut_section=labtut_section, room=room)
             if len(m_old)>1:
                 raise KeyError, "Already duplicate meeting: %r" % (m_old)
             elif len(m_old)==1:
                 # new data: just replace.
                 m_old = m_old[0]
                 if m_old.start_day==start_dt and m_old.end_day==end_dt and m_old.room==room \
-                        and m_old.meeting_type==mtg_type and m_old.labtut_section is None:
+                        and m_old.meeting_type==mtg_type and m_old.labtut_section==labtut_section:
                     # unchanged: leave it.
                     found_mtg.add(m_old.id)
                     continue
@@ -285,7 +294,7 @@ def import_meeting_times(db, offering):
                     m_old.delete()
             
             m = MeetingTime(offering=offering, weekday=wkd, start_day=start_dt, end_day=end_dt,
-                            start_time=start, end_time=end, room=room, labtut_section=None)
+                            start_time=start, end_time=end, room=room, labtut_section=labtut_section)
             m.meeting_type = mtg_type
             m.save()
             found_mtg.add(m.id)
@@ -462,7 +471,7 @@ def main():
     print "importing course members"
     for o in offerings:
         import_offering(db, tadb, o)
-        time.sleep(1)
+        time.sleep(0.5)
     
     print "combining joint offerings"
     combine_sections(db)
