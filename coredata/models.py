@@ -391,7 +391,7 @@ WEEKDAYS = dict(WEEKDAY_CHOICES)
 MEETINGTYPE_CHOICES = (
         ("LEC", "Lecture"),
         ("MIDT", "Midterm Exam"),
-        ("EXAM", "Final Exam"),
+        ("EXAM", "Exam"),
         ("LAB", "Lab/Tutorial"),
         )
 MEETINGTYPES = dict(MEETINGTYPE_CHOICES)

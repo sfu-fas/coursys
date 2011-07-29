@@ -6,7 +6,7 @@ import MySQLdb, random, string, socket, datetime, itertools
 from django.core import serializers
 from importer import import_host, import_name, import_user, import_port
 from importer import give_sysadmin, create_semesters, import_offerings, import_instructors, import_meeting_times
-from coredata.models import Member, Person, CourseOffering, Semester, MeetingTime
+from coredata.models import Member, Person, CourseOffering, Semester, MeetingTime, Role
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity
 from submission.models.base import SubmissionComponent
 from submission.models.code import CodeComponent
@@ -166,6 +166,17 @@ def import_offering(db, offering):
     import_instructors(db, offering)
     import_meeting_times(db, offering)
 
+def create_others():
+    """
+    Create other users for the test data set
+    """
+    p = Person(emplid=fake_emplid(), first_name="Susan", last_name="Kindersley", pref_first_name="sumo", userid="sumo")
+    p.save()
+    p = Person(emplid=fake_emplid(), first_name="Danyu", last_name="Zhao", pref_first_name="Danyu", userid="dzhao")
+    p.save()
+    r = Role(person=p, role="ADVS", department="CMPT")
+    r.save()
+
 
 def serialize(filename):
     """
@@ -188,6 +199,7 @@ def serialize(filename):
             ActivityComponent.objects.all(),
             Group.objects.all(),
             GroupMember.objects.all(),
+            Role.objects.all(),
             )
     
     data = serializers.serialize("json", objs, sort_keys=True, indent=1)
@@ -212,9 +224,11 @@ def main(passwd):
     
     print "creating fake classess"
     create_classes()
+    
+    create_others()
 
     print "giving sysadmin permissions"
-    give_sysadmin(['ggbaker'])
+    give_sysadmin(['ggbaker', 'sumo'])
     
     serialize("new-test.json")
 
