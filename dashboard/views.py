@@ -193,15 +193,20 @@ def calendar_ical(request, token, userid):
         # authenticated
 
     memberships = Member.objects.filter(person=user, offering__graded=True).exclude(role="DROP")
-    print [(m.offering_id, m.labtut_section) for m in memberships]
+    # map of offering_id -> this student's lab section (so we only output the right one)
+    labsecs = dict(((m.offering_id, m.labtut_section) for m in memberships))
     classes = set((m.offering for m in memberships))
-    class_list = MeetingTime.objects.filter(offering__in=classes, labtut_section=None)
+    class_list = MeetingTime.objects.filter(offering__in=classes)
     
     cal = Calendar()
     cal.add('version', '2.0')
     cal.add('prodid', '-//SFU Course Management System//courses.cs.sfu.ca//')
 
     for mt in class_list:
+        # only output whole-course events and this student's lab section.
+        if mt.labtut_section not in [None, labsecs[mt.offering_id]]:
+            continue
+
         for date in _weekday_range(mt.start_day, mt.end_day, mt.weekday): # for every day the class happens...
             e = Event()
             summary = mt.offering.name() + " " + mt.get_meeting_type_display()

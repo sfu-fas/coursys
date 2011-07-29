@@ -4,6 +4,9 @@
 <head>
 <title>Course Management Server Config</title>
 <style type="text/css">
+body {
+  margin-bottom: 5em;
+}
 h2 {
   margin-top: 2em;
 }
@@ -28,7 +31,7 @@ code.file {
 <dt>Additional packages installed</dt>
   <dd>Like this:
   <blockquote><pre>dpkg --purge apache2.2-bin apache2.2-common apache2-utils apache2 apache2-mpm-worker apache2.2-common
-apt-get install nginx python-flup subversion python-mysqldb mysql-client-5.1 python-tz memcached python-memcache stunnel4 postfix</pre></blockquote></dd>
+apt-get install nginx python-flup subversion python-mysqldb mysql-client-5.1 python-tz memcached python-memcache stunnel4 postfix ntp</pre></blockquote></dd>
 <dt>Django Package</dt>
   <dd>System requires Django &ge;1.2, so newer package was downloaded separately from <a href="http://packages.ubuntu.com/search?keywords=python-django&amp;searchon=names&amp;suite=all&amp;section=all">Ubuntu package repository</a>.
   <blockquote><pre>dpkg -i python-django_1.2.3-1ubuntu0.2.10.10.2_all.deb</pre></blockquote>
