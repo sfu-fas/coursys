@@ -193,8 +193,9 @@ def calendar_ical(request, token, userid):
         # authenticated
 
     memberships = Member.objects.filter(person=user, offering__graded=True).exclude(role="DROP")
+    print [(m.offering_id, m.labtut_section) for m in memberships]
     classes = set((m.offering for m in memberships))
-    class_list = MeetingTime.objects.filter(offering__in=classes)
+    class_list = MeetingTime.objects.filter(offering__in=classes, labtut_section=None)
     
     cal = Calendar()
     cal.add('version', '2.0')
