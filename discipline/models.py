@@ -22,7 +22,6 @@ CONTACT_CHOICES = (
 RESPONSE_CHOICES = (
         ('WAIT', 'Waiting for response'),
         ('NONE', 'No response from student (after a reasonable period of time)'),
-        ('TOMT', 'Meeting pending'),
         ('DECL', 'Student declined to meet'),
         ('MAIL', 'Student sent statement by email'),
         ('MET', 'Met with student'),
@@ -427,7 +426,7 @@ class DisciplineCaseInstr(DisciplineCaseBase):
         """
         if self.contacted=="NONE":
             return "contacted"
-        elif self.response in ["WAIT", "TOMT"]:
+        elif self.response=="WAIT":
             return "response"
         elif self.response in ["MET", "MAIL"] and not self.meeting_date:
             return "meeting_date"
