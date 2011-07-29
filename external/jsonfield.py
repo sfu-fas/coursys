@@ -13,6 +13,19 @@ class JSONField(models.TextField):
     __metaclass__ = models.SubfieldBase
 
     def to_python(self, value):
+        """Convert our string value to JSON after we load it from the DB
+        
+        Stricter version to fail faster.
+        """
+        if value == "":
+            return {}
+        elif isinstance(value, basestring):
+            return json.loads(value)
+        elif isinstance(value, dict):
+            # already converted
+            return value
+
+    def to_python_sloppy(self, value):
         """Convert our string value to JSON after we load it from the DB"""
 
         if value == "":

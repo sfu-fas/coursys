@@ -2329,7 +2329,7 @@
    "campus": "BRNBY", 
    "class_nbr": 7798, 
    "component": "LEC", 
-   "config": "{u'url': u'http://www.cs.sfu.ca/CC/165/common/', u'taemail': u'cmpt-165-contact@sfu.ca', u'labtut': True}", 
+   "config": "{\"url\": \"http://www.cs.sfu.ca/CC/165/common/\", \"taemail\": \"cmpt-165-contact@sfu.ca\", \"labtut\": true}", 
    "crse_id": 14580, 
    "enrl_cap": 208, 
    "enrl_tot": 198, 
