@@ -161,3 +161,66 @@ def new_person(request):
     return render_to_response('coredata/new_person.html', {'form': form}, context_instance=RequestContext(request))
 
 
+
+
+
+
+# views to let instructors manage TAs
+
+@requires_course_staff_by_slug
+def manage_tas(request, course_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    longform = False
+    if not Member.objects.filter(offering=course, person__userid=request.user.username, role="INST"):
+        # only instructors can manage TAs
+        return ForbiddenResponse(request, "Only instructors can manage TAs")
+    
+    if request.method == 'POST' and 'action' in request.POST and request.POST['action']=='add':
+        form = TAForm(offering=course, data=request.POST)
+        if form.is_valid():
+            userid = form.cleaned_data['userid']
+            people = Person.objects.filter(userid=userid)
+            if len(people) == 1:
+                # person exists: we're okay.
+                p = people[0]
+                m = Member(person=p, offering=course, role="TA", credits=0, career="NONS", added_reason="TAIN")
+                m.save()
+                
+                #LOG EVENT#
+                l = LogEntry(userid=request.user.username,
+                      description=("TA added by instructor: %s for %s") % (userid, course),
+                      related_object=m)
+                l.save()
+                messages.success(request, 'Added %s as a TA.' % (p.name()))
+                return HttpResponseRedirect(reverse(manage_tas, kwargs={'course_slug': course.slug}))
+                
+            
+            longform = True
+            form = TALongForm(offering=course, data=request.POST)
+
+    elif request.method == 'POST' and 'action' in request.POST and request.POST['action']=='del':
+        userid = request.POST['userid']
+        ms = Member.objects.filter(person__userid=userid, offering=course, role="TA", added_reason="TAIN")
+        if ms:
+            m = ms[0]
+            m.role = "DROP"
+            m.save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("TA removed by instructor: %s for %s") % (userid, course),
+                  related_object=m)
+            l.save()
+            messages.success(request, 'Removed %s as a TA.' % (m.person.name()))
+        return HttpResponseRedirect(reverse(manage_tas, kwargs={'course_slug': course.slug}))
+    else:
+        form = TAForm(offering=course)
+
+    tas = Member.objects.filter(role="TA", offering=course)
+    context = {'course': course, 'form': form, 'tas': tas, 'longform': longform}
+    return render_to_response('coredata/manage_tas.html', context, context_instance=RequestContext(request))
+
+
+
+
+
+

@@ -318,6 +318,7 @@ class Member(models.Model):
         ('AUTO', 'Automatically added'),
         ('TRU', 'TRU/OU Distance Student'),
         ('TA', 'Additional TA'),
+        ('TAIN', 'TA added by instructor'),
         ('INST', 'Additional Instructor'),
         ('UNK', 'Unknown/Other Reason'),
     )

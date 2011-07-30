@@ -56,3 +56,30 @@ class InstrRoleForm(forms.Form):
     
 InstrRoleFormSet = forms.formsets.formset_factory(InstrRoleForm, extra=0)
 
+class TAForm(forms.Form):
+    userid = forms.CharField(required=True, label="Userid",
+        help_text="TA's SFU userid. Must be the ID they use to log in, not an email alias.",
+        widget=forms.TextInput(attrs={'size':'9'}))
+    
+    def __init__(self, offering, *args, **kwargs):
+        super(TAForm, self).__init__(*args, **kwargs)
+        self.offering = offering
+        
+    def clean_userid(self):
+        userid = self.cleaned_data['userid']
+        if len(userid)<1:
+            raise forms.ValidationError, "Userid must not be empty."
+
+        # make sure not already a member somehow.
+        ms = Member.objects.filter(person__userid=userid, offering=self.offering)
+        if ms:
+            m = ms[0]
+            if m.role == "TA":
+                raise forms.ValidationError, "That user is already a TA."
+            elif m.role != "DROP":
+                raise forms.ValidationError, "That user already has role %s in this course." % (m.get_role_display())
+
+        return userid
+    
+class TALongForm(TAForm):
+    pass

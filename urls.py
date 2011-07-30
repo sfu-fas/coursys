@@ -72,6 +72,7 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_SLUG + '/_reorder_activity$', 'grades.views.reorder_activity'),
     url(r'^' + COURSE_SLUG + '/_new_message$', 'dashboard.views.new_message'),
     url(r'^' + COURSE_SLUG + '/_config$', 'grades.views.course_config'),
+    url(r'^' + COURSE_SLUG + '/_config/tas$', 'coredata.views.manage_tas'),
 
     url(r'^' + COURSE_SLUG + '/_groups$', 'django.views.generic.simple.redirect_to', {'url': '/%(course_slug)s/_groups/'}),
     url(r'^' + COURSE_SLUG + '/_groups/$', 'groups.views.groupmanage'),

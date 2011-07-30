@@ -1,0 +1,72 @@
+{% extends "grades/base.html" %}
+{% load grade_student %}
+
+{% block h1 %}{{course.name}} TAs{% endblock %}
+{% block title %}{{course.name}} TAs{% endblock %}
+
+{% block headextra %}<script type="text/javascript">
+//<![CDATA[
+    $(document).ready(function() {
+    $('#tas_table').dataTable({
+                "bPaginate": false,
+		"bJQueryUI": true,
+		"aaSorting": [[0, "asc"]],
+		"aoColumns": [
+		    null,
+		    null,
+		    null,
+		]
+	});
+
+    });
+
+//]]></script>{{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; Manage TAs</li>{% endblock %}
+
+{% block actions %}{% endblock %}
+
+{% block content %}
+<h2 id="tas">Current TAs</h2>
+
+<div class="datatable_container">
+<table class="display" id="tas_table">
+<thead>
+<tr><th scope="col">Name</th><th scope="col">Userid</th><th scope="col">Actions</th></tr>
+</thead>
+<tbody>
+{% for m in tas %}
+<tr><td>{{m.person.sortname}}</td><td>{{m.person.userid}}</td>
+<td class="miniaction">
+{% if m.added_reason == "TAIN" %}
+<form action="{% url coredata.views.manage_tas course_slug=course.slug %}" method="post">{% csrf_token %}<p><input type="hidden" name="action" value="del" /><input type="hidden" name="userid" value="{{m.person.userid}}" /><input type="submit" value="remove" onclick="return confirmSubmit('remove this TA')" /></p></form>
+{% endif %}
+</td>
+</tr>
+{% empty %}
+<tr class="empty"><td colspan="3"></td></tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+
+<div id="form_container">
+    {% if form.non_field_errors %}
+    <p class="errorindicator">
+        <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
+        {{ form.non_field_errors }}
+    </p>
+    {% endif %}
+    <form action="{% url coredata.views.manage_tas course_slug=course.slug %}" method="post">{% csrf_token %}
+        <fieldset>
+            <legend>Add TA</legend>
+            <ul>
+                {{form.userid|activity_field}}
+                <li><input type="hidden" name="action" value="add" />
+                    <input class="submit" type="submit" value="Add TA" />
+                </li>
+            </ul>
+        </fieldset>
+    </form>
+</div>
+{% endblock %}
