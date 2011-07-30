@@ -60,11 +60,28 @@ class TAForm(forms.Form):
     userid = forms.CharField(required=True, label="Userid",
         help_text="TA's SFU userid. Must be the ID they use to log in, not an email alias.",
         widget=forms.TextInput(attrs={'size':'9'}))
+    fname = forms.CharField(required=False, label="First Name",
+        help_text="First name: will eventually be replaced from SIMS database, but need a placeholder for now.",
+        widget=forms.TextInput(attrs={'size':'15'}))
+    lname = forms.CharField(required=False, label="Last Name",
+        help_text="Last name: will eventually be replaced from SIMS database, but need a placeholder for now.",
+        widget=forms.TextInput(attrs={'size':'15'}))
     
     def __init__(self, offering, *args, **kwargs):
         super(TAForm, self).__init__(*args, **kwargs)
         self.offering = offering
-        
+    
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        if 'userid' not in cleaned_data or len(cleaned_data['userid'])==0:
+            # let clean_userid take care of this.
+            return cleaned_data
+
+        people = Person.objects.filter(userid=cleaned_data['userid'])
+        if len(people)==0 and (not cleaned_data['fname'] or not cleaned_data['lname']):
+            raise forms.ValidationError, "Userid isn't known to the system: please give more info so this person can be added."
+        return cleaned_data
+    
     def clean_userid(self):
         userid = self.cleaned_data['userid']
         if len(userid)<1:
@@ -72,14 +89,10 @@ class TAForm(forms.Form):
 
         # make sure not already a member somehow.
         ms = Member.objects.filter(person__userid=userid, offering=self.offering)
-        if ms:
-            m = ms[0]
+        for m in ms:
             if m.role == "TA":
                 raise forms.ValidationError, "That user is already a TA."
             elif m.role != "DROP":
                 raise forms.ValidationError, "That user already has role %s in this course." % (m.get_role_display())
 
         return userid
-    
-class TALongForm(TAForm):
-    pass

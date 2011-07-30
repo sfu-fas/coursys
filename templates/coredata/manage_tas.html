@@ -40,7 +40,11 @@
 <td class="miniaction">
 {% if m.added_reason == "TAIN" %}
 <form action="{% url coredata.views.manage_tas course_slug=course.slug %}" method="post">{% csrf_token %}<p><input type="hidden" name="action" value="del" /><input type="hidden" name="userid" value="{{m.person.userid}}" /><input type="submit" value="remove" onclick="return confirmSubmit('remove this TA')" /></p></form>
-{% endif %}
+{% else %}{% if m.added_reason == "AUTO" %}
+[cannot remove: imported]
+{% else %}
+[cannot remove: added by admin]
+{% endif %}{% endif %}
 </td>
 </tr>
 {% empty %}
@@ -52,16 +56,20 @@
 
 <div id="form_container">
     {% if form.non_field_errors %}
-    <p class="errorindicator">
+    <div class="errorindicator">
         <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
         {{ form.non_field_errors }}
-    </p>
+    </div>
     {% endif %}
     <form action="{% url coredata.views.manage_tas course_slug=course.slug %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Add TA</legend>
             <ul>
                 {{form.userid|activity_field}}
+                {% if longform %}
+                  {{form.fname|activity_field}}
+                  {{form.lname|activity_field}}
+                {% endif %}
                 <li><input type="hidden" name="action" value="add" />
                     <input class="submit" type="submit" value="Add TA" />
                 </li>

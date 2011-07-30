@@ -177,26 +177,38 @@ def manage_tas(request, course_slug):
     
     if request.method == 'POST' and 'action' in request.POST and request.POST['action']=='add':
         form = TAForm(offering=course, data=request.POST)
-        if form.is_valid():
-            userid = form.cleaned_data['userid']
-            people = Person.objects.filter(userid=userid)
-            if len(people) == 1:
-                # person exists: we're okay.
-                p = people[0]
-                m = Member(person=p, offering=course, role="TA", credits=0, career="NONS", added_reason="TAIN")
-                m.save()
-                
-                #LOG EVENT#
-                l = LogEntry(userid=request.user.username,
-                      description=("TA added by instructor: %s for %s") % (userid, course),
-                      related_object=m)
-                l.save()
-                messages.success(request, 'Added %s as a TA.' % (p.name()))
-                return HttpResponseRedirect(reverse(manage_tas, kwargs={'course_slug': course.slug}))
-                
-            
+        if form.non_field_errors():
+            # have an unknown userid
             longform = True
-            form = TALongForm(offering=course, data=request.POST)
+        elif form.is_valid():
+            userid = form.cleaned_data['userid']
+            if not Person.objects.filter(userid=userid) \
+                    and form.cleaned_data['fname'] and form.cleaned_data['lname']:
+                # adding a new person: handle that.
+                eid = 1
+                # search for an unused temp emplid
+                while True:
+                    emplid = "%09i" % (eid)
+                    if not Person.objects.filter(emplid=emplid):
+                        break
+                    eid += 1
+                p = Person(first_name=form.cleaned_data['fname'], pref_first_name=form.cleaned_data['fname'], last_name=form.cleaned_data['lname'], middle_name='', userid=userid, emplid=emplid)
+                p.save()
+
+            else:
+                p = Person.objects.get(userid=userid)
+
+            m = Member(person=p, offering=course, role="TA", credits=0, career="NONS", added_reason="TAIN")
+            m.save()
+                
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("TA added by instructor: %s for %s") % (userid, course),
+                  related_object=m)
+            l.save()
+            messages.success(request, 'Added %s as a TA.' % (p.name()))
+            return HttpResponseRedirect(reverse(manage_tas, kwargs={'course_slug': course.slug}))
+            
 
     elif request.method == 'POST' and 'action' in request.POST and request.POST['action']=='del':
         userid = request.POST['userid']
@@ -212,6 +224,7 @@ def manage_tas(request, course_slug):
             l.save()
             messages.success(request, 'Removed %s as a TA.' % (m.person.name()))
         return HttpResponseRedirect(reverse(manage_tas, kwargs={'course_slug': course.slug}))
+
     else:
         form = TAForm(offering=course)
 

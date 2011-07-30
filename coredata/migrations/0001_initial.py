@@ -83,7 +83,7 @@ class Migration(SchemaMigration):
         db.send_create_signal('coredata', ['Member'])
 
         # Adding unique constraint on 'Member', fields ['person', 'offering', 'role']
-        db.create_unique('coredata_member', ['person_id', 'offering_id', 'role'])
+        #db.create_unique('coredata_member', ['person_id', 'offering_id', 'role'])
 
         # Adding model 'MeetingTime'
         db.create_table('coredata_meetingtime', (
