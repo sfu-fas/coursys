@@ -18,7 +18,6 @@ class RoleForm(forms.ModelForm):
 class MemberForm(forms.ModelForm):
     person = forms.CharField(min_length=1, max_length=8, label='SFU Userid')
     
-    
     def clean_person(self):
         userid = self.cleaned_data['person']
         person = Person.objects.filter(userid=userid)
@@ -79,7 +78,7 @@ class TAForm(forms.Form):
 
         people = Person.objects.filter(userid=cleaned_data['userid'])
         if len(people)==0 and (not cleaned_data['fname'] or not cleaned_data['lname']):
-            raise forms.ValidationError, "Userid isn't known to the system: please give more info so this person can be added."
+            raise forms.ValidationError, "Userid isn't known to the system: please give more info so this person can be added. Please double-check their userid to make sure it is correct before submitting."
         return cleaned_data
     
     def clean_userid(self):

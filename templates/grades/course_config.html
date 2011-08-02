@@ -8,13 +8,13 @@
 
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; Edit Course Config</li>{% endblock %}
 
-{% block actions %}<!--
+{% block actions %}
 <div id="actions">
 <h2 class="heading">Actions</h2>
 <ul>
 <li><a href="{% url coredata.views.manage_tas course_slug=course.slug %}">Manage TAs</a></li>
 </ul>
-</div>-->
+</div>
 {% endblock %}
 
 {% block content %}
