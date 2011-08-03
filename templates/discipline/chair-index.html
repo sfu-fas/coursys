@@ -42,14 +42,14 @@ $(document).ready(function() {
 <h2 id="instr">Instructor Cases</h2>
 <div class="datatable_container">
 <table id="casestable" class="display">
-  <thead><tr><th scope="col">Done?</th><th scope="col">Chair</th><th scope="col">Student</th><th scope="col">Cluster</th><th scope="col">Semester</th><th scope="col">Course</th><th scope="col">Instructor</th></tr></thead>
+  <thead><tr><th scope="col">Done?</th><th scope="col">Chair's Case</th><th scope="col">Student</th><th scope="col">Cluster</th><th scope="col">Semester</th><th scope="col">Course</th><th scope="col">Instructor</th></tr></thead>
   <tbody>
   {% for c in instr_cases %}
   <tr><td>{% if c.done %}Done{% endif %}</td>
-  <td class="miniaction">{% if c.refer %}{% if c.chair_case %}
+  <td class="miniaction">{% if c.refer and c.letter_sent != "WAIT" %}{% if c.chair_case %}
   <a href="{% url discipline.views.chair_show course_slug=c.offering.slug case_slug=c.slug %}">Open</a>
   {% else %}
-  <form action="{% url discipline.views.chair_create course_slug=c.offering.slug case_slug=c.slug %}" method="post">{% csrf_token %}<p><input type="submit" value="Create" /></p></form>
+  <form action="{% url discipline.views.chair_create course_slug=c.offering.slug case_slug=c.slug %}" method="post">{% csrf_token %}<p><input type="submit" value="Create" disabled="disabled" /></p></form>
   {% endif %}{% endif %}</td>
   <td><a href="{% url discipline.views.chair_show_instr course_slug=c.offering.slug case_slug=c.slug %}">{{c.student.sortname}} ({{c.student.emplid}}, {{c.student.userid}})</a></td><td>{{c.group.name}}</td>
   <td>{{c.offering.semester}}</td><td>{{c.offering.name}}</td><td>{{c.owner}}</td>
