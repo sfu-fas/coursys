@@ -8,6 +8,7 @@ from coredata.models import *
 from dashboard.models import NewsItem
 from django.db import transaction
 from django.contrib.sessions.models import Session
+from django.conf import settings
 today = datetime.date.today()
 cutoff = today - datetime.timedelta(days=30)
 
@@ -483,6 +484,10 @@ def main():
     Session.objects.filter(expire_date__lt=datetime.datetime.now()).delete()
     # cleanup old news items
     NewsItem.objects.filter(updated__lt=datetime.datetime.now()-datetime.timedelta(days=60)).delete()
+    # cleanup already-run Celery jobs
+    if settings.USE_CELERY:
+        import djkombu.models
+        djkombu.models.Message.objects.cleanup()
     
     print len(imported_people)
 

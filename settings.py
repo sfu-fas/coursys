@@ -9,7 +9,7 @@ DEPLOYED = hostname == 'courses'
 sys.path.append( os.path.join(os.path.dirname(__file__), 'external') )
 
 ADMINS = (
-    #('Greg Baker', 'ggbaker@sfu.ca'),
+    ('Greg Baker', 'ggbaker@sfu.ca'),
 )
 
 MANAGERS = ADMINS
@@ -148,8 +148,7 @@ if DEPLOYED:
     CACHE_BACKEND = 'memcached://127.0.0.1:22122/'
     BASE_ABS_URL = "https://courses.cs.sfu.ca"
     SESSION_COOKIE_SECURE = True
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = 'mailgate.sfu.ca'
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # changed below if using Celery
     SVN_SERVER_IP = 'svn.cs.sfu.ca'
 else:
     #MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('contrib.profiling.ProfileMiddleware',)
@@ -157,11 +156,35 @@ else:
     #INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.admin',)
     CACHE_BACKEND = 'locmem://'
     BASE_ABS_URL = "http://localhost:8000"
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # changed below if using Celery
     SVN_SERVER_IP = '127.0.0.1'
+
+# should we use the Celery job queue (for sending email)?  Must have celeryd running to process jobs.
+USE_CELERY = False
+if USE_CELERY:
+    os.environ["CELERY_LOADER"] = "django"
+    INSTALLED_APPS = INSTALLED_APPS + (
+        'djkombu',
+        'djcelery',
+        'djcelery_email',
+        )
+    BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
+    CELERY_QUEUES = {
+        "celery": {},
+        "email": {},
+    }
+    CELERY_SEND_TASK_ERROR_EMAILS = True
+    CELERY_EMAIL_TASK_CONFIG = {
+        'queue' : 'email',
+        'rate_limit' : '30/m',
+    }
+    EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
+    CELERY_EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 
 CAS_SERVER_URL = "https://cas.sfu.ca/cgi-bin/WebObjects/cas.woa/wa/"
+EMAIL_HOST = 'mailgate.sfu.ca'
+
 if not DEPLOYED and DEBUG and hostname != 'courses':
     CAS_SERVER_URL = "http://lefty.cmpt.sfu.ca/fake-cas/"
 LOGIN_URL = "/login/"
