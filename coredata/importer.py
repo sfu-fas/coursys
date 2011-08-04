@@ -487,7 +487,7 @@ def main():
     # cleanup already-run Celery jobs
     if settings.USE_CELERY:
         import djkombu.models
-        djkombu.models.Message.objects.cleanup()
+        #djkombu.models.Message.objects.cleanup()
     
     print len(imported_people)
 
