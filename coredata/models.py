@@ -427,7 +427,7 @@ class MeetingTime(models.Model):
         d['start_time'] = str(self.start_time)
         d['end_time'] = str(self.end_time)
         d['room'] = self.room
-        d['type'] = self.meeting_time
+        d['type'] = self.meeting_type
         return d
 
 class Role(models.Model):
