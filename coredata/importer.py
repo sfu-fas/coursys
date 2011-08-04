@@ -17,7 +17,7 @@ sysadmin = ["ggbaker", "sumo"]
 
 # first term we care even vaguely about in import (further selection happens later too)
 FIRSTTERM = "1104"
-DATA_WHERE = '(subject="CMPT" or subject="MACM" or subject="CRIM") and strm>="'+FIRSTTERM+'"'
+DATA_WHERE = '(subject="CMPT" or subject="MACM" or subject="CRIM" or subject="BUS") and strm>="'+FIRSTTERM+'"'
 
 # artificial combined sections to create: kwargs for CourseOffering creation,
 # plus 'subsections' list of sections we're combining.
@@ -225,7 +225,7 @@ def get_person(db, emplid):
 
         if not pref_first_name:
             pref_first_name = first_name
-
+        
         p_old = Person.objects.filter(emplid=emplid)
         if len(p_old)>1:
             raise KeyError, "Already duplicate people: %r" % (p_old)
@@ -376,7 +376,7 @@ def import_offering(db, tadb, offering):
     """
     Import all data for the course: instructors, TAs, students, meeting times.
     """
-    print " ", offering
+    #print " ", offering
     # drop all automatically-added members: will be re-added later on import
     Member.objects.filter(added_reason="AUTO", offering=offering).update(role='DROP')
     
