@@ -1,0 +1,10 @@
+# Where the Django project is.
+CELERYD_CHDIR="/home/greg/tmp/courses"
+
+# Path to celeryd
+CELERYD="/home/greg/tmp/courses/manage.py celeryd"
+CELERYD_MULTI="/home/greg/tmp/courses/manage.py celeryd_multi"
+
+# Name of the projects settings module.
+export DJANGO_SETTINGS_MODULE="settings"
+

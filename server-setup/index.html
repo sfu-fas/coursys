@@ -43,8 +43,8 @@ apt-get install nginx python-flup subversion python-mysqldb mysql-client-5.1 pyt
 <dt>Celery Task Queue</dt>
   <dd>Install the required Python packages:
   <blockquote><pre>sudo easy_install django-celery-email django-celery django-kombu</pre></blockquote>
-  <p>Make sure the Celery daemon is running on startup.  Something like this: (but should be run on startup: will work on that.)</p>
-  <blockquote><pre>cd /home/ggbaker/courses/; python manage.py celeryd 2&gt;&1 &gt; /tmp/celery.log</pre></blockquote>
+  <p>Make sure the Celery daemon is running on startup: the <a href="http://docs.celeryproject.org/en/latest/cookbook/daemonizing.html#start-stop-daemon-debian-ubuntu">Celery daemon instructions</a> provided <a href="etc_init.d_celeryd.txt"><code class="file">/etc/init.d/celeryd</code></a> and the <a href="etc_default_celeryd.txt"><code class="file">/etc/default/celeryd</code></a>. Those files need to be put in-place and activated:</p>
+  <blockquote><pre>sudo update-rc.d celeryd defaults</pre></blockquote>
   </dd>
 <dt>Stunnel config for MySQL</dt>
   <dd>In <code class="file">/etc/default/stunnel4</code>, enable stunnel.  Add this to <code class="file">/etc/stunnel/stunnel.conf</code> and remove other services and <code>cert</code> line:
