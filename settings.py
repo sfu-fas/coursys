@@ -160,7 +160,7 @@ else:
     SVN_SERVER_IP = '127.0.0.1'
 
 # should we use the Celery job queue (for sending email)?  Must have celeryd running to process jobs.
-USE_CELERY = DEPOLYED
+USE_CELERY = DEPLOYED
 if USE_CELERY:
     os.environ["CELERY_LOADER"] = "django"
     INSTALLED_APPS = INSTALLED_APPS + (

@@ -33,7 +33,7 @@ code.file {
   <blockquote><pre>dpkg --purge apache2.2-bin apache2.2-common apache2-utils apache2 apache2-mpm-worker apache2.2-common
 apt-get install nginx python-flup subversion python-mysqldb mysql-client-5.1 python-tz memcached python-memcache stunnel4 postfix ntp python-setuptools</pre></blockquote></dd>
 <dt>Django Package</dt>
-  <dd>System requires Django &ge;1.2, so newer package was downloaded separately from <a href="http://packages.ubuntu.com/search?keywords=python-django&amp;searchon=names&amp;suite=all&amp;section=all">Ubuntu package repository</a>.
+  <dd>System requires Django &ge;1.3, so newer package was downloaded separately from <a href="http://packages.ubuntu.com/search?keywords=python-django&amp;searchon=names&amp;suite=all&amp;section=all">Ubuntu package repository</a>.
   <blockquote><pre>dpkg -i python-django_1.3-2_all.deb</pre></blockquote>
   </dd>
 <dt>Memcached</dt>
@@ -45,6 +45,7 @@ apt-get install nginx python-flup subversion python-mysqldb mysql-client-5.1 pyt
   <blockquote><pre>sudo easy_install django-celery-email django-celery django-kombu</pre></blockquote>
   <p>Make sure the Celery daemon is running on startup: the <a href="http://docs.celeryproject.org/en/latest/cookbook/daemonizing.html#start-stop-daemon-debian-ubuntu">Celery daemon instructions</a> provided <a href="etc_init.d_celeryd.txt"><code class="file">/etc/init.d/celeryd</code></a> and the <a href="etc_default_celeryd.txt"><code class="file">/etc/default/celeryd</code></a>. Those files need to be put in-place and activated:</p>
   <blockquote><pre>sudo update-rc.d celeryd defaults</pre></blockquote>
+  <p>A bug in Django-Kombu crops up on the server.  Had to un-comment the line <code>self.refresh_connection()</code> (line 30, in <code>Channel._get</code>) in <code class="file">/usr/local/lib/python2.6/dist-packages/django_kombu-0.9.4-py2.6.egg/djkombu/transport.py</code>.</p>
   </dd>
 <dt>Stunnel config for MySQL</dt>
   <dd>In <code class="file">/etc/default/stunnel4</code>, enable stunnel.  Add this to <code class="file">/etc/stunnel/stunnel.conf</code> and remove other services and <code>cert</code> line:
