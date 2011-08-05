@@ -5,6 +5,7 @@ from pytz import timezone
 from django.conf import settings
 from django.core.cache import cache
 from autoslug.settings import slugify
+from jsonfield import JSONField
 import random, hashlib
 
 import textile
@@ -94,7 +95,7 @@ class UserConfig(models.Model):
     """
     user = models.ForeignKey(Person, null=False)
     key = models.CharField(max_length=20, db_index=True, null=False)
-    value = models.TextField()
+    value = JSONField(null=False, blank=False, default={})
     class Meta:
         unique_together = (("user", "key"),)
 

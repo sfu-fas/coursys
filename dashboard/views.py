@@ -75,7 +75,7 @@ def config(request):
     if not configs:
         newstoken = None
     else:
-        newstoken = configs[0].value
+        newstoken = configs[0].value['token']
     
     context={'caltoken': caltoken, 'newstoken': newstoken, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL}
     return render_to_response("dashboard/config.html", context, context_instance=RequestContext(request))
@@ -138,7 +138,7 @@ def atom_feed(request, token, userid, course_slug=None):
     
     # make sure the token in the URL (32 hex characters) matches the token stored in the DB
     configs = UserConfig.objects.filter(user=user, key="feed-token")
-    if not configs or configs[0].value != token:
+    if not configs or 'token' not in configs[0].value or configs[0].value['token'] != token:
         # no token configured or wrong token provided
         return NotFoundResponse(request)
     #else:
@@ -247,7 +247,7 @@ def _get_calendar_config(user):
     if not configs:
         return {}
     else:
-        return json.loads(configs[0].value)
+        return configs[0].value
 
 
 @login_required
@@ -262,9 +262,9 @@ def create_calendar_url(request):
             uc = UserConfig.objects.filter(user=user, key="calendar-config")
             if uc:
                 uc = uc[0]
-                uc.value = json.dumps(config)
+                uc.value = config
             else:
-                uc = UserConfig(user=user, key="calendar-config", value=json.dumps(config))
+                uc = UserConfig(user=user, key="calendar-config", value=config)
             uc.save()
             messages.add_message(request, messages.SUCCESS, 'Calendar URL configured.')
             return HttpResponseRedirect(reverse('dashboard.views.config'))
@@ -291,7 +291,7 @@ def disable_calendar_url(request):
                 uc = UserConfig.objects.filter(user=user, key="calendar-config")
                 if uc:
                     uc = uc[0]
-                    uc.value = json.dumps(config)
+                    uc.value = config
                     uc.save()
 
             messages.add_message(request, messages.SUCCESS, 'External calendar disabled.')
@@ -324,9 +324,9 @@ def create_news_url(request):
             token = new_feed_token()
             if configs:
                 c = configs[0]
-                c.value = token
+                c.value = {'token':token}
             else:
-                c = UserConfig(user=user, key="feed-token", value=token)
+                c = UserConfig(user=user, key="feed-token", value={'token':token})
             c.save()
             messages.add_message(request, messages.SUCCESS, 'Feed URL configured.')
             return HttpResponseRedirect(reverse('dashboard.views.config'))
