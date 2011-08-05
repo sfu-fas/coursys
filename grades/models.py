@@ -105,15 +105,12 @@ class Activity(models.Model):
 
         if newsitem and old and self.status == 'RLS' and old != None and old.status != 'RLS':
             # newly-released grades: create news items
-            class_list = Member.objects.exclude(role="DROP").filter(offering=self.offering)
-            for m in class_list:
-                n = NewsItem(user=m.person, author=None, course=self.offering,
-                    source_app="grades", title="%s grade released" % (self.name), 
-                    content='Grades have been released for "%s in %s":%s.' \
+            NewsItem.for_members(member_kwargs={'offering': self.offering}, newsitem_kwargs={
+                    'author': None, 'course': self.offering, 'source_app': 'grades',
+                    'title': "%s grade released" % (self.name),
+                    'content': 'Grades have been released for "%s in %s":%s.'
                       % (self.name, self.offering.name(), self.get_absolute_url()),
-                    url=self.get_absolute_url()
-                    )
-                n.save()
+                    'url': self.get_absolute_url()})
     
     def display_label(self):
         if self.percent:

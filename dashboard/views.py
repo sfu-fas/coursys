@@ -108,14 +108,10 @@ def new_message(request, course_slug):
     if request.method =='POST':
         form = MessageForm(request.POST, instance=default_message)
         if form.is_valid()==True:
-            form.save()
-            class_list = Member.objects.exclude(role="DROP").filter(offering=offering).exclude(person=staff)
-            for p in class_list:
-                stu_message = NewsItem(user = p.person,author=staff, course=offering, source_app="dashboard")
-                stu_message.title = form.cleaned_data['title']
-                stu_message.content = form.cleaned_data['content']
-                stu_message.url = form.cleaned_data['url']
-                stu_message.save()
+            NewsItem.for_members(member_kwargs={'offering': offering}, newsitem_kwargs={
+                    'author': staff, 'course': offering, 'source_app': 'dashboard',
+                    'title': form.cleaned_data['title'], 'content': form.cleaned_data['content'],
+                    'url': form.cleaned_data['url']})
 
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,

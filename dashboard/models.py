@@ -1,5 +1,5 @@
 from django.db import models
-from coredata.models import Person, CourseOffering
+from coredata.models import Person, CourseOffering, Member
 from django.utils.safestring import mark_safe
 from pytz import timezone
 from django.conf import settings
@@ -88,6 +88,23 @@ class NewsItem(models.Model):
             return settings.BASE_ABS_URL + self.url
         else:
             return self.url
+    
+    @classmethod
+    def for_members(cls, member_kwargs, newsitem_kwargs):
+        """
+        Create a news item for Members identified by member_kwards (role=DROP excluded
+        automatically). Details of Newsitem (except person) should be specified by
+        newsitem_kwargs.
+        """
+        # randomize order in the hopes of throwing off any spam filters
+        members = Member.objects.exclude(role="DROP").filter(**member_kwargs)
+        members = list(members)
+        random.shuffle(members)
+        
+        for m in members:
+            n = NewsItem(user=m.person, **newsitem_kwargs)
+            n.save()
+
 
 class UserConfig(models.Model):
     """
