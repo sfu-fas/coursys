@@ -160,7 +160,7 @@ else:
     SVN_SERVER_IP = '127.0.0.1'
 
 # should we use the Celery job queue (for sending email)?  Must have celeryd running to process jobs.
-USE_CELERY = DEPLOYED
+USE_CELERY = DEPOLYED
 if USE_CELERY:
     os.environ["CELERY_LOADER"] = "django"
     INSTALLED_APPS = INSTALLED_APPS + (
@@ -169,6 +169,7 @@ if USE_CELERY:
         'djcelery_email',
         )
     BROKER_BACKEND = "djkombu.transport.DatabaseTransport"
+    DJKOMBU_POLLING_INTERVAL = 10
     CELERY_QUEUES = {
         "celery": {},
         "email": {},
@@ -178,8 +179,8 @@ if USE_CELERY:
         'queue' : 'email',
         'rate_limit' : '30/m',
     }
+    CELERY_EMAIL_BACKEND = EMAIL_BACKEND
     EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
-    CELERY_EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 
 CAS_SERVER_URL = "https://cas.sfu.ca/cgi-bin/WebObjects/cas.woa/wa/"
