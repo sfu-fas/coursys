@@ -757,7 +757,7 @@ def download_marking_attachment(request, course_slug, activity_slug, mark_id):
             return ForbiddenResponse(request)
     else:
         # must be corresponding student
-        if am.numeric_grade.member.userid != request.user.username:
+        if am.numeric_grade.member.person.userid != request.user.username:
             return ForbiddenResponse(request)
     
     # send the file
