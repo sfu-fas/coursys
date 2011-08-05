@@ -4,8 +4,10 @@ from settings import CAS_SERVER_URL
 
 from coredata.tests import create_offering
 from coredata.models import *
+from dashboard.models import UserConfig
 from courselib.testing import *
 from django.core.urlresolvers import reverse
+import re
 
 class DashboardTest(TestCase):
     fixtures = ['test_data']
@@ -145,4 +147,115 @@ class DashboardTest(TestCase):
         url = reverse('dashboard.views.index', kwargs={})
         response = client.get(url, {"__impersonate": "0aaa0"})
         self.assertEquals(response.status_code, 403)
+
+    def test_userconfig(self):
+        """
+        Test user configuration
+        """
+        tokenre = re.compile("^[0-9a-f]{32}$")
+
+        client = Client()
+        userid = "0aaa0"
+        client.login(ticket=userid, service=CAS_SERVER_URL)
+        configurl = reverse('dashboard.views.config', kwargs={})
+        response = client.get(configurl)
+        self.assertEquals(response.status_code, 200)
+        self.assertContains(response, "You do not currently have the external news feed")
+        self.assertContains(response, "You do not currently have the external calendar")
+        
+        # activate calendar
+        url = reverse('dashboard.views.create_calendar_url', kwargs={})
+        response = client.post(url, {'agree': 'on'})
+        self.assertEquals(response.status_code, 302)
+
+        response = client.get(configurl)
+        self.assertEquals(response.status_code, 200)
+        self.assertContains(response, "You do not currently have the external news feed")
+        self.assertContains(response, "You can get your calendar as iCalendar")
+        
+        confs = UserConfig.objects.filter(user__userid=userid, key='calendar-config')
+        self.assertEquals(len(confs), 1)
+        uc = confs[0]
+        token = uc.value['token']
+        self.assertIsNotNone(tokenre.match(token))
+        
+        url = reverse('dashboard.views.calendar_ical', kwargs={'token': token, 'userid': userid})
+        response = client.get(url)
+        self.assertEquals(response.status_code, 200)
+        self.assertContains(response, "BEGIN:VCALENDAR")
+        
+        # change calendar URL
+        url = reverse('dashboard.views.create_calendar_url', kwargs={})
+        response = client.post(url, {'agree': 'on'})
+        self.assertEquals(response.status_code, 302)
+        confs = UserConfig.objects.filter(user__userid=userid, key='calendar-config')
+        self.assertEquals(len(confs), 1)
+        self.assertNotEqual(token, confs[0].value['token'])
+        
+        # disable and re-enable calendar URL
+        url = reverse('dashboard.views.disable_calendar_url', kwargs={})
+        response = client.post(url, {'agree': 'on'})
+        self.assertEquals(response.status_code, 302)
+        confs = UserConfig.objects.filter(user__userid=userid, key='calendar-config')
+        self.assertEquals(len(confs), 1)
+        self.assertTrue('token' not in confs[0].value)
+        
+        url = reverse('dashboard.views.create_calendar_url', kwargs={})
+        response = client.post(url, {'agree': 'on'})
+        confs = UserConfig.objects.filter(user__userid=userid, key='calendar-config')
+        self.assertEquals(len(confs), 1)
+        self.assertIsNotNone(tokenre.match(confs[0].value['token']))
+        
+
+
+        # activate feed
+        url = reverse('dashboard.views.create_news_url', kwargs={})
+        response = client.post(url, {'agree': 'on'})
+        self.assertEquals(response.status_code, 302)
+
+        response = client.get(configurl)
+        self.assertEquals(response.status_code, 200)
+        self.assertContains(response, "Your external news feed is currently enabled")
+        self.assertContains(response, "You can get your calendar as iCalendar")
+        
+        confs = UserConfig.objects.filter(user__userid=userid, key='feed-token')
+        self.assertEquals(len(confs), 1)
+        uc = confs[0]
+        token = uc.value['token']
+        self.assertIsNotNone(tokenre.match(token))
+        
+        url = reverse('dashboard.views.atom_feed', kwargs={'token': token, 'userid': userid})
+        response = client.get(url)
+        self.assertEquals(response.status_code, 200)
+        self.assertContains(response, '<feed xmlns="http://www.w3.org/2005/Atom">')
+        
+        # change feed URL
+        url = reverse('dashboard.views.create_news_url', kwargs={})
+        response = client.post(url, {'agree': 'on'})
+        self.assertEquals(response.status_code, 302)
+        confs = UserConfig.objects.filter(user__userid=userid, key='feed-token')
+        self.assertEquals(len(confs), 1)
+        self.assertNotEqual(token, confs[0].value['token'])
+        
+        # disable and re-enable feed URL
+        url = reverse('dashboard.views.disable_news_url', kwargs={})
+        response = client.post(url, {'agree': 'on'})
+        self.assertEquals(response.status_code, 302)
+        confs = UserConfig.objects.filter(user__userid=userid, key='feed-token')
+        self.assertEquals(len(confs), 0)
+        
+        url = reverse('dashboard.views.create_news_url', kwargs={})
+        response = client.post(url, {'agree': 'on'})
+        confs = UserConfig.objects.filter(user__userid=userid, key='feed-token')
+        self.assertEquals(len(confs), 1)
+        self.assertIsNotNone(tokenre.match(confs[0].value['token']))
+        
+
+
+
+
+
+
+
+
 
