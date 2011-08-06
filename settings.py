@@ -185,6 +185,7 @@ if USE_CELERY:
 
 CAS_SERVER_URL = "https://cas.sfu.ca/cgi-bin/WebObjects/cas.woa/wa/"
 EMAIL_HOST = 'mailgate.sfu.ca'
+DEFAULT_FROM_EMAIL = 'nobody@courses.cs.sfu.ca'
 
 if not DEPLOYED and DEBUG and hostname != 'courses':
     CAS_SERVER_URL = "http://lefty.cmpt.sfu.ca/fake-cas/"

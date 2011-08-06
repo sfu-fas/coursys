@@ -4,6 +4,8 @@ from django.utils.safestring import mark_safe
 from pytz import timezone
 from django.conf import settings
 from django.core.cache import cache
+from django.core.mail import EmailMultiAlternatives
+from django.core.urlresolvers import reverse
 from autoslug.settings import slugify
 from jsonfield import JSONField
 import random, hashlib
@@ -46,7 +48,45 @@ class NewsItem(models.Model):
     
     def __unicode__(self):
         return '"%s" for %s' % (self.title, self.user.userid)
+    
+    def save(self, *args, **kwargs):
+        super(NewsItem, self).save(*args, **kwargs)
 
+        # see if this user wants news by email
+        ucs = UserConfig.objects.filter(user=self.user, key="newsitems")
+        if ucs and 'email' in ucs[0].value and ucs[0].value['email']:
+            self.email_user()
+
+    def email_user(self):
+        """
+        Email this news item to the user.
+        """
+        subject = u"%s: %s" % (self.course.name(), self.title)
+        to_email = self.user.full_email()
+        if self.author:
+            from_email = self.author.full_email()
+        else:
+            from_email = settings.DEFAULT_FROM_EMAIL
+
+        if self.url:
+            url = self.url
+        else:
+            url = settings.BASE_ABS_URL + "/"
+        
+        text_content = u"For more information, see " + url + "\n"
+        text_content += u"\n--\nYou received this email from CourSys. If you do not wish to receive\nthese notifications by email, you can edit your email settings here:\n  "
+        text_content += settings.BASE_ABS_URL + reverse('dashboard.views.config')
+        
+        html_content = u'<h3>%s: <a href="%s">%s</a></h3>\n' % (self.course.name(), url, self.title)
+        html_content += self.content_xhtml()
+        html_content += u'\n<hr /><p>You received this email from CourSys. If you do not wish to receive\nthese notifications by email, you can <a href="' + settings.BASE_ABS_URL + reverse('dashboard.views.config') + '">change your email settings</a>.</p>'
+        
+        msg = EmailMultiAlternatives(subject, text_content, from_email, [to_email])
+        msg.attach_alternative(html_content, "text/html")
+        msg.send()
+        
+        
+        
     def content_xhtml(self):
         """
         Render content field as XHTML.
