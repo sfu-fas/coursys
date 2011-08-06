@@ -188,7 +188,7 @@ def calendar_ical(request, token, userid):
     #else:
         # authenticated
 
-    memberships = Member.objects.filter(person=user, offering__graded=True).exclude(role="DROP")
+    memberships = Member.objects.filter(person=user, offering__graded=True).exclude(role="DROP").exclude(role="APPR")
     # map of offering_id -> this student's lab section (so we only output the right one)
     labsecs = dict(((m.offering_id, m.labtut_section) for m in memberships))
     classes = set((m.offering for m in memberships))
