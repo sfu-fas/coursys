@@ -171,6 +171,8 @@ COMPONENT_CHOICES = (
         ('SEM', 'Seminar'),
         ('SEC', 'Section'), # "Section"?  ~= lecture?
         ('PRA', 'Practicum'),
+        ('IND', 'Individual Work'),
+        ('INS', 'INS'),
         #('OPL', 'Open Lab'),
         #('FLD', 'Field School'),
         ('CAN', 'Cancelled')

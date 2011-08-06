@@ -10,7 +10,8 @@ from django.db import transaction
 from django.contrib.sessions.models import Session
 from django.conf import settings
 today = datetime.date.today()
-cutoff = today - datetime.timedelta(days=30)
+past_cutoff = today - datetime.timedelta(days=30)
+future_cutoff = today + datetime.timedelta(days=120)
 
 # these users will be given sysadmin role (for bootstrapping)
 sysadmin = ["ggbaker", "sumo"]
@@ -127,7 +128,7 @@ def import_semester(sems):
     if not sems:
         return False
     s = sems[0]
-    return s.end >= cutoff
+    return s.end >= past_cutoff and s.start <= future_cutoff
 
 
 @transaction.commit_on_success
@@ -376,7 +377,7 @@ def import_offering(db, tadb, offering):
     """
     Import all data for the course: instructors, TAs, students, meeting times.
     """
-    #print " ", offering
+    print " ", offering
     # drop all automatically-added members: will be re-added later on import
     Member.objects.filter(added_reason="AUTO", offering=offering).update(role='DROP')
     
