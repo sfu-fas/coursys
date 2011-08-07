@@ -10,6 +10,7 @@
 <div id="actions">
 <h2>Actions</h2>
 <ul>
+<li><a href="{% url dashboard.views.news_config %}">Change news item settings</a></li>
 {% if newstoken %}
 <li><a href="{% url dashboard.views.create_news_url %}">Change news feed URL</a></li>
 <li><a href="{% url dashboard.views.disable_news_url %}">Disable external news feed </a></li>
@@ -17,17 +18,19 @@
 <li><a href="{% url dashboard.views.create_news_url %}">Activate external news feed</a></li>
 {% endif %}
 {% if caltoken %}
-<li class="newsec"><a href="{% url dashboard.views.create_calendar_url %}">Change calendar URL</a></li>
+<li><a href="{% url dashboard.views.create_calendar_url %}">Change calendar URL</a></li>
 <li><a href="{% url dashboard.views.disable_calendar_url %}">Disable external calendar</a></li>
 {% else %}
-<li class="newsec"><a href="{% url dashboard.views.create_calendar_url %}">Activate external calendar</a></li>
+<li><a href="{% url dashboard.views.create_calendar_url %}">Activate external calendar</a></li>
 {% endif %}
 </ul>
 </div>
 {% endblock %}
 
 {% block content %}
-<h2 id="newsfeed">News Feed</h2>
+<h2 id="newsconfig">News Notifications</h2>
+<p>Your currently <strong>{% if newsconfig.email %}do receive{% else %}do not receive{% endif %}</strong> emails for new notifications within this system. You can change your <a href="{% url dashboard.views.news_config %}">news item settings</a> if you wish.</p>
+
 {% if newstoken %}
 <p>Your external news feed is currently enabled at this URL:</p>
 <blockquote>

@@ -56,6 +56,7 @@ def index(request):
     return render_to_response("dashboard/index.html",context,context_instance=RequestContext(request))
 
 
+@login_required
 def config(request):
     users = Person.objects.filter(userid=request.user.username)
     if users.count() == 1:
@@ -70,14 +71,21 @@ def config(request):
     else:
         caltoken = config['token']
 
-    # news config
+    # feed config
     configs = UserConfig.objects.filter(user=user, key="feed-token")
     if not configs:
         newstoken = None
     else:
         newstoken = configs[0].value['token']
     
-    context={'caltoken': caltoken, 'newstoken': newstoken, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL}
+    # news config
+    configs = UserConfig.objects.filter(user=user, key="newsitems")
+    if not configs:
+        newsconfig = {'email': False}
+    else:
+        newsconfig = configs[0].value
+    
+    context={'caltoken': caltoken, 'newstoken': newstoken, 'newsconfig': newsconfig, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL}
     return render_to_response("dashboard/config.html", context, context_instance=RequestContext(request))
 
 
@@ -297,6 +305,37 @@ def disable_calendar_url(request):
 
     context = {'form': form}
     return render_to_response("dashboard/disable_calendar_url.html", context, context_instance=RequestContext(request))
+
+
+@login_required
+def news_config(request):
+    users = Person.objects.filter(userid=request.user.username)
+    if users.count() == 1:
+        user = users[0]
+    else:
+        return NotFoundResponse(request, errormsg="Your account is not known to this system.  There is nothing to configure.")
+
+    # get appropriate UserConfig object
+    configs = UserConfig.objects.filter(user=user, key='newsitems')
+    if configs:
+        config = configs[0]
+    else:
+        config = UserConfig(user=user, key='newsitems', value={})
+
+    if request.method == 'POST':
+        form = NewsConfigForm(request.POST)
+        if form.is_valid():
+            config.value['email'] = form.cleaned_data['want_email']
+            config.save()
+            messages.add_message(request, messages.SUCCESS, 'News settings updated.')
+            return HttpResponseRedirect(reverse('dashboard.views.config'))
+    else:
+        initial = {'want_email': 'email' not in config.value or config.value['email']}
+        form = NewsConfigForm(initial)
+
+    context = {'form': form}
+    return render_to_response("dashboard/news_config.html", context, context_instance=RequestContext(request))
+
 
 
 

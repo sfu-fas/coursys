@@ -71,15 +71,15 @@ class NewsItem(models.Model):
         if self.url:
             url = self.absolute_url()
         else:
-            url = settings.BASE_ABS_URL + "/"
+            url = settings.BASE_ABS_URL + reverse('dashboard.views.news_list')
         
         text_content = u"For more information, see " + url + "\n"
         text_content += u"\n--\nYou received this email from CourSys. If you do not wish to receive\nthese notifications by email, you can edit your email settings here:\n  "
-        text_content += settings.BASE_ABS_URL + reverse('dashboard.views.config')
+        text_content += settings.BASE_ABS_URL + reverse('dashboard.views.news_config')
         
         html_content = u'<h3>%s: <a href="%s">%s</a></h3>\n' % (self.course.name(), url, self.title)
         html_content += self.content_xhtml()
-        html_content += u'\n<hr /><p>You received this email from CourSys. If you do not wish to receive\nthese notifications by email, you can <a href="' + settings.BASE_ABS_URL + reverse('dashboard.views.config') + '">change your email settings</a>.</p>'
+        html_content += u'\n<hr /><p>You received this email from CourSys. If you do not wish to receive\nthese notifications by email, you can <a href="' + settings.BASE_ABS_URL + reverse('dashboard.views.news_config') + '">change your email settings</a>.</p>'
         
         msg = EmailMultiAlternatives(subject, text_content, from_email, [to_email])
         msg.attach_alternative(html_content, "text/html")

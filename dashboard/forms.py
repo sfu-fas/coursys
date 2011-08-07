@@ -16,3 +16,7 @@ class FeedSetupForm(forms.Form):
             raise forms.ValidationError("You must agree to continue")
         return data
 
+class NewsConfigForm(forms.Form):
+    want_email = forms.BooleanField(required=False, label="Send Email", help_text="Send emails of new notifications to your email?")
+    
+
