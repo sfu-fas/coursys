@@ -108,8 +108,8 @@ class Activity(models.Model):
             NewsItem.for_members(member_kwargs={'offering': self.offering}, newsitem_kwargs={
                     'author': None, 'course': self.offering, 'source_app': 'grades',
                     'title': "%s grade released" % (self.name),
-                    'content': 'Grades have been released for "%s in %s":%s.'
-                      % (self.name, self.offering.name(), self.get_absolute_url()),
+                    'content': 'Grades have been released for %s in %s.'
+                      % (self.name, self.offering.name()),
                     'url': self.get_absolute_url()})
     
     def display_label(self):
@@ -408,8 +408,8 @@ class NumericGrade(models.Model):
             # new grade assigned, generate news item only if the result is released
             n = NewsItem(user=self.member.person, author=None, course=self.activity.offering,
                 source_app="grades", title="%s grade available" % (self.activity.name), 
-                content='A "new grade for %s":%s in %s is available.' 
-                  % (self.activity.name, self.activity.get_absolute_url(), self.activity.offering.name()),
+                content='A new grade for %s in %s is available.' 
+                  % (self.activity.name, self.activity.offering.name()),
                 url=self.activity.get_absolute_url())
             n.save()
 
@@ -471,8 +471,8 @@ class LetterGrade(models.Model):
             # new grade assigned, generate news item only if the result is released
             n = NewsItem(user=self.member.person, author=None, course=self.activity.offering,
                 source_app="grades", title="%s grade available" % (self.activity.name), 
-                content='A "new grade for %s":%s in %s is available.' 
-                  % (self.activity.name, self.get_absolute_url(), self.activity.offering.name()),
+                content='A new grade for %s in %s is available.' 
+                  % (self.activity.name, self.activity.offering.name()),
                 url=self.get_absolute_url())
             n.save()
     def get_absolute_url(self):

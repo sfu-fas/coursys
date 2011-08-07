@@ -66,10 +66,10 @@ class NewsItem(models.Model):
         if self.author:
             from_email = self.author.full_email()
         else:
-            from_email = settings.DEFAULT_FROM_EMAIL
+            from_email = "CourSys <%s>" % (settings.DEFAULT_FROM_EMAIL)
 
         if self.url:
-            url = self.url
+            url = self.absolute_url()
         else:
             url = settings.BASE_ABS_URL + "/"
         
