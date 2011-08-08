@@ -80,7 +80,7 @@ class NewsItem(models.Model):
         from_email = self.email_from()
         headers = {'X-course': self.course.slug}
         if self.author:
-            headers['Sender'] = self.author.email
+            headers['Sender'] = self.author.email()
         else:
             headers['Sender'] = settings.DEFAULT_SENDER_EMAIL
 
