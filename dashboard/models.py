@@ -57,16 +57,32 @@ class NewsItem(models.Model):
         if ucs and 'email' in ucs[0].value and ucs[0].value['email']:
             self.email_user()
 
+    def email_from(self):
+        """
+        Determine who the email should appear to come from: perfer to use course contact email if exists.
+        """
+        if self.course.taemail():
+            if self.author:
+                return "%s <%s> (per %s)" % (self.course.name(), self.course.taemail(), self.author.name())
+            else:
+                return "%s <%s>" % (self.course.name(), self.course.taemail())
+        elif self.author:
+            return self.author.full_email()
+        else:
+            return "CourSys <%s>" % (settings.DEFAULT_FROM_EMAIL)
+    
     def email_user(self):
         """
         Email this news item to the user.
         """
         subject = u"%s: %s" % (self.course.name(), self.title)
         to_email = self.user.full_email()
+        from_email = self.email_from()
+        headers = {'X-course': self.course.slug}
         if self.author:
-            from_email = self.author.full_email()
+            headers['Sender'] = self.author.email
         else:
-            from_email = "CourSys <%s>" % (settings.DEFAULT_FROM_EMAIL)
+            headers['Sender'] = settings.DEFAULT_SENDER_EMAIL
 
         if self.url:
             url = self.absolute_url()
@@ -81,7 +97,7 @@ class NewsItem(models.Model):
         html_content += self.content_xhtml()
         html_content += u'\n<hr /><p>You received this email from CourSys. If you do not wish to receive\nthese notifications by email, you can <a href="' + settings.BASE_ABS_URL + reverse('dashboard.views.news_config') + '">change your email settings</a>.</p>'
         
-        msg = EmailMultiAlternatives(subject, text_content, from_email, [to_email])
+        msg = EmailMultiAlternatives(subject, text_content, from_email, [to_email], headers=headers)
         msg.attach_alternative(html_content, "text/html")
         msg.send()
         

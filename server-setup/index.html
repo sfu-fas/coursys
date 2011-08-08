@@ -27,7 +27,8 @@ code.file {
 <h2 id="base">Base System Setup</h2>
 <dl>
 <dt>Base system</dt>
-  <dd>Ubuntu 10.04 Lucid LTS (as provided by CSTS).</dd>
+  <dd>Ubuntu 10.04 Lucid LTS (as provided by CSTS).
+  <p>Edit <code class="file">/etc/hosts</code> so the <code>127.0.1.1</code> line refers to the right hostnames.</p></dd>
 <dt>Additional packages installed</dt>
   <dd>Like this:
   <blockquote><pre>dpkg --purge apache2.2-bin apache2.2-common apache2-utils apache2 apache2-mpm-worker apache2.2-common
@@ -39,7 +40,7 @@ apt-get install nginx python-flup subversion python-mysqldb mysql-client-5.1 pyt
 <dt>Memcached</dt>
   <dd>In <code class="file">/etc/memcached.conf</code>, change the port to 22122.</dd>
 <dt>Mail Server</dt>
-  <dd>Configure Postfix with smarthost mailgate.sfu.ca.</dd>
+  <dd>Configure Postfix with smarthost mailgate.sfu.ca.  Put a useful email address in <code class="file">/root/.forward</code></dd>
 <dt>Celery Task Queue</dt>
   <dd>Install the required Python packages:
   <blockquote><pre>sudo easy_install django-celery-email django-celery django-kombu</pre></blockquote>
