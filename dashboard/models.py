@@ -71,6 +71,17 @@ class NewsItem(models.Model):
         else:
             return "CourSys <%s>" % (settings.DEFAULT_FROM_EMAIL)
     
+    # turn the source_app field into a more externally-friendly string
+    source_app_translate = {
+            'dashboard': 'typed',
+            'group submission': 'submit_group',
+            }
+    def source_display(self):
+        if self.source_app in self.source_app_translate:
+            return self.source_app_translate[self.source_app]
+        else:
+            return self.source_app
+    
     def email_user(self):
         """
         Email this news item to the user.
@@ -78,7 +89,10 @@ class NewsItem(models.Model):
         subject = u"%s: %s" % (self.course.name(), self.title)
         to_email = self.user.full_email()
         from_email = self.email_from()
-        headers = {'X-course': self.course.slug}
+        headers = {
+                'X-course': self.course.slug,
+                'X-news-source': self.source_display(),
+                }
         if self.author:
             headers['Sender'] = self.author.email()
         else:
