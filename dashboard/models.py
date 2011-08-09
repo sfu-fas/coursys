@@ -90,8 +90,10 @@ class NewsItem(models.Model):
         to_email = self.user.full_email()
         from_email = self.email_from()
         headers = {
+                'Precedence': 'bulk',
+                'Auto-Submitted': 'auto-generated',
                 'X-course': self.course.slug,
-                'X-news-source': self.source_display(),
+                'X-coursys-topic': self.source_display(),
                 }
         if self.author:
             headers['Sender'] = self.author.email()
