@@ -28,17 +28,21 @@ def filetype(fh):
     fh.seek(0)
     magic = fh.read(4)
     if magic=="PK\003\004" or magic=="PK00":
-        # it's ZIP: also look for ZIP-contained types
+        # it's ZIP-ish: also look for ZIP-contained types
         fh.seek(0)
-        zipf = zipfile.ZipFile(fh, "r")
         try:
-            mimetype = zipf.read("mimetype")
-            if mimetype == "application/vnd.oasis.opendocument.text":
-                return "OPENDOC"
-        except KeyError:
+            zipf = zipfile.ZipFile(fh, "r")
+            try:
+                mimetype = zipf.read("mimetype")
+                if mimetype == "application/vnd.oasis.opendocument.text":
+                    return "OPENDOC"
+            except KeyError:
+                pass
+
+            return "ZIP"
+        except zipfile.BadZipfile:
             pass
 
-        return "ZIP"
     elif magic=="Rar!":
         return "RAR"
     elif magic[0:2]=="\037\213":
