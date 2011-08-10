@@ -1,13 +1,14 @@
 from django.test import *
 from django.test.client import Client
 from submission.models import *
+from submission.models.code import SubmittedCode
 from submission.forms import *
 from grades.models import NumericActivity
 from coredata.tests import create_offering
 from settings import CAS_SERVER_URL
 from coredata.models import *
 from courselib.testing import *
-import gzip
+import gzip, tempfile, os
 
 import base64, StringIO, zlib
 TGZ_FILE = base64.b64decode('H4sIAI7Wr0sAA+3OuxHCMBAE0CtFJUjoVw8BODfQP3bgGSKIcPResjO3G9w9/i9vRmt7ltnzZx6ilNrr7PVS9vscbUTKJ/wWr8fzuqYUy3pbvu1+9QAAAAAAAAAAAHCiNyHUDpAAKAAA')
@@ -295,5 +296,60 @@ class SubmissionTest(TestCase):
         response = basic_page_tests(self, client, url)
         self.assertContains(response, "This is a group submission. You will submit on behalf of the group Test Group.")
         self.assertContains(response, "You haven't made a submission for this component.")
+
+
+    def test_upload(self):
+        s, course = create_offering()
+        a1 = NumericActivity(name="Assignment 1", short_name="A1", status="RLS", offering=course, position=2, max_grade=15, due_date=datetime.datetime.now() + datetime.timedelta(hours=1), group=False)
+        a1.save()
+        p = Person.objects.get(userid="ggbaker")
+        member = Member(person=p, offering=course, role="INST", career="NONS", added_reason="UNK")
+        member.save()
+        c = Code.Component(activity=a1, title="Code File", position=3, max_size=2000, allowed=".py")
+        c.save()
+
+        userid1 = "0aaa0"
+        userid2 = "0aaa1"
+        userid3 = "0aaa2"
+        for u in [userid1, userid2,userid3]:
+            p = Person.objects.get(userid=u)
+            m = Member(person=p, offering=course, role="STUD", credits=3, career="UGRD", added_reason="UNK")
+            m.save()
+        
+        # submit as student
+        client = Client()
+        client.login(ticket="0aaa0", service=CAS_SERVER_URL)
+        url = reverse('submission.views.show_components', kwargs={'course_slug': course.slug,'activity_slug':a1.slug})
+        response = basic_page_tests(self, client, url)
+        self.assertContains(response, '<input type="file" name="%i-code"' % (c.id))
+        
+        # submit a file
+        tmpf = tempfile.NamedTemporaryFile(suffix=".py", delete=False)
+        codecontents = 'print "Hello World!"\n'
+        tmpf.write(codecontents)
+        tmpf.close()
+
+        try:
+            fh = open(tmpf.name, "r")
+            data = {"%i-code" % (c.id): fh}
+            response = client.post(url, data)
+            self.assertEquals(response.status_code, 302)
+            
+        finally:
+            os.unlink(tmpf.name)
+
+        # make sure it's there and correct
+        subs = StudentSubmission.objects.all()
+        self.assertEquals(len(subs), 1)
+        sub = subs[0]
+        self.assertEquals(sub.member.person.userid, '0aaa0')
+            
+        codes = SubmittedCode.objects.all()
+        self.assertEquals(len(codes), 1)
+        code = codes[0]
+        code.code.open()
+        self.assertEquals(code.code.read(), codecontents)
+            
+
 
 
