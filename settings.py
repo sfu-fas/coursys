@@ -31,7 +31,7 @@ else:
 
 DATABASE_OPTIONS = {}
 if DATABASE_ENGINE == 'mysql':
-    DATABASE_OPTIONS["init_command"] = "SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED; SET storage_engine=INNODB;"
+    DATABASE_OPTIONS["init_command"] = "SET storage_engine=INNODB;"
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
