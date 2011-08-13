@@ -9,13 +9,15 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         
         # Removing unique constraint on 'Member', fields ['person', 'role', 'offering']
-        db.delete_unique('coredata_member', ['person_id', 'role', 'offering_id'])
+        #db.delete_unique('coredata_member', ['person_id', 'role', 'offering_id'])
+        pass
 
 
     def backwards(self, orm):
         
         # Adding unique constraint on 'Member', fields ['person', 'role', 'offering']
-        db.create_unique('coredata_member', ['person_id', 'role', 'offering_id'])
+        #db.create_unique('coredata_member', ['person_id', 'role', 'offering_id'])
+        pass
 
 
     models = {
