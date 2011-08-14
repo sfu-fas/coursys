@@ -169,7 +169,7 @@ class NewsItem(models.Model):
         newsitem_kwargs.
         """
         # randomize order in the hopes of throwing off any spam filters
-        members = Member.objects.exclude(role="DROP").filter(**member_kwargs)
+        members = Member.objects.exclude(role="DROP").exclude(role="APPR").filter(**member_kwargs)
         members = list(members)
         random.shuffle(members)
         
