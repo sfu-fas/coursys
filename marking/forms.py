@@ -31,6 +31,14 @@ class ActivityMarkForm(ModelForm):
                 raise forms.ValidationError(u'The late penalty can not exceed 100 percent')
         return late_penalty
 
+    def clean_mark_adjustment(self):  
+        mark_adjustment = self.cleaned_data['mark_adjustment']
+        try:
+            float(mark_adjustment)
+        except TypeError:
+            raise forms.ValidationError(u'The mark penalty must be a number')
+        return mark_adjustment
+
 class StudentActivityMarkForm(ActivityMarkForm):
     class Meta:
         model = StudentActivityMark
