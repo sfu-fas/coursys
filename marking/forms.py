@@ -206,6 +206,7 @@ class GradeStatusForm(forms.ModelForm):
     #    self.activity = activity
         super(GradeStatusForm, self).__init__(*args, **kwargs)
         self.fields['value'].label=mark_safe('Grade:' + _required_star)
+        self.fields['value'].help_text="out of %s" % (self.instance.activity.max_grade)
         self.fields['flag'].label=mark_safe('Change Status to:' + _required_star)
         # exclude CALC status choice for non-calcualted activity
         isCalActivity = CalNumericActivity.objects.filter(id=self.instance.activity.id).count() != 0
@@ -214,7 +215,7 @@ class GradeStatusForm(forms.ModelForm):
         
     comment = forms.CharField(required=False, max_length=500,
                             label=mark_safe('Comment:'),
-                            help_text='Please provide the reasons here',
+                            help_text='Please provide the reasons here: visible to the student.',
                             widget=forms.Textarea(attrs={'rows':'6', 'cols':'40'}))
         
     class Meta:
