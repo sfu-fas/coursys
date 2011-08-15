@@ -6,6 +6,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 
 from coredata.models import *
 from dashboard.models import NewsItem
+from log.models import LogEntry
 from django.db import transaction
 from django.contrib.sessions.models import Session
 from django.conf import settings
@@ -484,7 +485,9 @@ def main():
     # cleanup sessions table
     Session.objects.filter(expire_date__lt=datetime.datetime.now()).delete()
     # cleanup old news items
-    NewsItem.objects.filter(updated__lt=datetime.datetime.now()-datetime.timedelta(days=60)).delete()
+    NewsItem.objects.filter(updated__lt=datetime.datetime.now()-datetime.timedelta(days=120)).delete()
+    # cleanup old log entries
+    LogEntry.objects.filter(datetime__lt=datetime.datetime.now()-datetime.timedelta(days=365)).delete()
     # cleanup already-run Celery jobs
     if settings.USE_CELERY:
         import djkombu.models
