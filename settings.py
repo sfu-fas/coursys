@@ -15,54 +15,33 @@ ADMINS = (
 MANAGERS = ADMINS
 
 if DEPLOYED:
-    DATABASE_ENGINE = 'mysql'
-    DATABASE_NAME = 'course_management'
-    DATABASE_USER = 'courseuser'
-    DATABASE_PASSWORD = '?????'
-    DATABASE_HOST = '127.0.0.1'
-    DATABASE_PORT = '4000'
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'course_management',
+            'USER': 'courseuser',
+            'PASSWORD': '?????',
+            'HOST': '127.0.0.1',
+            'PORT': '4000',
+            #'OPTIONS': {"init_command": "SET storage_engine=INNODB;"} # needed only for initial table creation
+            'OPTIONS': {"init_command": "SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;"} # Celeryd misbehaves if not set
+        }
+    }
 else:
-    DATABASE_ENGINE = 'sqlite3'
-    DATABASE_NAME = 'db.sqlite'
-    DATABASE_USER = ''
-    DATABASE_PASSWORD = ''
-    DATABASE_HOST = ''
-    DATABASE_PORT = ''
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': 'db.sqlite',
+        }
+    }
 
-DATABASE_OPTIONS = {}
-if DATABASE_ENGINE == 'mysql':
-    #DATABASE_OPTIONS["init_command"] = "SET storage_engine=INNODB;" # needed only for initial table creation
-    DATABASE_OPTIONS["init_command"] = "SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;" # Celeryd misbehaves if not set
-
-# Local time zone for this installation. Choices can be found here:
-# http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
-# although not all choices may be available on all operating systems.
-# If running in a Windows environment this must be set to the same as your
-# system time zone.
+# Local time zone for this installation.
 TIME_ZONE = 'America/Vancouver'
-
-# Language code for this installation. All choices can be found here:
-# http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en'
-
 SITE_ID = 1
-
-# If you set this to False, Django will make some optimizations so as not
-# to load the internationalization machinery.
 USE_I18N = True
-
-# Absolute path to the directory that holds media.
-# Example: "/home/media/media.lawrence.com/"
 MEDIA_ROOT = 'media'
-
-# URL that handles the media served from MEDIA_ROOT. Make sure to use a
-# trailing slash if there is a path component (optional in other cases).
-# Examples: "http://media.lawrence.com", "http://example.com/media/"
 MEDIA_URL = '/media/'
-
-# URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
-# trailing slash.
-# Examples: "http://foo.com/media/", "/media/".
 ADMIN_MEDIA_PREFIX = '/adminmedia/'
 
 # Make this unique, and don't share it with anybody.
@@ -104,9 +83,6 @@ TEST_RUNNER="courselib.testrunner.AdvancedTestSuiteRunner"
 TEST_EXCLUDE = ('django',)
 
 TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
     'templates',
 )
 if DEPLOYED:
