@@ -307,7 +307,7 @@ def activity_info_with_groups(request, course_slug, activity_slug):
             # a new group discovered by its first member
             # get the current grade of the group 
             current_mark = get_group_mark(activity, group)
-            value = (current_mark == None and 'no grade' or current_mark.mark)
+            value = 'no grade' if current_mark is None else current_mark.mark
             new_group_grade_info = {'group': group, 'members': [student], 'grade': value}            
             groups_found[group.id] = new_group_grade_info
         else:   
