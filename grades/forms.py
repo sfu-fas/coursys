@@ -226,11 +226,11 @@ class CalLetterActivityForm(ActivityForm):
     
     def activate_addform_validation(self, course_slug):
         super(CalLetterActivityForm, self).activate_addform_validation(course_slug)
-        self._course_letter_activities = LetterActivity.objects.filter(offering__slug=course_slug)
+        self._course_letter_activities = LetterActivity.objects.filter(offering__slug=course_slug, deleted=False)
         
     def activate_editform_validation(self, course_slug, activity_slug):
         super(CalLetterActivityForm, self).activate_editform_validation(course_slug, activity_slug)
-        self._course_letter_activities = LetterActivity.objects.exclude(slug=activity_slug).filter(offering__slug=course_slug)
+        self._course_letter_activities = LetterActivity.objects.exclude(slug=activity_slug).filter(offering__slug=course_slug, deleted=False)
     
 
 
@@ -294,6 +294,7 @@ class CutoffForm(forms.Form):
     c = forms.DecimalField(max_digits=6, decimal_places=2, required=True)
     cm = forms.DecimalField(max_digits=6, decimal_places=2, required=True)
     d = forms.DecimalField(max_digits=6, decimal_places=2, required=True)
+
     
     def clean(self):
         try:
