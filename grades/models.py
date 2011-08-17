@@ -427,7 +427,7 @@ class NumericGrade(models.Model):
         unique_together = (('activity', 'member'),)
 
 
-##############################Yu Liu Added#########################################################     
+  
 class LetterGrade(models.Model):
     """
     Individual letter grade for a LetterActivity

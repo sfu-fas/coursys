@@ -702,7 +702,7 @@ def calculate_individual_ajax(request, course_slug, activity_slug):
             
         course = get_object_or_404(CourseOffering, slug=course_slug)
         activity = get_object_or_404(CalNumericActivity, slug=activity_slug, offering=course, deleted=False)
-        member = get_object_or_404(Member, offering = course, person__userid=userid, role='STUD')
+        member = get_object_or_404(Member, offering=course, person__userid=userid, role='STUD')
 
         try:
             displayable_result = calculate_numeric_grade(course,activity, member)

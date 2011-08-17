@@ -582,12 +582,7 @@ def calculate_numeric_grade(course, activity, student=None):
         if not isinstance(student, Member):
             raise TypeError('Member type is required')
         student_list = [student]
-        try:
-            numeric_grade = NumericGrade.objects.get(activity = activity, member=student)
-        except NumericGrade.DoesNotExist:
-            numeric_grade_list = []
-        else:
-            numeric_grade_list = [numeric_grade]
+        numeric_grade_list = NumericGrade.objects.filter(activity=activity, member=student)
     else: # calculate for all student
         student_list = Member.objects.filter(offering=course, role='STUD')
         numeric_grade_list = NumericGrade.objects.filter(activity = activity).select_related('member')
@@ -607,9 +602,10 @@ def calculate_numeric_grade(course, activity, student=None):
             if numeric_grade.member == s:
                 member_found = True     
                 if numeric_grade.flag != "CALC":
+                    # ignore manually-set grades
                     ignored += 1
-                elif result != numeric_grade.value or numeric_grade.flag != "CALC":
-                    # ignore manually-set grades; only save when the value changes
+                elif result != numeric_grade.value:
+                    # only save when the value changes
                     numeric_grade.value = result
                     numeric_grade.flag = "CALC"
                     numeric_grade.save(newsitem=False)

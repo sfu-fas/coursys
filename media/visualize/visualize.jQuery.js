@@ -99,12 +99,15 @@ $.fn.visualize = function(options, container){
 						return topValue;
 				},
 				bottomValue: function(){
+						return 0;
+						/*
 						var bottomValue = this.topValue();
 						var allData = this.allData().join(',').split(',');
 						$(allData).each(function(){
 							if(this<bottomValue) bottomValue = parseFloat(this);
 						});
 						return bottomValue;
+						*/
 				},
 				memberTotals: function(){
 					var memberTotals = [];
