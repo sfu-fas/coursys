@@ -192,13 +192,13 @@ class CalNumericActivityForm(ActivityForm):
     
     def activate_addform_validation(self, course_slug):
         super(CalNumericActivityForm, self).activate_addform_validation(course_slug)
-        self._course_numeric_activities = NumericActivity.objects.filter(offering__slug=course_slug)
+        self._course_numeric_activities = NumericActivity.objects.filter(offering__slug=course_slug, deleted=False)
         self.activity = None
         self.course = CourseOffering.objects.get(slug=course_slug)
         
     def activate_editform_validation(self, course_slug, activity_slug):
         super(CalNumericActivityForm, self).activate_editform_validation(course_slug, activity_slug)
-        self._course_numeric_activities = NumericActivity.objects.exclude(slug=activity_slug).filter(offering__slug=course_slug)
+        self._course_numeric_activities = NumericActivity.objects.exclude(slug=activity_slug).filter(offering__slug=course_slug, deleted=False)
         self.activity = CalNumericActivity.objects.get(offering__slug=course_slug, slug=activity_slug)
         self.course = self.activity.offering
     

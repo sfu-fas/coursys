@@ -554,8 +554,8 @@ def add_cal_numeric_activity(request, course_slug):
 def add_cal_letter_activity(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     letter_activities = LetterActivity.objects.filter(offering=course)
-    numact_choices = [(na.pk, na.name) for na in NumericActivity.objects.filter(offering=course)]
-    examact_choices = [(0, u'\u2014')] + [(na.pk, na.name) for na in Activity.objects.filter(offering=course)]
+    numact_choices = [(na.pk, na.name) for na in NumericActivity.objects.filter(offering=course, deleted=False)]
+    examact_choices = [(0, u'\u2014')] + [(na.pk, na.name) for na in Activity.objects.filter(offering=course, deleted=False)]
 
     if request.method == 'POST': # If the form has been submitted...
         form = CalLetterActivityForm(request.POST) # A form bound to the POST data
