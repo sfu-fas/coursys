@@ -172,9 +172,11 @@ COMPONENT_CHOICES = (
         ('SEC', 'Section'), # "Section"?  ~= lecture?
         ('PRA', 'Practicum'),
         ('IND', 'Individual Work'),
-        ('INS', 'INS'),
-        #('OPL', 'Open Lab'),
-        #('FLD', 'Field School'),
+        ('INS', 'INS'), # ???
+        ('WKS', 'Workshop'),
+        ('FLD', 'Field School'),
+        ('STD', 'Studio'),
+        ('OLC', 'OLC'), # ???
         ('CAN', 'Cancelled')
         )
 COMPONENTS = dict(COMPONENT_CHOICES)
@@ -184,8 +186,9 @@ CAMPUS_CHOICES = (
         ('VANCR', 'Harbour Centre'),
         ('OFFST', 'Off-campus'),
         #('SEGAL', 'Segal Centre'),
-        #('GRNORTHW', 'Great Northern Way Campus'),
+        ('GNWC', 'Great Northern Way Campus'),
         #('KAM', 'Kamloops Campus'),
+        ('METRO', 'METRO'), # ???
         )
 CAMPUSES = dict(CAMPUS_CHOICES)
 

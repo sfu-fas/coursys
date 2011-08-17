@@ -18,8 +18,9 @@ future_cutoff = today + datetime.timedelta(days=120)
 sysadmin = ["ggbaker", "sumo"]
 
 # first term we care even vaguely about in import (further selection happens later too)
-FIRSTTERM = "1104"
-DATA_WHERE = '(subject="CMPT" or subject="MACM" or subject="CRIM" or subject="BUS") and strm>="'+FIRSTTERM+'"'
+FIRSTTERM = "1117"
+DATA_WHERE = '((subject="CMPT" or subject="MACM") and strm="1104") or strm>="'+FIRSTTERM+'"'
+#DATA_WHERE = 'strm>="'+FIRSTTERM+'"'
 
 # artificial combined sections to create: kwargs for CourseOffering creation,
 # plus 'subsections' list of sections we're combining.
