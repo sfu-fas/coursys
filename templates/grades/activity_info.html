@@ -56,7 +56,7 @@ Column logic:
 		    null,
 		    { "sType": "by-nolink" },
 		    {% if activity.group %}null,{% endif %}
-		    {% if not activity.is_numeric and activity.is_calculated %}null,{% endif %}
+		    {% if not activity.is_numeric and activity.is_calculated %}{ "sType": "by-mark" },{% endif %}
 		    {% if activity.is_numeric %}{ "sType": "by-nolinkmark" }{% else %}{ "sType": "by-nolinkletter" }{% endif %}
 		    {% if not activity.is_calculated and activity.is_numeric %},{ "sType": "by-marklink" }{% endif %}
 		    {% if not activity.is_calculated %},{ "sType": "by-anything" }{% endif %}
