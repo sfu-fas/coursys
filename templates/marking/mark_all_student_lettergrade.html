@@ -29,7 +29,19 @@ $(document).ready(function() {
 <input type="submit" value="Import"/>
 </div>
 </form>
-<p class="helptext">Imported file must be CSV (comma-separated values).  First column can be either student number or userid; second column is the grade.  Other columns will be ignored.</p>
+<p class="helptext">Imported file must be CSV (comma-separated values). File can be in one of two formats:</p>
+
+<ul class="helptext">
+<li> With header: The file should be a grade file exported by this system or
+one with the same format.  There must be a column labelled
+<code>{{ userid_header }}</code> containing the student's userid and a column labelled
+with the short name of the assignment (such as <code>A1</code>) containing
+the grade.  All other columns will be ignored.
+</li>
+<li> No header: First column can be either student number or userid; second
+column is the grade.  Other columns will be ignored.</li>
+</ul>
+
 {% if too_many %}
 <a class="redbutton reset_button" href="{% url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug %}">Reset</a>
 {% endif %}

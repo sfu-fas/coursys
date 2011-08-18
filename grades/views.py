@@ -1,29 +1,41 @@
-from django.shortcuts import render_to_response, get_object_or_404
-from django.http import HttpResponseRedirect, Http404, HttpResponseForbidden, HttpResponse
+import csv
+import pickle
+import datetime
+
 from django.core.urlresolvers import reverse
-from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseRedirect, Http404, HttpResponseForbidden, HttpResponse
 from django.template import RequestContext
 from django.db.models import Q
 from django.db.models.aggregates import Max
-from coredata.models import Member, CourseOffering, Person, Role
-from courselib.auth import *
-from grades.models import ACTIVITY_STATUS, all_activities_filter, Activity, \
-                        NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity,ACTIVITY_TYPES
-from grades.forms import NumericActivityForm, LetterActivityForm, CalNumericActivityForm, \
-                         ActivityFormEntry, FormulaFormEntry, StudentSearchForm, FORMTYPE, GROUP_STATUS_MAP, CourseConfigForm, CalLetterActivityForm, Activity_ChoiceForm, \
-                         CutoffForm
-from grades.models import *
-from grades.utils import StudentActivityInfo, reorder_course_activities, create_StudentActivityInfo_list, \
-                        ORDER_TYPE, FormulaTesterActivityEntry, FakeActivity, FakeEvalActivity, \
-                        generate_numeric_activity_stat,generate_letter_activity_stat
-from grades.utils import ValidationError, parse_and_validate_formula, calculate_numeric_grade,calculate_letter_grade
-from marking.models import get_group_mark, StudentActivityMark, GroupActivityMark, ActivityComponent
-from groups.models import *
-from submission.models import SubmissionComponent, Submission, GroupSubmission, StudentSubmission, get_current_submission, select_all_submitted_components, select_all_components
-from log.models import LogEntry
+from django.shortcuts import render_to_response, get_object_or_404
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-import pickle, datetime, csv
+
+from coredata.models import Member, CourseOffering, Person, Role
+
+from courselib.auth import ForbiddenResponse, NotFoundResponse, is_course_student_by_slug
+from courselib.auth import is_course_staff_by_slug, requires_course_staff_by_slug
+
+from grades.models import ACTIVITY_STATUS, all_activities_filter
+from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity
+from grades.models import CalLetterActivity, ACTIVITY_TYPES
+from grades.models import neaten_activity_positions
+from grades.forms import NumericActivityForm, LetterActivityForm, CalNumericActivityForm
+from grades.forms import ActivityFormEntry, FormulaFormEntry, StudentSearchForm, FORMTYPE
+from grades.forms import GROUP_STATUS_MAP, CourseConfigForm, CalLetterActivityForm, Activity_ChoiceForm, CutoffForm
 from grades.formulas import EvalException, activities_dictionary, eval_parse
+from grades.utils import StudentActivityInfo, reorder_course_activities, create_StudentActivityInfo_list
+from grades.utils import ORDER_TYPE, FormulaTesterActivityEntry, FakeActivity, FakeEvalActivity
+from grades.utils import generate_numeric_activity_stat,generate_letter_activity_stat
+from grades.utils import ValidationError, parse_and_validate_formula, calculate_numeric_grade, calculate_letter_grade
+
+from marking.models import get_group_mark, StudentActivityMark, GroupActivityMark, ActivityComponent
+
+from groups.models import GroupMember, add_activity_to_group
+
+from submission.models import SubmissionComponent, Submission, GroupSubmission, StudentSubmission, get_current_submission, select_all_submitted_components, select_all_components
+
+from log.models import LogEntry
 
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
 
@@ -1080,7 +1092,7 @@ def all_grades_csv(request, course_slug):
     response['Content-Disposition'] = 'attachment; filename=%s.csv' % (course_slug)
     
     writer = csv.writer(response)
-    row = ['Last name', 'First name', 'Userid', 'Student ID']
+    row = ['Last name', 'First name', Person.userid_header(), Person.emplid_header()]
     for a in activities:
         row.append(a.short_name)
     writer.writerow(row)

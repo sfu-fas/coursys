@@ -1,20 +1,38 @@
-from django.shortcuts import render_to_response, get_object_or_404
-from django.contrib.auth.decorators import login_required
+import io
+import os
+import csv
+import json
+import decimal
+
+from django.core.urlresolvers import reverse
 from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect, Http404
-from django.core.urlresolvers import reverse
-from coredata.models import *
-from courselib.auth import *
-from grades.models import *
-from groups.models import Group
-from log.models import *
-from models import *      
-from forms import *
-from django.forms.models import modelformset_factory
+from django.forms.models import ModelChoiceField, modelformset_factory
+from django.forms.forms import Form
+from django.db.models import Q, Max, Sum
+from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib import messages
-from django.db.models import Q
-import decimal, csv, io
+from django.contrib.auth.decorators import login_required
 
+from models import ActivityComponent, CommonProblem
+from models import GroupActivityMark, GroupActivityMark_LetterGrade, StudentActivityMark
+from models import get_activity_mark_by_id, get_activity_mark_for_student, get_group_mark_by_id, get_group_mark
+from models import copyCourseSetup, neaten_activity_positions
+from coredata.models import Person, CourseOffering, Member
+from grades.models import FLAGS, Activity, NumericActivity, NumericGrade
+from grades.models import LetterActivity, LetterGrade, LETTER_GRADE_CHOICES_IN
+from log.models import LogEntry
+from groups.models import Group, GroupMember, all_activities_filter
+
+from courselib.auth import requires_course_staff_by_slug
+
+from marking.forms import BaseCommonProblemFormSet, BaseActivityComponentFormSet
+from marking.forms import ActivityRenameForm
+from marking.forms import ImportFileForm, ImportMarkFileForm
+from marking.forms import GradeStatusForm, GradeStatusForm_LetterGrade
+from marking.forms import ActivityMarkForm, GroupActivityMarkForm, StudentActivityMarkForm, ActivityComponentMarkForm
+from marking.forms import MarkEntryForm, MarkEntryForm_LetterGrade
+from marking.forms import UploadGradeFileForm, UploadGradeFileForm_LetterGrade
    
 # request to views in the marking may comes from different pages, for POST request, we need to redirect to the right page
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
@@ -28,7 +46,6 @@ def _redirct_response(request, course_slug, activity_slug):
         redirect_url = reverse('grades.views.activity_info_with_groups', args=(course_slug, activity_slug))
     else: #default to the activity_info page
         redirect_url = reverse('grades.views.activity_info', args=(course_slug, activity_slug))
-    
     return HttpResponseRedirect(redirect_url)  
 
 
@@ -104,11 +121,10 @@ def copy_course_setup(request, course_slug):
             .filter(offering__graded=True, person__userid=userid) \
             .select_related('offering','offering__semester')
    
-    from django import forms
-    class CourseChoiceField(forms.ModelChoiceField):
+    class CourseChoiceField(ModelChoiceField):
         def label_from_instance(self, obj):
             return "%s" % (obj.offering)
-    class CourseSourceForm(forms.Form):
+    class CourseSourceForm(Form):
         course = CourseChoiceField(queryset = courses_qset)    
     
     if request.method == "POST":         
@@ -215,12 +231,10 @@ def _save_components(formset, activity, user):
 
 @requires_course_staff_by_slug
 def manage_activity_components(request, course_slug, activity_slug):    
-           
     error_info = None
     course = get_object_or_404(CourseOffering, slug = course_slug)   
     activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug, deleted=False)   
     fields = ('title', 'description', 'max_mark', 'deleted',)
-    
     ComponentsFormSet  = modelformset_factory(ActivityComponent, fields=fields, \
                                               formset=BaseActivityComponentFormSet, \
                                               can_delete = False, extra = 25) 
@@ -266,8 +280,6 @@ def import_components(request, course_slug, activity_slug):
     activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug, deleted=False)
 
     if request.method == "POST":
-        import json
-        from django.db.models import Max, Sum
         form = ImportFileForm(request.POST, request.FILES)
         if form.is_valid():
             max_grade = ActivityComponent.objects.filter(numeric_activity=activity).aggregate(Sum('max_mark'))['max_mark__sum']
@@ -723,7 +735,6 @@ def mark_summary_group(request, course_slug, activity_slug, group_slug):
                                 'is_staff': is_staff, 'view_history': act_mark_id == None},\
                                 context_instance = RequestContext(request))
          
-import os
 @login_required
 def download_marking_attachment(request, course_slug, activity_slug, mark_id):
     course = get_object_or_404(CourseOffering, slug=course_slug)    
@@ -822,11 +833,11 @@ def _export_csv_numeric(request, course, activity):
 
     writer = csv.writer(response)
     if activity.group:
-        writer.writerow(['Student ID', 'User ID', 'Student Name', 'Grade', 'Group', 'Group ID'])
+        writer.writerow([Person.emplid_header(), Person.userid_header(), 'Student Name', 'Grade', 'Group', 'Group ID'])
         gms = GroupMember.objects.filter(activity=activity).select_related('student__person', 'group')
         gms = dict((gm.student.person.userid, gm) for gm in gms)
     else:
-        writer.writerow(['Student ID', 'User ID', 'Student Name', 'Grade'])
+        writer.writerow([Person.emplid_header(), Person.userid_header(), 'Student Name', 'Grade'])
     
     student_members = Member.objects.filter(offering = course, role = 'STUD').select_related('person')
     for std in student_members:
@@ -864,11 +875,11 @@ def _export_csv_letter(request, course, activity):
     writer = csv.writer(response)
     
     if activity.group:
-        writer.writerow(['Student ID', 'User ID', 'Student Name', 'Grade', 'Group', 'Group ID'])
+        writer.writerow([Person.emplid_header(), Person.userid_header(), 'Student Name', 'Grade', 'Group', 'Group ID'])
         gms = GroupMember.objects.filter(activity=activity).select_related('student__person', 'group')
         gms = dict((gm.student.person.userid, gm) for gm in gms)
     else:
-        writer.writerow(['Student ID', 'User ID', 'Student Name', 'Grade'])
+        writer.writerow([Person.emplid_header(), Person.userid_header(), 'Student Name', 'Grade'])
     
     student_members = Member.objects.filter(offering = course, role = 'STUD').select_related('person')
     for std in student_members:
@@ -963,7 +974,7 @@ def _mark_all_groups_numeric(request, course, activity):
         current_act_marks = []
         for group in groups:
             entry_form = MarkEntryForm(data = request.POST, prefix = group.name)
-            if entry_form.is_valid() == False:
+            if not entry_form.is_valid():
                 error_info = "Error found"           
             act_mark = get_group_mark(activity, group)         
             if act_mark == None:
@@ -1038,7 +1049,7 @@ def _mark_all_groups_letter(request, course, activity):
         current_act_marks = []
         for group in groups:
             entry_form = MarkEntryForm_LetterGrade(data = request.POST, prefix = group.name)
-            if entry_form.is_valid() == False:
+            if not entry_form.is_valid():
                 error_info = "Error found"           
             act_mark = None 
             try:
@@ -1116,7 +1127,7 @@ def _mark_all_students_letter(request, course, activity):
         for member in memberships: 
             student = member.person  
             entry_form = MarkEntryForm_LetterGrade(data = request.POST, prefix = student.userid)
-            if entry_form.is_valid() == False:
+            if not entry_form.is_valid():
                 error_info = "Error found"           
             lgrade = None
             try:
@@ -1172,7 +1183,7 @@ def _mark_all_students_letter(request, course, activity):
             fileform = UploadGradeFileForm_LetterGrade(request.POST, request.FILES, prefix = 'import-file');
             if fileform.is_valid() and fileform.cleaned_data['file'] != None:
                 students = course.members.filter(person__role='STUD')
-                error_info = _compose_imported_grades(fileform.cleaned_data['file'], students, imported_data)
+                error_info = _compose_imported_grades(fileform.cleaned_data['file'], students, imported_data, activity)
                 if error_info == None:
                     messages.add_message(request, messages.SUCCESS,\
                                 "%s students' grades imported. Please review before submitting." % len(imported_data.keys()))
@@ -1198,9 +1209,10 @@ def _mark_all_students_letter(request, course, activity):
     if fileform == None:
         fileform = UploadGradeFileForm_LetterGrade(prefix = 'import-file')   
 
-    return render_to_response("marking/mark_all_student_lettergrade.html",{'course': course, 'activity': activity,\
-                              'fileform' : fileform,'too_many': len(rows) >= 100,\
-                              'mark_all_rows': rows }, context_instance = RequestContext(request))
+    return render_to_response("marking/mark_all_student_lettergrade.html",{'course': course, 'activity': activity,
+                              'fileform' : fileform,'too_many': len(rows) >= 100,
+                              'mark_all_rows': rows, 'userid_header': Person.userid_header() }, 
+                              context_instance = RequestContext(request))
 
 
 
@@ -1261,7 +1273,7 @@ def _mark_all_students_numeric(request, course, activity):
         for member in memberships: 
             student = member.person  
             entry_form = MarkEntryForm(data = request.POST, prefix=student.userid)
-            if entry_form.is_valid() == False:
+            if not entry_form.is_valid():
                 error_info = "Error found"           
             ngrade = None
             try:
@@ -1318,7 +1330,7 @@ def _mark_all_students_numeric(request, course, activity):
             fileform = UploadGradeFileForm(request.POST, request.FILES, prefix = 'import-file');
             if fileform.is_valid() and fileform.cleaned_data['file'] != None:
                 students = course.members.filter(person__role='STUD')
-                error_info = _compose_imported_grades(fileform.cleaned_data['file'], students, imported_data)
+                error_info = _compose_imported_grades(fileform.cleaned_data['file'], students, imported_data, activity)
                 if error_info == None:
                     messages.add_message(request, messages.SUCCESS,\
                                 "%s students' grades imported. Please review before submitting." % len(imported_data.keys()))
@@ -1344,17 +1356,65 @@ def _mark_all_students_numeric(request, course, activity):
     if fileform == None:
         fileform = UploadGradeFileForm(prefix = 'import-file')   
     
-    return render_to_response("marking/mark_all_student.html",{'course': course, 'activity': activity,\
-                              'fileform' : fileform,'too_many': len(rows) >= 100,\
-                              'mark_all_rows': rows }, context_instance = RequestContext(request))
+    return render_to_response("marking/mark_all_student.html",{'course': course, 'activity': activity,
+                              'fileform' : fileform,'too_many': len(rows) >= 100,
+                              'mark_all_rows': rows, 'userid_header': Person.userid_header()},
+                              context_instance = RequestContext(request))
 
-def _compose_imported_grades(file, students_qset, data_to_return):
+def _compose_imported_grades(file, students_qset, data_to_return, activity):
     fh = io.StringIO(file.read().decode('utf-8'), newline=None)
+    fcopy = io.StringIO(fh.getvalue(), newline=None)
+    first_line = csv.reader(fcopy).next()
+    (error_string, userid_col, activity_col) = _CMS_header(first_line, Person.userid_header(), activity.short_name)
+    if error_string != None:
+        return error_string
+    elif userid_col != None and activity_col != None:
+        return _import_CMS_output(fh, students_qset, data_to_return, userid_col, activity_col)
+    else:
+        return _import_specific_file(fh, students_qset, data_to_return)
+
+def _CMS_header(line, userid_label, act_label):
+    userid_col = None
+    activity_col = None
+    for lcol, label in enumerate(line):
+        if label == userid_label:
+            if userid_col == None:
+                userid_col = lcol
+            else:
+                error_string = "Error in file header line:  Two columns labelled " + userid_label + "."
+                return (error_string, None, None)
+        elif label == act_label:
+            if activity_col == None:
+                activity_col = lcol
+            else:
+                error_string = "Error in file header line:  Two columns labelled " + act_label + "."
+                return (error_string, None, None)
+    if userid_col != None and activity_col == None:
+        return ('Error in file header line:  No column labelled for activity ' + act_label + '.', None, None)
+    return (None, userid_col, activity_col)
+
+def _import_CMS_output(fh, students_qset, data_to_return, userid_col, activity_col):
+    reader = csv.reader(fh)
+    reader.next() # Skip header line
+    #print userid_col, activity_col #AEK
+    for row_num, row in enumerate(reader):
+        #print row_num, row #AEK
+        target = students_qset.filter(userid = row[userid_col])
+        if target.count() == 0:
+            data_to_return.clear()
+            return "Error found in file (row %s): Unmatched userid (%s)." % (row_num, row[userid_col])
+        if data_to_return.has_key(target[0].userid):
+            data_to_return.clear()
+            return "Error found in file (row %s): Second entry found for student (%s)." % (row_num, row[userid_col])
+        data_to_return[target[0].userid] = row[activity_col]
+    return None
+
+def _import_specific_file(fh, students_qset, data_to_return):
     reader = csv.reader(fh)   
     try:  
         read = 1;
         for row in reader:            
-            try: #if the first row is not an integer, cannot be emplid
+            try: #if the first field is not an integer, cannot be emplid
                 num = int(row[0])                
             except:
                 target = students_qset.filter(userid = row[0])
@@ -1362,13 +1422,11 @@ def _compose_imported_grades(file, students_qset, data_to_return):
                 target = students_qset.filter(Q(userid = row[0]) | Q(emplid = num))
             if target.count() == 0:                
                 data_to_return.clear()
-                return "Error found in file (row %s): Unmatched student number or user-id (%s)." % (read, row[0],)            
-            # try to parse the second row as a float           
-            value = (row[1])
+                return "Error found in the file (row %s): Unmatched student number or user-id (%s)." % (read, row[0],)            
             if(data_to_return.has_key(target[0].userid)):
                 data_to_return.clear()
-                return "Error found in file (row %s): multiple entries found for student (%s)." % (read, row[0],) 
-            data_to_return[target[0].userid] = value 
+                return "Error found in the file (row %s): Second entry found for student (%s)." % (read, row[0],) 
+            data_to_return[target[0].userid] = row[1]
             read += 1               
     except:
         data_to_return.clear()

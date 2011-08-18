@@ -1,16 +1,20 @@
-from django.db import models
-from groups.models import Group,GroupMember
-from datetime import datetime
-from autoslug import AutoSlugField
-
-from django.shortcuts import get_object_or_404
-from django.core.servers.basehttp import FileWrapper
 import zipfile
 import tempfile
-import os, gzip, StringIO, csv
+import os
+import gzip
+import StringIO
+import csv
+from datetime import datetime
+
+from django.db import models
+from django.shortcuts import get_object_or_404
+from django.core.servers.basehttp import FileWrapper
 from django.http import HttpResponse
 
 from base import SubmissionComponent, Submission, StudentSubmission, GroupSubmission, SubmittedComponent
+from coredata.models import Person
+from groups.models import Group,GroupMember
+from autoslug import AutoSlugField
 
 from url import URL
 from archive import Archive
@@ -18,6 +22,7 @@ from pdf import PDF
 from code import Code
 from word import Word
 from image import Image
+
 ALL_TYPE_CLASSES = [Archive, URL, PDF, Code, Word, Image]
 
 def find_type_by_label(label):
@@ -229,7 +234,7 @@ def generate_activity_zip(activity):
     slugs.sort()
     summarybuffer = StringIO.StringIO()
     summarycsv = csv.writer(summarybuffer)
-    summarycsv.writerow(["Userid", "Last Submission"])
+    summarycsv.writerow([Person.userid_header(), "Last Submission"])
     for s in slugs:
         summarycsv.writerow([s, sub_time[s].strftime("%Y/%m/%d %H:%M:%S")])
     z.writestr("summary.csv", summarybuffer.getvalue())
