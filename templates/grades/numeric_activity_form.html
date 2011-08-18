@@ -11,6 +11,7 @@
 {% endblock %}
 
 {% block grades_headextra %}
+<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
 <script type="text/javascript">
 $(document).ready(function() {
     $("#id_due_date_0").datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.png',
@@ -25,6 +26,7 @@ $(document).ready(function() {
         }
     });
     $("input[name=group]:checked").click();
+    //$("#moreconfig").collapsible();
 });
 </script>
 {% endblock %}
@@ -59,6 +61,13 @@ $(document).ready(function() {
                 <li>
                     <input class="submit" type="submit" value="Submit" />
                 </li>
+            </ul>
+        </fieldset>
+        <fieldset>
+            <legend id="moreconfig">Additional Options</legend>
+            <ul>
+                {{form.showstats|activity_field}}
+                {{form.showhisto|activity_field}}
             </ul>
         </fieldset>
     </form>

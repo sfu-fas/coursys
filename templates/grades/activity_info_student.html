@@ -87,6 +87,7 @@
 
 
 {% if activity_stat %}
+{% if activity.showstats %}
 <h2 id="summary">Summary Statistics</h2>
 
 <div class="table_container">
@@ -119,7 +120,14 @@
         </tbody>
     </table>
 </div>
+{% else %}
+<p class="empty">Summary stats disabled by instructor.</p>
+{% endif %}{% else %}
+<p class="empty">{{ reason_msg }}</p>
+{% endif %}
 
+{% if activity_stat %}
+{% if activity.showhisto %}
 <h2 id="histo">Histogram</h2>
 <table class="data info" style="width: 550px; border-collapse: collapse;">
     <caption>Grade Range</caption>
@@ -141,6 +149,7 @@
     </tbody>
 </table>
 {% else %}
-<p class="empty">{{ reason_msg }}</p>
+<p class="empty">Histogram display disabled by instructor.</p>
+{% endif %}
 {% endif %}
 {% endblock %}

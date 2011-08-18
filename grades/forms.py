@@ -129,20 +129,26 @@ class ActivityForm(forms.Form):
 class NumericActivityForm(ActivityForm):
         
     status = forms.ChoiceField(choices=ACTIVITY_STATUS_CHOICES, initial='URLS',
-                               label=mark_safe('Status:' + _required_star),
-                               help_text='visibility of grades/activity to students')
+            label=mark_safe('Status:' + _required_star),
+            help_text='visibility of grades/activity to students')
     due_date = forms.SplitDateTimeField(label=mark_safe('Due date:'), required=False,
-                                        help_text='Time format: HH:MM:SS, 24-hour time',
-                                        widget=CustomSplitDateTimeWidget())
+            help_text='Time format: HH:MM:SS, 24-hour time',
+            widget=CustomSplitDateTimeWidget())
     max_grade = forms.DecimalField(max_digits=5, decimal_places=2, label=mark_safe('Maximum grade:' + _required_star),
-                                   help_text='maximum grade for the activity',
-                                   widget=forms.TextInput(attrs={'size':'3'}))
+            help_text='maximum grade for the activity',
+            widget=forms.TextInput(attrs={'size':'3'}))
     group = forms.ChoiceField(label=mark_safe('Group activity:' + _required_star), initial='1',
-                              choices=GROUP_STATUS_CHOICES,
-                              widget=forms.RadioSelect())
+            choices=GROUP_STATUS_CHOICES,
+            widget=forms.RadioSelect())
     extend_group = forms.ChoiceField(choices = [('NO', 'None')],
-                                     label=mark_safe('Extend groups from:'),
-                                     help_text = 'extend groups from earlier group activities')
+            label=mark_safe('Extend groups from:'),
+            help_text = 'extend groups from earlier group activities')
+    showstats = forms.BooleanField(initial=True, required=False,
+            label="Show summary stats:", 
+            help_text="Should students be able to view the summary stats: max, min, median, etc?")
+    showhisto = forms.BooleanField(initial=True, required=False,
+            label="Show histogram:", 
+            help_text="Should students be able to view the grade distribution histogram?")
 
     def __init__(self, *args, **kwargs):
         try:
@@ -167,6 +173,12 @@ class LetterActivityForm(ActivityForm):
     extend_group = forms.ChoiceField(choices = [('NO', 'None')],
                                      label=mark_safe('Extend groups from:'),
                                      help_text = 'extend groups from earlier group activities')
+    showstats = forms.BooleanField(initial=True, required=False,
+            label="Show summary stats:", 
+            help_text="Should students be able to view the summary stats: max, min, median, etc?")
+    showhisto = forms.BooleanField(initial=True, required=False,
+            label="Show histogram:", 
+            help_text="Should students be able to view the grade distribution histogram?")
 
     def __init__(self, *args, **kwargs):
         try:
@@ -189,6 +201,12 @@ class CalNumericActivityForm(ActivityForm):
     formula = forms.CharField(max_length=250, label=mark_safe('Formula:'+_required_star),
                     help_text='parsed formula to calculate final numeric grade',
                     widget=forms.Textarea(attrs={'rows':'6', 'cols':'40'}))
+    showstats = forms.BooleanField(initial=True, required=False,
+            label="Show summary stats:", 
+            help_text="Should students be able to view the summary stats: max, min, median, etc?")
+    showhisto = forms.BooleanField(initial=True, required=False,
+            label="Show histogram:", 
+            help_text="Should students be able to view the grade distribution histogram?")
     
     def activate_addform_validation(self, course_slug):
         super(CalNumericActivityForm, self).activate_addform_validation(course_slug)
@@ -223,6 +241,12 @@ class CalLetterActivityForm(ActivityForm):
                                          help_text="numeric grades that these letters will be based on")
     exam_activity = forms.ChoiceField(choices=[], required=False,
                                       help_text="the course's exam: used to guess N and DE grades where appropriate.  Leave blank if you don't want these values guessed.")
+    showstats = forms.BooleanField(initial=True, required=False,
+            label="Show summary stats:", 
+            help_text="Should students be able to view the summary stats: max, min, median, etc?")
+    showhisto = forms.BooleanField(initial=True, required=False,
+            label="Show histogram:", 
+            help_text="Should students be able to view the grade distribution histogram?")
     
     def activate_addform_validation(self, course_slug):
         super(CalLetterActivityForm, self).activate_addform_validation(course_slug)

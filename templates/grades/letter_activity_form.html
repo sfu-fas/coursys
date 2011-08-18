@@ -66,6 +66,13 @@ $(document).ready(function() {
                 </li>
             </ul>
         </fieldset>
+        <fieldset>
+            <legend id="moreconfig">Additional Options</legend>
+            <ul>
+                {{form.showstats|activity_field}}
+                {{form.showhisto|activity_field}}
+            </ul>
+        </fieldset>
     </form>
 </div>
   <p>

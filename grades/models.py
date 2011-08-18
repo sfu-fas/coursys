@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.core.cache import cache
 from datetime import datetime, timedelta
 from jsonfield import JSONField
+from courselib.json_fields import getter_setter
 import decimal, json
 
 FLAG_CHOICES = [
@@ -71,13 +72,20 @@ class Activity(models.Model):
     position = models.PositiveSmallIntegerField(help_text="The order of displaying course activities.")
     group = models.BooleanField(null=False, default=False)
     deleted = models.BooleanField(null = False, db_index = True, default=False)
-    url = models.URLField(verify_exists=True, null=True)
+    url = models.URLField(verify_exists=True, null=True) # no longer used: use .config['url'] now
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+      # a.config['url'] (string, default None): URL for more info
       # a.config['showstats'] (boolean, default True): show students summary stats for this activity?
+      # a.config['showhisto'] (boolean, default True): show students histogram for this activity?
       # a.config['showformula'] (boolean, default False): show students formula/cutoffs for this activity?
-      # TODO: above are not actually implemented yet (showstats is honoured, but no frontend to set)
+      # TODO: showformula not actually implemented yet
     
     offering = models.ForeignKey(CourseOffering)
+    
+    defaults = {'url': '', 'showstats': True, 'showhisto': True, 'showformula': False}
+    showstats, set_showstats = getter_setter('showstats')
+    showhisto, set_showhisto = getter_setter('showhisto')
+    showformula, set_showformula = getter_setter('showformula')
 
     def __unicode__(self):
         return "%s - %s" % (self.offering, self.name)

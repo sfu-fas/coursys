@@ -1349,7 +1349,7 @@ def _mark_all_students_numeric(request, course, activity):
                               'mark_all_rows': rows }, context_instance = RequestContext(request))
 
 def _compose_imported_grades(file, students_qset, data_to_return):
-    fh = io.StringIO(file.read(), newline=None)
+    fh = io.StringIO(file.read().decode('utf-8'), newline=None)
     reader = csv.reader(fh)   
     try:  
         read = 1;

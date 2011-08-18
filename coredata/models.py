@@ -7,6 +7,7 @@ import datetime
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
 from jsonfield import JSONField
+from courselib.json_fields import getter_setter
 
 class Person(models.Model):
     """
@@ -191,16 +192,6 @@ CAMPUS_CHOICES = (
         ('METRO', 'METRO'), # ???
         )
 CAMPUSES = dict(CAMPUS_CHOICES)
-
-
-# tool to create convenient getters and setters for .config fields
-def getter_setter(field):
-    def getter(self):
-        return self.config[field] if field in self.config else self.defaults[field]
-    def setter(self, val):
-        self.config[field] = val
-    return getter, setter
-
 
 class CourseOffering(models.Model):
     subject = models.CharField(max_length=4, null=False, db_index=True,

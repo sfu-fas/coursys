@@ -275,9 +275,6 @@ def _activity_info_student(request, course_slug, activity_slug):
     elif activity.status != 'RLS':
         reason_msg = 'Summary statistics disabled for unreleased activities.'
         activity_stat = None
-    elif 'showstats' in activity.config and not activity.config['showstats']:
-        reason_msg = 'Summary statistics disabled for this activity by instructor.'
-        activity_stat = None
 
     context = {'course': course, 'activity': activity, 'grade': grade,
                'activity_stat': activity_stat, 'reason_msg': reason_msg}
@@ -480,15 +477,20 @@ def add_numeric_activity(request, course_slug):
                     position = 1
                 else:
                     position = aggr_dict['position__max'] + 1
+                config = {
+                        'showstats': form.cleaned_data['showstats'],
+                        'showhisto': form.cleaned_data['showhisto'],
+                        'url': form.cleaned_data['url'],
+                        }
                 a = NumericActivity.objects.create(name=form.cleaned_data['name'],
                                                 short_name=form.cleaned_data['short_name'],
                                                 status=form.cleaned_data['status'],
                                                 due_date=form.cleaned_data['due_date'],
                                                 percent=form.cleaned_data['percent'],
                                                 max_grade=form.cleaned_data['max_grade'],
-                                                url=form.cleaned_data['url'],
                                                 offering=course, position=position,
-                                                group=GROUP_STATUS_MAP[form.cleaned_data['group']])
+                                                group=GROUP_STATUS_MAP[form.cleaned_data['group']],
+                                                config=config)
                 if a.group == True and form.cleaned_data['extend_group'] is not None:
                     a2 = [i for i in activities if i.slug == form.cleaned_data['extend_group']]
                     if len(a2) > 0:
@@ -528,16 +530,21 @@ def add_cal_numeric_activity(request, course_slug):
                     position = 1
                 else:
                     position = aggr_dict['position__max'] + 1
+                config = {
+                        'showstats': form.cleaned_data['showstats'],
+                        'showhisto': form.cleaned_data['showhisto'],
+                        'url': form.cleaned_data['url'],
+                        }
                 CalNumericActivity.objects.create(name=form.cleaned_data['name'],
                                                 short_name=form.cleaned_data['short_name'],
                                                 status=form.cleaned_data['status'],
-                                                url=form.cleaned_data['url'],
                                                 percent=form.cleaned_data['percent'],
                                                 max_grade=form.cleaned_data['max_grade'],
                                                 formula=form.cleaned_data['formula'],
                                                 offering=course, 
                                                 position=position,
-                                                group=False)
+                                                group=False,
+                                                config=config)
             except NotImplementedError:
                 return NotFoundResponse(request)
             
@@ -575,15 +582,20 @@ def add_cal_letter_activity(request, course_slug):
                 else:
                     exam_activity = Activity.objects.get(pk=form.cleaned_data['exam_activity'])
 
+                config = {
+                        'showstats': form.cleaned_data['showstats'],
+                        'showhisto': form.cleaned_data['showhisto'],
+                        'url': form.cleaned_data['url'],
+                        }
                 CalLetterActivity.objects.create(name=form.cleaned_data['name'],
                                                 short_name=form.cleaned_data['short_name'],
                                                 status=form.cleaned_data['status'],
-                                                url=form.cleaned_data['url'],
                                                 numeric_activity=NumericActivity.objects.get(pk=form.cleaned_data['numeric_activity']),
                                                 exam_activity=exam_activity,
                                                 offering=course, 
                                                 position=position,
-                                                group=False)
+                                                group=False,
+                                                config=config)
             except NotImplementedError:
                 return NotFoundResponse(request)
             
@@ -727,6 +739,12 @@ def _create_activity_formdatadict(activity):
     data['url'] = ''
     if 'url' in activity.config:
         data['url'] = activity.config['url']
+    data['showstats'] = True
+    if 'showstats' in activity.config:
+        data['showstats'] = activity.config['showstats']
+    data['showhisto'] = True
+    if 'showhisto' in activity.config:
+        data['showhisto'] = activity.config['showhisto']
 
     for (k, v) in GROUP_STATUS_MAP.items():
         if activity.group == v:
@@ -763,6 +781,10 @@ def _populate_activity_from_formdata(activity, data):
         activity.formula = data['formula']
     if data.has_key('url'):
         activity.config['url'] = data['url']
+    if data.has_key('showstats'):
+        activity.config['showstats'] = data['showstats']
+    if data.has_key('showhisto'):
+        activity.config['showhisto'] = data['showhisto']
     if data.has_key('numeric_activity'):
         activity.numeric_activity = NumericActivity.objects.get(pk=data['numeric_activity'])
     if data.has_key('exam_activity'):
@@ -953,14 +975,19 @@ def add_letter_activity(request, course_slug):
                     position = 1
                 else:
                     position = aggr_dict['position__max'] + 1
+                config = {
+                        'showstats': form.cleaned_data['showstats'],
+                        'showhisto': form.cleaned_data['showhisto'],
+                        'url': form.cleaned_data['url'],
+                        }
                 a = LetterActivity.objects.create(name=form.cleaned_data['name'],
                                                 short_name=form.cleaned_data['short_name'],
                                                 status=form.cleaned_data['status'],
                                                 due_date=form.cleaned_data['due_date'],
                                                 percent=form.cleaned_data['percent'],
-                                                url=form.cleaned_data['url'],
                                                 offering=course, position=position,
-                                                group=GROUP_STATUS_MAP[form.cleaned_data['group']])
+                                                group=GROUP_STATUS_MAP[form.cleaned_data['group']],
+                                                config=config)
                 if a.group == True and form.cleaned_data['extend_group'] is not None:
                     a2 = [i for i in activities if i.slug == form.cleaned_data['extend_group']]
                     if len(a2) > 0:
