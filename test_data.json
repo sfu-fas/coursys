@@ -15545,8 +15545,7 @@
    "position": 1, 
    "short_name": "A1", 
    "slug": "a1", 
-   "status": "RLS", 
-   "url": null
+   "status": "RLS"
   }, 
   "model": "grades.activity", 
   "pk": 1
@@ -15563,8 +15562,7 @@
    "position": 2, 
    "short_name": "A2", 
    "slug": "a2", 
-   "status": "URLS", 
-   "url": null
+   "status": "URLS"
   }, 
   "model": "grades.activity", 
   "pk": 2
@@ -15581,8 +15579,7 @@
    "position": 3, 
    "short_name": "Proj", 
    "slug": "proj", 
-   "status": "URLS", 
-   "url": null
+   "status": "URLS"
   }, 
   "model": "grades.activity", 
   "pk": 3
@@ -15599,8 +15596,7 @@
    "position": 4, 
    "short_name": "Rep", 
    "slug": "rep", 
-   "status": "URLS", 
-   "url": null
+   "status": "URLS"
   }, 
   "model": "grades.activity", 
   "pk": 4
@@ -15617,8 +15613,7 @@
    "position": 5, 
    "short_name": "Exam", 
    "slug": "exam", 
-   "status": "URLS", 
-   "url": null
+   "status": "URLS"
   }, 
   "model": "grades.activity", 
   "pk": 5
@@ -15635,8 +15630,7 @@
    "position": 6, 
    "short_name": "Perc", 
    "slug": "perc", 
-   "status": "INVI", 
-   "url": null
+   "status": "INVI"
   }, 
   "model": "grades.activity", 
   "pk": 6
@@ -15653,8 +15647,7 @@
    "position": 6, 
    "short_name": "Letter", 
    "slug": "letter", 
-   "status": "INVI", 
-   "url": null
+   "status": "INVI"
   }, 
   "model": "grades.activity", 
   "pk": 7
