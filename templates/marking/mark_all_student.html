@@ -34,7 +34,7 @@ $(document).ready(function() {
 <li> With header: The file should be a grade file exported by this system or
 one with the same format.  There must be a column labelled
 <code>{{ userid_header }}</code> containing the student's userid and a column labelled
-with the short name of the assignment (such as <code>A1</code>) containing
+with the short name of the assignment (such as <code>{{activity.short_name}}</code> for this activity) containing
 the grade.  All other columns will be ignored.
 </li>
 <li> No header: First column can be either student number or userid; second
