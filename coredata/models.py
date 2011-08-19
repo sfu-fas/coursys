@@ -239,6 +239,7 @@ class CourseOffering(models.Model):
             if self.section[2:4] == "00":
                 words = [str(s).lower() for s in self.semester.slugform(), self.subject, self.number, self.section[:2]]
             else:
+                # these shouldn't be in the DB anymore, but there are a few left, so handle them
                 words = [str(s).lower() for s in self.semester.slugform(), self.subject, self.number, self.section]
         else:
             words = [str(s).lower() for s in self.semester.name, self.subject, self.number, self.section]

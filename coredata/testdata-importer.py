@@ -85,6 +85,7 @@ def test_class_1(slug):
     a1 = NumericActivity(offering=crs, name="Assignment 1", short_name="A1", status="RLS",
         due_date=crs.semester.start + datetime.timedelta(days=60), percent=10, group=False,
         max_grade=10, position=1)
+    a1.set_url("http://www.cs.sfu.ca/CC/165/common/a1")
     a1.save()
     a2 = NumericActivity(offering=crs, name="Assignment 2", short_name="A2", status="URLS",
         due_date=crs.semester.start + datetime.timedelta(days=70), percent=10, group=True,

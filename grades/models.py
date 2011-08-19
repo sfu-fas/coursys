@@ -83,6 +83,7 @@ class Activity(models.Model):
     offering = models.ForeignKey(CourseOffering)
     
     defaults = {'url': '', 'showstats': True, 'showhisto': True, 'showformula': False}
+    url, set_url = getter_setter('url')
     showstats, set_showstats = getter_setter('showstats')
     showhisto, set_showhisto = getter_setter('showhisto')
     showformula, set_showformula = getter_setter('showformula')
@@ -412,7 +413,7 @@ class NumericGrade(models.Model):
             self.value = 0
 
         super(NumericGrade, self).save()
-        if self.activity.status == "RLS" and newsitem and self.flag != "NOGR":
+        if self.activity.status == "RLS" and newsitem and self.flag not in ["NOGR", "CALC"]:
             # new grade assigned, generate news item only if the result is released
             n = NewsItem(user=self.member.person, author=None, course=self.activity.offering,
                 source_app="grades", title="%s grade available" % (self.activity.name), 
