@@ -13,6 +13,7 @@ Edit Cutoffs of {{ activity.name }}
 <!--[if IE]><script type="text/javascript" src="{{MEDIA_URL}}visualize/excanvas.compiled.js"></script><![endif]-->
 <script type="text/javascript" src="{{MEDIA_URL}}visualize/visualize.jQuery.js"></script>
 <script type="text/javascript">
+//<![CDATA[
 /**
  * Copyright (c) Mozilla Foundation http://www.mozilla.org/
  * This code is available under the terms of the MIT License
@@ -42,6 +43,7 @@ if (!Array.prototype.filter) {
 
   var source_grades = {{source_grades}};
   var histo_cells;
+  var letters = new Array('ap', 'a', 'am', 'bp', 'b', 'bm', 'cp', 'c', 'cm', 'd');
   function valof(id) {
     return parseFloat(document.getElementById("id_" + id).value);
   }
@@ -53,15 +55,41 @@ if (!Array.prototype.filter) {
     var i;
     $("table.histo").hide();
     $("table.histo").visualize({'height': '300px', appendTitle: false, appendKey: false});
-    histo_cells = [histotd('ap'), histotd('a'), histotd('am'), histotd('bp'), histotd('b'), histotd('bm'), histotd('cp'), histotd('c'), histotd('cm'), histotd('d'), histotd('f')];
+    histo_cells = new Array();
+    for(var i in letters) {
+      histo_cells.push(histotd(letters[i]));
+    }
+    histo_cells.push(histotd('f'));
+    
     for(i=0; i<source_grades.length; i++) {
       source_grades[i] += 0.00000001;
     }
     recalculate_histo();
+    
+    $("#cutoffform").change(function() {
+      recalculate_histo();
+    });
+    $("#offsetbutton").click(function() {
+      apply_offset();
+    });
   });
+  
+  function apply_offset() {
+    var inp;
+    var off = parseFloat(document.getElementById("id_offset").value);
+    for(var i in letters) {
+      inp = $("#id_"+letters[i]);
+      inp.val(parseFloat(inp.val()) + off);
+    }
+  }
 
   function recalculate_histo() {
-    var cutoffs = [valof('ap'), valof('a'), valof('am'), valof('bp'), valof('b'), valof('bm'), valof('cp'), valof('c'), valof('cm'), valof('d'), 0.0];
+    var cutoffs = new Array();
+    for(var i in letters) {
+      cutoffs.push(valof(letters[i]));
+    }
+    cutoffs.push(0.0);
+    
     var i, j, g;
     
     // create array of histogram counts
@@ -85,7 +113,7 @@ if (!Array.prototype.filter) {
     }
     $('.visualize').trigger('visualizeRefresh');
   }
-</script>
+//]]></script>
 {% endblock %}
 
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">{{ activity.name }}</a></li><li>&gt; Edit cutoffs</li>{% endblock %}
@@ -100,10 +128,11 @@ if (!Array.prototype.filter) {
     {% endif %}
     
         <form action="{% url grades.views.edit_cutoffs course_slug=course.slug activity_slug=activity.slug %}"
-                method="post" onchange="recalculate_histo();">{% csrf_token %}
+                method="post" id="cutoffform">{% csrf_token %}
+        <p class="cutoffoffset">Adjust all cutoffs: <input type="text" name="offset" value="0.0" size="4" id="id_offset" /><br /><input type="button" value="Add to each" id="offsetbutton" /></p>
         <fieldset>
         	<legend>Lower bounds for each grade</legend>
-        		<ul>
+        		<ul><li>
         		<table class="cutoffs">
         		<tr>
         		<td class="label">Max</td><td><input type="text" value="{{activity.numeric_activity.max_grade}}" disabled="disabled" /></td>
@@ -130,13 +159,12 @@ if (!Array.prototype.filter) {
         		<td class="label">D</td><td>{{cutoff.d}} {{cutoff.d.errors}}</td>
         		<td class="label">F</td><td><input type="text" value="0" disabled="disabled" /></td>
         		</tr>
-        		</table>
+        		</table></li>
 				<li>
         				<input class="submit" type="submit" value="Submit" />
         			</li>
 			</ul>
         </fieldset>
-        
         </form>
 </div>
 

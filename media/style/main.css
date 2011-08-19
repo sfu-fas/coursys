@@ -1294,7 +1294,16 @@ table.cutoffs input {
   width: 6em;
   text-align: right;
 }
-
+#main p.cutoffoffset {
+  float: right; 
+  margin-top: 4em;
+  margin-right: 1em;
+  text-align: right;
+  font-size: x-small;
+}
+#main p.cutoffoffset input {
+  font-size: x-small;
+}
 
 table.inst_table thead th {
   font-weight: bold;
