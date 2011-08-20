@@ -44,7 +44,8 @@ if (!Array.prototype.filter) {
   var source_grades = {{source_grades}};
   var histo_cells;
   var letters = new Array('ap', 'a', 'am', 'bp', 'b', 'bm', 'cp', 'c', 'cm', 'd');
-  function valof(id) {
+  var nletters = letters.length;
+  function valofinput(id) {
     return parseFloat(document.getElementById("id_" + id).value);
   }
   function histotd(id) {
@@ -56,7 +57,7 @@ if (!Array.prototype.filter) {
     $("table.histo").hide();
     $("table.histo").visualize({'height': '300px', appendTitle: false, appendKey: false});
     histo_cells = new Array();
-    for(var i in letters) {
+    for(var i=0; i<nletters; i++) {
       histo_cells.push(histotd(letters[i]));
     }
     histo_cells.push(histotd('f'));
@@ -77,7 +78,7 @@ if (!Array.prototype.filter) {
   function apply_offset() {
     var inp;
     var off = parseFloat(document.getElementById("id_offset").value);
-    for(var i in letters) {
+    for(var i=0; i<nletters; i++) {
       inp = $("#id_"+letters[i]);
       inp.val(parseFloat(inp.val()) + off);
     }
@@ -85,8 +86,8 @@ if (!Array.prototype.filter) {
 
   function recalculate_histo() {
     var cutoffs = new Array();
-    for(var i in letters) {
-      cutoffs.push(valof(letters[i]));
+    for(var i=0; i<nletters; i++) {
+      cutoffs.push(valofinput(letters[i]));
     }
     cutoffs.push(0.0);
     
