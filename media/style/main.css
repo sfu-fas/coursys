@@ -1295,9 +1295,12 @@ table.cutoffs input {
   text-align: right;
 }
 #main p.cutoffoffset {
-  float: right; 
-  margin-top: 4em;
-  margin-right: 1em;
+  position: relative; 
+  height: 0;
+  margin: 0;
+  padding: 0;
+  right: 4em;
+  top: 6em;
   text-align: right;
   font-size: x-small;
 }
