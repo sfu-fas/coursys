@@ -236,6 +236,12 @@ Column logic:
                 <td class="empty">None</td>
                 {% endif %}
             </tr>
+            <tr>
+                <th class="ui-state-default">Cutoffs</th>
+                <td>
+                {{activity.cutoff_display}}
+                </td>
+            </tr>
             {% endif %}
             {% if activity.config.url %}
             <tr>

@@ -6,6 +6,7 @@ from dashboard.models import *
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.core.cache import cache
+from django.utils.safestring import mark_safe
 from datetime import datetime, timedelta
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter
@@ -301,6 +302,8 @@ class CalLetterActivity(LetterActivity):
     def is_numeric(self):
         return False
     
+    LETTERS = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D', 'F']
+    
     class Meta:
         verbose_name_plural = 'cal letter activities'
     def type_long(self):
@@ -330,6 +333,15 @@ class CalLetterActivity(LetterActivity):
             raise ValueError, "Cutoffs must be in decending order."
 
         self.letter_cutoffs = json.dumps([str(g) for g in cutoffs])
+    
+    def cutoff_display(self):
+        disp = [unicode(self.numeric_activity.max_grade)]
+        for l,c in zip(self.LETTERS, self.get_cutoffs()+[0]):
+            disp.append('&nbsp;<span class="letter">')
+            disp.append(l)
+            disp.append('</span> ')
+            disp.append(unicode(c))
+        return mark_safe(''.join(disp))
 
 
 

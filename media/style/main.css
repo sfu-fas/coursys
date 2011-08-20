@@ -1307,6 +1307,10 @@ table.cutoffs input {
 #main p.cutoffoffset input {
   font-size: x-small;
 }
+table.info span.letter {
+  font-size: x-small;
+  color: #777;
+}
 
 table.inst_table thead th {
   font-weight: bold;
