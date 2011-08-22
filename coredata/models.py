@@ -70,6 +70,9 @@ class Semester(models.Model):
     end = models.DateField(help_text='Last day of classes.')
     # TODO: validate that there is a SemesterWeek for week #1.
 
+    class Meta:
+        ordering = ['name']
+
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
     
@@ -149,9 +152,31 @@ class Semester(models.Model):
             hour=time.hour, minute=time.minute, second=time.second, 
             microsecond=time.microsecond, tzinfo=time.tzinfo)
         return dt
-
-    class Meta:
-        ordering = ['name']
+    
+    @classmethod
+    def first_relevant(cls):
+        """
+        The first semester that's relevant for most reporting: first semester that ends after two months ago.
+        """
+        today = datetime.date.today()
+        year = today.year
+        if 1 <= today.month <= 2:
+            # last fall semester
+            year -= 1
+            sem = 7
+        elif 3 <= today.month <= 6:
+            # this spring
+            sem = 1
+        elif 7 <= today.month <= 10:
+            # this summer
+            sem = 4
+        elif 11 <= today.month <= 12:
+            # this fall
+            sem = 7
+        
+        name = "%03d%1d" % ((year - 1900), sem)
+        return Semester.objects.get(name=name)
+        
 
 
 class SemesterWeek(models.Model):
