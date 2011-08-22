@@ -14,7 +14,7 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
-from models import ActivityComponent, CommonProblem
+from models import ActivityComponent, CommonProblem, ActivityComponentMark
 from models import GroupActivityMark, GroupActivityMark_LetterGrade, StudentActivityMark
 from models import get_activity_mark_by_id, get_activity_mark_for_student, get_group_mark_by_id, get_group_mark
 from models import copyCourseSetup, neaten_activity_positions
@@ -24,7 +24,7 @@ from grades.models import LetterActivity, LetterGrade, LETTER_GRADE_CHOICES_IN
 from log.models import LogEntry
 from groups.models import Group, GroupMember, all_activities_filter
 
-from courselib.auth import requires_course_staff_by_slug
+from courselib.auth import requires_course_staff_by_slug, is_course_staff_by_slug, is_course_student_by_slug
 
 from marking.forms import BaseCommonProblemFormSet, BaseActivityComponentFormSet
 from marking.forms import ActivityRenameForm

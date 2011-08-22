@@ -265,7 +265,6 @@ class BasicTest(TestCase):
         # marking form (student)
         url = reverse('marking.views.marking_student', kwargs={'course_slug':c.slug, 'activity_slug':a2.slug, 'userid':stud1.person.userid})
 
-
         response = basic_page_tests(self, client, url)
         
         ac = ActivityComponent(numeric_activity=a2, max_mark=5, title="AC Title", description="AC Description", position=1, deleted=False)
@@ -285,7 +284,7 @@ class BasicTest(TestCase):
         TOTAL_MARK = ((Decimal(CMP_1_VALUE) + Decimal(CMP_2_VALUE) - Decimal(ADJ)) *
             (1 - (Decimal(PENALTY) / 100))).quantize(Decimal('.01'), rounding=ROUND_HALF_EVEN)
 
-        response = client.post(url, {'cmp-1-value': float(CMP_1_VALUE), 'cmp-1-comment': 'perfect',
+        response = client.post(url, {'cmp-1-value': float(CMP_1_VALUE), 'cmp-1-comment': 'perfect part 1',
             'cmp-2-value': float(CMP_2_VALUE), 'cmp-2-comment': 'ok', 'mark_adjustment': float(ADJ),
             'mark_adjustment_reason': 'reason', 'late_penalty': float(PENALTY),
             u'overall_comment': 'overall'})
@@ -300,7 +299,7 @@ class BasicTest(TestCase):
         acms = sam.activitycomponentmark_set.all()
         self.assertEquals(len(acms), 2)
         self.assertEquals(acms[0].value, Decimal(CMP_1_VALUE))
-        self.assertEquals(acms[0].comment, 'perfect')
+        self.assertEquals(acms[0].comment, 'perfect part 1')
         g = NumericGrade.objects.get(activity=a2, member=stud1)
         self.assertEquals(g.value, TOTAL_MARK)
         
@@ -308,6 +307,11 @@ class BasicTest(TestCase):
         response = basic_page_tests(self, client, url + "?base_activity_mark="+str(sam.id))
         self.assertContains(response, 'name="cmp-1-value" value="{0}"'.format(CMP_1_VALUE))
         self.assertContains(response, 'name="late_penalty" value="{0}"'.format(PENALTY))
+
+        # look at the "view details" page
+        url = reverse('marking.views.mark_summary_student', kwargs={'course_slug':c.slug, 'activity_slug':a2.slug, 'userid':stud1.person.userid})
+        response = basic_page_tests(self, client, url)
+        self.assertContains(response, 'perfect part 1')
 
         # marking form (group)
         url = reverse('marking.views.marking_student', kwargs={'course_slug':c.slug,

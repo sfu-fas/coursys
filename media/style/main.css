@@ -1016,7 +1016,6 @@ table#common_problems p.component_info{
 #marking_container input[type="text"]{
  	width: 120px;
 }
-
 #marking_container .component input[type="button"]{
 	background-color: #036;
 	color: #fff;
@@ -1024,22 +1023,18 @@ table#common_problems p.component_info{
 	border-right: 1px solid #fff;
 	margin: 0.5em 0.2em 0em 0.2em;
 }
-
 #marking_container textarea{
 	width: 600px;
 	height: 80px;
 }
-
 #marking_container .component li{
 	display: inline;
 	clear: right;	
 }
-
 #marking_container li.component_mark{
 	width: auto;	
 	margin-left: 5.5em;
 } 
-
 #marking_container li.common_problems{
 	background-image: url('../images/grades/bluep.png');	
 	padding: 0.2em 1em;
@@ -1048,43 +1043,38 @@ table#common_problems p.component_info{
 	width: auto;	
 	margin: 0.2em 5em 0.2em 5em;
 }
-
 #marking_container .requireindicator{
 	display: none;
 }
 
-#marking_summary_container .component_mark{
-    border: 1px solid #4169E1;
-    color: green;
-    padding: 0.5em;
-    background-color: #F8F8C2;
-    margin-bottom: 1em;
-    margin-top: 0;
-    width: 600px;
+#mark_details {
+  width: 60em;
+  border: none;
+  margin-bottom: 2em;
 }
-
-#marking_summary_container .component_description{
-    color: #6666CC;
-    padding: 0.5em;
-    background-color: #CCFF88;
-    margin: 0.5em 0.5em 0.5em 0.5em;    
-    font-size: 0.81em;
-    text-align: left;
+#mark_details td {
+  border: none;
 }
-
-#marking_summary_container .component_mark ul{
-    margin: 0 0 0.5em 0;
-    padding: 0 0 0 0em;
-    list-style: none;
+#mark_details h3 {
+  margin-top: 1em !important;
+  padding-top: 0;
 }
-#marking_summary_container .component_mark label{
-    font-weight: bold;
-    margin-right: 1em;
+#mark_details td.subrow {
+  width: 2em;
 }
-
-#marking_summary_container .component_mark .component_title{
-   color: #4169E1;
-   font-style: italic;
+#mark_details td.subhead {
+  width: 8em;
+  font-weight: bold;
+}
+#mark_details td.mark {
+  text-align: right;
+  padding-top: 1.5em;
+}
+#mark_details td p:first-child {
+  margin-top: 0;
+}
+#mark_details #totalrow .subhead {
+  padding-top: 1.5em;
 }
 
 thead.form_head th{

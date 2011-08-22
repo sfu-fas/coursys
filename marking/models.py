@@ -106,6 +106,8 @@ class ActivityMark(models.Model):
         self.mark_adjustment_reason = obj.mark_adjustment_reason
         self.file_attachment = obj.file_attachment
     
+    def mark_adjustment_neg(self):
+        return -self.mark_adjustment
     def setMark(self, grade):
         self.mark = grade
     def attachment_filename(self):
