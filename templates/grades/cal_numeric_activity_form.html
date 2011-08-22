@@ -20,6 +20,7 @@ $(document).ready(function() {
                                 changeMonth: true, changeYear: true,
                                 dateFormat: 'yy-mm-dd', showOn: 'button'});
     document.getElementById('testerlink').setAttribute('target', '_blank');
+    $("#moreconfig").collapsible();
 });
 </script>
 {% endblock %}
@@ -109,12 +110,6 @@ $(document).ready(function() {
         </fieldset>
     </form>
 </div>
-
-<h2 id="help">Formula Help</h2>
-
-<div id="formulahelp">
-{% include "grades/formula-help.html" %}
-</div>
   <p>
     {% ifequal form_type 'add' %}
     <a class="button" href="{% url grades.views.activity_choice course_slug=course.slug %}">Back</a>
@@ -126,5 +121,13 @@ $(document).ready(function() {
     <a class="button" href="{% url grades.views.activity_info course_slug=course.slug activity_slug=activity.slug%}">Back</a>
     {% endifequal %}
   </p>
+
+
+
+<h2 id="help">Formula Help</h2>
+
+<div id="formulahelp">
+{% include "grades/formula-help.html" %}
+</div>
 
 {% endblock %}

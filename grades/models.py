@@ -335,12 +335,14 @@ class CalLetterActivity(LetterActivity):
         self.letter_cutoffs = json.dumps([str(g) for g in cutoffs])
     
     def cutoff_display(self):
-        disp = [unicode(self.numeric_activity.max_grade)]
-        for l,c in zip(self.LETTERS, self.get_cutoffs()+[0]):
-            disp.append('&nbsp;<span class="letter">')
+        disp = []
+        for l,c in zip(self.LETTERS, self.get_cutoffs()):
+            disp.append(' <span class="letter">')
             disp.append(l)
             disp.append('</span> ')
             disp.append(unicode(c))
+        disp.append('&nbsp;<span class="letter">F</span> ')
+
         return mark_safe(''.join(disp))
 
 

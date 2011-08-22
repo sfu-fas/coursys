@@ -1048,7 +1048,7 @@ table#common_problems p.component_info{
 }
 
 #mark_details {
-  width: 60em;
+  width: 50em;
   border: none;
   margin-bottom: 2em;
 }
@@ -1075,6 +1075,9 @@ table#common_problems p.component_info{
 }
 #mark_details #totalrow .subhead {
   padding-top: 1.5em;
+}
+#mark_details #totalrow .mark {
+  font-weight: bold;
 }
 
 thead.form_head th{

@@ -18,9 +18,7 @@ $(document).ready(function() {
     $("#id_due_date_0").datepicker({ buttonImageOnly: true, buttonImage: '{{MEDIA_URL}}images/grades/calendar.png',
                                 changeMonth: true, changeYear: true,
                                 dateFormat: 'yy-mm-dd', showOn: 'button'});
-    $('div.collapsible').collapsible();
-    $('div#helphandle').collapsible();
-    document.getElementById('testerlink').setAttribute('target', '_blank');
+    $("#moreconfig").collapsible();
 });
 </script>
 {% endblock %}

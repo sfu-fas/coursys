@@ -199,7 +199,7 @@ class CalNumericActivityForm(ActivityForm):
                                    help_text='maximum grade of the calculated result',
                                    widget=forms.TextInput(attrs={'size':'3'}))
     formula = forms.CharField(max_length=250, label=mark_safe('Formula:'+_required_star),
-                    help_text='parsed formula to calculate final numeric grade',
+                    help_text=mark_safe('formula to calculate the numeric grade: see <a href="#help">formula help</a> below for more info'),
                     widget=forms.Textarea(attrs={'rows':'6', 'cols':'40'}))
     showstats = forms.BooleanField(initial=True, required=False,
             label="Show summary stats:", 
