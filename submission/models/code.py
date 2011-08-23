@@ -33,6 +33,7 @@ CODE_TYPES = [
 #    (".jpg", "JPEG images (.jpg)"),
     (".json", "JSON data file (.json)"),
     (".go", "Go (.go)"),
+    (".m", "MATLAB (.m)"),
     (".lisp", "LISP (.lisp)"),
     ("Makefile", "Makefile (Makefile)"),
 ]

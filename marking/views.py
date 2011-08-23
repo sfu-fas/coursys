@@ -833,11 +833,11 @@ def _export_csv_numeric(request, course, activity):
 
     writer = csv.writer(response)
     if activity.group:
-        writer.writerow([Person.emplid_header(), Person.userid_header(), 'Student Name', 'Grade', 'Group', 'Group ID'])
+        writer.writerow([Person.emplid_header(), Person.userid_header(), 'Student Name', activity.short_name, 'Group', 'Group ID'])
         gms = GroupMember.objects.filter(activity=activity).select_related('student__person', 'group')
         gms = dict((gm.student.person.userid, gm) for gm in gms)
     else:
-        writer.writerow([Person.emplid_header(), Person.userid_header(), 'Student Name', 'Grade'])
+        writer.writerow([Person.emplid_header(), Person.userid_header(), 'Student Name', activity.short_name])
     
     student_members = Member.objects.filter(offering = course, role = 'STUD').select_related('person')
     for std in student_members:
@@ -845,12 +845,12 @@ def _export_csv_numeric(request, course, activity):
         try: 
             ngrade = NumericGrade.objects.get(activity = activity, member = std)                  
         except NumericGrade.DoesNotExist: #if the NumericGrade does not exist yet,
-            row.append('no grade')
+            row.append('')
         else:
             if ngrade.flag == 'GRAD' or ngrade.flag == 'CALC':
                 row.append(ngrade.value)
             elif ngrade.flag == 'NOGR':
-                row.append('no grade')
+                row.append('')
             else:
                 row.append(ngrade.flag)
         
@@ -875,11 +875,11 @@ def _export_csv_letter(request, course, activity):
     writer = csv.writer(response)
     
     if activity.group:
-        writer.writerow([Person.emplid_header(), Person.userid_header(), 'Student Name', 'Grade', 'Group', 'Group ID'])
+        writer.writerow([Person.emplid_header(), Person.userid_header(), 'Student Name', activity.short_name, 'Group', 'Group ID'])
         gms = GroupMember.objects.filter(activity=activity).select_related('student__person', 'group')
         gms = dict((gm.student.person.userid, gm) for gm in gms)
     else:
-        writer.writerow([Person.emplid_header(), Person.userid_header(), 'Student Name', 'Grade'])
+        writer.writerow([Person.emplid_header(), Person.userid_header(), 'Student Name', activity.short_name])
     
     student_members = Member.objects.filter(offering = course, role = 'STUD').select_related('person')
     for std in student_members:
@@ -887,12 +887,12 @@ def _export_csv_letter(request, course, activity):
         try: 
             lgrade = LetterGrade.objects.get(activity = activity, member = std)                  
         except LetterGrade.DoesNotExist: #if the LetterGrade does not exist yet,
-            row.append('no grade')
+            row.append('')
         else:
             if lgrade.flag == 'GRAD' or lgrade.flag == 'CALC':
                 row.append(lgrade.letter_grade)
             elif lgrade.flag == 'NOGR':
-                row.append('no grade')
+                row.append('')
             else:
                 row.append(lgrade.flag)
         
