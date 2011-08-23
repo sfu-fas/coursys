@@ -41,6 +41,20 @@ try:
                 CourseOffering.objects.get(slug='1114-cmpt-126-d100')
             ]
         },
+        {
+            'subject': 'ENSC', 'number': '100', 'section': 'X100',
+            'semester': Semester.objects.get(name="1117"),
+            'component': 'LEC', 'graded': True, 
+            'crse_id': 32761, 'class_nbr': 32761,
+            'title': 'Eng.Technology and Society (combined)',
+            'campus': 'BRNBY',
+            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+            'config': {},
+            'subsections': [
+                CourseOffering.objects.get(slug='2011fa-ensc-100-d1'),
+                CourseOffering.objects.get(slug='2011fa-ensc-100w-d1')
+            ]
+        },
         ]
 except CourseOffering.DoesNotExist:
     print "unable to build combined_sections"
@@ -379,7 +393,7 @@ def import_offering(db, tadb, offering):
     """
     Import all data for the course: instructors, TAs, students, meeting times.
     """
-    print " ", offering
+    #print " ", offering
     # drop all automatically-added members: will be re-added later on import
     Member.objects.filter(added_reason="AUTO", offering=offering).update(role='DROP')
     
@@ -404,7 +418,8 @@ def combine_sections(db):
             del kwargs['subsections']
             course = CourseOffering(**kwargs)
             course.save()
-        
+
+        print "  ", course        
         cap_total = 0
         tot_total = 0
         wait_total = 0
@@ -470,7 +485,6 @@ def main():
     offerings = import_offerings(db, DATA_WHERE)
     offerings = list(offerings)
     offerings.sort()
-    #offerings = [CourseOffering.objects.get(slug="1114-cmpt-120-d100"), CourseOffering.objects.get(slug="1114-cmpt-470-d100")]
 
     print "importing course members"
     for o in offerings:
@@ -494,10 +508,8 @@ def main():
         import djkombu.models
         #djkombu.models.Message.objects.cleanup()
     
-    print len(imported_people)
-
-    # People to fetch: manually-added members of courses (and everybody else we find later)
-    #members = [(m.person.emplid, m.offering) for m in Member.objects.exclude(added_reason="AUTO")]
+    print "People:", len(imported_people)
+    print "Course Offerings:", len(offerings)
 
 
 if __name__ == "__main__":
