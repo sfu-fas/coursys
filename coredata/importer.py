@@ -25,7 +25,7 @@ DATA_WHERE = '((subject="CMPT" or subject="MACM") and strm="1104") or strm>="'+F
 # artificial combined sections to create: kwargs for CourseOffering creation,
 # plus 'subsections' list of sections we're combining.
 
-try:
+def get_combined():
     combined_sections = [
         {
             'subject': 'CMPT', 'number': '125', 'section': 'X100',
@@ -56,9 +56,7 @@ try:
             ]
         },
         ]
-except CourseOffering.DoesNotExist:
-    print "unable to build combined_sections"
-    combined_sections = []
+    return combined_sections
 
 import_host = '127.0.0.1'      
 import_user = 'ggbaker'
@@ -408,7 +406,7 @@ def combine_sections(db):
     """
     Combine sections in the database to co-offered courses look the same.
     """
-    for info in combined_sections:
+    for info in get_combined():
         # create the section if necessary
         courses = CourseOffering.objects.filter(subject=info['subject'], number=info['number'], section=info['section'], semester=info['semester'], component=info['component'], campus=info['campus'])
         if courses:

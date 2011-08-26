@@ -6,7 +6,7 @@ import MySQLdb, random, string, socket, datetime, itertools
 from django.core import serializers
 from importer import import_host, import_name, import_user, import_port
 from importer import give_sysadmin, create_semesters, import_offerings, import_instructors, import_meeting_times
-from coredata.models import Member, Person, CourseOffering, Semester, MeetingTime, Role
+from coredata.models import Member, Person, CourseOffering, Semester, SemesterWeek, MeetingTime, Role
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity
 from submission.models.base import SubmissionComponent
 from submission.models.code import CodeComponent
@@ -141,6 +141,7 @@ def serialize(filename):
     """
     objs = itertools.chain(
             Semester.objects.all(),
+            SemesterWeek.objects.all(),
             CourseOffering.objects.all(),
             MeetingTime.objects.all(),
             Person.objects.all(),

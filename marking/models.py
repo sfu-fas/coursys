@@ -459,18 +459,18 @@ def copyCourseSetup(course_copy_from, course_copy_to):
             new_submission_component.activity = new_activity
             new_submission_component.save()
             #print "-- submission component %s is copied" % new_submission_component
+    
+    for activity in CalLetterActivity.objects.filter(offering=course_copy_to):
+        # fix up source and exam activities as best possible
+        if activity.numeric_activity:
+            na = NumericActivity.objects.get(offering=course_copy_to, name=activity.numeric_activity.name, deleted=False)
+            activity.numeric_activity = na
+            
+        if activity.exam_activity:
+            a = Activity.objects.get(offering=course_copy_to, name=activity.exam_activity.name, deleted=False)
+            activity.exam_activity = a
         
-        #print "- Activity %s is copied" % new_activity
-        
-        #print "please also copy the calculated letter activities once this type is implemented"    
-#    "fixing calculated letter activities ..."
-#    for activity in CalLetterActivity.objects.filter(offering = course_copy_to):
-#        related_num_act =  activity.numeric_activity
-#        related_exam = activity.exam_activity
-#        
-#        activity.numeric_activity = NumericActivity.objects.get(offering=course_copy_to, name=related_num_act.name)
-#        activity.exam_activity = Activity.objects.get(offering=course_copy_to, name=related_exam.name)
-#        activity.save()
+        activity.save()
          
 
 
