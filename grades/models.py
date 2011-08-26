@@ -104,6 +104,7 @@ class Activity(models.Model):
     class Meta:
         verbose_name_plural = "activities"
         ordering = ['deleted', 'position']
+        unique_together = (('offering', 'slug'),)
 
     def save(self, force_insert=False, force_update=False, newsitem=True, *args, **kwargs):
         # get old status so we can see if it's newly-released

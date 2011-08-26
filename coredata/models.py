@@ -269,7 +269,7 @@ class CourseOffering(models.Model):
         else:
             words = [str(s).lower() for s in self.semester.name, self.subject, self.number, self.section]
         return '-'.join(words)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
 
     def __unicode__(self):
         return "%s %s %s (%s)" % (self.subject, self.number, self.section, self.semester.label())
