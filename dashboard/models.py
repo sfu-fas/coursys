@@ -54,7 +54,10 @@ class NewsItem(models.Model):
 
         # see if this user wants news by email
         ucs = UserConfig.objects.filter(user=self.user, key="newsitems")
-        if ucs and 'email' in ucs[0].value and ucs[0].value['email']:
+        if ucs and 'email' in ucs[0].value and not ucs[0].value['email']:
+            # user has requested no email
+            pass
+        else:
             self.email_user()
 
     def email_from(self):
@@ -111,7 +114,7 @@ class NewsItem(models.Model):
         
         html_content = u'<h3>%s: <a href="%s">%s</a></h3>\n' % (self.course.name(), url, self.title)
         html_content += self.content_xhtml()
-        html_content += u'\n<hr /><p>You received this email from CourSys. If you do not wish to receive\nthese notifications by email, you can <a href="' + settings.BASE_ABS_URL + reverse('dashboard.views.news_config') + '">change your email settings</a>.</p>'
+        html_content += u'\n<p style="font-size: smaller; border-top: 1px solid black;">You received this email from CourSys. If you do not wish to receive\nthese notifications by email, you can <a href="' + settings.BASE_ABS_URL + reverse('dashboard.views.news_config') + '">change your email settings</a>.</p>'
         
         msg = EmailMultiAlternatives(subject, text_content, from_email, [to_email], headers=headers)
         msg.attach_alternative(html_content, "text/html")
