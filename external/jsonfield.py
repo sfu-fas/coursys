@@ -50,6 +50,13 @@ class JSONField(models.TextField):
 
         return super(JSONField, self).get_db_prep_save(value, connection=connection)
 
+    def value_to_string(self, obj):
+        """
+        Prep value for serialization: same as prep for DB
+        """
+        value = self._get_val_from_obj(obj)
+        return self.get_db_prep_save(value)
+
 
 # from http://south.aeracode.org/wiki/MyFieldsDontWork
 from south.modelsinspector import add_introspection_rules

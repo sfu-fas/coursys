@@ -26,7 +26,7 @@ from settings import CAS_SERVER_URL
 
 from courselib.testing import basic_page_tests
 
-TEST_COURSE_SLUG = '1114-cmpt-120-d100'
+TEST_COURSE_SLUG = '2011fa-cmpt-165-c1'
 
 class BasicTest(TestCase):
     fixtures = ['test_data']    

@@ -12,18 +12,20 @@ import re
 class DashboardTest(TestCase):
     fixtures = ['test_data']
     def setUp(self):
-        self.c_slug = '1114-cmpt-120-d100'
+        self.c_slug = '2011fa-cmpt-165-c1'
 
     def test_front_page(self):
-        # log in as student "0aaa0"
+        # log in as student in the course
+        userid = Member.objects.filter(offering__slug=self.c_slug, role="STUD")[0].person.userid
         client = Client()
-        client.login(ticket="0aaa0", service=CAS_SERVER_URL)
+        client.login(ticket=userid, service=CAS_SERVER_URL)
 
         response = client.get("/")
         self.assertEquals(response.status_code, 200)
         
         # this student is in this course: check for a link to its page
         c = CourseOffering.objects.get(slug=self.c_slug)
+        #print response
         self.assertContains(response, '<a href="%s"' % (c.get_absolute_url()) )
 
         validate_content(self, response.content, "index page")

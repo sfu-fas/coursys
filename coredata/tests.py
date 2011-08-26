@@ -26,6 +26,7 @@ def create_offering():
 
 
 class CoredataTest(TestCase):
+    fixtures = ['test_data']
     def setUp(self):
         pass
     
@@ -61,7 +62,7 @@ class CoredataTest(TestCase):
         self.assertEquals(str(p1), "Lname, Fname")
         self.assertEquals(p1.name(), "Fn Lname")
         self.assertEquals(p1.email(), "test1@sfu.ca")
-        people = Person.objects.all()
+        people = Person.objects.filter(userid__startswith="test")
         # check sorting
         self.assertEquals(p1, people[0])
         self.assertEquals(p2, people[1])

@@ -418,7 +418,7 @@
    "campus": "BRNBY", 
    "class_nbr": 12564, 
    "component": "SEC", 
-   "config": "{}", 
+   "config": "{\"url\": \"http://www.cs.sfu.ca/CC/165/common/\", \"taemail\": \"cmpt-165-contact@sfu.ca\", \"labtut\": true}", 
    "crse_id": 11547, 
    "enrl_cap": 175, 
    "enrl_tot": 175, 
@@ -2224,7 +2224,7 @@
    "campus": "BRNBY", 
    "class_nbr": 7798, 
    "component": "LEC", 
-   "config": "{u'url': u'http://www.cs.sfu.ca/CC/165/common/', u'taemail': u'cmpt-165-contact@sfu.ca', u'labtut': True}", 
+   "config": "{}", 
    "crse_id": 14580, 
    "enrl_cap": 208, 
    "enrl_tot": 198, 
@@ -11108,755 +11108,11 @@
  }, 
  {
   "fields": {
-   "emplid": 200000229, 
-   "first_name": "Apgpzbau", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Apgp", 
-   "userid": "0bbb30"
-  }, 
-  "model": "coredata.person", 
-  "pk": 129
- }, 
- {
-  "fields": {
-   "emplid": 200000165, 
-   "first_name": "Aynrberh", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Aynr", 
-   "userid": "0aaa7"
-  }, 
-  "model": "coredata.person", 
-  "pk": 65
- }, 
- {
-  "fields": {
-   "emplid": 200000159, 
-   "first_name": "Bfkqnikz", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Bfkq", 
-   "userid": "0aaa1"
-  }, 
-  "model": "coredata.person", 
-  "pk": 59
- }, 
- {
-  "fields": {
-   "emplid": 200000185, 
-   "first_name": "Bogbpfri", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Bogb", 
-   "userid": "0aaa27"
-  }, 
-  "model": "coredata.person", 
-  "pk": 85
- }, 
- {
-  "fields": {
-   "emplid": 200000201, 
-   "first_name": "Buzfqxcg", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Buzf", 
-   "userid": "0bbb2"
-  }, 
-  "model": "coredata.person", 
-  "pk": 101
- }, 
- {
-  "fields": {
-   "emplid": 200000193, 
-   "first_name": "Bvrgrjnq", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Bvrg", 
-   "userid": "0aaa35"
-  }, 
-  "model": "coredata.person", 
-  "pk": 93
- }, 
- {
-  "fields": {
-   "emplid": 200000226, 
-   "first_name": "Bzfbejyw", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Bzfb", 
-   "userid": "0bbb27"
-  }, 
-  "model": "coredata.person", 
-  "pk": 126
- }, 
- {
-  "fields": {
-   "emplid": 200000175, 
-   "first_name": "Crqnlwsn", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Crqn", 
-   "userid": "0aaa17"
-  }, 
-  "model": "coredata.person", 
-  "pk": 75
- }, 
- {
-  "fields": {
-   "emplid": 200000228, 
-   "first_name": "Cvliconn", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Cvli", 
-   "userid": "0bbb29"
-  }, 
-  "model": "coredata.person", 
-  "pk": 128
- }, 
- {
-  "fields": {
-   "emplid": 200000174, 
-   "first_name": "Dkrdueop", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Dkrd", 
-   "userid": "0aaa16"
-  }, 
-  "model": "coredata.person", 
-  "pk": 74
- }, 
- {
-  "fields": {
-   "emplid": 200000191, 
-   "first_name": "Doeozjaz", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Doeo", 
-   "userid": "0aaa33"
-  }, 
-  "model": "coredata.person", 
-  "pk": 91
- }, 
- {
-  "fields": {
-   "emplid": 200000208, 
-   "first_name": "Fjgiukbw", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Fjgi", 
-   "userid": "0bbb9"
-  }, 
-  "model": "coredata.person", 
-  "pk": 108
- }, 
- {
-  "fields": {
-   "emplid": 200000197, 
-   "first_name": "Flhgsvrr", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Flhg", 
-   "userid": "0aaa39"
-  }, 
-  "model": "coredata.person", 
-  "pk": 97
- }, 
- {
-  "fields": {
-   "emplid": 200000211, 
-   "first_name": "Fnlykhsf", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Fnly", 
-   "userid": "0bbb12"
-  }, 
-  "model": "coredata.person", 
-  "pk": 111
- }, 
- {
-  "fields": {
-   "emplid": 200000180, 
-   "first_name": "Fryikvkz", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Fryi", 
-   "userid": "0aaa22"
-  }, 
-  "model": "coredata.person", 
-  "pk": 80
- }, 
- {
-  "fields": {
-   "emplid": 200000206, 
-   "first_name": "Fyvyuveg", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Fyvy", 
-   "userid": "0bbb7"
-  }, 
-  "model": "coredata.person", 
-  "pk": 106
- }, 
- {
-  "fields": {
-   "emplid": 200000230, 
-   "first_name": "Gfyersjh", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Gfye", 
-   "userid": "0bbb31"
-  }, 
-  "model": "coredata.person", 
-  "pk": 130
- }, 
- {
-  "fields": {
-   "emplid": 200000220, 
-   "first_name": "Gioeuqjt", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Gioe", 
-   "userid": "0bbb21"
-  }, 
-  "model": "coredata.person", 
-  "pk": 120
- }, 
- {
-  "fields": {
-   "emplid": 200000181, 
-   "first_name": "Gotnncox", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Gotn", 
-   "userid": "0aaa23"
-  }, 
-  "model": "coredata.person", 
-  "pk": 81
- }, 
- {
-  "fields": {
-   "emplid": 200000222, 
-   "first_name": "Gqjvhato", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Gqjv", 
-   "userid": "0bbb23"
-  }, 
-  "model": "coredata.person", 
-  "pk": 122
- }, 
- {
-  "fields": {
-   "emplid": 200000224, 
-   "first_name": "Hmlqwpgv", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Hmlq", 
-   "userid": "0bbb25"
-  }, 
-  "model": "coredata.person", 
-  "pk": 124
- }, 
- {
-  "fields": {
-   "emplid": 200000162, 
-   "first_name": "Hrcczerq", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Hrcc", 
-   "userid": "0aaa4"
-  }, 
-  "model": "coredata.person", 
-  "pk": 62
- }, 
- {
-  "fields": {
-   "emplid": 200000160, 
-   "first_name": "Htpzrhyv", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Htpz", 
-   "userid": "0aaa2"
-  }, 
-  "model": "coredata.person", 
-  "pk": 60
- }, 
- {
-  "fields": {
-   "emplid": 200000188, 
-   "first_name": "Inalehlp", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Inal", 
-   "userid": "0aaa30"
-  }, 
-  "model": "coredata.person", 
-  "pk": 88
- }, 
- {
-  "fields": {
-   "emplid": 200000183, 
-   "first_name": "Ipuxtvqg", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Ipux", 
-   "userid": "0aaa25"
-  }, 
-  "model": "coredata.person", 
-  "pk": 83
- }, 
- {
-  "fields": {
-   "emplid": 200000186, 
-   "first_name": "Ixokvuax", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Ixok", 
-   "userid": "0aaa28"
-  }, 
-  "model": "coredata.person", 
-  "pk": 86
- }, 
- {
-  "fields": {
-   "emplid": 200000207, 
-   "first_name": "Jdpwkvxq", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Jdpw", 
-   "userid": "0bbb8"
-  }, 
-  "model": "coredata.person", 
-  "pk": 107
- }, 
- {
-  "fields": {
-   "emplid": 200000212, 
-   "first_name": "Jkaqlnho", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Jkaq", 
-   "userid": "0bbb13"
-  }, 
-  "model": "coredata.person", 
-  "pk": 112
- }, 
- {
-  "fields": {
-   "emplid": 200000179, 
-   "first_name": "Kocntnmw", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Kocn", 
-   "userid": "0aaa21"
-  }, 
-  "model": "coredata.person", 
-  "pk": 79
- }, 
- {
-  "fields": {
-   "emplid": 200000218, 
-   "first_name": "Krgucwil", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Krgu", 
-   "userid": "0bbb19"
-  }, 
-  "model": "coredata.person", 
-  "pk": 118
- }, 
- {
-  "fields": {
-   "emplid": 200000205, 
-   "first_name": "Ktlxhyym", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Ktlx", 
-   "userid": "0bbb6"
-  }, 
-  "model": "coredata.person", 
-  "pk": 105
- }, 
- {
-  "fields": {
-   "emplid": 200000176, 
-   "first_name": "Kynwslhm", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Kynw", 
-   "userid": "0aaa18"
-  }, 
-  "model": "coredata.person", 
-  "pk": 76
- }, 
- {
-  "fields": {
-   "emplid": 200000236, 
-   "first_name": "Lbtxnipx", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Lbtx", 
-   "userid": "0bbb37"
-  }, 
-  "model": "coredata.person", 
-  "pk": 136
- }, 
- {
-  "fields": {
-   "emplid": 200000172, 
-   "first_name": "Lftkhass", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Lftk", 
-   "userid": "0aaa14"
-  }, 
-  "model": "coredata.person", 
-  "pk": 72
- }, 
- {
-  "fields": {
-   "emplid": 200000196, 
-   "first_name": "Mzdhkxuc", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Mzdh", 
-   "userid": "0aaa38"
-  }, 
-  "model": "coredata.person", 
-  "pk": 96
- }, 
- {
-  "fields": {
-   "emplid": 200000158, 
-   "first_name": "Nmrezdvh", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Nmre", 
-   "userid": "0aaa0"
-  }, 
-  "model": "coredata.person", 
-  "pk": 58
- }, 
- {
-  "fields": {
-   "emplid": 200000221, 
-   "first_name": "Nopgcruf", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Nopg", 
-   "userid": "0bbb22"
-  }, 
-  "model": "coredata.person", 
-  "pk": 121
- }, 
- {
-  "fields": {
-   "emplid": 200000203, 
-   "first_name": "Nqezfwab", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Nqez", 
-   "userid": "0bbb4"
-  }, 
-  "model": "coredata.person", 
-  "pk": 103
- }, 
- {
-  "fields": {
-   "emplid": 200000225, 
-   "first_name": "Nrnklpqf", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Nrnk", 
-   "userid": "0bbb26"
-  }, 
-  "model": "coredata.person", 
-  "pk": 125
- }, 
- {
-  "fields": {
-   "emplid": 200000219, 
-   "first_name": "Nsqvxxop", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Nsqv", 
-   "userid": "0bbb20"
-  }, 
-  "model": "coredata.person", 
-  "pk": 119
- }, 
- {
-  "fields": {
-   "emplid": 200000192, 
-   "first_name": "Nufxysjx", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Nufx", 
-   "userid": "0aaa34"
-  }, 
-  "model": "coredata.person", 
-  "pk": 92
- }, 
- {
-  "fields": {
-   "emplid": 200000200, 
-   "first_name": "Nwpijxaj", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Nwpi", 
-   "userid": "0bbb1"
-  }, 
-  "model": "coredata.person", 
-  "pk": 100
- }, 
- {
-  "fields": {
-   "emplid": 200000204, 
-   "first_name": "Nyjthxbz", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Nyjt", 
-   "userid": "0bbb5"
-  }, 
-  "model": "coredata.person", 
-  "pk": 104
- }, 
- {
-  "fields": {
-   "emplid": 200000187, 
-   "first_name": "Olojlwfx", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Oloj", 
-   "userid": "0aaa29"
-  }, 
-  "model": "coredata.person", 
-  "pk": 87
- }, 
- {
-  "fields": {
-   "emplid": 200000194, 
-   "first_name": "Oorjxztc", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Oorj", 
-   "userid": "0aaa36"
-  }, 
-  "model": "coredata.person", 
-  "pk": 94
- }, 
- {
-  "fields": {
-   "emplid": 200000214, 
-   "first_name": "Opiuzrer", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Opiu", 
-   "userid": "0bbb15"
-  }, 
-  "model": "coredata.person", 
-  "pk": 114
- }, 
- {
-  "fields": {
-   "emplid": 200000231, 
-   "first_name": "Oqyenavq", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Oqye", 
-   "userid": "0bbb32"
-  }, 
-  "model": "coredata.person", 
-  "pk": 131
- }, 
- {
-  "fields": {
-   "emplid": 200000237, 
-   "first_name": "Pgvlkjry", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Pgvl", 
-   "userid": "0bbb38"
-  }, 
-  "model": "coredata.person", 
-  "pk": 137
- }, 
- {
-  "fields": {
-   "emplid": 200000182, 
-   "first_name": "Pwipzjdv", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Pwip", 
-   "userid": "0aaa24"
-  }, 
-  "model": "coredata.person", 
-  "pk": 82
- }, 
- {
-  "fields": {
-   "emplid": 200000178, 
-   "first_name": "Qgjvglcr", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Qgjv", 
-   "userid": "0aaa20"
-  }, 
-  "model": "coredata.person", 
-  "pk": 78
- }, 
- {
-  "fields": {
-   "emplid": 200000167, 
-   "first_name": "Qheucdks", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Qheu", 
-   "userid": "0aaa9"
-  }, 
-  "model": "coredata.person", 
-  "pk": 67
- }, 
- {
-  "fields": {
-   "emplid": 200000209, 
-   "first_name": "Qlrrrepx", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Qlrr", 
-   "userid": "0bbb10"
-  }, 
-  "model": "coredata.person", 
-  "pk": 109
- }, 
- {
-  "fields": {
-   "emplid": 200000202, 
-   "first_name": "Qtefoqde", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Qtef", 
-   "userid": "0bbb3"
-  }, 
-  "model": "coredata.person", 
-  "pk": 102
- }, 
- {
-  "fields": {
-   "emplid": 200000177, 
-   "first_name": "Qzzpwnop", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Qzzp", 
-   "userid": "0aaa19"
-  }, 
-  "model": "coredata.person", 
-  "pk": 77
- }, 
- {
-  "fields": {
-   "emplid": 200000190, 
-   "first_name": "Rehzuphu", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Rehz", 
-   "userid": "0aaa32"
-  }, 
-  "model": "coredata.person", 
-  "pk": 90
- }, 
- {
-  "fields": {
-   "emplid": 200000173, 
-   "first_name": "Rrqpfgvq", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Rrqp", 
-   "userid": "0aaa15"
-  }, 
-  "model": "coredata.person", 
-  "pk": 73
- }, 
- {
-  "fields": {
-   "emplid": 200000161, 
-   "first_name": "Sbmxcqys", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Sbmx", 
-   "userid": "0aaa3"
-  }, 
-  "model": "coredata.person", 
-  "pk": 61
- }, 
- {
-  "fields": {
-   "emplid": 200000169, 
-   "first_name": "Simjhvbv", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Simj", 
-   "userid": "0aaa11"
-  }, 
-  "model": "coredata.person", 
-  "pk": 69
- }, 
- {
-  "fields": {
-   "emplid": 200000234, 
-   "first_name": "Ssvglsql", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Ssvg", 
-   "userid": "0bbb35"
-  }, 
-  "model": "coredata.person", 
-  "pk": 134
- }, 
- {
-  "fields": {
-   "emplid": 200000233, 
-   "first_name": "Szfeyuls", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Szfe", 
-   "userid": "0bbb34"
-  }, 
-  "model": "coredata.person", 
-  "pk": 133
- }, 
- {
-  "fields": {
-   "emplid": 200000170, 
-   "first_name": "Tczeugsi", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Tcze", 
-   "userid": "0aaa12"
-  }, 
-  "model": "coredata.person", 
-  "pk": 70
- }, 
- {
-  "fields": {
-   "emplid": 200000210, 
-   "first_name": "Torusjib", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Toru", 
-   "userid": "0bbb11"
-  }, 
-  "model": "coredata.person", 
-  "pk": 110
- }, 
- {
-  "fields": {
    "emplid": 200000199, 
-   "first_name": "Tqdeyabp", 
+   "first_name": "Aattsmnb", 
    "last_name": "Student", 
    "middle_name": "", 
-   "pref_first_name": "Tqde", 
+   "pref_first_name": "Aatt", 
    "userid": "0bbb0"
   }, 
   "model": "coredata.person", 
@@ -11864,143 +11120,35 @@
  }, 
  {
   "fields": {
-   "emplid": 200000216, 
-   "first_name": "Uuddrsbo", 
+   "emplid": 200000170, 
+   "first_name": "Bfiyaqwx", 
    "last_name": "Student", 
    "middle_name": "", 
-   "pref_first_name": "Uudd", 
-   "userid": "0bbb17"
+   "pref_first_name": "Bfiy", 
+   "userid": "0aaa12"
   }, 
   "model": "coredata.person", 
-  "pk": 116
+  "pk": 70
  }, 
  {
   "fields": {
-   "emplid": 200000171, 
-   "first_name": "Uvgysfed", 
+   "emplid": 200000174, 
+   "first_name": "Btwafhny", 
    "last_name": "Student", 
    "middle_name": "", 
-   "pref_first_name": "Uvgy", 
-   "userid": "0aaa13"
+   "pref_first_name": "Btwa", 
+   "userid": "0aaa16"
   }, 
   "model": "coredata.person", 
-  "pk": 71
- }, 
- {
-  "fields": {
-   "emplid": 200000164, 
-   "first_name": "Uyiscphv", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Uyis", 
-   "userid": "0aaa6"
-  }, 
-  "model": "coredata.person", 
-  "pk": 64
- }, 
- {
-  "fields": {
-   "emplid": 200000168, 
-   "first_name": "Vltfnzij", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Vltf", 
-   "userid": "0aaa10"
-  }, 
-  "model": "coredata.person", 
-  "pk": 68
- }, 
- {
-  "fields": {
-   "emplid": 200000166, 
-   "first_name": "Wuwtswlh", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Wuwt", 
-   "userid": "0aaa8"
-  }, 
-  "model": "coredata.person", 
-  "pk": 66
- }, 
- {
-  "fields": {
-   "emplid": 200000163, 
-   "first_name": "Wvizspvr", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Wviz", 
-   "userid": "0aaa5"
-  }, 
-  "model": "coredata.person", 
-  "pk": 63
- }, 
- {
-  "fields": {
-   "emplid": 200000184, 
-   "first_name": "Wzvdqlqq", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Wzvd", 
-   "userid": "0aaa26"
-  }, 
-  "model": "coredata.person", 
-  "pk": 84
- }, 
- {
-  "fields": {
-   "emplid": 200000215, 
-   "first_name": "Xdvufpit", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Xdvu", 
-   "userid": "0bbb16"
-  }, 
-  "model": "coredata.person", 
-  "pk": 115
- }, 
- {
-  "fields": {
-   "emplid": 200000232, 
-   "first_name": "Xolhsefi", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Xolh", 
-   "userid": "0bbb33"
-  }, 
-  "model": "coredata.person", 
-  "pk": 132
- }, 
- {
-  "fields": {
-   "emplid": 200000227, 
-   "first_name": "Xvldeiml", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Xvld", 
-   "userid": "0bbb28"
-  }, 
-  "model": "coredata.person", 
-  "pk": 127
- }, 
- {
-  "fields": {
-   "emplid": 200000238, 
-   "first_name": "Ybwkprxi", 
-   "last_name": "Student", 
-   "middle_name": "", 
-   "pref_first_name": "Ybwk", 
-   "userid": "0bbb39"
-  }, 
-  "model": "coredata.person", 
-  "pk": 138
+  "pk": 74
  }, 
  {
   "fields": {
    "emplid": 200000223, 
-   "first_name": "Yhtadswg", 
+   "first_name": "Cfzqicxy", 
    "last_name": "Student", 
    "middle_name": "", 
-   "pref_first_name": "Yhta", 
+   "pref_first_name": "Cfzq", 
    "userid": "0bbb24"
   }, 
   "model": "coredata.person", 
@@ -12008,47 +11156,131 @@
  }, 
  {
   "fields": {
-   "emplid": 200000189, 
-   "first_name": "Ypogloii", 
+   "emplid": 200000228, 
+   "first_name": "Dqffvgye", 
    "last_name": "Student", 
    "middle_name": "", 
-   "pref_first_name": "Ypog", 
-   "userid": "0aaa31"
+   "pref_first_name": "Dqff", 
+   "userid": "0bbb29"
   }, 
   "model": "coredata.person", 
-  "pk": 89
+  "pk": 128
  }, 
  {
   "fields": {
-   "emplid": 200000195, 
-   "first_name": "Yrbuffhi", 
+   "emplid": 200000202, 
+   "first_name": "Edtddwzm", 
    "last_name": "Student", 
    "middle_name": "", 
-   "pref_first_name": "Yrbu", 
-   "userid": "0aaa37"
+   "pref_first_name": "Edtd", 
+   "userid": "0bbb3"
   }, 
   "model": "coredata.person", 
-  "pk": 95
+  "pk": 102
  }, 
  {
   "fields": {
-   "emplid": 200000217, 
-   "first_name": "Zbnxihsn", 
+   "emplid": 200000178, 
+   "first_name": "Ejtykxpu", 
    "last_name": "Student", 
    "middle_name": "", 
-   "pref_first_name": "Zbnx", 
-   "userid": "0bbb18"
+   "pref_first_name": "Ejty", 
+   "userid": "0aaa20"
   }, 
   "model": "coredata.person", 
-  "pk": 117
+  "pk": 78
+ }, 
+ {
+  "fields": {
+   "emplid": 200000192, 
+   "first_name": "Epfxbcqg", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Epfx", 
+   "userid": "0aaa34"
+  }, 
+  "model": "coredata.person", 
+  "pk": 92
+ }, 
+ {
+  "fields": {
+   "emplid": 200000173, 
+   "first_name": "Gdkhggvr", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Gdkh", 
+   "userid": "0aaa15"
+  }, 
+  "model": "coredata.person", 
+  "pk": 73
+ }, 
+ {
+  "fields": {
+   "emplid": 200000159, 
+   "first_name": "Gebpamjg", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Gebp", 
+   "userid": "0aaa1"
+  }, 
+  "model": "coredata.person", 
+  "pk": 59
+ }, 
+ {
+  "fields": {
+   "emplid": 200000222, 
+   "first_name": "Gkcdcgxz", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Gkcd", 
+   "userid": "0bbb23"
+  }, 
+  "model": "coredata.person", 
+  "pk": 122
+ }, 
+ {
+  "fields": {
+   "emplid": 200000207, 
+   "first_name": "Gqfuikyg", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Gqfu", 
+   "userid": "0bbb8"
+  }, 
+  "model": "coredata.person", 
+  "pk": 107
+ }, 
+ {
+  "fields": {
+   "emplid": 200000227, 
+   "first_name": "Grohoqaf", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Groh", 
+   "userid": "0bbb28"
+  }, 
+  "model": "coredata.person", 
+  "pk": 127
+ }, 
+ {
+  "fields": {
+   "emplid": 200000236, 
+   "first_name": "Grztbcca", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Grzt", 
+   "userid": "0bbb37"
+  }, 
+  "model": "coredata.person", 
+  "pk": 136
  }, 
  {
   "fields": {
    "emplid": 200000213, 
-   "first_name": "Zejiehij", 
+   "first_name": "Gthcgjkd", 
    "last_name": "Student", 
    "middle_name": "", 
-   "pref_first_name": "Zeji", 
+   "pref_first_name": "Gthc", 
    "userid": "0bbb14"
   }, 
   "model": "coredata.person", 
@@ -12056,15 +11288,783 @@
  }, 
  {
   "fields": {
-   "emplid": 200000235, 
-   "first_name": "Zpjgenft", 
+   "emplid": 200000231, 
+   "first_name": "Heibyzni", 
    "last_name": "Student", 
    "middle_name": "", 
-   "pref_first_name": "Zpjg", 
+   "pref_first_name": "Heib", 
+   "userid": "0bbb32"
+  }, 
+  "model": "coredata.person", 
+  "pk": 131
+ }, 
+ {
+  "fields": {
+   "emplid": 200000230, 
+   "first_name": "Hzgkkbvc", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Hzgk", 
+   "userid": "0bbb31"
+  }, 
+  "model": "coredata.person", 
+  "pk": 130
+ }, 
+ {
+  "fields": {
+   "emplid": 200000176, 
+   "first_name": "Icetrujz", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Icet", 
+   "userid": "0aaa18"
+  }, 
+  "model": "coredata.person", 
+  "pk": 76
+ }, 
+ {
+  "fields": {
+   "emplid": 200000196, 
+   "first_name": "Ispexshy", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Ispe", 
+   "userid": "0aaa38"
+  }, 
+  "model": "coredata.person", 
+  "pk": 96
+ }, 
+ {
+  "fields": {
+   "emplid": 200000162, 
+   "first_name": "Kiilmaev", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Kiil", 
+   "userid": "0aaa4"
+  }, 
+  "model": "coredata.person", 
+  "pk": 62
+ }, 
+ {
+  "fields": {
+   "emplid": 200000224, 
+   "first_name": "Knfpfuix", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Knfp", 
+   "userid": "0bbb25"
+  }, 
+  "model": "coredata.person", 
+  "pk": 124
+ }, 
+ {
+  "fields": {
+   "emplid": 200000187, 
+   "first_name": "Ktndsyzt", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Ktnd", 
+   "userid": "0aaa29"
+  }, 
+  "model": "coredata.person", 
+  "pk": 87
+ }, 
+ {
+  "fields": {
+   "emplid": 200000206, 
+   "first_name": "Leqpqlpa", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Leqp", 
+   "userid": "0bbb7"
+  }, 
+  "model": "coredata.person", 
+  "pk": 106
+ }, 
+ {
+  "fields": {
+   "emplid": 200000181, 
+   "first_name": "Lezgofah", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Lezg", 
+   "userid": "0aaa23"
+  }, 
+  "model": "coredata.person", 
+  "pk": 81
+ }, 
+ {
+  "fields": {
+   "emplid": 200000177, 
+   "first_name": "Limnzcvx", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Limn", 
+   "userid": "0aaa19"
+  }, 
+  "model": "coredata.person", 
+  "pk": 77
+ }, 
+ {
+  "fields": {
+   "emplid": 200000194, 
+   "first_name": "Ljjqpktc", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Ljjq", 
+   "userid": "0aaa36"
+  }, 
+  "model": "coredata.person", 
+  "pk": 94
+ }, 
+ {
+  "fields": {
+   "emplid": 200000179, 
+   "first_name": "Lkzbrbus", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Lkzb", 
+   "userid": "0aaa21"
+  }, 
+  "model": "coredata.person", 
+  "pk": 79
+ }, 
+ {
+  "fields": {
+   "emplid": 200000225, 
+   "first_name": "Lkzwicuv", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Lkzw", 
+   "userid": "0bbb26"
+  }, 
+  "model": "coredata.person", 
+  "pk": 125
+ }, 
+ {
+  "fields": {
+   "emplid": 200000184, 
+   "first_name": "Lutyacut", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Luty", 
+   "userid": "0aaa26"
+  }, 
+  "model": "coredata.person", 
+  "pk": 84
+ }, 
+ {
+  "fields": {
+   "emplid": 200000168, 
+   "first_name": "Lyaqwkts", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Lyaq", 
+   "userid": "0aaa10"
+  }, 
+  "model": "coredata.person", 
+  "pk": 68
+ }, 
+ {
+  "fields": {
+   "emplid": 200000165, 
+   "first_name": "Mgtifxkb", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Mgti", 
+   "userid": "0aaa7"
+  }, 
+  "model": "coredata.person", 
+  "pk": 65
+ }, 
+ {
+  "fields": {
+   "emplid": 200000217, 
+   "first_name": "Mntxxqfd", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Mntx", 
+   "userid": "0bbb18"
+  }, 
+  "model": "coredata.person", 
+  "pk": 117
+ }, 
+ {
+  "fields": {
+   "emplid": 200000233, 
+   "first_name": "Negovqde", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Nego", 
+   "userid": "0bbb34"
+  }, 
+  "model": "coredata.person", 
+  "pk": 133
+ }, 
+ {
+  "fields": {
+   "emplid": 200000232, 
+   "first_name": "Nfzgfaig", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Nfzg", 
+   "userid": "0bbb33"
+  }, 
+  "model": "coredata.person", 
+  "pk": 132
+ }, 
+ {
+  "fields": {
+   "emplid": 200000175, 
+   "first_name": "Nqzsyewh", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Nqzs", 
+   "userid": "0aaa17"
+  }, 
+  "model": "coredata.person", 
+  "pk": 75
+ }, 
+ {
+  "fields": {
+   "emplid": 200000216, 
+   "first_name": "Onjetdzy", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Onje", 
+   "userid": "0bbb17"
+  }, 
+  "model": "coredata.person", 
+  "pk": 116
+ }, 
+ {
+  "fields": {
+   "emplid": 200000180, 
+   "first_name": "Oryktysm", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Oryk", 
+   "userid": "0aaa22"
+  }, 
+  "model": "coredata.person", 
+  "pk": 80
+ }, 
+ {
+  "fields": {
+   "emplid": 200000158, 
+   "first_name": "Psjbzbdh", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Psjb", 
+   "userid": "0aaa0"
+  }, 
+  "model": "coredata.person", 
+  "pk": 58
+ }, 
+ {
+  "fields": {
+   "emplid": 200000214, 
+   "first_name": "Qbjlyvtq", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Qbjl", 
+   "userid": "0bbb15"
+  }, 
+  "model": "coredata.person", 
+  "pk": 114
+ }, 
+ {
+  "fields": {
+   "emplid": 200000235, 
+   "first_name": "Qffqxyxz", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Qffq", 
    "userid": "0bbb36"
   }, 
   "model": "coredata.person", 
   "pk": 135
+ }, 
+ {
+  "fields": {
+   "emplid": 200000218, 
+   "first_name": "Qizojnxs", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Qizo", 
+   "userid": "0bbb19"
+  }, 
+  "model": "coredata.person", 
+  "pk": 118
+ }, 
+ {
+  "fields": {
+   "emplid": 200000237, 
+   "first_name": "Qrhusyeq", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Qrhu", 
+   "userid": "0bbb38"
+  }, 
+  "model": "coredata.person", 
+  "pk": 137
+ }, 
+ {
+  "fields": {
+   "emplid": 200000209, 
+   "first_name": "Qzqkxtce", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Qzqk", 
+   "userid": "0bbb10"
+  }, 
+  "model": "coredata.person", 
+  "pk": 109
+ }, 
+ {
+  "fields": {
+   "emplid": 200000163, 
+   "first_name": "Rcwbljyc", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Rcwb", 
+   "userid": "0aaa5"
+  }, 
+  "model": "coredata.person", 
+  "pk": 63
+ }, 
+ {
+  "fields": {
+   "emplid": 200000221, 
+   "first_name": "Rfjpjttf", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Rfjp", 
+   "userid": "0bbb22"
+  }, 
+  "model": "coredata.person", 
+  "pk": 121
+ }, 
+ {
+  "fields": {
+   "emplid": 200000200, 
+   "first_name": "Rkpuedil", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Rkpu", 
+   "userid": "0bbb1"
+  }, 
+  "model": "coredata.person", 
+  "pk": 100
+ }, 
+ {
+  "fields": {
+   "emplid": 200000234, 
+   "first_name": "Rlqtvrrv", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Rlqt", 
+   "userid": "0bbb35"
+  }, 
+  "model": "coredata.person", 
+  "pk": 134
+ }, 
+ {
+  "fields": {
+   "emplid": 200000208, 
+   "first_name": "Rzogvrjh", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Rzog", 
+   "userid": "0bbb9"
+  }, 
+  "model": "coredata.person", 
+  "pk": 108
+ }, 
+ {
+  "fields": {
+   "emplid": 200000191, 
+   "first_name": "Slskcjvr", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Slsk", 
+   "userid": "0aaa33"
+  }, 
+  "model": "coredata.person", 
+  "pk": 91
+ }, 
+ {
+  "fields": {
+   "emplid": 200000183, 
+   "first_name": "Srubrmwc", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Srub", 
+   "userid": "0aaa25"
+  }, 
+  "model": "coredata.person", 
+  "pk": 83
+ }, 
+ {
+  "fields": {
+   "emplid": 200000197, 
+   "first_name": "Tcefapdx", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Tcef", 
+   "userid": "0aaa39"
+  }, 
+  "model": "coredata.person", 
+  "pk": 97
+ }, 
+ {
+  "fields": {
+   "emplid": 200000204, 
+   "first_name": "Tciilluh", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Tcii", 
+   "userid": "0bbb5"
+  }, 
+  "model": "coredata.person", 
+  "pk": 104
+ }, 
+ {
+  "fields": {
+   "emplid": 200000220, 
+   "first_name": "Tkhvptbd", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Tkhv", 
+   "userid": "0bbb21"
+  }, 
+  "model": "coredata.person", 
+  "pk": 120
+ }, 
+ {
+  "fields": {
+   "emplid": 200000219, 
+   "first_name": "Tlnqjtxf", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Tlnq", 
+   "userid": "0bbb20"
+  }, 
+  "model": "coredata.person", 
+  "pk": 119
+ }, 
+ {
+  "fields": {
+   "emplid": 200000161, 
+   "first_name": "Tlnsfbcy", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Tlns", 
+   "userid": "0aaa3"
+  }, 
+  "model": "coredata.person", 
+  "pk": 61
+ }, 
+ {
+  "fields": {
+   "emplid": 200000182, 
+   "first_name": "Tlzsazkl", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Tlzs", 
+   "userid": "0aaa24"
+  }, 
+  "model": "coredata.person", 
+  "pk": 82
+ }, 
+ {
+  "fields": {
+   "emplid": 200000190, 
+   "first_name": "Tycdnulc", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Tycd", 
+   "userid": "0aaa32"
+  }, 
+  "model": "coredata.person", 
+  "pk": 90
+ }, 
+ {
+  "fields": {
+   "emplid": 200000186, 
+   "first_name": "Tzsbdiav", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Tzsb", 
+   "userid": "0aaa28"
+  }, 
+  "model": "coredata.person", 
+  "pk": 86
+ }, 
+ {
+  "fields": {
+   "emplid": 200000185, 
+   "first_name": "Uftykoiz", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Ufty", 
+   "userid": "0aaa27"
+  }, 
+  "model": "coredata.person", 
+  "pk": 85
+ }, 
+ {
+  "fields": {
+   "emplid": 200000193, 
+   "first_name": "Uhqifwsc", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Uhqi", 
+   "userid": "0aaa35"
+  }, 
+  "model": "coredata.person", 
+  "pk": 93
+ }, 
+ {
+  "fields": {
+   "emplid": 200000238, 
+   "first_name": "Uijwvkoi", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Uijw", 
+   "userid": "0bbb39"
+  }, 
+  "model": "coredata.person", 
+  "pk": 138
+ }, 
+ {
+  "fields": {
+   "emplid": 200000205, 
+   "first_name": "Vbaqpwjv", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Vbaq", 
+   "userid": "0bbb6"
+  }, 
+  "model": "coredata.person", 
+  "pk": 105
+ }, 
+ {
+  "fields": {
+   "emplid": 200000229, 
+   "first_name": "Vbcjyrlx", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Vbcj", 
+   "userid": "0bbb30"
+  }, 
+  "model": "coredata.person", 
+  "pk": 129
+ }, 
+ {
+  "fields": {
+   "emplid": 200000188, 
+   "first_name": "Vjfrfcrj", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Vjfr", 
+   "userid": "0aaa30"
+  }, 
+  "model": "coredata.person", 
+  "pk": 88
+ }, 
+ {
+  "fields": {
+   "emplid": 200000169, 
+   "first_name": "Vxbeszpa", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Vxbe", 
+   "userid": "0aaa11"
+  }, 
+  "model": "coredata.person", 
+  "pk": 69
+ }, 
+ {
+  "fields": {
+   "emplid": 200000167, 
+   "first_name": "Wercfxym", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Werc", 
+   "userid": "0aaa9"
+  }, 
+  "model": "coredata.person", 
+  "pk": 67
+ }, 
+ {
+  "fields": {
+   "emplid": 200000226, 
+   "first_name": "Wmoyumjl", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Wmoy", 
+   "userid": "0bbb27"
+  }, 
+  "model": "coredata.person", 
+  "pk": 126
+ }, 
+ {
+  "fields": {
+   "emplid": 200000189, 
+   "first_name": "Wpqulpob", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Wpqu", 
+   "userid": "0aaa31"
+  }, 
+  "model": "coredata.person", 
+  "pk": 89
+ }, 
+ {
+  "fields": {
+   "emplid": 200000166, 
+   "first_name": "Wslwpimo", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Wslw", 
+   "userid": "0aaa8"
+  }, 
+  "model": "coredata.person", 
+  "pk": 66
+ }, 
+ {
+  "fields": {
+   "emplid": 200000212, 
+   "first_name": "Xerzgohb", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Xerz", 
+   "userid": "0bbb13"
+  }, 
+  "model": "coredata.person", 
+  "pk": 112
+ }, 
+ {
+  "fields": {
+   "emplid": 200000172, 
+   "first_name": "Xomnurek", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Xomn", 
+   "userid": "0aaa14"
+  }, 
+  "model": "coredata.person", 
+  "pk": 72
+ }, 
+ {
+  "fields": {
+   "emplid": 200000164, 
+   "first_name": "Xpblcgde", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Xpbl", 
+   "userid": "0aaa6"
+  }, 
+  "model": "coredata.person", 
+  "pk": 64
+ }, 
+ {
+  "fields": {
+   "emplid": 200000160, 
+   "first_name": "Xsvkrhsj", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Xsvk", 
+   "userid": "0aaa2"
+  }, 
+  "model": "coredata.person", 
+  "pk": 60
+ }, 
+ {
+  "fields": {
+   "emplid": 200000195, 
+   "first_name": "Xuykionc", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Xuyk", 
+   "userid": "0aaa37"
+  }, 
+  "model": "coredata.person", 
+  "pk": 95
+ }, 
+ {
+  "fields": {
+   "emplid": 200000201, 
+   "first_name": "Ydevatui", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Ydev", 
+   "userid": "0bbb2"
+  }, 
+  "model": "coredata.person", 
+  "pk": 101
+ }, 
+ {
+  "fields": {
+   "emplid": 200000211, 
+   "first_name": "Yeibqtzi", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Yeib", 
+   "userid": "0bbb12"
+  }, 
+  "model": "coredata.person", 
+  "pk": 111
+ }, 
+ {
+  "fields": {
+   "emplid": 200000210, 
+   "first_name": "Yhbwjzwd", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Yhbw", 
+   "userid": "0bbb11"
+  }, 
+  "model": "coredata.person", 
+  "pk": 110
+ }, 
+ {
+  "fields": {
+   "emplid": 200000171, 
+   "first_name": "Yschaotm", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Ysch", 
+   "userid": "0aaa13"
+  }, 
+  "model": "coredata.person", 
+  "pk": 71
+ }, 
+ {
+  "fields": {
+   "emplid": 200000203, 
+   "first_name": "Yxefbxyw", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Yxef", 
+   "userid": "0bbb4"
+  }, 
+  "model": "coredata.person", 
+  "pk": 103
+ }, 
+ {
+  "fields": {
+   "emplid": 200000215, 
+   "first_name": "Zvnxmmwv", 
+   "last_name": "Student", 
+   "middle_name": "", 
+   "pref_first_name": "Zvnx", 
+   "userid": "0bbb16"
+  }, 
+  "model": "coredata.person", 
+  "pk": 115
  }, 
  {
   "fields": {
@@ -12347,6 +12347,580 @@
   }, 
   "model": "coredata.member", 
   "pk": 96
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "NONS", 
+   "config": "{}", 
+   "credits": 0, 
+   "labtut_section": null, 
+   "offering": 99, 
+   "person": 98, 
+   "role": "TA"
+  }, 
+  "model": "coredata.member", 
+  "pk": 201
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D103", 
+   "offering": 99, 
+   "person": 70, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 173
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D104", 
+   "offering": 99, 
+   "person": 74, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 177
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D101", 
+   "offering": 99, 
+   "person": 78, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 181
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D102", 
+   "offering": 99, 
+   "person": 92, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 195
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D103", 
+   "offering": 99, 
+   "person": 73, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 176
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D103", 
+   "offering": 99, 
+   "person": 59, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 162
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D102", 
+   "offering": 99, 
+   "person": 76, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 179
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D104", 
+   "offering": 99, 
+   "person": 96, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 199
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D102", 
+   "offering": 99, 
+   "person": 62, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 165
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D102", 
+   "offering": 99, 
+   "person": 87, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 190
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D102", 
+   "offering": 99, 
+   "person": 81, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 184
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D103", 
+   "offering": 99, 
+   "person": 77, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 180
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D103", 
+   "offering": 99, 
+   "person": 94, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 197
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D102", 
+   "offering": 99, 
+   "person": 79, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 182
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D101", 
+   "offering": 99, 
+   "person": 84, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 187
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D103", 
+   "offering": 99, 
+   "person": 68, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 171
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D101", 
+   "offering": 99, 
+   "person": 65, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 168
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D103", 
+   "offering": 99, 
+   "person": 75, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 178
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D101", 
+   "offering": 99, 
+   "person": 80, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 183
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D103", 
+   "offering": 99, 
+   "person": 58, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 161
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D101", 
+   "offering": 99, 
+   "person": 63, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 166
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D104", 
+   "offering": 99, 
+   "person": 91, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 194
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D103", 
+   "offering": 99, 
+   "person": 83, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 186
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D102", 
+   "offering": 99, 
+   "person": 97, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 200
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D103", 
+   "offering": 99, 
+   "person": 61, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 164
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D102", 
+   "offering": 99, 
+   "person": 82, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 185
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D104", 
+   "offering": 99, 
+   "person": 90, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 193
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D102", 
+   "offering": 99, 
+   "person": 86, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 189
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D101", 
+   "offering": 99, 
+   "person": 85, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 188
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D104", 
+   "offering": 99, 
+   "person": 93, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 196
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D104", 
+   "offering": 99, 
+   "person": 88, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 191
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D102", 
+   "offering": 99, 
+   "person": 69, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 172
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D102", 
+   "offering": 99, 
+   "person": 67, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 170
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D101", 
+   "offering": 99, 
+   "person": 89, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 192
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D101", 
+   "offering": 99, 
+   "person": 66, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 169
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D102", 
+   "offering": 99, 
+   "person": 72, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 175
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D103", 
+   "offering": 99, 
+   "person": 64, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 167
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D104", 
+   "offering": 99, 
+   "person": 60, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 163
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D104", 
+   "offering": 99, 
+   "person": 95, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 198
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D104", 
+   "offering": 99, 
+   "person": 71, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 174
  }, 
  {
   "fields": {
@@ -13107,6 +13681,566 @@
  {
   "fields": {
    "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D103", 
+   "offering": 20, 
+   "person": 99, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 202
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D104", 
+   "offering": 20, 
+   "person": 123, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 226
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D104", 
+   "offering": 20, 
+   "person": 128, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 231
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D101", 
+   "offering": 20, 
+   "person": 102, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 205
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D102", 
+   "offering": 20, 
+   "person": 122, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 225
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D101", 
+   "offering": 20, 
+   "person": 107, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 210
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D102", 
+   "offering": 20, 
+   "person": 127, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 230
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D103", 
+   "offering": 20, 
+   "person": 136, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 239
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D104", 
+   "offering": 20, 
+   "person": 113, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 216
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D102", 
+   "offering": 20, 
+   "person": 131, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 234
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D103", 
+   "offering": 20, 
+   "person": 130, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 233
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D102", 
+   "offering": 20, 
+   "person": 124, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 227
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D104", 
+   "offering": 20, 
+   "person": 106, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 209
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D104", 
+   "offering": 20, 
+   "person": 125, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 228
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D103", 
+   "offering": 20, 
+   "person": 117, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 220
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D101", 
+   "offering": 20, 
+   "person": 133, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 236
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D103", 
+   "offering": 20, 
+   "person": 132, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 235
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D102", 
+   "offering": 20, 
+   "person": 116, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 219
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D104", 
+   "offering": 20, 
+   "person": 114, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 217
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D101", 
+   "offering": 20, 
+   "person": 135, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 238
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D103", 
+   "offering": 20, 
+   "person": 118, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 221
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D101", 
+   "offering": 20, 
+   "person": 137, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 240
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D102", 
+   "offering": 20, 
+   "person": 109, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 212
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D101", 
+   "offering": 20, 
+   "person": 121, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 224
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D103", 
+   "offering": 20, 
+   "person": 100, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 203
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D102", 
+   "offering": 20, 
+   "person": 134, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 237
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D102", 
+   "offering": 20, 
+   "person": 108, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 211
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D103", 
+   "offering": 20, 
+   "person": 104, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 207
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D102", 
+   "offering": 20, 
+   "person": 120, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 223
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D102", 
+   "offering": 20, 
+   "person": 119, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 222
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D104", 
+   "offering": 20, 
+   "person": 138, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 241
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D102", 
+   "offering": 20, 
+   "person": 105, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 208
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D103", 
+   "offering": 20, 
+   "person": 129, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 232
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D104", 
+   "offering": 20, 
+   "person": 126, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 229
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D101", 
+   "offering": 20, 
+   "person": 112, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 215
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D101", 
+   "offering": 20, 
+   "person": 101, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 204
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D102", 
+   "offering": 20, 
+   "person": 111, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 214
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D101", 
+   "offering": 20, 
+   "person": 110, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 213
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D101", 
+   "offering": 20, 
+   "person": 103, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 206
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
+   "career": "UGRD", 
+   "config": "{}", 
+   "credits": 3, 
+   "labtut_section": "D101", 
+   "offering": 20, 
+   "person": 115, 
+   "role": "STUD"
+  }, 
+  "model": "coredata.member", 
+  "pk": 218
+ }, 
+ {
+  "fields": {
+   "added_reason": "AUTO", 
    "career": "NONS", 
    "config": "{}", 
    "credits": 0, 
@@ -13503,580 +14637,6 @@
    "config": "{}", 
    "credits": 0, 
    "labtut_section": null, 
-   "offering": 118, 
-   "person": 98, 
-   "role": "TA"
-  }, 
-  "model": "coredata.member", 
-  "pk": 201
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D104", 
-   "offering": 118, 
-   "person": 65, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 168
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D103", 
-   "offering": 118, 
-   "person": 59, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 162
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D103", 
-   "offering": 118, 
-   "person": 85, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 188
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D102", 
-   "offering": 118, 
-   "person": 93, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 196
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D104", 
-   "offering": 118, 
-   "person": 75, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 178
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D103", 
-   "offering": 118, 
-   "person": 74, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 177
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D101", 
-   "offering": 118, 
-   "person": 91, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 194
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D101", 
-   "offering": 118, 
-   "person": 97, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 200
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D104", 
-   "offering": 118, 
-   "person": 80, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 183
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D101", 
-   "offering": 118, 
-   "person": 81, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 184
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D102", 
-   "offering": 118, 
-   "person": 62, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 165
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D101", 
-   "offering": 118, 
-   "person": 60, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 163
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D104", 
-   "offering": 118, 
-   "person": 88, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 191
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D104", 
-   "offering": 118, 
-   "person": 83, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 186
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D101", 
-   "offering": 118, 
-   "person": 86, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 189
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D101", 
-   "offering": 118, 
-   "person": 79, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 182
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D101", 
-   "offering": 118, 
-   "person": 76, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 179
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D104", 
-   "offering": 118, 
-   "person": 72, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 175
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D103", 
-   "offering": 118, 
-   "person": 96, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 199
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D101", 
-   "offering": 118, 
-   "person": 58, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 161
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D104", 
-   "offering": 118, 
-   "person": 92, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 195
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D104", 
-   "offering": 118, 
-   "person": 87, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 190
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D102", 
-   "offering": 118, 
-   "person": 94, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 197
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D101", 
-   "offering": 118, 
-   "person": 82, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 185
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D104", 
-   "offering": 118, 
-   "person": 78, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 181
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D104", 
-   "offering": 118, 
-   "person": 67, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 170
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D103", 
-   "offering": 118, 
-   "person": 77, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 180
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D102", 
-   "offering": 118, 
-   "person": 90, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 193
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D104", 
-   "offering": 118, 
-   "person": 73, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 176
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D102", 
-   "offering": 118, 
-   "person": 61, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 164
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D104", 
-   "offering": 118, 
-   "person": 69, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 172
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D102", 
-   "offering": 118, 
-   "person": 70, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 173
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D104", 
-   "offering": 118, 
-   "person": 71, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 174
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D103", 
-   "offering": 118, 
-   "person": 64, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 167
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D102", 
-   "offering": 118, 
-   "person": 68, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 171
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D102", 
-   "offering": 118, 
-   "person": 66, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 169
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D101", 
-   "offering": 118, 
-   "person": 63, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 166
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D102", 
-   "offering": 118, 
-   "person": 84, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 187
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D102", 
-   "offering": 118, 
-   "person": 89, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 192
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D101", 
-   "offering": 118, 
-   "person": 95, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 198
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "NONS", 
-   "config": "{}", 
-   "credits": 0, 
-   "labtut_section": null, 
    "offering": 123, 
    "person": 39, 
    "role": "INST"
@@ -14153,566 +14713,6 @@
   }, 
   "model": "coredata.member", 
   "pk": 94
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D102", 
-   "offering": 96, 
-   "person": 129, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 232
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D103", 
-   "offering": 96, 
-   "person": 101, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 204
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D103", 
-   "offering": 96, 
-   "person": 126, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 229
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D101", 
-   "offering": 96, 
-   "person": 128, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 231
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D102", 
-   "offering": 96, 
-   "person": 108, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 211
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D102", 
-   "offering": 96, 
-   "person": 111, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 214
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D102", 
-   "offering": 96, 
-   "person": 106, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 209
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D101", 
-   "offering": 96, 
-   "person": 130, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 233
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D103", 
-   "offering": 96, 
-   "person": 120, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 223
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D101", 
-   "offering": 96, 
-   "person": 122, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 225
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D102", 
-   "offering": 96, 
-   "person": 124, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 227
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D101", 
-   "offering": 96, 
-   "person": 107, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 210
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D101", 
-   "offering": 96, 
-   "person": 112, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 215
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D102", 
-   "offering": 96, 
-   "person": 118, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 221
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D103", 
-   "offering": 96, 
-   "person": 105, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 208
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D104", 
-   "offering": 96, 
-   "person": 136, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 239
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D104", 
-   "offering": 96, 
-   "person": 121, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 224
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D101", 
-   "offering": 96, 
-   "person": 103, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 206
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D104", 
-   "offering": 96, 
-   "person": 125, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 228
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D101", 
-   "offering": 96, 
-   "person": 119, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 222
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D102", 
-   "offering": 96, 
-   "person": 100, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 203
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D101", 
-   "offering": 96, 
-   "person": 104, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 207
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D102", 
-   "offering": 96, 
-   "person": 114, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 217
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D103", 
-   "offering": 96, 
-   "person": 131, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 234
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D103", 
-   "offering": 96, 
-   "person": 137, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 240
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D104", 
-   "offering": 96, 
-   "person": 109, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 212
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D103", 
-   "offering": 96, 
-   "person": 102, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 205
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D103", 
-   "offering": 96, 
-   "person": 134, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 237
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D103", 
-   "offering": 96, 
-   "person": 133, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 236
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D102", 
-   "offering": 96, 
-   "person": 110, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 213
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D102", 
-   "offering": 96, 
-   "person": 99, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 202
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D101", 
-   "offering": 96, 
-   "person": 116, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 219
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D104", 
-   "offering": 96, 
-   "person": 115, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 218
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D101", 
-   "offering": 96, 
-   "person": 132, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 235
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D102", 
-   "offering": 96, 
-   "person": 127, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 230
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D102", 
-   "offering": 96, 
-   "person": 138, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 241
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D101", 
-   "offering": 96, 
-   "person": 123, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 226
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D104", 
-   "offering": 96, 
-   "person": 117, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 220
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D101", 
-   "offering": 96, 
-   "person": 113, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 216
- }, 
- {
-  "fields": {
-   "added_reason": "AUTO", 
-   "career": "UGRD", 
-   "config": "{}", 
-   "credits": 3, 
-   "labtut_section": "D102", 
-   "offering": 96, 
-   "person": 135, 
-   "role": "STUD"
-  }, 
-  "model": "coredata.member", 
-  "pk": 238
  }, 
  {
   "fields": {
@@ -15514,12 +15514,12 @@
  }, 
  {
   "fields": {
-   "config": "{u'url': u'http://www.cs.sfu.ca/CC/165/common/a1'}", 
+   "config": "{\"url\": \"http://www.cs.sfu.ca/CC/165/common/a1\"}", 
    "deleted": false, 
-   "due_date": "2011-07-08 00:00:00", 
+   "due_date": "2011-11-05 00:00:00", 
    "group": false, 
    "name": "Assignment 1", 
-   "offering": 118, 
+   "offering": 99, 
    "percent": "10", 
    "position": 1, 
    "short_name": "A1", 
@@ -15533,10 +15533,10 @@
   "fields": {
    "config": "{}", 
    "deleted": false, 
-   "due_date": "2011-07-18 00:00:00", 
+   "due_date": "2011-11-15 00:00:00", 
    "group": true, 
    "name": "Assignment 2", 
-   "offering": 118, 
+   "offering": 99, 
    "percent": "10", 
    "position": 2, 
    "short_name": "A2", 
@@ -15550,10 +15550,10 @@
   "fields": {
    "config": "{}", 
    "deleted": false, 
-   "due_date": "2011-07-28 00:00:00", 
+   "due_date": "2011-11-25 00:00:00", 
    "group": true, 
    "name": "Project", 
-   "offering": 118, 
+   "offering": 99, 
    "percent": "40", 
    "position": 3, 
    "short_name": "Proj", 
@@ -15567,10 +15567,10 @@
   "fields": {
    "config": "{}", 
    "deleted": false, 
-   "due_date": "2011-07-29 00:00:00", 
+   "due_date": "2011-11-26 00:00:00", 
    "group": false, 
    "name": "Report", 
-   "offering": 118, 
+   "offering": 99, 
    "percent": "10", 
    "position": 4, 
    "short_name": "Rep", 
@@ -15587,7 +15587,7 @@
    "due_date": null, 
    "group": false, 
    "name": "Final Exam", 
-   "offering": 118, 
+   "offering": 99, 
    "percent": "30", 
    "position": 5, 
    "short_name": "Exam", 
@@ -15604,7 +15604,7 @@
    "due_date": null, 
    "group": false, 
    "name": "Final Percent", 
-   "offering": 118, 
+   "offering": 99, 
    "percent": "0", 
    "position": 6, 
    "short_name": "Perc", 
@@ -15621,7 +15621,7 @@
    "due_date": null, 
    "group": false, 
    "name": "Letter Grade", 
-   "offering": 118, 
+   "offering": 99, 
    "percent": "0", 
    "position": 6, 
    "short_name": "Letter", 
@@ -15759,7 +15759,7 @@
  }, 
  {
   "fields": {
-   "courseoffering": 118, 
+   "courseoffering": 99, 
    "groupForSemester": true, 
    "manager": 165, 
    "name": "AnotherGroup", 
@@ -15770,7 +15770,7 @@
  }, 
  {
   "fields": {
-   "courseoffering": 118, 
+   "courseoffering": 99, 
    "groupForSemester": true, 
    "manager": 161, 
    "name": "SomeGroup", 
@@ -15778,26 +15778,6 @@
   }, 
   "model": "groups.group", 
   "pk": 1
- }, 
- {
-  "fields": {
-   "activity": 2, 
-   "confirmed": true, 
-   "group": 2, 
-   "student": 168
-  }, 
-  "model": "groups.groupmember", 
-  "pk": 9
- }, 
- {
-  "fields": {
-   "activity": 3, 
-   "confirmed": true, 
-   "group": 2, 
-   "student": 168
-  }, 
-  "model": "groups.groupmember", 
-  "pk": 10
  }, 
  {
   "fields": {
@@ -15833,6 +15813,56 @@
   "fields": {
    "activity": 2, 
    "confirmed": true, 
+   "group": 1, 
+   "student": 171
+  }, 
+  "model": "groups.groupmember", 
+  "pk": 4
+ }, 
+ {
+  "fields": {
+   "activity": 2, 
+   "confirmed": true, 
+   "group": 2, 
+   "student": 168
+  }, 
+  "model": "groups.groupmember", 
+  "pk": 9
+ }, 
+ {
+  "fields": {
+   "activity": 3, 
+   "confirmed": true, 
+   "group": 2, 
+   "student": 168
+  }, 
+  "model": "groups.groupmember", 
+  "pk": 10
+ }, 
+ {
+  "fields": {
+   "activity": 2, 
+   "confirmed": true, 
+   "group": 1, 
+   "student": 161
+  }, 
+  "model": "groups.groupmember", 
+  "pk": 1
+ }, 
+ {
+  "fields": {
+   "activity": 2, 
+   "confirmed": true, 
+   "group": 1, 
+   "student": 166
+  }, 
+  "model": "groups.groupmember", 
+  "pk": 3
+ }, 
+ {
+  "fields": {
+   "activity": 2, 
+   "confirmed": true, 
    "group": 2, 
    "student": 175
   }, 
@@ -15853,16 +15883,6 @@
   "fields": {
    "activity": 2, 
    "confirmed": true, 
-   "group": 1, 
-   "student": 161
-  }, 
-  "model": "groups.groupmember", 
-  "pk": 1
- }, 
- {
-  "fields": {
-   "activity": 2, 
-   "confirmed": true, 
    "group": 2, 
    "student": 167
   }, 
@@ -15878,26 +15898,6 @@
   }, 
   "model": "groups.groupmember", 
   "pk": 8
- }, 
- {
-  "fields": {
-   "activity": 2, 
-   "confirmed": true, 
-   "group": 1, 
-   "student": 171
-  }, 
-  "model": "groups.groupmember", 
-  "pk": 4
- }, 
- {
-  "fields": {
-   "activity": 2, 
-   "confirmed": true, 
-   "group": 1, 
-   "student": 166
-  }, 
-  "model": "groups.groupmember", 
-  "pk": 3
  }, 
  {
   "fields": {
