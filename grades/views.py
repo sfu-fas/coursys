@@ -18,6 +18,7 @@ from courselib.auth import is_course_staff_by_slug, requires_course_staff_by_slu
 
 from grades.models import ACTIVITY_STATUS, all_activities_filter
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity
+from grades.models import NumericGrade, LetterGrade
 from grades.models import CalLetterActivity, ACTIVITY_TYPES
 from grades.models import neaten_activity_positions
 from grades.forms import NumericActivityForm, LetterActivityForm, CalNumericActivityForm
