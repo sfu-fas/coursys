@@ -2,7 +2,7 @@
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>Course Management Server Config</title>
+<title>CourSys Server Config</title>
 <style type="text/css">
 body {
   margin-bottom: 5em;
@@ -20,7 +20,7 @@ code.file {
 </style>
 </head>
 <body>
-<h1>Course Management Server Config</h1>
+<h1>CourSys Server Config</h1>
 
 <p>This document describes the setup of the <code>courses.cs.sfu.ca</code> server as done in April/May 2011 by Greg Baker.</p>
 
@@ -110,7 +110,7 @@ chmod 0711 ~</pre>
   <dd>The database (and some other info) is backed up hourly (in the crontab below) to a local Subversion repository.  That is in <code class="file">~/history</code> and needed to be copied over.</dd>
 <dt>Crontab</dt>
   <dd>
-  Create a file <code class="file">~/dbpass</code> with three lines: (1) password for course management data view, (2) password for TA database, (3) the password for the app's main database.  This file is read by the importer and other scripts (to avoid having those passwords in the Subversion repo).
+  Create a file <code class="file">~/dbpass</code> with three lines: (1) password for CourSys data view, (2) password for TA database, (3) the password for the app's main database.  This file is read by the importer and other scripts (to avoid having those passwords in the Subversion repo).
   <p>This crontab needs to be set to import and backup everything:</p>
   <blockquote><pre>MAILTO=ggbaker@sfu.ca
 30 4 * * * cd /home/ggbaker/courses/ && python coredata/importer.py &lt; /home/ggbaker/dbpass

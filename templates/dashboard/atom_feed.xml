@@ -3,7 +3,7 @@
   <id>{{server_url}}/feed/{{person.userid}}{% if course %}/{{course.slug}}{% endif %}</id>
   <title>Course Updates for {{person.name}}{% if course %} in {{course.name}}{% endif %}</title>
   <updated>{{updated}}</updated>
-  <link rel="alternate" href="{{server_url}}" title="Course Management System" />
+  <link rel="alternate" href="{{server_url}}" title="CourSys" />
 
 {% for entry in news_list %}
   <entry>

@@ -205,7 +205,7 @@ def calendar_ical(request, token, userid):
     
     cal = Calendar()
     cal.add('version', '2.0')
-    cal.add('prodid', '-//SFU Course Management System//courses.cs.sfu.ca//')
+    cal.add('prodid', '-//SFU CourSys//courses.cs.sfu.ca//')
 
     for mt in class_list:
         # only output whole-course events and this student's lab section.

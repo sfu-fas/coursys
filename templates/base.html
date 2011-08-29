@@ -4,7 +4,7 @@ Adapted from the Dreamweaver template here: http://www.sfu.ca/clf/web/index.html
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-<title>{% block title %}Course Management System{% endblock %}</title>
+<title>{% block title %}CourSys{% endblock %}</title>
 <link rel="icon" href="{{MEDIA_URL}}icons/favicon.ico" type="image/x-icon" />
 <link rel="shortcut icon" href="{{MEDIA_URL}}icons/favicon.ico" type="image/x-icon" />
 <link rel="stylesheet" href="{{MEDIA_URL}}sfu/css/layout.css" media="all" />
@@ -46,10 +46,10 @@ Logged in as {{user.username}}.
 </div>
 				<div id="breadcrumbs">
 				  <ul>
-				    {% block breadcrumbs %}<li><a href="http://www.sfu.ca/">SFU</a></li><li>&gt; <a href="/">Course Management</a></li>{% block subbreadcrumbs %}{% endblock %}{% endblock %}
+				    {% block breadcrumbs %}<li><a href="http://www.sfu.ca/">SFU</a></li><li>&gt; <a href="/">CourSys</a></li>{% block subbreadcrumbs %}{% endblock %}{% endblock %}
 			          </ul>
 				</div>
-		<h1 id="PageTitle">{% block h1 %}Course Management System{% endblock %}</h1>
+		<h1 id="PageTitle">{% block h1 %}CourSys{% endblock %}</h1>
 	  </div>
 	  <div id="topLinks">
 			<a href="http://www.sfu.ca/" class="spacer main">SFU.ca</a>

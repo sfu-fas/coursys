@@ -1,9 +1,8 @@
 {% extends "mobile/base.html" %}
 {% load mobile_tags %}
 
-{% block title %}Course Management System{% endblock %}
-{% block h1 %}
-{{course.subject}} {{course.number}} {{course.section}} {% endblock %}
+{% block title %}{{course.subject}} {{course.number}} {{course.section}}{% endblock %}
+{% block h1 %}{{course.subject}} {{course.number}} {{course.section}}{% endblock %}
 {% block content%}
 
 <a class="back" href="{% url mobile.views.index %}">back</a>

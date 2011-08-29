@@ -1,6 +1,6 @@
 Here is a quick description of what is in the project:
 
-COURSE MANAGEMENT APPS
+COURSYS APPS
 coredata: data on course offerings and enrolment; imported from goSFU or set by admins
   coredata/importer.py: program to do the import from goSFU
 dashboard: responsible for display of front page, main course pages, news items
