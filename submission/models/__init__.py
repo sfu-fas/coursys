@@ -22,8 +22,9 @@ from pdf import PDF
 from code import Code
 from word import Word
 from image import Image
+from office import Office
 
-ALL_TYPE_CLASSES = [Archive, URL, PDF, Code, Word, Image]
+ALL_TYPE_CLASSES = [Archive, URL, PDF, Code, Word, Image, Office]
 
 def find_type_by_label(label):
     """

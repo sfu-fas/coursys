@@ -487,10 +487,10 @@ def repo_list_json(request, semester):
         return ForbiddenResponse(request)
     
     sem = get_object_or_404(Semester, name=semester)
-    resp = HttpResponse(mimetype="application/json")
+    RepoMemberObjects = Member.objects.filter(offering__semester=sem, offering__subject="CMPT", offering__number__gte="200", offering__graded=True).exclude(offering__component="CAN").select_related('person', 'offering')
     
     # build list of instructors/TAs
-    members = Member.objects.filter(offering__semester=sem, role__in=["INST","TA"], offering__graded=True).select_related('person', 'offering')
+    members = RepoMemberObjects.filter(role__in=["INST","TA","APPR"])
     instr = {}
     for m in members:
         key = m.offering.slug
@@ -499,14 +499,11 @@ def repo_list_json(request, semester):
         instr[key].append(m.person.userid)
     
     # list of individual repositories
-    members = Member.objects.filter(offering__semester=sem, role="STUD", offering__graded=True).select_related('person', 'offering')
+    members = RepoMemberObjects.filter(role="STUD")
     indiv = [{'course':m.offering.slug, 'userid':m.person.userid, 'instr': instr.get(m.offering.slug, [])} for m in members]
-    resp.write('{\n"indiv":\n')
-    json.dump(indiv, resp)
-    resp.write(',\n"group":\n')
     
     # list of group repositories
-    gms = GroupMember.objects.filter(activity__offering__semester=sem, confirmed=True)
+    gms = GroupMember.objects.filter(activity__offering__semester=sem, confirmed=True, group__courseoffering__subject="CMPT", group__courseoffering__number__gte="200", group__courseoffering__graded=True).exclude(group__courseoffering__component="CAN").select_related('activity', 'activity__offering', 'student', 'student__person', 'group')
     group_memb = {}
     group_crs = {}
     group_label = {}
@@ -525,12 +522,7 @@ def repo_list_json(request, semester):
         label = group_label[g]
         groups.append({'label':label, 'course':crs, 'members': members, 'instr': instr.get(crs, [])})
     
-    json.dump(groups, resp)
-    resp.write("}")
-    
-    #courses = CourseOffering.objects.filter(semester__name=semester).exclude(component="CAN")
-    #resp['Content-Disposition'] = 'inline; filename=' + semester + '.json'
-    #crs_data = (c.export_dict() for c in courses)
-    #json.dump({'courses': list(crs_data)}, resp, indent=1)
+    resp = HttpResponse(mimetype="application/json")
+    json.dump({'indiv': indiv, 'group': groups}, resp, indent=1)
     return resp
 

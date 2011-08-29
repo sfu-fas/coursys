@@ -19,9 +19,17 @@ def filetype(fh):
     """
     Do some magic to guess the filetype.  Argument must be an open file-like object.
     """
-    #TODO: replace with some real check
+    #TODO: replace with some real checks
     if fh.name.endswith('.doc') or fh.name.endswith('.docx'):
-        return "WORD"
+        return "MS-WORD"
+    elif fh.name.endswith('.xls') or fh.name.endswith('.xlsx'):
+        return "MS-EXCEL"
+    elif fh.name.endswith('.ppt') or fh.name.endswith('.pptx'):
+        return "MS-PPT"
+    elif fh.name.endswith('.mpp'):
+        return "MS-PROJ"
+    elif fh.name.endswith('.vsd'):
+        return "MS-VISIO"
     
     # methods extracted from the magic file (/usr/share/file/magic)
     # why not just check the filename?  Students seem to randomly rename.
@@ -35,7 +43,13 @@ def filetype(fh):
             try:
                 mimetype = zipf.read("mimetype")
                 if mimetype == "application/vnd.oasis.opendocument.text":
-                    return "OPENDOC"
+                    return "OD-TEXT"
+                elif mimetype == "application/vnd.oasis.opendocument.presentation":
+                    return "OD-PRES"
+                elif mimetype == "application/vnd.oasis.opendocument.spreadsheet":
+                    return "OD-SS"
+                elif mimetype == "application/vnd.oasis.opendocument.graphics":
+                    return "OD-GRA"
             except KeyError:
                 pass
 

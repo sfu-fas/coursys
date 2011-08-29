@@ -24,7 +24,9 @@
 <h2>Select Type of Submission Component:</h2>
 <ul>
 {% for t in types %}
+  {% if t.Component.visible_type %}
   <li><a href="?type={{t.label}}">{{t.name}}</a>: {{t.descr}}</li>
+  {% endif %}
 {% endfor %}
 </ul>
 

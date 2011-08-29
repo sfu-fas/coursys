@@ -41,6 +41,9 @@ class SubmissionComponent(models.Model):
         app_label = 'submission'
     def __unicode__(self):
         return "%s %s"%(self.title, self.description)
+    def visible_type(self):
+        "Should this componet type be visible to allow creation of new components (or soft-deleted)?"
+        return True
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
         
