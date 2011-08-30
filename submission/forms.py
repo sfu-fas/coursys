@@ -19,16 +19,17 @@ def filetype(fh):
     """
     Do some magic to guess the filetype.  Argument must be an open file-like object.
     """
-    #TODO: replace with some real checks
-    if fh.name.endswith('.doc') or fh.name.endswith('.docx'):
+    #TODO: would be nice to replace with some real checks
+    fname = fh.name.lower()
+    if fname.endswith('.doc') or fname.endswith('.docx'):
         return "MS-WORD"
-    elif fh.name.endswith('.xls') or fh.name.endswith('.xlsx'):
+    elif fname.endswith('.xls') or fname.endswith('.xlsx'):
         return "MS-EXCEL"
-    elif fh.name.endswith('.ppt') or fh.name.endswith('.pptx'):
+    elif fname.endswith('.ppt') or fname.endswith('.pptx'):
         return "MS-PPT"
-    elif fh.name.endswith('.mpp'):
+    elif fname.endswith('.mpp'):
         return "MS-PROJ"
-    elif fh.name.endswith('.vsd'):
+    elif fname.endswith('.vsd'):
         return "MS-VISIO"
     
     # methods extracted from the magic file (/usr/share/file/magic)
@@ -119,7 +120,7 @@ class SubmissionForm(ModelForm):
         # check that extension matches
         extensions = allowed_types[ftype]
         if True not in [upfile.name.lower().endswith( e ) for e in extensions]:
-            raise forms.ValidationError('File extension incorrect.  File appears to be %s data; allowed extensions are: %s.' % (ftype, ", ".join(extensions)))
+            raise forms.ValidationError('File extension incorrect.  File appears to be %s data and is named "%s"; allowed extensions are: %s.' % (ftype, upfile.name, ", ".join(extensions)))
 
     def check_is_empty(self, data):
         if data == None:

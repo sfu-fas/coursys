@@ -10,7 +10,7 @@ OFFICE_TYPES = [ # (label, internal identifier, extensions)
         ('MS Excel', 'MS-EXCEL', ['.xls', '.xlsx']),
         ('MS Powerpoint', 'MS-PPT', ['.ppt', '.pptx']),
         ('MS Project', 'MS-PROJ', ['.mpp']),
-        ('MS Visio', 'MS-VISIO', ['.vsp']),
+        ('MS Visio', 'MS-VISIO', ['.vsd']),
         ('OpenDocument Text', 'OD-TEXT', ['.odt']),
         ('OpenDocument Presentation', 'OD-PRES', ['.odp']),
         ('OpenDocument Spreadsheet', 'OD-SS', ['.ods']),
@@ -26,9 +26,9 @@ class OfficeComponent(SubmissionComponent):
     allowed = JSONField(max_length=500, null=False, help_text='Accepted file extensions.')
 
     def get_allowed_list(self):
-        return self.allowed['exts']
+        return self.allowed['types']
     def get_allowed_display(self):
-        return ", ".join((OFFICE_LABELS[ident] for ident in self.allowed['exts']))
+        return ", ".join((OFFICE_LABELS[ident] for ident in self.allowed['types']))
     allowed_types = dict(((ident, exts) for label, ident, exts in OFFICE_TYPES))
 
     mime_types = {
@@ -105,8 +105,8 @@ class Office:
             """
             Rework the comma-separated value into a list for the SelectMultiple initial value
             """
-            if self.instance and 'exts' in self.instance.allowed:
-                return self.instance.allowed['exts']
+            if self.instance and 'types' in self.instance.allowed:
+                return self.instance.allowed['types']
             else:
                 return []
 
@@ -114,7 +114,7 @@ class Office:
             data = self.data.getlist('allowed')
             if len(data)==0:
                 raise forms.ValidationError("No file types selected")
-            return {'exts': data}
+            return {'types': data}
 
 
     class SubmissionForm(submission.forms.SubmissionForm):
