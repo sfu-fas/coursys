@@ -50,7 +50,8 @@ class CodeComponent(SubmissionComponent):
         app_label = 'submission'
     def get_allowed_list(self):
         return self.allowed.split(",")
-
+    def get_allowed_display(self):
+        return self.allowed
 
 class SubmittedCode(SubmittedComponent):
     component = models.ForeignKey(CodeComponent, null=False)
@@ -123,60 +124,7 @@ class Code:
             if len(data)==0:
                 raise forms.ValidationError("No file types selected")
             return ",".join(data)
-            
-        # output a customized form as <li>
-        def custom_form(self, text="Submit"):
-            # uncomment next line to see original form
-            return None
-            
-            output = ['<p class="requireindicator"><img src="'+MEDIA_URL+'icons/required_star.gif" alt="required" />&nbsp;indicates required field</p>']
-            output.append("<ul>")
-            for field in self:
-                if field.name is "allowed":
-                    output.append("""
-                                <li>
-                                    <label for="id_allowed">Allowed File Types</label>
-                                    <div class="inputfield">
-                                    <select id="id_allowed" class="multiselect" multiple="multiple" name="allowed" >
-                    """)
-                    
-                    # get field value
-                    # see http://code.djangoproject.com/ticket/10427
-                    t = Template("{% load submission_filters %}{{field|display_value}}")
-                    c = Context({"field":field})
-                    selected_list = t.render(c).split(",")
-                    
-                    # when form submitted with error, '&#39;' are somehow added to the strings in the list... 
-                    new_list = []
-                    for i in selected_list:
-                        ii = i.split('&#39;')
-                        for ki in ii:
-                            if ki.startswith("."):
-                                new_list.append(ki)
-                    selected_list = new_list
-                    # print selected_list
-
-                    for k in CODE_TYPES:
-                        output.append('<option value="' + k[0] + '"')
-                        if k[0] in selected_list:
-                            output.append('selected="selected"')
-                        output.append(">" + k[1] +" (" + k[0] + ")</option>")
-
-                    output.append("""
-                                    </select>""")
-                    output.append('''<div class="errortext">''')
-                    if field.errors:
-                        output.append('''<img src="'''+ MEDIA_URL +'''icons/error.png" alt="error"/>&nbsp;''' + field.errors[0] + '</div>')
-                    output.append('''<div class="helptext">
-                                    </div>
-                                    </div>
-                                </li>
-                    ''')
-                else:
-                    c = Context({"field":field})
-                    output.append( FIELD_TEMPLATE.render(c) )
-            output.append('<li><input class="submit" type="submit" value="'+text+'" /></li>\n</ul>')
-            return mark_safe('\n'.join(output))
+     
 
     class SubmissionForm(submission.forms.SubmissionForm):
         class Meta:
