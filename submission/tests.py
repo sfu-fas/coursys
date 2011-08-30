@@ -173,12 +173,14 @@ class SubmissionTest(TestCase):
                 ('visio.vsd', 'MS-VISIO'),
                 ('word.doc', 'MS-WORD'),
                 ('word.docx', 'MS-WORD'),
+                ('pres.ppt', 'MS-PPT'),
+                ('pres.pptx', 'MS-PPT'),
                 ]
         
         for fn, ftype in testfiles:
             fh = open(os.path.join("submission", "testfiles", fn))
-            ftype = filetype(fh)
-            self.assertEqual(ftype, ftype)
+            ftypem = filetype(fh)
+            self.assertEqual(ftype, ftypem)
 
 
 
