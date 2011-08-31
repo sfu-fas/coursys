@@ -19,7 +19,7 @@ sysadmin = ["ggbaker", "sumo"]
 
 # first term we care even vaguely about in import (further selection happens later too)
 FIRSTTERM = "1117"
-DATA_WHERE = '((subject="CMPT" or subject="MACM") and strm="1104") or strm>="'+FIRSTTERM+'"'
+DATA_WHERE = '((subject="CMPT" or subject="MACM") and strm="1114") or strm>="'+FIRSTTERM+'"'
 #DATA_WHERE = 'strm>="'+FIRSTTERM+'"'
 
 # artificial combined sections to create: kwargs for CourseOffering creation,
@@ -247,6 +247,8 @@ def get_person(db, emplid):
         elif len(p_old)==1:
             # existing entry: make sure it's updated
             p = p_old[0]
+            if p.userid and p.userid != userid:
+                raise ValueError, "Did somebody's userid change? " + `p.userid` + " " +  `userid`
             p.userid = userid
             p.last_name = last_name
             p.first_name = first_name
@@ -282,6 +284,7 @@ def fix_mtg_info(section, stnd_mtg_pat):
     
     return sec, mtype
 
+@transaction.commit_on_success
 def import_meeting_times(db, offering):
     """
     Import course meeting times
@@ -354,7 +357,9 @@ def ensure_member(person, offering, role, credits, added_reason, career, labtut_
     return m
 
 
+@transaction.commit_on_success
 def import_instructors(db, offering):
+    Member.objects.filter(added_reason="AUTO", offering=offering, role="INST").update(role='DROP')
     n = db.execute('SELECT emplid, instr_role, sched_print_instr FROM ps_class_instr WHERE crse_id=%s and class_section=%s and strm=%s', (offering.crse_id, offering.section, offering.semester.name))
     
     for emplid, instr_role, print_instr in db:
@@ -362,14 +367,24 @@ def import_instructors(db, offering):
         ensure_member(p, offering, "INST", 0, "AUTO", "NONS")
 
 
+@transaction.commit_on_success
 def import_tas(db, tadb, offering):
-    tadb.execute('SELECT emplid FROM ta_data WHERE strm=%s and subject=%s and catalog_nbr REGEXP %s and class_section=%s', (offering.semester.name, offering.subject, unicode(offering.number)+"W?", offering.section[0:2]))
-    for emplid, in tadb:
+    if offering.subject not in ['CMPT', 'MACM']:
+        return
+
+    Member.objects.filter(added_reason="AUTO", offering=offering, role="TA").update(role='DROP')
+    tadb.execute('SELECT emplid, userid FROM ta_data WHERE strm=%s and subject=%s and catalog_nbr REGEXP %s and class_section=%s', (offering.semester.name, offering.subject, unicode(offering.number)+"W?", offering.section[0:2]))
+    for emplid,userid in tadb:
         p = get_person(db, emplid)
+        if p is None:
+            print "Unknown TA:", emplid, userid
+            return
         ensure_member(p, offering, "TA", 0, "AUTO", "NONS")
 
 
+@transaction.commit_on_success
 def import_students(db, offering):
+    Member.objects.filter(added_reason="AUTO", offering=offering, role="STUD").update(role='DROP')
     # find any lab/tutorial sections
     n = db.execute('SELECT emplid, class_section FROM ps_stdnt_enrl WHERE subject=%s and catalog_nbr=%s and strm=%s and class_section LIKE %s and stdnt_enrl_status="E"', (offering.subject, offering.number, offering.semester.name, offering.section[0:2]+"%"))
     labtut = {}
@@ -386,15 +401,11 @@ def import_students(db, offering):
         ensure_member(p, offering, "STUD", unt_taken, "AUTO", acad_career, labtut_section=sec)
 
 
-@transaction.commit_on_success
 def import_offering(db, tadb, offering):
     """
     Import all data for the course: instructors, TAs, students, meeting times.
     """
     #print " ", offering
-    # drop all automatically-added members: will be re-added later on import
-    Member.objects.filter(added_reason="AUTO", offering=offering).update(role='DROP')
-    
     import_instructors(db, offering)
     import_tas(db, tadb, offering)
     import_students(db, offering)
