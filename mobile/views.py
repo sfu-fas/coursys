@@ -37,8 +37,6 @@ def course_info(request,course_slug):
         return ForbiddenResponse(request)
 
 
-@login_required
-@gzip_page
 def _course_info_student(request, course_slug):
     """
     Course front page for student
@@ -58,8 +56,7 @@ def _course_info_student(request, course_slug):
     context = {'course': course, 'activities_info':activities_info}
     return render_to_response('mobile/course_info_student.html', context, context_instance=RequestContext(request))
 
-@login_required
-@gzip_page
+
 def _course_info_staff(request, course_slug):
     """
     Course front page for staff
@@ -123,8 +120,7 @@ def activity_info(request, course_slug, activity_slug):
     elif is_course_staff_by_slug(request, course_slug):
         return _activity_info_staff(request, course_slug, activity_slug)
 
-@login_required
-@gzip_page
+
 def _activity_info_student(request, course_slug, activity_slug):
     # Course should have this number to student to display the activity statistics, including histogram
     STUD_NUM_TO_DISP_ACTSTAT = 10
@@ -164,8 +160,6 @@ def _activity_info_student(request, course_slug, activity_slug):
                               context_instance=RequestContext(request))
     
 
-@login_required
-@gzip_page
 def _activity_info_staff(request, course_slug, activity_slug):
     """
     activity detail page
@@ -222,6 +216,19 @@ def student_search(request, course_slug):
     context = {'course': course, 'activities': activities, 'student_list':students}
     return render_to_response("mobile/search_student.html", context,
                             context_instance=RequestContext(request))
+
+
+@requires_course_staff_by_slug
+@gzip_page
+def class_list(request, course_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    
+    members = course.member_set.filter(role="STUD").select_related('person')
+
+    context = {'course': course, 'members': members}
+    return render_to_response("mobile/class_list.html", context,
+                            context_instance=RequestContext(request))
+
 
 @requires_course_staff_by_slug
 @gzip_page

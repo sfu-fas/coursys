@@ -12,8 +12,14 @@ resolver = get_resolver(None)
 def mobilize_url(url):
     """ Make sure URL has the prefix '/m' """
     if url[:3] != "/m/":
-        return '/m' + url
+        murl = '/m' + url
     else:
+        murl = url
+    
+    try:
+        resolver.resolve(murl) # throws Resolver404 if can't resolve URL
+        return murl
+    except Resolver404:
         return url
 
 @register.filter
