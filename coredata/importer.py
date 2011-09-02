@@ -432,10 +432,12 @@ def combine_sections(db):
         cap_total = 0
         tot_total = 0
         wait_total = 0
+        labtut = False
         for sub in info['subsections']:
             cap_total += sub.enrl_cap
             tot_total += sub.enrl_tot
             wait_total += sub.wait_tot
+            labtut = labtut or sub.labtut()
             for m in sub.member_set.all():
                 old_ms = course.member_set.filter(offering=course, person=m.person)
                 if old_ms:
@@ -446,10 +448,11 @@ def combine_sections(db):
                     old_m.career = m.career
                     old_m.added_reason = m.added_reason
                     old_m.config['origsection'] = sub.slug
+                    old_m.labtut_section = m.labtut_section
                     old_m.save()
                 else:
                     # new membership: duplicate into combined
-                    new_m = Member(offering=course, person=m.person, role=m.role,
+                    new_m = Member(offering=course, person=m.person, role=m.role, labtut_section=m.labtut_section,
                             credits=m.credits, career=m.career, added_reason=m.added_reason)
                     new_m.config['origsection'] = sub.slug
                     new_m.save()
@@ -458,6 +461,7 @@ def combine_sections(db):
         course.enrl_cap = cap_total
         course.tot_total = tot_total
         course.wait_total = wait_total
+        course.set_labtut(labtut)
         course.save()
 
 
