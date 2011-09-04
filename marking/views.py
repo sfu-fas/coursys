@@ -921,8 +921,19 @@ def export_sims(request, course_slug, activity_slug):
     
     writer = csv.writer(response)
     student_members = Member.objects.filter(offering = course, role = 'STUD').select_related('person')
+    section_cache = {}
     for std in student_members:
-        row = [course.subject, course.number, course.section, std.person.emplid]
+        c = course
+        # if we have an origsection (because this student was combined in a joint offering), honour it.
+        if 'origsection' in std.config:
+            origslug = std.config['origsection']
+            if origslug in section_cache:
+                c = section_cache[origslug]
+            else:
+                c = std.get_origsection()
+                section_cache[origslug] = c
+
+        row = [c.subject, c.number, c.section, std.person.emplid]
         try: 
             lgrade = LetterGrade.objects.get(activity = activity, member = std)                  
         except LetterGrade.DoesNotExist: #if the LetterGrade does not exist yet,

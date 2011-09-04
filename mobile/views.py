@@ -19,7 +19,7 @@ from dashboard.views import _get_memberships, _get_news_list, _get_roles
 def index(request):
     userid = request.user.username
     memberships = _get_memberships(userid)
-    news_list = _get_news_list(userid, 1)
+    news_list = _get_news_list(userid, 2)
     roles = _get_roles(userid)
 
     context = {'memberships': memberships ,'news_list': news_list, 'roles': roles}
