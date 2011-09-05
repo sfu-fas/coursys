@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load markup %}
+
+{% block title %}Calendar{% endblock %}
+{% block h1 %}Calendar{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url dashboard.views.config %}">User Configuration</a></li><li>&gt; Calendar</li>{% endblock %}
+
+{% block headextra %}
+<link rel='stylesheet' type='text/css' href='{{MEDIA_URL}}fullcalendar/fullcalendar.css' />
+<script type='text/javascript' src='{{MEDIA_URL}}fullcalendar/fullcalendar.js'></script>
+<script type="text/javascript">
+//<![CDATA[
+$(document).ready(function() {
+  $('#calendar').fullCalendar({
+    header: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'month,agendaWeek,agendaDay'
+    },
+    events: {
+      url: '{% url dashboard.views.calendar_data %}',
+      cache: true,
+      ignoreTimezone: false,
+    },
+    'minTime': 8,
+    'maxTime': 22,
+  })
+});
+//]]>
+</script>
+{% endblock %}
+
+{% block content %}
+<div id='calendar' style="width:80%"></div>
+{% endblock %}

@@ -16,7 +16,7 @@ from dashboard.models import NewsItem, UserConfig
 from dashboard.forms import *
 from django.contrib import messages
 from log.models import LogEntry
-import random, datetime, time, json
+import random, datetime, time, json, urlparse
 
 from icalendar import Calendar, Event, Alarm
 import pytz
@@ -165,6 +165,13 @@ def atom_feed(request, token, userid, course_slug=None):
     return render_to_response("dashboard/atom_feed.xml", context, context_instance=RequestContext(request),mimetype="application/atom+xml")
 
 
+def _activity_url(act):
+    if act.url():
+        return act.url()
+    else:
+        return reverse('grades.views.activity_info', kwargs={'course_slug': act.offering.slug, 'activity_slug': act.slug})
+
+
 def _weekday_range(start_date, end_date, wkday):
     """
     Return weekly days from start_date to end_date, on given day of week.
@@ -179,9 +186,8 @@ def _weekday_range(start_date, end_date, wkday):
         yield date
         date += datetime.timedelta(7)
 
-
 @cache_page(60*60*6)
-def calendar_ical(request, token, userid):
+def calendar_ical_old(request, token, userid):
     """
     Return an iCalendar for this user, authenticated by the token in the URL
     """
@@ -245,6 +251,141 @@ def calendar_ical(request, token, userid):
             cal.add_component(e)
     
     return HttpResponse(cal.as_string(), mimetype="text/calendar")
+
+
+def _calendar_event_data(user, start, end, local_tz, dt_string):
+    """
+    Data needed to render either calendar AJAX or iCalendar.  Yields series of event dictionaries.
+    """
+    memberships = Member.objects.filter(person=user, offering__graded=True).exclude(role="DROP").exclude(role="APPR") \
+            .filter(offering__semester__start__lte=end, offering__semester__end__gte=start-datetime.timedelta(days=30))
+            # start - 30 days to make sure we catch exam/end of semester events
+
+    # map of offering_id -> this student's lab section (so we only output the right one)
+    labsecs = dict(((m.offering_id, m.labtut_section) for m in memberships))
+    classes = set((m.offering for m in memberships))
+    class_list = MeetingTime.objects.filter(offering__in=classes).select_related('offering')
+    
+    # meeting times
+    for mt in class_list:
+        # only output whole-course events and this student's lab section.
+        if mt.labtut_section not in [None, labsecs[mt.offering_id]]:
+            continue
+
+        for date in _weekday_range(mt.start_day, mt.end_day, mt.weekday): # for every day the class happens...
+            st = local_tz.localize(datetime.datetime.combine(date, mt.start_time))
+            en = local_tz.localize(datetime.datetime.combine(date, mt.end_time))
+            if en < start or st > end:
+                continue
+
+            ident = mt.offering.slug.replace("-","") + "-" + str(mt.id) + "-" + start.strftime("%Y%m%dT%H%M%S") + "@courses.cs.sfu.ca"
+            title = mt.offering.name() + " " + mt.get_meeting_type_display()
+            if dt_string:
+                st = st.isoformat()
+                en = en.isoformat()
+
+            e = {
+                'id': ident,
+                'title': title,
+                'start': st,
+                'end': en,
+                'location': mt.offering.get_campus_display() + " " + mt.room,
+                'allDay': False,
+                'className': "ev-" + mt.meeting_type,
+                }
+            yield e
+    
+    # add every assignment with a due datetime
+    due_length = datetime.timedelta(minutes=1)
+    for m in memberships:
+        for a in m.offering.activity_set.filter(deleted=False):
+            if not a.due_date:
+                continue
+            st = local_tz.localize(a.due_date - due_length)
+            en = end = local_tz.localize(a.due_date)
+            if en < start or st > end:
+                continue
+            
+            ident = e['uid'] = a.offering.slug.replace("-","") + "-" + str(a.id) + "-" + a.slug.replace("-","") + "-" + a.due_date.strftime("%Y%m%dT%H%M%S") + "@courses.cs.sfu.ca"
+            title = '%s: %s due' % (a.offering.name(), a.name)
+            if dt_string:
+                st = st.isoformat()
+                en = en.isoformat()
+            
+            e = {
+                'id': ident,
+                'title': title,
+                'start': st,
+                'end': en,
+                'allDay': False,
+                'className': 'ev-due',
+                'url': urlparse.urljoin(settings.BASE_ABS_URL, _activity_url(a)),
+                }
+            yield e
+
+
+@cache_page(60*60*6)
+def calendar_ical(request, token, userid):
+    """
+    Return an iCalendar for this user, authenticated by the token in the URL
+    """
+    local_tz = pytz.timezone(settings.TIME_ZONE)
+    user = get_object_or_404(Person, userid=userid)
+    
+    # make sure the token in the URL (32 hex characters) matches the token stored in the DB
+    config = _get_calendar_config(user)
+    if 'token' not in config or config['token'] != token:
+        # no token set or wrong token provided
+        return NotFoundResponse(request)
+    #else:
+        # authenticated
+
+    now = datetime.datetime.now()
+    start = local_tz.localize(now - datetime.timedelta(days=180))
+    end = local_tz.localize(now + datetime.timedelta(days=365))
+    
+    cal = Calendar()
+    cal.add('version', '2.0')
+    cal.add('prodid', '-//SFU CourSys//courses.cs.sfu.ca//')
+    
+    for data in _calendar_event_data(user, start, end, local_tz, dt_string=False):
+        e = Event()
+        e['uid'] = data['id']
+        e.add('summary', data['title'])
+        e.add('dtstart', data['start'])
+        e.add('dtend', data['end'])
+        if 'url' in data:
+            e.add('url', data['url'])
+        if 'location' in data:
+            e.add('location', data['location'])
+        cal.add_component(e)
+    
+    return HttpResponse(cal.as_string(), mimetype="text/calendar")
+
+
+@login_required
+def calendar(request):
+    user = get_object_or_404(Person, userid=request.user.username)
+    context = {}
+    return render_to_response("dashboard/calendar.html", context, context_instance=RequestContext(request))
+
+
+
+@login_required
+def calendar_data(request):
+    """
+    AJAX JSON results for the calendar (rendered by dashboard.views.calendar)
+    """
+    user = get_object_or_404(Person, userid=request.user.username)
+    local_tz = pytz.timezone(settings.TIME_ZONE)
+    start = local_tz.localize(datetime.datetime.fromtimestamp(int(request.GET['start'])))-datetime.timedelta(days=1)
+    end = local_tz.localize(datetime.datetime.fromtimestamp(int(request.GET['end'])))+datetime.timedelta(days=1)
+
+    resp = HttpResponse(mimetype="application/json")
+    events = list(_calendar_event_data(user, start, end, local_tz, dt_string=True))
+    json.dump(events, resp)
+    #print json.dumps(events, indent=1)
+    return resp
 
 
 def _get_calendar_config(user):
