@@ -290,7 +290,7 @@ def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
             if en < start or st > end:
                 continue
 
-            ident = mt.offering.slug.replace("-","") + "-" + str(mt.id) + "-" + start.strftime("%Y%m%dT%H%M%S") + "@courses.cs.sfu.ca"
+            ident = mt.offering.slug.replace("-","") + "-" + str(mt.id) + "-" + st.strftime("%Y%m%dT%H%M%S") + "@courses.cs.sfu.ca"
             title = mt.offering.name() + " " + mt.get_meeting_type_display()
             if dt_string:
                 st = st.isoformat()
@@ -372,9 +372,9 @@ def calendar_ical(request, token, userid):
         e.add('summary', data['title'])
         e.add('dtstart', data['start'])
         e.add('dtend', data['end'])
-        #e.add('categories', data['category'])
-        #if 'url' in data:
-        #    e.add('url', data['url'])
+        e.add('categories', data['category'])
+        if 'url' in data:
+            e.add('url', data['url'])
         if 'location' in data:
             e.add('location', data['location'])
         cal.add_component(e)
