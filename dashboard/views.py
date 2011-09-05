@@ -372,9 +372,9 @@ def calendar_ical(request, token, userid):
         e.add('summary', data['title'])
         e.add('dtstart', data['start'])
         e.add('dtend', data['end'])
-        e.add('categories', data['category'])
-        if 'url' in data:
-            e.add('url', data['url'])
+        #e.add('categories', data['category'])
+        #if 'url' in data:
+        #    e.add('url', data['url'])
         if 'location' in data:
             e.add('location', data['location'])
         cal.add_component(e)
