@@ -4,18 +4,6 @@
 {% block marking_header_extra %}
 <script type="text/javascript">
 //<![CDATA[
-    function display_initial() {
-      var r;
-      var extras = 5;
-      var rows = $("#activity_components tbody tr");
-      rows.each(function(i,r) {
-        console.log(r.keys())
-        if ( r.hasClass("hidden") ) {
-          r.removeClass("hidden");
-          extras -= 1;
-        }
-      });
-    }
     function add_more() {
 	    var table = document.getElementById('activity_components').childNodes;
 	    for (var x = 0; x < table.length; x++) {
@@ -47,8 +35,7 @@
 	});
 	$("#button_five_more").removeClass("hidden");
 	$("#button_five_more").click(add_more);
-	//add_more();
-	display_initial();
+	add_more();
     });
 //]]>
 </script>
