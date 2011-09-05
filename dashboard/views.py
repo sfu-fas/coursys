@@ -321,7 +321,7 @@ def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
             if en < start or st > end:
                 continue
             
-            ident = e['uid'] = a.offering.slug.replace("-","") + "-" + str(a.id) + "-" + a.slug.replace("-","") + "-" + a.due_date.strftime("%Y%m%dT%H%M%S") + "@courses.cs.sfu.ca"
+            ident = a.offering.slug.replace("-","") + "-" + str(a.id) + "-" + a.slug.replace("-","") + "-" + a.due_date.strftime("%Y%m%dT%H%M%S") + "@courses.cs.sfu.ca"
             title = '%s: %s due' % (a.offering.name(), a.name)
             if dt_string:
                 st = st.isoformat()
