@@ -165,12 +165,6 @@ def atom_feed(request, token, userid, course_slug=None):
     return render_to_response("dashboard/atom_feed.xml", context, context_instance=RequestContext(request),mimetype="application/atom+xml")
 
 
-def _activity_url(act):
-    if act.url():
-        return act.url()
-    else:
-        return reverse('grades.views.activity_info', kwargs={'course_slug': act.offering.slug, 'activity_slug': act.slug})
-
 
 def _weekday_range(start_date, end_date, wkday):
     """
@@ -253,7 +247,25 @@ def calendar_ical_old(request, token, userid):
     return HttpResponse(cal.as_string(), mimetype="text/calendar")
 
 
-def _calendar_event_data(user, start, end, local_tz, dt_string):
+def _meeting_url(mt):
+    return mt.offering.url() or reverse('grades.views.course_info', kwargs={'course_slug': mt.offering.slug})
+def _activity_url(act):
+    return act.url() or reverse('grades.views.activity_info', kwargs={'course_slug': act.offering.slug, 'activity_slug': act.slug})
+
+# wish there was an easy way to do this in CSS, but fullcalendar makes this much easier
+def _meeting_colour(mt):
+    if mt.meeting_type in ["MIDT", "EXAM"]:
+        return "#c05006"
+    elif mt.meeting_type == "LAB":
+        return "#0606a0"
+    else:
+        return "#378006"
+def _activity_colour(a):
+    return "#800606"
+
+
+def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
+        due_before=datetime.timedelta(minutes=1), due_after=datetime.timedelta(minutes=0)):
     """
     Data needed to render either calendar AJAX or iCalendar.  Yields series of event dictionaries.
     """
@@ -291,18 +303,21 @@ def _calendar_event_data(user, start, end, local_tz, dt_string):
                 'end': en,
                 'location': mt.offering.get_campus_display() + " " + mt.room,
                 'allDay': False,
-                'className': "ev-" + mt.meeting_type,
+                #'className': "ev-" + mt.meeting_type,
+                'url': urlparse.urljoin(settings.BASE_ABS_URL, _meeting_url(mt)),
+                'category': mt.meeting_type,
                 }
+            if colour:
+                e['color'] = _meeting_colour(mt)
             yield e
     
     # add every assignment with a due datetime
-    due_length = datetime.timedelta(minutes=1)
     for m in memberships:
         for a in m.offering.activity_set.filter(deleted=False):
             if not a.due_date:
                 continue
-            st = local_tz.localize(a.due_date - due_length)
-            en = end = local_tz.localize(a.due_date)
+            st = local_tz.localize(a.due_date - due_before)
+            en = end = local_tz.localize(a.due_date + due_after)
             if en < start or st > end:
                 continue
             
@@ -318,9 +333,12 @@ def _calendar_event_data(user, start, end, local_tz, dt_string):
                 'start': st,
                 'end': en,
                 'allDay': False,
-                'className': 'ev-due',
+                #'className': 'ev-due',
                 'url': urlparse.urljoin(settings.BASE_ABS_URL, _activity_url(a)),
+                'category': 'DUE',
                 }
+            if colour:
+                e['color'] = _activity_colour(a)
             yield e
 
 
@@ -354,6 +372,7 @@ def calendar_ical(request, token, userid):
         e.add('summary', data['title'])
         e.add('dtstart', data['start'])
         e.add('dtend', data['end'])
+        e.add('categories', data['category'])
         if 'url' in data:
             e.add('url', data['url'])
         if 'location' in data:
@@ -365,10 +384,12 @@ def calendar_ical(request, token, userid):
 
 @login_required
 def calendar(request):
+    """
+    Calendar display: all the hard work is JS/AJAX.
+    """
     user = get_object_or_404(Person, userid=request.user.username)
     context = {}
     return render_to_response("dashboard/calendar.html", context, context_instance=RequestContext(request))
-
 
 
 @login_required
@@ -382,9 +403,9 @@ def calendar_data(request):
     end = local_tz.localize(datetime.datetime.fromtimestamp(int(request.GET['end'])))+datetime.timedelta(days=1)
 
     resp = HttpResponse(mimetype="application/json")
-    events = list(_calendar_event_data(user, start, end, local_tz, dt_string=True))
+    events = list(_calendar_event_data(user, start, end, local_tz, dt_string=True, colour=True,
+            due_before=datetime.timedelta(minutes=1), due_after=datetime.timedelta(minutes=30)))
     json.dump(events, resp)
-    #print json.dumps(events, indent=1)
     return resp
 
 
