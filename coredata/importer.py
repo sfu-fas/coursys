@@ -69,6 +69,20 @@ def get_combined():
                 CourseOffering.objects.get(slug='2011fa-cmpt-120-d2')
             ]
         },
+        {
+            'subject': 'CMPT', 'number': '461', 'section': 'X100',
+            'semester': Semester.objects.get(name="1117"),
+            'component': 'LEC', 'graded': True, 
+            'crse_id': 32759, 'class_nbr': 32759,
+            'title': 'Image Synthesis (ugrad/grad combined)',
+            'campus': 'BRNBY',
+            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+            'config': {},
+            'subsections': [
+                CourseOffering.objects.get(slug='2011fa-cmpt-461-d1'),
+                CourseOffering.objects.get(slug='2011fa-cmpt-761-g2')
+            ]
+        },
         ]
     return combined_sections
 
@@ -261,7 +275,7 @@ def get_person(db, emplid):
         elif len(p_old)==1:
             # existing entry: make sure it's updated
             p = p_old[0]
-            if p.userid and p.userid != userid:
+            if p.userid and p.userid != userid and userid is not None:
                 raise ValueError, "Did somebody's userid change? " + `p.userid` + " " +  `userid`
             p.userid = userid
             p.last_name = last_name
@@ -391,7 +405,7 @@ def import_tas(db, tadb, offering):
     for emplid,userid in tadb:
         p = get_person(db, emplid)
         if p is None:
-            print "Unknown TA:", emplid, userid
+            print "  Unknown TA:", emplid, userid
             return
         ensure_member(p, offering, "TA", 0, "AUTO", "NONS")
 
@@ -533,7 +547,7 @@ def main():
     # cleanup already-run Celery jobs
     if settings.USE_CELERY:
         import djkombu.models
-        #djkombu.models.Message.objects.cleanup()
+        djkombu.models.Message.objects.cleanup()
     
     print "People:", len(imported_people)
     print "Course Offerings:", len(offerings)
