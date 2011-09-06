@@ -166,6 +166,10 @@ CAS_SERVER_URL = "https://cas.sfu.ca/cgi-bin/WebObjects/cas.woa/wa/"
 EMAIL_HOST = 'mailgate.sfu.ca'
 DEFAULT_FROM_EMAIL = 'nobody@courses.cs.sfu.ca'
 DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
+DATE_FORMAT = "D N d Y"
+SHORT_DATE_FORMAT = "N d Y"
+DATETIME_FORMAT = "D N d Y, H:i"
+SHORT_DATETIME_FORMAT = "N d Y, H:i"
 
 if not DEPLOYED and DEBUG and hostname != 'courses':
     CAS_SERVER_URL = "http://lefty.cmpt.sfu.ca/fake-cas/"
