@@ -278,6 +278,7 @@ def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
     classes = set((m.offering for m in memberships))
     class_list = MeetingTime.objects.filter(offering__in=classes).select_related('offering')
     
+    used_ids = set()
     # meeting times
     for mt in class_list:
         # only output whole-course events and this student's lab section.
@@ -291,6 +292,8 @@ def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
                 continue
 
             ident = mt.offering.slug.replace("-","") + "-" + str(mt.id) + "-" + st.strftime("%Y%m%dT%H%M%S") + "@courses.cs.sfu.ca"
+            assert ident not in used_ids
+            used_ids.add(ident)
             title = mt.offering.name() + " " + mt.get_meeting_type_display()
             if dt_string:
                 st = st.isoformat()
@@ -322,6 +325,8 @@ def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
                 continue
             
             ident = a.offering.slug.replace("-","") + "-" + str(a.id) + "-" + a.slug.replace("-","") + "-" + a.due_date.strftime("%Y%m%dT%H%M%S") + "@courses.cs.sfu.ca"
+            assert ident not in used_ids
+            used_ids.add(ident)
             title = '%s: %s due' % (a.offering.name(), a.name)
             if dt_string:
                 st = st.isoformat()
@@ -372,9 +377,9 @@ def calendar_ical(request, token, userid):
         e.add('summary', data['title'])
         e.add('dtstart', data['start'])
         e.add('dtend', data['end'])
-        e.add('categories', data['category'])
-        if 'url' in data:
-            e.add('url', data['url'])
+        #e.add('categories', data['category'])
+        #if 'url' in data:
+        #    e.add('url', data['url'])
         if 'location' in data:
             e.add('location', data['location'])
         cal.add_component(e)
