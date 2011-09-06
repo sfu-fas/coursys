@@ -180,7 +180,7 @@ def _weekday_range(start_date, end_date, wkday):
         yield date
         date += datetime.timedelta(7)
 
-@cache_page(60*60*6)
+#@cache_page(60*60*6)
 def calendar_ical_old(request, token, userid):
     """
     Return an iCalendar for this user, authenticated by the token in the URL
@@ -347,7 +347,7 @@ def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
             yield e
 
 
-@cache_page(60*60*6)
+#@cache_page(60*60*6)
 def calendar_ical(request, token, userid):
     """
     Return an iCalendar for this user, authenticated by the token in the URL
