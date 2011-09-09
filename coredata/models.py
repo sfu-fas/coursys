@@ -296,6 +296,12 @@ class CourseOffering(models.Model):
             return self.config['department']
         else:
             return self.subject
+    def uses_svn(self):
+        """
+        Should students and groups in this course get Subversion repositories created?
+        """
+        return self.subject=="CMPT" and self.number=="470" and self.semester.name=="1117"
+
     
     def export_dict(self):
         """

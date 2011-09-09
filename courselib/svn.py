@@ -2,9 +2,39 @@
 from django.conf import settings
 from coredata.models import Member
 import MySQLdb
+try:
+    from celery.task import task
+except ImportError:
+    # if no Celery, make @task be a no-op
+    def task(fn):
+        return fn
 
 SVN_TABLE = "subversionacl"
 
+def _db_conn():
+    dbconn = MySQLdb.connect(**settings.SVN_DB_CONNECT)
+    return dbconn.cursor()
+
+def all_repositories(semester):
+    """
+    Build list of all repositories active for this semester (so we can know for sure which ones must change).
+    
+    Returns dictionary of repository name to (ro users, rw users)
+    """
+    if not settings.SVN_DB_CONNECT:
+        # don't try if not configured
+        return {}
+    db = _db_conn()
+    
+    db.execute('SELECT `repository`, `read`, `readandwrite` FROM '+SVN_TABLE+' WHERE `repository` LIKE %s', ('%-'+semester.name+'-%'))
+    repos = {}
+    for row in db:
+        repo, ro, rw = row
+        repos[repo] = (ro, rw)
+
+    return repos
+
+@task
 def update_repository(offering, slug, rw_userids, ro_userids):
     """
     Update/create this repository on punch.csil, with permissions as given.
@@ -12,9 +42,7 @@ def update_repository(offering, slug, rw_userids, ro_userids):
     if not settings.SVN_DB_CONNECT:
         # don't try if not configured
         return
-
-    dbconn = MySQLdb.connect(**settings.SVN_DB_CONNECT)
-    db = dbconn.cursor()
+    db = _db_conn()
     
     reponame = offering.subject.upper() + offering.number + '-' + offering.semester.name + '-' + slug
     rw = ','.join(rw_userids)
@@ -28,4 +56,5 @@ def update_repository(offering, slug, rw_userids, ro_userids):
     else:
         # already there: update
         db.execute('UPDATE '+SVN_TABLE+' set `read`=%s, `readandwrite`=%s, `modified`=%s WHERE `repository`=%s', (ro, rw, 'Y', reponame))
-    
+
+
