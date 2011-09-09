@@ -129,7 +129,7 @@ def new_message(request, course_slug):
             messages.add_message(request, messages.SUCCESS, 'News item created.')
             return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': offering.slug}))
     else:
-        form = MessageForm()
+        form = MessageForm()    
     return render_to_response("dashboard/new_message.html", {"form" : form,'course': offering}, context_instance=RequestContext(request))
 
 
@@ -643,53 +643,5 @@ def courses_json(request, semester):
     resp['Content-Disposition'] = 'inline; filename=' + semester + '.json'
     crs_data = (c.export_dict() for c in courses)
     json.dump({'courses': list(crs_data)}, resp, indent=1)
-    return resp
-
-# only accessible from the SVN server
-def repo_list_json(request, semester):
-    """
-    JSON-formatted list of all SVN repositories that should exist for this semester (and permissions).
-    """
-    if settings.SVN_SERVER_IP != request.META['REMOTE_ADDR']:
-        return ForbiddenResponse(request)
-    
-    sem = get_object_or_404(Semester, name=semester)
-    RepoMemberObjects = Member.objects.filter(offering__semester=sem, offering__subject="CMPT", offering__number__gte="200", offering__graded=True).exclude(offering__component="CAN").select_related('person', 'offering')
-    
-    # build list of instructors/TAs
-    members = RepoMemberObjects.filter(role__in=["INST","TA","APPR"])
-    instr = {}
-    for m in members:
-        key = m.offering.slug
-        if key not in instr:
-            instr[key] = []
-        instr[key].append(m.person.userid)
-    
-    # list of individual repositories
-    members = RepoMemberObjects.filter(role="STUD")
-    indiv = [{'course':m.offering.slug, 'userid':m.person.userid, 'instr': instr.get(m.offering.slug, [])} for m in members]
-    
-    # list of group repositories
-    gms = GroupMember.objects.filter(activity__offering__semester=sem, confirmed=True, group__courseoffering__subject="CMPT", group__courseoffering__number__gte="200", group__courseoffering__graded=True).exclude(group__courseoffering__component="CAN").select_related('activity', 'activity__offering', 'student', 'student__person', 'group')
-    group_memb = {}
-    group_crs = {}
-    group_label = {}
-    for gm in gms:
-        key = gm.activity.offering.slug + "_" + gm.group.slug
-        if key not in group_memb:
-            group_memb[key] = set()
-        group_memb[key].add(gm.student.person.userid)
-        group_crs[key] = gm.activity.offering.slug
-        group_label[key] = gm.group.slug
-    
-    groups = []
-    for g in group_memb:
-        members = list(group_memb[g])
-        crs = group_crs[g]
-        label = group_label[g]
-        groups.append({'label':label, 'course':crs, 'members': members, 'instr': instr.get(crs, [])})
-    
-    resp = HttpResponse(mimetype="application/json")
-    json.dump({'indiv': indiv, 'group': groups}, resp, indent=1)
     return resp
 

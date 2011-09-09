@@ -128,7 +128,9 @@ if DEPLOYED:
     BASE_ABS_URL = "https://courses.cs.sfu.ca"
     SESSION_COOKIE_SECURE = True
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # changed below if using Celery
-    SVN_SERVER_IP = 'svn.cs.sfu.ca'
+    SVN_PASS = '???'
+    SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': 'svnuser', 'passwd': SVN_PASS,
+            'db': 'coursesvn', 'port': 4000}
 else:
     #MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('contrib.profiling.ProfileMiddleware',)
     SUBMISSION_PATH = "submitted_files"
@@ -136,7 +138,7 @@ else:
     CACHE_BACKEND = 'locmem://'
     BASE_ABS_URL = "http://localhost:8000"
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # changed below if using Celery
-    SVN_SERVER_IP = '127.0.0.1'
+    SVN_DB_CONNECT = None
 
 # should we use the Celery job queue (for sending email)?  Must have celeryd running to process jobs.
 USE_CELERY = DEPLOYED

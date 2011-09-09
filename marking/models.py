@@ -190,7 +190,7 @@ class ActivityComponentMark(models.Model):
         unique_together = (('activity_mark', 'activity_component'),)
         ordering = ('activity_component',)
 
-##############################Yu Liu Added#########################################################  
+
 class ActivityMark_LetterGrade(models.Model):
     """
     General Marking class for one letter activity 
@@ -280,8 +280,6 @@ class GroupActivityMark_LetterGrade(ActivityMark_LetterGrade):
             lgrade.flag = 'GRAD'
             lgrade.save() 
 
-
-##############################Yu Liu Added#########################################################
        
 def get_activity_mark_by_id(activity, student_membership, activity_mark_id): 
      """
