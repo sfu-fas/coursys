@@ -7,7 +7,6 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 from coredata.models import *
 from dashboard.models import NewsItem
 from log.models import LogEntry
-from courselib.svn import all_repositories, update_repository, repo_name
 from django.db import transaction
 from django.contrib.sessions.models import Session
 from django.conf import settings
@@ -22,9 +21,6 @@ sysadmin = ["ggbaker", "sumo"]
 FIRSTTERM = "1117"
 DATA_WHERE = '((subject="CMPT" or subject="MACM") and strm="1114") or strm>="'+FIRSTTERM+'"'
 #DATA_WHERE = 'strm>="'+FIRSTTERM+'"'
-
-# cache of existing SVN repositories
-ALL_REPOS = {}
 
 # artificial combined sections to create: kwargs for CourseOffering creation,
 # plus 'subsections' list of sections we're combining.
@@ -433,38 +429,6 @@ def import_students(db, offering):
         ensure_member(p, offering, "STUD", unt_taken, "AUTO", acad_career, labtut_section=sec)
 
 
-
-def setup_repos(offering):
-    """
-    Ensure we have all the needed SVN repositories for this course.
-    """
-    global ALL_REPOS
-    print "  SVN for " + str(offering)
-    
-    if offering.semester not in ALL_REPOS:
-        ALL_REPOS[offering.semester] = all_repositories(offering.semester)
-    
-    repos = ALL_REPOS[offering.semester]
-    
-    # individual repositories
-    for m in offering.member_set.select_related('person', 'offering', 'offering__semester'):
-        rw = set([m.person.userid])
-        ro = set()
-        if m.role == "DROP":
-            rw = set([])
-        reponame = repo_name(m.offering, m.person.userid)
-        
-        if reponame not in repos:
-            # unknown repository: create
-            update_repository(reponame, rw, ro)
-        else:
-            # do we need to update?
-            ro0,rw0 = repos[reponame]
-            if ro != ro0 or rw != rw0:
-                update_repository(reponame, rw, ro)
-            
-        #print reponame
-    
     
 
 def import_offering(db, tadb, offering):
@@ -476,8 +440,7 @@ def import_offering(db, tadb, offering):
     import_tas(db, tadb, offering)
     import_students(db, offering)
     import_meeting_times(db, offering)
-    #if offering.uses_svn():
-    #    setup_repos(offering)
+    offering.update_repositories()
     
     
 @transaction.commit_on_success

@@ -303,6 +303,55 @@ class CourseOffering(models.Model):
         """
         return self.subject=="CMPT" and self.number=="470" and self.semester.name=="1117"
 
+    def _repo_needs_updating(self, repos, reponame, rw, ro):
+        "Does this repository need to be updated?"
+        if reponame not in repos:
+            # unknown repository: create
+            return True
+        else:
+            # do we need to update?
+            ro0,rw0 = repos[reponame]
+            if ro != ro0 or rw != rw0:
+                return True
+        return False
+
+    def update_repositories(self):
+        """
+        Update the Subversion repositories for this offering
+        """
+        from courselib.svn import all_repositories, repo_name
+        from coredata.tasks import update_repository
+        from groups.models import Group
+        if not self.uses_svn():
+            return
+        
+        repos = all_repositories(self)
+        
+        # individual repositories
+        for m in self.member_set.select_related('person', 'offering', 'offering__semester'):
+            rw = set([m.person.userid])
+            ro = set()
+            if m.role == "DROP":
+                rw = set([])
+            reponame = repo_name(self, m.person.userid)
+            
+            if self._repo_needs_updating(repos, reponame, rw, ro):
+                update_repository.delay(reponame, rw, ro)
+        
+        # group repositories
+        groups = Group.objects.filter(courseoffering=self).select_related('courseoffering')
+        instr = set((m.person.userid for m in self.member_set.filter(role__in=["INST","TA"]).select_related('person')))
+        for g in groups:
+            userids = set()
+            reponame = repo_name(self, g.slug)
+            for gm in g.groupmember_set.filter(confirmed=True).select_related('student__person'):
+                userids.add(gm.student.person.userid)
+            
+            if self._repo_needs_updating(repos, reponame, userids, instr):
+                update_repository.delay(reponame, userids, instr)
+            
+
+
     
     def export_dict(self):
         """
@@ -409,7 +458,7 @@ class Member(models.Model):
             return CourseOffering.objects.get(slug=self.config['origsection'])
         else:
             return self.offering
-
+    
     class Meta:
         #unique_together = (('person', 'offering', 'role'),)  # now handled by self.clean()
         ordering = ['offering', 'person']
