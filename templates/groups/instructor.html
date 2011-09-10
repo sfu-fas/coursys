@@ -46,7 +46,9 @@ $(document).ready(function() {
   <p>[ <a href="{% url groups.views.change_name course_slug=course.slug group_slug=info.group.slug %}">Change Name</a> |
           <a href="{% url groups.views.assign_student course_slug=course.slug group_slug=info.group.slug %}">Add Student</a> |
           <a href="{% url groups.views.remove_student course_slug=course.slug group_slug=info.group.slug %}">Remove Student</a> |
-          <a href="mailto:{{ info.email|urlencode }}">Email Group</a> ]</p>
+          <a href="mailto:{{ info.email|urlencode }}">Email Group</a>
+          {% if course.uses_svn %}| <a href="{{info.group.svn_url}}">SVN repo</a> {% endif %}
+          ]</p>
   {% endfor %}
 
   {% else %}

@@ -80,12 +80,12 @@ def update_offering_repositories(offering):
     """
     Update the Subversion repositories for this offering
     """
-    from coredata.tasks import update_repository_task
     if not offering.uses_svn():
         return
         
+    from coredata.tasks import update_repository_task    
     repos = all_repositories(offering)
-     
+
     # individual repositories
     for m in offering.member_set.select_related('person', 'offering', 'offering__semester'):
         rw = set([m.person.userid])
@@ -95,6 +95,7 @@ def update_offering_repositories(offering):
         reponame = repo_name(offering, m.person.userid)
         
         if _repo_needs_updating(repos, reponame, rw, ro):
+            #print ">>>", reponame
             update_repository_task.delay(reponame, rw, ro)
         
     # group repositories
@@ -107,4 +108,5 @@ def update_offering_repositories(offering):
             userids.add(gm.student.person.userid)
 
         if _repo_needs_updating(repos, reponame, userids, instr):
+            #print ">>>", reponame
             update_repository_task.delay(reponame, userids, instr)

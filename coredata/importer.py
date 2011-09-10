@@ -10,6 +10,7 @@ from log.models import LogEntry
 from django.db import transaction
 from django.contrib.sessions.models import Session
 from django.conf import settings
+from courselib.svn import update_offering_repositories
 today = datetime.date.today()
 past_cutoff = today - datetime.timedelta(days=30)
 future_cutoff = today + datetime.timedelta(days=120)
@@ -440,7 +441,7 @@ def import_offering(db, tadb, offering):
     import_tas(db, tadb, offering)
     import_students(db, offering)
     import_meeting_times(db, offering)
-    offering.update_repositories()
+    update_offering_repositories(offering)
     
     
 @transaction.commit_on_success
