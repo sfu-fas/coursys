@@ -113,8 +113,9 @@ chmod 0711 ~</pre>
   Create a file <code class="file">~/dbpass</code> with three lines: (1) password for CourSys data view, (2) password for TA database, (3) the password for the app's main database.  This file is read by the importer and other scripts (to avoid having those passwords in the Subversion repo).
   <p>This crontab needs to be set to import and backup everything:</p>
   <blockquote><pre>MAILTO=ggbaker@sfu.ca
-30 4 * * * cd /home/ggbaker/courses/ && python coredata/importer.py &lt; /home/ggbaker/dbpass
-30 * * * * nice ionice -c 3 /home/ggbaker/courses/server-setup/courses-backup</pre></blockquote>
+30 4 * * * cd /home/ggbaker/courses/ &amp;&amp; python coredata/importer.py &lt; /home/ggbaker/dbpass
+0 * * * * nice ionice -c 3 /home/ggbaker/courses/server-setup/courses-backup
+30 * * * * cd /home/ggbaker/courses/ &amp;&amp; python tools/ping_celery.py 2&gt;/dev/null</pre></blockquote>
   <p>This requires <a href="courses-backup">my backup script, <code class="file">courses-backup</code></a>.</p>
   <p>There is also a <a href="mkdump">script <code class="file">mkdump</code></a> that will create a database dump if needed.</p>
   </dd>

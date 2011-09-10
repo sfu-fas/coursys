@@ -5,3 +5,6 @@ from celery.task import task
 def update_repository(*args, **kwargs):
     return _update_repository(*args, **kwargs)
 
+@task
+def ping():
+    return True
