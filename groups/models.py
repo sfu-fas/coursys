@@ -1,11 +1,12 @@
 from django.db import models
-from coredata.models import Member, CourseOffering
+from coredata.models import Member, CourseOffering, repo_name
 from autoslug import AutoSlugField
 from grades.models import *
 from django.shortcuts import get_object_or_404
 from django.core.urlresolvers import reverse
 from dashboard.models import NewsItem
-import datetime
+from django.conf import settings
+import datetime, urlparse
 
 class Group(models.Model):
     """
@@ -30,6 +31,9 @@ class Group(models.Model):
         return cmp(self.name, other.name)
     def get_absolute_url(self):
         return reverse('groups.views.groupmanage', kwargs={'course_slug': self.courseoffering.slug}) + "#" + self.slug
+    def svn_url(self):
+        "SVN URL for this member (assuming offering.uses_svn())"
+        return urlparse.urljoin(settings.SVN_URL_BASE, repo_name(self.courseoffering, self.slug))
 
     class Meta:
         unique_together = ("name", "courseoffering")

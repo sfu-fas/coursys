@@ -1,6 +1,7 @@
 # functions to manipulate the SVN repositories
 from django.conf import settings
-from coredata.models import Member
+from coredata.models import Member, repo_name
+from groups.models import Group
 import MySQLdb
 
 SVN_TABLE = "subversionacl"
@@ -36,9 +37,6 @@ def all_repositories(offering):
 
     return repos
 
-def repo_name(offering, slug):
-    name = offering.subject.upper() + offering.number + '-' + offering.semester.name + '-' + slug
-    return name[:30]
 
 def update_repository(reponame, rw_userids, ro_userids):
     """
@@ -56,8 +54,57 @@ def update_repository(reponame, rw_userids, ro_userids):
     count = db.fetchone()[0]
     if count == 0:
         # doesn't exist: create
-        db.execute('INSERT INTO '+SVN_TABLE+' (`repository`, `emplid`, `read`, `readandwrite`, `modified`) VALUES (%s, %s, %s, %s, %s)', (reponame, '', ro, rw, 'Y'))
+        if len(rw_userids)==0 and len(ro_userids)==0:
+            # don't create if not needed
+            pass
+        else:
+            db.execute('INSERT INTO '+SVN_TABLE+' (`repository`, `emplid`, `read`, `readandwrite`, `modified`) VALUES (%s, %s, %s, %s, %s)', (reponame, '', ro, rw, 'Y'))
     else:
         # already there: update
         db.execute('UPDATE '+SVN_TABLE+' set `read`=%s, `readandwrite`=%s, `modified`=%s WHERE `repository`=%s', (ro, rw, 'Y', reponame))
 
+
+def _repo_needs_updating(repos, reponame, rw, ro):
+    "Does this repository need to be updated?"
+    if reponame not in repos:
+        # unknown repository: create
+        return True
+    else:
+        # do we need to update?
+        ro0,rw0 = repos[reponame]
+        if ro != ro0 or rw != rw0:
+            return True
+    return False
+
+def update_offering_repositories(offering):
+    """
+    Update the Subversion repositories for this offering
+    """
+    from coredata.tasks import update_repository_task
+    if not offering.uses_svn():
+        return
+        
+    repos = all_repositories(offering)
+     
+    # individual repositories
+    for m in offering.member_set.select_related('person', 'offering', 'offering__semester'):
+        rw = set([m.person.userid])
+        ro = set()
+        if m.role == "DROP":
+            rw = set([])
+        reponame = repo_name(offering, m.person.userid)
+        
+        if _repo_needs_updating(repos, reponame, rw, ro):
+            update_repository_task.delay(reponame, rw, ro)
+        
+    # group repositories
+    groups = Group.objects.filter(courseoffering=offering).select_related('courseoffering')
+    instr = set((m.person.userid for m in offering.member_set.filter(role__in=["INST","TA"]).select_related('person')))
+    for g in groups:
+        userids = set()
+        reponame = repo_name(offering, g.slug)
+        for gm in g.groupmember_set.filter(confirmed=True).select_related('student__person'):
+            userids.add(gm.student.person.userid)
+
+        if _repo_needs_updating(repos, reponame, userids, instr):
+            update_repository_task.delay(reponame, userids, instr)

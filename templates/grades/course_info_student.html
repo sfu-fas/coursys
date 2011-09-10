@@ -109,4 +109,12 @@
 </div>
 
 {% endif %}
+
+{% if course.uses_svn %}
+<h2 id="svn">Subversion Repository</h2>
+<p>You have a personal <a href="http://svnbook.red-bean.com/">Subversion</a> repository for this course at this URL:</p>
+<blockquote><p>{{ member.svn_url|urlize }}</p></blockquote>
+<p>The repository will be available for the duration of the course.  The instructor and TAs do <strong>not</strong> have access to this repository.</p>
+{% endif %}
+
 {% endblock %}

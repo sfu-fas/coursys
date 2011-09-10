@@ -170,6 +170,7 @@ CAS_SERVER_URL = "https://cas.sfu.ca/cgi-bin/WebObjects/cas.woa/wa/"
 EMAIL_HOST = 'mailgate.sfu.ca'
 DEFAULT_FROM_EMAIL = 'nobody@courses.cs.sfu.ca'
 DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
+SVN_URL_BASE = "https://punch.cs.sfu.ca/svn/"
 DATE_FORMAT = "D N d Y"
 SHORT_DATE_FORMAT = "N d Y"
 DATETIME_FORMAT = "D N d Y, H:i"

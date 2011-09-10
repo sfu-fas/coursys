@@ -167,7 +167,7 @@ def _course_info_student(request, course_slug):
         data['act'] = activity
         data['grade_display'] = activity.display_grade_student(student.person)
         activity_data.append(data)
-    context = {'course': course, 'activity_data': activity_data, 'any_group': any_group, 'from_page': FROMPAGE['course']}
+    context = {'course': course, 'member': student, 'activity_data': activity_data, 'any_group': any_group, 'from_page': FROMPAGE['course']}
     
     return render_to_response("grades/course_info_student.html", context,
                               context_instance=RequestContext(request))
