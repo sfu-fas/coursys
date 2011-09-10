@@ -6,6 +6,7 @@ TEMPLATE_DEBUG = DEBUG
 DEPLOYED = hostname == 'courses'
 
 # add ./external directory to search path so we find modules there
+sys.path.append( os.path.dirname(__file__) )
 sys.path.append( os.path.join(os.path.dirname(__file__), 'external') )
 
 ADMINS = (
@@ -162,6 +163,7 @@ if USE_CELERY:
     }
     CELERY_EMAIL_BACKEND = EMAIL_BACKEND
     EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
+    SERVER_EMAIL = 'ggbaker@sfu.ca'
 
 
 CAS_SERVER_URL = "https://cas.sfu.ca/cgi-bin/WebObjects/cas.woa/wa/"
