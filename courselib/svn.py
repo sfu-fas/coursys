@@ -30,12 +30,23 @@ def all_repositories(semester):
     repos = {}
     for row in db:
         repo, ro, rw = row
-        repos[repo] = (ro, rw)
+        if ro:
+            ro = ro.split(',')
+        else:
+            ro = ''
+        if rw:
+            rw = rw.split(',')
+        else:
+            rw = ''
+        repos[repo] = (set(ro), set(rw))
 
     return repos
 
+def repo_name(offering, slug):
+    return offering.subject.upper() + offering.number + '-' + offering.semester.name + '-' + slug
+
 @task
-def update_repository(offering, slug, rw_userids, ro_userids):
+def update_repository(reponame, rw_userids, ro_userids):
     """
     Update/create this repository on punch.csil, with permissions as given.
     """
@@ -44,7 +55,6 @@ def update_repository(offering, slug, rw_userids, ro_userids):
         return
     db = _db_conn()
     
-    reponame = offering.subject.upper() + offering.number + '-' + offering.semester.name + '-' + slug
     rw = ','.join(rw_userids)
     ro = ','.join(ro_userids)
     

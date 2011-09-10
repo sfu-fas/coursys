@@ -209,6 +209,7 @@ COMPONENT_CHOICES = (
         ('FLD', 'Field School'),
         ('STD', 'Studio'),
         ('OLC', 'OLC'), # ???
+        ('STL', 'STL'), # ???
         ('CAN', 'Cancelled')
         )
 COMPONENTS = dict(COMPONENT_CHOICES)
