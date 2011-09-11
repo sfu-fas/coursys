@@ -465,6 +465,7 @@ def combine_sections(db):
         tot_total = 0
         wait_total = 0
         labtut = False
+        in_section = set() # students who are in section and not dropped (so we don't overwrite with a dropped membership)
         for sub in info['subsections']:
             cap_total += sub.enrl_cap
             tot_total += sub.enrl_tot
@@ -481,13 +482,19 @@ def combine_sections(db):
                     old_m.added_reason = m.added_reason
                     old_m.config['origsection'] = sub.slug
                     old_m.labtut_section = m.labtut_section
-                    old_m.save()
+                    if m.role != 'DROP' or old_m.person_id not in in_section:
+                        # condition keeps from overwriting enrolled students with drops (from other section)
+                        old_m.save()
+                    if m.role != 'DROP':
+                        in_section.add(old_m.person_id)
                 else:
                     # new membership: duplicate into combined
                     new_m = Member(offering=course, person=m.person, role=m.role, labtut_section=m.labtut_section,
                             credits=m.credits, career=m.career, added_reason=m.added_reason)
                     new_m.config['origsection'] = sub.slug
                     new_m.save()
+                    if m.role != 'DROP':
+                        in_section.add(new_m.person_id)
 
         # update totals        
         course.enrl_cap = cap_total
