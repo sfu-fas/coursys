@@ -20,7 +20,7 @@ from coredata.models import CourseOffering, Member, Person
 from grades.models import NumericActivity, NumericGrade, LetterActivity, LetterGrade
 
 from views import manage_activity_components, manage_common_problems, marking_student
-from views import _compose_imported_grades
+from views import _compose_imported_grades, _strip_email_userid
 
 from settings import CAS_SERVER_URL
 
@@ -365,6 +365,7 @@ class TestImportFunctionsNumeric(TestCase):
 
     def compare_grade_lists(self, data_returned):
         for sname, grade in self.values:
+            sname = _strip_email_userid(sname)
             self.assertIn(sname, data_returned.keys())
             self.assertEqual(data_returned[sname], grade)
         

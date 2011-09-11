@@ -1404,13 +1404,23 @@ def _CMS_header(line, userid_label, act_label):
         return ('Error in file header line:  No column labelled for activity ' + act_label + '.', None, None)
     return (None, userid_col, activity_col)
 
+def _strip_email_userid(s):
+    """
+    Accept "userid@sfu.ca" as "userid".  Return userid in any case.
+    """
+    DOMAIN = "sfu.ca"
+    if s.endswith("@"+DOMAIN):
+        return s[:-(len(DOMAIN)+1)]
+    return s
+
 def _import_CMS_output(fh, students_qset, data_to_return, userid_col, activity_col):
     reader = csv.reader(fh)
     reader.next() # Skip header line
     #print userid_col, activity_col #AEK
     for row_num, row in enumerate(reader):
         #print row_num, row #AEK
-        target = students_qset.filter(userid = row[userid_col])
+        userid = _strip_email_userid(row[userid_col])
+        target = students_qset.filter(userid = userid)
         if target.count() == 0:
             data_to_return.clear()
             return "Error found in file (row %s): Unmatched userid (%s)." % (row_num, row[userid_col])
@@ -1426,11 +1436,12 @@ def _import_specific_file(fh, students_qset, data_to_return):
         read = 1;
         for row in reader:            
             try: #if the first field is not an integer, cannot be emplid
-                num = int(row[0])                
-            except:
-                target = students_qset.filter(userid = row[0])
+                userid = _strip_email_userid(row[0])
+                num = int(row[0])
+            except ValueError:
+                target = students_qset.filter(userid = userid)
             else:        
-                target = students_qset.filter(Q(userid = row[0]) | Q(emplid = num))
+                target = students_qset.filter(Q(userid = userid) | Q(emplid = num))
             if target.count() == 0:                
                 data_to_return.clear()
                 return "Error found in the file (row %s): Unmatched student number or user-id (%s)." % (read, row[0],)            
