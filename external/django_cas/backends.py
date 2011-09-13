@@ -72,6 +72,9 @@ class CASBackend(object):
         username = _verify(ticket, service)
         if not username:
             return None
+        if not username.isalnum() or not all(ord(c) < 128 for c in username):
+            # userid must be alphanumeric ASCII
+            return None
         try:
             user = User.objects.get(username__iexact=username)
         except User.DoesNotExist:
