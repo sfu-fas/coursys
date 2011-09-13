@@ -308,7 +308,7 @@ class CourseOffering(models.Model):
         """
         Should students and groups in this course get Subversion repositories created?
         """
-        return self.subject=="CMPT" and self.number=="470" and self.semester.name=="1117"
+        return self.subject=="CMPT" and self.semester.name=="1117" and self.number in ["470", "379"]
 
     
     def export_dict(self):
