@@ -28,7 +28,12 @@ class Person(models.Model):
     first_name = models.CharField(max_length=32)
     middle_name = models.CharField(max_length=32, null=True, blank=True)
     pref_first_name = models.CharField(max_length=32)
+    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
+      # p.config['email']: email, if not the default userid@sfu.ca
     
+    defaults = {'email': None}
+    _, set_email = getter_setter('email')
+
     def __unicode__(self):
         return "%s, %s" % (self.last_name, self.first_name)
     def name(self):
@@ -44,9 +49,12 @@ class Person(models.Model):
     def initials(self):
         return "%s%s" % (self.first_name[0], self.last_name[0])
     def email(self):
-        return "%s@sfu.ca" % (self.userid)
+        if 'email' in self.config:
+            return self.config['email']
+        else:
+            return "%s@sfu.ca" % (self.userid)
     def full_email(self):
-        return "%s <%s@sfu.ca>" % (self.name(), self.userid)
+        return "%s <%s>" % (self.name(), self.email())
     def __cmp__(self, other):
         return cmp((self.last_name, self.first_name, self.userid), (other.last_name, other.first_name, other.userid))
     class Meta:
