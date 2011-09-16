@@ -3,7 +3,7 @@ import tempfile
 import os
 import gzip
 import StringIO
-import csv
+import unicodecsv as csv
 from datetime import datetime
 
 from django.db import models

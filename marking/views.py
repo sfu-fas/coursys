@@ -1,6 +1,6 @@
 import io
 import os
-import csv
+import unicodecsv as csv
 import json
 import decimal
 

@@ -3,7 +3,7 @@
 """
 
 import re
-import csv
+import unicodecsv as csv
 
 from decimal import Decimal, ROUND_HALF_EVEN
 
