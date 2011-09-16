@@ -1,5 +1,5 @@
 import sys, os, datetime, string, time, copy
-import MySQLdb
+import MySQLdb, random
 sys.path.append(".")
 sys.path.append("..")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
@@ -8,12 +8,13 @@ from coredata.models import *
 from dashboard.models import NewsItem
 from log.models import LogEntry
 from django.db import transaction
+from django.db.utils import IntegrityError
 from django.contrib.sessions.models import Session
 from django.conf import settings
 from courselib.svn import update_offering_repositories
 today = datetime.date.today()
 past_cutoff = today - datetime.timedelta(days=30)
-future_cutoff = today + datetime.timedelta(days=120)
+future_cutoff = today + datetime.timedelta(days=60)
 
 # these users will be given sysadmin role (for bootstrapping)
 sysadmin = ["ggbaker", "sumo"]
@@ -283,7 +284,12 @@ def get_person(db, emplid):
             p.first_name = first_name
             p.middle_name = middle_name
             p.pref_first_name = pref_first_name
-            p.save()
+            try:
+                p.save()
+            except IntegrityError:
+                print "    Possible duplicate userid: " + userid
+                p.userid = None
+                p.save()
         else:
             # newly-found person: insert
             p = Person(emplid=emplid, userid=userid, last_name=last_name, first_name=first_name, middle_name=middle_name, pref_first_name=pref_first_name)
@@ -401,12 +407,16 @@ def import_tas(db, tadb, offering):
     if offering.subject not in ['CMPT', 'MACM']:
         return
 
+    nbr = offering.number
+    if nbr[-1] == "W":
+        nbr = nbr[:-1]
+
     Member.objects.filter(added_reason="AUTO", offering=offering, role="TA").update(role='DROP')
-    tadb.execute('SELECT emplid, userid FROM ta_data WHERE strm=%s and subject=%s and catalog_nbr REGEXP %s and class_section=%s', (offering.semester.name, offering.subject, unicode(offering.number)+"W?", offering.section[0:2]))
+    tadb.execute('SELECT emplid, userid FROM ta_data WHERE strm=%s and subject=%s and catalog_nbr REGEXP %s and class_section=%s', (offering.semester.name, offering.subject, nbr+"W?", offering.section[0:2]))
     for emplid,userid in tadb:
         p = get_person(db, emplid)
         if p is None:
-            print "  Unknown TA:", emplid, userid
+            print "    Unknown TA:", emplid, userid
             return
         ensure_member(p, offering, "TA", 0, "AUTO", "NONS")
 
@@ -436,7 +446,8 @@ def import_offering(db, tadb, offering):
     """
     Import all data for the course: instructors, TAs, students, meeting times.
     """
-    #print " ", offering
+    if random.randint(1,40) == 4:
+        print " ", offering
     import_instructors(db, offering)
     import_tas(db, tadb, offering)
     import_students(db, offering)
@@ -535,7 +546,7 @@ def main():
     
     print "importing course offering list"
     offerings = import_offerings(db, DATA_WHERE)
-    #offerings = [CourseOffering.objects.get(slug="2011fa-cmpt-470-e1")]
+    #offerings = [CourseOffering.objects.get(slug="2011fa-cmpt-470-e1"), CourseOffering.objects.get(slug="2011fa-cmpt-376w-e1")]
     offerings = list(offerings)
     offerings.sort()
 
