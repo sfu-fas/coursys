@@ -27,7 +27,7 @@ class ImpersonateMiddleware(object):
             elif match:
                 # for instructors of a course: yes, but only students, and only within that course's "directory".
                 course_slug = match.group('course_slug') # course slug from the URL
-                instructor = Member.objects.filter(person__userid=request.user.username, offering__slug=course_slug, role="INST")
+                instructor = Member.objects.filter(person__userid=request.user.username, offering__slug=course_slug, role__in=["TA", "INST"])
                 if not instructor:
                     # this person is not an instructor: no
                     return self._generate_error(request, "you are not an instructor of this course")
