@@ -103,7 +103,7 @@ def update_offering_repositories(offering):
     instr = set((m.person.userid for m in offering.member_set.filter(role__in=["INST","TA"]).select_related('person')))
     for g in groups:
         userids = set()
-        reponame = repo_name(offering, g.slug)
+        reponame = repo_name(offering, g.svn_slug)
         for gm in g.groupmember_set.filter(confirmed=True).select_related('student__person'):
             userids.add(gm.student.person.userid)
 

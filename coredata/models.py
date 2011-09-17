@@ -13,8 +13,8 @@ def repo_name(offering, slug):
     """
     Label for a SVN repository
     """
-    name = offering.subject.upper() + offering.number + '-' + offering.semester.name + '-' + slug
-    return name[:30]
+    name = offering.subject.upper() + offering.number[0:3] + '-' + offering.semester.name + '-' + slug
+    return name
 
 class Person(models.Model):
     """

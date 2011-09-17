@@ -22,6 +22,7 @@ class Group(models.Model):
     def autoslug(self):
         return 'g-' + str(self.name)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='courseoffering')
+    svn_slug = AutoSlugField(max_length=17, populate_from='slug', null=True, editable=False, unique_with='courseoffering')
 
     def __unicode__(self):
         return '%s' % (self.name)
@@ -33,10 +34,10 @@ class Group(models.Model):
         return reverse('groups.views.groupmanage', kwargs={'course_slug': self.courseoffering.slug}) + "#" + self.slug
     def svn_url(self):
         "SVN URL for this member (assuming offering.uses_svn())"
-        return urlparse.urljoin(settings.SVN_URL_BASE, repo_name(self.courseoffering, self.slug))
+        return urlparse.urljoin(settings.SVN_URL_BASE, repo_name(self.courseoffering, self.svn_slug))
 
     class Meta:
-        unique_together = ("name", "courseoffering")
+        unique_together = (("name", "courseoffering"), ("slug", "courseoffering"), ("svn_slug", "courseoffering"))
         ordering = ["name"]
 
 class GroupMember(models.Model):
