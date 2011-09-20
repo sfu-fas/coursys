@@ -180,72 +180,6 @@ def _weekday_range(start_date, end_date, wkday):
         yield date
         date += datetime.timedelta(7)
 
-#@cache_page(60*60*6)
-def calendar_ical_old(request, token, userid):
-    """
-    Return an iCalendar for this user, authenticated by the token in the URL
-    """
-    local_tz = pytz.timezone(settings.TIME_ZONE)
-    user = get_object_or_404(Person, userid=userid)
-    
-    # make sure the token in the URL (32 hex characters) matches the token stored in the DB
-    config = _get_calendar_config(user)
-    if 'token' not in config or config['token'] != token:
-        # no token set or wrong token provided
-        return NotFoundResponse(request)
-    #else:
-        # authenticated
-
-    first_semester = Semester.first_relevant()
-    memberships = Member.objects.filter(person=user, offering__graded=True, offering__semester__gte=first_semester).exclude(role="DROP").exclude(role="APPR")
-    # map of offering_id -> this student's lab section (so we only output the right one)
-    labsecs = dict(((m.offering_id, m.labtut_section) for m in memberships))
-    classes = set((m.offering for m in memberships))
-    class_list = MeetingTime.objects.filter(offering__in=classes).select_related('offering')
-    
-    cal = Calendar()
-    cal.add('version', '2.0')
-    cal.add('prodid', '-//SFU CourSys//courses.cs.sfu.ca//')
-
-    for mt in class_list:
-        # only output whole-course events and this student's lab section.
-        if mt.labtut_section not in [None, labsecs[mt.offering_id]]:
-            continue
-
-        for date in _weekday_range(mt.start_day, mt.end_day, mt.weekday): # for every day the class happens...
-            e = Event()
-            summary = mt.offering.name() + " " + mt.get_meeting_type_display()
-            e.add('summary', summary)
-        
-            start = local_tz.localize(datetime.datetime.combine(date, mt.start_time))
-            e.add('dtstart', start)
-            end = local_tz.localize(datetime.datetime.combine(date, mt.end_time))
-            e.add('dtend', end)
-        
-            e.add('location', mt.offering.get_campus_display() + " " + mt.room)
-            e['uid'] = mt.offering.slug.replace("-","") + "-" + str(mt.id) + "-" + start.strftime("%Y%m%dT%H%M%S") + '@courses.cs.sfu.ca'
-
-            cal.add_component(e)
-
-    # add every assignment with a due datetime
-    due_length = datetime.timedelta(minutes=1)
-    for m in memberships:
-        for a in m.offering.activity_set.filter(deleted=False):
-            if not a.due_date:
-                continue
-            
-            e = Event()
-            e.add('summary', '%s: %s due' % (a.offering.name(), a.name))
-            start = local_tz.localize(a.due_date - due_length)
-            e.add('dtstart', start)
-            end = local_tz.localize(a.due_date)
-            e.add('dtend', end)
-            e['uid'] = a.offering.slug.replace("-","") + "-" + str(a.id) + "-" + a.slug.replace("-","") + "-" + a.due_date.strftime("%Y%m%dT%H%M%S") + '@courses.cs.sfu.ca'
-            
-            cal.add_component(e)
-    
-    return HttpResponse(cal.as_string(), mimetype="text/calendar")
-
 
 def _meeting_url(mt):
     return mt.offering.url() or reverse('grades.views.course_info', kwargs={'course_slug': mt.offering.slug})
@@ -377,9 +311,9 @@ def calendar_ical(request, token, userid):
         e.add('summary', data['title'])
         e.add('dtstart', data['start'])
         e.add('dtend', data['end'])
-        #e.add('categories', data['category'])
-        #if 'url' in data:
-        #    e.add('url', data['url'])
+        e.add('categories', data['category'])
+        if 'url' in data:
+            e.add('url', data['url'])
         if 'location' in data:
             e.add('location', data['location'])
         cal.add_component(e)

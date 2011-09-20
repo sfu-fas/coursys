@@ -1,5 +1,6 @@
 from django.conf.urls.defaults import *
 from django.conf import settings
+from django.views.generic.simple import direct_to_template
 
 if not settings.DEPLOYED:
     from django.contrib import admin
@@ -46,6 +47,7 @@ urlpatterns += patterns('',
     url(r'^login/$', 'django_cas.views.login'),
     url(r'^logout/$', 'django_cas.views.logout', {'next_page': '/'}),
     url(r'^logout/(?P<next_page>.*)/$', 'django_cas.views.logout', name='auth_logout_next'),
+    url(r'^robots.txt$', direct_to_template, {'template': 'robots.txt', 'mimetype': 'text/plain'}),
 	
 #---------------------------------------
     url(r'^$', 'dashboard.views.index'),
@@ -61,7 +63,6 @@ urlpatterns += patterns('',
     url(r'^' + 'config/news$', 'dashboard.views.news_config'),
     url(r'^' + 'news/(?P<token>[0-9a-f]{32})/' + USERID_SLUG + '$', 'dashboard.views.atom_feed'),
     url(r'^' + 'news/(?P<token>[0-9a-f]{32})/' + USERID_SLUG + '/' + COURSE_SLUG + '$', 'dashboard.views.atom_feed'),
-    url(r'^' + 'calendarX/(?P<token>[0-9a-f]{32})/' + USERID_SLUG + '$', 'dashboard.views.calendar_ical_old'),
     url(r'^' + 'calendar/(?P<token>[0-9a-f]{32})/' + USERID_SLUG + '$', 'dashboard.views.calendar_ical'),
     url(r'^' + 'calendar/$', 'dashboard.views.calendar'),
     url(r'^' + 'calendar/data$', 'dashboard.views.calendar_data'),

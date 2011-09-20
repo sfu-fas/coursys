@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /news/
+Allow: /calendar/
+Allow: /data/
+Disallow: /
+
