@@ -5,7 +5,7 @@ from grades.utils import *
 from coredata.models import *
 from submission.models import StudentSubmission
 from coredata.tests import create_offering
-import pickle
+import pickle, re
 
 from django.test.client import Client
 from settings import CAS_SERVER_URL
@@ -38,7 +38,7 @@ class GradesTest(TestCase):
     fixtures = ['test_data']
     
     def setUp(self):
-        pass
+        self.course_slug="2011fa-cmpt-165-c1"
 
     def test_formulas(self):
         """
@@ -472,7 +472,39 @@ class GradesTest(TestCase):
         self.assertEquals(median_letters([]), u"\u2014")
 
 
+        
+    def test_out_of_zero(self):
+        """
+        Test activities out of zero
+        """
+        c = CourseOffering.objects.get(slug=self.course_slug)
+        a = NumericActivity(offering=c, name="AZero", short_name="AZ", status="RLS", group=False, deleted=False, max_grade=0)
+        a.save()
+        stud = c.member_set.filter(role="STUD")[0]
+        
+        # test as instructor
+        client = Client()
+        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        
+        url = reverse('marking.views.change_grade_status', kwargs={'course_slug': c.slug, 'activity_slug': a.slug, 'userid': stud.person.userid})
+        response = basic_page_tests(self, client, url)
+        self.assertContains(response, "out of 0<")
 
+        response = client.post(url, {'grade-status-value': 3, 'grade-status-flag': 'GRAD', 'grade-status-comment': ''})
+        self.assertEquals(response.status_code, 302)
+        g = NumericGrade.objects.get(activity=a, member=stud)
+        self.assertEquals(g.value, 3)
+        
+        url = reverse('grades.views.activity_info', kwargs={'course_slug': c.slug, 'activity_slug': a.slug})
+        response = basic_page_tests(self, client, url)
+        url = reverse('grades.views.student_info', kwargs={'course_slug': c.slug, 'userid': stud.person.userid})
+        response = basic_page_tests(self, client, url)
 
+        # test as student
+        client.login(ticket=stud.person.userid, service=CAS_SERVER_URL)
 
+        url = reverse('grades.views.course_info', kwargs={'course_slug': c.slug})
+        response = basic_page_tests(self, client, url)
+        url = reverse('grades.views.activity_info', kwargs={'course_slug': c.slug, 'activity_slug': a.slug})
+        response = basic_page_tests(self, client, url)
 

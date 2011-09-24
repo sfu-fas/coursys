@@ -418,6 +418,8 @@ class NumericGrade(models.Model):
             raise RuntimeError, "Can't display invisible grade."
         elif self.flag == "NOGR":
             return u'\u2014'
+        elif self.activity.max_grade == 0:
+            return '%s/%s' % (self.value, self.activity.max_grade)
         else:
             return '%s/%s (%.2f%%)' % (self.value, self.activity.max_grade, float(self.value)/float(self.activity.max_grade)*100)
         
