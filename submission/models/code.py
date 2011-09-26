@@ -27,7 +27,7 @@ CODE_TYPES = [
     (".cs", "C# (.cs)"),
     (".html", "HTML (.html)"),
     (".css", "CSS (.css)"),
-    #(".inc", "HC11 Source (.inc)"),
+    (".inc", "HC11 Source (.inc)"),
     (".asm", "HC12 Source (.asm)"),
     (".cct", "Designworks Circuit (.cct)"),
 #    (".jpg", "JPEG images (.jpg)"),
