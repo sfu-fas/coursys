@@ -34,6 +34,7 @@ CODE_TYPES = [
     (".json", "JSON data file (.json)"),
     (".go", "Go (.go)"),
     (".m", "MATLAB (.m)"),
+    (".mat", "MATLAB data file (.mat)"),
     (".lisp", "LISP (.lisp)"),
     ("Makefile", "Makefile (Makefile)"),
 ]
