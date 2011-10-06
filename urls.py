@@ -52,6 +52,7 @@ urlpatterns += patterns('',
 #---------------------------------------
     url(r'^$', 'dashboard.views.index'),
         url(r'^m/$', 'mobile.views.index'),
+    url(r'^' + 'favicon.ico$', 'django.views.generic.simple.redirect_to', {'url': '/media/icons/favicon.ico'}),
     url(r'^' + 'config/$', 'dashboard.views.config'),
     url(r'^' + 'news/$', 'dashboard.views.news_list'),
     url(r'^' + 'news/configure/$', 'django.views.generic.simple.redirect_to', {'url': '/config/'}),
