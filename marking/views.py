@@ -1373,10 +1373,15 @@ def _mark_all_students_numeric(request, course, activity):
                               context_instance = RequestContext(request))
 
 def _compose_imported_grades(file, students_qset, data_to_return, activity):
-    fh = io.StringIO(file.read().decode('utf-8'), newline=None)
-    fcopy = io.StringIO(fh.getvalue(), newline=None)
-    first_line = csv.reader(fcopy).next()
-    (error_string, userid_col, activity_col) = _CMS_header(first_line, Person.userid_header(), activity.short_name)
+    try:
+        fh = io.StringIO(file.read().decode('utf-8'), newline=None)
+    except UnicodeDecodeError:
+        error_string = "File cannot be decoded as UTF-8 data: make sure it has been saved as UTF-8 text."
+    else:
+        fcopy = io.StringIO(fh.getvalue(), newline=None)
+        first_line = csv.reader(fcopy).next()
+        (error_string, userid_col, activity_col) = _CMS_header(first_line, Person.userid_header(), activity.short_name)
+
     if error_string != None:
         return error_string
     elif userid_col != None and activity_col != None:

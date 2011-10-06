@@ -475,6 +475,16 @@ class TestImportFunctionsNumeric(TestCase):
         self.assertEqual(len(data_to_return), len(self.values))
         self.compare_grade_lists(data_to_return)
 
+    def test_import_grades_new_format_bad_utf8(self):
+        inName = 'marking/testfiles/newformat_bad_utf8.csv'
+        data_to_return = {}
+        with open(inName, 'r') as inp:
+            err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
+        self.assertEqual(err,
+            'File cannot be decoded as UTF-8 data: make sure it has been saved as UTF-8 text.')
+        self.assertEqual(len(data_to_return), 0)
+
+
 class TestImportFunctionsLetter(TestCase):
     fixtures = ['test_data']    
 
