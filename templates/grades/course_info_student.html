@@ -114,7 +114,13 @@
 <h2 id="svn">Subversion Repository</h2>
 <p>You have a personal <a href="http://svnbook.red-bean.com/">Subversion</a> repository for this course at this URL:</p>
 <blockquote><p>{{ member.svn_url|urlize }}</p></blockquote>
-<p>The repository will be available for the duration of the course.  The instructor and TAs do <strong>not</strong> have access to this repository.</p>
+<p>The repository will be available for the duration of the course.
+{% if course.indiv_svn %}
+The instructor and TAs <strong>do</strong> have read-only access to this repository.
+{% else %}
+The instructor and TAs do <strong>not</strong> have access to this repository.
+{% endif %}
+</p>
 {% endif %}
 
 {% endblock %}

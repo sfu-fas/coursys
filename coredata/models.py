@@ -268,11 +268,13 @@ class CourseOffering(models.Model):
       # c.config['department']: department responsible for course (used by discipline module)
       # c.config['taemail']: TAs' contact email (if not their personal email)
       # c.config['labtut']: are there lab sections? (default False)
+      # c.config['indiv_svn']: do instructors/TAs have access to student SVN repos? (default False)
     
-    defaults = {'taemail': None, 'url': None, 'labtut': False}
+    defaults = {'taemail': None, 'url': None, 'labtut': False, 'indiv_svn': False}
     labtut, set_labtut = getter_setter('labtut')
     url, set_url = getter_setter('url')
     taemail, set_taemail = getter_setter('taemail')
+    indiv_svn, set_indiv_svn = getter_setter('indiv_svn')
     
     def autoslug(self):
         # changed slug format for fall 2011

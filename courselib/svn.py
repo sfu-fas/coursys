@@ -85,11 +85,14 @@ def update_offering_repositories(offering):
         
     from coredata.tasks import update_repository_task    
     repos = all_repositories(offering)
+    instr = set((m.person.userid for m in offering.member_set.filter(role__in=["INST","TA"]).select_related('person')))
 
     # individual repositories
     for m in offering.member_set.select_related('person', 'offering', 'offering__semester'):
         rw = set([m.person.userid])
         ro = set()
+        if offering.indiv_svn():
+            ro = instr
         if m.role == "DROP":
             rw = set([])
         reponame = repo_name(offering, m.person.userid)
@@ -100,7 +103,6 @@ def update_offering_repositories(offering):
         
     # group repositories
     groups = Group.objects.filter(courseoffering=offering).select_related('courseoffering')
-    instr = set((m.person.userid for m in offering.member_set.filter(role__in=["INST","TA"]).select_related('person')))
     for g in groups:
         userids = set()
         reponame = repo_name(offering, g.svn_slug)
