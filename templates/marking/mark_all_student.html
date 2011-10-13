@@ -3,11 +3,16 @@
 {% block marking_header_extra %}
 <script type="text/javascript">
 //<![CDATA[
+var oTable;
+function clear_filter() {
+  oTable.fnFilter("");
+  return true;
+}
 $(document).ready(function() {
-	var oTable = $('#all_marks').dataTable({
+	oTable = $('#all_marks').dataTable({
 		"bJQueryUI": true,
 		"bSort": true,
-		"bPaginate": false,	/* turn off the pagination */
+		"bPaginate": false,
 		"aoColumns": [null, null, null, {% if course.labtut %}null,{% endif %} { "sType": "by-mark" }, { "bSearchable": false, "bSortable": false }]
 	});
 });
@@ -43,7 +48,7 @@ column is the grade.  Other columns will be ignored.</li>
 {% if too_many %}
 <a class="redbutton reset_button" href="{% url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug %}">Reset</a>
 {% endif %}
-<form id = "grades_form" action="{%url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug%}" method="post">{% csrf_token %}
+<form id = "grades_form" action="{%url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug%}" method="post" onSubmit="return clear_filter()">{% csrf_token %}
 {%if too_many %}
 <input class="submit" type="submit" value="Submit" />
 {% endif %}

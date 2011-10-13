@@ -92,7 +92,7 @@ def update_offering_repositories(offering):
         rw = set([m.person.userid])
         ro = set()
         if offering.indiv_svn():
-            ro = instr
+            ro = instr - rw
         if m.role == "DROP":
             rw = set([])
         reponame = repo_name(offering, m.person.userid)
