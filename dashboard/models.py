@@ -128,7 +128,7 @@ class NewsItem(models.Model):
         
         Memoized in the cache: textile is expensive.
         """
-        key = "news-content-" + hashlib.md5(self.content).hexdigest()
+        key = "news-content-" + hashlib.md5(self.content.encode("utf-8")).hexdigest()
         val = cache.get(key)
         if val:
             return mark_safe(val)

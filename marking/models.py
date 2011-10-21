@@ -13,6 +13,7 @@ from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from autoslug import AutoSlugField
 import os.path, decimal
+import unidecode
 
 MarkingSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
@@ -27,7 +28,9 @@ class ActivityComponent(models.Model):
     position = models.IntegerField(null = True, default = 0, blank =True)    
     # set this flag if it is deleted by the user
     deleted = models.BooleanField(null = False, db_index = True, default = False)
-    slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with='numeric_activity')
+    def autoslug(self):
+        return unidecode.unidecode(self.title)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='numeric_activity')
     
     def __unicode__(self):        
         return self.title

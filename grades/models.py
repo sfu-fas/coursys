@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter
 import decimal, json
+import unidecode
 
 FLAG_CHOICES = [
     ('NOGR', 'no grade'),
@@ -66,7 +67,9 @@ class Activity(models.Model):
     """
     name = models.CharField(max_length=30, db_index=True, help_text='Name of the activity.')
     short_name = models.CharField(max_length=15, db_index=True, help_text='Short-form name of the activity.')
-    slug = AutoSlugField(populate_from='short_name', null=False, editable=False, unique_with='offering')
+    def autoslug(self):
+        return unidecode.unidecode(self.short_name)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='offering')
     status = models.CharField(max_length=4, null=False, choices=ACTIVITY_STATUS_CHOICES, help_text='Activity status.')
     due_date = models.DateTimeField(null=True, help_text='Activity due date')
     percent = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)

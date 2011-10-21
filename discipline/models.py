@@ -13,6 +13,7 @@ from django.utils.text import wrap
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 import string, os, datetime, json
+import unidecode
 
 CONTACT_CHOICES = (
         ('NONE', 'Not yet contacted'),
@@ -179,7 +180,9 @@ class DisciplineGroup(models.Model):
     name = models.CharField(max_length=60, blank=False, null=False, verbose_name="Cluster Name",
             help_text='An arbitrary "name" for this cluster of cases')
     offering = models.ForeignKey(CourseOffering, help_text="The course this cluster is associated with")
-    slug = AutoSlugField(populate_from='name', null=False, editable=False, unique_with='offering')
+    def autoslug(self):
+        return unidecode.unidecode(self.name)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='offering')
     
     def __unicode__(self):
         return "%s in %s" % (self.name, self.offering)
