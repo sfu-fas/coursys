@@ -97,7 +97,7 @@ class Code:
     class ComponentForm(submission.forms.ComponentForm):
         class Meta:
             model = CodeComponent
-            fields = ['title', 'description', 'max_size', 'allowed', 'deleted', 'specified_filename']
+            fields = ['title', 'description', 'max_size', 'allowed', 'specified_filename', 'deleted']
         
         def __init__(self, *args, **kwargs):
             super(Code.ComponentForm, self).__init__(*args, **kwargs)
@@ -108,8 +108,6 @@ class Code:
             self.fields['allowed'].widget = SelectMultiple(choices=CODE_TYPES, attrs={'style':'width:40em', 'size': 15})
             self.initial['allowed'] = self._initial_allowed
             self.fields['allowed'].label=mark_safe("Allowed Types"+submission.forms._required_star)
-
-            self.fields['deleted'].label=mark_safe("Invisible")
 
         def _initial_allowed(self):
             """

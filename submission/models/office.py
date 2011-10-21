@@ -90,12 +90,11 @@ class Office:
     class ComponentForm(submission.forms.ComponentForm):
         class Meta:
             model = OfficeComponent
-            fields = ['title', 'description', 'allowed', 'max_size', 'deleted', 'specified_filename']
+            fields = ['title', 'description', 'allowed', 'max_size', 'specified_filename', 'deleted']
         def __init__(self, *args, **kwargs):
             super(Office.ComponentForm, self).__init__(*args, **kwargs)
             self.fields['description'].widget = Textarea(attrs={'cols': 50, 'rows': 5})
             self.fields['max_size'].label=mark_safe("Max size"+submission.forms._required_star)
-            self.fields['deleted'].label=mark_safe("Invisible")
 
             self.fields['allowed'].widget = SelectMultiple(choices=OFFICE_CHOICES, attrs={'style':'width:40em', 'size': 15})
             self.initial['allowed'] = self._initial_allowed

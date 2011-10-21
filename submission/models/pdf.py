@@ -50,7 +50,7 @@ class PDF:
     class ComponentForm(submission.forms.ComponentForm):
         class Meta:
             model = PDFComponent
-            fields = ['title', 'description', 'max_size', 'deleted', 'specified_filename']
+            fields = ['title', 'description', 'max_size', 'specified_filename', 'deleted']
             # widgets = {
             #     'description': Textarea(attrs={'cols': 50, 'rows': 5}),
             #     'max_size': TextInput(attrs={'style':'width:5em'}),
@@ -59,7 +59,6 @@ class PDF:
             super(PDF.ComponentForm, self).__init__(*args, **kwargs)
             self.fields['description'].widget = Textarea(attrs={'cols': 50, 'rows': 5})
             self.fields['max_size'].label=mark_safe("Max size"+submission.forms._required_star)
-            self.fields['deleted'].label=mark_safe("Invisible")
 
     class SubmissionForm(submission.forms.SubmissionForm):
         class Meta:
