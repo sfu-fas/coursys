@@ -23,6 +23,16 @@
 		]
 	});
     });
+    
+    function toggle_more() {
+      $('div.bigdatatable span.more').toggle();
+      if( $('#toggle_more').html() == "Less info") {
+        $('#toggle_more').html("More info")
+      } else {
+        $('#toggle_more').html("Less info")
+      }
+    }
+    
 </script>
 {% endblock %}
 
@@ -38,6 +48,7 @@
 {% endblock %}
 
 {% block content %}
+<p><a class="button" onclick="toggle_more()" id="toggle_more" title="Displays grade statuses and indicates comments.">More info</a></p>
 <div class="datatable_container bigdatatable">
     <table class="display" id="student_grades">
         <thead>

@@ -243,6 +243,9 @@ div.bigdatatable .dataTables_wrapper {
 div.bigdatatable .dataTables_wrapper td {
     padding: 2px 1px;
 }
+div.bigdatatable span.more {
+    display: none;
+}
 
 .dataTables_length {
     width: 40%;

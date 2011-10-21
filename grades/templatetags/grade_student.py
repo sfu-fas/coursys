@@ -4,6 +4,7 @@ register = template.Library()
 from settings import MEDIA_URL
 from django.template import Context, Template
 from django.utils.safestring import mark_safe
+from django.utils.html import escape 
 
 @register.filter(name='stu_grade')
 def stu_grade(Activity,Person):
@@ -41,6 +42,7 @@ class SelectGradeNode(template.Node):
         self.dictionary = template.Variable(dictionary)
         self.aslug = template.Variable(aslug)
         self.userid = template.Variable(userid)
+
     def render(self, context):
         try:
             dictionary = self.dictionary.resolve(context)
@@ -53,7 +55,25 @@ class SelectGradeNode(template.Node):
         if userid not in grades:
             return ''
 
-        print type(grades[userid])
-        return grades[userid].display_staff_short()
+        grade = grades[userid]
+        gtext = escape(grade.display_staff_short())
+
+        stext = ''
+        if grade.flag not in ['GRAD', 'NOGR', 'CALC']:
+            stext = '(' + grade.get_flag_display() + ')'
+
+
+        if grade.comment:
+            ctext = escape(grade.comment)
+            stext = '(' + grade.get_flag_display() + ')'
+        else:
+            ctext = ''
+        
+        if ctext and stext:
+            return mark_safe(gtext + '<span class="more"><span title="' + ctext + '"><img src="/media/icons/information.png" alt="[I]" /></span><br/>' + stext + '</span>')
+        elif stext:
+            return mark_safe(gtext + '<span class="more"><br/>' + stext + '</span>')
+        else:
+            return mark_safe(gtext)
 
 
