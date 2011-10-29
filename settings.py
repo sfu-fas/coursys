@@ -178,6 +178,7 @@ SHORT_DATETIME_FORMAT = "N d Y, H:i"
 
 if not DEPLOYED and DEBUG and hostname != 'courses':
     CAS_SERVER_URL = "http://lefty.cmpt.sfu.ca/fake-cas/"
+    CAS_SERVER_URL = "http://localhost/fake-cas/"
 LOGIN_URL = "/login/"
 LOGOUT_URL = "/logout/"
 LOGIN_REDIRECT_URL = "/"

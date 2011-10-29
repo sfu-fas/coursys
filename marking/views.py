@@ -24,7 +24,7 @@ from grades.models import LetterActivity, LetterGrade, LETTER_GRADE_CHOICES_IN
 from log.models import LogEntry
 from groups.models import Group, GroupMember, all_activities_filter
 
-from courselib.auth import requires_course_staff_by_slug, is_course_staff_by_slug, is_course_student_by_slug
+from courselib.auth import requires_course_staff_by_slug, is_course_staff_by_slug, is_course_student_by_slug, ForbiddenResponse, NotFoundResponse
 
 from marking.forms import BaseCommonProblemFormSet, BaseActivityComponentFormSet
 from marking.forms import ActivityRenameForm
