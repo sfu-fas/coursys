@@ -85,6 +85,20 @@ def get_combined():
                 CourseOffering.objects.get(slug='2011fa-cmpt-761-g1')
             ]
         },
+        {
+            'subject': 'CMPT', 'number': '441', 'section': 'X100',
+            'semester': Semester.objects.get(name="1117"),
+            'component': 'LEC', 'graded': True, 
+            'crse_id': 32758, 'class_nbr': 32758,
+            'title': 'Bioinformatics Alg (ugrad/grad combined)',
+            'campus': 'BRNBY',
+            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+            'config': {},
+            'subsections': [
+                CourseOffering.objects.get(slug='2011fa-cmpt-441-e1'),
+                CourseOffering.objects.get(slug='2011fa-cmpt-711-g1')
+            ]
+        },
         ]
     return combined_sections
 
@@ -546,7 +560,7 @@ def main():
     
     print "importing course offering list"
     offerings = import_offerings(db, DATA_WHERE)
-    #offerings = [CourseOffering.objects.get(slug="2011fa-cmpt-470-e1"), CourseOffering.objects.get(slug="2011fa-cmpt-376w-e1")]
+    #offerings = [CourseOffering.objects.get(slug="2011fa-cmpt-470-e1"), CourseOffering.objects.get(slug="2011fa-cmpt-379-d1")]
     offerings = list(offerings)
     offerings.sort()
 
