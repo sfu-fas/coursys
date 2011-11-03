@@ -1343,3 +1343,14 @@ td.miniaction input {
   font-size: 75%;
   padding: 0;
 }
+
+/* calendar display*/
+div#calendar table.fc-header, div#calendar table.fc-header td {
+  border: none;
+}
+div#calendar table.fc-border-separate {
+  width: 98% !important;
+}
+div#calendar table.fc-border-separate td{
+  width: 14% !important;
+}

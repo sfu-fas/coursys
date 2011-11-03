@@ -342,9 +342,9 @@ def calendar_data(request):
     end = local_tz.localize(datetime.datetime.fromtimestamp(int(request.GET['end'])))+datetime.timedelta(days=1)
 
     resp = HttpResponse(mimetype="application/json")
-    events = list(_calendar_event_data(user, start, end, local_tz, dt_string=True, colour=True,
-            due_before=datetime.timedelta(minutes=1), due_after=datetime.timedelta(minutes=30)))
-    json.dump(events, resp)
+    events = _calendar_event_data(user, start, end, local_tz, dt_string=True, colour=True,
+            due_before=datetime.timedelta(minutes=1), due_after=datetime.timedelta(minutes=30))
+    json.dump(list(events), resp)
     return resp
 
 
