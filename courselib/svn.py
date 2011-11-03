@@ -85,7 +85,7 @@ def update_offering_repositories(offering):
         
     from coredata.tasks import update_repository_task    
     repos = all_repositories(offering)
-    instr = set((m.person.userid for m in offering.member_set.filter(role__in=["INST","TA"]).select_related('person')))
+    instr = set((m.person.userid for m in offering.member_set.filter(role__in=["INST","TA","APPR"]).select_related('person')))
 
     # individual repositories
     for m in offering.member_set.select_related('person', 'offering', 'offering__semester'):
