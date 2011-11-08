@@ -105,6 +105,9 @@ chmod 0711 ~</pre>
   <p>But somebody following these instructions: <strong>check the Subversion URL</strong>!  Stable tags are created when serious development is going on&mdash;that might be the right one to use.</p>
   <p>The only necessary change to the code is setting the database password in <code class="file">settings.py</code>.</p>
   </dd>
+<dt>Database</dt>
+  <dd>When creating the database, make sure to uncomment the <code class="python">init_command</code> option in <code class="file">settings.py</code> so the tables are created as InnoDB.
+  <p>I had to run the <code class="file">tools/mysql-fix-tables.py</code> script to get the table character sets to be UTF-8 (not Latin1). There's probably a setting to do that before the table creation, but I couldn't find it.</p></dd>
 <dt>Submitted Files</dt>
   <dd>Submitted files from old server were copied to new server (at <code class="file">/data/submitted_files/</code>). New location must match <code>SUBMISSION_PATH</code> in <code class="file">settings.py</code>.</dd>
 <dt>Data Backup</dt>
