@@ -51,7 +51,8 @@ $.fn.visualize = function(options, container){
 				dataGroups: function(){
 					var dataGroups = [];
 					if(o.parseDirection == 'x'){
-						self.find('tr:gt(0)').filter(o.rowFilter).each(function(i){
+						//self.find('tr:gt(0)').filter(o.rowFilter).each(function(i){
+						self.find('tr:gt(0)').each(function(i){
 							dataGroups[i] = {};
 							dataGroups[i].points = [];
 							dataGroups[i].color = colors[i];
