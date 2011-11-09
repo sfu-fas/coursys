@@ -18,7 +18,7 @@ jQuery.fn.dataTableExt.oSort['by-mark-asc']  = function(x,y) { return mark_cmp(x
 jQuery.fn.dataTableExt.oSort['by-mark-desc'] = function(x,y) { return mark_cmp(y,x) };
 
 /* jQuery Datatables sorting ignoring any <a> (e.g. '<a href="foo">123</a>' sorts by '123') */
-link_re = /<a href=".+">(.+)<\/a>/;
+link_re = new RegExp('<a .+>(.+)</a>');
 function nolink_cmp(x,y) {
   xc = link_re.exec(x);
   yc = link_re.exec(y);
@@ -34,8 +34,10 @@ jQuery.fn.dataTableExt.oSort['by-nolink-desc'] = function(x,y) { return nolink_c
 
 /* jQuery Datatables sorting combining nolink_cmp and mark_cmp (for marks in links) */
 function nolinkmark_cmp(x,y) {
-  xc = link_re.exec(x)[1];
-  yc = link_re.exec(y)[1];
+  xre = link_re.exec(x);
+  yre = link_re.exec(y);
+  xc = xre==null ? '' : xre[1];
+  yc = yre==null ? '' : yre[1];
   return mark_cmp(xc,yc);
 }
 jQuery.fn.dataTableExt.oSort['by-nolinkmark-asc']  = function(x,y) { return nolinkmark_cmp(x,y) };
@@ -52,8 +54,10 @@ function letter_cmp(x,y) {
   return ((xc < yc) ? -1 : ((xc > yc) ? 1 : 0));
 }
 function nolinkletter_cmp(x,y) {
-  xc = link_re.exec(x)[1];
-  yc = link_re.exec(y)[1];
+  xre = link_re.exec(x);
+  yre = link_re.exec(y);
+  xc = xre==null ? '' : xre[1];
+  yc = yre==null ? '' : yre[1];
   return letter_cmp(xc,yc);
 }
 jQuery.fn.dataTableExt.oSort['by-nolinkletter-asc']  = function(x,y) { return nolinkletter_cmp(x,y) };
