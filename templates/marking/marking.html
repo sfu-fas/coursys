@@ -15,7 +15,7 @@ function append_problem(n, penalty, content, outof) {
   var value = $("#id_cmp-" + n + "-value");
   if ( penalty == 0 ) { return; }
   mark = parseFloat(value.val());
-  if ( isNaN(mark) ) {
+  if ( isNaN(mark) || mark==0 ) {
     // logic: negative penalty must mean we're marking from 0 up; positive from max mark down.
     if ( penalty<0 ) {
       mark = 0.0;
