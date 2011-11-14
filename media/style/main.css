@@ -755,6 +755,12 @@ fieldset .inputfield label {
     width: auto;
     text-align: left;
 }
+div.fieldcontent {
+  margin-left: 11em;
+}
+.view div.fieldcontent {
+  margin-left: 8em;
+}
 #formula_tester fieldset label {
     float: none;
     text-align: left;

@@ -61,7 +61,7 @@
                     {% for data in component_form_list %}
                         <h2>{{data.comp.title}}</h2>
                         <ul>
-                        {% if data.comp.description %}<li><label>Description:</label><div>{{data.comp.description}}</div></li>{% endif %}
+                        {% if data.comp.description %}<li><label>Description:</label><div class="fieldcontent">{{data.comp.description|linebreaksbr}}</div></li>{% endif %}
                         {% if data.comp.max_size %}<li><label>Max File Size:</label><div>{{data.comp.max_size}} KB</div></li>{% endif %}
                         {% if data.comp.allowed %}<li><label>Allowed File Types:</label><div>{{data.comp.get_allowed_display}}</div></li>{% endif %}
                         {% if data.comp.specified_filename %}<li><label>Specified File Name:</label><div>{{data.comp.specified_filename}}</div></li>{% endif %}
@@ -81,13 +81,6 @@
         {# <!-- pair<component, its latest submission> --> #}
         {% for pair in submitted_components %}
         <h2>{{pair.0.title}}</h2>
-
-        <ul class="component_description">
-            <li class="view"><label>Submission Type:</label>{{pair.0.Type.name}}</li>
-            {% if pair.0.description %}<li class="view"><label>Description:</label>{{pair.0.description}}</li>{% endif %}
-            {% if pair.0.max_size %}<li class="view"><label>Max File Size:</label>{{pair.0.max_size}} KB</li>{% endif %}
-			{% if pair.0.allowed %}<li class="view"><label>Allowed File Types:</label>{{pair.0.get_allowed_display}}</li>{% endif %}
-        </ul>
 
         {% ifequal pair.1 None %}
             <div class="warningindicator">
