@@ -21,8 +21,8 @@ sysadmin = ["ggbaker", "sumo"]
 
 # first term we care even vaguely about in import (further selection happens later too)
 FIRSTTERM = "1117"
-DATA_WHERE = '((subject="CMPT" or subject="MACM") and strm="1114") or strm>="'+FIRSTTERM+'"'
-#DATA_WHERE = 'strm>="'+FIRSTTERM+'"'
+#DATA_WHERE = '((subject="CMPT" or subject="MACM") and strm="1114") or strm>="'+FIRSTTERM+'"'
+DATA_WHERE = 'strm>="'+FIRSTTERM+'"'
 
 # artificial combined sections to create: kwargs for CourseOffering creation,
 # plus 'subsections' list of sections we're combining.
@@ -384,8 +384,11 @@ def ensure_member(person, offering, role, credits, added_reason, career, labtut_
     m_old = Member.objects.filter(person=person, offering=offering)
 
     if len(m_old)>1:
-        raise KeyError, "Already duplicate instructor entries: %r" % (m_old)
-    elif len(m_old)==1:
+        # may be other manually-created dropped entries: that's okay.
+        m_old = Member.objects.filter(person=person, offering=offering).exclude(role="DROP")
+        if len(m_old)>1:
+            raise KeyError, "Already duplicate entries: %r" % (m_old)
+    if len(m_old)==1:
         m = m_old[0]
         m.role = role
         m.labtut_section = labtut_section
