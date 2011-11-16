@@ -1476,7 +1476,9 @@ def _export_mark_dict(m):
     mdict = {}
     comps = ActivityComponentMark.objects.filter(activity_mark=m).select_related('activity_component')
     for c in comps:
-        mdict[c.activity_component.slug] = {'mark': c.value, 'comment': c.comment}
+        mdict[c.activity_component.slug] = {'mark': c.value}
+        if c.comment:
+            mdict[c.activity_component.slug]['comment'] = c.comment
         
     if m.late_penalty:
         mdict['late_percent'] = m.late_penalty
@@ -1522,7 +1524,7 @@ def export_marks(request, course_slug, activity_slug):
         mdict['group'] = ident
         data.append(mdict)
     
-    response = HttpResponse(mimetype='text/plain')
+    response = HttpResponse(mimetype='application/json')
     response['Content-Disposition'] = 'inline; filename=%s-%s.json' % (course.slug, activity.slug)
     
     json.dump({'marks': data}, response, cls=_DecimalEncoder, indent=1)
