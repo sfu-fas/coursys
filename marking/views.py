@@ -1477,17 +1477,12 @@ def _export_mark_dict(m):
     comps = ActivityComponentMark.objects.filter(activity_mark=m).select_related('activity_component')
     for c in comps:
         mdict[c.activity_component.slug] = {'mark': c.value}
-        if c.comment:
-            mdict[c.activity_component.slug]['comment'] = c.comment
+        mdict[c.activity_component.slug]['comment'] = c.comment
         
-    if m.late_penalty:
-        mdict['late_percent'] = m.late_penalty
-    if m.mark_adjustment:
-        mdict['mark_penalty'] = m.mark_adjustment
-    if m.mark_adjustment_reason:
-        mdict['mark_penalty_reason'] = m.mark_adjustment_reason
-    if m.overall_comment:
-        mdict['overall_comment'] = m.overall_comment
+    mdict['late_percent'] = m.late_penalty
+    mdict['mark_penalty'] = m.mark_adjustment
+    mdict['mark_penalty_reason'] = m.mark_adjustment_reason
+    mdict['overall_comment'] = m.overall_comment
     
     return mdict
     
