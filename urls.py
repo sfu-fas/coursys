@@ -137,6 +137,7 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/positions$', 'marking.views.manage_component_positions'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/common$', 'marking.views.manage_common_problems'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/import$', 'marking.views.import_marks'),
+    url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/export$', 'marking.views.export_marks'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/new/students/' + USERID_SLUG + '/$', 'marking.views.marking_student'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/new/groups/' + GROUP_SLUG + '/$', 'marking.views.marking_group'),
     

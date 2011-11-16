@@ -1462,6 +1462,74 @@ def _import_specific_file(fh, students_qset, data_to_return):
                "only the first two columns are used."   
     return None   
 
+# adapted from http://stackoverflow.com/questions/1960516/python-json-serialize-a-decimal-object
+class _DecimalEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, decimal.Decimal):
+            return float(o)
+        return super(_DecimalEncoder, self).default(o)
+
+def _export_mark_dict(m):
+    """
+    Dictionary required for JSON export of ActivityMark (without userid/group identifier)
+    """
+    mdict = {}
+    comps = ActivityComponentMark.objects.filter(activity_mark=m).select_related('activity_component')
+    for c in comps:
+        mdict[c.activity_component.slug] = {'mark': c.value, 'comment': c.comment}
+        
+    if m.late_penalty:
+        mdict['late_percent'] = m.late_penalty
+    if m.mark_adjustment:
+        mdict['mark_penalty'] = m.mark_adjustment
+    if m.mark_adjustment_reason:
+        mdict['mark_penalty_reason'] = m.mark_adjustment_reason
+    if m.overall_comment:
+        mdict['overall_comment'] = m.overall_comment
+    
+    return mdict
+    
+
+@requires_course_staff_by_slug
+def export_marks(request, course_slug, activity_slug):
+    """
+    Import JSON marking data
+    """
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    acts = all_activities_filter(course, slug=activity_slug)
+    if len(acts) != 1:
+        raise Http404('No such Activity.')
+    activity = acts[0]
+    
+    data = []
+    found = set()
+    marks = StudentActivityMark.objects.filter(numeric_grade__activity=activity).order_by('-created_at')
+    for m in marks:
+        ident = m.numeric_grade.member.person.userid
+        if ident in found:
+            continue
+        found.add(ident)
+        mdict = _export_mark_dict(m)
+        mdict['userid'] = ident
+        data.append(mdict)
+    marks = GroupActivityMark.objects.filter(numeric_activity=activity).order_by('-created_at')
+    for m in marks:
+        ident = m.group.slug
+        if ident in found:
+            continue
+        found.add(ident)
+        mdict = _export_mark_dict(m)
+        mdict['group'] = ident
+        data.append(mdict)
+    
+    response = HttpResponse(mimetype='text/plain')
+    response['Content-Disposition'] = 'inline; filename=%s-%s.json' % (course.slug, activity.slug)
+    
+    json.dump({'marks': data}, response, cls=_DecimalEncoder, indent=1)
+    
+    return response
+
+
 
 
 @requires_course_staff_by_slug
