@@ -1,7 +1,6 @@
 from django.http import HttpResponse
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.template import RequestContext
 from forms import *
 from courselib.auth import *
 from coredata.models import *
@@ -15,7 +14,7 @@ def sysadmin(request):
         userid = request.GET['q']
         return HttpResponseRedirect(reverse(user_summary, kwargs={'userid': userid}))
         
-    return render_to_response('coredata/sysadmin.html', {}, context_instance=RequestContext(request))
+    return render(request, 'coredata/sysadmin.html', {})
 
 @requires_global_role("SYSA")
 def role_list(request):
@@ -24,7 +23,7 @@ def role_list(request):
     """
     roles = Role.objects.exclude(role="NONE")
     
-    return render_to_response('coredata/roles.html', {'roles': roles}, context_instance=RequestContext(request))
+    return render(request, 'coredata/roles.html', {'roles': roles})
 
 @requires_global_role("SYSA")
 def new_role(request, role=None):
@@ -41,7 +40,7 @@ def new_role(request, role=None):
     else:
         form = RoleForm()
 
-    return render_to_response('coredata/new_role.html', {'form': form}, context_instance=RequestContext(request))
+    return render(request, 'coredata/new_role.html', {'form': form})
 
 @requires_global_role("SYSA")
 def delete_role(request, role_id):
@@ -94,13 +93,13 @@ def missing_instructors(request):
     else:
         formset = InstrRoleFormSet(initial=initial)
 
-    return render_to_response('coredata/missing_instructors.html', {'formset': formset}, context_instance=RequestContext(request))
+    return render(request, 'coredata/missing_instructors.html', {'formset': formset})
 
 
 @requires_global_role("SYSA")
 def members_list(request):
     members = Member.objects.exclude(added_reason="AUTO")
-    return render_to_response('coredata/members_list.html', {'members': members}, context_instance=RequestContext(request))
+    return render(request, 'coredata/members_list.html', {'members': members})
 
 
 @requires_global_role("SYSA")
@@ -129,7 +128,7 @@ def edit_member(request, member_id=None):
         form = MemberForm()
     
     form.fields['offering'].choices = offering_choices
-    return render_to_response('coredata/edit_member.html', {'form': form, 'member': member}, context_instance=RequestContext(request))
+    return render(request, 'coredata/edit_member.html', {'form': form, 'member': member})
 
 
 @requires_global_role("SYSA")
@@ -140,7 +139,7 @@ def user_summary(request, userid):
     roles = Role.objects.filter(person=user).exclude(role="NONE")
     
     context = {'user': user, 'memberships': memberships, 'roles': roles}
-    return render_to_response("coredata/user_summary.html", context ,context_instance=RequestContext(request))
+    return render(request, "coredata/user_summary.html", context)
 
 
 @requires_global_role("SYSA")
@@ -158,11 +157,19 @@ def new_person(request):
     else:
         form = PersonForm()
 
-    return render_to_response('coredata/new_person.html', {'form': form}, context_instance=RequestContext(request))
+    return render(request, 'coredata/new_person.html', {'form': form})
 
 
+# semester object management
 
+@requires_global_role("SYSA")
+def semester_list(request):
+    semesters = Semester.objects.all()
+    return render(request, 'coredata/semester_list.html', {'semesters': semesters})
 
+@requires_global_role("SYSA")
+def edit_semester(request, semester_name=None):
+    pass
 
 
 # views to let instructors manage TAs
@@ -230,7 +237,7 @@ def manage_tas(request, course_slug):
 
     tas = Member.objects.filter(role="TA", offering=course)
     context = {'course': course, 'form': form, 'tas': tas, 'longform': longform}
-    return render_to_response('coredata/manage_tas.html', context, context_instance=RequestContext(request))
+    return render(request, 'coredata/manage_tas.html', context)
 
 
 

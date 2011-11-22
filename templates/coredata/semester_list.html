@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}CourSys Semesters{% endblock %}
+{% block h1 %}CourSys Semesters{% endblock %}
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#semesters').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.sysadmin %}">System Admin</a></li><li>&gt; Semesters</li>{% endblock %}
+
+{% block actions %}
+<div id="actions">
+  <h2 class="heading">Actions</h2>
+  <ul>
+  <li><a href="{% url coredata.views.edit_semester %}">Add new semester</a></li>
+  </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+
+<div class="datatable_container">
+<table id="semesters" class="display">
+  <thead><tr><th scope="col">Name</th><th scope="col">Start</th><th scope="col">End</th><th scope="col">Actions</th></tr></thead>
+  <tbody>
+  {% for s in semesters %}
+  <tr><td scope="row">{{s.name}} ({{s.label}})</td><td>{{s.start}}</td><td>{{s.end}}</td>
+  <td><a href="{% url coredata.views.edit_semester semester_name=s.name %}">Edit</a></td>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}
