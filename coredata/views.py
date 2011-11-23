@@ -7,6 +7,7 @@ from coredata.models import *
 from log.models import LogEntry
 from django.core.urlresolvers import reverse
 from django.contrib import messages
+import json
 
 @requires_global_role("SYSA")
 def sysadmin(request):
@@ -240,7 +241,27 @@ def manage_tas(request, course_slug):
     return render(request, 'coredata/manage_tas.html', context)
 
 
+# AJAX/JSON for course offering selector autocomplete
+def offerings_search(request):
+    if 'term' not in request.GET:
+        return ForbiddenResponse(request, "Must provide 'term' query.")
+    term = request.GET['term']
+    response = HttpResponse(mimetype='application/json')
+    data = []
+    offerings = CourseOffering.objects.filter(search_text__contains=term).select_related('semester')
+    for o in offerings:
+        label = o.search_label_value()
+        d = {'value': o.id, 'label': label}
+        data.append(d)
+    json.dump(data, response)
+    return response
 
+def offering_by_id(request):
+    if 'id' not in request.GET:
+        return ForbiddenResponse(request, "Must provide 'id' query.")
+    id_ = request.GET['id']
+    offering = get_object_or_404(CourseOffering, pk=id_)
+    return HttpResponse(offering.search_label_value())
 
 
 

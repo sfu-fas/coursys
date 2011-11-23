@@ -1,5 +1,19 @@
 from django import forms
-from coredata.models import Role, Person, Member
+from coredata.models import Role, Person, Member, CourseOffering
+from django.utils.safestring import mark_safe
+from django.utils.encoding import force_unicode
+
+class OfferingSelect(forms.Select):
+    input_type = 'text'
+
+    def render(self, name, value, attrs=None):
+        if value is None:
+            value = ''
+        final_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
+        if value != '':
+            # Only add the 'value' attribute if a value is non-empty.
+            final_attrs['value'] = force_unicode(value)
+        return mark_safe(u'<input%s />' % forms.widgets.flatatt(final_attrs))
 
 class RoleForm(forms.ModelForm):
     person = forms.CharField(min_length=1, max_length=8, label='SFU Userid')
@@ -17,8 +31,10 @@ class RoleForm(forms.ModelForm):
 
 class MemberForm(forms.ModelForm):
     person = forms.CharField(min_length=1, max_length=8, label='SFU Userid')
+    offering = forms.ModelChoiceField(queryset=CourseOffering.objects.all(), widget=OfferingSelect())
     
     def clean_person(self):
+        print self.fields['offering'].choices
         userid = self.cleaned_data['person']
         person = Person.objects.filter(userid=userid)
         if person:
