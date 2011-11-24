@@ -248,7 +248,7 @@ def offerings_search(request):
     term = request.GET['term']
     response = HttpResponse(mimetype='application/json')
     data = []
-    offerings = CourseOffering.objects.filter(search_text__contains=term).select_related('semester')
+    offerings = CourseOffering.objects.filter(search_text__icontains=term).select_related('semester')
     for o in offerings:
         label = o.search_label_value()
         d = {'value': o.id, 'label': label}
@@ -260,6 +260,11 @@ def offering_by_id(request):
     if 'id' not in request.GET:
         return ForbiddenResponse(request, "Must provide 'id' query.")
     id_ = request.GET['id']
+    try:
+        int(id_)
+    except ValueError:
+        return ForbiddenResponse(request, "'id' must be an integer.")
+
     offering = get_object_or_404(CourseOffering, pk=id_)
     return HttpResponse(offering.search_label_value())
 
