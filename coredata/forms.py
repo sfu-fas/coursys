@@ -7,6 +7,9 @@ class OfferingSelect(forms.Select):
     input_type = 'text'
 
     def render(self, name, value, attrs=None):
+        """
+        Render for jQueryUI autocomplete widget
+        """
         if value is None:
             value = ''
         final_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
@@ -14,6 +17,22 @@ class OfferingSelect(forms.Select):
             # Only add the 'value' attribute if a value is non-empty.
             final_attrs['value'] = force_unicode(value)
         return mark_safe(u'<input%s />' % forms.widgets.flatatt(final_attrs))
+
+class OfferingField(forms.ModelChoiceField):
+    """
+    Override ModelChoiceField so we don't have to build CourseOffering.objects.all()
+    unnecessarily, and can set other parameters appropriately.
+    """
+    def __init__(self, *args, **kwargs):
+        super(OfferingField, self).__init__(*args, queryset=CourseOffering.objects.none(), widget=OfferingSelect(attrs={'size': 30}), help_text="Type to search for course offerings.", **kwargs)
+        
+    def to_python(self, value):
+        try:
+            co = CourseOffering.objects.get(pk=value)
+        except (ValueError, CourseOffering.DoesNotExist):
+            raise forms.ValidationError("Unknown course offering selectted")
+        return co
+
 
 class RoleForm(forms.ModelForm):
     person = forms.CharField(min_length=1, max_length=8, label='SFU Userid')
@@ -29,12 +48,12 @@ class RoleForm(forms.ModelForm):
     class Meta:
         model = Role
 
+
 class MemberForm(forms.ModelForm):
     person = forms.CharField(min_length=1, max_length=8, label='SFU Userid')
-    offering = forms.ModelChoiceField(queryset=CourseOffering.objects.all(), widget=OfferingSelect())
+    offering = OfferingField()
     
     def clean_person(self):
-        print self.fields['offering'].choices
         userid = self.cleaned_data['person']
         person = Person.objects.filter(userid=userid)
         if person:
