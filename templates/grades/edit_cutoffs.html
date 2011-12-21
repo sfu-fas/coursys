@@ -9,9 +9,7 @@ Edit Cutoffs of {{ activity.name }}
 {% endblock %}
 
 {% block grades_headextra %}
-<link rel="stylesheet" href="{{MEDIA_URL}}visualize/css/visualize.css" type="text/css" />
-<!--[if IE]><script type="text/javascript" src="{{MEDIA_URL}}visualize/excanvas.compiled.js"></script><![endif]-->
-<script type="text/javascript" src="{{MEDIA_URL}}visualize/visualize.jQuery.js"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
 <script type="text/javascript">
 //<![CDATA[
 /**
@@ -41,6 +39,31 @@ if (!Array.prototype.filter) {
 }
 
 
+
+  google.load('visualization', '1.0', {'packages':['corechart']});
+  google.setOnLoadCallback(drawChart);
+  
+  var chart, data, rangetitle;
+  function drawChart() {
+    data = new google.visualization.DataTable();
+    data.addColumn('string', 'Grade');
+    data.addColumn('number', 'Count');
+    data.addRow(['F', 0]);
+    data.addRow(['D', 0]);
+    data.addRow(['C-', 0]);
+    data.addRow(['C', 0]);
+    data.addRow(['C+', 0]);
+    data.addRow(['B-', 0]);
+    data.addRow(['B', 0]);
+    data.addRow(['B+', 0]);
+    data.addRow(['A-', 0]);
+    data.addRow(['A', 0]);
+    data.addRow(['A+', 0]);
+    
+    chart = new google.visualization.ColumnChart(document.getElementById('histogram'));
+    recalculate_histo();
+  }
+
   var source_grades = {{source_grades}};
   var histo_cells;
   var letters = new Array('ap', 'a', 'am', 'bp', 'b', 'bm', 'cp', 'c', 'cm', 'd');
@@ -54,8 +77,6 @@ if (!Array.prototype.filter) {
 
   $(document).ready(function() {
     var i;
-    $("table.histo").hide();
-    $("table.histo").visualize({'height': '300px', appendTitle: false, appendKey: false});
     histo_cells = new Array();
     for(var i=0; i<nletters; i++) {
       histo_cells.push(histotd(letters[i]));
@@ -65,7 +86,6 @@ if (!Array.prototype.filter) {
     for(i=0; i<source_grades.length; i++) {
       source_grades[i] += 0.00000001;
     }
-    recalculate_histo();
     
     $("#cutoffform").change(function() {
       recalculate_histo();
@@ -82,6 +102,7 @@ if (!Array.prototype.filter) {
       inp = $("#id_"+letters[i]);
       inp.val(parseFloat(inp.val()) + off);
     }
+    recalculate_histo();
   }
 
   function recalculate_histo() {
@@ -107,12 +128,10 @@ if (!Array.prototype.filter) {
         }
       }
     }
-    
-    // put counts into cells
     for(i=0; i<histo_cells.length; i++) {
-      histo_cells[i].innerHTML = counts[histo_cells.length - i - 1];
+      data.setCell(i, 1, counts[10-i]);
     }
-    $('.visualize').trigger('visualizeRefresh');
+    chart.draw(data, {width: 700, height: 250, axisTitlesPosition: 'none', legend: 'none'});
   }
 //]]></script>
 {% endblock %}
@@ -173,42 +192,5 @@ if (!Array.prototype.filter) {
 <h2 id="histo">Live Histogram</h2>
 
 <p>Note: N and DE grades are not calculated in this view; there may be roundoff problems here that are not present when you calculate actual grades.</p>
-<table class="histo info" style="width: 500px; border-collapse: collapse;">
-    <caption>Letter Grades</caption>
-    
-    <thead>
-	<tr>
-	    <td></td>
-	    <th scope="col">F</th>
-	    <th scope="col">D</th>
-	    <th scope="col">C-</th>
-	    <th scope="col">C</th>
-	    <th scope="col">C+</th>
-	    <th scope="col">B-</th>
-	    <th scope="col">B</th>
-	    <th scope="col">B+</th>
-	    <th scope="col">A-</th>
-	    <th scope="col">A</th>
-	    <th scope="col">A+</th>
-	</tr>
-    </thead>
-    <tbody>
-	<tr>
-	    <th scope="row">Grade</th>
-	    <td id="histo_ap">0</td>
-	    <td id="histo_a">0</td>
-	    <td id="histo_am">0</td>
-	    <td id="histo_bp">0</td>
-	    <td id="histo_b">0</td>
-	    <td id="histo_bm">0</td>
-	    <td id="histo_cp">0</td>
-	    <td id="histo_c">0</td>
-	    <td id="histo_cm">0</td>
-	    <td id="histo_d">0</td>
-	    <td id="histo_f">0</td>
-	</tr>
-    </tbody>
-    
-
-</table>
+<div id="histogram"></div>
 {% endblock %}

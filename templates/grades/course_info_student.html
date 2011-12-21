@@ -4,13 +4,8 @@
 {% block h1 %}{{ course.subject }} {{ course.number }} Course Information{% endblock %}
 
 {% block grades_headextra %}
-<link rel="stylesheet" href="{{MEDIA_URL}}visualize/css/visualize.jQuery.css" type="text/css" />
-<!--[if IE]><script type="text/javascript" src="{{MEDIA_URL}}visualize/excanvas.compiled.js"></script><![endif]-->
-<script type="text/javascript" src="{{MEDIA_URL}}visualize/visualize.jQuery.js"></script>
 <script type="text/javascript">
     $(document).ready(function() {
-	$("table.data").hide();
-        $("table.data").visualize({'height': '200px'});
     });
 </script>
 {% endblock %}

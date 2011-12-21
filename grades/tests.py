@@ -358,31 +358,31 @@ class GradesTest(TestCase):
         student_grade_list = [10, 10, 10, 100, 100, 0, 0, 5, 20]
         grade_range_list = generate_grade_range_stat(student_grade_list, 10)
         res = [(i.grade_range, i.stud_count) for i in grade_range_list]
-        expect = [(u'0\u201310',3), (u'10\u201320',3), (u'20\u201330',1), (u'30\u201340',0), (u'40\u201350',0), (u'50\u201360',0), (u'60\u201370',0),(u'70\u201380',0),(u'80\u201390',0),(u'90\u2013100',2)]
+        expect = [(u'0\u201310%',3), (u'10\u201320%',3), (u'20\u201330%',1), (u'30\u201340%',0), (u'40\u201350%',0), (u'50\u201360%',0), (u'60\u201370%',0),(u'70\u201380%',0),(u'80\u201390%',0),(u'90\u2013100%',2)]
         self.assertEquals(res, expect)
 
         student_grade_list = [10, 10, 10, 100.01, 100, 0, 0, 5, 20]
         grade_range_list = generate_grade_range_stat(student_grade_list, 10)
         res = [(i.grade_range, i.stud_count) for i in grade_range_list]
-        expect = [(u'0\u201310',3), (u'10\u201320',3), (u'20\u201330',1), (u'30\u201340',0), (u'40\u201350',0), (u'50\u201360',0), (u'60\u201370',0),(u'70\u201380',0),(u'80\u201390',0),(u'90\u2013100',1),('>100',1)]
+        expect = [(u'0\u201310%',3), (u'10\u201320%',3), (u'20\u201330%',1), (u'30\u201340%',0), (u'40\u201350%',0), (u'50\u201360%',0), (u'60\u201370%',0),(u'70\u201380%',0),(u'80\u201390%',0),(u'90\u2013100%',1),('>100%',1)]
         self.assertEquals(res, expect)
 
         student_grade_list = [20, 20, 20, 20, 20, 20, 20, 20, 20]
         grade_range_list = generate_grade_range_stat(student_grade_list, 10)
         res = [(i.grade_range, i.stud_count) for i in grade_range_list]
-        expect = [(u'0\u201310',0), (u'10\u201320',0), (u'20\u201330',9), (u'30\u201340',0), (u'40\u201350',0), (u'50\u201360',0), (u'60\u201370',0),(u'70\u201380',0),(u'80\u201390',0),(u'90\u2013100',0)]
+        expect = [(u'0\u201310%',0), (u'10\u201320%',0), (u'20\u201330%',9), (u'30\u201340%',0), (u'40\u201350%',0), (u'50\u201360%',0), (u'60\u201370%',0),(u'70\u201380%',0),(u'80\u201390%',0),(u'90\u2013100%',0)]
         self.assertEquals(res, expect)
 
         student_grade_list = [-20, -20, -20, -20, -10, -10, -10, -10]
         grade_range_list = generate_grade_range_stat(student_grade_list, 10)
         res = [(i.grade_range, i.stud_count) for i in grade_range_list]
-        expect = [('<0',8), (u'0\u201310',0), (u'10\u201320',0), (u'20\u201330',0), (u'30\u201340',0), (u'40\u201350',0), (u'50\u201360',0), (u'60\u201370',0),(u'70\u201380',0),(u'80\u201390',0),(u'90\u2013100',0)]
+        expect = [('<0%',8), (u'0\u201310%',0), (u'10\u201320%',0), (u'20\u201330%',0), (u'30\u201340%',0), (u'40\u201350%',0), (u'50\u201360%',0), (u'60\u201370%',0),(u'70\u201380%',0),(u'80\u201390%',0),(u'90\u2013100%',0)]
         self.assertEquals(res, expect)
 
         student_grade_list = [-20.1, -20, -20, -20, -10, -10, -10, -10]
         grade_range_list = generate_grade_range_stat(student_grade_list, 10)
         res = [(i.grade_range, i.stud_count) for i in grade_range_list]
-        expect = [('<0',8), (u'0\u201310',0), (u'10\u201320',0), (u'20\u201330',0), (u'30\u201340',0), (u'40\u201350',0), (u'50\u201360',0), (u'60\u201370',0),(u'70\u201380',0),(u'80\u201390',0),(u'90\u2013100',0)]
+        expect = [('<0%',8), (u'0\u201310%',0), (u'10\u201320%',0), (u'20\u201330%',0), (u'30\u201340%',0), (u'40\u201350%',0), (u'50\u201360%',0), (u'60\u201370%',0),(u'70\u201380%',0),(u'80\u201390%',0),(u'90\u2013100%',0)]
         self.assertEquals(res, expect)
 
     def test_calc_letter(self):

@@ -321,9 +321,9 @@ def generate_grade_range_stat(student_grade_list, grade_range=10):
         return
     EPS = 1e-6
     
-    stats = [GradeRangeStat(u"<0", 0)] \
-            + [GradeRangeStat(u"%i\u2013%i" % (i*grade_range,(i+1)*grade_range), 0) for i in range(grade_range)] \
-            + [GradeRangeStat(u">100", 0)]
+    stats = [GradeRangeStat(u"<0%", 0)] \
+            + [GradeRangeStat(u"%i\u2013%i%%" % (i*grade_range,(i+1)*grade_range), 0) for i in range(grade_range)] \
+            + [GradeRangeStat(u">100%", 0)]
     for g in student_grade_list:
         # extreme cases:
         if g < 0:

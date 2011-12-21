@@ -10,16 +10,34 @@
 {% endspaceless %}{% endblock %}
 
 {% block grades_headextra %}
-<link rel="stylesheet" href="{{MEDIA_URL}}visualize/css/visualize.css" type="text/css" />
-<!--[if IE]><script type="text/javascript" src="{{MEDIA_URL}}visualize/excanvas.compiled.js"></script><![endif]-->
 <script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}visualize/visualize.jQuery.js"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
 <script type="text/javascript">
-    $(document).ready(function() {
-	$("table.data").hide();
-        $("table.data").visualize({'height': '300px', appendTitle: false, appendKey: false});
-        $("#details").collapsible();
-    });
+{% if activity_stat.count %}
+  google.load('visualization', '1.0', {'packages':['corechart']});
+  google.setOnLoadCallback(drawChart);
+  
+  var chart, data, rangetitle;
+  function drawChart() {
+    data = new google.visualization.DataTable();
+    data.addColumn('string', 'Range');
+    data.addColumn('number', 'Count');
+    data.addRows({{activity_stat.grade_range_stat_list|length}});
+
+    {% for grade_range_stat in activity_stat.grade_range_stat_list %}
+    data.setValue({{forloop.counter0}}, 0, '{{ grade_range_stat.grade_range|escapejs }}');
+    data.setValue({{forloop.counter0}}, 1, {{ grade_range_stat.stud_count|escapejs }});
+    {% endfor %}
+    
+    chart = new google.visualization.ColumnChart(document.getElementById('histogram'));
+    chart.draw(data, {width: 700, height: 400, axisTitlesPosition: 'none', legend: 'none'});
+  }
+
+{% endif %}
+  
+  $(document).ready(function() {
+    $("#details").collapsible();
+  });
 </script>
 {% endblock %}
 
@@ -135,44 +153,7 @@
 
 {% if activity_stat.count %}
 <h2 id="histo">Histogram</h2>
-<table class="data info" style="width: 550px; border-collapse: collapse;">
-    <caption>Grade Range</caption>
-    {% if activity.is_numeric %}
-    <thead>
-	<tr>
-	    <td></td>
-	    {% for grade_range_stat in activity_stat.grade_range_stat_list %}
-	    <th scope="col">{{ grade_range_stat.grade_range }}</th>
-	    {% endfor %}
-	</tr>
-    </thead>
-    <tbody>
-	<tr>
-	    <th scope="row">{{ activity.name }}</th>
-	    {% for grade_range_stat in activity_stat.grade_range_stat_list %}
-	    <td>{{ grade_range_stat.stud_count }}</td>
-	    {% endfor %}
-	</tr>
-    </tbody>
-    {% else %}
-    <thead>
-	<tr>
-	    <td></td>
-	    {% for grade_range_stat in activity_stat.grade_range_stat_list %}
-	    <th scope="col">{{ grade_range_stat.grade_range }}</th>
-	    {% endfor %}
-	</tr>
-    </thead>
-    <tbody>
-	<tr>
-	    <th scope="row">{{ activity.name }}</th>
-	    {% for grade_range_stat in activity_stat.grade_range_stat_list %}
-	    <td>{{ grade_range_stat.stud_count }}</td>
-	    {% endfor %}
-	</tr>
-    </tbody>
-    {% endif%}
-</table>
+<div id="histogram"></div>
 {% endif %}
 
 

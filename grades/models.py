@@ -180,6 +180,8 @@ class Activity(models.Model):
         """
         Returns True if this activity is not submittable because it is too old
         """
+        if not self.due_date:
+            return False
         now = datetime.now()
         return now - self.due_date >= timedelta(days=30)
     
