@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from forms import *
 from courselib.auth import *
+from courselib.search import get_query
 from coredata.models import *
 from log.models import LogEntry
 from django.core.urlresolvers import reverse
@@ -105,8 +106,6 @@ def members_list(request):
 
 @requires_global_role("SYSA")
 def edit_member(request, member_id=None):
-    offering_choices = [(c.id, unicode(c)) for c in CourseOffering.objects.filter(graded=True).exclude(component="CAN")]
-
     if member_id:
         member = get_object_or_404(Member, id=member_id)
     else:
@@ -114,7 +113,6 @@ def edit_member(request, member_id=None):
 
     if request.method == 'POST':
         form = MemberForm(request.POST, instance=member)
-        form.fields['offering'].choices = offering_choices
         if form.is_valid():
             form.save()
             #LOG EVENT#
@@ -128,7 +126,6 @@ def edit_member(request, member_id=None):
     else:
         form = MemberForm()
     
-    form.fields['offering'].choices = offering_choices
     return render(request, 'coredata/edit_member.html', {'form': form, 'member': member})
 
 
@@ -248,12 +245,13 @@ def offerings_search(request):
     term = request.GET['term']
     response = HttpResponse(mimetype='application/json')
     data = []
-    offerings = CourseOffering.objects.filter(search_text__icontains=term).select_related('semester')
+    query = get_query(term, ['subject', 'number', 'section', 'semester__name', 'title'])
+    offerings =  CourseOffering.objects.filter(query).exclude(component="CAN").select_related('semester')
     for o in offerings:
         label = o.search_label_value()
         d = {'value': o.id, 'label': label}
         data.append(d)
-    json.dump(data, response)
+    json.dump(data, response, indent=1)
     return response
 
 def offering_by_id(request):

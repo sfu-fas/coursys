@@ -263,7 +263,6 @@ class CourseOffering(models.Model):
     wait_tot = models.PositiveSmallIntegerField()
 
     members = models.ManyToManyField(Person, related_name="member", through="Member")
-    search_text = models.CharField(max_length=100, help_text="auto-generated string to use for searching course offerings")
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
       # c.config['url']: URL of course home page
       # c.config['department']: department responsible for course (used by discipline module)
@@ -346,14 +345,8 @@ class CourseOffering(models.Model):
             or cmp(self.subject, other.subject) \
             or cmp(self.number, other.number) \
             or cmp(self.section, other.section)
-    def _search_text_value(self):
-        return "%s (%s) %s" % (self.name(), self.semester.label(), self.title)
     def search_label_value(self):
         return "%s (%s)" % (self.name(), self.semester.label())
-    def save(self, *args, **kwargs):
-        # make sure the search_text is properly filled in
-        self.search_text = self._search_text_value()
-        super(CourseOffering, self).save(*args, **kwargs)
 
     class Meta:
         ordering = ['-semester', 'subject', 'number', 'section']
