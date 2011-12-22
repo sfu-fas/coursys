@@ -3,6 +3,7 @@ from autoslug import AutoSlugField
 from timezones.fields import TimeZoneField
 from coredata.models import Member, CourseOffering
 from dashboard.models import *
+from django.db import transaction
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.core.cache import cache
@@ -115,6 +116,7 @@ class Activity(models.Model):
             old = Activity.objects.get(id=self.id)
         except Activity.DoesNotExist:
             old = None
+        self.autoslug_model = Activity # demand that slugs are searched within Activity, not NumericActivity, etc.
         super(Activity, self).save(*args, **kwargs)
 
         if newsitem and old and self.status == 'RLS' and old != None and old.status != 'RLS':
@@ -126,6 +128,28 @@ class Activity(models.Model):
                       % (self.name, self.offering.name()),
                     'url': self.get_absolute_url()})
     
+    def safely_delete(self):
+        """
+        Do the actions to safely "delete" the activity.
+        """
+        with transaction.commit_on_success():
+            # mangle name and short-name so instructors can delete and replace
+            i = 1
+            while True:
+                suffix = "__%04i" % (i)
+                existing = Activity.objects.filter(offering=self.offering, name=self.name+suffix).count() \
+                        + Activity.objects.filter(offering=self.offering, short_name=self.short_name+suffix).count()
+                if existing == 0:
+                    break
+                i += 1
+
+            # update the activity
+            self.deleted = True
+            self.name = self.name + suffix
+            self.short_name = self.short_name + suffix
+            self.save()
+
+
     def display_label(self):
         if self.percent:
             return "%s (%s%%)" % (self.name, self.percent)

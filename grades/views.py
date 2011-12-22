@@ -917,8 +917,7 @@ def delete_activity(request, course_slug, activity_slug):
             # only instructors can delete
             return ForbiddenResponse(request, "Only instructors can delete activities")
     
-        activity.deleted = True
-        activity.save()
+        activity.safely_delete()
         messages.success(request, 'Activity deleted.  It can be restored by the system adminstrator in an emergency.')
 
         #LOG EVENT#

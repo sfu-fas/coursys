@@ -508,3 +508,30 @@ class GradesTest(TestCase):
         url = reverse('grades.views.activity_info', kwargs={'course_slug': c.slug, 'activity_slug': a.slug})
         response = basic_page_tests(self, client, url)
 
+
+    def test_replace_activity(self):
+        """
+        Can we safely replace an activity with one of the same name/shortname?
+        """
+        c = CourseOffering.objects.get(slug=self.course_slug)
+        a = NumericActivity(offering=c, name="Assign1", short_name="A1", status="RLS", group=False, deleted=False, max_grade=10)
+        a.save()
+        
+        a.safely_delete()
+        self.assertEqual(a.deleted, True)
+        self.assertNotEqual(a.name, 'Assign1')
+        self.assertNotEqual(a.short_name, 'A1')
+        
+        # replace with same type
+        a = CalNumericActivity(offering=c, name="Assign1", short_name="A1", status="URLS", group=True, deleted=False, max_grade=15)
+        a.save()
+        a.safely_delete()
+        
+        # replace with a different type
+        a = LetterActivity(offering=c, name="Assign1", short_name="A1", status="RLS", group=False, deleted=False)
+        a.save()
+        
+        
+        
+        
+

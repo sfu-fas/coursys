@@ -34,7 +34,12 @@ def generate_unique_slug(field, instance, slug):
     while True:
         # find instances with same slug
         lookups = dict(default_lookups, **{field.name: slug})
-        rivals = type(instance).objects.filter(**lookups).exclude(pk=instance.pk)
+        if hasattr(instance, 'autoslug_model'):
+            assert isinstance(instance, instance.autoslug_model)
+            ModelClass = instance.autoslug_model
+        else:
+            ModelClass = type(instance)
+        rivals = ModelClass.objects.filter(**lookups).exclude(pk=instance.pk)
 
         if not rivals:
             # the slug is unique, no model uses it
