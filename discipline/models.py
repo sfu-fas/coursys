@@ -289,7 +289,7 @@ class DisciplineCaseBase(models.Model):
         return str(self.id)
 
     def get_absolute_url(self):
-        return reverse('discipline.views.show', kwargs={'course_slug': self.student.offering.slug, 'case_slug': self.slug})
+        return reverse('discipline.views.show', kwargs={'course_slug': self.offering.slug, 'case_slug': self.slug})
     def get_origsection(self):
         if not self.origsection:
             # no cached section: look up

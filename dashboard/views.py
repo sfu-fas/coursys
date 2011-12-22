@@ -336,6 +336,12 @@ def calendar_data(request):
     """
     AJAX JSON results for the calendar (rendered by dashboard.views.calendar)
     """
+    try:
+        int(request.GET['start'])
+        int(request.GET['end'])
+    except (KeyError, ValueError):
+        return NotFoundResponse(request, errormsg="Bad request")
+
     user = get_object_or_404(Person, userid=request.user.username)
     local_tz = pytz.timezone(settings.TIME_ZONE)
     start = local_tz.localize(datetime.datetime.fromtimestamp(int(request.GET['start'])))-datetime.timedelta(days=1)

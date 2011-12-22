@@ -413,6 +413,16 @@ class TestImportFunctionsNumeric(TestCase):
         self.assertEqual(len(data_to_return), len(self.values))
         self.compare_grade_lists(data_to_return)
 
+    def test_import_grades_short_row(self):
+        inName = 'marking/testfiles/newformat_shortrow_userid.csv'
+        self.get_test_file(inName)
+        del self.values[0] # Delete header row
+        data_to_return = {}
+        with open(inName, 'r') as inp:
+             err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
+        self.assertEqual(err, None)
+        self.assertEqual(len(data_to_return), len(self.values)-1)
+
     def test_import_grades_new_format_junk_cols(self):
         inName = 'marking/testfiles/newformat_noprob_junk_cols.csv'
         self.get_test_file(inName)

@@ -1432,7 +1432,11 @@ def _import_CMS_output(fh, students_qset, data_to_return, userid_col, activity_c
         if data_to_return.has_key(target[0].userid):
             data_to_return.clear()
             return "Error found in file (row %s): Second entry found for student (%s)." % (row_num, row[userid_col])
-        data_to_return[target[0].userid] = row[activity_col]
+        try:
+            data_to_return[target[0].userid] = row[activity_col]
+        except IndexError:
+            # short row: no data
+            pass
     return None
 
 def _import_specific_file(fh, students_qset, data_to_return):
