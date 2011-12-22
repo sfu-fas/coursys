@@ -7,6 +7,7 @@ autoslug/fields.py
 autoslug/models.py
 autoslug/settings.py
 autoslug/tests.py
+autoslug/utils.py
 django_autoslug.egg-info/PKG-INFO
 django_autoslug.egg-info/SOURCES.txt
 django_autoslug.egg-info/dependency_links.txt

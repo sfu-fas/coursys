@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: django-autoslug
-Version: 1.3.4
+Version: 1.4.1
 Summary: An automated slug field for Django.
 Home-page: http://bitbucket.org/neithere/django-autoslug/
 Author: Andy Mikhailenko
