@@ -1,6 +1,9 @@
 # do the import with fake data for development
 # suggestion execution:
-#   rm db.sqlite; echo "no" | ./manage.py syncdb; ./manage.py migrate; echo "dbpassword" | python coredata/fake-importer.py
+#   mysql
+#     drop database coursysdemo;
+#     create database coursysdemo;
+#   ./manage.py syncdb; ./manage.py migrate; echo "dbpassword" | python coredata/demodata-importer.py
 
 import MySQLdb, random, string, socket, datetime, itertools
 from django.core import serializers
@@ -188,7 +191,7 @@ def main(passwd):
     print "giving sysadmin permissions"
     give_sysadmin(['ggbaker', 'sumo'])
     
-    serialize("new-test.json")
+    #serialize("new-test.json")
 
 
 if __name__ == "__main__":
