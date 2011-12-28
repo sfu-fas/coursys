@@ -20,7 +20,7 @@ class Migration(SchemaMigration):
             ('published', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
             ('updated', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
             ('url', self.gf('django.db.models.fields.URLField')(max_length=200, blank=True)),
-            ('read', self.gf('django.db.models.fields.BooleanField')(default=False, blank=True)),
+            ('read', self.gf('django.db.models.fields.BooleanField')(default=False)),
         ))
         db.send_create_signal('dashboard', ['NewsItem'])
 
@@ -29,7 +29,7 @@ class Migration(SchemaMigration):
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Person'])),
             ('key', self.gf('django.db.models.fields.CharField')(max_length=20, db_index=True)),
-            ('value', self.gf('django.db.models.fields.CharField')(max_length=200)),
+            ('value', self.gf('jsonfield.JSONField')(default={})),
         ))
         db.send_create_signal('dashboard', ['UserConfig'])
 
@@ -39,48 +39,52 @@ class Migration(SchemaMigration):
 
     def backwards(self, orm):
         
+        # Removing unique constraint on 'UserConfig', fields ['user', 'key']
+        db.delete_unique('dashboard_userconfig', ['user_id', 'key'])
+
         # Deleting model 'NewsItem'
         db.delete_table('dashboard_newsitem')
 
         # Deleting model 'UserConfig'
         db.delete_table('dashboard_userconfig')
 
-        # Removing unique constraint on 'UserConfig', fields ['user', 'key']
-        db.delete_unique('dashboard_userconfig', ['user_id', 'key'])
-
 
     models = {
         'coredata.courseoffering': {
-            'Meta': {'unique_together': "(('semester', 'subject', 'number', 'section'), ('semester', 'crse_id', 'section'), ('semester', 'class_nbr'))", 'object_name': 'CourseOffering'},
+            'Meta': {'ordering': "['-semester', 'subject', 'number', 'section']", 'unique_together': "(('semester', 'subject', 'number', 'section'), ('semester', 'crse_id', 'section'), ('semester', 'class_nbr'))", 'object_name': 'CourseOffering'},
             'campus': ('django.db.models.fields.CharField', [], {'max_length': '5'}),
             'class_nbr': ('django.db.models.fields.PositiveSmallIntegerField', [], {'db_index': 'True'}),
             'component': ('django.db.models.fields.CharField', [], {'max_length': '3'}),
+            'config': ('jsonfield.JSONField', [], {'default': '{}'}),
             'crse_id': ('django.db.models.fields.PositiveSmallIntegerField', [], {'db_index': 'True'}),
             'enrl_cap': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
             'enrl_tot': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
-            'graded': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
+            'graded': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'members': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'member'", 'through': "'Member'", 'to': "orm['coredata.Person']"}),
+            'members': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'member'", 'symmetrical': 'False', 'through': "orm['coredata.Member']", 'to': "orm['coredata.Person']"}),
             'number': ('django.db.models.fields.CharField', [], {'max_length': '4', 'db_index': 'True'}),
             'section': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
             'semester': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Semester']"}),
-            'slug': ('autoslug.fields.AutoSlugField', [], {'max_length': '50', 'unique': 'False', 'unique_with': '()', 'db_index': 'True'}),
+            'slug': ('autoslug.fields.AutoSlugField', [], {'unique': 'True', 'max_length': '50', 'populate_from': 'None', 'unique_with': '()', 'db_index': 'True'}),
             'subject': ('django.db.models.fields.CharField', [], {'max_length': '4', 'db_index': 'True'}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '30'}),
             'wait_tot': ('django.db.models.fields.PositiveSmallIntegerField', [], {})
         },
         'coredata.member': {
-            'Meta': {'unique_together': "(('person', 'offering', 'role'),)", 'object_name': 'Member'},
+            'Meta': {'ordering': "['offering', 'person']", 'object_name': 'Member'},
             'added_reason': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
             'career': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
+            'config': ('jsonfield.JSONField', [], {'default': '{}'}),
             'credits': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '3'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'labtut_section': ('django.db.models.fields.CharField', [], {'max_length': '4', 'null': 'True', 'blank': 'True'}),
             'offering': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.CourseOffering']"}),
             'person': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'person'", 'to': "orm['coredata.Person']"}),
             'role': ('django.db.models.fields.CharField', [], {'max_length': '4'})
         },
         'coredata.person': {
-            'Meta': {'object_name': 'Person'},
+            'Meta': {'ordering': "['last_name', 'first_name', 'userid']", 'object_name': 'Person'},
+            'config': ('jsonfield.JSONField', [], {'default': '{}'}),
             'emplid': ('django.db.models.fields.PositiveIntegerField', [], {'unique': 'True', 'db_index': 'True'}),
             'first_name': ('django.db.models.fields.CharField', [], {'max_length': '32'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
@@ -90,7 +94,7 @@ class Migration(SchemaMigration):
             'userid': ('django.db.models.fields.CharField', [], {'max_length': '8', 'unique': 'True', 'null': 'True', 'db_index': 'True'})
         },
         'coredata.semester': {
-            'Meta': {'object_name': 'Semester'},
+            'Meta': {'ordering': "['name']", 'object_name': 'Semester'},
             'end': ('django.db.models.fields.DateField', [], {}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '4', 'db_index': 'True'}),
@@ -103,7 +107,7 @@ class Migration(SchemaMigration):
             'course': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.CourseOffering']", 'null': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'published': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'read': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
+            'read': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'source_app': ('django.db.models.fields.CharField', [], {'max_length': '20'}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'updated': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
@@ -115,7 +119,7 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'key': ('django.db.models.fields.CharField', [], {'max_length': '20', 'db_index': 'True'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Person']"}),
-            'value': ('django.db.models.fields.CharField', [], {'max_length': '200'})
+            'value': ('jsonfield.JSONField', [], {'default': '{}'})
         }
     }
 

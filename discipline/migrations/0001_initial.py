@@ -13,7 +13,7 @@ class Migration(SchemaMigration):
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=60)),
             ('offering', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.CourseOffering'])),
-            ('slug', self.gf('autoslug.fields.AutoSlugField')(max_length=50, unique=False, unique_with=('offering',), db_index=True)),
+            ('slug', self.gf('autoslug.fields.AutoSlugField')(unique_with=(), max_length=50, populate_from=None, db_index=True)),
         ))
         db.send_create_signal('discipline', ['DisciplineGroup'])
 
@@ -27,7 +27,7 @@ class Migration(SchemaMigration):
             ('offering', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.CourseOffering'])),
             ('notes', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
             ('notes_public', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('slug', self.gf('autoslug.fields.AutoSlugField')(max_length=50, unique=False, unique_with=('offering',), db_index=True)),
+            ('slug', self.gf('autoslug.fields.AutoSlugField')(unique_with=(), max_length=50, populate_from=None, db_index=True)),
             ('group', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['discipline.DisciplineGroup'], null=True, blank=True)),
             ('contact_email_text', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
             ('contacted', self.gf('django.db.models.fields.CharField')(default='NONE', max_length=4)),
@@ -75,8 +75,27 @@ class Migration(SchemaMigration):
         # Adding model 'DisciplineCaseChair'
         db.create_table('discipline_disciplinecasechair', (
             ('disciplinecasebase_ptr', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['discipline.DisciplineCaseBase'], unique=True, primary_key=True)),
+            ('instr_case', self.gf('django.db.models.fields.related.ForeignKey')(default=0, to=orm['discipline.DisciplineCaseInstr'])),
         ))
         db.send_create_signal('discipline', ['DisciplineCaseChair'])
+
+        # Adding model 'DisciplineCaseChairStudent'
+        db.create_table('discipline_disciplinecasechairstudent', (
+            ('disciplinecasechair_ptr', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['discipline.DisciplineCaseChair'], unique=True, primary_key=True)),
+            ('student', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Person'])),
+        ))
+        db.send_create_signal('discipline', ['DisciplineCaseChairStudent'])
+
+        # Adding model 'DisciplineCaseChairNonStudent'
+        db.create_table('discipline_disciplinecasechairnonstudent', (
+            ('disciplinecasechair_ptr', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['discipline.DisciplineCaseChair'], unique=True, primary_key=True)),
+            ('emplid', self.gf('django.db.models.fields.PositiveIntegerField')(max_length=9, null=True, blank=True)),
+            ('userid', self.gf('django.db.models.fields.CharField')(max_length=8, null=True, blank=True)),
+            ('email', self.gf('django.db.models.fields.EmailField')(max_length=75)),
+            ('last_name', self.gf('django.db.models.fields.CharField')(max_length=32)),
+            ('first_name', self.gf('django.db.models.fields.CharField')(max_length=32)),
+        ))
+        db.send_create_signal('discipline', ['DisciplineCaseChairNonStudent'])
 
         # Adding model 'RelatedObject'
         db.create_table('discipline_relatedobject', (
@@ -146,6 +165,12 @@ class Migration(SchemaMigration):
         # Deleting model 'DisciplineCaseChair'
         db.delete_table('discipline_disciplinecasechair')
 
+        # Deleting model 'DisciplineCaseChairStudent'
+        db.delete_table('discipline_disciplinecasechairstudent')
+
+        # Deleting model 'DisciplineCaseChairNonStudent'
+        db.delete_table('discipline_disciplinecasechairnonstudent')
+
         # Deleting model 'RelatedObject'
         db.delete_table('discipline_relatedobject')
 
@@ -179,7 +204,7 @@ class Migration(SchemaMigration):
             'number': ('django.db.models.fields.CharField', [], {'max_length': '4', 'db_index': 'True'}),
             'section': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
             'semester': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Semester']"}),
-            'slug': ('autoslug.fields.AutoSlugField', [], {'max_length': '50', 'unique': 'False', 'unique_with': '()', 'db_index': 'True'}),
+            'slug': ('autoslug.fields.AutoSlugField', [], {'unique': 'True', 'max_length': '50', 'populate_from': 'None', 'unique_with': '()', 'db_index': 'True'}),
             'subject': ('django.db.models.fields.CharField', [], {'max_length': '4', 'db_index': 'True'}),
             'title': ('django.db.models.fields.CharField', [], {'max_length': '30'}),
             'wait_tot': ('django.db.models.fields.PositiveSmallIntegerField', [], {})
@@ -188,14 +213,17 @@ class Migration(SchemaMigration):
             'Meta': {'ordering': "['offering', 'person']", 'object_name': 'Member'},
             'added_reason': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
             'career': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
+            'config': ('jsonfield.JSONField', [], {'default': '{}'}),
             'credits': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '3'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'labtut_section': ('django.db.models.fields.CharField', [], {'max_length': '4', 'null': 'True', 'blank': 'True'}),
             'offering': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.CourseOffering']"}),
             'person': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'person'", 'to': "orm['coredata.Person']"}),
             'role': ('django.db.models.fields.CharField', [], {'max_length': '4'})
         },
         'coredata.person': {
             'Meta': {'ordering': "['last_name', 'first_name', 'userid']", 'object_name': 'Person'},
+            'config': ('jsonfield.JSONField', [], {'default': '{}'}),
             'emplid': ('django.db.models.fields.PositiveIntegerField', [], {'unique': 'True', 'db_index': 'True'}),
             'first_name': ('django.db.models.fields.CharField', [], {'max_length': '32'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
@@ -245,11 +273,26 @@ class Migration(SchemaMigration):
             'penalty_reason': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'refer': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'response': ('django.db.models.fields.CharField', [], {'default': "'WAIT'", 'max_length': '4'}),
-            'slug': ('autoslug.fields.AutoSlugField', [], {'max_length': '50', 'unique': 'False', 'unique_with': "('offering',)", 'db_index': 'True'})
+            'slug': ('autoslug.fields.AutoSlugField', [], {'unique_with': '()', 'max_length': '50', 'populate_from': 'None', 'db_index': 'True'})
         },
         'discipline.disciplinecasechair': {
             'Meta': {'object_name': 'DisciplineCaseChair', '_ormbases': ['discipline.DisciplineCaseBase']},
-            'disciplinecasebase_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['discipline.DisciplineCaseBase']", 'unique': 'True', 'primary_key': 'True'})
+            'disciplinecasebase_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['discipline.DisciplineCaseBase']", 'unique': 'True', 'primary_key': 'True'}),
+            'instr_case': ('django.db.models.fields.related.ForeignKey', [], {'default': '0', 'to': "orm['discipline.DisciplineCaseInstr']"})
+        },
+        'discipline.disciplinecasechairnonstudent': {
+            'Meta': {'object_name': 'DisciplineCaseChairNonStudent', '_ormbases': ['discipline.DisciplineCaseChair']},
+            'disciplinecasechair_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['discipline.DisciplineCaseChair']", 'unique': 'True', 'primary_key': 'True'}),
+            'email': ('django.db.models.fields.EmailField', [], {'max_length': '75'}),
+            'emplid': ('django.db.models.fields.PositiveIntegerField', [], {'max_length': '9', 'null': 'True', 'blank': 'True'}),
+            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '32'}),
+            'last_name': ('django.db.models.fields.CharField', [], {'max_length': '32'}),
+            'userid': ('django.db.models.fields.CharField', [], {'max_length': '8', 'null': 'True', 'blank': 'True'})
+        },
+        'discipline.disciplinecasechairstudent': {
+            'Meta': {'object_name': 'DisciplineCaseChairStudent', '_ormbases': ['discipline.DisciplineCaseChair']},
+            'disciplinecasechair_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['discipline.DisciplineCaseChair']", 'unique': 'True', 'primary_key': 'True'}),
+            'student': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Person']"})
         },
         'discipline.disciplinecaseinstr': {
             'Meta': {'object_name': 'DisciplineCaseInstr', '_ormbases': ['discipline.DisciplineCaseBase']},
@@ -274,7 +317,7 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '60'}),
             'offering': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.CourseOffering']"}),
-            'slug': ('autoslug.fields.AutoSlugField', [], {'max_length': '50', 'unique': 'False', 'unique_with': "('offering',)", 'db_index': 'True'})
+            'slug': ('autoslug.fields.AutoSlugField', [], {'unique_with': '()', 'max_length': '50', 'populate_from': 'None', 'db_index': 'True'})
         },
         'discipline.disciplinetemplate': {
             'Meta': {'ordering': "('field', 'label')", 'unique_together': "(('field', 'label'),)", 'object_name': 'DisciplineTemplate'},

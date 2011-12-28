@@ -53,7 +53,7 @@ class Migration(SchemaMigration):
             ('name', self.gf('django.db.models.fields.CharField')(max_length=40)),
             ('visibility', self.gf('django.db.models.fields.CharField')(default='ADMI', max_length=4)),
             ('active', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('slug', self.gf('autoslug.fields.AutoSlugField')(max_length=50, unique=False, unique_with=('semester',), db_index=True)),
+            ('slug', self.gf('autoslug.fields.AutoSlugField')(unique_with=(), max_length=50, populate_from=None, db_index=True)),
         ))
         db.send_create_signal('planning', ['SemesterPlan'])
 
@@ -127,6 +127,7 @@ class Migration(SchemaMigration):
     models = {
         'coredata.person': {
             'Meta': {'ordering': "['last_name', 'first_name', 'userid']", 'object_name': 'Person'},
+            'config': ('jsonfield.JSONField', [], {'default': '{}'}),
             'emplid': ('django.db.models.fields.PositiveIntegerField', [], {'unique': 'True', 'db_index': 'True'}),
             'first_name': ('django.db.models.fields.CharField', [], {'max_length': '32'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
@@ -175,7 +176,7 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '40'}),
             'semester': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Semester']"}),
-            'slug': ('autoslug.fields.AutoSlugField', [], {'max_length': '50', 'unique': 'False', 'unique_with': "('semester',)", 'db_index': 'True'}),
+            'slug': ('autoslug.fields.AutoSlugField', [], {'unique_with': '()', 'max_length': '50', 'populate_from': 'None', 'db_index': 'True'}),
             'visibility': ('django.db.models.fields.CharField', [], {'default': "'ADMI'", 'max_length': '4'})
         },
         'planning.teachingcapability': {
