@@ -463,28 +463,26 @@ def remove_student(request, course_slug, group_slug):
 
 @requires_course_staff_by_slug
 def change_name(request, course_slug, group_slug):
-    #Change the group's name
-    course = get_object_or_404(CourseOffering, slug = course_slug)
-    group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
+    "Change the group's name"
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    group = get_object_or_404(Group, courseoffering=course, slug=group_slug)
+    oldname = group.name #used for log information
     if request.method == "POST":
-        groupForm = GroupForm(request.POST)
+        groupForm = GroupNameForm(request.POST, instance=group)
         if groupForm.is_valid():
-            oldname = group.name #used for log information
-            group.name = groupForm.cleaned_data['name']
-            group.save()
+            groupForm.save()
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
             description="changed name of group %s to %s for course %s." % (oldname, group.name, group.courseoffering),
             related_object=group)
             l.save()
-        else:
-            messages.add_message(request, messages.ERROR, "New group name is not valid.")
-        return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('groups.views.groupmanage', kwargs={'course_slug': course_slug}))
 
     else:
-        groupForm = GroupForm(instance = group)
-        return render_to_response("groups/change_name.html", \
-                                  {'groupForm' : groupForm, 'course' : course, 'group' : group}, \
+        groupForm = GroupNameForm(instance=group)
+
+    return render_to_response("groups/change_name.html", \
+                                  {'groupForm': groupForm, 'course': course, 'group': group}, 
                                   context_instance=RequestContext(request))
 
 

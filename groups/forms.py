@@ -5,10 +5,20 @@ from coredata.models import Person
 from django.forms.util import flatatt
 from groups.models import Group
 
-class GroupForm(ModelForm):
+class GroupNameForm(ModelForm):
     class Meta:
         model = Group
         fields = ['name']
+    
+    def clean_name(self):
+        # can't have another group in the course with the same name
+        name = self.cleaned_data['name']
+        others = Group.objects.filter(courseoffering=self.instance.courseoffering, name=name) \
+                .exclude(id=self.instance.id)
+        if others:
+            raise forms.ValidationError("There is already another group with that name.")
+
+        return name
 
 
 
