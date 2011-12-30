@@ -9,6 +9,9 @@ COMMON_TIMEZONE_CHOICES = tuple(zip(pytz.common_timezones, pytz.common_timezones
 PRETTY_TIMEZONE_CHOICES = []
 
 for tz in pytz.common_timezones:
+    if tz == 'Pacific/Apia':
+        # temporarily work around bug in Python: https://bugs.launchpad.net/pytz/+bug/885163
+        continue
     now = datetime.now(pytz.timezone(tz))
     ofs = now.strftime("%z")
     PRETTY_TIMEZONE_CHOICES.append((int(ofs), tz, "(GMT%s) %s" % (ofs, tz)))
