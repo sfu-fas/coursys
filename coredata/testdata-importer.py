@@ -16,8 +16,8 @@ from groups.models import Group, GroupMember
 
 FIRSTTERM = "1111"
 DATA_WHERE = '(subject="CMPT" or subject="MACM") and strm>="'+FIRSTTERM+'"'
-FULL_TEST_DATA = "2011fa-cmpt-165-c1"
-MIN_TEST_DATA = "2011fa-cmpt-470-e1"
+FULL_TEST_DATA = "2012sp-cmpt-165-c1"
+MIN_TEST_DATA = "2012sp-cmpt-383-e2"
 
 fakes = {}
 next_emplid = 100
