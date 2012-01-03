@@ -864,7 +864,7 @@ def edit_activity(request, course_slug, activity_slug):
                     return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
                 else:
                     return HttpResponseRedirect(reverse('grades.views.activity_info',
-                                                        kwargs={'course_slug': course_slug, 'activity_slug': activity_slug}))
+                                                        kwargs={'course_slug': course_slug, 'activity_slug': activity.slug}))
             else:
                 messages.error(request, "Please correct the error below")
         else:

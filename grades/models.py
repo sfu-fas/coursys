@@ -8,7 +8,7 @@ from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.core.cache import cache
 from django.utils.safestring import mark_safe
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter
 import decimal, json
@@ -116,6 +116,11 @@ class Activity(models.Model):
             old = Activity.objects.get(id=self.id)
         except Activity.DoesNotExist:
             old = None
+        
+        # reset slugs before semester starts
+        if self.offering.semester.start > date.today():
+            self.slug = None
+        
         self.autoslug_model = Activity # demand that slugs are searched within Activity, not NumericActivity, etc.
         super(Activity, self).save(*args, **kwargs)
 
