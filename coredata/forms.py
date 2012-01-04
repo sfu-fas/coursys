@@ -28,7 +28,7 @@ class OfferingField(forms.ModelChoiceField):
         
     def to_python(self, value):
         try:
-            co = CourseOffering.objects.get(pk=value, graded=True).exclude(component="CAN")
+            co = CourseOffering.objects.exclude(component="CAN").get(pk=value, graded=True)
         except (ValueError, CourseOffering.DoesNotExist):
             raise forms.ValidationError("Unknown course offering selectted")
         return co
