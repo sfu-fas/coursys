@@ -246,7 +246,7 @@ def offerings_search(request):
     response = HttpResponse(mimetype='application/json')
     data = []
     query = get_query(term, ['subject', 'number', 'section', 'semester__name', 'title'])
-    offerings =  CourseOffering.objects.filter(query).exclude(component="CAN").select_related('semester')
+    offerings = CourseOffering.objects.filter(query).exclude(component="CAN").select_related('semester')
     for o in offerings:
         label = o.search_label_value()
         d = {'value': o.id, 'label': label}

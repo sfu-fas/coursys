@@ -28,7 +28,7 @@ class OfferingField(forms.ModelChoiceField):
         
     def to_python(self, value):
         try:
-            co = CourseOffering.objects.get(pk=value)
+            co = CourseOffering.objects.get(pk=value, graded=True).exclude(component="CAN")
         except (ValueError, CourseOffering.DoesNotExist):
             raise forms.ValidationError("Unknown course offering selectted")
         return co
@@ -69,8 +69,22 @@ class PersonForm(forms.ModelForm):
     emplid = forms.CharField(max_length=9,
                     help_text='Employee ID (i.e. student number).  Enter a number starting with "0000" if unknown: will be filled in based on userid at next import',
                     widget=forms.TextInput(attrs={'size':'9'}))
+    email = forms.CharField(max_length=50,
+                    help_text='Person\'s email address (if not userid@sfu.ca)',
+                    widget=forms.TextInput(attrs={'size':'20'}))
     class Meta:
         model = Person
+        exclude = ['config']
+    
+    def clean_email(self):
+        """
+        Get the email address into the config, where it belongs
+        """
+        email = self.cleaned_data['email']
+        if email:
+            self.instance.set_email(email)
+        return email
+    
 
 class InstrRoleForm(forms.Form):
     ROLE_CHOICES = [
