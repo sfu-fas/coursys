@@ -263,3 +263,58 @@ def eval_parse(tree, activity, act_dict, member, visible):
         raise EvalException, "Unknown element in parse tree: %s"%(tree,)
     
 
+def create_display(tree, act_dict):
+    if isinstance(tree, basestring):
+        return unicode(tree)
+        
+    t = tree[0]
+    if t == 'sign' and tree[2] == '+':
+        return create_display(tree[3])
+    elif t == 'sign' and tree[2] == '-':
+        return '-' + create_display(tree[3])
+    elif t == 'col':
+        act = act_dict[tree[2]]
+        part = tree[3]
+        if part=="val":
+            return '[' + act.name + ']'
+        elif part=="max":
+            return unicode(act.max_grade)
+        elif part=="per":
+            if act.percent:
+                return unicode(act.percent)
+            else:
+                return "0.0"
+        elif part=="fin":
+            if act.percent:
+                return "[%s]/%s*%s" % (act.name, act.max_grade, act.percent)
+            else:
+                return "0"
+    
+    elif t == 'num':
+        return unicode(tree[2])
+    elif t == 'expr':
+        return '('  + ' '.join((create_display(e, act_dict) for e in tree[2:])) + ')'
+    elif t == 'func':
+        if tree[2] == 'BEST':
+            return 'BESTOF'
+        else:
+            return tree[2] + '(' + ', '.join((create_display(e, act_dict) for e in tree[3:])) + ')'
+    elif t == 'flag':
+        flag = tree[2]
+        if flag == 'activitytotal':
+            return "ATOTAL"
+        else:
+            raise EvalException, "Unknown flag in parse tree: %s"%(func,)
+    else:
+        raise EvalException, "Unknown element in parse tree: %s"%(tree,)
+
+
+def display_formula(activity, activities):
+    """
+    Return user-understandable version of this activity's formula
+    """
+    tree = parse(activity.formula, activity.offering, activity)
+    act_dict = activities_dictionary(activities)
+    return unicode(create_display(tree, act_dict))
+
+

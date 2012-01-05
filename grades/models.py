@@ -323,6 +323,10 @@ class CalNumericActivity(NumericActivity):
         verbose_name_plural = "cal numeric activities"
     def type_long(self):
         return "Calculated Numeric Grade"
+    def formula_display(self):
+        from grades.formulas import display_formula
+        activities = all_activities_filter(self.offering)
+        return display_formula(self, activities)
 
 class CalLetterActivity(LetterActivity):
     """
