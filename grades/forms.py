@@ -198,7 +198,7 @@ class CalNumericActivityForm(ActivityForm):
     max_grade = forms.DecimalField(max_digits=5, decimal_places=2, label=mark_safe('Maximum grade:' + _required_star),
                                    help_text='maximum grade of the calculated result',
                                    widget=forms.TextInput(attrs={'size':'3'}))
-    formula = forms.CharField(max_length=250, label=mark_safe('Formula:'+_required_star),
+    formula = forms.CharField(max_length=2000, label=mark_safe('Formula:'+_required_star),
                     help_text=mark_safe('formula to calculate the numeric grade: see <a href="#help">formula help</a> below for more info'),
                     widget=forms.Textarea(attrs={'rows':'6', 'cols':'40'}))
     showstats = forms.BooleanField(initial=True, required=False,
