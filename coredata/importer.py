@@ -529,6 +529,7 @@ def combine_sections(db):
         course.tot_total = tot_total
         course.wait_total = wait_total
         course.set_labtut(labtut)
+        course.set_combined(True)
         course.save()
 
 

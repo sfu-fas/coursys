@@ -269,12 +269,14 @@ class CourseOffering(models.Model):
       # c.config['taemail']: TAs' contact email (if not their personal email)
       # c.config['labtut']: are there lab sections? (default False)
       # c.config['indiv_svn']: do instructors/TAs have access to student SVN repos? (default False)
+      # c.config['combined']: is this a combined section (e.g. two crosslisted sections integrated)
     
-    defaults = {'taemail': None, 'url': None, 'labtut': False, 'indiv_svn': False}
+    defaults = {'taemail': None, 'url': None, 'labtut': False, 'indiv_svn': False, 'combined': False}
     labtut, set_labtut = getter_setter('labtut')
     url, set_url = getter_setter('url')
     taemail, set_taemail = getter_setter('taemail')
     indiv_svn, set_indiv_svn = getter_setter('indiv_svn')
+    combined, set_combined = getter_setter('combined')
     
     def autoslug(self):
         # changed slug format for fall 2011
