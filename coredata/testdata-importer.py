@@ -5,7 +5,7 @@
 import MySQLdb, random, string, socket, datetime, itertools
 from django.core import serializers
 from importer import import_host, import_name, import_user, import_port
-from importer import give_sysadmin, create_semesters, import_offerings, import_instructors, import_meeting_times
+from importer import give_sysadmin, create_semesters, import_offerings, import_instructors, import_meeting_times, combine_sections
 from coredata.models import Member, Person, CourseOffering, Semester, SemesterWeek, MeetingTime, Role
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity
 from submission.models.base import SubmissionComponent
@@ -14,13 +14,33 @@ from submission.models.pdf import PDFComponent
 from marking.models import ActivityComponent
 from groups.models import Group, GroupMember
 
-FIRSTTERM = "1111"
+FIRSTTERM = "1121"
 DATA_WHERE = '(subject="CMPT" or subject="MACM") and strm>="'+FIRSTTERM+'"'
 FULL_TEST_DATA = "2012sp-cmpt-165-c1"
 MIN_TEST_DATA = "2012sp-cmpt-383-e2"
 
 fakes = {}
 next_emplid = 100
+
+def get_combined():
+    combined_sections = [
+        {
+            'subject': 'CMPT', 'number': '165', 'section': 'X100',
+            'semester': Semester.objects.get(name="1121"),
+            'component': 'LEC', 'graded': True, 
+            'crse_id': 32757, 'class_nbr': 32757,
+            'title': 'Intro Internet/WWW (combined)',
+            'campus': 'BRNBY',
+            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+            'config': {},
+            'subsections': [
+                CourseOffering.objects.get(slug='2012sp-cmpt-165-c1'),
+                CourseOffering.objects.get(slug='2012sp-cmpt-165-c2'),
+                CourseOffering.objects.get(slug='2012sp-cmpt-165-c3')
+            ]
+        },
+        ]
+    return combined_sections
 
 def fake_emplid(emplid=None):
     """
@@ -226,8 +246,8 @@ def main(passwd):
     
     print "creating fake classess"
     create_classes()
-    
     create_others()
+    combine_sections(db, get_combined())
 
     print "giving sysadmin permissions"
     give_sysadmin(['ggbaker', 'sumo'])

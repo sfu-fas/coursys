@@ -99,6 +99,35 @@ def get_combined():
                 CourseOffering.objects.get(slug='2011fa-cmpt-711-g1')
             ]
         },
+        {
+            'subject': 'CMPT', 'number': '165', 'section': 'C000',
+            'semester': Semester.objects.get(name="1121"),
+            'component': 'LEC', 'graded': True, 
+            'crse_id': 32757, 'class_nbr': 32757,
+            'title': 'Intro Internet/WWW (combined)',
+            'campus': 'BRNBY',
+            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+            'config': {},
+            'subsections': [
+                CourseOffering.objects.get(slug='2012sp-cmpt-165-c1'),
+                CourseOffering.objects.get(slug='2012sp-cmpt-165-c2'),
+                CourseOffering.objects.get(slug='2012sp-cmpt-165-c3')
+            ]
+        },
+        {
+            'subject': 'MACM', 'number': '101', 'section': 'X100',
+            'semester': Semester.objects.get(name="1121"),
+            'component': 'LEC', 'graded': True, 
+            'crse_id': 32756, 'class_nbr': 32756,
+            'title': 'Discrete Math I (combined)',
+            'campus': 'BRNBY',
+            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+            'config': {},
+            'subsections': [
+                CourseOffering.objects.get(slug='2012sp-macm-101-d1'),
+                CourseOffering.objects.get(slug='2012sp-macm-101-d2')
+            ]
+        },
         ]
     return combined_sections
 
@@ -473,11 +502,11 @@ def import_offering(db, tadb, offering):
     
     
 @transaction.commit_on_success
-def combine_sections(db):
+def combine_sections(db, combined):
     """
     Combine sections in the database to co-offered courses look the same.
     """
-    for info in get_combined():
+    for info in combined:
         # create the section if necessary
         courses = CourseOffering.objects.filter(subject=info['subject'], number=info['number'], section=info['section'], semester=info['semester'], component=info['component'], campus=info['campus'])
         if courses:
@@ -574,7 +603,7 @@ def main():
         time.sleep(0.5)
     
     print "combining joint offerings"
-    combine_sections(db)
+    combine_sections(db, get_combined())
     
     print "giving sysadmin permissions"
     give_sysadmin(sysadmin)
