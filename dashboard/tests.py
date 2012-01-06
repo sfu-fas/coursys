@@ -12,7 +12,7 @@ import re
 class DashboardTest(TestCase):
     fixtures = ['test_data']
     def setUp(self):
-        self.c_slug = '2011fa-cmpt-165-c1'
+        self.c_slug = TEST_COURSE_SLUG
 
     def test_front_page(self):
         # log in as student in the course

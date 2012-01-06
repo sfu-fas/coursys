@@ -24,9 +24,9 @@ from views import _compose_imported_grades, _strip_email_userid
 
 from settings import CAS_SERVER_URL
 
-from courselib.testing import basic_page_tests
+from courselib.testing import basic_page_tests, TEST_COURSE_SLUG
 
-TEST_COURSE_SLUG = '2011fa-cmpt-165-c1'
+
 
 class BasicTest(TestCase):
     fixtures = ['test_data']    
@@ -182,7 +182,7 @@ class BasicTest(TestCase):
         group_mark.setMark(MARK)
         group_mark.save()
         
-        num_grades = NumericGrade.objects.filter(activity = a)
+        num_grades = NumericGrade.objects.filter(activity = a).order_by('member__person__userid')
         self.assertEquals(len(num_grades), 2)
         self.assertEquals(num_grades[0].member, stud1)        
         self.assertEquals(num_grades[0].value, MARK)     
@@ -580,7 +580,7 @@ class TestImportViews(TestCase):
 	post_data={'0aaa0-value':STUD1_GRADE, '0aaa1-value':STUD2_GRADE}
         response = self.client.post(url, post_data, follow=True)
         self.assertEquals(response.status_code, 200)
-        num_grades = NumericGrade.objects.filter(activity = self.a1)
+        num_grades = NumericGrade.objects.filter(activity = self.a1).order_by('member__person__userid')
         self.assertEquals(len(num_grades), 2)
         self.check_student_db_grade(num_grades[0], stud1, STUD1_GRADE)
         self.check_student_db_grade(num_grades[1], stud2, STUD2_GRADE)
@@ -622,7 +622,7 @@ class TestImportViewsLet(TestCase):
 	post_data={'0aaa0-value':STUD1_GRADE, '0aaa1-value':STUD2_GRADE}
         response = self.client.post(url, post_data, follow=True)
         self.assertEquals(response.status_code, 200)
-        let_grades = LetterGrade.objects.filter(activity = self.a1)
+        let_grades = LetterGrade.objects.filter(activity = self.a1).order_by('member__person__userid')
         self.assertEquals(len(let_grades), 2)
         self.check_student_db_grade(let_grades[0], stud1, STUD1_GRADE)
         self.check_student_db_grade(let_grades[1], stud2, STUD2_GRADE)

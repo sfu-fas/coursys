@@ -38,7 +38,7 @@ class GradesTest(TestCase):
     fixtures = ['test_data']
     
     def setUp(self):
-        self.course_slug="2011fa-cmpt-165-c1"
+        self.course_slug=TEST_COURSE_SLUG
 
     def test_formulas(self):
         """
@@ -393,7 +393,7 @@ class GradesTest(TestCase):
         na = NumericActivity(name="Assignment 1", short_name="A1", status="RLS", offering=c, position=2, max_grade=15, percent=10, group=False)
         na.save()
         
-        a = CalLetterActivity(offering=c, name="A1 Letter", short_name="A1L", status="RLS", numeric_activity=na, exam_activity=None)
+        a = CalLetterActivity(offering=c, name="A1 Letter", short_name="A1L", status="RLS", numeric_activity=na, exam_activity=None, position=3)
         a.save()
         
         # test cutoff getter/setter
@@ -478,7 +478,7 @@ class GradesTest(TestCase):
         Test activities out of zero
         """
         c = CourseOffering.objects.get(slug=self.course_slug)
-        a = NumericActivity(offering=c, name="AZero", short_name="AZ", status="RLS", group=False, deleted=False, max_grade=0)
+        a = NumericActivity(offering=c, name="AZero", short_name="AZ", status="RLS", group=False, deleted=False, max_grade=0, position=1)
         a.save()
         stud = c.member_set.filter(role="STUD")[0]
         
@@ -514,7 +514,7 @@ class GradesTest(TestCase):
         Can we safely replace an activity with one of the same name/shortname?
         """
         c = CourseOffering.objects.get(slug=self.course_slug)
-        a = NumericActivity(offering=c, name="Assign1", short_name="A1", status="RLS", group=False, deleted=False, max_grade=10)
+        a = NumericActivity(offering=c, name="Assign1", short_name="A1", status="RLS", group=False, deleted=False, max_grade=10, position=1)
         a.save()
         
         a.safely_delete()
@@ -523,12 +523,12 @@ class GradesTest(TestCase):
         self.assertNotEqual(a.short_name, 'A1')
         
         # replace with same type
-        a = CalNumericActivity(offering=c, name="Assign1", short_name="A1", status="URLS", group=True, deleted=False, max_grade=15)
+        a = CalNumericActivity(offering=c, name="Assign1", short_name="A1", status="URLS", group=True, deleted=False, max_grade=15, position=2)
         a.save()
         a.safely_delete()
         
         # replace with a different type
-        a = LetterActivity(offering=c, name="Assign1", short_name="A1", status="RLS", group=False, deleted=False)
+        a = LetterActivity(offering=c, name="Assign1", short_name="A1", status="RLS", group=False, deleted=False, position=3)
         a.save()
         
         
