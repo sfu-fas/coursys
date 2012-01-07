@@ -17,6 +17,7 @@
 		    null,
 		    null,
 		    null,
+		    {% if course.combined %}null,{% endif %}
 		    {% if course.labtut %}null,{% endif %}
 		    null,
 		]
@@ -39,6 +40,7 @@
                 <th scope="col">First Name</th>
 		<th scope="col">User ID</th>
 		<th scope="col">Student #</th>
+		{% if course.combined %}<th scope="col">Section</th>{% endif %}
 		{% if course.labtut %}<th scope="col">Lab/Tutorial</th>{% endif %}
 		<th scope="col">Group(s)</th>
             </tr>
@@ -50,6 +52,7 @@
             <td scope="row">{{data.member.person.first_name}}</td>
             <td>{{data.member.person.userid}}</td>
             <td><a href="{{data.member.get_absolute_url}}">{{data.member.person.emplid}}</a></td>
+            {% if course.combined %}<td>{{data.member.config.origsection|slice:"-2:"|upper}}</td>{% endif %}
             {% if course.labtut %}<td>{{data.member.labtut_section}}</td>{% endif %}
             <td>{% for g in data.groups %}
             <a href="{{g.get_absolute_url}}">{{g.name}}</a>{% if not forloop.last %},{% endif %}
