@@ -11,8 +11,8 @@ from django.utils.safestring import mark_safe
 from datetime import datetime, timedelta, date
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter
+from courselib.slugs import make_slug
 import decimal, json
-import unidecode
 
 FLAG_CHOICES = [
     ('NOGR', 'no grade'),
@@ -66,11 +66,13 @@ class Activity(models.Model):
     Generic activity (i.e. column in the gradebook that can have a value assigned for each student).
     This should never be instantiated directly: only its sublcasses should.
     """
+    objects = models.Manager()
+    
     name = models.CharField(max_length=30, db_index=True, help_text='Name of the activity.')
     short_name = models.CharField(max_length=15, db_index=True, help_text='Short-form name of the activity.')
     def autoslug(self):
-        return unidecode.unidecode(self.short_name)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='offering')
+        return make_slug(self.short_name)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='offering', manager=objects)
     status = models.CharField(max_length=4, null=False, choices=ACTIVITY_STATUS_CHOICES, help_text='Activity status.')
     due_date = models.DateTimeField(null=True, help_text='Activity due date')
     percent = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
@@ -121,7 +123,6 @@ class Activity(models.Model):
         if self.offering.semester.start > date.today():
             self.slug = None
         
-        self.autoslug_model = Activity # demand that slugs are searched within Activity, not NumericActivity, etc.
         super(Activity, self).save(*args, **kwargs)
 
         if newsitem and old and self.status == 'RLS' and old != None and old.status != 'RLS':

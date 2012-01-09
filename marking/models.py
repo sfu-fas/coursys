@@ -12,8 +12,8 @@ from submission.models import select_all_components
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from autoslug import AutoSlugField
+from courselib.slugs import make_slug
 import os.path, decimal
-import unidecode
 
 MarkingSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
@@ -29,7 +29,7 @@ class ActivityComponent(models.Model):
     # set this flag if it is deleted by the user
     deleted = models.BooleanField(null = False, db_index = True, default = False)
     def autoslug(self):
-        return unidecode.unidecode(self.title)
+        return make_slug(self.title)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='numeric_activity')
     
     def __unicode__(self):        

@@ -12,8 +12,8 @@ from django.core.files.storage import FileSystemStorage
 from django.utils.text import wrap
 from django.conf import settings
 from django.shortcuts import get_object_or_404
+from courselib.slugs import make_slug
 import string, os, datetime, json
-import unidecode
 
 CONTACT_CHOICES = (
         ('NONE', 'Not yet contacted'),
@@ -181,7 +181,7 @@ class DisciplineGroup(models.Model):
             help_text='An arbitrary "name" for this cluster of cases')
     offering = models.ForeignKey(CourseOffering, help_text="The course this cluster is associated with")
     def autoslug(self):
-        return unidecode.unidecode(self.name)
+        return make_slug(self.name)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='offering')
     
     def __unicode__(self):
