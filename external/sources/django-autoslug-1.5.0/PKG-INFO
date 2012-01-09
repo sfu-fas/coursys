@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: django-autoslug
-Version: 1.4.1
+Version: 1.5.0
 Summary: An automated slug field for Django.
 Home-page: http://bitbucket.org/neithere/django-autoslug/
 Author: Andy Mikhailenko
@@ -22,26 +22,26 @@ Description: django-autoslug
         
         A simple example::
         
-        from django.db.models import CharField, Model
-        from autoslug import AutoSlugField
+            from django.db.models import CharField, Model
+            from autoslug import AutoSlugField
         
-        class Article(Model):
-        title = CharField(max_length=200)
-        slug = AutoSlugField(populate_from='title')
+            class Article(Model):
+                title = CharField(max_length=200)
+                slug = AutoSlugField(populate_from='title')
         
         More complex example::
         
-        from django.db.models import CharField, DateField, ForeignKey, Model
-        from django.contrib.auth.models import User
-        from autoslug import AutoSlugField
+            from django.db.models import CharField, DateField, ForeignKey, Model
+            from django.contrib.auth.models import User
+            from autoslug import AutoSlugField
         
-        class Article(Model):
-        title = CharField(max_length=200)
-        pub_date = DateField(auto_now_add=True)
-        author = ForeignKey(User)
-        slug = AutoSlugField(populate_from=lambda instance: instance.title,
-        unique_with=['author__name', 'pub_date__month'],
-        slugify=lambda value: value.replace(' ','-'))
+            class Article(Model):
+                title = CharField(max_length=200)
+                pub_date = DateField(auto_now_add=True)
+                author = ForeignKey(User)
+                slug = AutoSlugField(populate_from=lambda instance: instance.title,
+                                     unique_with=['author__name', 'pub_date__month'],
+                                     slugify=lambda value: value.replace(' ','-'))
         
         Documentation
         -------------
@@ -54,9 +54,11 @@ Description: django-autoslug
         ---------
         
         This application was initially created by Andy Mikhailenko and then improved
-        by other developers. They are listed in the AUTHORS file.
+        by other developers. They are listed in :file:`AUTHORS`.
         
         Please feel free to file issues and/or submit patches.
+        
+        See :file:`CONTRIBUTING` for hints related to the preferred workflow.
         
         Licensing
         ---------

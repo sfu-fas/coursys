@@ -2,7 +2,6 @@ README
 setup.cfg
 setup.py
 autoslug/__init__.py
-autoslug/__version.py
 autoslug/fields.py
 autoslug/models.py
 autoslug/settings.py
