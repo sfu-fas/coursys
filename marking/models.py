@@ -496,6 +496,10 @@ def activity_marks_from_JSON(activity, userid, data):
     activity_marks = []
     activity_component_marks = []
     numeric_grades = []
+    combine = False # are we combining these marks with existing (as opposed to overwriting)?
+    if 'combine' in data and data['combine'] == True:
+        combine = True
+
     for markdata in data['marks']:
         if not isinstance(markdata, dict):
             raise ValidationError(u'Elements of array must be JSON objects.')
@@ -521,6 +525,16 @@ def activity_marks_from_JSON(activity, userid, data):
         else:
             raise ValidationError(u'Must specify "userid" or "group" for mark.')
 
+        if combine:
+            # if we're being asked to combine with old marks, get the old one (if exists)
+            try:
+                if activity.group:
+                    old_am = get_group_mark(activity, group)
+                else:
+                    old_am = get_activity_mark_for_student(activity, member)
+            except NumericGrade.DoesNotExist:
+                old_am = None
+
         activity_marks.append(am)
 
         # build ActivityComponentMarks
@@ -530,6 +544,13 @@ def activity_marks_from_JSON(activity, userid, data):
         mark_penalty = decimal.Decimal(0)
         mark_penalty_reason = ""
         overall_comment = ""
+
+        if combine and old_am:
+            late_percent = old_am.late_penalty
+            mark_penalty = old_am.mark_adjustment
+            mark_penalty_reason = old_am.mark_adjustment_reason
+            overall_comment = old_am.overall_comment
+
         for slug in markdata:
             # handle special-case slugs (that don't represent MarkComponents)
             if slug in ['userid', 'group']:
@@ -586,8 +607,13 @@ def activity_marks_from_JSON(activity, userid, data):
             # handle missing components
             cm = ActivityComponentMark(activity_mark=am, activity_component=components[slug])
             activity_component_marks.append(cm)
-            cm.value = decimal.Decimal(0)
-            cm.comment = ''
+            if combine and old_am:
+                old_cm = ActivityComponentMark.objects.get(activity_mark=old_am, activity_component=components[slug])
+                cm.value = old_cm.value
+                cm.comment = old_cm.comment
+            else:                
+                cm.value = decimal.Decimal(0)
+                cm.comment = ''
         
         am.late_penalty = late_percent
         am.mark_adjustment = mark_penalty

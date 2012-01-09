@@ -9,6 +9,15 @@
 
 {% block marking_subbreadcrumbs %}<li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Import Marking Details</li>{% endblock %}
 
+{% block actions %}
+<div id="actions">
+  <h2 class="heading">Actions</h2>
+  <ul>
+    <li><a href="{% url marking.views.export_marks course_slug=course.slug activity_slug=activity.slug %}">Export Current Marks</a></li>
+  </ul>
+</div>
+{% endblock %}
+
 {% block content %}
 <form action="{% url marking.views.import_marks course_slug=course.slug activity_slug=activity.slug %}" method="post" enctype="multipart/form-data">{% csrf_token %}
 <p>{{form.file}} {{form.file.errors}}</p>
