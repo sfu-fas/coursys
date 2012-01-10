@@ -626,3 +626,70 @@ class TestImportViewsLet(TestCase):
         self.assertEquals(len(let_grades), 2)
         self.check_student_db_grade(let_grades[0], stud1, STUD1_GRADE)
         self.check_student_db_grade(let_grades[1], stud2, STUD2_GRADE)
+
+
+
+class TestMarkingImport(TestCase):
+    fixtures = ['test_data']
+    
+    def setUp(self):
+        self.crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        self.act = self.crs.activity_set.get(slug="a1")
+    
+    def test_import(self):
+        self.client.login(ticket='ggbaker', service=CAS_SERVER_URL)
+        url = reverse('marking.views.import_marks', kwargs={'course_slug':self.crs.slug, 'activity_slug':self.act.slug})
+        response = basic_page_tests(self, self.client, url)
+        
+        # post first file
+        with open('marking/testfiles/marking_import1.json') as file:
+            post_data = {'file':[file]}
+            response = self.client.post(url, post_data)
+        self.assertEquals(response.status_code, 302)
+        
+        # check that the parts are there
+        marks = StudentActivityMark.objects.filter(activity=self.act)
+        m = marks.get(numeric_grade__member__person__userid="0aaa25")
+        self.assertEquals(m.numeric_grade.value, Decimal('3'))
+        mc = m.activitycomponentmark_set.get(activity_component__slug="part-1")
+        self.assertEquals(mc.value, Decimal('3'))
+        self.assertEquals(mc.comment, "0aaa25 1")
+        mc = m.activitycomponentmark_set.get(activity_component__slug="part-2")
+        self.assertEquals(mc.value, Decimal('0'))
+        self.assertEquals(mc.comment, "")
+
+        m = marks.get(numeric_grade__member__person__userid="0aaa32")
+        self.assertAlmostEquals(float(m.numeric_grade.value), 3.6)
+        mc = m.activitycomponentmark_set.get(activity_component__slug="part-1")
+        self.assertEquals(mc.value, Decimal('4'))
+        self.assertEquals(mc.comment, "0aaa32 1a")
+        mc = m.activitycomponentmark_set.get(activity_component__slug="part-2")
+        self.assertEquals(mc.value, Decimal('0'))
+        self.assertEquals(mc.comment, "")
+        
+        
+        # post second file: should be combined with first.
+        with open('marking/testfiles/marking_import2.json') as file:
+            post_data = {'file':[file]}
+            response = self.client.post(url, post_data)
+        self.assertEquals(response.status_code, 302)
+        
+        marks = StudentActivityMark.objects.filter(activity=self.act)
+        m = marks.filter(numeric_grade__member__person__userid="0aaa25").latest('created_at')
+        self.assertAlmostEquals(float(m.numeric_grade.value), 3.2)
+        mc = m.activitycomponentmark_set.get(activity_component__slug="part-1")
+        self.assertEquals(mc.value, Decimal('3'))
+        self.assertEquals(mc.comment, "0aaa25 1")
+        mc = m.activitycomponentmark_set.get(activity_component__slug="part-2")
+        self.assertEquals(mc.value, Decimal('1'))
+        self.assertEquals(mc.comment, "0aaa25 2")
+
+        m = marks.filter(numeric_grade__member__person__userid="0aaa32").latest('created_at')
+        self.assertAlmostEquals(float(m.numeric_grade.value), 6.3)
+        mc = m.activitycomponentmark_set.get(activity_component__slug="part-1")
+        self.assertEquals(mc.value, Decimal('5'))
+        self.assertEquals(mc.comment, "0aaa32 1b")
+        mc = m.activitycomponentmark_set.get(activity_component__slug="part-2")
+        self.assertEquals(mc.value, Decimal('2'))
+        self.assertEquals(mc.comment, "0aaa32 2")
+

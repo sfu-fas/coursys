@@ -1,0 +1,13 @@
+{
+  "marks": [
+    {
+      "userid": "0aaa25",
+      "part-1": {"mark": 3.00, "comment": "0aaa25 1"}
+    },
+    {
+      "userid": "0aaa32",
+      "part-1": {"mark": 4.00, "comment": "0aaa32 1a"},
+      "late_percent": 10
+    }
+  ]
+}

@@ -611,6 +611,7 @@ def activity_marks_from_JSON(activity, userid, data):
                 old_cm = ActivityComponentMark.objects.get(activity_mark=old_am, activity_component=components[slug])
                 cm.value = old_cm.value
                 cm.comment = old_cm.comment
+                mark_total += float(cm.value)
             else:                
                 cm.value = decimal.Decimal(0)
                 cm.comment = ''
