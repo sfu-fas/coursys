@@ -147,6 +147,8 @@ def _edit_pagefile(request, course_slug, page_label, Form, kind):
     # check that we have an allowed member of the course (and can continue)
     if not member:
         return ForbiddenResponse(request, 'Not allowed to edit/create this '+kind+'.')
+    if member.role == 'STUD':
+        Form = Form.restricted_form
     
     if request.method == 'POST':
         form = Form(instance=page, offering=offering, data=request.POST, files=request.FILES)

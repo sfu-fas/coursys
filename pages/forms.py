@@ -75,13 +75,27 @@ class EditPageForm(EditPageFileForm):
         comment = self.cleaned_data['comment']
         pv = PageVersion(wikitext=wikitext, comment=comment, editor=editor)
         # set config data
-        pv.set_math(self.cleaned_data['math'])
+        if 'math' in self.cleaned_data:
+            pv.set_math(self.cleaned_data['math'])
 
         self.instance.offering = self.offering
         super(EditPageForm, self).save(*args, **kwargs)
         pv.page=self.instance
         pv.save()
 
+
+class EditPageFormRestricted(EditPageForm):
+    """
+    Restricted version of EditPageForm for students.
+    """
+    def __init__(self, *args, **kwargs):
+        super(EditPageFormRestricted, self).__init__(*args, **kwargs)
+        del self.fields['label']
+        del self.fields['can_read']
+        del self.fields['can_write']
+        del self.fields['math']
+
+EditPageForm.restricted_form = EditPageFormRestricted
 
 class EditFileForm(EditPageFileForm):
     file_attachment = forms.FileField(label="File")
@@ -96,4 +110,16 @@ class EditFileForm(EditPageFileForm):
         super(EditFileForm, self).save(*args, **kwargs)
         pv.page=self.instance
         pv.save()
+
+class EditFileFormRestricted(EditFileForm):
+    """
+    Restricted version of EditFileForm for students.
+    """
+    def __init__(self, *args, **kwargs):
+        super(EditPageFormRestricted, self).__init__(*args, **kwargs)
+        del self.fields['label']
+        del self.fields['can_read']
+        del self.fields['can_write']
+
+EditFileForm.restricted_form = EditFileFormRestricted
 
