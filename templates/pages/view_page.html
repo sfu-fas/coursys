@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}{{page.title}}{% endblock %}
+{% block h1 %}{{page.title}}{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=offering.slug %}">{{ offering.name }}</a></li>{% if is_index %}<li>&gt; Pages</li>{% else %}<li>&gt; <a href="{% url pages.views.index_page course_slug=offering.slug %}">Pages</a></li><li>&gt; {{page.title}}</li>{% endif %}{% endblock %}
+
+{% block headextra %}
+{% if page.math %}
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+{% endif %}
+<script type="text/javascript"></script>
+{% endblock %}
+
+
+{% block actions %}
+{% if can_edit or is_index %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    {% if is_index %}<li><a href="{% url pages.views.all_pages course_slug=offering.slug %}">List All Pages</a></li>{% endif %}
+    {% if can_edit %}<li><a href="{% url pages.views.edit_page course_slug=offering.slug page_slug=page.slug %}">Edit this page</a></li>{% endif %}
+    </ul>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{{page.current_html}}
+
+{% endblock %}

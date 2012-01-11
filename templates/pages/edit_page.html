@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}{% if page %}Edit Page "{{page.title}}"{% else %}New Page{% endif %}{% endblock %}
+{% block h1 %}{% if page %}Edit Page "{{page.title}}"{% else %}New Page{% endif %}{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=offering.slug %}">{{ offering.name }}</a></li><li>&gt; <a href="{% url pages.views.index_page course_slug=offering.slug %}">Pages</a></li>{% if page %}<li>&gt; <a href="{% url pages.views.view_page course_slug=offering.slug page_slug=page.slug %}">{{page.label}}</a></li><li>&gt; Edit</li>{% else %}<li>&gt; New Page</li>{% endif %}{% endblock %}
+
+{% block content %}
+<div id="form_container">
+    <form action="{% if page %}{% url pages.views.edit_page course_slug=offering.slug page_slug=page.slug %}{% else %}{% url pages.views.edit_page course_slug=offering.slug %}{% endif %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+    {{form|as_dl_safe}}
+
+    <p><input class="submit" type="submit" value="{% if page %}Update Page{% else %}Create Page{% endif %}" /></p>
+    </form>
+</div>
+{% endblock %}

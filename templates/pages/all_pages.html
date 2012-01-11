@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}{{page.title}}{% endblock %}
+{% block h1 %}{{page.title}}{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=offering.slug %}">{{ offering.name }}</a></li><li>&gt; <a href="{% url pages.views.index_page course_slug=offering.slug %}">Pages</a></li><li>&gt; All</li>{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#pagestable').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    "aoColumns": [
+      null,
+      null,
+    ]
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block actions %}
+{% if can_create %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    <li><a href="{% url pages.views.edit_page course_slug=offering.slug %}">Create page</a></li>
+    </ul>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<div class="datatable_container">
+<table id="pagestable" class="display">
+  <thead><tr><th scope="col">Page Title</th><th scope="col">Actions</th></tr></thead>
+  <tbody>
+  {% for p in pages %}
+  <tr>
+  <td><a href="{% url pages.views.view_page course_slug=offering.slug page_slug=p.slug %}">{{p.title}}</a></td>
+  <td></td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% endblock %}

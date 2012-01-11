@@ -155,6 +155,13 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_ACTIVITY_SLUG + '/sims_csv$', 'marking.views.export_sims'),
     url(r'^' + COURSE_SLUG + '/_copysetup/$', 'marking.views.copy_course_setup'),
 
+    url(r'^' + COURSE_SLUG + '/pages/$', 'pages.views.index_page'),
+    url(r'^' + COURSE_SLUG + '/pages/_all$', 'pages.views.all_pages'),
+    url(r'^' + COURSE_SLUG + '/pages/_new$', 'pages.views.edit_page'),
+    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_SLUG + '$', 'pages.views.view_page'),
+    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_SLUG + '/edit$', 'pages.views.edit_page'),
+
+
     url(r'^discipline/$', 'discipline.views.chair_index'),
     url(r'^discipline/' + COURSE_SLUG + '/' + CASE_SLUG + '/create$', 'discipline.views.chair_create'),
     url(r'^discipline/' + COURSE_SLUG + '/' + CASE_SLUG + '/$', 'discipline.views.chair_show'),

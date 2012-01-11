@@ -23,3 +23,5 @@ DGROUP_SLUG = '(?P<group_slug>[\w\-]+)'
 
 PLAN_SLUG = '(?P<plan_slug>[\w\-]+)'
 SEMESTER = '(?P<semester>\d{4})'
+PAGE_SLUG = '(?P<page_slug>[\w\-]+)'
+

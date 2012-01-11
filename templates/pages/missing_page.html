@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Missing Page{% endblock %}
+{% block h1 %}Missing Page{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=offering.slug %}">{{ offering.name }}</a></li><li>&gt; <a href="{% url pages.views.index_page course_slug=offering.slug %}">Pages</a></li><li>&gt; Missing</li>{% endblock %}
+
+{% block actions %}
+{% if can_create %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    <li><a href="{% url pages.views.edit_page course_slug=offering.slug %}?slug={{page_slug}}">Create this page</a></li>
+    </ul>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+The page you have requested doesn't exist.
+
+{% endblock %}
