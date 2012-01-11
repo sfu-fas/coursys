@@ -8,7 +8,7 @@ from jsonfield import JSONField
 from courselib.json_fields import getter_setter
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
-import creoleparser
+import creoleparser, os, datetime
 
 WRITE_ACL_CHOICES = [
     ('NONE', 'nobody'),
@@ -38,9 +38,9 @@ def attachment_upload_to(instance, filename):
     callback to avoid path in the filename(that we have append folder structure to) being striped 
     """
     fullpath = os.path.join(
-            instance.activity.offering.slug,
-            instance.activity.slug + "_marking",
-            datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.created_by),
+            instance.page.offering.slug,
+            "pagefiles", 
+            datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.editor.person.userid),
             filename.encode('ascii', 'ignore'))
     return fullpath
 
@@ -52,8 +52,10 @@ class Page(models.Model):
     offering = models.ForeignKey(CourseOffering)
     title = models.CharField(max_length=60, help_text="The title for the page")
     label = models.CharField(max_length=30, help_text="The short label (&approx;filename) for the page")
-    can_read = models.CharField(max_length=4, choices=READ_ACL_CHOICES, default="ALL", help_text="Who should be able to view this page?")
-    can_write = models.CharField(max_length=4, choices=WRITE_ACL_CHOICES, default="STAF", help_text="Who should be able to edit this page?")    
+    can_read = models.CharField(max_length=4, choices=READ_ACL_CHOICES, default="ALL",
+        help_text="Who should be able to view this page?")
+    can_write = models.CharField(max_length=4, choices=WRITE_ACL_CHOICES, default="STAF",
+        verbose_name="Can change", help_text="Who should be able to edit this page?")    
 
     def autoslug(self):
         return make_slug(self.label)
@@ -69,7 +71,7 @@ class Page(models.Model):
         super(Page, self).save(*args, **kwargs)
     
     def current_version(self):
-        return PageVersion.objects.filter(page=self).latest('created_at')
+        return PageVersion.objects.filter(page=self).select_related('editor__person').latest('created_at')
 
 class PageVersion(models.Model):
     """
@@ -81,6 +83,7 @@ class PageVersion(models.Model):
     diff_from = models.ForeignKey('PageVersion', null=True)
     file_attachment = models.FileField(storage=PageFilesStorage, null=False, upload_to=attachment_upload_to, blank=False, max_length=500)
     file_mediatype = models.CharField(null=False, blank=False, max_length=200)
+    file_name = models.CharField(null=False, blank=False, max_length=200)
 
     created_at = models.DateTimeField(auto_now=True)
     editor = models.ForeignKey(Member)
@@ -126,6 +129,7 @@ class PageVersion(models.Model):
 
 
 # custom creoleparser Parser class:
+
 import re
 import genshi
 from brush_map import brush_code

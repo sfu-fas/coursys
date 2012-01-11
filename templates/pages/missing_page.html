@@ -5,14 +5,16 @@
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=offering.slug %}">{{ offering.name }}</a></li><li>&gt; <a href="{% url pages.views.index_page course_slug=offering.slug %}">Pages</a></li><li>&gt; Missing</li>{% endblock %}
 
 {% block actions %}
-{% if can_create %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    <li><a href="{% url pages.views.edit_page course_slug=offering.slug %}?slug={{page_slug}}">Create this page</a></li>
+    <li><a href="{% url pages.views.all_pages course_slug=offering.slug %}">List Pages</a></li>
+{% if can_create %}
+    <li><a href="{% url pages.views.new_page course_slug=offering.slug %}?slug={{page_slug}}">Create this page</a></li>
+    <li><a href="{% url pages.views.new_file course_slug=offering.slug %}?slug={{page_slug}}">Create as file attachment</a></li>
+{% endif %}
     </ul>
 </div>
-{% endif %}
 {% endblock %}
 
 {% block content %}

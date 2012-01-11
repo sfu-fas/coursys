@@ -1364,3 +1364,10 @@ div#calendar table.fc-border-separate td{
 div.syntaxhighlighter {
   padding-left: 2em;
 }
+div.updateinfo {
+  font-size: smaller;
+  text-align: right;
+  margin-bottom: -1em;
+  margin-right: 1em;
+  clear: right;
+}

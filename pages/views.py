@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from pages.models import Page, PageVersion, MEMBER_ROLES, ACL_ROLES
-from pages.forms import EditPageForm
+from pages.forms import EditPageForm, EditFileForm
 from coredata.models import Member, CourseOffering
 from log.models import LogEntry
 from courselib.auth import requires_discipline_user, is_discipline_user, requires_role, requires_global_role, NotFoundResponse, ForbiddenResponse
@@ -58,7 +58,7 @@ def view_page(request, course_slug, page_slug):
     else:
         page = pages[0]
     
-    current_version = page.current_version()
+    version = page.current_version()
     
     member = _check_allowed(request, offering, page.can_read)
     # check that we have an allowed member of the course (and can continue)
@@ -78,13 +78,64 @@ def view_page(request, course_slug, page_slug):
         if request.path != url:
             return HttpResponseRedirect(url)
     
-    context = {'offering': offering, 'page': page, 'current_version': current_version,
+    context = {'offering': offering, 'page': page, 'version': version,
                'can_edit': can_edit, 'is_index': is_index}
     return render(request, 'pages/view_page.html', context)
 
 
+def download_file(request, course_slug, page_slug):
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    page = get_object_or_404(Page, offering=offering, slug=page_slug)
+    version = page.current_version()
+    
+    member = _check_allowed(request, offering, page.can_read)
+    # check that we have an allowed member of the course (and can continue)
+    if not member:
+        return ForbiddenResponse(request, 'Not allowed to view this page')
+    
+    resp = HttpResponse(content_type=version.file_mediatype)
+    resp['Content-Disposition'] = 'attachment; filename=' + version.file_name
+    resp.write(version.file_attachment.read())
+    return resp
+    
+
 @login_required
-def edit_page(request, course_slug, page_slug=None):
+def page_history(request, course_slug, page_slug):
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    page = get_object_or_404(Page, offering=offering, slug=page_slug)
+    member = _check_allowed(request, offering, page.can_write)
+    # check that we have an allowed member of the course (and can continue)
+    if not member:
+        return ForbiddenResponse(request, "Not allowed to view this page's history")
+    
+    versions = PageVersion.objects.filter(page=page).order_by('-created_at')
+    
+    context = {'offering': offering, 'page': page, 'versions': versions}
+    return render(request, 'pages/page_history.html', context)
+    
+@login_required
+def page_version(request, course_slug, page_slug, version_id):
+    pass 
+    
+
+@login_required
+def new_page(request, course_slug):
+    return _edit_pagefile(request, course_slug, page_slug=None, Form=EditPageForm, kind="page")
+
+@login_required
+def edit_page(request, course_slug, page_slug):
+    return _edit_pagefile(request, course_slug, page_slug, Form=EditPageForm, kind="page")
+    #return _edit_pagefile(request, course_slug, page_slug, Form=EditFileForm, kind="file")
+
+@login_required
+def new_file(request, course_slug):
+    return _edit_pagefile(request, course_slug, page_slug=None, Form=EditFileForm, kind="file")
+
+
+def _edit_pagefile(request, course_slug, page_slug, Form, kind):
+    """
+    View to create and edit pages
+    """
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     if page_slug:
         page = get_object_or_404(Page, offering=offering, slug=page_slug)
@@ -95,10 +146,10 @@ def edit_page(request, course_slug, page_slug=None):
 
     # check that we have an allowed member of the course (and can continue)
     if not member:
-        return ForbiddenResponse(request, 'Not allowed to edit/create this page.')
+        return ForbiddenResponse(request, 'Not allowed to edit/create this '+kind+'.')
     
     if request.method == 'POST':
-        form = EditPageForm(instance=page, offering=offering, data=request.POST)
+        form = Form(instance=page, offering=offering, data=request.POST, files=request.FILES)
         if form.is_valid():
             form.save(editor=member)
             #LOG EVENT#
@@ -107,13 +158,13 @@ def edit_page(request, course_slug, page_slug=None):
                   related_object=form.instance)
             l.save()
             if page:
-                messages.success(request, "Edited page \"%s\"." % (form.instance.title))
+                messages.success(request, "Edited "+kind+" \"%s\"." % (form.instance.title))
             else:
-                messages.success(request, "Created page \"%s\"." % (form.instance.title))
+                messages.success(request, "Created "+kind+" \"%s\"." % (form.instance.title))
             
             return HttpResponseRedirect(reverse('pages.views.view_page', kwargs={'course_slug': course_slug, 'page_slug': form.instance.slug}))
     else:
-        form = EditPageForm(instance=page, offering=offering)
+        form = Form(instance=page, offering=offering)
         if 'slug' in request.GET:
             slug = request.GET['slug']
             if slug == 'index':
@@ -122,7 +173,7 @@ def edit_page(request, course_slug, page_slug=None):
                 form.initial['title'] = slug.title()
             form.initial['label'] = slug.title()
 
-    context = {'offering': offering, 'page': page, 'form': form}
+    context = {'offering': offering, 'page': page, 'form': form, 'kind': kind.title()}
     return render(request, 'pages/edit_page.html', context)
 
 

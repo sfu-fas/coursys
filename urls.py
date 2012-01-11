@@ -157,9 +157,13 @@ urlpatterns += patterns('',
 
     url(r'^' + COURSE_SLUG + '/pages/$', 'pages.views.index_page'),
     url(r'^' + COURSE_SLUG + '/pages/_all$', 'pages.views.all_pages'),
-    url(r'^' + COURSE_SLUG + '/pages/_new$', 'pages.views.edit_page'),
+    url(r'^' + COURSE_SLUG + '/pages/_new$', 'pages.views.new_page'),
+    url(r'^' + COURSE_SLUG + '/pages/_newfile$', 'pages.views.new_file'),
     url(r'^' + COURSE_SLUG + '/pages/' + PAGE_SLUG + '$', 'pages.views.view_page'),
+    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_SLUG + '/download$', 'pages.views.download_file'),
     url(r'^' + COURSE_SLUG + '/pages/' + PAGE_SLUG + '/edit$', 'pages.views.edit_page'),
+    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_SLUG + '/history$', 'pages.views.page_history'),
+    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_SLUG + '/version/(?P<version_id>\d+)$', 'pages.views.page_version'),
 
 
     url(r'^discipline/$', 'discipline.views.chair_index'),

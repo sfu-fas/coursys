@@ -5,7 +5,7 @@
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=offering.slug %}">{{ offering.name }}</a></li>{% if is_index %}<li>&gt; Pages</li>{% else %}<li>&gt; <a href="{% url pages.views.index_page course_slug=offering.slug %}">Pages</a></li><li>&gt; {{page.title}}</li>{% endif %}{% endblock %}
 
 {% block headextra %}
-{% if current_version.math %}
+{% if version.math %}
 <script type="text/x-mathjax-config">
 MathJax.Hub.Config({
   displayAlign: "left",
@@ -17,9 +17,9 @@ MathJax.Hub.Config({
 </script>
 <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 {% endif %}
-{% if current_version.syntax %}
+{% if version.syntax %}
 <script type="text/javascript" src="{{MEDIA_URL}}syntaxhighlighter/scripts/shCore.js"></script>
-{% for b in current_version.brushes %}
+{% for b in version.brushes %}
 <script type="text/javascript" src="{{MEDIA_URL}}syntaxhighlighter/scripts/{{b}}"></script>
 {% endfor %}
 <link href="{{MEDIA_URL}}syntaxhighlighter/styles/shCore.css" rel="stylesheet" type="text/css" />
@@ -38,7 +38,8 @@ MathJax.Hub.Config({
     <h2 class="heading">Actions</h2>
     <ul>
     {% if is_index %}<li><a href="{% url pages.views.all_pages course_slug=offering.slug %}">List All Pages</a></li>{% endif %}
-    {% if can_edit %}<li><a href="{% url pages.views.edit_page course_slug=offering.slug page_slug=page.slug %}">Edit this page</a></li>{% endif %}
+    {% if can_edit %}<li><a href="{% url pages.views.edit_page course_slug=offering.slug page_slug=page.slug %}">Edit this page</a></li>
+    <li><a href="{% url pages.views.page_history course_slug=offering.slug page_slug=page.slug %}">Page History</a></li>{% endif %}
     </ul>
 </div>
 {% endif %}
@@ -46,6 +47,11 @@ MathJax.Hub.Config({
 
 {% block content %}
 
-{{ current_version.html_contents }}
+{% if version.wikitext %}
+{{ version.html_contents }}
+{% else %}
+<p>Download file <a href="{% url pages.views.download_file course_slug=offering.slug page_slug=page.slug %}">{{version.file_name}}</a> ({{version.file_attachment.size|filesizeformat}}).</p>
+{% endif %}
+<div class="updateinfo">Updated {{ version.created_at }} by {{version.editor.person.userid }}.</div>
 
 {% endblock %}
