@@ -1360,3 +1360,7 @@ div#calendar table.fc-border-separate {
 div#calendar table.fc-border-separate td{
   width: 14% !important;
 }
+
+div.syntaxhighlighter {
+  padding-left: 2em;
+}

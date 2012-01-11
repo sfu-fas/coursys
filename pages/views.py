@@ -58,6 +58,8 @@ def view_page(request, course_slug, page_slug):
     else:
         page = pages[0]
     
+    current_version = page.current_version()
+    
     member = _check_allowed(request, offering, page.can_read)
     # check that we have an allowed member of the course (and can continue)
     if not member:
@@ -76,7 +78,8 @@ def view_page(request, course_slug, page_slug):
         if request.path != url:
             return HttpResponseRedirect(url)
     
-    context = {'offering': offering, 'page': page, 'can_edit': can_edit, 'is_index': is_index}
+    context = {'offering': offering, 'page': page, 'current_version': current_version,
+               'can_edit': can_edit, 'is_index': is_index}
     return render(request, 'pages/view_page.html', context)
 
 

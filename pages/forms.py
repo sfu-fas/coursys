@@ -30,7 +30,7 @@ class EditPageForm(forms.ModelForm):
         # existing data for other fields
         if self.instance.id:
             self.initial['wikitext'] = self.instance.current_version().wikitext
-            self.initial['math'] = self.instance.math()
+            self.initial['math'] = self.instance.current_version().math()
         
         # tidy up ACL choices: remove NONE
         self.fields['can_read'].choices = [(v,l) for (v,l) in self.fields['can_read'].choices
@@ -44,13 +44,13 @@ class EditPageForm(forms.ModelForm):
         return self.cleaned_data['offering']
 
     def save(self, editor, *args, **kwargs):
-        # set config data
-        self.instance.set_math(self.cleaned_data['math'])
         
         # also create the PageVersion object.
         wikitext = self.cleaned_data['wikitext']
         comment = self.cleaned_data['comment']
         pv = PageVersion(wikitext=wikitext, comment=comment, editor=editor)
+        # set config data
+        pv.set_math(self.cleaned_data['math'])
 
         self.instance.offering = self.offering
         super(EditPageForm, self).save(*args, **kwargs)

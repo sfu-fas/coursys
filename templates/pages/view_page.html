@@ -5,10 +5,30 @@
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=offering.slug %}">{{ offering.name }}</a></li>{% if is_index %}<li>&gt; Pages</li>{% else %}<li>&gt; <a href="{% url pages.views.index_page course_slug=offering.slug %}">Pages</a></li><li>&gt; {{page.title}}</li>{% endif %}{% endblock %}
 
 {% block headextra %}
-{% if page.math %}
+{% if current_version.math %}
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  displayAlign: "left",
+  displayIndent: "2em",
+  NativeMML: {
+    scale: 125
+  }
+});
+</script>
 <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 {% endif %}
-<script type="text/javascript"></script>
+{% if current_version.syntax %}
+<script type="text/javascript" src="{{MEDIA_URL}}syntaxhighlighter/scripts/shCore.js"></script>
+{% for b in current_version.brushes %}
+<script type="text/javascript" src="{{MEDIA_URL}}syntaxhighlighter/scripts/{{b}}"></script>
+{% endfor %}
+<link href="{{MEDIA_URL}}syntaxhighlighter/styles/shCore.css" rel="stylesheet" type="text/css" />
+<link href="{{MEDIA_URL}}syntaxhighlighter/styles/shThemeDefault.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript">
+  SyntaxHighlighter.defaults['light'] = true;
+  SyntaxHighlighter.all()
+</script>
+{% endif %}
 {% endblock %}
 
 
@@ -26,6 +46,6 @@
 
 {% block content %}
 
-{{page.current_html}}
+{{ current_version.html_contents }}
 
 {% endblock %}

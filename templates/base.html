@@ -39,10 +39,12 @@ Adapted from the Dreamweaver template here: http://www.sfu.ca/clf/web/index.html
 		</div>
 		<div id="sideItems">
 <div id="sysmenu">
-{% if user %}
+{% if user.is_authenticated %}
 Logged in as {{user.username}}.
-{% endif %}
 <a href="/logout/">Logout</a>
+{% else %}
+Not logged in. <a href="/login/">Login</a>
+{% endif %}
 </div>
 				<div id="breadcrumbs">
 				  <ul>
