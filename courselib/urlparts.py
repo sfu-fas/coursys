@@ -6,7 +6,8 @@ GROUP_SLUG_RE =  'g-[\w-]*'
 COURSE_SLUG = '(?P<course_slug>' + COURSE_SLUG_RE + ')'
 ACTIVITY_SLUG = '(?P<activity_slug>' + ACTIVITY_SLUG_RE + ')'
 
-COURSE_ACTIVITY_SLUG = COURSE_SLUG + '/' + ACTIVITY_SLUG
+COURSE_ACTIVITY_SLUG = COURSE_SLUG + '/@' + ACTIVITY_SLUG
+COURSE_ACTIVITY_SLUG_OLD = COURSE_SLUG + '/' + ACTIVITY_SLUG
 
 USERID_SLUG = '(?P<userid>[\w\-]+)'
 GROUP_SLUG  = '(?P<group_slug>' + GROUP_SLUG_RE + ')'
@@ -23,5 +24,5 @@ DGROUP_SLUG = '(?P<group_slug>[\w\-]+)'
 
 PLAN_SLUG = '(?P<plan_slug>[\w\-]+)'
 SEMESTER = '(?P<semester>\d{4})'
-PAGE_SLUG = '(?P<page_slug>[\w\-]+)'
+PAGE_LABEL = '(?P<page_label>[\w\-_\.]+)'
 

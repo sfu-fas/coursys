@@ -6,9 +6,7 @@ from coredata.models import CourseOffering, Member
 
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter
-from autoslug import AutoSlugField
-from courselib.slugs import make_slug
-import creoleparser, os, datetime
+import creoleparser, os, datetime, re
 
 WRITE_ACL_CHOICES = [
     ('NONE', 'nobody'),
@@ -32,6 +30,8 @@ ACL_ROLES = { # reverse of MEMBER_ROLES: what ACLs is this Member allowed to acc
         'DROP': set(['ALL']),
         }
 
+label_re = re.compile("^[\w\-_\.]+$")
+
 PageFilesStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 def attachment_upload_to(instance, filename):
     """
@@ -51,24 +51,33 @@ class Page(models.Model):
     """
     offering = models.ForeignKey(CourseOffering)
     title = models.CharField(max_length=60, help_text="The title for the page")
-    label = models.CharField(max_length=30, help_text="The short label (&approx;filename) for the page")
+    label = models.CharField(max_length=30, help_text="The &ldquo;filename&rdquo; for this page")
     can_read = models.CharField(max_length=4, choices=READ_ACL_CHOICES, default="ALL",
         help_text="Who should be able to view this page?")
     can_write = models.CharField(max_length=4, choices=WRITE_ACL_CHOICES, default="STAF",
         verbose_name="Can change", help_text="Who should be able to edit this page?")    
-
-    def autoslug(self):
-        return make_slug(self.label)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=True, unique_with='offering')
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
 
     class Meta:
         ordering = ['offering', 'label']
-        unique_together = (('offering', 'label'),('offering', 'title'),)
-        
+        unique_together = (('offering', 'label'), )
+    
     def save(self, *args, **kwargs):
-        self.slug = None
+        assert self.label_okay(self.label) is None
         super(Page, self).save(*args, **kwargs)
+    
+    def label_okay(self, label):
+        """
+        Check to make sure this label is acceptable (okay characters)
+        
+        Used by both self.save() and model validator.
+        """
+        m = label_re.match(label)
+        if not m:
+            return "Labels can contain only letters, numbers, underscores, dashes, and periods."
+    
+    def __unicode__(self):
+        return self.offering.name() + '/' + self.label
     
     def current_version(self):
         return PageVersion.objects.filter(page=self).select_related('editor__person').latest('created_at')
@@ -122,6 +131,9 @@ class PageVersion(models.Model):
             # don't commit while saving previous PageVersion objects above.
             transaction.commit()
 
+    def __unicode__(self):
+        return unicode(self.page) + '@' + unicode(self.created_at)
+
     def html_contents(self):
         return mark_safe(text2html(self.wikitext))
 
@@ -141,12 +153,12 @@ class CodeBlock(creoleparser.elements.BlockElement):
     """
 
     def __init__(self):
-        super(CodeBlock,self).__init__('pre', ['[{','}]'])
+        super(CodeBlock,self).__init__('pre', ['{{{','}}}'])
         self.regexp = re.compile(self.re_string(), re.DOTALL+re.MULTILINE)
         self.regexp2 = re.compile(self.re_string2(), re.MULTILINE)
 
     def re_string(self):
-        start = '^\{\{\{\s*#!(' + brushre + ')\s*\n'
+        start = '^\{\{\{\s*\[(' + brushre + ')\]\s*\n'
         content = r'(.+?\n)'
         end = r'\}\}\}\s*?$'
         return start + content + end

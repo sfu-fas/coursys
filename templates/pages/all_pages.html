@@ -41,7 +41,7 @@ $(document).ready(function() {
   <tbody>
   {% for p in pages %}
   <tr>
-  <td><a href="{% url pages.views.view_page course_slug=offering.slug page_slug=p.slug %}">{{p.title}}</a></td>
+  <td><a href="{% url pages.views.view_page course_slug=offering.slug page_label=p.label %}">{{p.title}}</a></td>
   <td></td>
   </tr>
   {% endfor %}

@@ -10,8 +10,8 @@
     <ul>
     <li><a href="{% url pages.views.all_pages course_slug=offering.slug %}">List Pages</a></li>
 {% if can_create %}
-    <li><a href="{% url pages.views.new_page course_slug=offering.slug %}?slug={{page_slug}}">Create this page</a></li>
-    <li><a href="{% url pages.views.new_file course_slug=offering.slug %}?slug={{page_slug}}">Create as file attachment</a></li>
+    <li><a href="{% url pages.views.new_page course_slug=offering.slug %}?label={{page_label}}">Create this page</a></li>
+    <li><a href="{% url pages.views.new_file course_slug=offering.slug %}?label={{page_label}}">Create as file attachment</a></li>
 {% endif %}
     </ul>
 </div>

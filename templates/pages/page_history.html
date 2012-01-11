@@ -2,7 +2,7 @@
 
 {% block title %}{{page.title}}: History{% endblock %}
 {% block h1 %}{{page.title}}: History{% endblock %}
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=offering.slug %}">{{ offering.name }}</a></li>{% if is_index %}<li>&gt; Pages</li>{% else %}<li>&gt; <a href="{% url pages.views.index_page course_slug=offering.slug %}">Pages</a></li><li>&gt; <a href="{% url pages.views.view_page course_slug=offering.slug page_slug=page.slug %}">{{page.title}}</a></li><li>&gt; History</li>{% endif %}{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=offering.slug %}">{{ offering.name }}</a></li>{% if is_index %}<li>&gt; Pages</li>{% else %}<li>&gt; <a href="{% url pages.views.index_page course_slug=offering.slug %}">Pages</a></li><li>&gt; <a href="{% url pages.views.view_page course_slug=offering.slug page_label=page.label %}">{{page.title}}</a></li><li>&gt; History</li>{% endif %}{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
@@ -31,7 +31,7 @@ $(document).ready(function() {
   <tbody>
   {% for v in versions %}
   <tr>
-  <td><a href="{% url pages.views.page_version course_slug=offering.slug page_slug=page.slug version_id=v.id %}">{{v.created_at}}</a></td>
+  <td><a href="{% url pages.views.page_version course_slug=offering.slug page_label=page.label version_id=v.id %}">{{v.created_at}}</a></td>
   <td>{{v.editor.person.name}} ({{v.editor.person.userid}})</td>
   <td>{{v.comment}}</td>
   </tr>

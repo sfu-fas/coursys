@@ -3,13 +3,16 @@ from pages.models import Page, PageVersion, brushes_used, text2html, parser
 import re
 
 wikitext = """Some Python code:
-{{{ #!python
+{{{ [python]
+
 for i in range(4):
     print i
+
+
 }}}
 
 Some JavaScript code:
-{{{#!js
+{{{[js]
 for(i=1; i<4; i++) {
   document.write(i);
 }
@@ -38,6 +41,7 @@ class SimpleTest(TestCase):
         
         html = text2html(wikitext)
         self.assertIn('class="brush: python">for i', html)
+        self.assertIn('print i</pre>', html)
         self.assertIn('i=1; i&lt;4; i++', html)
 
         

@@ -44,9 +44,17 @@ class EditPageFileForm(forms.ModelForm):
             raise forms.ValidationError("Wrong course offering.")
         return self.cleaned_data['offering']
 
+    @transaction.commit_on_success
+    def clean_label(self):
+        label = self.cleaned_data['label']
+        error = self.instance.label_okay(label)
+        if error:
+            raise forms.ValidationError(error)
+        return label
+
     class Meta:
         model = Page
-        exclude = ('slug', 'config')
+        exclude = ('config')
         widgets = {
             'offering': forms.HiddenInput(),
             'title': forms.TextInput(attrs={'size':50}),

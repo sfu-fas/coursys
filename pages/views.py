@@ -30,7 +30,7 @@ def _check_allowed(request, offering, acl_value):
     return None    
 
 def index_page(request, course_slug):
-    return view_page(request, course_slug, 'index')
+    return view_page(request, course_slug, 'Index')
 
 def all_pages(request, course_slug):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
@@ -46,14 +46,14 @@ def all_pages(request, course_slug):
     context = {'offering': offering, 'pages': pages, 'can_create': can_create}
     return render(request, 'pages/all_pages.html', context)
 
-def view_page(request, course_slug, page_slug):
+def view_page(request, course_slug, page_label):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    pages = Page.objects.filter(offering=offering, slug=page_slug)
+    pages = Page.objects.filter(offering=offering, label=page_label)
     if not pages:
         # missing page: do something more clever than the 404
         member = _check_allowed(request, offering, 'STAF')
         can_create = bool(member)
-        context = {'offering': offering, 'can_create': can_create, 'page_slug': page_slug}
+        context = {'offering': offering, 'can_create': can_create, 'page_label': page_label}
         return render(request, 'pages/missing_page.html', context)
     else:
         page = pages[0]
@@ -71,7 +71,7 @@ def view_page(request, course_slug, page_slug):
     else:
        can_edit = False
     
-    is_index = page_slug=='index'
+    is_index = page_label=='Index'
     if is_index:
         # canonical-ize the index URL
         url = reverse(index_page, kwargs={'course_slug': course_slug})
@@ -83,9 +83,9 @@ def view_page(request, course_slug, page_slug):
     return render(request, 'pages/view_page.html', context)
 
 
-def download_file(request, course_slug, page_slug):
+def download_file(request, course_slug, page_label):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    page = get_object_or_404(Page, offering=offering, slug=page_slug)
+    page = get_object_or_404(Page, offering=offering, label=page_label)
     version = page.current_version()
     
     member = _check_allowed(request, offering, page.can_read)
@@ -100,9 +100,9 @@ def download_file(request, course_slug, page_slug):
     
 
 @login_required
-def page_history(request, course_slug, page_slug):
+def page_history(request, course_slug, page_label):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    page = get_object_or_404(Page, offering=offering, slug=page_slug)
+    page = get_object_or_404(Page, offering=offering, label=page_label)
     member = _check_allowed(request, offering, page.can_write)
     # check that we have an allowed member of the course (and can continue)
     if not member:
@@ -114,31 +114,31 @@ def page_history(request, course_slug, page_slug):
     return render(request, 'pages/page_history.html', context)
     
 @login_required
-def page_version(request, course_slug, page_slug, version_id):
+def page_version(request, course_slug, page_label, version_id):
     pass 
     
 
 @login_required
 def new_page(request, course_slug):
-    return _edit_pagefile(request, course_slug, page_slug=None, Form=EditPageForm, kind="page")
+    return _edit_pagefile(request, course_slug, page_label=None, Form=EditPageForm, kind="page")
 
 @login_required
-def edit_page(request, course_slug, page_slug):
-    return _edit_pagefile(request, course_slug, page_slug, Form=EditPageForm, kind="page")
-    #return _edit_pagefile(request, course_slug, page_slug, Form=EditFileForm, kind="file")
+def edit_page(request, course_slug, page_label):
+    return _edit_pagefile(request, course_slug, page_label, Form=EditPageForm, kind="page")
+    #return _edit_pagefile(request, course_slug, page_label, Form=EditFileForm, kind="file")
 
 @login_required
 def new_file(request, course_slug):
-    return _edit_pagefile(request, course_slug, page_slug=None, Form=EditFileForm, kind="file")
+    return _edit_pagefile(request, course_slug, page_label=None, Form=EditFileForm, kind="file")
 
 
-def _edit_pagefile(request, course_slug, page_slug, Form, kind):
+def _edit_pagefile(request, course_slug, page_label, Form, kind):
     """
     View to create and edit pages
     """
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    if page_slug:
-        page = get_object_or_404(Page, offering=offering, slug=page_slug)
+    if page_label:
+        page = get_object_or_404(Page, offering=offering, label=page_label)
         member = _check_allowed(request, offering, page.can_write)
     else:
         page = None
@@ -162,16 +162,16 @@ def _edit_pagefile(request, course_slug, page_slug, Form, kind):
             else:
                 messages.success(request, "Created "+kind+" \"%s\"." % (form.instance.title))
             
-            return HttpResponseRedirect(reverse('pages.views.view_page', kwargs={'course_slug': course_slug, 'page_slug': form.instance.slug}))
+            return HttpResponseRedirect(reverse('pages.views.view_page', kwargs={'course_slug': course_slug, 'page_label': form.instance.label}))
     else:
         form = Form(instance=page, offering=offering)
-        if 'slug' in request.GET:
-            slug = request.GET['slug']
-            if slug == 'index':
+        if 'label' in request.GET:
+            label = request.GET['label']
+            if label == 'Index':
                 form.initial['title'] = offering.name()
             else:
-                form.initial['title'] = slug.title()
-            form.initial['label'] = slug.title()
+                form.initial['title'] = label.title()
+            form.initial['label'] = label
 
     context = {'offering': offering, 'page': page, 'form': form, 'kind': kind.title()}
     return render(request, 'pages/edit_page.html', context)
