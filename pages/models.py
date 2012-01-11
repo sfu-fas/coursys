@@ -146,9 +146,9 @@ class CodeBlock(creoleparser.elements.BlockElement):
         self.regexp2 = re.compile(self.re_string2(), re.MULTILINE)
 
     def re_string(self):
-        start = '^\[\{\s*?(' + brushre + ')\s*?\n'
+        start = '^\{\{\{\s*#!(' + brushre + ')\s*\n'
         content = r'(.+?\n)'
-        end = r'\}\]\s*?$'
+        end = r'\}\}\}\s*?$'
         return start + content + end
 
     def re_string2(self):

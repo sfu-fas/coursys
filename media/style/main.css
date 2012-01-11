@@ -1363,6 +1363,7 @@ div#calendar table.fc-border-separate td{
 
 div.syntaxhighlighter {
   padding-left: 2em;
+  clear: right;
 }
 div.updateinfo {
   font-size: smaller;
