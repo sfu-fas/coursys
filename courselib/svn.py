@@ -89,6 +89,8 @@ def update_offering_repositories(offering):
 
     # individual repositories
     for m in offering.member_set.select_related('person', 'offering', 'offering__semester'):
+        if m.person.userid is None:
+            continue
         rw = set([m.person.userid])
         ro = set()
         if offering.indiv_svn():
@@ -107,6 +109,8 @@ def update_offering_repositories(offering):
         userids = set()
         reponame = repo_name(offering, g.svn_slug)
         for gm in g.groupmember_set.filter(confirmed=True).select_related('student__person'):
+            if gm.student.person.userid is None:
+                continue
             userids.add(gm.student.person.userid)
 
         if _repo_needs_updating(repos, reponame, userids, instr):
