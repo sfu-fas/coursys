@@ -68,7 +68,7 @@ class DashboardTest(TestCase):
         Check the requires_course_staff_by_slug decorator.
         """
         # a URL and some members/non-members
-        url = "/"+self.c_slug+"/a1/marking/"
+        url = reverse('marking.views.manage_activity_components', kwargs={'course_slug': self.c_slug, 'activity_slug': 'a1'})
         instr = "ggbaker"
         ta = "0grad1"
         student = "0aaa0"

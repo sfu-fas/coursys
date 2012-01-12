@@ -190,7 +190,7 @@ class GradesTest(TestCase):
         self.assertContains(response, 'href="' + reverse('groups.views.groupmanage', kwargs={'course_slug':c.slug}) +'"')
 
         basic_page_tests(self, client, c.get_absolute_url())
-        basic_page_tests(self, client, c.get_absolute_url() + '_students/0aaa0')
+        basic_page_tests(self, client, reverse('grades.views.student_info', kwargs={'course_slug': c.slug, 'userid': '0aaa0'}))
         basic_page_tests(self, client, reverse('grades.views.add_numeric_activity', kwargs={'course_slug':c.slug}))
         basic_page_tests(self, client, reverse('grades.views.add_letter_activity', kwargs={'course_slug':c.slug}))
 
