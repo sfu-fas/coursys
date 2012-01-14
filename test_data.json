@@ -12081,5 +12081,33 @@
   },
   "model": "coredata.role",
   "pk": 3
+ },
+ {
+  "fields": {
+   "advisor": 135,
+   "created_at": "2012-01-13 23:26:37",
+   "department": "CMPT",
+   "file_attachment": "",
+   "file_mediatype": "",
+   "hidden": false,
+   "student": 53,
+   "text": "This is a note about the student 0aaa0\n\nHe seems nice."
+  },
+  "model": "advisornotes.advisornote",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "advisor": 135,
+   "created_at": "2012-01-13 23:27:03",
+   "department": "CMPT",
+   "file_attachment": "",
+   "file_mediatype": "",
+   "hidden": false,
+   "student": 53,
+   "text": "This is another note about the student.\n\nHe seems less nice now."
+  },
+  "model": "advisornotes.advisornote",
+  "pk": 2
  }
 ]
