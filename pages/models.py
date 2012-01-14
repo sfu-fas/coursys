@@ -52,7 +52,7 @@ class Page(models.Model):
     """
     offering = models.ForeignKey(CourseOffering)
     title = models.CharField(max_length=60, help_text="The title for the page")
-    label = models.CharField(max_length=30, help_text="The &ldquo;filename&rdquo; for this page")
+    label = models.CharField(max_length=30, db_index=True, help_text="The &ldquo;filename&rdquo; for this page")
     can_read = models.CharField(max_length=4, choices=READ_ACL_CHOICES, default="ALL",
         help_text="Who should be able to view this page?")
     can_write = models.CharField(max_length=4, choices=WRITE_ACL_CHOICES, default="STAF",
@@ -139,6 +139,10 @@ class PageVersion(models.Model):
     def changes(self, other):
         """
         Changes to get from the get_wikitext() of self to other.
+        
+        List of changes that can be insertions, deletions, or replacements. Each
+        is a tuple containing:
+          (type flag, position of change, [other info need to reconstrut original])
         """
         lines1 = self.get_wikitext().split("\n")
         lines2 = other.get_wikitext().split("\n")
@@ -189,13 +193,13 @@ class PageVersion(models.Model):
     
     def diff_to(self, other):
         """
-        Turn this version into a diff based on the other version.
+        Turn this version into a diff based on the other version (if apprpriate).
         """
-        if not self.wikitext:
+        if not self.wikitext or self.diff_from_id:
             # must already be a diff: don't repeat ourselves
             return
         
-        oldw = self.get_wikitext()
+        oldw = self.wikitext
 
         diff = json.dumps(other.changes(self), separators=(',',':'))
         if len(diff) > len(oldw):
@@ -211,7 +215,7 @@ class PageVersion(models.Model):
         assert oldw==neww
 
     def save(self, check_diff=True, *args, **kwargs):
-        # normalize newlines so our diffs are easier later
+        # normalize newlines so our diffs are consistent later
         self.wikitext = _normalize_newlines(self.wikitext)
         
         # set the SyntaxHighlighter brushes used on this page.
