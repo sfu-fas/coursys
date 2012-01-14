@@ -107,7 +107,6 @@ INSTALLED_APPS = (
     'planning',
     'discipline',
     'mobile',
-    'advisors',
     'ta',
     'pages',
     'advisornotes',
