@@ -4,7 +4,7 @@ from pages.models import Page, PageVersion
 
 class WikiField(forms.CharField):
     def __init__(self, *args, **kwargs):
-        self.widget = forms.Textarea(attrs={'cols': 80, 'rows': 20})
+        self.widget = forms.Textarea(attrs={'cols': 90, 'rows': 30})
         if 'help_text' not in kwargs:
             kwargs['help_text'] = 'Page formatted in <a href="http://www.wikicreole.org/wiki/AllMarkup">WikiCreole markup</a>.'
         super(WikiField, self).__init__(*args, **kwargs)
@@ -67,7 +67,7 @@ class EditPageForm(EditPageFileForm):
     wikitext = WikiField()
     comment = CommentField()
     
-    math = forms.BooleanField(required=False, help_text='Will this page use <a href="http://www.mathjax.org/">MathJax</a> for formulas?')
+    math = forms.BooleanField(required=False, help_text='Will this page use <a href="http://www.mathjax.org/">MathJax</a> for displayig TeX or MathML formulas?')
 
     def save(self, editor, *args, **kwargs):
         # also create the PageVersion object.
@@ -90,6 +90,7 @@ class EditPageFormRestricted(EditPageForm):
     """
     def __init__(self, *args, **kwargs):
         super(EditPageFormRestricted, self).__init__(*args, **kwargs)
+        del self.fields['title']
         del self.fields['label']
         del self.fields['can_read']
         del self.fields['can_write']
@@ -116,7 +117,8 @@ class EditFileFormRestricted(EditFileForm):
     Restricted version of EditFileForm for students.
     """
     def __init__(self, *args, **kwargs):
-        super(EditPageFormRestricted, self).__init__(*args, **kwargs)
+        super(EditFileFormRestricted, self).__init__(*args, **kwargs)
+        del self.fields['title']
         del self.fields['label']
         del self.fields['can_read']
         del self.fields['can_write']

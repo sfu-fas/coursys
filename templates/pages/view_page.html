@@ -35,8 +35,10 @@ MathJax.Hub.Config({
     <h2 class="heading">Actions</h2>
     <ul>
     {% if is_index %}<li><a href="{% url pages.views.all_pages course_slug=offering.slug %}">List All Pages</a></li>{% endif %}
-    {% if can_edit %}<li><a href="{% url pages.views.edit_page course_slug=offering.slug page_label=page.label %}">Edit this page</a></li>
-    <li><a href="{% url pages.views.page_history course_slug=offering.slug page_label=page.label %}">Page History</a></li>{% endif %}
+    {% if can_edit %}
+    <li><a href="{% url pages.views.edit_page course_slug=offering.slug page_label=page.label %}">Edit this {% if version.is_filepage %}file{% else %}page{% endif %}</a></li>
+    
+    <li><a href="{% url pages.views.page_history course_slug=offering.slug page_label=page.label %}">View History</a></li>{% endif %}
     </ul>
 </div>
 {% endif %}
@@ -44,10 +46,10 @@ MathJax.Hub.Config({
 
 {% block content %}
 
-{% if version.wikitext %}
-{{ version.html_contents }}
+{% if version.is_filepage %}
+<p>View file <a href="{% url pages.views.view_file course_slug=offering.slug page_label=page.label %}">{{version.file_name}}</a> ({{version.file_attachment.size|filesizeformat}}), or <a href="{% url pages.views.download_file course_slug=offering.slug page_label=page.label %}">download</a>.</p>
 {% else %}
-<p>Download file <a href="{% url pages.views.download_file course_slug=offering.slug page_label=page.label %}">{{version.file_name}}</a> ({{version.file_attachment.size|filesizeformat}}).</p>
+{{ version.html_contents }}
 {% endif %}
 <div class="updateinfo">Updated {{ version.created_at }} by {{version.editor.person.userid }}.</div>
 

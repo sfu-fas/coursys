@@ -82,20 +82,29 @@ def view_page(request, course_slug, page_label):
                'can_edit': can_edit, 'is_index': is_index}
     return render(request, 'pages/view_page.html', context)
 
-
+def view_file(request, course_slug, page_label):
+    return _get_file(request, course_slug, page_label, 'inline')
 def download_file(request, course_slug, page_label):
+    return _get_file(request, course_slug, page_label, 'attachment')
+
+def _get_file(request, course_slug, page_label, disposition):
+    """
+    view for either inlinte viewing or downloading file contents
+    """
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     page = get_object_or_404(Page, offering=offering, label=page_label)
     version = page.current_version()
+    if not version.is_filepage():
+        return NotFoundResponse(request)
     
     member = _check_allowed(request, offering, page.can_read)
     # check that we have an allowed member of the course (and can continue)
     if not member:
         return ForbiddenResponse(request, 'Not allowed to view this page')
     
-    resp = HttpResponse(content_type=version.file_mediatype)
-    resp['Content-Disposition'] = 'attachment; filename=' + version.file_name
-    resp.write(version.file_attachment.read())
+    resp = HttpResponse(version.file_attachment.chunks(), content_type=version.file_mediatype)
+    resp['Content-Disposition'] = disposition+'; filename=' + version.file_name
+    resp['Content-Length'] = version.file_attachment.size
     return resp
     
 
@@ -120,34 +129,47 @@ def page_version(request, course_slug, page_label, version_id):
 
 @login_required
 def new_page(request, course_slug):
-    return _edit_pagefile(request, course_slug, page_label=None, Form=EditPageForm, kind="page")
-
-@login_required
-def edit_page(request, course_slug, page_label):
-    return _edit_pagefile(request, course_slug, page_label, Form=EditPageForm, kind="page")
-    #return _edit_pagefile(request, course_slug, page_label, Form=EditFileForm, kind="file")
+    return _edit_pagefile(request, course_slug, page_label=None, kind="page")
 
 @login_required
 def new_file(request, course_slug):
-    return _edit_pagefile(request, course_slug, page_label=None, Form=EditFileForm, kind="file")
+    return _edit_pagefile(request, course_slug, page_label=None, kind="file")
+
+@login_required
+def edit_page(request, course_slug, page_label):
+    return _edit_pagefile(request, course_slug, page_label, kind=None)
 
 
-def _edit_pagefile(request, course_slug, page_label, Form, kind):
+
+def _edit_pagefile(request, course_slug, page_label, kind):
     """
     View to create and edit pages
     """
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     if page_label:
         page = get_object_or_404(Page, offering=offering, label=page_label)
+        version = page.current_version()
         member = _check_allowed(request, offering, page.can_write)
     else:
         page = None
+        version = None
         member = _check_allowed(request, offering, 'STAF')
+    
+    # make sure we're looking at the right "kind" (page/file)
+    if not kind:
+        kind = "file" if version.is_filepage() else "page"
 
+    # get the form class we need
+    if kind == "page":
+        Form = EditPageForm
+    else:
+        Form = EditFileForm
+    
     # check that we have an allowed member of the course (and can continue)
     if not member:
         return ForbiddenResponse(request, 'Not allowed to edit/create this '+kind+'.')
     if member.role == 'STUD':
+        # students get the restricted version of the form
         Form = Form.restricted_form
     
     if request.method == 'POST':

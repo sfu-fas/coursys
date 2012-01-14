@@ -17,6 +17,7 @@ $(document).ready(function() {
       null,
       null,
       null,
+      null,
     ]
   } );
 } );
@@ -27,13 +28,14 @@ $(document).ready(function() {
 
 <div class="datatable_container">
 <table id="pagestable" class="display">
-  <thead><tr><th scope="col">Modified</th><th scope="col">Editor</th><th scope="col">Comment</th></tr></thead>
+  <thead><tr><th scope="col">Modified</th><th scope="col">Editor</th><th scope="col">Comment</th><th scope="col">Size</th></tr></thead>
   <tbody>
   {% for v in versions %}
   <tr>
   <td><a href="{% url pages.views.page_version course_slug=offering.slug page_label=page.label version_id=v.id %}">{{v.created_at}}</a></td>
   <td>{{v.editor.person.name}} ({{v.editor.person.userid}})</td>
   <td>{{v.comment}}</td>
+  <td>{% if v.is_filepage %}{{v.file_attachment.size|filesizeformat}}{% else %}{{v.get_wikitext|length|filesizeformat}}{% endif %}</td>
   </tr>
   {% endfor %}
   </tbody>

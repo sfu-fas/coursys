@@ -8,9 +8,13 @@
 {% block content %}
 <div id="form_container">
     <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+    
+    <fieldset><legend>Page Details</legend>
     {{form|as_dl_safe}}
 
     <p><input class="submit" type="submit" value="{% if page %}Update {{kind}}{% else %}Create {{kind}}{% endif %}" /></p>
+    </fieldset>
+
     </form>
 </div>
 {% endblock %}

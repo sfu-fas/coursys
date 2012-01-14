@@ -6,7 +6,8 @@ from coredata.models import CourseOffering, Member
 
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter
-import creoleparser, os, datetime, re
+import creoleparser
+import os, datetime, re, difflib, json
 
 WRITE_ACL_CHOICES = [
     ('NONE', 'nobody'),
@@ -88,13 +89,13 @@ class PageVersion(models.Model):
     """
     page = models.ForeignKey(Page)
     wikitext = models.TextField()
-    diff = models.TextField()
+    diff = models.TextField(null=True, blank=True)
     diff_from = models.ForeignKey('PageVersion', null=True)
     file_attachment = models.FileField(storage=PageFilesStorage, null=False, upload_to=attachment_upload_to, blank=False, max_length=500)
     file_mediatype = models.CharField(null=False, blank=False, max_length=200)
     file_name = models.CharField(null=False, blank=False, max_length=200)
 
-    created_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     editor = models.ForeignKey(Member)
     comment = models.TextField()
 
@@ -114,30 +115,135 @@ class PageVersion(models.Model):
         """
         pass
     
-    @transaction.commit_manually
-    def save(self, save_part=False, *args, **kwargs):
-        # TODO: update previous PageVersion object now: remove wikitext and set diff/diff_from.
+    def get_wikitext(self):
+        """
+        Return this version's wikitext (reconstructing from diffs if necessary).
+        """
+        if self.diff_from:
+            src = self.diff_from
+            diff = json.loads(self.diff)
+            return src.apply_changes(diff)
+        return self.wikitext
+    
+    def previous_version(self):
+        """
+        Return the version before this one, or None
+        """
+        try:
+            prev = PageVersion.objects.filter(page=self.page,
+                   created_at__lt=self.created_at).latest('created_at')
+            return prev
+        except PageVersion.DoesNotExist:
+            return None
 
+    def changes(self, other):
+        """
+        Changes to get from the get_wikitext() of self to other.
+        """
+        lines1 = self.get_wikitext().split("\n")
+        lines2 = other.get_wikitext().split("\n")
+        
+        matcher = difflib.SequenceMatcher()
+        matcher.set_seqs(lines1, lines2)
+        
+        changes = []
+        for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+            if tag == 'equal':
+                # ignore no-change blocks
+                pass
+            elif tag == 'insert':
+                changes.append(("I", i1, lines2[j1:j2]))
+            elif tag == 'delete':
+                changes.append(("D", i1, i2))
+            elif tag == 'replace':
+                changes.append(("R", i1, i2, lines2[j1:j2]))
+            else:
+                raise ValueError
+        
+        return changes
+
+    def apply_changes(self, changes):
+        """
+        Apply changes to this wikitext
+        """
+        lines = self.get_wikitext().split("\n")
+        # sort by reverse linenumber: make sure we make changes in the right place
+        changes.sort(cmp=lambda x,y: cmp(y[1], x[1]))
+        
+        for change in changes:
+            c = change[0]
+            if c=="I":
+                _, pos, ls = change
+                lines[pos:pos] = ls
+            elif c=="D":
+                _, pos1, pos2 = change
+                del lines[pos1:pos2]
+            elif c=="R":
+                _, pos1, pos2, ls = change
+                lines[pos1:pos2] = ls
+            else:
+                raise ValueError
+
+        return "\n".join(lines)
+
+    
+    def diff_to(self, other):
+        """
+        Turn this version into a diff based on the other version.
+        """
+        if not self.wikitext:
+            # must already be a diff: don't repeat ourselves
+            return
+        
+        oldw = self.get_wikitext()
+
+        diff = json.dumps(other.changes(self), separators=(',',':'))
+        if len(diff) > len(oldw):
+            # if it's a big change, don't bother.
+            return
+
+        self.diff = diff
+        self.diff_from_id = other.id
+        self.wikitext = ''
+        self.save(check_diff=False) # save but don't go back for more diffing
+
+        neww = self.get_wikitext()
+        assert oldw==neww
+
+    def save(self, check_diff=True, *args, **kwargs):
+        # normalize newlines so our diffs are easier later
+        self.wikitext = _normalize_newlines(self.wikitext)
+        
+        # set the SyntaxHighlighter brushes used on this page.
         self.set_brushes([])
-        if self.wikitext:
-            brushes = brushes_used(parser.parse(self.wikitext))
+        wikitext = self.get_wikitext()
+        if wikitext:
+            brushes = brushes_used(parser.parse(wikitext))
             self.set_brushes(list(brushes))
             self.set_syntax(bool(brushes))
 
         super(PageVersion, self).save(*args, **kwargs)
         
-        if not save_part:
-            # Only commit is we're the top-level save action;
-            # don't commit while saving previous PageVersion objects above.
-            transaction.commit()
+        # update the *previous* PageVersion so it's a diff instead of storing full text
+        if check_diff:
+            prev = self.previous_version()
+            if prev:
+                prev.diff_to(self)
+
 
     def __unicode__(self):
         return unicode(self.page) + '@' + unicode(self.created_at)
 
+    def is_filepage(self):
+        return bool(self.file_attachment)
     def html_contents(self):
-        return mark_safe(text2html(self.wikitext))
+        return mark_safe(text2html(self.get_wikitext()))
 
 
+# from http://code.activestate.com/recipes/435882-normalizing-newlines-between-windowsunixmacs/
+_newlines_re = re.compile(r'(\r\n|\r|\r)')
+def _normalize_newlines(string):
+    return _newlines_re.sub('\n', string)
 
 
 # custom creoleparser Parser class:

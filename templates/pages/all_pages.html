@@ -15,6 +15,7 @@ $(document).ready(function() {
     "aoColumns": [
       null,
       null,
+      null,
     ]
   } );
 } );
@@ -37,11 +38,12 @@ $(document).ready(function() {
 
 <div class="datatable_container">
 <table id="pagestable" class="display">
-  <thead><tr><th scope="col">Page Title</th><th scope="col">Actions</th></tr></thead>
+  <thead><tr><th scope="col">Label</th><th scope="col">Page Title</th><th scope="col">Actions</th></tr></thead>
   <tbody>
   {% for p in pages %}
   <tr>
-  <td><a href="{% url pages.views.view_page course_slug=offering.slug page_label=p.label %}">{{p.title}}</a></td>
+  <td><a href="{% url pages.views.view_page course_slug=offering.slug page_label=p.label %}">{{p.label}}</a></td>
+  <td>{{p.title}}</td>
   <td></td>
   </tr>
   {% endfor %}
