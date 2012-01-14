@@ -110,6 +110,7 @@ INSTALLED_APPS = (
     'advisors',
     'ta',
     'pages',
+    'advisornotes',
 )
 if DEBUG:
     #INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
