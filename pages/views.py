@@ -178,13 +178,13 @@ def _edit_pagefile(request, course_slug, page_label, kind):
             form.save(editor=member)
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description="Edited page \"%s\" in %s." % (form.instance.title, offering),
+                  description="Edited page %s in %s." % (form.instance.label, offering),
                   related_object=form.instance)
             l.save()
             if page:
-                messages.success(request, "Edited "+kind+" \"%s\"." % (form.instance.title))
+                messages.success(request, "Edited "+kind+" \"%s\"." % (form.instance.label))
             else:
-                messages.success(request, "Created "+kind+" \"%s\"." % (form.instance.title))
+                messages.success(request, "Created "+kind+" \"%s\"." % (form.instance.label))
             
             return HttpResponseRedirect(reverse('pages.views.view_page', kwargs={'course_slug': course_slug, 'page_label': form.instance.label}))
     else:

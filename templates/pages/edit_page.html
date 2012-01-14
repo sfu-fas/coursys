@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% load form_display %}
 
-{% block title %}{% if page %}Edit {{kind}} "{{page.title}}"{% else %}New {{kind}}{% endif %}{% endblock %}
-{% block h1 %}{% if page %}Edit {{kind}} "{{page.title}}"{% else %}New {{kind}}{% endif %}{% endblock %}
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=offering.slug %}">{{ offering.name }}</a></li><li>&gt; <a href="{% url pages.views.index_page course_slug=offering.slug %}">Pages</a></li>{% if page %}<li>&gt; <a href="{% url pages.views.view_page course_slug=offering.slug page_label=page.label %}">{{page.title}}</a></li><li>&gt; Edit</li>{% else %}<li>&gt; New Page</li>{% endif %}{% endblock %}
+{% block title %}{% if page %}Edit {{kind}} {{page.label}}{% else %}New {{kind}}{% endif %}{% endblock %}
+{% block h1 %}{% if page %}Edit {{kind}} {{page.label}}{% else %}New {{kind}}{% endif %}{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=offering.slug %}">{{ offering.name }}</a></li><li>&gt; <a href="{% url pages.views.index_page course_slug=offering.slug %}">Pages</a></li>{% if page %}<li>&gt; <a href="{% url pages.views.view_page course_slug=offering.slug page_label=page.label %}">{{page.label}}</a></li><li>&gt; Edit</li>{% else %}<li>&gt; New Page</li>{% endif %}{% endblock %}
 
 {% block content %}
 <div id="form_container">

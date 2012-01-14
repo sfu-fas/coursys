@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}{{page.title}}{% endblock %}
-{% block h1 %}{{page.title}}{% endblock %}
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=offering.slug %}">{{ offering.name }}</a></li>{% if is_index %}<li>&gt; Pages</li>{% else %}<li>&gt; <a href="{% url pages.views.index_page course_slug=offering.slug %}">Pages</a></li><li>&gt; {{page.title}}</li>{% endif %}{% endblock %}
+{% block title %}{{version.title}}{% endblock %}
+{% block h1 %}{{version.title}}{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=offering.slug %}">{{ offering.name }}</a></li>{% if is_index %}<li>&gt; Pages</li>{% else %}<li>&gt; <a href="{% url pages.views.index_page course_slug=offering.slug %}">Pages</a></li><li>&gt; {{page.label}}</li>{% endif %}{% endblock %}
 
 {% block headextra %}
 {% if version.math %}

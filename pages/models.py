@@ -51,7 +51,6 @@ class Page(models.Model):
     A page in this courses "web site". Actual data is versioned in PageVersion objects.
     """
     offering = models.ForeignKey(CourseOffering)
-    title = models.CharField(max_length=60, help_text="The title for the page")
     label = models.CharField(max_length=30, db_index=True, help_text="The &ldquo;filename&rdquo; for this page")
     can_read = models.CharField(max_length=4, choices=READ_ACL_CHOICES, default="ALL",
         help_text="Who should be able to view this page?")
@@ -88,7 +87,8 @@ class PageVersion(models.Model):
     A particular revision of a Page's contents. Could be either a wiki page or a file attachment.
     """
     page = models.ForeignKey(Page)
-    wikitext = models.TextField()
+    title = models.CharField(max_length=60, help_text="The title for the page")
+    wikitext = models.TextField(help_text="WikiCreole-formatted content of the page")
     diff = models.TextField(null=True, blank=True)
     diff_from = models.ForeignKey('PageVersion', null=True)
     file_attachment = models.FileField(storage=PageFilesStorage, null=False, upload_to=attachment_upload_to, blank=False, max_length=500)

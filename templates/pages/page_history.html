@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 
-{% block title %}{{page.title}}: History{% endblock %}
-{% block h1 %}{{page.title}}: History{% endblock %}
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=offering.slug %}">{{ offering.name }}</a></li>{% if is_index %}<li>&gt; Pages</li>{% else %}<li>&gt; <a href="{% url pages.views.index_page course_slug=offering.slug %}">Pages</a></li><li>&gt; <a href="{% url pages.views.view_page course_slug=offering.slug page_label=page.label %}">{{page.title}}</a></li><li>&gt; History</li>{% endif %}{% endblock %}
+{% block title %}{{page.label}}: History{% endblock %}
+{% block h1 %}{{page.label}}: History{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=offering.slug %}">{{ offering.name }}</a></li>{% if is_index %}<li>&gt; Pages</li>{% else %}<li>&gt; <a href="{% url pages.views.index_page course_slug=offering.slug %}">Pages</a></li><li>&gt; <a href="{% url pages.views.view_page course_slug=offering.slug page_label=page.label %}">{{page.label}}</a></li><li>&gt; History</li>{% endif %}{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">

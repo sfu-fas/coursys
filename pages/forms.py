@@ -29,6 +29,7 @@ class EditPageFileForm(forms.ModelForm):
         
         # existing data for other fields
         if self.instance.id:
+            self.initial['title'] = self.instance.current_version().title
             self.initial['wikitext'] = self.instance.current_version().wikitext
             self.initial['math'] = self.instance.current_version().math()
         
@@ -64,6 +65,7 @@ class EditPageFileForm(forms.ModelForm):
 
 
 class EditPageForm(EditPageFileForm):
+    title = forms.CharField(max_length=60, widget=forms.TextInput(attrs={'size':50}))
     wikitext = WikiField()
     comment = CommentField()
     
@@ -73,7 +75,8 @@ class EditPageForm(EditPageFileForm):
         # also create the PageVersion object.
         wikitext = self.cleaned_data['wikitext']
         comment = self.cleaned_data['comment']
-        pv = PageVersion(wikitext=wikitext, comment=comment, editor=editor)
+        title = self.cleaned_data['title']
+        pv = PageVersion(title=title, wikitext=wikitext, comment=comment, editor=editor)
         # set config data
         if 'math' in self.cleaned_data:
             pv.set_math(self.cleaned_data['math'])
