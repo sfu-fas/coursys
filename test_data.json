@@ -12109,5 +12109,14 @@
   },
   "model": "advisornotes.advisornote",
   "pk": 2
+ },
+ {
+  "fields": {
+   "base_units": "5",
+   "config": "{\"lectures\": {\"comment\": \"\", \"total\": 0, \"weekly\": 0}, \"grading\": {\"comment\": \"\", \"total\": 120, \"weekly\": null}, \"office_hours\": {\"comment\": \"\", \"total\": 26, \"weekly\": 2}, \"meetings\": {\"comment\": \"likely one meeting every other week\", \"total\": 13, \"weekly\": 0.5}, \"test_prep\": {\"comment\": \"1 hour midterm, 3 hour final\", \"total\": 4, \"weekly\": null}, \"other1\": {\"comment\": \"\", \"total\": 13, \"label\": \"Student email\", \"weekly\": 1}, \"other2\": {}, \"holiday\": {\"comment\": \"\", \"total\": 4, \"weekly\": null}, \"prep\": {\"comment\": \"\", \"total\": 14, \"weekly\": 1}}",
+   "member": 142
+  },
+  "model": "ta.tug",
+  "pk": 1
  }
 ]
