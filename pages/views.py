@@ -50,11 +50,11 @@ def view_page(request, course_slug, page_label):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     pages = Page.objects.filter(offering=offering, label=page_label)
     if not pages:
-        # missing page: do something more clever than the 404
+        # missing page: do something more clever than the standard 404
         member = _check_allowed(request, offering, 'STAF')
         can_create = bool(member)
         context = {'offering': offering, 'can_create': can_create, 'page_label': page_label}
-        return render(request, 'pages/missing_page.html', context)
+        return render(request, 'pages/missing_page.html', context, status=404)
     else:
         page = pages[0]
     
@@ -122,10 +122,23 @@ def page_history(request, course_slug, page_label):
     context = {'offering': offering, 'page': page, 'versions': versions}
     return render(request, 'pages/page_history.html', context)
     
-@login_required
+
 def page_version(request, course_slug, page_label, version_id):
-    pass 
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    page = get_object_or_404(Page, offering=offering, label=page_label)
+    member = _check_allowed(request, offering, page.can_write)
+    # check that we have an allowed member of the course (and can continue)
+    if not member:
+        return ForbiddenResponse(request, "Not allowed to view this page's history")
     
+    version = get_object_or_404(PageVersion, page=page, id=version_id)
+    
+    messages.info(request, "This is an old version of this page.")
+    context = {'offering': offering, 'page': page, 'version': version,
+               'is_old': True}
+    return render(request, 'pages/view_page.html', context)
+
+
 
 @login_required
 def new_page(request, course_slug):

@@ -101,13 +101,13 @@ class PagesTest(TestCase):
         crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
         memb = Member.objects.get(offering=crs, person__userid="ggbaker")
         
-        p = Page(offering=crs, title="Test Page", label="Test")        
+        p = Page(offering=crs, label="Test")        
         p.save()
-        v1 = PageVersion(page=p, wikitext=contents1, editor=memb, comment="original page")
+        v1 = PageVersion(page=p, title="T1", wikitext=contents1, editor=memb, comment="original page")
         v1.save()
-        v2 = PageVersion(page=p, wikitext=contents2, editor=memb, comment="some changes")
+        v2 = PageVersion(page=p, title="T2", wikitext=contents2, editor=memb, comment="some changes")
         v2.save()
-        v3 = PageVersion(page=p, wikitext=contents3, editor=memb, comment="total rewrite")
+        v3 = PageVersion(page=p, title="T3", wikitext=contents3, editor=memb, comment="total rewrite")
         v3.save()
         
         # refresh changes in DB
@@ -119,6 +119,9 @@ class PagesTest(TestCase):
         self.assertEqual(v1.get_wikitext(), contents1)
         self.assertEqual(v2.get_wikitext(), contents2)
         self.assertEqual(v3.get_wikitext(), contents3)
+        self.assertEqual(v1.title, "T1")
+        self.assertEqual(v2.title, "T2")
+        self.assertEqual(v3.title, "T3")
 
         # make sure the diff got stored for incremental changes
         self.assertEqual(v1.wikitext, '')

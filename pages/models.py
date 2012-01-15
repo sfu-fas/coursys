@@ -2,6 +2,7 @@ from django.db import models, transaction
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 from django.utils.safestring import mark_safe
+from django.core.cache import cache
 from coredata.models import CourseOffering, Member
 
 from jsonfield import JSONField
@@ -66,6 +67,8 @@ class Page(models.Model):
         assert self.label_okay(self.label) is None
         super(Page, self).save(*args, **kwargs)
     
+    def version_cache_key(self):
+        return "page-curver-" + str(self.id)
     def label_okay(self, label):
         """
         Check to make sure this label is acceptable (okay characters)
@@ -80,7 +83,21 @@ class Page(models.Model):
         return self.offering.name() + '/' + self.label
     
     def current_version(self):
-        return PageVersion.objects.filter(page=self).select_related('editor__person').latest('created_at')
+        """
+        The most recent PageVersion object for this Page
+        
+        Cached to save the frequent lookup.
+        """
+        key = self.version_cache_key()
+        v = cache.get(key)
+        if v:
+            return v
+        else:
+            v = PageVersion.objects.filter(page=self).select_related('editor__person').latest('created_at')
+            cache.set(key, v, 3600) # expired when a PageVersion is saved
+            return v
+
+
 
 class PageVersion(models.Model):
     """
@@ -103,26 +120,37 @@ class PageVersion(models.Model):
       # p.config['math']: page uses MathJax? (boolean)
       # p.config['syntax']: page uses SyntaxHighlighter? (boolean)
       # p.config['brushes']: used SyntaxHighlighter brushes (list of strings)
+      # p.config['depth']: max depth of diff pages below me (to keep it within reason)
     
-    defaults = {'math': False, 'syntax': False, 'brushes': []}
+    defaults = {'math': False, 'syntax': False, 'brushes': [], 'depth': 0}
     math, set_math = getter_setter('math')
     syntax, set_syntax = getter_setter('syntax')
     brushes, set_brushes = getter_setter('brushes')
+    depth, set_depth = getter_setter('depth')
 
-    def clean(self):
-        """
-        Make sure this is either a wiki page or a file (but not both).
-        """
-        pass
+    def html_cache_key(self):
+        return "page-html-" + str(self.id)
+    def wikitext_cache_key(self):
+        return "page-wikitext-" + str(self.id)
     
     def get_wikitext(self):
         """
         Return this version's wikitext (reconstructing from diffs if necessary).
+        
+        Caches when reconstructing from diffs
         """
         if self.diff_from:
-            src = self.diff_from
-            diff = json.loads(self.diff)
-            return src.apply_changes(diff)
+            key = self.wikitext_cache_key()
+            wikitext = cache.get(key)
+            if wikitext:
+                return wikitext
+            else:
+                src = self.diff_from
+                diff = json.loads(self.diff)
+                wikitext = src.apply_changes(diff)
+                cache.set(key, wikitext, 24*3600) # no need to expire: shouldn't change for a version
+                return wikitext
+
         return self.wikitext
     
     def previous_version(self):
@@ -198,7 +226,10 @@ class PageVersion(models.Model):
         if not self.wikitext or self.diff_from_id:
             # must already be a diff: don't repeat ourselves
             return
-        
+        if self.depth() > 10:
+            # don't let the chain of diffs get too long
+            return
+                
         oldw = self.wikitext
 
         diff = json.dumps(other.changes(self), separators=(',',':'))
@@ -211,25 +242,41 @@ class PageVersion(models.Model):
         self.wikitext = ''
         self.save(check_diff=False) # save but don't go back for more diffing
 
+        other.set_depth(max(self.depth()+1, other.depth()))
+        other.save(minor_change=True)
+
         neww = self.get_wikitext()
         assert oldw==neww
 
-    def save(self, check_diff=True, *args, **kwargs):
-        # normalize newlines so our diffs are consistent later
-        self.wikitext = _normalize_newlines(self.wikitext)
+    def save(self, check_diff=True, minor_change=False, *args, **kwargs):
+        # check coherence of the data model: exactly one of full text, diff text, file.
+        if not minor_change:
+            # minor_change flag set when .diff_to has changed the .config only
+            has_wikitext = bool(self.wikitext)
+            has_difffrom = bool(self.diff_from)
+            has_diff = bool(self.diff)
+            has_file = bool(self.file_attachment)
+            assert (has_wikitext and not has_difffrom and not has_diff and not has_file) \
+                or (not has_wikitext and has_difffrom and has_diff and not has_file) \
+                or (not has_wikitext and not has_difffrom and not has_diff and has_file)
         
-        # set the SyntaxHighlighter brushes used on this page.
-        self.set_brushes([])
-        wikitext = self.get_wikitext()
-        if wikitext:
-            brushes = brushes_used(parser.parse(wikitext))
-            self.set_brushes(list(brushes))
-            self.set_syntax(bool(brushes))
+            # normalize newlines so our diffs are consistent later
+            self.wikitext = _normalize_newlines(self.wikitext)
+        
+            # set the SyntaxHighlighter brushes used on this page.
+            self.set_brushes([])
+            wikitext = self.get_wikitext()
+            if wikitext:
+                brushes = brushes_used(parser.parse(wikitext))
+                self.set_brushes(list(brushes))
+                self.set_syntax(bool(brushes))
 
         super(PageVersion, self).save(*args, **kwargs)
+        # invalidate current version cache
+        cache.delete(self.page.version_cache_key())
         
         # update the *previous* PageVersion so it's a diff instead of storing full text
-        if check_diff:
+        if check_diff and not minor_change:
             prev = self.previous_version()
             if prev:
                 prev.diff_to(self)
@@ -239,9 +286,25 @@ class PageVersion(models.Model):
         return unicode(self.page) + '@' + unicode(self.created_at)
 
     def is_filepage(self):
+        """
+        Is this PageVersion a file attachment (as opposed to a Wiki page)?
+        """
         return bool(self.file_attachment)
     def html_contents(self):
-        return mark_safe(text2html(self.get_wikitext()))
+        """
+        Return the HTML version of this version's wikitext.
+        
+        Cached to save frequent conversion.
+        """
+        key = self.html_cache_key()
+        html = cache.get(key)
+        if html:
+            return mark_safe(html)
+        else:
+            html = text2html(self.get_wikitext())
+            cache.set(key, html, 24*3600) # no need to expire: shouldn't change for a version
+            return mark_safe(html)
+        
 
 
 # from http://code.activestate.com/recipes/435882-normalizing-newlines-between-windowsunixmacs/

@@ -44,7 +44,7 @@ $(document).ready(function() {
   <tr>
   <td><a href="{% url pages.views.view_page course_slug=offering.slug page_label=p.label %}">{{p.label}}</a></td>
   <td>{{v.title}}</td>
-  <td>{{v.created_at}} by {{v.editor.person.userid}}</td>
+  <td>{{v.created_at}}</td>
   </tr>
   {% endwith %}{% endfor %}
   </tbody>

@@ -126,7 +126,10 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 if DEPLOYED:
     MIDDLEWARE_CLASSES = ('courselib.exception_middleware.ExceptionMiddleware',) + MIDDLEWARE_CLASSES
     SUBMISSION_PATH = '/data/submitted_files'
-    CACHE_BACKEND = 'memcached://127.0.0.1:22122/'
+    CACHES = { 'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:22122',
+    } }
     BASE_ABS_URL = "https://courses.cs.sfu.ca"
     SESSION_COOKIE_SECURE = True
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # changed below if using Celery
@@ -137,7 +140,9 @@ else:
     #MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('contrib.profiling.ProfileMiddleware',)
     SUBMISSION_PATH = "submitted_files"
     #INSTALLED_APPS = INSTALLED_APPS + ('django.contrib.admin',)
-    CACHE_BACKEND = 'locmem://'
+    CACHES = { 'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    } }
     BASE_ABS_URL = "http://localhost:8000"
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # changed below if using Celery
     SVN_DB_CONNECT = None

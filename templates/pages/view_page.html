@@ -2,7 +2,7 @@
 
 {% block title %}{{version.title}}{% endblock %}
 {% block h1 %}{{version.title}}{% endblock %}
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=offering.slug %}">{{ offering.name }}</a></li>{% if is_index %}<li>&gt; Pages</li>{% else %}<li>&gt; <a href="{% url pages.views.index_page course_slug=offering.slug %}">Pages</a></li><li>&gt; {{page.label}}</li>{% endif %}{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=offering.slug %}">{{ offering.name }}</a></li>{% if is_index %}<li>&gt; Pages</li>{% else %}<li>&gt; <a href="{% url pages.views.index_page course_slug=offering.slug %}">Pages</a></li>{% if is_old %}<li>&gt; <a href="{% url pages.views.view_page course_slug=offering.slug page_label=page.label %}">{{page.label}}</a></li><li>&gt; Previous Version</li>{% else %}<li>&gt; {{page.label}}</li>{% endif %}{% endif %}{% endblock %}
 
 {% block headextra %}
 {% if version.math %}
@@ -30,10 +30,11 @@ MathJax.Hub.Config({
 
 
 {% block actions %}
-{% if can_edit or is_index %}
+{% if can_edit or is_index or is_old %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
+    {% if is_old %}<li><a href="{% url pages.views.view_page course_slug=offering.slug page_label=page.label %}">View current version</a></li>{% endif %}
     {% if is_index %}<li><a href="{% url pages.views.all_pages course_slug=offering.slug %}">List All Pages</a></li>{% endif %}
     {% if can_edit %}
     <li><a href="{% url pages.views.edit_page course_slug=offering.slug page_label=page.label %}">Edit this {% if version.is_filepage %}file{% else %}page{% endif %}</a></li>
