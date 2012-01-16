@@ -166,7 +166,16 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/history$', 'pages.views.page_history'),
     url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/version/(?P<version_id>\d+)$', 'pages.views.page_version'),
 
+    #Start TUG URL mappings
 
+    url(r'^' + COURSE_SLUG + '/config/tugs/$', 'ta.views.index_page'),
+    url(r'^' + COURSE_SLUG + '/config/tugs/all$', 'ta.views.all_tugs'),
+    url(r'^' + COURSE_SLUG + '/config/tugs/new$', 'ta.views.new_tug'),
+    url(r'^' + COURSE_SLUG + '/config/tugs/' + USERID_SLUG + '/view$', 'ta.views.view_tug'),
+    url(r'^' + COURSE_SLUG + '/config/tugs/' + USERID_SLUG + '/edit$', 'ta.views.edit_tug'),
+
+    #End TUG URL mappings
+    
     url(r'^discipline/$', 'discipline.views.chair_index'),
     url(r'^discipline/' + COURSE_SLUG + '/' + CASE_SLUG + '/create$', 'discipline.views.chair_create'),
     url(r'^discipline/' + COURSE_SLUG + '/' + CASE_SLUG + '/$', 'discipline.views.chair_show'),
