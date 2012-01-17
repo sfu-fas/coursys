@@ -4,10 +4,11 @@ from django.conf import settings
 from django.utils.safestring import mark_safe
 from django.core.cache import cache
 from coredata.models import CourseOffering, Member
+from grades.models import Activity
 
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter
-import creoleparser
+import creoleparser, pytz
 import os, datetime, re, difflib, json
 
 WRITE_ACL_CHOICES = [
@@ -153,6 +154,14 @@ class PageVersion(models.Model):
 
         return self.wikitext
     
+    def __init__(self, *args, **kwargs):
+        super(PageVersion, self).__init__(*args, **kwargs)
+        self.Creole = None
+    
+    def get_creole(self):
+        if not self.Creole:
+            self.Creole = ParserFor(self.page.offering)
+    
     def previous_version(self):
         """
         Return the version before this one, or None
@@ -267,7 +276,8 @@ class PageVersion(models.Model):
             self.set_brushes([])
             wikitext = self.get_wikitext()
             if wikitext:
-                brushes = brushes_used(parser.parse(wikitext))
+                self.get_creole()
+                brushes = brushes_used(self.Creole.parser.parse(wikitext))
                 self.set_brushes(list(brushes))
                 self.set_syntax(bool(brushes))
 
@@ -301,8 +311,9 @@ class PageVersion(models.Model):
         if html:
             return mark_safe(html)
         else:
-            html = text2html(self.get_wikitext())
-            cache.set(key, html, 24*3600) # no need to expire: shouldn't change for a version
+            self.get_creole()
+            html = self.Creole.text2html(self.get_wikitext())
+            cache.set(key, html, 24*3600) # expired if activities are changed (in signal below)
             return mark_safe(html)
         
 
@@ -313,6 +324,26 @@ def _normalize_newlines(string):
     return _newlines_re.sub('\n', string)
 
 
+# signal for cache invalidation
+def clear_offering_cache(instance, **kwargs):
+    """
+    Saving an activity might change HTML contents of any PageVersion, since they might
+    contain <<duedate>> macros: invalidate all cached copies to be safe.
+    """
+    if not isinstance(instance, Activity):
+        return
+    if not hasattr(instance, 'offering'):
+        # doesn't even have an offering set: can't be a problem. Right?
+        return
+
+    for pv in PageVersion.objects.filter(page__offering=instance.offering):
+        key = pv.html_cache_key()
+        cache.delete(key)
+
+models.signals.post_save.connect(clear_offering_cache)
+
+
+
 # custom creoleparser Parser class:
 
 import re
@@ -320,11 +351,12 @@ import genshi
 from brush_map import brush_code
 
 brushre = r"[\w\-#]+"
+brush_class_re = re.compile(r'brush:\s+(' + brushre + ')')
+
 class CodeBlock(creoleparser.elements.BlockElement):
     """
     A block of code that gets syntax-highlited
     """
-
     def __init__(self):
         super(CodeBlock,self).__init__('pre', ['{{{','}}}'])
         self.regexp = re.compile(self.re_string(), re.DOTALL+re.MULTILINE)
@@ -349,41 +381,84 @@ class CodeBlock(creoleparser.elements.BlockElement):
                         element_store, environ, remove_escapes=False),
             class_="brush: "+lang)
 
+local_tz = pytz.timezone(settings.TIME_ZONE)
+def _duedate(offering, macro, environ, *act_name):
+    """
+    creoleparser macro for due datetimes
+    
+    Must be created in a closure by ParserFor with offering set (since that
+    doesn't come from the parser).
+    """    
+    act_name = macro['arg_string'].strip()
+    attrs = {}
+    acts = Activity.objects.filter(offering=offering, deleted=False).filter(models.Q(name=act_name) | models.Q(short_name=act_name))
+    if len(acts) == 0:
+        text = '[No activity "%s"]' % (act_name)
+        attrs['class'] = 'empty'
+    elif len(acts) > 1:
+        text = '[There is both a name and short name "%s"]' % (act_name)
+        attrs['class'] = 'empty'
+    else:
+        act = acts[0]
+        due = act.due_date
+        if not due:
+            text = '["%s" has no due date specified]' % (act_name)
+            attrs['class'] = 'empty'
+        else:
+            iso8601 = local_tz.localize(due).isoformat()
+            text = act.due_date.strftime('%A %B %d %Y, %H:%M')
+            attrs['title'] = iso8601
 
-CreoleBase = creoleparser.creole11_base()
-class CreoleDialect(CreoleBase):
-    codeblock = CodeBlock()
-    @property
-    def block_elements(self):
-        blocks = super(CreoleDialect, self).block_elements
-        blocks.insert(0, self.codeblock)
-        return blocks
+    return creoleparser.core.bldr.tag.__getattr__('span')(text, **attrs)
 
-parser = creoleparser.core.Parser(CreoleDialect)
-text2html = parser.render
+    
+class ParserFor(object):
+    """
+    Class to hold the creoleparser objects for a particular CourseOffering.
+    
+    (Need to be specific to the offering so we can select the right activities in macros.)
+    """
+    def __init__(self, offering):
+        self.offering = offering
+        
+        def duedate_macro(macro, environ, *act_name):
+            return _duedate(self.offering, macro, environ, *act_name)
 
-brush_re = re.compile(r'brush:\s+(' + brushre + ')')
+        CreoleBase = creoleparser.creole11_base(non_bodied_macros={'duedate': duedate_macro})
+        class CreoleDialect(CreoleBase):
+	    codeblock = CodeBlock()
+            @property
+            def block_elements(self):
+                blocks = super(CreoleDialect, self).block_elements
+                blocks.insert(0, self.codeblock)
+                return blocks
+        
+        self.parser = creoleparser.core.Parser(CreoleDialect)
+        self.text2html = self.parser.render
+        
+
+
 def brushes_used(parse):
-    """
-    All SyntaxHighlighter brush code files used in this wikitext.
-    """
-    res = set()
-    if hasattr(parse, 'children'):
-        # recurse
-        for c in parse.children:
-            res |= brushes_used(c)
+	"""
+	All SyntaxHighlighter brush code files used in this wikitext.
+	"""
+	res = set()
+	if hasattr(parse, 'children'):
+            # recurse
+            for c in parse.children:
+        	res |= brushes_used(c)
 
-    if isinstance(parse, genshi.builder.Element) and parse.tag == 'pre':
-        cls = parse.attrib.get('class')
-        if cls:
-            m = brush_re.match(cls)
-            if m:
-                b = m.group(1)
-                if b in brush_code:
-                    res.add(brush_code[b])
+	if isinstance(parse, genshi.builder.Element) and parse.tag == 'pre':
+            cls = parse.attrib.get('class')
+            if cls:
+        	m = brush_class_re.match(cls)
+        	if m:
+                    b = m.group(1)
+                    if b in brush_code:
+                	res.add(brush_code[b])
 
-    return res
-            
+	return res
+
 
 
 

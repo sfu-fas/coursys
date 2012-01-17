@@ -1,5 +1,5 @@
 from django.test import TestCase
-from pages.models import Page, PageVersion, brushes_used, text2html, parser
+from pages.models import Page, PageVersion, brushes_used
 from coredata.models import CourseOffering, Member
 from courselib.testing import TEST_COURSE_SLUG
 import re
@@ -74,24 +74,36 @@ whitespace = re.compile(r"\s+")
 
 class PagesTest(TestCase):
     fixtures = ['test_data']
+    def _get_creole(self):
+        "Get a Creole class for some PageVersion for generic testing"
+        crs = CourseOffering.objects.get(slug=TEST_COURSE_SLUG)
+        p = Page(offering=crs, label="Foo")
+        p.save()
+        pv = PageVersion(page=p)
+        pv.get_creole()
+        return pv.Creole
+    
     def test_wiki_formatting(self):
-        html = text2html("# one\n#two")
+        Creole = self._get_creole()
+
+        html = Creole.text2html("# one\n#two")
         html_strip = whitespace.sub('', html)
         self.assertEqual(html_strip, '<ol><li>one</li><li>two</li></ol>')
 
-        html = text2html("good **times**")
+        html = Creole.text2html("good **times**")
         self.assertEqual(html, '<p>good <strong>times</strong></p>\n')
 
         # a WikiCreole "addition"
-        html = text2html("; A\n: B\n; C: D")
+        html = Creole.text2html("; A\n: B\n; C: D")
         html_strip = whitespace.sub('', html)
         self.assertEqual(html_strip, '<dl><dt>A</dt><dd>B</dd><dt>C</dt><dd>D</dd></dl>')
         
     def test_codeblock(self):
-        brushes = brushes_used(parser.parse(wikitext))
+        Creole = self._get_creole()
+        brushes = brushes_used(Creole.parser.parse(wikitext))
         self.assertEqual(brushes, set(['shBrushJScript.js', 'shBrushPython.js']))
         
-        html = text2html(wikitext)
+        html = Creole.text2html(wikitext)
         self.assertIn('class="brush: python">for i', html)
         self.assertIn('print i</pre>', html)
         self.assertIn('i=1; i&lt;4; i++', html)
