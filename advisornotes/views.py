@@ -10,9 +10,9 @@ from forms import *
 @requires_advisor()
 def all_notes(request):
     #advisor should only see notes from his/her department
-    #notes = AdvisorNote.objects.all()
+    notes = AdvisorNote.objects.all()
     dept = [r.department for r in Role.objects.filter(person__userid=request.user.username)]
-    notes = AdvisorNote.objects.filter(department=dept[0])
+    #notes = AdvisorNote.objects.filter(department=dept[0])
     return render_to_response("advisornotes/all_notes.html", {'notes': notes}, context_instance=RequestContext(request))
 
 @requires_advisor()
@@ -32,3 +32,10 @@ def new_note(request):
     else:
         form = AdvisorNoteForm()
     return render(request, 'advisornotes/new_note.html', {'form': form})
+
+@requires_advisor()
+def view_note(request, note_id):
+    note = get_object_or_404(AdvisorNote, pk = note_id)
+        
+    #return HttpResponse('View note page')
+    return render(request, 'advisornotes/view_note.html', {'note': note}, context_instance=RequestContext(request))
