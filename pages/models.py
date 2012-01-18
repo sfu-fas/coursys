@@ -382,7 +382,7 @@ class CodeBlock(creoleparser.elements.BlockElement):
             class_="brush: "+lang)
 
 local_tz = pytz.timezone(settings.TIME_ZONE)
-def _duedate(offering, macro, environ, *act_name):
+def _duedate(offering, dateformat, macro, environ, *act_name):
     """
     creoleparser macro for due datetimes
     
@@ -406,7 +406,7 @@ def _duedate(offering, macro, environ, *act_name):
             attrs['class'] = 'empty'
         else:
             iso8601 = local_tz.localize(due).isoformat()
-            text = act.due_date.strftime('%A %B %d %Y, %H:%M')
+            text = act.due_date.strftime(dateformat)
             attrs['title'] = iso8601
 
     return creoleparser.core.bldr.tag.__getattr__('span')(text, **attrs)
@@ -422,9 +422,14 @@ class ParserFor(object):
         self.offering = offering
         
         def duedate_macro(macro, environ, *act_name):
-            return _duedate(self.offering, macro, environ, *act_name)
+            return _duedate(self.offering, '%A %B %d %Y', macro, environ, *act_name)
+        def duedatetime_macro(macro, environ, *act_name):
+            return _duedate(self.offering, '%A %B %d %Y, %H:%M', macro, environ, *act_name)
 
-        CreoleBase = creoleparser.creole11_base(non_bodied_macros={'duedate': duedate_macro})
+        CreoleBase = creoleparser.creole11_base(non_bodied_macros={
+                     'duedate': duedate_macro,
+                     'duedatetime': duedatetime_macro,
+                     })
         class CreoleDialect(CreoleBase):
 	    codeblock = CodeBlock()
             @property
