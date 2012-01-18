@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% load form_display %}
-{% block title %}Advising Notes{% endblock %}
-{% block h1 %}Advising Notes{% endblock %}
+{% block title %}Advising Note for       	{{ student.first_name}}
+      	{{ student.last_name }}{% endblock %}
+{% block h1 %}Advising Note for       	{{ student.first_name}}
+      	{{ student.last_name }}{% endblock %}
 
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.sysadmin %}">System Admin</a></li><li>&gt; Note</li>{% endblock %}
 
@@ -13,7 +15,8 @@
   <tr>
     <th class="ui-state-default">Student ID</th>
       <td>
-      	{{ note.student_id }}
+      	{{ student.first_name}}
+      	{{ student.last_name }}
       </td>
   </tr>  
   <tr>

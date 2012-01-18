@@ -36,6 +36,7 @@ def new_note(request):
 @requires_advisor()
 def view_note(request, note_id):
     note = get_object_or_404(AdvisorNote, pk = note_id)
+    student = Person.objects.get(id = 16)
         
     #return HttpResponse('View note page')
-    return render(request, 'advisornotes/view_note.html', {'note': note}, context_instance=RequestContext(request))
+    return render(request, 'advisornotes/view_note.html', {'note': note, 'student' : student}, context_instance=RequestContext(request))
