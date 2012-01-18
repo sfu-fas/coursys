@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}Advising Notes{% endblock %}
+{% block h1 %}Advising Notes{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.sysadmin %}">System Admin</a></li><li>&gt; New Role</li>{% endblock %}
+
+{% block content %}
+
+<form action="{% url advisornotes.views.new_note %}" method="post">{% csrf_token %}
+<fieldset>
+<legend>Note</legend>
+{{ form|as_dl }}
+<p><input type="submit" class="submit" value="Submit" /></p>
+</fieldset>
+</form>
+
+
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Advising Notes{% endblock %}
+{% block h1 %}Advising Notes{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; Notes</li>{% endblock %}
+
+{% block actions %}
+<div id="actions">
+<h2>Actions</h2>
+<ul>
+<li><a href="{% url advisornotes.views.new_note %}">New Note</a></li>
+</ul>
+</div>
+{% endblock %}
+
+{%block content%}
+
+{%if notes %}
+<div class="datatable_container">
+<table id="notes" class="display">
+  <thead><tr><th scope="col">Student</th><th scope="col">Advisor</th><th scope="col">Text</th><th scope="col">Actions</th></tr></thead>
+  <tbody>
+  {% for note in notes %}
+  <tr><td scope="row">{{note.student}}</td><td>{{note.advisor}}</td><td>{{note.text}}</td><td><a href="">View</a></td>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+
+{%else%}
+	<p>No notes yet</p>
+{%endif%}
+
+{%endblock content%}
