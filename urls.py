@@ -217,9 +217,14 @@ urlpatterns += patterns('',
     url(r'^sysadmin/dishonesty/edit/(?P<template_id>\d+)$', 'discipline.views.edit_template'),
     url(r'^sysadmin/dishonesty/delete/(?P<template_id>\d+)$', 'discipline.views.delete_template'),
     
+    # Advisor Notes Start
+    
     url(r'^notes/$', 'advisornotes.views.all_notes'),
     url(r'^notes/new$', 'advisornotes.views.new_note'),
-	
+    url(r'^notes/' + NOTE_ID + '/view$', 'advisornotes.views.view_note'),
+    
+    # Advisor Notes End
+    	
 )
 if not settings.DEPLOYED:
     # URLs for development only:

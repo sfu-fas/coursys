@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}Advising Notes{% endblock %}
+{% block h1 %}Advising Notes{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.sysadmin %}">System Admin</a></li><li>&gt; Note</li>{% endblock %}
+
+{% block content %}
+
+<div class="table_container">
+<table class="info">
+<tbody>
+  <tr>
+    <th class="ui-state-default">Student ID</th>
+      <td>
+      	{{ note.student_id }}
+      </td>
+  </tr>  
+  <tr>
+    <th class="ui-state-default">Created At</th>
+      <td>
+      	{{ note.created_at }}
+      </td>
+  </tr>
+  <tr>
+    <th class="ui-state-default">Attachement</th>
+      <td>
+      	{{ note.attachment }}
+      </td>
+  </tr>
+  <tr>
+    <th class="ui-state-default">Department</th>
+      <td>
+      	{{ note.department }}
+      </td>
+  </tr>
+  <tr>
+    <th class="ui-state-default">Note</th>
+      <td>
+      	{{ note.text }}
+      </td>
+  </tr>    
+</tbody>
+</table>
+</div>
+
+
+{% endblock %}

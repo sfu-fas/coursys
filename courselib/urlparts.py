@@ -26,3 +26,4 @@ PLAN_SLUG = '(?P<plan_slug>[\w\-]+)'
 SEMESTER = '(?P<semester>\d{4})'
 PAGE_LABEL = '(?P<page_label>[\w\-_\.]+)'
 
+NOTE_ID = '(?P<note_id>' + ID_RE + ')'
