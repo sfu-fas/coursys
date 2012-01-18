@@ -220,12 +220,6 @@ urlpatterns += patterns('',
     url(r'^notes/$', 'advisornotes.views.all_notes'),
     url(r'^notes/new$', 'advisornotes.views.new_note'),
 	
-	#-------------------------------
-	url(r'tugs/$', 'ta.views.index_page'),
-	url(r'tugs/all$', 'ta.views.all_tugs'),
-	url(r'tugs/new$', 'ta.views.new_tug'),
-	url(r'tugs/view$', 'ta.views.view_tug'),
-	url(r'tugs/edit$', 'ta.views.edit_tug'),
 )
 if not settings.DEPLOYED:
     # URLs for development only:
