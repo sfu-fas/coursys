@@ -21,7 +21,19 @@
   <thead><tr><th scope="col">Student</th><th scope="col">Advisor</th><th scope="col">Text</th><th scope="col">Actions</th></tr></thead>
   <tbody>
   {% for note in notes %}
-  <tr><td scope="row">{{note.student}}</td><td>{{note.advisor}}</td><td>{{note.text}}</td><td><a href="">View</a></td>
+  <tr><td scope="row">
+  	 	{{note.student}}
+  	</td>
+  	<td>
+  		{{note.advisor}}
+  	</td>
+  	<td>
+  		{{note.text}}
+  	</td>
+  	<td>
+  		<a href="{% url advisornotes.views.view_note note_id=note.id %}">View</a>
+  	</td>
+  </tr>
   {% endfor %}
   </tbody>
 </table>
