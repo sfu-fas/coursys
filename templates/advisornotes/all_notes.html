@@ -14,11 +14,17 @@
 {% endblock %}
 
 {%block content%}
-
 {%if notes %}
 <div class="datatable_container">
 <table id="notes" class="display">
-  <thead><tr><th scope="col">Student</th><th scope="col">Advisor</th><th scope="col">Text</th><th scope="col">Actions</th></tr></thead>
+  <thead>
+  	<tr>
+  		<th scope="col">Student</th>
+  		<th scope="col">Advisor</th>
+  		<th scope="col">Notes</th>
+  		<th scope="col">Actions</th>
+  	</tr>
+  </thead>
   <tbody>
   {% for note in notes %}
   <tr><td scope="row">

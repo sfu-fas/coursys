@@ -27,7 +27,8 @@ class AdvisorNote(models.Model):
     student = models.ForeignKey(Person, related_name='student',
                                 help_text='The student that the note is about.')
     advisor = models.ForeignKey(Person, related_name='advisor',
-                                help_text='The advisor that created the note.')
+                                help_text='The advisor that created the note.',
+                                editable = False)
     created_at = models.DateTimeField(auto_now_add=True)
     file_attachment = models.FileField(storage=NoteSystemStorage, null = True, 
                       upload_to=attachment_upload_to, blank=True, max_length=500)

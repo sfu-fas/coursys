@@ -17,10 +17,13 @@ def all_notes(request):
 
 @requires_advisor()
 def new_note(request):
+    
     if request.method == 'POST':
         form = AdvisorNoteForm(request.POST)
         if form.is_valid():
-            form.save()
+            note = form.save(False)
+            note.advisor_id = Person.objects.get(userid = request.user.username).id
+            note.save()
             """
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
@@ -36,7 +39,5 @@ def new_note(request):
 @requires_advisor()
 def view_note(request, note_id):
     note = get_object_or_404(AdvisorNote, pk = note_id)
-    student = Person.objects.get(id = 16)
-        
-    #return HttpResponse('View note page')
+    student = Person.objects.get(id = note.student_id)
     return render(request, 'advisornotes/view_note.html', {'note': note, 'student' : student}, context_instance=RequestContext(request))
