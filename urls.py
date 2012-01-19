@@ -222,6 +222,8 @@ urlpatterns += patterns('',
     url(r'^notes/$', 'advisornotes.views.all_notes'),
     url(r'^notes/new$', 'advisornotes.views.new_note'),
     url(r'^notes/' + NOTE_ID + '/view$', 'advisornotes.views.view_note'),
+    url(r'^notes/students$', 'advisornotes.views.student_search'),
+    url(r'^notes/students/' + USERID_SLUG + '$', 'advisornotes.views.student_notes'),
     
     # Advisor Notes End
     	
