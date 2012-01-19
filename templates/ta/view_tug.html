@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load mobile_tags %}
+
+{% block h1 %}{{course.name}} Time Use Guideline for {{ta.person}} {% endblock %}
+
+{% block actions %}
+<div id="actions">
+<h2 class="heading">Actions</h2>
+<ul>
+<li><a href="{% url ta.views.edit_tug course_slug=course.slug userid=ta.person.userid %}">Edit TUG</a></li>
+<li><a href="{% url ta.views.all_tugs course_slug=course.slug %}">View All TUGs</a></li>
+
+</ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div id="tugHeader">
+	<span id="taName">TA Name: {{tug.member.person}}</span> 
+	<span id="Instructor">Instructor: 
+		{% for instructor in course.instructors %}
+			{{instructor.name}} {% if not forloop.last %}, {% endif %}
+		{% endfor %}
+	</span>
+	<br />
+	<span id="courses">Course(s): {{course.name}} </span>
+	<span id="baseUnits"> Base Units Assigned*: {{tug.base_units}}</span><span id="calculation"> &times; 42 = </span>
+	<span id="maxHours"> Maximum Hours: {{ maxHours }}</span>	
+</div>
+
+<div id="tugBody">
+	<p>
+		Teaching Assistant total workload for the semester should approach but not exceed the 
+		maximum hours over the term of the semester (normally 17 weeks).
+		
+	</p>
+	<p>
+		The following summary is an approximation of the length of time expected 
+		to be devoted to  the major activities.  There may be shifts between 
+		activities, but the total hours required over the semester cannot exceed the
+		maximum hours set out above.
+	</p>
+	<table>
+		<tbody>
+			<tr>
+				<th>Duties and Responsibilities</th>
+				<th>Average hrs/week </th>
+				<th>Total hrs/semester</th>
+			</tr>
+			<tr>
+				<td>1. Preparation for labs/tutorials</td>
+				<td>{{tug.config.prep.weekly}}</td>
+				<td>{{tug.config.prep.total}}</td>
+			</tr>
+			<tr>
+				<td>2. Attendance at planning/coordinating meetings with instructor</td>
+				<td>{{tug.config.meetings.weekly}}</td>
+				<td>{{tug.config.meetings.total}}</td>
+			</tr>
+			<tr>
+				<td>3. Attendance at lectures</td>
+				<td>{{tug.config.lectures.weekly}}</td>
+				<td>{{tug.config.lectures.total}}</td>
+			</tr>
+			<tr>
+				<td>4. Attendance at labs/tutorials</td>
+				<td>{{tug.config.tutorials.weekly}}</td>
+				<td>{{tug.config.tutorials.total}}</td>
+			</tr>
+			<tr>
+				<td>5. Office hours/student consultation/electronic communication</td>
+				<td>{{tug.config.office_hours.weekly}}</td>
+				<td>{{tug.config.office_hours.total}}</td>
+			</tr>
+			<tr>
+				<td>6. Grading **</td>
+				<td>{{tug.config.grading.weekly}}</td>
+				<td>{{tug.config.grading.total}}</td>
+			</tr>
+			<tr>
+				<td>7. Quiz preparation/assist in exam preparation/Invigilation of exams</td>
+				<td>{{tug.config.test_prep.weekly}}</td>
+				<td>{{tug.config.test_prep.total}}</td>
+			</tr>
+			<tr>
+				<td>8. Statutory Holiday Compensation - To compensate for all statutory holidays which <br />
+					may occur in a semester, the total workload required will be reduced by one (1) hour <br />
+					for each base unit assigned excluding the additional 0.17 B.U. for preparation, <br />
+					e.g. 4 hours reduction for 4.17 B.U. appointment.
+ 				</td>
+				<td>{{tug.config.holiday.weekly}}</td>
+				<td>{{tug.config.holiday.total}}</td>
+			</tr>
+			<tr>
+				<td>9. Other – specify*** {{tug.config.other1.label}}</td>
+				<td>{{tug.config.other1.weekly}}</td>
+				<td>{{tug.config.other1.total}}</td>
+			</tr>
+			<tr>
+				<td>
+					Required Total Hours =
+				</td>
+				<td></td>
+				<td>{{totalHours}}</td>
+			</tr>
+		</tbody>
+	</table> 
+	<p>
+		Teaching Assistants and course instructors should familiarize themselves with the general 
+		working conditions set out in Article XIII C, assignment and compensation in Article XIII D, 
+		and workload review mechanisms in Article XIII E.
+	</p>
+	<p>
+		*There are no hours of work associated with the additional 0.17 base unit for preparation, 
+		Article XIII D. 2 b.  See Appendix B for calculation of hours.
+	</p>
+	<p>
+		**  Includes grading of all assignments, reports and examinations. 
+	</p>
+	<p>
+		*** Attendance at a TA/TM Day/Training
+	</p>
+	</p>
+</div>
+
+{% endblock %}
