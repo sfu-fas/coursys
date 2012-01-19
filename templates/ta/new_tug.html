@@ -6,16 +6,7 @@
 
 {% block content %}
 <form action="{% url ta.views.new_tug course_slug=course.slug %}" method="post">{% csrf_token %}
-<table>
-<tr>
-  <td>TA id:</td>
-  <td><input type="text" name="ta_id" /></td>
-</tr>
-<tr>
-  <td>Base Units:</td>
-  <td><input type="text" name="base_units" /></td>
-</tr>
-</table>
+{{ form.as_p }}
 <input class='submit' type="submit" value="Create" />
 
 </form>

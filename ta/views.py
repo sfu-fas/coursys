@@ -1,13 +1,15 @@
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response, get_object_or_404, render
+from django.core.urlresolvers import reverse
 from courselib.auth import requires_course_staff_by_slug, is_course_staff_by_slug, is_course_student_by_slug, ForbiddenResponse, NotFoundResponse
 from ta.models import TUG
 from coredata.models import *
+from ta.forms import *
 
 @requires_course_staff_by_slug
 def index_page(request, course_slug):
     if is_course_staff_by_slug(request, course_slug):
-        return render_to_response('ta/index.html',{})
+        return render(request, 'ta/index.html',{})
     else:
         return ForbiddenResponse(request)
         
@@ -26,10 +28,15 @@ def all_tugs(request, course_slug):
 def new_tug(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     if request.method == "POST":
-        return HttpResponseRedirect(reverse('ta.views.all_tugs', kwargs={}))
+        form = TUGForm(request.POST)
+        if form.is_valid():
+            tug = form.save(False)
+            tug.save()
+        return HttpResponseRedirect(reverse(all_tugs, args=[course.slug]))
     
     else:
-        return render(request,'ta/new_tug.html',{'course':course})
+        form = TUGForm();
+        return render(request,'ta/new_tug.html',{'course':course, 'form':form})
 
 @requires_course_staff_by_slug    
 def view_tug(request, course_slug, userid):
