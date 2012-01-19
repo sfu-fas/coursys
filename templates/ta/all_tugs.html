@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load mobile_tags %}
+
+
+{% block h1 %}
+	Time Use Guidelines for {{course}}
+{% endblock %}
+
+{% block content %}
+<ul>
+{% for ta in tas %}
+	
+		<li><a href="{%url ta.views.view_tug course_slug=course_slug userid=ta.person.userid%}">{{ta.person}}</a></li>
+
+{% endfor %}
+</ul>
+
+{% endblock %}
