@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}Advising Notes{% endblock %}
-{% block h1 %}Advising Notes{% endblock %}
+{% block title %}Advising Notes for {{ student.first_name}} {{ student.last_name }}{% endblock %}
+{% block h1 %}Advising Notes for {{ student.first_name}} {{ student.last_name }}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; Notes</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url advisornotes.views.all_notes %}">List Notes</a></li><li>&gt; Notes for {{ student.first_name }} {{ student.last_name }}</li>{% endblock %}
 
 {% block actions %}
 <div id="actions">
@@ -19,9 +19,8 @@
 <table id="notes" class="display">
   <thead>
   	<tr>
-  		<th scope="col">Student</th>
-  		<th scope="col">Student ID</th>
   		<th scope="col">Advisor</th>
+  		<th scope="col">Created at</th>
   		<th scope="col">Notes</th>
   		<th scope="col">Actions</th>
   	</tr>
@@ -29,20 +28,16 @@
   <tbody>
   {% for note in notes %}
   <tr><td scope="row">
-  	 	{{note.student}}
-  	</td>
-  	<td>
-  		{{note.student.userid}}
-  	</td>
-  	<td>
   		{{note.advisor}}
+  	</td>
+  	<td>
+  		{{note.created_at}}
   	</td>
   	<td>
   		{{note.text}}
   	</td>
   	<td>
-  		<a href="{% url advisornotes.views.view_note note_id=note.id %}">View</a> | 
-        <a href="{% url advisornotes.views.student_notes userid=note.student.userid %}">View All for this Student</a>
+  		<a href="{% url advisornotes.views.view_note note_id=note.id %}">View</a>
   	</td>
   </tr>
   {% endfor %}

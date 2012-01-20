@@ -79,5 +79,6 @@ def student_search(request):
 @requires_advisor
 def student_notes(request,userid):
     notes = AdvisorNote.objects.filter(student__userid=userid)
-    return HttpResponse('there are ' + str(notes.count()) + ' notes for this student')
+    student = Person.objects.get(userid = userid)
+    return render(request, 'advisornotes/student_notes.html', {'notes': notes, 'student' : student}, context_instance=RequestContext(request))
     
