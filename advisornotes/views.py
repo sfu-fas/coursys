@@ -9,6 +9,7 @@ from courselib.auth import *
 from forms import *
 from django.contrib import messages
 
+"""
 @requires_advisor
 def all_notes(request):
     #advisor should only see notes from his/her department
@@ -16,10 +17,10 @@ def all_notes(request):
     dept = [r.department for r in Role.objects.filter(person__userid=request.user.username)]
     #notes = AdvisorNote.objects.filter(department=dept[0])
     return render_to_response("advisornotes/all_notes.html", {'notes': notes}, context_instance=RequestContext(request))
+"""
 
 @requires_advisor
 def new_note(request):
-    
     if request.method == 'POST':
         form = AdvisorNoteForm(request.POST)
         if form.is_valid():
@@ -33,7 +34,7 @@ def new_note(request):
                   related_object=form.instance)
             l.save()
             """
-            return HttpResponseRedirect(reverse(all_notes))
+            return HttpResponseRedirect(reverse(student_search))
     else:
         form = AdvisorNoteForm()
     return render(request, 'advisornotes/new_note.html', {'form': form})
@@ -62,7 +63,6 @@ def student_search(request):
             students = Member.objects.filter(role="STUD").filter(person__userid=search)
             #students = Person.objects.filter(member__role="STUD").filter(userid=search)
         
-        
         if len(students)==0:
             messages.add_message(request, messages.ERROR, 'No student found')
             context = {'form': form}
@@ -71,7 +71,6 @@ def student_search(request):
         student = students[0]
         return HttpResponseRedirect(reverse('advisornotes.views.student_notes',
                                                 kwargs={'userid': student.person.userid}))
-
     form = StudentSearchForm()
     context = {'form': form}
     return render_to_response('advisornotes/student_search.html', context, context_instance=RequestContext(request))

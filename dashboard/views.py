@@ -17,7 +17,8 @@ from dashboard.forms import *
 from django.contrib import messages
 from log.models import LogEntry
 import random, datetime, time, json, urlparse
-
+from advisornotes.models import AdvisorNote
+from courselib.auth import *
 from icalendar import Calendar, Event, Alarm
 import pytz
 
@@ -52,8 +53,15 @@ def index(request):
     news_list = _get_news_list(userid, 5)
     roles = _get_roles(userid)
     
-    context = {'memberships': memberships, 'staff_memberships': staff_memberships, 'news_list': news_list, 'roles': roles}
-    return render_to_response("dashboard/index.html",context,context_instance=RequestContext(request))
+    #assuming advisor role is exclusive
+    if len(roles)==1 and 'ADVS' in roles and len(memberships)==0:
+        return HttpResponseRedirect(reverse('advisornotes.views.student_search'))
+    else:
+        context = {'memberships': memberships, 'staff_memberships': staff_memberships, 'news_list': news_list, 'roles': roles}
+        return render_to_response("dashboard/index.html",context,context_instance=RequestContext(request))
+    
+    #context = {'memberships': memberships, 'staff_memberships': staff_memberships, 'news_list': news_list, 'roles': roles}
+    #return render_to_response("dashboard/index.html",context,context_instance=RequestContext(request))
 
 
 @login_required
@@ -584,4 +592,3 @@ def courses_json(request, semester):
     crs_data = (c.export_dict() for c in courses)
     json.dump({'courses': list(crs_data)}, resp, indent=1)
     return resp
-

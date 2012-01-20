@@ -17,6 +17,7 @@ $(document).ready(function() {
 {% block title %}CourSys{% endblock %}
 {% block h1 %}CourSys{% endblock %}
 
+
 {% block breadcrumbs %}<li><a href="http://www.sfu.ca/">SFU</a></li><li>&gt; CourSys</li>{% endblock %}
 
 {% block actions %}
@@ -32,8 +33,6 @@ $(document).ready(function() {
     {% if 'DISC' in roles %}<li><a href="{% url discipline.views.chair_index %}">Discipline Cases</a></li>{% endif %}
     {% if 'SYSA' in roles %}<li><a href="{% url coredata.views.sysadmin %}">System Administration</a></li>{% endif %}
     {% if staff_memberships %}<li><a href="{% url dashboard.views.list_docs %}">View Documentation</a></li>{% endif %}
-    {% if 'ADVS' in roles %}<li><a href="{% url advisornotes.views.all_notes %}">Manage Notes</a></li>{% endif %}
-    {% if 'ADVS' in roles %}<li><a href="{% url advisornotes.views.student_search %}">Student Search</a></li>{% endif %}
     </ul>
 </div>
 {% endblock %}
@@ -64,6 +63,7 @@ $(document).ready(function() {
 </div>
 {% endif %}
 
+
 {% regroup memberships by offering.semester as by_semester %}
 {% for semester in by_semester %}
   <h2 class="semester{% if semester.grouper.timely %} timely{% endif %}" id="semester-{{semester.grouper.name}}">{{semester.grouper.label}}</h2>
@@ -73,7 +73,5 @@ $(document).ready(function() {
   {% endfor %}
   </ul>
 {% endfor %}
-
-
 
 {% endblock %}
