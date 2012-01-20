@@ -31,6 +31,7 @@
             <ul>
                 {{form.url|activity_field}}
                 {{form.taemail|activity_field}}
+                {% if course.uses_svn %}{{form.indiv_svn|activity_field}}{% endif %}
                 <li>
                     <input class="submit" type="submit" value="Submit" />
                 </li>

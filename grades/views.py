@@ -134,6 +134,8 @@ def course_config(request, course_slug):
         if form.is_valid():
             course.set_url(form.cleaned_data['url'])
             course.set_taemail(form.cleaned_data['taemail'])
+            if course.uses_svn():
+                course.set_indiv_svn(form.cleaned_data['indiv_svn'])
             course.save()
             messages.success(request, 'Course config updated')
 
@@ -145,7 +147,7 @@ def course_config(request, course_slug):
 
             return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
     else:
-        form = CourseConfigForm({'url': course.url(), 'taemail': course.taemail()})
+        form = CourseConfigForm({'url': course.url(), 'taemail': course.taemail(), 'indiv_svn': course.indiv_svn()})
     
     context = {'course': course, 'form': form}
     return render_to_response("grades/course_config.html", context,

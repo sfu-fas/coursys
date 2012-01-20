@@ -77,7 +77,7 @@ urlpatterns += patterns('',
         url(r'^m/' + COURSE_SLUG + '/$', 'mobile.views.course_info'),
     url(r'^' + COURSE_SLUG + '/reorder_activity$', 'grades.views.reorder_activity'),
     url(r'^' + COURSE_SLUG + '/new_message$', 'dashboard.views.new_message'),
-    url(r'^' + COURSE_SLUG + '/config$', 'grades.views.course_config'),
+    url(r'^' + COURSE_SLUG + '/config/$', 'grades.views.course_config'),
     url(r'^' + COURSE_SLUG + '/config/tas$', 'coredata.views.manage_tas'),
 
     url(r'^' + COURSE_SLUG + '/groups$', 'django.views.generic.simple.redirect_to', {'url': '/%(course_slug)s/groups/'}),
