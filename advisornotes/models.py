@@ -1,5 +1,5 @@
 from django.db import models
-from coredata.models import Person
+from coredata.models import Person, Unit
 from datetime import datetime
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
@@ -33,7 +33,7 @@ class AdvisorNote(models.Model):
     file_attachment = models.FileField(storage=NoteSystemStorage, null = True, 
                       upload_to=attachment_upload_to, blank=True, max_length=500)
     file_mediatype = models.CharField(null=False, blank=False, max_length=200)
-    department = models.CharField(max_length=30, null=False, db_index=True)
+    unit = models.ForeignKey(Unit, help_text='The academic unit that owns this note')
     # Set this flag if the note is no longer to be accessible.
     hidden = models.BooleanField(null=False, db_index=True, default=False)
 

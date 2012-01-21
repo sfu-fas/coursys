@@ -12059,7 +12059,7 @@
   "fields": {
    "advisor": 135,
    "created_at": "2012-01-13 23:26:37",
-   "department": "CMPT",
+   "unit": 2,
    "file_attachment": "",
    "file_mediatype": "",
    "hidden": false,
@@ -12073,7 +12073,7 @@
   "fields": {
    "advisor": 135,
    "created_at": "2012-01-13 23:27:03",
-   "department": "CMPT",
+   "unit": 2,
    "file_attachment": "",
    "file_mediatype": "",
    "hidden": false,
