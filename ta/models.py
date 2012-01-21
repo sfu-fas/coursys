@@ -1,5 +1,5 @@
 from django.db import models
-from coredata.models import Member
+from coredata.models import *
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter
 import decimal
@@ -43,4 +43,55 @@ class TUG(models.Model):
         return "TA: %s  Base Units: %s" % (self.member.person.userid, self.base_units)
 
 
+class CoursePreference(models.Model):
+    course = models.ForeignKey(CourseOffering)
+    taken = models.BooleanField(default=False)
 
+class TAExperience(models.Model):
+    course = models.ForeignKey(CourseOffering)
+    base_units = models.DecimalField(max_digits=4, decimal_places=2)
+    semester = models.ForeignKey(Semester)
+
+SUPPORT_CHOICES = (
+        ('SC', 'Scholarship'),
+        ('RA', 'Research Assistant'),
+        ('OT', 'Other'),
+        )
+
+class Support(models.Model):
+    support_type = models.CharField(max_length=2, choices=SUPPORT_CHOICES)
+    details = models.TextField(blank=True, null=True)
+
+CATEGORY_CHOICES = (
+        ('PHD', 'PhD'),
+        ('MAS', 'Masters'),
+        ('UGR', 'Undergrad'),
+        ('EXT', 'External'),
+        )
+
+CAMPUS_CHOICES = (
+        ('BRNBY', 'Burnaby Campus'),
+        ('SURRY', 'Surrey Campus'),
+        ('VANCR', 'Harbour Centre'),
+        )
+
+class Application(models.Model):
+    """
+    TA application filled out by students
+    """
+    person = models.ForeignKey(Person)
+    semester = models.ForeignKey(Semester)
+    category = models.CharField(max_length=3, choices=CATEGORY_CHOICES)
+    department = models.ForeignKey(Unit)
+    sin = models.PositiveIntegerField(unique=True)
+    campus_prefered = models.CharField(max_length=5, choices=CAMPUS_CHOICES)
+    #course_preference = models.ManyToManyField(CoursePreference, blank=False)
+    #skills = 
+    ta_experience =  models.ForeignKey(TAExperience, blank=True, null=True)
+    course_load = models.TextField(verbose_name="Students intended course load.",
+                            help_text='Describe the intended course load of the semester being applied for.')
+    other_support = models.ForeignKey(Support, blank=True, null=True)
+    comments = models.TextField(verbose_name="Additional comments.")
+    
+    def __unicode__(self):
+        return "Person: %s  Semester: %s" % (self.person, self.semester)
