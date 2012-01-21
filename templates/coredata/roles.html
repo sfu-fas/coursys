@@ -36,10 +36,10 @@ function confirmDelete(url) {
 {% block content %}
 <div class="datatable_container">
 <table id="roles" class="display">
-  <thead><tr><th scope="col">Name</th><th scope="col">Role</th><th scope="col">Department</th><th scope="col">Actions</th></tr></thead>
+  <thead><tr><th scope="col">Name</th><th scope="col">Role</th><th scope="col">Unit</th><th scope="col">Actions</th></tr></thead>
   <tbody>
   {% for role in roles %}
-  <tr><td scope="row"><a href="{% url coredata.views.user_summary userid=role.person.userid %}">{{role.person}}</a></td><td>{{role.get_role_display}}</td><td>{{role.department}}</td>
+  <tr><td scope="row"><a href="{% url coredata.views.user_summary userid=role.person.userid %}">{{role.person}}</a></td><td>{{role.get_role_display}}</td><td>{{role.unit}}</td>
   <td><a href="javascript:confirmDelete('{% url coredata.views.delete_role role_id=role.pk %}');">delete</a></td></tr>
   {% endfor %}
   </tbody>

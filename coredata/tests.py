@@ -191,9 +191,10 @@ class CoredataTest(TestCase):
                 last_name="Lname", first_name="Fname", pref_first_name="Fn", middle_name="M")
         p1.save()
         
-        r = Role(person=p1, role="SYSA", department="!!!!")
+        unit = Unit.objects.get(label="UNIV")
+        r = Role(person=p1, role="SYSA", unit=unit)
         r.save()
-        self.assertEqual( str(r), "Lname, Fname (System Administrator)")
+        self.assertEqual( str(r), "Lname, Fname (System Administrator, UNIV)")
 
         # check the front end
         client = Client()
@@ -212,7 +213,7 @@ class CoredataTest(TestCase):
         validate_content(self, response.content, url)
         self.assertContains(response, "Userid &#39;asdfasdf&#39; is unknown")
 
-        response = client.post(url, {'person':p1.userid, 'role':'FAC', 'department':'CMPT'})
+        response = client.post(url, {'person':p1.userid, 'role':'FAC', 'unit':unit.id})
         self.assertEquals(response.status_code, 302)
         
         # make sure the role is now there

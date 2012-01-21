@@ -12057,33 +12057,6 @@
  },
  {
   "fields": {
-   "department": "CMPT",
-   "person": 135,
-   "role": "ADVS"
-  },
-  "model": "coredata.role",
-  "pk": 1
- },
- {
-  "fields": {
-   "department": "!!!!",
-   "person": 16,
-   "role": "SYSA"
-  },
-  "model": "coredata.role",
-  "pk": 2
- },
- {
-  "fields": {
-   "department": "!!!!",
-   "person": 134,
-   "role": "SYSA"
-  },
-  "model": "coredata.role",
-  "pk": 3
- },
- {
-  "fields": {
    "advisor": 135,
    "created_at": "2012-01-13 23:26:37",
    "department": "CMPT",
@@ -12118,5 +12091,73 @@
   },
   "model": "ta.tug",
   "pk": 1
+ },
+ {
+  "fields": {
+   "person": 135,
+   "role": "ADVS",
+   "unit": 2
+  },
+  "model": "coredata.role",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "person": 16,
+   "role": "SYSA",
+   "unit": 1
+  },
+  "model": "coredata.role",
+  "pk": 2
+ },
+ {
+  "fields": {
+   "person": 134,
+   "role": "SYSA",
+   "unit": 1
+  },
+  "model": "coredata.role",
+  "pk": 3
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "label": "UNIV",
+   "name": "University-wide",
+   "parent": null
+  },
+  "model": "coredata.unit",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "label": "CMPT",
+   "name": "School of Computing Science",
+   "parent": 3
+  },
+  "model": "coredata.unit",
+  "pk": 2
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "label": "FAS",
+   "name": "Faculty of Applied Science",
+   "parent": 1
+  },
+  "model": "coredata.unit",
+  "pk": 3
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "label": "ENSC",
+   "name": "School of Engineering Science",
+   "parent": 3
+  },
+  "model": "coredata.unit",
+  "pk": 4
  }
+
 ]

@@ -495,6 +495,26 @@ class MeetingTime(models.Model):
         d['type'] = self.meeting_type
         return d
 
+class Unit(models.Model):
+    """
+    An academic unit within the university: a department/school/faculty.
+    
+    Unit with label=='UNIV' is used for global roles
+    """
+    label = models.CharField(max_length=4, null=False, blank=False, db_index=True, unique=True,
+            help_text="The unit code, e.g. 'CMPT'.")
+    name = models.CharField(max_length=60, null=False, blank=False,
+           help_text="The name of the unit, e.g. 'Computing Science'.")
+    parent = models.ForeignKey('Unit', null=True, blank=True,
+             help_text="Next unit up in the hierarchy.")
+    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+
+    class Meta:
+        ordering = ['label']
+    def __unicode__(self):
+        return "%s (%s)" % (self.name, self.label)
+
+
 class Role(models.Model):
     """
     Additional roles within the system (not course-related).
@@ -514,10 +534,10 @@ class Role(models.Model):
     ROLES = dict(ROLE_CHOICES)
     person = models.ForeignKey(Person)
     role = models.CharField(max_length=4, choices=ROLE_CHOICES)
-    department = models.CharField(max_length=4, help_text="Department where this role is relevant, or '!!!!' for global.")
+    unit = models.ForeignKey(Unit)
 
     def __unicode__(self):
-        return "%s (%s)" % (self.person, self.ROLES[str(self.role)])
+        return "%s (%s, %s)" % (self.person, self.ROLES[str(self.role)], self.unit.label)
     class Meta:
-        unique_together = (('person', 'role'),)
+        unique_together = (('person', 'role', 'unit'),)
 

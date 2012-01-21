@@ -72,13 +72,13 @@ def has_global_role(role, request, **kwargs):
     """
     Return True is the given user has the specified role
     """
-    perms = Role.objects.filter(person__userid=request.user.username, role=role, department="!!!!")
+    perms = Role.objects.filter(person__userid=request.user.username, role=role, unit__label="UNIV")
     count = perms.count()
     return count>0
 
 def requires_role(role, login_url=None):
     """
-    Allows access if user has the given role in ANY department
+    Allows access if user has the given role in ANY unit
     """
     def has_this_role(req, **kwargs):
         return has_role(role, req, **kwargs)
@@ -88,7 +88,7 @@ def requires_role(role, login_url=None):
 
 def has_role(role, request, **kwargs):
     """
-    Return True is the given user has the specified role in ANY department
+    Return True is the given user has the specified role in ANY unit
     """
     perms = Role.objects.filter(person__userid=request.user.username, role=role)
     count = perms.count()
@@ -168,7 +168,7 @@ def is_discipline_user(request, course_slug, **kwargs):
     # TODO: filter by offering.department once it's populated
     roles = set()
     offering = CourseOffering.objects.get(slug=course_slug)
-    perms = Role.objects.filter(person__userid=request.user.username, role='DISC', department=offering.subject).count()
+    perms = Role.objects.filter(person__userid=request.user.username, role='DISC', unit__label=offering.subject).count()
     if perms>0:
         roles.add("DEPT")
 
