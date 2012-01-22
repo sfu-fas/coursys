@@ -1,5 +1,5 @@
 from django.db import models
-from coredata.models import *
+from coredata.models import CAMPUS_CHOICES, Person, Member, CourseOffering, Semester, Unit
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter #, getter_setter_2
 import decimal
@@ -48,25 +48,6 @@ class TUG(models.Model):
         return "TA: %s  Base Units: %s" % (self.member.person.userid, self.base_units)
 
 
-class CoursePreference(models.Model):
-    course = models.ForeignKey(CourseOffering)
-    taken = models.BooleanField(default=False)
-
-class TAExperience(models.Model):
-    course = models.ForeignKey(CourseOffering)
-    base_units = models.DecimalField(max_digits=4, decimal_places=2)
-    semester = models.ForeignKey(Semester)
-
-SUPPORT_CHOICES = (
-        ('SC', 'Scholarship'),
-        ('RA', 'Research Assistant'),
-        ('OT', 'Other'),
-        )
-
-class Support(models.Model):
-    support_type = models.CharField(max_length=2, choices=SUPPORT_CHOICES)
-    details = models.TextField(blank=True, null=True)
-
 CATEGORY_CHOICES = (
         ('PHD', 'PhD'),
         ('MAS', 'Masters'),
@@ -74,13 +55,7 @@ CATEGORY_CHOICES = (
         ('EXT', 'External'),
         )
 
-CAMPUS_CHOICES = (
-        ('BRNBY', 'Burnaby Campus'),
-        ('SURRY', 'Surrey Campus'),
-        ('VANCR', 'Harbour Centre'),
-        )
-
-class Application(models.Model):
+class TAApplication(models.Model):
     """
     TA application filled out by students
     """
@@ -90,13 +65,32 @@ class Application(models.Model):
     department = models.ForeignKey(Unit)
     sin = models.PositiveIntegerField(unique=True)
     campus_prefered = models.CharField(max_length=5, choices=CAMPUS_CHOICES)
-    #course_preference = models.ManyToManyField(CoursePreference, blank=False)
     #skills = 
-    ta_experience =  models.ForeignKey(TAExperience, blank=True, null=True)
+    experience =  models.TextField(blank=True, null=True,
+        verbose_name="Experience",
+        help_text='Describe any other experience that you think may be relevant to these courses.')
     course_load = models.TextField(verbose_name="Students intended course load.",
-                            help_text='Describe the intended course load of the semester being applied for.')
-    other_support = models.ForeignKey(Support, blank=True, null=True)
-    comments = models.TextField(verbose_name="Additional comments.")
+        help_text='Describe the intended course load of the semester being applied for.')
+    other_support = models.TextField(blank=True, null=True,
+        verbose_name="Other financial support",
+        help_text='Describe any other funding you expect to receive this semester (grad students only).')
+    comments = models.TextField(verbose_name="Additional comments")
     
+    class Meta:
+        unique_together = (('person', 'semester', 'department'),)
     def __unicode__(self):
         return "Person: %s  Semester: %s" % (self.person, self.semester)
+
+
+TAKEN_CHOICES = (
+        ('YES', 'Yes: this course at SFU'),
+        ('SIM', 'Yes: a similar course elsewhere'),
+        ('KNO', 'No, but I know the course material'),
+        ('NO', 'No, I don\'t know the material well'),
+        )
+
+class CoursePreference(models.Model):
+    app = models.ForeignKey(TAApplication)
+    course = models.ForeignKey(CourseOffering)
+    taken = models.CharField(max_length=3, choices=TAKEN_CHOICES, blank=False, null=False)
+
