@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load mobile_tags %}
+
+{% block title %}[Student Name]'s Graduate Student Record{% endblock %}
+{% block h1 %}[Student Name]'s Graduate Student Records{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; Grad</li><li>&gt; Student Name</li>{% endblock %}
+{% block content %}
+    <form action="." method="POST">{% csrf_token %}
+        <table>
+            {{ form.as_table }}
+        </table>
+        <p><input type="submit" value="Submit"></p>
+    </form>
+{% endblock %}

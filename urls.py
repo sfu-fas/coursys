@@ -231,6 +231,14 @@ urlpatterns += patterns('',
     
     # Advisor Notes End
     	
+    # Graduate Student Records Start
+    url(r'grad/$', 'grad.views.index'),
+    #url(r'grad/'+ USERID_SLUG + '/manage', 'grad.views.manage'),
+    url(r'grad/new', 'grad.views.new'),
+    
+    # Graduate Student Records Ends
+    
+    
 )
 if not settings.DEPLOYED:
     # URLs for development only:

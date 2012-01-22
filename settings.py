@@ -99,6 +99,7 @@ INSTALLED_APPS = (
     'south',
     'coredata',
     'dashboard',
+    'grad',
     'grades',
     'marking',
     'log',
