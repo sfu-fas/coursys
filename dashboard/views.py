@@ -55,7 +55,7 @@ def index(request):
     
     #assuming advisor role is exclusive
     if len(roles)==1 and 'ADVS' in roles and len(memberships)==0:
-        return HttpResponseRedirect(reverse('advisornotes.views.student_search'))
+        return HttpResponseRedirect(reverse('advisornotes.views.index'))
     else:
         context = {'memberships': memberships, 'staff_memberships': staff_memberships, 'news_list': news_list, 'roles': roles}
         return render_to_response("dashboard/index.html",context,context_instance=RequestContext(request))

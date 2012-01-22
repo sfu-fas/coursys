@@ -8,6 +8,8 @@ from django.template import RequestContext
 from courselib.auth import *
 from forms import *
 from django.contrib import messages
+from courselib.search import get_query
+import json
 
 """
 @requires_advisor
@@ -18,6 +20,57 @@ def all_notes(request):
     #notes = AdvisorNote.objects.filter(department=dept[0])
     return render_to_response("advisornotes/all_notes.html", {'notes': notes}, context_instance=RequestContext(request))
 """
+
+@requires_advisor
+def index(request, student_id=None):
+    if student_id:
+        student = get_object_or_404(Person, id=student_id)
+    else:
+        student = None
+        
+    if request.method == 'POST':
+        # find the student if we can and redirect to info page
+        form = StudentSearchForm(request.POST)
+        if not form.is_valid():
+            messages.add_message(request, messages.ERROR, 'Invalid search')
+            context = {'form': form}
+            return render_to_response('advisornotes/student_search.html', context, context_instance=RequestContext(request))
+        search = form.cleaned_data['search']
+        return HttpResponseRedirect(reverse('advisornotes.views.student_notes', kwargs={'userid': search.userid}))        
+    if student_id:
+        form = StudentSearchForm(instance=student, initial={'student': student.userid})
+    else:
+        form = StudentSearchForm()
+    context = {'form': form}
+    return render_to_response('advisornotes/student_search.html', context, context_instance=RequestContext(request))
+    """
+    elif student_id:
+        form = StudentSearchForm(instance=student, initial={'person': person.userid})
+    else:
+        form = StudentSearchForm()
+    
+    return render(request, 'advisornotes/student_search.html', {'form': form, 'student': student})  
+    """
+    
+# AJAX/JSON for student search autocomplete
+def student_search(request):
+    if 'term' not in request.GET:
+        return ForbiddenResponse(request, "Must provide 'term' query.")
+    term = request.GET['term']
+    response = HttpResponse(mimetype='application/json')
+    data = []
+    query = get_query(term, ['person__userid', 'person__emplid', 'person__first_name', 'person__last_name'])
+    #students = Person.objects.filter(query)
+    sids = Member.objects.filter(role="STUD").filter(query).values_list('person_id', flat=True)
+    
+    for sid in set(sids):
+        s = Person.objects.get(pk=sid)
+        label = s.search_label_value()
+        d = {'value': s.id, 'label': label}
+        data.append(d)
+        json.dump(data, response, indent=1)
+
+    return response
 
 @requires_advisor
 def new_note(request):
@@ -44,36 +97,6 @@ def view_note(request, note_id):
     note = get_object_or_404(AdvisorNote, pk = note_id)
     student = Person.objects.get(id = note.student_id)
     return render(request, 'advisornotes/view_note.html', {'note': note, 'student' : student}, context_instance=RequestContext(request))
-
-@requires_advisor
-def student_search(request):
-    if request.method == 'POST':
-        # find the student if we can and redirect to info page
-        form = StudentSearchForm(request.POST)
-        if not form.is_valid():
-            messages.add_message(request, messages.ERROR, 'Invalid search')
-            context = {'form': form}
-            return render_to_response('advisornotes/student_search.html', context, context_instance=RequestContext(request))
-
-        search = form.cleaned_data['search']
-        try:
-            int(search)
-            students = Member.objects.filter(role="STUD").filter(Q(person__userid=search) | Q(person__emplid=search))
-        except ValueError:
-            students = Member.objects.filter(role="STUD").filter(person__userid=search)
-            #students = Person.objects.filter(member__role="STUD").filter(userid=search)
-        
-        if len(students)==0:
-            messages.add_message(request, messages.ERROR, 'No student found')
-            context = {'form': form}
-            return render_to_response('advisornotes/student_search.html', context, context_instance=RequestContext(request))
-        
-        student = students[0]
-        return HttpResponseRedirect(reverse('advisornotes.views.student_notes',
-                                                kwargs={'userid': student.person.userid}))
-    form = StudentSearchForm()
-    context = {'form': form}
-    return render_to_response('advisornotes/student_search.html', context, context_instance=RequestContext(request))
 
 @requires_advisor
 def student_notes(request,userid):

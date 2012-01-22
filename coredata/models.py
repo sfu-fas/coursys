@@ -63,6 +63,9 @@ class Person(models.Model):
     
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+    
+    def search_label_value(self):
+        return "%s (%s), %s" % (self.name(), self.userid, self.emplid )
 
 
 class Semester(models.Model):
