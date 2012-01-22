@@ -7,6 +7,10 @@
 {% block content %}
 <form action="{% url ta.views.new_tug course_slug=course.slug %}" method="post">{% csrf_token %}
 {{ form.as_p }}
+{# TODO: heavily customize the form so it looks pretty; do the markup here, don't use as_x #}
+<table>
+{{form.config_form.as_table}}
+</table>
 <input class='submit' type="submit" value="Create" />
 
 </form>

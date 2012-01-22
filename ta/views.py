@@ -28,14 +28,14 @@ def all_tugs(request, course_slug):
 def new_tug(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     if request.method == "POST":
-        form = TUGForm(request.POST)
+        form = TUGForm(data=request.POST)
         if form.is_valid():
             tug = form.save(False)
             tug.save()
         return HttpResponseRedirect(reverse(all_tugs, args=[course.slug]))
     
     else:
-        form = TUGForm();
+        form = TUGForm(course)
         return render(request,'ta/new_tug.html',{'course':course, 'form':form})
 
 @requires_course_staff_by_slug    

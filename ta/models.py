@@ -1,7 +1,7 @@
 from django.db import models
 from coredata.models import *
 from jsonfield import JSONField
-from courselib.json_fields import getter_setter
+from courselib.json_fields import getter_setter #, getter_setter_2
 import decimal
 
 class TUG(models.Model):
@@ -38,6 +38,11 @@ class TUG(models.Model):
     other_default = {'label': '', 'weekly': 0, 'total': 0, 'comment': ''}
     other_fields = ['other1', 'other2']
     all_fields = regular_fields + other_fields
+    
+    defaults = dict([(field, regular_default) for field in regular_fields] + 
+        [(field, other_default) for field in other_fields])
+    
+    #prep_weekly, set_prep_weekly = getter_setter_2('prep', 'weekly')
 
     def __unicode__(self):
         return "TA: %s  Base Units: %s" % (self.member.person.userid, self.base_units)
