@@ -4,6 +4,11 @@
 
 {% block h1 %}{{course.name}} Time Use Guideline for {{ta.person}} {% endblock %}
 
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
+<li>&gt; {{ta.person.pref_first_name}}'s TUG</li>
+{% endblock %}
+
 {% block actions %}
 <div id="actions">
 <h2 class="heading">Actions</h2>

@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load mobile_tags %}
+
+
+{% block h1 %}
+	Time Use Guidelines for {{course.name}}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
+<li>&gt; Edit {{ta.pref_first_name}}'s TUG</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url ta.views.all_tugs course_slug=course.slug %}">All TUGs</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+	<script type="text/javascript" src="{{MEDIA_URL}}js/ta.js"></script>
+	<form action="{{ta.views.edit_tug}}" method="post">
+		{%csrf_token%}
+		
+		
+		<div id="tugHeader">
+			<label id="taName">TA Name: {{ta}}</label>  
+			<label id="Instructor">Instructor: 
+				{% for instructor in course.instructors %}
+					{{instructor.name}} {% if not forloop.last %}, {% endif %}
+				{% endfor %}
+			</label>
+			<br />
+			<label id="courses">Course(s): {{course.name}} </label>
+			<label id="baseUnits"> Base Units Assigned*: {{form.base_units}}</label><span id="calculation"> &times; 42 = </span>
+			<label id="maxHours"> Maximum Hours: <span id="maxHours"></span></label>	
+		</div>
+		
+		<div id="tugBody">
+			<p>
+				Teaching Assistant total workload for the semester should approach but not exceed the 
+				maximum hours over the term of the semester (normally 17 weeks).
+				
+			</p>
+			<p>
+				The following summary is an approximation of the length of time expected 
+				to be devoted to  the major activities.  There may be shifts between 
+				activities, but the total hours required over the semester cannot exceed the
+				maximum hours set out above.
+			</p>
+			<table>
+				<tbody>
+					<tr>
+						<th>Duties and Responsibilities</th>
+						<th>Average hrs/week </th>
+						<th>Total hrs/semester</th>
+					</tr>
+					<tr>
+						<td><label>1. Preparation for labs/tutorials</label></td>
+						<td>{{form.config.prep.weekly}}</td>
+						<td>{{form.config.prep.total}}</td>
+					</tr>
+					<tr>
+						<td>2. Attendance at planning/coordinating meetings with instructor</td>
+						<td>{{form.config.meetings.weekly}}</td>
+						<td>{{form.config.meetings.total}}</td>
+					</tr>
+					<tr>
+						<td>3. Attendance at lectures</td>
+						<td>{{form.config.lectures.weekly}}</td>
+						<td>{{form.config.lectures.total}}</td>
+					</tr>
+					<tr>
+						<td>4. Attendance at labs/tutorials</td>
+						<td>{{form.config.tutorials.weekly}}</td>
+						<td>{{form.config.tutorials.total}}</td>
+					</tr>
+					<tr>
+						<td>5. Office hours/student consultation/electronic communication</td>
+						<td>{{form.config.office_hours.weekly}}</td>
+						<td>{{form.config.office_hours.total}}</td>
+					</tr>
+					<tr>
+						<td>6. Grading **</td>
+						<td>{{form.config.grading.weekly}}</td>
+						<td>{{form.config.grading.total}}</td>
+					</tr>
+					<tr>
+						<td>7. Quiz preparation/assist in exam preparation/Invigilation of exams</td>
+						<td>{{form.config.test_prep.weekly}}</td>
+						<td>{{form.config.test_prep.total}}</td>
+					</tr>
+					<tr>
+						<td>8. Statutory Holiday Compensation - To compensate for all statutory holidays which <br />
+							may occur in a semester, the total workload required will be reduced by one (1) hour <br />
+							for each base unit assigned excluding the additional 0.17 B.U. for preparation, <br />
+							e.g. 4 hours reduction for 4.17 B.U. appointment.
+		 				</td>
+						<td>{{form.config.holiday.weekly}}</td>
+						<td>{{form.config.holiday.total}}</td>
+					</tr>
+					<tr>
+						<td>9. Other – specify*** {{form.config.other1.label}}</td>
+						<td>{{form.config.other1.weekly}}</td>
+						<td>{{form.config.other1.total}}</td>
+					</tr>
+					<tr>
+						<td>
+							Required Total Hours =
+						</td>
+						<td></td>
+						<td><span id="totalHours"></span></td>
+					</tr>
+				</tbody>
+			</table> 
+			<p>
+				Teaching Assistants and course instructors should familiarize themselves with the general 
+				working conditions set out in Article XIII C, assignment and compensation in Article XIII D, 
+				and workload review mechanisms in Article XIII E.
+			</p>
+			<p>
+				*There are no hours of work associated with the additional 0.17 base unit for preparation, 
+				Article XIII D. 2 b.  See Appendix B for calculation of hours.
+			</p>
+			<p>
+				**  Includes grading of all assignments, reports and examinations. 
+			</p>
+			<p>
+				*** Attendance at a TA/TM Day/Training
+			</p>
+			</p>
+		</div>
+		
+		
+	</form>
+
+{% endblock %}

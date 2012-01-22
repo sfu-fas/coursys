@@ -17,11 +17,12 @@ def index_page(request, course_slug):
 def all_tugs(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     tas = Member.objects.filter(offering=course, role="TA")
-    
+    tugs = TUG.objects.filter(member=tas)        
     context = {'tas': tas, 
-                'course': course.name, 
-                'course_slug': course_slug
+               'tugs': tugs,
+                'course': course
                 }
+    
     return render(request, 'ta/all_tugs.html', context)
 
 @requires_course_staff_by_slug    
@@ -54,4 +55,15 @@ def view_tug(request, course_slug, userid):
 
 @requires_course_staff_by_slug
 def edit_tug(request, course_slug, userid):
-    return HttpResponse('Edit TUG page')
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    member = get_object_or_404(Member, offering=course, person__userid=userid)
+    if (request.method=="POST"):
+        
+        tug_form = TUGForm(request.POST)
+    else:
+        tug = TUG.objects.get(member=member)
+        tug_form = TUGForm(instance=tug)
+        
+    context = {'course':course, 'ta':member.person, 'form': tug_form }
+    
+    return render(request, 'ta/edit_tug.html',context)

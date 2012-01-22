@@ -4,15 +4,39 @@
 
 
 {% block h1 %}
-	Time Use Guidelines for {{course}}
+	Time Use Guidelines for {{course.name}}
+{% endblock %}
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
+<li>&gt; All TUGs</li>
+{% endblock %}
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url ta.views.new_tug course_slug=course.slug %}">New TUG</a></li>
+    </ul>
+</div>
 {% endblock %}
 
 {% block content %}
 <ul>
 {% for ta in tas %}
-	
-		<li><a href="{%url ta.views.view_tug course_slug=course_slug userid=ta.person.userid%}">{{ta.person}}</a></li>
-
+	{% for tug in tugs%}
+		<li>
+			{% if tug.member == ta %}
+				<a href="{% url ta.views.view_tug course_slug=course.slug userid=ta.person.userid %}">
+					{{ta.person}}
+				</a>
+			{% else %}
+				{{ta.person}}
+				<a href="{% url ta.views.new_tug course_slug=course.slug %}">
+					Create TUG
+				</a>
+				
+			{% endif %}
+		</li>
+	{% endfor %}
 {% endfor %}
 </ul>
 
