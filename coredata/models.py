@@ -531,6 +531,8 @@ class Role(models.Model):
         ('DISC', 'Discipline Case Administrator'),
         ('DICC', 'Discipline Case Filer (email BCC)'),
         ('ADMN', 'Departmental Administrator'),
+        ('GRAD', 'Grad Student Administrator'),
+        ('FUND', 'Grad Funding Administrator'),
         ('SYSA', 'System Administrator'),
         ('NONE', 'none'),
     )
