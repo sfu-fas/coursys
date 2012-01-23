@@ -88,9 +88,12 @@ TAKEN_CHOICES = (
         ('KNO', 'No, but I know the course material'),
         ('NO', 'No, I don\'t know the material well'),
         )
+EXPER_CHOICES = (
+        )
 
 class CoursePreference(models.Model):
     app = models.ForeignKey(TAApplication)
     course = models.ForeignKey(CourseOffering)
     taken = models.CharField(max_length=3, choices=TAKEN_CHOICES, blank=False, null=False)
+    exper = models.CharField(max_length=3, choices=EXPER_CHOICES, blank=False, null=False)
 
