@@ -28,6 +28,7 @@ class Person(models.Model):
     first_name = models.CharField(max_length=32)
     middle_name = models.CharField(max_length=32, null=True, blank=True)
     pref_first_name = models.CharField(max_length=32)
+    # TODO: get address, phone, gender, citizenship, birthdate
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
       # p.config['email']: email, if not the default userid@sfu.ca
     
