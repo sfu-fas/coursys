@@ -10,8 +10,7 @@ from courselib.auth import requires_advisor
 
 @requires_advisor
 def index(request):
-    #grads = get_object_or_404(GradStudent)
-    grads = "muu"
+    grads = GradStudent.objects.all()
     context = {'grads': grads               }
     return render(request, 'grad/index.html', context)
     #return HttpResponse('muu')

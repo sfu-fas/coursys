@@ -30,13 +30,12 @@
 		</thead>
         <tbody>
         
-        <tr><td>muu</td>
-        	<!--{% for s in grads %}
+        <tr>{% for s in grads %}
             <td scope="row">{{s.person.first_name}}</td>
             <td scope="row">{{s.person.last_name}}</td>
             <td>{{s.person.userid}}</td>
             <td><a href="{{s.get_absolute_url}}">{{s.person.emplid}}</a></td>
-          -->a
+          
         </tr>
         {% endfor %}
         </tbody>

@@ -5,13 +5,15 @@
 {% block title %}New Graduate Student Record{% endblock %}
 {% block h1 %}New Graduate Student Records{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; Grad</li>
+{% block subbreadcrumbs %}<li>&gt; <a href="/grad">Grad</a></li>
 <li>&gt; New Grad</li>{% endblock %}
 {% block content %}
-    <form action="." method="POST">{% csrf_token %}
-        <table>
-            {{ form.as_table }}
-        </table>
+    <form action="{% url grad.views.new %}" method="POST">{% csrf_token %}
+    	<fieldset>
+<legend>General Info</legend>
+             {{ form.as_p }}
         <p><input type="submit" value="Submit"></p>
+        </fieldset>
     </form>
+
 {% endblock %}
