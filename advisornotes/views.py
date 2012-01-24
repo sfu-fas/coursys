@@ -22,7 +22,7 @@ def all_notes(request):
 """
 
 @requires_advisor
-def index(request, student_id=None):
+def advising(request, student_id=None):
     if student_id:
         student = get_object_or_404(Person, id=student_id)
     else:

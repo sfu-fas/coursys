@@ -52,16 +52,9 @@ def index(request):
     staff_memberships = [m for m in memberships if m.role in ['INST', 'TA', 'APPR']] # for docs link
     news_list = _get_news_list(userid, 5)
     roles = _get_roles(userid)
-    
-    #assuming advisor role is exclusive
-    if len(roles)==1 and 'ADVS' in roles and len(memberships)==0:
-        return HttpResponseRedirect(reverse('advisornotes.views.index'))
-    else:
-        context = {'memberships': memberships, 'staff_memberships': staff_memberships, 'news_list': news_list, 'roles': roles}
-        return render_to_response("dashboard/index.html",context,context_instance=RequestContext(request))
-    
-    #context = {'memberships': memberships, 'staff_memberships': staff_memberships, 'news_list': news_list, 'roles': roles}
-    #return render_to_response("dashboard/index.html",context,context_instance=RequestContext(request))
+        
+    context = {'memberships': memberships, 'staff_memberships': staff_memberships, 'news_list': news_list, 'roles': roles}
+    return render_to_response("dashboard/index.html",context,context_instance=RequestContext(request))
 
 
 @login_required
