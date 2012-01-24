@@ -1,18 +1,28 @@
 from django.db import models
 from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES
 from django.forms.models import ModelForm
+from autoslug import AutoSlugField
+from courselib.slugs import make_slug
 
-DEGREE_PROGRAM_CHOICES = (
-    ('MScThesis', 'MSc - Thesis'),
-    ('MScThesis2', 'MSc - Thesis 2')
-)
+class GradProgram(models.Model):
+    unit = models.ForeignKey(Unit, null=False, blank=False)
+    label = models.CharField(max_length=10, null=False)
+    description = models.CharField(max_length=100)
+    def autoslug(self):
+        # strip the punctutation entirely
+        sluglabel = ''.join((c for c in self.label if c.isalnum()))
+        return make_slug(sluglabel)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False)
+    class Meta:
+        unique_together = (('unit', 'label'),)
 
 class GradStudent(models.Model):
-    person = models.ForeignKey(Person, unique=True, help_text="* Required. Select a person.", blank=False)    
-    #degree_program = models.CharField('Degree Program', max_length=50)
-    #degree_program = models.ForeignKey(DegreeProgram)
+    person = models.ForeignKey(Person, help_text="* Required. Select a person.", null=False, blank=False)
+    program = models.ForeignKey(GradProgram, null=False, blank=False)
+    def autoslug(self):
+        return make_slug(self.person.userid + "-" + self.program.slug)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False)
     research_area = models.CharField('Research Area', max_length=250, help_text="* Required.", blank=False)
-    degree_program = models.CharField('Degree Program', max_length=50, choices = DEGREE_PROGRAM_CHOICES, help_text="* Required.")
     campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES, blank=True)
 
     english_fluency = models.CharField(max_length=10, blank = True, help_text="I.e. Read, Write, Speak, All.")
