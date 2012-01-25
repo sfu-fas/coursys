@@ -10,14 +10,6 @@
 <li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
 <li>&gt; All TUGs</li>
 {% endblock %}
-{% block actions %}
-<div id="actions">
-    <h2 class="heading">Actions</h2>
-    <ul>
-        <li><a href="{% url ta.views.new_tug course_slug=course.slug %}">New TUG</a></li>
-    </ul>
-</div>
-{% endblock %}
 
 {% block content %}
 <ul>
@@ -26,8 +18,8 @@
 		<li>
 			{% if tug.member == ta %}
 				<a href="{% url ta.views.view_tug course_slug=course.slug userid=ta.person.userid %}">
-					{{ta.person}}
-				</a>
+					{{ta.person}} 
+				</a> (Last Updated: {% if tug.last_updated == "" %}{{ tug.last_updated }} {% else %} Unknown {% endif %})
 			{% else %}
 				{{ta.person}}
 				<a href="{% url ta.views.new_tug course_slug=course.slug %}">

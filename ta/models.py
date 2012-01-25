@@ -13,6 +13,7 @@ class TUG(models.Model):
     """	
     member = models.ForeignKey(Member, null=False)
     base_units = models.DecimalField(max_digits=4, decimal_places=2, blank=False, null=False)
+    last_update = models.DateField(auto_now=True)
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
         # t.config['prep']: Preparation for labs/tutorials
         # t.config['meetings']: Attendance at planning meetings with instructor
