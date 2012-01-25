@@ -238,6 +238,11 @@ urlpatterns += patterns('',
     url(r'grad/new', 'grad.views.new'),
     
     # Graduate Student Records Ends
+
+    # For RA application
+    url(r'ra/$', 'ra.views.index'),
+    url(r'ra/new$', 'ra.views.new'),
+
     
     
 )

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load mobile_tags %}
+
+{% block title %}New RA Application{% endblock %}
+{% block h1 %}New RA Application{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="/ra">RA</a></li>
+<li>&gt; New RA</li>{% endblock %}
+{% block content %}
+    <form action="{% url Rra.views.new %}" method="POST">{% csrf_token %}
+        <fieldset>
+<legend>General Info</legend>
+             {{ form.as_p }}
+        <p><input type="submit" value="Submit"></p>
+        </fieldset>
+    </form>
+
+{% endblock %}

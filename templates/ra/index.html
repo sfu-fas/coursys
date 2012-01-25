@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load mobile_tags %}
+
+{% block title %}RA Applications{% endblock %}
+{% block h1 %}RA Applications{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; ra</li>{% endblock %}
+
+{% block actions %}
+<div id="actions">
+<h2>Actions</h2>
+<ul>
+<li><a href="{% url ra.views.new %}">New RA application</a></li>
+</ul>
+</div>
+{% endblock %}
+
+
+{% block content %}
+<div class="datatable_container bigdatatable">
+    <table class="display" id="grads">
+        <thead>
+            <tr>
+                <th scope="col">First</th>
+                <th scope="col">Last</th>
+                <th scope="col">User ID</th>
+                <th scope="col">User #</th>
+            </tr>
+        </thead>
+        <tbody>
+        
+        <tr>{% for s in ras %}
+            <td scope="row">{{s.person.first_name}}</td>
+            <td scope="row">{{s.person.last_name}}</td>
+            <td>{{s.person.userid}}</td>
+            <td><a href="{{s.get_absolute_url}}">{{s.person.emplid}}</a></td>
+          
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

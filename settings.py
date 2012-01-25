@@ -110,6 +110,7 @@ INSTALLED_APPS = (
     'mobile',
     'ta',
     'pages',
+    'ra',
     'advisornotes',
 )
 if DEBUG:
