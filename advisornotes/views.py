@@ -61,15 +61,14 @@ def student_search(request):
     data = []
     query = get_query(term, ['person__userid', 'person__emplid', 'person__first_name', 'person__last_name'])
     #students = Person.objects.filter(query)
-    sids = Member.objects.filter(role="STUD").filter(query).values_list('person_id', flat=True)
-    
+    sids = Member.objects.filter(role="STUD").filter(query).values_list('person_id', flat=True).distinct()
+
     for sid in set(sids):
         s = Person.objects.get(pk=sid)
         label = s.search_label_value()
         d = {'value': s.id, 'label': label}
         data.append(d)
-        json.dump(data, response, indent=1)
-
+    json.dump(data, response, indent=1)
     return response
 
 @requires_advisor

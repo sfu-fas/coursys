@@ -153,16 +153,18 @@ function offering_autocomplete(id) {
         return false;
       }
     }).bind('blur', function() {
-       $(this).val($(this).data("uiLabel"));
-       $('#'+hiddenElementID).val(selectedObj.value);
+    	$(this).val($(this).data("uiLabel"));
+       	//$('#'+hiddenElementID).val(selectedObj.value);
     }).data("uiValue", formElementValue);
     
     /* pre-fill label value if it exists */
-    jQuery.ajax('/data/offering?id=' + formElementValue)
-      .done(function(data) {
-        autoCompelteElementJQ.val(data);
-        ac.data("uiLabel", data);
-      });
+    if(formElementValue!=""){
+	    jQuery.ajax('/data/offering?id=' + formElementValue)
+	      .done(function(data) {
+	        autoCompelteElementJQ.val(data);
+	        ac.data("uiLabel", data);
+	      });
+	 }
   });
   
 } 
@@ -170,38 +172,27 @@ function offering_autocomplete(id) {
 // turn on StudentSearch autocomplete for field with this id.
 function student_autocomplete(id) {
   $('#' + id).each(function() {
-    var autoCompelteElement = this;
-    var autoCompelteElementJQ = $(this);
+  	var autoCompelteElement = this;
     var formElementName = $(this).attr('name');
-    var formElementValue = $(this).attr('value');
     var hiddenElementID  = formElementName + '_autocomplete_hidden';
+    var formElementValue = $(this).attr('value');
     /* change name of orig input */
     $(this).attr('name', formElementName + '_autocomplete_label');
     /* create new hidden input with name of orig input */
-    $(this).after("<input type=\"hidden\" name=\"" + formElementName + "\" id=\"" + hiddenElementID + "\" value = \"" + formElementValue + "\" />");
-
-    ac = $(this).autocomplete({source:'/data/students',
-      minLength: 2,
-      select: function(event, ui) {
-        var selectedObj = ui.item;
-        $(autoCompelteElement).val(selectedObj.label);
-        $('#'+hiddenElementID).val(selectedObj.value);
-        $(this).data("uiLabel", selectedObj.label);
-        $(this).data("uiValue", selectedObj.value);
-        return false;
-      }
-    }).bind('blur', function() {
-       $(this).val($(this).data("uiLabel"));
-       $('#'+hiddenElementID).val(selectedObj.value);
+    $(this).after("<input type=\"hidden\" name=\"" + formElementName + "\" id=\"" + hiddenElementID + "\" />");
+  	$(this).autocomplete({source:'/data/students', 
+		select: function(event, ui) {
+			var selectedObj = ui.item;
+			$(autoCompelteElement).val(selectedObj.label);
+			$('#'+hiddenElementID).val(selectedObj.value);
+			$(this).data("uiLabel", selectedObj.label);
+        	$(this).data("uiValue", selectedObj.value);
+			return false;
+		}
+	//})
+	}).bind('blur', function() {
+    	$(this).val($(this).data("uiLabel"));
+    	//$('#'+hiddenElementID).val($(this).data("uiValue"));
     }).data("uiValue", formElementValue);
-    
-    /* pre-fill label value if it exists */
-    jQuery.ajax('/data/students?id=' + formElementValue)
-      .done(function(data) {
-        autoCompelteElementJQ.val(data);
-        ac.data("uiLabel", data);
-      });
   });
-  
-} 
-
+}
