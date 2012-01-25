@@ -221,9 +221,10 @@ urlpatterns += patterns('',
     
     url(r'^advising/$', 'advisornotes.views.advising'),
     url(r'^data/students$', 'advisornotes.views.student_search'),
-    url(r'^advising/students/' + USERID_SLUG + '$', 'advisornotes.views.student_notes'),
+    url(r'^advising/students/' + USERID_SLUG + '/notes/new$', 'advisornotes.views.new_note'),
+    url(r'^advising/students/' + USERID_SLUG + '/$', 'advisornotes.views.student_notes'),
     url(r'^advising/students/' + USERID_SLUG + '/notes/' + NOTE_ID + '$', 'advisornotes.views.view_note'),
-    url(r'^advising/students/' + USERID_SLUG + '/notes/new', 'advisornotes.views.new_note'),
+    
     
     #url(r'^notes/new$', 'advisornotes.views.new_note'),
     #url(r'^notes/' + NOTE_ID + '/view$', 'advisornotes.views.view_note'),

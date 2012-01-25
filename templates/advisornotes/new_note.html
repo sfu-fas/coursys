@@ -3,11 +3,11 @@
 {% block title %}Advising Notes{% endblock %}
 {% block h1 %}Advising Notes{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url advisornotes.views.student_search %}">Student Search</a></li><li>&gt; New Note</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li><li>&gt; <a href="{% url advisornotes.views.student_notes userid=student.userid %}">Notes</a></li><li>&gt; New Note</li>{% endblock %}
 
 {% block content %}
 
-<form action="{% url advisornotes.views.new_note %}" method="post">{% csrf_token %}
+<form action="{% url advisornotes.views.new_note userid=student.id %}" method="post">{% csrf_token %}
 <fieldset>
 <legend>Note</legend>
 {{ form|as_dl }}

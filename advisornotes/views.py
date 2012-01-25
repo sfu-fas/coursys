@@ -72,11 +72,13 @@ def student_search(request):
     return response
 
 @requires_advisor
-def new_note(request):
+def new_note(request,userid):
+    student = Person.objects.get(userid = userid)
     if request.method == 'POST':
         form = AdvisorNoteForm(request.POST)
         if form.is_valid():
             note = form.save(False)
+            note.student_id= student.id
             note.advisor_id = Person.objects.get(userid = request.user.username).id
             note.save()
             """
@@ -89,13 +91,13 @@ def new_note(request):
             return HttpResponseRedirect(reverse(student_search))
     else:
         form = AdvisorNoteForm()
-    return render(request, 'advisornotes/new_note.html', {'form': form})
+    return render(request, 'advisornotes/new_note.html', {'form': form, 'student':student} )
  
 @requires_advisor
-def view_note(request, note_id):
+def view_note(request, userid, note_id):
     note = get_object_or_404(AdvisorNote, pk = note_id)
-    student = Person.objects.get(id = note.student_id)
-    return render(request, 'advisornotes/view_note.html', {'note': note, 'student' : student}, context_instance=RequestContext(request))
+    student = Person.objects.get(userid = userid)
+    return render(request, 'advisornotes/view_note.html', {'note': note, 'student':student}, context_instance=RequestContext(request))
 
 @requires_advisor
 def student_notes(request,userid):

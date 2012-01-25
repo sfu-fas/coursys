@@ -2,13 +2,13 @@
 {% block title %}Advising Notes for {{ student.first_name}} {{ student.last_name }}{% endblock %}
 {% block h1 %}Advising Notes for {{ student.first_name}} {{ student.last_name }}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url advisornotes.views.all_notes %}">List Notes</a></li><li>&gt; Notes for {{ student.first_name }} {{ student.last_name }}</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li><li>&gt; Notes for {{ student.first_name }} {{ student.last_name }}</li>{% endblock %}
 
 {% block actions %}
 <div id="actions">
 <h2>Actions</h2>
 <ul>
-<li><a href="{% url advisornotes.views.new_note %}">New Note</a></li>
+<li><a href="{% url advisornotes.views.new_note userid=student.userid%}">New Note</a></li>
 </ul>
 </div>
 {% endblock %}
@@ -37,7 +37,7 @@
   		{{note.text}}
   	</td>
   	<td>
-  		<a href="{% url advisornotes.views.view_note note_id=note.id %}">View</a>
+  		<a href="{% url advisornotes.views.view_note userid=student.userid note_id=note.id %}">View</a>
   	</td>
   </tr>
   {% endfor %}
