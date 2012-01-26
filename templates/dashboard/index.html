@@ -34,6 +34,7 @@ $(document).ready(function() {
     {% if 'SYSA' in roles %}<li><a href="{% url coredata.views.sysadmin %}">System Administration</a></li>{% endif %}
     {% if staff_memberships %}<li><a href="{% url dashboard.views.list_docs %}">View Documentation</a></li>{% endif %}
     {% if 'ADVS' in roles %}<li><a href="{% url advisornotes.views.advising %}">Student Search</a></li>{% endif %}
+    {% if 'ADVS' in roles %}<li><a href="{% url grad.views.index %}">Grad Student</a></li>{% endif %}
     </ul>
 </div>
 {% endblock %}

@@ -9,26 +9,23 @@
 
 
 
+
 {% block content %}
 <div class="datatable_container bigdatatable">
     <table class="display" id="grads">
         <thead>
             <tr>
-                <th>First</th>
-                <th>Last</th>
-				<th>Student ID</th>
-				<th>Student #</th>
-				<th>Action</th>
+                <th scope="col">Unit</th>
+                <th scope="col">Label</th>
+				<th scope="col">Description</th>
             </tr>
 		</thead>
         <tbody>
-        
-        <tr>{% for s in grads %}
-            <td>{{s.person.first_name}}</td>
-            <td>{{s.person.last_name}}</td>
-            <td>{{s.person.userid}}</td>
-            <td>{{s.person.emplid}}</td>
-            <td><a href=""> View & Manage </a></td>
+        {% for s in programs %}
+        <tr>
+            <td scope="row">{{s.unit}}</td>
+            <td scope="row">{{s.label}}</td>
+            <td scope="row">{{s.description}}</td>
           
         </tr>
         {% endfor %}

@@ -7,7 +7,7 @@
 
 {% block subbreadcrumbs %}<li>&gt; <a href="/grad">Grad</a></li><li>&gt; {{crumb}}</li>{% endblock %}
 {% block content %}
-    <form action="{% url grad.views.new %}" method="POST">{% csrf_token %}
+    <form action="{% url grad.views.new_program %}" method="POST">{% csrf_token %}
     	<fieldset>
 <legend>General Info</legend>
              {{ form.as_p }}

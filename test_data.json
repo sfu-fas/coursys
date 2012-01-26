@@ -12158,6 +12158,66 @@
   },
   "model": "coredata.unit",
   "pk": 4
+ }, {
+  "fields": {
+   "unit": 2,
+   "label": "BScience",
+   "description": "Including - Moon walk.",
+   "created_at": "2012-01-13 23:27:03",
+   "updated_at": "2012-01-13 23:27:03"
+  },
+  "model": "grad.gradprogram",
+  "pk": 1
+ },  {
+  "fields": {
+   "unit": 2,
+   "label": "MScience",
+   "description": "Including - Shifting.",
+   "created_at": "2012-01-13 23:27:03",
+   "updated_at": "2012-01-13 23:27:03"
+  },
+  "model": "grad.gradprogram",
+  "pk": 2
+ },  {
+  "fields": {
+   "unit": 2,
+   "label": "Arts!!!!!",
+   "description": "Including - jumping.",
+   "created_at": "2012-01-13 23:27:03",
+   "updated_at": "2012-01-13 23:27:03"
+  },
+  "model": "grad.gradprogram",
+  "pk": 3
+ }, {
+  "fields": {
+   "person": 34,
+   "program": 1,
+   "research_area": "Moon walk",
+   "created_at": "2012-01-13 23:27:03",
+   "updated_at": "2012-01-13 23:27:03"
+  },
+  "model": "grad.gradstudent",
+  "pk": 1
+ }, {
+  "fields": {
+   "person": 16,
+   "program": 2,
+   "research_area": "Moon walk",
+   "created_at": "2012-01-13 23:27:03",
+   "updated_at": "2012-01-13 23:27:03"
+  },
+  "model": "grad.gradstudent",
+  "pk": 2
+ }, {
+  "fields": {
+   "person": 45,
+   "program": 2,
+   "research_area": "Moon walk",
+   "created_at": "2012-01-13 23:27:03",
+   "updated_at": "2012-01-13 23:27:03"
+  },
+  "model": "grad.gradstudent",
+  "pk": 3
  }
 
 ]

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load mobile_tags %}
+
+{% block actions %}
+<div id="actions">
+<h2>Actions</h2>
+<ul>
+{% if request.get_full_path != "/grad/"%}
+	<li><a href="{% url grad.views.index %}">View Grads</a></li> 
+{% endif %}
+{% if request.get_full_path != "/grad/program/"%}
+	<li><a href="{% url grad.views.programs %}">View Programs</a></li>
+{% endif %}
+
+<li class="newsec"><a href="{% url grad.views.new %}">New Grad</a></li>
+<li><a href="{% url grad.views.new_program %}">New Program</a></li>
+
+</ul>
+</div>
+{% endblock %}

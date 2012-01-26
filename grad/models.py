@@ -8,6 +8,10 @@ class GradProgram(models.Model):
     unit = models.ForeignKey(Unit, null=False, blank=False)
     label = models.CharField(max_length=10, null=False)
     description = models.CharField(max_length=100)
+    
+    
+    created_at = models.DateTimeField(auto_now_add = True)
+    updated_at = models.DateTimeField(auto_now = True)
     def autoslug(self):
         # strip the punctutation entirely
         sluglabel = ''.join((c for c in self.label if c.isalnum()))
@@ -15,6 +19,8 @@ class GradProgram(models.Model):
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False)
     class Meta:
         unique_together = (('unit', 'label'),)
+    def __unicode__ (self):
+        return "%s" % (self.label)
 
 class GradStudent(models.Model):
     person = models.ForeignKey(Person, help_text="* Required. Select a person.", null=False, blank=False)
@@ -31,17 +37,13 @@ class GradStudent(models.Model):
     passport_issued_by = models.CharField(max_length=25, blank = True, help_text="I.e. US, China")
     special_arrangements = models.NullBooleanField()
     comments = models.TextField(max_length=250, blank=True, help_text="Additional information.")
-
-
-### Missing:
-'''
-    - student status model - active.. from blah blah
-    - financial
-    - degree requirements
-'''
     
-#    def __unicode__(self):
-#        return self.grad   
+    
+    
+    created_at = models.DateTimeField(auto_now_add = True)
+    updated_at = models.DateTimeField(auto_now = True)
+    def __unicode__(self):
+        return "Grad student: %s" % (self.person)   
     
 class Supervisor(models.Model):
     """
@@ -54,6 +56,9 @@ class Supervisor(models.Model):
     is_senior = models.BooleanField()
     is_potential = models.BooleanField()
     
+    
+    created_at = models.DateTimeField(auto_now_add = True)
+    updated_at = models.DateTimeField(auto_now = True)
     def __unicode__(self):
         return "%s supervising %s" % (self.supervisor or external, self.student.person)
 
@@ -117,7 +122,10 @@ class GradStatus(models.Model):
     notes = models.TextField(blank=True, help_text="Other notes")
 
 
-    
+class GradProgramForm(ModelForm):
+    class Meta:
+        model = GradProgram
+        
 class GradStudentForm(ModelForm):
     class Meta:
         model = GradStudent
