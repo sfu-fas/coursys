@@ -42,8 +42,14 @@ def all_tugs(request, course_slug):
     return render(request, 'ta/all_tugs.html', context)
 
 @requires_course_staff_by_slug    
-def new_tug(request, course_slug):
+def new_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
+    components = course.component
+    has_lab_or_tut = False
+    for component in components:
+        if component == "LAB" or component == "TUT":
+            has_lab_or_tut = True
+        
     if request.method == "POST":
         form = TUGForm(data=request.POST)
         if form.is_valid():
@@ -52,8 +58,12 @@ def new_tug(request, course_slug):
         return HttpResponseRedirect(reverse(all_tugs, args=[course.slug]))
     
     else:
-        form = TUGForm(course)
-        return render(request,'ta/new_tug.html',{'course':course, 'form':form})
+        form = TUGForm(course,userid)
+        context = {'course':course,
+                   'form':form,
+                   'userid':userid,
+                   'hasLabOrTut': has_lab_or_tut}
+        return render(request,'ta/new_tug.html',context)
 
 @requires_course_staff_by_slug    
 def view_tug(request, course_slug, userid):

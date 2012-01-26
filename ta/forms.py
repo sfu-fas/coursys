@@ -49,16 +49,25 @@ class TUGDutyFieldOther(forms.MultiValueField):
         assert False, data_list
 
 class TUGForm(forms.ModelForm):
-    def __init__(self, offering=None, *args, **kwargs):
+    def __init__(self, offering=None, userid=None, *args, **kwargs):
         super(TUGForm, self).__init__(*args, **kwargs)
         
         # limit the fields in the dropdown
-        if offering is None:
-            self.fields['member'].queryset = Member.objects.filter(role='TA')
-        else:
-            self.fields['member'].queryset = Member.objects.filter(
-                    role='TA',offering=offering)
-            
+        # userid should be passed but if for some reason it isn't filter by offering
+        # if offering is also missing, display all TAs as final fallback
+        # otherwise, filter both both.
+        if userid is not None:
+            memberQuerylist = Member.objects.filter(person__userid=userid)
+            if not offering is None:
+                memberQuerylist = memberQuerylist.filter(offering=offering)
+        else: 
+            if offering is None:
+                memberQuerylist = Member.objects.filter(role='TA')
+            else:
+                memberQuerylist = Member.objects.filter(role='TA',offering=offering)
+        
+        self.fields['member'].queryset = memberQuerylist
+        
         self.config_form = TUGForm.ConfigForm()
     
     class Meta:
