@@ -8,7 +8,7 @@
 {% block subbreadcrumbs %}<li>&gt; <a href="/ra">RA</a></li>
 <li>&gt; New RA</li>{% endblock %}
 {% block content %}
-    <form action="{% url Rra.views.new %}" method="POST">{% csrf_token %}
+    <form action="{% url ra.views.new %}" method="POST">{% csrf_token %}
         <fieldset>
 <legend>General Info</legend>
              {{ form.as_p }}

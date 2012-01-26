@@ -6,17 +6,23 @@ class Project(models.Model):
     """
     A table to look up the appropriate fund number based on the project number
     """
-
+    
     project_number = models.PositiveIntegerField()
     fund_number = models.PositiveIntegerField()
+
+    def __unicode__(self):
+        return unicode(self.project_number)
 
 class Account(models.Model):
     """
     A table to look up the appropriate position number based on the account number.
     """
-
+    
     account_number = models.PositiveIntegerField()
     position_number = models.PositiveIntegerField()
+
+    def __unicode__(self):
+        return unicode(self.account_number)
 
 class RAApplication(models.Model):
     """
