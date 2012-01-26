@@ -74,8 +74,10 @@ def student_search(request):
 @requires_advisor
 def new_note(request,userid):
     student = Person.objects.get(userid = userid)
+    unit_choices = []
     if request.method == 'POST':
         form = AdvisorNoteForm(request.POST)
+        form.fields['unit'].choices = unit_choices
         if form.is_valid():
             note = form.save(False)
             note.student_id= student.id
@@ -93,6 +95,7 @@ def new_note(request,userid):
             # FIX: the '..' doesn't seem optimal, but I can't find a better way
     else:
         form = AdvisorNoteForm(initial={'student': student })
+        form.fields['unit'].choices = unit_choices
     return render(request, 'advisornotes/new_note.html', {'form': form, 'student':student} )
  
 @requires_advisor
