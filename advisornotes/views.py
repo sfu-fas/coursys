@@ -66,7 +66,7 @@ def student_search(request):
     for sid in set(sids):
         s = Person.objects.get(pk=sid)
         label = s.search_label_value()
-        d = {'value': s.id, 'label': label}
+        d = {'value': s.emplid, 'label': label}
         data.append(d)
     json.dump(data, response, indent=1)
     return response
