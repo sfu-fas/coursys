@@ -102,6 +102,35 @@ class TAApplication(models.Model):
         return "Person: %s  Semester: %s" % (self.person, self.semester)
 
 
+#what are the appointment categories?
+"""APPOINTMENT_CHOICES = (
+        ('GTA1', 'GTA1: ') 
+        )"""
+
+class TAContract(models.Model):
+    """    
+    TA Contract
+    """
+    person = models.ForeignKey(Person)
+    department = models.ForeignKey(Unit)
+    appt_start = models.DateField()
+    appt_end = models.DateField()
+    pay_start = models.DateField()
+    pay_end = models.DateField()
+    position_number = models.DecimalField(max_digits=5, decimal_places=0)
+    #appt_category = models.CharField(max_length=4, choices=APPOINTMENT_CHOICES)
+    init_appt = models.BooleanField(verbose_name="Initial appointment to this position")
+    other_appt = models.BooleanField(verbose_name="Reappointment to same position or revision to appointment")
+    sin = models.PositiveIntegerField(unique=True)
+    
+    ##need to clarify how to deal with courses and BU to calculate salary and scholarship
+    
+    remarks = models.TextField(verbose_name="Remarks")
+    deadline = models.DateField()
+    appt_cond = models.BooleanField()
+    appt_tssu = models.BooleanField()
+
+
 TAKEN_CHOICES = (
         ('YES', 'Yes: this course at SFU'),
         ('SIM', 'Yes: a similar course elsewhere'),
