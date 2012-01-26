@@ -78,3 +78,16 @@ def edit_tug(request, course_slug, userid):
     context = {'course':course, 'ta':member.person, 'form': tug_form, 'tug':tug }
     
     return render(request, 'ta/edit_tug.html',context)
+
+def new_application(request):
+    if request.method == "POST":
+        form = TAApplicationForm(data=request.POST)
+        if form.is_valid():
+            app = form.save(False)
+            app.save()
+        #TODO: figure out propper redirect
+        return HttpResponseRedirect('')
+
+    else:
+        form = TAApplicationForm(data=request.POST)
+        return render(request, 'ta/new_application.html',{'form':form})

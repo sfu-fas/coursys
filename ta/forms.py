@@ -1,5 +1,5 @@
 from django import forms
-from ta.models import TUG
+from ta.models import *
 from coredata.models import Member
 
 class MultiTextInput(forms.widgets.MultiWidget):
@@ -75,6 +75,6 @@ class TUGForm(forms.ModelForm):
         other1 = TUGDutyFieldOther(required=False)
         other2 = TUGDutyFieldOther(required=False)
     
-    
-
-        
+class TAApplicationForm(forms.ModelForm):
+    class Meta:
+        model = TAApplication        

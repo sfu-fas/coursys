@@ -94,7 +94,7 @@ class TAApplication(models.Model):
     other_support = models.TextField(blank=True, null=True,
         verbose_name="Other financial support",
         help_text='Describe any other funding you expect to receive this semester (grad students only).')
-    comments = models.TextField(verbose_name="Additional comments")
+    comments = models.TextField(verbose_name="Additional comments", blank=True, null=True)
     
     class Meta:
         unique_together = (('person', 'semester', 'department'),)

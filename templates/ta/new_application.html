@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load mobile_tags %}
+
+{% block h1 %}Create TA Application{% endblock %}
+
+{% block content %}
+<form action="{% url ta.views.new_application %}" method="post">{% csrf_token %}
+{{ form.as_p }}
+{# TODO: heavily customize the form so it looks pretty; do the markup here, don't use as_x #}
+<table>
+{{form.config_form.as_table}}
+</table>
+<input class='submit' type="submit" value="Create" />
+
+</form>
+{% endblock %}
