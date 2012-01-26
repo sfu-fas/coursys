@@ -1,6 +1,6 @@
 from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.shortcuts import render_to_response, get_object_or_404, render
+from django.shortcuts import render_to_response, get_object_or_404, render, redirect
 from django.http import HttpResponse
 from advisornotes.models import AdvisorNote
 from coredata.models import Member, Person, Role
@@ -88,9 +88,11 @@ def new_note(request,userid):
                   related_object=form.instance)
             l.save()
             """
-            return HttpResponseRedirect(reverse(student_search))
+            notes = AdvisorNote.objects.filter(student__userid=userid)
+            return redirect('..', {'notes': notes, 'student' : student})
+            # FIX: the '..' doesn't seem optimal, but I can't find a better way
     else:
-        form = AdvisorNoteForm()
+        form = AdvisorNoteForm(initial={'student': student })
     return render(request, 'advisornotes/new_note.html', {'form': form, 'student':student} )
  
 @requires_advisor
