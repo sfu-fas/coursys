@@ -21,25 +21,28 @@ class MultiTextInput(forms.widgets.MultiWidget):
 
 class TUGDutyField(forms.MultiValueField):
     widget = MultiTextInput(widget_count=3)
+    _initial_fields = lambda self:(self.weekly, self.total, self.comment) 
     
     def __init__(self, *args, **kwargs):
+        self.weekly = forms.DecimalField(label="Weekly hours")
+        self.total = forms.DecimalField(label="Total hours")
+        self.comment = forms.CharField(label="Comment")
+        
         super(TUGDutyField, self).__init__(
-                (forms.DecimalField(),
-                 forms.DecimalField(),
-                 forms.CharField()), *args, **kwargs)
+                self._initial_fields(), *args, **kwargs)
     def compress(self, data_list):
         # TODO: return a dict of {'weekly': int, 'total': int, 'comment': str}
         assert False, data_list
 
 class TUGDutyFieldOther(forms.MultiValueField):
     widget = MultiTextInput(widget_count=4)
+    _initial_fields = lambda self:(self.label_field, 
+            self.weekly, self.total, self.comment)
     
     def __init__(self, *args, **kwargs):
+        self.label_field = forms.CharField()
         super(TUGDutyFieldOther, self).__init__(
-                (forms.CharField(),
-                 forms.DecimalField(),
-                 forms.DecimalField(),
-                 forms.CharField()), *args, **kwargs)
+                *args, **kwargs)
     def compress(self, data_list):
         # TODO: like TUGDutyField, return a dict of 
         # {'label': str, 'weekly': int, 'total': int, 'comment': str}

@@ -13,7 +13,8 @@
 
 {% block content %}
 <ul>
-{% for ta in tas %}
+{% for ta, tug in tas_with_tugs %}
+	{% comment %}
 	{% for tug in tugs%}
 		<li>
 			{% if tug.member == ta %}
@@ -29,6 +30,20 @@
 			{% endif %}
 		</li>
 	{% endfor %}
+	{% endcomment %}
+	<li>
+			{% if not tug == None %}
+				<a href="{% url ta.views.view_tug course_slug=course.slug userid=ta.person.userid %}">
+					{{ta.person}} 
+				</a> (Last Updated: {% if tug.last_updated == "" %}{{ tug.last_updated }} {% else %} Unknown {% endif %})
+			{% else %}
+				{{ta.person}} - 
+				<a href="{% url ta.views.new_tug course_slug=course.slug%}">
+					Create TUG
+				</a>
+				
+			{% endif %}
+		</li>
 {% endfor %}
 </ul>
 

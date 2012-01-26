@@ -22,9 +22,20 @@ def all_tugs(request, course_slug):
     #If a TA is accessing, only his/her own TUG should be viewable
     if request.user.username in tas:
         tas.filter(person__userid=request.user.username)
-    tugs = TUG.objects.filter(member=tas)        
+    tugs = TUG.objects.filter(member=tas)
+    
+    # zip tas and tugs together
+    # basically performs a left outer join between tas and tugs
+    def tryget(member):
+        try:
+            return TUG.objects.get(member=member)
+        except(TUG.DoesNotExist):
+            return None
+    tas_with_tugs = [(ta, tryget(ta)) for ta in tas]
+    
     context = {'tas': tas, 
                'tugs': tugs,
+               'tas_with_tugs':tas_with_tugs,
                 'course': course
                 }
     
