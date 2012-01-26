@@ -7,8 +7,7 @@ from courselib.slugs import make_slug
 class GradProgram(models.Model):
     unit = models.ForeignKey(Unit, null=False, blank=False)
     label = models.CharField(max_length=10, null=False)
-    description = models.CharField(max_length=100)
-    
+    description = models.CharField(max_length=100, blank = True)
     
     created_at = models.DateTimeField(auto_now_add = True)
     updated_at = models.DateTimeField(auto_now = True)
@@ -23,21 +22,20 @@ class GradProgram(models.Model):
         return "%s" % (self.label)
 
 class GradStudent(models.Model):
-    person = models.ForeignKey(Person, help_text="* Required. Select a person.", null=False, blank=False)
+    person = models.ForeignKey(Person, help_text="Type in student ID or number.", null=False, blank=False)
     program = models.ForeignKey(GradProgram, null=False, blank=False)
     def autoslug(self):
         return make_slug(self.person.userid + "-" + self.program.slug)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False)
-    research_area = models.CharField('Research Area', max_length=250, help_text="* Required.", blank=False)
+    research_area = models.CharField('Research Area', max_length=250, blank=False)
     campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES, blank=True)
 
     english_fluency = models.CharField(max_length=10, blank = True, help_text="I.e. Read, Write, Speak, All.")
     mother_tongue = models.CharField(max_length=25, blank = True, help_text="I.e. Scottish, Chinese, French")
     is_canadian = models.NullBooleanField()
     passport_issued_by = models.CharField(max_length=25, blank = True, help_text="I.e. US, China")
-    special_arrangements = models.NullBooleanField()
+    special_arrangements = models.NullBooleanField(verbose_name='Special Arrgmnts')
     comments = models.TextField(max_length=250, blank=True, help_text="Additional information.")
-    
     
     
     created_at = models.DateTimeField(auto_now_add = True)

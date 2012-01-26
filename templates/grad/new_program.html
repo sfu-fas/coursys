@@ -1,18 +1,20 @@
 {% extends "base.html" %}
 {% load markup %}
 {% load mobile_tags %}
+{% load form_display %}
 
 {% block title %}{{page_title}}{% endblock %}
 {% block h1 %}{{page_title}}{% endblock %}
 
 {% block subbreadcrumbs %}<li>&gt; <a href="/grad">Grad</a></li><li>&gt; {{crumb}}</li>{% endblock %}
 {% block content %}
+<div id="form_container">
     <form action="{% url grad.views.new_program %}" method="POST">{% csrf_token %}
     	<fieldset>
-<legend>General Info</legend>
-             {{ form.as_p }}
+			<legend>General Info</legend>
+              {{ form|as_dl_2 }}
         <p><input type="submit" value="Submit"></p>
         </fieldset>
     </form>
-
+</div>
 {% endblock %}
