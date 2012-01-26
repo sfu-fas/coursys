@@ -5,7 +5,7 @@
 {% block h1 %}Create Time Use Guideline{% endblock %}
 
 {% block content %}
-<form action="{% url ta.views.new_tug course_slug=course.slug %}" method="post">{% csrf_token %}
+<form action="{% url ta.views.new_tug course_slug=course.slug userid=userid %}" method="post">{% csrf_token %}
 {{ form.as_p }}
 {# TODO: heavily customize the form so it looks pretty; do the markup here, don't use as_x #}
 <table>

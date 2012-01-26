@@ -22,7 +22,6 @@
 {% endblock %}
 
 {% block content %}
-	<script type="text/javascript" src="{{MEDIA_URL}}js/ta.js"></script>
 	<form action="{{ta.views.edit_tug}}" method="post">
 		{%csrf_token%}
 		
@@ -140,5 +139,5 @@
 		<input type="submit" value="Save" />
 		
 	</form>
-
+	<script type="text/javascript" src="{{MEDIA_URL}}js/ta.js"></script>
 {% endblock %}
