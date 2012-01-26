@@ -240,7 +240,7 @@ CAMPUS_CHOICES = (
         #('SEGAL', 'Segal Centre'),
         ('GNWC', 'Great Northern Way Campus'),
         #('KAM', 'Kamloops Campus'),
-        ('METRO', 'METRO'), # ???
+        ('METRO', 'Other Locations in Vancouver'),
         )
 CAMPUSES = dict(CAMPUS_CHOICES)
 

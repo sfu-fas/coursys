@@ -168,6 +168,7 @@ if USE_CELERY:
     CELERY_EMAIL_TASK_CONFIG = {
         'queue' : 'email',
         'rate_limit' : '30/m',
+        'priority': 7,
     }
     CELERY_EMAIL_BACKEND = EMAIL_BACKEND
     EMAIL_BACKEND = 'djcelery_email.backends.CeleryEmailBackend'
