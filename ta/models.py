@@ -48,6 +48,23 @@ class TUG(models.Model):
     def __unicode__(self):
         return "TA: %s  Base Units: %s" % (self.member.person.userid, self.base_units)
 
+LEVEL_CHOICES = (
+    ('NONE', 'None'),
+    ('SOME', 'Some'),
+    ('EXPR', 'Expert'),
+)
+
+class Skill(models.Model):
+    """
+    Skills an applicant specifies in their application.  Skills are specific to a department.
+    """
+    name = models.CharField(max_length=30)
+    department = models.ForeignKey(Unit)
+    level = models.CharField(max_length=4, choices=LEVEL_CHOICES)
+    
+    def __unicode__(self):
+        return "Name: %s  Level: %s" % (self.name, self.level)
+
 
 CATEGORY_CHOICES = (
         ('PHD', 'PhD'),
@@ -64,9 +81,11 @@ class TAApplication(models.Model):
     semester = models.ForeignKey(Semester)
     category = models.CharField(max_length=3, choices=CATEGORY_CHOICES)
     department = models.ForeignKey(Unit)
+    base_units = models.DecimalField(max_digits=4, decimal_places=2)
     sin = models.PositiveIntegerField(unique=True)
-    campus_prefered = models.CharField(max_length=5, choices=CAMPUS_CHOICES)
-    #skills = 
+    #Campus will be a csv separated field
+    campus_prefered = models.CharField(max_length=30)
+    skills = models.ManyToManyField(Skill) 
     experience =  models.TextField(blank=True, null=True,
         verbose_name="Experience",
         help_text='Describe any other experience that you think may be relevant to these courses.')
@@ -98,3 +117,5 @@ class CoursePreference(models.Model):
     taken = models.CharField(max_length=3, choices=TAKEN_CHOICES, blank=False, null=False)
     exper = models.CharField(max_length=3, choices=EXPER_CHOICES, blank=False, null=False)
 
+    def __unicode__(self):
+        return "Course: %s  Taken: %s" % (self.course, self.taken)
