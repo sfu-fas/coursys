@@ -11,16 +11,6 @@ from django.contrib import messages
 from courselib.search import get_query
 import json
 
-"""
-@requires_advisor
-def all_notes(request):
-    #advisor should only see notes from his/her department
-    notes = AdvisorNote.objects.all()
-    dept = [r.department for r in Role.objects.filter(person__userid=request.user.username)]
-    #notes = AdvisorNote.objects.filter(department=dept[0])
-    return render_to_response("advisornotes/all_notes.html", {'notes': notes}, context_instance=RequestContext(request))
-"""
-
 @requires_advisor
 def advising(request, student_id=None):
     if student_id:
@@ -43,14 +33,6 @@ def advising(request, student_id=None):
         form = StudentSearchForm()
     context = {'form': form}
     return render_to_response('advisornotes/student_search.html', context, context_instance=RequestContext(request))
-    """
-    elif student_id:
-        form = StudentSearchForm(instance=student, initial={'person': person.userid})
-    else:
-        form = StudentSearchForm()
-    
-    return render(request, 'advisornotes/student_search.html', {'form': form, 'student': student})  
-    """
     
 # AJAX/JSON for student search autocomplete
 def student_search(request):
@@ -74,7 +56,10 @@ def student_search(request):
 @requires_advisor
 def new_note(request,userid):
     student = Person.objects.get(userid = userid)
-    unit_choices = []
+    depts = Role.objects.filter(person__userid=request.user.username, role='ADVS').values('unit_id')
+    unit_choices = Unit.objects.filter(id__in=depts).values_list('id','name')
+    print unit_choices
+    #print unit_choices.values()
     if request.method == 'POST':
         form = AdvisorNoteForm(request.POST)
         form.fields['unit'].choices = unit_choices
