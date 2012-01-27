@@ -6,12 +6,24 @@
 
 {% block content %}
 <form action="{% url ta.views.new_tug course_slug=course.slug userid=userid %}" method="post">{% csrf_token %}
+<fieldset>
 {{ form.as_p }}
-{# TODO: heavily customize the form so it looks pretty; do the markup here, don't use as_x #}
 <table>
-{{form.config_form.as_table}}
+{% for form in form.config_form.forms %}
+<tr>
+<th>
+{% if form.label_editable %}
+{{ form.label_bound_field.as_widget}}
+{% else %}
+{{ form.label }}
+{% endif %}
+</th>
+{{ form.as_table_row }}
+</tr>
+{% endfor %}
+{#{{ form.config_form.as_table_row }}#}
 </table>
-<input class='submit' type="submit" value="Create" />
-
+<p><input class='submit' type="submit" value="Create" /></p>
+</fieldset>
 </form>
 {% endblock %}
