@@ -29,11 +29,10 @@ class StudentField(forms.ModelChoiceField):
     
     def to_python(self, value):
         try:
-            st = Person.objects.filter(emplid=value)
+            st = Person.objects.get(emplid=value)
         except (ValueError, Person.DoesNotExist):
             raise forms.ValidationError("Unknown person selected")
-        return st[0]
-    ""
+        return st
     
 class StudentSearchForm(forms.Form):
         search = StudentField()
