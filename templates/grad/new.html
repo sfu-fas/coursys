@@ -6,15 +6,29 @@
 {% block title %}{{page_title}}{% endblock %}
 {% block h1 %}{{page_title}}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="/grad">Grad</a></li><li>&gt; {{crumb}}</li>{% endblock %}
+{% block subbreadcrumbs %}
+<li>
+	&gt; <a href="/grad">Grad</a>
+</li>
+<li>
+	&gt; {{crumb}}
+</li>
+{% endblock %}
+
 {% block content %}
 <div id="form_container">
-    <form action="{% url grad.views.new %}" method="POST">{% csrf_token %}
-    	<fieldset>
-<legend>General Info</legend>
-             {{ form|as_dl_2 }}
-        <p><input type="submit" value="Submit"></p>
-        </fieldset>
-    </form>
+	<form action="{% url grad.views.new %}" method="POST">
+		{% csrf_token %}
+		<fieldset>
+			<legend>
+				General Info
+			</legend>
+			{{ form|as_dl_2 }}
+			<p>
+				<input  class="submit"  type="submit" value="Submit">
+			</p>
+		</fieldset>
+	</form>
+	<a class="button" href="{% url grad.views.index %}">Back</a>
 </div>
-{% endblock %}
+{% endblock %} 

@@ -28,8 +28,8 @@
             <td>{{s.person.last_name}}</td>
             <td>{{s.person.userid}}</td>
             <td>{{s.person.emplid}}</td>
-            <td><a href=""> View & Manage </a></td>
-          
+            <td><a href="{% url grad.views.new %}"> View & Manage </a></td>
+          <!-- url grad.views.manage userid_slug=s.slug -->
         </tr>
         {% endfor %}
         </tbody>

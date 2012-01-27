@@ -127,3 +127,4 @@ class GradProgramForm(ModelForm):
 class GradStudentForm(ModelForm):
     class Meta:
         model = GradStudent
+

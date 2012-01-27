@@ -13,8 +13,9 @@
     	<fieldset>
 			<legend>General Info</legend>
               {{ form|as_dl_2 }}
-        <p><input type="submit" value="Submit"></p>
+        <p><input  class="submit"  type="submit" value="Submit"></p>
         </fieldset>
     </form>
+	<a class="button" href="{% url grad.views.index %}">Back</a>
 </div>
-{% endblock %}
+{% endblock %} 

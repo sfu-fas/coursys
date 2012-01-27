@@ -26,8 +26,22 @@ def index(request):
 @requires_advisor
 def manage(request, user_id):
     grad = get_object_or_404(GradStudent, slug=user_id)
+    
+    if request.method == 'POST':
+        form = GradStudentForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse(index))
+    else:
+        form = GradStudentForm(instance=grad, exclude=['comments'])   
 
-    context = {'grad': grad
+    # set frontend defaults
+    page_title = "%s 's Gradate Student Record" % (grad.person.first_name)  
+    crumb =  "%s %s" % (grad.person.first_name, grad.person.last_name)
+    context = {'form': form,
+               'page_title' : page_title,
+               'crumb' : crumb,
+               
                }
     return render(request, 'grad/manage.html', context)
 
