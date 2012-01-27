@@ -25,14 +25,15 @@ class AdvisorNote(models.Model):
     text = models.TextField(blank=False, null=False, verbose_name="Contents of note.",
                             help_text='Enter a note about a student')
     student = models.ForeignKey(Person, related_name='student',
-                                help_text='The student that the note is about.')
+                                help_text='The student that the note is about.',
+                                editable = False)
     advisor = models.ForeignKey(Person, related_name='advisor',
                                 help_text='The advisor that created the note.',
                                 editable = False)
     created_at = models.DateTimeField(auto_now_add=True)
     file_attachment = models.FileField(storage=NoteSystemStorage, null = True, 
                       upload_to=attachment_upload_to, blank=True, max_length=500)
-    file_mediatype = models.CharField(null=False, blank=False, max_length=200)
+    file_mediatype = models.CharField(null=True, blank=True, max_length=200)
     unit = models.ForeignKey(Unit, help_text='The academic unit that owns this note')
     # Set this flag if the note is no longer to be accessible.
     hidden = models.BooleanField(null=False, db_index=True, default=False)

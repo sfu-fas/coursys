@@ -26,13 +26,14 @@ class StudentSelect(forms.Select):
 class StudentField(forms.ModelChoiceField):
     def __init__(self, *args, **kwargs):
         super(StudentField, self).__init__(*args, queryset=Person.objects.none(), widget=StudentSelect(attrs={'size': 30}), help_text="Type to search for a student.", **kwargs)
-        
+    
     def to_python(self, value):
         try:
-            st = Person.objects.get(pk=value)
+            st = Person.objects.filter(emplid=value)
         except (ValueError, Person.DoesNotExist):
             raise forms.ValidationError("Unknown person selected")
-        return st
+        return st[0]
+    ""
     
 class StudentSearchForm(forms.Form):
         search = StudentField()
