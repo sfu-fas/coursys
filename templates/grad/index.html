@@ -7,7 +7,24 @@
 
 {% block subbreadcrumbs %}<li>&gt; {{crumb}}</li>{% endblock %}
 
-
+{% comment %}
+<div class="datatable_container">
+    <table class="display">
+        <thead>
+            <tr>
+                <th scope="col">First Name</th>
+                <th scope="col">Last Name</th>
+            </tr>
+	</thead>
+        <tbody>
+        <tr>
+            <td scope="row">{{grad.person.first_name}}</td>
+            <td scope="row">{{grad.person.last_name}}</td>
+        </tr>
+        </tbody>
+    </table>
+</div>	
+{% endcomment %}
 
 {% block content %}
 <div class="datatable_container bigdatatable">
@@ -22,15 +39,16 @@
             </tr>
 		</thead>
         <tbody>
-        
-        <tr>{% for s in grads %}
+        {% for s in grads %}
+        <tr>
             <td>{{s.person.first_name}}</td>
             <td>{{s.person.last_name}}</td>
             <td>{{s.person.userid}}</td>
             <td>{{s.person.emplid}}</td>
-            <td><a href="{% url grad.views.new %}"> View & Manage </a></td>
-          <!-- url grad.views.manage userid_slug=s.slug -->
+            <td><a href="{% url grad.views.manage userid=s.slug %}"> View & Manage </a></td>
         </tr>
+        {%empty%}
+        	<tr><td>There are currently no grad student records stored in the database.</td></tr>
         {% endfor %}
         </tbody>
     </table>

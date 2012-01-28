@@ -23,11 +23,17 @@
 			<legend>
 				General Info
 			</legend>
-			{{ form|as_dl_2 }}
+			{{ grad_form|as_dl_2 }}
+		</fieldset>
+		<fieldset>
+			<legend>
+				Supervisor Info
+			</legend>
+			{{ supervisors_form|as_dl_2 }}
+		</fieldset>		
 			<p>
 				<input  class="submit"  type="submit" value="Submit">
 			</p>
-		</fieldset>
 	</form>
 	<a class="button" href="{% url grad.views.index %}">Back</a>
 </div>

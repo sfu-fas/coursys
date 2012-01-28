@@ -3,14 +3,16 @@ from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES
 from django.forms.models import ModelForm
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
+from django.template.defaultfilters import capfirst
+from django.core.paginator import Page
 
 class GradProgram(models.Model):
     unit = models.ForeignKey(Unit, null=False, blank=False)
     label = models.CharField(max_length=10, null=False)
-    description = models.CharField(max_length=100, blank = True)
+    description = models.CharField(max_length=100, blank=True)
     
-    created_at = models.DateTimeField(auto_now_add = True)
-    updated_at = models.DateTimeField(auto_now = True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     def autoslug(self):
         # strip the punctutation entirely
         sluglabel = ''.join((c for c in self.label if c.isalnum()))
@@ -22,24 +24,32 @@ class GradProgram(models.Model):
         return "%s" % (self.label)
 
 class GradStudent(models.Model):
-    person = models.ForeignKey(Person, help_text="Type in student ID or number.", null=False, blank=False)
+    person = models.ForeignKey(Person, help_text="Type in student ID or number.", null=False, blank=False, unique=True)
     program = models.ForeignKey(GradProgram, null=False, blank=False)
     def autoslug(self):
+        # not sure why we need to have program as part of slug 
         return make_slug(self.person.userid + "-" + self.program.slug)
+        #return make_slug(self.person.userid)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False)
     research_area = models.CharField('Research Area', max_length=250, blank=False)
     campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES, blank=True)
 
-    english_fluency = models.CharField(max_length=10, blank = True, help_text="I.e. Read, Write, Speak, All.")
-    mother_tongue = models.CharField(max_length=25, blank = True, help_text="I.e. Scottish, Chinese, French")
+    english_fluency = models.CharField(max_length=10, blank=True, help_text="I.e. Read, Write, Speak, All.")
+    mother_tongue = models.CharField(max_length=25, blank=True, help_text="I.e. Scottish, Chinese, French")
     is_canadian = models.NullBooleanField()
-    passport_issued_by = models.CharField(max_length=25, blank = True, help_text="I.e. US, China")
+    passport_issued_by = models.CharField(max_length=25, blank=True, help_text="I.e. US, China")
     special_arrangements = models.NullBooleanField(verbose_name='Special Arrgmnts')
     comments = models.TextField(max_length=250, blank=True, help_text="Additional information.")
     
     
-    created_at = models.DateTimeField(auto_now_add = True)
-    updated_at = models.DateTimeField(auto_now = True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    def get_fields(self):
+        # make a list of field/values.
+        k = []
+        for field in GradStudent._meta.fields:
+                k.append([capfirst(field.verbose_name), field.value_to_string(self)])
+        return k    
     def __unicode__(self):
         return "Grad student: %s" % (self.person)   
     
@@ -54,13 +64,19 @@ class Supervisor(models.Model):
     is_senior = models.BooleanField()
     is_potential = models.BooleanField()
     
-    
-    created_at = models.DateTimeField(auto_now_add = True)
-    updated_at = models.DateTimeField(auto_now = True)
+    def get_fields(self):
+        # make a list of field/values.
+        k = []
+        for field in Supervisor._meta.fields:
+            if field.verbose_name == "ID" or field.name == "created_at" or field.name == "external":
+                pass
+            else:
+                k.append([capfirst(field.verbose_name), field.value_to_string(self)])
+        return k        
     def __unicode__(self):
         return "%s supervising %s" % (self.supervisor or external, self.student.person)
 
-    def save(self, *args, **kwargs):
+    def save_custom(self, *args, **kwargs):
         # make sure the data is coherent: should also be in form validation for nice UI
         is_person = bool(self.supervisor)
         is_ext = bool(self.external)
@@ -69,9 +85,9 @@ class Supervisor(models.Model):
         if not is_person and not is_ext:
             raise ValueError, "Must be either an SFU user or external"
         
-        if self.position==1 and not self.is_senior:
+        if self.position == 1 and not self.is_senior:
             raise ValueError, "First supervisor must be senior"
-        if self.position==1 and is_ext:
+        if self.position == 1 and is_ext:
             raise ValueError, "First supervisor must be internal"
         
         super(Page, self).save(*args, **kwargs)
@@ -119,7 +135,11 @@ class GradStatus(models.Model):
             help_text="Final semester of this status: blank for ongoing")
     notes = models.TextField(blank=True, help_text="Other notes")
 
-
+class SupervisorForm(ModelForm):
+    class Meta:
+        model = Supervisor
+        exclude = ('student',)
+        
 class GradProgramForm(ModelForm):
     class Meta:
         model = GradProgram
@@ -127,4 +147,3 @@ class GradProgramForm(ModelForm):
 class GradStudentForm(ModelForm):
     class Meta:
         model = GradStudent
-

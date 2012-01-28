@@ -14,17 +14,67 @@
 	&gt; {{crumb}}
 </li>
 {% endblock %}
+
 {% block content %}
+{# Display the student's Person related info #}
 <div id="form_container">
-	<form action="{% url grad.views.new %}" method="POST">
+	<fieldset>
+		<legend>
+			Student Info
+		</legend>
+		<div class="table_container">
+			<table class="display">
+				<tbody>
+					{% for field, value in gp %}
+
+					{% if forloop.first %}
+					<tr>
+						{% endif %} <td>
+						<dl>
+							<dt>
+								<label>{{field}} :</label>
+							</dt>
+							<dd>
+								{{ value }}
+							</dd>
+						</dl></td>
+						{% if forloop.counter|divisibleby:2 %}
+					</tr>
+					<tr>
+						{% endif %}
+						{% if forloop.last %}
+					</tr>
+					{% endif %}
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</fieldset>
+</div>
+<div id="form_container">
+	<form  method="POST">
 		{% csrf_token %}
 		<fieldset>
 			<legend>
-				General Info
+				Academic Info
 			</legend>
-			{{ form|as_dl_2 }}
+			{{ grad_form|as_dl_2 }}
 			<p>
-				<input type="submit" value="Submit">
+				<input class="submit" type="submit" value="Update">
+			</p>
+		</fieldset>
+	</form>
+</div>
+<div id="form_container">
+	<form  method="POST">
+		{% csrf_token %}
+		<fieldset>
+			<legend>
+				Supervisor Info
+			</legend>
+			{{ supervisors_form|as_dl_2 }}
+			<p>
+				<input class="submit" type="submit" value="Update">
 			</p>
 		</fieldset>
 	</form>

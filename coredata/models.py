@@ -1,5 +1,5 @@
 from django.db import models
-from django.template.defaultfilters import slugify
+from django.template.defaultfilters import slugify, capfirst
 from autoslug import AutoSlugField
 #from timezones.fields import TimeZoneField
 from django.conf import settings
@@ -21,8 +21,10 @@ class Person(models.Model):
     A person in the system (students, instuctors, etc.).
     """
     emplid = models.PositiveIntegerField(db_index=True, unique=True, null=False,
+                                         verbose_name="ID #",
         help_text='Employee ID (i.e. student number)')
     userid = models.CharField(max_length=8, null=True, db_index=True, unique=True,
+                              verbose_name="User ID",
         help_text='SFU Unix userid (i.e. part of SFU email address before the "@").')
     last_name = models.CharField(max_length=32)
     first_name = models.CharField(max_length=32)
@@ -66,7 +68,19 @@ class Person(models.Model):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
     
     def search_label_value(self):
-        return "%s (%s), %s" % (self.name(), self.userid, self.emplid )
+        return "%s (%s), %s" % (self.name(), self.userid, self.emplid)
+    def get_fields(self):
+        # make a list of field/values.
+        k = []
+        for field in Person._meta.fields:
+            #hide fields that are for dev only.
+            if field.name == "config":
+                pass
+            elif field.verbose_name == "ID":
+                pass
+            else:
+                k.append([capfirst(field.verbose_name), field.value_to_string(self)])
+        return k
 
 
 class Semester(models.Model):
@@ -147,8 +161,8 @@ class Semester(models.Model):
             raise ValueError, "Date seems to be before the start of semester."
 
         diff = date - base.monday
-        diff = int(round(diff.days + diff.seconds/86400.0)+0.5) # convert to number of days, rounding off any timezone stuff
-        week = base.week + diff//7
+        diff = int(round(diff.days + diff.seconds / 86400.0) + 0.5) # convert to number of days, rounding off any timezone stuff
+        week = base.week + diff // 7
         wkday = date.weekday()
         return week, wkday
     
@@ -165,10 +179,10 @@ class Semester(models.Model):
                 base = w
                 break
         
-        date = base.monday + datetime.timedelta(days=7*(wk-base.week)+wkday)
+        date = base.monday + datetime.timedelta(days=7 * (wk - base.week) + wkday)
         # construct the datetime from date and time.
-        dt = datetime.datetime(year=date.year, month=date.month, day=date.day, 
-            hour=time.hour, minute=time.minute, second=time.second, 
+        dt = datetime.datetime(year=date.year, month=date.month, day=date.day,
+            hour=time.hour, minute=time.minute, second=time.second,
             microsecond=time.microsecond, tzinfo=time.tzinfo)
         return dt
     
@@ -212,7 +226,7 @@ class SemesterWeek(models.Model):
     def __unicode__(self):
         return "%s week %i" % (self.semester.name, self.week)
     class Meta:
-        ordering = ['semester','week']
+        ordering = ['semester', 'week']
         unique_together = (('semester', 'week'))
 
 COMPONENT_CHOICES = (
@@ -324,9 +338,9 @@ class CourseOffering(models.Model):
         """
         Should students and groups in this course get Subversion repositories created?
         """
-        return self.subject=="CMPT" \
-            and ((self.semester.name=="1117" and self.number in ["470", "379", "882"])
-                 or (self.semester.name>="1121" and self.number>="200"))
+        return self.subject == "CMPT" \
+            and ((self.semester.name == "1117" and self.number in ["470", "379", "882"])
+                 or (self.semester.name >= "1121" and self.number >= "200"))
 
     
     def export_dict(self):
@@ -361,7 +375,7 @@ class CourseOffering(models.Model):
         unique_together = (
             ('semester', 'subject', 'number', 'section'),
             ('semester', 'crse_id', 'section'),
-            ('semester', 'class_nbr') )
+            ('semester', 'class_nbr'))
 
 
 class Member(models.Model):

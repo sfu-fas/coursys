@@ -236,12 +236,12 @@ urlpatterns += patterns('',
     # Advisor Notes End
     	
     # Graduate related Start
-    url(r'grad/$', 'grad.views.index'),
-    url(r'grad/'+ USERID_SLUG + '/manage$', 'grad.views.manage'),
-    url(r'grad/new', 'grad.views.new'),
-    url(r'grad/program/new', 'grad.views.new_program'),   
-    url(r'grad/program/$', 'grad.views.programs'),   
-    # Graduate Student Records Ends
+    url(r'^grad/$', 'grad.views.index'),
+    url(r'^grad/'+ USERID_SLUG + '/manage$', 'grad.views.manage'),
+    url(r'^grad/new', 'grad.views.new'),
+    url(r'^grad/program/new', 'grad.views.new_program'),   
+    url(r'^grad/program/$', 'grad.views.programs'),   
+    # Graduate related End
 
     # For RA application
     url(r'ra/$', 'ra.views.index'),
