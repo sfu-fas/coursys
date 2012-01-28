@@ -45,7 +45,7 @@ apt-get install nginx python-flup subversion python-mysqldb mysql-client-5.1 pyt
   <dd>Install the required Python packages:
   <blockquote><pre>sudo easy_install django-celery-email django-celery django-kombu</pre></blockquote>
   <p>Make sure the Celery daemon is running on startup: the <a href="http://docs.celeryproject.org/en/latest/cookbook/daemonizing.html#start-stop-daemon-debian-ubuntu">Celery daemon instructions</a> provided <a href="etc_init.d_celeryd.txt"><code class="file">/etc/init.d/celeryd</code></a> and the <a href="etc_default_celeryd.txt"><code class="file">/etc/default/celeryd</code></a>. Those files need to be put in-place and activated:</p>
-  <blockquote><pre>sudo update-rc.d celeryd defaults</pre></blockquote>
+  <blo      ckquote><pre>sudo update-rc.d celeryd defaults</pre></blockquote>
   <!--<p>A bug in Django-Kombu crops up on the server.  Had to un-comment the line <code>self.refresh_connection()</code> (line 30, in <code>Channel._get</code>) in <code class="file">/usr/local/lib/python2.6/dist-packages/django_kombu-0.9.4-py2.6.egg/djkombu/transport.py</code>.</p>-->
   <p>In order to get the celeryd logs rotated, install the config file as <a href="etc_logrotate.d_celeryd.txt"><code class="file">/etc/logrotate.d/celeryd</code></a>.</p>
   </dd>
@@ -128,24 +128,32 @@ chmod 0711 ~</pre>
 
 <h2 id="reporting">Reporting Database Access</h2>
 <dl>
-<dt>DB2 driver/client</dt>
+<dt>DB2 client</dt>
 <dd>
 <p>Some <a href="https://www.sfu.ca/irp/links/pdaug.html">instructions on reporting database</a> connections are provided by the PDAUG group under the heading &ldquo;Instructions for Connecting to CSRPT&rdquo;. These are for Windows, but were adapted here.</p>
 <p>The installation requires libstdc++5, which I had to get <a href="http://packages.ubuntu.com/lucid-backports/libstdc++5">from lucid-backports</a> and install with <code class="unix">dpkg</code>. Also installed Ubuntu package <code class="unix">libaio1</code>.</p>
-<p>The installer didn't like my userid being in the group &ldquo;users&rdquo;, so I edited <code class="file">/etc/group</code> and <code class="file">/etc/gpasswd</code> to rename the group &ldquo;allusers&rdquo;. That's some quality security.</p>
-<p>From the <a href="http://www-01.ibm.com/support/docview.wss?rs=71&uid=swg27007053">DB2 downloads page</a>, I downloaded DB2 Version 9.5, fixpack 5, Linux 64-bit, IBM Data Server Client (&ldquo;<code class="file">v9.5fp5_linuxx64_client.tar.gz</code>&rdquo;). Unpack. <code class="unix">./db2_install</code></p>
-<p>Once the client is installed, there are some <a href="https://www-304.ibm.com/support/docview.wss?uid=swg21182248">setup steps for remote DB servers</a>.</p>
+<p>The installer didn't like my userid being in the group &ldquo;users&rdquo;, so I edited <code class="file">/etc/group</code> and <code class="file">/etc/gpasswd</code> to rename the group &ldquo;allusers&rdquo;. Reverted the change after the install. That's some quality security.</p>
+<p>From the <a href="http://www-01.ibm.com/support/docview.wss?rs=71&uid=swg27007053">DB2 downloads page</a>, I downloaded DB2 Version 9.5, fixpack 5, Linux 64-bit, IBM Data Server Client (&ldquo;<code class="file">v9.5fp5_linuxx64_client.tar.gz</code>&rdquo;). Unpack and <code class="unix">./db2_install</code> and select &ldquo;CLIENT&rdquo; as the thing to install.</p>
+<p>Once the client is installed, there are some <a href="https://www-304.ibm.com/support/docview.wss?uid=swg21182248">setup steps for remote DB servers</a>:</p>
 <blockquote><pre>ssh -L 127.0.0.1:50000:verdi.ais.sfu.ca:50000 -l ggbaker -N pf.sfu.ca
 . $HOME/sqllib/db2profile
-~/sqllib/bin/db2 
+~/sqllib/bin/db2 CATALOG TCPIP NODE csrpt REMOTE localhost SERVER 50000
+~/sqllib/bin/db2 CATALOG DB csrpt AT NODE csrpt
 </pre></blockquote>
+<p>And then to connect and use the shell command access:</p>
+<blockquote><pre>ssh -L 127.0.0.1:50000:verdi.ais.sfu.ca:50000 -l ggbaker -N pf.sfu.ca
+. $HOME/sqllib/db2profile
+PW=SFUPassword
+~/sqllib/bin/db2 CONNECT TO csrpt USER ggbaker USING $PW
+~/sqllib/bin/db2 "SELECT * FROM dbsastg.PS_TERM_TBL WHERE ACAD_YEAR='2012'"</pre></blockquote>
 </dd>
-<dt>DB2 shell</dt>
+<dt>Python DB2 library</dt>
 <dd>
-
-<blockquote><pre>. $HOME/sqllib/db2profile</pre></blockquote>
-
-
+<p>The Python code requires the <a href="http://sourceforge.net/projects/pydb2/">PyDB2 module</a>. Fetched the source and unpacked.  Edited <code class="file">setup.py</code> so <code>DB2_ROOT="/home/ggbaker/sqllib"</code> and then:</p>
+<blockquote><pre>
+sudo apt-get install python-dev
+python setup.py build
+sudo python setup.py install</pre></blockquote>
 </dd>
 
 </dl>
