@@ -2,54 +2,8 @@ from django import forms
 from django.utils.safestring import mark_safe
 from coredata.models import Member
 from ta.models import *
+from ta.util import table_row__Form
 from django.forms.forms import BoundField
-
-#class MultiTextInput(forms.widgets.MultiWidget):
-#    def __init__(self, widget_count, *args, **kwargs):
-#        super(MultiTextInput, self).__init__((
-#            forms.widgets.TextInput,)*widget_count, 
-#            *args, **kwargs)
-#        self.widget_count = widget_count
-##    def format_output(self, rendered_widgets):
-##        '''
-##        Overridden
-##        '''
-##        return u'</td><td>'.join(rendered_widgets)
-#        
-#    def decompress(self, value):
-#        if value is not None:
-#            return value
-#        return ['']*self.widget_count
-#
-#class TUGDutyField(forms.MultiValueField):
-#    widget = MultiTextInput(widget_count=3)
-#    _initial_fields = lambda self:(self.weekly, self.total, self.comment) 
-#    
-#    def __init__(self, is_editable = False, *args, **kwargs):
-#        self.label_field = forms.CharField(label="")
-#        self.weekly = forms.DecimalField(label="Weekly hours")
-#        self.total = forms.DecimalField(label="Total hours")
-#        self.comment = forms.CharField(label="Comment")
-#        
-#        super(TUGDutyField, self).__init__(
-#                self._initial_fields(), *args, **kwargs)
-#    def compress(self, data_list):
-#        # TODO: return a dict of {'weekly': int, 'total': int, 'comment': str}
-#        assert False, data_list
-
-# this function could be moved into some utility module
-def table_row__Form(klass):
-    #assert(issubclass(klass, forms.BaseForm))
-    def as_table_row(self):
-        "Returns this form rendered as HTML <td>s -- excluding the <tr></tr>."
-        return self._html_output(
-            normal_row = u'<td%(html_class_attr)s>%(errors)s%(field)s%(help_text)s</td>',
-            error_row = u'%s',
-            row_ender = u'</td>',
-            help_text_html = u'<br /><span class="helptext">%s</span>',
-            errors_on_separate_row = False)
-    klass.as_table_row = as_table_row
-    return klass
 
 @table_row__Form
 class TUGDutyForm(forms.Form):
@@ -62,14 +16,21 @@ class TUGDutyForm(forms.Form):
                 else label_editable)
         if self.label_editable:
             self.label_field = forms.CharField(label="")
+            self.label_field.widget.attrs['class'] = u'label-field'
     
     @property
     def label_bound_field(self):
         return BoundField(self, self.label_field, u'label_field')
         
     weekly = forms.DecimalField(label="Weekly hours")
+    weekly.widget.attrs['class'] = u'weekly'
+    weekly.manual_css_classes = [u'weekly']
     total = forms.DecimalField(label="Total hours")
+    total.widget.attrs['class'] = u'total'
+    total.manual_css_classes = [u'total']
     comment = forms.CharField(label="Comment")
+    comment.widget.attrs['class'] = u'comment'
+    comment.manual_css_classes = [u'comment']
 
 class TUGDutyFormSet(forms.formsets.BaseFormSet):
     # required, since this isn't being dynamically added by formset_factory
@@ -83,6 +44,7 @@ class TUGDutyFormSet(forms.formsets.BaseFormSet):
         super(TUGDutyFormSet, self).__init__(*args, **kwargs)
     
     # without the row header, this function could be separated out, like table_row__Form
+    # unused by template
     def as_table_row(self):
         "Returns this formset rendered as HTML <tr>s -- excluding the <table></table>."
         # renders each form as a table row with each field as a td.
@@ -129,7 +91,7 @@ class TUGForm(forms.ModelForm):
         self.fields['member'].queryset = memberQuerylist
         
         self.config_form = TUGDutyFormSet(initial=
-                [{'label':field} for field in TUG.regular_fields]+
+                [TUG.config_meta[field] for field in TUG.regular_fields]+
                 [{'label':field, 'label_editable':True} for field in TUG.other_fields])
     
     class Meta:

@@ -34,14 +34,37 @@ class TUG(models.Model):
         # As the other fields, but adding 'label'.
     
     regular_default = {'weekly': 0, 'total': 0, 'comment': ''}
-    regular_fields = ['prep', 'meetings', 'lectures', 'tutorials', 'office_hours',
-                  'grading', 'test_prep', 'holiday']
+    regular_fields = ['prep', 'meetings', 'lectures', 'tutorials', 
+            'office_hours', 'grading', 'test_prep', 'holiday']
     other_default = {'label': '', 'weekly': 0, 'total': 0, 'comment': ''}
     other_fields = ['other1', 'other2']
     all_fields = regular_fields + other_fields
     
     defaults = dict([(field, regular_default) for field in regular_fields] + 
         [(field, other_default) for field in other_fields])
+    
+    # depicts the above comment in code
+    config_meta = {'prep':{'label':'Preparation', 
+                    'help':'1. Preparation for labs/tutorials'},
+            'meetings':{'label':'Attendance at planning meetings', 
+                    'help':'2. Attendance at planning/coordinating meetings with instructor'}, 
+            'lectures':{'label':'Attendance at lectures', 
+                    'help':'3. Attendance at lectures'}, 
+            'tutorials':{'label':'Attendance at labs/tutorials', 
+                    'help':u'4. Attendance at labs/tutorials'}, 
+            'office_hours':{'label':'Office hours', 
+                    'help':u'5. Office hours/student consultation/electronic communication'}, 
+            'grading':{'label':'Grading', 
+                    'help':u'6. Grading\u2020',
+                    'extra':u'\u2020Includes grading of all assignments, reports and examinations.'}, 
+            'test_prep':{'label':'Quiz/exam preparation and invigilation', 
+                    'help':u'7. Quiz preparation/assist in exam preparation/Invigilation of exams'}, 
+            'holiday':{'label':'Holiday compensation', 
+                    'help':u'8. Statutory Holiday Compensation\u2021',
+                    'extra':u'''\u2021To compensate for all statutory holidays which  
+may occur in a semester, the total workload required will be reduced by one (1) 
+hour for each base unit assigned excluding the additional 0.17 B.U. for 
+preparation, e.g. 4 hours reduction for 4.17 B.U. appointment.'''}}
     
     #prep_weekly, set_prep_weekly = getter_setter_2('prep', 'weekly')
 

@@ -4,16 +4,33 @@
 
 {% block h1 %}Create Time Use Guideline{% endblock %}
 
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
+<li>&gt; {{ta.person.pref_first_name}}'s TUG</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+<h2 class="heading">Actions</h2>
+<ul>
+<li><a href="{% url ta.views.all_tugs course_slug=course.slug %}">View All TUGs</a></li>
+
+</ul>
+</div>
+{% endblock %}
+
 {% block content %}
 <form action="{% url ta.views.new_tug course_slug=course.slug userid=userid %}" method="post">{% csrf_token %}
-<fieldset>
+<fieldset id="edit-time-use-guideline">
 {{ form.as_p }}
 <table>
+<th>Duties and Responsibilities</th><th>Average hrs/week</th><th>Total hrs/semester</th><th>Comment</th>
+
 {% for form in form.config_form.forms %}
 <tr>
 <th>
 {% if form.label_editable %}
-{{ form.label_bound_field.as_widget}}
+Other: {{ form.label_bound_field.as_widget }}
 {% else %}
 {{ form.label }}
 {% endif %}

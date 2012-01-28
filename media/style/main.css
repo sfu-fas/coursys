@@ -675,6 +675,23 @@ fieldset .inputfield label {
 fieldset input {
   margin: 2px 0;
 }
+#edit-time-use-guideline tr>th {
+	vertical-align: middle;
+}
+
+#edit-time-use-guideline td.weekly, 
+#edit-time-use-guideline td.total {
+	text-align: center;
+}
+#edit-time-use-guideline input.weekly, 
+#edit-time-use-guideline input.total {
+  text-align: right;
+  width: 7em;
+}
+#edit-time-use-guideline
+input.label-field {
+  width: 12em;
+}
 
 /*
 fieldset .inputfield input[type='text'] {
