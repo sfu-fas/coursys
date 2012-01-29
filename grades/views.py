@@ -385,6 +385,9 @@ def activity_stat(request, course_slug, activity_slug):
     
     # build sets of who has submitted each SubmissionComponent
     for sc in select_all_submitted_components(activity=activity):
+        if sc.component.deleted:
+            # don't report on deleted components
+            continue
         owner = subid_dict[sc.submission_id]
         subed_comps[sc.component_id].add(owner)
     
