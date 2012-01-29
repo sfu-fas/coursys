@@ -1,7 +1,8 @@
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response, get_object_or_404, render
 from django.core.urlresolvers import reverse
-from courselib.auth import requires_course_staff_by_slug, is_course_staff_by_slug, is_course_student_by_slug, ForbiddenResponse, NotFoundResponse
+from courselib.auth import *
+from django.contrib.auth.decorators import login_required
 from ta.models import TUG
 from coredata.models import *
 from ta.forms import *
@@ -111,15 +112,18 @@ def edit_tug(request, course_slug, userid):
     
     return render(request, 'ta/edit_tug.html',context)
 
+@login_required
 def new_application(request):
     if request.method == "POST":
         form = TAApplicationForm(data=request.POST)
         if form.is_valid():
+            person = get_object_or_404(Person, userid=request.user.username)
             app = form.save(False)
+            app.person = person
             app.save()
         #TODO: figure out propper redirect
         return HttpResponseRedirect('')
 
     else:
         form = TAApplicationForm(data=request.POST)
-        return render(request, 'ta/new_application.html',{'form':form})
+        return render(request, 'ta/new_application.html', {'form':form})

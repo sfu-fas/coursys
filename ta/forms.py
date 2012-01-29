@@ -1,6 +1,6 @@
 from django import forms
 from django.utils.safestring import mark_safe
-from coredata.models import Member
+from coredata.models import Member, CAMPUS_CHOICES
 from ta.models import *
 from ta.util import table_row__Form
 from django.forms.forms import BoundField
@@ -112,5 +112,10 @@ class TUGForm(forms.ModelForm):
 #        other2 = TUGDutyField(required=False)
     
 class TAApplicationForm(forms.ModelForm):
+    
+    sin = forms.CharField(min_length=9, max_length=9)
+    campus_prefered = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple, choices=CAMPUS_CHOICES)
+
     class Meta:
-        model = TAApplication        
+        model = TAApplication
+        exclude = ('person',)
