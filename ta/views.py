@@ -19,9 +19,12 @@ def index_page(request, course_slug):
 def all_tugs(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     tas = Member.objects.filter(offering=course, role="TA")
+    current_user = Member.objects.get(person__userid=request.user.username,  offering=course)
     #If a TA is accessing, only his/her own TUG should be viewable
-    if request.user.username in tas:
-        tas.filter(person__userid=request.user.username)
+    not_ta = True;
+    if current_user in tas:
+        tas = tas.filter(person__userid=current_user.person.userid)
+        not_ta = False;
     tugs = TUG.objects.filter(member=tas)
     
     # zip tas and tugs together
@@ -36,7 +39,8 @@ def all_tugs(request, course_slug):
     context = {'tas': tas, 
                'tugs': tugs,
                'tas_with_tugs':tas_with_tugs,
-                'course': course
+               'course': course,
+               'not_ta': not_ta
                 }
     
     return render(request, 'ta/all_tugs.html', context)
@@ -44,26 +48,33 @@ def all_tugs(request, course_slug):
 @requires_course_staff_by_slug    
 def new_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    components = course.component
-    has_lab_or_tut = False
-    for component in components:
-        if component == "LAB" or component == "TUT":
-            has_lab_or_tut = True
-        
-    if request.method == "POST":
-        form = TUGForm(data=request.POST)
-        if form.is_valid():
-            tug = form.save(False)
-            tug.save()
-        return HttpResponseRedirect(reverse(all_tugs, args=[course.slug]))
+    member = get_object_or_404(Member, offering=course, person__userid=userid)
+    curr_user_role = Member.objects.get(person__userid=request.user.username,offering=course).role
     
+    # TAs should not be creating TUGs
+    if(curr_user_role =="TA" and not userid==request.user.username ): 
+        return ForbiddenResponse(request)
     else:
-        form = TUGForm(course,userid)
-        context = {'course':course,
-                   'form':form,
-                   'userid':userid,
-                   'hasLabOrTut': has_lab_or_tut}
-        return render(request,'ta/new_tug.html',context)
+        components = course.component
+        has_lab_or_tut = False
+        for component in components:
+            if component == "LAB" or component == "TUT":
+                has_lab_or_tut = True
+            
+        if request.method == "POST":
+            form = TUGForm(data=request.POST)
+            if form.is_valid():
+                tug = form.save(False)
+                tug.save()
+            return HttpResponseRedirect(reverse(all_tugs, args=[course.slug]))
+        
+        else:
+            form = TUGForm(course,userid)
+            context = {'course':course,
+                       'form':form,
+                       'userid':userid,
+                       'hasLabOrTut': has_lab_or_tut}
+            return render(request,'ta/new_tug.html',context)
 
 @requires_course_staff_by_slug    
 def view_tug(request, course_slug, userid):

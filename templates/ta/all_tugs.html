@@ -20,10 +20,10 @@
 					{{ta.person}} 
 				</a> (Last Updated: {% if tug.last_updated == "" %}{{ tug.last_updated }} {% else %} Unknown {% endif %})
 			{% else %}
-				{{ta.person}} - 
+				{{ta.person}}{% if not_ta %} - 
 				<a href="{% url ta.views.new_tug course_slug=course.slug userid=ta.person.userid %}">
 					Create TUG
-				</a>
+				</a>{% endif %}
 				
 			{% endif %}
 	</li>

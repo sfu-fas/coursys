@@ -10,13 +10,13 @@ $(function(){
 	});
 	$('#maxHours').html($('#id_base_units').val()*42);
 	
-	$("input[id$='_0']").change(function(){
+	$("input[id$='-weekly']").change(function(){
 		duty = extractDutyNameFromElement(this);
 		updateTotal(duty);
 		updateTotalHours();
 	});
 	
-	$("input[id$='_1']").change(function(){
+	$("input[id$='-total']").change(function(){
 		updateTotalHours();
 	})
 	
@@ -24,25 +24,30 @@ $(function(){
 
 function extractDutyNameFromElement(element){
 	ele_id = $(element).attr('id');
-	duty = ele_id.substring(0,ele_id.length-2);
+	duty = ele_id.substring(0,ele_id.length-"-weekly".length);
 	return duty;
 }
 
 function updateAllTotals(){
-	$("input[id$='_0']").each(function(){
+	$("input[id$='-weekly']").each(function(){
 			duty = extractDutyNameFromElement(this);
 			updateTotal(duty);
 	})
 }
 
 function updateTotal(duty){
-	$('#'+duty+'_1').val(($('#'+duty+'_0').val()*WEEKS_PER_SEMESTER));
+	$('#'+duty+'-total').val(($('#'+duty+'-weekly').val()*WEEKS_PER_SEMESTER));
 }
 
 function updateTotalHours(){
 	total = 0;
-	$("input[id$='_1']").each(function(){
-		total += $(this).val()*1; // *1 to cast from string to a number
+	$("input[id$='-total']").each(function(){
+		if($(this).attr("id")=="id_form-7-total"){
+			// subtract holiday hours
+			total += $('#id_form-7-total').val()*-1;
+		} else{
+			total += $(this).val()*1; // *1 to cast from string to a number
+		}
 	});
 	$('#totalHours').html(total);
 }
