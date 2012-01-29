@@ -128,6 +128,20 @@ def get_combined():
                 CourseOffering.objects.get(slug='2012sp-macm-101-d2')
             ]
         },
+        {
+            'subject': 'CMPT', 'number': '471', 'section': 'X100',
+            'semester': Semester.objects.get(name="1121"),
+            'component': 'LEC', 'graded': True, 
+            'crse_id': 32755, 'class_nbr': 32755,
+            'title': 'Networking (ugrad/grad combined)',
+            'campus': 'SURYY',
+            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+            'config': {},
+            'subsections': [
+                CourseOffering.objects.get(slug='2012sp-cmpt-471-d1'),
+                CourseOffering.objects.get(slug='2012sp-cmpt-771-g1')
+            ]
+        },
         ]
     return combined_sections
 
@@ -367,7 +381,7 @@ def import_meeting_times(db, offering):
     """
     Import course meeting times
     """
-    db.execute('SELECT meeting_time_start, meeting_time_end, facility_id, mon,tues,wed,thurs,fri,sat,sun, start_dt, end_dt, stnd_mtg_pat, class_section FROM ps_class_mtg_pat WHERE crse_id=%s and class_section like %s and strm=%s', (offering.crse_id, offering.section[0:2]+"%", offering.semester.name))
+    db.execute('SELECT meeting_time_start, meeting_time_end, facility_id, mon,tues,wed,thurs,fri,sat,sun, start_dt, end_dt, stnd_mtg_pat, class_section FROM ps_class_mtg_pat WHERE crse_id=%s and class_section like %s and strm=%s', ("%06i" % (int(offering.crse_id)), offering.section[0:2]+"%", offering.semester.name))
     # keep track of meetings we've found, so we can remove old (non-importing semesters and changed/gone)
     found_mtg = set()
     
@@ -441,7 +455,7 @@ def ensure_member(person, offering, role, credits, added_reason, career, labtut_
 @transaction.commit_on_success
 def import_instructors(db, offering):
     Member.objects.filter(added_reason="AUTO", offering=offering, role="INST").update(role='DROP')
-    n = db.execute('SELECT emplid, instr_role, sched_print_instr FROM ps_class_instr WHERE crse_id=%s and class_section=%s and strm=%s', (offering.crse_id, offering.section, offering.semester.name))
+    n = db.execute('SELECT emplid, instr_role, sched_print_instr FROM ps_class_instr WHERE crse_id=%s and class_section=%s and strm=%s', ("%06i" % (int(offering.crse_id)), offering.section, offering.semester.name))
     
     for emplid, instr_role, print_instr in db:
         p = get_person(db, emplid)
@@ -593,7 +607,8 @@ def main():
     
     print "importing course offering list"
     offerings = import_offerings(db, DATA_WHERE)
-    #offerings = [CourseOffering.objects.get(slug="2011fa-cmpt-470-e1"), CourseOffering.objects.get(slug="2011fa-cmpt-379-d1")]
+    #offerings = [CourseOffering.objects.get(slug="2012sp-cmpt-276-d2"), CourseOffering.objects.get(slug="2012sp-cmpt-383-e2"), CourseOffering.objects.get(slug="2012sp-cmpt-470-e1")]
+    #offerings = CourseOffering.objects.filter(slug__startswith="2012sp-cmpt")
     offerings = list(offerings)
     offerings.sort()
 

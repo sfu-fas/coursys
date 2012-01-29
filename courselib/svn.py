@@ -21,7 +21,7 @@ def all_repositories(offering):
         return {}
     db = _db_conn()
     
-    db.execute('SELECT `repository`, `read`, `readandwrite` FROM '+SVN_TABLE+' WHERE `repository` LIKE %s', ('%' + offering.subject.upper() + offering.number + '-' + offering.semester.name + '-%'))
+    db.execute('SELECT `repository`, `read`, `readandwrite` FROM '+SVN_TABLE+' WHERE `repository` LIKE %s', ('%' + offering.subject.upper() + offering.number[0:3] + '-' + offering.semester.name + '-%'))
     repos = {}
     for row in db:
         repo, ro, rw = row
@@ -76,13 +76,27 @@ def _repo_needs_updating(repos, reponame, rw, ro):
             return True
     return False
 
+def in_another_section(offering, m):
+    """
+    Is this student in another section? (besides this one; not DROPped)
+    
+    Checks the fields that are represented in SVN repo names: subject, number,
+    userid, and semester.
+    """
+    others = Member.objects.filter(person=m.person,
+             offering__semester=m.offering.semester,
+             offering__subject=m.offering.subject,
+             offering__number=m.offering.number) \
+             .exclude(offering=m.offering).exclude(role="DROP").count()
+    return others>0
+
 def update_offering_repositories(offering):
     """
     Update the Subversion repositories for this offering
     """
     if not offering.uses_svn():
         return
-        
+
     from coredata.tasks import update_repository_task    
     repos = all_repositories(offering)
     instr = set((m.person.userid for m in offering.member_set.filter(role__in=["INST","TA","APPR"]).select_related('person')))
@@ -95,12 +109,24 @@ def update_offering_repositories(offering):
         ro = set()
         if offering.indiv_svn():
             ro = instr - rw
-        if m.role == "DROP":
+        if m.role == "DROP" or offering.component=="CAN":
             rw = set([])
         reponame = repo_name(offering, m.person.userid)
         
+        if reponame not in repos and m.role=="DROP":
+            # missing repo and dropped student is okay.
+            continue
+
         if _repo_needs_updating(repos, reponame, rw, ro):
-            #print ">>>", reponame
+            if m.role == "DROP" and in_another_section(offering, m):
+                # if student dropped this section, but is still in another, let that one win.
+                continue
+            print ">>>", m
+            print "...", reponame, rw, ro, m.role, offering.component
+            if reponame in repos:
+                print "...", repos[reponame]
+            else:
+                print "..."
             update_repository_task.delay(reponame, rw, ro)
         
     # group repositories
@@ -110,6 +136,8 @@ def update_offering_repositories(offering):
         reponame = repo_name(offering, g.svn_slug)
         for gm in g.groupmember_set.filter(confirmed=True).select_related('student__person'):
             if gm.student.person.userid is None:
+                continue
+            if gm.student.role == "DROP":
                 continue
             userids.add(gm.student.person.userid)
 
