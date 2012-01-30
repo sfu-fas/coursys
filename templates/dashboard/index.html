@@ -35,6 +35,7 @@ $(document).ready(function() {
     {% if staff_memberships %}<li><a href="{% url dashboard.views.list_docs %}">View Documentation</a></li>{% endif %}
     {% if 'ADVS' in roles %}<li><a href="{% url advisornotes.views.advising %}">Advisor Notes</a></li>{% endif %}
     {% if 'ADVS' in roles %}<li><a href="{% url grad.views.index %}">Grad Student</a></li>{% endif %}
+    {% if 'FUND' in roles %}<li><a href="{% url ra.views.index %}">Research Associates</a></li>{% endif %}
     </ul>
 </div>
 {% endblock %}

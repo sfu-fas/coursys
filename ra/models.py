@@ -24,7 +24,7 @@ class Account(models.Model):
     def __unicode__(self):
         return unicode(self.account_number)
 
-class RAApplication(models.Model):
+class RAAppointment(models.Model):
     """
     This stores information about a (Research Assistant)s application and pay.
     """
@@ -43,6 +43,7 @@ class RAApplication(models.Model):
     person = models.ForeignKey(Person, help_text='The RA who is being appointed.', null=False, blank=False, related_name='ra_person')
     hiring_faculty = models.ForeignKey(Person, help_text='The manager who is hiring the RA.', related_name='ra_hiring_faculty')
     hiring_category = models.CharField(max_length=60, choices=HIRING_CATEGORY_CHOICES)
+    #hiring_department = models.ForeignKey()
     project = models.ForeignKey(Project, null=False, blank=False)
     account = models.ForeignKey(Account, null=False, blank=False)
     start_date = models.DateField(auto_now=False, auto_now_add=False)
@@ -68,4 +69,4 @@ class RAApplication(models.Model):
     
 class RAForm(ModelForm):
     class Meta:
-        model = RAApplication
+        model = RAAppointment
