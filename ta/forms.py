@@ -5,6 +5,7 @@ from ta.models import *
 from ta.util import table_row__Form
 from django.forms.forms import BoundField
 from django.forms.util import ErrorList
+import copy
 
 @table_row__Form
 class TUGDutyForm(forms.Form):
@@ -12,6 +13,9 @@ class TUGDutyForm(forms.Form):
                  initial=None, error_class=ErrorList, label_suffix=':',
                  empty_permitted=False,
                  label='', label_editable=False):
+        
+        if 'data' in initial:
+            data = initial['data']
         
         super(TUGDutyForm, self).__init__(data, files, auto_id, prefix,
                  initial, error_class, label_suffix,
@@ -101,9 +105,19 @@ class TUGForm(forms.ModelForm):
         
         self.fields['member'].queryset = memberQuerylist
         
+        def update_and_return(d, other):
+            d.update(other)
+            return d
+
         self.config_form = TUGDutyFormSet(initial=
-                [TUG.config_meta[field] for field in TUG.regular_fields]+
-                [{'label':field, 'label_editable':True} for field in TUG.other_fields])
+                [update_and_return(
+                        {'id':field, 
+                         'data':(data.get(field, None) if data else None)},
+                        TUG.config_meta[field]) 
+                        for field in TUG.regular_fields] +
+                [{'id':field, 'label':field, 'label_editable':True,
+                        'data':(data.get(field, None) if data else None)} 
+                        for field in TUG.other_fields])
     
     class Meta:
         model = TUG
