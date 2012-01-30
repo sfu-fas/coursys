@@ -33,6 +33,17 @@ class TUG(models.Model):
         # t.config['other2']
         # As the other fields, but adding 'label'.
     
+    prep = property(*getter_setter('prep'))
+    meetings = property(*getter_setter('meetings'))
+    lectures = property(*getter_setter('lectures'))
+    tutorials = property(*getter_setter('tutorials'))
+    office_hours = property(*getter_setter('office_hours'))
+    grading = property(*getter_setter('grading'))
+    test_prep = property(*getter_setter('test_prep'))
+    holiday = property(*getter_setter('holiday'))
+    other1 = property(*getter_setter('other1'))
+    other2 = property(*getter_setter('other2'))
+    
     regular_default = {'weekly': 0, 'total': 0, 'comment': ''}
     regular_fields = ['prep', 'meetings', 'lectures', 'tutorials', 
             'office_hours', 'grading', 'test_prep', 'holiday']
