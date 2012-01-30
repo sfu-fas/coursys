@@ -70,6 +70,7 @@ def new_note(request,userid):
             if 'file_attachment' in request.FILES:
                 upfile = request.FILES['file_attachment']
                 note.file_mediatype= upfile.content_type
+                messages.add_message(request, messages.SUCCESS, 'Created file attachment "%s".' % (upfile.name))
                 
             note.save()
             """
@@ -79,6 +80,7 @@ def new_note(request,userid):
                   related_object=form.instance)
             l.save()
             """
+            messages.add_message(request, messages.SUCCESS, 'Created note at "%s".' % (note.created_at))
             notes = AdvisorNote.objects.filter(student__userid=userid)
             return redirect('..', {'notes': notes, 'student' : student})
             # FIX: the '..' doesn't seem optimal, but I can't find a better way
