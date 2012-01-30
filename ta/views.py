@@ -33,7 +33,7 @@ def tryget(member):
     except(TUG.DoesNotExist):
         return None
     
-@requires_course_staff_by_slug
+#@requires_course_staff_by_slug
 def _all_tugs_staff(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     tas = Member.objects.filter(offering=course, role="TA")
@@ -53,7 +53,7 @@ def _all_tugs_staff(request, course_slug):
     
     return render(request, 'ta/all_tugs.html', context)
         
-@requires_role("ADMN")
+#@requires_role("ADMN")
 def _all_tugs_admin(request, course_slug):
     unit = Role.objects.get(person__userid=request.user.username).unit.label
     courses = CourseOffering.objects.filter(slug__icontains=unit)
