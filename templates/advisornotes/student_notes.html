@@ -16,33 +16,18 @@
 {%block content%}
 {%if notes %}
 <div class="datatable_container">
-<table id="notes" class="display">
-  <thead>
-  	<tr>
-  		<th scope="col">Advisor</th>
-  		<th scope="col">Created at</th>
-  		<th scope="col">Notes</th>
-  		<th scope="col">Actions</th>
-  	</tr>
-  </thead>
-  <tbody>
   {% for note in notes %}
-  <tr><td scope="row">
-  		{{note.advisor}}
-  	</td>
-  	<td>
-  		{{note.created_at}}
-  	</td>
-  	<td>
-  		{{note.text}}
-  	</td>
-  	<td>
-  		<a href="{% url advisornotes.views.view_note userid=student.userid note_id=note.id %}">View</a>
-  	</td>
-  </tr>
+    <h2>Note from {{note.created_at}} by {{note.advisor.first_name}} {{note.advisor.last_name}}</h2>
+    {% if note.hidden %}
+      <p>This note is hidden.  <a href="{% url advisornotes.views.view_note userid=student.userid note_id=note.id %}">View anyway?</a></p>
+    {% else %}
+      
+      <p>{{note.text}}</p>
+      {% if note.file_attachment %}<p>Download Attachment</p> {% endif %}
+      <p><a href="{% url advisornotes.views.view_note userid=student.userid note_id=note.id %}">View</a></p>
+    {% endif %}
   {% endfor %}
-  </tbody>
-</table>
+
 </div>
 
 

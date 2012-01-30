@@ -100,3 +100,11 @@ def student_notes(request,userid):
     student = Person.objects.get(userid = userid)
     return render(request, 'advisornotes/student_notes.html', {'notes': notes, 'student' : student}, context_instance=RequestContext(request))
     
+def set_hidden(request, note_id):
+    """
+    Set the note to be hidden
+    """
+    note = AdvisorNote.objects.get(note_id = note_id)
+    note.hidden = TRUE
+    return 
+    
