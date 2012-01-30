@@ -24,16 +24,18 @@
       	{{ note.created_at }}
       </td>
   </tr>
+  {% if note.file_attachment %}
   <tr>
     <th class="ui-state-default">Attachement</th>
       <td>
-      	{{ note.attachment }}
+      	<img src="{{MEDIA_URL}}icons/attach.png" alt="download" /><a href="">Download File</a> {{ note.file_attachment }}   	
       </td>
   </tr>
+  {% endif %}
   <tr>
     <th class="ui-state-default">Department</th>
       <td>
-      	{{ note.department }}
+      	{{ note.unit }}
       </td>
   </tr>
   <tr>
