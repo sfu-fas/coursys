@@ -26,7 +26,6 @@ def all_tugs(request, course_slug):
         
 # zip tas and tugs together
 # basically performs a left outer join between tas and tugs
-@login_required
 def tryget(member):
     try:
         return TUG.objects.get(member=member)
