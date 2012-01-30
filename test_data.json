@@ -12188,36 +12188,6 @@
   },
   "model": "grad.gradprogram",
   "pk": 3
- }, {
-  "fields": {
-   "person": 34,
-   "program": 1,
-   "research_area": "Moon walk",
-   "created_at": "2012-01-13 23:27:03",
-   "updated_at": "2012-01-13 23:27:03"
-  },
-  "model": "grad.gradstudent",
-  "pk": 1
- }, {
-  "fields": {
-   "person": 16,
-   "program": 2,
-   "research_area": "Moon walk",
-   "created_at": "2012-01-13 23:27:03",
-   "updated_at": "2012-01-13 23:27:03"
-  },
-  "model": "grad.gradstudent",
-  "pk": 2
- }, {
-  "fields": {
-   "person": 45,
-   "program": 2,
-   "research_area": "Moon walk",
-   "created_at": "2012-01-13 23:27:03",
-   "updated_at": "2012-01-13 23:27:03"
-  },
-  "model": "grad.gradstudent",
-  "pk": 3
  },
  {
   "fields": {
@@ -12393,5 +12363,55 @@
   },
   "model": "coredata.role",
   "pk": 4
+ },
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ {
+  "fields": {
+   "campus": "",
+   "comments": "",
+   "created_at": "2012-01-30 13:59:37",
+   "english_fluency": "",
+   "is_canadian": null,
+   "mother_tongue": "",
+   "passport_issued_by": "",
+   "person": 62,
+   "program": 1,
+   "research_area": "wertyui",
+   "slug": "0aaa9-bscience",
+   "special_arrangements": null,
+   "updated_at": "2012-01-30 13:59:37"
+  },
+  "model": "grad.gradstudent",
+  "pk": 1
+ },
+  {
+  "fields": {
+   "external": "",
+   "is_potential": false,
+   "is_senior": false,
+   "position": 1,
+   "student": 1,
+   "supervisor": 100
+  },
+  "model": "grad.supervisor",
+  "pk": 1
  }
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
 ]
