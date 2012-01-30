@@ -7,8 +7,6 @@ from ta.models import TUG
 from coredata.models import *
 from ta.forms import *
 
-# TODO: Allow department admin to access these pages.  
-
 @requires_course_staff_by_slug
 def index_page(request, course_slug):
     if is_course_staff_by_slug(request, course_slug):
@@ -16,35 +14,60 @@ def index_page(request, course_slug):
     else:
         return ForbiddenResponse(request)
         
-@requires_course_staff_by_slug
+@login_required
 def all_tugs(request, course_slug):
+    if is_course_staff_by_slug(request, course_slug):
+        return _all_tugs_staff(request, course_slug)
+    elif has_role("ADMN",request):
+        return _all_tugs_admin(request, course_slug)
+    else:
+        return ForbiddenResponse(request)
+
+        
+# zip tas and tugs together
+# basically performs a left outer join between tas and tugs
+@login_required
+def tryget(member):
+    try:
+        return TUG.objects.get(member=member)
+    except(TUG.DoesNotExist):
+        return None
+    
+@requires_course_staff_by_slug
+def _all_tugs_staff(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     tas = Member.objects.filter(offering=course, role="TA")
-    current_user = Member.objects.get(person__userid=request.user.username,  offering=course)
+    current_user = Member.objects.get(person__userid=request.user.username, offering=course)
     #If a TA is accessing, only his/her own TUG should be viewable
     not_ta = True;
     if current_user in tas:
         tas = tas.filter(person__userid=current_user.person.userid)
         not_ta = False;
-    tugs = TUG.objects.filter(member=tas)
-    
-    # zip tas and tugs together
-    # basically performs a left outer join between tas and tugs
-    def tryget(member):
-        try:
-            return TUG.objects.get(member=member)
-        except(TUG.DoesNotExist):
-            return None
     tas_with_tugs = [(ta, tryget(ta)) for ta in tas]
     
-    context = {'tas': tas, 
-               'tugs': tugs,
-               'tas_with_tugs':tas_with_tugs,
-               'course': course,
-               'not_ta': not_ta
-                }
+    context = {
+           'tas_with_tugs':tas_with_tugs,
+           'course':course,
+           'not_ta':not_ta
+            }
     
     return render(request, 'ta/all_tugs.html', context)
+        
+@requires_role("ADMN")
+def _all_tugs_admin(request, course_slug):
+    unit = Role.objects.get(person__userid=request.user.username).unit.label
+    courses = CourseOffering.objects.filter(slug__icontains=unit)
+    tas = Member.objects.filter(offering__in=courses, role="TA")
+    tas_with_tugs = [(ta, tryget(ta)) for ta in tas]
+
+    context = {
+               'tas_with_tugs':tas_with_tugs,
+               'unit':unit,
+               'courses':courses
+                }
+    
+    return render(request, 'ta/all_tugs_admin.html', context)
+
 
 @requires_course_staff_by_slug    
 def new_tug(request, course_slug, userid):
