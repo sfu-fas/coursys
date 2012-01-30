@@ -4,11 +4,18 @@ from coredata.models import Member, CAMPUS_CHOICES
 from ta.models import *
 from ta.util import table_row__Form
 from django.forms.forms import BoundField
+from django.forms.util import ErrorList
 
 @table_row__Form
 class TUGDutyForm(forms.Form):
-    def __init__(self, label='', label_editable=False, *args, **kwargs):
-        super(TUGDutyForm, self).__init__(*args, **kwargs)
+    def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
+                 initial=None, error_class=ErrorList, label_suffix=':',
+                 empty_permitted=False,
+                 label='', label_editable=False):
+        
+        super(TUGDutyForm, self).__init__(data, files, auto_id, prefix,
+                 initial, error_class, label_suffix,
+                 empty_permitted)
         self.label = self.initial['label'] if 'label' in self.initial else label
         self.label_field = None
         self.label_editable = (self.initial['label_editable'] 
@@ -71,8 +78,12 @@ class TUGDutyFormSet(forms.formsets.BaseFormSet):
 #        assert False, data_list
 
 class TUGForm(forms.ModelForm):
-    def __init__(self, offering=None, userid=None, *args, **kwargs):
-        super(TUGForm, self).__init__(*args, **kwargs)
+    def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
+                 initial=None, error_class=ErrorList, label_suffix=':',
+                 empty_permitted=False, instance=None,
+                 offering=None, userid=None):
+        super(TUGForm, self).__init__(data, files, auto_id, prefix, initial,
+                 error_class, label_suffix, empty_permitted, instance)
         
         # limit the fields in the dropdown
         # userid should be passed but if for some reason it isn't filter by offering

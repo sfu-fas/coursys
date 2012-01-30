@@ -92,7 +92,7 @@ def new_tug(request, course_slug, userid):
             return HttpResponseRedirect(reverse(all_tugs, args=[course.slug]))
         
         else:
-            form = TUGForm(course,userid)
+            form = TUGForm(offering=course,userid=userid)
             context = {'course':course,
                        'form':form,
                        'userid':userid,
