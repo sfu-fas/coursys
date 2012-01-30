@@ -55,7 +55,7 @@ def _all_tugs_staff(request, course_slug):
 #@requires_role("ADMN")
 def _all_tugs_admin(request, course_slug):
     unit = Role.objects.get(person__userid=request.user.username).unit.label
-    courses = CourseOffering.objects.filter(slug__icontains=unit)
+    courses = CourseOffering.objects.filter(slug__icontains=unit) # TO DO: Make this reference the CourseOffering's "Owner" field once it's been added
     tas = Member.objects.filter(offering__in=courses, role="TA")
     tas_with_tugs = [(ta, tryget(ta)) for ta in tas]
 
@@ -78,6 +78,8 @@ def new_tug(request, course_slug, userid):
     if(curr_user_role =="TA" and not userid==request.user.username ): 
         return ForbiddenResponse(request)
     else:
+        # Nothing is done as of now until further details as to how to "pre-fill" 
+        # #158    TUG: courses with lab sections should be pre-filled as appropriate
         components = course.component
         has_lab_or_tut = False
         for component in components:

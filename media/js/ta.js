@@ -20,6 +20,10 @@ $(function(){
 		updateTotalHours();
 	})
 	
+	$("#id_base_units").change(function(){
+		$("#id_form-7-total").val($(this).val())
+	})
+	
 }());
 
 function extractDutyNameFromElement(element){
@@ -33,6 +37,7 @@ function updateAllTotals(){
 			duty = extractDutyNameFromElement(this);
 			updateTotal(duty);
 	})
+	$("#id_form-7-total").val($("#id_base_units").val())
 }
 
 function updateTotal(duty){
@@ -42,12 +47,7 @@ function updateTotal(duty){
 function updateTotalHours(){
 	total = 0;
 	$("input[id$='-total']").each(function(){
-		if($(this).attr("id")=="id_form-7-total"){
-			// subtract holiday hours
-			total += $('#id_form-7-total').val()*-1;
-		} else{
-			total += $(this).val()*1; // *1 to cast from string to a number
-		}
+		total += $(this).val()*1; // *1 to cast from string to a number	
 	});
 	$('#totalHours').html(total);
 }
