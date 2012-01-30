@@ -12371,5 +12371,27 @@
   }, 
   "model": "discipline.disciplinetemplate", 
   "pk": 14
+ },
+ {
+  "fields": {
+   "config": "{}", 
+   "emplid": 0, 
+   "first_name": "Brendon", 
+   "last_name": "O'Laney", 
+   "middle_name": "Joseph", 
+   "pref_first_name": "Brendon", 
+   "userid": "bolaney"
+  }, 
+  "model": "coredata.person", 
+  "pk": 136
+ },
+ {
+  "fields": {
+   "person": 136,
+   "role": "FUND",
+   "unit": 1
+  },
+  "model": "coredata.role",
+  "pk": 4
  }
 ]
