@@ -101,10 +101,18 @@ def student_notes(request,userid):
     return render(request, 'advisornotes/student_notes.html', {'notes': notes, 'student' : student}, context_instance=RequestContext(request))
     
 def set_hidden(request, note_id):
-    """
+    """userid, 
     Set the note to be hidden
     """
     note = AdvisorNote.objects.get(note_id = note_id)
     note.hidden = TRUE
     return 
-    
+
+@requires_advisor
+def download_file(request, userid, note_id):
+    note = AdvisorNote.objects.get(id = note_id)
+    note.file_attachment.open()
+    resp = HttpResponse(note.file_attachment, mimetype=note.file_mediatype)
+    resp['Content-Disposition'] = 'inline; filename=' + note.attachment_filename()
+
+    return resp

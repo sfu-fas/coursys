@@ -228,12 +228,8 @@ urlpatterns += patterns('',
     url(r'^advising/students/' + USERID_SLUG + '/notes/new$', 'advisornotes.views.new_note'),
     url(r'^advising/students/' + USERID_SLUG + '/$', 'advisornotes.views.student_notes'),
     url(r'^advising/students/' + USERID_SLUG + '/notes/' + NOTE_ID + '$', 'advisornotes.views.view_note'),
+    url(r'^advising/students/' + USERID_SLUG + '/notes/' + NOTE_ID + '/download$', 'advisornotes.views.download_file'),
     
-    
-    #url(r'^notes/new$', 'advisornotes.views.new_note'),
-    #url(r'^notes/' + NOTE_ID + '/view$', 'advisornotes.views.view_note'),
-    #url(r'^notes/students$', 'advisornotes.views.student_search'),
-    #url(r'^notes/students/' + USERID_SLUG + '$', 'advisornotes.views.student_notes'),
     
     # Advisor Notes End
     	

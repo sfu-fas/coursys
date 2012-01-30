@@ -28,7 +28,7 @@
   <tr>
     <th class="ui-state-default">Attachement</th>
       <td>
-      	<img src="{{MEDIA_URL}}icons/attach.png" alt="download" /><a href="">Download File</a> {{ note.file_attachment }}   	
+      	<img src="{{MEDIA_URL}}icons/attach.png" alt="download" /><a href="{% url advisornotes.views.download_file userid=note.student_id note_id=note.id%}">Download File</a> {{ note.file_attachment }}   	
       </td>
   </tr>
   {% endif %}
