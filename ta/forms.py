@@ -118,4 +118,4 @@ class TAApplicationForm(forms.ModelForm):
 
     class Meta:
         model = TAApplication
-        exclude = ('person',)
+        exclude = ('person','skills',)

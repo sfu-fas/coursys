@@ -8,9 +8,24 @@
 <fieldset>
 <legend>TA Application</legend>
 {{ form|as_dl }}
+
+<h1>Skills:</h1>
+{% for s in skill_names %}
+
+<p>Name: {{ s.name }}</p>
+<select name="skills" id="id_skills">
+
+    {% for skill in skills %}
+    {% if skill.name == s.name %}
+        <option value={{ skill.id }}>Level: {{ skill.level }}</option>
+    {% endif %}
+    {% endfor %}
+
+</select>
+{% endfor %}
+
 <p><input type="submit" class="submit" value="Submit" /></p>
 </fieldset>
-{# TODO: heavily customize the form so it looks pretty; do the markup here, don't use as_x #}
 </form>
 </div>
 

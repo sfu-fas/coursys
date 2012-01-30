@@ -177,6 +177,8 @@ urlpatterns += patterns('',
     #End TUG URL mappings
     
     url(r'^ta/apply$', 'ta.views.new_application'),
+    url(r'^ta/application/all$', 'ta.views.all_applications'),
+    url(r'^ta/application/' + APP_ID + '$', 'ta.views.view_application'),
     
     url(r'^discipline/$', 'discipline.views.chair_index'),
     url(r'^discipline/' + COURSE_SLUG + '/' + CASE_SLUG + '/create$', 'discipline.views.chair_create'),

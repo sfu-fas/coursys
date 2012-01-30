@@ -115,7 +115,7 @@ def edit_tug(request, course_slug, userid):
 @login_required
 def new_application(request):
     if request.method == "POST":
-        form = TAApplicationForm(data=request.POST)
+        form = TAApplicationForm(request.POST)
         if form.is_valid():
             person = get_object_or_404(Person, userid=request.user.username)
             app = form.save(False)
@@ -126,4 +126,16 @@ def new_application(request):
 
     else:
         form = TAApplicationForm(data=request.POST)
-        return render(request, 'ta/new_application.html', {'form':form})
+        skill_names = Skill.objects.order_by('name').values('name').distinct() 
+        skills = Skill.objects.order_by('name') 
+        return render(request, 'ta/new_application.html', {'form':form, 'skill_names':skill_names, 'skills':skills})
+
+@login_required
+def all_applications(request):
+    applications = TAApplication.objects.all()
+    return render(request, 'ta/all_applications.html', {'applications':applications})
+
+@login_required
+def view_application(request, app_id):
+    application = TAApplication.objects.get(id=app_id)
+    return render(request, 'ta/view_application.html', {'application':application})
