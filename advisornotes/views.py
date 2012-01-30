@@ -58,15 +58,19 @@ def new_note(request,userid):
     student = Person.objects.get(userid = userid)
     depts = Role.objects.filter(person__userid=request.user.username, role='ADVS').values('unit_id')
     unit_choices = Unit.objects.filter(id__in=depts).values_list('id','name')
-    print unit_choices
-    #print unit_choices.values()
+
     if request.method == 'POST':
-        form = AdvisorNoteForm(request.POST)
+        form = AdvisorNoteForm(request.POST, request.FILES)
         form.fields['unit'].choices = unit_choices
         if form.is_valid():
             note = form.save(False)
             note.student_id= student.id
             note.advisor_id = Person.objects.get(userid = request.user.username).id
+
+            if 'file_attachment' in request.FILES:
+                upfile = request.FILES['file_attachment']
+                note.file_mediatype= upfile.content_type
+                
             note.save()
             """
             #LOG EVENT#

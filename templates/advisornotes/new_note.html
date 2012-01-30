@@ -7,7 +7,7 @@
 
 {% block content %}
 
-<form action="{% url advisornotes.views.new_note userid=student.userid %}" method="post">{% csrf_token %}
+<form action="{% url advisornotes.views.new_note userid=student.userid %}" enctype="multipart/form-data" method="post">{% csrf_token %}
 <fieldset>
 <legend>Note</legend>
 {{ form|as_dl }}

@@ -7,7 +7,7 @@ from django.utils.encoding import force_unicode
 class AdvisorNoteForm(forms.ModelForm):
     class Meta:
         model = AdvisorNote
-        
+
 class StudentSelect(forms.Select):
     input_type = 'text'
 

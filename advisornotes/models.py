@@ -13,7 +13,6 @@ def attachment_upload_to(instance, filename):
     """
     fullpath = os.path.join(
             'advisornotes',
-            instance.department,
             datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.advisor.userid),
             filename.encode('ascii', 'ignore'))
     return fullpath 
@@ -33,7 +32,7 @@ class AdvisorNote(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     file_attachment = models.FileField(storage=NoteSystemStorage, null = True, 
                       upload_to=attachment_upload_to, blank=True, max_length=500)
-    file_mediatype = models.CharField(null=True, blank=True, max_length=200)
+    file_mediatype = models.CharField(null=True, blank=True, max_length=200, editable = False)
     unit = models.ForeignKey(Unit, help_text='The academic unit that owns this note')
     # Set this flag if the note is no longer to be accessible.
     hidden = models.BooleanField(null=False, db_index=True, default=False)
