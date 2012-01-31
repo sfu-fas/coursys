@@ -269,6 +269,7 @@ class CourseOffering(models.Model):
     component = models.CharField(max_length=3, null=False, choices=COMPONENT_CHOICES,
         help_text='Component of the course, like "LEC" or "LAB".')
     graded = models.BooleanField()
+    owner = models.ForeignKey('Unit', null=True, help_text="Unit that controls this offering")
     # need these to join in the SIMS database: don't care otherwise.
     crse_id = models.PositiveSmallIntegerField(null=False, db_index=True)
     class_nbr = models.PositiveSmallIntegerField(null=False, db_index=True)
@@ -525,6 +526,7 @@ class Unit(models.Model):
            help_text="The name of the unit, e.g. 'Computing Science'.")
     parent = models.ForeignKey('Unit', null=True, blank=True,
              help_text="Next unit up in the hierarchy.")
+    acad_org = models.CharField(max_length=10, null=True, blank=True, db_index=True, unique=True, help_text="ACAD_ORG field from SIMS")
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
 
     class Meta:

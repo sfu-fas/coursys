@@ -5,7 +5,7 @@ sys.path.append('.')
 # create "objs" by selecting all objects you want to serialize
 from coredata.models import *
 from discipline.models import *
-objs = [Person.objects.get(userid="bolaney")]
+objs = itertools.chain( CourseOffering.objects.all(), MeetingTime.objects.all() )
 
 # output the JSON: copy into test_data.json when you're sure it's right.
 from django.core import serializers
