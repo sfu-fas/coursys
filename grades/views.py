@@ -37,6 +37,7 @@ from groups.models import GroupMember, add_activity_to_group
 from submission.models import SubmissionComponent, Submission, GroupSubmission, StudentSubmission, get_current_submission, select_all_submitted_components, select_all_components
 
 from log.models import LogEntry
+from pages.models import Page, ACL_ROLES
 
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
 
@@ -154,13 +155,13 @@ def course_config(request, course_slug):
                               context_instance=RequestContext(request))
 
         
-
 #@requires_course_student_by_slug
 def _course_info_student(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activities = all_activities_filter(offering=course)
     activities = [a for a in activities if a.status in ['RLS', 'URLS']]
     any_group = True in [a.group for a in activities]
+    has_index = bool(Page.objects.filter(offering=course, label="Index", can_read__in=ACL_ROLES['STUD']))
     
     activity_data = []
     student = Member.objects.get(offering=course, person__userid=request.user.username, role='STUD')
@@ -169,7 +170,7 @@ def _course_info_student(request, course_slug):
         data['act'] = activity
         data['grade_display'] = activity.display_grade_student(student.person)
         activity_data.append(data)
-    context = {'course': course, 'member': student, 'activity_data': activity_data, 'any_group': any_group, 'from_page': FROMPAGE['course']}
+    context = {'course': course, 'member': student, 'activity_data': activity_data, 'any_group': any_group, 'has_index': has_index, 'from_page': FROMPAGE['course']}
     
     return render_to_response("grades/course_info_student.html", context,
                               context_instance=RequestContext(request))

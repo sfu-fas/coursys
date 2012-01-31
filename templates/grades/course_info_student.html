@@ -13,11 +13,12 @@
 {% block subbreadcrumbs %}<li>&gt; {{ course.name }} ({{course.semester.label}})</li>{% endblock %}
 
 {% block actions %}
-{% if any_group %}
+{% if any_group or has_index %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-	<li><a href="{% url groups.views.groupmanage course_slug=course.slug %}">Manage Groups</a></li>
+	{% if any_group %}<li><a href="{% url groups.views.groupmanage course_slug=course.slug %}">Manage Groups</a></li>{% endif %}
+	{% if has_index %}<li><a href="{% url pages.views.index_page course_slug=course.slug %}">View Pages</a></li>{% endif %}
     </ul>
 </div>
 {% endif %}
