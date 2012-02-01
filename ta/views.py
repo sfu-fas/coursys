@@ -18,12 +18,17 @@ def index_page(request, course_slug):
 def all_tugs(request, course_slug):
     if is_course_staff_by_slug(request, course_slug):
         return _all_tugs_staff(request, course_slug)
+    # to redirect department admins if they somehow accessed all tugs from courses page
     elif has_role("ADMN",request):
-        return _all_tugs_admin(request, course_slug)
+        return _all_tugs_admin(request)
     else:
         return ForbiddenResponse(request)
 
-        
+# wrapper function for url mapping
+@requires_role("ADMN")
+def all_tugs_admin(request):
+    return _all_tugs_admin(request)
+
 # zip tas and tugs together
 # basically performs a left outer join between tas and tugs
 def tryget(member):
@@ -53,9 +58,9 @@ def _all_tugs_staff(request, course_slug):
     return render(request, 'ta/all_tugs.html', context)
         
 #@requires_role("ADMN")
-def _all_tugs_admin(request, course_slug):
-    unit = Role.objects.get(person__userid=request.user.username).unit.label
-    courses = CourseOffering.objects.filter(slug__icontains=unit) # TO DO: Make this reference the CourseOffering's "Owner" field once it's been added
+def _all_tugs_admin(request):
+    unit = Role.objects.get(person__userid=request.user.username).unit
+    courses = CourseOffering.objects.filter(owner=unit) # TO DO: Make this reference the CourseOffering's "Owner" field once it's been added
     tas = Member.objects.filter(offering__in=courses, role="TA")
     tas_with_tugs = [(ta, tryget(ta)) for ta in tas]
 

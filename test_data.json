@@ -12514,8 +12514,30 @@
   },
   "model": "grad.supervisor",
   "pk": 1
+ },
+  {
+  "fields": {
+   "config": "{}",
+   "emplid": 210000000,
+   "first_name": "Bob",
+   "last_name": "DepartmentAdmin",
+   "middle_name": "",
+   "pref_first_name": "Bob",
+   "userid": "cmptadmn"
+  },
+  "model": "coredata.person",
+  "pk": 138
+ },
+ {
+  "fields": {
+   "person": 138,
+   "role": "ADMN",
+   "unit": 2
+  },
+  "model": "coredata.role",
+  "pk": 5
  }
- 
+
  
  
  

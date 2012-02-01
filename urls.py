@@ -169,6 +169,7 @@ urlpatterns += patterns('',
     #Start TUG URL mappings
 
     url(r'^' + COURSE_SLUG + '/config/tugs/$', 'ta.views.index_page'),
+    url(r'^tugs/all$', 'ta.views.all_tugs_admin'),
     url(r'^' + COURSE_SLUG + '/config/tugs/all$', 'ta.views.all_tugs'),
     url(r'^' + COURSE_SLUG + '/config/tugs/' + USERID_SLUG + '/new$', 'ta.views.new_tug'),
     url(r'^' + COURSE_SLUG + '/config/tugs/' + USERID_SLUG + '/view$', 'ta.views.view_tug'),
