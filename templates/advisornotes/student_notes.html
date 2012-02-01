@@ -4,6 +4,17 @@
 
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li><li>&gt; Notes for {{ student.first_name }} {{ student.last_name }}</li>{% endblock %}
 
+{% block headextra %}
+<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
+<script type="text/javascript">
+//<![CDATA[
+$(document).ready(function() {
+  $("h2.note").collapsible();
+  $("h2.show").trigger('expand');
+});
+//]]></script>
+{% endblock %}
+
 {% block actions %}
 <div id="actions">
 <h2>Actions</h2>
@@ -15,9 +26,9 @@
 
 {%block content%}
 {%if notes %}
-<div class="datatable_container">
+<!--<div class="datatable_container">-->
   {% for note in notes %}
-    <h2>Note from {{note.created_at}} by {{note.advisor.first_name}} {{note.advisor.last_name}}</h2>
+     <h2 class="note{% if not note.hidden %} show{% endif %}" id="note-{{note.id}}">Note from {{note.created_at}} by {{note.advisor.first_name}} {{note.advisor.last_name}}</h2>
     {% if note.hidden %}
       <p>This note is hidden.  <a href="{% url advisornotes.views.view_note userid=student.userid note_id=note.id %}">View anyway?</a></p>
     {% else %}
@@ -28,7 +39,7 @@
     {% endif %}
   {% endfor %}
 
-</div>
+<!--</div>-->
 
 
 {%else%}
