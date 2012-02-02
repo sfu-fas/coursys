@@ -11,7 +11,7 @@
     <form action="{% url ra.views.new %}" method="POST">{% csrf_token %}
         <fieldset>
 <legend>General Info</legend>
-             {{ form.as_p }}
+             {{ form }}
         <p><input type="submit" value="Submit"></p>
         </fieldset>
     </form>

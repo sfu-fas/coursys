@@ -66,7 +66,3 @@ class RAAppointment(models.Model):
 
     class Meta:
         ordering = ['person', 'created_at']
-    
-class RAForm(ModelForm):
-    class Meta:
-        model = RAAppointment
