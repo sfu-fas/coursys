@@ -15,7 +15,7 @@ class TUGDutyForm(forms.Form):
                  label='', label_editable=False):
         
         # set data field if it's defined in initial, see TUGForm.__init__
-        if initial and 'data' in initial:
+        if initial and 'data' in initial and initial['data'] is not None:
             self.prefix = prefix # needed for add_prefix
             data = dict((self.add_prefix(field_name), value)
                     for field_name, value in initial['data'].iteritems())
