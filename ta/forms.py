@@ -13,13 +13,6 @@ class TUGDutyForm(forms.Form):
                  initial=None, error_class=ErrorList, label_suffix=':',
                  empty_permitted=False,
                  label='', label_editable=False):
-        
-        # set data field if it's defined in initial, see TUGForm.__init__
-        if initial and 'data' in initial and initial['data'] is not None:
-            self.prefix = prefix # needed for add_prefix
-            data = dict((self.add_prefix(field_name), value)
-                    for field_name, value in initial['data'].iteritems())
-        
         super(TUGDutyForm, self).__init__(data, files, auto_id, prefix,
                  initial, error_class, label_suffix,
                  empty_permitted)
@@ -98,6 +91,10 @@ class TUGDutyFormSet(forms.formsets.BaseFormSet):
 #        assert False, data_list
 
 class TUGForm(forms.ModelForm):
+    class Meta:
+        model = TUG
+        exclude = ['config']
+    
     def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
                  initial=None, error_class=ErrorList, label_suffix=':',
                  empty_permitted=False, instance=None,
@@ -121,26 +118,30 @@ class TUGForm(forms.ModelForm):
         
         self.fields['member'].queryset = memberQuerylist
         
-        def update_and_return(d, other):
-            d.update(other)
+        def update_and_return(d, *others):
+            for other in others:
+                d.update(other)
             return d
         
         # populate config_form with data or instance data, see TUGDutyForm.__init__
         self.config_form = TUGDutyFormSet(initial=
-                [update_and_return(
-                        {'id':field, 
-                         'data':(data.get(field, None) if data is not None else 
-                                 instance.__getattribute__(field) if instance else None)},
-                        TUG.config_meta[field]) 
+                [update_and_return({'id':field},
+                        TUG.config_meta[field],
+                        instance.__getattribute__(field) if instance else {}) 
                         for field in TUG.regular_fields] +
-                [{'id':field, 'label':field, 'label_editable':True,
-                        'data':(data.get(field, None) if data is not None else
-                                instance.__getattribute__(field) if instance else None)} 
-                        for field in TUG.other_fields])
-    
-    class Meta:
-        model = TUG
-        exclude = ['config']
+                [update_and_return({'id':field, 'label':field, 'label_editable':True},
+                        instance.__getattribute__(field) if instance else {}) 
+                        for field in TUG.other_fields], data=data)
+    def __getitem__(self, name):
+        try:
+            return super(TUGForm, self).__getitem__(name)
+        except KeyError as error:
+            try:
+                return self.config_form[name]
+            except KeyError:
+                raise error
+    def is_valid(self):
+        return self.config_form.is_valid() and super(TUGForm, self).is_valid()
     
 class TAApplicationForm(forms.ModelForm):
     
