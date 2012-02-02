@@ -7,13 +7,17 @@
 <form action="{% url ta.views.new_application %}" method="post">{% csrf_token %}
 <fieldset>
 <legend>TA Application</legend>
-{{ form|as_dl }}
+{{ ta_form|as_dl }}
+
+<h1>Course Preference:</h1>
+{{ course_form|as_dl }}
 
 <h1>Skills:</h1>
 {% for s in skill_names %}
 
 <p>Name: {{ s.name }}</p>
 <select name="skills" id="id_skills">
+<!--<select name="{{ ta_prefix }}-skills" id="id_{{ ta_prefix }}-skills">-->
 
     {% for skill in skills %}
     {% if skill.name == s.name %}

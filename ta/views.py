@@ -3,7 +3,7 @@ from django.shortcuts import render_to_response, get_object_or_404, render
 from django.core.urlresolvers import reverse
 from courselib.auth import *
 from django.contrib.auth.decorators import login_required
-from ta.models import TUG
+from ta.models import *
 from coredata.models import *
 from ta.forms import *
 
@@ -144,20 +144,34 @@ def edit_tug(request, course_slug, userid):
 @login_required
 def new_application(request):
     if request.method == "POST":
-        form = TAApplicationForm(request.POST)
-        if form.is_valid():
+        ta_form = TAApplicationForm(request.POST, prefix='ta')
+        course_form = CoursePreferenceForm(request.POST, prefix='course')
+        if ta_form.is_valid():
+        #if ta_form.is_valid() and course_form.is_valid():
             person = get_object_or_404(Person, userid=request.user.username)
-            app = form.save(False)
+            app = ta_form.save(commit=False)
             app.person = person
             app.save()
+    
+            course = course_form.save(commit=False)
+            course.app = TAApplication.objects.get(id=app.id)
+            course.save()
+    
+            ta_form.save_m2m()
+        else:
+            print ta_form
+            print "ta form valid:" + str(ta_form.is_valid())
+            print "course form valid:" + str(course_form.is_valid())
         #TODO: figure out propper redirect
         return HttpResponseRedirect('')
 
     else:
-        form = TAApplicationForm(data=request.POST)
+        ta_prefix = 'ta'
+        ta_form = TAApplicationForm(prefix = ta_prefix)
+        course_form = CoursePreferenceForm(prefix = 'course')
         skill_names = Skill.objects.order_by('name').values('name').distinct() 
         skills = Skill.objects.order_by('name') 
-        return render(request, 'ta/new_application.html', {'form':form, 'skill_names':skill_names, 'skills':skills})
+        return render(request, 'ta/new_application.html', {'ta_form':ta_form, 'ta_prefix':ta_prefix, 'course_form':course_form, 'skill_names':skill_names, 'skills':skills})
 
 @login_required
 def all_applications(request):

@@ -172,6 +172,7 @@ TAKEN_CHOICES = (
         ('NO', 'No, I don\'t know the material well'),
         )
 EXPER_CHOICES = (
+        ('TST', 'Placeholder option'),
         )
 
 class CoursePreference(models.Model):
