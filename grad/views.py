@@ -5,12 +5,12 @@ from grad.models import *
 from coredata.models import Person, Role, Unit
 from django.template import RequestContext
 from django.forms import *
-from courselib.auth import requires_advisor
+from courselib.auth import *
 from django.core import serializers
 from django.utils.safestring import mark_safe
 
 
-@requires_advisor
+@requires_role("GRAD")
 def index(request):
     grads = GradStudent.objects.all()
     
@@ -25,7 +25,7 @@ def index(request):
     return render(request, 'grad/index.html', context)
 
 
-@requires_advisor
+@requires_role("GRAD")
 def manage(request, userid):
     grad = get_object_or_404(GradStudent, slug=userid)
     supervisors = get_object_or_404(Supervisor, student=grad.id)
@@ -58,7 +58,7 @@ def manage(request, userid):
                }
     return render(request, 'grad/manage.html', context)
 
-@requires_advisor
+@requires_role("GRAD")
 def new(request):
     if request.method == 'POST':
         grad_form = GradStudentForm(request.POST, prefix="grad")
@@ -88,7 +88,7 @@ def new(request):
 
 ############################################################
 # temporary for adding new programs
-@requires_advisor
+@requires_role("GRAD")
 def new_program(request):
     if request.method == 'POST':
         form = GradProgramForm(request.POST)
@@ -106,7 +106,7 @@ def new_program(request):
                'crumb' : crumb
                }
     return render(request, 'grad/new_program.html', context)
-@requires_advisor
+@requires_role("GRAD")
 def programs(request):
     programs = GradProgram.objects.all()
     

@@ -64,6 +64,9 @@ class Supervisor(models.Model):
     is_senior = models.BooleanField()
     is_potential = models.BooleanField()
     
+    class Meta:
+        unique_together = ("student", "position")
+    
     def get_fields(self):
         # make a list of field/values.
         k = []

@@ -12477,13 +12477,24 @@
   "model": "coredata.role",
   "pk": 4
  },
- 
- 
- 
- 
- 
- 
- 
+  {
+  "fields": {
+   "person": 16,
+   "role": "ADVS",
+   "unit": 2
+  },
+  "model": "coredata.role",
+  "pk": 6
+ },
+ {
+  "fields": {
+   "person": 16,
+   "role": "GRAD",
+   "unit": 2
+  },
+  "model": "coredata.role",
+  "pk": 7
+ },
  {
   "fields": {
    "campus": "",
