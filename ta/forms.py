@@ -26,18 +26,19 @@ class TUGDutyForm(forms.Form):
         if self.label_editable:
             self.label_field = forms.CharField(label="")
             self.label_field.widget.attrs['class'] = u'label-field'
+            # todo: make field not required if label_editable
     
     @property
     def label_bound_field(self):
         return BoundField(self, self.label_field, u'label')
         
-    weekly = forms.DecimalField(label="Weekly hours")
+    weekly = forms.DecimalField(label="Weekly hours", required=False)
     weekly.widget.attrs['class'] = u'weekly'
     weekly.manual_css_classes = [u'weekly']
     total = forms.DecimalField(label="Total hours")
     total.widget.attrs['class'] = u'total'
     total.manual_css_classes = [u'total']
-    comment = forms.CharField(label="Comment")
+    comment = forms.CharField(label="Comment", required=False)
     comment.widget.attrs['class'] = u'comment'
     comment.manual_css_classes = [u'comment']
 
@@ -142,6 +143,9 @@ class TUGForm(forms.ModelForm):
                 raise error
     def is_valid(self):
         return self.config_form.is_valid() and super(TUGForm, self).is_valid()
+    def save(self):
+        # TODO: load data from config_form into JSONField
+        super(TUGForm, self).save()
     
 class TAApplicationForm(forms.ModelForm):
     

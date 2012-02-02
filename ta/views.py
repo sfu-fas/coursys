@@ -96,15 +96,15 @@ def new_tug(request, course_slug, userid):
             if form.is_valid():
                 tug = form.save(False)
                 tug.save()
-            return HttpResponseRedirect(reverse(all_tugs, args=[course.slug]))
-        
+                return HttpResponseRedirect(reverse(all_tugs, args=[course.slug]))
         else:
             form = TUGForm(offering=course,userid=userid)
-            context = {'course':course,
-                       'form':form,
-                       'userid':userid,
-                       'hasLabOrTut': has_lab_or_tut}
-            return render(request,'ta/new_tug.html',context)
+        
+        context = {'course':course,
+                   'form':form,
+                   'userid':userid,
+                   'hasLabOrTut': has_lab_or_tut}
+        return render(request,'ta/new_tug.html',context)
 
 @requires_course_staff_by_slug    
 def view_tug(request, course_slug, userid):
