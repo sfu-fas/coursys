@@ -14,13 +14,18 @@ class TUGDutyForm(forms.Form):
                  empty_permitted=False,
                  label='', label_editable=False):
         
-        if 'data' in initial:
-            data = initial['data']
+        # set data field if it's defined in initial, see TUGForm.__init__
+        if initial and 'data' in initial:
+            self.prefix = prefix # needed for add_prefix
+            data = dict((self.add_prefix(field_name), value)
+                    for field_name, value in initial['data'].iteritems())
         
         super(TUGDutyForm, self).__init__(data, files, auto_id, prefix,
                  initial, error_class, label_suffix,
                  empty_permitted)
-        self.label = self.initial['label'] if 'label' in self.initial else label
+        
+        self.label = (data['label'] if data and 'label' in data else 
+                self.initial['label'] if 'label' in self.initial else label)
         self.label_field = None
         self.label_editable = (self.initial['label_editable'] 
                 if 'label_editable' in self.initial 
@@ -31,7 +36,7 @@ class TUGDutyForm(forms.Form):
     
     @property
     def label_bound_field(self):
-        return BoundField(self, self.label_field, u'label_field')
+        return BoundField(self, self.label_field, u'label')
         
     weekly = forms.DecimalField(label="Weekly hours")
     weekly.widget.attrs['class'] = u'weekly'
@@ -51,8 +56,19 @@ class TUGDutyFormSet(forms.formsets.BaseFormSet):
     can_delete=False
     max_num=None
     
-    def __init__(self, *args, **kwargs):
-        super(TUGDutyFormSet, self).__init__(*args, **kwargs)
+    def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
+                 initial=None, error_class=ErrorList):
+        super(TUGDutyFormSet, self).__init__(data, files, auto_id, prefix,
+                 initial, error_class)
+        self.forms_dict = {}
+        for form in self.forms:
+            if 'id' in form.initial:
+                self.forms_dict[form.initial['id']] = form
+    
+    def __getitem__(self, index):
+        if index in self.forms_dict:
+            return self.forms_dict[index]
+        return super(TUGDutyFormSet, self).__getitem__(index)
     
     # without the row header, this function could be separated out, like table_row__Form
     # unused by template
@@ -108,33 +124,23 @@ class TUGForm(forms.ModelForm):
         def update_and_return(d, other):
             d.update(other)
             return d
-
+        
+        # populate config_form with data or instance data, see TUGDutyForm.__init__
         self.config_form = TUGDutyFormSet(initial=
                 [update_and_return(
                         {'id':field, 
-                         'data':(data.get(field, None) if data else None)},
+                         'data':(data.get(field, None) if data is not None else 
+                                 instance.__getattribute__(field) if instance else None)},
                         TUG.config_meta[field]) 
                         for field in TUG.regular_fields] +
                 [{'id':field, 'label':field, 'label_editable':True,
-                        'data':(data.get(field, None) if data else None)} 
+                        'data':(data.get(field, None) if data is not None else
+                                instance.__getattribute__(field) if instance else None)} 
                         for field in TUG.other_fields])
     
     class Meta:
         model = TUG
         exclude = ['config']
-    
-#    class ConfigForm(forms.Form):
-#        prep = TUGDutyField(label="Preparation")#, help_text="Preparation for labs/tutorials")
-#        meetings = TUGDutyField()
-#        lectures = TUGDutyField()
-#        tutorials = TUGDutyField()
-#        office_hours = TUGDutyField()
-#        grading = TUGDutyField()
-#        test_prep = TUGDutyField()
-#        holiday = TUGDutyField()
-#        
-#        other1 = TUGDutyField(required=False)
-#        other2 = TUGDutyField(required=False)
     
 class TAApplicationForm(forms.ModelForm):
     
