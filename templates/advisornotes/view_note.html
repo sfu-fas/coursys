@@ -12,13 +12,6 @@
 <table class="info">
 <tbody>
   <tr>
-    <th class="ui-state-default">Student</th>
-      <td>
-      	{{ student.first_name}}
-      	{{ student.last_name }}
-      </td>
-  </tr>  
-  <tr>
     <th class="ui-state-default">Created At</th>
       <td>
       	{{ note.created_at }}
@@ -28,7 +21,7 @@
   <tr>
     <th class="ui-state-default">Attachement</th>
       <td>
-      	<img src="{{MEDIA_URL}}icons/attach.png" alt="download" /><a href="{% url advisornotes.views.download_file userid=note.student_id note_id=note.id%}">Download File</a> {{ note.file_attachment }}   	
+      	<img src="{{MEDIA_URL}}icons/attach.png" alt="download" /><a href="{% url advisornotes.views.download_file userid=note.student_id note_id=note.id%}">{{ note.attachment_filename }}</a>  	
       </td>
   </tr>
   {% endif %}

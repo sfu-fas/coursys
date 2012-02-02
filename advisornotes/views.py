@@ -98,7 +98,7 @@ def view_note(request, userid, note_id):
 @requires_advisor
 def student_notes(request,userid):
     depts = Role.objects.filter(person__userid=request.user.username, role='ADVS').values('unit_id')
-    notes = AdvisorNote.objects.filter(student__userid=userid, unit__id__in=depts)
+    notes = AdvisorNote.objects.filter(student__userid=userid, unit__id__in=depts).order_by("-created_at")
     student = Person.objects.get(userid = userid)
     return render(request, 'advisornotes/student_notes.html', {'notes': notes, 'student' : student}, context_instance=RequestContext(request))
     

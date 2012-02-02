@@ -1389,3 +1389,16 @@ div.updateinfo {
   margin-right: 1em;
   clear: right;
 }
+
+
+div.note-box{
+	border:1px solid #ccc;
+	-moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    width: 400px;
+	padding:10px;
+	padding-top:0px;
+	margin-left: 10px;
+	margin-bottom: 20px;
+}
+
