@@ -2,13 +2,33 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response, get_object_or_404, render
 from django.http import HttpResponseRedirect, HttpResponse
 from grad.models import *
-from coredata.models import Person, Role, Unit
+from coredata.models import Person, Role, Unit, Semester
 from django.template import RequestContext
 from django.forms import *
+from django.forms.formsets import formset_factory
 from courselib.auth import *
 from django.core import serializers
 from django.utils.safestring import mark_safe
+import datetime
 
+# get semester based on input datetime. defaults to today
+# returns semseter object
+def get_semester(date=datetime.date.today()):
+    month = date.month
+    day = date.day
+    year = date.year
+    set = 0
+    for s in Semester.objects.filter(start__year=year).order_by('-start'):
+        if set == 1:
+            # take this semster
+            return s
+        if date > s.start:
+            if date < s.end :
+                return s
+            else:
+                #take the next semseter
+                set = 1
+     
 
 @requires_role("GRAD")
 def index(request):
@@ -63,17 +83,26 @@ def new(request):
     if request.method == 'POST':
         grad_form = GradStudentForm(request.POST, prefix="grad")
         supervisors_form = SupervisorForm(request.POST, prefix="sup")
-        if grad_form.is_valid() and supervisors_form.is_valid():
+        status_form = GradStatusForm(request.POST, prefix="stat")
+        if grad_form.is_valid() and supervisors_form.is_valid() and status_form.is_valid() :
             print "All val passed"
             gradF = grad_form.save()
-            sf = supervisors_form.save(commit=False)
+            superF = supervisors_form.save(commit=False)
             supervisors_form.cleaned_data["student"] = gradF
-            sf.student_id = gradF.id
+            superF.student_id = gradF.id
             supervisors_form.save()
+            statusF = status_form.save(commit=False)
+            status_form.cleaned_data["student"] = gradF
+            statusF.student_id = gradF.id
+            statusF.position = 0
+            status_form.save()
             return HttpResponseRedirect(reverse(index))
     else:
         grad_form = GradStudentForm(prefix="grad")
-        supervisors_form = SupervisorForm(prefix="sup")    
+        supervisors_formset = formset_factory(SupervisorForm, extra=1)
+        supervisors_form = SupervisorForm(prefix="sup")  
+        status_form = GradStatusForm(prefix="stat", initial={'status': 'ACTI', 'start': get_semester() })  
+        #initial for start returns nothing if there are no future semester available in DB 
 
     # set frontend defaults
     page_title = 'New Gradate Student Record'  
@@ -81,6 +110,8 @@ def new(request):
     context = {
                'grad_form': grad_form,
                'supervisors_form': supervisors_form,
+               'supervisors_formset': supervisors_formset,
+               'status_form': status_form,               
                'page_title' : page_title,
                'crumb' : crumb
                }

@@ -141,7 +141,7 @@ class GradStatus(models.Model):
 class SupervisorForm(ModelForm):
     class Meta:
         model = Supervisor
-        exclude = ('student',)
+        exclude = ('student', 'is_potential', 'is_senior', 'position' )
         
 class GradProgramForm(ModelForm):
     class Meta:
@@ -150,3 +150,9 @@ class GradProgramForm(ModelForm):
 class GradStudentForm(ModelForm):
     class Meta:
         model = GradStudent
+        
+class GradStatusForm(ModelForm):
+    class Meta:
+        model = GradStatus
+        exclude = ('end', 'student', 'notes')
+        

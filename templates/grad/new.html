@@ -25,12 +25,22 @@
 			</legend>
 			{{ grad_form|as_dl_2 }}
 		</fieldset>
+		
+			{% for s in supervisor_formset%}
+			{{ s|as_dl_2 }}
+			{% endfor %}
 		<fieldset>
 			<legend>
 				Supervisor Info
 			</legend>
 			{{ supervisors_form|as_dl_2 }}
 		</fieldset>		
+		<fieldset>
+			<legend>
+				Status Info
+			</legend>
+			{{ status_form|as_dl_2 }}
+		</fieldset>				
 			<p>
 				<input  class="submit"  type="submit" value="Submit">
 			</p>
