@@ -52,7 +52,7 @@ $(document).ready(function() {
   <form action="{% url discipline.views.chair_create course_slug=c.offering.slug case_slug=c.slug %}" method="post">{% csrf_token %}<p><input type="submit" value="Create" disabled="disabled" /></p></form>
   {% endif %}{% endif %}</td>
   <td><a href="{% url discipline.views.chair_show_instr course_slug=c.offering.slug case_slug=c.slug %}">{{c.student.sortname}} ({{c.student.emplid}}, {{c.student.userid}})</a></td><td>{{c.group.name}}</td>
-  <td>{{c.offering.semester}}</td><td>{{c.offering.name}}</td><td>{{c.owner}}</td>
+  <td><span class="sort">{{c.offering.semester.name}}</span>{{c.offering.semester}}</td><td>{{c.offering.name}}</td><td>{{c.owner}}</td>
   {% endfor %}
   </tbody>
 </table>

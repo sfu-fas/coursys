@@ -322,7 +322,9 @@ table.display tr:hover {
 table td.hidden, table tr.hidden {
 	display: none;
 }
-
+span.sort {
+  display: none;
+}
 
 /* DataTables row classes */
 tr.odd {

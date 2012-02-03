@@ -559,10 +559,9 @@ def edit_file(request, course_slug, case_slug, fileid):
 @requires_role("DISC")
 def chair_index(request):
     # discipline admin for these departments
-    depts = set([r.department for r in Role.objects.filter(person__userid=request.user.username, role="DISC")])
+    units = set([r.unit for r in Role.objects.filter(person__userid=request.user.username, role="DISC")])
 
-    # TODO: filter based on offering.department instead (once it's populated sensibly)
-    instr_cases = DisciplineCaseInstr.objects.filter(offering__subject__in=depts)
+    instr_cases = DisciplineCaseInstr.objects.filter(offering__owner__in=units)
     instr_cases = [c.subclass() for c in instr_cases]
     
     context = {'instr_cases': instr_cases}

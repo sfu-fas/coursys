@@ -36,7 +36,7 @@ $(document).ready(function() {
   <thead><tr><th scope="col">Date/Time</th><th scope="col">Userid</th><th scope="col">Description</th><th scope="col"></th></tr></thead>
   <tbody>
   {% for l in logs %}
-    <tr><td>{{l.datetime}}</td><td>{{l.userid}}</td><td>{{l.description}}</td>
+    <tr><td><span class="sort">{{l.datetime.isoformat}}</span>{{l.datetime}}</td><td>{{l.userid}}</td><td>{{l.description}}</td>
     <td>{% if l.related_object.get_absolute_url %}<a href="{{l.related_object.get_absolute_url}}"><img src="{{MEDIA_URL}}icons/magnifier.png" title="View" alt="View" /></a>{% endif%}</td></tr>
   {% endfor %}
   </tbody>

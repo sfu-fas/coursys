@@ -105,7 +105,7 @@ class InstrRoleForm(forms.Form):
 InstrRoleFormSet = forms.formsets.formset_factory(InstrRoleForm, extra=0)
 
 class TAForm(forms.Form):
-    userid = forms.CharField(required=True, label="Userid",
+    userid = forms.CharField(required=True, label="Userid", max_length=8, 
         help_text="TA's SFU userid. Must be the ID they use to log in, not an email alias.",
         widget=forms.TextInput(attrs={'size':'9'}))
     fname = forms.CharField(required=False, label="First Name",
