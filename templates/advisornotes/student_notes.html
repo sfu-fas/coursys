@@ -11,7 +11,14 @@
 $(document).ready(function() {
   $(".note").collapsible();
   $(".show").trigger('expand');
+  
+  $('.hide').click(function(){
+  	var id = $(this).val();
+  	$("#note-box-"+id).hide();
+  	$.post("{% url advisornotes.views.student_notes userid=student.userid%}",
+  			{'csrfmiddlewaretoken': "{{csrf_token}}", 'note_id': id});
 
+   });
 
 });
 //]]></script>
@@ -27,11 +34,38 @@ $(document).ready(function() {
 {% endblock %}
 
 {%block content%}
+<div class="table_container">
+    <table class="info">
+        <tbody>
+	    <tr>
+	    	<th class="ui-state-default">Last Name</th>
+            <td>{{ student.last_name }}</td>
+        </tr>
+	    <tr>
+            <th class="ui-state-default">First Name</th>
+            <td>{{ student.first_name }}</td>
+        </tr>
+	    <tr>
+            <th class="ui-state-default">Middle Name</th>
+            <td>{{ student.middle_name }}</td>
+        </tr>
+	    <tr>
+            <th class="ui-state-default">Student Number</th>
+            <td>{{ student.emplid }}</td>
+        </tr>
+	    <tr>
+            <th class="ui-state-default">Email Address</th>
+            <td><a href="mailto:{{ student.email }}">{{ student.email }}</a></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
 {%if notes %}
 <!--<div class="datatable_container">-->
   {% for note in notes %}
-    <h2 class="note{% if not note.hidden %} show{% endif %}" id="note-{{note.id}}">Note from {{note.created_at}} by {{note.advisor.first_name}} {{note.advisor.last_name}}</h2>
-    <div class="note-box">
+    <h2 class="note{% if not note.hidden %} show{% endif %}" id="note-{{note.id}}">{{note.created_at}} by {{note.advisor.first_name}} {{note.advisor.last_name}}</h2>
+    <div class="note-box" id="note-box-{{note.id}}">
     {% if note.hidden %}
       <p>This note is hidden.  <a href="{% url advisornotes.views.view_note userid=student.userid note_id=note.id %}">View anyway?</a></p>
     {% else %}
@@ -39,7 +73,10 @@ $(document).ready(function() {
       {% if note.file_attachment %}
       <p><img src="{{MEDIA_URL}}icons/attach.png" alt="download" /><a href="{% url advisornotes.views.download_file userid=note.student_id note_id=note.id%}">{{ note.attachment_filename }}</a> </p> 
       {% endif %}
-      <p><a href="{% url advisornotes.views.view_note userid=student.userid note_id=note.id %}">Details</a></p>
+
+      <p>
+      	<input type="checkbox" class="hide" value="{{note.id}}" />Hide this note?
+      </p>
     {% endif %}
     </div>
   {% endfor %}
