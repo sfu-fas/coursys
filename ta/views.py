@@ -95,12 +95,14 @@ def new_tug(request, course_slug, userid):
             form = TUGForm(data=request.POST)
             if form.is_valid():
                 tug = form.save(False)
+                # TODO: set the ta member once it's no longer included in the form
                 tug.save()
                 return HttpResponseRedirect(reverse(all_tugs, args=[course.slug]))
         else:
             form = TUGForm(offering=course,userid=userid)
         
-        context = {'course':course,
+        context = {'member':member,
+                   'course':course,
                    'form':form,
                    'userid':userid,
                    'hasLabOrTut': has_lab_or_tut}

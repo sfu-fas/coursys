@@ -6,6 +6,7 @@ from ta.util import table_row__Form
 from django.forms.forms import BoundField
 from django.forms.util import ErrorList
 import copy
+from django.utils.datastructures import SortedDict
 
 @table_row__Form
 class TUGDutyForm(forms.Form):
@@ -16,22 +17,22 @@ class TUGDutyForm(forms.Form):
         super(TUGDutyForm, self).__init__(data, files, auto_id, prefix,
                  initial, error_class, label_suffix,
                  empty_permitted)
-        
-        self.label = (data['label'] if data and 'label' in data else 
-                self.initial['label'] if 'label' in self.initial else label)
-        self.label_field = None
         self.label_editable = (self.initial['label_editable'] 
                 if 'label_editable' in self.initial 
                 else label_editable)
-        if self.label_editable:
-            self.label_field = forms.CharField(label="")
-            self.label_field.widget.attrs['class'] = u'label-field'
-            # todo: make field not required if label_editable
+        self.label = (data['label'] if data and 'label' in data else 
+                self.initial['label'] if 'label' in self.initial else label)
+        
+        self.label_field = self.fields.pop('label')
+        if not self.label_editable:
+            del self.label_field
     
     @property
     def label_bound_field(self):
         return BoundField(self, self.label_field, u'label')
-        
+    
+    label = forms.CharField(label="Other:")
+    label.widget.attrs['class'] = u'label-field'
     weekly = forms.DecimalField(label="Weekly hours", required=False)
     weekly.widget.attrs['class'] = u'weekly'
     weekly.manual_css_classes = [u'weekly']
@@ -41,6 +42,16 @@ class TUGDutyForm(forms.Form):
     comment = forms.CharField(label="Comment", required=False)
     comment.widget.attrs['class'] = u'comment'
     comment.manual_css_classes = [u'comment']
+    
+    def clean(self):
+        data = super(TUGDutyForm, self).clean()
+        # add label data to cleaned data
+        if self.label_editable:
+            value = self.label_field.widget.value_from_datadict(
+                        self.data, self.files, self.add_prefix('label'))
+            data['label'] = self.label_field.clean(value)
+        # TODO: (maybe) make sure that hours per week makes sense
+        return data
 
 class TUGDutyFormSet(forms.formsets.BaseFormSet):
     # required, since this isn't being dynamically added by formset_factory
@@ -54,7 +65,7 @@ class TUGDutyFormSet(forms.formsets.BaseFormSet):
                  initial=None, error_class=ErrorList):
         super(TUGDutyFormSet, self).__init__(data, files, auto_id, prefix,
                  initial, error_class)
-        self.forms_dict = {}
+        self.forms_dict = SortedDict()
         for form in self.forms:
             if 'id' in form.initial:
                 self.forms_dict[form.initial['id']] = form
@@ -63,6 +74,17 @@ class TUGDutyFormSet(forms.formsets.BaseFormSet):
         if index in self.forms_dict:
             return self.forms_dict[index]
         return super(TUGDutyFormSet, self).__getitem__(index)
+    
+    def _get_cleaned_data(self):
+        """
+        Overrides default formset cleaned data
+        Returns a SortedDict of form.cleaned_data dicts for every form in self.forms.
+        """
+        if not self.is_valid():
+            raise AttributeError("'%s' object has no attribute 'cleaned_data'" % self.__class__.__name__)
+        return SortedDict((form.initial['id'] if 'id' in form.initial 
+                else form.auto_id, form.cleaned_data) for form in self.forms)
+    cleaned_data = property(_get_cleaned_data)
     
     # without the row header, this function could be separated out, like table_row__Form
     # unused by template
@@ -76,25 +98,11 @@ class TUGDutyFormSet(forms.formsets.BaseFormSet):
                 row_header(form) + form.as_table_row() 
                 for form in self) + u'</tr>'
         return mark_safe(u'\n'.join([unicode(self.management_form), row_header, forms]))
-    
-#class TUGDutyFieldOther(forms.MultiValueField):
-#    widget = MultiTextInput(widget_count=4)
-#    _initial_fields = lambda self:(self.label_field, 
-#            self.weekly, self.total, self.comment)
-#    
-#    def __init__(self, *args, **kwargs):
-#        self.label_field = forms.CharField()
-#        super(TUGDutyFieldOther, self).__init__(
-#                *args, **kwargs)
-#    def compress(self, data_list):
-#        # TODO: like TUGDutyField, return a dict of 
-#        # {'label': str, 'weekly': int, 'total': int, 'comment': str}
-#        assert False, data_list
 
 class TUGForm(forms.ModelForm):
     class Meta:
         model = TUG
-        exclude = ['config']
+        exclude = ('config',)
     
     def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
                  initial=None, error_class=ErrorList, label_suffix=':',
@@ -102,6 +110,8 @@ class TUGForm(forms.ModelForm):
                  offering=None, userid=None):
         super(TUGForm, self).__init__(data, files, auto_id, prefix, initial,
                  error_class, label_suffix, empty_permitted, instance)
+        
+        # TODO: remove the dropdown, 
         
         # limit the fields in the dropdown
         # userid should be passed but if for some reason it isn't filter by offering
@@ -124,6 +134,17 @@ class TUGForm(forms.ModelForm):
                 d.update(other)
             return d
         
+        # we're composing (one form inside of another) forms here, which takes some plumbing
+        # for a list of methods that should be chained, run
+        #  tf = ta.forms.TUGForm()
+        #  tmd = dict(inspect.getmembers(tf, inspect.ismethod)
+        #  [(mname, (tmd[mname], method)) 
+        #          for mname, method in inspect.getmembers(
+        #                  tf.config_form, inspect.ismethod) 
+        #          if mname in tmd and mname[0] != '_' and mname[:3] != 'as_']
+        # currently, this yields add_prefix, clean, full_clean, is_multipart and is_valid
+        # currently, we're chaining clean, full_clean and is_valid
+        
         # populate config_form with data or instance data, see TUGDutyForm.__init__
         self.config_form = TUGDutyFormSet(initial=
                 [update_and_return({'id':field},
@@ -141,11 +162,22 @@ class TUGForm(forms.ModelForm):
                 return self.config_form[name]
             except KeyError:
                 raise error
+    
     def is_valid(self):
         return self.config_form.is_valid() and super(TUGForm, self).is_valid()
-    def save(self):
+    def full_clean(self):
+        self.config_form.full_clean()
+        return super(TUGForm, self).full_clean()
+    def clean(self):
+        data = super(TUGForm, self).clean()
+        try: data['config'] = self.config_form.cleaned_data
+        except AttributeError: pass
+        return data
+    def save(self, *args, **kwargs):
         # TODO: load data from config_form into JSONField
-        super(TUGForm, self).save()
+#        self.instance
+        self.instance.config = self.cleaned_data['config']
+        return super(TUGForm, self).save(*args, **kwargs)
     
 class TAApplicationForm(forms.ModelForm):
     

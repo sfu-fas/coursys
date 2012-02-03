@@ -84,7 +84,7 @@ def table_row__Form(klass):
     def as_table_row(self):
         "Returns this form rendered as HTML <td>s -- excluding the <tr></tr>."
         return html_output_alt(self,
-            normal_row = u'<td%(html_class_attr)s>%(errors)s%(field)s%(help_text)s</td>',
+            normal_row = u'<td%(html_class_attr)s>%(field)s%(errors)s%(help_text)s</td>',
             error_row = u'%s',
             row_ender = u'</td>',
             help_text_html = u'<br /><span class="helptext">%s</span>',
