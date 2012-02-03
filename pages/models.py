@@ -353,6 +353,24 @@ from brush_map import brush_code
 brushre = r"[\w\-#]+"
 brush_class_re = re.compile(r'brush:\s+(' + brushre + ')')
 
+class AbbrAcronym(creoleparser.elements.InlineElement):
+    # handles a subset of the abbreviation/acronym extension
+    # http://www.wikicreole.org/wiki/AbbreviationAndAcronyms
+    def __init__(self):
+        super(AbbrAcronym,self).__init__('abbr', ['^','^'])
+
+    def _build(self,mo,element_store, environ):
+        try:
+            abbr, title = mo.group(1).split(":", 1)
+        except ValueError:
+            abbr = mo.group(1)
+            title = None
+        return creoleparser.core.bldr.tag.__getattr__('abbr')(
+                   creoleparser.core.fragmentize(abbr,
+                       self.child_elements,
+                       element_store, environ), title=title)
+
+
 class CodeBlock(creoleparser.elements.BlockElement):
     """
     A block of code that gets syntax-highlited
@@ -432,6 +450,15 @@ class ParserFor(object):
                      })
         class CreoleDialect(CreoleBase):
 	    codeblock = CodeBlock()
+	    abbracronym = AbbrAcronym()
+	    strikethrough = creoleparser.elements.InlineElement('del','--')
+            @property
+            def inline_elements(self):
+                inline = super(CreoleDialect, self).inline_elements
+                inline.append(self.abbracronym)
+                inline.append(self.strikethrough)
+                return inline
+
             @property
             def block_elements(self):
                 blocks = super(CreoleDialect, self).block_elements
