@@ -287,10 +287,11 @@ class CourseOffering(models.Model):
       # c.config['department']: department responsible for course (used by discipline module)
       # c.config['taemail']: TAs' contact email (if not their personal email)
       # c.config['labtut']: are there lab sections? (default False)
+      # c.config['uses_svn']: create SVN repos for this course? (default False)
       # c.config['indiv_svn']: do instructors/TAs have access to student SVN repos? (default False)
       # c.config['combined']: is this a combined section (e.g. two crosslisted sections integrated)
     
-    defaults = {'taemail': None, 'url': None, 'labtut': False, 'indiv_svn': False, 'combined': False}
+    defaults = {'taemail': None, 'url': None, 'labtut': False, 'indiv_svn': False, 'combined': False, 'uses_svn': False}
     labtut, set_labtut = getter_setter('labtut')
     url, set_url = getter_setter('url')
     taemail, set_taemail = getter_setter('taemail')
@@ -339,6 +340,9 @@ class CourseOffering(models.Model):
         """
         Should students and groups in this course get Subversion repositories created?
         """
+        if 'uses_svn' in self.config and self.config['uses_svn']:
+            return True
+
         return self.subject == "CMPT" \
             and ((self.semester.name == "1117" and self.number in ["470", "379", "882"])
                  or (self.semester.name >= "1121" and self.number >= "200"))
