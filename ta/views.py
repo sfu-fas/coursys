@@ -102,11 +102,12 @@ def new_tug(request, course_slug, userid):
         else:
             form = TUGForm(offering=course,userid=userid)
         
-        context = {'member':member,
+        context = {'ta':member.person,
                    'course':course,
                    'form':form,
                    'userid':userid,
-                   'hasLabOrTut': has_lab_or_tut}
+                   #'hasLabOrTut': has_lab_or_tut
+                   }
         return render(request,'ta/new_tug.html',context)
 
 @requires_course_staff_by_slug    
@@ -140,7 +141,12 @@ def edit_tug(request, course_slug, userid):
         tug_form = TUGForm(request.POST)
     else:
         tug_form = TUGForm(instance=tug)
-    context = {'course':course, 'ta':member.person, 'form': tug_form, 'tug':tug }
+    context = {'ta':member.person,
+               'course':course, 
+               'form': tug_form, 
+               'userid':userid,
+               #'tug':tug 
+               }
     
     return render(request, 'ta/edit_tug.html',context)
 
