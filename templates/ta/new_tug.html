@@ -6,7 +6,7 @@
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
-<li>&gt; New Tug for {{ta.pref_first_name}}</li>
+<li>&gt; New Tug for {{ta.first_name}}</li>
 {% endblock %}
 
 {% block actions %}

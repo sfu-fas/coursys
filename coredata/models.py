@@ -40,9 +40,9 @@ class Person(models.Model):
     def __unicode__(self):
         return "%s, %s" % (self.last_name, self.first_name)
     def name(self):
-        return "%s %s" % (self.pref_first_name, self.last_name)
+        return "%s %s" % (self.first_name, self.last_name)
     def sortname(self):
-        return "%s, %s" % (self.last_name, self.pref_first_name)
+        return "%s, %s" % (self.last_name, self.first_name)
     @staticmethod
     def emplid_header():
         return "ID Number"

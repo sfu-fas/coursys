@@ -60,7 +60,7 @@ class CoredataTest(TestCase):
         p2.save()
         
         self.assertEquals(str(p1), "Lname, Fname")
-        self.assertEquals(p1.name(), "Fn Lname")
+        self.assertEquals(p1.name(), "Fname Lname")
         self.assertEquals(p1.email(), "test1@sfu.ca")
         people = Person.objects.filter(userid__startswith="test")
         # check sorting
