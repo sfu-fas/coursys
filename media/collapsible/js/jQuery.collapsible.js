@@ -31,6 +31,15 @@ $.fn.collapsible = function(){
 					$(this).addClass('collapsible-content-collapsed').removeAttr('style').attr('aria-hidden',true);
 				});
 			})
+			.bind('collapse_slow', function(){
+				$(this)
+					.addClass('collapsible-heading-collapsed')
+					.find('.collapsible-heading-status').text('Show ');
+										
+				collapsibleContent.slideUp('slow', function(){
+					$(this).addClass('collapsible-content-collapsed').removeAttr('style').attr('aria-hidden',true);
+				});
+			})
 			.bind('expand', function(){
 				$(this)
 					.removeClass('collapsible-heading-collapsed')

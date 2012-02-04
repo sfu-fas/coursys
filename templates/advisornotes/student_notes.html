@@ -12,13 +12,19 @@ $(document).ready(function() {
   $(".note").collapsible();
   $(".show").trigger('expand');
   
-  $('.hide').click(function(){
+  $('.hide-show').click(function(){
   	var id = $(this).val();
-  	$("#note-box-"+id).hide();
-  	$.post("{% url advisornotes.views.student_notes userid=student.userid%}",
-  			{'csrfmiddlewaretoken': "{{csrf_token}}", 'note_id': id});
+  	var ch = "no";
+  	if($(this).attr("checked")){
+  		ch="yes"
+  		$("#note-"+id).trigger('collapse_slow');
+  	}
 
+  	$.post("{% url advisornotes.views.student_notes userid=student.userid%}",
+  		{'csrfmiddlewaretoken': "{{csrf_token}}", 'note_id': id, 'hide': ch});
+  	
    });
+   
 
 });
 //]]></script>
@@ -66,18 +72,20 @@ $(document).ready(function() {
   {% for note in notes %}
     <h2 class="note{% if not note.hidden %} show{% endif %}" id="note-{{note.id}}">{{note.created_at}} by {{note.advisor.first_name}} {{note.advisor.last_name}}</h2>
     <div class="note-box" id="note-box-{{note.id}}">
-    {% if note.hidden %}
-      <p>This note is hidden.  <a href="{% url advisornotes.views.view_note userid=student.userid note_id=note.id %}">View anyway?</a></p>
-    {% else %}
-      <p>{{note.text}}</p>
-      {% if note.file_attachment %}
-      <p><img src="{{MEDIA_URL}}icons/attach.png" alt="download" /><a href="{% url advisornotes.views.download_file userid=note.student_id note_id=note.id%}">{{ note.attachment_filename }}</a> </p> 
-      {% endif %}
-
-      <p>
-      	<input type="checkbox" class="hide" value="{{note.id}}" />Hide this note?
-      </p>
+	
+    <p>{{note.text|linebreaks}}</p>
+    {% if note.file_attachment %}
+    <p><img src="{{MEDIA_URL}}icons/attach.png" alt="download" /><a href="{% url advisornotes.views.download_file userid=note.student_id note_id=note.id%}">{{ note.attachment_filename }}</a> </p> 
     {% endif %}
+	
+	<p>
+	{% if note.hidden %}
+    <input type="checkbox" class="hide-show" value="{{note.id}}" checked="checked" />
+    {% else %}
+    <input type="checkbox" class="hide-show" value="{{note.id}}"/>
+    {% endif %}
+    Hide this note by default?
+    </p>
     </div>
   {% endfor %}
 

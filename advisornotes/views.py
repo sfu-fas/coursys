@@ -80,7 +80,7 @@ def new_note(request,userid):
                   related_object=form.instance)
             l.save()
             """
-            messages.add_message(request, messages.SUCCESS, 'Note created successfully' )
+            messages.add_message(request, messages.SUCCESS, 'Note created successfully.' )
             notes = AdvisorNote.objects.filter(student__userid=userid)
             return redirect('..', {'notes': notes, 'student' : student})
             # FIX: the '..' doesn't seem optimal, but I can't find a better way
@@ -97,40 +97,26 @@ def view_note(request, userid, note_id):
 
 @requires_advisor
 def student_notes(request,userid):
-    if request.method == 'POST':
+    if request.POST:
         if request.is_ajax():
             note = get_object_or_404(AdvisorNote, pk=request.POST['note_id'])
-            note.hidden=True
-            print note
+            if request.POST['hide']=="yes":
+                note.hidden=True
+            else:
+                note.hidden=False
             note.save()
-            depts = Role.objects.filter(person__userid=request.user.username, role='ADVS').values('unit_id')
-            notes = AdvisorNote.objects.filter(student__userid=userid, unit__id__in=depts).order_by("-created_at")
-    else:
-        depts = Role.objects.filter(person__userid=request.user.username, role='ADVS').values('unit_id')
-        notes = AdvisorNote.objects.filter(student__userid=userid, unit__id__in=depts).order_by("-created_at")
-        student = Person.objects.get(userid = userid)
+            
+    depts = Role.objects.filter(person__userid=request.user.username, role='ADVS').values('unit_id')
+    notes = AdvisorNote.objects.filter(student__userid=userid, unit__id__in=depts).order_by("-created_at")
+    student = Person.objects.get(userid = userid)
     return render(request, 'advisornotes/student_notes.html', {'notes': notes, 'student' : student}, context_instance=RequestContext(request))
     
-def set_hidden(request, note_id):
-    """userid, 
-    Set the note to be hidden
-    """
-    note = AdvisorNote.objects.get(note_id = note_id)
-    note.hidden = TRUE
-    return 
-
 @requires_advisor
 def download_file(request, userid, note_id):
     note = AdvisorNote.objects.get(id = note_id)
     note.file_attachment.open()
     resp = HttpResponse(note.file_attachment, mimetype=note.file_mediatype)
     resp['Content-Disposition'] = 'inline; filename=' + note.attachment_filename()
-
     return resp
 
-@requires_advisor
-def hide_note(request,userid, note_id):
-    if request.method == 'POST':
-        if request.is_ajax():
-            return HttpResponse("hello!")
     
