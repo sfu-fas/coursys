@@ -1,0 +1,135 @@
+{% extends "grad/base.html" %}
+{% load markup %}
+{% load mobile_tags %}
+{% load form_display %}
+
+{% block title %}{{page_title}}{% endblock %}
+{% block h1 %}{{page_title}}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>
+	&gt; <a href="/grad">Grad</a>
+</li>
+<li>
+	&gt; {{crumb}}
+</li>
+{% endblock %}
+
+{% block content %}
+{# Display the student's Person related info #}
+<div class="table_container">
+	<table class="info">
+		<tbody>
+			{% for field, value in gp %}
+			<tr>
+				<th><label>{{field}} :</label></th>
+				<td> {{ value }} </td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+<div id="form_container">
+	<fieldset>
+		<legend>
+			Academic
+		</legend>
+		<div class="table_container">
+			<table class="display">
+				<tbody>
+					{% for field, value in gr %}
+
+					{% if forloop.first %}
+					<tr>
+						{% endif %} <td>
+						<dl>
+							<dt>
+								<label>{{field}} :</label>
+							</dt>
+							<dd>
+								{{ value }}
+							</dd>
+						</dl></td>
+						{% if forloop.counter|divisibleby:2 %}
+					</tr>
+					<tr>
+						{% endif %}
+						{% if forloop.last %}
+					</tr>
+					{% endif %}
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</fieldset>
+</div>
+<div id="form_container">
+	<fieldset>
+		<legend>
+			Supervisors
+		</legend>
+		<div class="table_container">
+			<table class="display">
+				<tbody>
+					{% for field, value in supervisors %}
+
+					{% if forloop.first %}
+					<tr>
+						{% endif %} <td>
+						<dl>
+							<dt>
+								<label>{{field}} :</label>
+							</dt>
+							<dd>
+								{{ value }}
+							</dd>
+						</dl></td>
+						{% if forloop.counter|divisibleby:2 %}
+					</tr>
+					<tr>
+						{% endif %}
+						{% if forloop.last %}
+					</tr>
+					{% endif %}
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</fieldset>
+</div>
+<div id="form_container">
+	<fieldset>
+		<legend>
+			Status History
+		</legend>
+		<div class="table_container">
+			<table class="display">
+				<tbody>
+					
+					{% for field, value in gs %}
+					{% if forloop.first %}
+					<tr>
+						{% endif %} <td>
+						<dl>
+							<dt>
+								<label>{{field}} :</label>
+							</dt>
+							<dd>
+								{{ value }}
+							</dd>
+						</dl></td>
+						{% if forloop.counter|divisibleby:2 %}
+					</tr>
+					<tr>
+						{% endif %}
+						{% if forloop.last %}
+					</tr>
+					{% endif %}
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</fieldset>
+</div>
+<a class="button" href="{% url grad.views.index %}">Back to Index</a>
+{% endblock %} 

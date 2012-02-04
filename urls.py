@@ -230,13 +230,16 @@ urlpatterns += patterns('',
     url(r'^advising/students/' + USERID_SLUG + '/$', 'advisornotes.views.student_notes'),
     url(r'^advising/students/' + USERID_SLUG + '/notes/' + NOTE_ID + '$', 'advisornotes.views.view_note'),
     url(r'^advising/students/' + USERID_SLUG + '/notes/' + NOTE_ID + '/download$', 'advisornotes.views.download_file'),
-    
-    
     # Advisor Notes End
     	
+
+    
     # Graduate related Start
     url(r'^grad/$', 'grad.views.index'),
-    url(r'^grad/'+ USERID_SLUG + '/manage$', 'grad.views.manage'),
+    url(r'^grad/'+ USERID_SLUG + '/view_all$', 'grad.views.view_all'),    
+    url(r'^grad/'+ USERID_SLUG + '/manage_academics$', 'grad.views.manage_academics'),
+    url(r'^grad/'+ USERID_SLUG + '/manage_supervisors$', 'grad.views.manage_supervisors'),   
+    #url(r'^grad/'+ USERID_SLUG + '/manage_status$', 'grad.views.manage_status'),           
     url(r'^grad/new', 'grad.views.new'),
     url(r'^grad/program/new', 'grad.views.new_program'),   
     url(r'^grad/program/$', 'grad.views.programs'),   

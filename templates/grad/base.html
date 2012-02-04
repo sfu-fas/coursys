@@ -7,15 +7,25 @@
 <h2>Actions</h2>
 <ul>
 {% if request.get_full_path != "/grad/"%}
-	<li><a href="{% url grad.views.index %}">View Grads</a></li> 
+	<li><a href="{% url grad.views.index %}">View Grads List</a></li>
 {% endif %}
-{% if request.get_full_path != "/grad/program/"%}
-	<li><a href="{% url grad.views.programs %}">View Programs</a></li>
-{% endif %}
-
+{% if request.get_full_path == "/grad/"%}
 <li class="newsec"><a href="{% url grad.views.new %}">New Grad</a></li>
-<li><a href="{% url grad.views.new_program %}">New Program</a></li>
+{% endif %}
 
+{% if grad%}
+<li><a href="{% url grad.views.view_all userid=grad.slug %}">View All Info</a></li>
+<li class="newsec">Manage:</li>
+<li><a href="{% url grad.views.manage_academics userid=grad.slug %}">Academics</a></li>
+<li><a href="{% url grad.views.manage_supervisors userid=grad.slug  %}">Supervisors</a></li>
+<li><a href="">Status</a></li>
+{% endif %}
+
+{% if not grad %}
+<li class="newsec"><a href="{% url grad.views.programs %}">View Programs</a></li>
+<li><a href="{% url grad.views.new_program %}">New Program</a></li>
 </ul>
+{% endif %}
+
 </div>
 {% endblock %}

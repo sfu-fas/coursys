@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "grad/base.html" %}
 {% load markup %}
 {% load mobile_tags %}
 {% load form_display %}
@@ -76,6 +76,21 @@
 			<p>
 				<input class="submit" type="submit" value="Update">
 			</p>
+		</fieldset>
+	</form>
+</div>
+<div id="form_container">
+	<form  method="POST">
+		{% csrf_token %}
+		<fieldset>
+			<legend>
+				Status History
+			</legend>{%if status_form %}
+			{{ status_form|as_dl_2 }}
+			<p>
+				<input class="submit" type="submit" value="Update">
+			</p>
+			{%endif%}
 		</fieldset>
 	</form>
 	<a class="button" href="{% url grad.views.index %}">Cancel</a>

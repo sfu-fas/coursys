@@ -64,6 +64,8 @@ class Supervisor(models.Model):
     is_senior = models.BooleanField()
     is_potential = models.BooleanField()
     
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)    
     class Meta:
         unique_together = ("student", "position")
     
@@ -137,6 +139,18 @@ class GradStatus(models.Model):
     end = models.ForeignKey(Semester, null=True, related_name="end_semester",
             help_text="Final semester of this status: blank for ongoing")
     notes = models.TextField(blank=True, help_text="Other notes")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)    
+
+    def get_fields(self):
+        # make a list of field/values.
+        k = []
+        for field in GradStatus._meta.fields:
+                k.append([capfirst(field.verbose_name), field.value_to_string(self)])
+        return k    
+    
+    def __unicode__(self):
+        return "Grad Status: %s %s" % (self.status, self.student)      
 
 class SupervisorForm(ModelForm):
     class Meta:

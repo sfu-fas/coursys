@@ -1,0 +1,50 @@
+{% extends "grad/base.html" %}
+{% load markup %}
+{% load mobile_tags %}
+{% load form_display %}
+
+{% block title %}{{page_title}}{% endblock %}
+{% block h1 %}{{page_title}}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>
+	&gt; <a href="/grad">Grad</a>
+</li>
+<li>
+	&gt; {{crumb}}
+</li>
+<li>
+	&gt; Academics
+</li>
+{% endblock %}
+
+{% block content %}
+{# Display the student's Person related info #}
+<div class="table_container">
+	<table class="info">
+		<tbody>
+			{% for field, value in gp %}
+			<tr>
+				<th><label>{{field}} :</label></th>
+				<td> {{ value }} </td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+<div id="form_container">
+	<form  method="POST">
+		{% csrf_token %}
+		<fieldset>
+			<legend>
+				Academic Info
+			</legend>
+			{{ grad_form|as_dl_2 }}
+			<p>
+				<input class="submit" type="submit" value="Update">
+			</p>
+		</fieldset>
+	</form>
+	<a class="button" href="{% url grad.views.index %}">Back to Index</a>
+</div>
+{% endblock %} 

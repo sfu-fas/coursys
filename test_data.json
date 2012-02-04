@@ -12495,37 +12495,6 @@
   "model": "coredata.role",
   "pk": 7
  },
- {
-  "fields": {
-   "campus": "",
-   "comments": "",
-   "created_at": "2012-01-30 13:59:37",
-   "english_fluency": "",
-   "is_canadian": null,
-   "mother_tongue": "",
-   "passport_issued_by": "",
-   "person": 62,
-   "program": 1,
-   "research_area": "wertyui",
-   "slug": "0aaa9-bscience",
-   "special_arrangements": null,
-   "updated_at": "2012-01-30 13:59:37"
-  },
-  "model": "grad.gradstudent",
-  "pk": 1
- },
-  {
-  "fields": {
-   "external": "",
-   "is_potential": false,
-   "is_senior": false,
-   "position": 1,
-   "student": 1,
-   "supervisor": 100
-  },
-  "model": "grad.supervisor",
-  "pk": 1
- },
   {
   "fields": {
    "config": "{}",
@@ -12547,8 +12516,116 @@
   },
   "model": "coredata.role",
   "pk": 5
+ },
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ {
+  "fields": {
+   "campus": "",
+   "comments": "",
+   "created_at": "2012-02-03 23:23:34",
+   "english_fluency": "",
+   "is_canadian": null,
+   "mother_tongue": "",
+   "passport_issued_by": "",
+   "person": 8,
+   "program": 1,
+   "research_area": "123",
+   "slug": "haoz-bscience",
+   "special_arrangements": null,
+   "updated_at": "2012-02-03 23:23:34"
+  },
+  "model": "grad.gradstudent",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "campus": "",
+   "comments": "",
+   "created_at": "2012-02-03 23:23:46",
+   "english_fluency": "",
+   "is_canadian": null,
+   "mother_tongue": "",
+   "passport_issued_by": "",
+   "person": 34,
+   "program": 2,
+   "research_area": "789",
+   "slug": "petra-mscience",
+   "special_arrangements": null,
+   "updated_at": "2012-02-03 23:23:46"
+  },
+  "model": "grad.gradstudent",
+  "pk": 2
+ },
+ {
+  "fields": {
+   "created_at": "2012-02-03 23:23:34",
+   "end": null,
+   "notes": "",
+   "start": 3,
+   "status": "ACTI",
+   "student": 1,
+   "updated_at": "2012-02-03 23:23:34"
+  },
+  "model": "grad.gradstatus",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "created_at": "2012-02-03 23:23:46",
+   "end": null,
+   "notes": "",
+   "start": 5,
+   "status": "ACTI",
+   "student": 2,
+   "updated_at": "2012-02-03 23:23:46"
+  },
+  "model": "grad.gradstatus",
+  "pk": 2
+ },
+ {
+  "fields": {
+   "created_at": "2012-02-03 23:23:34",
+   "external": "",
+   "is_potential": false,
+   "is_senior": false,
+   "position": 0,
+   "student": 1,
+   "supervisor": 29,
+   "updated_at": "2012-02-03 23:23:34"
+  },
+  "model": "grad.supervisor",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "created_at": "2012-02-03 23:23:46",
+   "external": "",
+   "is_potential": false,
+   "is_senior": false,
+   "position": 0,
+   "student": 2,
+   "supervisor": 10,
+   "updated_at": "2012-02-03 23:23:46"
+  },
+  "model": "grad.supervisor",
+  "pk": 2
  }
-
  
  
  

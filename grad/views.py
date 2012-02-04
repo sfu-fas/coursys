@@ -14,12 +14,10 @@ import datetime
 # get semester based on input datetime. defaults to today
 # returns semseter object
 def get_semester(date=datetime.date.today()):
-    month = date.month
-    day = date.day
     year = date.year
-    set = 0
+    next_sem = 0
     for s in Semester.objects.filter(start__year=year).order_by('-start'):
-        if set == 1:
+        if next_sem == 1:
             # take this semster
             return s
         if date > s.start:
@@ -27,7 +25,7 @@ def get_semester(date=datetime.date.today()):
                 return s
             else:
                 #take the next semseter
-                set = 1
+                next_sem = 1
      
 
 @requires_role("GRAD")
@@ -46,21 +44,41 @@ def index(request):
 
 
 @requires_role("GRAD")
-def manage(request, userid):
+def view_all(request, userid):
+    # will display academic, personal, FIN, status history, supervisor
+    grad = get_object_or_404(GradStudent, slug=userid)
+    supervisors = get_object_or_404(Supervisor, student=grad.id)
+    status = get_object_or_404(GradStatus, student=grad.id)
+    
+    # set frontend defaults
+    page_title = "%s 's Gradate Student Record" % (grad.person.first_name)  
+    crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
+    gp = grad.person.get_fields 
+    gr = grad.get_fields
+    supervisors = supervisors.get_fields 
+    gs = status.get_fields
+    context = {
+               'page_title' : page_title,
+               'crumb' : crumb,
+               'grad' : grad,
+               'gp' : gp,
+               'gr' : gr,
+               'gs' : gs,
+               'supervisors' : supervisors            
+               }
+    return render(request, 'grad/view_all.html', context)
+
+@requires_role("GRAD")
+def manage_supervisors(request, userid):
     grad = get_object_or_404(GradStudent, slug=userid)
     supervisors = get_object_or_404(Supervisor, student=grad.id)
     
     if request.method == 'POST':
-        grad_form = GradStudentForm(request.POST, instance=grad, prefix="grad")
         supervisors_form = SupervisorForm(request.POST, instance=supervisors, prefix="sup")
-        if grad_form.is_valid() and supervisors_form.is_valid():
-            print "All val passed"
-            gradF = grad_form.save()
-            supervisors_form.cleaned_data["student"] = gradF
+        if supervisors_form.is_valid():
             supervisors_form.save()
             return HttpResponseRedirect(reverse(index))
     else:
-        grad_form = GradStudentForm(instance=grad, prefix="grad")
         supervisors_form = SupervisorForm(instance=supervisors, prefix="sup") 
 
     # set frontend defaults
@@ -68,7 +86,7 @@ def manage(request, userid):
     crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
     gp = grad.person.get_fields 
     supervisors = supervisors.get_fields 
-    context = {'grad_form': grad_form,
+    context = {
                'supervisors_form': supervisors_form,
                'page_title' : page_title,
                'crumb' : crumb,
@@ -76,7 +94,31 @@ def manage(request, userid):
                'gp' : gp,
                'supervisors' : supervisors            
                }
-    return render(request, 'grad/manage.html', context)
+    return render(request, 'grad/manage_supervisors.html', context)
+
+@requires_role("GRAD")
+def manage_academics(request, userid):
+    grad = get_object_or_404(GradStudent, slug=userid)
+    
+    if request.method == 'POST':
+        grad_form = GradStudentForm(request.POST, instance=grad, prefix="grad")
+        if grad_form.is_valid():
+            grad_form.save()
+            return HttpResponseRedirect(reverse(index))
+    else:
+        grad_form = GradStudentForm(instance=grad, prefix="grad")
+
+    # set frontend defaults
+    page_title = "%s 's Gradate Student Record" % (grad.person.first_name)  
+    crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
+    gp = grad.person.get_fields 
+    context = {'grad_form': grad_form,
+               'page_title' : page_title,
+               'crumb' : crumb,
+               'grad' : grad,
+               'gp' : gp,        
+               }
+    return render(request, 'grad/manage_academics.html', context)
 
 @requires_role("GRAD")
 def new(request):
@@ -90,17 +132,17 @@ def new(request):
             superF = supervisors_form.save(commit=False)
             supervisors_form.cleaned_data["student"] = gradF
             superF.student_id = gradF.id
+            superF.position = 0
             supervisors_form.save()
             statusF = status_form.save(commit=False)
             status_form.cleaned_data["student"] = gradF
             statusF.student_id = gradF.id
-            statusF.position = 0
             status_form.save()
             return HttpResponseRedirect(reverse(index))
     else:
         grad_form = GradStudentForm(prefix="grad")
-        supervisors_formset = formset_factory(SupervisorForm, extra=1)
-        supervisors_form = SupervisorForm(prefix="sup")  
+        #supervisors_formset = formset_factory(SupervisorForm, extra=1)
+        supervisors_form = SupervisorForm(prefix="sup",)  
         status_form = GradStatusForm(prefix="stat", initial={'status': 'ACTI', 'start': get_semester() })  
         #initial for start returns nothing if there are no future semester available in DB 
 
@@ -110,7 +152,7 @@ def new(request):
     context = {
                'grad_form': grad_form,
                'supervisors_form': supervisors_form,
-               'supervisors_formset': supervisors_formset,
+               #'supervisors_formset': supervisors_formset,
                'status_form': status_form,               
                'page_title' : page_title,
                'crumb' : crumb
