@@ -6,7 +6,7 @@ CODE=/home/ggbaker/courses
 TMP=/var/tmp/historytmp
 MKDUMP=/home/ggbaker/mkdump
 REPO=file:///home/ggbaker/history
-DBPASS=`sed '1,2d' < ~/dbpass`
+DBPASS=`sed '1,2d' < ~/dbpass | head -n 1`
 export LC_CTYPE=en_US.UTF-8
 
 set -e
