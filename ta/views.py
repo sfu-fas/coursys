@@ -1,11 +1,12 @@
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render_to_response, get_object_or_404, render
+from django.http import HttpResponseRedirect#, HttpResponse
+from django.shortcuts import get_object_or_404, render#, render_to_response, 
 from django.core.urlresolvers import reverse
-from courselib.auth import *
+from courselib.auth import requires_course_staff_by_slug, requires_role, \
+    is_course_staff_by_slug, has_role, ForbiddenResponse
 from django.contrib.auth.decorators import login_required
-from ta.models import *
-from coredata.models import *
-from ta.forms import *
+from ta.models import TUG, TAApplication, Skill
+from coredata.models import Member, Role, CourseOffering, Person
+from ta.forms import CoursePreferenceForm, TAApplicationForm, TUGForm
 
 @requires_course_staff_by_slug
 def index_page(request, course_slug):

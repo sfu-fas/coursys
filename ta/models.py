@@ -1,8 +1,7 @@
 from django.db import models
-from coredata.models import CAMPUS_CHOICES, Person, Member, CourseOffering, Semester, Unit
+from coredata.models import Person, Member, CourseOffering, Semester, Unit
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter #, getter_setter_2
-import decimal
 
 class TUG(models.Model):
     """

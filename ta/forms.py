@@ -1,12 +1,11 @@
 from django import forms
 from django.utils.safestring import mark_safe
-from coredata.models import Member, CAMPUS_CHOICES
-from ta.models import *
-from ta.util import table_row__Form
 from django.forms.forms import BoundField
 from django.forms.util import ErrorList
-import copy
 from django.utils.datastructures import SortedDict
+from coredata.models import Member, CAMPUS_CHOICES
+from ta.models import TUG, TAApplication, CoursePreference
+from ta.util import table_row__Form
 
 @table_row__Form
 class TUGDutyForm(forms.Form):
