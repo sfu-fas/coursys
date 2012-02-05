@@ -9,7 +9,7 @@ def index(request):
     if request.method == 'POST':
         q = request.POST.get('q')
         query = get_query(q, ['userid', 'description', 'comment'])
-        logs = LogEntry.objects.order_by('-datetime').filter(query)
+        logs = LogEntry.objects.order_by('-datetime').filter(query)[:200]
     else:
         keywords = ""
         logs = None
