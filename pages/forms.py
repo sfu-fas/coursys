@@ -128,3 +128,55 @@ class EditFileFormRestricted(EditFileForm):
 
 EditFileForm.restricted_form = EditFileFormRestricted
 
+from importer import HTMLWiki
+import urllib2
+
+class PageImportForm(forms.Form):
+    file = forms.FileField(required=False)
+    url = forms.URLField(required=False, label='URL', widget=forms.TextInput(attrs={'size':70}))
+    
+    def clean(self):
+        url = self.cleaned_data.get('url', None)
+        file = self.cleaned_data.get('file', None)
+        
+        if not url and not file:
+            raise forms.ValidationError("Must provide either an HTML file or URL.")
+        elif url and file:
+            raise forms.ValidationError("Can only provide one of the file and URL.")
+        
+        return self.cleaned_data
+
+    def _html_to_wiki(self, html):
+        converter = HTMLWiki([])
+        try:
+            wiki = converter.from_html(html)
+        except converter.ParseError:
+            raise forms.ValidationError("Could not parse the HTML file.")
+
+        return wiki
+
+    
+    def clean_url(self):
+        url = self.cleaned_data['url']
+        if not url:
+            return None
+        
+        try:
+            fh = urllib2.urlopen(url, timeout=20)
+            html = fh.read()
+        except:
+            raise forms.ValidationError("Could not fetch the URL.")
+
+        return self._html_to_wiki(html)
+
+    def clean_file(self):
+        file = self.cleaned_data['file']
+        if file is None:
+            return None
+
+        if file.content_type not in ['text/html', 'application/xhtml+xml']:
+            raise forms.ValidationError("Only HTML/XHTML files can be imported")
+
+        html = file.read()
+        return self._html_to_wiki(html)
+

@@ -12,7 +12,10 @@ import re
 blank_lines_re = re.compile(r'(\s*\n)(\s*\n)+')
 any_whitespace = re.compile(r'\s+')
 
-class HTML_to_Wiki(object):
+class HTMLWiki(object):
+    class ParseError(Exception):
+        pass
+
     def __init__(self, options):
         """
         options should be a list/set/tuple selection of:
@@ -32,11 +35,16 @@ class HTML_to_Wiki(object):
 
     def process_li(self, elt, prefix):
         "Creole for an <li> (or other sub-structure markup)"
-        return prefix + ' ' + self.handle_contents(elt, block=False).strip()
+        return prefix + ' ' + self.handle_contents(elt, block=False, context='list'+prefix).strip()
 
-    def process_li_in(self, elt, prefix):
+    def process_li_in(self, elt, prefix, context=None):
         "Creole for the <li>s in this list"
-        lis = [self.process_li(e, prefix) for e in elt.contents if type(e)==BeautifulSoup.Tag and e.name=="li"]
+        prev = ''
+        if context and context.startswith('list'):
+            # context is indicating we're a sub-list: honour the prefix.
+            prev = context[4:]
+
+        lis = [self.process_li(e, prev+prefix) for e in elt.contents if type(e)==BeautifulSoup.Tag and e.name=="li"]
         return '\n'.join(lis)
     
     def process_dl_item(self, elt):
@@ -120,9 +128,9 @@ class HTML_to_Wiki(object):
         elif name == 'br':
             return r'\\'
         elif name in ['ul', 'menu']:
-            return '\n' + self.process_li_in(elt, prefix="*") + '\n'
+            return '\n' + self.process_li_in(elt, prefix="*", context=context) + '\n'
         elif name == 'ol':
-            return '\n' + self.process_li_in(elt, prefix="#") + '\n'
+            return '\n' + self.process_li_in(elt, prefix="#", context=context) + '\n'
         elif name == 'dl':
             return '\n' + self.process_dl(elt) + '\n'
         elif name == 'table':
@@ -162,7 +170,7 @@ class HTML_to_Wiki(object):
     def handle_element(self, elt, context=None):
         if elt is None:
             return ''
-        elif type(elt) in [BeautifulSoup.Declaration, BeautifulSoup.Comment, BeautifulSoup.Declaration]:
+        elif type(elt) in [BeautifulSoup.Declaration, BeautifulSoup.Comment, BeautifulSoup.Declaration, BeautifulSoup.ProcessingInstruction]:
             return ''
         elif isinstance(elt, basestring):
             if type(elt) == BeautifulSoup.CData:
@@ -191,16 +199,12 @@ class HTML_to_Wiki(object):
         """
         Convert HTML source to wikitext
         """
-        soup = BeautifulSoup.BeautifulSoup(html,
-               convertEntities=BeautifulSoup.BeautifulSoup.XHTML_ENTITIES)
+        try:
+            soup = BeautifulSoup.BeautifulSoup(html,
+                   convertEntities=BeautifulSoup.BeautifulSoup.XHTML_ENTITIES)
+        except:
+            # any badness from BeautifulSoup becomes a ParseError
+            raise self.ParseError, "Could not parse HTML"
+
         return self.from_soup(soup)
-
-filename = "index.html"
-def main():
-    parser = HTML_to_Wiki(['linkmarkup'])
-    html = file(filename).read()
-    wiki = parser.from_html(html)
-    print wiki.encode('utf8')
-
-main()
 

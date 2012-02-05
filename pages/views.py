@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from pages.models import Page, PageVersion, MEMBER_ROLES, ACL_ROLES
-from pages.forms import EditPageForm, EditFileForm
+from pages.forms import EditPageForm, EditFileForm, PageImportForm
 from coredata.models import Member, CourseOffering
 from log.models import LogEntry
 from courselib.auth import requires_discipline_user, is_discipline_user, requires_role, requires_global_role, NotFoundResponse, ForbiddenResponse
@@ -153,7 +153,6 @@ def edit_page(request, course_slug, page_label):
     return _edit_pagefile(request, course_slug, page_label, kind=None)
 
 
-
 def _edit_pagefile(request, course_slug, page_label, kind):
     """
     View to create and edit pages
@@ -213,6 +212,35 @@ def _edit_pagefile(request, course_slug, page_label, kind):
     context = {'offering': offering, 'page': page, 'form': form, 'kind': kind.title()}
     return render(request, 'pages/edit_page.html', context)
 
+
+@login_required
+def import_page(request, course_slug, page_label):
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    page = get_object_or_404(Page, offering=offering, label=page_label)
+    version = page.current_version()
+    member = _check_allowed(request, offering, page.can_write)
+    if not member:
+        return ForbiddenResponse(request, 'Not allowed to edit/create this '+kind+'.')
+    
+    if request.method == 'POST':
+        form = PageImportForm(data=request.POST, files=request.FILES)
+        if form.is_valid():
+            wiki = form.cleaned_data['file'] or form.cleaned_data['url']
+
+            # create Page editing form for preview-before-save
+            pageform = EditPageForm(instance=page, offering=offering)
+            pageform.initial['wikitext'] = wiki
+            
+            # URL for submitting that form
+            url = reverse(edit_page, kwargs={'course_slug': offering.slug, 'page_label': page.label})
+            messages.warning(request, "Page has not yet been saved, but your HTML has been imported below.")            
+            context = {'offering': offering, 'page': page, 'form': pageform, 'kind': 'Page', 'import': True, 'url': url}
+            return render(request, 'pages/edit_page.html', context)
+    else:
+        form = PageImportForm()
+    
+    context = {'offering': offering, 'page': page, 'version': version, 'form': form}
+    return render(request, 'pages/import_page.html', context)
 
 
 

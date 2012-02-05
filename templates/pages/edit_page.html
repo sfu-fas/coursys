@@ -5,9 +5,20 @@
 {% block h1 %}{% if page %}Edit {{kind}} {{page.label}}{% else %}New {{kind}}{% endif %}{% endblock %}
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=offering.slug %}">{{ offering.name }}</a></li><li>&gt; <a href="{% url pages.views.index_page course_slug=offering.slug %}">Pages</a></li>{% if page %}<li>&gt; <a href="{% url pages.views.view_page course_slug=offering.slug page_label=page.label %}">{{page.label}}</a></li><li>&gt; Edit</li>{% else %}<li>&gt; New Page</li>{% endif %}{% endblock %}
 
+{% block actions %}
+{% if not import %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    <li><a href="{% url pages.views.import_page course_slug=offering.slug page_label=page.label %}">Import Content</a></li>
+    </ul>
+</div>
+{% endif %}
+{% endblock %}
+
 {% block content %}
 <div id="form_container">
-    <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+    <form action="{% if url %}{{url}}{% endif %}" method="post" enctype="multipart/form-data">{% csrf_token %}
     
     <fieldset><legend>Page Details</legend>
     {{form|as_dl_safe}}

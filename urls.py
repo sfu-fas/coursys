@@ -163,6 +163,7 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/view$', 'pages.views.view_file'),
     url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/download$', 'pages.views.download_file'),
     url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/edit$', 'pages.views.edit_page'),
+    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/import$', 'pages.views.import_page'),
     url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/history$', 'pages.views.page_history'),
     url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/version/(?P<version_id>\d+)$', 'pages.views.page_version'),
 

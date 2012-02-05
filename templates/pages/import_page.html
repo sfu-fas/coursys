@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Import Page {{page.label}}{% endblock %}
+{% block h1 %}Import Page {{page.label}}{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=offering.slug %}">{{ offering.name }}</a></li><li>&gt; <a href="{% url pages.views.index_page course_slug=offering.slug %}">Pages</a></li><li>&gt; <a href="{% url pages.views.view_page course_slug=offering.slug page_label=page.label %}">{{page.label}}</a></li><li>&gt; Import</li>{% endblock %}
+
+{% block content %}
+<div id="form_container">
+    <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+    
+    <fieldset><legend>Import Content</legend>
+    {{form|as_dl_safe}}
+
+    <p><input class="submit" type="submit" value="Import Page" /></p>
+    </fieldset>
+
+    </form>
+</div>
+{% endblock %}
