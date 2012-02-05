@@ -19,8 +19,7 @@ def new(request):
     form = RAAppointmentForm(request.POST or None)
     if request.method == 'POST':
         if form.is_valid():
-            model = form.save()
-            # This is where separating the models from the formwill occur
-            model.save()
+            #TODO: check to see if fund/account/position/job #'s need to be added
+            form.save()
             return HttpResponseRedirect(reverse(index))
     return render(request, 'ra/new.html', {'form': form})

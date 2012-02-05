@@ -2,6 +2,17 @@ from django.db import models
 from coredata.models import Person
 from django.forms.models import ModelForm
 
+HIRING_CATEGORY_CHOICES = (
+    ('S', 'Scholarship'),
+    # TODO: populate hiring category choices.
+    )
+    
+PAY_TYPE_CHOICES = (
+    ('H', 'Hourly'),
+    ('B', 'Biweekly'),
+    ('L', 'Lump Sum'),
+    )
+
 class Project(models.Model):
     """
     A table to look up the appropriate fund number based on the project number
@@ -29,17 +40,7 @@ class RAAppointment(models.Model):
     This stores information about a (Research Assistant)s application and pay.
     """
 
-    HIRING_CATEGORY_CHOICES = (
-    ('S', 'Scholarship'),
-    # TODO: populate hiring category choices.
-    )
-
-    PAY_TYPE_CHOICES = (
-    ('H', 'Hourly'),
-    ('B', 'Biweekly'),
-    ('L', 'Lump Sum'),
-    )
-
+    
     person = models.ForeignKey(Person, help_text='The RA who is being appointed.', null=False, blank=False, related_name='ra_person')
     hiring_faculty = models.ForeignKey(Person, help_text='The manager who is hiring the RA.', related_name='ra_hiring_faculty')
     hiring_category = models.CharField(max_length=60, choices=HIRING_CATEGORY_CHOICES)

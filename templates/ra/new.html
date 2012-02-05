@@ -1,18 +1,18 @@
 {% extends "base.html" %}
-{% load markup %}
-{% load mobile_tags %}
+{% load form_display %}
 
-{% block title %}New RA Application{% endblock %}
-{% block h1 %}New RA Application{% endblock %}
+{% block title %}New RA Appointment{% endblock %}
+{% block h1 %}New RA Appointment{% endblock %}
 
 {% block subbreadcrumbs %}<li>&gt; <a href="/ra">RA</a></li>
 <li>&gt; New RA</li>{% endblock %}
+
 {% block content %}
     <form action="{% url ra.views.new %}" method="POST">{% csrf_token %}
         <fieldset>
-<legend>General Info</legend>
-             {{ form }}
-        <p><input type="submit" value="Submit"></p>
+            <legend>Infromation</legend>
+            {{ form|as_dl }}
+            <p><input type="submit" value="Submit"></p>
         </fieldset>
     </form>
 
