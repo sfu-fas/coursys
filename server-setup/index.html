@@ -45,7 +45,7 @@ apt-get install nginx python-flup subversion python-mysqldb mysql-client-5.1 pyt
   <dd>Install the required Python packages:
   <blockquote><pre>sudo easy_install django-celery-email django-celery django-kombu</pre></blockquote>
   <p>Make sure the Celery daemon is running on startup: the <a href="http://docs.celeryproject.org/en/latest/cookbook/daemonizing.html#start-stop-daemon-debian-ubuntu">Celery daemon instructions</a> provided <a href="etc_init.d_celeryd.txt"><code class="file">/etc/init.d/celeryd</code></a> and the <a href="etc_default_celeryd.txt"><code class="file">/etc/default/celeryd</code></a>. Those files need to be put in-place and activated:</p>
-  <blo      ckquote><pre>sudo update-rc.d celeryd defaults</pre></blockquote>
+  <blockquote><pre>sudo update-rc.d celeryd defaults</pre></blockquote>
   <!--<p>A bug in Django-Kombu crops up on the server.  Had to un-comment the line <code>self.refresh_connection()</code> (line 30, in <code>Channel._get</code>) in <code class="file">/usr/local/lib/python2.6/dist-packages/django_kombu-0.9.4-py2.6.egg/djkombu/transport.py</code>.</p>-->
   <p>In order to get the celeryd logs rotated, install the config file as <a href="etc_logrotate.d_celeryd.txt"><code class="file">/etc/logrotate.d/celeryd</code></a>.</p>
   </dd>

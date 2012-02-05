@@ -10,7 +10,7 @@ def _db_conn():
     dbconn = MySQLdb.connect(**settings.SVN_DB_CONNECT)
     return dbconn.cursor()
 
-def all_repositories(offering):
+def _all_repositories(offering):
     """
     Build list of all repositories active for this course offering (so we can know for sure which ones must change).
     
@@ -76,7 +76,7 @@ def _repo_needs_updating(repos, reponame, rw, ro):
             return True
     return False
 
-def in_another_section(offering, m):
+def _in_another_section(offering, m):
     """
     Is this student in another section? (besides this one; not DROPped)
     
@@ -90,6 +90,12 @@ def in_another_section(offering, m):
              .exclude(offering=m.offering).exclude(role="DROP").count()
     return others>0
 
+def _offering_instructors(offering):
+    """
+    Set of userids of instructors and TAs for this offering
+    """
+    return set((m.person.userid for m in offering.member_set.filter(role__in=["INST","TA","APPR"]).select_related('person')))
+
 def update_offering_repositories(offering):
     """
     Update the Subversion repositories for this offering
@@ -97,50 +103,66 @@ def update_offering_repositories(offering):
     if not offering.uses_svn():
         return
 
-    from coredata.tasks import update_repository_task    
-    repos = all_repositories(offering)
-    instr = set((m.person.userid for m in offering.member_set.filter(role__in=["INST","TA","APPR"]).select_related('person')))
+    repos = _all_repositories(offering)
+    instr = _offering_instructors(offering)
 
     # individual repositories
     for m in offering.member_set.select_related('person', 'offering', 'offering__semester'):
-        if m.person.userid is None:
-            continue
-        rw = set([m.person.userid])
-        ro = set()
-        if offering.indiv_svn():
-            ro = instr - rw
-        if m.role == "DROP" or offering.component=="CAN":
-            rw = set([])
-        reponame = repo_name(offering, m.person.userid)
-        
-        if reponame not in repos and m.role=="DROP":
-            # missing repo and dropped student is okay.
-            continue
+        update_indiv_repository(offering, m, instr, repos)
 
-        if _repo_needs_updating(repos, reponame, rw, ro):
-            if m.role == "DROP" and in_another_section(offering, m):
-                # if student dropped this section, but is still in another, let that one win.
-                continue
-            print ">>>", m
-            print "...", reponame, rw, ro, m.role, offering.component
-            if reponame in repos:
-                print "...", repos[reponame]
-            else:
-                print "..."
-            update_repository_task.delay(reponame, rw, ro)
-        
     # group repositories
     groups = Group.objects.filter(courseoffering=offering).select_related('courseoffering')
     for g in groups:
-        userids = set()
-        reponame = repo_name(offering, g.svn_slug)
-        for gm in g.groupmember_set.filter(confirmed=True).select_related('student__person'):
-            if gm.student.person.userid is None:
-                continue
-            if gm.student.role == "DROP":
-                continue
-            userids.add(gm.student.person.userid)
+        update_group_repository(offering, g, instr, repos)
 
-        if _repo_needs_updating(repos, reponame, userids, instr):
-            #print ">>>", reponame
-            update_repository_task.delay(reponame, userids, instr)
+
+def update_indiv_repository(offering, m, instr, repos):
+    """
+    Update repository for one member
+    """
+    from coredata.tasks import update_repository_task
+    if m.person.userid is None:
+        return
+    rw = set([m.person.userid])
+    ro = set()
+    if offering.indiv_svn():
+        ro = instr - rw
+    if m.role == "DROP" or offering.component=="CAN":
+        rw = set([])
+    reponame = repo_name(offering, m.person.userid)
+        
+    if reponame not in repos and m.role=="DROP":
+        # missing repo and dropped student is okay.
+        return
+
+    if _repo_needs_updating(repos, reponame, rw, ro):
+        if m.role == "DROP" and _in_another_section(offering, m):
+            # if student dropped this section, but is still in another, let that one win.
+            return
+        update_repository_task.delay(reponame, rw, ro)
+
+
+def update_group_repository(offering, g, instr=None, repos=None):
+    """
+    Update repository for one group.
+    
+    Also called from GroupMember.save() to update repos when necessary.
+    """
+    from coredata.tasks import update_repository_task
+    if instr is None or repos is None:
+        # if called from GroupMember.save(), we won't have these for free
+        repos = _all_repositories(offering)
+        instr = _offering_instructors(offering)
+
+    userids = set()
+    reponame = repo_name(offering, g.svn_slug)
+    for gm in g.groupmember_set.filter(confirmed=True).select_related('student__person'):
+        if gm.student.person.userid is None:
+            return
+        if gm.student.role == "DROP":
+            return
+        userids.add(gm.student.person.userid)
+
+    if _repo_needs_updating(repos, reponame, userids, instr):
+        update_repository_task.delay(reponame, userids, instr)
+

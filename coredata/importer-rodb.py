@@ -1,5 +1,5 @@
 import sys, os, datetime, string, time, copy
-import MySQLdb, random
+import DB2, MySQLdb, random
 sys.path.append(".")
 sys.path.append("..")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
@@ -20,9 +20,9 @@ future_cutoff = today + datetime.timedelta(days=60)
 sysadmin = ["ggbaker", "sumo"]
 
 # first term we care even vaguely about in import (further selection happens later too)
-FIRSTTERM = "1117"
+FIRSTTERM = "1121"
 #DATA_WHERE = '((subject="CMPT" or subject="MACM") and strm="1114") or strm>="'+FIRSTTERM+'"'
-DATA_WHERE = 'strm>="'+FIRSTTERM+'"'
+DATA_WHERE = "strm>='"+FIRSTTERM+"'"
 
 # artificial combined sections to create: kwargs for CourseOffering creation,
 # plus 'subsections' list of sections we're combining.
@@ -145,25 +145,78 @@ def get_combined():
         ]
     return combined_sections
 
-import_host = '127.0.0.1'      
-import_user = 'ggbaker'
-import_name = 'sims'
-import_port = 4000
-#timezone = "America/Vancouver" # timezone of imported class meeting times
+amaint_host = '127.0.0.1'      
+amaint_user = 'ggbaker'
+amaint_name = 'sims'
+amaint_port = 4000
 
 ta_host = '127.0.0.1'      
 ta_user = 'ta_data_import'
 ta_name = 'ta_data_drop'
 ta_port = 4000
 
+sims_user = "ggbaker"
+sims_db = "csrpt"
 
 
 
-def decode(s):
+
+
+def escape_arg(a):
     """
-    Turn database string into proper Unicode.
+    Escape argument for DB2
     """
-    return s.decode('utf8')
+    if type(a) in (int,long):
+        return str(a)
+    
+    # assume it's a string if we don't know any better
+    a = a.replace("\\", "\\\\")
+    a = a.replace("'", "\\'")
+    a = a.replace('"', '\\"')
+    a = a.replace("\r", "\\r")
+    a = a.replace("\n", "\\n")
+    return "'"+a+"'"
+
+def execute_query(db, query, args):
+    """
+    Execute DB2 query, escaping args as necessary
+    """
+    clean_args = tuple((escape_arg(a) for a in args))
+    real_query = query % clean_args
+    #print ">>>", real_query
+    return db.execute(real_query)
+    
+def prep_value(v):
+    """
+    get a reporting DB value into a useful format
+    """
+    if isinstance(v, basestring):
+        return v.strip().decode('utf8')
+    else:
+        return v
+
+def iter_rows(c):
+    """
+    Iterate the rows returned by reporting database (since DB2 driver doesn't do that nicely).
+    """
+    row = c.fetchone()
+    while row:
+        yield tuple((prep_value(v) for v in row))
+        row = c.fetchone()
+
+def rows(c):
+    """
+    List of rows returned by reporting database.
+    """
+    return list(iter_rows(c))
+
+
+
+#def decode(s):
+#    """
+#    Turn database string into proper Unicode.
+#    """
+#    return s.decode('utf8')
 
 @transaction.commit_on_success
 def create_semesters():
@@ -232,20 +285,21 @@ def import_semester(sems):
     return s.end >= past_cutoff and s.start <= future_cutoff
 
 
+
+
 @transaction.commit_on_success
 def import_offerings(db, DATA_WHERE):
     """
     Import course offerings.  Returns set of CourseOffering objects imported.
     """
-    db.execute('SELECT subject, catalog_nbr, class_section, strm, crse_id, class_nbr, ssr_component, descr, campus, enrl_cap, enrl_tot, wait_tot, cancel_dt FROM ps_class_tbl WHERE ' + DATA_WHERE)
+    db.execute('SELECT subject, catalog_nbr, class_section, strm, crse_id, class_nbr, ssr_component, descr, campus, enrl_cap, enrl_tot, wait_tot, cancel_dt FROM dbsastg.ps_class_tbl WHERE ' + DATA_WHERE)
     imported_offerings = set()
-    for subject, number, section, strm, crse_id, class_nbr, component, title, campus, enrl_cap, enrl_tot, wait_tot, cancel_dt in db:
+    for subject, number, section, strm, crse_id, class_nbr, component, title, campus, enrl_cap, enrl_tot, wait_tot, cancel_dt in iter_rows(db):
         # only import for defined semesters.
         semesters = Semester.objects.filter(name=strm)
         if not import_semester(semesters):
             continue
         semester = semesters[0]
-        title = decode(title)
         
         graded = section.endswith("00")
         if not graded:
@@ -257,7 +311,7 @@ def import_offerings(db, DATA_WHERE):
         if not COMPONENTS.has_key(component):
             raise KeyError, "Unknown course component: %r." % (component)
 
-        if cancel_dt != "None":
+        if cancel_dt is not None:
             # mark cancelled sections
             component="CAN"
 
@@ -309,7 +363,7 @@ def import_offerings(db, DATA_WHERE):
     return imported_offerings
 
 imported_people = {}
-def get_person(db, emplid):
+def get_person(db, amaintdb, emplid):
     """
     Get/update personal info for this emplid and return (updated & saved) Person object.
     """
@@ -318,12 +372,13 @@ def get_person(db, emplid):
     if emplid in imported_people:
         return imported_people[emplid]
     
-    db.execute('SELECT username, p.emplid, last_name, first_name, middle_name, pref_first_name FROM ps_personal_data p LEFT JOIN amaint.idMap i ON i.emplid=p.emplid WHERE p.emplid=%s', (emplid,))
-    for userid, emplid, last_name, first_name, middle_name, pref_first_name in db:
-        last_name = decode(last_name)
-        first_name = decode(first_name)
-        middle_name = decode(middle_name)
-        pref_first_name = decode(pref_first_name)
+    execute_query(db, 'SELECT emplid, last_name, first_name, middle_name, pref_first_name FROM dbsastg.ps_personal_data WHERE emplid=%s', (str(emplid),))
+    for emplid, last_name, first_name, middle_name, pref_first_name in iter_rows(db):
+        amaintdb.execute('SELECT username FROM amaint.idMap WHERE emplid=%s', (emplid,))
+        try:
+            userid = amaintdb.fetchone()[0]
+        except TypeError:
+            userid = None
 
         if not pref_first_name:
             pref_first_name = first_name
@@ -348,7 +403,7 @@ def get_person(db, emplid):
                 # other account with userid must have been deactivated: update
                 other = Person.objects.get(userid=userid)
                 assert other.emplid != p.emplid
-                get_person(db, other.emplid)
+                get_person(db, amaintdb, other.emplid)
                 # try again now
                 p.save()
         else:
@@ -385,11 +440,15 @@ def import_meeting_times(db, offering):
     """
     Import course meeting times
     """
-    db.execute('SELECT meeting_time_start, meeting_time_end, facility_id, mon,tues,wed,thurs,fri,sat,sun, start_dt, end_dt, stnd_mtg_pat, class_section FROM ps_class_mtg_pat WHERE crse_id=%s and class_section like %s and strm=%s', ("%06i" % (int(offering.crse_id)), offering.section[0:2]+"%", offering.semester.name))
+    execute_query(db, 'SELECT meeting_time_start, meeting_time_end, facility_id, mon,tues,wed,thurs,fri,sat,sun, start_dt, end_dt, stnd_mtg_pat, class_section FROM dbsastg.ps_class_mtg_pat WHERE crse_id=%s and class_section like %s and strm=%s', ("%06i" % (int(offering.crse_id)), offering.section[0:2]+"%", offering.semester.name))
     # keep track of meetings we've found, so we can remove old (non-importing semesters and changed/gone)
     found_mtg = set()
     
-    for start,end, room, mon,tues,wed,thurs,fri,sat,sun, start_dt,end_dt, stnd_mtg_pat, class_section in db:
+    for start,end, room, mon,tues,wed,thurs,fri,sat,sun, start_dt,end_dt, stnd_mtg_pat, class_section in rows(db):
+        # dates come in as strings from DB2/reporting DB
+        start_dt = datetime.datetime.strptime(start_dt, "%Y-%m-%d").date()
+        end_dt = datetime.datetime.strptime(end_dt, "%Y-%m-%d").date()
+
         wkdays = [n for n, day in zip(range(7), (mon,tues,wed,thurs,fri,sat,sun)) if day=='Y']
         labtut_section, mtg_type = fix_mtg_info(class_section, stnd_mtg_pat)
         for wkd in wkdays:
@@ -416,11 +475,6 @@ def import_meeting_times(db, offering):
     
     # delete any meeting times we haven't found in the DB
     MeetingTime.objects.filter(offering=offering).exclude(id__in=found_mtg).delete()
-
-
-
-
-
 
 
 
@@ -457,17 +511,20 @@ def ensure_member(person, offering, role, credits, added_reason, career, labtut_
 
 
 @transaction.commit_on_success
-def import_instructors(db, offering):
+def import_instructors(db, amaintdb, offering):
     Member.objects.filter(added_reason="AUTO", offering=offering, role="INST").update(role='DROP')
-    n = db.execute('SELECT emplid, instr_role, sched_print_instr FROM ps_class_instr WHERE crse_id=%s and class_section=%s and strm=%s', ("%06i" % (int(offering.crse_id)), offering.section, offering.semester.name))
+    n = execute_query(db, "SELECT emplid, instr_role, sched_print_instr FROM dbsastg.ps_class_instr WHERE crse_id=%s and class_section=%s and strm=%s and instr_role='PI'  and sched_print_instr='Y'", ("%06i" % (int(offering.crse_id)), offering.section, offering.semester.name))
+    #
     
-    for emplid, instr_role, print_instr in db:
-        p = get_person(db, emplid)
+    for emplid, instr_role, print_instr in rows(db):
+        if not emplid:
+            continue
+        p = get_person(db, amaintdb, emplid)
         ensure_member(p, offering, "INST", 0, "AUTO", "NONS")
 
 
 @transaction.commit_on_success
-def import_tas(db, tadb, offering):
+def import_tas(db, tadb, amaintdb, offering):
     if offering.subject not in ['CMPT', 'MACM']:
         return
 
@@ -478,43 +535,52 @@ def import_tas(db, tadb, offering):
     Member.objects.filter(added_reason="AUTO", offering=offering, role="TA").update(role='DROP')
     tadb.execute('SELECT emplid, userid FROM ta_data WHERE strm=%s and subject=%s and catalog_nbr REGEXP %s and class_section=%s', (offering.semester.name, offering.subject, nbr+"W?", offering.section[0:2]))
     for emplid,userid in tadb:
-        p = get_person(db, emplid)
+        p = get_person(db, amaintdb, emplid)
         if p is None:
             print "    Unknown TA:", emplid, userid
             return
         ensure_member(p, offering, "TA", 0, "AUTO", "NONS")
-
+    
 
 @transaction.commit_on_success
-def import_students(db, offering):
+def import_students(db, amaintdb, offering):
     Member.objects.filter(added_reason="AUTO", offering=offering, role="STUD").update(role='DROP')
     # find any lab/tutorial sections
-    n = db.execute('SELECT emplid, class_section FROM ps_stdnt_enrl WHERE subject=%s and catalog_nbr=%s and strm=%s and class_section LIKE %s and stdnt_enrl_status="E"', (offering.subject, offering.number, offering.semester.name, offering.section[0:2]+"%"))
+    
+    # c1 original lecture section
+    # c2 related lab/tutorial section
+    # s students in c2
+    # WHERE lines: (1) match lab/tut sections of c1 class (2) students in those
+    # lab/tut sections (3) with c1 matching offering
+    query = "SELECT s.emplid, c2.class_section " \
+        "FROM dbsastg.ps_class_tbl c1, dbsastg.ps_class_tbl c2, dbsastg.ps_stdnt_enrl s " \
+        "WHERE c1.subject=c2.subject and c1.catalog_nbr=c2.catalog_nbr and c2.strm=c1.strm " \
+        "and s.class_nbr=c2.class_nbr and s.strm=c2.strm and s.stdnt_enrl_status='E' " \
+        "and c1.class_nbr=%s and c1.strm=%s and c2.class_section LIKE %s"
+    n = execute_query(db, query, (offering.class_nbr, offering.semester.name, offering.section[0:2]+"%"))
     labtut = {}
-    for emplid, section in db:
+    for emplid, section in iter_rows(db):
         if section == offering.section:
             # not interested in lecture section now.
             continue
         labtut[emplid] = section
     
-    n = db.execute('SELECT emplid, acad_career, unt_taken FROM ps_stdnt_enrl WHERE class_nbr=%s and strm=%s and class_section=%s and stdnt_enrl_status="E"', (offering.class_nbr, offering.semester.name, offering.section))
-    for emplid, acad_career, unt_taken in db:
-        p = get_person(db, emplid)
+    n = execute_query(db, "SELECT emplid, acad_career, unt_taken FROM dbsastg.ps_stdnt_enrl WHERE class_nbr=%s and strm=%s and stdnt_enrl_status='E'", (offering.class_nbr, offering.semester.name))
+    for emplid, acad_career, unt_taken in rows(db):
+        p = get_person(db, amaintdb, emplid)
         sec = labtut.get(emplid, None)
         ensure_member(p, offering, "STUD", unt_taken, "AUTO", acad_career, labtut_section=sec)
 
 
-    
-
-def import_offering(db, tadb, offering):
+def import_offering(db, tadb, amaintdb, offering):
     """
     Import all data for the course: instructors, TAs, students, meeting times.
     """
-    if random.randint(1,40) == 4:
+    if random.randint(1,40) == 1:
         print " ", offering
-    import_instructors(db, offering)
-    import_tas(db, tadb, offering)
-    import_students(db, offering)
+    import_instructors(db, amaintdb, offering)
+    import_tas(db, tadb, amaintdb, offering)
+    import_students(db, amaintdb, offering)
     import_meeting_times(db, offering)
     update_offering_repositories(offering)
     
@@ -595,19 +661,23 @@ def give_sysadmin(sysadmin):
 
 def main():
     global DATA_WHERE, sysadmin
-    dbpasswd = raw_input()
+    amaintpasswd = raw_input()
     tapasswd = raw_input()
+    _ = raw_input()
+    simspasswd = raw_input()
 
-    create_semesters()
-    dbconn = MySQLdb.connect(host=import_host, user=import_user,
-             passwd=dbpasswd, db=import_name, port=import_port)
+    #create_semesters()
+    dbconn = DB2.connect(dsn=sims_db, uid=sims_user, pwd=simspasswd)
     db = dbconn.cursor()
+    amaintconn = MySQLdb.connect(host=amaint_host, user=amaint_user,
+             passwd=amaintpasswd, db=amaint_name, port=amaint_port)
+    amaintdb = amaintconn.cursor()
     tadbconn = MySQLdb.connect(host=ta_host, user=ta_user,
              passwd=tapasswd, db=ta_name, port=ta_port)
     tadb = tadbconn.cursor()
 
     print "fixing any unknown emplids"
-    fix_emplid(db)
+    #fix_emplid(db)
     
     print "importing course offering list"
     offerings = import_offerings(db, DATA_WHERE)
@@ -618,9 +688,9 @@ def main():
 
     print "importing course members"
     for o in offerings:
-        import_offering(db, tadb, o)
+        import_offering(db, tadb, amaintdb, o)
         time.sleep(0.5)
-    
+
     print "combining joint offerings"
     combine_sections(db, get_combined())
     
