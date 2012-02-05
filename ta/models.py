@@ -134,7 +134,17 @@ class TAApplication(models.Model):
     def __unicode__(self):
         return "Person: %s  Semester: %s" % (self.person, self.semester)
 
+class TA_Job_Posting(models.Model):
+    """
+    Courses Which need a TA
+    """
+    semester = models.ForeignKey(Semester)
+    department = models.ForeignKey(Unit)
+    #course = models.ForeignKey(CourseOffering)
+    def __unicode__(self):
+        return "deparment: %s  Semester: %s" % (self.department, self.semester)
 
+    
 #what are the appointment categories?
 """APPOINTMENT_CHOICES = (
         ('GTA1', 'GTA1: ') 
@@ -173,6 +183,8 @@ TAKEN_CHOICES = (
 EXPER_CHOICES = (
         ('TST', 'Placeholder option'),
         )
+
+
 
 class CoursePreference(models.Model):
     app = models.ForeignKey(TAApplication)
