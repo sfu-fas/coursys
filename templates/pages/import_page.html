@@ -10,6 +10,7 @@
     <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
     
     <fieldset><legend>Import Content</legend>
+    <p>Give <strong>either</strong> an HTML file or a URL to the content you'd like to import for this page.</p>
     {{form|as_dl_safe}}
 
     <p><input class="submit" type="submit" value="Import Page" /></p>

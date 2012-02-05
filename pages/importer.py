@@ -4,15 +4,17 @@ import re
 # TODO
 # nested lists
 # escape illegal URL chars
-# insert escapes into strings where necessary http://www.wikicreole.org/wiki/EscapeCharacterProposal
+# escape CamelCase text
 # html5 header semantics would be nice
 # use <title>
 # maybe strip <header>, <footer>, <menu>?
 
-blank_lines_re = re.compile(r'(\s*\n)(\s*\n)+')
-any_whitespace = re.compile(r'\s+')
-
 class HTMLWiki(object):
+    blank_lines_re = re.compile(r'(\s*\n)(\s*\n)+') # used to remove extra blank lines
+    any_whitespace = re.compile(r'\s+') # used to collapse whitespace in text
+    block_markup_re = re.compile(r'^\s*(=+|\*|#|;|:|----)') # used to escape wiki markup in text
+    inline_markup_re = re.compile(r'(~+|\*|//+|__+|-|\^+|,,+|\{|\}|##+|\\\\+|\[\[+|]]+)')
+
     class ParseError(Exception):
         pass
 
@@ -22,6 +24,24 @@ class HTMLWiki(object):
         'linkmarkup': is markup allowed in links? [[page.html|**bold link**]]
         """
         self.options = set(options)
+
+    
+    def wiki_escape(self, txt):
+        """
+        Escape text so any wiki formatting-like text doesn't actually format.
+        """
+        txt = self.inline_markup_re.sub(r'~\1', txt) # occurs-anywhere patterns
+        txt = self.block_markup_re.sub(r'~\1', txt) # start-of-line patterns
+        return txt
+
+    def url_escape(self, url):
+        """
+        Make sure URLs are escaped to remove any wiki markup
+        """
+        url = url.replace(']', '%5D')
+        url = url.replace('|', '%7C')
+        url = url.replace('}', '%7D')
+        return url
 
     def handle_contents(self, elt, block, context=None):
         """
@@ -93,7 +113,7 @@ class HTMLWiki(object):
         elif name in ['html', 'body', 'form', 'div', 'p', 'address', 'noscript', 'fieldset', 'legend', 'h6', 'section', 'header', 'footer', 'article', 'hgroup', 'nav', 'aside', 'command', 'center']:
             # generic block tags
             return self.handle_contents(elt, block=True)
-        elif name in ['ins', 'span', 'label', 'bdo', 'object', 'q', 'cite', 'kbd', 'samp', 'var', 'big', 'small', 'time', 'details', 'figcaption', 'figure', 'meter', 'mark', 'output', 'ruby', 'wbr']:
+        elif name in ['ins', 'span', 'label', 'bdo', 'object', 'q', 'cite', 'kbd', 'samp', 'var', 'big', 'small', 'time', 'details', 'figcaption', 'figure', 'meter', 'mark', 'output', 'ruby', 'wbr', 'font']:
             # generic inline
             return self.handle_contents(elt,  block=False)
         elif name in ['h1', 'h2', 'h3', 'h4', 'h5']:
@@ -140,12 +160,17 @@ class HTMLWiki(object):
             return self.handle_contents(elt, block=True)
         elif name == 'img':
             try:
-                url = elt['src']
+                url = self.url_escape(elt['src'])
                 try:
                     alt = elt['alt']
                 except KeyError:
                     alt = ''
+
                 if alt.strip():
+                    # pseudo-escape alt text
+                    alt = alt.replace('}}', u'}\uFEFF}') # unicode zero width no-break space
+                    if alt[-1] == '}':
+                        alt += u'\uFEFF'
                     return '{{%s|%s}}' % (url, alt)
                 else:
                     return '{{%s}}' % (url)
@@ -153,14 +178,21 @@ class HTMLWiki(object):
                 return ''
         elif name == 'a':
             try:
-                url = elt['href']
+                url = self.url_escape(elt['href'])
                 if not url:
                     return self.handle_contents(elt, block=False)
                 if 'linkmarkup' in self.options:
                     c = context
                 else:
                     c = 'textonly'
-                return '[[%s|%s]]' % (url, self.handle_contents(elt, block=False, context=c).strip().replace('\n', ' '))
+
+                # pseudo-escape content text
+                content = self.handle_contents(elt, block=False, context=c).strip()
+                content = content.replace(']]', u']\uFEFF]') # unicode zero width no-break space
+                if content[-1] == ']':
+                        content += u'\uFEFF'
+
+                return '[[%s|%s]]' % (url, content)
             except KeyError:
                 return self.handle_contents(elt, block=False)
 
@@ -181,7 +213,7 @@ class HTMLWiki(object):
             if context == 'pre':
                 return s
             else:
-                return any_whitespace.sub(' ', s)
+                return self.wiki_escape(self.any_whitespace.sub(' ', s))
         elif type(elt) == BeautifulSoup.Tag:
             return self.handle_tag(elt, context=context)
         raise ValueError, str(type(elt))
@@ -192,7 +224,7 @@ class HTMLWiki(object):
         """
         segments = [self.handle_element(e) for e in soup.contents]
         res = ''.join(segments)
-        res = blank_lines_re.sub('\n\n', res)
+        res = self.blank_lines_re.sub('\n\n', res)
         return res.strip()
         
     def from_html(self, html):
