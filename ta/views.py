@@ -5,7 +5,7 @@ from courselib.auth import requires_course_staff_by_slug, requires_role, \
     is_course_staff_by_slug, has_role, ForbiddenResponse
 from django.contrib.auth.decorators import login_required
 from ta.models import TUG, TAApplication, Skill
-from coredata.models import Member, Role, CourseOffering, Person
+from coredata.models import Member, Role, CourseOffering, Person, Unit
 from ta.forms import CoursePreferenceForm, TAApplicationForm, TUGForm
 
 @requires_course_staff_by_slug
@@ -186,6 +186,15 @@ def new_application(request):
 def all_applications(request):
     applications = TAApplication.objects.all()
     return render(request, 'ta/all_applications.html', {'applications':applications})
+
+@login_required
+def view_TA_postings(request):
+    #ta_posting = TA_Job_Posting.objects.order_by(Semester)
+    ta_posting_list = CourseOffering.objects.order_by('semester')
+    context = {'posting_list':ta_posting_list,
+               'department': Unit.objects.all()}
+    #{'ta_posting':ta_posting}
+    return render(request, 'ta/view_TA_postings.html', context)
 
 @login_required
 def view_application(request, app_id):
