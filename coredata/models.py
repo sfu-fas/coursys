@@ -229,6 +229,27 @@ class SemesterWeek(models.Model):
         ordering = ['semester', 'week']
         unique_together = (('semester', 'week'))
 
+
+class Course(models.Model):
+    """
+    More abstract model for a course.
+    
+    Note that title (and possibly stuff in config) might change over time:
+    values in CourseOffering should be used where available.
+    """
+    subject = models.CharField(max_length=4, null=False, db_index=True,
+        help_text='Subject code, like "CMPT" or "FAN".')
+    number = models.CharField(max_length=4, null=False, db_index=True,
+        help_text='Course number, like "120" or "XX1".')
+    title = models.CharField(max_length=30, help_text='The course title.')
+    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
+    
+    class Meta:
+        unique_together = (('subject', 'number'),)
+    def __unicode__(self):
+        return "%s %s" % (self.subject, self.number)
+
+
 COMPONENT_CHOICES = (
         ('LEC', 'Lecture'),
         ('LAB', 'Lab'),
@@ -280,6 +301,7 @@ class CourseOffering(models.Model):
     enrl_cap = models.PositiveSmallIntegerField()
     enrl_tot = models.PositiveSmallIntegerField()
     wait_tot = models.PositiveSmallIntegerField()
+    course = models.ForeignKey(Course, null=False)
 
     members = models.ManyToManyField(Person, related_name="member", through="Member")
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
@@ -318,7 +340,13 @@ class CourseOffering(models.Model):
             return "%s %s %s" % (self.subject, self.number, self.section[:-2])
         else:
             return "%s %s %s" % (self.subject, self.number, self.section)
-        
+    
+    def save(self, *args, **kwargs):
+        # make sure CourseOfferings always have .course filled.
+        if not self.course_id:
+            self.set_course(save=False)
+        super(CourseOffering, self).save(*args, **kwargs)
+    
     def get_absolute_url(self):
         return reverse('grades.views.course_info', kwargs={'course_slug': self.slug})
     
@@ -328,14 +356,22 @@ class CourseOffering(models.Model):
         return (m.person for m in self.member_set.filter(role="TA"))
     def student_count(self):
         return self.members.filter(person__role='STUD').count()
-    def department(self):
+    
+    def set_course(self, save=True):
         """
-        Who is the controlling department?
+        Set this objects .course field to a sensible value, creating a Course object if necessary.
         """
-        if 'department' in self.config:
-            return self.config['department']
+        cs = Course.objects.filter(subject=self.subject, number=self.number)
+        if cs:
+            self.course = cs[0]
         else:
-            return self.subject
+            c = Course(subject=self.subject, number=self.number, title=self.title)
+            c.save()
+            self.course = c
+        
+        if save:
+            self.save()
+    
     def uses_svn(self):
         """
         Should students and groups in this course get Subversion repositories created?

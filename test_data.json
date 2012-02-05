@@ -104,6 +104,7 @@
    "class_nbr": 13729,
    "component": "LEC",
    "config": "{}",
+   "course": 1,
    "crse_id": 11592,
    "enrl_cap": 50,
    "enrl_tot": 45,
@@ -126,6 +127,7 @@
    "class_nbr": 13730,
    "component": "SEC",
    "config": "{}",
+   "course": 2,
    "crse_id": 11577,
    "enrl_cap": 80,
    "enrl_tot": 60,
@@ -148,6 +150,7 @@
    "class_nbr": 13731,
    "component": "LEC",
    "config": "{}",
+   "course": 3,
    "crse_id": 14580,
    "enrl_cap": 180,
    "enrl_tot": 180,
@@ -170,6 +173,7 @@
    "class_nbr": 15549,
    "component": "LEC",
    "config": "{}",
+   "course": 3,
    "crse_id": 14580,
    "enrl_cap": 99,
    "enrl_tot": 98,
@@ -192,6 +196,7 @@
    "class_nbr": 13733,
    "component": "LEC",
    "config": "{}",
+   "course": 4,
    "crse_id": 14581,
    "enrl_cap": 150,
    "enrl_tot": 139,
@@ -214,6 +219,7 @@
    "class_nbr": 15575,
    "component": "LEC",
    "config": "{}",
+   "course": 4,
    "crse_id": 14581,
    "enrl_cap": 48,
    "enrl_tot": 39,
@@ -236,6 +242,7 @@
    "class_nbr": 15557,
    "component": "LEC",
    "config": "{}",
+   "course": 5,
    "crse_id": 14583,
    "enrl_cap": 21,
    "enrl_tot": 21,
@@ -258,6 +265,7 @@
    "class_nbr": 13734,
    "component": "LEC",
    "config": "{}",
+   "course": 6,
    "crse_id": 11555,
    "enrl_cap": 156,
    "enrl_tot": 154,
@@ -280,6 +288,7 @@
    "class_nbr": 15586,
    "component": "LEC",
    "config": "{}",
+   "course": 6,
    "crse_id": 11555,
    "enrl_cap": 96,
    "enrl_tot": 38,
@@ -302,6 +311,7 @@
    "class_nbr": 13806,
    "component": "CAN",
    "config": "{}",
+   "course": 6,
    "crse_id": 11555,
    "enrl_cap": 52,
    "enrl_tot": 0,
@@ -324,6 +334,7 @@
    "class_nbr": 16971,
    "component": "LEC",
    "config": "{}",
+   "course": 6,
    "crse_id": 11555,
    "enrl_cap": 30,
    "enrl_tot": 16,
@@ -346,6 +357,7 @@
    "class_nbr": 13736,
    "component": "SEC",
    "config": "{\"url\": \"http://www.cs.sfu.ca/CC/165/common/\", \"taemail\": \"cmpt-165-contact@sfu.ca\", \"labtut\": true}",
+   "course": 7,
    "crse_id": 11547,
    "enrl_cap": 60,
    "enrl_tot": 60,
@@ -368,6 +380,7 @@
    "class_nbr": 16776,
    "component": "SEC",
    "config": "{}",
+   "course": 7,
    "crse_id": 11547,
    "enrl_cap": 60,
    "enrl_tot": 60,
@@ -390,6 +403,7 @@
    "class_nbr": 16778,
    "component": "SEC",
    "config": "{}",
+   "course": 7,
    "crse_id": 11547,
    "enrl_cap": 60,
    "enrl_tot": 60,
@@ -412,6 +426,7 @@
    "class_nbr": 13735,
    "component": "LEC",
    "config": "{}",
+   "course": 7,
    "crse_id": 11547,
    "enrl_cap": 208,
    "enrl_tot": 206,
@@ -434,6 +449,7 @@
    "class_nbr": 15648,
    "component": "LEC",
    "config": "{}",
+   "course": 7,
    "crse_id": 11547,
    "enrl_cap": 130,
    "enrl_tot": 123,
@@ -456,6 +472,7 @@
    "class_nbr": 16777,
    "component": "LEC",
    "config": "{}",
+   "course": 7,
    "crse_id": 11547,
    "enrl_cap": 60,
    "enrl_tot": 0,
@@ -478,6 +495,7 @@
    "class_nbr": 32757,
    "component": "LEC",
    "config": "{\"combined\": true, \"labtut\": true}",
+   "course": 7,
    "crse_id": 32757,
    "enrl_cap": 180,
    "enrl_tot": 0,
@@ -500,6 +518,7 @@
    "class_nbr": 15593,
    "component": "LEC",
    "config": "{}",
+   "course": 8,
    "crse_id": 16684,
    "enrl_cap": 120,
    "enrl_tot": 54,
@@ -522,6 +541,7 @@
    "class_nbr": 15630,
    "component": "LEC",
    "config": "{}",
+   "course": 9,
    "crse_id": 11531,
    "enrl_cap": 54,
    "enrl_tot": 51,
@@ -544,6 +564,7 @@
    "class_nbr": 13739,
    "component": "LEC",
    "config": "{}",
+   "course": 10,
    "crse_id": 14584,
    "enrl_cap": 122,
    "enrl_tot": 122,
@@ -566,6 +587,7 @@
    "class_nbr": 13807,
    "component": "CAN",
    "config": "{}",
+   "course": 10,
    "crse_id": 14584,
    "enrl_cap": 52,
    "enrl_tot": 0,
@@ -588,6 +610,7 @@
    "class_nbr": 16974,
    "component": "LEC",
    "config": "{}",
+   "course": 10,
    "crse_id": 14584,
    "enrl_cap": 50,
    "enrl_tot": 17,
@@ -610,6 +633,7 @@
    "class_nbr": 13740,
    "component": "LEC",
    "config": "{}",
+   "course": 11,
    "crse_id": 11524,
    "enrl_cap": 130,
    "enrl_tot": 101,
@@ -632,6 +656,7 @@
    "class_nbr": 13741,
    "component": "LEC",
    "config": "{}",
+   "course": 12,
    "crse_id": 11520,
    "enrl_cap": 80,
    "enrl_tot": 79,
@@ -654,6 +679,7 @@
    "class_nbr": 15631,
    "component": "CAN",
    "config": "{}",
+   "course": 13,
    "crse_id": 16022,
    "enrl_cap": 48,
    "enrl_tot": 0,
@@ -676,6 +702,7 @@
    "class_nbr": 16909,
    "component": "LEC",
    "config": "{}",
+   "course": 13,
    "crse_id": 16022,
    "enrl_cap": 48,
    "enrl_tot": 31,
@@ -698,6 +725,7 @@
    "class_nbr": 13742,
    "component": "LEC",
    "config": "{}",
+   "course": 14,
    "crse_id": 11510,
    "enrl_cap": 85,
    "enrl_tot": 80,
@@ -720,6 +748,7 @@
    "class_nbr": 15632,
    "component": "LEC",
    "config": "{}",
+   "course": 14,
    "crse_id": 11510,
    "enrl_cap": 48,
    "enrl_tot": 43,
@@ -742,6 +771,7 @@
    "class_nbr": 13743,
    "component": "LEC",
    "config": "{}",
+   "course": 15,
    "crse_id": 11500,
    "enrl_cap": 85,
    "enrl_tot": 74,
@@ -764,6 +794,7 @@
    "class_nbr": 13744,
    "component": "LEC",
    "config": "{}",
+   "course": 16,
    "crse_id": 11498,
    "enrl_cap": 75,
    "enrl_tot": 75,
@@ -786,6 +817,7 @@
    "class_nbr": 13745,
    "component": "LEC",
    "config": "{}",
+   "course": 17,
    "crse_id": 11491,
    "enrl_cap": 85,
    "enrl_tot": 85,
@@ -808,6 +840,7 @@
    "class_nbr": 15633,
    "component": "LEC",
    "config": "{}",
+   "course": 18,
    "crse_id": 16158,
    "enrl_cap": 48,
    "enrl_tot": 48,
@@ -830,6 +863,7 @@
    "class_nbr": 13746,
    "component": "LEC",
    "config": "{}",
+   "course": 19,
    "crse_id": 11489,
    "enrl_cap": 50,
    "enrl_tot": 41,
@@ -852,6 +886,7 @@
    "class_nbr": 13747,
    "component": "LEC",
    "config": "{}",
+   "course": 20,
    "crse_id": 11478,
    "enrl_cap": 70,
    "enrl_tot": 63,
@@ -874,6 +909,7 @@
    "class_nbr": 13749,
    "component": "LEC",
    "config": "{}",
+   "course": 21,
    "crse_id": 11472,
    "enrl_cap": 82,
    "enrl_tot": 82,
@@ -896,6 +932,7 @@
    "class_nbr": 13750,
    "component": "LEC",
    "config": "{}",
+   "course": 22,
    "crse_id": 11471,
    "enrl_cap": 70,
    "enrl_tot": 70,
@@ -918,6 +955,7 @@
    "class_nbr": 13751,
    "component": "LEC",
    "config": "{}",
+   "course": 23,
    "crse_id": 11468,
    "enrl_cap": 70,
    "enrl_tot": 41,
@@ -940,6 +978,7 @@
    "class_nbr": 13752,
    "component": "LEC",
    "config": "{}",
+   "course": 24,
    "crse_id": 11465,
    "enrl_cap": 75,
    "enrl_tot": 44,
@@ -962,6 +1001,7 @@
    "class_nbr": 15634,
    "component": "LEC",
    "config": "{}",
+   "course": 24,
    "crse_id": 11465,
    "enrl_cap": 48,
    "enrl_tot": 24,
@@ -984,6 +1024,7 @@
    "class_nbr": 13753,
    "component": "LEC",
    "config": "{}",
+   "course": 25,
    "crse_id": 15541,
    "enrl_cap": 60,
    "enrl_tot": 56,
@@ -1006,6 +1047,7 @@
    "class_nbr": 15687,
    "component": "LEC",
    "config": "{}",
+   "course": 25,
    "crse_id": 15541,
    "enrl_cap": 50,
    "enrl_tot": 48,
@@ -1028,6 +1070,7 @@
    "class_nbr": 15635,
    "component": "LEC",
    "config": "{}",
+   "course": 26,
    "crse_id": 11464,
    "enrl_cap": 48,
    "enrl_tot": 24,
@@ -1050,6 +1093,7 @@
    "class_nbr": 15636,
    "component": "LEC",
    "config": "{}",
+   "course": 27,
    "crse_id": 11459,
    "enrl_cap": 24,
    "enrl_tot": 24,
@@ -1072,6 +1116,7 @@
    "class_nbr": 13809,
    "component": "CAN",
    "config": "{}",
+   "course": 27,
    "crse_id": 11459,
    "enrl_cap": 75,
    "enrl_tot": 0,
@@ -1094,6 +1139,7 @@
    "class_nbr": 16977,
    "component": "LEC",
    "config": "{}",
+   "course": 27,
    "crse_id": 11459,
    "enrl_cap": 75,
    "enrl_tot": 62,
@@ -1116,6 +1162,7 @@
    "class_nbr": 13754,
    "component": "LEC",
    "config": "{}",
+   "course": 28,
    "crse_id": 16029,
    "enrl_cap": 48,
    "enrl_tot": 48,
@@ -1138,6 +1185,7 @@
    "class_nbr": 13755,
    "component": "LEC",
    "config": "{}",
+   "course": 29,
    "crse_id": 11433,
    "enrl_cap": 35,
    "enrl_tot": 20,
@@ -1160,6 +1208,7 @@
    "class_nbr": 13756,
    "component": "LEC",
    "config": "{}",
+   "course": 30,
    "crse_id": 11414,
    "enrl_cap": 46,
    "enrl_tot": 46,
@@ -1182,6 +1231,7 @@
    "class_nbr": 17049,
    "component": "SEC",
    "config": "{}",
+   "course": 31,
    "crse_id": 11407,
    "enrl_cap": 1,
    "enrl_tot": 1,
@@ -1204,6 +1254,7 @@
    "class_nbr": 13769,
    "component": "SEC",
    "config": "{}",
+   "course": 32,
    "crse_id": 11398,
    "enrl_cap": 30,
    "enrl_tot": 28,
@@ -1226,6 +1277,7 @@
    "class_nbr": 13770,
    "component": "SEC",
    "config": "{}",
+   "course": 32,
    "crse_id": 11398,
    "enrl_cap": 15,
    "enrl_tot": 11,
@@ -1248,6 +1300,7 @@
    "class_nbr": 13771,
    "component": "SEC",
    "config": "{}",
+   "course": 32,
    "crse_id": 11398,
    "enrl_cap": 30,
    "enrl_tot": 2,
@@ -1270,6 +1323,7 @@
    "class_nbr": 13772,
    "component": "SEC",
    "config": "{}",
+   "course": 32,
    "crse_id": 11398,
    "enrl_cap": 15,
    "enrl_tot": 1,
@@ -1292,6 +1346,7 @@
    "class_nbr": 13773,
    "component": "SEC",
    "config": "{}",
+   "course": 33,
    "crse_id": 11396,
    "enrl_cap": 30,
    "enrl_tot": 34,
@@ -1314,6 +1369,7 @@
    "class_nbr": 13774,
    "component": "SEC",
    "config": "{}",
+   "course": 33,
    "crse_id": 11396,
    "enrl_cap": 15,
    "enrl_tot": 11,
@@ -1336,6 +1392,7 @@
    "class_nbr": 13775,
    "component": "SEC",
    "config": "{}",
+   "course": 33,
    "crse_id": 11396,
    "enrl_cap": 30,
    "enrl_tot": 6,
@@ -1358,6 +1415,7 @@
    "class_nbr": 13776,
    "component": "SEC",
    "config": "{}",
+   "course": 33,
    "crse_id": 11396,
    "enrl_cap": 15,
    "enrl_tot": 0,
@@ -1380,6 +1438,7 @@
    "class_nbr": 13777,
    "component": "SEC",
    "config": "{}",
+   "course": 34,
    "crse_id": 11394,
    "enrl_cap": 30,
    "enrl_tot": 17,
@@ -1402,6 +1461,7 @@
    "class_nbr": 13778,
    "component": "SEC",
    "config": "{}",
+   "course": 34,
    "crse_id": 11394,
    "enrl_cap": 15,
    "enrl_tot": 6,
@@ -1424,6 +1484,7 @@
    "class_nbr": 13779,
    "component": "SEC",
    "config": "{}",
+   "course": 34,
    "crse_id": 11394,
    "enrl_cap": 30,
    "enrl_tot": 0,
@@ -1446,6 +1507,7 @@
    "class_nbr": 13780,
    "component": "SEC",
    "config": "{}",
+   "course": 34,
    "crse_id": 11394,
    "enrl_cap": 15,
    "enrl_tot": 1,
@@ -1468,6 +1530,7 @@
    "class_nbr": 13781,
    "component": "SEC",
    "config": "{}",
+   "course": 35,
    "crse_id": 11392,
    "enrl_cap": 30,
    "enrl_tot": 8,
@@ -1490,6 +1553,7 @@
    "class_nbr": 13782,
    "component": "SEC",
    "config": "{}",
+   "course": 35,
    "crse_id": 11392,
    "enrl_cap": 15,
    "enrl_tot": 3,
@@ -1512,6 +1576,7 @@
    "class_nbr": 13783,
    "component": "SEC",
    "config": "{}",
+   "course": 35,
    "crse_id": 11392,
    "enrl_cap": 30,
    "enrl_tot": 2,
@@ -1534,6 +1599,7 @@
    "class_nbr": 13784,
    "component": "SEC",
    "config": "{}",
+   "course": 35,
    "crse_id": 11392,
    "enrl_cap": 15,
    "enrl_tot": 0,
@@ -1556,6 +1622,7 @@
    "class_nbr": 13785,
    "component": "SEC",
    "config": "{}",
+   "course": 36,
    "crse_id": 11390,
    "enrl_cap": 30,
    "enrl_tot": 4,
@@ -1578,6 +1645,7 @@
    "class_nbr": 13786,
    "component": "SEC",
    "config": "{}",
+   "course": 36,
    "crse_id": 11390,
    "enrl_cap": 15,
    "enrl_tot": 1,
@@ -1600,6 +1668,7 @@
    "class_nbr": 13787,
    "component": "SEC",
    "config": "{}",
+   "course": 36,
    "crse_id": 11390,
    "enrl_cap": 30,
    "enrl_tot": 1,
@@ -1622,6 +1691,7 @@
    "class_nbr": 13788,
    "component": "SEC",
    "config": "{}",
+   "course": 36,
    "crse_id": 11390,
    "enrl_cap": 15,
    "enrl_tot": 1,
@@ -1644,6 +1714,7 @@
    "class_nbr": 13758,
    "component": "LEC",
    "config": "{}",
+   "course": 37,
    "crse_id": 16030,
    "enrl_cap": 55,
    "enrl_tot": 35,
@@ -1666,6 +1737,7 @@
    "class_nbr": 13760,
    "component": "LEC",
    "config": "{}",
+   "course": 38,
    "crse_id": 11386,
    "enrl_cap": 55,
    "enrl_tot": 48,
@@ -1688,6 +1760,7 @@
    "class_nbr": 15688,
    "component": "LEC",
    "config": "{}",
+   "course": 39,
    "crse_id": 15697,
    "enrl_cap": 40,
    "enrl_tot": 9,
@@ -1710,6 +1783,7 @@
    "class_nbr": 13761,
    "component": "LEC",
    "config": "{}",
+   "course": 40,
    "crse_id": 11378,
    "enrl_cap": 40,
    "enrl_tot": 8,
@@ -1732,6 +1806,7 @@
    "class_nbr": 13762,
    "component": "LEC",
    "config": "{}",
+   "course": 41,
    "crse_id": 11374,
    "enrl_cap": 65,
    "enrl_tot": 62,
@@ -1754,6 +1829,7 @@
    "class_nbr": 15637,
    "component": "LEC",
    "config": "{}",
+   "course": 42,
    "crse_id": 11373,
    "enrl_cap": 15,
    "enrl_tot": 7,
@@ -1776,6 +1852,7 @@
    "class_nbr": 13810,
    "component": "LEC",
    "config": "{}",
+   "course": 42,
    "crse_id": 11373,
    "enrl_cap": 65,
    "enrl_tot": 26,
@@ -1798,6 +1875,7 @@
    "class_nbr": 15638,
    "component": "LEC",
    "config": "{}",
+   "course": 43,
    "crse_id": 16027,
    "enrl_cap": 30,
    "enrl_tot": 25,
@@ -1820,6 +1898,7 @@
    "class_nbr": 13764,
    "component": "LEC",
    "config": "{}",
+   "course": 44,
    "crse_id": 11372,
    "enrl_cap": 55,
    "enrl_tot": 24,
@@ -1842,6 +1921,7 @@
    "class_nbr": 16989,
    "component": "SEM",
    "config": "{}",
+   "course": 45,
    "crse_id": 15807,
    "enrl_cap": 9,
    "enrl_tot": 9,
@@ -1864,6 +1944,7 @@
    "class_nbr": 13766,
    "component": "LEC",
    "config": "{}",
+   "course": 46,
    "crse_id": 15283,
    "enrl_cap": 15,
    "enrl_tot": 5,
@@ -1886,6 +1967,7 @@
    "class_nbr": 13789,
    "component": "LEC",
    "config": "{}",
+   "course": 47,
    "crse_id": 14495,
    "enrl_cap": 30,
    "enrl_tot": 17,
@@ -1908,6 +1990,7 @@
    "class_nbr": 13790,
    "component": "LEC",
    "config": "{}",
+   "course": 48,
    "crse_id": 11325,
    "enrl_cap": 25,
    "enrl_tot": 16,
@@ -1930,6 +2013,7 @@
    "class_nbr": 13791,
    "component": "LEC",
    "config": "{}",
+   "course": 49,
    "crse_id": 15764,
    "enrl_cap": 25,
    "enrl_tot": 8,
@@ -1952,6 +2036,7 @@
    "class_nbr": 15639,
    "component": "LEC",
    "config": "{}",
+   "course": 50,
    "crse_id": 15765,
    "enrl_cap": 15,
    "enrl_tot": 1,
@@ -1974,6 +2059,7 @@
    "class_nbr": 13792,
    "component": "LEC",
    "config": "{}",
+   "course": 51,
    "crse_id": 16664,
    "enrl_cap": 15,
    "enrl_tot": 15,
@@ -1996,6 +2082,7 @@
    "class_nbr": 13794,
    "component": "LEC",
    "config": "{}",
+   "course": 52,
    "crse_id": 11315,
    "enrl_cap": 20,
    "enrl_tot": 4,
@@ -2018,6 +2105,7 @@
    "class_nbr": 13795,
    "component": "CAN",
    "config": "{}",
+   "course": 53,
    "crse_id": 11299,
    "enrl_cap": 0,
    "enrl_tot": 0,
@@ -2040,6 +2128,7 @@
    "class_nbr": 13796,
    "component": "LEC",
    "config": "{}",
+   "course": 54,
    "crse_id": 16513,
    "enrl_cap": 25,
    "enrl_tot": 15,
@@ -2062,6 +2151,7 @@
    "class_nbr": 13797,
    "component": "LEC",
    "config": "{}",
+   "course": 55,
    "crse_id": 14262,
    "enrl_cap": 20,
    "enrl_tot": 2,
@@ -2084,6 +2174,7 @@
    "class_nbr": 15641,
    "component": "LEC",
    "config": "{}",
+   "course": 55,
    "crse_id": 14262,
    "enrl_cap": 12,
    "enrl_tot": 4,
@@ -2106,6 +2197,7 @@
    "class_nbr": 13798,
    "component": "LEC",
    "config": "{}",
+   "course": 56,
    "crse_id": 14261,
    "enrl_cap": 20,
    "enrl_tot": 5,
@@ -2128,6 +2220,7 @@
    "class_nbr": 16259,
    "component": "LEC",
    "config": "{}",
+   "course": 57,
    "crse_id": 14264,
    "enrl_cap": 40,
    "enrl_tot": 10,
@@ -2150,6 +2243,7 @@
    "class_nbr": 13799,
    "component": "LEC",
    "config": "{}",
+   "course": 58,
    "crse_id": 14449,
    "enrl_cap": 35,
    "enrl_tot": 33,
@@ -2172,6 +2266,7 @@
    "class_nbr": 13800,
    "component": "CAN",
    "config": "{}",
+   "course": 59,
    "crse_id": 14508,
    "enrl_cap": 30,
    "enrl_tot": 0,
@@ -2194,6 +2289,7 @@
    "class_nbr": 16933,
    "component": "LEC",
    "config": "{}",
+   "course": 59,
    "crse_id": 14508,
    "enrl_cap": 30,
    "enrl_tot": 15,
@@ -2216,6 +2312,7 @@
    "class_nbr": 15642,
    "component": "LEC",
    "config": "{}",
+   "course": 60,
    "crse_id": 14288,
    "enrl_cap": 12,
    "enrl_tot": 5,
@@ -2238,6 +2335,7 @@
    "class_nbr": 13801,
    "component": "SEC",
    "config": "{}",
+   "course": 61,
    "crse_id": 11168,
    "enrl_cap": 0,
    "enrl_tot": 5,
@@ -2260,6 +2358,7 @@
    "class_nbr": 13802,
    "component": "SEC",
    "config": "{}",
+   "course": 62,
    "crse_id": 16379,
    "enrl_cap": 0,
    "enrl_tot": 1,
@@ -2282,6 +2381,7 @@
    "class_nbr": 13803,
    "component": "SEC",
    "config": "{}",
+   "course": 63,
    "crse_id": 11166,
    "enrl_cap": 10,
    "enrl_tot": 8,
@@ -2304,6 +2404,7 @@
    "class_nbr": 13804,
    "component": "SEC",
    "config": "{}",
+   "course": 64,
    "crse_id": 11164,
    "enrl_cap": 130,
    "enrl_tot": 70,
@@ -2326,6 +2427,7 @@
    "class_nbr": 13805,
    "component": "SEC",
    "config": "{}",
+   "course": 65,
    "crse_id": 11162,
    "enrl_cap": 130,
    "enrl_tot": 91,
@@ -2348,6 +2450,7 @@
    "class_nbr": 13737,
    "component": "LEC",
    "config": "{}",
+   "course": 66,
    "crse_id": 4232,
    "enrl_cap": 115,
    "enrl_tot": 115,
@@ -2370,6 +2473,7 @@
    "class_nbr": 13738,
    "component": "LEC",
    "config": "{}",
+   "course": 66,
    "crse_id": 4232,
    "enrl_cap": 115,
    "enrl_tot": 113,
@@ -2392,6 +2496,7 @@
    "class_nbr": 15603,
    "component": "LEC",
    "config": "{}",
+   "course": 66,
    "crse_id": 4232,
    "enrl_cap": 97,
    "enrl_tot": 97,
@@ -2414,6 +2519,7 @@
    "class_nbr": 8605,
    "component": "CAN",
    "config": "{}",
+   "course": 67,
    "crse_id": 4231,
    "enrl_cap": 200,
    "enrl_tot": 0,
@@ -2436,6 +2542,7 @@
    "class_nbr": 9343,
    "component": "CAN",
    "config": "{}",
+   "course": 67,
    "crse_id": 4231,
    "enrl_cap": 60,
    "enrl_tot": 0,
@@ -2458,6 +2565,7 @@
    "class_nbr": 16798,
    "component": "LEC",
    "config": "{}",
+   "course": 67,
    "crse_id": 4231,
    "enrl_cap": 192,
    "enrl_tot": 167,
@@ -2480,6 +2588,7 @@
    "class_nbr": 16799,
    "component": "LEC",
    "config": "{}",
+   "course": 67,
    "crse_id": 4231,
    "enrl_cap": 60,
    "enrl_tot": 46,
@@ -2502,6 +2611,7 @@
    "class_nbr": 8917,
    "component": "LEC",
    "config": "{}",
+   "course": 68,
    "crse_id": 16470,
    "enrl_cap": 48,
    "enrl_tot": 25,
@@ -2524,6 +2634,7 @@
    "class_nbr": 15953,
    "component": "CAN",
    "config": "{}",
+   "course": 69,
    "crse_id": 4227,
    "enrl_cap": 40,
    "enrl_tot": 0,
@@ -2546,6 +2657,7 @@
    "class_nbr": 8609,
    "component": "LEC",
    "config": "{}",
+   "course": 70,
    "crse_id": 4225,
    "enrl_cap": 211,
    "enrl_tot": 211,
@@ -2568,6 +2680,7 @@
    "class_nbr": 8627,
    "component": "LEC",
    "config": "{}",
+   "course": 70,
    "crse_id": 4225,
    "enrl_cap": 68,
    "enrl_tot": 67,
@@ -2583,6 +2696,706 @@
   },
   "model": "coredata.courseoffering",
   "pk": 103
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "102",
+   "subject": "CMPT",
+   "title": "Scientific Computer Prog."
+  },
+  "model": "coredata.course",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "110",
+   "subject": "CMPT",
+   "title": "Programming in Visual Basic"
+  },
+  "model": "coredata.course",
+  "pk": 2
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "120",
+   "subject": "CMPT",
+   "title": "Intro.Cmpt.Sci/Programming I"
+  },
+  "model": "coredata.course",
+  "pk": 3
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "125",
+   "subject": "CMPT",
+   "title": "Intro.Cmpt.Sci/Programming II"
+  },
+  "model": "coredata.course",
+  "pk": 4
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "128",
+   "subject": "CMPT",
+   "title": "Intro. Cmpt.Sci/Prgm/Engineers"
+  },
+  "model": "coredata.course",
+  "pk": 5
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "150",
+   "subject": "CMPT",
+   "title": "Intro to Computer Design"
+  },
+  "model": "coredata.course",
+  "pk": 6
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "165",
+   "subject": "CMPT",
+   "title": "Intro Internet  World Wide Web"
+  },
+  "model": "coredata.course",
+  "pk": 7
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "166",
+   "subject": "CMPT",
+   "title": "Animated Intro to Programming"
+  },
+  "model": "coredata.course",
+  "pk": 8
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "212",
+   "subject": "CMPT",
+   "title": "Appl.Design in C++"
+  },
+  "model": "coredata.course",
+  "pk": 9
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "225",
+   "subject": "CMPT",
+   "title": "Data Structures/Programming"
+  },
+  "model": "coredata.course",
+  "pk": 10
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "250",
+   "subject": "CMPT",
+   "title": "Intro to Computer Architecture"
+  },
+  "model": "coredata.course",
+  "pk": 11
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "275",
+   "subject": "CMPT",
+   "title": "Software Engineering I"
+  },
+  "model": "coredata.course",
+  "pk": 12
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "276",
+   "subject": "CMPT",
+   "title": "Intro Software Engineering"
+  },
+  "model": "coredata.course",
+  "pk": 13
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "300",
+   "subject": "CMPT",
+   "title": "Operating Systems I"
+  },
+  "model": "coredata.course",
+  "pk": 14
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "307",
+   "subject": "CMPT",
+   "title": "Data Structures"
+  },
+  "model": "coredata.course",
+  "pk": 15
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "310",
+   "subject": "CMPT",
+   "title": "Artificial Intelligence Survey"
+  },
+  "model": "coredata.course",
+  "pk": 16
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "320",
+   "subject": "CMPT",
+   "title": "Social Implications"
+  },
+  "model": "coredata.course",
+  "pk": 17
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "322W",
+   "subject": "CMPT",
+   "title": "Responsibility and Ethics"
+  },
+  "model": "coredata.course",
+  "pk": 18
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "340",
+   "subject": "CMPT",
+   "title": "Biomedical Computing"
+  },
+  "model": "coredata.course",
+  "pk": 19
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "354",
+   "subject": "CMPT",
+   "title": "Database Systems I"
+  },
+  "model": "coredata.course",
+  "pk": 20
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "363",
+   "subject": "CMPT",
+   "title": "User Interface Dsgn"
+  },
+  "model": "coredata.course",
+  "pk": 21
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "365",
+   "subject": "CMPT",
+   "title": "Multimedia Systems"
+  },
+  "model": "coredata.course",
+  "pk": 22
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "370",
+   "subject": "CMPT",
+   "title": "Info System Design"
+  },
+  "model": "coredata.course",
+  "pk": 23
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "371",
+   "subject": "CMPT",
+   "title": "Data Communications/Networking"
+  },
+  "model": "coredata.course",
+  "pk": 24
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "376W",
+   "subject": "CMPT",
+   "title": "Tech.Writing and Group Dynamic"
+  },
+  "model": "coredata.course",
+  "pk": 25
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "379",
+   "subject": "CMPT",
+   "title": "Principles of Compiler Design"
+  },
+  "model": "coredata.course",
+  "pk": 26
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "383",
+   "subject": "CMPT",
+   "title": "Programming Langs."
+  },
+  "model": "coredata.course",
+  "pk": 27
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "404",
+   "subject": "CMPT",
+   "title": "Cryptography and Protocols"
+  },
+  "model": "coredata.course",
+  "pk": 28
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "405",
+   "subject": "CMPT",
+   "title": "Cmpt. Algorithms"
+  },
+  "model": "coredata.course",
+  "pk": 29
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "413",
+   "subject": "CMPT",
+   "title": "Computational Linguistics"
+  },
+  "model": "coredata.course",
+  "pk": 30
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "416",
+   "subject": "CMPT",
+   "title": "Special Research Projects"
+  },
+  "model": "coredata.course",
+  "pk": 31
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "426",
+   "subject": "CMPT",
+   "title": "Practicum I"
+  },
+  "model": "coredata.course",
+  "pk": 32
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "427",
+   "subject": "CMPT",
+   "title": "Practicum II"
+  },
+  "model": "coredata.course",
+  "pk": 33
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "428",
+   "subject": "CMPT",
+   "title": "Practicum III"
+  },
+  "model": "coredata.course",
+  "pk": 34
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "429",
+   "subject": "CMPT",
+   "title": "Practicum IV"
+  },
+  "model": "coredata.course",
+  "pk": 35
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "430",
+   "subject": "CMPT",
+   "title": "Practicum V"
+  },
+  "model": "coredata.course",
+  "pk": 36
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "431",
+   "subject": "CMPT",
+   "title": "Distributed Systems"
+  },
+  "model": "coredata.course",
+  "pk": 37
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "454",
+   "subject": "CMPT",
+   "title": "Database Systems II"
+  },
+  "model": "coredata.course",
+  "pk": 38
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "464",
+   "subject": "CMPT",
+   "title": "Geometric Modeling in CG"
+  },
+  "model": "coredata.course",
+  "pk": 39
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "466",
+   "subject": "CMPT",
+   "title": "Animation"
+  },
+  "model": "coredata.course",
+  "pk": 40
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "470",
+   "subject": "CMPT",
+   "title": "Web-Based Info Syst"
+  },
+  "model": "coredata.course",
+  "pk": 41
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "471",
+   "subject": "CMPT",
+   "title": "Networking II"
+  },
+  "model": "coredata.course",
+  "pk": 42
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "473",
+   "subject": "CMPT",
+   "title": "Software Quality Assurance"
+  },
+  "model": "coredata.course",
+  "pk": 43
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "475",
+   "subject": "CMPT",
+   "title": "Software Engineering II"
+  },
+  "model": "coredata.course",
+  "pk": 44
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "496",
+   "subject": "CMPT",
+   "title": "Directed Studies"
+  },
+  "model": "coredata.course",
+  "pk": 45
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "497",
+   "subject": "CMPT",
+   "title": "Dual Degree Capstone Project"
+  },
+  "model": "coredata.course",
+  "pk": 46
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "705",
+   "subject": "CMPT",
+   "title": "Design/Analysis Algorithms"
+  },
+  "model": "coredata.course",
+  "pk": 47
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "740",
+   "subject": "CMPT",
+   "title": "Database Systems"
+  },
+  "model": "coredata.course",
+  "pk": 48
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "764",
+   "subject": "CMPT",
+   "title": "Geometric Modeling in CG"
+  },
+  "model": "coredata.course",
+  "pk": 49
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "771",
+   "subject": "CMPT",
+   "title": "Internet Arch and Protocols"
+  },
+  "model": "coredata.course",
+  "pk": 50
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "781",
+   "subject": "CMPT",
+   "title": "Technical Communication"
+  },
+  "model": "coredata.course",
+  "pk": 51
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "815",
+   "subject": "CMPT",
+   "title": "Algorithms/Optimiz."
+  },
+  "model": "coredata.course",
+  "pk": 52
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "826",
+   "subject": "CMPT",
+   "title": "Automated Learning Reasoning"
+  },
+  "model": "coredata.course",
+  "pk": 53
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "828",
+   "subject": "CMPT",
+   "title": "Illumination in Images"
+  },
+  "model": "coredata.course",
+  "pk": 54
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "880",
+   "subject": "CMPT",
+   "title": "Spec.Top. in Computing Science"
+  },
+  "model": "coredata.course",
+  "pk": 55
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "881",
+   "subject": "CMPT",
+   "title": "Spec.Top./Theoretical Cmpt."
+  },
+  "model": "coredata.course",
+  "pk": 56
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "882",
+   "subject": "CMPT",
+   "title": "Spc.Topics Art. Intelligence"
+  },
+  "model": "coredata.course",
+  "pk": 57
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "886",
+   "subject": "CMPT",
+   "title": "Special Topics Operating Syst"
+  },
+  "model": "coredata.course",
+  "pk": 58
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "888",
+   "subject": "CMPT",
+   "title": "Spec.Topics/Graphics,HCI,Visn"
+  },
+  "model": "coredata.course",
+  "pk": 59
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "889",
+   "subject": "CMPT",
+   "title": "Spec.Topics / Interdisc Cmpt"
+  },
+  "model": "coredata.course",
+  "pk": 60
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "894",
+   "subject": "CMPT",
+   "title": "Directed Reading"
+  },
+  "model": "coredata.course",
+  "pk": 61
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "896",
+   "subject": "CMPT",
+   "title": "MSc Portfolio"
+  },
+  "model": "coredata.course",
+  "pk": 62
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "897",
+   "subject": "CMPT",
+   "title": "M.Sc. Project"
+  },
+  "model": "coredata.course",
+  "pk": 63
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "898",
+   "subject": "CMPT",
+   "title": "M.Sc. Thesis"
+  },
+  "model": "coredata.course",
+  "pk": 64
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "899",
+   "subject": "CMPT",
+   "title": "Ph.D. Thesis"
+  },
+  "model": "coredata.course",
+  "pk": 65
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "101",
+   "subject": "MACM",
+   "title": "Discrete Math I"
+  },
+  "model": "coredata.course",
+  "pk": 66
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "201",
+   "subject": "MACM",
+   "title": "Discrete Math II"
+  },
+  "model": "coredata.course",
+  "pk": 67
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "203",
+   "subject": "MACM",
+   "title": "Computing with Linear Algebra"
+  },
+  "model": "coredata.course",
+  "pk": 68
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "300",
+   "subject": "MACM",
+   "title": "Formal Languages/Automata"
+  },
+  "model": "coredata.course",
+  "pk": 69
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "316",
+   "subject": "MACM",
+   "title": "Numerical Analysis I"
+  },
+  "model": "coredata.course",
+  "pk": 70
  },
  {
   "fields": {
