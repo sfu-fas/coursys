@@ -35,10 +35,10 @@ $(document).ready(function() {
     {% if 'SYSA' in roles %}<li><a href="{% url coredata.views.sysadmin %}">System Administration</a></li>{% endif %}
     {% if staff_memberships %}<li><a href="{% url dashboard.views.list_docs %}">View Documentation</a></li>{% endif %}
     {% if 'ADVS' in roles %}<li><a href="{% url advisornotes.views.advising %}">Advisor Notes</a></li>{% endif %}
-    {% if 'GRAD' in roles %}<li><a href="{% url grad.views.index %}">Grad Student</a></li>{% endif %}
-    {% if 'FUND' in roles %}<li><a href="{% url ra.views.index %}">Research Associates</a></li>{% endif %}
+    {% if 'GRAD' in roles %}<li class='newsec'>GRAD:</li><li ><a href="{% url grad.views.index %}">Grad Student</a></li>{% endif %}
+    {% if 'FUND' in roles %}<li class='newsec'><a href="{% url ra.views.index %}">Research Associates</a></li>{% endif %}
     {% if 'ADMN' in roles %}<li><a href="{% url ta.views.all_tugs_admin %}">Time Use Guidelines</a></li>{% endif %}
-     <li><a href="{% url ta.views.view_TA_postings %}">TA Job Postings</a></li>
+     <li  class='newsec'><a href="{% url ta.views.view_TA_postings %}">TA Job Postings</a></li>
 	 <li><a href="{% url ta.views.new_contract %}">TA Contract</a></li>
 	 </ul>
 </div>
