@@ -1,5 +1,5 @@
 from django.db import models
-from coredata.models import Person, Member, CourseOffering, Semester, Unit
+from coredata.models import Person, Member, Course, Semester, Unit
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter #, getter_setter_2
 
@@ -188,7 +188,7 @@ EXPER_CHOICES = (
 
 class CoursePreference(models.Model):
     app = models.ForeignKey(TAApplication)
-    course = models.ForeignKey(CourseOffering)
+    course = models.ForeignKey(Course)
     taken = models.CharField(max_length=3, choices=TAKEN_CHOICES, blank=False, null=False)
     exper = models.CharField(max_length=3, choices=EXPER_CHOICES, blank=False, null=False)
 
