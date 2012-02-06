@@ -141,7 +141,7 @@ class TA_Job_Posting(models.Model):
     semester = models.ForeignKey(Semester)
     department = models.ForeignKey(Unit)
     #course = models.ForeignKey(CourseOffering)
-    def __unicode__(self):
+    def __unicode__(self): 
         return "deparment: %s  Semester: %s" % (self.department, self.semester)
 
     

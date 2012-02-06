@@ -188,7 +188,7 @@ def all_applications(request):
     return render(request, 'ta/all_applications.html', {'applications':applications})
 
 @login_required
-def view_TA_postings(request):
+def view_TA_postings(request): 
     #ta_posting = TA_Job_Posting.objects.order_by(Semester)
     ta_posting_list = CourseOffering.objects.order_by('semester')
     context = {'posting_list':ta_posting_list,
