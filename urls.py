@@ -184,7 +184,7 @@ urlpatterns += patterns('',
 	url(r'^ta/view_TA_postings.html$', 'ta.views.view_TA_postings'),
 	
 	#url(r'ta/contract/$', 'ta.views.index'),
-	#url(r'ta/contract/new$', 'ta.views.new_contract'),
+	url(r'^ta/contract/new', 'ta.views.new_contract'),
 	#url(r'ta/contract/all', 'ta.views.all_contracts'),
 	
     
