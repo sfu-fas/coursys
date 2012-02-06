@@ -1,5 +1,5 @@
 from django.core.urlresolvers import reverse
-from django.shortcuts import render_to_response, get_object_or_404, render
+from django.shortcuts import render_to_response, get_object_or_404, get_list_or_404, render
 from django.http import HttpResponseRedirect, HttpResponse
 from grad.models import *
 from coredata.models import Person, Role, Unit, Semester
@@ -48,7 +48,7 @@ def view_all(request, userid):
     # will display academic, personal, FIN, status history, supervisor
     grad = get_object_or_404(GradStudent, slug=userid)
     supervisors = get_object_or_404(Supervisor, student=grad.id)
-    status = get_object_or_404(GradStatus, student=grad.id)
+    status = get_list_or_404(GradStatus, student=grad.id)
     
     # set frontend defaults
     page_title = "%s 's Graduate Student Record" % (grad.person.first_name)
@@ -56,7 +56,7 @@ def view_all(request, userid):
     gp = grad.person.get_fields 
     gr = grad.get_fields
     supervisors = supervisors.get_fields
-    gs = status.get_fields
+    gs = [s.get_fields for s in status]
     context = {
                'page_title' : page_title,
                'crumb' : crumb,
