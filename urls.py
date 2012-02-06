@@ -175,12 +175,18 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_SLUG + '/config/tugs/' + USERID_SLUG + '/new$', 'ta.views.new_tug'),
     url(r'^' + COURSE_SLUG + '/config/tugs/' + USERID_SLUG + '/view$', 'ta.views.view_tug'),
     url(r'^' + COURSE_SLUG + '/config/tugs/' + USERID_SLUG + '/edit$', 'ta.views.edit_tug'),
-
+	 
     #End TUG URL mappings
     
     url(r'^ta/apply$', 'ta.views.new_application'),
     url(r'^ta/application/all$', 'ta.views.all_applications'),
     url(r'^ta/application/' + APP_ID + '$', 'ta.views.view_application'),
+	url(r'^ta/view_TA_postings.html$', 'ta.views.view_TA_postings'),
+	
+	#url(r'ta/contract/$', 'ta.views.index'),
+	#url(r'ta/contract/new$', 'ta.views.new_contract'),
+	#url(r'ta/contract/all', 'ta.views.all_contracts'),
+	
     
     url(r'^discipline/$', 'discipline.views.chair_index'),
     url(r'^discipline/' + COURSE_SLUG + '/' + CASE_SLUG + '/create$', 'discipline.views.chair_create'),
@@ -250,7 +256,8 @@ urlpatterns += patterns('',
     url(r'ra/$', 'ra.views.index'),
     url(r'ra/new$', 'ra.views.new'),
 
-    
+   
+	
     
 )
 if not settings.DEPLOYED:
