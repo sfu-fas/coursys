@@ -1397,10 +1397,13 @@ div.note-box{
 	border:1px solid #ccc;
 	-moz-border-radius: 5px;
     -webkit-border-radius: 5px;
-    width: 400px;
+    width: 800px;
 	padding:10px;
 	padding-top:0px;
 	margin-left: 10px;
 	margin-bottom: 20px;
 }
-
+div.note-box p.hideshow {
+  text-align: right;
+  font-size: smaller;
+}

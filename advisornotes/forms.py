@@ -7,6 +7,10 @@ from django.utils.encoding import force_unicode
 class AdvisorNoteForm(forms.ModelForm):
     class Meta:
         model = AdvisorNote
+        exclude = ('hidden',)
+        widgets = {
+                'text': forms.Textarea(attrs={'cols': 80, 'rows': 25})
+                }
 
 class StudentSelect(forms.Select):
     input_type = 'text'

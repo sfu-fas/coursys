@@ -5,6 +5,7 @@ from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.gzip import gzip_page
 from courselib.auth import *
+from coredata.models import Role
 from grades.models import ACTIVITY_STATUS, all_activities_filter, Activity
 from groups.models import *
 from submission.models import GroupSubmission, StudentSubmission
@@ -12,7 +13,7 @@ from datetime import datetime
 from submission.models import *
 from grades.utils import generate_numeric_activity_stat,generate_letter_activity_stat
 
-from dashboard.views import _get_memberships, _get_news_list, _get_roles
+from dashboard.views import _get_memberships, _get_news_list
 
 @login_required
 @gzip_page
@@ -20,7 +21,7 @@ def index(request):
     userid = request.user.username
     memberships = _get_memberships(userid)
     news_list = _get_news_list(userid, 2)
-    roles = _get_roles(userid)
+    roles = Role.all_roles(userid)
 
     context = {'memberships': memberships ,'news_list': news_list, 'roles': roles}
     return render_to_response('mobile/dashboard.html',

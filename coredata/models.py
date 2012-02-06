@@ -603,3 +603,6 @@ class Role(models.Model):
     class Meta:
         unique_together = (('person', 'role', 'unit'),)
 
+    @classmethod
+    def all_roles(cls, userid):
+        return set((r.role for r in Role.objects.filter(person__userid=userid)))

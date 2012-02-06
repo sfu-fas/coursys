@@ -2,11 +2,12 @@ from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.shortcuts import render_to_response, get_object_or_404, render, redirect
 from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
 from advisornotes.models import AdvisorNote
 from coredata.models import Member, Person, Role, Unit
 from django.template import RequestContext
 from courselib.auth import *
-from forms import *
+from advisornotes.forms import AdvisorNoteForm, StudentSelect, StudentField, StudentSearchForm
 from django.contrib import messages
 from courselib.search import get_query
 import json
@@ -33,23 +34,28 @@ def advising(request, student_id=None):
         form = StudentSearchForm()
     context = {'form': form}
     return render_to_response('advisornotes/student_search.html', context, context_instance=RequestContext(request))
-    
+
 # AJAX/JSON for student search autocomplete
+@login_required
 def student_search(request):
+    # check permissions
+    roles = Role.all_roles(request.user.username)
+    allowed = set(['ADVS', 'ADMN', 'GRAD'])
+    if not(roles & allowed):
+        # doesn't have any allowed roles
+        return ForbiddenResponse(request, "Not permitted to do student search.")
+    
     if 'term' not in request.GET:
         return ForbiddenResponse(request, "Must provide 'term' query.")
     term = request.GET['term']
     response = HttpResponse(mimetype='application/json')
     data = []
     query = get_query(term, ['person__userid', 'person__emplid', 'person__first_name', 'person__last_name'])
-    #students = Person.objects.filter(query)
-    sids = Member.objects.filter(role="STUD").filter(query).values_list('person_id', flat=True).distinct()
 
-    for sid in set(sids):
-        s = Person.objects.get(pk=sid)
-        label = s.search_label_value()
-        d = {'value': s.emplid, 'label': label}
-        data.append(d)
+    members = Member.objects.filter(role="STUD").filter(query).select_related('person')[:500]
+    people = set((m.person for m in members))
+    data = [{'value': p.emplid, 'label': p.search_label_value()} for p in people]
+
     json.dump(data, response, indent=1)
     return response
 
@@ -91,8 +97,8 @@ def new_note(request,userid):
  
 @requires_advisor
 def view_note(request, userid, note_id):
-    note = get_object_or_404(AdvisorNote, pk = note_id)
-    student = Person.objects.get(userid = userid)
+    note = get_object_or_404(AdvisorNote, pk=note_id)
+    student = Person.objects.get(userid=userid)
     return render(request, 'advisornotes/view_note.html', {'note': note, 'student':student}, context_instance=RequestContext(request))
 
 @requires_advisor
@@ -108,7 +114,7 @@ def student_notes(request,userid):
             
     depts = Role.objects.filter(person__userid=request.user.username, role='ADVS').values('unit_id')
     notes = AdvisorNote.objects.filter(student__userid=userid, unit__id__in=depts).order_by("-created_at")
-    student = Person.objects.get(userid = userid)
+    student = Person.objects.get(userid=userid)
     return render(request, 'advisornotes/student_notes.html', {'notes': notes, 'student' : student}, context_instance=RequestContext(request))
     
 @requires_advisor

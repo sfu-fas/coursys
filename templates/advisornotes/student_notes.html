@@ -68,7 +68,6 @@ $(document).ready(function() {
 </div>
 
 {%if notes %}
-<!--<div class="datatable_container">-->
   {% for note in notes %}
     <h2 class="note{% if not note.hidden %} show{% endif %}" id="note-{{note.id}}">{{note.created_at}} by {{note.advisor.first_name}} {{note.advisor.last_name}}</h2>
     <div class="note-box" id="note-box-{{note.id}}">
@@ -78,7 +77,7 @@ $(document).ready(function() {
     <p><img src="{{MEDIA_URL}}icons/attach.png" alt="download" /><a href="{% url advisornotes.views.download_file userid=note.student_id note_id=note.id%}">{{ note.attachment_filename }}</a> </p> 
     {% endif %}
 	
-	<p>
+	<p class="hideshow">
 	{% if note.hidden %}
     <input type="checkbox" class="hide-show" value="{{note.id}}" checked="checked" />
     {% else %}
@@ -88,8 +87,6 @@ $(document).ready(function() {
     </p>
     </div>
   {% endfor %}
-
-<!--</div>-->
 {%else%}
 	<p>No notes yet</p>
 {%endif%}

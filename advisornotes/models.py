@@ -21,16 +21,16 @@ class AdvisorNote(models.Model):
     """
     An academic advisor's note about a student. 
     """
-    text = models.TextField(blank=False, null=False, verbose_name="Contents of note.",
-                            help_text='Enter a note about a student')
+    text = models.TextField(blank=False, null=False, verbose_name="Contents",
+                            help_text='Note about a student')
     student = models.ForeignKey(Person, related_name='student',
-                                help_text='The student that the note is about.',
-                                editable = False)
+                                help_text='The student that the note is about',
+                                editable=False)
     advisor = models.ForeignKey(Person, related_name='advisor',
-                                help_text='The advisor that created the note.',
-                                editable = False)
+                                help_text='The advisor that created the note',
+                                editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    file_attachment = models.FileField(storage=NoteSystemStorage, null = True, 
+    file_attachment = models.FileField(storage=NoteSystemStorage, null=True, 
                       upload_to=attachment_upload_to, blank=True, max_length=500)
     file_mediatype = models.CharField(null=True, blank=True, max_length=200, editable = False)
     unit = models.ForeignKey(Unit, help_text='The academic unit that owns this note')

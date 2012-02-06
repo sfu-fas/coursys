@@ -51,7 +51,7 @@ def index(request):
     memberships = _get_memberships(userid)
     staff_memberships = [m for m in memberships if m.role in ['INST', 'TA', 'APPR']] # for docs link
     news_list = _get_news_list(userid, 5)
-    roles = _get_roles(userid)
+    roles = Role.all_roles(userid)
         
     context = {'memberships': memberships, 'staff_memberships': staff_memberships, 'news_list': news_list, 'roles': roles}
     return render_to_response("dashboard/index.html",context,context_instance=RequestContext(request))
@@ -101,9 +101,6 @@ def _get_memberships(userid):
             .select_related('offering','offering__semester')
     memberships = [m for m in memberships if _display_membership(m, today, past1)]
     return memberships
-
-def _get_roles(userid):
-    return set((r.role for r in Role.objects.filter(person__userid=userid)))
 
 def _get_news_list(userid, count):
     past_1mo = datetime.datetime.today() - datetime.timedelta(days=30) # 1 month ago
