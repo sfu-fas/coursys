@@ -18,7 +18,7 @@
 <li class="newsec">Manage:</li>
 <li><a href="{% url grad.views.manage_academics userid=grad.slug %}">Academics</a></li>
 <li><a href="{% url grad.views.manage_supervisors userid=grad.slug  %}">Supervisors</a></li>
-<li><a href="">Status</a></li>
+<li><a href="{% url grad.views.manage_status userid=grad.slug  %}">Status</a></li>
 {% endif %}
 
 {% if not grad %}

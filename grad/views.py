@@ -33,7 +33,7 @@ def index(request):
     grads = GradStudent.objects.all()
     
     # set frontend defaults
-    page_title = 'Gradate Student Records'  
+    page_title = 'Graduate Student Records'  
     crumb = 'Grads' 
     context = {
                'page_title' : page_title,
@@ -51,11 +51,11 @@ def view_all(request, userid):
     status = get_object_or_404(GradStatus, student=grad.id)
     
     # set frontend defaults
-    page_title = "%s 's Gradate Student Record" % (grad.person.first_name)  
+    page_title = "%s 's Graduate Student Record" % (grad.person.first_name)
     crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
     gp = grad.person.get_fields 
     gr = grad.get_fields
-    supervisors = supervisors.get_fields 
+    supervisors = supervisors.get_fields
     gs = status.get_fields
     context = {
                'page_title' : page_title,
@@ -82,7 +82,7 @@ def manage_supervisors(request, userid):
         supervisors_form = SupervisorForm(instance=supervisors, prefix="sup") 
 
     # set frontend defaults
-    page_title = "%s 's Gradate Student Record" % (grad.person.first_name)  
+    page_title = "%s 's Graduate Student Record" % (grad.person.first_name)
     crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
     gp = grad.person.get_fields 
     supervisors = supervisors.get_fields 
@@ -109,7 +109,7 @@ def manage_academics(request, userid):
         grad_form = GradStudentForm(instance=grad, prefix="grad")
 
     # set frontend defaults
-    page_title = "%s 's Gradate Student Record" % (grad.person.first_name)  
+    page_title = "%s 's Graduate Student Record" % (grad.person.first_name)
     crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
     gp = grad.person.get_fields 
     context = {'grad_form': grad_form,
@@ -120,6 +120,35 @@ def manage_academics(request, userid):
                }
     return render(request, 'grad/manage_academics.html', context)
 
+
+@requires_role("GRAD")
+def manage_status(request, userid):
+    grad = get_object_or_404(GradStudent, slug=userid)
+    status = get_object_or_404(GradStatus, student=grad.id)
+
+    if request.method == 'POST':
+        status_form = GradStatusForm(request.POST, instance=status, prefix="stat")
+        if status_form.is_valid():
+            status_form.save()
+            return HttpResponseRedirect(reverse(index))
+    else:
+        status_form = GradStatusForm(instance=status, prefix="stat")
+
+    # set frontend defaults
+    page_title = "%s 's Graduate Student Record" % (grad.person.first_name)
+    crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
+    gp = grad.person.get_fields
+    status = status.get_fields
+    context = {
+               'status_form': status_form,
+               'page_title' : page_title,
+               'crumb' : crumb,
+               'grad' : grad,
+               'gp' : gp,
+               'status' : status
+               }
+    return render(request, 'grad/manage_status.html', context)
+    
 @requires_role("GRAD")
 def new(request):
     if request.method == 'POST':
@@ -147,7 +176,7 @@ def new(request):
         #initial for start returns nothing if there are no future semester available in DB 
 
     # set frontend defaults
-    page_title = 'New Gradate Student Record'  
+    page_title = 'New Graduate Student Record'
     crumb = 'New Grad' 
     context = {
                'grad_form': grad_form,
@@ -184,7 +213,7 @@ def programs(request):
     programs = GradProgram.objects.all()
     
     # set frontend defaults
-    page_title = 'Gradate Programs Records'  
+    page_title = 'Graduate Programs Records'
     crumb = 'Grad Programs' 
     context = {
                'page_title' : page_title,
