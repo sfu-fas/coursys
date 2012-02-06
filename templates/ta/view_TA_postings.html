@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load mobile_tags %}
+
+{% block h1 %}TA Job Postings{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; All TA Postings</li>
+
+{% endblock %}
+
+{%block content %}
+<ul>
+{% for dep in department %}
+
+<li>{{dep}}</li>
+
+{% endfor %}
+</ul>
+{% endblock %}
