@@ -7,6 +7,7 @@ from django.core.urlresolvers import reverse
 from dashboard.models import NewsItem
 from django.conf import settings
 from courselib.slugs import make_slug
+from courselib.svn import update_group_repository
 import datetime, urlparse
 
 
@@ -56,6 +57,12 @@ class GroupMember(models.Model):
     class Meta:
         unique_together = ("student", "activity")
         ordering = ["student__person", "activity"]
+
+    def save(self, *args, **kwargs):
+        super(GroupMember, self).save(*args, **kwargs)
+        # update group's SVN repo
+        if settings.SVN_DB_CONNECT: # don't try if not configured
+            update_group_repository(self.group.courseoffering, self.group)
 
     def student_editable(self, userid):
         """

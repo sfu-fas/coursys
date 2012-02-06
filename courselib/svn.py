@@ -1,7 +1,6 @@
 # functions to manipulate the SVN repositories
 from django.conf import settings
 from coredata.models import Member, repo_name
-from groups.models import Group
 import MySQLdb
 
 SVN_TABLE = "subversionacl"
@@ -111,6 +110,7 @@ def update_offering_repositories(offering):
         update_indiv_repository(offering, m, instr, repos)
 
     # group repositories
+    from groups.models import Group
     groups = Group.objects.filter(courseoffering=offering).select_related('courseoffering')
     for g in groups:
         update_group_repository(offering, g, instr, repos)
@@ -120,6 +120,9 @@ def update_indiv_repository(offering, m, instr, repos):
     """
     Update repository for one member
     """
+    if not offering.uses_svn():
+        return
+
     from coredata.tasks import update_repository_task
     if m.person.userid is None:
         return
@@ -148,6 +151,9 @@ def update_group_repository(offering, g, instr=None, repos=None):
     
     Also called from GroupMember.save() to update repos when necessary.
     """
+    if not offering.uses_svn():
+        return
+
     from coredata.tasks import update_repository_task
     if instr is None or repos is None:
         # if called from GroupMember.save(), we won't have these for free
