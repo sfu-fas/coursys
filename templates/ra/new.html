@@ -10,8 +10,8 @@
 {% block content %}
     <form action="{% url ra.views.new %}" method="POST">{% csrf_token %}
         <fieldset>
-            <legend>Infromation</legend>
-            {{ form|as_dl }}
+            <legend>Personal Information</legend>
+            {{ raform|as_dl }}
             <p><input type="submit" value="Submit"></p>
         </fieldset>
     </form>

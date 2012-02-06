@@ -1,8 +1,8 @@
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response, get_object_or_404, render
 from django.http import HttpResponseRedirect, HttpResponse
-from ra.models import RAAppointment
-from ra.forms import RAAppointmentForm
+from ra.models import RAAppointment, Project, Account
+from ra.forms import *
 from coredata.models import Person, Role, Unit
 from django.template import RequestContext
 from django.forms import *
@@ -16,10 +16,20 @@ def index(request):
 
 @requires_role("FUND")
 def new(request):
-    form = RAAppointmentForm(request.POST or None)
+
+    def create_new_project(self, new_project_number, new_fund_number):
+        new_project = Project(project_number=new_project_number,
+                              fund_number=new_fund_number)
+        new_project.save()
+    
+    def create_new_account(self, new_account_number, new_position_number):
+        new_account = Account(account_number=new_account_number,
+                              position_number=new_position_number)
+        new_account.save()
+    
+    raform = RAForm(request.POST or None)
     if request.method == 'POST':
-        if form.is_valid():
-            #TODO: check to see if fund/account/position/job #'s need to be added
-            form.save()
+        if raform.is_valid():
+            raform.save()
             return HttpResponseRedirect(reverse(index))
-    return render(request, 'ra/new.html', {'form': form})
+    return render(request, 'ra/new.html', { 'raform': raform })
