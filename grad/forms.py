@@ -14,18 +14,20 @@ class SupervisorForm(ModelForm):
     
     class Meta:
         model = Supervisor
-        exclude = ('student', 'is_potential', 'is_senior', 'position' )
+        exclude = ('student', 'is_potential', 'is_senior', 'position', 'created_by', 'modified_by' )
         
 class GradProgramForm(ModelForm):
     class Meta:
         model = GradProgram
+        exclude = ('created_by', 'modified_by' )        
         
 class GradStudentForm(ModelForm):
     class Meta:
         model = GradStudent
+        exclude = ('created_by', 'modified_by' )
         
 class GradStatusForm(ModelForm):
     class Meta:
         model = GradStatus
-        exclude = ('end', 'student', 'notes')
+        exclude = ('end', 'student', 'notes', 'created_by')
         

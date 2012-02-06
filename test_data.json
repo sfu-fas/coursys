@@ -13084,37 +13084,7 @@
   },
   "model": "coredata.unit",
   "pk": 4
- }, {
-  "fields": {
-   "unit": 2,
-   "label": "BScience",
-   "description": "Including - Moon walk.",
-   "created_at": "2012-01-13 23:27:03",
-   "updated_at": "2012-01-13 23:27:03"
-  },
-  "model": "grad.gradprogram",
-  "pk": 1
- },  {
-  "fields": {
-   "unit": 2,
-   "label": "MScience",
-   "description": "Including - Shifting.",
-   "created_at": "2012-01-13 23:27:03",
-   "updated_at": "2012-01-13 23:27:03"
-  },
-  "model": "grad.gradprogram",
-  "pk": 2
- },  {
-  "fields": {
-   "unit": 2,
-   "label": "Arts!!!!!",
-   "description": "Including - jumping.",
-   "created_at": "2012-01-13 23:27:03",
-   "updated_at": "2012-01-13 23:27:03"
-  },
-  "model": "grad.gradprogram",
-  "pk": 3
- },
+ }, 
  {
   "fields": {
    "field": "contact_email_text", 
@@ -13347,21 +13317,23 @@
  
  
  
- {
+  {
   "fields": {
    "campus": "",
    "comments": "",
-   "created_at": "2012-02-03 23:23:34",
+   "created_at": "2012-02-06 15:33:31",
+   "created_by": "ggbaker",
    "english_fluency": "",
    "is_canadian": null,
+   "modified_by": null,
    "mother_tongue": "",
    "passport_issued_by": "",
-   "person": 8,
+   "person": 51,
    "program": 1,
-   "research_area": "123",
-   "slug": "haoz-bscience",
+   "research_area": "Rawr",
+   "slug": "bbart-jumping",
    "special_arrangements": null,
-   "updated_at": "2012-02-03 23:23:34"
+   "updated_at": "2012-02-06 15:33:31"
   },
   "model": "grad.gradstudent",
   "pk": 1
@@ -13370,71 +13342,121 @@
   "fields": {
    "campus": "",
    "comments": "",
-   "created_at": "2012-02-03 23:23:46",
+   "created_at": "2012-02-06 15:33:51",
+   "created_by": "ggbaker",
    "english_fluency": "",
    "is_canadian": null,
+   "modified_by": null,
    "mother_tongue": "",
    "passport_issued_by": "",
    "person": 34,
-   "program": 2,
-   "research_area": "789",
-   "slug": "petra-mscience",
+   "program": 1,
+   "research_area": "asdf",
+   "slug": "petra-jumping",
    "special_arrangements": null,
-   "updated_at": "2012-02-03 23:23:46"
+   "updated_at": "2012-02-06 15:33:51"
   },
   "model": "grad.gradstudent",
   "pk": 2
  },
  {
   "fields": {
-   "created_at": "2012-02-03 23:23:34",
+   "created_at": "2012-02-06 15:32:02",
+   "created_by": "",
+   "description": "Jacking",
+   "label": "Jumping ",
+   "modified_by": null,
+   "slug": "jumping",
+   "unit": 2,
+   "updated_at": "2012-02-06 15:32:02"
+  },
+  "model": "grad.gradprogram",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "created_at": "2012-02-06 15:32:15",
+   "created_by": "",
+   "description": "Johnny",
+   "label": "Skipping ",
+   "modified_by": null,
+   "slug": "skipping",
+   "unit": 2,
+   "updated_at": "2012-02-06 15:32:15"
+  },
+  "model": "grad.gradprogram",
+  "pk": 2
+ },
+ {
+  "fields": {
+   "created_at": "2012-02-06 15:32:24",
+   "created_by": "",
+   "description": "Puup",
+   "label": "Running ",
+   "modified_by": null,
+   "slug": "running",
+   "unit": 2,
+   "updated_at": "2012-02-06 15:32:24"
+  },
+  "model": "grad.gradprogram",
+  "pk": 3
+ },
+ {
+  "fields": {
+   "created_at": "2012-02-06 15:33:31",
+   "created_by": "ggbaker",
    "end": null,
    "notes": "",
    "start": 3,
    "status": "ACTI",
    "student": 1,
-   "updated_at": "2012-02-03 23:23:34"
+   "updated_at": "2012-02-06 15:33:31"
   },
   "model": "grad.gradstatus",
   "pk": 1
  },
  {
   "fields": {
-   "created_at": "2012-02-03 23:23:46",
+   "created_at": "2012-02-06 15:33:51",
+   "created_by": "ggbaker",
    "end": null,
    "notes": "",
-   "start": 5,
+   "start": 3,
    "status": "ACTI",
    "student": 2,
-   "updated_at": "2012-02-03 23:23:46"
+   "updated_at": "2012-02-06 15:33:51"
   },
   "model": "grad.gradstatus",
   "pk": 2
  },
  {
   "fields": {
-   "created_at": "2012-02-03 23:23:34",
+   "created_at": "2012-02-06 15:33:31",
+   "created_by": "ggbaker",
    "external": "",
    "is_potential": false,
    "is_senior": false,
+   "modified_by": null,
    "position": 0,
    "student": 1,
-   "supervisor": 29,
-   "updated_at": "2012-02-03 23:23:34"
+   "supervisor": 51,
+   "updated_at": "2012-02-06 15:33:31"
   },
   "model": "grad.supervisor",
   "pk": 1
  },
  {
   "fields": {
-   "created_at": "2012-02-03 23:23:46",
+   "created_at": "2012-02-06 15:33:51",
+   "created_by": "ggbaker",
    "external": "",
    "is_potential": false,
    "is_senior": false,
+   "modified_by": null,
    "position": 0,
    "student": 2,
-   "supervisor": 10,
-   "updated_at": "2012-02-03 23:23:46"
+   "supervisor": 138,
+   "updated_at": "2012-02-06 15:33:51"
   },
   "model": "grad.supervisor",
   "pk": 2
@@ -13442,6 +13464,30 @@
  
  
  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
  
  
  

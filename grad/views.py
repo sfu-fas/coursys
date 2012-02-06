@@ -77,12 +77,15 @@ def manage_supervisors(request, userid):
         supervisors_form = SupervisorForm(request.POST, instance=supervisors, prefix="sup")
         if supervisors_form.is_valid():
             supervisors_form.save()
+            superF = supervisors_form.save(commit=False)
+            superF.modified_by = request.user.username
+            superF.save()            
             return HttpResponseRedirect(reverse(index))
     else:
         supervisors_form = SupervisorForm(instance=supervisors, prefix="sup") 
 
     # set frontend defaults
-    page_title = "%s 's Graduate Student Record" % (grad.person.first_name)
+    page_title = "%s 's Supervisor(s) Record" % (grad.person.first_name)
     crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
     gp = grad.person.get_fields 
     supervisors = supervisors.get_fields 
@@ -103,13 +106,15 @@ def manage_academics(request, userid):
     if request.method == 'POST':
         grad_form = GradStudentForm(request.POST, instance=grad, prefix="grad")
         if grad_form.is_valid():
-            grad_form.save()
+            gradF = grad_form.save(commit=False)
+            gradF.modified_by = request.user.username
+            gradF.save()
             return HttpResponseRedirect(reverse(index))
     else:
         grad_form = GradStudentForm(instance=grad, prefix="grad")
 
     # set frontend defaults
-    page_title = "%s 's Graduate Student Record" % (grad.person.first_name)
+    page_title = "%s 's Graduate Academic Record" % (grad.person.first_name)
     crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
     gp = grad.person.get_fields 
     context = {'grad_form': grad_form,
@@ -136,7 +141,7 @@ def manage_status(request, userid):
         status_form = GradStatusForm(instance=status, prefix="stat")
 
     # set frontend defaults
-    page_title = "%s 's Graduate Student Record" % (grad.person.first_name)
+    page_title = "%s 's Status Record" % (grad.person.first_name)
     crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
     gp = grad.person.get_fields
     gs = [s.get_fields for s in gs]
@@ -159,15 +164,18 @@ def new(request):
         supervisors_form = SupervisorForm(request.POST, prefix="sup")
         status_form = GradStatusForm(request.POST, prefix="stat")
         if grad_form.is_valid() and supervisors_form.is_valid() and status_form.is_valid() :
-            print "All val passed"
-            gradF = grad_form.save()
+            gradF = grad_form.save(commit=False)
+            gradF.created_by = request.user.username
+            gradF.save()
             superF = supervisors_form.save(commit=False)
             supervisors_form.cleaned_data["student"] = gradF
             superF.student_id = gradF.id
             superF.position = 0
+            superF.created_by = request.user.username
             supervisors_form.save()
             statusF = status_form.save(commit=False)
             status_form.cleaned_data["student"] = gradF
+            statusF.created_by = request.user.username
             statusF.student_id = gradF.id
             status_form.save()
             return HttpResponseRedirect(reverse(index))

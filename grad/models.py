@@ -14,6 +14,8 @@ class GradProgram(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.CharField(max_length=32, null=False, help_text='Grad Program created by.')
+    modified_by = models.CharField(max_length=32, null=True, help_text='Grad Program modified by.')
     def autoslug(self):
         # strip the punctutation entirely
         sluglabel = ''.join((c for c in self.label if c.isalnum()))
@@ -45,6 +47,8 @@ class GradStudent(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.CharField(max_length=32, null=False, help_text='Grad Student created by.')
+    modified_by = models.CharField(max_length=32, null=True, help_text='Grad Student modified by.')
     def get_fields(self):
         # make a list of field/values.
         k = []
@@ -59,14 +63,16 @@ class Supervisor(models.Model):
     Member (or potential member) of student's supervisory committee.
     """
     student = models.ForeignKey(GradStudent)
-    supervisor = models.ForeignKey(Person, null=True, help_text="Please choose a Supervisor or enter an External Supervisor.")
+    supervisor = models.ForeignKey(Person, help_text="Please choose a Supervisor or enter an External Supervisor.")
     external = models.CharField(max_length=200, blank=True, null=True, help_text="And make sure only ONE is filled.")
     position = models.SmallIntegerField(null=False)
     is_senior = models.BooleanField()
     is_potential = models.BooleanField()
     
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)    
+    updated_at = models.DateTimeField(auto_now=True) 
+    created_by = models.CharField(max_length=32, null=False, help_text='Supervisor added by.')
+    modified_by = models.CharField(max_length=32, null=True, help_text='Supervisor modified by.')      
     class Meta:
         unique_together = ("student", "position")
     
@@ -74,7 +80,7 @@ class Supervisor(models.Model):
         # make a list of field/values.
         k = []
         for field in Supervisor._meta.fields:
-            if field.verbose_name == "ID" or field.name == "created_at" or field.name == "external":
+            if field.verbose_name == "ID" or field.name == "external":
                 pass
             else:
                 k.append([capfirst(field.verbose_name), field.value_to_string(self)])
@@ -141,7 +147,8 @@ class GradStatus(models.Model):
             help_text="Final semester of this status: blank for ongoing")
     notes = models.TextField(blank=True, help_text="Other notes")
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)    
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.CharField(max_length=32, null=False, help_text='Grad Status added by.') 
 
     def get_fields(self):
         # make a list of field/values.
