@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block content %}
+
+<div id="form_container">
+<form action="{% url ta.views.new_contract %}" method="post">{% csrf_token %}
+<fieldset>
+{{ c_form.as_p }}
+
+<p><input type="submit" class="submit" value="Submit" /></p>
+</fieldset>
+</form>
+</div>
+
+{% endblock %}

@@ -24,6 +24,7 @@ $(document).ready(function() {
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
+	
     <li><a href="{% url dashboard.views.news_list %}">All News Items</a></li>
     <li><a href="{% url dashboard.views.config %}">User Configuration</a></li>
     <li><a href="{% url dashboard.views.calendar %}">View Calendar</a></li>
@@ -38,7 +39,8 @@ $(document).ready(function() {
     {% if 'FUND' in roles %}<li><a href="{% url ra.views.index %}">Research Associates</a></li>{% endif %}
     {% if 'ADMN' in roles %}<li><a href="{% url ta.views.all_tugs_admin %}">Time Use Guidelines</a></li>{% endif %}
      <li><a href="{% url ta.views.view_TA_postings %}">TA Job Postings</a></li>
-    </ul>
+	 <li><a href="{% url ta.views.new_contract %}">TA Contract</a></li>
+	 </ul>
 </div>
 {% endblock %}
 

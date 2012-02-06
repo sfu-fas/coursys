@@ -4,9 +4,9 @@ from django.core.urlresolvers import reverse
 from courselib.auth import requires_course_staff_by_slug, requires_role, \
     is_course_staff_by_slug, has_role, ForbiddenResponse
 from django.contrib.auth.decorators import login_required
-from ta.models import TUG, TAApplication, Skill
+from ta.models import TUG, TAApplication, TAContract, Skill
 from coredata.models import Member, Role, CourseOffering, Person, Unit
-from ta.forms import CoursePreferenceForm, TAApplicationForm, TUGForm
+from ta.forms import CoursePreferenceForm, TAApplicationForm, TUGForm, TAContractForm
 
 @requires_course_staff_by_slug
 def index_page(request, course_slug):
@@ -194,9 +194,30 @@ def view_TA_postings(request):
     context = {'posting_list':ta_posting_list,
                'department': Unit.objects.all()}
     #{'ta_posting':ta_posting}
-    return render(request, 'ta/view_TA_postings.html', context)
+    return render(request, 'ta/view_TA_postings.html', context) 
 
 @login_required
 def view_application(request, app_id):
     application = TAApplication.objects.get(id=app_id)
     return render(request, 'ta/view_application.html', {'application':application})
+
+
+@login_required
+def new_contract(request):
+    if request.method == "POST":
+        c_form = TAContractForm(request.POST)
+        if c_form.is_valid():
+            contract = ta_form.save(commit=False)
+            
+        else: 
+            print c_form
+            print "c_form" + str(c_form.is_valid())
+        return HttpResponseRedirect('')
+    else:
+        c_form = TAContractForm()
+        context = {'c_form': c_form,
+                   }
+        return render(request, 'ta/new_contract.html',context)
+        
+        
+        

@@ -1,5 +1,5 @@
 from django.db import models
-from coredata.models import Person, Member, Course, Semester, Unit
+from coredata.models import Person, Member, Course, Semester, Unit ,CourseOffering
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter #, getter_setter_2
 
@@ -104,7 +104,7 @@ CATEGORY_CHOICES = (
         ('MAS', 'Masters'),
         ('UGR', 'Undergrad'),
         ('EXT', 'External'),
-        )
+)
 
 class TAApplication(models.Model):
     """
@@ -144,15 +144,22 @@ class TA_Job_Posting(models.Model):
     def __unicode__(self): 
         return "deparment: %s  Semester: %s" % (self.department, self.semester)
 
-    
-#what are the appointment categories?
-"""APPOINTMENT_CHOICES = (
-        ('GTA1', 'GTA1: ') 
-        )"""
+APPOINTMENT_CHOICES=(
+		('GTA1', 'Masters Student'),
+		('GTA2','PhD Student'),
+		('UTA','Undergrad'),
+		('ETA','External')
+        )
+
+DESC_CHOICES = (
+        ('OML','office/marking/lab'),
+        ('OM','office/marking')
+    )
+
 
 class TAContract(models.Model):
     """    
-    TA Contract
+    TA Contract, filled in by ADMN Departmental Administrator.../ta etc
     """
     person = models.ForeignKey(Person)
     department = models.ForeignKey(Unit)
@@ -160,19 +167,27 @@ class TAContract(models.Model):
     appt_end = models.DateField()
     pay_start = models.DateField()
     pay_end = models.DateField()
-    position_number = models.DecimalField(max_digits=5, decimal_places=0)
-    #appt_category = models.CharField(max_length=4, choices=APPOINTMENT_CHOICES)
+    position_number = models.IntegerField()
+    appt_category = models.CharField(max_length=4, choices=APPOINTMENT_CHOICES)
     init_appt = models.BooleanField(verbose_name="Initial appointment to this position")
     other_appt = models.BooleanField(verbose_name="Reappointment to same position or revision to appointment")
     sin = models.PositiveIntegerField(unique=True)
     
-    ##need to clarify how to deal with courses and BU to calculate salary and scholarship
-    
+    courses = models.ForeignKey(CourseOffering)
+    description = models.CharField(max_length=3, choices=DESC_CHOICES, blank=False, null=False)
+      
+    total_bu = models.DecimalField(max_digits=4, decimal_places=2)
+    pay_per_bu = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Pay per Base Unit Semester Rate.",
+                help_text='Usually $934.00 per BU per Semester')
+    scholarship_per_bu = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Scholarship per Base Unit Semester Rate.",
+        help_text='Usually $129.00 per BU per Semester')
     remarks = models.TextField(verbose_name="Remarks")
     deadline = models.DateField()
     appt_cond = models.BooleanField()
     appt_tssu = models.BooleanField()
-
+    
+    def __unicode__(self):
+        return (self.member.person.userid)
 
 TAKEN_CHOICES = (
         ('YES', 'Yes: this course at SFU'),
@@ -183,8 +198,6 @@ TAKEN_CHOICES = (
 EXPER_CHOICES = (
         ('TST', 'Placeholder option'),
         )
-
-
 
 class CoursePreference(models.Model):
     app = models.ForeignKey(TAApplication)
