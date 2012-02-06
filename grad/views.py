@@ -124,7 +124,8 @@ def manage_academics(request, userid):
 @requires_role("GRAD")
 def manage_status(request, userid):
     grad = get_object_or_404(GradStudent, slug=userid)
-    status = get_object_or_404(GradStatus, student=grad.id)
+    gs = get_list_or_404(GradStatus, student=grad.id)
+    status = gs[0]
 
     if request.method == 'POST':
         status_form = GradStatusForm(request.POST, instance=status, prefix="stat")
@@ -138,6 +139,7 @@ def manage_status(request, userid):
     page_title = "%s 's Graduate Student Record" % (grad.person.first_name)
     crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
     gp = grad.person.get_fields
+    gs = [s.get_fields for s in gs]
     status = status.get_fields
     context = {
                'status_form': status_form,
@@ -145,6 +147,7 @@ def manage_status(request, userid):
                'crumb' : crumb,
                'grad' : grad,
                'gp' : gp,
+               'gs' : gs,
                'status' : status
                }
     return render(request, 'grad/manage_status.html', context)
