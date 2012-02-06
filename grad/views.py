@@ -1,10 +1,10 @@
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response, get_object_or_404, get_list_or_404, render
 from django.http import HttpResponseRedirect, HttpResponse
-from grad.models import *
+from grad.forms import *
 from coredata.models import Person, Role, Unit, Semester
 from django.template import RequestContext
-from django.forms import *
+from django import forms
 from django.forms.formsets import formset_factory
 from courselib.auth import *
 from django.core import serializers

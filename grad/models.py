@@ -1,6 +1,7 @@
 from django.db import models
 from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES
 from django.forms.models import ModelForm
+from django import forms
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from django.template.defaultfilters import capfirst
@@ -58,8 +59,8 @@ class Supervisor(models.Model):
     Member (or potential member) of student's supervisory committee.
     """
     student = models.ForeignKey(GradStudent)
-    supervisor = models.ForeignKey(Person, null=True)
-    external = models.CharField(max_length=200, blank=True, null=True)
+    supervisor = models.ForeignKey(Person, null=True, help_text="Please choose a Supervisor or enter an External Supervisor.")
+    external = models.CharField(max_length=200, blank=True, null=True, help_text="And make sure only ONE is filled.")
     position = models.SmallIntegerField(null=False)
     is_senior = models.BooleanField()
     is_potential = models.BooleanField()
@@ -79,7 +80,7 @@ class Supervisor(models.Model):
                 k.append([capfirst(field.verbose_name), field.value_to_string(self)])
         return k        
     def __unicode__(self):
-        return "%s supervising %s" % (self.supervisor or external, self.student.person)
+        return "%s supervising %s" % (self.supervisor or self.external, self.student.person)
 
     def save_custom(self, *args, **kwargs):
         # make sure the data is coherent: should also be in form validation for nice UI
@@ -151,22 +152,4 @@ class GradStatus(models.Model):
     
     def __unicode__(self):
         return "Grad Status: %s %s" % (self.status, self.student)      
-
-class SupervisorForm(ModelForm):
-    class Meta:
-        model = Supervisor
-        exclude = ('student', 'is_potential', 'is_senior', 'position' )
-        
-class GradProgramForm(ModelForm):
-    class Meta:
-        model = GradProgram
-        
-class GradStudentForm(ModelForm):
-    class Meta:
-        model = GradStudent
-        
-class GradStatusForm(ModelForm):
-    class Meta:
-        model = GradStatus
-        exclude = ('end', 'student', 'notes')
         
