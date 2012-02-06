@@ -1,7 +1,11 @@
 # functions to manipulate the SVN repositories
 from django.conf import settings
 from coredata.models import Member, repo_name
-import MySQLdb
+try:
+    import MySQLdb
+except ImportError:
+    # allow failure of import on devel
+    pass
 
 SVN_TABLE = "subversionacl"
 
