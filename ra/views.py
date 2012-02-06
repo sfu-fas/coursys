@@ -2,7 +2,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response, get_object_or_404, render
 from django.http import HttpResponseRedirect, HttpResponse
 from ra.models import RAAppointment, Project, Account
-from ra.forms import *
+from ra.forms import RAForm
 from coredata.models import Person, Role, Unit
 from django.template import RequestContext
 from django.forms import *
