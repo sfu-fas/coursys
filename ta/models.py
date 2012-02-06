@@ -143,6 +143,7 @@ class TA_Job_Posting(models.Model):
     #course = models.ForeignKey(CourseOffering)
     def __unicode__(self): 
         return "deparment: %s  Semester: %s" % (self.department, self.semester)
+    # for .config: apppointment start and end date, pay rates [100,150,200,150], scholarship rates [0,50,100,0]
 
 APPOINTMENT_CHOICES=(
 		('GTA1', 'Masters Student'),
