@@ -4,9 +4,9 @@ from django.core.urlresolvers import reverse
 from courselib.auth import requires_course_staff_by_slug, requires_role, \
     is_course_staff_by_slug, has_role, ForbiddenResponse
 from django.contrib.auth.decorators import login_required
-from ta.models import TUG, TAApplication, TAContract, Skill
+from ta.models import *
 from coredata.models import Member, Role, CourseOffering, Person, Unit
-from ta.forms import CoursePreferenceForm, TAApplicationForm, TUGForm, TAContractForm
+from ta.forms import *
 
 @requires_course_staff_by_slug
 def index_page(request, course_slug):
@@ -160,17 +160,20 @@ def new_application(request):
     if request.method == "POST":
         ta_form = TAApplicationForm(request.POST, prefix='ta')
         course_form = CoursePreferenceForm(request.POST, prefix='course')
-        if ta_form.is_valid():
-        #if ta_form.is_valid() and course_form.is_valid():
+        if ta_form.is_valid() and course_form.is_valid():
             person = get_object_or_404(Person, userid=request.user.username)
             app = ta_form.save(commit=False)
             app.person = person
             app.save()
+
+            #Add every skill to application
+            skill_count = Skill.objects.filter(department=app.department.id).values('name').distinct().count()
+            for i in range(1,skill_count+1):
+                app.skills.add(request.POST['skills'+str(i)])
     
             course = course_form.save(commit=False)
             course.app = TAApplication.objects.get(id=app.id)
             course.save()
-    
             ta_form.save_m2m()
         else:
             print ta_form
@@ -180,12 +183,11 @@ def new_application(request):
         return HttpResponseRedirect('')
 
     else:
-        ta_prefix = 'ta'
-        ta_form = TAApplicationForm(prefix = ta_prefix)
-        course_form = CoursePreferenceForm(prefix = 'course')
+        ta_form = TAApplicationForm(prefix='ta')
+        course_form = CoursePreferenceForm(prefix='course')
         skill_names = Skill.objects.order_by('name').values('name').distinct() 
         skills = Skill.objects.order_by('name') 
-        return render(request, 'ta/new_application.html', {'ta_form':ta_form, 'ta_prefix':ta_prefix, 'course_form':course_form, 'skill_names':skill_names, 'skills':skills})
+        return render(request, 'ta/new_application.html', {'ta_form':ta_form, 'course_form':course_form, 'skill_names':skill_names, 'skills':skills})
 
 @login_required
 def all_applications(request):
@@ -223,6 +225,4 @@ def new_contract(request):
         context = {'c_form': c_form,
                    }
         return render(request, 'ta/new_contract.html',context)
-        
-        
         

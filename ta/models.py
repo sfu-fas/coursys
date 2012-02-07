@@ -106,7 +106,7 @@ class Skill(models.Model):
     level = models.CharField(max_length=4, choices=LEVEL_CHOICES)
     
     def __unicode__(self):
-        return "Name: %s  Level: %s" % (self.name, self.level)
+        return "Name: %s  Level: %s" % (self.name, self.get_level_display())
 
 
 CATEGORY_CHOICES = (

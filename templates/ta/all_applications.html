@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block content %}
+
+<ul>
+{% for app in applications %}
+    <li>
+    <a href="{% url ta.views.view_application app_id=app.id %}">{{ app.person.name }}</a> 
+    </li>
+{% endfor %}
+</ul>
+
+{% endblock %}

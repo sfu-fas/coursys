@@ -13515,6 +13515,33 @@
   },
   "model": "ta.skill",
   "pk": 6
+ },
+ {
+  "fields": {
+   "department": 1,
+   "level": "NONE",
+   "name": "English"
+  },
+  "model": "ta.skill",
+  "pk": 7
+ },
+ {
+  "fields": {
+   "department": 1,
+   "level": "EXPR",
+   "name": "English"
+  },
+  "model": "ta.skill",
+  "pk": 8
+ },
+ {
+  "fields": {
+   "department": 1,
+   "level": "SOME",
+   "name": "English"
+  },
+  "model": "ta.skill",
+  "pk": 9
  }
  
 ]

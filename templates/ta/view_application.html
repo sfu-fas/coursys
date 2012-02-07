@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block content %}
+
+<ul>
+<li>Name: {{ application.person.name }}</li>
+<li>Semester: {{ application.semester }}</li>
+<li>Category: {{ application.category }}</li>
+<li>Dept: {{ application.department }}</li>
+<li>Base Units: {{ application.base_units }}</li>
+<li>SIN: {{ application.sin }}</li>
+<li>Campus Preference: {{ application.campus_prefered }}</li>
+<li>Experience: {{ application.experience }}</li>
+<li>Course Load: {{ application.course_load }}</li>
+<li>Other Support: {{ application.other_support }}</li>
+<li>Comments: {{ application.comments }}</li>
+<li>Skills: {{ application.skills }}</li>
+<ul>
+
+{% endblock %}

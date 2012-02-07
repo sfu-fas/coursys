@@ -16,12 +16,11 @@
 {% for s in skill_names %}
 
 <p>Name: {{ s.name }}</p>
-<select name="skills" id="id_skills">
-<!--<select name="{{ ta_prefix }}-skills" id="id_{{ ta_prefix }}-skills">-->
+<select name="skills{{ forloop.counter }}" id="id_skills">
 
     {% for skill in skills %}
     {% if skill.name == s.name %}
-        <option value={{ skill.id }}>Level: {{ skill.level }}</option>
+        <option value={{ skill.id }}>Level: {{ skill.get_level_display }}</option>
     {% endif %}
     {% endfor %}
 
