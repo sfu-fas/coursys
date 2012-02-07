@@ -37,27 +37,17 @@
 		<div class="table_container">
 			<table class="display">
 				<tbody>
-					{% for field, value in gr %}
-
-					{% if forloop.first %}
 					<tr>
-						{% endif %} <td>
+						<td>
 						<dl>
 							<dt>
-								<label>{{field}} :</label>
+								<label>Grad Program :</label>
 							</dt>
 							<dd>
-								{{ value }}
+								{{ grad.program }}
 							</dd>
 						</dl></td>
-						{% if forloop.counter|divisibleby:2 %}
 					</tr>
-					<tr>
-						{% endif %}
-						{% if forloop.last %}
-					</tr>
-					{% endif %}
-					{% endfor %}
 				</tbody>
 			</table>
 		</div>

@@ -72,21 +72,22 @@ def view_all(request, userid):
 def manage_supervisors(request, userid):
     grad = get_object_or_404(GradStudent, slug=userid)
     supervisors = get_object_or_404(Supervisor, student=grad.id)
-    supervisors_formset = formset_factory(SupervisorForm, extra=4, max_num=4)
+    supervisors_formset = formset_factory(SupervisorForm, extra=1, max_num=4)
     if request.method == 'POST':
-        supervisors_form = SupervisorForm(request.POST, instance=supervisors, prefix="sup")
-        if supervisors_form.is_valid():
-            supervisors_form.save()
-            superF = supervisors_form.save(commit=False)
+        potential_supervisors_form = PotentialSupervisorForm(request.POST, instance=supervisors, prefix="sup")
+        if potential_supervisors_form.is_valid():
+            potential_supervisors_form.save()
+            superF = potential_supervisors_form.save(commit=False)
             superF.modified_by = request.user.username
             superF.save()            
-            return HttpResponseRedirect(reverse(index))
+            return HttpResponseRedirect(reverse(view_all, kwargs={'userid':userid} ))
     elif request.is_ajax():
         # TO DO: Update formset to correct number of forms displayed
         
         return HttpResponse("AJAX Completed") #return updated form.
     else:
         supervisors_form = SupervisorForm(instance=supervisors, prefix="sup") 
+        potential_supervisors_form = PotentialSupervisorForm(instance=supervisors, prefix="sup")
 
     # set frontend defaults
     page_title = "%s 's Supervisor(s) Record" % (grad.person.first_name)
@@ -96,6 +97,7 @@ def manage_supervisors(request, userid):
     context = {
                'supervisors_form': supervisors_form,
                'supervisors_formset': supervisors_formset,
+               'potential_supervisors_form': potential_supervisors_form,
                'page_title' : page_title,
                'crumb' : crumb,
                'grad' : grad,
@@ -167,7 +169,7 @@ def manage_status(request, userid):
 def new(request):
     if request.method == 'POST':
         grad_form = GradStudentForm(request.POST, prefix="grad")
-        supervisors_form = SupervisorForm(request.POST, prefix="sup")
+        supervisors_form = PotentialSupervisorForm(request.POST, prefix="sup")
         status_form = GradStatusForm(request.POST, prefix="stat")
         if grad_form.is_valid() and supervisors_form.is_valid() and status_form.is_valid() :
             gradF = grad_form.save(commit=False)
@@ -187,10 +189,9 @@ def new(request):
             return HttpResponseRedirect(reverse(index))
     else:
         grad_form = GradStudentForm(prefix="grad")
-        #supervisors_formset = formset_factory(SupervisorForm, extra=1)
-        supervisors_form = SupervisorForm(prefix="sup",)  
+        supervisors_form = PotentialSupervisorForm(prefix="sup",)  
         status_form = GradStatusForm(prefix="stat", initial={'status': 'ACTI', 'start': get_semester() })  
-        #initial for start returns nothing if there are no future semester available in DB 
+        #initial: 'start' returns nothing if there are no future semester available in DB 
 
     # set frontend defaults
     page_title = 'New Graduate Student Record'
@@ -198,7 +199,6 @@ def new(request):
     context = {
                'grad_form': grad_form,
                'supervisors_form': supervisors_form,
-               #'supervisors_formset': supervisors_formset,
                'status_form': status_form,               
                'page_title' : page_title,
                'crumb' : crumb
@@ -213,7 +213,7 @@ def new_program(request):
         form = GradProgramForm(request.POST)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect(reverse(index))
+            return HttpResponseRedirect(reverse(programs))
     else:
         form = GradProgramForm()     
 

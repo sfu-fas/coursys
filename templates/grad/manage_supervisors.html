@@ -20,15 +20,16 @@
 
 {% block content %}
 <script type="text/javascript">
-function add(){
-	$.ajax({ url: '{% url grad.views.manage_supervisors userid=userid %}', 
-			 success: function(data){
-				if(console && console.log){
+	function add() {
+		$.ajax({
+			url : '{% url grad.views.manage_supervisors userid=userid %}',
+			success : function(data) {
+				if(console && console.log) {
 					console.log(data);
 				}
 			}
-	});
-}
+		});
+	}
 </script>
 <div class="table_container">
 	<table class="info">
@@ -43,35 +44,48 @@ function add(){
 	</table>
 </div>
 <div id="form_container">
+	<form  method="POST">
+		{% csrf_token %}
+		<fieldset>
+			<legend>
+				Potential Supervisor
+			</legend>
+			{{ potential_supervisors_form|as_dl_2 }}
+			<p>
+				<input class="submit" type="submit" value="Update">
+			</p>
+		</fieldset>
+	</form>
+</div>
+<div id="form_container">
 	<form method="POST">
 		{% csrf_token %}
 		{{ supervisors_formset.management_form }}
 		<fieldset>
 			<legend>
-				Potential Supervisor
+				Supervisors
 			</legend>
-			<!-- {{ supervisors_form|as_dl_2 }} -->
+			<p>
+				Choose only a Supervisor or enter an External.
+			</p>
 			{% for form in supervisors_formset %}
-				
-				{{ form.as_p }}
-			
+
+			{{ form.as_p }}
+
 			{% endfor %}
-			
 			<p id="form_btns">
 				<input id="addBtn" class="submit" type="button" value="Please Enable Javascript" />
 				<input class="submit" type="submit" value="Update">
 			</p>
 		</fieldset>
 	</form>
-
 	<a class="button" href="{% url grad.views.index %}">Back to Index</a>
 </div>
 <script type="text/javascript">
-$(function(){
-	$("#addBtn").remove()
-	$("#form_btns").append(
-		'<input class="submit" type="button" value="Add Another" onclick="add()"/>'
-	)
-});
+	$(function() {
+		$("#addBtn").remove()
+		$("#form_btns").append('<input class="submit" type="button" value="Add Another" onclick="add()"/>')
+	});
+
 </script>
 {% endblock %} 

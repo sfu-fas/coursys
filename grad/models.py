@@ -13,7 +13,7 @@ class GradProgram(models.Model):
     description = models.CharField(max_length=100, blank=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')
     created_by = models.CharField(max_length=32, null=False, help_text='Grad Program created by.')
     modified_by = models.CharField(max_length=32, null=True, help_text='Grad Program modified by.')
     def autoslug(self):
@@ -44,15 +44,26 @@ class GradStudent(models.Model):
     special_arrangements = models.NullBooleanField(verbose_name='Special Arrgmnts')
     comments = models.TextField(max_length=250, blank=True, help_text="Additional information.")
     
-    
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')
     created_by = models.CharField(max_length=32, null=False, help_text='Grad Student created by.')
-    modified_by = models.CharField(max_length=32, null=True, help_text='Grad Student modified by.')
+    modified_by = models.CharField(max_length=32, null=True, help_text='Grad Student modified by.', verbose_name='Last Modified By')
     def get_fields(self):
         # make a list of field/values.
         k = []
         for field in GradStudent._meta.fields:
+            if field.verbose_name == "ID" or\
+                field.name == "userid" or\
+                field.name == 'last_name' or\
+                field.name == 'first_name' or\
+                field.name == 'person' or\
+                field.name == 'slug' or \
+                field.name == 'created_at' or\
+                field.name == 'modified_by' or\
+                field.name == 'updated_at' or\
+                field.name == 'created_by':
+                pass
+            else:           
                 k.append([capfirst(field.verbose_name), field.value_to_string(self)])
         return k    
     def __unicode__(self):
@@ -63,8 +74,8 @@ class Supervisor(models.Model):
     Member (or potential member) of student's supervisory committee.
     """
     student = models.ForeignKey(GradStudent)
-    supervisor = models.ForeignKey(Person, help_text="Please choose a Supervisor or enter an External Supervisor.")
-    external = models.CharField(max_length=200, blank=True, null=True, help_text="And make sure only ONE is filled.")
+    supervisor = models.ForeignKey(Person, help_text="Please choose a Supervisor.")
+    external = models.CharField(max_length=200, blank=True, null=True, help_text="Any supervisor not in our records.")
     position = models.SmallIntegerField(null=False)
     is_senior = models.BooleanField()
     is_potential = models.BooleanField()
@@ -72,7 +83,7 @@ class Supervisor(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True) 
     created_by = models.CharField(max_length=32, null=False, help_text='Supervisor added by.')
-    modified_by = models.CharField(max_length=32, null=True, help_text='Supervisor modified by.')      
+    modified_by = models.CharField(max_length=32, null=True, help_text='Supervisor modified by.' , verbose_name='Last Modified By')      
     class Meta:
         unique_together = ("student", "position")
     
@@ -146,6 +157,7 @@ class GradStatus(models.Model):
     end = models.ForeignKey(Semester, null=True, related_name="end_semester",
             help_text="Final semester of this status: blank for ongoing")
     notes = models.TextField(blank=True, help_text="Other notes")
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.CharField(max_length=32, null=False, help_text='Grad Status added by.') 
