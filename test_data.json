@@ -13460,40 +13460,61 @@
   },
   "model": "grad.supervisor",
   "pk": 2
+ },
+ 
+ {
+  "fields": {
+   "department": 2,
+   "level": "NONE",
+   "name": "Java"
+  },
+  "model": "ta.skill",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "department": 2,
+   "level": "SOME",
+   "name": "Java"
+  },
+  "model": "ta.skill",
+  "pk": 2
+ },
+ {
+  "fields": {
+   "department": 2,
+   "level": "EXPR",
+   "name": "Java"
+  },
+  "model": "ta.skill",
+  "pk": 3
+ },
+ {
+  "fields": {
+   "department": 2,
+   "level": "NONE",
+   "name": "C++"
+  },
+  "model": "ta.skill",
+  "pk": 4
+ },
+ {
+  "fields": {
+   "department": 2,
+   "level": "EXPR",
+   "name": "C++"
+  },
+  "model": "ta.skill",
+  "pk": 5
+ },
+ {
+  "fields": {
+   "department": 2,
+   "level": "SOME",
+   "name": "C++"
+  },
+  "model": "ta.skill",
+  "pk": 6
  }
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
-
- 
- 
- 
- 
- 
- 
- 
  
 ]
