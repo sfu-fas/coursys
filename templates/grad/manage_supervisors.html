@@ -19,6 +19,17 @@
 {% endblock %}
 
 {% block content %}
+<script type="text/javascript">
+function add(){
+	$.ajax({ url: '{% url grad.views.manage_supervisors userid=userid %}', 
+			 success: function(data){
+				if(console && console.log){
+					console.log(data);
+				}
+			}
+	});
+}
+</script>
 <div class="table_container">
 	<table class="info">
 		<tbody>
@@ -32,14 +43,22 @@
 	</table>
 </div>
 <div id="form_container">
-	<form  method="POST">
+	<form method="POST">
 		{% csrf_token %}
+		{{ supervisors_formset.management_form }}
 		<fieldset>
 			<legend>
 				Potential Supervisor
 			</legend>
-			{{ supervisors_form|as_dl_2 }}
-			<p>
+			<!-- {{ supervisors_form|as_dl_2 }} -->
+			{% for form in supervisors_formset %}
+				
+				{{ form.as_p }}
+			
+			{% endfor %}
+			
+			<p id="form_btns">
+				<input id="addBtn" class="submit" type="button" value="Please Enable Javascript" />
 				<input class="submit" type="submit" value="Update">
 			</p>
 		</fieldset>
@@ -47,4 +66,12 @@
 
 	<a class="button" href="{% url grad.views.index %}">Back to Index</a>
 </div>
+<script type="text/javascript">
+$(function(){
+	$("#addBtn").remove()
+	$("#form_btns").append(
+		'<input class="submit" type="button" value="Add Another" onclick="add()"/>'
+	)
+});
+</script>
 {% endblock %} 

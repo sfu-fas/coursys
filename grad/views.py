@@ -72,7 +72,7 @@ def view_all(request, userid):
 def manage_supervisors(request, userid):
     grad = get_object_or_404(GradStudent, slug=userid)
     supervisors = get_object_or_404(Supervisor, student=grad.id)
-    
+    supervisors_formset = formset_factory(SupervisorForm, extra=4, max_num=4)
     if request.method == 'POST':
         supervisors_form = SupervisorForm(request.POST, instance=supervisors, prefix="sup")
         if supervisors_form.is_valid():
@@ -81,6 +81,10 @@ def manage_supervisors(request, userid):
             superF.modified_by = request.user.username
             superF.save()            
             return HttpResponseRedirect(reverse(index))
+    elif request.is_ajax():
+        # TO DO: Update formset to correct number of forms displayed
+        
+        return HttpResponse("AJAX Completed") #return updated form.
     else:
         supervisors_form = SupervisorForm(instance=supervisors, prefix="sup") 
 
@@ -91,11 +95,13 @@ def manage_supervisors(request, userid):
     supervisors = supervisors.get_fields 
     context = {
                'supervisors_form': supervisors_form,
+               'supervisors_formset': supervisors_formset,
                'page_title' : page_title,
                'crumb' : crumb,
                'grad' : grad,
                'gp' : gp,
-               'supervisors' : supervisors            
+               'supervisors' : supervisors,
+               'userid' : userid          
                }
     return render(request, 'grad/manage_supervisors.html', context)
 
