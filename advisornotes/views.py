@@ -40,7 +40,7 @@ def advising(request, student_id=None):
 def student_search(request):
     # check permissions
     roles = Role.all_roles(request.user.username)
-    allowed = set(['ADVS', 'ADMN', 'GRAD'])
+    allowed = set(['ADVS', 'ADMN', 'GRAD', 'FUND'])
     if not(roles & allowed):
         # doesn't have any allowed roles
         return ForbiddenResponse(request, "Not permitted to do student search.")
