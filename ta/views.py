@@ -156,7 +156,8 @@ def edit_tug(request, course_slug, userid):
     return render(request, 'ta/edit_tug.html',context)
 
 @login_required
-def new_application(request):
+def new_application(request, unit_slug):
+    unit = get_object_or_404(Unit, slug=unit_slug)
     if request.method == "POST":
         ta_form = TAApplicationForm(request.POST, prefix='ta')
         course_form = CoursePreferenceForm(request.POST, prefix='course')
@@ -164,6 +165,7 @@ def new_application(request):
             person = get_object_or_404(Person, userid=request.user.username)
             app = ta_form.save(commit=False)
             app.person = person
+            app.department = unit
             app.save()
 
             #Add every skill to application
@@ -185,9 +187,9 @@ def new_application(request):
     else:
         ta_form = TAApplicationForm(prefix='ta')
         course_form = CoursePreferenceForm(prefix='course')
-        skill_names = Skill.objects.order_by('name').values('name').distinct() 
-        skills = Skill.objects.order_by('name') 
-        return render(request, 'ta/new_application.html', {'ta_form':ta_form, 'course_form':course_form, 'skill_names':skill_names, 'skills':skills})
+        skill_names = Skill.objects.filter(department=unit).order_by('name').values('name').distinct() 
+        skills = Skill.objects.filter(department=unit).order_by('name') 
+        return render(request, 'ta/new_application.html', {'unit':unit, 'ta_form':ta_form, 'course_form':course_form, 'skill_names':skill_names, 'skills':skills})
 
 @login_required
 def all_applications(request):

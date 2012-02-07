@@ -185,7 +185,7 @@ class TAApplicationForm(forms.ModelForm):
 
     class Meta:
         model = TAApplication
-        exclude = ('person','skills',)
+        exclude = ('person','department','skills',)
 
 class CoursePreferenceForm(forms.ModelForm):
 

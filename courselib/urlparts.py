@@ -29,3 +29,4 @@ PAGE_LABEL = '(?P<page_label>[\w\-_\.]+)'
 NOTE_ID = '(?P<note_id>' + ID_RE + ')'
 
 APP_ID = '(?P<app_id>' + ID_RE + ')'
+UNIT_SLUG = '(?P<unit_slug>' + SLUG_RE + ')'
