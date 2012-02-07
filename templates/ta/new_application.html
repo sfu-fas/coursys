@@ -15,16 +15,22 @@
 <h1>Skills:</h1>
 {% for s in skill_names %}
 
-<p>Name: {{ s.name }}</p>
+<p>{{ s.name }}
+
+<!--
 <select name="skills{{ forloop.counter }}" id="id_skills">
+-->
 
     {% for skill in skills %}
     {% if skill.name == s.name %}
-        <option value={{ skill.id }}>Level: {{ skill.get_level_display }}</option>
+        <!--<option value={{ skill.id }}>Level: {{ skill.get_level_display }}</option>-->
+        <input type="radio" value={{ skill.id }} name="skills{{ forloop.parentloop.counter}}" >Level: {{ skill.get_level_display }}</input>
     {% endif %}
     {% endfor %}
 
-</select>
+<!--
+</select></p>
+-->
 {% endfor %}
 
 <p><input type="submit" class="submit" value="Submit" /></p>

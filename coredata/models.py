@@ -573,9 +573,9 @@ class Unit(models.Model):
         ordering = ['label']
     def __unicode__(self):
         return "%s (%s)" % (self.name, self.label)
-    #def autoslug(self):
-    #    return self.label
-    #slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    def autoslug(self):
+        return self.label
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
 
 
 class Role(models.Model):
