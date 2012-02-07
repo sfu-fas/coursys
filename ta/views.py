@@ -7,6 +7,9 @@ from django.contrib.auth.decorators import login_required
 from ta.models import *
 from coredata.models import Member, Role, CourseOffering, Person, Unit
 from ta.forms import *
+from grad.views import get_semester
+
+
 
 @requires_course_staff_by_slug
 def index_page(request, course_slug):
@@ -213,10 +216,14 @@ def view_application(request, app_id):
 
 @login_required
 def new_contract(request):
+    applicant = TAApplication.objects.filter(semester=get_semester())
+    for e in TAApplication.objects.filter(semester=get_semester()):
+        print
+        print e.person
     if request.method == "POST":
         c_form = TAContractForm(request.POST)
         if c_form.is_valid():
-            contract = ta_form.save(commit=False)
+            contract = c_form.save(commit=False)
             
         else: 
             print c_form
@@ -224,6 +231,8 @@ def new_contract(request):
         return HttpResponseRedirect('')
     else:
         c_form = TAContractForm()
+        
+        #c_form['person'].queryset = [ app.person for app in applicant ]
         context = {'c_form': c_form,
                    }
         return render(request, 'ta/new_contract.html',context)

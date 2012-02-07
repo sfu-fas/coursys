@@ -6,7 +6,8 @@
 <div id="form_container">
 <form action="{% url ta.views.new_contract %}" method="post">{% csrf_token %}
 <fieldset>
-{{ c_form.as_p }}
+<legend>New contract</legend>
+{{ c_form|as_dl }}
 
 <p><input type="submit" class="submit" value="Submit" /></p>
 </fieldset>

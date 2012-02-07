@@ -194,6 +194,11 @@ class CoursePreferenceForm(forms.ModelForm):
         exclude = ('app',) 
 
 class TAContractForm(forms.ModelForm):
+    #apps = TAApplication.objects.filter(semester=get_semester())
+    #person = [app.person for app in apps]
+    #self.field['person'].queryset = person
+    
     sin = forms.CharField(min_length=9, max_length=9)
+    
     class Meta:
         model = TAContract

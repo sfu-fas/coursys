@@ -2,6 +2,8 @@ from django.db import models
 from coredata.models import Person, Member, Course, Semester, Unit ,CourseOffering
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter #, getter_setter_2
+from django.db.models import Q
+from grad.views import get_semester
 
 class TUG(models.Model):
     """
@@ -166,23 +168,28 @@ DESC_CHOICES = (
         ('OML','office/marking/lab'),
         ('OM','office/marking')
     )
+APPT_CHOICES = (
+        ("INIT","Initial: Initial appointment to this position"),
+        ("REAP","Reappointment: Reappointment to same position or revision to appointment"),       
+    )
 
 
 class TAContract(models.Model):
     """    
     TA Contract, filled in by ADMN Departmental Administrator.../ta etc
     """
-    person = models.ForeignKey(Person)
+    #person = models.ForeignKey(Person, limit_choices_to={'person':Q(semester=get_semester)})
+    applicant = models.ForeignKey(TAApplication)
+    sin = models.PositiveIntegerField(unique=True)
     department = models.ForeignKey(Unit)
-    appt_start = models.DateField()
+    appt_start = models.DateField(help_text='yyyy-mm-dd')
     appt_end = models.DateField()
     pay_start = models.DateField()
     pay_end = models.DateField()
     position_number = models.IntegerField()
     appt_category = models.CharField(max_length=4, choices=APPOINTMENT_CHOICES)
-    init_appt = models.BooleanField(verbose_name="Initial appointment to this position")
-    other_appt = models.BooleanField(verbose_name="Reappointment to same position or revision to appointment")
-    sin = models.PositiveIntegerField(unique=True)
+    appt = models.CharField(max_length=4, choices=APPT_CHOICES)
+    
     
     courses = models.ForeignKey(CourseOffering)
     description = models.CharField(max_length=3, choices=DESC_CHOICES, blank=False, null=False)
@@ -198,7 +205,7 @@ class TAContract(models.Model):
     appt_tssu = models.BooleanField()
     
     def __unicode__(self):
-        return (self.member.person.userid)
+        return (self.applicant)
 
 TAKEN_CHOICES = (
         ('YES', 'Yes: this course at SFU'),
