@@ -98,7 +98,7 @@ def new_tug(request, course_slug, userid):
                 tug = form.save(False)
                 # TODO: set the ta member once it's no longer included in the form
                 tug.save()
-                return HttpResponseRedirect(reverse(all_tugs, args=[course.slug]))
+                return HttpResponseRedirect(reverse(view_tug, args=(course.slug, userid)))
         else:
             form = TUGForm(offering=course,userid=userid)
         
@@ -138,12 +138,17 @@ def edit_tug(request, course_slug, userid):
     member = get_object_or_404(Member, offering=course, person__userid=userid)
     tug = TUG.objects.get(member=member)
     if (request.method=="POST"):
-        tug_form = TUGForm(request.POST)
+        form = TUGForm(request.POST, instance=tug)
+        if form.is_valid():
+            tug = form.save(False)
+            # TODO: set the ta member once it's no longer included in the form
+            tug.save()
+            return HttpResponseRedirect(reverse(view_tug, args=(course.slug, userid)))
     else:
-        tug_form = TUGForm(instance=tug)
+        form = TUGForm(instance=tug)
     context = {'ta':member.person,
                'course':course, 
-               'form': tug_form, 
+               'form': form, 
                'userid':userid,
                #'tug':tug 
                }
