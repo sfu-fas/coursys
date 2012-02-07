@@ -8,7 +8,7 @@
 
 {% block subbreadcrumbs %}
 <li>
-	&gt; <a href="/grad">Grad</a>
+	&gt; <a href="{% url grad.views.index %}">Grad</a>
 </li>
 <li>
 	&gt; {{crumb}}
@@ -122,5 +122,4 @@
 		</div>
 	</fieldset>
 </div>
-<a class="button" href="{% url grad.views.index %}">Back to Index</a>
 {% endblock %} 

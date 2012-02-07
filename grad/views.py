@@ -44,11 +44,11 @@ def index(request):
 
 
 @requires_role("GRAD")
-def view_all(request, userid):
+def view_all(request, grad_slug):
     # will display academic, personal, FIN, status history, supervisor
-    grad = get_object_or_404(GradStudent, slug=userid)
-    supervisors = get_object_or_404(Supervisor, student=grad.id)
-    status = get_list_or_404(GradStatus, student=grad.id)
+    grad = get_object_or_404(GradStudent, slug=grad_slug)
+    supervisors = get_object_or_404(Supervisor, student=grad)
+    status = get_list_or_404(GradStatus, student=grad)
     
     # set frontend defaults
     page_title = "%s 's Graduate Student Record" % (grad.person.first_name)
@@ -68,11 +68,15 @@ def view_all(request, userid):
                }
     return render(request, 'grad/view_all.html', context)
 
+
 @requires_role("GRAD")
-def manage_supervisors(request, userid):
-    grad = get_object_or_404(GradStudent, slug=userid)
-    supervisors = get_object_or_404(Supervisor, student=grad.id)
-    supervisors_formset = formset_factory(SupervisorForm, extra=1, max_num=4)
+def manage_supervisors(request, grad_slug):
+    grad = get_object_or_404(GradStudent, slug=grad_slug)
+    supervisors = get_object_or_404(Supervisor, student=grad)
+    supervisors_formset = formset_factory(SupervisorForm, extra=1, max_num=4)()
+    for f in supervisors_formset:
+        f.fields['supervisor'].choices = possible_supervisors(grad.program.unit)
+
     if request.method == 'POST':
         potential_supervisors_form = PotentialSupervisorForm(request.POST, instance=supervisors, prefix="sup")
         if potential_supervisors_form.is_valid():
@@ -88,9 +92,11 @@ def manage_supervisors(request, userid):
     else:
         supervisors_form = SupervisorForm(instance=supervisors, prefix="sup") 
         potential_supervisors_form = PotentialSupervisorForm(instance=supervisors, prefix="sup")
+        potential_supervisors_form.fields['supervisor'].choices = \
+                possible_supervisors(grad.program.unit)
 
     # set frontend defaults
-    page_title = "%s 's Supervisor(s) Record" % (grad.person.first_name)
+    page_title = "%s's Supervisor(s) Record" % (grad.person.first_name)
     crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
     gp = grad.person.get_fields 
     supervisors = supervisors.get_fields 
@@ -103,13 +109,12 @@ def manage_supervisors(request, userid):
                'grad' : grad,
                'gp' : gp,
                'supervisors' : supervisors,
-               'userid' : userid          
                }
     return render(request, 'grad/manage_supervisors.html', context)
 
 @requires_role("GRAD")
-def manage_academics(request, userid):
-    grad = get_object_or_404(GradStudent, slug=userid)
+def manage_academics(request, grad_slug):
+    grad = get_object_or_404(GradStudent, slug=grad_slug)
     
     if request.method == 'POST':
         grad_form = GradStudentForm(request.POST, instance=grad, prefix="grad")
@@ -135,9 +140,9 @@ def manage_academics(request, userid):
 
 
 @requires_role("GRAD")
-def manage_status(request, userid):
-    grad = get_object_or_404(GradStudent, slug=userid)
-    gs = get_list_or_404(GradStatus, student=grad.id)
+def manage_status(request, grad_slug):
+    grad = get_object_or_404(GradStudent, slug=grad_slug)
+    gs = get_list_or_404(GradStatus, student=grad)
     status = gs[0]
 
     if request.method == 'POST':

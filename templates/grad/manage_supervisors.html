@@ -8,7 +8,7 @@
 
 {% block subbreadcrumbs %}
 <li>
-	&gt; <a href="/grad">Grad</a>
+	&gt; <a href="{% url grad.views.index %}">Grad</a>
 </li>
 <li>
 	&gt; {{crumb}}
@@ -18,11 +18,11 @@
 </li>
 {% endblock %}
 
-{% block content %}
+{% block headextra %}
 <script type="text/javascript">
 	function add() {
 		$.ajax({
-			url : '{% url grad.views.manage_supervisors userid=userid %}',
+			url : '{% url grad.views.manage_supervisors grad_slug=grad.slug %}',
 			success : function(data) {
 				if(console && console.log) {
 					console.log(data);
@@ -31,6 +31,9 @@
 		});
 	}
 </script>
+{% endblock %}
+
+{% block content %}
 <div class="table_container">
 	<table class="info">
 		<tbody>

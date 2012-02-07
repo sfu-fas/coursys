@@ -30,3 +30,4 @@ NOTE_ID = '(?P<note_id>' + ID_RE + ')'
 
 APP_ID = '(?P<app_id>' + ID_RE + ')'
 UNIT_SLUG = '(?P<unit_slug>' + SLUG_RE + ')'
+GRAD_SLUG = '(?P<grad_slug>' + SLUG_RE + ')'
