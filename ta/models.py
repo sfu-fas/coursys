@@ -43,6 +43,16 @@ class TUG(models.Model):
     other1 = property(*getter_setter('other1'))
     other2 = property(*getter_setter('other2'))
     
+    @property
+    def iterothers(self):
+#        try:
+            return (other for key, other in self.config.iteritems() 
+                    if key.startswith('other')
+                    and other.get('total',0) > 0)
+#        except:
+#            yield self.other1
+#            yield self.other2 
+    
     regular_default = {'weekly': 0, 'total': 0, 'comment': ''}
     regular_fields = ['prep', 'meetings', 'lectures', 'tutorials', 
             'office_hours', 'grading', 'test_prep', 'holiday']

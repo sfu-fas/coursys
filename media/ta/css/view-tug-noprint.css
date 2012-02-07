@@ -1,0 +1,13 @@
+@CHARSET "UTF-8";
+#tugPrintHeader {
+	display: none;
+}
+
+#tugReview ol {
+	/* TODO: look at documentation for what this  should be. */
+	list-style: letter;
+}
+
+/*table td.numeral {
+	border-right: 0px solid white;
+}*/

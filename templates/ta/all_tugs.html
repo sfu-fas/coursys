@@ -18,7 +18,7 @@
 			{% if not tug == None %}
 				<a href="{% url ta.views.view_tug course_slug=course.slug userid=ta.person.userid %}">
 					{{ta.person}} 
-				</a> (Last Updated: {% if tug.last_updated == "" %}{{ tug.last_updated }} {% else %} Unknown {% endif %})
+				</a> (Last Updated: {% if tug.last_update != None %}{{tug.last_update|date:"D. N j Y"}}{% else %}Unknown{% endif %})
 			{% else %}
 				{{ta.person}}{% if not_ta %} - 
 				<a href="{% url ta.views.new_tug course_slug=course.slug userid=ta.person.userid %}">

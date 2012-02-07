@@ -2,6 +2,12 @@
 {% load markup %}
 {% load mobile_tags %}
 
+
+{% block headextra %}
+<link rel="stylesheet" href="{{MEDIA_URL}}ta/css/view-tug-noprint.css" media="all" />
+<link rel="stylesheet" href="{{MEDIA_URL}}ta/css/view-tug-print.css" media="print" />
+{% endblock %}
+
 {% block h1 %}{{course.name}} Time Use Guideline for {{ta.person}} {% endblock %}
 
 {% block subbreadcrumbs %}
@@ -22,17 +28,32 @@
 
 {% block content %}
 
+<div id="tugPrintHeader">
+Simon Fraser University<br/>
+Teaching Assistant Time Use Guideline</div>
+
 <div id="tugHeader">
-	<span id="taName">TA Name: {{tug.member.person}}</span> 
+	<span id="taName">TA Name: 
+		<span class="tugField">{{tug.member.person}}</span>
+	</span> 
 	<span id="Instructor">Instructor: 
+		<span class="tugField">
 		{% for instructor in course.instructors %}
 			{{instructor.name}} {% if not forloop.last %}, {% endif %}
 		{% endfor %}
+		</span>
 	</span>
 	<br />
-	<span id="courses">Course(s): {{course.name}} </span>
-	<span id="baseUnits"> Base Units Assigned*: {{tug.base_units}}</span><span id="calculation"> &times; 42 = </span>
-	<span id="maxHours"> Maximum Hours: {{ maxHours }}</span>	
+	<span id="courses">Course(s): 
+		<span class="tugField">{{course.name}}</span> 
+	</span>
+	<span id="baseUnits"> Base Units Assigned*: 
+		<span class="tugField">{{tug.base_units}}</span>
+		<span id="calculation"> &times; 42 = </span>
+	</span>
+	<span id="maxHours"> Maximum Hours: 
+		<span class="tugField">{{ maxHours }}</span>
+	</span>
 </div>
 
 <div id="tugBody">
@@ -41,70 +62,86 @@
 		maximum hours over the term of the semester (normally 17 weeks).
 		
 	</p>
-	<p>
+	<p><em>
 		The following summary is an approximation of the length of time expected 
 		to be devoted to  the major activities.  There may be shifts between 
 		activities, but the total hours required over the semester cannot exceed the
 		maximum hours set out above.
-	</p>
+	</em></p>
 	<table>
 		<tbody>
 			<tr>
-				<th>Duties and Responsibilities</th>
+				<th colspan="2">Duties and Responsibilities</th>
 				<th>Average hrs/week </th>
 				<th>Total hrs/semester</th>
 			</tr>
-			<tr>
-				<td>1. Preparation for labs/tutorials</td>
-				<td>{{tug.config.prep.weekly}}</td>
-				<td>{{tug.config.prep.total}}</td>
+			<tr class="firstrow">
+				<td class="numeral">1.</td>
+				<td> Preparation for labs/tutorials</td>
+				<td class="tugField">{{tug.config.prep.weekly|default_if_none:""}}</td>
+				<td class="tugField">{{tug.config.prep.total}}</td>
 			</tr>
 			<tr>
-				<td>2. Attendance at planning/coordinating meetings with instructor</td>
-				<td>{{tug.config.meetings.weekly}}</td>
-				<td>{{tug.config.meetings.total}}</td>
+				<td class="numeral">2.</td>
+				<td> Attendance at planning/coordinating meetings with instructor</td>
+				<td class="tugField">{{tug.config.meetings.weekly|default_if_none:""}}</td>
+				<td class="tugField">{{tug.config.meetings.total}}</td>
 			</tr>
 			<tr>
-				<td>3. Attendance at lectures</td>
-				<td>{{tug.config.lectures.weekly}}</td>
-				<td>{{tug.config.lectures.total}}</td>
+				<td class="numeral">3.</td>
+				<td> Attendance at lectures</td>
+				<td class="tugField">{{tug.config.lectures.weekly|default_if_none:""}}</td>
+				<td class="tugField">{{tug.config.lectures.total}}</td>
 			</tr>
 			<tr>
-				<td>4. Attendance at labs/tutorials</td>
-				<td>{{tug.config.tutorials.weekly}}</td>
-				<td>{{tug.config.tutorials.total}}</td>
+				<td class="numeral">4.</td>
+				<td> Attendance at labs/tutorials</td>
+				<td class="tugField">{{tug.config.tutorials.weekly|default_if_none:""}}</td>
+				<td class="tugField">{{tug.config.tutorials.total}}</td>
 			</tr>
 			<tr>
-				<td>5. Office hours/student consultation/electronic communication</td>
-				<td>{{tug.config.office_hours.weekly}}</td>
-				<td>{{tug.config.office_hours.total}}</td>
+				<td class="numeral">5.</td>
+				<td> Office hours/student consultation/electronic communication</td>
+				<td class="tugField">{{tug.config.office_hours.weekly|default_if_none:""}}</td>
+				<td class="tugField">{{tug.config.office_hours.total}}</td>
 			</tr>
 			<tr>
-				<td>6. Grading **</td>
-				<td>{{tug.config.grading.weekly}}</td>
-				<td>{{tug.config.grading.total}}</td>
+				<td class="numeral">6.</td>
+				<td> Grading **</td>
+				<td class="tugField">{{tug.config.grading.weekly|default_if_none:""}}</td>
+				<td class="tugField">{{tug.config.grading.total}}</td>
 			</tr>
 			<tr>
-				<td>7. Quiz preparation/assist in exam preparation/Invigilation of exams</td>
-				<td>{{tug.config.test_prep.weekly}}</td>
-				<td>{{tug.config.test_prep.total}}</td>
+				<td class="numeral">7.</td>
+				<td> Quiz preparation/assist in exam preparation/Invigilation of exams</td>
+				<td class="tugField">{{tug.config.test_prep.weekly|default_if_none:""}}</td>
+				<td class="tugField">{{tug.config.test_prep.total}}</td>
 			</tr>
 			<tr>
-				<td>8. Statutory Holiday Compensation - To compensate for all statutory holidays which <br />
-					may occur in a semester, the total workload required will be reduced by one (1) hour <br />
-					for each base unit assigned excluding the additional 0.17 B.U. for preparation, <br />
+				<td class="numeral">8.</td>
+				<td> Statutory Holiday Compensation - <br />
+					To compensate for all statutory holidays which 
+					may occur in a semester, the total workload required will be reduced by one (1) hour 
+					for each base unit assigned excluding the additional 0.17 B.U. for preparation, 
 					e.g. 4 hours reduction for 4.17 B.U. appointment.
  				</td>
-				<td>{{tug.config.holiday.weekly}}</td>
-				<td>{{tug.config.holiday.total}}</td>
+				<td class="tugField">{{tug.config.holiday.weekly|default_if_none:""}}</td>
+				<td class="tugField">{{tug.config.holiday.total}}</td>
 			</tr>
-			<tr>
-				<td>9. Other – specify*** {{tug.config.other1.label}}</td>
-				<td>{{tug.config.other1.weekly}}</td>
-				<td>{{tug.config.other1.total}}</td>
+			<tr class="subsectionHeader">
+				<td class="numeral">9.</td>
+				<td>Other – specify*** </td><td/><td/>
 			</tr>
+			{% for other in tug.iterothers %} 
 			<tr>
-				<td>
+				<td class="numeral" />
+				<td class="tugField">{{other.label}}</td>
+				<td class="tugField">{{other.weekly}}</td>
+				<td class="tugField">{{other.total}}</td>
+			</tr>
+			{% endfor %}
+			<tr>
+				<td colspan="2">
 					Required Total Hours =
 				</td>
 				<td></td>
@@ -120,14 +157,57 @@
 	<p>
 		*There are no hours of work associated with the additional 0.17 base unit for preparation, 
 		Article XIII D. 2 b.  See Appendix B for calculation of hours.
-	</p>
-	<p>
+		<br/>
 		**  Includes grading of all assignments, reports and examinations. 
-	</p>
-	<p>
+		<br/>
 		*** Attendance at a TA/TM Day/Training
 	</p>
 	</p>
+</div>
+
+<div id="tugReview">
+<h3>Conducting Teaching Assistant Workload Reviews:</h3>
+<ul>
+  <li>
+  Course Supervisors are required to conduct a workload review if the size of a tutorial is
+over 24 or where the student to TA ratio is over 26:1 in a scheduled lab. Also, Course
+Supervisors are required to conduct a workload review if two or more of the following
+factors affecting workload occur:
+<ol><li>(a) the average size of tutorials, labs or workshops for the Teaching Assistant is over
+   fifteen (15), or where the enrollment in any tutorial, lab or workshop assigned
+  exceeds eighteen (18)
+</li><li>(b) the course is being offered for the first time
+</li><li>(c) the course has been substantially modified, e.g. new text
+</li><li>(d) it is the Teaching Assistant's first appointment
+</li><li>(e) the instructor is supervising Teaching Assistants for the first time
+</li><li>(f) the type of examinations and/or assignments have a significant impact on
+   workload when considered in combination with enrollment (e.g. essays vs.
+  multiple-choice exams)
+  </li>
+  </ol>
+  </li>
+  <li>
+    The Course Supervisor and T.A. should conduct the review as soon as reasonably
+    possible after the week three enrollment data is available.
+  <li>
+    In conducting the review, the Course Supervisor is expected to contact the T.A. and
+    discuss the workload factors.
+  </li>
+  <li>
+    Where the Course Supervisor concludes that the workload required will, by semester
+    end, exceed the total workload hours of the appointment, then it will be necessary to
+    either reduce the workload, where possible, or provide additional compensation.
+  </li>
+  <li>
+    The Course Supervisor should review these options with the T.A., but the option of
+    additional compensation must be approved by the Department Chair.
+  </li>
+  <li>
+    In all cases, once the department has made a decision on the workload review, the
+    Department Chair shall promptly advise the Teaching Assistant of the results and
+    reasons of the decision in writing, with a copy to the Union.
+  </li>
+</ul>
 </div>
 
 {% endblock %}

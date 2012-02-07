@@ -1,0 +1,97 @@
+@CHARSET "UTF-8";
+/* print style for tug form */
+
+#header, #sideItems, #topLinks, #actions, #footer,
+ #tugReview {
+	display:none;
+}
+
+
+body {
+	font-family: serif;
+    background: none;
+}
+
+#absWrapper {
+    width: auto;
+}
+
+#container {
+    width: auto;
+	background-image: none;
+	border-top: none;
+/*	padding: none;*/
+    padding-left:  0.5in;
+    padding-right: 0.5in;
+}
+
+#tugPrintHeader {
+	display: inherit;
+	text-align: center;
+	font-weight: bold;
+	
+}
+
+#tugHeader {
+	border: 1.2pt solid black;
+	padding: 2pt;
+}
+
+#taName, #Instructor{
+    display:block;
+    float: left;
+}
+
+#taName {
+   	min-width: 48%;
+} 
+
+/*#courses, #baseUnits, #maxHours {*/
+/*    display: block;*/
+/*    float: left;*/
+/*}*/
+#courses {
+    margin-right: 1em;
+}
+
+.tugField {
+	text-decoration: underline;
+}
+
+table {
+    margin: 0;
+    border-top-width: 0;
+}
+
+table, table td, table th {
+    border: 0 none transparent;
+    outline: 0;
+}
+
+table td.numeral {
+	vertical-align: top;
+}
+
+table td {
+/*    border-top: 1em solid white;*/
+    padding-bottom: 1em;
+    padding-left: 0.5em;
+    vertical-align: bottom;
+}
+
+table tr.firstrow td{
+	padding-top: 1em;
+}
+
+table tr.subsectionHeader td {
+	padding-bottom: 0.5em;
+}
+
+table th {
+    color: black;
+    background: none;
+    vertical-align: bottom;
+    text-align: left;
+    border-bottom: 1px solid black;
+}
+
