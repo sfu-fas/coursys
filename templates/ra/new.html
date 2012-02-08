@@ -1,6 +1,18 @@
 {% extends "base.html" %}
 {% load form_display %}
 
+{% block headextra %}
+<script type="text/javascript" src="/media/js/ra.js"></script>
+<script type="text/javascript">
+//<![CDATA[
+$(document).ready(function() {
+  $("id_person").focus();
+  ra_autocomplete('id_person');
+  $("#id_start_date").datepicker();
+  $("#id_end_date").datepicker();
+});
+//]]></script>{% endblock %}
+
 {% block title %}New RA Appointment{% endblock %}
 {% block h1 %}New RA Appointment{% endblock %}
 
@@ -9,9 +21,9 @@
 
 {% block content %}
     <form action="{% url ra.views.new %}" method="POST">{% csrf_token %}
-        <fieldset>
+        <fieldset style="list-style: none;">
             <legend>Personal Information</legend>
-            {{ raform|as_dl }}
+            {{ raform.as_ul }}
             <p><input type="submit" value="Submit"></p>
         </fieldset>
     </form>

@@ -29,7 +29,7 @@ class RAForm(forms.ModelForm):
     comments = forms.CharField(required=False, widget=forms.Textarea)
 
     def clean_person(self):
-        return Person.objects.get(userid=self.cleaned_data['person'])
+        return Person.objects.get(emplid=self.cleaned_data['person'])
 
     def clean_hiring_faculty(self):
         return Person.objects.get(userid=self.cleaned_data['hiring_faculty'])
