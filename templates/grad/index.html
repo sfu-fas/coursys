@@ -48,7 +48,7 @@
             <td><a href="{% url grad.views.view_all grad_slug=s.slug %}"> Select </a></td>
         </tr>
         {%empty%}
-        	<tr><td>There are currently no grad student records stored in the database.</td></tr>
+        	<tr><td><p class="empty">There are currently no grad student records stored in the database.</p></td></tr>
         {% endfor %}
         </tbody>
     </table>

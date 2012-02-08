@@ -32,25 +32,69 @@
 <div id="form_container">
 	<fieldset>
 		<legend>
-			Academic
+			Academics
 		</legend>
-		<div class="table_container">
 			<table class="display">
 				<tbody>
 					<tr>
-						<td>
-						<dl>
-							<dt>
-								<label>Grad Program :</label>
-							</dt>
-							<dd>
-								{{ grad.program }}
-							</dd>
+						<td><dl>
+							<dt> <label>Grad Program :</label></dt>
+							<dd>{{ grad.program }}</dd>
 						</dl></td>
+						<td><dl>
+							<dt><label>Research Area : </label></dt>
+							<dd>{{grad.research_area}}</dd>
+						</dl></td>
+					</tr>
+					<tr>
+						<td><dl>
+							<dt> <label>Campus :</label></dt>
+							<dd>{{ grad.campus }}</dd>
+						</dl></td>
+						<td><dl>
+							<dt><label>English Fluency :</label></dt>
+							<dd>{{grad.english_fluency}}</dd>
+						</dl></td>
+					</tr>
+					<tr>
+						<td><dl>
+							<dt> <label>Mother Tongue :</label></dt>
+							<dd>{{ grad.mother_tongue }}</dd>
+						</dl></td>
+						<td><dl>
+							<dt><label>Canadian : </label></dt>
+							<dd>{{grad.is_canadian}}</dd>
+						</dl></td>
+					</tr>
+					<tr>
+						<td><dl>
+							<dt> <label>Passport Issued By :</label></dt>
+							<dd>{{ grad.passport_issued_by }}</dd>
+						</dl></td>
+						<td><dl>
+							<dt><label>Special Arrangements : </label></dt>
+							<dd>{{grad.special_arrangements}}</dd>
+						</dl></td>
+					</tr>															
+					<tr>
+						<td><dl>
+							<dt> <label>Comments :</label></dt>
+							<dd>{{ grad.comments }}</dd>
+						</dl></td>
+					</tr>
+					<tr>
+						<td colspan="2">
+							<div align="center"><p class="helptext">Last updated : {{grad.updated_at}}. By: 
+								{% if not grad.modified_by%}
+									{{grad.created_by}}
+								{% else %}
+									{{grad.modified_by}}
+								{% endif %}</p>
+							</div>
+						</td>
 					</tr>
 				</tbody>
 			</table>
-		</div>
 	</fieldset>
 </div>
 <div id="form_container">

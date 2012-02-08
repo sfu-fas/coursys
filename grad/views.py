@@ -117,20 +117,21 @@ def manage_academics(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
     
     if request.method == 'POST':
-        grad_form = GradStudentForm(request.POST, instance=grad, prefix="grad")
+        grad_form = GradAcademicForm(request.POST, instance=grad, prefix="grad")
         if grad_form.is_valid():
             gradF = grad_form.save(commit=False)
             gradF.modified_by = request.user.username
             gradF.save()
             return HttpResponseRedirect(reverse(index))
     else:
-        grad_form = GradStudentForm(instance=grad, prefix="grad")
+        grad_form = GradAcademicForm(instance=grad, prefix="grad")
 
     # set frontend defaults
     page_title = "%s 's Graduate Academic Record" % (grad.person.first_name)
     crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
     gp = grad.person.get_fields 
-    context = {'grad_form': grad_form,
+    context = {
+               'grad_form': grad_form,
                'page_title' : page_title,
                'crumb' : crumb,
                'grad' : grad,

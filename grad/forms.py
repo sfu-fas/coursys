@@ -44,6 +44,10 @@ def possible_supervisors(unit):
     people.sort()
     return [(p.id, p.name()) for p in people]
 
+class GradAcademicForm(ModelForm):
+    class Meta: 
+        model = GradStudent
+        fields = ('program', 'research_area', 'campus', 'english_fluency', 'mother_tongue', 'is_canadian', 'passport_issued_by', 'special_arrangements', 'comments')
 
 class GradProgramForm(ModelForm):
     class Meta:
