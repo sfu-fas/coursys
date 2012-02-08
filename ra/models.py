@@ -31,6 +31,7 @@ class Account(models.Model):
     
     account_number = models.PositiveIntegerField()
     position_number = models.PositiveIntegerField()
+    title = models.CharField(max_length=60)
 
     def __unicode__(self):
         return unicode(self.account_number)

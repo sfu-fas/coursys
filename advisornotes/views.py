@@ -35,30 +35,6 @@ def advising(request, student_id=None):
     context = {'form': form}
     return render_to_response('advisornotes/student_search.html', context, context_instance=RequestContext(request))
 
-# AJAX/JSON for student search autocomplete
-@login_required
-def student_search(request):
-    # check permissions
-    roles = Role.all_roles(request.user.username)
-    allowed = set(['ADVS', 'ADMN', 'GRAD', 'FUND'])
-    if not(roles & allowed):
-        # doesn't have any allowed roles
-        return ForbiddenResponse(request, "Not permitted to do student search.")
-    
-    if 'term' not in request.GET:
-        return ForbiddenResponse(request, "Must provide 'term' query.")
-    term = request.GET['term']
-    response = HttpResponse(mimetype='application/json')
-    data = []
-    query = get_query(term, ['person__userid', 'person__emplid', 'person__first_name', 'person__last_name'])
-
-    members = Member.objects.filter(role="STUD").filter(query).select_related('person')[:500]
-    people = set((m.person for m in members))
-    data = [{'value': p.emplid, 'label': p.search_label_value()} for p in people]
-
-    json.dump(data, response, indent=1)
-    return response
-
 @requires_advisor
 def new_note(request,userid):
     student = Person.objects.get(userid = userid)

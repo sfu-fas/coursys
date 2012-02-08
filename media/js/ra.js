@@ -11,5 +11,4 @@ function ra_autocomplete(id) {
             $(this).val($(this).data("val"))
         });
     });
-
 }

@@ -232,7 +232,7 @@ urlpatterns += patterns('',
     # Advisor Notes Start
     
     url(r'^advising/$', 'advisornotes.views.advising'),
-    url(r'^data/students$', 'advisornotes.views.student_search'),
+    url(r'^data/students$', 'coredata.views.student_search'),
     url(r'^advising/students/' + USERID_SLUG + '/notes/new$', 'advisornotes.views.new_note'),
     url(r'^advising/students/' + USERID_SLUG + '/$', 'advisornotes.views.student_notes'),
     url(r'^advising/students/' + USERID_SLUG + '/notes/' + NOTE_ID + '$', 'advisornotes.views.view_note'),
