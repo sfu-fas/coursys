@@ -13050,7 +13050,8 @@
    "config": "{}",
    "label": "UNIV",
    "name": "University-wide",
-   "parent": null
+   "parent": null,
+   "slug": "UNIV"
   },
   "model": "coredata.unit",
   "pk": 1
@@ -13060,7 +13061,8 @@
    "config": "{}",
    "label": "CMPT",
    "name": "School of Computing Science",
-   "parent": 3
+   "parent": 3,
+   "slug": "CMPT"
   },
   "model": "coredata.unit",
   "pk": 2
@@ -13070,7 +13072,8 @@
    "config": "{}",
    "label": "FAS",
    "name": "Faculty of Applied Science",
-   "parent": 1
+   "parent": 1,
+   "slug": "FAS"
   },
   "model": "coredata.unit",
   "pk": 3
@@ -13080,7 +13083,8 @@
    "config": "{}",
    "label": "ENSC",
    "name": "School of Engineering Science",
-   "parent": 3
+   "parent": 3,
+   "slug": "ENSC"
   },
   "model": "coredata.unit",
   "pk": 4

@@ -1407,3 +1407,7 @@ div.note-box p.hideshow {
   text-align: right;
   font-size: smaller;
 }
+
+#borderless {
+  border: none;
+}
