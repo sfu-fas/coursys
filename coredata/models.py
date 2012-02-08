@@ -568,13 +568,12 @@ class Unit(models.Model):
              help_text="Next unit up in the hierarchy.")
     acad_org = models.CharField(max_length=10, null=True, blank=True, db_index=True, unique=True, help_text="ACAD_ORG field from SIMS")
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
-    slug = slug = AutoSlugField(populate_from=label, null=False, editable=False, unique=True)
     class Meta:
         ordering = ['label']
     def __unicode__(self):
         return "%s (%s)" % (self.name, self.label)
     def autoslug(self):
-        return self.label
+        return self.label.lower()
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
 
 

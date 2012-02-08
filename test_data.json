@@ -13051,7 +13051,7 @@
    "label": "UNIV",
    "name": "University-wide",
    "parent": null,
-   "slug": "UNIV"
+   "slug": "univ"
   },
   "model": "coredata.unit",
   "pk": 1
@@ -13062,7 +13062,7 @@
    "label": "CMPT",
    "name": "School of Computing Science",
    "parent": 3,
-   "slug": "CMPT"
+   "slug": "cmpt"
   },
   "model": "coredata.unit",
   "pk": 2
@@ -13073,7 +13073,7 @@
    "label": "FAS",
    "name": "Faculty of Applied Science",
    "parent": 1,
-   "slug": "FAS"
+   "slug": "fas"
   },
   "model": "coredata.unit",
   "pk": 3
@@ -13084,7 +13084,7 @@
    "label": "ENSC",
    "name": "School of Engineering Science",
    "parent": 3,
-   "slug": "ENSC"
+   "slug": "ensc"
   },
   "model": "coredata.unit",
   "pk": 4
