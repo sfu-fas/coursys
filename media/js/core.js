@@ -153,33 +153,37 @@ function offering_autocomplete(id) {
         return false;
       }
     }).bind('blur', function() {
-    	$(this).val($(this).data("uiLabel"));
-       	$('#'+hiddenElementID).val($(this).data("uiValue"));
+      $(this).val($(this).data("uiLabel"));
+        $('#'+hiddenElementID).val($(this).data("uiValue"));
     }).data("uiValue", formElementValue);
     
     /* pre-fill label value if it exists */
     if(formElementValue!=""){
-	    jQuery.ajax('/data/offering?id=' + formElementValue)
-	      .done(function(data) {
-	        autoCompelteElementJQ.val(data);
-	        ac.data("uiLabel", data);
-	      });
-	 }
+      jQuery.ajax('/data/offering?id=' + formElementValue)
+        .done(function(data) {
+          autoCompelteElementJQ.val(data);
+          ac.data("uiLabel", data);
+        });
+   }
   });
   
 } 
 
 // turn on StudentSearch autocomplete for field with this id.
 function student_autocomplete(id) {
-  $('#' + id).each(function() {   
-  	$(this).autocomplete({
-  	   source:'/data/students',
-  	   minLength: 2,
-       select: function(event, ui){
-       	$(this).data("val", ui.item.value);
-       }
+  var regexp = /(,.*)/;
+  var label;
+  $('#' + id).each(function() {
+    $(this).autocomplete({
+      source:'/data/students',
+      minLength: 2,
+      select: function(event, ui){
+        $(this).data("val", ui.item.value);
+        label = ui.item.label.replace(regexp, "")
+        $('#' + id).parent().after("<li>" + label +"</li>");
+      }
     }).bind('blur', function(){
-  		$(this).val($(this).data("val"))
-  	});
-  	});
+      $(this).val($(this).data("val"))
+    });
+  });
 }
