@@ -16,7 +16,9 @@ class Migration(SchemaMigration):
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('label', self.gf('django.db.models.fields.CharField')(unique=True, max_length=4, db_index=True)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=60)),
-            ('parent', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Unit'], null=True, blank=True)),
+            ('slug', self.gf('autoslug.fields.AutoSlugField')(max_length=50, db_index=True)),
+            ('parent', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Unit'], null=True, blank=True))
+            
         ))
         db.send_create_signal('coredata', ['Unit'])
 
@@ -127,7 +129,8 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'label': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '4', 'db_index': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '60'}),
-            'parent': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Unit']", 'null': 'True', 'blank': 'True'})
+            'parent': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Unit']", 'null': 'True', 'blank': 'True'}),
+            'slug': ('autoslug.fields.AutoSlugField', [], {'unique': 'True', 'max_length': '50', 'populate_from': 'None', 'unique_with': '()', 'db_index': 'True'})
         }
     }
 
