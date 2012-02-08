@@ -12,31 +12,37 @@
 <h1>Course Preference:</h1>
 {{ course_form|as_dl }}
 
-<h1>Skills:</h1>
+<h1>Campus Preferences:</h1>
 <table id="borderless">
-{% for s in skill_names %}
-<tr>
-<td><b>{{ s.name }}: </b></td>
-
-<!--
-<select name="skills{{ forloop.counter }}" id="id_skills">
--->
-
-    {% for skill in skills %}
-    {% if skill.name == s.name %}
+{% for cn in campus_names %}
+    {% for cp in campus_preferences %}
+        {% if cp.campus == cn.campus %}
+        {% ifchanged %}<tr><td><b>{{ cp.get_campus_display }}: </b></td>{% endifchanged %}
         <td>
-        <!--<option value={{ skill.id }}>Level: {{ skill.get_level_display }}</option>-->
-        <input type="radio" value={{ skill.id }} name="skills{{ forloop.parentloop.counter}}" > {{ skill.get_level_display }}</input>
+        <input type="radio" value={{ cp.id }} name="campus_preference{{ forloop.parentloop.counter }}" > {{ cp.get_rank_display }}</input>
         </td>
-    {% endif %}
+        {% endif %}
     {% endfor %}
-
-<!--
-</select></p>
--->
-</tr>
+    </tr>
 {% endfor %}
 </table>
+
+<h1>Skills:</h1>
+<table id="borderless">
+
+{% for sn in skill_names %}
+    {% for skill in skills %}
+        {% if sn.name == skill.name %}
+        {% ifchanged %}<tr><td><b>{{ skill.name }}: </b></td>{% endifchanged %}
+        <td>
+        <input type="radio" value={{ skill.id }} name="skills{{ forloop.parentloop.counter}}" > {{ skill.get_level_display }}</input>
+        </td>
+        {% endif %}
+    {% endfor %}
+    </tr>
+{% endfor %}
+</table>
+
 <input type="submit" class="submit" value="Submit" /></p>
 </fieldset>
 </form>

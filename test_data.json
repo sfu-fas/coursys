@@ -13469,7 +13469,7 @@
  {
   "fields": {
    "department": 2,
-   "level": "NONE",
+   "level": "EXPR",
    "name": "Java"
   },
   "model": "ta.skill",
@@ -13487,7 +13487,7 @@
  {
   "fields": {
    "department": 2,
-   "level": "EXPR",
+   "level": "NONE",
    "name": "Java"
   },
   "model": "ta.skill",
@@ -13496,7 +13496,7 @@
  {
   "fields": {
    "department": 2,
-   "level": "NONE",
+   "level": "EXPR",
    "name": "C++"
   },
   "model": "ta.skill",
@@ -13505,7 +13505,7 @@
  {
   "fields": {
    "department": 2,
-   "level": "EXPR",
+   "level": "SOME",
    "name": "C++"
   },
   "model": "ta.skill",
@@ -13514,7 +13514,7 @@
  {
   "fields": {
    "department": 2,
-   "level": "SOME",
+   "level": "NONE",
    "name": "C++"
   },
   "model": "ta.skill",
@@ -13523,7 +13523,7 @@
  {
   "fields": {
    "department": 1,
-   "level": "NONE",
+   "level": "EXPR",
    "name": "English"
   },
   "model": "ta.skill",
@@ -13532,7 +13532,7 @@
  {
   "fields": {
    "department": 1,
-   "level": "EXPR",
+   "level": "SOME",
    "name": "English"
   },
   "model": "ta.skill",
@@ -13541,11 +13541,155 @@
  {
   "fields": {
    "department": 1,
-   "level": "SOME",
+   "level": "NONE",
    "name": "English"
   },
   "model": "ta.skill",
   "pk": 9
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "rank": "PRF"
+  },
+  "model": "ta.campuspreference",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "rank": "WIL"
+  },
+  "model": "ta.campuspreference",
+  "pk": 2
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "rank": "NOT"
+  },
+  "model": "ta.campuspreference",
+  "pk": 3
+ },
+ {
+  "fields": {
+   "campus": "SURRY",
+   "rank": "PRF"
+  },
+  "model": "ta.campuspreference",
+  "pk": 4
+ },
+ {
+  "fields": {
+   "campus": "SURRY",
+   "rank": "WIL"
+  },
+  "model": "ta.campuspreference",
+  "pk": 5
+ },
+ {
+  "fields": {
+   "campus": "SURRY",
+   "rank": "NOT"
+  },
+  "model": "ta.campuspreference",
+  "pk": 6
+ },
+ {
+  "fields": {
+   "campus": "VANCR",
+   "rank": "PRF"
+  },
+  "model": "ta.campuspreference",
+  "pk": 7
+ },
+ {
+  "fields": {
+   "campus": "VANCR",
+   "rank": "WIL"
+  },
+  "model": "ta.campuspreference",
+  "pk": 8
+ },
+ {
+  "fields": {
+   "campus": "VANCR",
+   "rank": "NOT"
+  },
+  "model": "ta.campuspreference",
+  "pk": 9
+ },
+ {
+  "fields": {
+   "campus": "OFFST",
+   "rank": "PRF"
+  },
+  "model": "ta.campuspreference",
+  "pk": 10
+ },
+ {
+  "fields": {
+   "campus": "OFFST",
+   "rank": "WIL"
+  },
+  "model": "ta.campuspreference",
+  "pk": 11
+ },
+ {
+  "fields": {
+   "campus": "OFFST",
+   "rank": "NOT"
+  },
+  "model": "ta.campuspreference",
+  "pk": 12
+ },
+ {
+  "fields": {
+   "campus": "GNWC",
+   "rank": "PRF"
+  },
+  "model": "ta.campuspreference",
+  "pk": 13
+ },
+ {
+  "fields": {
+   "campus": "GNWC",
+   "rank": "WIL"
+  },
+  "model": "ta.campuspreference",
+  "pk": 14
+ },
+ {
+  "fields": {
+   "campus": "GNWC",
+   "rank": "NOT"
+  },
+  "model": "ta.campuspreference",
+  "pk": 15
+ },
+ {
+  "fields": {
+   "campus": "METRO",
+   "rank": "PRF"
+  },
+  "model": "ta.campuspreference",
+  "pk": 16
+ },
+ {
+  "fields": {
+   "campus": "METRO",
+   "rank": "WIL"
+  },
+  "model": "ta.campuspreference",
+  "pk": 17
+ },
+ {
+  "fields": {
+   "campus": "METRO",
+   "rank": "NOT"
+  },
+  "model": "ta.campuspreference",
+  "pk": 18
  },
   {
   "fields": {

@@ -181,11 +181,10 @@ class TUGForm(forms.ModelForm):
 class TAApplicationForm(forms.ModelForm):
     
     sin = forms.CharField(min_length=9, max_length=9)
-    campus_prefered = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple, choices=CAMPUS_CHOICES)
 
     class Meta:
         model = TAApplication
-        exclude = ('person','department','skills',)
+        exclude = ('person','department','skills','campus_preferences',)
 
 class CoursePreferenceForm(forms.ModelForm):
 

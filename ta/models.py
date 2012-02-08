@@ -1,5 +1,5 @@
 from django.db import models
-from coredata.models import Person, Member, Course, Semester, Unit ,CourseOffering
+from coredata.models import Person, Member, Course, Semester, Unit ,CourseOffering, CAMPUS_CHOICES 
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter #, getter_setter_2
 from django.db.models import Q
@@ -110,6 +110,18 @@ class Skill(models.Model):
     def __unicode__(self):
         return "Name: %s  Level: %s" % (self.name, self.get_level_display())
 
+PREFERENCE_CHOICES = (
+        ('PRF', 'Prefered'),
+        ('WIL', 'Willing'),
+        ('NOT', 'Not willing'),
+)
+
+class CampusPreference(models.Model):
+    """
+    Preference ranking for all campuses
+    """
+    campus = models.CharField(max_length=4, choices=CAMPUS_CHOICES)
+    rank = models.CharField(max_length=3, choices=PREFERENCE_CHOICES)
 
 CATEGORY_CHOICES = (
         ('PHD', 'PhD'),
@@ -129,7 +141,7 @@ class TAApplication(models.Model):
     base_units = models.DecimalField(max_digits=4, decimal_places=2)
     sin = models.PositiveIntegerField(unique=True)
     #Campus will be a csv separated field
-    campus_prefered = models.CharField(max_length=30)
+    campus_preferences = models.ManyToManyField(CampusPreference)
     skills = models.ManyToManyField(Skill) 
     experience =  models.TextField(blank=True, null=True,
         verbose_name="Experience",

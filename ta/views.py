@@ -175,6 +175,11 @@ def new_application(request, unit_slug):
             skill_count = Skill.objects.filter(department=app.department.id).values('name').distinct().count()
             for i in range(1,skill_count+1):
                 app.skills.add(request.POST['skills'+str(i)])
+            
+            #Add each campus preference to application
+            campus_count = CampusPreference.objects.values('campus').distinct().count()
+            for i in range(1,campus_count+1):
+                app.campus_preferences.add(request.POST['campus_preference'+str(i)])
     
             course = course_form.save(commit=False)
             course.app = TAApplication.objects.get(id=app.id)
@@ -190,9 +195,11 @@ def new_application(request, unit_slug):
     else:
         ta_form = TAApplicationForm(prefix='ta')
         course_form = CoursePreferenceForm(prefix='course')
+        campus_names = CampusPreference.objects.order_by('campus').values('campus').distinct() 
+        campus_preferences = CampusPreference.objects.order_by('campus','rank')
         skill_names = Skill.objects.filter(department=unit).order_by('name').values('name').distinct() 
-        skills = Skill.objects.filter(department=unit).order_by('name') 
-        return render(request, 'ta/new_application.html', {'unit':unit, 'ta_form':ta_form, 'course_form':course_form, 'skill_names':skill_names, 'skills':skills})
+        skills = Skill.objects.filter(department=unit).order_by('name','level') 
+        return render(request, 'ta/new_application.html', {'unit':unit, 'ta_form':ta_form, 'course_form':course_form, 'campus_names':campus_names, 'campus_preferences':campus_preferences, 'skill_names':skill_names, 'skills':skills})
 
 @login_required
 def all_applications(request):
