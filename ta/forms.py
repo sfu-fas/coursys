@@ -4,7 +4,7 @@ from django.forms.forms import BoundField
 from django.forms.util import ErrorList
 from django.utils.datastructures import SortedDict
 from coredata.models import Member, CAMPUS_CHOICES
-from ta.models import TUG, TAApplication,TAContract, CoursePreference
+from ta.models import TUG, TAApplication,TAContract, CoursePreference,TACourse
 from ta.util import table_row__Form
 
 @table_row__Form
@@ -202,3 +202,8 @@ class TAContractForm(forms.ModelForm):
     
     class Meta:
         model = TAContract
+        
+class TACourseForm(forms.ModelForm):
+    class Meta:
+        model = TACourse
+        exclude = ('contract',) 

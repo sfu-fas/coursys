@@ -1,16 +1,36 @@
 {% extends "base.html" %}
-{% load form_display %}
+{% load course_display form_display %}
 
 {% block content %}
 
 <div id="form_container">
 <form action="{% url ta.views.new_contract %}" method="post">{% csrf_token %}
 <fieldset>
-<legend>New contract</legend>
+<legend>General Info</legend>
 {{ c_form|as_dl }}
-
-<p><input type="submit" class="submit" value="Submit" /></p>
 </fieldset>
+
+<fieldset>
+<legend>Course Appointments</legend>
+	<div class="table_container"> 
+      <table class="display" id="ta_course">
+      	<thead class="form_head">
+          <tr>
+         	<th scope="col">Course</th>
+         	<th scope="col">Base Unit</th>
+         	<th scope="col">Description</th>            
+          </tr>         
+        </thead>  
+        <tbody>
+			{{ a_form|display_form_as_row }}
+			{{ a_form|display_form_as_row }}
+			{{ a_form|display_form_as_row }}
+        </tbody>
+      </table>
+   </div>
+</fieldset>
+<p><input type="submit" class="submit" value="Submit" /></p>
+
 </form>
 </div>
 

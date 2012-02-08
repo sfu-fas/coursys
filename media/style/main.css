@@ -1411,3 +1411,7 @@ div.note-box p.hideshow {
 #borderless {
   border: none;
 }
+
+#ta_course{
+	margin: 15px 20px 20px;	
+}

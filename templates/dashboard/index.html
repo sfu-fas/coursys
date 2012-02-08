@@ -39,7 +39,7 @@ $(document).ready(function() {
     {% if 'FUND' in roles %}<li class="newsec"><a href="{% url ra.views.index %}">Research Associates</a></li>{% endif %}
     {% if 'ADMN' in roles %}<li><a href="{% url ta.views.all_tugs_admin %}">Time Use Guidelines</a></li>{% endif %}
      <li  class='newsec'><a href="{% url ta.views.view_TA_postings %}">TA Job Postings</a></li>
-	 <li><a href="{% url ta.views.new_contract %}">TA Contract</a></li>
+	{% if 'ADMN' in roles %}<li><a href="{% url ta.views.new_contract %}">TA Contract</a></li>{% endif %}
 	 </ul>
 </div>
 {% endblock %}

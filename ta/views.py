@@ -214,7 +214,7 @@ def view_application(request, app_id):
     return render(request, 'ta/view_application.html', {'application':application})
 
 
-@login_required
+@requires_role("ADMN")
 def new_contract(request):
     applicant = TAApplication.objects.filter(semester=get_semester())
     for e in TAApplication.objects.filter(semester=get_semester()):
@@ -231,9 +231,10 @@ def new_contract(request):
         return HttpResponseRedirect('')
     else:
         c_form = TAContractForm()
+        a_form = TACourseForm()
         
         #c_form['person'].queryset = [ app.person for app in applicant ]
-        context = {'c_form': c_form,
+        context = {'c_form': c_form, 'a_form':a_form
                    }
         return render(request, 'ta/new_contract.html',context)
         
