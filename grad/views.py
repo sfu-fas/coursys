@@ -71,8 +71,9 @@ def view_all(request, grad_slug):
 @requires_role("GRAD")
 def manage_supervisors(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
-    supervisors = get_object_or_404(Supervisor, student=grad)
-    supervisors_formset = formset_factory(SupervisorForm, extra=1, max_num=4)()
+    supervisors = Supervisor.objects.filter(student=grad)
+    num_supervisors = supervisors.count()
+    supervisors_formset = formset_factory(SupervisorForm, extra=num_supervisors, max_num=4)()
     for f in supervisors_formset:
         f.fields['supervisor'].choices = possible_supervisors(grad.program.unit)
 
@@ -89,8 +90,7 @@ def manage_supervisors(request, grad_slug):
         
         return HttpResponse("AJAX Completed") #return updated form.
     else:
-        supervisors_form = SupervisorForm(instance=supervisors, prefix="sup") 
-        potential_supervisors_form = PotentialSupervisorForm(instance=supervisors, prefix="sup")
+        potential_supervisors_form = PotentialSupervisorForm(prefix="pot_sup")
         potential_supervisors_form.fields['supervisor'].choices = \
                 possible_supervisors(grad.program.unit)
 
@@ -98,9 +98,7 @@ def manage_supervisors(request, grad_slug):
     page_title = "%s's Supervisor(s) Record" % (grad.person.first_name)
     crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
     gp = grad.person.get_fields 
-    supervisors = supervisors.get_fields 
     context = {
-               'supervisors_form': supervisors_form,
                'supervisors_formset': supervisors_formset,
                'potential_supervisors_form': potential_supervisors_form,
                'page_title' : page_title,

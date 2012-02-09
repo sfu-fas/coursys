@@ -750,6 +750,9 @@ fieldset .datetime {
 dl.dlform .helptext {
     margin-left: 9em;
 }
+dl.dlform dt{
+	margin-left: 1em;
+}
 fieldset .errortext {
     color: red;
     font-size: 0.9em;

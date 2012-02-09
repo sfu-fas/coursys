@@ -31,7 +31,10 @@
 
 {% block headextra %}
 <script type="text/javascript">
-	function add() {
+	function add(){
+		$("#supervisor-forms").append($("supervisor-form-0").clone(true))
+	}
+	function update(id) {
 		$.ajax({
 			url : '{% url grad.views.manage_supervisors grad_slug=grad.slug %}',
 			success : function(data) {
@@ -82,11 +85,15 @@
 			<p>
 				Choose only a Supervisor or enter an External.
 			</p>
+			<div id="supervisor-forms">
 			{% for form in supervisors_formset %}
-
-			{{ form.as_p }}
-
+				<div id="supervisor-form-{{forloop.counter0}}">
+					<p>Supervisor {{forloop.counter}}:</p>
+					{{ form.as_p }}
+				</div>
+			
 			{% endfor %}
+			</div>
 			<p id="form_btns">
 				<input id="addBtn" class="submit" type="button" value="Please Enable Javascript" />
 				<input class="submit" type="submit" value="Update">
