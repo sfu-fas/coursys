@@ -10,22 +10,25 @@
 <li class="newsec"><a href="{% url grad.views.new %}">New Grad</a></li>
 {% endif %}
 
+{% comment %}
+"""
+	This is now hard coded in each sub page. archive as reference.
+"""
+
 {% if grad%}
 <li><a href="{% url grad.views.view_all grad_slug=grad.slug %}">View All Info</a></li>
 <li class="newsec">Manage:</li>
-<li><a href="{% url grad.views.manage_academics grad_slug=grad.slug %}">Academics</a></li>
-<li><a href="{% url grad.views.manage_supervisors grad_slug=grad.slug  %}">Supervisors</a></li>
-<li><a href="{% url grad.views.manage_status grad_slug=grad.slug  %}">Status</a></li>
+<li><a href="{% url grad.views.manage_academics grad_slug=grad.slug %}">Edit Academics</a></li>
+<li><a href="{% url grad.views.manage_supervisors grad_slug=grad.slug  %}">Edit Supervisors</a></li>
+<li><a href="{% url grad.views.manage_status grad_slug=grad.slug  %}">Edit Status</a></li>
 {% endif %}
+{% endcomment %}
 
-{% if not grad %}
 <li class="newsec"><a href="{% url grad.views.programs %}">View Programs</a></li>
 <li><a href="{% url grad.views.new_program %}">New Program</a></li>
 <li class="newsec"><a href="{% url grad.views.requirements %}">View Requirements</a></li>
 <li><a href="{% url grad.views.new_requirement %}">New Requirement</a></li>
-{% endif %}
 </ul>
-
 
 </div>
 {% endblock %}

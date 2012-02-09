@@ -51,19 +51,7 @@ class GradStudent(models.Model):
     def get_fields(self):
         # make a list of field/values.
         k = []
-        for field in GradStudent._meta.fields:
-            if field.verbose_name == "ID" or\
-                field.name == "userid" or\
-                field.name == 'last_name' or\
-                field.name == 'first_name' or\
-                field.name == 'person' or\
-                field.name == 'slug' or \
-                field.name == 'created_at' or\
-                field.name == 'modified_by' or\
-                field.name == 'updated_at' or\
-                field.name == 'created_by':
-                pass
-            else:           
+        for field in GradStudent._meta.fields:     
                 k.append([capfirst(field.verbose_name), field.value_to_string(self)])
         return k    
     def __unicode__(self):

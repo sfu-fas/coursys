@@ -85,7 +85,7 @@ def manage_supervisors(request, grad_slug):
             superF = potential_supervisors_form.save(commit=False)
             superF.modified_by = request.user.username
             superF.save()            
-            return HttpResponseRedirect(reverse(view_all, kwargs={'userid':userid} ))
+            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug} ))
     elif request.is_ajax():
         # TO DO: Update formset to correct number of forms displayed
         
