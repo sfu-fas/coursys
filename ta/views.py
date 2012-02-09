@@ -221,7 +221,7 @@ def view_application(request, app_id):
     return render(request, 'ta/view_application.html', {'application':application, 'courses':courses})
 
 
-@requires_role("ADMN")
+@requires_role("TAAD")
 def new_contract(request):
     applicant = TAApplication.objects.filter(semester=get_semester())
     for e in TAApplication.objects.filter(semester=get_semester()):
@@ -230,9 +230,9 @@ def new_contract(request):
     if request.method == "POST":
         form = TAContractForm(request.POST)
         TACourseFormSet = inlineformset_factory(TAContract, TACourse)
-        if form.is_valid() and form2.is_valid():
+        if form.is_valid():
             contract = form.save(commit=False)
-            contract = form2.save(instance=contract, commit=False)
+            #contract = form2.save(instance=contract, commit=False)
             formset = TACourseFormSet(request.POST, instance=contract)
             if formset.is_valid():
                 formset.save()
@@ -244,9 +244,9 @@ def new_contract(request):
     else:
         form = TAContractForm()
         formset = inlineformset_factory(TAContract, TACourse, extra=2, can_delete = False)
-        form2 = TAContractForm2()
+        #form2 = TAContractForm2()
         
         #c_form['person'].queryset = [ app.person for app in applicant ]
-        context = {'form': form, 'formset':formset, 'form2': form2}
+        context = {'form': form, 'formset':formset}
         return render(request, 'ta/new_contract.html',context)
         

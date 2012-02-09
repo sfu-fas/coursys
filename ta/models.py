@@ -204,7 +204,7 @@ class TAContract(models.Model):
     #courses = models.ForeignKey(CourseOffering)
     #description = models.CharField(max_length=3, choices=DESC_CHOICES, blank=False, null=False) 
     
-    total_bu = models.DecimalField(max_digits=4, decimal_places=2)
+    #total_bu = models.DecimalField(max_digits=4, decimal_places=2)
     pay_per_bu = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Pay per Base Unit Semester Rate.",
                 help_text='Usually $934.00 per BU per Semester')
     scholarship_per_bu = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Scholarship per Base Unit Semester Rate.",

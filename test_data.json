@@ -13813,5 +13813,14 @@
   }, 
   "model": "ra.project", 
   "pk": 2
- } 
+ },
+ {
+  "fields": {
+   "person": 16,
+   "role": "TAAD",
+   "unit": 2
+  },
+  "model": "coredata.role",
+  "pk": 8
+ }
 ]
