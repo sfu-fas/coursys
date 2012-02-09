@@ -81,6 +81,15 @@ class Supervisor(models.Model):
         for field in Supervisor._meta.fields:
             if field.verbose_name == "ID" or field.name == "external":
                 pass
+			# TO DO: quick workaround to getting actual values displaying instead of ids
+			# There's probably a more elegant way of doing this 
+            elif field.name =="supervisor" or field.name == "student":
+                nameOfPerson = ""
+                if field.name == "supervisor": 
+                    nameOfPerson = Person.objects.get(id=field.value_to_string(self))
+                elif field.name == "student":
+                    nameOfPerson = GradStudent.objects.get(id=field.value_to_string(self))
+                k.append([capfirst(field.verbose_name), nameOfPerson])
             else:
                 k.append([capfirst(field.verbose_name), field.value_to_string(self)])
         return k        
@@ -169,5 +178,4 @@ class GradStatus(models.Model):
         return k    
     
     def __unicode__(self):
-        return "Grad Status: %s %s" % (self.status, self.student)      
-        
+        return "Grad Status: %s %s" % (self.status, self.student)
