@@ -121,6 +121,8 @@ class GradRequirement(models.Model):
     """
     unit = models.ForeignKey(Unit)
     description = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')    
 
 class CompletedRequirement(models.Model):
     """
@@ -133,6 +135,9 @@ class CompletedRequirement(models.Model):
     date = models.DateField(null=True, blank=True,
             help_text="Date the requirement was completed (optional)")
     notes = models.TextField(blank=True, help_text="Other notes")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')    
 
 STATUS_CHOICES = (
         ('ACTI', 'Active'),

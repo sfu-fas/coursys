@@ -13465,6 +13465,61 @@
   "model": "grad.supervisor",
   "pk": 2
  },
+  {
+  "fields": {
+   "created_at": "2012-02-08 18:32:37",
+   "description": "CMPT 891",
+   "unit": 2,
+   "updated_at": "2012-02-08 18:32:37"
+  },
+  "model": "grad.gradrequirement",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "created_at": "2012-02-08 18:33:05",
+   "description": "CMPT 890",
+   "unit": 2,
+   "updated_at": "2012-02-08 18:33:05"
+  },
+  "model": "grad.gradrequirement",
+  "pk": 2
+ },
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
  
  {
   "fields": {

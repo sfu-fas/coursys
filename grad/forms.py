@@ -1,6 +1,7 @@
 from django.forms.models import ModelForm
 from django.forms import forms
-from grad.models import Supervisor, GradProgram, GradStudent, GradStatus
+from grad.models import Supervisor, GradProgram, GradStudent, GradStatus,\
+    GradRequirement
 from coredata.models import Member
 
 class SupervisorForm(ModelForm):
@@ -47,7 +48,7 @@ def possible_supervisors(unit):
 class GradAcademicForm(ModelForm):
     class Meta: 
         model = GradStudent
-        fields = ('program', 'research_area', 'campus', 'english_fluency', 'mother_tongue', 'is_canadian', 'passport_issued_by', 'special_arrangements', 'comments')
+        fields = ('research_area', 'campus', 'english_fluency', 'mother_tongue', 'is_canadian', 'passport_issued_by', 'special_arrangements', 'comments')
 
 class GradProgramForm(ModelForm):
     class Meta:
@@ -64,3 +65,8 @@ class GradStatusForm(ModelForm):
         model = GradStatus
         exclude = ('end', 'student', 'notes', 'created_by')
         
+        
+class GradRequirementForm(ModelForm):
+    class Meta:
+        model = GradRequirement
+

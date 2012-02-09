@@ -10,6 +10,7 @@ from courselib.auth import *
 from django.core import serializers
 from django.utils.safestring import mark_safe
 import datetime
+from grad.models import GradRequirement
 
 # get semester based on input datetime. defaults to today
 # returns semseter object
@@ -231,6 +232,7 @@ def new_program(request):
                'crumb' : crumb
                }
     return render(request, 'grad/new_program.html', context)
+
 @requires_role("GRAD")
 def programs(request):
     programs = GradProgram.objects.all()
@@ -244,6 +246,38 @@ def programs(request):
                'programs': programs               
                }
     return render(request, 'grad/programs.html', context)
+
+@requires_role("GRAD")
+def requirements(request):
+    requirements = GradRequirement.objects.all()
+    
+    page_title = 'Graduate Requirements'
+    crumb = 'Grad Requirements'     
+    context = {
+                'page_title' : page_title,
+               'crumb' : crumb,
+               'requirements': requirements                 
+               }
+    return render(request, 'grad/requirements.html', context)
+
+@requires_role("GRAD")
+def new_requirement(request):
+    if request.method == 'POST':
+        form = GradRequirementForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse(requirements))
+    else:
+        form = GradRequirementForm()     
+
+    page_title = 'New Requirement'  
+    crumb = 'New Requirement' 
+    context = {
+               'form': form,
+               'page_title' : page_title,
+               'crumb' : crumb
+               }
+    return render(request, 'grad/new_requirement.html', context)
 
 # End of Temp
 #############################################################

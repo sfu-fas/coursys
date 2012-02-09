@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load mobile_tags %}
+
+{% block actions %}
+<div id="actions">
+<h2>Actions</h2>
+<ul>
+<li><a href="{% url grad.views.new_requirement %}">New Requirement</a></li>
+</ul>
+</div>
+{% endblock %}
+
+
+{% block title %}{{page_title}}{% endblock %}
+{% block h1 %}{{page_title}}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>
+	&gt; <a href="{% url grad.views.index %}">Grad</a>
+</li>
+<li>
+	&gt; {{crumb}}
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="datatable_container bigdatatable">
+    <table class="display" id="grads">
+        <thead>
+            <tr>
+                <th scope="col">Unit</th>
+				<th scope="col">Description</th>
+                <th scope="col">Created At</th>
+				<th scope="col">Updated At</th>	
+				<th scope="col">Manage</th>										
+            </tr>
+		</thead>
+        <tbody>
+        {% for s in requirements %}
+        <tr>
+            <td>{{s.unit}}</td>
+            <td>{{s.description}}</td>
+            <td>{{s.created_at}}</td>
+            <td>{{s.updated_at}}</td>            
+             <td><a href="">Select</a></td>          
+        </tr>
+        {%empty%}
+        	<tr><td><p class="empty">There are currently no grad requirements stored in the database.</p></td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

@@ -19,12 +19,13 @@
 {% endif %}
 
 {% if not grad %}
-{% if not request.get_full_path == "/grad/program/"%}
 <li class="newsec"><a href="{% url grad.views.programs %}">View Programs</a></li>
-{% endif %}
 <li><a href="{% url grad.views.new_program %}">New Program</a></li>
-</ul>
+<li class="newsec"><a href="{% url grad.views.requirements %}">View Requirements</a></li>
+<li><a href="{% url grad.views.new_requirement %}">New Requirement</a></li>
 {% endif %}
+</ul>
+
 
 </div>
 {% endblock %}
