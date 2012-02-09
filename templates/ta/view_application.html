@@ -10,12 +10,30 @@
 <li>Dept: {{ application.department }}</li>
 <li>Base Units: {{ application.base_units }}</li>
 <li>SIN: {{ application.sin }}</li>
-<li>Campus Preference: {{ application.campus_prefered }}</li>
 <li>Experience: {{ application.experience }}</li>
 <li>Course Load: {{ application.course_load }}</li>
 <li>Other Support: {{ application.other_support }}</li>
 <li>Comments: {{ application.comments }}</li>
-<li>Skills: {{ application.skills }}</li>
+
+<li>Courses Applied for:</li>
+<ul>
+  {% for course in courses %}
+    <li>{{ course.course }}</li>
+  {% endfor %}
+</ul>
+
+<li>Campus Preference:</li> 
+<ul>
+  {% for campus in application.campus_preferences.all %}
+    <li>{{ campus.get_campus_display }} - {{ campus.get_rank_display }}</li>
+  {% endfor %}
+</ul>
+
+<li>Skills:</li>
+<ul>
+  {% for skill in application.skills.all %}
+    <li>{{ skill.name }} - {{ skill.get_level_display }}</li>
+  {% endfor %}</ul>
 <ul>
 
 {% endblock %}

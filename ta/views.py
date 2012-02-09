@@ -217,7 +217,8 @@ def view_TA_postings(request):
 @login_required
 def view_application(request, app_id):
     application = TAApplication.objects.get(id=app_id)
-    return render(request, 'ta/view_application.html', {'application':application})
+    courses = CoursePreference.objects.filter(app=app_id)
+    return render(request, 'ta/view_application.html', {'application':application, 'courses':courses})
 
 
 @requires_role("ADMN")
