@@ -243,15 +243,18 @@ urlpatterns += patterns('',
     
     # Graduate related Start
     url(r'^grad/$', 'grad.views.index'),
+    
+    url(r'^grad/program/new', 'grad.views.new_program'),   
+    url(r'^grad/program/$', 'grad.views.programs'),
+    url(r'^grad/requirement/$', 'grad.views.requirements'),
+    url(r'^grad/requirement/new', 'grad.views.new_requirement'),    
+    
     url(r'^grad/'+ GRAD_SLUG + '/$', 'grad.views.view_all'),    
     url(r'^grad/'+ GRAD_SLUG + '/manage_academics$', 'grad.views.manage_academics'),
     url(r'^grad/'+ GRAD_SLUG + '/manage_supervisors$', 'grad.views.manage_supervisors'),   
     url(r'^grad/'+ GRAD_SLUG + '/manage_status$', 'grad.views.manage_status'),
     url(r'^grad/new', 'grad.views.new'),
-    url(r'^grad/program/new', 'grad.views.new_program'),   
-    url(r'^grad/program/$', 'grad.views.programs'),
-    url(r'^requirement/$', 'grad.views.requirements'),
-    url(r'^grad/requirement/new', 'grad.views.new_requirement'),
+
     # Graduate related End
 
     # For RA application

@@ -110,6 +110,57 @@
 			</table>
 	</fieldset>
 </div>
+
+
+<div id="form_container">
+	<fieldset>
+		<legend>
+			Requirements
+		</legend>
+			<table class="display">
+				<tbody>
+					{% if completed_req %}
+					{% for s in completed_req %}
+					<tr>
+						<td><dl>
+							<dt> <label>Requirement :</label></dt>
+							<dd>{{ s.requirement }}</dd>
+						</dl></td>
+						<td><dl>
+							<dt><label>Completed in : </label></dt>
+							<dd>{{ s.semester }}</dd>
+						</dl></td>
+					</tr>
+					<tr>
+						<td><dl>
+							<dt> <label>Date :</label></dt>
+							<dd>{{ s.date }}</dd>
+						</dl></td>
+						<td></td>
+					</tr>
+					<tr>
+						<td colspan=2><dl>
+							<dt><label>Notes :</label></dt>
+							<dd>{{s.notes}}</dd>
+						</dl></td>
+					</tr>					
+					<tr>
+						<td colspan="2">
+							<div align="center"><p class="helptext">Last updated : {{s.updated_at}}.</p>
+							</div>
+						</td>
+					</tr>
+					{% endfor %}
+					{% endif %}	
+				</tbody>
+			</table>
+	</fieldset>
+</div>
+
+
+
+
+
 <div id="form_container">
 	<fieldset>
 		<legend>

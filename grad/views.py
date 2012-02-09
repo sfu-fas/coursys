@@ -10,7 +10,6 @@ from courselib.auth import *
 from django.core import serializers
 from django.utils.safestring import mark_safe
 import datetime
-from grad.models import GradRequirement
 
 # get semester based on input datetime. defaults to today
 # returns semseter object
@@ -50,12 +49,11 @@ def view_all(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
     supervisors = get_object_or_404(Supervisor, student=grad)
     status = get_list_or_404(GradStatus, student=grad)
-    
+    completed_req = get_list_or_404(CompletedRequirement, student=grad)
     # set frontend defaults
     page_title = "%s 's Graduate Student Record" % (grad.person.first_name)
     crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
     gp = grad.person.get_fields 
-    gr = grad.get_fields
     supervisors = supervisors.get_fields
     gs = [s.get_fields for s in status]
     context = {
@@ -63,9 +61,9 @@ def view_all(request, grad_slug):
                'crumb' : crumb,
                'grad' : grad,
                'gp' : gp,
-               'gr' : gr,
                'gs' : gs,
-               'supervisors' : supervisors            
+               'supervisors' : supervisors,
+               'completed_req' : completed_req           
                }
     return render(request, 'grad/view_all.html', context)
 
@@ -176,12 +174,17 @@ def manage_status(request, grad_slug):
 def new(request):
     if request.method == 'POST':
         grad_form = GradStudentForm(request.POST, prefix="grad")
+        req_form = CompletedRequirementForm(request.POST, prefix="req")
         supervisors_form = PotentialSupervisorForm(request.POST, prefix="sup")
         status_form = GradStatusForm(request.POST, prefix="stat")
         if grad_form.is_valid() and supervisors_form.is_valid() and status_form.is_valid() :
             gradF = grad_form.save(commit=False)
             gradF.created_by = request.user.username
             gradF.save()
+            reqF = req_form.save(commit=False)
+            req_form.cleaned_data["student"] = gradF
+            reqF.student_id = gradF.id
+            req_form.save()
             superF = supervisors_form.save(commit=False)
             supervisors_form.cleaned_data["student"] = gradF
             superF.student_id = gradF.id
@@ -196,6 +199,7 @@ def new(request):
             return HttpResponseRedirect(reverse(index))
     else:
         grad_form = GradStudentForm(prefix="grad")
+        req_form = CompletedRequirementForm(prefix="req")
         supervisors_form = PotentialSupervisorForm(prefix="sup",)  
         status_form = GradStatusForm(prefix="stat", initial={'status': 'ACTI', 'start': get_semester() })  
         #initial: 'start' returns nothing if there are no future semester available in DB 
@@ -205,6 +209,7 @@ def new(request):
     crumb = 'New Grad' 
     context = {
                'grad_form': grad_form,
+               'req_form': req_form,
                'supervisors_form': supervisors_form,
                'status_form': status_form,               
                'page_title' : page_title,

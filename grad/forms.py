@@ -1,7 +1,7 @@
 from django.forms.models import ModelForm
 from django.forms import forms
 from grad.models import Supervisor, GradProgram, GradStudent, GradStatus,\
-    GradRequirement
+    GradRequirement, CompletedRequirement
 from coredata.models import Member
 
 class SupervisorForm(ModelForm):
@@ -70,3 +70,7 @@ class GradRequirementForm(ModelForm):
     class Meta:
         model = GradRequirement
 
+class CompletedRequirementForm(ModelForm):
+    class Meta:
+        model = CompletedRequirement
+        fields = ('requirement', 'semester', 'date', 'notes')

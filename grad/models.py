@@ -37,13 +37,13 @@ class GradStudent(models.Model):
     research_area = models.CharField('Research Area', max_length=250, blank=False)
     campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES, blank=True)
 
-    english_fluency = models.CharField(max_length=10, blank=True, help_text="I.e. Read, Write, Speak, All.")
+    english_fluency = models.CharField(max_length=50, blank=True, help_text="I.e. Read, Write, Speak, All.")
     mother_tongue = models.CharField(max_length=25, blank=True, help_text="I.e. Scottish, Chinese, French")
     is_canadian = models.NullBooleanField()
     passport_issued_by = models.CharField(max_length=25, blank=True, help_text="I.e. US, China")
     special_arrangements = models.NullBooleanField(verbose_name='Special Arrgmnts')
     comments = models.TextField(max_length=250, blank=True, help_text="Additional information.")
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')
     created_by = models.CharField(max_length=32, null=False, help_text='Grad Student created by.')
@@ -110,7 +110,10 @@ class GradRequirement(models.Model):
     unit = models.ForeignKey(Unit)
     description = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')    
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')
+    def __unicode__(self):
+        return "%s" % (self.description)    
+        
 
 class CompletedRequirement(models.Model):
     """
@@ -126,6 +129,9 @@ class CompletedRequirement(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')    
+
+    def __unicode__(self):
+        return "%s" % (self.requirement)
 
 STATUS_CHOICES = (
         ('ACTI', 'Active'),
