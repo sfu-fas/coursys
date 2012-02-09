@@ -31,21 +31,7 @@
 {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">
-	function add(){
-		$("#supervisor-forms").append($("supervisor-form-0").clone(true))
-	}
-	function update(id) {
-		$.ajax({
-			url : '{% url grad.views.manage_supervisors grad_slug=grad.slug %}',
-			success : function(data) {
-				if(console && console.log) {
-					console.log(data);
-				}
-			}
-		});
-	}
-</script>
+<script type="text/javascript" src="{{MEDIA_URL}}js/grad.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -89,24 +75,24 @@
 			<div id="supervisor-forms">
 			{% for form in supervisors_formset %}
 				<div id="supervisor-form-{{forloop.counter0}}">
-					<p>Supervisor {{forloop.counter}}:</p>
+					<p id="supervisor-form-{{forloop.counter0}}-label">Supervisor {{forloop.counter}}:</p>
 					{{ form.as_p }}
 				</div>
 			
 			{% endfor %}
 			</div>
-			<p id="form_btns">
-				<input id="addBtn" class="submit" type="button" value="Please Enable Javascript" />
+			<span id="form_btns">
+				<noscript>Please enable JavaScript to add a new supervisor</noscript>
 				<input class="submit" type="submit" value="Update">
-			</p>
+			</span>
 		</fieldset>
 	</form>
 	<a class="button" href="{% url grad.views.view_all grad_slug=grad.slug %}">Cancel</a>
 </div>
 <script type="text/javascript">
+	// dynamically append button for no-script compatibility
 	$(function() {
-		$("#addBtn").remove()
-		$("#form_btns").append('<input class="submit" type="button" value="Add Another" onclick="add()"/>')
+		$("#form_btns").append('<input id="add_btn" class="submit" type="button" value="Add Another" onclick="add()"/>')
 	});
 
 </script>
