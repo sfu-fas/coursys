@@ -2,7 +2,7 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response, get_object_or_404, get_list_or_404, render
 from django.http import HttpResponseRedirect, HttpResponse
 from grad.forms import *
-from coredata.models import Person, Role, Unit, Semester
+from coredata.models import Person, Role, Unit, Semester, CAMPUS_CHOICES
 from django.template import RequestContext
 from django import forms
 from django.forms.formsets import formset_factory
@@ -110,6 +110,33 @@ def manage_supervisors(request, grad_slug):
     return render(request, 'grad/manage_supervisors.html', context)
 
 @requires_role("GRAD")
+def manage_requirements(request, grad_slug):
+    grad = get_object_or_404(GradStudent, slug=grad_slug)    
+    req = get_object_or_404(CompletedRequirement, student=grad)
+    
+    if request.method == 'POST':
+        req_form = CompletedRequirementForm(request.POST, instance=req, prefix="req")        
+        if req_form.is_valid():
+            req_form.save()
+            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug} ))
+    else:
+        req_form = CompletedRequirementForm(instance=req, prefix="req")     
+
+    # set frontend defaults
+    page_title = "%s's Requirements Record" % (grad.person.first_name)
+    crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
+    gp = grad.person.get_fields     
+    context = {
+               'req_form': req_form,
+               'page_title' : page_title,
+               'crumb' : crumb,
+               'gp' : gp,
+               'grad' : grad     
+               }
+    return render(request, 'grad/manage_requirements.html', context)
+
+
+@requires_role("GRAD")
 def manage_academics(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
     
@@ -119,7 +146,7 @@ def manage_academics(request, grad_slug):
             gradF = grad_form.save(commit=False)
             gradF.modified_by = request.user.username
             gradF.save()
-            return HttpResponseRedirect(reverse(index))
+            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug} ))
     else:
         grad_form = GradAcademicForm(instance=grad, prefix="grad")
 
@@ -147,7 +174,7 @@ def manage_status(request, grad_slug):
         status_form = GradStatusForm(request.POST, instance=status, prefix="stat")
         if status_form.is_valid():
             status_form.save()
-            return HttpResponseRedirect(reverse(index))
+            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug} ))
     else:
         status_form = GradStatusForm(instance=status, prefix="stat")
 
@@ -196,8 +223,10 @@ def new(request):
             status_form.save()
             return HttpResponseRedirect(reverse(index))
     else:
-        grad_form = GradStudentForm(prefix="grad")
-        req_form = CompletedRequirementForm(prefix="req")
+        req_list = get_list_or_404(GradRequirement)
+        prog_list = get_list_or_404(GradProgram)
+        grad_form = GradStudentForm(prefix="grad", initial={'program': prog_list[0], 'campus': CAMPUS_CHOICES[0][0] })
+        req_form = CompletedRequirementForm(prefix="req", initial={'semester': get_semester(), 'requirement': req_list[0]})
         supervisors_form = PotentialSupervisorForm(prefix="sup",)  
         status_form = GradStatusForm(prefix="stat", initial={'status': 'ACTI', 'start': get_semester() })  
         #initial: 'start' returns nothing if there are no future semester available in DB 

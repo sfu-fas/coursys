@@ -7,9 +7,10 @@
 <div id="actions">
 <h2>Actions</h2>
 <ul>
-<li><a href="{% url grad.views.view_all grad_slug=grad.slug %}">View All Info</a></li>
-<li><a href="{% url grad.views.manage_supervisors grad_slug=grad.slug  %}">Edit Supervisors</a></li>
-<li><a href="{% url grad.views.manage_status grad_slug=grad.slug  %}">Edit Status</a></li>
+<li><a href="{% url grad.views.view_all grad_slug=grad.slug %}">View All Info</a></li>	
+<li class="newsec"><a href="{% url grad.views.manage_requirements grad_slug=grad.slug  %}">Manage Requirements</a></li>
+<li><a href="{% url grad.views.manage_supervisors grad_slug=grad.slug  %}">Manage Supervisors</a></li>
+<li><a href="{% url grad.views.manage_status grad_slug=grad.slug  %}">Manage Status</a></li>
 </ul>
 </div>
 {% endblock %}
@@ -22,7 +23,7 @@
 	&gt; <a href="{% url grad.views.index %}">Grad</a>
 </li>
 <li>
-	&gt; {{crumb}}
+	&gt;<a href="{% url grad.views.view_all grad_slug=grad.slug%}"> {{crumb}}</a>
 </li>
 <li>
 	&gt; Academics

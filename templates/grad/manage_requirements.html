@@ -5,16 +5,23 @@
 
 {% block actions %}
 <div id="actions">
-<h2>Actions</h2>
-<ul>
-<li><a href="{% url grad.views.view_all grad_slug=grad.slug %}">View All Info</a></li>	
-<li class="newsec"><a href="{% url grad.views.manage_academics grad_slug=grad.slug %}">Manage Academics</a></li>
-<li><a href="{% url grad.views.manage_requirements grad_slug=grad.slug  %}">Manage Requirements</a></li>
-<li><a href="{% url grad.views.manage_supervisors grad_slug=grad.slug  %}">Manage Supervisors</a></li>
-</ul>
+	<h2>Actions</h2>
+	<ul>
+		<li>
+			<a href="{% url grad.views.view_all grad_slug=grad.slug %}">View All Info</a>
+		</li>
+		<li class="newsec">
+			<a href="{% url grad.views.manage_academics grad_slug=grad.slug %}">Manage Academics</a>
+		</li>
+		<li>
+			<a href="{% url grad.views.manage_supervisors grad_slug=grad.slug  %}">Manage Supervisors</a>
+		</li>
+		<li>
+			<a href="{% url grad.views.manage_status grad_slug=grad.slug  %}">Manage Status</a>
+		</li>
+	</ul>
 </div>
 {% endblock %}
-
 
 {% block title %}{{page_title}}{% endblock %}
 {% block h1 %}{{page_title}}{% endblock %}
@@ -27,7 +34,7 @@
 	&gt;<a href="{% url grad.views.view_all grad_slug=grad.slug%}"> {{crumb}}</a>
 </li>
 <li>
-	&gt; Supervisors
+	&gt; Requirements
 </li>
 {% endblock %}
 
@@ -44,20 +51,29 @@
 		</tbody>
 	</table>
 </div>
+<div>
+	<fieldset>
+		<legend>
+			Missing Requirements
+		</legend>
+		<p class="empty">
+			Will contain information about missing requirements for department.
+		</p>
+	</fieldset>
+</div>
 <div id="form_container">
 	<form  method="POST">
 		{% csrf_token %}
 		<fieldset>
 			<legend>
-				Past Status
+				Completed Requirements
 			</legend>
-			{{ status_form|as_dl_2 }}
+			{{ req_form|as_dl_2 }}
 			<p>
 				<input class="submit" type="submit" value="Update">
 			</p>
 		</fieldset>
 	</form>
-
 	<a class="button" href="{% url grad.views.view_all grad_slug=grad.slug %}">Cancel</a>
 </div>
 {% endblock %} 

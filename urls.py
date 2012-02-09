@@ -253,6 +253,7 @@ urlpatterns += patterns('',
     url(r'^grad/'+ GRAD_SLUG + '/manage_academics$', 'grad.views.manage_academics'),
     url(r'^grad/'+ GRAD_SLUG + '/manage_supervisors$', 'grad.views.manage_supervisors'),   
     url(r'^grad/'+ GRAD_SLUG + '/manage_status$', 'grad.views.manage_status'),
+    url(r'^grad/'+ GRAD_SLUG + '/manage_requirements$', 'grad.views.manage_requirements'),    
     url(r'^grad/new', 'grad.views.new'),
 
     # Graduate related End

@@ -7,9 +7,10 @@
 <div id="actions">
 <h2>Actions</h2>
 <ul>
-<li><a href="{% url grad.views.manage_academics grad_slug=grad.slug %}">Edit Academics</a></li>
-<li><a href="{% url grad.views.manage_supervisors grad_slug=grad.slug  %}">Edit Supervisors</a></li>
-<li><a href="{% url grad.views.manage_status grad_slug=grad.slug  %}">Edit Status</a></li>
+<li><a href="{% url grad.views.manage_academics grad_slug=grad.slug %}">Manage Academics</a></li>
+<li><a href="{% url grad.views.manage_requirements grad_slug=grad.slug  %}">Manage Requirements</a></li>
+<li><a href="{% url grad.views.manage_supervisors grad_slug=grad.slug  %}">Manage Supervisors</a></li>
+<li><a href="{% url grad.views.manage_status grad_slug=grad.slug  %}">Manage Status</a></li>
 </ul>
 </div>
 {% endblock %}
@@ -90,7 +91,7 @@
 						</dl></td>
 					</tr>															
 					<tr>
-						<td><dl>
+						<td colspan="2"><dl>
 							<dt> <label>Comments :</label></dt>
 							<dd>{{ grad.comments }}</dd>
 						</dl></td>
