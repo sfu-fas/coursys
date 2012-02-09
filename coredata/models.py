@@ -312,13 +312,15 @@ class CourseOffering(models.Model):
       # c.config['uses_svn']: create SVN repos for this course? (default False)
       # c.config['indiv_svn']: do instructors/TAs have access to student SVN repos? (default False)
       # c.config['combined']: is this a combined section (e.g. two crosslisted sections integrated)
+      # c.config['req_bu']: number of TA base units required
     
-    defaults = {'taemail': None, 'url': None, 'labtut': False, 'indiv_svn': False, 'combined': False, 'uses_svn': False}
+    defaults = {'taemail': None, 'url': None, 'labtut': False, 'indiv_svn': False, 'combined': False, 'uses_svn': False, 'req_bu': 0}
     labtut, set_labtut = getter_setter('labtut')
     url, set_url = getter_setter('url')
     taemail, set_taemail = getter_setter('taemail')
     indiv_svn, set_indiv_svn = getter_setter('indiv_svn')
     combined, set_combined = getter_setter('combined')
+    req_bu, set_req_bu = getter_setter('req_bu')
     
     def autoslug(self):
         # changed slug format for fall 2011
@@ -590,6 +592,7 @@ class Role(models.Model):
         ('DISC', 'Discipline Case Administrator'),
         ('DICC', 'Discipline Case Filer (email BCC)'),
         ('ADMN', 'Departmental Administrator'),
+        ('TAAD', 'TA Administrator'),
         ('GRAD', 'Grad Student Administrator'),
         ('FUND', 'Grad Funding Administrator'),
         ('SYSA', 'System Administrator'),
