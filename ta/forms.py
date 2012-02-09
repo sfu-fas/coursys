@@ -201,6 +201,12 @@ class TAContractForm(forms.ModelForm):
     
     class Meta:
         model = TAContract
+        exclude = ['total_bu', 'pay_per_bu', 'scholarship_per_bu', 'remarks', 'deadline', 'appt_cond', 'appt_tssu' ]
+        
+class TAContractForm2(forms.ModelForm):
+    class Meta:
+        model = TAContract
+        fields = ['total_bu', 'pay_per_bu', 'scholarship_per_bu', 'remarks', 'deadline', 'appt_cond', 'appt_tssu' ]
         
 class TACourseForm(forms.ModelForm):
     class Meta:

@@ -8,8 +8,7 @@ from ta.models import *
 from coredata.models import Member, Role, CourseOffering, Person, Unit
 from ta.forms import *
 from grad.views import get_semester
-
-
+from django.forms.models import inlineformset_factory
 
 @requires_course_staff_by_slug
 def index_page(request, course_slug):
@@ -228,20 +227,25 @@ def new_contract(request):
         print
         print e.person
     if request.method == "POST":
-        c_form = TAContractForm(request.POST)
-        if c_form.is_valid():
-            contract = c_form.save(commit=False)
-            
+        form = TAContractForm(request.POST)
+        TACourseFormSet = inlineformset_factory(TAContract, TACourse)
+        if form.is_valid() and form2.is_valid():
+            contract = form.save(commit=False)
+            contract = form2.save(instance=contract, commit=False)
+            formset = TACourseFormSet(request.POST, instance=contract)
+            if formset.is_valid():
+                formset.save()
+            contract.save()
         else: 
-            print c_form
-            print "c_form" + str(c_form.is_valid())
+            print form
+            print "form" + str(form.is_valid())
         return HttpResponseRedirect('')
     else:
-        c_form = TAContractForm()
-        a_form = TACourseForm()
+        form = TAContractForm()
+        formset = inlineformset_factory(TAContract, TACourse, extra=2, can_delete = False)
+        form2 = TAContractForm2()
         
         #c_form['person'].queryset = [ app.person for app in applicant ]
-        context = {'c_form': c_form, 'a_form':a_form
-                   }
+        context = {'form': form, 'formset':formset, 'form2': form2}
         return render(request, 'ta/new_contract.html',context)
         

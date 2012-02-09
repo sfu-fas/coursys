@@ -219,7 +219,7 @@ class TAContract(models.Model):
 
 class TACourse(models.Model):
     course = models.ForeignKey(CourseOffering)
-    contract = models.ForeignKey(TAApplication)
+    contract = models.ForeignKey(TAContract)
     bu = models.DecimalField(max_digits=4, decimal_places=2)
     description = models.CharField(max_length=3, choices=DESC_CHOICES, blank=False, null=False)
     #appt = models.CharField(max_length=4, choices=APPT_CHOICES)

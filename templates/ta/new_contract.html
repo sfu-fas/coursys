@@ -14,28 +14,54 @@
 <form action="{% url ta.views.new_contract %}" method="post">{% csrf_token %}
 <fieldset>
 <legend>General Info</legend>
-{{ c_form|as_dl }}
+{{ form|as_dl }}
 </fieldset>
 
 <fieldset>
-<legend>Course Appointments</legend>
-	<div class="table_container"> 
+<legend>Details</legend>
+	<div class="table_container">
+	  {{ formset.management_form }} 	
       <table class="display" id="ta_course">
       	<thead class="form_head">
           <tr>
          	<th scope="col">Course</th>
          	<th scope="col">Base Unit</th>
-         	<th scope="col">Description</th>            
+         	<th scope="col">Description</th>         
           </tr>         
         </thead>  
         <tbody>
-			{{ a_form|display_form_as_row }}
-			{{ a_form|display_form_as_row }}
-			{{ a_form|display_form_as_row }}
+		  {% for form in formset.forms %} 	      
+		      {{ form|display_form_as_row }}
+	      {% endfor %}
         </tbody>
       </table>
    </div>
+   
+   	<div class="table_container"> 
+      <table class="display" id="ta_course">
+      	<thead class="form_head">
+          <tr>
+         	<th scope="col"></th>
+         	<th scope="col">Biweekly Rate</th>
+         	<th scope="col">Semester Rate</th>            
+          </tr>         
+        </thead>  
+        <tbody>
+        	<tr>
+        		<td></td>
+        		<td></td>
+        		<td></td>
+        	</tr>
+        		<td></td>
+        		<td></td>
+        		<td></td>
+			
+        </tbody>
+      </table>
+   </div>
+   {{ form2|as_dl_2 }}
 </fieldset>
+
 <p><input type="submit" class="submit" value="Submit" /></p>
 
 </form>
