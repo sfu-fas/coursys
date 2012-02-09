@@ -72,13 +72,14 @@ def view_all(request, grad_slug):
 def manage_supervisors(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
     supervisors = Supervisor.objects.filter(student=grad)
+    pot_supervisor = Supervisor.objects.get(student=grad, position=0)
     num_supervisors = supervisors.count()
     supervisors_formset = formset_factory(SupervisorForm, extra=num_supervisors, max_num=4)()
     for f in supervisors_formset:
         f.fields['supervisor'].choices = possible_supervisors(grad.program.unit)
 
     if request.method == 'POST':
-        potential_supervisors_form = PotentialSupervisorForm(request.POST, instance=supervisors, prefix="sup")
+        potential_supervisors_form = PotentialSupervisorForm(request.POST, instance=pot_supervisor, prefix="pot_sup")
         if potential_supervisors_form.is_valid():
             potential_supervisors_form.save()
             superF = potential_supervisors_form.save(commit=False)
