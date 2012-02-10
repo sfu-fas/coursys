@@ -5,7 +5,7 @@
 
 #tugReview ol {
 	/* TODO: look at documentation for what this  should be. */
-	list-style: letter;
+	list-style-type: lower-alpha;
 }
 
 /*table td.numeral {
