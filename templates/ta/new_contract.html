@@ -12,27 +12,32 @@
 
 <div id="form_container">
 <form action="{% url ta.views.new_contract %}" method="post">{% csrf_token %}
-<fieldset>
+<fieldset class="wide">
 <legend>General Info</legend>
 {{ form|as_dl }}
 </fieldset>
 
 <fieldset>
-<legend>Details</legend>
+<legend>Course and Payment Details</legend>
 	<div class="table_container">
 	  {{ formset.management_form }} 	
       <table class="display" id="ta_course">
       	<thead class="form_head">
           <tr>
          	<th scope="col">Course</th>
-         	<th scope="col">Base Unit</th>
-         	<th scope="col">Description</th>         
+         	<th scope="col">Description</th>
+         	<th scope="col">Base Unit</th>         
           </tr>         
         </thead>  
         <tbody>
 		  {% for form in formset.forms %} 	      
 		      {{ form|display_form_as_row }}
 	      {% endfor %}
+	      <tr>
+	      	<td></td>
+	      	<td></td>
+	      	<td class=""; id="total BU">Total BU:</td>
+	      </tr>
         </tbody>
       </table>
    </div>
@@ -42,20 +47,22 @@
       	<thead class="form_head">
           <tr>
          	<th scope="col"></th>
+         	<th scope="col">Pay Per BU</th>
          	<th scope="col">Biweekly Rate</th>
          	<th scope="col">Semester Rate</th>            
           </tr>         
         </thead>  
         <tbody>
-        	<tr>
-        		<td></td>
+        	<tr> 
+        		<td>Salary</td>
         		<td></td>
         		<td></td>
         	</tr>
+        	<tr>
+        		<td>Scholarship</td>
         		<td></td>
         		<td></td>
-        		<td></td>
-			
+        	</tr>
         </tbody>
       </table>
    </div>

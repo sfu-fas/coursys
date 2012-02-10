@@ -773,6 +773,11 @@ fieldset label {
     line-height: 1.5em;
     text-align: right;
 }
+
+fieldset.wide label{
+	width: 12em;
+}
+
 fieldset .inputfield label {
     width: auto;
     text-align: left;
@@ -792,6 +797,10 @@ div.fieldcontent {
 fieldset label span {
     position: absolute;
     left: 10em;
+}
+
+fieldset.wide label span {
+    left: 12em;
 }
 
 /* Formula tester style */

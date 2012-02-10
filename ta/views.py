@@ -225,20 +225,22 @@ def new_contract(request):
         TACourseFormSet = inlineformset_factory(TAContract, TACourse)
         if form.is_valid():
             contract = form.save(commit=False)
-            #contract = form2.save(instance=contract, commit=False)
+            contract.pay_per_bu = request.POST['pay_per_bu']
+            contract.scholarship_per_bu = request.POST['scholarship_per_bu']
+            contract.appt_cond = request.POST['appt_cond']
+            contract.appt_tssu = request.POST['appt_tssu']
             formset = TACourseFormSet(request.POST, instance=contract)
             if formset.is_valid():
                 formset.save()
             contract.save()
-        else: 
+        else:  
             print form
             print "form" + str(form.is_valid())
         return HttpResponseRedirect('')
     else:
         form = TAContractForm()
         formset = inlineformset_factory(TAContract, TACourse, extra=2, can_delete = False)
-        #form2 = TAContractForm2()
-        #c_form['person'].queryset = [ app.person for app in applicant ]
+        
         context = {'form': form, 'formset':formset}
         return render(request, 'ta/new_contract.html',context)
         
