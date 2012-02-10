@@ -4,6 +4,7 @@ from jsonfield import JSONField
 from courselib.json_fields import getter_setter #, getter_setter_2
 from grad.views import get_semester
 
+
 class TUG(models.Model):
     """
     Time use guideline filled out by instructors
@@ -123,10 +124,10 @@ class CampusPreference(models.Model):
     rank = models.CharField(max_length=3, choices=PREFERENCE_CHOICES)
 
 CATEGORY_CHOICES = (
-        ('PHD', 'PhD'),
-        ('MAS', 'Masters'),
-        ('UGR', 'Undergrad'),
-        ('EXT', 'External'),
+        ('GTA2', 'PhD'),
+        ('GTA1', 'Masters'),
+        ('UTA', 'Undergrad'),
+        ('ETA', 'External'),
 )
 
 class TAApplication(models.Model):
@@ -168,19 +169,12 @@ class TA_Job_Posting(models.Model):
         return "deparment: %s  Semester: %s" % (self.department, self.semester)
     # for .config: apppointment start and end date, pay rates [100,150,200,150], scholarship rates [0,50,100,0]
 
-APPOINTMENT_CHOICES=(
-        ('GTA1', 'Masters Student'),
-        ('GTA2','PhD Student'),
-        ('UTA','Undergrad'),
-        ('ETA','External')
-        )
-
 DESC_CHOICES = (
         ('OML','office/marking/lab'),
         ('OM','office/marking')
     )
 
-APPT_CHOICES = (
+APPOINTMENT_CHOICES = (
         ("INIT","Initial: Initial appointment to this position"),
         ("REAP","Reappointment: Reappointment to same position or revision to appointment"),       
     )
@@ -194,21 +188,24 @@ class TAContract(models.Model):
     applicant = models.ForeignKey(Person)
     sin = models.PositiveIntegerField(unique=True)
     department = models.ForeignKey(Unit)
-    appt_start = models.DateField(help_text='yyyy-mm-dd')
-    appt_end = models.DateField()
-    pay_start = models.DateField()
+    #appt_start = models.DateField(help_text='yyyy-mm-dd')
+    #appt_end = models.DateField()
+    #pay_start = models.DateField()
     pay_end = models.DateField()
     position_number = models.PositiveIntegerField()
-    appt_category = models.CharField(max_length=4, choices=APPOINTMENT_CHOICES)
-    appt = models.CharField(max_length=4, choices=APPT_CHOICES)
+    appt_category = models.CharField(max_length=4, choices=CATEGORY_CHOICES, verbose_name="Appointment Category")
+    appt = models.CharField(max_length=4, choices=APPOINTMENT_CHOICES, verbose_name="Appointment")
     #pay_per_bu = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Pay per Base Unit Semester Rate.",
                 #help_text='Usually $934.00 per BU per Semester')
     #scholarship_per_bu = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Scholarship per Base Unit Semester Rate.",
         #help_text='Usually $129.00 per BU per Semester')
-    remarks = models.TextField(verbose_name="Remarks")
+    remarks = models.TextField(blank=True, verbose_name="Remarks")
     deadline = models.DateField()
     appt_cond = models.BooleanField(help_text='default to false')
     appt_tssu = models.BooleanField(help_text='default to true')
+    created_by = models.CharField(max_length=8, null=False, help_text='Userid who gives the mark')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now_add=True)
     #courses = models.ForeignKey(CourseOffering)
     #description = models.CharField(max_length=3, choices=DESC_CHOICES, blank=False, null=False) 
     #total_bu = models.DecimalField(max_digits=4, decimal_places=2)
