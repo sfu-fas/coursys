@@ -136,7 +136,7 @@ Teaching Assistant Time Use Guideline</div>
 			<tr>
 				<td class="numeral" />
 				<td class="tugField">{{other.label}}</td>
-				<td class="tugField">{{other.weekly}}</td>
+				<td class="tugField">{{other.weekly|default_if_none:""}}</td>
 				<td class="tugField">{{other.total}}</td>
 			</tr>
 			{% endfor %}

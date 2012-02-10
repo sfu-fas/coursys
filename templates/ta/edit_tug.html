@@ -19,5 +19,5 @@
 {% block formaction %}{% url ta.views.edit_tug course_slug=course.slug userid=userid %}{% endblock %}
 {% block submittext %}Save{% endblock %}
 {% block extrascripts %}
-<script type="text/javascript">updateAllTotals(); updateTotalHours();</script>
+<script type="text/javascript">updateTotalHours();</script>
 {% endblock %}

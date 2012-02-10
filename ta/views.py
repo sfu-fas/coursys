@@ -95,7 +95,7 @@ def new_tug(request, course_slug, userid):
                 has_lab_or_tut = True
             
         if request.method == "POST":
-            form = TUGForm(data=request.POST)
+            form = TUGForm(data=request.POST, offering=course,userid=userid)
             if form.is_valid():
                 tug = form.save(False)
                 # TODO: set the ta member once it's no longer included in the form
@@ -126,7 +126,7 @@ def view_tug(request, course_slug, userid):
         member = get_object_or_404(Member, offering=course, person__userid=userid)
         tug = get_object_or_404(TUG, member=member)
         max_hours = tug.base_units * 42
-        total_hours = sum(params['total'] for _, params in tug.config.iteritems())
+        total_hours = sum(params.get('total',0) for _, params in tug.config.iteritems())
         
         context = {'tug': tug, 'ta':member, 'course':course, 'maxHours':max_hours, 'totalHours':total_hours}
         return render(request, 'ta/view_tug.html',context)

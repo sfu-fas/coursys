@@ -55,6 +55,10 @@ class TUG(models.Model):
 #            yield self.other1
 #            yield self.other2 
     
+    def iterfielditems(self):
+        return ((field, self.config[field]) for field in self.all_fields 
+                 if field in self.config)
+    
     regular_default = {'weekly': 0, 'total': 0, 'comment': ''}
     regular_fields = ['prep', 'meetings', 'lectures', 'tutorials', 
             'office_hours', 'grading', 'test_prep', 'holiday']

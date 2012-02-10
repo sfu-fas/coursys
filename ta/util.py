@@ -85,9 +85,14 @@ def table_row__Form(klass):
         "Returns this form rendered as HTML <td>s -- excluding the <tr></tr>."
         return html_output_alt(self,
             normal_row = u'<td%(html_class_attr)s>%(field)s%(errors)s%(help_text)s</td>',
-            error_row = u'%s',
+            error_row = u'',
             row_ender = u'</td>',
             help_text_html = u'<br /><span class="helptext">%s</span>',
             errors_on_separate_row = False)
     klass.as_table_row = as_table_row
     return klass
+
+def update_and_return(d, *others):
+    for other in others:
+        d.update(other)
+    return d

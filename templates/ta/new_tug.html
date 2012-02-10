@@ -34,7 +34,7 @@
 <tr>
 <th>
 {% if form.label_editable %}
-Other: {{ form.label_bound_field.as_widget }}
+Other: {{ form.label_bound_field.as_widget }}{{form.label_bound_field.errors}}
 {% else %}
 {{ form.label }}
 {% endif %}
