@@ -260,8 +260,11 @@ class Course(models.Model):
     
     class Meta:
         unique_together = (('subject', 'number'),)
+        ordering = ('subject', 'number')
     def __unicode__(self):
         return "%s %s" % (self.subject, self.number)
+    def __cmp__(self, other):
+        return cmp(self.subject, other.subject) or cmp(self.number, other.number)
 
 
 COMPONENT_CHOICES = (

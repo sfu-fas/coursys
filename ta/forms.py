@@ -162,13 +162,13 @@ class PayWidget(forms.MultiWidget):
         super(PayWidget, self).__init__(*args, **kwargs)
     
     def decompress(self, value):
-        # should already be a list: if we get here, got nothing.
+        # should already be a list: if we get here, have no defaults
         return [0]*len(CATEGORY_CHOICES)
 
 class PayField(forms.MultiValueField):
     "Field for entering salary/scholarship values"
     def __init__(self, *args, **kwargs):
-        fields = [forms.CharField(label='foo') for i in CATEGORY_CHOICES ]
+        fields = [forms.CharField() for i in CATEGORY_CHOICES]
         kwargs['fields'] = fields
         kwargs['widget'] = PayWidget()
         super(PayField, self).__init__(*args, **kwargs)

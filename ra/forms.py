@@ -4,9 +4,12 @@ from ra.models import RAAppointment, Account, Project, \
 from coredata.models import Person, Role
 #from django.core.exceptions import ObjectDoesNotExist
 
-HIRING_FACULTY_CHOICES = [(p.userid, (p.last_name + ", " + p.first_name)) \
-    for p in Person.objects.all() \
-    if Role.objects.filter(person__userid=p.userid, role="FUND").count() > 0]
+#HIRING_FACULTY_CHOICES = [(p.userid, (p.last_name + ", " + p.first_name)) \
+#    for p in Person.objects.all() \
+#    if Role.objects.filter(person__userid=p.userid, role="FUND").count() > 0]
+
+# above was firing ~130 queries on every page request in the system -GB
+HIRING_FACULTY_CHOICES = []
 
 class RAForm(forms.ModelForm):
     person = forms.CharField(label='Hire')

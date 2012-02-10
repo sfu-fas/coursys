@@ -198,6 +198,25 @@ class TAPosting(models.Model):
         unique_together = (('unit', 'semester'),)
     def __unicode__(self): 
         return "%s, %s" % (self.unit.name, self.semester)
+    
+    def selectable_courses(self):
+        """
+        Course objects that can be selected as possible choices
+        """
+        excl = set(self.excluded())
+        offerings = CourseOffering.objects.filter(owner=self.unit).select_related('course')
+        # remove duplicates and sort nicely
+        courses = list(set((o.course for o in offerings if o.course_id not in excl)))
+        courses.sort()
+        return courses
+    
+    def selectable_offerings(self):
+        """
+        CourseOffering objects that can be selected as possible choices
+        """
+        excl = set(self.excluded())
+        offerings = CourseOffering.objects.filter(owner=self.unit).exclude(course__id__in=excl)
+        return offerings
 
 
 
