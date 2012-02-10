@@ -30,11 +30,11 @@
 <table>
 <th>Duties and Responsibilities</th><th>Average hrs/week</th><th>Total hrs/semester</th><th>Comment</th>
 
-{% for form in form.config_form.forms %}
+{% for form in form.subforms.itervalues %}
 <tr>
 <th>
 {% if form.label_editable %}
-Other: {{ form.label_bound_field.as_widget }}{{form.label_bound_field.errors}}
+Other: {{ form.label.as_widget }}{{form.label.errors}}
 {% else %}
 {{ form.label }}
 {% endif %}

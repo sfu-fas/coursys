@@ -11,30 +11,15 @@ import itertools, decimal, datetime
 
 @table_row__Form
 class TUGDutyForm(forms.Form):
+    label_editable = False
     def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
                  initial=None, error_class=ErrorList, label_suffix=':',
-                 empty_permitted=False):
-        self.label_editable = not (initial is not None and 'id' in initial and
-                                   initial['id'] in TUG.regular_fields)
-        # empty is permitted if this is an 'other' field and we're not editing it
-        empty_permitted = empty_permitted or (self.label_editable and 
-                not (initial is not None and 'label' in initial))
+                 empty_permitted=False, label=''):
         super(TUGDutyForm, self).__init__(data, files, auto_id, prefix,
                  initial, error_class, label_suffix,
                  empty_permitted)
-        self.label = self.initial['label'] if 'label' in self.initial else ''
-        
-        self.label_field = self.fields.pop('label')
-        if not self.label_editable:
-            del self.label_field
+        self.label = label
     
-    @property
-    def label_bound_field(self):
-        return BoundField(self, self.label_field, u'label')
-    
-    label = forms.CharField(label="Other:", 
-            error_messages={'required': 'Please specify'})
-    label.widget.attrs['class'] = u'label-field'
     weekly = forms.DecimalField(label="Weekly hours", required=False)
     weekly.widget.attrs['class'] = u'weekly'
     weekly.manual_css_classes = [u'weekly']
@@ -44,56 +29,29 @@ class TUGDutyForm(forms.Form):
     comment = forms.CharField(label="Comment", required=False)
     comment.widget.attrs['class'] = u'comment'
     comment.manual_css_classes = [u'comment']
-    
-    def clean(self):
-        data = super(TUGDutyForm, self).clean()
-        # add label data to cleaned data
-        if self.label_editable:
-            value = self.label_field.widget.value_from_datadict(
-                        self.data, self.files, self.add_prefix('label'))
-            try:
-                data['label'] = self.label_field.clean(value)
-            except ValidationError, e:
-                self._errors['label'] = self.error_class(e.messages)
-        # TODO: (maybe) make sure that hours per week makes sense
-        return data
 
-class BaseTUGDutyFormSet(forms.formsets.BaseFormSet):
+class TUGDutyLabelForm(forms.Form):
+    label = forms.CharField(label="Other:", 
+            error_messages={'required': 'Please specify'})
+    label.widget.attrs['class'] = u'label-field'
+
+# doesn't simply subclass TUGDutyForm so that the label will be listed first
+class TUGDutyOtherForm(TUGDutyLabelForm, TUGDutyForm):
+    label_editable = True
     def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
-                 initial=None, error_class=ErrorList):
-        super(BaseTUGDutyFormSet, self).__init__(data, files, auto_id, prefix,
-                 initial, error_class)
-        self.forms_dict = SortedDict()
-        for form in self.forms:
-            if 'id' in form.initial:
-                self.forms_dict[form.initial['id']] = form
-    
-    def __getitem__(self, index):
-        if index in self.forms_dict:
-            return self.forms_dict[index]
-        return super(BaseTUGDutyFormSet, self).__getitem__(index)
-    
-    def _get_cleaned_data(self):
-        """
-        Overrides default formset cleaned data
-        Returns a SortedDict of form.cleaned_data dicts for every form in self.forms.
-        """
-        if not self.is_valid():
-            raise AttributeError("'%s' object has no attribute 'cleaned_data'" % self.__class__.__name__)
-        counter = itertools.count(1)
-        # count number of preexisting "other" fields
-        for form in self.forms:
-            if 'id' in form.initial and form.initial['id'].startswith('other'):
-                counter.next()
+                 initial=None, error_class=ErrorList, label_suffix=':',
+                 empty_permitted=False, label=''):
+        empty_permitted = empty_permitted or not (initial and initial.get('label'))
+        super(TUGDutyOtherForm, self).__init__(data, files, auto_id, prefix,
+                 initial, error_class, label_suffix,
+                 empty_permitted, label)
         
-        return SortedDict(
-                (form.initial['id'] if 'id' in form.initial 
-                else 'other%s' % counter.next(), form.cleaned_data) 
-                for form in self.forms)
-    cleaned_data = property(_get_cleaned_data)
     
-TUGDutyFormSet = forms.formsets.formset_factory(TUGDutyForm, extra=0,
-        formset = BaseTUGDutyFormSet)
+    def as_table_row(self):
+        label = self.fields.pop('label')
+        html = TUGDutyForm.as_table_row(self)
+        self.fields.insert(0, 'label', label)
+        return html
 
 class TUGForm(forms.ModelForm):
     '''
@@ -120,36 +78,29 @@ class TUGForm(forms.ModelForm):
         self.initial['member'] = member
         self.fields['member'].widget = forms.widgets.HiddenInput()
         
-        if instance:
-            # flatten nested (sorted)dict into a list of dicts
-            config_form_initial = [update_and_return({'id':k},v,
-                                   TUG.config_meta.get(k, {})) 
-                                   for k, v in instance.iterfielditems()]
-        else:
-            config_form_initial = ([update_and_return({'id':field}, TUG.config_meta[field])
-                                    for field in TUG.regular_fields] + 
-                                   [{'id':field} for field in TUG.other_fields])
-        self.config_form = TUGDutyFormSet(initial=config_form_initial, data=data)
+        self.subforms = SortedDict(
+                [(field, klass(prefix=field, data=data, 
+                        initial=(instance.config[field] if instance and field in instance.config else
+                                initial[field] if initial and field in initial else None),
+                        label=TUG.config_meta[field]['label'] if field in TUG.config_meta else '')) 
+                    for field, klass in 
+                    itertools.chain(((f, TUGDutyForm) for f in TUG.regular_fields),
+                            ((f, TUGDutyOtherForm) for f in TUG.other_fields))])
         
-    def __getitem__(self, name):
-        try:
-            return super(TUGForm, self).__getitem__(name)
-        except KeyError as error:
-            try:
-                return self.config_form[name]
-            except KeyError:
-                raise error
     def clean_member(self):
         assert(self.cleaned_data['member'] == self.initial['member'])
         return self.cleaned_data['member']
     def is_valid(self):
-        return self.config_form.is_valid() and super(TUGForm, self).is_valid()
+        return (all(form.is_valid() for form in self.subforms.itervalues()) 
+                and super(TUGForm, self).is_valid())
     def full_clean(self):
-        self.config_form.full_clean()
+        for form in self.subforms.itervalues():
+            form.full_clean()
         return super(TUGForm, self).full_clean()
     def clean(self):
         data = super(TUGForm, self).clean()
-        try: data['config'] = self.config_form.cleaned_data
+        try: data['config'] = SortedDict((field, self.subforms[field].cleaned_data) 
+                for field in TUG.all_fields)
         except AttributeError: pass
         return data
     def save(self, *args, **kwargs):
