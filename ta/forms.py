@@ -117,16 +117,18 @@ class TUGForm(forms.ModelForm):
         # if offering is also missing, display all TAs as final fallback
         # otherwise, filter both both.
         if userid is not None:
-            memberQuerylist = Member.objects.filter(person__userid=userid)
-            if not offering is None:
-                memberQuerylist = memberQuerylist.filter(offering=offering)
+            if offering is not None:
+                member = Member.objects.get(person__userid=userid, offering=offering)
+                self.initial['member'] = member
+                self.fields['member'].widget = forms.widgets.HiddenInput()
+            else:
+                self.fields['member'].queryset = Member.objects.filter(person__userid=userid)
         else: 
             if offering is None:
                 memberQuerylist = Member.objects.filter(role='TA')
             else:
                 memberQuerylist = Member.objects.filter(role='TA',offering=offering)
-        
-        self.fields['member'].queryset = memberQuerylist
+            self.fields['member'].queryset = memberQuerylist
         
         def update_and_return(d, *others):
             for other in others:
