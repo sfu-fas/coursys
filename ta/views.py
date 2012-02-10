@@ -1,6 +1,7 @@
 from django.http import HttpResponseRedirect#, HttpResponse
 from django.shortcuts import get_object_or_404, render#, render_to_response, 
 from django.core.urlresolvers import reverse
+from django.contrib import messages
 from courselib.auth import requires_course_staff_by_slug, requires_role, \
     is_course_staff_by_slug, has_role, ForbiddenResponse
 from django.contrib.auth.decorators import login_required
@@ -8,7 +9,9 @@ from ta.models import *
 from coredata.models import Member, Role, CourseOffering, Person, Unit
 from ta.forms import *
 from grad.views import get_semester
+from log.models import LogEntry
 from django.forms.models import inlineformset_factory
+import datetime
 
 @requires_course_staff_by_slug
 def index_page(request, course_slug):
@@ -155,8 +158,8 @@ def edit_tug(request, course_slug, userid):
     return render(request, 'ta/edit_tug.html',context)
 
 @login_required
-def new_application(request, unit_slug):
-    unit = get_object_or_404(Unit, slug=unit_slug)
+def new_application(request, post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug)
     if request.method == "POST":
         ta_form = TAApplicationForm(request.POST, prefix='ta')
         course_form = CoursePreferenceForm(request.POST, prefix='course')
@@ -164,7 +167,7 @@ def new_application(request, unit_slug):
             person = get_object_or_404(Person, userid=request.user.username)
             app = ta_form.save(commit=False)
             app.person = person
-            app.department = unit
+            app.department = posting.unit
             app.save()
 
             #Add every skill to application
@@ -193,9 +196,9 @@ def new_application(request, unit_slug):
         course_form = CoursePreferenceForm(prefix='course')
         campus_names = CampusPreference.objects.order_by('campus').values('campus').distinct() 
         campus_preferences = CampusPreference.objects.order_by('campus','rank')
-        skill_names = Skill.objects.filter(department=unit).order_by('name').values('name').distinct() 
-        skills = Skill.objects.filter(department=unit).order_by('name','level') 
-        return render(request, 'ta/new_application.html', {'unit':unit, 'ta_form':ta_form, 'course_form':course_form, 'campus_names':campus_names, 'campus_preferences':campus_preferences, 'skill_names':skill_names, 'skills':skills})
+        skill_names = Skill.objects.filter(department=posting.unit).order_by('name').values('name').distinct() 
+        skills = Skill.objects.filter(department=posting.unit).order_by('name','level') 
+        return render(request, 'ta/new_application.html', {'posting':posting, 'ta_form':ta_form, 'course_form':course_form, 'campus_names':campus_names, 'campus_preferences':campus_preferences, 'skill_names':skill_names, 'skills':skills})
 
 @login_required
 def all_applications(request):
@@ -203,13 +206,18 @@ def all_applications(request):
     return render(request, 'ta/all_applications.html', {'applications':applications})
 
 @login_required
-def view_TA_postings(request): 
-    #ta_posting = TA_Job_Posting.objects.order_by(Semester)
-    ta_posting_list = CourseOffering.objects.order_by('semester')
-    context = {'posting_list':ta_posting_list,
-               'department': Unit.objects.all()}
-    #{'ta_posting':ta_posting}
-    return render(request, 'ta/view_TA_postings.html', context) 
+def view_postings(request):
+    roles = Role.objects.filter(role="TAAD", person__userid=request.user.username)
+    units = [r.unit for r in roles]
+    today = datetime.date.today()
+    postings = TAPosting.objects.filter(opens__lte=today, closes__gte=today).order_by('-semester', 'unit')
+    owned = TAPosting.objects.filter(unit__in=units).order_by('-semester', 'unit')
+    context = {
+            'postings': postings,
+            'owned': owned,
+            'is_admin': bool(roles),
+            }
+    return render(request, 'ta/view_postings.html', context) 
 
 @login_required
 def view_application(request, app_id):
@@ -243,4 +251,61 @@ def new_contract(request):
         
         context = {'form': form, 'formset':formset}
         return render(request, 'ta/new_contract.html',context)
-        
+
+@requires_role("TAAD")
+def edit_posting(request, post_slug=None):
+    unit_choices = [(u.id, unicode(u)) for u in request.units]
+    today = datetime.date.today()
+    semester_choices = [(s.id, unicode(s)) for s in Semester.objects.filter(start__gt=today).order_by('start')]
+    # TODO: display only relevant semester/unit offerings
+    offerings = CourseOffering.objects.filter(owner__in=request.units).select_related('course')
+    excluded_choices = list(set(((u"%s (%s)" % (o.course,  o.title), o.course_id) for o in offerings)))
+    excluded_choices.sort()
+    excluded_choices = [(cid,label) for label,cid in excluded_choices]
+    
+    if post_slug:
+        # editing existing
+        posting = get_object_or_404(TAPosting, slug=post_slug)
+        editing = True
+    else:
+        # creating new
+        posting = TAPosting()
+        editing = False
+
+        # heuristic default: non-lecture sections, except distance, are excluded
+        default_exclude = set((o.course_id for o in offerings.filter(component="SEC").exclude(section__startswith="C")))
+        posting.config['excluded'] = default_exclude
+    
+    if request.method == "POST":
+        form = TAPostingForm(request.POST, instance=posting)
+        form.fields['unit'].choices = unit_choices
+        form.fields['semester'].choices = semester_choices
+        form.fields['excluded'].choices = excluded_choices
+        if form.is_valid():
+            form.instance.slug = None
+            form.save()
+            l = LogEntry(userid=request.user.username,
+                  description="Edited TAPosting for %s in %s." % (form.instance.unit, form.instance.semester),
+                  related_object=form.instance)
+            l.save()
+            if editing:
+                messages.success(request, "Edited TA posting for %s in %s." % (form.instance.unit, form.instance.semester))
+            else:
+                messages.success(request, "Created TA posting for %s in %s." % (form.instance.unit, form.instance.semester))
+            return HttpResponseRedirect(reverse('ta.views.view_postings', kwargs={}))
+    else:
+        form = TAPostingForm(instance=posting)
+        form.fields['unit'].choices = unit_choices
+        form.fields['semester'].choices = semester_choices
+        form.fields['excluded'].choices = excluded_choices
+        # TODO: take default salary/semester from last posting by this unit
+    
+    context = {'form': form, 'editing': editing, 'posting': posting}
+    return render(request, 'ta/edit_posting.html',context)
+
+
+
+
+
+
+

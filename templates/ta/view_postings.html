@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load mobile_tags %}
+
+{% block title %}TA Job Postings{% endblock %}
+{% block h1 %}TA Job Postings{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; TA Postings</li>
+{% endblock %}
+
+{% block actions %}
+{% if is_admin %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    <li><a href="{% url ta.views.edit_posting %}">New Posting</a></li>
+    </ul>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{% if is_admin %}
+<h2>Your Postings</h2>
+<ul>
+{% for p in owned %}
+<li>{{p}} [<a href="{% url ta.views.edit_posting post_slug=p.slug %}">edit</a>]</li>
+{% empty %}
+<li class="empty">None</li>
+{% endfor %}
+</ul>
+
+<h2>All Open Postings</h2>
+{% endif %}
+
+<p>The following postings are currently open for applications:</p>
+<ul>
+{% for p in postings %}
+<li><a href="{% url ta.views.new_application post_slug=p.slug %}">{{p}}</a></li>
+{% empty %}
+<li class="empty">No open postings</li>
+{% endfor %}
+</ul>
+{% endblock %}

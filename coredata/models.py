@@ -187,6 +187,20 @@ class Semester(models.Model):
         return dt
     
     @classmethod
+    def next_starting(cls):
+        """
+        The next semester that starts after now
+        """
+        today = datetime.date.today()
+        sems = Semester.objects.filter(start__gt=today).order_by('start')
+        if sems:
+            return sems[0]
+        else:
+            # just in case there's nothing in the future
+            sems = Semester.objects.order_by('-start')
+            return sems[0]
+
+    @classmethod
     def first_relevant(cls):
         """
         The first semester that's relevant for most reporting: first semester that ends after two months ago.

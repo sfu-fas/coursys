@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load course_display form_display %}
+
+{% block title %}{% if editing %}Edit Posting for {{ posting.unit.label }} in {{ posting.semester }}{% else %}New TA Job Posting{% endif %}{% endblock %}
+{% block h1 %}{% if editing %}Edit Posting for {{ posting.unit.label }} in {{ posting.semester }}{% else %}New TA Job Posting{% endif %}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
+{% if editing %}<li>&gt; {{ posting.unit.label }} {{ posting.semester }}</li>{% else %}<li>&gt; New</li>{% endif %}
+{% endblock %}
+
+{% block headextra %}
+<link type="text/css" href="{{MEDIA_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
+<script type="text/javascript" src="{{MEDIA_URL}}multiselect/js/ui.multiselect.js"></script>
+<script type="text/javascript">
+  $(function() {
+    $("#id_start").datepicker({'dateFormat': 'yy-mm-dd'});
+    $("#id_end").datepicker({'dateFormat': 'yy-mm-dd'});
+    $("#id_opens").datepicker({'dateFormat': 'yy-mm-dd'});
+    $("#id_closes").datepicker({'dateFormat': 'yy-mm-dd'});
+    $("#id_excluded").multiselect();
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+
+<div id="form_container">
+<form action="" method="post">{% csrf_token %}
+<fieldset>
+<legend>Posting Info</legend>
+{{ form|as_dl }}
+<p><input type="submit" class="submit" value="Submit" /></p>
+</fieldset>
+</form>
+</div>
+
+{% endblock %}

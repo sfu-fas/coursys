@@ -1,12 +1,21 @@
 {% extends "base.html" %}
 {% load form_display %}
 
+{% block title %}Apply for {{ posting.unit.label }} in {{ posting.semester }}{% endblock %}
+{% block h1 %}Apply for {{ posting.unit.label }} in {{ posting.semester }}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
+<li>&gt; {{ posting.unit.label }} {{ posting.semester }}</li>
+{% endblock %}
+
+
 {% block content %}
 
 <div id="form_container">
-<form action="{% url ta.views.new_application unit_slug=unit.slug %}" method="post">{% csrf_token %}
+<form action="{% url ta.views.new_application post_slug=posting.slug %}" method="post">{% csrf_token %}
 <fieldset>
-<legend>{{ unit.name }} TA Application</legend>
+<legend>{{ posting.unit.name }} TA Application</legend>
 {{ ta_form|as_dl }}
 
 <h1>Course Preference:</h1>
@@ -35,7 +44,7 @@
         {% if sn.name == skill.name %}
         {% ifchanged %}<tr><td><b>{{ skill.name }}: </b></td>{% endifchanged %}
         <td>
-        <input type="radio" value={{ skill.id }} name="skills{{ forloop.parentloop.counter}}" > {{ skill.get_level_display }}</input>
+        <input type="radio" value="{{ skill.id }}" name="skills{{ forloop.parentloop.counter}}" > {{ skill.get_level_display }}</input>
         </td>
         {% endif %}
     {% endfor %}

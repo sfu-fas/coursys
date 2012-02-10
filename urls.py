@@ -178,10 +178,12 @@ urlpatterns += patterns('',
 	 
     #End TUG URL mappings
     
-    url(r'^ta/' + UNIT_SLUG + '/apply$', 'ta.views.new_application'),
+    url(r'^ta/postings/$', 'ta.views.view_postings'),
+    url(r'^ta/postings/new$', 'ta.views.edit_posting'),
+    url(r'^ta/postings/' + POST_SLUG + '$', 'ta.views.new_application'),
+    url(r'^ta/postings/' + POST_SLUG + '/edit$', 'ta.views.edit_posting'),
     url(r'^ta/application/all$', 'ta.views.all_applications'),
     url(r'^ta/application/' + APP_ID + '$', 'ta.views.view_application'),
-	url(r'^ta/view_TA_postings.html$', 'ta.views.view_TA_postings'),
 	
 	#url(r'ta/contract/$', 'ta.views.index'),
 	url(r'^ta/contract/new', 'ta.views.new_contract'),

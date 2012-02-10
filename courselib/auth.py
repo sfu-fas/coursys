@@ -90,8 +90,9 @@ def has_role(role, request, **kwargs):
     """
     Return True is the given user has the specified role in ANY unit
     """
-    perms = Role.objects.filter(person__userid=request.user.username, role=role)
-    count = perms.count()
+    roles = Role.objects.filter(person__userid=request.user.username, role=role)
+    request.units = [r.unit for r in roles]
+    count = roles.count()
     return count>0
 
 def requires_global_role(role, login_url=None):

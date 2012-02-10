@@ -2,8 +2,9 @@ from django.db import models
 from coredata.models import Person, Member, Course, Semester, Unit ,CourseOffering, CAMPUS_CHOICES 
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter #, getter_setter_2
+from courselib.slugs import make_slug
 from grad.views import get_semester
-
+from autoslug import AutoSlugField
 
 class TUG(models.Model):
     """
@@ -127,9 +128,9 @@ class CampusPreference(models.Model):
     campus = models.CharField(max_length=4, choices=CAMPUS_CHOICES)
     rank = models.CharField(max_length=3, choices=PREFERENCE_CHOICES)
 
-CATEGORY_CHOICES = (
-        ('GTA2', 'PhD'),
+CATEGORY_CHOICES = ( # order must match list in TAPosting.config['salary']
         ('GTA1', 'Masters'),
+        ('GTA2', 'PhD'),
         ('UTA', 'Undergrad'),
         ('ETA', 'External'),
 )
@@ -162,16 +163,43 @@ class TAApplication(models.Model):
     def __unicode__(self):
         return "Person: %s  Semester: %s" % (self.person, self.semester)
 
-class TA_Job_Posting(models.Model):
+class TAPosting(models.Model):
     """
-    Courses Which need a TA
+    Posting for one unit in one semester
     """
     semester = models.ForeignKey(Semester)
-    department = models.ForeignKey(Unit)
-    #course = models.ForeignKey(CourseOffering)
+    unit = models.ForeignKey(Unit)
+    opens = models.DateField(help_text='Opening date for the posting')
+    closes = models.DateField(help_text='Closing date for the posting')
+    def autoslug(self):
+        return make_slug(self.semester.slugform() + "-" + self.unit.label)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+      # 'salary': default pay rates per BU for each GTA1, GTA2, UTA, EXT: ['1.00', '2.00', '3.00', '4.00']
+      # 'scholarship': default scholarship rates per BU for each GTA1, GTA2, UTA, EXT
+      # 'start': default start date for contracts ('YYYY-MM-DD')
+      # 'end': default end date for contracts ('YYYY-MM-DD')
+      # 'excluded': courses to exclude from posting (list of Course.id values)
+
+    defaults = {
+            'salary': ['0.00']*len(CATEGORY_CHOICES),
+            'scholarship': ['0.00']*len(CATEGORY_CHOICES),
+            'start': '',
+            'end': '',
+            'excluded': [],
+            }
+    salary, set_salary = getter_setter('salary')
+    scholarship, set_scholarship = getter_setter('scholarship')
+    start, set_start = getter_setter('start')
+    end, set_end = getter_setter('end')
+    excluded, set_excluded = getter_setter('excluded')
+
+    class Meta:
+        unique_together = (('unit', 'semester'),)
     def __unicode__(self): 
-        return "deparment: %s  Semester: %s" % (self.department, self.semester)
-    # for .config: apppointment start and end date, pay rates [100,150,200,150], scholarship rates [0,50,100,0]
+        return "%s, %s" % (self.unit.name, self.semester)
+
+
 
 DESC_CHOICES = (
         ('OML','office/marking/lab'),
@@ -205,8 +233,8 @@ class TAContract(models.Model):
         #help_text='Usually $129.00 per BU per Semester')
     deadline = models.DateField()
     remarks = models.TextField(blank=True)
-    appt_cond = models.BooleanField(help_text='default to false')
-    appt_tssu = models.BooleanField(help_text='default to true')
+    appt_cond = models.BooleanField(default=False)
+    appt_tssu = models.BooleanField(default=True)
     created_by = models.CharField(max_length=8, null=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)

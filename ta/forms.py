@@ -4,10 +4,10 @@ from django.forms.forms import BoundField
 from django.forms.util import ErrorList
 from django.utils.datastructures import SortedDict
 from coredata.models import Member, CAMPUS_CHOICES
-from ta.models import TUG, TAApplication,TAContract, CoursePreference,TACourse
+from ta.models import TUG, TAApplication,TAContract, CoursePreference, TACourse, TAPosting, CATEGORY_CHOICES
 from ta.util import table_row__Form, update_and_return
 from django.core.exceptions import ValidationError
-import itertools
+import itertools, decimal, datetime
 
 @table_row__Form
 class TUGDutyForm(forms.Form):
@@ -164,7 +164,7 @@ class TAApplicationForm(forms.ModelForm):
 
     class Meta:
         model = TAApplication
-        exclude = ('person','department','skills','campus_preferences',)
+        exclude = ('person','department','skills','campus_preferences','semester')
 
 class CoursePreferenceForm(forms.ModelForm):
 
@@ -192,3 +192,118 @@ class TACourseForm(forms.ModelForm):
     class Meta:
         model = TACourse
         exclude = ('contract',) 
+
+
+# helpers for the TAPostingForm
+class LabelTextInput(forms.TextInput):
+    "TextInput with a bonus label"
+    def __init__(self, label, *args, **kwargs):
+        self.label = label
+        super(LabelTextInput, self).__init__(*args, **kwargs)
+    def render(self, *args, **kwargs):
+        return " " + self.label + ": " + super(LabelTextInput, self).render(*args, **kwargs)
+
+class PayWidget(forms.MultiWidget):
+    "Widget for entering salary/scholarship values"
+    def __init__(self, *args, **kwargs):
+        widgets = [LabelTextInput(label=c[0], attrs={'size': 6}) for c in CATEGORY_CHOICES]
+        kwargs['widgets'] = widgets
+        super(PayWidget, self).__init__(*args, **kwargs)
+    
+    def decompress(self, value):
+        # should already be a list: if we get here, got nothing.
+        return [0]*len(CATEGORY_CHOICES)
+
+class PayField(forms.MultiValueField):
+    "Field for entering salary/scholarship values"
+    def __init__(self, *args, **kwargs):
+        fields = [forms.CharField(label='foo') for i in CATEGORY_CHOICES ]
+        kwargs['fields'] = fields
+        kwargs['widget'] = PayWidget()
+        super(PayField, self).__init__(*args, **kwargs)
+
+    def compress(self, values):
+        return values
+
+
+
+class TAPostingForm(forms.ModelForm):
+    start = forms.DateField(label="Contract Start", help_text='Default start date for contracts')
+    end = forms.DateField(label="Contract End", help_text='Default end date for contracts')
+    salary = PayField(label="Salary per BU", help_text="Default pay rates for contracts")
+    scholarship = PayField(label="Scholarship per BU", help_text="Default scholarship rates for contracts")
+    excluded = forms.MultipleChoiceField(help_text="Courses that should not be selectable for TA positions", choices=[], widget=forms.SelectMultiple(attrs={'size': 15}))
+
+    # TODO: sanity-check the dates against semester start/end
+    
+    class Meta:
+        model = TAPosting
+        exclude = ('config',) 
+    
+    def __init__(self, *args, **kwargs):
+        super(TAPostingForm, self).__init__(*args, **kwargs)
+        # populat initial data fron instance.config
+        self.initial['salary'] = self.instance.salary()
+        self.initial['scholarship'] = self.instance.scholarship()
+        self.initial['start'] = self.instance.start()
+        self.initial['end'] = self.instance.end()
+        self.initial['excluded'] = self.instance.excluded()
+    
+    def clean_start(self):
+        start = self.cleaned_data['start']
+        self.instance.config['start'] = unicode(start)
+        return start
+
+    def clean_end(self):
+        end = self.cleaned_data['end']
+        if 'start' in self.cleaned_data:
+            start = self.cleaned_data['start']
+            if start >= end:
+                raise forms.ValidationError("Contracts must end after they start")
+        self.instance.config['end'] = unicode(end)
+        return end
+        
+    def clean_opens(self):
+        opens = self.cleaned_data['opens']
+        today = datetime.date.today()
+        if opens < today:
+            raise forms.ValidationError("Postings cannot open before today")
+        return opens
+
+    def clean_closes(self):
+        closes = self.cleaned_data['closes']
+        today = datetime.date.today()
+        if closes <= today:
+            raise forms.ValidationError("Postings must close after today")
+        if 'opens' in self.cleaned_data:
+            opens = self.cleaned_data['opens']
+            if opens >= closes:
+                raise forms.ValidationError("Postings must close after they open")
+        return closes
+        
+    def clean_salary(self):
+        sals = self.cleaned_data['salary']
+        try:
+            sals = [decimal.Decimal(s).quantize(decimal.Decimal('1.00')) for s in sals]
+        except decimal.InvalidOperation:
+            raise forms.ValidationError("Salary values must be numbers")
+        
+        self.instance.config['salary'] = [str(s) for s in sals]
+        return sals
+    
+    def clean_scholarship(self):
+        schols = self.cleaned_data['scholarship']
+        try:
+            schols = [decimal.Decimal(s).quantize(decimal.Decimal('1.00')) for s in schols]
+        except decimal.InvalidOperation:
+            raise forms.ValidationError("Scholarship values must be numbers")
+
+        self.instance.config['scholarship'] = [str(s) for s in schols]
+        return schols
+    
+    def clean_excluded(self):
+        excluded = self.cleaned_data['excluded']
+        excluded = [int(e) for e in excluded]
+        self.instance.config['excluded'] = excluded
+        return excluded
+    
