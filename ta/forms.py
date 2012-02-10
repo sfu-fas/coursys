@@ -92,19 +92,6 @@ class BaseTUGDutyFormSet(forms.formsets.BaseFormSet):
                 for form in self.forms)
     cleaned_data = property(_get_cleaned_data)
     
-    # without the row header, this function could be separated out, like table_row__Form
-    # unused by template
-    def as_table_row(self):
-        "Returns this formset rendered as HTML <tr>s -- excluding the <table></table>."
-        # renders each form as a table row with each field as a td.
-        row_header = lambda form: (u'<th>' + 
-                form.label_field.as_widget() if form.label_editable 
-                else form.label + u'</th>')
-        forms = u'<tr>' + u'</tr><tr>'.join(
-                row_header(form) + form.as_table_row() 
-                for form in self) + u'</tr>'
-        return mark_safe(u'\n'.join([unicode(self.management_form), row_header, forms]))
-
 TUGDutyFormSet = forms.formsets.formset_factory(TUGDutyForm, extra=0,
         formset = BaseTUGDutyFormSet)
 
@@ -132,19 +119,6 @@ class TUGForm(forms.ModelForm):
         
         self.initial['member'] = member
         self.fields['member'].widget = forms.widgets.HiddenInput()
-        
-        # we're composing (one form inside of another) forms here, which takes some plumbing
-        # for a list of methods that should be chained, run
-        #  tf = ta.forms.TUGForm()
-        #  tmd = dict(inspect.getmembers(tf, inspect.ismethod)
-        #  [(mname, (tmd[mname], method)) 
-        #          for mname, method in inspect.getmembers(
-        #                  tf.config_form, inspect.ismethod) 
-        #          if mname in tmd and mname[0] != '_' and mname[:3] != 'as_']
-        # currently, this yields add_prefix, clean, full_clean, is_multipart and is_valid
-        # currently, we're chaining clean, full_clean and is_valid
-        
-        # populate config_form with data or instance data, see TUGDutyForm.__init__
         
         if instance:
             # flatten nested (sorted)dict into a list of dicts
