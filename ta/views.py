@@ -116,7 +116,7 @@ def new_tug(request, course_slug, userid):
 def view_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     member = get_object_or_404(Member, offering=course, person__userid=userid)
-    curr_user_role = Member.objects.get(person__userid=request.user.username,offering=course).role
+    curr_user_role = member.role
     
     #If the currently logged in user is a TA for the course and is viewing a TUG for another TA, show forbidden message
     if(curr_user_role =="TA" and not userid==request.user.username ): 
@@ -135,7 +135,7 @@ def view_tug(request, course_slug, userid):
 def edit_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     member = get_object_or_404(Member, offering=course, person__userid=userid)
-    tug = TUG.objects.get(member=member)
+    tug = get_object_or_404(TUG,member=member)
     if (request.method=="POST"):
         form = TUGForm(request.POST, instance=tug)
         if form.is_valid():
