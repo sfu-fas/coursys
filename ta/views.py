@@ -124,12 +124,9 @@ def view_tug(request, course_slug, userid):
     else:
         course = get_object_or_404(CourseOffering, slug=course_slug)
         member = get_object_or_404(Member, offering=course, person__userid=userid)
-        tug = TUG.objects.get(member=member)
+        tug = get_object_or_404(TUG, member=member)
         max_hours = tug.base_units * 42
-        total_hours = 0 
-        for field, params in tug.config.iteritems():
-            if not field == 'other2':
-                total_hours += params['total']
+        total_hours = sum(params['total'] for _, params in tug.config.iteritems())
         
         context = {'tug': tug, 'ta':member, 'course':course, 'maxHours':max_hours, 'totalHours':total_hours}
         return render(request, 'ta/view_tug.html',context)

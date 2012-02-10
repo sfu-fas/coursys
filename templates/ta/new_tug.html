@@ -22,6 +22,10 @@
 {% block content %}
 <form action="{% block formaction %}{% url ta.views.new_tug course_slug=course.slug userid=userid %}{% endblock %}" method="post">{% csrf_token %}
 <fieldset id="edit-time-use-guideline">
+
+<p><label>TA Name:</label>{{ta.name}}</p>
+<p><label>Course:</label>{{course}}</p>
+
 {{ form.as_p }}
 <table>
 <th>Duties and Responsibilities</th><th>Average hrs/week</th><th>Total hrs/semester</th><th>Comment</th>

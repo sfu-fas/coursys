@@ -99,6 +99,9 @@ class TUGDutyFormSet(forms.formsets.BaseFormSet):
         return mark_safe(u'\n'.join([unicode(self.management_form), row_header, forms]))
 
 class TUGForm(forms.ModelForm):
+    '''
+    userid and offering must be defined or instance must be defined.
+    '''
     class Meta:
         model = TUG
         exclude = ('config',)
@@ -109,26 +112,16 @@ class TUGForm(forms.ModelForm):
                  offering=None, userid=None):
         super(TUGForm, self).__init__(data, files, auto_id, prefix, initial,
                  error_class, label_suffix, empty_permitted, instance)
+        # see old revisions (git id 1d1d2f9) for a dropdown
+        if userid is not None and offering is not None:
+            member = Member.objects.get(person__userid=userid, offering=offering)
+        elif instance is not None:
+            member = instance.member
+        else:
+            assert False
         
-        # TODO: remove the dropdown, 
-        
-        # limit the fields in the dropdown
-        # userid should be passed but if for some reason it isn't filter by offering
-        # if offering is also missing, display all TAs as final fallback
-        # otherwise, filter both both.
-        if userid is not None:
-            if offering is not None:
-                member = Member.objects.get(person__userid=userid, offering=offering)
-                self.initial['member'] = member
-                self.fields['member'].widget = forms.widgets.HiddenInput()
-            else:
-                self.fields['member'].queryset = Member.objects.filter(person__userid=userid)
-        else: 
-            if offering is None:
-                memberQuerylist = Member.objects.filter(role='TA')
-            else:
-                memberQuerylist = Member.objects.filter(role='TA',offering=offering)
-            self.fields['member'].queryset = memberQuerylist
+        self.initial['member'] = member
+        self.fields['member'].widget = forms.widgets.HiddenInput()
         
         def update_and_return(d, *others):
             for other in others:
@@ -163,7 +156,9 @@ class TUGForm(forms.ModelForm):
                 return self.config_form[name]
             except KeyError:
                 raise error
-    
+    def clean_member(self):
+        assert(self.cleaned_data['member'] == self.initial['member'])
+        return self.cleaned_data['member']
     def is_valid(self):
         return self.config_form.is_valid() and super(TUGForm, self).is_valid()
     def full_clean(self):
