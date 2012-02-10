@@ -197,11 +197,16 @@ class TAContractForm(forms.ModelForm):
     #person = [app.person for app in apps]
     #self.field['person'].queryset = person
     
+    #def __init__(self,my_var,*args,**kwargs):
+     #   super(TAContractForm,self).__init__(*args,**kwargs)
+    
+    
     sin = forms.CharField(min_length=9, max_length=9)
+    #position_number = 
     
     class Meta:
         model = TAContract
-        #exclude = ['total_bu', 'pay_per_bu', 'scholarship_per_bu', 'remarks', 'deadline', 'appt_cond', 'appt_tssu' ]
+        exclude = ['total_bu','pay_per_bu', 'scholarship_per_bu', 'deadline', 'appt_cond', 'appt_tssu' ]
 
 '''        
 class TAContractForm2(forms.ModelForm):

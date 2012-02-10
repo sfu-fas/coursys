@@ -2,7 +2,6 @@ from django.db import models
 from coredata.models import Person, Member, Course, Semester, Unit ,CourseOffering, CAMPUS_CHOICES 
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter #, getter_setter_2
-from django.db.models import Q
 from grad.views import get_semester
 
 class TUG(models.Model):
@@ -191,29 +190,29 @@ class TAContract(models.Model):
     TA Contract, filled in by ADMN Departmental Administrator.../ta etc
     """
     #person = models.ForeignKey(Person, limit_choices_to={'person':Q(semester=get_semester)})
-    applicant = models.ForeignKey(TAApplication)
+    ta_application = models.ForeignKey(TAApplication)
+    applicant = models.ForeignKey(Person)
     sin = models.PositiveIntegerField(unique=True)
     department = models.ForeignKey(Unit)
     appt_start = models.DateField(help_text='yyyy-mm-dd')
     appt_end = models.DateField()
     pay_start = models.DateField()
     pay_end = models.DateField()
-    position_number = models.IntegerField()
+    position_number = models.PositiveIntegerField()
     appt_category = models.CharField(max_length=4, choices=APPOINTMENT_CHOICES)
     appt = models.CharField(max_length=4, choices=APPT_CHOICES)
-    #courses = models.ForeignKey(CourseOffering)
-    #description = models.CharField(max_length=3, choices=DESC_CHOICES, blank=False, null=False) 
-    
-    #total_bu = models.DecimalField(max_digits=4, decimal_places=2)
-    pay_per_bu = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Pay per Base Unit Semester Rate.",
-                help_text='Usually $934.00 per BU per Semester')
-    scholarship_per_bu = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Scholarship per Base Unit Semester Rate.",
-        help_text='Usually $129.00 per BU per Semester')
+    #pay_per_bu = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Pay per Base Unit Semester Rate.",
+                #help_text='Usually $934.00 per BU per Semester')
+    #scholarship_per_bu = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Scholarship per Base Unit Semester Rate.",
+        #help_text='Usually $129.00 per BU per Semester')
     remarks = models.TextField(verbose_name="Remarks")
     deadline = models.DateField()
-    appt_cond = models.BooleanField()
-    appt_tssu = models.BooleanField()
-    
+    appt_cond = models.BooleanField(help_text='default to false')
+    appt_tssu = models.BooleanField(help_text='default to true')
+    #courses = models.ForeignKey(CourseOffering)
+    #description = models.CharField(max_length=3, choices=DESC_CHOICES, blank=False, null=False) 
+    #total_bu = models.DecimalField(max_digits=4, decimal_places=2)
+        
     def __unicode__(self):
         return (self.applicant)
 
