@@ -197,6 +197,8 @@ class TAPosting(models.Model):
         unique_together = (('unit', 'semester'),)
     def __unicode__(self): 
         return "%s, %s" % (self.unit.name, self.semester)
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
     
     def selectable_courses(self):
         """

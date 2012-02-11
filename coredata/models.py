@@ -1,5 +1,4 @@
 from django.db import models
-from django.template.defaultfilters import slugify, capfirst
 from autoslug import AutoSlugField
 #from timezones.fields import TimeZoneField
 from django.conf import settings
@@ -32,7 +31,7 @@ class Person(models.Model):
     pref_first_name = models.CharField(max_length=32)
     # TODO: get address, phone, gender, citizenship, birthdate
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
-      # p.config['email']: email, if not the default userid@sfu.ca
+        # p.config['email']: email, if not the default userid@sfu.ca
     
     defaults = {'email': None}
     _, set_email = getter_setter('email')
@@ -79,7 +78,7 @@ class Person(models.Model):
             elif field.verbose_name == "ID":
                 pass
             else:
-                k.append([capfirst(field.verbose_name), field.value_to_string(self)])
+                k.append([field.verbose_name.title(), field.value_to_string(self)])
         return k
 
 
@@ -265,6 +264,8 @@ class Course(models.Model):
         return "%s %s" % (self.subject, self.number)
     def __cmp__(self, other):
         return cmp(self.subject, other.subject) or cmp(self.number, other.number)
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
 
 
 COMPONENT_CHOICES = (
@@ -322,14 +323,14 @@ class CourseOffering(models.Model):
 
     members = models.ManyToManyField(Person, related_name="member", through="Member")
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
-      # c.config['url']: URL of course home page
-      # c.config['department']: department responsible for course (used by discipline module)
-      # c.config['taemail']: TAs' contact email (if not their personal email)
-      # c.config['labtut']: are there lab sections? (default False)
-      # c.config['uses_svn']: create SVN repos for this course? (default False)
-      # c.config['indiv_svn']: do instructors/TAs have access to student SVN repos? (default False)
-      # c.config['combined']: is this a combined section (e.g. two crosslisted sections integrated)
-      # c.config['req_bu']: number of TA base units required
+        # c.config['url']: URL of course home page
+        # c.config['department']: department responsible for course (used by discipline module)
+        # c.config['taemail']: TAs' contact email (if not their personal email)
+        # c.config['labtut']: are there lab sections? (default False)
+        # c.config['uses_svn']: create SVN repos for this course? (default False)
+        # c.config['indiv_svn']: do instructors/TAs have access to student SVN repos? (default False)
+        # c.config['combined']: is this a combined section (e.g. two crosslisted sections integrated)
+        # c.config['req_bu']: number of TA base units required
     
     defaults = {'taemail': None, 'url': None, 'labtut': False, 'indiv_svn': False, 'combined': False, 'uses_svn': False, 'req_bu': 0}
     labtut, set_labtut = getter_setter('labtut')
@@ -477,9 +478,9 @@ class Member(models.Model):
     labtut_section = models.CharField(max_length=4, null=True, blank=True,
         help_text='Section should be in the form "C101" or "D103".')
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
-      # m.config['origsection']: The originating section (for crosslisted sections combined here)
-      #     represented as a CourseOffering.slug
-      #     default: self.offering (if accessed by m.get_origsection())
+        # m.config['origsection']: The originating section (for crosslisted sections combined here)
+        #     represented as a CourseOffering.slug
+        #     default: self.offering (if accessed by m.get_origsection())
 
     def __unicode__(self):
         return "%s (%s) in %s" % (self.person.userid, self.person.emplid, self.offering,)
