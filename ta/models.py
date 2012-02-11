@@ -204,7 +204,7 @@ class TAPosting(models.Model):
         Course objects that can be selected as possible choices
         """
         excl = set(self.excluded())
-        offerings = CourseOffering.objects.filter(owner=self.unit).select_related('course')
+        offerings = CourseOffering.objects.filter(semester=self.semester, owner=self.unit).select_related('course')
         # remove duplicates and sort nicely
         courses = list(set((o.course for o in offerings if o.course_id not in excl)))
         courses.sort()
@@ -215,7 +215,7 @@ class TAPosting(models.Model):
         CourseOffering objects that can be selected as possible choices
         """
         excl = set(self.excluded())
-        offerings = CourseOffering.objects.filter(owner=self.unit).exclude(course__id__in=excl)
+        offerings = CourseOffering.objects.filter(semester=self.semester, owner=self.unit).exclude(course__id__in=excl)
         return offerings
 
 

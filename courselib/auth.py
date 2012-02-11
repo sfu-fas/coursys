@@ -166,10 +166,14 @@ def is_discipline_user(request, course_slug, **kwargs):
     Return True if user is a discipline user (instructor, approver or discipline admin)
     """
     # departmental discipline admins    
-    # TODO: filter by offering.department once it's populated
     roles = set()
-    offering = CourseOffering.objects.get(slug=course_slug)
-    perms = Role.objects.filter(person__userid=request.user.username, role='DISC', unit__label=offering.subject).count()
+    offerings = CourseOffering.objects.filter(slug=course_slug)
+    if offerings:
+        offering = offerings[0]
+    else:
+        return False
+
+    perms = Role.objects.filter(person__userid=request.user.username, role='DISC', unit=offering.owner).count()
     if perms>0:
         roles.add("DEPT")
 
