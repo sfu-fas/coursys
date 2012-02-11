@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from advisornotes.models import AdvisorNote
 from coredata.models import Member, Person, Role, Unit
 from django.template import RequestContext
-from courselib.auth import *
+from courselib.auth import requires_role, requires_advisor, ForbiddenResponse, HttpResponseRedirect
 from advisornotes.forms import AdvisorNoteForm, StudentSelect, StudentField, StudentSearchForm
 from django.contrib import messages
 from courselib.search import get_query
@@ -35,11 +35,12 @@ def advising(request, student_id=None):
     context = {'form': form}
     return render_to_response('advisornotes/student_search.html', context, context_instance=RequestContext(request))
 
-@requires_advisor
+@requires_role('ADVS')
 def new_note(request,userid):
     student = Person.objects.get(userid = userid)
-    depts = Role.objects.filter(person__userid=request.user.username, role='ADVS').values('unit_id')
-    unit_choices = Unit.objects.filter(id__in=depts).values_list('id','name')
+    #depts = Role.objects.filter(person__userid=request.user.username, role='ADVS').values('unit_id')
+    #unit_choices = Unit.objects.filter(id__in=depts).values_list('id','name')
+    unit_choices = [(u.id, unicode(u)) for u in request.units]
 
     if request.method == 'POST':
         form = AdvisorNoteForm(request.POST, request.FILES)
@@ -71,7 +72,7 @@ def new_note(request,userid):
         form.fields['unit'].choices = unit_choices
     return render(request, 'advisornotes/new_note.html', {'form': form, 'student':student} )
  
-@requires_advisor
+@requires_role('ADVS')
 def view_note(request, userid, note_id):
     note = get_object_or_404(AdvisorNote, pk=note_id)
     student = Person.objects.get(userid=userid)
