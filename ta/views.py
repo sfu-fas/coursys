@@ -166,6 +166,7 @@ def new_application(request, post_slug):
         if ta_form.is_valid() and course_form.is_valid():
             person = get_object_or_404(Person, userid=request.user.username)
             app = ta_form.save(commit=False)
+            app.semester = posting.semester
             app.person = person
             app.department = posting.unit
             app.save()
@@ -194,6 +195,8 @@ def new_application(request, post_slug):
     else:
         ta_form = TAApplicationForm(prefix='ta')
         course_form = CoursePreferenceForm(prefix='course')
+        course_choices = [(c.id, unicode(c)) for c in posting.selectable_courses()]
+        course_form.fields['course'].choices = course_choices
         campus_names = CampusPreference.objects.order_by('campus').values('campus').distinct() 
         campus_preferences = CampusPreference.objects.order_by('campus','rank')
         skill_names = Skill.objects.filter(department=posting.unit).order_by('name').values('name').distinct() 

@@ -145,7 +145,6 @@ class TAApplication(models.Model):
     department = models.ForeignKey(Unit)
     base_units = models.DecimalField(max_digits=4, decimal_places=2)
     sin = models.PositiveIntegerField(unique=True)
-    #Campus will be a csv separated field
     campus_preferences = models.ManyToManyField(CampusPreference)
     skills = models.ManyToManyField(Skill) 
     experience =  models.TextField(blank=True, null=True,
