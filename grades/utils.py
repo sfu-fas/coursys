@@ -3,14 +3,13 @@ This module collects classes and functions that are for the display purpose of G
 """
 
 from grades.models import Activity, NumericActivity, LetterActivity, NumericGrade, \
-                          LetterGrade, all_activities_filter, ACTIVITY_TYPES, FLAGS, \
+                          LetterGrade, ACTIVITY_TYPES, FLAGS, \
                           CalNumericActivity,CalLetterActivity, median_letters, min_letters, max_letters,sorted_letters
 from coredata.models import CourseOffering, Member
 from grades.formulas import parse, activities_dictionary, cols_used, eval_parse, EvalException
 from pyparsing import ParseException
 import math
 import decimal
-import datetime
 
 ORDER_TYPE = {'UP': 'up', 'DN': 'down'}
 _NO_GRADE = u'\u2014'
@@ -141,16 +140,16 @@ class FormulaTesterActivityEntry:
 
 # The following fake objects are used in the formula tester
 class FakeGrade(object):
-     def __init__(self, value):
+    def __init__(self, value):
         self.flag = "GRAD"
         self.value = value
 class FakeGradeSet(object):
-     def __init__(self, grade):
+    def __init__(self, grade):
         self.grade = grade
-     def filter(self, **kwargs):
+    def filter(self, **kwargs):
         return [self.grade]
 class FakeActivity(object):
-     def __init__(self, name, short_name, status, max_grade, percent, value):
+    def __init__(self, name, short_name, status, max_grade, percent, value):
         self.name = name
         self.short_name = short_name
         self.status = status
@@ -388,21 +387,18 @@ def generate_grade_range_stat_lettergrade(student_lettergrade_list,grade_range=1
 
 def fetch_students_numeric_grade(activity):
     """
-    This function return a list of all students' grade in a course activity. If student does not
-    have any grade yet, the numeric grade is default to 0.
+    This function return a list of all students' grade in a course activity.
     """
-    _DEFAULT_NUMERIC_GRADE = 0
-
     student_list = activity.offering.members.filter(person__role='STUD')
     grade_list = NumericGrade.objects.filter(activity=activity).exclude(flag="NOGR")\
                         .select_related('member','member__person') 
     
     student_grade_list = []
     for student in student_list:
-        student_found = False
+        #student_found = False
         for grade in grade_list:
             if grade.member.person == student:
-                student_found = True
+                #student_found = True
                 student_grade_list.append(grade.value)
                 break
         #if not student_found:
@@ -423,10 +419,10 @@ def fetch_students_letter_grade(activity):
     
     student_grade_list = []
     for student in student_list:
-        student_found = False
+        #student_found = False
         for grade in grade_list:
             if grade.member.person == student:
-                student_found = True
+                #student_found = True
                 student_grade_list.append(grade.letter_grade)
                 break
         #if not student_found:
@@ -446,7 +442,7 @@ def calculate_letter_grade(course, activity):
     if not isinstance(activity, CalLetterActivity):
         raise TypeError('CalLetterActivity type is required')
 
- # calculate for all student
+    # calculate for all student
     student_list = Member.objects.filter(offering=course, role='STUD')
     letter_grade_list = LetterGrade.objects.filter(activity = activity).select_related('member') 
    
@@ -496,27 +492,27 @@ def generate_lettergrades(s,activity):
     grade = grades[0].value
 
     if grade>=cutoffs[0]:
-       letter_grade='A+'
+        letter_grade='A+'
     elif grade>=cutoffs[1]:
-       letter_grade='A'
+        letter_grade='A'
     elif grade>=cutoffs[2]:
-       letter_grade='A-'
+        letter_grade='A-'
     elif grade>=cutoffs[3]:
-       letter_grade='B+'
+        letter_grade='B+'
     elif grade>=cutoffs[4]:
-       letter_grade='B'
+        letter_grade='B'
     elif grade>=cutoffs[5]:
-       letter_grade='B-'
+        letter_grade='B-'
     elif grade>=cutoffs[6]:
-       letter_grade='C+'
+        letter_grade='C+'
     elif grade>=cutoffs[7]:
-       letter_grade='C'
+        letter_grade='C'
     elif grade>=cutoffs[8]:
-       letter_grade='C-'
+        letter_grade='C-'
     elif grade>=cutoffs[9]:
-       letter_grade='D'
+        letter_grade='D'
     else:
-       letter_grade='F'
+        letter_grade='F'
     
     return letter_grade
 
@@ -555,7 +551,7 @@ def parse_and_validate_formula(formula, course, activity, numeric_activities):
         for col in cols:
             if not col in activities_dict:
                 raise ValidationError(u'Invalid activity reference')
-    except ParseException as e:
+    except ParseException:
         raise ValidationError(u'Incorrect formula syntax')
     return parsed_expr
 

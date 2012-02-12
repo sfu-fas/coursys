@@ -3,7 +3,7 @@ import pickle
 import datetime
 
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, Http404, HttpResponseForbidden, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse
 from django.template import RequestContext
 from django.db.models import Q
 from django.db.models.aggregates import Max
@@ -11,30 +11,30 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
-from coredata.models import Member, CourseOffering, Person, Role
+from coredata.models import Member, CourseOffering, Person
 
 from courselib.auth import ForbiddenResponse, NotFoundResponse, is_course_student_by_slug
 from courselib.auth import is_course_staff_by_slug, requires_course_staff_by_slug
 
-from grades.models import ACTIVITY_STATUS, all_activities_filter
+from grades.models import all_activities_filter
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity
 from grades.models import NumericGrade, LetterGrade
 from grades.models import CalLetterActivity, ACTIVITY_TYPES
 from grades.models import neaten_activity_positions
 from grades.forms import NumericActivityForm, LetterActivityForm, CalNumericActivityForm
 from grades.forms import ActivityFormEntry, FormulaFormEntry, StudentSearchForm, FORMTYPE
-from grades.forms import GROUP_STATUS_MAP, CourseConfigForm, CalLetterActivityForm, Activity_ChoiceForm, CutoffForm
+from grades.forms import GROUP_STATUS_MAP, CourseConfigForm, CalLetterActivityForm, CutoffForm
 from grades.formulas import EvalException, activities_dictionary, eval_parse
-from grades.utils import StudentActivityInfo, reorder_course_activities, create_StudentActivityInfo_list
+from grades.utils import reorder_course_activities
 from grades.utils import ORDER_TYPE, FormulaTesterActivityEntry, FakeActivity, FakeEvalActivity
 from grades.utils import generate_numeric_activity_stat,generate_letter_activity_stat
-from grades.utils import ValidationError, parse_and_validate_formula, calculate_numeric_grade, calculate_letter_grade
+from grades.utils import ValidationError, calculate_numeric_grade, calculate_letter_grade
 
 from marking.models import get_group_mark, StudentActivityMark, GroupActivityMark, ActivityComponent
 
 from groups.models import GroupMember, add_activity_to_group
 
-from submission.models import SubmissionComponent, Submission, GroupSubmission, StudentSubmission, get_current_submission, select_all_submitted_components, select_all_components
+from submission.models import SubmissionComponent, GroupSubmission, StudentSubmission, get_current_submission, select_all_submitted_components, select_all_components
 
 from log.models import LogEntry
 from pages.models import Page, ACL_ROLES
@@ -281,9 +281,9 @@ def _activity_info_student(request, course_slug, activity_slug):
     reason_msg = ''
     
     if activity.is_numeric():
-       activity_stat = generate_numeric_activity_stat(activity)
+        activity_stat = generate_numeric_activity_stat(activity)
     else:
-       activity_stat = generate_letter_activity_stat(activity)
+        activity_stat = generate_letter_activity_stat(activity)
 
     if activity_stat is None or activity_stat.count < STUD_NUM_TO_DISP_ACTSTAT:
         reason_msg = 'Summary statistics disabled for small classes.'
@@ -421,40 +421,37 @@ def edit_cutoffs(request, course_slug, activity_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     activity = get_object_or_404(CalLetterActivity, slug=activity_slug, offering=course, deleted=False)    
     if request.method == 'POST':
-       form = CutoffForm(request.POST)
-       if form.is_valid(): # All validation rules pass
-           activity.set_cutoffs(form.cleaned_data['cutoffs'])
-           activity.save()
+        form = CutoffForm(request.POST)
+        if form.is_valid(): # All validation rules pass
+            activity.set_cutoffs(form.cleaned_data['cutoffs'])
+            activity.save()
            
-           if form.cleaned_data['ap'] > activity.numeric_activity.max_grade:
-               messages.warning(request, "Some grade cutoffs are higher than the maximum grade for %s." % (activity.numeric_activity.name))
+            if form.cleaned_data['ap'] > activity.numeric_activity.max_grade:
+                messages.warning(request, "Some grade cutoffs are higher than the maximum grade for %s." % (activity.numeric_activity.name))
 
-           #LOG EVENT#
-           l = LogEntry(userid=request.user.username,
-           description=("edited %s cutoffs") % (activity),
-           related_object=activity)
-           l.save()
-           messages.success(request, "Grade cutoffs updated.")
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+            description=("edited %s cutoffs") % (activity),
+            related_object=activity)
+            l.save()
+            messages.success(request, "Grade cutoffs updated.")
 
-    
-           try:
-               ignored = calculate_letter_grade(course,activity)
-               if ignored==1:
-                  messages.warning(request, "Did not calculate letter grade for 1 manually-graded student.")
-               elif ignored>1:
-                  messages.warning(request, "Did not calculate letter grade for %i manually-graded students." % (ignored))
-           except ValidationError as e:
-               messages.error(request, e.args[0])
-           except NotImplementedError:
-               return NotFoundResponse(request)
+            try:
+                ignored = calculate_letter_grade(course, activity)
+                if ignored == 1:
+                    messages.warning(request, "Did not calculate letter grade for 1 manually-graded student.")
+                elif ignored > 1:
+                    messages.warning(request, "Did not calculate letter grade for %i manually-graded students." % (ignored))
+            except ValidationError as e:
+                messages.error(request, e.args[0])
+            except NotImplementedError:
+                return NotFoundResponse(request)
 
-
-
-           return HttpResponseRedirect(reverse('grades.views.activity_info', kwargs={'course_slug': course.slug, 'activity_slug': activity.slug}))
+            return HttpResponseRedirect(reverse('grades.views.activity_info', kwargs={'course_slug': course.slug, 'activity_slug': activity.slug}))
     else:
-       cutoff=activity.get_cutoffs()
-       cutoffsdict=_cutoffsdict(cutoff)
-       form=CutoffForm(cutoffsdict)
+        cutoff=activity.get_cutoffs()
+        cutoffsdict=_cutoffsdict(cutoff)
+        form=CutoffForm(cutoffsdict)
 
     source_grades = activity.numeric_activity.numericgrade_set.exclude(flag="NOGR")
     source_grades = '[' + ", ".join(["%.2f" % (g.value) for g in source_grades]) + ']'
@@ -739,7 +736,7 @@ def calculate_individual_ajax(request, course_slug, activity_slug):
             displayable_result = calculate_numeric_grade(course,activity, member)
         except ValidationError:
             return ForbiddenResponse(request)
-        except EvalException as e:
+        except EvalException:
             return ForbiddenResponse(request)
         except NotImplementedError:
             return ForbiddenResponse(request)
@@ -1112,9 +1109,9 @@ def all_grades_csv(request, course_slug):
                     g = ''
                 else:
                     if a.is_numeric():
-                       g = gr.value
+                        g = gr.value
                     else:
-                       g=gr.letter_grade
+                        g = gr.letter_grade
             except KeyError:
                 g = ''
             row.append(g)
@@ -1204,7 +1201,7 @@ def student_info(request, course_slug, userid):
             info['grade'] = None
 
         # find most recent submission
-        sub, components = get_current_submission(member.person, a)
+        sub, _ = get_current_submission(member.person, a)
         info['sub'] = sub
 
         grade_info.append(info)

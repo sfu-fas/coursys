@@ -1,10 +1,8 @@
-from django.db.models import Count
 from django.contrib.auth import REDIRECT_FIELD_NAME
-from django.http import HttpResponseForbidden, HttpResponseRedirect
-from django.shortcuts import render_to_response, get_object_or_404
+from django.http import HttpResponseRedirect
+from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils.http import urlquote
-
 from coredata.models import Role, CourseOffering, Member
 
 try:

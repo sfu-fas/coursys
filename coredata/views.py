@@ -1,10 +1,10 @@
-from django.http import HttpResponse
-from django.shortcuts import render
+from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from forms import *
-from courselib.auth import *
+from coredata.forms import RoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm
+from courselib.auth import requires_global_role, requires_course_staff_by_slug, ForbiddenResponse
 from courselib.search import get_query
-from coredata.models import *
+from coredata.models import Person, Semester, CourseOffering, Member, Role
 from log.models import LogEntry
 from django.core.urlresolvers import reverse
 from django.contrib import messages
@@ -268,7 +268,6 @@ def student_search(request):
         return ForbiddenResponse(request, "Must provide 'term' query.")
     term = request.GET['term']
     response = HttpResponse(mimetype='application/json')
-    data = []
     query = get_query(term, ['person__userid', 'person__emplid', 'person__first_name', 'person__last_name'])
 
     members = Member.objects.filter(role="STUD").filter(query).select_related('person')[:500]
