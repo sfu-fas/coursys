@@ -73,7 +73,7 @@ class SubmissionTest(TestCase):
         """
         Test submission component classes: subclasses, selection, sorting.
         """
-        s, course = create_offering()
+        _, course = create_offering()
         a1 = NumericActivity(name="Assignment 1", short_name="A1", status="RLS", offering=course, position=2, max_grade=15, due_date="2010-04-01")
         a1.save()
         a2 = NumericActivity(name="Assignment 2", short_name="A2", status="RLS", offering=course, position=1, max_grade=15, due_date="2010-03-01")
@@ -92,11 +92,11 @@ class SubmissionTest(TestCase):
         comps = select_all_components(a1)
         self.assertEqual(len(comps), 3)
         self.assertEqual(comps[0].title, 'Archive File') # make sure position=1 is first
-        self.assertEqual(str(comps[1].Type), "courses.submission.models.code.Code")
-        self.assertEqual(str(comps[2].Type), "courses.submission.models.url.URL")
+        self.assertEqual(str(comps[1].Type), "submission.models.code.Code")
+        self.assertEqual(str(comps[2].Type), "submission.models.url.URL")
 
     def test_component_view_page(self):
-        s, course = create_offering()
+        _, course = create_offering()
         a1 = NumericActivity(name="Assignment 1", short_name="A1", status="RLS", offering=course, position=2, max_grade=15, due_date="2010-04-01")
         a1.save()
         a2 = NumericActivity(name="Assignment 2", short_name="A2", status="RLS", offering=course, position=1, max_grade=15, due_date="2010-03-01")
@@ -189,7 +189,7 @@ class SubmissionTest(TestCase):
         test if group submission can be viewed by group member and non group member
         """
         now = datetime.datetime.now()
-        s, course = create_offering()
+        _, course = create_offering()
         a1 = NumericActivity(name="Assignment 1", short_name="A1", status="RLS", offering=course, position=2, max_grade=15, due_date=now, group=True)
         a1.save()
         a2 = NumericActivity(name="Assignment 2", short_name="A2", status="RLS", offering=course, position=1, max_grade=15, due_date=now, group=True)
@@ -239,7 +239,7 @@ class SubmissionTest(TestCase):
 
 
     def test_upload(self):
-        s, course = create_offering()
+        _, course = create_offering()
         a1 = NumericActivity(name="Assignment 1", short_name="A1", status="RLS", offering=course, position=2, max_grade=15, due_date=datetime.datetime.now() + datetime.timedelta(hours=1), group=False)
         a1.save()
         p = Person.objects.get(userid="ggbaker")

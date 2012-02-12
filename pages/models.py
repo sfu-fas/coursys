@@ -1,4 +1,4 @@
-from django.db import models, transaction
+from django.db import models
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 from django.utils.safestring import mark_safe
@@ -118,10 +118,10 @@ class PageVersion(models.Model):
     comment = models.TextField()
 
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
-      # p.config['math']: page uses MathJax? (boolean)
-      # p.config['syntax']: page uses SyntaxHighlighter? (boolean)
-      # p.config['brushes']: used SyntaxHighlighter brushes (list of strings)
-      # p.config['depth']: max depth of diff pages below me (to keep it within reason)
+        # p.config['math']: page uses MathJax? (boolean)
+        # p.config['syntax']: page uses SyntaxHighlighter? (boolean)
+        # p.config['brushes']: used SyntaxHighlighter brushes (list of strings)
+        # p.config['depth']: max depth of diff pages below me (to keep it within reason)
     
     defaults = {'math': False, 'syntax': False, 'brushes': [], 'depth': 0}
     math, set_math = getter_setter('math')
@@ -346,7 +346,6 @@ models.signals.post_save.connect(clear_offering_cache)
 
 # custom creoleparser Parser class:
 
-import re
 import genshi
 from brush_map import brush_code
 
@@ -449,9 +448,9 @@ class ParserFor(object):
                      'duedatetime': duedatetime_macro,
                      })
         class CreoleDialect(CreoleBase):
-	    codeblock = CodeBlock()
-	    abbracronym = AbbrAcronym()
-	    strikethrough = creoleparser.elements.InlineElement('del','--')
+            codeblock = CodeBlock()
+            abbracronym = AbbrAcronym()
+            strikethrough = creoleparser.elements.InlineElement('del','--')
             @property
             def inline_elements(self):
                 inline = super(CreoleDialect, self).inline_elements
@@ -471,25 +470,25 @@ class ParserFor(object):
 
 
 def brushes_used(parse):
-	"""
+    """
 	All SyntaxHighlighter brush code files used in this wikitext.
 	"""
-	res = set()
-	if hasattr(parse, 'children'):
-            # recurse
-            for c in parse.children:
-        	res |= brushes_used(c)
+    res = set()
+    if hasattr(parse, 'children'):
+        # recurse
+        for c in parse.children:
+            res |= brushes_used(c)
 
-	if isinstance(parse, genshi.builder.Element) and parse.tag == 'pre':
-            cls = parse.attrib.get('class')
-            if cls:
-        	m = brush_class_re.match(cls)
-        	if m:
-                    b = m.group(1)
-                    if b in brush_code:
-                	res.add(brush_code[b])
+    if isinstance(parse, genshi.builder.Element) and parse.tag == 'pre':
+        cls = parse.attrib.get('class')
+        if cls:
+            m = brush_class_re.match(cls)
+            if m:
+                b = m.group(1)
+                if b in brush_code:
+                    res.add(brush_code[b])
 
-	return res
+    return res
 
 
 

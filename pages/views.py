@@ -7,7 +7,7 @@ from pages.models import Page, PageVersion, MEMBER_ROLES, ACL_ROLES
 from pages.forms import EditPageForm, EditFileForm, PageImportForm
 from coredata.models import Member, CourseOffering
 from log.models import LogEntry
-from courselib.auth import requires_discipline_user, is_discipline_user, requires_role, requires_global_role, NotFoundResponse, ForbiddenResponse
+from courselib.auth import NotFoundResponse, ForbiddenResponse
 
 def _check_allowed(request, offering, acl_value):
     """
@@ -66,10 +66,10 @@ def view_page(request, course_slug, page_label):
         return ForbiddenResponse(request, 'Not allowed to view this page')
     
     if request.user.is_authenticated():
-       editor = _check_allowed(request, offering, page.can_write)
-       can_edit = bool(editor)
+        editor = _check_allowed(request, offering, page.can_write)
+        can_edit = bool(editor)
     else:
-       can_edit = False
+        can_edit = False
     
     is_index = page_label=='Index'
     if is_index:
@@ -220,7 +220,7 @@ def import_page(request, course_slug, page_label):
     version = page.current_version()
     member = _check_allowed(request, offering, page.can_write)
     if not member:
-        return ForbiddenResponse(request, 'Not allowed to edit/create this '+kind+'.')
+        return ForbiddenResponse(request, 'Not allowed to edit/create this page.')
     
     if request.method == 'POST':
         form = PageImportForm(data=request.POST, files=request.FILES)

@@ -19,6 +19,10 @@
 
 {% block content %}
 
-The page you have requested doesn't exist.
+<p>The page you have requested doesn't exist.</p>
+
+{% if page_label == "Index" and can_create %}
+<p class="helptext">The &ldquo;pages&ldquo; features of CourSys allow you to post web pages or files for students (or others) to access.  Each page/file has full edit history saved and can have read/write permissions set individually.</p>
+{% endif %}
 
 {% endblock %}

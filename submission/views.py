@@ -1,4 +1,4 @@
-from courses.submission.models import GroupSubmission
+from submission.models import GroupSubmission
 from django.contrib.auth.decorators import login_required
 from coredata.models import Member, CourseOffering, Person
 from django.shortcuts import render_to_response, get_object_or_404#, redirect
@@ -146,7 +146,7 @@ def _show_components_student(request, course_slug, activity_slug, userid=None, t
             else:
                 group_str = ""
             l = LogEntry(userid=request.user.username,
-                  description=("submitted for %s %s" + group_str) % (activity, sub.component.title),
+                  description=(u"submitted for %s %s" + group_str) % (activity, sub.component.title),
                   related_object=sub)
             l.save()
 
@@ -262,7 +262,7 @@ def edit_single(request, course_slug, activity_slug):
             new_component.save()
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=("edited component %s of %s") % (component.title, activity),
+                  description=(u"edited component %s of %s") % (component.title, activity),
                   related_object=new_component)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'Component "' + new_component.title + '" successfully updated.')
@@ -300,7 +300,7 @@ def add_component(request, course_slug, activity_slug):
             new_component.save()
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=("added %s component %s for %s") % (Type.name, new_component.title, activity),
+                  description=(u"added %s component %s for %s") % (Type.name, new_component.title, activity),
                   related_object=new_component)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'New component "' + new_component.title + '" successfully added.')
@@ -424,7 +424,7 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
         else:
             str = ""
         l = LogEntry(userid=request.user.username,
-              description=("took ownership on %s" + str + " by %s") % (activity, userid),
+              description=(u"took ownership on %s" + str + " by %s") % (activity, userid),
               related_object=student)
         l.save()
 
@@ -450,7 +450,7 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
         else:
             str = ""
         l = LogEntry(userid=request.user.username,
-          description=("took ownership on %s"+str+ " by group %s") % (activity, group.name),
+          description=(u"took ownership on %s"+str+ " by group %s") % (activity, group.name),
           related_object=group)
         l.save()
         return response

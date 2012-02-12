@@ -105,7 +105,7 @@ def _check_and_save_renamed_activities(all_activities, conflicting_activities, r
         act.save()
         #LOG EVENT
         l = LogEntry(userid=user,
-              description=("renamed %s(%s) to %s(%s) in course %s") % 
+              description=(u"renamed %s(%s) to %s(%s) in course %s") % 
                           (old_name, old_short, act.name, act.short_name, act.offering),
               related_object=act)
         l.save()
@@ -139,7 +139,7 @@ def copy_course_setup(request, course_slug):
                 conflicting_acts = _find_setup_conflicts(source_setup, target_setup)
                 rename_forms =[ ActivityRenameForm(prefix=act.id) for act in conflicting_acts ]
             else:
-                 return render_to_response("marking/select_course_setup.html", 
+                return render_to_response("marking/select_course_setup.html", 
                              {'course': course, 'select_form': select_form},\
                              context_instance=RequestContext(request))                
             
@@ -158,7 +158,7 @@ def copy_course_setup(request, course_slug):
                 neaten_activity_positions(course)
                 #LOG EVENT
                 l = LogEntry(userid=request.user.username,
-                      description=("copied course setup from %s to %s") % 
+                      description=(u"copied course setup from %s to %s") % 
                                   (source_course, course),
                       related_object=course)
                 l.save()                         
@@ -198,7 +198,7 @@ def _save_common_problems(formset, activity, user):
                 action = 'deleted'                                          
             #LOG EVENT#
             l = LogEntry(userid=user,
-                  description=("%s common problem %s for %s" % 
+                  description=(u"%s common problem %s for %s" % 
                               (action, instance, activity)),
                   related_object=instance)
             l.save()
@@ -222,7 +222,7 @@ def _save_components(formset, activity, user):
                 action = 'deleted'                           
             #LOG EVENT#
             l = LogEntry(userid=user,
-                  description=("%s marking component %s of %s") % 
+                  description=(u"%s marking component %s of %s") % 
                               (action, instance, activity),
                   related_object=instance)  
             l.save()         
@@ -325,7 +325,7 @@ def import_components(request, course_slug, activity_slug):
                                      "The max grade of %s updated from %s to %s" % (activity.name, old_max, max_grade))
             #LOG EVENT
             l = LogEntry(userid=request.user.username,
-                  description=("imported marking setup for %s") % (activity),
+                  description=(u"imported marking setup for %s") % (activity),
                   related_object=activity)
             l.save()                         
             messages.add_message(request, messages.SUCCESS, "Marking setup imported.")                
@@ -385,15 +385,15 @@ def manage_component_positions(request, course_slug, activity_slug):
         if request.is_ajax():
             component_ids = request.POST.getlist('ids[]') 
             position = 1;
-            for id in component_ids:
-                comp = get_object_or_404(components, id = id)
+            for cid in component_ids:
+                comp = get_object_or_404(components, id=cid)
                 comp.position = position
                 comp.save()
                 position += 1
             
-           #LOG EVENT
+            #LOG EVENT
             l = LogEntry(userid=request.user.username,
-                  description=("updated positions of marking components in %s") % activity,
+                  description=(u"updated positions of marking components in %s") % activity,
                   related_object=activity)
             l.save()        
                 
@@ -444,7 +444,7 @@ def _change_grade_status_numeric(request, course, activity, userid):
             status_form.save()
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=("changed the grade of student %s to %s (%s) on %s.  Comment: '%s'") % 
+                  description=(u"changed the grade of student %s to %s (%s) on %s.  Comment: '%s'") % 
                               (userid, numeric_grade.value, FLAGS[numeric_grade.flag], activity, numeric_grade.comment),
                   related_object=numeric_grade)
             l.save()
@@ -483,7 +483,7 @@ def _change_grade_status_letter(request, course, activity, userid):
             status_form.save()
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=("changed the grade of student %s to %s (%s) on %s.  Comment: '%s'") % 
+                  description=(u"changed the grade of student %s to %s (%s) on %s.  Comment: '%s'") % 
                               (userid, letter_grade.letter_grade, FLAGS[letter_grade.flag], activity, letter_grade.comment),
                   related_object=letter_grade)
             l.save()
@@ -616,12 +616,12 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
                 entry['form'].save_m2m()
 
             if groupmark:
-                messages.add_message(request, messages.SUCCESS, 'Mark for group "%s" on %s saved: %s/%s.' % (group.name, activity.name, mark, activity.max_grade))
+                messages.add_message(request, messages.SUCCESS, u'Mark for group "%s" on %s saved: %s/%s.' % (group.name, activity.name, mark, activity.max_grade))
             else:
-                messages.add_message(request, messages.SUCCESS, 'Mark for %s on %s saved: %s/%s.' % (student.name(), activity.name, mark, activity.max_grade))
+                messages.add_message(request, messages.SUCCESS, u'Mark for %s on %s saved: %s/%s.' % (student.name(), activity.name, mark, activity.max_grade))
             #LOG EVENT
             l = LogEntry(userid=request.user.username,
-                  description=("marked %s for %s: %s/%s") % (activity, userid, mark, activity.max_grade),
+                  description=(u"marked %s for %s: %s/%s") % (activity, userid, mark, activity.max_grade),
                   related_object=am)
             l.save()
 
@@ -663,40 +663,40 @@ def marking_group(request, course_slug, activity_slug, group_slug):
 
 @login_required
 def mark_summary_student(request, course_slug, activity_slug, userid):
-     course = get_object_or_404(CourseOffering, slug = course_slug)    
-     activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug, deleted=False)     
+    course = get_object_or_404(CourseOffering, slug = course_slug)    
+    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug, deleted=False)     
 
-     if is_course_staff_by_slug(request, course_slug):
-         is_staff = True
-     elif is_course_student_by_slug(request, course_slug):
-         if userid != request.user.username or activity.status != "RLS":
-             return ForbiddenResponse(request)
-         is_staff = False
-     else:
-         return ForbiddenResponse(request)
+    if is_course_staff_by_slug(request, course_slug):
+        is_staff = True
+    elif is_course_student_by_slug(request, course_slug):
+        if userid != request.user.username or activity.status != "RLS":
+            return ForbiddenResponse(request)
+        is_staff = False
+    else:
+        return ForbiddenResponse(request)
     
-     student = get_object_or_404(Person, userid = userid)
-     membership = get_object_or_404(Member,offering = course, person = student, role = 'STUD')
+    student = get_object_or_404(Person, userid = userid)
+    membership = get_object_or_404(Member,offering = course, person = student, role = 'STUD')
           
-     act_mark_id = request.GET.get('activity_mark')
-     if act_mark_id != None: # if act_mark_id specified in the url
-         act_mark = get_activity_mark_by_id(activity, membership, act_mark_id) 
-     else:
-         act_mark = get_activity_mark_for_student(activity, membership)
-     
-     if act_mark == None:
-         return render_to_response("marking/mark_summary_none.html", 
+    act_mark_id = request.GET.get('activity_mark')
+    if act_mark_id != None: # if act_mark_id specified in the url
+        act_mark = get_activity_mark_by_id(activity, membership, act_mark_id) 
+    else:
+        act_mark = get_activity_mark_for_student(activity, membership)
+    
+    if act_mark == None:
+        return render_to_response("marking/mark_summary_none.html", 
                                {'course':course, 'activity' : activity, 'student' : student, \
                                 'is_staff': is_staff}, \
                                 context_instance = RequestContext(request))
     
-     group = None
-     if hasattr(act_mark, 'group'):
+    group = None
+    if hasattr(act_mark, 'group'):
         group = act_mark.group
                       
-     component_marks = ActivityComponentMark.objects.filter(activity_mark = act_mark)      
+    component_marks = ActivityComponentMark.objects.filter(activity_mark = act_mark)      
     
-     return render_to_response("marking/mark_summary.html", 
+    return render_to_response("marking/mark_summary.html", 
                                {'course':course, 'activity' : activity, 'student' : student, 'group' : group, \
                                 'activity_mark': act_mark, 'component_marks': component_marks, \
                                 'is_staff': is_staff, 'view_history': act_mark_id == None}, \
@@ -704,32 +704,32 @@ def mark_summary_student(request, course_slug, activity_slug, userid):
 
 @login_required
 def mark_summary_group(request, course_slug, activity_slug, group_slug):
-     if is_course_staff_by_slug(request, course_slug):
+    if is_course_staff_by_slug(request, course_slug):
         is_staff = True
-     elif is_course_student_by_slug(request, course_slug):
+    elif is_course_student_by_slug(request, course_slug):
         is_staff = False
-     else:
+    else:
         return ForbiddenResponse(request)
     
-     course = get_object_or_404(CourseOffering, slug = course_slug)    
-     activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug, deleted=False)    
-     group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
+    course = get_object_or_404(CourseOffering, slug = course_slug)    
+    activity = get_object_or_404(NumericActivity, offering = course, slug = activity_slug, deleted=False)    
+    group = get_object_or_404(Group, courseoffering = course, slug = group_slug)
      
-     if not is_staff:
-         gm = GroupMember.objects.filter(group=group, student__person__userid=request.user.userid)
-         if not gm:
-             return ForbiddenResponse(request)
+    if not is_staff:
+        gm = GroupMember.objects.filter(group=group, student__person__userid=request.user.userid)
+        if not gm:
+            return ForbiddenResponse(request)
      
-     act_mark_id = request.GET.get('activity_mark')
-     if act_mark_id != None: 
-         act_mark = get_group_mark_by_id(activity, group_slug, act_mark_id)
-     else:
-         act_mark = get_group_mark(activity, group)
-     if act_mark == None:
-         raise Http404('No such ActivityMark for group %s on %s found.' % (group.name, activity))
-     component_marks = ActivityComponentMark.objects.filter(activity_mark = act_mark)
+    act_mark_id = request.GET.get('activity_mark')
+    if act_mark_id != None: 
+        act_mark = get_group_mark_by_id(activity, group_slug, act_mark_id)
+    else:
+        act_mark = get_group_mark(activity, group)
+    if act_mark == None:
+        raise Http404('No such ActivityMark for group %s on %s found.' % (group.name, activity))
+    component_marks = ActivityComponentMark.objects.filter(activity_mark = act_mark)
      
-     return render_to_response("marking/mark_summary.html", 
+    return render_to_response("marking/mark_summary.html", 
                                {'course':course, 'activity' : activity, 'group' : group, \
                                 'activity_mark': act_mark, 'component_marks': component_marks, \
                                 'is_staff': is_staff, 'view_history': act_mark_id == None},\
@@ -741,11 +741,11 @@ def download_marking_attachment(request, course_slug, activity_slug, mark_id):
     activity = get_object_or_404(NumericActivity, offering=course, slug=activity_slug, deleted=False)
 
     if is_course_staff_by_slug(request, course_slug):
-       is_staff = True
+        is_staff = True
     elif is_course_student_by_slug(request, course_slug):
-       is_staff = False
+        is_staff = False
     else:
-       return ForbiddenResponse(request)
+        return ForbiddenResponse(request)
 
     # get the ActivityMark object
     try:
@@ -1013,18 +1013,18 @@ def _mark_all_groups_numeric(request, course, activity):
 
                updated += 1     
                if new_value < 0:
-                   warning_info.append("Negative mark given to group %s" % group.name)
+                   warning_info.append(u"Negative mark given to group %s" % group.name)
                elif new_value > activity.max_grade:
-                   warning_info.append("Bonus mark given to group %s" % group.name)  
+                   warning_info.append(u"Bonus mark given to group %s" % group.name)  
 
                #LOG EVENT
                l = LogEntry(userid=request.user.username,
-                     description=("bulk marked %s for group '%s': %s/%s") % (activity, group.name, new_value, activity.max_grade),
+                     description=(u"bulk marked %s for group '%s': %s/%s") % (activity, group.name, new_value, activity.max_grade),
                      related_object=act_mark)
                l.save()                  
                  
             if updated > 0:
-                messages.add_message(request, messages.SUCCESS, "Marks for all groups on %s saved (%s groups' grades updated)!" % (activity.name, updated))
+                messages.add_message(request, messages.SUCCESS, u"Marks for all groups on %s saved (%s groups' grades updated)!" % (activity.name, updated))
             for warning in warning_info:
                 messages.add_message(request, messages.WARNING, warning)                    
             return _redirct_response(request, course.slug, activity.slug)   
@@ -1177,12 +1177,12 @@ def _mark_all_students_letter(request, course, activity):
                
                #LOG EVENT
                l = LogEntry(userid=request.user.username,
-                     description=("bulk marked %s for %s: %s") % (activity, student.userid, new_value),
+                     description=(u"bulk marked %s for %s: %s") % (activity, student.userid, new_value),
                      related_object=lgrade)
                l.save()                  
            
             if updated > 0:
-                messages.add_message(request, messages.SUCCESS, "Marks for all students on %s saved (%s students' grades updated)!" % (activity.name, updated))
+                messages.add_message(request, messages.SUCCESS, u"Marks for all students on %s saved (%s students' grades updated)!" % (activity.name, updated))
             
             #if valid_input == False:
             #   messages.add_message(request, messages.SUCCESS, "Not valid input exists, but was ignored. Please check for not updated one.")
@@ -1319,13 +1319,13 @@ def _mark_all_students_numeric(request, course, activity):
                
                updated += 1     
                if new_value < 0:
-                   warning_info.append("Negative mark given to %s on %s" %(student.userid, activity.name))
+                   warning_info.append(u"Negative mark given to %s on %s" %(student.userid, activity.name))
                elif new_value > activity.max_grade:
-                   warning_info.append("Bonus mark given to %s on %s" %(student.userid, activity.name))
+                   warning_info.append(u"Bonus mark given to %s on %s" %(student.userid, activity.name))
                
                #LOG EVENT
                l = LogEntry(userid=request.user.username,
-                     description=("bulk marked %s for %s: %s/%s") % (activity, student.userid, new_value, activity.max_grade),
+                     description=(u"bulk marked %s for %s: %s/%s") % (activity, student.userid, new_value, activity.max_grade),
                      related_object=ngrade)
                l.save()                  
            
@@ -1428,10 +1428,10 @@ def _import_CMS_output(fh, students_qset, data_to_return, userid_col, activity_c
         target = students_qset.filter(userid = userid)
         if target.count() == 0:
             data_to_return.clear()
-            return "Error found in file (row %s): Unmatched userid (%s)." % (row_num, row[userid_col])
+            return u"Error found in file (row %s): Unmatched userid (%s)." % (row_num, row[userid_col])
         if data_to_return.has_key(target[0].userid):
             data_to_return.clear()
-            return "Error found in file (row %s): Second entry found for student (%s)." % (row_num, row[userid_col])
+            return u"Error found in file (row %s): Second entry found for student (%s)." % (row_num, row[userid_col])
         try:
             data_to_return[target[0].userid] = row[activity_col]
         except IndexError:
@@ -1453,16 +1453,16 @@ def _import_specific_file(fh, students_qset, data_to_return):
                 target = students_qset.filter(Q(userid = userid) | Q(emplid = num))
             if target.count() == 0:                
                 data_to_return.clear()
-                return "Error found in the file (row %s): Unmatched student number or user-id (%s)." % (read, row[0],)            
+                return u"Error found in the file (row %s): Unmatched student number or user-id (%s)." % (read, row[0],)            
             if(data_to_return.has_key(target[0].userid)):
                 data_to_return.clear()
-                return "Error found in the file (row %s): Second entry found for student (%s)." % (read, row[0],) 
+                return u"Error found in the file (row %s): Second entry found for student (%s)." % (read, row[0],) 
             data_to_return[target[0].userid] = row[1]
             read += 1               
     except:
         data_to_return.clear()
         return ("Error found in the file (row %s): The format should be " % read) +\
-               "\"[student user-id or student number,  grade, ]\" and " + \
+               "\"[student user-id or student number, grade, ]\" and " + \
                "only the first two columns are used."   
     return None   
 
@@ -1557,13 +1557,13 @@ def import_marks(request, course_slug, activity_slug):
                     am.numeric_grade_id = am.numeric_grade.id
                     #LOG EVENT
                     l = LogEntry(userid=request.user.username,
-                          description=("Imported marking info for student %s on %s in %s") % (am.numeric_grade.member.person.userid, activity, course),
+                          description=(u"Imported marking info for student %s on %s in %s") % (am.numeric_grade.member.person.userid, activity, course),
                           related_object=activity)
                     l.save()
                 else:
                     #LOG EVENT
                     l = LogEntry(userid=request.user.username,
-                          description=("Imported marking info for group %s on %s in %s") % (am.group.slug, activity, course),
+                          description=(u"Imported marking info for group %s on %s in %s") % (am.group.slug, activity, course),
                           related_object=activity)
                     l.save()
 

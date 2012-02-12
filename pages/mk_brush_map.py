@@ -2,11 +2,11 @@
 
 src_dir = "media/syntaxhighlighter/scripts/"
 
-import sys, os, itertools
+import sys, os
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 sys.path.append('.')
 
-import os, re
+import re
 from pages.models import brushre
 
 fn_re = re.compile(r"^\w+\.js$")

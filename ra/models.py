@@ -1,6 +1,5 @@
 from django.db import models
 from coredata.models import Person
-from django.forms.models import ModelForm
 
 HIRING_CATEGORY_CHOICES = (
     ('S', 'Scholarship'),

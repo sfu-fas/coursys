@@ -368,7 +368,7 @@
    "semester": 3,
    "slug": "2012sp-cmpt-165-c1",
    "subject": "CMPT",
-   "title": "Intro Internet  World Wide Web",
+   "title": "Intro Internet  World Wide Web 破",
    "wait_tot": 10
   },
   "model": "coredata.courseoffering",
@@ -391,7 +391,7 @@
    "semester": 3,
    "slug": "2012sp-cmpt-165-c2",
    "subject": "CMPT",
-   "title": "Intro Internet  World Wide Web",
+   "title": "Intro Internet  World Wide Web 破",
    "wait_tot": 8
   },
   "model": "coredata.courseoffering",
@@ -414,7 +414,7 @@
    "semester": 3,
    "slug": "2012sp-cmpt-165-c3",
    "subject": "CMPT",
-   "title": "Intro Internet  World Wide Web",
+   "title": "Intro Internet  World Wide Web 破",
    "wait_tot": 9
   },
   "model": "coredata.courseoffering",
@@ -11175,10 +11175,10 @@
   "fields": {
    "config": "{}",
    "emplid": 200000171,
-   "first_name": "Hmagbudx",
+   "first_name": "H破agbudx",
    "last_name": "Student",
    "middle_name": "",
-   "pref_first_name": "Hmag",
+   "pref_first_name": "H破ag",
    "userid": "0aaa18"
   },
   "model": "coredata.person",
@@ -11319,7 +11319,7 @@
    "config": "{}",
    "emplid": 200000183,
    "first_name": "Jrbcytdm",
-   "last_name": "Student",
+   "last_name": "Student破",
    "middle_name": "",
    "pref_first_name": "Jrbc",
    "userid": "0aaa30"
@@ -11994,10 +11994,10 @@
   "fields": {
    "config": "{}",
    "emplid": 200000149,
-   "first_name": "Ke",
-   "last_name": "Wang",
+   "first_name": "Ke破",
+   "last_name": "Wang破",
    "middle_name": "",
-   "pref_first_name": "Ke",
+   "pref_first_name": "Ke破",
    "userid": "wangk"
   },
   "model": "coredata.person",
@@ -15197,11 +15197,11 @@
    "deleted": false,
    "due_date": "2012-03-05 00:00:00",
    "group": false,
-   "name": "Assignment 1",
+   "name": "Assignment 破",
    "offering": 56,
    "percent": "10",
    "position": 1,
-   "short_name": "A1",
+   "short_name": "A破",
    "slug": "a1",
    "status": "RLS"
   },
@@ -15231,11 +15231,11 @@
    "deleted": false,
    "due_date": "2012-03-25 00:00:00",
    "group": true,
-   "name": "Project",
+   "name": "Project破",
    "offering": 56,
    "percent": "40",
    "position": 3,
-   "short_name": "Proj",
+   "short_name": "Proj破",
    "slug": "proj",
    "status": "URLS"
   },
@@ -15373,7 +15373,7 @@
   "fields": {
    "activity": 1,
    "deleted": false,
-   "description": "The code you're submitting.",
+   "description": "The code you're submitting.破",
    "position": 1,
    "slug": "code-file",
    "specified_filename": "",
@@ -15413,7 +15413,7 @@
  {
   "fields": {
    "deleted": false,
-   "description": "Part 1 was done well and seems to work.",
+   "description": "Part 1 was done well and seems to work.破",
    "max_mark": "5",
    "numeric_activity": 1,
    "position": 1,
@@ -15441,7 +15441,7 @@
    "courseoffering": 56,
    "groupForSemester": true,
    "manager": 106,
-   "name": "AnotherGroup",
+   "name": "AnotherGroup破",
    "slug": "g-anothergroup",
    "svn_slug": "g-anothergroup"
   },
@@ -15453,7 +15453,7 @@
    "courseoffering": 56,
    "groupForSemester": true,
    "manager": 102,
-   "name": "SomeGroup",
+   "name": "SomeGroup破",
    "slug": "g-somegroup",
    "svn_slug": "g-somegroup"
   },
@@ -15589,7 +15589,7 @@
    "file_mediatype": "",
    "hidden": false,
    "student": 53,
-   "text": "This is a note about the student 0aaa0\n\nHe seems nice."
+   "text": "This is a note about the student 0aaa0\n\nHe seems nice.破"
   },
   "model": "advisornotes.advisornote",
   "pk": 1
@@ -15603,7 +15603,7 @@
    "file_mediatype": "",
    "hidden": false,
    "student": 53,
-   "text": "This is another note about the student.\n\nHe seems less nice now."
+   "text": "This is another note about the student.\n\nHe seems less nice now.破"
   },
   "model": "advisornotes.advisornote",
   "pk": 2
@@ -15611,7 +15611,7 @@
  {
   "fields": {
    "base_units": "5",
-   "config": "{\"lectures\": {\"comment\": \"\", \"total\": 0, \"weekly\": 0}, \"grading\": {\"comment\": \"\", \"total\": 120, \"weekly\": null}, \"office_hours\": {\"comment\": \"\", \"total\": 26, \"weekly\": 2}, \"meetings\": {\"comment\": \"likely one meeting every other week\", \"total\": 13, \"weekly\": 0.5}, \"test_prep\": {\"comment\": \"1 hour midterm, 3 hour final\", \"total\": 4, \"weekly\": null}, \"other1\": {\"comment\": \"\", \"total\": 13, \"label\": \"Student email\", \"weekly\": 1}, \"other2\": {}, \"holiday\": {\"comment\": \"\", \"total\": 4, \"weekly\": null}, \"prep\": {\"comment\": \"\", \"total\": 14, \"weekly\": 1}}",
+   "config": "{\"lectures\": {\"comment\": \"\", \"total\": 0, \"weekly\": 0}, \"grading\": {\"comment\": \"破\", \"total\": 120, \"weekly\": null}, \"office_hours\": {\"comment\": \"\", \"total\": 26, \"weekly\": 2}, \"meetings\": {\"comment\": \"likely one meeting every other week\", \"total\": 13, \"weekly\": 0.5}, \"test_prep\": {\"comment\": \"1 hour midterm, 3 hour final\", \"total\": 4, \"weekly\": null}, \"other1\": {\"comment\": \"\", \"total\": 13, \"label\": \"Student email\", \"weekly\": 1}, \"other2\": {}, \"holiday\": {\"comment\": \"\", \"total\": 4, \"weekly\": null}, \"prep\": {\"comment\": \"\", \"total\": 14, \"weekly\": 1}}",
    "member": 142
   },
   "model": "ta.tug",
@@ -15692,7 +15692,7 @@
   "fields": {
    "field": "contact_email_text", 
    "label": "previous semester", 
-   "text": "Your submissions for {{ACTIVITIES}} were very similar to submissions made by another student in a previous semester. This indicates that there is a violation of SFU's Code of Academic Integrity and Good Conduct, Policy S10.01. I take academic honesty very seriously and intend to pursue this apparent violation of SFU's standards for academic honesty.\r\n\r\nAs required by SFU Policy S10.02, Principles and Procedures for Academic Discipline, I am offering you the opportunity to meet with me to discuss this incident. You are not required to accept this offer. If you would like to meet, please contact me to make an appointment outside of my regular office hours.\r\n\r\nYou may wish to refer to SFU's policies and procedures on academic integrity,\r\n  http://www.sfu.ca/policies/Students/index.html .\r\nYou can also contact the Office of the Ombudsperson for assistance in navigating University procedures.\r\n"
+   "text": "破Your submissions for {{ACTIVITIES}} were very similar to submissions made by another student in a previous semester. This indicates that there is a violation of SFU's Code of Academic Integrity and Good Conduct, Policy S10.01. I take academic honesty very seriously and intend to pursue this apparent violation of SFU's standards for academic honesty.\r\n\r\nAs required by SFU Policy S10.02, Principles and Procedures for Academic Discipline, I am offering you the opportunity to meet with me to discuss this incident. You are not required to accept this offer. If you would like to meet, please contact me to make an appointment outside of my regular office hours.\r\n\r\nYou may wish to refer to SFU's policies and procedures on academic integrity,\r\n  http://www.sfu.ca/policies/Students/index.html .\r\nYou can also contact the Office of the Ombudsperson for assistance in navigating University procedures.\r\n"
   }, 
   "model": "discipline.disciplinetemplate", 
   "pk": 15
