@@ -137,13 +137,12 @@ class TAContractForm(forms.ModelForm):
     
     class Meta:
         model = TAContract
-        exclude = ['pay_per_bu', 'scholarship_per_bu', 'deadline']
+        exclude = ['pay_per_bu', 'scholarship_per_bu', 'ta_posting']
                 
 class TACourseForm(forms.ModelForm):
     class Meta:
         model = TACourse
         exclude = ('contract',) 
-
 
 # helpers for the TAPostingForm
 class LabelTextInput(forms.TextInput):

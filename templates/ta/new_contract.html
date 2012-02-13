@@ -5,16 +5,14 @@
 {% block h1 %}New TA Contract {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; New TA Contract</li>
+<li>&gt; <a href="{% url ta.views.all_contracts %}">TA Contracts</a></li>
+<li>&gt; New</li>
 {% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
 //<![CDATA[
-    $(document).ready(function() {
-    	//getting selected ta posting
-    	
-    	
+    $(document).ready(function() {    	
     	//adding base units
     	var rows = $("#ta_course tr:gt(0)");
     	rows.children("td:nth-child(3)").change(function() {
@@ -25,6 +23,17 @@
     				total += val
     		}
     		$('#total_bu').html(total)    		
+    	})
+    	
+    	//setting rates per bu based on appt category
+    	$('#id_appt_category').change(function(){
+    		var cat = $(this).val()
+    		$.post("{% url ta.views.new_contract post_slug=posting.slug %}",
+  				{'csrfmiddlewaretoken': "{{csrf_token}}", 'appt_cat': cat},
+  				function(data){
+    			 $('#salary_per_bu').val(data.split(',')[0])
+    			 $('#schol_per_bu').val(data.split(',')[1])
+   			 	});
     	})
     	
     	//salary calculation
@@ -94,7 +103,7 @@
         <tbody>
         	<tr> 
         		<th class="ui-state-default">Salary</th>
-        		<td ><input id="salary_per_bu" type="text" value="934" /></td>
+        		<td ><input id="salary_per_bu" type="text" value="" /></td>
         		<td id="salary_bi">143</td>
         		<td id="salary_sem">13543</td>
         		<td id="salary_total">13543</td>

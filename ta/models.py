@@ -218,8 +218,10 @@ class TAPosting(models.Model):
         excl = set(self.excluded())
         offerings = CourseOffering.objects.filter(semester=self.semester, owner=self.unit).exclude(course__id__in=excl)
         return offerings
-
-
+    
+    def cat_index(self, val):
+        indexer = dict((v[0],k) for k,v in enumerate(CATEGORY_CHOICES))
+        return indexer.get(val)
 
 DESC_CHOICES = (
         ('OML','office/marking/lab'),
@@ -267,7 +269,7 @@ class TAContract(models.Model):
         return (self.applicant)
 
 class TACourse(models.Model):
-    course = models.ForeignKey(CourseOffering)
+    course = models.ForeignKey(CourseOffering, blank=False, null=False)
     contract = models.ForeignKey(TAContract)
     description = models.CharField(max_length=3, choices=DESC_CHOICES, blank=False, null=False)
     bu = models.DecimalField(max_digits=4, decimal_places=2)

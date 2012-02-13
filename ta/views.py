@@ -1,4 +1,4 @@
-from django.http import HttpResponseRedirect#, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404, render#, render_to_response, 
 from django.core.urlresolvers import reverse
 from django.contrib import messages
@@ -260,19 +260,22 @@ def all_contracts(request):
 @requires_role("TAAD")
 def new_contract(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug)
-    course_choices = posting.selectable_courses()
+    course_choices = [('','---------')] + [(c.id, c.name()) for c in posting.selectable_offerings()]
+    
+    TACourseFormset = inlineformset_factory(TAContract, TACourse, extra=3, can_delete=False)
+    
     if request.method == "POST":
         form = TAContractForm(request.POST)
-        TACourseFormSet = inlineformset_factory(TAContract, TACourse)
-        if form.is_valid():
+        if request.is_ajax():
+            index = posting.cat_index(request.POST['appt_cat'])
+            results = posting.config['salary'][index] + ',' + posting.config['scholarship'][index]
+            return HttpResponse(results)
+        elif form.is_valid() and formset.is_valid():
             contract = form.save(commit=False)
             contract.pay_per_bu = form.cleaned_data['pay_per_bu']
             contract.scholarship_per_bu = form.cleaned_data['scholarship_per_bu']
-            contract.appt_cond = form.cleaned_data['appt_cond']
-            contract.appt_tssu = form.cleaned_data['appt_tssu']
             formset = TACourseFormSet(request.POST, instance=contract)
-            if formset.is_valid():
-                formset.save()
+            formset.save()
             contract.save()
         else:  
             print form
@@ -280,10 +283,14 @@ def new_contract(request, post_slug):
         return HttpResponseRedirect('')
     else:
         form = TAContractForm()
-        #formset.fields['course'].choices = course_choices
-        formset = inlineformset_factory(TAContract, TACourse, extra=3, can_delete = False)
+        formset = TACourseFormset()
+            
+        for f in formset:
+            f.fields['course'].choices = course_choices
         
-        context = {'form': form, 'formset': formset, 'posting': posting}
+        print posting
+        
+        context = {'form': form, 'formset': formset, 'posting': posting, 'config': posting.config}
         return render(request, 'ta/new_contract.html',context)
 
 @requires_role("TAAD")
