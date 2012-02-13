@@ -9,48 +9,79 @@
 <li>&gt; {{ posting.unit.label }} {{ posting.semester }}</li>
 {% endblock %}
 
+{% block headextra %}
+<script type="text/javascript" src="{{MEDIA_URL}}js/application.js"></script>
+{% endblock %} 
 
 {% block content %}
 
 <div id="form_container">
 <form action="{% url ta.views.new_application post_slug=posting.slug %}" method="post">{% csrf_token %}
 <fieldset>
-<legend>{{ posting.unit.name }} TA Application</legend>
-{{ ta_form|as_dl }}
+    <legend>{{ posting.unit.name }} TA Application</legend>
+    {{ ta_form|as_dl }}
 
-<h1>Course Preference:</h1>
-{{ course_form|as_dl }}
+</fieldset>
 
-<h1>Campus Preferences:</h1>
-<table id="borderless">
-{% for cn in campus_names %}
-    {% for cp in campus_preferences %}
-        {% if cp.campus == cn.campus %}
-        {% ifchanged %}<tr><td><b>{{ cp.get_campus_display }}: </b></td>{% endifchanged %}
-        <td>
-        <input type="radio" value={{ cp.id }} name="campus_preference{{ forloop.parentloop.counter }}" > {{ cp.get_rank_display }}</input>
-        </td>
-        {% endif %}
+{% csrf_token %}
+{{ courses_formset.management_form }}
+<fieldset>
+    <legend>Course Preferences</legend>
+    <div id="course-forms">
+        {% for form in courses_formset %}
+            <div id="course-form-{{ forloop.counter0 }}">
+            <p id="course-form-{{ forloop.counter0 }}-label">Course {{ forloop.counter }}:</p>
+            {{ form.as_p }}
+            </div>
+        {% endfor %}
+    </div>
+    <span id="form_btns">
+        <noscript>Please enable JavaScript to add a new supervisor</noscript>
+        <input class="submit" type="submit" value="Update">
+    </span>
+
+</fieldset>
+<script type="text/javascript">
+	// dynamically append button for no-script compatibility
+	$(function() {
+		$("#form_btns").append('<input id="add_btn" class="submit" type="button" value="Add Another" onclick="add()"/>')
+	});
+</script>
+
+
+<fieldset>
+    <legend>Campus Preferences</legend>
+    <table id="borderless">
+    {% for cn in campus_names %}
+        {% for cp in campus_preferences %}
+            {% if cp.campus == cn.campus %}
+            {% ifchanged %}<tr><td><b>{{ cp.get_campus_display }}: </b></td>{% endifchanged %}
+            <td>
+            <input type="radio" value={{ cp.id }} name="campus_preference{{ forloop.parentloop.counter }}" > {{ cp.get_rank_display }}</input>
+            </td>
+            {% endif %}
+        {% endfor %}
+        </tr>
     {% endfor %}
-    </tr>
-{% endfor %}
-</table>
+    </table>
+</fieldset>
 
-<h1>Skills:</h1>
-<table id="borderless">
-
-{% for sn in skill_names %}
-    {% for skill in skills %}
-        {% if sn.name == skill.name %}
-        {% ifchanged %}<tr><td><b>{{ skill.name }}: </b></td>{% endifchanged %}
-        <td>
-        <input type="radio" value="{{ skill.id }}" name="skills{{ forloop.parentloop.counter}}" > {{ skill.get_level_display }}</input>
-        </td>
-        {% endif %}
+<fieldset>
+    <legend>Skills:</legend>
+    <table id="borderless">
+    {% for sn in skill_names %}
+        {% for skill in skills %}
+            {% if sn.name == skill.name %}
+            {% ifchanged %}<tr><td><b>{{ skill.name }}: </b></td>{% endifchanged %}
+            <td>
+            <input type="radio" value="{{ skill.id }}" name="skills{{ forloop.parentloop.counter}}" > {{ skill.get_level_display }}</input>
+            </td>
+            {% endif %}
+        {% endfor %}
+        </tr>
     {% endfor %}
-    </tr>
-{% endfor %}
-</table>
+    </table>
+</fieldset>
 
 <input type="submit" class="submit" value="Submit" /></p>
 </fieldset>

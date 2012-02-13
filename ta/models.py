@@ -141,7 +141,7 @@ class TAApplication(models.Model):
     """
     person = models.ForeignKey(Person)
     semester = models.ForeignKey(Semester)
-    category = models.CharField(max_length=3, choices=CATEGORY_CHOICES)
+    category = models.CharField(max_length=4, choices=CATEGORY_CHOICES)
     department = models.ForeignKey(Unit)
     base_units = models.DecimalField(max_digits=4, decimal_places=2)
     sin = models.PositiveIntegerField(unique=True)

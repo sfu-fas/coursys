@@ -11,6 +11,7 @@ from ta.forms import *
 from grad.views import get_semester
 from log.models import LogEntry
 from django.forms.models import inlineformset_factory
+from django.forms.formsets import formset_factory
 import datetime
 
 @requires_course_staff_by_slug
@@ -160,10 +161,12 @@ def edit_tug(request, course_slug, userid):
 @login_required
 def new_application(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug)
+    CoursesFormSet = formset_factory(CoursePreferenceForm, extra=1, max_num=10)
     if request.method == "POST":
         ta_form = TAApplicationForm(request.POST, prefix='ta')
-        course_form = CoursePreferenceForm(request.POST, prefix='course')
-        if ta_form.is_valid() and course_form.is_valid():
+        courses_formset = CoursesFormSet(request.POST)
+        #course_form = CoursePreferenceForm(request.POST, prefix='course')
+        if ta_form.is_valid() and courses_formset.is_valid():
             person = get_object_or_404(Person, userid=request.user.username)
             app = ta_form.save(commit=False)
             app.semester = posting.semester
@@ -181,27 +184,47 @@ def new_application(request, post_slug):
             for i in range(1,campus_count+1):
                 app.campus_preferences.add(request.POST['campus_preference'+str(i)])
     
-            course = course_form.save(commit=False)
-            course.app = TAApplication.objects.get(id=app.id)
-            course.save()
+            #course = course_form.save(commit=False)
+            #course.app = TAApplication.objects.get(id=app.id)
+            #course.save()
             ta_form.save_m2m()
+
+            application = TAApplication.objects.get(id=app.id)
+            for form in courses_formset:
+                course = form.save(commit=False)
+                course.app = application
+                course.save()
+
         else:
             print ta_form
             print "ta form valid:" + str(ta_form.is_valid())
-            print "course form valid:" + str(course_form.is_valid())
+            #print "course form valid:" + str(course_form.is_valid())
         #TODO: figure out propper redirect
         return HttpResponseRedirect('')
 
+    elif request.is_ajax():
+        # TO DO: Update formset to correct number of forms displayed
+        return HttpResponse("AJAX Completed") #return updated form.
     else:
+        courses_formset = CoursesFormSet()
+        for f in courses_formset:
+            course_choices = [(c.id, unicode(c)) for c in posting.selectable_courses()]
+            f.fields['course'].choices = course_choices
         ta_form = TAApplicationForm(prefix='ta')
-        course_form = CoursePreferenceForm(prefix='course')
-        course_choices = [(c.id, unicode(c)) for c in posting.selectable_courses()]
-        course_form.fields['course'].choices = course_choices
         campus_names = CampusPreference.objects.order_by('campus').values('campus').distinct() 
         campus_preferences = CampusPreference.objects.order_by('campus','rank')
         skill_names = Skill.objects.filter(department=posting.unit).order_by('name').values('name').distinct() 
-        skills = Skill.objects.filter(department=posting.unit).order_by('name','level') 
-        return render(request, 'ta/new_application.html', {'posting':posting, 'ta_form':ta_form, 'course_form':course_form, 'campus_names':campus_names, 'campus_preferences':campus_preferences, 'skill_names':skill_names, 'skills':skills})
+        skills = Skill.objects.filter(department=posting.unit).order_by('name','level')
+        context = {
+                    'posting':posting,
+                    'ta_form':ta_form,
+                    'courses_formset':courses_formset,
+                    'campus_names':campus_names,
+                    'campus_preferences':campus_preferences,
+                    'skill_names':skill_names,
+                    'skills':skills
+                  }
+        return render(request, 'ta/new_application.html', context)
 
 @login_required
 def all_applications(request):
