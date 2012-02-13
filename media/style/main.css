@@ -1424,6 +1424,30 @@ div.note-box p.hideshow {
   border: none;
 }
 
+/* TA contract template */
 #ta_course{
 	margin: 15px 20px 20px;	
+}
+
+#ta_pay{
+	margin: 15px 20px 20px;	
+}
+
+#ta_course input{
+	width: 100px;	
+}
+
+#ta_course select{
+	width: 160px;	
+}
+
+#ta_new_con{
+	width: 35%;	
+	margin-bottom: 50px;
+}
+
+td.table-row-label{
+	font-weight: bold; 
+	color: #555555;
+	font-size: 110%;
 }

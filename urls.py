@@ -185,9 +185,8 @@ urlpatterns += patterns('',
     url(r'^ta/application/all$', 'ta.views.all_applications'),
     url(r'^ta/application/' + APP_ID + '$', 'ta.views.view_application'),
 	
-	#url(r'ta/contract/$', 'ta.views.index'),
-	url(r'^ta/contract/new', 'ta.views.new_contract'),
-	#url(r'ta/contract/all', 'ta.views.all_contracts'),
+	url(r'ta/contracts/$', 'ta.views.all_contracts'),
+	url(r'^ta/contract/' + POST_SLUG + '/new$', 'ta.views.new_contract'),
 	
     
     url(r'^discipline/$', 'discipline.views.chair_index'),

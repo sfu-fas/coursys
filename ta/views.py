@@ -251,18 +251,25 @@ def view_application(request, app_id):
     courses = CoursePreference.objects.filter(app=app_id)
     return render(request, 'ta/view_application.html', {'application':application, 'courses':courses})
 
+@requires_role("TAAD")
+def all_contracts(request):
+    contracts = TAContract.objects.all()
+    postings = TAPosting.objects.filter(unit__in=request.units)
+    return render(request, 'ta/all_contracts.html', {'contracts':contracts, 'postings':postings})
 
 @requires_role("TAAD")
-def new_contract(request):
+def new_contract(request, post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug)
+    course_choices = posting.selectable_courses()
     if request.method == "POST":
         form = TAContractForm(request.POST)
         TACourseFormSet = inlineformset_factory(TAContract, TACourse)
         if form.is_valid():
             contract = form.save(commit=False)
-            contract.pay_per_bu = request.POST['pay_per_bu']
-            contract.scholarship_per_bu = request.POST['scholarship_per_bu']
-            contract.appt_cond = request.POST['appt_cond']
-            contract.appt_tssu = request.POST['appt_tssu']
+            contract.pay_per_bu = form.cleaned_data['pay_per_bu']
+            contract.scholarship_per_bu = form.cleaned_data['scholarship_per_bu']
+            contract.appt_cond = form.cleaned_data['appt_cond']
+            contract.appt_tssu = form.cleaned_data['appt_tssu']
             formset = TACourseFormSet(request.POST, instance=contract)
             if formset.is_valid():
                 formset.save()
@@ -273,14 +280,16 @@ def new_contract(request):
         return HttpResponseRedirect('')
     else:
         form = TAContractForm()
-        formset = inlineformset_factory(TAContract, TACourse, extra=2, can_delete = False)
+        #formset.fields['course'].choices = course_choices
+        formset = inlineformset_factory(TAContract, TACourse, extra=3, can_delete = False)
         
-        context = {'form': form, 'formset':formset}
+        context = {'form': form, 'formset': formset, 'posting': posting}
         return render(request, 'ta/new_contract.html',context)
 
 @requires_role("TAAD")
 def edit_posting(request, post_slug=None):
     unit_choices = [(u.id, unicode(u)) for u in request.units]
+
     today = datetime.date.today()
     semester_choices = [(s.id, unicode(s)) for s in Semester.objects.filter(start__gt=today).order_by('start')]
     # TODO: display only relevant semester/unit offerings

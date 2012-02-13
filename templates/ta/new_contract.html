@@ -8,10 +8,47 @@
 <li>&gt; New TA Contract</li>
 {% endblock %}
 
+{% block headextra %}
+<script type="text/javascript">
+//<![CDATA[
+    $(document).ready(function() {
+    	//getting selected ta posting
+    	
+    	
+    	//adding base units
+    	var rows = $("#ta_course tr:gt(0)");
+    	rows.children("td:nth-child(3)").change(function() {
+    		var total = 0;
+    		for(var i = 0; i < 3; i++){
+    			val = parseInt($('#id_tacourse_set-' + i + '-bu').val())
+    			if(val > 0)
+    				total += val
+    		}
+    		$('#total_bu').html(total)    		
+    	})
+    	
+    	//salary calculation
+    	$('#button_cal').click(function() {
+    		var salary_rate = parseInt($('#salary_per_bu').val())
+    		var schol_rate = parseInt($('#schol_per_bu').val())
+    		var bu = parseInt($('#total_bu').html())
+    		alert(bu)
+    		alert(salary_rate)
+    		//$('#salary_bi').val()
+    		$('#salary_sem').html(bu*salary_rate)
+    		//$('#schol_bi')
+    		$('#schol_sem').html(bu * schol_rate)
+    	})
+    });
+    
+//]]>
+</script>
+{% endblock %}
+
 {% block content %}
 
 <div id="form_container">
-<form action="{% url ta.views.new_contract %}" method="post">{% csrf_token %}
+<form action="{% url ta.views.new_contract post_slug=posting.slug%}" method="post">{% csrf_token %}
 <fieldset class="wide">
 <legend>General Info</legend>
 {{ form|as_dl }}
@@ -35,33 +72,39 @@
 	      {% endfor %}
 	      <tr>
 	      	<td></td>
-	      	<td></td>
-	      	<td class=""; id="total BU">Total BU:</td>
+	      	<td class="table-row-label" id="total_bu_label" align="right">Total Base Units:&nbsp;</td>
+	      	<td class="table-row-label" id="total_bu">0</td>
 	      </tr>
+	      <tr><td colspan=3><span class="submit" id="button_cal" >Calculate</span></td></tr>
         </tbody>
       </table>
    </div>
-   
+   <p></p>
    	<div class="table_container"> 
-      <table class="display" id="ta_course">
+      <table class="info" id="ta_pay">
       	<thead class="form_head">
           <tr>
          	<th scope="col"></th>
          	<th scope="col">Pay Per BU</th>
          	<th scope="col">Biweekly Rate</th>
-         	<th scope="col">Semester Rate</th>            
+         	<th scope="col">Semester Rate</th>
+         	<th scope="col">Total</th>             
           </tr>         
         </thead>  
         <tbody>
         	<tr> 
-        		<td>Salary</td>
-        		<td></td>
-        		<td></td>
+        		<th class="ui-state-default">Salary</th>
+        		<td ><input id="salary_per_bu" type="text" value="934" /></td>
+        		<td id="salary_bi">143</td>
+        		<td id="salary_sem">13543</td>
+        		<td id="salary_total">13543</td>
         	</tr>
         	<tr>
-        		<td>Scholarship</td>
-        		<td></td>
-        		<td></td>
+        		<th class="ui-state-default">Scholarship</th>
+        		<td><input id="schol_per_bu" type="text" value="129" /></td>
+        		<td id="schol_bi">153</td>
+        		<td id="schol_sem">13534</td>
+        		<td id="salary_total">13543</td>
         	</tr>
         </tbody>
       </table>

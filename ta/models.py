@@ -233,16 +233,17 @@ APPOINTMENT_CHOICES = (
 
 class TAContract(models.Model):
     """    
-    TA Contract, filled in by ADMN Departmental Administrator.../ta etc
+    TA Contract, filled in by TAAD
     """
     #person = models.ForeignKey(Person, limit_choices_to={'person':Q(semester=get_semester)})
-    ta_application = models.ForeignKey(TAApplication)
+    #ta_application = models.ForeignKey(TAApplication)
+    ta_posting = models.ForeignKey(TAPosting)
     applicant = models.ForeignKey(Person)
     sin = models.PositiveIntegerField(unique=True)
-    department = models.ForeignKey(Unit)
+    #department = models.ForeignKey(Unit)
     #appt_start = models.DateField(help_text='yyyy-mm-dd')
     #appt_end = models.DateField()
-    #pay_start = models.DateField()
+    pay_start = models.DateField()
     pay_end = models.DateField()
     position_number = models.PositiveIntegerField()
     appt_category = models.CharField(max_length=4, choices=CATEGORY_CHOICES, verbose_name="Appointment Category")
@@ -251,7 +252,7 @@ class TAContract(models.Model):
                 #help_text='Usually $934.00 per BU per Semester')
     scholarship_per_bu = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Scholarship per Base Unit Semester Rate.",)
         #help_text='Usually $129.00 per BU per Semester')
-    deadline = models.DateField()
+    deadline = models.DateField(help_text='Deadline for acceptance')
     remarks = models.TextField(blank=True)
     appt_cond = models.BooleanField(default=False)
     appt_tssu = models.BooleanField(default=True)
@@ -268,8 +269,9 @@ class TAContract(models.Model):
 class TACourse(models.Model):
     course = models.ForeignKey(CourseOffering)
     contract = models.ForeignKey(TAContract)
-    bu = models.DecimalField(max_digits=4, decimal_places=2)
     description = models.CharField(max_length=3, choices=DESC_CHOICES, blank=False, null=False)
+    bu = models.DecimalField(max_digits=4, decimal_places=2)
+    
     #appt = models.CharField(max_length=4, choices=APPT_CHOICES)
     
     class Meta:

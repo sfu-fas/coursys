@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}TA Contracts{% endblock %}
+{% block h1 %}TA Contracts{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; TA Contracts</li>{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+//<![CDATA[
+    $(document).ready(function() {
+    	//setting post_slug
+    	$('#submit').click(function(){
+    		$('#form').attr("action","/ta/contract/" + $('#posting').val() + "/new") 
+    	})
+    });
+    
+//]]>
+</script>
+{% endblock %}
+
+{%block content%}
+{%if notes %}
+<div class="datatable_container">
+<table id="notes" class="display">
+  <thead>
+  	<tr>
+  		<th scope="col"></th>
+  		<th scope="col"></th>
+  		<th scope="col"></th>
+  		<th scope="col"></th>
+  		<th scope="col"></th>
+  	</tr>
+  </thead>
+  <tbody>
+  {% for contract in contracts %}
+  <tr><td scope="row">
+  	 	
+  	</td>
+  	<td>
+  		
+  	</td>
+  	<td>
+  		
+  	</td>
+  	<td>
+  		
+  	<td>
+  	</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+
+{%else%}
+	<p>No contracts yet</p>
+{%endif%}
+
+<div id="ta_new_con">
+<h1>New Contract</h1>
+<form action="" method="post" id="form">{% csrf_token %}
+	<select name="posting" id="posting">
+		{% for post in postings %}
+		<option value="{{post.slug}}">{{post}}</option>
+		{% endfor %}
+	</select>
+	<div class="helptext">Select the associated unit/semester</div>
+	<input class="submit" type="submit" id="submit" value="Create" />
+</form>
+</div>
+{%endblock content%}
