@@ -1434,11 +1434,15 @@ div.note-box p.hideshow {
 }
 
 #ta_course input{
-	width: 100px;	
+	width: 80px; 
 }
 
 #ta_course select{
-	width: 160px;	
+	width: 150px;	
+}
+
+#ta_pay input{
+	width: 120px;
 }
 
 #ta_new_con{

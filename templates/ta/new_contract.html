@@ -18,7 +18,7 @@
     	rows.children("td:nth-child(3)").change(function() {
     		var total = 0;
     		for(var i = 0; i < 3; i++){
-    			val = parseInt($('#id_tacourse_set-' + i + '-bu').val())
+    			val = parseFloat($('#id_tacourse_set-' + i + '-bu').val())
     			if(val > 0)
     				total += val
     		}
@@ -38,15 +38,17 @@
     	
     	//salary calculation
     	$('#button_cal').click(function() {
-    		var salary_rate = parseInt($('#salary_per_bu').val())
-    		var schol_rate = parseInt($('#schol_per_bu').val())
-    		var bu = parseInt($('#total_bu').html())
-    		alert(bu)
-    		alert(salary_rate)
-    		//$('#salary_bi').val()
-    		$('#salary_sem').html(bu*salary_rate)
-    		//$('#schol_bi')
-    		$('#schol_sem').html(bu * schol_rate)
+    		var salary_rate = parseFloat($('#salary_per_bu').val())
+    		var schol_rate = parseFloat($('#schol_per_bu').val())
+    		var bu = parseFloat($('#total_bu').html())
+    		var salary_sem = (bu * salary_rate).toFixed(2)
+    		var schol_sem = (bu * schol_rate).toFixed(2)
+    		$('#salary_sem').val(salary_sem)
+    		$('#schol_sem').val(schol_sem)
+    		var salary_bi = (salary_sem / 17 * 2).toFixed(2)
+    		var schol_bi = (schol_sem / 17 * 2).toFixed(2)
+    		$('#salary_bi').val(salary_bi)
+    		$('#schol_bi').val(schol_bi)
     	})
     });
     
@@ -97,23 +99,20 @@
          	<th scope="col">Pay Per BU</th>
          	<th scope="col">Biweekly Rate</th>
          	<th scope="col">Semester Rate</th>
-         	<th scope="col">Total</th>             
           </tr>         
         </thead>  
         <tbody>
         	<tr> 
         		<th class="ui-state-default">Salary</th>
-        		<td ><input id="salary_per_bu" type="text" value="" /></td>
-        		<td id="salary_bi">143</td>
-        		<td id="salary_sem">13543</td>
-        		<td id="salary_total">13543</td>
+        		<td><input id="salary_per_bu" type="text" value="" /></td>
+        		<td><input id="salary_bi" type=text readonly="readonly" value="" /></td>
+        		<td><input id="salary_sem" type=text readonly="readonly" value="" /></td>
         	</tr>
         	<tr>
         		<th class="ui-state-default">Scholarship</th>
-        		<td><input id="schol_per_bu" type="text" value="129" /></td>
-        		<td id="schol_bi">153</td>
-        		<td id="schol_sem">13534</td>
-        		<td id="salary_total">13543</td>
+        		<td><input id="schol_per_bu" type="text" value=""/></td>
+        		<td><input id="schol_bi" type=text readonly="readonly" value="" /></td>
+        		<td><input id="schol_sem" type=text readonly="readonly" value="" /></td>
         	</tr>
         </tbody>
       </table>
