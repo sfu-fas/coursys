@@ -268,10 +268,9 @@ def student_search(request):
         return ForbiddenResponse(request, "Must provide 'term' query.")
     term = request.GET['term']
     response = HttpResponse(mimetype='application/json')
-    query = get_query(term, ['person__userid', 'person__emplid', 'person__first_name', 'person__last_name'])
+    query = get_query(term, ['userid', 'emplid', 'first_name', 'last_name'])
 
-    members = Member.objects.filter(role="STUD").filter(query).select_related('person')[:500]
-    people = set((m.person for m in members))
+    people = Person.objects.filter(query)[:100]
     data = [{'value': p.emplid, 'label': p.search_label_value()} for p in people]
 
     json.dump(data, response, indent=1)

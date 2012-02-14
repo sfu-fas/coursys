@@ -186,7 +186,7 @@ class PayWidget(forms.MultiWidget):
 class PayField(forms.MultiValueField):
     "Field for entering salary/scholarship values"
     def __init__(self, *args, **kwargs):
-        fields = [forms.CharField() for i in CATEGORY_CHOICES]
+        fields = [forms.CharField() for _ in CATEGORY_CHOICES]
         kwargs['fields'] = fields
         kwargs['widget'] = PayWidget()
         super(PayField, self).__init__(*args, **kwargs)

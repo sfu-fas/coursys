@@ -1,10 +1,49 @@
 from django.forms.models import ModelForm
-from django.forms import forms
+from django import forms
 from grad.models import Supervisor, GradProgram, GradStudent, GradStatus,\
     GradRequirement, CompletedRequirement
 from coredata.models import Member
 
+class LabelTextInput(forms.TextInput):
+    "TextInput with a bonus label"
+    def __init__(self, label, *args, **kwargs):
+        self.label = label
+        super(LabelTextInput, self).__init__(*args, **kwargs)
+    def render(self, *args, **kwargs):
+        return " " + self.label + ": " + super(LabelTextInput, self).render(*args, **kwargs)
+
+class SupervisorWidget(forms.MultiWidget):
+    "Widget for entering salary/scholarship values"
+    def __init__(self, *args, **kwargs):
+        widgets = [forms.Select(), LabelTextInput(label=" or User ID", attrs={'size': 8, 'maxlength': 8})]
+        kwargs['widgets'] = widgets
+        super(SupervisorWidget, self).__init__(*args, **kwargs)
+    
+    def decompress(self, value):
+        # should already be a list: if we get here, have no defaults
+        return [0]*len([])
+
+class SupervisorField(forms.MultiValueField):
+    "Field for entering supervisor by either dropdown or userid"
+    def __init__(self, *args, **kwargs):
+        fields = [forms.ChoiceField(), forms.CharField(max_length=8)]
+        kwargs['fields'] = fields
+        kwargs['widget'] = SupervisorWidget()
+        super(SupervisorField, self).__init__(*args, **kwargs)
+
+    def compress(self, values):
+        return values
+
+
+
+
 class SupervisorForm(ModelForm):
+    #supervisor = SupervisorField()
+    
+    def set_supervisor_choices(self, choices):
+        self.fields['supervisor'].fields[0].choices = choices
+        self.fields['supervisor'].widget.widgets[0].choices = choices
+
     def clean(self):
         data = self.cleaned_data
         if 'supervisor' in data:
@@ -14,6 +53,10 @@ class SupervisorForm(ModelForm):
             if not data['external']:
                 raise forms.ValidationError("Please have at least one of Supervisor or an External supervisor.")
         return data
+    
+    def clean_supervisor(self):
+        supervisor = self.cleaned_data['supervisor']
+        return supervisor
     
     class Meta:
         model = Supervisor
@@ -34,11 +77,11 @@ def possible_supervisors(unit):
     """
     # instructors of courses in the unit
     people = set(m.person for m in
-             Member.objects.filter(role="INST", offering__owner=unit)
+             Member.objects.filter(role="INST", offering__owner=unit).select_related('person')
              .exclude(offering__component="SEC") if m.person.userid)
     # previous supervisors
     people |= set(s.supervisor for s in
-              Supervisor.objects.filter(student__program__unit=unit) 
+              Supervisor.objects.filter(student__program__unit=unit).select_related('supervisor') 
               if s.supervisor and s.supervisor.userid)
     
     people = list(people)
