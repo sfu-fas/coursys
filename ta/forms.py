@@ -12,12 +12,9 @@ import itertools, decimal, datetime
 @table_row__Form
 class TUGDutyForm(forms.Form):
     label_editable = False
-    def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
-                 initial=None, error_class=ErrorList, label_suffix=':',
-                 empty_permitted=False, label=''):
-        super(TUGDutyForm, self).__init__(data, files, auto_id, prefix,
-                 initial, error_class, label_suffix,
-                 empty_permitted)
+    def __init__(self, *args, **kwargs):
+        label = kwargs.pop('label', '')
+        super(TUGDutyForm, self).__init__(*args, **kwargs)
         self.label = label
     
     weekly = forms.DecimalField(label="Weekly hours", required=False)
@@ -38,21 +35,18 @@ class TUGDutyLabelForm(forms.Form):
 # doesn't simply subclass TUGDutyForm so that the label will be listed first
 class TUGDutyOtherForm(TUGDutyLabelForm, TUGDutyForm):
     label_editable = True
-    def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
-                 initial=None, error_class=ErrorList, label_suffix=':',
-                 empty_permitted=False, label=''):
-        empty_permitted = empty_permitted or not (initial and initial.get('label'))
-        super(TUGDutyOtherForm, self).__init__(data, files, auto_id, prefix,
-                 initial, error_class, label_suffix,
-                 empty_permitted, label)
-        
+    def __init__(self, *args, **kwargs):
+        initial = kwargs.get('initial', None)
+        # allow empty if this is a new TUG or if we're editing and it's empty
+        kwargs['empty_permitted'] = (kwargs.get('empty_permitted', False) or
+                (initial and initial.get('label')))
+        super(TUGDutyOtherForm, self).__init__(*args, **kwargs)
     
     def as_table_row(self):
         label = self.fields.pop('label')
         html = TUGDutyForm.as_table_row(self)
         self.fields.insert(0, 'label', label)
         return html
-
 class TUGForm(forms.ModelForm):
     '''
     userid and offering must be defined or instance must be defined.
@@ -78,14 +72,39 @@ class TUGForm(forms.ModelForm):
         self.initial['member'] = member
         self.fields['member'].widget = forms.widgets.HiddenInput()
         
-        self.subforms = SortedDict(
-                [(field, klass(prefix=field, data=data, 
-                        initial=(instance.config[field] if instance and field in instance.config else
-                                initial[field] if initial and field in initial else None),
-                        label=TUG.config_meta[field]['label'] if field in TUG.config_meta else '')) 
-                    for field, klass in 
-                    itertools.chain(((f, TUGDutyForm) for f in TUG.regular_fields),
-                            ((f, TUGDutyOtherForm) for f in TUG.other_fields))])
+        self.subforms = self.__construct_subforms(data, initial, instance)
+        
+    def __construct_subforms(self, data, initial, instance):
+        # this function is a simplification/clarification of this one liner:
+        # return SortedDict((field, klass(prefix=field, data=data, 
+        #  initial=(instance.config[field] if instance and field in instance.config 
+        #  else initial[field] if initial and field in initial else None), 
+        #  label=TUG.config_meta[field]['label'] if field in TUG.config_meta else '')) 
+        #  for field, klass in itertools.chain(((f, TUGDutyForm) for f in TUG.regular_fields), 
+        #  ((f, TUGDutyOtherForm) for f in TUG.other_fields)))
+        field_names_and_formclasses = itertools.chain(
+                ((f, TUGDutyForm) for f in TUG.regular_fields),
+                ((f, TUGDutyOtherForm) for f in TUG.other_fields))
+        
+        get_label = lambda field: TUG.config_meta[field]['label'] if field in TUG.config_meta else ''
+        
+        get_initial = lambda field: None
+        if instance:
+            if initial:
+                get_initial = lambda field:(instance.config[field] 
+                        if field in instance.config else 
+                        initial.get(field, None))
+            else:
+                get_initial = lambda field:instance.config.get(field, None)
+        elif initial:
+            get_initial = lambda field:initial.get(field, None)
+        
+        return SortedDict(
+                (field, 
+                 klass(prefix=field, data=data, 
+                       initial=get_initial(field),
+                       label=get_label(field))) 
+                    for field, klass in field_names_and_formclasses)
         
     def clean_member(self):
         assert(self.cleaned_data['member'] == self.initial['member'])
