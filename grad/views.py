@@ -76,7 +76,7 @@ def manage_supervisors(request, grad_slug):
     num_supervisors = supervisors.count()
     supervisors_formset = formset_factory(SupervisorForm, extra=num_supervisors, max_num=4)()
     for f in supervisors_formset:
-        f.fields['supervisor'].choices = possible_supervisors(grad.program.unit)
+        f.fields['supervisor'].choices = possible_supervisors([grad.program.unit])
 
     if request.method == 'POST':
         potential_supervisors_form = PotentialSupervisorForm(request.POST, instance=pot_supervisor, prefix="pot_sup")
@@ -93,7 +93,7 @@ def manage_supervisors(request, grad_slug):
     else:
         potential_supervisors_form = PotentialSupervisorForm(prefix="pot_sup")
         potential_supervisors_form.fields['supervisor'].choices = \
-                possible_supervisors(grad.program.unit)
+                possible_supervisors([grad.program.unit])
 
     # set frontend defaults
     page_title = "%s's Supervisor(s) Record" % (grad.person.first_name)

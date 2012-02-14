@@ -68,20 +68,20 @@ class PotentialSupervisorForm(ModelForm):
         exclude = ('student', 'is_potential', 'is_senior', 'position', 'created_by', 'modified_by', 'external' )
 
 
-def possible_supervisors(unit):
+def possible_supervisors(units):
     """
-    .choices list of people who might supervise grad students in this unit
+    .choices list of people who might supervise grad students in these units
     
-    Selects instructors and previous supervisors in that unit (who still have
+    Selects instructors and previous supervisors in those units (who still have
     active computing accounts)
     """
     # instructors of courses in the unit
     people = set(m.person for m in
-             Member.objects.filter(role="INST", offering__owner=unit).select_related('person')
+             Member.objects.filter(role="INST", offering__owner__in=units).select_related('person')
              .exclude(offering__component="SEC") if m.person.userid)
     # previous supervisors
     people |= set(s.supervisor for s in
-              Supervisor.objects.filter(student__program__unit=unit).select_related('supervisor') 
+              Supervisor.objects.filter(student__program__unit__in=units).select_related('supervisor') 
               if s.supervisor and s.supervisor.userid)
     
     people = list(people)
