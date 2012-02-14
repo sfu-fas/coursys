@@ -117,10 +117,10 @@ chmod 0711 ~</pre>
   Create a file <code class="file">~/dbpass</code> with three lines: (1) password for CourSys data view, (2) password for TA database, (3) the password for the app's main database.  This file is read by the importer and other scripts (to avoid having those passwords in the Subversion repo).
   <p>This crontab needs to be set to import and backup everything:</p>
   <blockquote><pre>MAILTO=ggbaker@sfu.ca
-30 4 * * * cd /home/ggbaker/courses/ &amp;&amp; python coredata/importer.py &lt; /home/ggbaker/dbpass
-0 * * * * nice ionice -c 3 /home/ggbaker/courses/server-setup/courses-backup
-30 * * * * cd /home/ggbaker/courses/ &amp;&amp; python tools/ping_celery.py 2&gt;/dev/null</pre></blockquote>
-  <p>This requires <a href="courses-backup">my backup script, <code class="file">courses-backup</code></a>.</p>
+0 8 * * * /home/ggbaker/courses/server-setup/do-import.sh
+0 */2 * * * nice ionice -c 3 /home/ggbaker/courses/server-setup/courses-backup >/dev/null
+0,15,30,45 * * * * cd /home/ggbaker/courses/ &amp;&amp; python tools/ping_celery.py 2>/dev/null</pre></blockquote>
+  <p>This requires <a href="courses-backup">my backup script, <code class="file">courses-backup</code></a> and the <a href="do-import.sh">import running script</a>.</p>
   <p>There is also a <a href="mkdump">script <code class="file">mkdump</code></a> that will create a database dump if needed.</p>
   </dd>
 </dl>
@@ -133,7 +133,7 @@ chmod 0711 ~</pre>
 <p>Some <a href="https://www.sfu.ca/irp/links/pdaug.html">instructions on reporting database</a> connections are provided by the PDAUG group under the heading &ldquo;Instructions for Connecting to CSRPT&rdquo;. These are for Windows, but were adapted here.</p>
 <p>The installation requires libstdc++5, which I had to get <a href="http://packages.ubuntu.com/lucid-backports/libstdc++5">from lucid-backports</a> and install with <code class="unix">dpkg</code>. Also installed Ubuntu package <code class="unix">libaio1</code>.</p>
 <p>The installer didn't like my userid being in the group &ldquo;users&rdquo;, so I edited <code class="file">/etc/group</code> and <code class="file">/etc/gpasswd</code> to rename the group &ldquo;allusers&rdquo;. Reverted the change after the install. That's some quality security.</p>
-<p>From the <a href="http://www-01.ibm.com/support/docview.wss?rs=71&uid=swg27007053">DB2 downloads page</a>, I downloaded DB2 Version 9.5, fixpack 5, Linux 64-bit, IBM Data Server Client (&ldquo;<code class="file">v9.5fp5_linuxx64_client.tar.gz</code>&rdquo;). Unpack and <code class="unix">./db2_install</code> and select &ldquo;CLIENT&rdquo; as the thing to install.</p>
+<p>From the <a href="http://www-01.ibm.com/support/docview.wss?rs=71&amp;uid=swg27007053">DB2 downloads page</a>, I downloaded DB2 Version 9.5, fixpack 5, Linux 64-bit, IBM Data Server Client (&ldquo;<code class="file">v9.5fp5_linuxx64_client.tar.gz</code>&rdquo;). Unpack and <code class="unix">./db2_install</code> and select &ldquo;CLIENT&rdquo; as the thing to install.</p>
 <p>Once the client is installed, there are some <a href="https://www-304.ibm.com/support/docview.wss?uid=swg21182248">setup steps for remote DB servers</a>:</p>
 <blockquote><pre>ssh -L 127.0.0.1:50000:verdi.ais.sfu.ca:50000 -l ggbaker -N pf.sfu.ca
 . $HOME/sqllib/db2profile
@@ -150,12 +150,19 @@ PW=SFUPassword
 <dt>Python DB2 library</dt>
 <dd>
 <p>The Python code requires the <a href="http://sourceforge.net/projects/pydb2/">PyDB2 module</a>. Fetched the source and unpacked.  Edited <code class="file">setup.py</code> so <code>DB2_ROOT="/home/ggbaker/sqllib"</code> and then:</p>
-<blockquote><pre>
-sudo apt-get install python-dev
+<blockquote><pre>sudo apt-get install python-dev
 python setup.py build
 sudo python setup.py install</pre></blockquote>
 </dd>
-
+<dt>Reporting DB connection</dt>
+<dd>
+<p>I have been using GNU Screen to keep the SSH session with the port forward open. It seems to work well and says open indefinitely.</p>
+<blockquote><pre>screen -S reportingDB
+ssh -L 127.0.0.1:50000:verdi.ais.sfu.ca:50000 -l ggbaker -N pf.sfu.ca
+# ctrl-A D [to detach from screen session]</pre></blockquote>
+<p>To get back to the screen session:</p>
+<blockquote><pre>screen -r reportingDB</pre></blockquote>
+</dd>
 </dl>
 
 

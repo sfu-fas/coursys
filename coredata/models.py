@@ -29,9 +29,11 @@ class Person(models.Model):
     first_name = models.CharField(max_length=32)
     middle_name = models.CharField(max_length=32, null=True, blank=True)
     pref_first_name = models.CharField(max_length=32)
-    # TODO: get address, phone, gender, citizenship, birthdate
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
-        # p.config['email']: email, if not the default userid@sfu.ca
+        # 'email': email, if not the default userid@sfu.ca
+        # 'phones': dictionary of phone number values. Possible keys: 'pref', 'home', 'cell', 'main'
+        # 'addresses': dictionary of phone number values. Possible keys: 'home', 'mail'
+        # 'gender': 'M', 'F', 'U'
     
     defaults = {'email': None}
     _, set_email = getter_setter('email')
@@ -323,14 +325,14 @@ class CourseOffering(models.Model):
 
     members = models.ManyToManyField(Person, related_name="member", through="Member")
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
-        # c.config['url']: URL of course home page
-        # c.config['department']: department responsible for course (used by discipline module)
-        # c.config['taemail']: TAs' contact email (if not their personal email)
-        # c.config['labtut']: are there lab sections? (default False)
-        # c.config['uses_svn']: create SVN repos for this course? (default False)
-        # c.config['indiv_svn']: do instructors/TAs have access to student SVN repos? (default False)
-        # c.config['combined']: is this a combined section (e.g. two crosslisted sections integrated)
-        # c.config['req_bu']: number of TA base units required
+        # 'url': URL of course home page
+        # 'department': department responsible for course (used by discipline module)
+        # 'taemail': TAs' contact email (if not their personal email)
+        # 'labtut': are there lab sections? (default False)
+        # 'uses_svn': create SVN repos for this course? (default False)
+        # 'indiv_svn': do instructors/TAs have access to student SVN repos? (default False)
+        # 'combined': is this a combined section (e.g. two crosslisted sections integrated)
+        # 'req_bu': number of TA base units required
     
     defaults = {'taemail': None, 'url': None, 'labtut': False, 'indiv_svn': False, 'combined': False, 'uses_svn': False, 'req_bu': 0}
     labtut, set_labtut = getter_setter('labtut')
@@ -478,7 +480,7 @@ class Member(models.Model):
     labtut_section = models.CharField(max_length=4, null=True, blank=True,
         help_text='Section should be in the form "C101" or "D103".')
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
-        # m.config['origsection']: The originating section (for crosslisted sections combined here)
+        # 'origsection': The originating section (for crosslisted sections combined here)
         #     represented as a CourseOffering.slug
         #     default: self.offering (if accessed by m.get_origsection())
 
