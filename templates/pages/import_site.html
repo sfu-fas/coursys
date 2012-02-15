@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Import Site{% endblock %}
+{% block h1 %}Import Site{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=offering.slug %}">{{ offering.name }}</a></li><li>&gt; <a href="{% url pages.views.index_page course_slug=offering.slug %}">Pages</a></li><li>&gt; Import Site</li>{% endblock %}
+
+{% block content %}
+<div id="form_container">
+    <form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+    
+    <fieldset><legend>Import Content</legend>
+    <p>Give the URL to the front page of the site you'd like to import.</p>
+    {{form|as_dl_safe}}
+
+    <p><input class="submit" type="submit" value="Import Site" /></p>
+    </fieldset>
+
+    </form>
+</div>
+{% endblock %}

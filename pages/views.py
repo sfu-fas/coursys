@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from pages.models import Page, PageVersion, MEMBER_ROLES, ACL_ROLES
-from pages.forms import EditPageForm, EditFileForm, PageImportForm
+from pages.forms import EditPageForm, EditFileForm, PageImportForm, SiteImportForm
 from coredata.models import Member, CourseOffering
 from log.models import LogEntry
 from courselib.auth import NotFoundResponse, ForbiddenResponse
@@ -51,7 +51,7 @@ def view_page(request, course_slug, page_label):
     pages = Page.objects.filter(offering=offering, label=page_label)
     if not pages:
         # missing page: do something more clever than the standard 404
-        member = _check_allowed(request, offering, 'STAF')
+        member = _check_allowed(request, offering, 'STAF') # staff can create
         can_create = bool(member)
         context = {'offering': offering, 'can_create': can_create, 'page_label': page_label}
         return render(request, 'pages/missing_page.html', context, status=404)
@@ -165,7 +165,7 @@ def _edit_pagefile(request, course_slug, page_label, kind):
     else:
         page = None
         version = None
-        member = _check_allowed(request, offering, 'STAF')
+        member = _check_allowed(request, offering, 'STAF') # staff can create
     
     # make sure we're looking at the right "kind" (page/file)
     if not kind:
@@ -243,4 +243,25 @@ def import_page(request, course_slug, page_label):
     return render(request, 'pages/import_page.html', context)
 
 
-
+@login_required
+def import_site(request, course_slug):
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    member = _check_allowed(request, offering, 'STAF') # staff can create
+    if not member:
+        return ForbiddenResponse(request, 'Not allowed to edit/create pages.')
+    
+    if request.method == 'POST':
+        form = SiteImportForm(offering=offering, editor=member, data=request.POST, files=request.FILES)
+        if form.is_valid():
+            pages, errors = form.cleaned_data['url']
+            print pages
+            for label in pages:
+                page, pv = pages[label]
+                page.save()
+                pv.page_id = page.id
+                pv.save()
+    else:
+        form = SiteImportForm(offering=offering, editor=member)
+    
+    context = {'offering': offering, 'form': form}
+    return render(request, 'pages/import_site.html', context)

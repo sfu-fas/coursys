@@ -18,14 +18,16 @@ class HTMLWiki(object):
     class ParseError(Exception):
         pass
 
+    tag_handler = {} # dictionary of tag -> output-producing function
+
     def __init__(self, options):
         """
         options should be a list/set/tuple selection of:
         'linkmarkup': is markup allowed in links? [[page.html|**bold link**]]
         """
         self.options = set(options)
-
-    
+        self.setup_handlers()
+        
     def wiki_escape(self, txt):
         """
         Escape text so any wiki formatting-like text doesn't actually format.
@@ -99,6 +101,124 @@ class HTMLWiki(object):
         rows = [self.process_tr(e) for e in elt.findAll('tr')]
         return '\n'.join(rows)
 
+    # tag handlers referenced in self.tag_handler
+    def handler_ignore_contents(self, elt, context):
+        return ''
+    def handler_generic_block(self, elt, context):
+        return self.handle_contents(elt, block=True)
+    def handler_generic_inline(self, elt, context):
+        return self.handle_contents(elt, block=False)
+    def handler_simple_inline(self, markup):
+        def handler(elt, context):
+            return markup + self.handle_contents(elt, block=False) + markup
+        return handler
+    def handler_heading(self, elt, context):
+        level = int(elt.name[1])
+        return '\n%s %s %s\n' % ('='*level, self.handle_contents(elt, block=False), '='*level)
+    def handler_abbr(self, elt, context):
+        try:
+            title = elt['title']
+            return "^" + self.handle_contents(elt, block=False) + ":" + title + "^"
+        except KeyError:
+            return "^" + self.handle_contents(elt, block=False) + "^"
+    def handler_pre(self, elt, context):    
+        return '\n{{{' + self.handle_contents(elt, block=True, context='pre') + '}}}\n'
+    def handler_ul(self, elt, context):
+        return '\n' + self.process_li_in(elt, prefix="*", context=context) + '\n'
+    def handler_ol(self, elt, context):
+        return '\n' + self.process_li_in(elt, prefix="#", context=context) + '\n'
+    def handler_dl(self, elt, context):
+        return '\n' + self.process_dl(elt) + '\n'
+    def handler_table(self, elt, context):
+        return '\n' + self.process_table(elt) + '\n'
+    def handler_img(self, elt, context):
+        try:
+            url = self.url_escape(elt['src'])
+            try:
+                alt = elt['alt']
+            except KeyError:
+                alt = ''
+
+            if alt.strip():
+                # pseudo-escape alt text
+                alt = alt.replace('}}', u'}\uFEFF}') # unicode zero width no-break space
+                if alt[-1] == '}':
+                    alt += u'\uFEFF'
+                return '{{%s|%s}}' % (url, alt)
+            else:
+                return '{{%s}}' % (url)
+        except KeyError:
+            return ''
+    def handler_link(self, elt, context):
+        try:
+            url = self.url_escape(elt['href'])
+            if not url:
+                return self.handle_contents(elt, block=False)
+            if 'linkmarkup' in self.options:
+                c = context
+            else:
+                c = 'textonly'
+
+            # pseudo-escape content text
+            content = self.handle_contents(elt, block=False, context=c).strip()
+            content = content.replace(']]', u']\uFEFF]') # unicode zero width no-break space
+            if content and content[-1] == ']':
+                    content += u'\uFEFF'
+
+            #print ">>>", url
+            self.urls.add(url)
+            return '[[%s|%s]]' % (url, content)
+        except KeyError:
+            return self.handle_contents(elt, block=False)
+        
+
+    def setup_handlers(self):
+        """
+        Populates the self.tag_handler dictionary of ways to tranlate a tags to wikitext.
+        """
+        for elt in ['head', 'script', 'meta', 'link', 'style', 'title', 'input',
+                    'button', 'select', 'option', 'optgroup', 'textarea', 'map',
+                    'area', 'param', 'audio', 'video', 'canvas', 'datalist', 'embed',
+                    'eventsource', 'keygen', 'progress', 'rp', 'rt', 'summary', 'source']:
+            self.tag_handler[elt] = self.handler_ignore_contents
+        for elt in ['html', 'body', 'form', 'div', 'p', 'address', 'noscript',
+                    'fieldset', 'legend', 'h6', 'section', 'header', 'footer', 'article',
+                    'hgroup', 'nav', 'aside', 'command', 'center', 'dt', 'dd', 'li']:
+            self.tag_handler[elt] = self.handler_generic_block
+        for elt in ['ins', 'span', 'label', 'bdo', 'object', 'q', 'cite', 'kbd', 'samp',
+                    'var', 'big', 'small', 'time', 'details', 'figcaption', 'figure',
+                    'meter', 'mark', 'output', 'ruby', 'wbr', 'font']:
+            self.tag_handler[elt] = self.handler_generic_inline
+        for elt in ['h1', 'h2', 'h3', 'h4', 'h5']:
+            self.tag_handler[elt] = self.handler_heading
+
+        self.tag_handler['abbr'] = self.handler_abbr
+        self.tag_handler['acronym'] = self.handler_abbr
+        self.tag_handler['pre'] = self.handler_pre
+        self.tag_handler['ul'] = self.handler_ul
+        self.tag_handler['menu'] = self.handler_ul
+        self.tag_handler['ol'] = self.handler_ol
+        self.tag_handler['dl'] = self.handler_dl
+        self.tag_handler['table'] = self.handler_table
+        self.tag_handler['pre'] = self.handler_pre
+        self.tag_handler['img'] = self.handler_img
+        self.tag_handler['a'] = self.handler_link
+        
+        self.tag_handler['strong'] = self.handler_simple_inline('**')
+        self.tag_handler['b'] = self.handler_simple_inline('**')
+        self.tag_handler['em'] = self.handler_simple_inline('//')
+        self.tag_handler['i'] = self.handler_simple_inline('//')
+        self.tag_handler['dfn'] = self.handler_simple_inline('//')
+        self.tag_handler['u'] = self.handler_simple_inline('__')
+        self.tag_handler['del'] = self.handler_simple_inline('--')
+        self.tag_handler['strike'] = self.handler_simple_inline('--')
+        self.tag_handler['sub'] = self.handler_simple_inline('^^')
+        self.tag_handler['sup'] = self.handler_simple_inline(',,')
+        self.tag_handler['code'] = self.handler_simple_inline('##')
+        self.tag_handler['tt'] = self.handler_simple_inline('##')
+
+        self.tag_handler['hr'] = lambda e,c: '\n----\n'
+        self.tag_handler['br'] = lambda e,c: '\\\\'
 
     def handle_tag(self, elt, context=None):
         if context=="textonly":
@@ -107,95 +227,12 @@ class HTMLWiki(object):
             return self.handle_contents(elt, block=False, context='pre')
         
         name = elt.name
-        if name in ['head', 'script', 'meta', 'link', 'style', 'title', 'input', 'button', 'select', 'option', 'optgroup', 'textarea', 'map', 'area', 'param', 'audio', 'video', 'canvas', 'datalist', 'embed', 'eventsource', 'keygen', 'progress', 'rp', 'rt', 'summary', 'source']:
-            # tags whose content is ignored
-            return ''
-        elif name in ['html', 'body', 'form', 'div', 'p', 'address', 'noscript', 'fieldset', 'legend', 'h6', 'section', 'header', 'footer', 'article', 'hgroup', 'nav', 'aside', 'command', 'center']:
-            # generic block tags
-            return self.handle_contents(elt, block=True)
-        elif name in ['ins', 'span', 'label', 'bdo', 'object', 'q', 'cite', 'kbd', 'samp', 'var', 'big', 'small', 'time', 'details', 'figcaption', 'figure', 'meter', 'mark', 'output', 'ruby', 'wbr', 'font']:
-            # generic inline
-            return self.handle_contents(elt,  block=False)
-        elif name in ['h1', 'h2', 'h3', 'h4', 'h5']:
-            level = int(name[1])
-            return '\n%s %s %s\n' % ('='*level, self.handle_contents(elt, block=False), '='*level)
-        elif name == 'blockquote':
-            return '\n> ' + self.handle_contents(elt, block=False)
-        elif name in ['strong', 'b']:
-            return "**" + self.handle_contents(elt, block=False) + "**"
-        elif name in ['em', 'i', 'dfn']:
-            return "//" + self.handle_contents(elt, block=False) + "//"
-        elif name == 'u':
-            return "__" + self.handle_contents(elt, block=False) + "__"
-        elif name in ['del', 'strike']:
-            return "--" + self.handle_contents(elt, block=False) + "--"
-        elif name in ['abbr', 'acronym']:
-            try:
-                title = elt['title']
-                return "^" + self.handle_contents(elt, block=False) + ":" + title + "^"
-            except KeyError:
-                return "^" + self.handle_contents(elt, block=False) + "^"
-        elif name == 'sup':
-            return "^^" + self.handle_contents(elt, block=False) + "^^"
-        elif name == 'sub':
-            return ",," + self.handle_contents(elt, block=False) + ",,"
-        elif name == 'pre':
-            return '\n{{{' + self.handle_contents(elt, block=True, context='pre') + '}}}\n'
-        elif name in ['tt', 'code']:
-            return '##' + self.handle_contents(elt, block=False) + '##'
-        elif name == 'hr':
-            return '\n----\n'
-        elif name == 'br':
-            return r'\\'
-        elif name in ['ul', 'menu']:
-            return '\n' + self.process_li_in(elt, prefix="*", context=context) + '\n'
-        elif name == 'ol':
-            return '\n' + self.process_li_in(elt, prefix="#", context=context) + '\n'
-        elif name == 'dl':
-            return '\n' + self.process_dl(elt) + '\n'
-        elif name == 'table':
-            return '\n' + self.process_table(elt) + '\n'
-        elif name in ['dt', 'dd', 'li']:
-            # list items outside of their containers are treated as generic blocks
-            return self.handle_contents(elt, block=True)
-        elif name == 'img':
-            try:
-                url = self.url_escape(elt['src'])
-                try:
-                    alt = elt['alt']
-                except KeyError:
-                    alt = ''
+        if name in self.tag_handler:
+            # tags we can handle with the tandler dictionary
+            return self.tag_handler[name](elt, context)
 
-                if alt.strip():
-                    # pseudo-escape alt text
-                    alt = alt.replace('}}', u'}\uFEFF}') # unicode zero width no-break space
-                    if alt[-1] == '}':
-                        alt += u'\uFEFF'
-                    return '{{%s|%s}}' % (url, alt)
-                else:
-                    return '{{%s}}' % (url)
-            except KeyError:
-                return ''
-        elif name == 'a':
-            try:
-                url = self.url_escape(elt['href'])
-                if not url:
-                    return self.handle_contents(elt, block=False)
-                if 'linkmarkup' in self.options:
-                    c = context
-                else:
-                    c = 'textonly'
-
-                # pseudo-escape content text
-                content = self.handle_contents(elt, block=False, context=c).strip()
-                content = content.replace(']]', u']\uFEFF]') # unicode zero width no-break space
-                if content[-1] == ']':
-                        content += u'\uFEFF'
-
-                return '[[%s|%s]]' % (url, content)
-            except KeyError:
-                return self.handle_contents(elt, block=False)
-
+        #elif name == 'blockquote':
+        #    return '\n> ' + self.handle_contents(elt, block=False)
         return '[unknown tag %s]' % (elt.name)
 
 
@@ -239,4 +276,30 @@ class HTMLWiki(object):
             raise self.ParseError, "Could not parse HTML"
 
         return self.from_soup(soup)
+
+    def get_title(self, soup):
+        """
+        Get contents of the <title> element, if present
+        """
+        elt = soup.find('title')
+        if elt:
+            return self.handle_contents(elt, block=False, context="textonly")
+        else:
+            return None
+
+    def from_html_full(self, html):
+        """
+        Convert HTML source to wikitext, returning wikitext and 
+        """
+        try:
+            soup = BeautifulSoup.BeautifulSoup(html,
+                   convertEntities=BeautifulSoup.BeautifulSoup.XHTML_ENTITIES)
+        except:
+            # any badness from BeautifulSoup becomes a ParseError
+            raise self.ParseError, "Could not parse HTML"
+
+        self.urls = set()
+        title = self.get_title(soup)
+        wiki = self.from_soup(soup)
+        return wiki, title, self.urls
 

@@ -593,7 +593,7 @@ body#formula_tester {
 
 /* Collapsible style */
 div.collapsible {
-  color: grey;
+  color: gray;
   font-size: 1.0em;
   font-weight:normal;
 }
@@ -606,7 +606,7 @@ div.collapsible {
 }
 #main .collapsible-heading-toggle, #main .collapsible-heading-toggle:hover {
   text-decoration:none;
-  color: grey;
+  color: gray;
   line-height: 1.6em;
 }
 #main .collapsible-content-collapsed {
@@ -838,7 +838,7 @@ fieldset.wide label span {
 #formula_result {
   font-weight: bold;
   font-size: 2em;
-  color: grey;
+  color: gray;
 }
 
 fieldset .position {
@@ -1044,7 +1044,7 @@ div#submission_form_container{
 .marking_a a:hover,.marking_a a:active
 {
   background-color:#FF9900;
-  margin: 10;
+  margin: 10px;
 }
 
 table#common_problems p.component_info{
@@ -1292,6 +1292,15 @@ a img {
 }
 ul {
   margin-top: 1em;
+}
+ul ul {
+  margin-top: 0;
+}
+ol ol {
+  list-style-type: lower-alpha;
+}
+ol ol ol {
+  list-style-type: lower-roman;
 }
 #container blockquote {
   width: auto;

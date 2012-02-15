@@ -1,6 +1,6 @@
 from django import forms
 from django.db import transaction
-from pages.models import Page, PageVersion
+from pages.models import Page, PageVersion, READ_ACL_CHOICES, WRITE_ACL_CHOICES
 
 class WikiField(forms.CharField):
     def __init__(self, *args, **kwargs):
@@ -129,7 +129,88 @@ class EditFileFormRestricted(EditFileForm):
 EditFileForm.restricted_form = EditFileFormRestricted
 
 from importer import HTMLWiki
-import urllib2
+import urllib2, urlparse
+
+class SiteImportForm(forms.Form):
+    url = forms.URLField(required=True, label='URL', widget=forms.TextInput(attrs={'size':70}))
+    can_read = forms.ChoiceField(choices=READ_ACL_CHOICES, required=True, initial="ALL")
+    can_write = forms.ChoiceField(choices=WRITE_ACL_CHOICES, required=True, initial="STAF")
+    
+    def __init__(self, offering, editor, *args, **kwargs):
+        super(SiteImportForm, self).__init__(*args, **kwargs)
+        self.converter = HTMLWiki([])
+        self.offering = offering
+        self.editor = editor
+    
+    def _labelize(self, url, title):
+        path = urlparse.urlsplit(url).path
+        if path:
+            parts = path.split('/')
+            if len(parts) >= 1 and parts[-1]:
+                return parts[-1]
+            elif len(parts) >= 2 and parts[-2]:
+                return parts[-2]
+        
+    
+    def _import_page(self, url):
+        try:
+            fh = urllib2.urlopen(url, timeout=20)
+            if 'content-type' in fh.headers:
+                ctype = fh.headers['content-type'].split(';')[0]
+                is_html = ctype in ['text/html', 'application/xhtml+xml']
+            else:
+                is_html = False
+            html = fh.read()
+            fh.close()
+        except:
+            raise forms.ValidationError('Could not fetch "%s".' % (url))
+        
+        if not is_html:
+            raise forms.ValidationError('Not HTML at "%s".' % (url))
+        
+        try:
+            wiki, title, urls = self.converter.from_html_full(html)
+        except self.converter.ParseError:
+            raise forms.ValidationError("Could not parse the HTML file %s." % (url))
+        
+        label = self._labelize(url, title)
+        if not title:
+            title = label
+        
+        page = Page(offering=self.offering, label=label)
+        pv = PageVersion(page=page, editor=self.editor, title=title, wikitext=wiki, comment="imported content")
+        #print (page, pv, pv.title)
+        #print [urlparse.urljoin(url, u) for u in urls]
+        return page, pv, urls
+    
+    def clean_url(self):
+        url = self.cleaned_data['url']
+        if not url:
+            return None
+        
+        baseurl = urlparse.urljoin(url, "./")
+        needed = set([url])
+        done = set()
+        found = {}
+        errors = []
+        while needed:
+            #if len(found) > 9:
+            #    break
+            url = needed.pop()
+            try:
+                page, pv, newurls = self._import_page(url)
+            except forms.ValidationError as e:
+                errors.append(e.messages[0])
+            done.add(url)
+            newurls = set((urlparse.urljoin(url, u) for u in newurls))
+            newurls = set((u for u in newurls if u.startswith(baseurl)))
+            needed = needed | newurls - done
+            found[page.label] = (page, pv)
+            
+            #print ">>>", found, errors
+            
+        return found, errors
+    
 
 class PageImportForm(forms.Form):
     file = forms.FileField(required=False)

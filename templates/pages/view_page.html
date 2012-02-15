@@ -50,7 +50,7 @@ MathJax.Hub.Config({
 {% if version.is_filepage %}
 <p>View file <a href="{% url pages.views.view_file course_slug=offering.slug page_label=page.label %}">{{version.file_name}}</a> ({{version.file_attachment.size|filesizeformat}}), or <a href="{% url pages.views.download_file course_slug=offering.slug page_label=page.label %}">download</a>.</p>
 {% else %}
-{{ version.html_contents }}
+<div class="wikicontents">{{ version.html_contents }}</div>
 {% endif %}
 <div class="updateinfo">Updated {{ version.created_at }} by {{version.editor.person.userid }}.</div>
 
