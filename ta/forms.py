@@ -130,12 +130,13 @@ class TUGForm(forms.ModelForm):
         return super(TUGForm, self).save(*args, **kwargs)
     
 class TAApplicationForm(forms.ModelForm):
-    
-    sin = forms.CharField(min_length=9, max_length=9)
-
     class Meta:
         model = TAApplication
         exclude = ('person','unit','skills','campus_preferences','semester')
+        widgets = {
+                   'base_units': forms.TextInput(attrs={'size': 5}),
+                   'sin': forms.TextInput(attrs={'size': 9}),
+                   }
 
 class CoursePreferenceForm(forms.ModelForm):
 

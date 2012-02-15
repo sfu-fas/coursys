@@ -142,16 +142,18 @@ class TAApplication(models.Model):
     """
     person = models.ForeignKey(Person)
     semester = models.ForeignKey(Semester)
-    category = models.CharField(max_length=4, choices=CATEGORY_CHOICES)
+    category = models.CharField(max_length=4, blank=False, null=False, choices=CATEGORY_CHOICES)
     unit = models.ForeignKey(Unit)
-    base_units = models.DecimalField(max_digits=4, decimal_places=2)
-    sin = models.PositiveIntegerField(unique=True)
+    base_units = models.DecimalField(max_digits=4, decimal_places=2,
+            help_text='Maximum number of base units you\'re interested in taking (5 is a "full" TA-ship)')
+    sin = models.PositiveIntegerField(verbose_name="SIN",
+            help_text="Your social insurance number")
     campus_preferences = models.ManyToManyField(CampusPreference)
     skills = models.ManyToManyField(Skill) 
     experience =  models.TextField(blank=True, null=True,
         verbose_name="Experience",
         help_text='Describe any other experience that you think may be relevant to these courses.')
-    course_load = models.TextField(verbose_name="Students intended course load.",
+    course_load = models.TextField(verbose_name="Intended course load",
         help_text='Describe the intended course load of the semester being applied for.')
     other_support = models.TextField(blank=True, null=True,
         verbose_name="Other financial support",

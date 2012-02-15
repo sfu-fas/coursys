@@ -1,14 +1,14 @@
 from django.http import HttpResponseRedirect, HttpResponse
-from django.shortcuts import get_object_or_404, render#, render_to_response, 
+from django.shortcuts import get_object_or_404, render
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from courselib.auth import requires_course_staff_by_slug, requires_role, \
     is_course_staff_by_slug, has_role, ForbiddenResponse
 from django.contrib.auth.decorators import login_required
-from ta.models import *
-from coredata.models import Member, Role, CourseOffering, Person, Unit
-from ta.forms import *
-from grad.views import get_semester
+from ta.models import TUG, Skill, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, CampusPreference
+from coredata.models import Member, Role, CourseOffering, Person, Semester
+from ta.forms import TUGForm, TAApplicationForm, TAContractForm, CoursePreferenceForm, \
+    TAPostingForm, TAPostingBUForm, BUFormSet
 from log.models import LogEntry
 from django.forms.models import inlineformset_factory
 from django.forms.formsets import formset_factory
@@ -92,11 +92,7 @@ def new_tug(request, course_slug, userid):
     else:
         # Nothing is done as of now until further details as to how to "pre-fill" 
         # #158    TUG: courses with lab sections should be pre-filled as appropriate
-        components = course.component
-        has_lab_or_tut = False
-        for component in components:
-            if component == "LAB" or component == "TUT":
-                has_lab_or_tut = True
+        has_lab_or_tut = course.labtut()
             
         if request.method == "POST":
             form = TUGForm(data=request.POST, offering=course,userid=userid)
