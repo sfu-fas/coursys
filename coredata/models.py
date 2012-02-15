@@ -34,6 +34,8 @@ class Person(models.Model):
         # 'phones': dictionary of phone number values. Possible keys: 'pref', 'home', 'cell', 'main'
         # 'addresses': dictionary of phone number values. Possible keys: 'home', 'mail'
         # 'gender': 'M', 'F', 'U'
+        # 'citizen': country of citizenship (e.g. 'Canada')
+        # 'visa': Canadian visa status (e.g. 'No visa st', 'Perm resid')
     
     defaults = {'email': None}
     _, set_email = getter_setter('email')

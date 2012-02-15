@@ -26,7 +26,10 @@
 <h2>Your Postings</h2>
 <ul>
 {% for p in owned %}
-<li>{{p}} [<a href="{% url ta.views.edit_posting post_slug=p.slug %}">edit</a>]</li>
+<li>{{p}}
+[ <a href="{% url ta.views.edit_posting post_slug=p.slug %}">edit</a> |
+<a href="{% url ta.views.edit_bu post_slug=p.slug %}">BU defaults</a> ]
+</li>
 {% empty %}
 <li class="empty">None</li>
 {% endfor %}

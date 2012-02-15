@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load course_display form_display %}
+
+{% block title %}Edit BU Defaults for {{ posting.unit.label }} in {{ posting.semester }}{% endblock %}
+{% block h1 %}Edit BU Defaults for {{ posting.unit.label }} in {{ posting.semester }}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li><li>&gt; {{ posting.unit.label }} {{ posting.semester }} </li><li>&gt; Default BUs</li>{% endblock %}
+
+{% block headextra %}
+<link type="text/css" href="{{MEDIA_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
+<script type="text/javascript" src="{{MEDIA_URL}}multiselect/js/ui.multiselect.js"></script>
+<script type="text/javascript">
+  function get_fieldset() {
+  	var level = $('#id_level :selected').val();
+  	var url = '{% url ta.views.bu_formset post_slug=posting.slug %}?level=' + level;
+      $.ajax({
+      	'url': url,
+      	'success': function(data) {
+      	  $('#formset').html(data);
+      	}
+      });
+  }
+  $(function() {
+    $('#id_level').change(function() {
+      get_fieldset()
+    });
+    {% if not formset %}get_fieldset(){% endif %};
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+
+<div id="form_container">
+<form action="" method="post">{% csrf_token %}
+<fieldset>
+<legend>Base Unit Defaults</legend>
+{{ form|as_dl }}
+<div id="formset">
+{% if formset %}{% include "ta/bu_formset.html" %}{% endif %}
+</div>
+<p><input type="submit" class="submit" value="Submit" /></p>
+</fieldset>
+</form>
+</div>
+
+{% endblock %}

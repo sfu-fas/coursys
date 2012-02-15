@@ -8,6 +8,7 @@ from ta.models import TUG, TAApplication,TAContract, CoursePreference, TACourse,
 from ta.util import table_row__Form, update_and_return
 from django.core.exceptions import ValidationError
 import itertools, decimal, datetime
+from django.forms.formsets import formset_factory
 
 @table_row__Form
 class TUGDutyForm(forms.Form):
@@ -275,4 +276,17 @@ class TAPostingForm(forms.ModelForm):
         excluded = [int(e) for e in excluded]
         self.instance.config['excluded'] = excluded
         return excluded
-    
+
+class BUForm(forms.Form):
+    students = forms.IntegerField(min_value=0, max_value=1000)
+    bus = forms.DecimalField(min_value=0, max_digits=5, decimal_places=2)
+
+BUFormSet = formset_factory(BUForm, extra=10)
+LEVEL_CHOICES = (
+                 ('100', '100-level'),
+                 ('200', '200-level'),
+                 ('300', '300-level'),
+                 ('400', '400-level'),
+                 )
+class TAPostingBUForm(forms.Form):
+    level = forms.ChoiceField(choices=LEVEL_CHOICES)

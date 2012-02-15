@@ -5,6 +5,7 @@ from courselib.json_fields import getter_setter #, getter_setter_2
 from courselib.slugs import make_slug
 from grad.views import get_semester
 from autoslug import AutoSlugField
+import decimal
 
 class TUG(models.Model):
     """
@@ -186,12 +187,14 @@ class TAPosting(models.Model):
             'start': '',
             'end': '',
             'excluded': [],
+            'bu_defaults': {},
             }
     salary, set_salary = getter_setter('salary')
     scholarship, set_scholarship = getter_setter('scholarship')
     start, set_start = getter_setter('start')
     end, set_end = getter_setter('end')
     excluded, set_excluded = getter_setter('excluded')
+    bu_defaults, set_bu_defaults = getter_setter('bu_defaults')
 
     class Meta:
         unique_together = (('unit', 'semester'),)
@@ -222,6 +225,25 @@ class TAPosting(models.Model):
     def cat_index(self, val):
         indexer = dict((v[0],k) for k,v in enumerate(CATEGORY_CHOICES))
         return indexer.get(val)
+    
+    def default_bu(self, offering):
+        """
+        Default BUs to assign for this course offering
+        """
+        level = offering.number[0] + "00"
+        if level not in self.bu_defaults():
+            return decimal.Decimal(0)
+        
+        defaults = self.bu_defaults()[level]
+        defaults.sort()
+        count = offering.enrl_tot
+        # get highest cutoff <= actual student count
+        last = decimal.Decimal(0)
+        for s,b in defaults:
+            if s > count:
+                return decimal.Decimal(last)
+            last = b
+        return decimal.Decimal(last) # if off the top of scale, return max
 
 DESC_CHOICES = (
         ('OML','office/marking/lab'),

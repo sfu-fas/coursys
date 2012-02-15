@@ -1,0 +1,8 @@
+{{ formset.management_form }}
+<table class="bu-formset">
+<caption>Default base units for {{level}}-level courses</caption>
+<tr><th>Min Students</th><th>BUs</th></tr>
+{% for f in formset %}
+<tr><td>{{f.students}}{{f.students.errors}}</td><td>{{f.bus}}{{f.bus.errors}}</td></tr>
+{% endfor %}
+</table>

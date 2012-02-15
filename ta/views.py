@@ -343,8 +343,62 @@ def edit_posting(request, post_slug=None):
         form.fields['unit'].choices = unit_choices
         form.fields['semester'].choices = semester_choices
         form.fields['excluded'].choices = excluded_choices
-        # TODO: take default salary/semester from last posting by this unit
+        # TODO: take default salary/semester/BU defaults from last posting by this unit
     
     context = {'form': form, 'editing': editing, 'posting': posting}
-    return render(request, 'ta/edit_posting.html',context)
+    return render(request, 'ta/edit_posting.html', context)
 
+
+@requires_role("TAAD")
+def bu_formset(request, post_slug):
+    """
+    AJAX method to build the formset for a particular level
+    
+    Called in edit_bu.html to dynmically change formset as selected
+    """
+    posting = get_object_or_404(TAPosting, slug=post_slug)
+    
+    if 'level' not in request.GET:
+        return ForbiddenResponse(request, 'must give level')
+    level = request.GET['level']
+    
+    # populate existing values if exist
+    initial=[]
+    defaults = posting.bu_defaults()
+    if level in defaults:
+        initial = [{'students': s, 'bus': b} for s,b in defaults[level]]
+    formset = BUFormSet(prefix="set"+level, initial=initial)
+    
+    context = {'level': level, 'formset': formset}
+    return render(request, 'ta/bu_formset.html', context)
+    
+
+@requires_role("TAAD")
+def edit_bu(request, post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug)
+    
+    formset = None # used in bu_formset.html as defaults if present; AJAX magic if not
+    level = None
+    if request.method == "POST":
+        form = TAPostingBUForm(request.POST)
+        if form.is_valid():
+            level = form.cleaned_data['level']
+            formset = BUFormSet(request.POST, prefix="set"+level)
+            if formset.is_valid():
+                bus = [(d['students'], d['bus']) for d in formset.cleaned_data if 'bus' in d and 'students' in d]
+                bus.sort()
+                defaults = posting.bu_defaults()
+                defaults[level] = bus
+                posting.set_bu_defaults(defaults)
+                posting.save()
+                
+                l = LogEntry(userid=request.user.username,
+                  description=u"Edited BU defaults for %s, level %s." % (posting, level),
+                  related_object=posting)
+                l.save()
+                messages.success(request, u"Updated BU defaults for %s, %s-level." % (posting, level))
+    else:
+        form = TAPostingBUForm()
+
+    context = {'form': form, 'formset': formset, 'posting': posting, 'level': level}
+    return render(request, 'ta/edit_bu.html',context)
