@@ -165,17 +165,16 @@ def new_application(request, post_slug):
     if request.method == "POST":
         ta_form = TAApplicationForm(request.POST, prefix='ta')
         courses_formset = CoursesFormSet(request.POST)
-        #course_form = CoursePreferenceForm(request.POST, prefix='course')
         if ta_form.is_valid() and courses_formset.is_valid():
             person = get_object_or_404(Person, userid=request.user.username)
             app = ta_form.save(commit=False)
             app.semester = posting.semester
             app.person = person
-            app.department = posting.unit
+            app.unit = posting.unit
             app.save()
 
             #Add every skill to application
-            skill_count = Skill.objects.filter(department=app.department.id).values('name').distinct().count()
+            skill_count = Skill.objects.filter(unit=app.unit.id).values('name').distinct().count()
             for i in range(1,skill_count+1):
                 app.skills.add(request.POST['skills'+str(i)])
             
@@ -184,9 +183,6 @@ def new_application(request, post_slug):
             for i in range(1,campus_count+1):
                 app.campus_preferences.add(request.POST['campus_preference'+str(i)])
     
-            #course = course_form.save(commit=False)
-            #course.app = TAApplication.objects.get(id=app.id)
-            #course.save()
             ta_form.save_m2m()
 
             application = TAApplication.objects.get(id=app.id)
@@ -194,6 +190,7 @@ def new_application(request, post_slug):
                 course = form.save(commit=False)
                 course.app = application
                 course.save()
+            return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'app_id':app.id}))
 
         else:
             print ta_form
@@ -213,8 +210,8 @@ def new_application(request, post_slug):
         ta_form = TAApplicationForm(prefix='ta')
         campus_names = CampusPreference.objects.order_by('campus').values('campus').distinct() 
         campus_preferences = CampusPreference.objects.order_by('campus','rank')
-        skill_names = Skill.objects.filter(department=posting.unit).order_by('name').values('name').distinct() 
-        skills = Skill.objects.filter(department=posting.unit).order_by('name','level')
+        skill_names = Skill.objects.filter(unit=posting.unit).order_by('name').values('name').distinct() 
+        skills = Skill.objects.filter(unit=posting.unit).order_by('name','level')
         context = {
                     'posting':posting,
                     'ta_form':ta_form,
@@ -226,10 +223,22 @@ def new_application(request, post_slug):
                   }
         return render(request, 'ta/new_application.html', context)
 
-@login_required
+@requires_role("TAAD")
 def all_applications(request):
-    applications = TAApplication.objects.all()
-    return render(request, 'ta/all_applications.html', {'applications':applications})
+    roles = Role.objects.filter(role="TAAD", person__userid=request.user.username)
+    units = [r.unit for r in roles]
+    applications = TAApplication.objects.filter(unit__in=units)
+    context = {
+            'units':units,
+            'applications':applications,
+            }
+    return render(request, 'ta/all_applications.html', context)
+
+@requires_role("TAAD")
+def view_application(request, app_id):
+    application = TAApplication.objects.get(id=app_id)
+    courses = CoursePreference.objects.filter(app=app_id)
+    return render(request, 'ta/view_application.html', {'application':application, 'courses':courses})
 
 @login_required
 def view_postings(request):
@@ -244,12 +253,6 @@ def view_postings(request):
             'is_admin': bool(roles),
             }
     return render(request, 'ta/view_postings.html', context) 
-
-@login_required
-def view_application(request, app_id):
-    application = TAApplication.objects.get(id=app_id)
-    courses = CoursePreference.objects.filter(app=app_id)
-    return render(request, 'ta/view_application.html', {'application':application, 'courses':courses})
 
 @requires_role("TAAD")
 def all_contracts(request):
@@ -344,10 +347,4 @@ def edit_posting(request, post_slug=None):
     
     context = {'form': form, 'editing': editing, 'posting': posting}
     return render(request, 'ta/edit_posting.html',context)
-
-
-
-
-
-
 

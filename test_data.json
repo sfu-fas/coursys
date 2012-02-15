@@ -2699,6 +2699,29 @@
  },
  {
   "fields": {
+   "campus": "SURRY",
+   "class_nbr": 8699,
+   "component": "LEC",
+   "config": "{}",
+   "course": 71,
+   "crse_id": 4099,
+   "enrl_cap": 68,
+   "enrl_tot": 67,
+   "graded": true,
+   "number": "816",
+   "owner": 4,
+   "section": "D200",
+   "semester": 3,
+   "slug": "2012sp-macm-816-d1",
+   "subject": "MACM",
+   "title": "Numerical Analysis III",
+   "wait_tot": 2
+  },
+  "model": "coredata.courseoffering",
+  "pk": 104
+ },
+ {
+  "fields": {
    "config": "{}",
    "number": "102",
    "subject": "CMPT",
@@ -2742,8 +2765,7 @@
    "config": "{}",
    "number": "128",
    "subject": "CMPT",
-   "title": "Intro. Cmpt.Sci/Prgm/Engineers"
-  },
+   "title": "Intro. Cmpt.Sci/Prgm/Engineers" },
   "model": "coredata.course",
   "pk": 5
  },
@@ -3396,6 +3418,16 @@
   },
   "model": "coredata.course",
   "pk": 70
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "816",
+   "subject": "MACM",
+   "title": "Numerical Analysis III"
+  },
+  "model": "coredata.course",
+  "pk": 71
  },
  {
   "fields": {
@@ -16156,7 +16188,7 @@
  
  {
   "fields": {
-   "department": 2,
+   "unit": 2,
    "level": "EXPR",
    "name": "Java"
   },
@@ -16165,7 +16197,7 @@
  },
  {
   "fields": {
-   "department": 2,
+   "unit": 2,
    "level": "SOME",
    "name": "Java"
   },
@@ -16174,7 +16206,7 @@
  },
  {
   "fields": {
-   "department": 2,
+   "unit": 2,
    "level": "NONE",
    "name": "Java"
   },
@@ -16183,7 +16215,7 @@
  },
  {
   "fields": {
-   "department": 2,
+   "unit": 2,
    "level": "EXPR",
    "name": "C++"
   },
@@ -16192,7 +16224,7 @@
  },
  {
   "fields": {
-   "department": 2,
+   "unit": 2,
    "level": "SOME",
    "name": "C++"
   },
@@ -16201,7 +16233,7 @@
  },
  {
   "fields": {
-   "department": 2,
+   "unit": 2,
    "level": "NONE",
    "name": "C++"
   },
@@ -16210,7 +16242,7 @@
  },
  {
   "fields": {
-   "department": 1,
+   "unit": 1,
    "level": "EXPR",
    "name": "English"
   },
@@ -16219,7 +16251,7 @@
  },
  {
   "fields": {
-   "department": 1,
+   "unit": 1,
    "level": "SOME",
    "name": "English"
   },
@@ -16228,7 +16260,7 @@
  },
  {
   "fields": {
-   "department": 1,
+   "unit": 1,
    "level": "NONE",
    "name": "English"
   },

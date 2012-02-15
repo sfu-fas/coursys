@@ -109,7 +109,7 @@ class Skill(models.Model):
     Skills an applicant specifies in their application.  Skills are specific to a department.
     """
     name = models.CharField(max_length=30)
-    department = models.ForeignKey(Unit)
+    unit = models.ForeignKey(Unit)
     level = models.CharField(max_length=4, choices=LEVEL_CHOICES)
     
     def __unicode__(self):
@@ -142,7 +142,7 @@ class TAApplication(models.Model):
     person = models.ForeignKey(Person)
     semester = models.ForeignKey(Semester)
     category = models.CharField(max_length=4, choices=CATEGORY_CHOICES)
-    department = models.ForeignKey(Unit)
+    unit = models.ForeignKey(Unit)
     base_units = models.DecimalField(max_digits=4, decimal_places=2)
     sin = models.PositiveIntegerField(unique=True)
     campus_preferences = models.ManyToManyField(CampusPreference)
@@ -158,7 +158,7 @@ class TAApplication(models.Model):
     comments = models.TextField(verbose_name="Additional comments", blank=True, null=True)
     
     class Meta:
-        unique_together = (('person', 'semester', 'department'),)
+        unique_together = (('person', 'semester', 'unit'),)
     def __unicode__(self):
         return "Person: %s  Semester: %s" % (self.person, self.semester)
 
