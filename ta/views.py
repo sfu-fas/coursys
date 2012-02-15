@@ -237,6 +237,8 @@ def all_applications(request):
 @requires_role("TAAD")
 def view_application(request, app_id):
     application = TAApplication.objects.get(id=app_id)
+    if application.posting.unit not in request.units:
+        ForbiddenResponse(request, 'You cannot access this posting')
     courses = CoursePreference.objects.filter(app=app_id)
     return render(request, 'ta/view_application.html', {'application':application, 'courses':courses})
 
@@ -263,6 +265,8 @@ def all_contracts(request):
 @requires_role("TAAD")
 def new_contract(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug)
+    if posting.unit not in request.units:
+        ForbiddenResponse(request, 'You cannot access this posting')
     course_choices = [('','---------')] + [(c.id, c.name()) for c in posting.selectable_offerings()]
     
     TACourseFormset = inlineformset_factory(TAContract, TACourse, extra=3, can_delete=False)
@@ -311,6 +315,8 @@ def edit_posting(request, post_slug=None):
     if post_slug:
         # editing existing
         posting = get_object_or_404(TAPosting, slug=post_slug)
+        if posting.unit not in request.units:
+            ForbiddenResponse(request, 'You cannot access this posting')
         editing = True
     else:
         # creating new
@@ -357,6 +363,8 @@ def bu_formset(request, post_slug):
     Called in edit_bu.html to dynmically change formset as selected
     """
     posting = get_object_or_404(TAPosting, slug=post_slug)
+    if posting.unit not in request.units:
+        ForbiddenResponse(request, 'You cannot access this posting')
     
     if 'level' not in request.GET:
         return ForbiddenResponse(request, 'must give level')
@@ -376,7 +384,9 @@ def bu_formset(request, post_slug):
 @requires_role("TAAD")
 def edit_bu(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug)
-    
+    if posting.unit not in request.units:
+        ForbiddenResponse(request, 'You cannot access this posting')
+
     formset = None # used in bu_formset.html as defaults if present; AJAX magic if not
     level = None
     if request.method == "POST":
