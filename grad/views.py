@@ -5,7 +5,7 @@ from grad.forms import *
 from coredata.models import Person, Role, Unit, Semester, CAMPUS_CHOICES
 from django.template import RequestContext
 from django import forms
-from django.forms.formsets import formset_factory
+from django.forms.models import modelformset_factory
 from courselib.auth import *
 from django.core import serializers
 from django.utils.safestring import mark_safe
@@ -26,7 +26,6 @@ def get_semester(date=datetime.date.today()):
             else:
                 #take the next semseter
                 next_sem = 1
-     
 
 @requires_role("GRAD")
 def index(request):
@@ -47,14 +46,17 @@ def index(request):
 def view_all(request, grad_slug):
     # will display academic, personal, FIN, status history, supervisor
     grad = get_object_or_404(GradStudent, slug=grad_slug)
-    supervisors = get_object_or_404(Supervisor, student=grad)
+    supervisors = Supervisor.objects.filter(student=grad, position=1)# show the main supervisor (position = 1)
     status = get_list_or_404(GradStatus, student=grad)
     completed_req = get_list_or_404(CompletedRequirement, student=grad)
     # set frontend defaults
     page_title = "%s 's Graduate Student Record" % (grad.person.first_name)
     crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
-    gp = grad.person.get_fields 
-    supervisors = supervisors.get_fields
+    gp = grad.person.get_fields
+    if (supervisors):
+        supervisors = supervisors[0].get_fields
+    else:
+        supervisors = None
     gs = [s.get_fields for s in status]
     context = {
                'page_title' : page_title,
@@ -71,27 +73,35 @@ def view_all(request, grad_slug):
 @requires_role("GRAD")
 def manage_supervisors(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
-    supervisors = Supervisor.objects.filter(student=grad)
-    pot_supervisor = Supervisor.objects.get(student=grad, position=0)
-    num_supervisors = supervisors.count()
-    supervisors_formset = formset_factory(SupervisorForm, extra=num_supervisors, max_num=4)()
+    supervisors = Supervisor.objects.filter(student=grad).exclude(position=0)
+    # Using filter because get returns an error when there are no matching queries
+    pot_supervisor = Supervisor.objects.filter(student=grad, position=0) 
+    # Check if supervisor exists for editing, otherwise create new
+    if (supervisors.count() == 0):
+        supervisors = None
+    # Initialize potential supervisor to first on of the list of results
+    # There should be exactly one match unless there is data error
+    if (pot_supervisor.count() == 0):
+        pot_supervisor = None
+    else:
+        pot_supervisor = pot_supervisor[0]
+        
+    supervisors_formset = modelformset_factory(Supervisor, form=SupervisorForm, extra=0, max_num=4)(queryset=supervisors)
     for f in supervisors_formset:
         f.fields['supervisor'].choices = possible_supervisors([grad.program.unit])
+        #f.fields['position'].widget = forms.HiddenInput()
 
     if request.method == 'POST':
         potential_supervisors_form = PotentialSupervisorForm(request.POST, instance=pot_supervisor, prefix="pot_sup")
         if potential_supervisors_form.is_valid():
-            potential_supervisors_form.save()
             superF = potential_supervisors_form.save(commit=False)
             superF.modified_by = request.user.username
-            superF.save()            
+            superF.student = grad #Passing grad student info to model
+            superF.position = 0   #Hard coding potential supervisor and passing to model
+            superF.save()
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug} ))
-    elif request.is_ajax():
-        # TO DO: Update formset to correct number of forms displayed
-        
-        return HttpResponse("AJAX Completed") #return updated form.
     else:
-        potential_supervisors_form = PotentialSupervisorForm(prefix="pot_sup")
+        potential_supervisors_form = PotentialSupervisorForm(instance=pot_supervisor, prefix="pot_sup")
         potential_supervisors_form.fields['supervisor'].choices = \
                 possible_supervisors([grad.program.unit])
 
@@ -109,6 +119,25 @@ def manage_supervisors(request, grad_slug):
                'supervisors' : supervisors,
                }
     return render(request, 'grad/manage_supervisors.html', context)
+
+@requires_role("GRAD")
+def update_supervisors(request, grad_slug):
+    grad = get_object_or_404(GradStudent, slug=grad_slug)
+    if request.method == 'POST':
+        supervisors_formset = modelformset_factory(Supervisor, form=SupervisorForm, max_num=4)
+        modelformset = supervisors_formset(request.POST)
+        
+        if modelformset.is_valid():
+            temp = modelformset.save(commit=False)
+            for entry in temp:
+                entry.student = grad
+            modelformset.save()
+            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug} ))
+        else:
+            return HttpResponseRedirect(reverse(manage_supervisors, kwargs={'grad_slug':grad_slug}))
+
+    else:
+        return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug': grad_slug}))
 
 @requires_role("GRAD")
 def manage_requirements(request, grad_slug):

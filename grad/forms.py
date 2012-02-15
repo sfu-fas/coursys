@@ -60,7 +60,7 @@ class SupervisorForm(ModelForm):
     
     class Meta:
         model = Supervisor
-        exclude = ('student', 'is_potential', 'is_senior', 'position', 'created_by', 'modified_by' )
+        exclude = ('student', 'is_potential', 'is_senior', 'created_by', 'modified_by' )
         
 class PotentialSupervisorForm(ModelForm): 
     class Meta:

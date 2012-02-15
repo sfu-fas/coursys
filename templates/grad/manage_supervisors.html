@@ -48,7 +48,7 @@
 	</table>
 </div>
 <div id="form_container">
-	<form  method="POST">
+	<form method="post" action="{% url grad.views.manage_supervisors grad_slug=grad.slug %}">
 		{% csrf_token %}
 		<fieldset>
 			<legend>
@@ -56,13 +56,13 @@
 			</legend>
 			{{ potential_supervisors_form|as_dl_2 }}
 			<p>
-				<input class="submit" type="submit" value="Update">
+				<input class="submit" type="submit" value="Update" />
 			</p>
 		</fieldset>
 	</form>
 </div>
-<div id="form_container">
-	<form method="POST">
+<div id="formset_container">
+	<form method="post" action="{% url grad.views.update_supervisors grad_slug=grad.slug %}">
 		{% csrf_token %}
 		{{ supervisors_formset.management_form }}
 		<fieldset>
@@ -73,17 +73,16 @@
 				Choose only a Supervisor or enter an External.
 			</p>
 			<div id="supervisor-forms">
-			{% for form in supervisors_formset %}
-				<div id="supervisor-form-{{forloop.counter0}}">
-					<p id="supervisor-form-{{forloop.counter0}}-label">Supervisor {{forloop.counter}}:</p>
+			{% for form in supervisors_formset.forms %}
+				<div id="supervisor-form-{{ forloop.counter0 }}">
+					<p id="supervisor-form-{{ forloop.counter0 }}-label">Supervisor {{ forloop.counter }}:</p>
 					{{ form.as_p }}
 				</div>
 			
 			{% endfor %}
 			</div>
 			<span id="form_btns">
-				<noscript>Please enable JavaScript to add a new supervisor</noscript>
-				<input class="submit" type="submit" value="Update">
+				<input class="submit" type="submit" value="Update" />
 			</span>
 		</fieldset>
 	</form>
@@ -92,7 +91,12 @@
 <script type="text/javascript">
 	// dynamically append button for no-script compatibility
 	$(function() {
-		$("#form_btns").append('<input id="add_btn" class="submit" type="button" value="Add Another" onclick="add()"/>')
+		$("#form_btns").append('<input id="add_btn" class="submit" type="button" value="Add Another" onclick="add()" />');
+		var total_forms = $('#id_form-TOTAL_FORMS').val()*1;
+		var max_forms = $('#id_form-MAX_NUM_FORMS').val()*1;
+		if (total_forms*1+1 == max_forms){
+			$("#add_btn").attr("disabled", true).css("background-color","#bba");
+		}
 	});
 
 </script>
