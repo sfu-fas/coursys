@@ -203,7 +203,7 @@ class TAPostingForm(forms.ModelForm):
     end = forms.DateField(label="Contract End", help_text='Default end date for contracts')
     salary = PayField(label="Salary per BU", help_text="Default pay rates for contracts")
     scholarship = PayField(label="Scholarship per BU", help_text="Default scholarship rates for contracts")
-    excluded = forms.MultipleChoiceField(help_text="Courses that should not be selectable for TA positions", choices=[], widget=forms.SelectMultiple(attrs={'size': 15}))
+    excluded = forms.MultipleChoiceField(help_text="Courses that should <strong>not</strong> be selectable for TA positions", choices=[], widget=forms.SelectMultiple(attrs={'size': 15}))
 
     # TODO: sanity-check the dates against semester start/end
     

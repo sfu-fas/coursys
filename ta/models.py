@@ -177,11 +177,11 @@ class TAPosting(models.Model):
         return make_slug(self.semester.slugform() + "-" + self.unit.label)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
-      # 'salary': default pay rates per BU for each GTA1, GTA2, UTA, EXT: ['1.00', '2.00', '3.00', '4.00']
-      # 'scholarship': default scholarship rates per BU for each GTA1, GTA2, UTA, EXT
-      # 'start': default start date for contracts ('YYYY-MM-DD')
-      # 'end': default end date for contracts ('YYYY-MM-DD')
-      # 'excluded': courses to exclude from posting (list of Course.id values)
+        # 'salary': default pay rates per BU for each GTA1, GTA2, UTA, EXT: ['1.00', '2.00', '3.00', '4.00']
+        # 'scholarship': default scholarship rates per BU for each GTA1, GTA2, UTA, EXT
+        # 'start': default start date for contracts ('YYYY-MM-DD')
+        # 'end': default end date for contracts ('YYYY-MM-DD')
+        # 'excluded': courses to exclude from posting (list of Course.id values)
 
     defaults = {
             'salary': ['0.00']*len(CATEGORY_CHOICES),
@@ -246,6 +246,15 @@ class TAPosting(models.Model):
                 return decimal.Decimal(last)
             last = b
         return decimal.Decimal(last) # if off the top of scale, return max
+
+    def required_bu(self, offering):
+        """
+        Actual BUs to assign to this course: default + extra
+        """
+        default = self.default_bu(offering)
+        extra = offering.extra_bu()
+        return default + extra
+
 
 DESC_CHOICES = (
         ('OML','office/marking/lab'),

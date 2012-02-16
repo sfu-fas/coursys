@@ -259,12 +259,13 @@ def assign_tas(request, post_slug):
         ForbiddenResponse(request, 'You cannot access this posting')
     
     apps = TAApplication.objects.filter(unit=posting.unit, semester=posting.semester)
-    offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit)
+    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit)
     # ignore excluded courses
     excl = set(posting.excluded())
-    offerings = [o for o in offerings if o.course_id not in excl]
+    offerings = [o for o in all_offerings if o.course_id not in excl]
+    excluded = [o for o in all_offerings if o.course_id in excl]
     
-    context = {'posting': posting, 'offerings': offerings}
+    context = {'posting': posting, 'offerings': offerings, 'excluded': excluded}
     return render(request, 'ta/assign_tas.html', context) 
 
 @requires_role("TAAD")

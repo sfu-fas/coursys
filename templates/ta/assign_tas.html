@@ -20,7 +20,10 @@
 		"aoColumns": [
 		    null,
 		    null,
-		    null,
+            null,
+            null,
+            null,
+            null,
 		]
 	});
   });
@@ -29,19 +32,26 @@
 
 {% block content %}
 
-<div class="table_container">
+<div class="datatable_container">
 <table class="display" id="offerings">
-<thead><tr><th scope="col">Course Offering</th><th scope="col">Instructor</th><th scope="col">Required BU</th></tr></thead>
+<thead><tr><th scope="col">Offering</th><th scope="col">Instructor</th><th scope="col">Enrol</th><th scope="col">Required BU</th><th scope="col">Assigned BU</th><th scope="col">Diff</th></tr></thead>
 <tbody>
 {% for o in offerings %}
 <tr>
   <td scope="row" title="{{o.title}}">{{o.name}}</td>
-  <td>{% for instructor in o.instructors %}<a href="mailto:{{ instructor.email }}">{{ instructor.sortname }}</a>{% if not forloop.first %}, {% endif %}{% endfor %}</td>
-  <td>{{ o|default_bu:posting|floatformat:2 }}</td>
+  <td>{% for instructor in o.instructors %}<a href="mailto:{{ instructor.email }}">{{ instructor.sortname }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+  <td class="num">{{o.enrl_tot}}</td>
+  <td class="num">{{ o|display_bu:posting }}</td>
+  <td class="num"></td>
+  <td class="num"></td>
 </tr>	
 {% endfor %}
 </tbody>
 </table>
+<p class="helptext">
+These offerings have been excluded from the above because they are in the exclusion list of the <a href="{% url ta.views.edit_posting post_slug=posting.slug %}">original posting</a>: 
+{% for o in excluded %}{{ o.name }}{% if not forloop.last %}, {% endif %}{% endfor %}.
+</p>
 </div>
 
 {% endblock %}

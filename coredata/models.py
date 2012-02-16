@@ -2,7 +2,7 @@ from django.db import models
 from autoslug import AutoSlugField
 #from timezones.fields import TimeZoneField
 from django.conf import settings
-import datetime, urlparse
+import datetime, urlparse, decimal
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
 from jsonfield import JSONField
@@ -334,15 +334,15 @@ class CourseOffering(models.Model):
         # 'uses_svn': create SVN repos for this course? (default False)
         # 'indiv_svn': do instructors/TAs have access to student SVN repos? (default False)
         # 'combined': is this a combined section (e.g. two crosslisted sections integrated)
-        # 'req_bu': number of TA base units required
+        # 'extra_bu': number of TA base units required
     
-    defaults = {'taemail': None, 'url': None, 'labtut': False, 'indiv_svn': False, 'combined': False, 'uses_svn': False, 'req_bu': 0}
+    defaults = {'taemail': None, 'url': None, 'labtut': False, 'indiv_svn': False, 'combined': False, 'uses_svn': False, 'extra_bu': '0'}
     labtut, set_labtut = getter_setter('labtut')
     url, set_url = getter_setter('url')
     taemail, set_taemail = getter_setter('taemail')
     indiv_svn, set_indiv_svn = getter_setter('indiv_svn')
     combined, set_combined = getter_setter('combined')
-    req_bu, set_req_bu = getter_setter('req_bu')
+    extra_bu_str, set_extra_bu_str = getter_setter('extra_bu')
     
     def autoslug(self):
         # changed slug format for fall 2011
@@ -381,6 +381,11 @@ class CourseOffering(models.Model):
     def student_count(self):
         return self.members.filter(person__role='STUD').count()
     
+    def extra_bu(self):
+        return decimal.Decimal(self.extra_bu_str())
+    def set_extra_bu(self, v):
+        assert type(v)==decimal.Decimal
+        self.set_extra_bu_str(str(v))
     def set_course(self, save=True):
         """
         Set this objects .course field to a sensible value, creating a Course object if necessary.
