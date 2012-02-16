@@ -265,7 +265,7 @@ urlpatterns += patterns('',
     # Graduate related End
 
     # For RA application
-    url(r'ra/$', 'ra.views.index'),
+    url(r'ra/$', 'ra.views.appointments'),
     url(r'ra/new$', 'ra.views.new'),
 
    

@@ -171,16 +171,16 @@ function offering_autocomplete(id) {
 
 // turn on StudentSearch autocomplete for field with this id.
 function student_autocomplete(id) {
-  var regexp = /(,.*)/;
-  var label;
+  //var regexp = /(,.*)/;
+  //var label;
   $('#' + id).each(function() {
     $(this).autocomplete({
       source:'/data/students',
       minLength: 2,
       select: function(event, ui){
         $(this).data("val", ui.item.value);
-        label = ui.item.label.replace(regexp, "")
-        $('#' + id).parent().after("<li>" + label +"</li>");
+        //label = ui.item.label.replace(regexp, "")
+        //$('#' + id).parent().after("<li>" + label +"</li>");
       }
     }).bind('blur', function(){
       $(this).val($(this).data("val"))

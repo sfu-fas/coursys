@@ -52,17 +52,17 @@ class RAAppointment(models.Model):
     account = models.ForeignKey(Account, null=False, blank=False)
     start_date = models.DateField(auto_now=False, auto_now_add=False)
     end_date = models.DateField(auto_now=False, auto_now_add=False)
-    pay_type = models.CharField(max_length=60, choices=PAY_TYPE_CHOICES)
+    pay_period = models.CharField(max_length=60, choices=PAY_TYPE_CHOICES)
     # The amount paid hourly, biweekly, or as a lump sum.
-    pay_amount = models.DecimalField(max_digits=6, decimal_places=2)
+    pay_amount = models.DecimalField(max_digits=6, decimal_places=2, help_text="The amount paid either hourly, biweekly, or in a lump sum.")
     employment_hours = models.PositiveSmallIntegerField()
     employment_minutes = models.PositiveSmallIntegerField(default=0)
     units = models.DecimalField(max_digits=6, decimal_places=3)
-    reappointment = models.BooleanField(default=False)
-    medical_benefits = models.BooleanField(default=False)
-    dental_benefits = models.BooleanField(default=False)
-    notes = models.TextField(blank=True);
-    comments = models.TextField(blank=True);
+    reappointment = models.BooleanField(default=False, help_text="Are we re-appointing to the same position?")
+    medical_benefits = models.BooleanField(default=False, help_text="50% of Medical Service Plan")
+    dental_benefits = models.BooleanField(default=False, help_text="50% of Dental Plan")
+    notes = models.TextField(blank=True, help_text="<p>Biweekly emplyment earnings rates must include vacation pay, hourly rates will automatically have vacation pay added. The employer cost of statutory benefits will be charged to the amount to the earnings rate.</p>");
+    comments = models.TextField(blank=True, help_text="For internal use");
     def autoslug(self):
         return make_slug(self.unit.label + '-' + unicode(self.start_date.year) + '-' + self.person.userid)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)

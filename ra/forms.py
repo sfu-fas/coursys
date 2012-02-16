@@ -6,6 +6,7 @@ from coredata.models import Person, Role
 
 class RAForm(forms.ModelForm):
     person = forms.CharField(label='Hire')
+    units = forms.DecimalField(max_digits=6, decimal_places=3, label="Pay period units")
 
     def clean_person(self):
         return Person.objects.get(emplid=self.cleaned_data['person'])
