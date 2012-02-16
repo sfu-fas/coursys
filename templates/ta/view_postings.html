@@ -42,7 +42,7 @@
 <h2>All Open Postings</h2>
 {% endif %}
 
-<p>The following postings are currently open for applications:</p>
+<p>The following departments are accepting applications:</p>
 <ul>
 {% for p in postings %}
 <li><a href="{% url ta.views.new_application post_slug=p.slug %}">{{p}}</a></li>

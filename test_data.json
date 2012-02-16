@@ -16453,5 +16453,17 @@
   },
   "model": "coredata.role",
   "pk": 8
+ },
+  {
+  "fields": {
+   "semester": 4,
+   "unit": 1,
+   "opens": "2012-02-16",
+   "closes":"2012-03-07"
+  },
+  "model": "ta.TAPosting",
+  "pk": 1
  }
+ 
+ 
 ]
