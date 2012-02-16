@@ -368,7 +368,7 @@
    "semester": 3,
    "slug": "2012sp-cmpt-165-c1",
    "subject": "CMPT",
-   "title": "Intro Internet  World Wide Web ç ?,
+   "title": "Intro Internet  World Wide Web ç ´",
    "wait_tot": 10
   },
   "model": "coredata.courseoffering",
@@ -391,7 +391,7 @@
    "semester": 3,
    "slug": "2012sp-cmpt-165-c2",
    "subject": "CMPT",
-   "title": "Intro Internet  World Wide Web ç ?,
+   "title": "Intro Internet  World Wide Web ç ´",
    "wait_tot": 8
   },
   "model": "coredata.courseoffering",
@@ -414,7 +414,7 @@
    "semester": 3,
    "slug": "2012sp-cmpt-165-c3",
    "subject": "CMPT",
-   "title": "Intro Internet  World Wide Web ç ?,
+   "title": "Intro Internet  World Wide Web ç ´",
    "wait_tot": 9
   },
   "model": "coredata.courseoffering",
@@ -11351,7 +11351,7 @@
    "config": "{}",
    "emplid": 200000183,
    "first_name": "Jrbcytdm",
-   "last_name": "Studentç ?,
+   "last_name": "Studentç ´",
    "middle_name": "",
    "pref_first_name": "Jrbc",
    "userid": "0aaa30"
@@ -12026,10 +12026,10 @@
   "fields": {
    "config": "{}",
    "emplid": 200000149,
-   "first_name": "Keç ?,
-   "last_name": "Wangç ?,
+   "first_name": "Keç ´",
+   "last_name": "Wangç ´",
    "middle_name": "",
-   "pref_first_name": "Keç ?,
+   "pref_first_name": "Keç ´",
    "userid": "wangk"
   },
   "model": "coredata.person",
@@ -15229,11 +15229,11 @@
    "deleted": false,
    "due_date": "2012-03-05 00:00:00",
    "group": false,
-   "name": "Assignment ç ?,
+   "name": "Assignment ç ´",
    "offering": 56,
    "percent": "10",
    "position": 1,
-   "short_name": "Aç ?,
+   "short_name": "Aç ´",
    "slug": "a1",
    "status": "RLS"
   },
@@ -15263,11 +15263,11 @@
    "deleted": false,
    "due_date": "2012-03-25 00:00:00",
    "group": true,
-   "name": "Projectç ?,
+   "name": "Projectç ´",
    "offering": 56,
    "percent": "40",
    "position": 3,
-   "short_name": "Projç ?,
+   "short_name": "Projç ´",
    "slug": "proj",
    "status": "URLS"
   },
@@ -15405,7 +15405,7 @@
   "fields": {
    "activity": 1,
    "deleted": false,
-   "description": "The code you're submitting.ç ?,
+   "description": "The code you're submitting.ç ´",
    "position": 1,
    "slug": "code-file",
    "specified_filename": "",
@@ -15445,7 +15445,7 @@
  {
   "fields": {
    "deleted": false,
-   "description": "Part 1 was done well and seems to work.ç ?,
+   "description": "Part 1 was done well and seems to work.ç ´",
    "max_mark": "5",
    "numeric_activity": 1,
    "position": 1,
@@ -15473,7 +15473,7 @@
    "courseoffering": 56,
    "groupForSemester": true,
    "manager": 106,
-   "name": "AnotherGroupç ?,
+   "name": "AnotherGroupç ´",
    "slug": "g-anothergroup",
    "svn_slug": "g-anothergroup"
   },
@@ -15485,7 +15485,7 @@
    "courseoffering": 56,
    "groupForSemester": true,
    "manager": 102,
-   "name": "SomeGroupç ?,
+   "name": "SomeGroupç ´",
    "slug": "g-somegroup",
    "svn_slug": "g-somegroup"
   },
@@ -15621,7 +15621,7 @@
    "file_mediatype": "",
    "hidden": false,
    "student": 53,
-   "text": "This is a note about the student 0aaa0\n\nHe seems nice.ç ?
+   "text": "This is a note about the student 0aaa0\n\nHe seems nice.ç ´"
   },
   "model": "advisornotes.advisornote",
   "pk": 1
@@ -15635,7 +15635,7 @@
    "file_mediatype": "",
    "hidden": false,
    "student": 53,
-   "text": "This is another note about the student.\n\nHe seems less nice now.ç ?
+   "text": "This is another note about the student.\n\nHe seems less nice now.ç ´"
   },
   "model": "advisornotes.advisornote",
   "pk": 2
@@ -16454,6 +16454,4 @@
   "model": "coredata.role",
   "pk": 8
  }
- 
- 
 ]
