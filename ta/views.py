@@ -205,7 +205,7 @@ def new_application(request, post_slug):
             f.fields['course'].choices = course_choices
         ta_form = TAApplicationForm(prefix='ta')
         campus_names = CampusPreference.objects.order_by('campus').values('campus').distinct() 
-        campus_preferences = CampusPreference.objects.order_by('campus','rank')
+        campus_preferences = CampusPreference.objects.all()
         skill_names = Skill.objects.filter(unit=posting.unit).order_by('name').values('name').distinct() 
         skills = Skill.objects.filter(unit=posting.unit).order_by('name','level')
         context = {
