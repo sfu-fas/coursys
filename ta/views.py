@@ -253,6 +253,21 @@ def view_postings(request):
     return render(request, 'ta/view_postings.html', context) 
 
 @requires_role("TAAD")
+def assign_tas(request, post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug)
+    if posting.unit not in request.units:
+        ForbiddenResponse(request, 'You cannot access this posting')
+    
+    apps = TAApplication.objects.filter(unit=posting.unit, semester=posting.semester)
+    offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit)
+    # ignore excluded courses
+    excl = set(posting.excluded())
+    offerings = [o for o in offerings if o.course_id not in excl]
+    
+    context = {'posting': posting, 'offerings': offerings}
+    return render(request, 'ta/assign_tas.html', context) 
+
+@requires_role("TAAD")
 def all_contracts(request):
     contracts = TAContract.objects.all()
     postings = TAPosting.objects.filter(unit__in=request.units)
