@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}RA Appointment Search{% endblock %}
+{% block h1 %}RA Appointment Search{% endblock %}
+
+{% block headextra %}<script type="text/javascript">
+//<![CDATA[
+$(document).ready(function() {
+  $("id_search").focus();
+  student_autocomplete('id_search');
+});
+//]]></script>{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; RA Appointment Search</li>{% endblock %}
+
+{% block actions %}
+<div id="actions">
+<h2>Actions</h2>
+<ul>
+<li><a href="{% url ra.views.new %}">New RA appointment</a></li>
+</ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<form action="" method="post" width="100">{% csrf_token %}
+{{form.as_p}}
+<p><input class="submit" type="submit" value="Submit" /></p>
+</form>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}RA Appointments for {{ student.first_name}} {{ student.last_name }}{% endblock %}
+{% block h1 %}RA Appointments for {{ student.first_name}} {{ student.last_name }}{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url ra.views.search %}">RA Appointment Search</a></li><li>&gt; Appointments for {{ student.first_name }} {{ student.last_name }}</li>{% endblock %}
+
+{% block actions %}
+<div id="actions">
+<h2>Actions</h2>
+<ul>
+<li><a href="{% url ra.views.new %}">New RA appointment</a></li>
+</ul>
+</div>
+{% endblock %}
+
+{%block content%}
+<div class="table_container">
+    <table class="info">
+        <tbody>
+	    <tr>
+	    	<th class="ui-state-default">Last Name</th>
+            <td>{{ student.last_name }}</td>
+        </tr>
+	    <tr>
+            <th class="ui-state-default">First Name</th>
+            <td>{{ student.first_name }}</td>
+        </tr>
+	    <tr>
+            <th class="ui-state-default">Middle Name</th>
+            <td>{{ student.middle_name }}</td>
+        </tr>
+	    <tr>
+            <th class="ui-state-default">Student Number</th>
+            <td>{{ student.emplid }}</td>
+        </tr>
+	    <tr>
+            <th class="ui-state-default">Email Address</th>
+            <td><a href="mailto:{{ student.email }}">{{ student.email }}</a></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+{%if appointments %}
+  {% for appointment in appointments %}
+    <h2 class="appointment show" id="appointment-{{appointment.id}}">{{appointment.created_at}} by {{appointment.hiring_faculty.first_name}} {{appointment.hiring_faculty.last_name}}</h2>
+  {% endfor %}
+{%else%}
+	<p>No notes yet</p>
+{%endif%}
+
+{%endblock content%}
