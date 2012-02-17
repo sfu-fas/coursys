@@ -52,7 +52,7 @@
 	</table>
 </div>
 <div class="datatable_container bigdatatable">
-	<table class="display" id="grads">
+	<table class="display" id="missing_req">
 		<thead>
 			<tr>
 				<th>Missing Requirement(s)</th>
@@ -69,10 +69,9 @@
 			{%empty%}
 			<tr>
 				<td>
-
-					<center>
-						Student has completed all requirements in the program.
-					</center></td>
+				<center>
+					Student has completed all requirements in the program.
+				</center></td>
 			</tr>
 			{% endfor %}
 		</tbody>
@@ -82,17 +81,61 @@
 	<form method="post" action="{% url grad.views.manage_requirements grad_slug=grad.slug %}">
 		{% csrf_token %}
 		{{ req_formset.management_form }}
+		{% comment %}
 		<fieldset>
 			<legend>
 				Completed Requirements
 			</legend>
-			{% for r in req_formset.forms %}
-			{{ r|as_dl_2 }}
-			{% endfor %}
+			<table>
+				{% for r in req_formset %}
+				{{ r }}
+				{% endfor %}
+			</table>
 			<p>
 				<input class="submit" type="submit" value="Save">
 			</p>
 		</fieldset>
+		{% endcomment %}
+		<div class="datatable_container bigdatatable">
+			<table class="display" id="grads">
+				<thead>
+					<tr>
+						<th>Requirement</th>
+						<th>Semster</th>
+						<th>Date</th>
+						<th>Notes</th>
+						{% if req_formset.can_delete %} <th>Delete</th>
+						{% endif %}
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td> </td>
+						<td> Requirement completed by</td>
+						<td> </td>
+						<td> </td>
+						{% if req_formset.can_delete %} <td></td>
+						{% endif %}
+					</tr>
+					{% for r in req_formset %}
+					<tr>{{ r.id }}
+						{% if form.non_field_errors %}
+						<td>{{ form.non_field_errors }}</td>
+						{% endif %}
+						<td> {{ r.requirement }} {{ r.requirement.errors }}</td>
+						<td> {{ r.semester }} {{ r.semester.errors }}</td>
+						<td> {{ r.date }} {{ r.date.errors }}</td>
+						<td> {{ r.notes }} {{ r.notes.errors }}</td>
+						{% if req_formset.can_delete %} <td> {{ r.DELETE }}</td>
+						{% endif %}
+					</tr>
+					{% endfor%}
+				</tbody>
+			</table>
+			<p>
+				<input class="submit" type="submit" value="Save">
+			</p>
+		</div>
 	</form>
 	<a class="button" href="{% url grad.views.view_all grad_slug=grad.slug %}">Cancel</a>
 </div>
