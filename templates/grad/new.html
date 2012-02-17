@@ -25,12 +25,6 @@
 			</legend>
 			{{ grad_form|as_dl_2 }}
 		</fieldset>
-		<fieldset>
-			<legend>
-				Completed Requirements
-			</legend>
-			{{ req_form|as_dl_2 }}
-		</fieldset>		
 			{% for s in supervisor_formset%}
 			{{ s|as_dl_2 }}
 			{% endfor %}

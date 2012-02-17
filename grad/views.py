@@ -5,11 +5,12 @@ from grad.forms import *
 from coredata.models import Person, Role, Unit, Semester, CAMPUS_CHOICES
 from django.template import RequestContext
 from django import forms
-from django.forms.models import modelformset_factory
+from django.forms.models import modelformset_factory, inlineformset_factory
 from courselib.auth import *
 from django.core import serializers
 from django.utils.safestring import mark_safe
 import datetime
+from django.forms.formsets import formset_factory
 
 # get semester based on input datetime. defaults to today
 # returns semseter object
@@ -48,15 +49,15 @@ def view_all(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
     supervisors = Supervisor.objects.filter(student=grad, position=1)# show the main supervisor (position = 1)
     status = get_list_or_404(GradStatus, student=grad)
-    completed_req = get_list_or_404(CompletedRequirement, student=grad)
+    missing_req = GradRequirement.objects.filter(program=grad.program)
+    completed_req = CompletedRequirement.objects.filter(student=grad)
+    #get_list_or_404(CompletedRequirement, student=grad)
+    
     # set frontend defaults
     page_title = "%s 's Graduate Student Record" % (grad.person.first_name)
     crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
+
     gp = grad.person.get_fields
-    if (supervisors):
-        supervisors = supervisors[0].get_fields
-    else:
-        supervisors = None
     gs = [s.get_fields for s in status]
     context = {
                'page_title' : page_title,
@@ -65,6 +66,7 @@ def view_all(request, grad_slug):
                'gp' : gp,
                'gs' : gs,
                'supervisors' : supervisors,
+               'missing_req' : missing_req,
                'completed_req' : completed_req           
                }
     return render(request, 'grad/view_all.html', context)
@@ -147,26 +149,30 @@ def update_supervisors(request, grad_slug):
 @requires_role("GRAD")
 def manage_requirements(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)    
-    req = get_object_or_404(CompletedRequirement, student=grad)
+    missing_req = GradRequirement.objects.filter(program=grad.program)
+    num_missing = missing_req.count()
     
+    ReqFormSet = inlineformset_factory(GradStudent, CompletedRequirement, max_num=num_missing, can_order=False, can_delete=False) 
     if request.method == 'POST':
-        req_form = CompletedRequirementForm(request.POST, instance=req, prefix="req")        
-        if req_form.is_valid():
-            req_form.save()
+        req_formset = ReqFormSet(request.POST, request.FILES, instance=grad, prefix='req')        
+        if req_formset.is_valid():
+            req_formset.save()
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug} ))
     else:
-        req_form = CompletedRequirementForm(instance=req, prefix="req")     
+        req_formset = ReqFormSet(instance=grad,  prefix='req')
 
     # set frontend defaults
     page_title = "%s's Requirements Record" % (grad.person.first_name)
     crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
     gp = grad.person.get_fields     
     context = {
-               'req_form': req_form,
+               #'req_form': req_form,
+               'req_formset': req_formset,
                'page_title' : page_title,
                'crumb' : crumb,
                'gp' : gp,
-               'grad' : grad     
+               'grad' : grad,
+               'missing_req' : missing_req     
                }
     return render(request, 'grad/manage_requirements.html', context)
 
@@ -180,8 +186,9 @@ def manage_academics(request, grad_slug):
         if grad_form.is_valid():
             gradF = grad_form.save(commit=False)
             gradF.modified_by = request.user.username
+            grad.slug = None
             gradF.save()
-            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug} ))
+            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad.slug} ))
     else:
         grad_form = GradAcademicForm(instance=grad, prefix="grad")
 
@@ -234,17 +241,17 @@ def manage_status(request, grad_slug):
 def new(request):
     if request.method == 'POST':
         grad_form = GradStudentForm(request.POST, prefix="grad")
-        req_form = CompletedRequirementForm(request.POST, prefix="req")
+        #req_form = CompletedRequirementForm(request.POST, prefix="req")
         supervisors_form = PotentialSupervisorForm(request.POST, prefix="sup")
         status_form = GradStatusForm(request.POST, prefix="stat")
         if grad_form.is_valid() and supervisors_form.is_valid() and status_form.is_valid() :
             gradF = grad_form.save(commit=False)
             gradF.created_by = request.user.username
             gradF.save()
-            reqF = req_form.save(commit=False)
-            req_form.cleaned_data["student"] = gradF
-            reqF.student_id = gradF.id
-            req_form.save()
+            #reqF = req_form.save(commit=False)
+            #req_form.cleaned_data["student"] = gradF
+            #reqF.student_id = gradF.id
+            #req_form.save()
             superF = supervisors_form.save(commit=False)
             supervisors_form.cleaned_data["student"] = gradF
             superF.student_id = gradF.id
@@ -256,12 +263,12 @@ def new(request):
             statusF.created_by = request.user.username
             statusF.student_id = gradF.id
             status_form.save()
-            return HttpResponseRedirect(reverse(index))
+            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':gradF.slug} ))
     else:
-        req_list = get_list_or_404(GradRequirement)
+        #req_list = get_list_or_404(GradRequirement)
         prog_list = get_list_or_404(GradProgram)
         grad_form = GradStudentForm(prefix="grad", initial={'program': prog_list[0], 'campus': CAMPUS_CHOICES[0][0] })
-        req_form = CompletedRequirementForm(prefix="req", initial={'semester': get_semester(), 'requirement': req_list[0]})
+        #req_form = CompletedRequirementForm(prefix="req", initial={'semester': get_semester(), 'requirement': req_list[0]})
         supervisors_form = PotentialSupervisorForm(prefix="sup",)  
         status_form = GradStatusForm(prefix="stat", initial={'status': 'ACTI', 'start': get_semester() })  
         #initial: 'start' returns nothing if there are no future semester available in DB 
@@ -271,7 +278,7 @@ def new(request):
     crumb = 'New Grad' 
     context = {
                'grad_form': grad_form,
-               'req_form': req_form,
+               #'req_form': req_form,
                'supervisors_form': supervisors_form,
                'status_form': status_form,               
                'page_title' : page_title,
@@ -289,7 +296,7 @@ def new_program(request):
             form.save()
             return HttpResponseRedirect(reverse(programs))
     else:
-        form = GradProgramForm()     
+        form = GradProgramForm(initial={'unit': 2})     
 
     page_title = 'New Program'  
     crumb = 'New Program' 
@@ -335,7 +342,7 @@ def new_requirement(request):
             form.save()
             return HttpResponseRedirect(reverse(requirements))
     else:
-        form = GradRequirementForm()     
+        form = GradRequirementForm(initial={'unit': 2})     
 
     page_title = 'New Requirement'  
     crumb = 'New Requirement' 

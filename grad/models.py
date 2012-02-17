@@ -117,6 +117,7 @@ class GradRequirement(models.Model):
     A requirement that a unit has for grad students
     """
     unit = models.ForeignKey(Unit)
+    program = models.ForeignKey(GradProgram, null=False, blank=False)       
     description = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')
@@ -128,8 +129,8 @@ class CompletedRequirement(models.Model):
     """
     A requirement met by a student (or notes about them meeting it in the future)
     """
-    requirement = models.ForeignKey(GradRequirement)
     student = models.ForeignKey(GradStudent)
+    requirement = models.ForeignKey(GradRequirement)    
     semester = models.ForeignKey(Semester, null=True,
             help_text="Semester when the requirement was completed")
     date = models.DateField(null=True, blank=True,

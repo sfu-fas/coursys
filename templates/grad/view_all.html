@@ -5,17 +5,23 @@
 
 {% block actions %}
 <div id="actions">
-<h2>Actions</h2>
-<ul>
-<li><a href="{% url grad.views.manage_academics grad_slug=grad.slug %}">Manage Academics</a></li>
-<li><a href="{% url grad.views.manage_requirements grad_slug=grad.slug  %}">Manage Requirements</a></li>
-<li><a href="{% url grad.views.manage_supervisors grad_slug=grad.slug  %}">Manage Supervisors</a></li>
-<li><a href="{% url grad.views.manage_status grad_slug=grad.slug  %}">Manage Status</a></li>
-</ul>
+	<h2>Actions</h2>
+	<ul>
+		<li>
+			<a href="{% url grad.views.manage_academics grad_slug=grad.slug %}">Manage Academics</a>
+		</li>
+		<li>
+			<a href="{% url grad.views.manage_requirements grad_slug=grad.slug  %}">Manage Requirements</a>
+		</li>
+		<li>
+			<a href="{% url grad.views.manage_supervisors grad_slug=grad.slug  %}">Manage Supervisors</a>
+		</li>
+		<li>
+			<a href="{% url grad.views.manage_status grad_slug=grad.slug  %}">Manage Status</a>
+		</li>
+	</ul>
 </div>
 {% endblock %}
-
-
 
 {% block title %}{{page_title}}{% endblock %}
 {% block h1 %}{{page_title}}{% endblock %}
@@ -48,125 +54,191 @@
 		<legend>
 			Academics
 		</legend>
-			<table class="display">
-				<tbody>
-					<tr>
-						<td><dl>
-							<dt> <label>Grad Program :</label></dt>
-							<dd>{{ grad.program }}</dd>
-						</dl></td>
-						<td><dl>
-							<dt><label>Research Area : </label></dt>
-							<dd>{{grad.research_area}}</dd>
-						</dl></td>
-					</tr>
-					<tr>
-						<td><dl>
-							<dt> <label>Campus :</label></dt>
-							<dd>{{ grad.campus }}</dd>
-						</dl></td>
-						<td><dl>
-							<dt><label>English Fluency :</label></dt>
-							<dd>{{grad.english_fluency}}</dd>
-						</dl></td>
-					</tr>
-					<tr>
-						<td><dl>
-							<dt> <label>Mother Tongue :</label></dt>
-							<dd>{{ grad.mother_tongue }}</dd>
-						</dl></td>
-						<td><dl>
-							<dt><label>Canadian : </label></dt>
-							<dd>{{grad.is_canadian}}</dd>
-						</dl></td>
-					</tr>
-					<tr>
-						<td><dl>
-							<dt> <label>Passport Issued By :</label></dt>
-							<dd>{{ grad.passport_issued_by }}</dd>
-						</dl></td>
-						<td><dl>
-							<dt><label>Special Arrangements : </label></dt>
-							<dd>{{grad.special_arrangements}}</dd>
-						</dl></td>
-					</tr>															
-					<tr>
-						<td colspan="2"><dl>
-							<dt> <label>Comments :</label></dt>
-							<dd>{{ grad.comments }}</dd>
-						</dl></td>
-					</tr>
-					<tr>
-						<td colspan="2">
-							<div align="center"><p class="helptext">Last updated : {{grad.updated_at}}. By: 
-								{% if not grad.modified_by%}
-									{{grad.created_by}}
-								{% else %}
-									{{grad.modified_by}}
-								{% endif %}</p>
-							</div>
-						</td>
-					</tr>
-				</tbody>
-			</table>
+		<div align="right">
+			<a href="{% url grad.views.manage_academics grad_slug=grad.slug  %}">Manage Academics</a>
+		</div>		
+		<table class="display">
+			<tbody>
+				<tr>
+					<td>
+					<dl>
+						<dt>
+							<label>Grad Program :</label>
+						</dt>
+						<dd>
+							{{ grad.program }}
+						</dd>
+					</dl></td>
+					<td>
+					<dl>
+						<dt>
+							<label>Research Area : </label>
+						</dt>
+						<dd>
+							{{grad.research_area}}
+						</dd>
+					</dl></td>
+				</tr>
+				<tr>
+					<td>
+					<dl>
+						<dt>
+							<label>Campus :</label>
+						</dt>
+						<dd>
+							{{ grad.campus }}
+						</dd>
+					</dl></td>
+					<td>
+					<dl>
+						<dt>
+							<label>English Fluency :</label>
+						</dt>
+						<dd>
+							{{grad.english_fluency}}
+						</dd>
+					</dl></td>
+				</tr>
+				<tr>
+					<td>
+					<dl>
+						<dt>
+							<label>Mother Tongue :</label>
+						</dt>
+						<dd>
+							{{ grad.mother_tongue }}
+						</dd>
+					</dl></td>
+					<td>
+					<dl>
+						<dt>
+							<label>Canadian : </label>
+						</dt>
+						<dd>
+							{{grad.is_canadian}}
+						</dd>
+					</dl></td>
+				</tr>
+				<tr>
+					<td>
+					<dl>
+						<dt>
+							<label>Passport Issued By :</label>
+						</dt>
+						<dd>
+							{{ grad.passport_issued_by }}
+						</dd>
+					</dl></td>
+					<td>
+					<dl>
+						<dt>
+							<label>Special Arrangements : </label>
+						</dt>
+						<dd>
+							{{grad.special_arrangements}}
+						</dd>
+					</dl></td>
+				</tr>
+				<tr>
+					<td colspan="2">
+					<dl>
+						<dt>
+							<label>Comments :</label>
+						</dt>
+						<dd>
+							{{ grad.comments }}
+						</dd>
+					</dl></td>
+				</tr>
+				<tr>
+					<td colspan="2">
+					<div align="center">
+						<p class="helptext">
+							Last updated : {{grad.updated_at}}. By:
+							{% if not grad.modified_by%}
+							{{grad.created_by}}
+							{% else %}
+							{{grad.modified_by}}
+							{% endif %}
+						</p>
+					</div></td>
+				</tr>
+			</tbody>
+		</table>
 	</fieldset>
 </div>
-
-
 <div id="form_container">
 	<fieldset>
 		<legend>
 			Requirements
 		</legend>
-			<table class="display">
+		<div align="right">
+			<a href="{% url grad.views.manage_requirements grad_slug=grad.slug  %}">Manage Requirements</a>
+		</div>
+		<div class="datatable_container bigdatatable">
+			<table class="display" id="grads">
+				<thead>
+					<tr>
+						<th colspan="3"> Completed Requirment(s) </th>
+					</tr>
+					<tr>
+						<th>Requirement</th>
+						<th>Completed In</th>
+						<th>Date</th>
+					</tr>
+				</thead>
 				<tbody>
-					{% if completed_req %}
 					{% for s in completed_req %}
 					<tr>
-						<td><dl>
-							<dt> <label>Requirement :</label></dt>
-							<dd>{{ s.requirement }}</dd>
-						</dl></td>
-						<td><dl>
-							<dt><label>Completed in : </label></dt>
-							<dd>{{ s.semester }}</dd>
-						</dl></td>
+						<td>{{s.requirement}}</td>
+						<td>{{s.semester}}</td>
+						<td>{{s.date}}</td>
 					</tr>
+					{%empty%}
 					<tr>
-						<td><dl>
-							<dt> <label>Date :</label></dt>
-							<dd>{{ s.date }}</dd>
-						</dl></td>
-						<td></td>
-					</tr>
-					<tr>
-						<td colspan=2><dl>
-							<dt><label>Notes :</label></dt>
-							<dd>{{s.notes}}</dd>
-						</dl></td>
-					</tr>					
-					<tr>
-						<td colspan="2">
-							<div align="center"><p class="helptext">Last updated : {{s.updated_at}}.</p>
-							</div>
-						</td>
+						<td>
+						<p class="empty">
+							Student has not completed any requirements.
+						</p></td>
 					</tr>
 					{% endfor %}
-					{% endif %}	
 				</tbody>
 			</table>
+		</div>
+		<br />
+		<div class="datatable_container bigdatatable">
+			<table class="display" id="grads">
+				<thead>
+					<tr>
+						<th>Missing Requirement</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for s in missing_req %}
+					<tr>
+						<td>{{s.description}}</td>
+					</tr>
+					{%empty%}
+					<tr>
+						<td>
+						<p class="empty">
+							Student has completed all requirements in the program.
+						</p></td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
 	</fieldset>
 </div>
-
-
-
-
-
 <div id="form_container">
 	<fieldset>
 		<legend>
 			Supervisors
 		</legend>
+		<div align="right">
+			<a href="{% url grad.views.manage_supervisors grad_slug=grad.slug  %}">Manage Supervisors</a>
+		</div>		
 		<div class="table_container">
 			<table class="display">
 				<tbody>
@@ -201,6 +273,9 @@
 		<legend>
 			Status History
 		</legend>
+		<div align="right">
+			<a href="{% url grad.views.manage_status grad_slug=grad.slug  %}">Manage Status</a>
+		</div>		
 		<div class="table_container">
 			<table class="display">
 				<tbody>

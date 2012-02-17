@@ -56,21 +56,30 @@
 		<legend>
 			Missing Requirements
 		</legend>
-		<p class="empty">
-			Will contain information about missing requirements for department.
-		</p>
+		{% if missing_req %}
+		<ul>
+			{% for s in missing_req %}
+			<li>
+				[ {{ s.description }} ]
+			</li>
+			{% endfor %}
+		</ul>
+		{% endif %}
 	</fieldset>
 </div>
 <div id="form_container">
-	<form  method="POST">
+	<form method="post" action="{% url grad.views.manage_requirements grad_slug=grad.slug %}">
 		{% csrf_token %}
+		{{ req_formset.management_form }}
 		<fieldset>
 			<legend>
 				Completed Requirements
 			</legend>
-			{{ req_form|as_dl_2 }}
+			{% for r in req_formset.forms %}
+				{{ r|as_dl_2 }}
+			{% endfor %}
 			<p>
-				<input class="submit" type="submit" value="Update">
+				<input class="submit" type="submit" value="Save">
 			</p>
 		</fieldset>
 	</form>

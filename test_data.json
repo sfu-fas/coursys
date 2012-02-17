@@ -16081,6 +16081,7 @@
   "created_at": "2012-02-08 18:32:37",
   "description": "CMPT 891",
   "unit": 2,
+  "program": 1,
   "updated_at": "2012-02-08 18:32:37"
  },
  "model": "grad.gradrequirement",
@@ -16091,6 +16092,7 @@
   "created_at": "2012-02-08 18:33:05",
   "description": "CMPT 890",
   "unit": 2,
+  "program": 1,  
   "updated_at": "2012-02-08 18:33:05"
  },
  "model": "grad.gradrequirement",
