@@ -49,8 +49,12 @@ def view_all(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
     supervisors = Supervisor.objects.filter(student=grad, position=1)# show the main supervisor (position = 1)
     status = get_list_or_404(GradStatus, student=grad)
-    missing_req = GradRequirement.objects.filter(program=grad.program)
+    
+    #calculate missing reqs
     completed_req = CompletedRequirement.objects.filter(student=grad)
+    req = GradRequirement.objects.filter(program=grad.program)
+    for s in completed_req:
+        missing_req = req.exclude(description=s.requirement.description)
     #get_list_or_404(CompletedRequirement, student=grad)
     
     # set frontend defaults
@@ -149,10 +153,15 @@ def update_supervisors(request, grad_slug):
 @requires_role("GRAD")
 def manage_requirements(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)    
-    missing_req = GradRequirement.objects.filter(program=grad.program)
-    num_missing = missing_req.count()
     
-    ReqFormSet = inlineformset_factory(GradStudent, CompletedRequirement, max_num=num_missing, can_order=False, can_delete=False) 
+    #calculate/find missing reqs
+    completed_req = CompletedRequirement.objects.filter(student=grad)
+    req = GradRequirement.objects.filter(program=grad.program)
+    for s in completed_req:
+        missing_req = req.exclude(description=s.requirement.description)
+    num_missing = req.count()
+    
+    ReqFormSet = inlineformset_factory(GradStudent, CompletedRequirement, max_num=num_missing, can_order=False) 
     if request.method == 'POST':
         req_formset = ReqFormSet(request.POST, request.FILES, instance=grad, prefix='req')        
         if req_formset.is_valid():
