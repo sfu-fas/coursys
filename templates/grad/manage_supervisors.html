@@ -94,7 +94,7 @@
 		$("#form_btns").append('<input id="add_btn" class="submit" type="button" value="Add Another" onclick="add()" />');
 		var total_forms = $('#id_form-TOTAL_FORMS').val()*1;
 		var max_forms = $('#id_form-MAX_NUM_FORMS').val()*1;
-		if (total_forms*1+1 == max_forms){
+		if (total_forms*1 >= max_forms){
 			$("#add_btn").attr("disabled", true).css("background-color","#bba");
 		}
 	});
