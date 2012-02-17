@@ -53,6 +53,7 @@ def view_all(request, grad_slug):
     #calculate missing reqs
     completed_req = CompletedRequirement.objects.filter(student=grad)
     req = GradRequirement.objects.filter(program=grad.program)
+    missing_req = req
     for s in completed_req:
         missing_req = req.exclude(description=s.requirement.description)
     #get_list_or_404(CompletedRequirement, student=grad)
@@ -70,8 +71,8 @@ def view_all(request, grad_slug):
                'gp' : gp,
                'gs' : gs,
                'supervisors' : supervisors,
-               'missing_req' : missing_req,
-               'completed_req' : completed_req           
+               'completed_req' : completed_req,               
+               'missing_req' : missing_req         
                }
     return render(request, 'grad/view_all.html', context)
 
