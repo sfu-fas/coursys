@@ -62,7 +62,7 @@ class Supervisor(models.Model):
     Member (or potential member) of student's supervisory committee.
     """
     student = models.ForeignKey(GradStudent)
-    supervisor = models.ForeignKey(Person, help_text="Please choose a Supervisor.")
+    supervisor = models.ForeignKey(Person, blank=True, null=True, help_text="Please choose a Supervisor.")
     external = models.CharField(max_length=200, blank=True, null=True, help_text="Any supervisor not in our records.")
     position = models.SmallIntegerField(null=False)
     is_senior = models.BooleanField()
@@ -85,13 +85,13 @@ class Supervisor(models.Model):
 			# There's probably a more elegant way of doing this 
             elif field.name =="supervisor" or field.name == "student":
                 nameOfPerson = ""
-                if field.name == "supervisor": 
-                    nameOfPerson = Person.objects.get(id=field.value_to_string(self))
-                elif field.name == "student":
+                #if field.name == "supervisor": 
+                #    nameOfPerson = Person.objects.get(id=field.value_to_string(self))
+                if field.name == "student":
                     nameOfPerson = GradStudent.objects.get(id=field.value_to_string(self))
                 k.append([capfirst(field.verbose_name), nameOfPerson])
             else:
-                k.append([capfirst(field.verbose_name), field.value_to_string(self)])
+                k.append([capfirst(field.verbose_name), field.value_to_string(self) or None])
         return k        
     def __unicode__(self):
         return "%s supervising %s" % (self.supervisor or self.external, self.student.person)
@@ -129,8 +129,8 @@ class CompletedRequirement(models.Model):
     """
     A requirement met by a student (or notes about them meeting it in the future)
     """
+    requirement = models.ForeignKey(GradRequirement)
     student = models.ForeignKey(GradStudent)
-    requirement = models.ForeignKey(GradRequirement)    
     semester = models.ForeignKey(Semester, null=True,
             help_text="Semester when the requirement was completed")
     date = models.DateField(null=True, blank=True,

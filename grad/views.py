@@ -58,7 +58,7 @@ def index(request):
 def view_all(request, grad_slug):
     # will display academic, personal, FIN, status history, supervisor
     grad = get_object_or_404(GradStudent, slug=grad_slug)
-    supervisors = Supervisor.objects.filter(student=grad, position=1)# show the main supervisor (position = 1)
+    supervisors = Supervisor.objects.filter(student=grad)
     status_history = get_list_or_404(GradStatus, student=grad)
     
     #calculate missing reqs
@@ -102,10 +102,10 @@ def manage_supervisors(request, grad_slug):
     else:
         pot_supervisor = pot_supervisor[0]
         
-    supervisors_formset = modelformset_factory(Supervisor, form=SupervisorForm, extra=extra_form, max_num=4)(queryset=supervisors)
+    supervisors_formset = modelformset_factory(Supervisor, form=SupervisorForm, extra=extra_form, max_num=4)(queryset=supervisors,prefix="form")
     for f in supervisors_formset:
-        f.fields['supervisor'].choices = possible_supervisors([grad.program.unit])
-        #f.fields['position'].widget = forms.HiddenInput()
+        f.fields['supervisor'].choices = [("","External")] + possible_supervisors([grad.program.unit])
+        f.fields['position'].widget = forms.HiddenInput()
         if(extra_form==1):
             print f.fields['position'].initial
             f.fields['position'].initial = 1
@@ -135,7 +135,6 @@ def manage_supervisors(request, grad_slug):
                'crumb' : crumb,
                'grad' : grad,
                'gp' : gp,
-               'supervisors' : supervisors,
                }
     return render(request, 'grad/manage_supervisors.html', context)
 
@@ -143,18 +142,15 @@ def manage_supervisors(request, grad_slug):
 def update_supervisors(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
     if request.method == 'POST':
-        supervisors_formset = modelformset_factory(Supervisor, form=SupervisorForm, max_num=4)
-        modelformset = supervisors_formset(request.POST)
-        print modelformset.is_valid()
-        print "---"
-        if modelformset.is_valid():
-            
-            temp = modelformset.save(commit=False)
+        supervisors_formset = modelformset_factory(Supervisor, form=SupervisorForm)(request.POST,prefix="form")
+        if supervisors_formset.is_valid():
+            temp = supervisors_formset.save(commit=False)
             for entry in temp:
                 entry.student = grad
-            modelformset.save()
+            supervisors_formset.save()
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug} ))
         else:
+            print supervisors_formset.errors
             return HttpResponseRedirect(reverse(manage_supervisors, kwargs={'grad_slug':grad_slug}))
 
     else:

@@ -249,13 +249,15 @@
 			</tr>
 		</thead>
 		<tbody>
+			{% for supervisor in supervisors %}
 			<tr>
-				<td>Name of Internal/external</td>
-				<td>0</td>
-				<td>T/F, Yes/No</td>
-				<td>T/F, Yes/No</td>
-				<td>{{date.now}}</td>
+				<td>{% if supervisor.supervisor %}{{ supervisor.supervisor }}{% else %}{{ supervisor.external }}{% endif%}</td>
+				<td>{{ supervisor.position }}</td>
+				<td>{% if supervisor.position %}True{% else %}False {% endif %}</td>
+				<td>{% if supervisor.is_senior %}True{% else %}False {% endif %}</td>
+				<td>{{ supervisor.updated_at }}</td>
 			</tr>
+			{% endfor %}
 		</tbody>
 	</table>
 	<br />

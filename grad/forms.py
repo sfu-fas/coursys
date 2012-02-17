@@ -46,7 +46,7 @@ class SupervisorForm(ModelForm):
 
     def clean(self):
         data = self.cleaned_data
-        if 'supervisor' in data:
+        if 'supervisor' in data and not data['supervisor'] == None:
             if data['external']:
                 raise forms.ValidationError("Please enter only one of Supervisor or an External supervisor.")
         else:
