@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}RA Appointment for {{ student.first_name}} {{ student.last_name }}{% endblock %}
+{% block h1 %}RA Appointment for {{ student.first_name}} {{ student.last_name }}{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url ra.views.search %}">RA Appointment Search</a></li><li>&gt; <a href="/ra/{{student.userid}}"> Appointments for {{ student.first_name }} {{ student.last_name }} </a></li><li>&gt; {{ appointment.account.title }}: {{ appointment.start_date }} - {{ appointment.end_date}} {% endblock %}
+
+{% block actions %}
+<div id="actions">
+<h2>Actions</h2>
+<ul>
+<li><a href="">Update this appointment</a></li>
+</ul>
+</div>
+{% endblock %}
+
+{%block content%}
+
+
+{%endblock content%}

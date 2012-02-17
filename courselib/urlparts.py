@@ -32,4 +32,5 @@ APP_ID = '(?P<app_id>' + ID_RE + ')'
 UNIT_SLUG = '(?P<unit_slug>' + SLUG_RE + ')'
 GRAD_SLUG = '(?P<grad_slug>' + SLUG_RE + ')'
 POST_SLUG = '(?P<post_slug>' + SLUG_RE + ')'
+RA_SLUG = '(?P<ra_slug>' + SLUG_RE + ')'
 

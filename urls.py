@@ -265,12 +265,12 @@ urlpatterns += patterns('',
     # Graduate related End
 
     # For RA application
-    url(r'ra/$', 'ra.views.search'),
-    url(r'ra/appointments/' + USERID_SLUG + '/$', 'ra.views.student_appointments'),
-    url(r'ra/new$', 'ra.views.new'),
+    url(r'^ra/$', 'ra.views.search'),
+    url(r'^ra/' + USERID_SLUG + '/$', 'ra.views.student_appointments'),
+    url(r'^ra/new$', 'ra.views.new'),
+    url(r'^ra/view/' + RA_SLUG + '/$', 'ra.views.view')
 
    
-	
     
 )
 if not settings.DEPLOYED:
