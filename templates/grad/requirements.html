@@ -4,13 +4,14 @@
 
 {% block actions %}
 <div id="actions">
-<h2>Actions</h2>
-<ul>
-<li><a href="{% url grad.views.new_requirement %}">New Requirement</a></li>
-</ul>
+	<h2>Actions</h2>
+	<ul>
+		<li>
+			<a href="{% url grad.views.new_requirement %}">New Requirement</a>
+		</li>
+	</ul>
 </div>
 {% endblock %}
-
 
 {% block title %}{{page_title}}{% endblock %}
 {% block h1 %}{{page_title}}{% endblock %}
@@ -26,30 +27,50 @@
 
 {% block content %}
 <div class="datatable_container bigdatatable">
-    <table class="display" id="grads">
-        <thead>
-            <tr>
-                <th scope="col">Unit</th>
-				<th scope="col">Description</th>
-                <th scope="col">Created At</th>
-				<th scope="col">Updated At</th>	
-				<th scope="col">Manage</th>										
-            </tr>
+	<table class="display" id="grads">
+		<thead>
+			<tr>
+				<th>Unit</th>
+				<th>Description</th>
+				<th>Created At</th>
+				<th>Updated At</th>
+			</tr>
 		</thead>
-        <tbody>
-        {% for s in requirements %}
-        <tr>
-            <td>{{s.unit}}</td>
-            <td>{{s.description}}</td>
-            <td>{{s.created_at}}</td>
-            <td>{{s.updated_at}}</td>            
-             <td><a href="">Select</a></td>          
-        </tr>
-        {%empty%}
-        	<tr><td><p class="empty">There are currently no grad requirements stored in the database.</p></td></tr>
-        {% endfor %}
-        </tbody>
-    </table>
+		<tbody>
+			{% for s in requirements.object_list %}
+			<tr>
+				<td>{{s.unit}}</td>
+				<td>{{s.description}}</td>
+				<td>{{s.created_at}}</td>
+				<td>{{s.updated_at}}</td>
+			</tr>
+			{% empty %}
+			<tr>
+				<td>
+				<p class="empty">
+					There are currently no grad requirements stored in the database.
+				</p></td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
 </div>
+
+	<!-- Next/Prev page links  -->
+	{% if requirements.object_list and requirements.paginator.num_pages > 1 %}
+	<div class="pagination" align="center">
+			{% if requirements.has_previous %} 
+			<a href= "?page={{ requirements.previous_page_number }}">
+				Previous &lt;&lt; </a> 
+			{% endif %} 
+			<span class="current"> 
+				&nbsp;Page {{ requirements.number }} of {{ requirements.paginator.num_pages }} 
+			</span> 
+			{% if requirements.has_next %} 
+			<a href="?page={{ requirements.next_page_number }}"> 
+				&gt;&gt; Next </a> 
+			{% endif %} 
+	</div>
+	{% endif %}
 
 {% endblock %}

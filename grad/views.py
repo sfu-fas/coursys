@@ -11,6 +11,8 @@ from django.core import serializers
 from django.utils.safestring import mark_safe
 import datetime
 from django.forms.formsets import formset_factory
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage,\
+    InvalidPage
 
 # get semester based on input datetime. defaults to today
 # returns semseter object
@@ -31,6 +33,16 @@ def get_semester(date=datetime.date.today()):
 @requires_role("GRAD")
 def index(request):
     grads = GradStudent.objects.all()
+    paginator = Paginator(grads, 5)
+    
+    try: 
+        p = int(request.GET.get("page", '1'))
+    except ValueError: p = 1
+
+    try:
+        grads = paginator.page(p)
+    except (InvalidPage, EmptyPage):
+        grads = paginator.page(paginator.num_pages)    
     
     # set frontend defaults
     page_title = 'Graduate Student Records'  
@@ -335,11 +347,22 @@ def programs(request):
 @requires_role("GRAD")
 def requirements(request):
     requirements = GradRequirement.objects.all()
+    paginator = Paginator(requirements, 5)
+    
+    try: 
+        req = int(request.GET.get("page", '1'))
+    except ValueError: req = 1
+
+    try:
+        requirements = paginator.page(req)
+    except (InvalidPage, EmptyPage):
+        requirements = paginator.page(paginator.num_pages)
     
     page_title = 'Graduate Requirements'
     crumb = 'Grad Requirements'     
     context = {
-                'page_title' : page_title,
+               'req' : req,
+               'page_title' : page_title,
                'crumb' : crumb,
                'requirements': requirements                 
                }
