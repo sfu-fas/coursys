@@ -59,7 +59,7 @@ def view_all(request, grad_slug):
     # will display academic, personal, FIN, status history, supervisor
     grad = get_object_or_404(GradStudent, slug=grad_slug)
     supervisors = Supervisor.objects.filter(student=grad, position=1)# show the main supervisor (position = 1)
-    status = get_list_or_404(GradStatus, student=grad)
+    status_history = get_list_or_404(GradStatus, student=grad)
     
     #calculate missing reqs
     completed_req = CompletedRequirement.objects.filter(student=grad)
@@ -67,20 +67,18 @@ def view_all(request, grad_slug):
     missing_req = req    
     for s in completed_req:
         missing_req = missing_req.exclude(description=s.requirement.description)
-    #get_list_or_404(CompletedRequirement, student=grad)
     
     # set frontend defaults
     page_title = "%s 's Graduate Student Record" % (grad.person.first_name)
     crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
 
     gp = grad.person.get_fields
-    gs = [s.get_fields for s in status]
     context = {
                'page_title' : page_title,
                'crumb' : crumb,
                'grad' : grad,
                'gp' : gp,
-               'gs' : gs,
+               'status_history' : status_history,
                'supervisors' : supervisors,
                'completed_req' : completed_req,               
                'missing_req' : missing_req         
