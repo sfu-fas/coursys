@@ -1,20 +1,27 @@
-{% extends "grad/base.html" %}
+{% extends "base.html" %}
 {% load markup %}
 {% load mobile_tags %}
 {% load form_display %}
 
 {% block actions %}
 <div id="actions">
-<h2>Actions</h2>
-<ul>
-<li><a href="{% url grad.views.view_all grad_slug=grad.slug %}">View All Info</a></li>	
-<li class="newsec"><a href="{% url grad.views.manage_academics grad_slug=grad.slug %}">Manage Academics</a></li>
-<li><a href="{% url grad.views.manage_requirements grad_slug=grad.slug  %}">Manage Requirements</a></li>
-<li><a href="{% url grad.views.manage_supervisors grad_slug=grad.slug  %}">Manage Supervisors</a></li>
-</ul>
+	<h2>Actions</h2>
+	<ul>
+		<li>
+			<a href="{% url grad.views.view_all grad_slug=grad.slug %}">View All Info</a>
+		</li>
+		<li class="newsec">
+			<a href="{% url grad.views.manage_academics grad_slug=grad.slug %}">Manage Academics</a>
+		</li>
+		<li>
+			<a href="{% url grad.views.manage_requirements grad_slug=grad.slug  %}">Manage Requirements</a>
+		</li>
+		<li>
+			<a href="{% url grad.views.manage_supervisors grad_slug=grad.slug  %}">Manage Supervisors</a>
+		</li>
+	</ul>
 </div>
 {% endblock %}
-
 
 {% block title %}{{page_title}}{% endblock %}
 {% block h1 %}{{page_title}}{% endblock %}
@@ -45,19 +52,54 @@
 	</table>
 </div>
 <div id="form_container">
-	<form  method="POST">
+	<form method="post" action="{% url grad.views.manage_status grad_slug=grad.slug %}">
 		{% csrf_token %}
-		<fieldset>
-			<legend>
-				Past Status
-			</legend>
-			{{ status_form|as_dl_2 }}
+		{{ status_formset.management_form }}
+		<div class="datatable_container bigdatatable">
+			<table class="display" id="status">
+				<thead>
+					<tr>
+						<th colspan="5">Status History</th>
+					</tr>
+					<tr>
+						<th>Status</th>
+						<th>Start Semester</th>
+						<th>End Semester</th>
+						<th>Notes</th>
+						{% if status_formset.can_delete %} <th>Delete</th>
+						{% endif %}
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td></td>
+						<td>First semester of this status.</td>
+						<td>Final semester of this status.</td>
+						<td></td>
+					</tr>
+					{% for r in status_formset %}
+					{% if form.non_field_errors %}
+					<tr>
+						<td colspan="5">{{ form.non_field_errors }}</td>
+					</tr>
+					{% endif %}
+					<tr>
+						{{ r.id }} 
+						<td> {{ r.status }} {{ r.status.errors }}</td>
+						<td> {{ r.start }} {{ r.start.errors }}</td>
+						<td> {{ r.end }} {{ r.end.errors }}</td>
+						<td> {{ r.notes }} {{ r.notes.errors }}</td>
+						{% if status_formset.can_delete %} <td> {{ r.DELETE }}</td>
+						{% endif %}
+					</tr>
+					{% endfor%}
+				</tbody>
+			</table>
 			<p>
-				<input class="submit" type="submit" value="Update">
+				<input class="submit" type="submit" value="Save">
 			</p>
-		</fieldset>
+		</div>
 	</form>
-
 	<a class="button" href="{% url grad.views.view_all grad_slug=grad.slug %}">Cancel</a>
 </div>
 {% endblock %} 

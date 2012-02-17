@@ -163,13 +163,12 @@ class GradStatus(models.Model):
     status = models.CharField(max_length=4, choices=STATUS_CHOICES, blank=False)
     start = models.ForeignKey(Semester, null=False, related_name="start_semester",
             help_text="First semester of this status")
-    end = models.ForeignKey(Semester, null=True, related_name="end_semester",
+    end = models.ForeignKey(Semester, null=True, blank=True, related_name="end_semester",
             help_text="Final semester of this status: blank for ongoing")
     notes = models.TextField(blank=True, help_text="Other notes")
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.CharField(max_length=32, null=False, help_text='Grad Status added by.') 
 
     def get_fields(self):
         # make a list of field/values.

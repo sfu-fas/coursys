@@ -229,31 +229,32 @@ def manage_academics(request, grad_slug):
 @requires_role("GRAD")
 def manage_status(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
-    gs = get_list_or_404(GradStatus, student=grad)
-    status = gs[0]
 
+    StatusFormSet = inlineformset_factory(GradStudent, GradStatus, extra=1, can_order=False, can_delete=True) 
     if request.method == 'POST':
-        status_form = GradStatusForm(request.POST, instance=status, prefix="stat")
-        if status_form.is_valid():
-            status_form.save()
+        status_formset = StatusFormSet(request.POST, request.FILES, instance=grad, prefix='stat')
+        print "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO"
+        print status_formset.is_valid()
+        print status_formset.errors
+        print "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO"
+        print "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO"        
+        print "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO"
+        if status_formset.is_valid():
+            status_formset.save()
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug} ))
     else:
-        status_form = GradStatusForm(instance=status, prefix="stat")
-
+        status_formset = StatusFormSet(instance=grad,  prefix='stat') 
+    
     # set frontend defaults
     page_title = "%s 's Status Record" % (grad.person.first_name)
     crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
     gp = grad.person.get_fields
-    gs = [s.get_fields for s in gs]
-    status = status.get_fields
     context = {
-               'status_form': status_form,
+               'status_formset': status_formset,
                'page_title' : page_title,
                'crumb' : crumb,
                'grad' : grad,
-               'gp' : gp,
-               'gs' : gs,
-               'status' : status
+               'gp' : gp
                }
     return render(request, 'grad/manage_status.html', context)
     
