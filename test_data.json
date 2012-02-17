@@ -12026,10 +12026,10 @@
   "fields": {
    "config": "{}",
    "emplid": 200000149,
-   "first_name": "Ke破",
-   "last_name": "Wang破",
+   "first_name": "Ke",
+   "last_name": "Wang",
    "middle_name": "",
-   "pref_first_name": "Ke破",
+   "pref_first_name": "Ke",
    "userid": "wangk"
   },
   "model": "coredata.person",
@@ -15960,200 +15960,523 @@
  
  
  
-{
- "fields": {
-  "campus": "OFFST",
-  "comments": "Running up and down the track. ",
-  "created_at": "2012-02-08 21:02:02",
-  "created_by": "ggbaker",
-  "english_fluency": "All",
-  "is_canadian": true,
-  "modified_by": null,
-  "mother_tongue": "Chinese",
-  "passport_issued_by": "",
-  "person": 9,
-  "program": 3,
-  "research_area": "asdf",
-  "slug": "wangk-running",
-  "special_arrangements": false,
-  "updated_at": "2012-02-08 21:02:02"
- },
- "model": "grad.gradstudent",
- "pk": 1
-},
-{
- "fields": {
-  "campus": "METRO",
-  "comments": "Running 'til you drop. ",
-  "created_at": "2012-02-08 21:17:34",
-  "created_by": "ggbaker",
-  "english_fluency": "All",
-  "is_canadian": true,
-  "modified_by": null,
-  "mother_tongue": "Mandarin",
-  "passport_issued_by": "",
-  "person": 30,
-  "program": 2,
-  "research_area": "Waving on the bench",
-  "slug": "bobbyc-skipping",
-  "special_arrangements": true,
-  "updated_at": "2012-02-08 21:17:34"
- },
- "model": "grad.gradstudent",
- "pk": 2
-},
-{
- "fields": {
-  "created_at": "2012-02-06 15:32:02",
-  "created_by": "",
-  "description": "Jacking",
-  "label": "Jumping ",
-  "modified_by": null,
-  "slug": "jumping",
-  "unit": 2,
-  "updated_at": "2012-02-06 15:32:02"
- },
- "model": "grad.gradprogram",
- "pk": 1
-},
-{
- "fields": {
-  "created_at": "2012-02-06 15:32:15",
-  "created_by": "",
-  "description": "Johnny",
-  "label": "Skipping ",
-  "modified_by": null,
-  "slug": "skipping",
-  "unit": 2,
-  "updated_at": "2012-02-06 15:32:15"
- },
- "model": "grad.gradprogram",
- "pk": 2
-},
-{
- "fields": {
-  "created_at": "2012-02-06 15:32:24",
-  "created_by": "",
-  "description": "Puup",
-  "label": "Running ",
-  "modified_by": null,
-  "slug": "running",
-  "unit": 2,
-  "updated_at": "2012-02-06 15:32:24"
- },
- "model": "grad.gradprogram",
- "pk": 3
-},
-{
- "fields": {
-  "created_at": "2012-02-08 21:02:02",
-  "created_by": "ggbaker",
-  "external": null,
-  "is_potential": false,
-  "is_senior": false,
-  "modified_by": null,
-  "position": 0,
-  "student": 1,
-  "supervisor": 34,
-  "updated_at": "2012-02-08 21:02:02"
- },
- "model": "grad.supervisor",
- "pk": 3
-},
-{
- "fields": {
-  "created_at": "2012-02-08 21:17:34",
-  "created_by": "ggbaker",
-  "external": null,
-  "is_potential": false,
-  "is_senior": false,
-  "modified_by": null,
-  "position": 0,
-  "student": 2,
-  "supervisor": 135,
-  "updated_at": "2012-02-08 21:17:34"
- },
- "model": "grad.supervisor",
- "pk": 4
-},
-{
- "fields": {
-  "created_at": "2012-02-08 18:32:37",
-  "description": "CMPT 891",
-  "unit": 2,
-  "program": 1,
-  "updated_at": "2012-02-08 18:32:37"
- },
- "model": "grad.gradrequirement",
- "pk": 1
-},
-{
- "fields": {
-  "created_at": "2012-02-08 18:33:05",
-  "description": "CMPT 890",
-  "unit": 2,
-  "program": 1,  
-  "updated_at": "2012-02-08 18:33:05"
- },
- "model": "grad.gradrequirement",
- "pk": 2
-},
-{
- "fields": {
-  "created_at": "2012-02-08 21:02:02",
-  "date": null,
-  "notes": "Soon to be fulfilled.",
-  "requirement": 1,
-  "semester": 5,
-  "student": 1,
-  "updated_at": "2012-02-08 21:02:02"
- },
- "model": "grad.completedrequirement",
- "pk": 1
-},
-{
- "fields": {
-  "created_at": "2012-02-08 21:17:34",
-  "date": null,
-  "notes": "Completed but failed? ",
-  "requirement": 1,
-  "semester": 5,
-  "student": 2,
-  "updated_at": "2012-02-08 21:17:34"
- },
- "model": "grad.completedrequirement",
- "pk": 2
-},
-{
- "fields": {
-  "created_at": "2012-02-08 21:02:02",
-  "created_by": "ggbaker",
-  "end": null,
-  "notes": "",
-  "start": 3,
-  "status": "ACTI",
-  "student": 1,
-  "updated_at": "2012-02-08 21:02:02"
- },
- "model": "grad.gradstatus",
- "pk": 1
-},
-{
- "fields": {
-  "created_at": "2012-02-08 21:17:34",
-  "created_by": "ggbaker",
-  "end": null,
-  "notes": "",
-  "start": 3,
-  "status": "ACTI",
-  "student": 2,
-  "updated_at": "2012-02-08 21:17:34"
- },
- "model": "grad.gradstatus",
- "pk": 2
-},
+
  
  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+{
+  "fields": {
+   "campus": "BRNBY", 
+   "comments": "", 
+   "created_at": "2012-02-16 22:27:17", 
+   "created_by": "ggbaker", 
+   "english_fluency": "", 
+   "is_canadian": null, 
+   "modified_by": null, 
+   "mother_tongue": "", 
+   "passport_issued_by": "", 
+   "person": 51, 
+   "program": 1, 
+   "research_area": "Biology", 
+   "slug": "bbart-jumping", 
+   "special_arrangements": null, 
+   "updated_at": "2012-02-16 22:27:17"
+  }, 
+  "model": "grad.gradstudent", 
+  "pk": 1
+ }, 
+ {
+  "fields": {
+   "campus": "BRNBY", 
+   "comments": "", 
+   "created_at": "2012-02-16 22:27:36", 
+   "created_by": "ggbaker", 
+   "english_fluency": "", 
+   "is_canadian": null, 
+   "modified_by": null, 
+   "mother_tongue": "", 
+   "passport_issued_by": "", 
+   "person": 34, 
+   "program": 2, 
+   "research_area": "Hula Hoop", 
+   "slug": "petra-skipping", 
+   "special_arrangements": null, 
+   "updated_at": "2012-02-16 22:27:36"
+  }, 
+  "model": "grad.gradstudent", 
+  "pk": 2
+ }, 
+ {
+  "fields": {
+   "campus": "BRNBY", 
+   "comments": "", 
+   "created_at": "2012-02-16 22:28:10", 
+   "created_by": "ggbaker", 
+   "english_fluency": "", 
+   "is_canadian": null, 
+   "modified_by": null, 
+   "mother_tongue": "", 
+   "passport_issued_by": "", 
+   "person": 45, 
+   "program": 3, 
+   "research_area": "Drink water", 
+   "slug": "abulatov-running", 
+   "special_arrangements": null, 
+   "updated_at": "2012-02-16 22:28:10"
+  }, 
+  "model": "grad.gradstudent", 
+  "pk": 3
+ }, 
+ {
+  "fields": {
+   "campus": "BRNBY", 
+   "comments": "", 
+   "created_at": "2012-02-16 22:28:48", 
+   "created_by": "ggbaker", 
+   "english_fluency": "", 
+   "is_canadian": null, 
+   "modified_by": null, 
+   "mother_tongue": "", 
+   "passport_issued_by": "", 
+   "person": 28, 
+   "program": 2, 
+   "research_area": "Dealings", 
+   "slug": "dixon-skipping", 
+   "special_arrangements": null, 
+   "updated_at": "2012-02-16 22:28:48"
+  }, 
+  "model": "grad.gradstudent", 
+  "pk": 4
+ }, 
+ {
+  "fields": {
+   "campus": "BRNBY", 
+   "comments": "", 
+   "created_at": "2012-02-16 22:29:10", 
+   "created_by": "ggbaker", 
+   "english_fluency": "", 
+   "is_canadian": null, 
+   "modified_by": null, 
+   "mother_tongue": "", 
+   "passport_issued_by": "", 
+   "person": 64, 
+   "program": 2, 
+   "research_area": "sleeks", 
+   "slug": "0aaa11-skipping", 
+   "special_arrangements": null, 
+   "updated_at": "2012-02-16 22:29:10"
+  }, 
+  "model": "grad.gradstudent", 
+  "pk": 5
+ }, 
+ {
+  "fields": {
+   "campus": "BRNBY", 
+   "comments": "", 
+   "created_at": "2012-02-16 22:29:41", 
+   "created_by": "ggbaker", 
+   "english_fluency": "", 
+   "is_canadian": null, 
+   "modified_by": null, 
+   "mother_tongue": "", 
+   "passport_issued_by": "", 
+   "person": 14, 
+   "program": 2, 
+   "research_area": "Up and down", 
+   "slug": "funda-skipping", 
+   "special_arrangements": null, 
+   "updated_at": "2012-02-16 22:29:41"
+  }, 
+  "model": "grad.gradstudent", 
+  "pk": 6
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-06 15:32:02", 
+   "created_by": "", 
+   "description": "Jacking", 
+   "label": "Jumping ", 
+   "modified_by": null, 
+   "slug": "jumping", 
+   "unit": 2, 
+   "updated_at": "2012-02-06 15:32:02"
+  }, 
+  "model": "grad.gradprogram", 
+  "pk": 1
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-06 15:32:15", 
+   "created_by": "", 
+   "description": "Johnny", 
+   "label": "Skipping ", 
+   "modified_by": null, 
+   "slug": "skipping", 
+   "unit": 2, 
+   "updated_at": "2012-02-06 15:32:15"
+  }, 
+  "model": "grad.gradprogram", 
+  "pk": 2
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-06 15:32:24", 
+   "created_by": "", 
+   "description": "Puup", 
+   "label": "Running ", 
+   "modified_by": null, 
+   "slug": "running", 
+   "unit": 2, 
+   "updated_at": "2012-02-06 15:32:24"
+  }, 
+  "model": "grad.gradprogram", 
+  "pk": 3
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-16 22:27:17", 
+   "created_by": "ggbaker", 
+   "external": null, 
+   "is_potential": false, 
+   "is_senior": false, 
+   "modified_by": null, 
+   "position": 0, 
+   "student": 1, 
+   "supervisor": 33, 
+   "updated_at": "2012-02-16 22:27:17"
+  }, 
+  "model": "grad.supervisor", 
+  "pk": 1
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-16 22:27:36", 
+   "created_by": "ggbaker", 
+   "external": null, 
+   "is_potential": false, 
+   "is_senior": false, 
+   "modified_by": null, 
+   "position": 0, 
+   "student": 2, 
+   "supervisor": 131, 
+   "updated_at": "2012-02-16 22:27:36"
+  }, 
+  "model": "grad.supervisor", 
+  "pk": 2
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-16 22:28:10", 
+   "created_by": "ggbaker", 
+   "external": null, 
+   "is_potential": false, 
+   "is_senior": false, 
+   "modified_by": null, 
+   "position": 0, 
+   "student": 3, 
+   "supervisor": 52, 
+   "updated_at": "2012-02-16 22:28:10"
+  }, 
+  "model": "grad.supervisor", 
+  "pk": 3
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-16 22:28:48", 
+   "created_by": "ggbaker", 
+   "external": null, 
+   "is_potential": false, 
+   "is_senior": false, 
+   "modified_by": null, 
+   "position": 0, 
+   "student": 4, 
+   "supervisor": 50, 
+   "updated_at": "2012-02-16 22:28:48"
+  }, 
+  "model": "grad.supervisor", 
+  "pk": 4
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-16 22:29:10", 
+   "created_by": "ggbaker", 
+   "external": null, 
+   "is_potential": false, 
+   "is_senior": false, 
+   "modified_by": null, 
+   "position": 0, 
+   "student": 5, 
+   "supervisor": 46, 
+   "updated_at": "2012-02-16 22:29:10"
+  }, 
+  "model": "grad.supervisor", 
+  "pk": 5
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-16 22:29:41", 
+   "created_by": "ggbaker", 
+   "external": null, 
+   "is_potential": false, 
+   "is_senior": false, 
+   "modified_by": null, 
+   "position": 0, 
+   "student": 6, 
+   "supervisor": 56, 
+   "updated_at": "2012-02-16 22:29:41"
+  }, 
+  "model": "grad.supervisor", 
+  "pk": 6
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-08 18:32:37", 
+   "description": "CMPT 891", 
+   "program": 1, 
+   "unit": 2, 
+   "updated_at": "2012-02-08 18:32:37"
+  }, 
+  "model": "grad.gradrequirement", 
+  "pk": 1
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-08 18:33:05", 
+   "description": "CMPT 890", 
+   "program": 1, 
+   "unit": 2, 
+   "updated_at": "2012-02-08 18:33:05"
+  }, 
+  "model": "grad.gradrequirement", 
+  "pk": 2
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-16 21:11:24", 
+   "description": "Breathing", 
+   "program": 1, 
+   "unit": 2, 
+   "updated_at": "2012-02-16 21:11:24"
+  }, 
+  "model": "grad.gradrequirement", 
+  "pk": 4
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-16 21:11:31", 
+   "description": "Writing", 
+   "program": 3, 
+   "unit": 2, 
+   "updated_at": "2012-02-16 21:11:31"
+  }, 
+  "model": "grad.gradrequirement", 
+  "pk": 5
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-16 21:11:46", 
+   "description": "Gasping", 
+   "program": 2, 
+   "unit": 2, 
+   "updated_at": "2012-02-16 21:11:46"
+  }, 
+  "model": "grad.gradrequirement", 
+  "pk": 6
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-16 21:11:53", 
+   "description": "Quantity Rules", 
+   "program": 1, 
+   "unit": 2, 
+   "updated_at": "2012-02-16 21:11:53"
+  }, 
+  "model": "grad.gradrequirement", 
+  "pk": 7
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-16 21:12:02", 
+   "description": "Quality Rulez", 
+   "program": 3, 
+   "unit": 2, 
+   "updated_at": "2012-02-16 21:12:02"
+  }, 
+  "model": "grad.gradrequirement", 
+  "pk": 8
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-16 22:27:51", 
+   "date": null, 
+   "notes": "", 
+   "requirement": 1, 
+   "semester": 2, 
+   "student": 1, 
+   "updated_at": "2012-02-16 22:27:51"
+  }, 
+  "model": "grad.completedrequirement", 
+  "pk": 1
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-16 22:28:23", 
+   "date": null, 
+   "notes": "", 
+   "requirement": 5, 
+   "semester": 1, 
+   "student": 3, 
+   "updated_at": "2012-02-16 22:28:23"
+  }, 
+  "model": "grad.completedrequirement", 
+  "pk": 2
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-16 22:28:23", 
+   "date": null, 
+   "notes": "", 
+   "requirement": 8, 
+   "semester": 2, 
+   "student": 3, 
+   "updated_at": "2012-02-16 22:28:23"
+  }, 
+  "model": "grad.completedrequirement", 
+  "pk": 3
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-16 22:29:21", 
+   "date": null, 
+   "notes": "", 
+   "requirement": 6, 
+   "semester": 1, 
+   "student": 5, 
+   "updated_at": "2012-02-16 22:29:21"
+  }, 
+  "model": "grad.completedrequirement", 
+  "pk": 4
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-16 22:27:17", 
+   "created_by": "ggbaker", 
+   "end": null, 
+   "notes": "", 
+   "start": 3, 
+   "status": "ACTI", 
+   "student": 1, 
+   "updated_at": "2012-02-16 22:27:17"
+  }, 
+  "model": "grad.gradstatus", 
+  "pk": 1
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-16 22:27:36", 
+   "created_by": "ggbaker", 
+   "end": null, 
+   "notes": "", 
+   "start": 3, 
+   "status": "ACTI", 
+   "student": 2, 
+   "updated_at": "2012-02-16 22:27:36"
+  }, 
+  "model": "grad.gradstatus", 
+  "pk": 2
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-16 22:28:10", 
+   "created_by": "ggbaker", 
+   "end": null, 
+   "notes": "", 
+   "start": 3, 
+   "status": "ACTI", 
+   "student": 3, 
+   "updated_at": "2012-02-16 22:28:10"
+  }, 
+  "model": "grad.gradstatus", 
+  "pk": 3
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-16 22:28:48", 
+   "created_by": "ggbaker", 
+   "end": null, 
+   "notes": "", 
+   "start": 3, 
+   "status": "ACTI", 
+   "student": 4, 
+   "updated_at": "2012-02-16 22:28:48"
+  }, 
+  "model": "grad.gradstatus", 
+  "pk": 4
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-16 22:29:10", 
+   "created_by": "ggbaker", 
+   "end": null, 
+   "notes": "", 
+   "start": 3, 
+   "status": "ACTI", 
+   "student": 5, 
+   "updated_at": "2012-02-16 22:29:10"
+  }, 
+  "model": "grad.gradstatus", 
+  "pk": 5
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-16 22:29:41", 
+   "created_by": "ggbaker", 
+   "end": null, 
+   "notes": "", 
+   "start": 3, 
+   "status": "ACTI", 
+   "student": 6, 
+   "updated_at": "2012-02-16 22:29:41"
+  }, 
+  "model": "grad.gradstatus", 
+  "pk": 6
+ }, 
  
  
  

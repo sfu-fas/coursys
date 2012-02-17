@@ -11,8 +11,7 @@ from django.core import serializers
 from django.utils.safestring import mark_safe
 import datetime
 from django.forms.formsets import formset_factory
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage,\
-    InvalidPage
+from django.core.paginator import Paginator, EmptyPage, InvalidPage
 
 # get semester based on input datetime. defaults to today
 # returns semseter object
@@ -310,7 +309,7 @@ def new(request):
     return render(request, 'grad/new.html', context)
 
 ############################################################
-# temporary for adding new programs
+# temporary for adding new programs/requirements
 @requires_role("GRAD")
 def new_program(request):
     if request.method == 'POST':
