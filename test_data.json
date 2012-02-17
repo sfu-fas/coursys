@@ -16740,7 +16740,8 @@
   "fields": {
    "account_number": 5265, 
    "position_number": 23, 
-   "title": "M.Sc. RA - Foreign"
+   "title": "M.Sc. RA - Foreign",
+   "unit": 3
   }, 
   "model": "ra.account", 
   "pk": 1
@@ -16749,7 +16750,8 @@
   "fields": {
    "account_number": 5436, 
    "position_number": 7, 
-   "title": "M.A. RA"
+   "title": "M.A. RA",
+   "unit": 2
   }, 
   "model": "ra.account", 
   "pk": 2
@@ -16757,7 +16759,8 @@
  {
   "fields": {
    "fund_number": 31, 
-   "project_number": 611140
+   "project_number": 611140,
+   "unit": 2
   }, 
   "model": "ra.project", 
   "pk": 1
@@ -16765,7 +16768,8 @@
  {
   "fields": {
    "fund_number": 17, 
-   "project_number": 522267
+   "project_number": 522267,
+   "unit": 3
   }, 
   "model": "ra.project", 
   "pk": 2

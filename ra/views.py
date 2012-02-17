@@ -1,6 +1,7 @@
 from django.core.urlresolvers import reverse
 from django.shortcuts import render_to_response, get_object_or_404, render
 from django.http import HttpResponseRedirect, HttpResponse
+from django.contrib import messages
 from ra.models import RAAppointment, Project, Account
 from ra.forms import RAForm, RASearchForm
 from grad.forms import possible_supervisors
@@ -42,10 +43,12 @@ def new(request):
     raform = RAForm(request.POST or None)
     raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
     raform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
+    raform.fields['project'].choices = [(p.id, unicode(p.project_number)) for p in Project.objects.filter(unit__in=request.units)]
+    raform.fields['account'].choices = [(a.id, u'%s (%s)' % (a.account_number, a.title)) for a in Account.objects.filter(unit__in=request.units)]
     if request.method == 'POST':
         if raform.is_valid():
             raform.save()
-            return HttpResponseRedirect(reverse(index))
+            return HttpResponseRedirect(reverse(search))
     return render(request, 'ra/new.html', { 'raform': raform })
 
 @requires_role("FUND")

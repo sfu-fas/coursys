@@ -20,7 +20,7 @@ class Project(models.Model):
     """
     A table to look up the appropriate fund number based on the project number
     """
-    
+    unit = models.ForeignKey(Unit, null=False, blank=False)
     project_number = models.PositiveIntegerField()
     fund_number = models.PositiveIntegerField()
 
@@ -31,7 +31,7 @@ class Account(models.Model):
     """
     A table to look up the appropriate position number based on the account number.
     """
-    
+    unit = models.ForeignKey(Unit, null=False, blank=False)
     account_number = models.PositiveIntegerField()
     position_number = models.PositiveIntegerField()
     title = models.CharField(max_length=60)

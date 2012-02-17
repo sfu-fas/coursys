@@ -4,6 +4,7 @@ from ra.models import RAAppointment, Account, Project, \
 from coredata.models import Person, Role
 #from django.core.exceptions import ObjectDoesNotExist
 from django.utils.safestring import mark_safe
+from django.utils.encoding import force_unicode
 
 class RAForm(forms.ModelForm):
     person = forms.CharField(label='Hire')
