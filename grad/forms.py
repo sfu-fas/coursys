@@ -88,11 +88,6 @@ def possible_supervisors(units):
     people.sort()
     return [(p.id, p.name()) for p in people]
 
-def missing_requirements(grad):
-    req = GradRequirement.objects.filter(program=grad.program)
-    
-    return req
-
 class GradAcademicForm(ModelForm):
     class Meta: 
         model = GradStudent

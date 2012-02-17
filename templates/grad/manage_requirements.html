@@ -51,21 +51,32 @@
 		</tbody>
 	</table>
 </div>
-<div>
-	<fieldset>
-		<legend>
-			Missing Requirements
-		</legend>
-		{% if missing_req %}
-		<ul>
+<div class="datatable_container bigdatatable">
+	<table class="display" id="grads">
+		<thead>
+			<tr>
+				<th>Missing Requirement(s)</th>
+			</tr>
+		</thead>
+		<tbody>
 			{% for s in missing_req %}
-			<li>
-				[ {{ s.description }} ]
-			</li>
+			<tr>
+				<td>
+				<center>
+					{{s.description}}
+				</center></td>
+			</tr>
+			{%empty%}
+			<tr>
+				<td>
+
+					<center>
+						Student has completed all requirements in the program.
+					</center></td>
+			</tr>
 			{% endfor %}
-		</ul>
-		{% endif %}
-	</fieldset>
+		</tbody>
+	</table>
 </div>
 <div id="form_container">
 	<form method="post" action="{% url grad.views.manage_requirements grad_slug=grad.slug %}">
@@ -76,7 +87,7 @@
 				Completed Requirements
 			</legend>
 			{% for r in req_formset.forms %}
-				{{ r|as_dl_2 }}
+			{{ r|as_dl_2 }}
 			{% endfor %}
 			<p>
 				<input class="submit" type="submit" value="Save">

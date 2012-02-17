@@ -53,9 +53,9 @@ def view_all(request, grad_slug):
     #calculate missing reqs
     completed_req = CompletedRequirement.objects.filter(student=grad)
     req = GradRequirement.objects.filter(program=grad.program)
-    missing_req = req
+    missing_req = req    
     for s in completed_req:
-        missing_req = req.exclude(description=s.requirement.description)
+        missing_req = missing_req.exclude(description=s.requirement.description)
     #get_list_or_404(CompletedRequirement, student=grad)
     
     # set frontend defaults
@@ -158,8 +158,9 @@ def manage_requirements(request, grad_slug):
     #calculate/find missing reqs
     completed_req = CompletedRequirement.objects.filter(student=grad)
     req = GradRequirement.objects.filter(program=grad.program)
+    missing_req = req    
     for s in completed_req:
-        missing_req = req.exclude(description=s.requirement.description)
+        missing_req = missing_req.exclude(description=s.requirement.description)
     num_missing = req.count()
     
     ReqFormSet = inlineformset_factory(GradStudent, CompletedRequirement, max_num=num_missing, can_order=False) 
