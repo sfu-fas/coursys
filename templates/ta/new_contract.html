@@ -17,7 +17,7 @@
 		for(var i = 0; i < 3; i++){
 			val = parseFloat($('#id_tacourse_set-' + i + '-bu').val())
 			if(val > 0)
-			total += val
+				total += val
 		}
 		$('#total_bu').val(total)   
 		var salary_rate = parseFloat($('#salary_per_bu').val())
@@ -71,6 +71,9 @@
 	}
 		
     $(document).ready(function() {
+    	$("#id_pay_start").datepicker({'dateFormat': 'yy-mm-dd'});
+    	$("#id_pay_end").datepicker({'dateFormat': 'yy-mm-dd'});
+    	$("#id_deadline").datepicker({'dateFormat': 'yy-mm-dd'});
     	$('#messages').hide()
 		
 		$('.course_select').change(function(){
