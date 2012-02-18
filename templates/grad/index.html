@@ -1,58 +1,76 @@
-{% extends "grad/base.html" %}
+{% extends "base.html" %}
 {% load markup %}
 {% load mobile_tags %}
+
+{% block headextra %}
+<script type="text/javascript">
+	$(document).ready(function() {
+		$('#grads').dataTable({
+			"bJQueryUI" : true,
+			"aaSorting" : [[4, "asc"]],
+			"iDisplayLength" : 10,
+			"sPaginationType" : "full_numbers",
+		});
+	});
+
+</script>
+{% endblock %}
 
 {% block title %}{{page_title}}{% endblock %}
 {% block h1 %}{{page_title}}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; {{crumb}}</li>{% endblock %}
+{% block actions %}
+<div id="actions">
+<h2>Actions</h2>
+<ul>
+<li class="newsec"><a href="{% url grad.views.new %}">New Grad</a></li>
+<li class="newsec"><a href="{% url grad.views.programs %}">View Programs</a></li>
+<li><a href="{% url grad.views.new_program %}">New Program</a></li>
+<li class="newsec"><a href="{% url grad.views.requirements %}">View Requirements</a></li>
+<li><a href="{% url grad.views.new_requirement %}">New Requirement</a></li>
+</ul>
 
+</div>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>
+	&gt; {{crumb}}
+</li>
+{% endblock %}
 
 {% block content %}
-<div class="datatable_container bigdatatable">
-    <table class="display" id="grads">
-        <thead>
-            <tr>
-                <th>First</th>
-                <th>Last</th>
+<div class="datatable_container">
+	<table class="display" id="grads">
+		<thead>
+			<tr>
+				<th scope="col">Student #</th>
+				<th>First</th>
+				<th>Last</th>
 				<th>Student ID</th>
-				<th>Student #</th>
+				<th>Last Updated</th>
 				<th>Select to View</th>
-            </tr>
+			</tr>
 		</thead>
-        <tbody>
-        {% for s in grads.object_list %}
-        <tr>
-            <td>{{s.person.first_name}}</td>
-            <td>{{s.person.last_name}}</td>
-            <td>{{s.person.userid}}</td>
-            <td>{{s.person.emplid}}</td>
-            <td><a href="{% url grad.views.view_all grad_slug=s.slug %}"> Select </a></td>
-        </tr>
-        {%empty%}
-        	<tr><td><p class="empty">There are currently no grad student records stored in the database.</p></td></tr>
-        {% endfor %}
-        </tbody>
-    </table>
+		<tbody>
+			{% for s in grads %}
+			<tr>
+				<td scope="row">{{s.person.emplid}}</td>
+				<td>{{s.person.first_name}}</td>
+				<td>{{s.person.last_name}}</td>
+				<td>{{s.person.userid}}</td>
+				<td>{{s.updated_at}}</td>
+				<td><a href="{% url grad.views.view_all grad_slug=s.slug %}"> Select </a></td>
+			</tr>
+			{%empty%}
+			<tr>
+				<td>
+				<p class="empty">
+					There are currently no grad student records stored in the database.
+				</p></td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
 </div>
-
-
-	<!-- Next/Prev page links  -->
-	{% if grads.object_list and grads.paginator.num_pages > 1 %}
-	<div class="pagination" align="center">
-			{% if grads.has_previous %} 
-			<a href= "?page={{ grads.previous_page_number }}">
-				Previous &lt;&lt; </a> 
-			{% endif %} 
-			<span class="current"> 
-				&nbsp;Page {{ grads.number }} of {{ grads.paginator.num_pages }} 
-			</span> 
-			{% if grads.has_next %} 
-			<a href="?page={{ grads.next_page_number }}"> 
-				&gt;&gt; Next </a> 
-			{% endif %} 
-	</div>
-	{% endif %}
-
-
-{% endblock %}
+{% endblock %} 

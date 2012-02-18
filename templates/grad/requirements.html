@@ -2,6 +2,20 @@
 {% load markup %}
 {% load mobile_tags %}
 
+{% block headextra %}
+<script type="text/javascript">
+	$(document).ready(function() {
+		$('#grads').dataTable({
+			"bJQueryUI" : true,
+			"aaSorting" : [[4, "asc"]],
+			"iDisplayLength" : 10,
+			"sPaginationType" : "full_numbers",
+		});
+	});
+
+</script>
+{% endblock %}
+
 {% block actions %}
 <div id="actions">
 	<h2>Actions</h2>
@@ -24,23 +38,51 @@
 	&gt; {{crumb}}
 </li>
 {% endblock %}
-
 {% block content %}
-<div class="datatable_container bigdatatable">
+<div class="datatable_container">
 	<table class="display" id="grads">
 		<thead>
 			<tr>
 				<th>Unit</th>
-				<th>Description</th>
+				<th  scope="col">Description</th>
 				<th>Created At</th>
 				<th>Updated At</th>
 			</tr>
 		</thead>
 		<tbody>
-			{% for s in requirements.object_list %}
+			{% for s in requirements %}
 			<tr>
 				<td>{{s.unit}}</td>
-				<td>{{s.description}}</td>
+				<td scope="row">{{s.description}}</td>
+				<td>{{s.created_at}}</td>
+				<td>{{s.updated_at}}</td>
+			</tr>
+			{%empty%}
+			<tr>
+				<td>
+				<p class="empty">
+					There are currently no grad student records stored in the database.
+				</p></td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+<div class="datatable_container">
+	<table class="display" id="requirements">
+		<thead>
+			<tr>
+				<th>Unit</th>
+				<th  scope="col">Description</th>
+				<th>Created At</th>
+				<th>Updated At</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for s in requirements%}
+			<tr>
+				<td>{{s.unit}}</td>
+				<td scope="row">{{s.description}}</td>
 				<td>{{s.created_at}}</td>
 				<td>{{s.updated_at}}</td>
 			</tr>
@@ -55,22 +97,4 @@
 		</tbody>
 	</table>
 </div>
-
-	<!-- Next/Prev page links  -->
-	{% if requirements.object_list and requirements.paginator.num_pages > 1 %}
-	<div class="pagination" align="center">
-			{% if requirements.has_previous %} 
-			<a href= "?page={{ requirements.previous_page_number }}">
-				Previous &lt;&lt; </a> 
-			{% endif %} 
-			<span class="current"> 
-				&nbsp;Page {{ requirements.number }} of {{ requirements.paginator.num_pages }} 
-			</span> 
-			{% if requirements.has_next %} 
-			<a href="?page={{ requirements.next_page_number }}"> 
-				&gt;&gt; Next </a> 
-			{% endif %} 
-	</div>
-	{% endif %}
-
 {% endblock %}

@@ -39,9 +39,12 @@ def index(request):
     except ValueError: p = 1
 
     try:
-        grads = paginator.page(p)
+        grads_page = paginator.page(p)
     except (InvalidPage, EmptyPage):
-        grads = paginator.page(paginator.num_pages)    
+        grads_page = paginator.page(paginator.num_pages)    
+    
+    
+    #find most recent update per student
     
     # set frontend defaults
     page_title = 'Graduate Student Records'  
@@ -49,7 +52,8 @@ def index(request):
     context = {
                'page_title' : page_title,
                'crumb' : crumb,
-               'grads': grads               
+               'grads': grads,
+               'grads_page': grads_page               
                }
     return render(request, 'grad/index.html', context)
 
@@ -80,7 +84,7 @@ def view_all(request, grad_slug):
                'gp' : gp,
                'status_history' : status_history,
                'supervisors' : supervisors,
-               'completed_req' : completed_req,               
+               'completed_req' : completed_req,
                'missing_req' : missing_req         
                }
     return render(request, 'grad/view_all.html', context)
@@ -95,7 +99,7 @@ def manage_supervisors(request, grad_slug):
     # Initialize potential supervisor to first on of the list of results
     # There should be exactly one match unless there is data error
     extra_form = 0
-    if(supervisors.count()==0):
+    if(supervisors.count() == 0):
         extra_form = 1
     if (pot_supervisor.count() == 0):
         pot_supervisor = None
@@ -106,19 +110,22 @@ def manage_supervisors(request, grad_slug):
     for f in supervisors_formset:
         f.fields['supervisor'].choices = [("","External")] + possible_supervisors([grad.program.unit])
         f.fields['position'].widget = forms.HiddenInput()
-        if(extra_form==1):
+        if(extra_form == 1):
             print f.fields['position'].initial
             f.fields['position'].initial = 1
 
     if request.method == 'POST':
         potential_supervisors_form = PotentialSupervisorForm(request.POST, instance=pot_supervisor, prefix="pot_sup")
         if potential_supervisors_form.is_valid():
+            #change gradstudent's last updated info to newest
+            grad.updated_at = datetime.datetime.now()
+            grad.save()                
             superF = potential_supervisors_form.save(commit=False)
             superF.modified_by = request.user.username
             superF.student = grad #Passing grad student info to model
             superF.position = 0   #Hard coding potential supervisor and passing to model
             superF.save()
-            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug} ))
+            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))
     else:
         potential_supervisors_form = PotentialSupervisorForm(instance=pot_supervisor, prefix="pot_sup")
         potential_supervisors_form.fields['supervisor'].choices = \
@@ -143,12 +150,24 @@ def update_supervisors(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
     if request.method == 'POST':
         supervisors_formset = modelformset_factory(Supervisor, form=SupervisorForm)(request.POST,prefix="form")
+        supervisors_formset = modelformset_factory(Supervisor, form=SupervisorForm, max_num=4)
         if supervisors_formset.is_valid():
+		    #change gradstudent's last updated info to newest
+            grad.updated_at = datetime.datetime.now()
+            grad.save()      
             temp = supervisors_formset.save(commit=False)
+        modelformset = supervisors_formset(request.POST)
+        print modelformset.is_valid()
+        print "---"
+        if modelformset.is_valid():
+            #change gradstudent's last updated info to newest
+            grad.updated_at = datetime.datetime.now()
+            grad.save()                
+            temp = modelformset.save(commit=False)
             for entry in temp:
                 entry.student = grad
             supervisors_formset.save()
-            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug} ))
+            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))
         else:
             print supervisors_formset.errors
             return HttpResponseRedirect(reverse(manage_supervisors, kwargs={'grad_slug':grad_slug}))
@@ -172,10 +191,13 @@ def manage_requirements(request, grad_slug):
     if request.method == 'POST':
         req_formset = ReqFormSet(request.POST, request.FILES, instance=grad, prefix='req')        
         if req_formset.is_valid():
+            #change gradstudent's last updated info to newest
+            grad.updated_at = datetime.datetime.now()
+            grad.save()
             req_formset.save()
-            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug} ))
+            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))
     else:
-        req_formset = ReqFormSet(instance=grad,  prefix='req')
+        req_formset = ReqFormSet(instance=grad, prefix='req')
 
     # set frontend defaults
     page_title = "%s's Requirements Record" % (grad.person.first_name)
@@ -204,7 +226,7 @@ def manage_academics(request, grad_slug):
             gradF.modified_by = request.user.username
             grad.slug = None
             gradF.save()
-            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad.slug} ))
+            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad.slug}))
     else:
         grad_form = GradAcademicForm(instance=grad, prefix="grad")
 
@@ -217,7 +239,7 @@ def manage_academics(request, grad_slug):
                'page_title' : page_title,
                'crumb' : crumb,
                'grad' : grad,
-               'gp' : gp,        
+               'gp' : gp,
                }
     return render(request, 'grad/manage_academics.html', context)
 
@@ -227,19 +249,16 @@ def manage_status(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
 
     StatusFormSet = inlineformset_factory(GradStudent, GradStatus, extra=1, can_order=False, can_delete=True) 
-    if request.method == 'POST':
+    if request.method == 'POST':   
         status_formset = StatusFormSet(request.POST, request.FILES, instance=grad, prefix='stat')
-        print "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO"
-        print status_formset.is_valid()
-        print status_formset.errors
-        print "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO"
-        print "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO"        
-        print "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO"
         if status_formset.is_valid():
+            #change gradstudent's last updated info to newest
+            grad.updated_at = datetime.datetime.now()
+            grad.save()                
             status_formset.save()
-            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug} ))
+            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))
     else:
-        status_formset = StatusFormSet(instance=grad,  prefix='stat') 
+        status_formset = StatusFormSet(instance=grad, prefix='stat') 
     
     # set frontend defaults
     page_title = "%s 's Status Record" % (grad.person.first_name)
@@ -280,7 +299,7 @@ def new(request):
             statusF.created_by = request.user.username
             statusF.student_id = gradF.id
             status_form.save()
-            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':gradF.slug} ))
+            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':gradF.slug}))
     else:
         #req_list = get_list_or_404(GradRequirement)
         prog_list = get_list_or_404(GradProgram)
@@ -297,7 +316,7 @@ def new(request):
                'grad_form': grad_form,
                #'req_form': req_form,
                'supervisors_form': supervisors_form,
-               'status_form': status_form,               
+               'status_form': status_form,
                'page_title' : page_title,
                'crumb' : crumb
                }
@@ -341,21 +360,10 @@ def programs(request):
 @requires_role("GRAD")
 def requirements(request):
     requirements = GradRequirement.objects.all()
-    paginator = Paginator(requirements, 5)
-    
-    try: 
-        req = int(request.GET.get("page", '1'))
-    except ValueError: req = 1
 
-    try:
-        requirements = paginator.page(req)
-    except (InvalidPage, EmptyPage):
-        requirements = paginator.page(paginator.num_pages)
-    
     page_title = 'Graduate Requirements'
     crumb = 'Grad Requirements'     
     context = {
-               'req' : req,
                'page_title' : page_title,
                'crumb' : crumb,
                'requirements': requirements                 
