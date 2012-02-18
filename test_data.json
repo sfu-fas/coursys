@@ -16480,43 +16480,10 @@
   "pk": 6
  }, 
  
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
  {
   "fields": {
    "unit": 2,
-   "level": "EXPR",
+   "level": "0_EXPR",
    "name": "Java"
   },
   "model": "ta.skill",
@@ -16525,7 +16492,7 @@
  {
   "fields": {
    "unit": 2,
-   "level": "SOME",
+   "level": "1_SOME",
    "name": "Java"
   },
   "model": "ta.skill",
@@ -16534,7 +16501,7 @@
  {
   "fields": {
    "unit": 2,
-   "level": "NONE",
+   "level": "2_NONE",
    "name": "Java"
   },
   "model": "ta.skill",
@@ -16543,7 +16510,7 @@
  {
   "fields": {
    "unit": 2,
-   "level": "EXPR",
+   "level": "0_EXPR",
    "name": "C++"
   },
   "model": "ta.skill",
@@ -16552,7 +16519,7 @@
  {
   "fields": {
    "unit": 2,
-   "level": "SOME",
+   "level": "1_SOME",
    "name": "C++"
   },
   "model": "ta.skill",
@@ -16561,7 +16528,7 @@
  {
   "fields": {
    "unit": 2,
-   "level": "NONE",
+   "level": "2_NONE",
    "name": "C++"
   },
   "model": "ta.skill",
@@ -16570,7 +16537,7 @@
  {
   "fields": {
    "unit": 1,
-   "level": "EXPR",
+   "level": "0_EXPR",
    "name": "English"
   },
   "model": "ta.skill",
@@ -16579,7 +16546,7 @@
  {
   "fields": {
    "unit": 1,
-   "level": "SOME",
+   "level": "1_SOME",
    "name": "English"
   },
   "model": "ta.skill",
@@ -16588,7 +16555,7 @@
  {
   "fields": {
    "unit": 1,
-   "level": "NONE",
+   "level": "2_NONE",
    "name": "English"
   },
   "model": "ta.skill",
@@ -16597,7 +16564,7 @@
  {
   "fields": {
    "campus": "BRNBY",
-   "rank": "PRF"
+   "rank": "0_PRF"
   },
   "model": "ta.campuspreference",
   "pk": 1
@@ -16605,7 +16572,7 @@
  {
   "fields": {
    "campus": "BRNBY",
-   "rank": "WIL"
+   "rank": "1_WIL"
   },
   "model": "ta.campuspreference",
   "pk": 2
@@ -16613,7 +16580,7 @@
  {
   "fields": {
    "campus": "BRNBY",
-   "rank": "NOT"
+   "rank": "2_NOT"
   },
   "model": "ta.campuspreference",
   "pk": 3
@@ -16621,7 +16588,7 @@
  {
   "fields": {
    "campus": "SURRY",
-   "rank": "PRF"
+   "rank": "0_PRF"
   },
   "model": "ta.campuspreference",
   "pk": 4
@@ -16629,7 +16596,7 @@
  {
   "fields": {
    "campus": "SURRY",
-   "rank": "WIL"
+   "rank": "1_WIL"
   },
   "model": "ta.campuspreference",
   "pk": 5
@@ -16637,7 +16604,7 @@
  {
   "fields": {
    "campus": "SURRY",
-   "rank": "NOT"
+   "rank": "2_NOT"
   },
   "model": "ta.campuspreference",
   "pk": 6
@@ -16645,7 +16612,7 @@
  {
   "fields": {
    "campus": "VANCR",
-   "rank": "PRF"
+   "rank": "0_PRF"
   },
   "model": "ta.campuspreference",
   "pk": 7
@@ -16653,7 +16620,7 @@
  {
   "fields": {
    "campus": "VANCR",
-   "rank": "WIL"
+   "rank": "1_WIL"
   },
   "model": "ta.campuspreference",
   "pk": 8
@@ -16661,7 +16628,7 @@
  {
   "fields": {
    "campus": "VANCR",
-   "rank": "NOT"
+   "rank": "2_NOT"
   },
   "model": "ta.campuspreference",
   "pk": 9
@@ -16669,7 +16636,7 @@
  {
   "fields": {
    "campus": "OFFST",
-   "rank": "PRF"
+   "rank": "0_PRF"
   },
   "model": "ta.campuspreference",
   "pk": 10
@@ -16677,7 +16644,7 @@
  {
   "fields": {
    "campus": "OFFST",
-   "rank": "WIL"
+   "rank": "1_WIL"
   },
   "model": "ta.campuspreference",
   "pk": 11
@@ -16685,7 +16652,7 @@
  {
   "fields": {
    "campus": "OFFST",
-   "rank": "NOT"
+   "rank": "2_NOT"
   },
   "model": "ta.campuspreference",
   "pk": 12
@@ -16693,7 +16660,7 @@
  {
   "fields": {
    "campus": "GNWC",
-   "rank": "PRF"
+   "rank": "0_PRF"
   },
   "model": "ta.campuspreference",
   "pk": 13
@@ -16701,7 +16668,7 @@
  {
   "fields": {
    "campus": "GNWC",
-   "rank": "WIL"
+   "rank": "1_WIL"
   },
   "model": "ta.campuspreference",
   "pk": 14
@@ -16709,7 +16676,7 @@
  {
   "fields": {
    "campus": "GNWC",
-   "rank": "NOT"
+   "rank": "2_NOT"
   },
   "model": "ta.campuspreference",
   "pk": 15
@@ -16717,7 +16684,7 @@
  {
   "fields": {
    "campus": "METRO",
-   "rank": "PRF"
+   "rank": "0_PRF"
   },
   "model": "ta.campuspreference",
   "pk": 16
@@ -16725,7 +16692,7 @@
  {
   "fields": {
    "campus": "METRO",
-   "rank": "WIL"
+   "rank": "1_WIL"
   },
   "model": "ta.campuspreference",
   "pk": 17
@@ -16733,7 +16700,7 @@
  {
   "fields": {
    "campus": "METRO",
-   "rank": "NOT"
+   "rank": "2_NOT"
   },
   "model": "ta.campuspreference",
   "pk": 18

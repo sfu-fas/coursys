@@ -101,9 +101,9 @@ preparation, e.g. 4 hours reduction for 4.17 B.U. appointment.'''}}
         return "TA: %s  Base Units: %s" % (self.member.person.userid, self.base_units)
 
 LEVEL_CHOICES = (
-    ('NONE', 'None'),
-    ('SOME', 'Some'),
-    ('EXPR', 'Expert'),
+    ('0_EXPR', 'Expert'),
+    ('1_SOME', 'Some'),
+    ('2_NONE', 'None'),
 )
 
 class Skill(models.Model):
@@ -112,15 +112,15 @@ class Skill(models.Model):
     """
     name = models.CharField(max_length=30)
     unit = models.ForeignKey(Unit)
-    level = models.CharField(max_length=4, choices=LEVEL_CHOICES)
+    level = models.CharField(max_length=6, choices=LEVEL_CHOICES)
     
     def __unicode__(self):
         return "Name: %s  Level: %s" % (self.name, self.get_level_display())
 
 PREFERENCE_CHOICES = (
-        ('PRF', 'Prefered'),
-        ('WIL', 'Willing'),
-        ('NOT', 'Not willing'),
+        ('0_PRF', 'Prefered'),
+        ('1_WIL', 'Willing'),
+        ('2_NOT', 'Not willing'),
 )
 
 class CampusPreference(models.Model):
@@ -128,7 +128,7 @@ class CampusPreference(models.Model):
     Preference ranking for all campuses
     """
     campus = models.CharField(max_length=4, choices=CAMPUS_CHOICES)
-    rank = models.CharField(max_length=3, choices=PREFERENCE_CHOICES)
+    rank = models.CharField(max_length=5, choices=PREFERENCE_CHOICES)
 
 CATEGORY_CHOICES = ( # order must match list in TAPosting.config['salary']
         ('GTA1', 'Masters'),
