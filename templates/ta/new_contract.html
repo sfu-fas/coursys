@@ -116,6 +116,37 @@
 
 {% block content %}
 
+<div class="table_container">
+	<table class="info">
+        <tbody>
+	    <tr>
+	    	<th class="ui-state-default">Semester</th>
+            <td>{{ posting.semester }}</td>
+        </tr>
+	    <tr>
+            <th class="ui-state-default">Unit</th>
+            <td>{{ posting.unit }}</td>
+        </tr>
+	    <tr>
+            <th class="ui-state-default">Open Date</th>
+            <td>{{ posting.opens|date:'Y-m-d' }}</td>
+        </tr>
+	    <tr>
+            <th class="ui-state-default">Close Date</th>
+            <td>{{ posting.closes|date:'Y-m-d' }}</td>
+        </tr>
+        	    <tr>
+            <th class="ui-state-default">Start Date</th>
+            <td>{{ config.start }}</td>
+        </tr>
+	    <tr>
+            <th class="ui-state-default">End Date</th>
+            <td>{{ config.end }}</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
 <div id="form_container">
 <form action="{% url ta.views.new_contract post_slug=posting.slug%}" method="post">{% csrf_token %}
 <fieldset class="wide">
