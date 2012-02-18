@@ -12,43 +12,98 @@
 {% block headextra %}
 <script type="text/javascript">
 //<![CDATA[
-    $(document).ready(function() {    	
-    	//adding base units
-    	var rows = $("#ta_course tr:gt(0)");
-    	rows.children("td:nth-child(3)").change(function() {
-    		var total = 0;
-    		for(var i = 0; i < 3; i++){
-    			val = parseFloat($('#id_tacourse_set-' + i + '-bu').val())
-    			if(val > 0)
-    				total += val
-    		}
-    		$('#total_bu').html(total)    		
+	function calculate(){
+		var total = 0;
+		for(var i = 0; i < 3; i++){
+			val = parseFloat($('#id_tacourse_set-' + i + '-bu').val())
+			if(val > 0)
+			total += val
+		}
+		$('#total_bu').val(total)   
+		var salary_rate = parseFloat($('#salary_per_bu').val())
+		var schol_rate = parseFloat($('#schol_per_bu').val())
+		var bu = parseFloat($('#total_bu').val())
+		var salary_sem = (bu * salary_rate).toFixed(2)
+		var schol_sem = (bu * schol_rate).toFixed(2)
+		$('#salary_sem').val(salary_sem)
+		$('#schol_sem').val(schol_sem)
+		var salary_bi = (salary_sem / 17 * 2).toFixed(2)
+		var schol_bi = (schol_sem / 17 * 2).toFixed(2)
+		$('#salary_bi').val(salary_bi)
+		$('#schol_bi').val(schol_bi)
+	}
+	
+	function validate(){
+		$('#messages').hide()
+		var valid = true
+		var html = ""
+		if($('#id_appt_category').val()==""){
+			html += '<li class="warning">Please select an appointment type</li>'
+			valid = false
+		}
+		var clist = new Array()
+		$('.course_select').each(function(){
+			if($(this).val()!="")
+				clist.push($(this).val())
+		})
+		if(clist.length==0){
+			html += '<li class="warning">Please select at least one course</li>'
+			valid = false
+		}
+		if(!check_dup(clist.sort())){
+			html += '<li class="warning">Duplicate course selection</li>'
+			valid = false
+		}
+			
+    	if(html!=""){
+    		$('#messages ul').html(html)
+    		$('#messages').show()
+    	}
+    	return valid;
+	}
+	
+	function check_dup(list){
+		for(var i = 0; i< list.length-1; i++){
+			if(list[i]==list[i+1])
+				return false
+		}
+		return true
+	}
+		
+    $(document).ready(function() {
+    	$('#messages').hide()
+		
+		$('.course_select').change(function(){
+			var cid = $(this).val()
+			var bu_inp = '#' + this.id.replace('-course','-bu')
+			if(cid != ''){//nonempty selection
+				$.post("{% url ta.views.new_contract post_slug=posting.slug %}",
+				{'csrfmiddlewaretoken': "{{csrf_token}}", 'course': cid},
+				function(data){
+					$(bu_inp).val(data)
+				})
+			}
+			else
+				$(bu_inp).val(0)
     	})
-    	
+    	    	
     	//setting rates per bu based on appt category
     	$('#id_appt_category').change(function(){
     		var cat = $(this).val()
     		$.post("{% url ta.views.new_contract post_slug=posting.slug %}",
   				{'csrfmiddlewaretoken': "{{csrf_token}}", 'appt_cat': cat},
   				function(data){
-    			 $('#salary_per_bu').val(data.split(',')[0])
-    			 $('#schol_per_bu').val(data.split(',')[1])
-   			 	});
+    				$('#salary_per_bu').val(data.split(',')[0])
+    				$('#schol_per_bu').val(data.split(',')[1])
+    				if($('#salary_bi').val()!="")
+   			 			calculate()
+   			 	});   			 
     	})
     	
-    	//salary calculation
-    	$('#button_cal').click(function() {
-    		var salary_rate = parseFloat($('#salary_per_bu').val())
-    		var schol_rate = parseFloat($('#schol_per_bu').val())
-    		var bu = parseFloat($('#total_bu').html())
-    		var salary_sem = (bu * salary_rate).toFixed(2)
-    		var schol_sem = (bu * schol_rate).toFixed(2)
-    		$('#salary_sem').val(salary_sem)
-    		$('#schol_sem').val(schol_sem)
-    		var salary_bi = (salary_sem / 17 * 2).toFixed(2)
-    		var schol_bi = (schol_sem / 17 * 2).toFixed(2)
-    		$('#salary_bi').val(salary_bi)
-    		$('#schol_bi').val(schol_bi)
+    	//calcuate event
+    	$('#button_cal').click(function(){
+    		if(validate())
+    			calculate()
     	})
     });
     
@@ -64,6 +119,8 @@
 <legend>General Info</legend>
 {{ form|as_dl }}
 </fieldset>
+
+<div class="container"><div id="messages"><ul></ul></div></div>
 
 <fieldset>
 <legend>Course and Payment Details</legend>
@@ -81,17 +138,17 @@
 		  {% for form in formset.forms %} 	      
 		      {{ form|display_form_as_row }}
 	      {% endfor %}
-	      <tr>
+	      <tr id="cal_tr">
 	      	<td></td>
 	      	<td class="table-row-label" id="total_bu_label" align="right">Total Base Units:&nbsp;</td>
-	      	<td class="table-row-label" id="total_bu">0</td>
+	      	<td class="table-row-label"><input type"text" readonly="readonly" id="total_bu" value""></td>
 	      </tr>
-	      <tr><td colspan=3><span class="submit" id="button_cal" >Calculate</span></td></tr>
+	      <tr id="cal_tr"><td colspan=3><button type="button" class="submit" id="button_cal">Calculate</button></td></tr>
         </tbody>
       </table>
    </div>
-   <p></p>
-   	<div class="table_container"> 
+   
+   <div class="table_container"> 
       <table class="info" id="ta_pay">
       	<thead class="form_head">
           <tr>

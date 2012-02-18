@@ -1435,7 +1435,7 @@ div.note-box p.hideshow {
 
 /* TA contract template */
 #ta_course{
-	margin: 15px 20px 20px;	
+	margin: 15px 20px 10px;	
 }
 
 #ta_pay{
@@ -1463,4 +1463,12 @@ td.table-row-label{
 	font-weight: bold; 
 	color: #555555;
 	font-size: 110%;
+}
+
+#cal_tr td{
+	vertical-align: middle;	
+}
+
+#cal_tr:hover{
+	background-color:#F2EFE9;
 }

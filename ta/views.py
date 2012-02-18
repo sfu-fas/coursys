@@ -286,9 +286,15 @@ def new_contract(request, post_slug):
     if request.method == "POST":
         form = TAContractForm(request.POST)
         if request.is_ajax():
-            index = posting.cat_index(request.POST['appt_cat'])
-            results = posting.config['salary'][index] + ',' + posting.config['scholarship'][index]
-            return HttpResponse(results)
+            if('appt_cat' in request.POST):
+                index = posting.cat_index(request.POST['appt_cat'])
+                results = posting.config['salary'][index] + ',' + posting.config['scholarship'][index]
+                return HttpResponse(results)
+            if('course' in request.POST):
+                course = request.POST['course']
+                co = get_object_or_404(CourseOffering, pk=course)
+                req_bu = posting.required_bu(co)
+                return HttpResponse(req_bu)
         elif form.is_valid() and formset.is_valid():
             contract = form.save(commit=False)
             contract.pay_per_bu = form.cleaned_data['pay_per_bu']
@@ -306,9 +312,10 @@ def new_contract(request, post_slug):
             
         for f in formset:
             f.fields['course'].choices = course_choices
-        
-        print posting
-        
+            f.fields['course'].widget.attrs['class']  = 'course_select'
+            f.fields['bu'].widget.attrs['readonly'] = 'readonly'
+            f.fields['bu'].widget.attrs['value'] = 0
+    
         context = {'form': form, 'formset': formset, 'posting': posting, 'config': posting.config}
         return render(request, 'ta/new_contract.html',context)
 
