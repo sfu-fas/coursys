@@ -40,14 +40,15 @@
 {% endblock %}
 
 {% block content %}
+<p>In School of Computing Science (CMPT)</p>
 <div class="datatable_container">
 	<table class="display" id="grads">
 		<thead>
 			<tr>
 				<th scope="col">Student #</th>
+				<th scope="col">Student ID</th>
 				<th>First</th>
 				<th>Last</th>
-				<th>Student ID</th>
 				<th>Last Updated</th>
 				<th>Select to View</th>
 			</tr>
@@ -56,9 +57,9 @@
 			{% for s in grads %}
 			<tr>
 				<td scope="row">{{s.person.emplid}}</td>
+				<td scope="row">{{s.person.userid}}</td>
 				<td>{{s.person.first_name}}</td>
 				<td>{{s.person.last_name}}</td>
-				<td>{{s.person.userid}}</td>
 				<td>{{s.updated_at}}</td>
 				<td><a href="{% url grad.views.view_all grad_slug=s.slug %}"> Select </a></td>
 			</tr>

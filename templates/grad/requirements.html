@@ -5,9 +5,9 @@
 {% block headextra %}
 <script type="text/javascript">
 	$(document).ready(function() {
-		$('#grads').dataTable({
+		$('#req').dataTable({
 			"bJQueryUI" : true,
-			"aaSorting" : [[4, "asc"]],
+			"aaSorting" : [[0, "asc"]],
 			"iDisplayLength" : 10,
 			"sPaginationType" : "full_numbers",
 		});
@@ -39,12 +39,13 @@
 </li>
 {% endblock %}
 {% block content %}
+<p>For School of Computing Science (CMPT)</p>
 <div class="datatable_container">
-	<table class="display" id="grads">
+	<table class="display" id="req">
 		<thead>
 			<tr>
-				<th>Unit</th>
-				<th  scope="col">Description</th>
+				<th scope="col">Program</th>
+				<th scope="col">Description</th>
 				<th>Created At</th>
 				<th>Updated At</th>
 			</tr>
@@ -52,7 +53,7 @@
 		<tbody>
 			{% for s in requirements %}
 			<tr>
-				<td>{{s.unit}}</td>
+				<td scope="row">{{s.program}}</td>
 				<td scope="row">{{s.description}}</td>
 				<td>{{s.created_at}}</td>
 				<td>{{s.updated_at}}</td>
@@ -62,35 +63,6 @@
 				<td>
 				<p class="empty">
 					There are currently no grad student records stored in the database.
-				</p></td>
-			</tr>
-			{% endfor %}
-		</tbody>
-	</table>
-</div>
-<div class="datatable_container">
-	<table class="display" id="requirements">
-		<thead>
-			<tr>
-				<th>Unit</th>
-				<th  scope="col">Description</th>
-				<th>Created At</th>
-				<th>Updated At</th>
-			</tr>
-		</thead>
-		<tbody>
-			{% for s in requirements%}
-			<tr>
-				<td>{{s.unit}}</td>
-				<td scope="row">{{s.description}}</td>
-				<td>{{s.created_at}}</td>
-				<td>{{s.updated_at}}</td>
-			</tr>
-			{% empty %}
-			<tr>
-				<td>
-				<p class="empty">
-					There are currently no grad requirements stored in the database.
 				</p></td>
 			</tr>
 			{% endfor %}

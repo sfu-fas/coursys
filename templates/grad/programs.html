@@ -1,7 +1,19 @@
 {% extends "base.html" %}
 {% load markup %}
 {% load mobile_tags %}
+{% block headextra %}
+<script type="text/javascript">
+	$(document).ready(function() {
+		$('#programs').dataTable({
+			"bJQueryUI" : true,
+			"aaSorting" : [[0, "asc"]],
+			"iDisplayLength" : 10,
+			"sPaginationType" : "full_numbers",
+		});
+	});
 
+</script>
+{% endblock %}
 {% block actions %}
 <div id="actions">
 <h2>Actions</h2>
@@ -24,27 +36,22 @@
 {% endblock %}
 
 {% block content %}
-<div class="datatable_container bigdatatable">
-    <table class="display" id="grads">
+<p>For School of Computing Science (CMPT)</p>
+<div class="datatable_container">
+    <table class="display" id="programs">
         <thead>
             <tr>
-                <th scope="col">Unit</th>
-                <th scope="col">Label</th>
+                <th scope="col">Program Name</th>
 				<th scope="col">Description</th>
-                <th scope="col">Created At</th>
-				<th scope="col">Updated At</th>		
-				<th scope="col">Manage</th>					
+				<th scope="col">Updated At</th>				
             </tr>
 		</thead>
         <tbody>
         {% for s in programs %}
         <tr>
-            <td>{{s.unit}}</td>
             <td>{{s.label}}</td>
             <td>{{s.description}}</td>
-            <td>{{s.created_at}}</td>
-            <td>{{s.updated_at}}</td>                  
-             <td><a href="">Select</a></td>
+            <td>{{s.updated_at}}</td>        
           
         </tr>
         {% endfor %}
