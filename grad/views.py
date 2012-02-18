@@ -117,8 +117,9 @@ def manage_supervisors(request, grad_slug):
     if request.method == 'POST':
         potential_supervisors_form = PotentialSupervisorForm(request.POST, instance=pot_supervisor, prefix="pot_sup")
         if potential_supervisors_form.is_valid():
-            #change gradstudent's last updated info to newest
+            #change gradstudent's last updated/by info to newest
             grad.updated_at = datetime.datetime.now()
+            grad.created_by = request.user.username  
             grad.save()                
             superF = potential_supervisors_form.save(commit=False)
             superF.modified_by = request.user.username
@@ -152,7 +153,7 @@ def update_supervisors(request, grad_slug):
         supervisors_formset = modelformset_factory(Supervisor, form=SupervisorForm)(request.POST,prefix="form")
         supervisors_formset = modelformset_factory(Supervisor, form=SupervisorForm, max_num=4)
         if supervisors_formset.is_valid():
-		    #change gradstudent's last updated info to newest
+		    #change gradstudent's last updated/by info to newest
             grad.updated_at = datetime.datetime.now()
             grad.save()      
             temp = supervisors_formset.save(commit=False)
@@ -162,6 +163,7 @@ def update_supervisors(request, grad_slug):
         if modelformset.is_valid():
             #change gradstudent's last updated info to newest
             grad.updated_at = datetime.datetime.now()
+            grad.created_by = request.user.username  
             grad.save()                
             temp = modelformset.save(commit=False)
             for entry in temp:
@@ -193,6 +195,7 @@ def manage_requirements(request, grad_slug):
         if req_formset.is_valid():
             #change gradstudent's last updated info to newest
             grad.updated_at = datetime.datetime.now()
+            grad.created_by = request.user.username            
             grad.save()
             req_formset.save()
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))
@@ -252,8 +255,9 @@ def manage_status(request, grad_slug):
     if request.method == 'POST':   
         status_formset = StatusFormSet(request.POST, request.FILES, instance=grad, prefix='stat')
         if status_formset.is_valid():
-            #change gradstudent's last updated info to newest
+            #change gradstudent's last updated/by info to newest
             grad.updated_at = datetime.datetime.now()
+            grad.created_by = request.user.username
             grad.save()                
             status_formset.save()
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))

@@ -48,6 +48,16 @@
 			{% endfor %}
 		</tbody>
 	</table>
+</div><br />
+<div align="center">
+	<p class="helptext">
+		Last updated : {{grad.updated_at}}. By:
+		{% if not grad.modified_by%}
+		{{grad.created_by}}
+		{% else %}
+		{{grad.modified_by}}
+		{% endif %}
+	</p>
 </div>
 <div class="datatable_container bigdatatable">
 	<table class="display" id="academics">
@@ -149,19 +159,6 @@
 					</dd>
 				</dl></td>
 			</tr>
-			<tr>
-				<td colspan="3">
-				<div align="center">
-					<p class="helptext">
-						Last updated : {{grad.updated_at}}. By:
-						{% if not grad.modified_by%}
-						{{grad.created_by}}
-						{% else %}
-						{{grad.modified_by}}
-						{% endif %}
-					</p>
-				</div></td>
-			</tr>
 		</tbody>
 	</table>
 	<br />
@@ -192,7 +189,7 @@
 			</tr>
 			{%empty%}
 			<tr>
-				<td>
+				<td colspan="3">
 				<p class="empty">
 					Student has not completed any requirements.
 				</p></td>
@@ -242,7 +239,7 @@
 			</tr>
 			<tr>
 				<th>Supervisor</th>
-				<th>Rank</th>
+				<th></th>
 				<th>Potential</th>
 				<th>Senior</th>
 				<th>Updated At</th>

@@ -15935,7 +15935,15 @@
   "model": "coredata.role",
   "pk": 5
  },
- 
+  {
+  "fields": {
+   "person": 134,
+   "role": "GRAD",
+   "unit": 2
+  },
+  "model": "coredata.role",
+  "pk": 9
+ },
  
  
  
@@ -16397,7 +16405,7 @@
   "fields": {
    "created_at": "2012-02-16 22:27:17", 
    "end": null, 
-   "notes": "", 
+   "notes": "When enabled DataTables will not make a request to the server for the first page draw - rather it will use the data already on the page (no sorting etc will be applied to it), thus saving on an XHR at load time. iDeferLoading is used to indicate that deferred loading is required, but it is also used to tell DataTables how many records there are in the full table (allowing the information element and pagination to be displayed correctly).", 
    "start": 3, 
    "status": "ACTI", 
    "student": 1, 
@@ -16423,7 +16431,7 @@
   "fields": {
    "created_at": "2012-02-16 22:28:10", 
    "end": null, 
-   "notes": "", 
+   "notes": "When enabled DataTables will not make a request to the server for the first page draw - ", 
    "start": 3, 
    "status": "ACTI", 
    "student": 3, 
