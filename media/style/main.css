@@ -1429,7 +1429,7 @@ div.note-box p.hideshow {
   font-size: smaller;
 }
 
-#borderless {
+#borderless, #borderless td{
   border: none;
 }
 
@@ -1472,3 +1472,4 @@ td.table-row-label{
 #cal_tr:hover{
 	background-color:#F2EFE9;
 }
+
