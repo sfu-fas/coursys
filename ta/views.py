@@ -6,6 +6,7 @@ from courselib.auth import requires_course_staff_by_slug, requires_role, \
     is_course_staff_by_slug, has_role, ForbiddenResponse
 from django.contrib.auth.decorators import login_required
 from ta.models import TUG, Skill, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, CampusPreference
+from ra.models import Account
 from coredata.models import Member, Role, CourseOffering, Person, Semester
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, CoursePreferenceForm, \
     TAPostingForm, TAPostingBUForm, BUFormSet
@@ -280,6 +281,7 @@ def new_contract(request, post_slug):
     if posting.unit not in request.units:
         ForbiddenResponse(request, 'You cannot access this posting')
     course_choices = [('','---------')] + [(c.id, c.name()) for c in posting.selectable_offerings()]
+    position_choices = [(a.id, a.position_number) for a in Account.objects.filter(unit=posting.unit)]
     
     TACourseFormset = inlineformset_factory(TAContract, TACourse, extra=3, can_delete=False)
     
@@ -309,7 +311,8 @@ def new_contract(request, post_slug):
     else:
         form = TAContractForm()
         formset = TACourseFormset()
-            
+        
+        form.fields['position_number'].choices = position_choices
         for f in formset:
             f.fields['course'].choices = course_choices
             f.fields['course'].widget.attrs['class']  = 'course_select'

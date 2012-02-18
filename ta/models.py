@@ -1,5 +1,6 @@
 from django.db import models
 from coredata.models import Person, Member, Course, Semester, Unit ,CourseOffering, CAMPUS_CHOICES 
+from ra.models import Account
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter #, getter_setter_2
 from courselib.slugs import make_slug
@@ -280,7 +281,7 @@ class TAContract(models.Model):
     #appt_end = models.DateField()
     pay_start = models.DateField()
     pay_end = models.DateField()
-    position_number = models.PositiveIntegerField()
+    position_number = models.ForeignKey(Account)
     appt_category = models.CharField(max_length=4, choices=CATEGORY_CHOICES, verbose_name="Appointment Category")
     appt = models.CharField(max_length=4, choices=APPOINTMENT_CHOICES, verbose_name="Appointment")
     pay_per_bu = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Pay per Base Unit Semester Rate.",)
