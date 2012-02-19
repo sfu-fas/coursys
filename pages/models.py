@@ -451,6 +451,11 @@ class ParserFor(object):
             codeblock = CodeBlock()
             abbracronym = AbbrAcronym()
             strikethrough = creoleparser.elements.InlineElement('del','--')
+            
+            def __init__(self):
+                self.custom_elements = [self.abbracronym, self.strikethrough]
+                super(CreoleDialect,self).__init__()
+                
             @property
             def inline_elements(self):
                 inline = super(CreoleDialect, self).inline_elements

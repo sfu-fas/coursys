@@ -26,6 +26,7 @@ class HTMLWiki(object):
         'linkmarkup': is markup allowed in links? [[page.html|**bold link**]]
         """
         self.options = set(options)
+        self.urls = set()
         self.setup_handlers()
         
     def wiki_escape(self, txt):

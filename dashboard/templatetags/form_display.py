@@ -1,4 +1,5 @@
 from django import template
+from django import forms
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 register = template.Library()
@@ -25,7 +26,10 @@ def as_dl(form, safe=False):
             reqcount += 1
         out.append('<dt><label for="id_%s">%s:%s</label></dt><dd>' % (field.name, escape(field.label), reqtext))
         out.append(unicode(field.errors))
-        out.append('<div class="field">%s</div>' % (unicode(field)))
+        if isinstance(field.field.widget, forms.widgets.RadioSelect):
+            out.append('<div class="field radio">%s</div>' % (unicode(field)))
+        else:
+            out.append('<div class="field">%s</div>' % (unicode(field)))
         if field.help_text:
             if safe:
                 out.append('<div class="helptext">%s</div>' % (field.help_text))

@@ -753,6 +753,16 @@ dl.dlform .helptext {
 dl.dlform dt{
 	margin-left: 1em;
 }
+dl.dlform div.field.radio {
+    margin-left: 9em;
+}
+dl.dlform div.field.radio label {
+    text-align: left;
+    width: auto;
+}
+dl.dlform div.field.radio ul {
+    margin-top: 0;
+}
 fieldset .errortext {
     color: red;
     font-size: 0.9em;

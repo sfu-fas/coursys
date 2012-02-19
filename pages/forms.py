@@ -194,8 +194,8 @@ class SiteImportForm(forms.Form):
         found = {}
         errors = []
         while needed:
-            #if len(found) > 9:
-            #    break
+            if len(found) >= 20:
+                break
             url = needed.pop()
             try:
                 page, pv, newurls = self._import_page(url)
