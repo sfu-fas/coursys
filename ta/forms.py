@@ -132,7 +132,7 @@ class TUGForm(forms.ModelForm):
 class TAApplicationForm(forms.ModelForm):
     class Meta:
         model = TAApplication
-        exclude = ('person','unit','skills','campus_preferences','semester')
+        exclude = ('posting','person','skills','campus_preferences')
         widgets = {
                    'base_units': forms.TextInput(attrs={'size': 5}),
                    'sin': forms.TextInput(attrs={'size': 9}),

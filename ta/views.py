@@ -165,19 +165,18 @@ def new_application(request, post_slug):
         if ta_form.is_valid() and courses_formset.is_valid():
             person = get_object_or_404(Person, userid=request.user.username)
             app = ta_form.save(commit=False)
-            app.semester = posting.semester
+            app.posting = posting
             app.person = person
-            app.unit = posting.unit
             app.save()
 
             #Add every skill to application
-            skill_count = Skill.objects.filter(unit=app.unit.id).values('name').distinct().count()
+            skill_count = Skill.objects.filter(unit=posting.unit.id).values('name').distinct().count()
             for i in range(1,skill_count+1):
                 app.skills.add(request.POST['skills'+str(i)])
             
             #Add each campus preference to application
             campus_count = CampusPreference.objects.values('campus').distinct().count()
-            for i in range(1,campus_count+1):
+            for i in range(1,campus_count):
                 app.campus_preferences.add(request.POST['campus_preference'+str(i)])
     
             ta_form.save_m2m()
@@ -224,7 +223,8 @@ def new_application(request, post_slug):
 def all_applications(request):
     roles = Role.objects.filter(role="TAAD", person__userid=request.user.username)
     units = [r.unit for r in roles]
-    applications = TAApplication.objects.filter(unit__in=units)
+    postings = TAPosting.objects.filter(unit__in=units)
+    applications = TAApplication.objects.filter(posting__in=postings)
     context = {
             'units':units,
             'applications':applications,

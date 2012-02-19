@@ -10,7 +10,7 @@
     <h2>{{ unit.label }} Applications</h2> 
     <ul>
         {% for app in applications %}
-            {% if app.unit == unit %}
+            {% if app.posting.unit == unit %}
             <li>
             <a href="{% url ta.views.view_application app_id=app.id %}">{{ app.person.name }}</a> 
             </li>
