@@ -48,6 +48,9 @@ class RoleForm(forms.ModelForm):
     class Meta:
         model = Role
 
+class UnitRoleForm(RoleForm):
+    role = forms.ChoiceField(widget=forms.RadioSelect())
+
 
 class MemberForm(forms.ModelForm):
     person = forms.CharField(min_length=1, max_length=8, label='SFU Userid')

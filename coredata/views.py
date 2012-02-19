@@ -1,10 +1,10 @@
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from coredata.forms import RoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm
-from courselib.auth import requires_global_role, requires_course_staff_by_slug, ForbiddenResponse
+from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm
+from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse
 from courselib.search import get_query
-from coredata.models import Person, Semester, CourseOffering, Member, Role
+from coredata.models import Person, Semester, CourseOffering, Member, Role, UNIT_ROLES, ROLES, ROLE_DESCR
 from log.models import LogEntry
 from django.core.urlresolvers import reverse
 from django.contrib import messages
@@ -56,6 +56,9 @@ def delete_role(request, role_id):
     
     role.delete()
     return HttpResponseRedirect(reverse(role_list))
+
+
+
 
 @requires_global_role("SYSA")
 def missing_instructors(request):
@@ -236,6 +239,57 @@ def manage_tas(request, course_slug):
     tas = Member.objects.filter(role="TA", offering=course)
     context = {'course': course, 'form': form, 'tas': tas, 'longform': longform}
     return render(request, 'coredata/manage_tas.html', context)
+
+
+# views for departmental admins to manage permissions
+
+@requires_role("ADMN")
+def unit_role_list(request):
+    """
+    Display list of who has what role (for department admins)
+    """
+    roles = Role.objects.filter(unit__in=request.units, role__in=UNIT_ROLES)
+    return render(request, 'coredata/unit_roles.html', {'roles': roles})
+
+@requires_role("ADMN")
+def new_unit_role(request, role=None):
+    role_choices = [(r,ROLES[r]) for r in UNIT_ROLES]
+    unit_choices = [(u.id, unicode(u)) for u in request.units]
+    if request.method == 'POST':
+        form = UnitRoleForm(request.POST)
+        form.fields['role'].choices = role_choices
+        form.fields['unit'].choices = unit_choices
+        if form.is_valid():
+            form.save()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("new role: %s as %s in %s") % (form.instance.person.userid, form.instance.role, form.instance.unit),
+                  related_object=form.instance)
+            l.save()
+            return HttpResponseRedirect(reverse(unit_role_list))
+    else:
+        form = UnitRoleForm()
+        form.fields['role'].choices = role_choices
+        form.fields['unit'].choices = unit_choices
+        
+    context = {'form': form, 'UNIT_ROLES': UNIT_ROLES, 'ROLE_DESCR': ROLE_DESCR}
+    return render(request, 'coredata/new_unit_role.html', context)
+
+
+@requires_role("ADMN")
+def delete_unit_role(request, role_id):
+    role = get_object_or_404(Role, pk=role_id, unit__in=request.units, role__in=UNIT_ROLES)
+    messages.success(request, 'Deleted role %s for %s.' % (role.get_role_display(), role.person.name()))
+    #LOG EVENT#
+    l = LogEntry(userid=request.user.username,
+          description=("deleted role: %s for %s in %s") % (role.get_role_display(), role.person.name(), role.unit),
+          related_object=role.person)
+    l.save()
+    
+    role.delete()
+    return HttpResponseRedirect(reverse(unit_role_list))
+
+
 
 
 # AJAX/JSON for course offering selector autocomplete

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% load course_display %}
+{% block title %}CourSys Roles{% endblock %}
+{% block h1 %}CourSys Roles{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.unit_role_list %}">Roles</a></li><li>&gt; New Role</li>{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+//<![CDATA[
+  function place_help(r, txt) {
+    var inp = $('input[name$="role"][value$=' + r + ']');
+    inp.parent().append('<div class="helptext">(' + txt + ')</div>');
+  }
+  $(document).ready(function() {
+    {% for r in UNIT_ROLES %}
+    place_help('{{r|escapejs}}', '{{ROLE_DESCR|hash:r|escapejs}}')
+    {% endfor %}
+  });
+//]]></script>
+{% endblock %}
+
+{% block content %}
+
+<div id="form_container">
+<form action="{% url coredata.views.new_unit_role %}" method="post">{% csrf_token %}
+<fieldset>
+<legend>Role</legend>
+{{ form|as_dl }}
+<p><input type="submit" class="submit" value="Submit" /></p>
+</fieldset>
+</form>
+</div>
+
+{% endblock %}

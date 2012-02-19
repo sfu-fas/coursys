@@ -52,23 +52,23 @@ urlpatterns += patterns('',
 #---------------------------------------
     url(r'^$', 'dashboard.views.index'),
         url(r'^m/$', 'mobile.views.index'),
-    url(r'^' + 'favicon.ico$', 'django.views.generic.simple.redirect_to', {'url': '/media/icons/favicon.ico'}),
-    url(r'^' + 'config/$', 'dashboard.views.config'),
-    url(r'^' + 'news/$', 'dashboard.views.news_list'),
-    url(r'^' + 'news/configure/$', 'django.views.generic.simple.redirect_to', {'url': '/config/'}),
-    #url(r'^' + 'calendar/$', 'django.views.generic.simple.redirect_to', {'url': '/config/'}),
-    url(r'^' + 'config/news/set$', 'dashboard.views.create_news_url'),
-    url(r'^' + 'config/news/del$', 'dashboard.views.disable_news_url'),
-    url(r'^' + 'config/calendar/set$', 'dashboard.views.create_calendar_url'),
-    url(r'^' + 'config/calendar/del$', 'dashboard.views.disable_calendar_url'),
-    url(r'^' + 'config/news$', 'dashboard.views.news_config'),
-    url(r'^' + 'news/(?P<token>[0-9a-f]{32})/' + USERID_SLUG + '$', 'dashboard.views.atom_feed'),
-    url(r'^' + 'news/(?P<token>[0-9a-f]{32})/' + USERID_SLUG + '/' + COURSE_SLUG + '$', 'dashboard.views.atom_feed'),
-    url(r'^' + 'calendar/(?P<token>[0-9a-f]{32})/' + USERID_SLUG + '$', 'dashboard.views.calendar_ical'),
-    url(r'^' + 'calendar/$', 'dashboard.views.calendar'),
-    url(r'^' + 'calendar/data$', 'dashboard.views.calendar_data'),
-    url(r'^' + 'docs/$', 'dashboard.views.list_docs'),
-    url(r'^' + 'docs/(?P<doc_slug>' + SLUG_RE + ')$', 'dashboard.views.view_doc'),
+    url(r'^favicon.ico$', 'django.views.generic.simple.redirect_to', {'url': '/media/icons/favicon.ico'}),
+    url(r'^config/$', 'dashboard.views.config'),
+    url(r'^news/$', 'dashboard.views.news_list'),
+    url(r'^news/configure/$', 'django.views.generic.simple.redirect_to', {'url': '/config/'}),
+    #url(r'^calendar/$', 'django.views.generic.simple.redirect_to', {'url': '/config/'}),
+    url(r'^config/news/set$', 'dashboard.views.create_news_url'),
+    url(r'^config/news/del$', 'dashboard.views.disable_news_url'),
+    url(r'^config/calendar/set$', 'dashboard.views.create_calendar_url'),
+    url(r'^config/calendar/del$', 'dashboard.views.disable_calendar_url'),
+    url(r'^config/news$', 'dashboard.views.news_config'),
+    url(r'^news/(?P<token>[0-9a-f]{32})/' + USERID_SLUG + '$', 'dashboard.views.atom_feed'),
+    url(r'^news/(?P<token>[0-9a-f]{32})/' + USERID_SLUG + '/' + COURSE_SLUG + '$', 'dashboard.views.atom_feed'),
+    url(r'^calendar/(?P<token>[0-9a-f]{32})/' + USERID_SLUG + '$', 'dashboard.views.calendar_ical'),
+    url(r'^calendar/$', 'dashboard.views.calendar'),
+    url(r'^calendar/data$', 'dashboard.views.calendar_data'),
+    url(r'^docs/$', 'dashboard.views.list_docs'),
+    url(r'^docs/(?P<doc_slug>' + SLUG_RE + ')$', 'dashboard.views.view_doc'),
     url(r'^data/courses/(?P<semester>\d{4})$', 'dashboard.views.courses_json'),
     url(r'^data/offerings$', 'coredata.views.offerings_search'),
     url(r'^data/offering$', 'coredata.views.offering_by_id'),
@@ -79,6 +79,9 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_SLUG + '/new_message$', 'dashboard.views.new_message'),
     url(r'^' + COURSE_SLUG + '/config/$', 'grades.views.course_config'),
     url(r'^' + COURSE_SLUG + '/config/tas$', 'coredata.views.manage_tas'),
+    url(r'^' + COURSE_SLUG + '/copysetup/$', 'marking.views.copy_course_setup'),
+    
+    # course groups
 
     url(r'^' + COURSE_SLUG + '/groups$', 'django.views.generic.simple.redirect_to', {'url': '/%(course_slug)s/groups/'}),
     url(r'^' + COURSE_SLUG + '/groups/$', 'groups.views.groupmanage'),
@@ -92,6 +95,8 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_SLUG + '/groups/(?P<group_slug>' + SLUG_RE + ')/remove$', 'groups.views.remove_student'),
     url(r'^' + COURSE_SLUG + '/groups/(?P<group_slug>' + SLUG_RE + ')/add$', 'groups.views.assign_student'),
     url(r'^' + COURSE_SLUG + '/groups/(?P<group_slug>' + SLUG_RE + ')/rename$', 'groups.views.change_name'),
+    
+    # course activities/grades
 
     url(r'^' + COURSE_SLUG + '/grades$', 'grades.views.all_grades'),
     url(r'^' + COURSE_SLUG + '/grades_csv$', 'grades.views.all_grades_csv'),
@@ -119,6 +124,8 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_ACTIVITY_SLUG + '/groups$', 'grades.views.activity_info_with_groups'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/release$', 'grades.views.release_activity'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/delete$', 'grades.views.delete_activity'),
+    
+    # activity submission
 
     url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/$', 'submission.views.show_components'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/history$', 'submission.views.show_components_submission_history'),
@@ -132,9 +139,10 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/' + GROUP_SLUG + '/mark$', 'submission.views.take_ownership_and_mark'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/submission/' + USERID_SLUG + '/mark$', 'submission.views.take_ownership_and_mark'),
 
+    # activity marking
+
     url(r'^' + COURSE_ACTIVITY_SLUG + '/markall/students$', 'marking.views.mark_all_students'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/markall/groups$', 'marking.views.mark_all_groups'),
-
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/$', 'marking.views.manage_activity_components'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/positions$', 'marking.views.manage_component_positions'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/marking/common$', 'marking.views.manage_common_problems'),
@@ -153,45 +161,8 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_ACTIVITY_SLUG + '/gradestatus/' + USERID_SLUG + '/$', 'marking.views.change_grade_status'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/csv$', 'marking.views.export_csv'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/sims_csv$', 'marking.views.export_sims'),
-    url(r'^' + COURSE_SLUG + '/copysetup/$', 'marking.views.copy_course_setup'),
 
-    url(r'^' + COURSE_SLUG + '/pages/$', 'pages.views.index_page'),
-    url(r'^' + COURSE_SLUG + '/pages/_all$', 'pages.views.all_pages'),
-    url(r'^' + COURSE_SLUG + '/pages/_new$', 'pages.views.new_page'),
-    url(r'^' + COURSE_SLUG + '/pages/_import$', 'pages.views.import_site'),
-    url(r'^' + COURSE_SLUG + '/pages/_newfile$', 'pages.views.new_file'),
-    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '$', 'pages.views.view_page'),
-    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/view$', 'pages.views.view_file'),
-    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/download$', 'pages.views.download_file'),
-    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/edit$', 'pages.views.edit_page'),
-    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/import$', 'pages.views.import_page'),
-    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/history$', 'pages.views.page_history'),
-    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/version/(?P<version_id>\d+)$', 'pages.views.page_version'),
-
-    #Start TUG URL mappings
-
-    url(r'^' + COURSE_SLUG + '/config/tugs/$', 'ta.views.index_page'),
-    url(r'^tugs/all$', 'ta.views.all_tugs_admin'),
-    url(r'^' + COURSE_SLUG + '/config/tugs/all$', 'ta.views.all_tugs'),
-    url(r'^' + COURSE_SLUG + '/config/tugs/' + USERID_SLUG + '/new$', 'ta.views.new_tug'),
-    url(r'^' + COURSE_SLUG + '/config/tugs/' + USERID_SLUG + '/view$', 'ta.views.view_tug'),
-    url(r'^' + COURSE_SLUG + '/config/tugs/' + USERID_SLUG + '/edit$', 'ta.views.edit_tug'),
-	 
-    #End TUG URL mappings
-    
-    url(r'^ta/postings/$', 'ta.views.view_postings'),
-    url(r'^ta/postings/new$', 'ta.views.edit_posting'),
-    url(r'^ta/postings/' + POST_SLUG + '$', 'ta.views.new_application'),
-    url(r'^ta/postings/' + POST_SLUG + '/edit$', 'ta.views.edit_posting'),
-    url(r'^ta/postings/' + POST_SLUG + '/bu$', 'ta.views.edit_bu'),
-    url(r'^ta/postings/' + POST_SLUG + '/bu_formset$', 'ta.views.bu_formset'),
-    url(r'^ta/postings/' + POST_SLUG + '/apps/$', 'ta.views.assign_tas'),
-    url(r'^ta/application/all$', 'ta.views.all_applications'),
-    url(r'^ta/application/' + APP_ID + '$', 'ta.views.view_application'),
-	
-	url(r'ta/contracts/$', 'ta.views.all_contracts'),
-	url(r'^ta/contract/' + POST_SLUG + '/new$', 'ta.views.new_contract'),
-	
+    # discipline
     
     url(r'^discipline/$', 'discipline.views.chair_index'),
     url(r'^discipline/' + COURSE_SLUG + '/' + CASE_SLUG + '/create$', 'discipline.views.chair_create'),
@@ -211,8 +182,50 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_SLUG + '/dishonesty/cases/' + CASE_SLUG + '/attach/(?P<fileid>\d+)$', 'discipline.views.download_file'),
     url(r'^' + COURSE_SLUG + '/dishonesty/cases/' + CASE_SLUG + '/attach/(?P<fileid>\d+)/edit$', 'discipline.views.edit_file'),
     url(r'^' + COURSE_SLUG + '/dishonesty/cases/' + CASE_SLUG + '/(?P<field>[a-z_]+)$', 'discipline.views.edit_case_info'),
+    
+    # pages
 
+    url(r'^' + COURSE_SLUG + '/pages/$', 'pages.views.index_page'),
+    url(r'^' + COURSE_SLUG + '/pages/_all$', 'pages.views.all_pages'),
+    url(r'^' + COURSE_SLUG + '/pages/_new$', 'pages.views.new_page'),
+    url(r'^' + COURSE_SLUG + '/pages/_import$', 'pages.views.import_site'),
+    url(r'^' + COURSE_SLUG + '/pages/_newfile$', 'pages.views.new_file'),
+    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '$', 'pages.views.view_page'),
+    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/view$', 'pages.views.view_file'),
+    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/download$', 'pages.views.download_file'),
+    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/edit$', 'pages.views.edit_page'),
+    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/import$', 'pages.views.import_page'),
+    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/history$', 'pages.views.page_history'),
+    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/version/(?P<version_id>\d+)$', 'pages.views.page_version'),
+
+    # TA's TUGs
+
+    url(r'^' + COURSE_SLUG + '/config/tugs/$', 'ta.views.index_page'),
+    url(r'^tugs/all$', 'ta.views.all_tugs_admin'),
+    url(r'^' + COURSE_SLUG + '/config/tugs/all$', 'ta.views.all_tugs'),
+    url(r'^' + COURSE_SLUG + '/config/tugs/' + USERID_SLUG + '/new$', 'ta.views.new_tug'),
+    url(r'^' + COURSE_SLUG + '/config/tugs/' + USERID_SLUG + '/view$', 'ta.views.view_tug'),
+    url(r'^' + COURSE_SLUG + '/config/tugs/' + USERID_SLUG + '/edit$', 'ta.views.edit_tug'),
+
+    # redirect for old-style activity URLs (must be last to avoid conflict with other rules)
     url(r'^' + COURSE_ACTIVITY_SLUG_OLD + '(?P<tail>.*)$', 'django.views.generic.simple.redirect_to', {'url': '/%(course_slug)s/@%(activity_slug)s%(tail)s'}), # redirect old activity URLs
+	 
+    # TA postings/contracts
+    
+    url(r'^ta/postings/$', 'ta.views.view_postings'),
+    url(r'^ta/postings/new$', 'ta.views.edit_posting'),
+    url(r'^ta/postings/' + POST_SLUG + '$', 'ta.views.new_application'),
+    url(r'^ta/postings/' + POST_SLUG + '/edit$', 'ta.views.edit_posting'),
+    url(r'^ta/postings/' + POST_SLUG + '/bu$', 'ta.views.edit_bu'),
+    url(r'^ta/postings/' + POST_SLUG + '/bu_formset$', 'ta.views.bu_formset'),
+    url(r'^ta/postings/' + POST_SLUG + '/apps/$', 'ta.views.assign_tas'),
+    url(r'^ta/application/all$', 'ta.views.all_applications'),
+    url(r'^ta/application/' + APP_ID + '$', 'ta.views.view_application'),
+	
+	url(r'^ta/contracts/$', 'ta.views.all_contracts'),
+	url(r'^ta/contract/' + POST_SLUG + '/new$', 'ta.views.new_contract'),
+
+    # system admin
 
     url(r'^sysadmin/$', 'coredata.views.sysadmin'),
     url(r'^sysadmin/log/$', 'log.views.index'),
@@ -233,8 +246,13 @@ urlpatterns += patterns('',
     url(r'^sysadmin/dishonesty/new$', 'discipline.views.new_template'),
     url(r'^sysadmin/dishonesty/edit/(?P<template_id>\d+)$', 'discipline.views.edit_template'),
     url(r'^sysadmin/dishonesty/delete/(?P<template_id>\d+)$', 'discipline.views.delete_template'),
+
+    url(r'^admin/roles/$', 'coredata.views.unit_role_list'),
+    url(r'^admin/roles/(?P<role_id>\d+)/delete$', 'coredata.views.delete_unit_role'),
+    url(r'^admin/roles/new$', 'coredata.views.new_unit_role'),
+
     
-    # Advisor Notes Start
+    # Advisor Notes
     
     url(r'^advising/$', 'advisornotes.views.advising'),
     url(r'^data/students$', 'coredata.views.student_search'),
@@ -242,11 +260,9 @@ urlpatterns += patterns('',
     url(r'^advising/students/' + USERID_SLUG + '/$', 'advisornotes.views.student_notes'),
     url(r'^advising/students/' + USERID_SLUG + '/notes/' + NOTE_ID + '$', 'advisornotes.views.view_note'),
     url(r'^advising/students/' + USERID_SLUG + '/notes/' + NOTE_ID + '/download$', 'advisornotes.views.download_file'),
-    # Advisor Notes End
-    	
-
     
-    # Graduate related Start
+    # Graduate student database
+
     url(r'^grad/$', 'grad.views.index'),
     
     url(r'^grad/program/new', 'grad.views.new_program'),   
@@ -262,9 +278,8 @@ urlpatterns += patterns('',
     url(r'^grad/'+ GRAD_SLUG + '/manage_requirements$', 'grad.views.manage_requirements'),    
     url(r'^grad/new', 'grad.views.new'),
 
-    # Graduate related End
+    # RA database
 
-    # For RA application
     url(r'^ra/$', 'ra.views.search'),
     url(r'^ra/' + USERID_SLUG + '/$', 'ra.views.student_appointments'),
     url(r'^ra/new$', 'ra.views.new'),

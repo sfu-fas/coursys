@@ -384,7 +384,7 @@ class CourseOffering(models.Model):
     def extra_bu(self):
         return decimal.Decimal(self.extra_bu_str())
     def set_extra_bu(self, v):
-        assert type(v)==decimal.Decimal
+        assert isinstance(v, decimal.Decimal)
         self.set_extra_bu_str(str(v))
     def set_course(self, save=True):
         """
@@ -606,11 +606,7 @@ class Unit(models.Model):
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
 
 
-class Role(models.Model):
-    """
-    Additional roles within the system (not course-related).
-    """
-    ROLE_CHOICES = (
+ROLE_CHOICES = (
         ('ADVS', 'Advisor'),
         ('FAC', 'Faculty Member'),
         ('SESS', 'Sessional Instructor'),
@@ -624,7 +620,21 @@ class Role(models.Model):
         ('FUND', 'Grad Funding Administrator'),
         ('SYSA', 'System Administrator'),
         ('NONE', 'none'),
-    )
+        )
+ROLES = dict(ROLE_CHOICES)
+UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'TAAD', 'GRAD', 'FUND'] # roles departmental admins ('ADMN') are allowed to assign with their unit
+ROLE_DESCR = {
+              'ADVS': 'Has access to the advisor notes.',
+              'DISC': 'Can manage academic discipline cases in the unit: should include your Academic Integrity Coordinator.',
+              'DICC': 'Will be BCCed on all discipline case letters in the unit: include whoever files your discipline cases.',
+              'TAAD': 'Can administer TA job postings and appointments.',
+              'GRAD': 'Can view and update the grad student database.',
+              'FUND': 'Can work with the grad student funding database.',
+              }
+class Role(models.Model):
+    """
+    Additional roles within the system (not course-related).
+    """
     ROLES = dict(ROLE_CHOICES)
     person = models.ForeignKey(Person)
     role = models.CharField(max_length=4, choices=ROLE_CHOICES)

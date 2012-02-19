@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}CourSys Roles{% endblock %}
+{% block h1 %}CourSys Roles{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url coredata.views.sysadmin %}">Admin</a></li><li>&gt; List Roles</li>{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#roles').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[2, 'asc']],
+  } );
+} );
+function confirmDelete(url) {
+  if ( confirm("Are you sure you want to delete this role?") ) {
+    document.location = url;
+  };
+}
+</script>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    <li><a href="{% url coredata.views.new_unit_role %}">Add new role</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="datatable_container">
+<table id="roles" class="display">
+  <thead><tr><th scope="col">Name</th><th scope="col">User ID</th><th scope="col">Role</th><th scope="col">Unit</th><th scope="col">Actions</th></tr></thead>
+  <tbody>
+  {% for role in roles %}
+  <tr><td scope="row">{{role.person}}</td>
+  <td>{{role.person.userid}}</td>    
+  <td>{{role.get_role_display}}</td><td>{{role.unit.name}}</td>
+  <td><a href="javascript:confirmDelete('{% url coredata.views.delete_unit_role role_id=role.pk %}');">delete</a></td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}
