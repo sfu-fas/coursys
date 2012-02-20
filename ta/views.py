@@ -259,7 +259,7 @@ def assign_tas(request, post_slug):
     if posting.unit not in request.units:
         ForbiddenResponse(request, 'You cannot access this posting')
     
-    apps = TAApplication.objects.filter(unit=posting.unit, semester=posting.semester)
+    apps = TAApplication.objects.filter(posting=posting)
     all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit)
     # ignore excluded courses
     excl = set(posting.excluded())
