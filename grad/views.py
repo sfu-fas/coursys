@@ -151,21 +151,13 @@ def update_supervisors(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
     if request.method == 'POST':
         supervisors_formset = modelformset_factory(Supervisor, form=SupervisorForm)(request.POST,prefix="form")
-        supervisors_formset = modelformset_factory(Supervisor, form=SupervisorForm, max_num=4)
+
         if supervisors_formset.is_valid():
-		    #change gradstudent's last updated/by info to newest
-            grad.updated_at = datetime.datetime.now()
-            grad.save()      
-            temp = supervisors_formset.save(commit=False)
-        modelformset = supervisors_formset(request.POST)
-        print modelformset.is_valid()
-        print "---"
-        if modelformset.is_valid():
             #change gradstudent's last updated info to newest
             grad.updated_at = datetime.datetime.now()
             grad.created_by = request.user.username  
             grad.save()                
-            temp = modelformset.save(commit=False)
+            temp = supervisors_formset.save(commit=False)
             for entry in temp:
                 entry.student = grad
             supervisors_formset.save()

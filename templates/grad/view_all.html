@@ -250,7 +250,7 @@
 			<tr>
 				<td>{% if supervisor.supervisor %}{{ supervisor.supervisor }}{% else %}{{ supervisor.external }}{% endif%}</td>
 				<td>{{ supervisor.position }}</td>
-				<td>{% if supervisor.position %}True{% else %}False {% endif %}</td>
+				<td>{% if supervisor.position == 0 %}True{% else %}False {% endif %}</td>
 				<td>{% if supervisor.is_senior %}True{% else %}False {% endif %}</td>
 				<td>{{ supervisor.updated_at }}</td>
 			</tr>

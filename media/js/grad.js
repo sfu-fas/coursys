@@ -15,11 +15,12 @@ function add(){
 		newForm.find(':input').each(function() {
 	        var new_name = $(this).attr('name').replace('-0-','-' + total_forms + '-');
 	        var new_id = 'id_' + new_name;
-	        $(this).attr({'name': new_name, 'id': new_id});
-	        if(new_name.indexOf("external")!=-1){
-	        	$(this).val(''); // clear external value
-	        }
-	        else if(new_id.indexOf("position")!=-1){
+       		$(this).attr({'name': new_name, 'id': new_id});	
+        	$(this).val('');
+        	if(new_name.indexOf("id")!=-1){
+        		$(this).val(''); // ensures id gets cleared
+        	}
+	        if(new_id.indexOf("position")!=-1){
         		$(this).val((total_forms+1)); //increment position
 	        }
 	    });
