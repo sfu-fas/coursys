@@ -52,6 +52,23 @@ def new(request):
     return render(request, 'ra/new.html', { 'raform': raform })
 
 @requires_role("FUND")
+def edit(request, ra_slug):
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug)    
+    raform = RAForm(request.POST or None)
+    raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
+    raform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
+    raform.fields['project'].choices = [(p.id, unicode(p.project_number)) for p in Project.objects.filter(unit__in=request.units)]
+    raform.fields['account'].choices = [(a.id, u'%s (%s)' % (a.account_number, a.title)) for a in Account.objects.filter(unit__in=request.units)]
+    if request.method == 'POST':
+        if raform.is_valid():
+            appointment = raform.save()
+            appointment.save()
+            return HttpResponseRedirect(reverse(view, args=(ra_slug)))
+    else:
+        raform = RAForm(instance=appointment)
+    return render(request, 'ra/edit.html', { 'raform': raform })
+
+@requires_role("FUND")
 def view(request, ra_slug):
     appointment = get_object_or_404(RAAppointment, slug=ra_slug)
     student = Person.objects.get(userid=appointment.person.userid)

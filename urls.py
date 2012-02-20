@@ -283,7 +283,8 @@ urlpatterns += patterns('',
     url(r'^ra/$', 'ra.views.search'),
     url(r'^ra/' + USERID_SLUG + '/$', 'ra.views.student_appointments'),
     url(r'^ra/new$', 'ra.views.new'),
-    url(r'^ra/view/' + RA_SLUG + '/$', 'ra.views.view')
+    url(r'^ra/view/' + RA_SLUG + '/$', 'ra.views.view'),
+    url(r'^ra/edit/' + RA_SLUG + '/$', 'ra.views.edit'),
 
    
     
