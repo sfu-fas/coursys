@@ -21,7 +21,9 @@ $(function(){
 	})
 	
 	$("#id_base_units").change(function(){
-		$("#id_form-7-total").val($(this).val())
+        if (!($("#id_holiday-total").val())) {
+            $("#id_holiday-total").val($(this).val());
+    }
 	})
 	
 }());
@@ -37,17 +39,22 @@ function updateAllTotals(){
 			duty = extractDutyNameFromElement(this);
 			updateTotal(duty);
 	})
-	$("#id_form-7-total").val($("#id_base_units").val())
+	$("#id_holiday-total").val($("#id_base_units").val())
 }
 
 function updateTotal(duty){
 	$('#'+duty+'-total').val(($('#'+duty+'-weekly').val()*WEEKS_PER_SEMESTER));
 }
 
-function updateTotalHours(){
-	total = 0;
-	$("input[id$='-total']").each(function(){
+function sum_jquery(node){
+    total = 0;
+	node.each(function(){
 		total += $(this).val()*1; // *1 to cast from string to a number	
 	});
-	$('#totalHours').html(total);
+    return total
+}
+
+function updateTotalHours(){
+	$('#totalHours').html(sum_jquery($("input[id$='-total']")));
+	$('#weeklyHours').html(sum_jquery($("input[id$='-weekly']")));
 }

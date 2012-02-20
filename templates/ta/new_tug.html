@@ -2,6 +2,16 @@
 {% load markup %}
 {% load mobile_tags %}
 
+{% block headextra %}
+<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
+<script type="text/javascript">
+//<![CDATA[
+$(document).ready(function() {
+  $("h3.instructions").collapsible();
+});
+//]]></script>
+{% endblock %}
+
 {% block h1 %}Create Time Use Guideline{% endblock %}
 
 {% block subbreadcrumbs %}
@@ -42,12 +52,90 @@ Other: {{ form.label.as_widget }}{{form.label.errors}}
 {{ form.as_table_row }}
 </tr>
 {% endfor %}
-{#{{ form.config_form.as_table_row }}#}
+<tr>
+<th class="totals">Total</th>
+<td class="weekly"><span id="weeklyHours"></span></td>
+<td class="total"><span id="totalHours"></span> (Max: <span id="maxHours"></span>)</td>
+<td class="comment"></td>
+
+</tr>
 </table>
 {{ form.config_form.management_form }}
 <p><input class='submit' type="submit" value="{% block submittext %}Create{% endblock %}" /></p>
 </fieldset>
 </form>
+<h3 class="instructions" id="instructions-header">More Information:</h3>
+<div class="instructions" id="instructions-section">
+<p>This form is based on the form in Appendix C (p. 73) of the 
+<a href="http://www.tssu.ca/wp-content/uploads/2010/01/CA-2004-2010.pdf">
+    TSSU's collective agreement</a></p>
+<p>
+    Teaching Assistant total workload for the semester should approach but not exceed the
+    maximum hours over the term of the semester (normally 13-17 weeks).
+</p>
+<p>
+    Teaching Assistants and course instructors should familiarize themselves with the general 
+    working conditions set out in Article XIII C, assignment and compensation in Article XIII D, 
+    and workload review mechanisms in Article XIII E.
+</p>
+<p>
+    When assigning base units, please note that there are no hours of work associated with the additional 0.17 base unit for preparation, 
+    Article XIII D. 2 b.  See Appendix B for calculation of hours.
+</p>
+<p>
+    Grading includes grading of all assignments, reports and examinations. 
+</p>
+<p>
+    To compensate for all statutory holidays which 
+    may occur in a semester, the total workload required will be reduced by one (1) hour 
+    for each base unit assigned excluding the additional 0.17 B.U. for preparation, 
+    e.g. 4 hours reduction for 4.17 B.U. appointment.
+</p>
+
+<h3>Conducting Teaching Assistant Workload Reviews:</h3>
+<ul>
+  <li>
+  Course Supervisors are required to conduct a workload review if the size of a tutorial is
+over 24 or where the student to TA ratio is over 26:1 in a scheduled lab. Also, Course
+Supervisors are required to conduct a workload review if two or more of the following
+factors affecting workload occur:
+<ol><li>the average size of tutorials, labs or workshops for the Teaching Assistant is over
+   fifteen (15), or where the enrollment in any tutorial, lab or workshop assigned
+  exceeds eighteen (18)
+</li><li>the course is being offered for the first time
+</li><li>the course has been substantially modified, e.g. new text
+</li><li>it is the Teaching Assistant's first appointment
+</li><li>the instructor is supervising Teaching Assistants for the first time
+</li><li>the type of examinations and/or assignments have a significant impact on
+   workload when considered in combination with enrollment (e.g. essays vs.
+  multiple-choice exams)
+  </li>
+  </ol>
+  </li>
+  <li>
+    The Course Supervisor and T.A. should conduct the review as soon as reasonably
+    possible after the week three enrollment data is available.
+  <li>
+    In conducting the review, the Course Supervisor is expected to contact the T.A. and
+    discuss the workload factors.
+  </li>
+  <li>
+    Where the Course Supervisor concludes that the workload required will, by semester
+    end, exceed the total workload hours of the appointment, then it will be necessary to
+    either reduce the workload, where possible, or provide additional compensation.
+  </li>
+  <li>
+    The Course Supervisor should review these options with the T.A., but the option of
+    additional compensation must be approved by the Department Chair.
+  </li>
+  <li>
+    In all cases, once the department has made a decision on the workload review, the
+    Department Chair shall promptly advise the Teaching Assistant of the results and
+    reasons of the decision in writing, with a copy to the Union.
+  </li>
+</ul>
+</div>
+
 <script type="text/javascript" src="{{MEDIA_URL}}js/ta.js"></script>
 {% block extrascripts %}{% endblock %}
 {% endblock %}
