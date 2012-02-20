@@ -63,7 +63,7 @@ def view_all(request, grad_slug):
     # will display academic, personal, FIN, status history, supervisor
     grad = get_object_or_404(GradStudent, slug=grad_slug)
     supervisors = Supervisor.objects.filter(student=grad)
-    status_history = get_list_or_404(GradStatus, student=grad)
+    status_history = get_list_or_404(GradStatus, student=grad, hidden=False)
     
     #calculate missing reqs
     completed_req = CompletedRequirement.objects.filter(student=grad)
@@ -251,7 +251,7 @@ def manage_academics(request, grad_slug):
 def manage_status(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
 
-    StatusFormSet = inlineformset_factory(GradStudent, GradStatus, extra=1, can_order=False, can_delete=True) 
+    StatusFormSet = inlineformset_factory(GradStudent, GradStatus, extra=1, can_order=False, can_delete=False) 
     if request.method == 'POST':   
         status_formset = StatusFormSet(request.POST, request.FILES, instance=grad, prefix='stat')
         if status_formset.is_valid():
@@ -262,8 +262,8 @@ def manage_status(request, grad_slug):
             status_formset.save()
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))
     else:
-        status_formset = StatusFormSet(instance=grad, prefix='stat') 
-    
+        status_formset = StatusFormSet(instance=grad, prefix='stat', queryset=GradStatus.objects.filter(hidden=False))
+
     # set frontend defaults
     page_title = "%s 's Status Record" % (grad.person.first_name)
     crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)

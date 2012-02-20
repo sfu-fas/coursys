@@ -169,6 +169,11 @@ class GradStatus(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    # Set this flag if the status is no longer to be accessible.
+    hidden = models.BooleanField(null=False, db_index=True, default=False)
+
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted, set the hidden flag instead."
 
     def get_fields(self):
         # make a list of field/values.

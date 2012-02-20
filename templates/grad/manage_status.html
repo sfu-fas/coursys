@@ -66,8 +66,7 @@
 						<th>Start Semester</th>
 						<th>End Semester</th>
 						<th>Notes</th>
-						{% if status_formset.can_delete %} <th>Delete</th>
-						{% endif %}
+						<th>Delete</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -84,13 +83,10 @@
 					</tr>
 					{% endif %}
 					<tr>
-						{{ r.id }} 
-						<td> {{ r.status }} {{ r.status.errors }}</td>
-						<td> {{ r.start }} {{ r.start.errors }}</td>
-						<td> {{ r.end }} {{ r.end.errors }}</td>
-						<td> {{ r.notes }} {{ r.notes.errors }}</td>
-						{% if status_formset.can_delete %} <td> {{ r.DELETE }}</td>
-						{% endif %}
+					{{ r.id }}
+					{% for field in r.visible_fields %}
+						<td>{{ field }} {{ field.errors }}</td>
+					{% endfor %}
 					</tr>
 					{% endfor%}
 				</tbody>
