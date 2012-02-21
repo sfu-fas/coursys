@@ -158,7 +158,7 @@ class TAContractForm(forms.ModelForm):
     
     class Meta:
         model = TAContract
-        exclude = ['pay_per_bu', 'scholarship_per_bu', 'ta_posting']
+        exclude = ['pay_per_bu', 'scholarship_per_bu', 'ta_posting', 'created_by']
                 
 class TACourseForm(forms.ModelForm):
     class Meta:

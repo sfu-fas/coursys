@@ -13,7 +13,6 @@ from ta.forms import TUGForm, TAApplicationForm, TAContractForm, CoursePreferenc
 from log.models import LogEntry
 from django.forms.models import inlineformset_factory
 from django.forms.formsets import formset_factory
-import datetime
 
 @requires_course_staff_by_slug
 def index_page(request, course_slug):
@@ -301,6 +300,7 @@ def new_contract(request, post_slug):
             contract = form.save(commit=False)
             contract.pay_per_bu = form.cleaned_data['pay_per_bu']
             contract.scholarship_per_bu = form.cleaned_data['scholarship_per_bu']
+            contract.created_by = Person.objects.get(userid = request.user.username)
             formset = TACourseFormSet(request.POST, instance=contract)
             formset.save()
             contract.save()
@@ -309,14 +309,14 @@ def new_contract(request, post_slug):
             print "form" + str(form.is_valid())
         return HttpResponseRedirect('')
     else:
-        form = TAContractForm()
+        form = TAContractForm(initial={'pay_start': posting.config['start'], 'pay_end': posting.config['end']})
         formset = TACourseFormset()
         
         form.fields['position_number'].choices = position_choices
+        
         for f in formset:
             f.fields['course'].choices = course_choices
             f.fields['course'].widget.attrs['class']  = 'course_select'
-            f.fields['bu'].widget.attrs['readonly'] = 'readonly'
             f.fields['bu'].widget.attrs['value'] = 0
     
         context = {'form': form, 'formset': formset, 'posting': posting, 'config': posting.config}
