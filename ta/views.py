@@ -9,7 +9,7 @@ from ta.models import TUG, Skill, TAApplication, TAPosting, TAContract, TACourse
 from ra.models import Account
 from coredata.models import Member, Role, CourseOffering, Person, Semester
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, CoursePreferenceForm, \
-    TAPostingForm, TAPostingBUForm, BUFormSet
+    TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm
 from log.models import LogEntry
 from django.forms.models import inlineformset_factory
 from django.forms.formsets import formset_factory
@@ -282,11 +282,13 @@ def new_contract(request, post_slug):
         ForbiddenResponse(request, 'You cannot access this posting')
     course_choices = [('','---------')] + [(c.id, c.name()) for c in posting.selectable_offerings()]
     position_choices = [(a.id, a.position_number) for a in Account.objects.filter(unit=posting.unit)]
-    
-    TACourseFormset = inlineformset_factory(TAContract, TACourse, extra=3, can_delete=False)
+    TACourseFormset = inlineformset_factory(TAContract, TACourse, extra=3, can_delete=False, form=TACourseForm)
+    contract = TAContract()
+    formset = TACourseFormset(instance=contract)
     
     if request.method == "POST":
         form = TAContractForm(request.POST)
+        
         if request.is_ajax():
             if('appt_cat' in request.POST):
                 index = posting.cat_index(request.POST['appt_cat'])
@@ -297,31 +299,33 @@ def new_contract(request, post_slug):
                 co = get_object_or_404(CourseOffering, pk=course)
                 req_bu = posting.required_bu(co)
                 return HttpResponse(req_bu)
-        elif form.is_valid() and formset.is_valid():
+        elif form.is_valid():
             contract = form.save(commit=False)
-            contract.pay_per_bu = form.cleaned_data['pay_per_bu']
-            contract.scholarship_per_bu = form.cleaned_data['scholarship_per_bu']
-            contract.created_by = Person.objects.get(userid = request.user.username)
-            formset = TACourseFormSet(request.POST, instance=contract)
-            formset.save()
-            contract.save()
-        else:  
-            print form
-            print "form" + str(form.is_valid())
-        return HttpResponseRedirect('')
-    else:
-        form = TAContractForm(initial={'pay_start': posting.config['start'], 'pay_end': posting.config['end']})
-        formset = TACourseFormset()
-        
-        form.fields['position_number'].choices = position_choices
-        
-        for f in formset:
-            f.fields['course'].choices = course_choices
-            f.fields['course'].widget.attrs['class']  = 'course_select'
-            f.fields['bu'].widget.attrs['value'] = 0
+            formset = TACourseFormset(request.POST, instance=contract)
+            if formset.is_valid():
+                contract.ta_posting = posting
+                contract.pay_per_bu = request.POST['pay_per_bu']
+                contract.scholarship_per_bu = request.POST['scholarship_per_bu']
+                contract.pay_start = form.cleaned_data['pay_start']
+                contract.pay_end = form.cleaned_data['pay_end']
+                contract.created_by = Person.objects.get(userid = request.user.username)
+                contract.save()
+                formset.save()
+                messages.success(request, "Created TA Contract for %s for %s." % (contract.applicant, posting))
+                return HttpResponseRedirect(reverse(all_contracts))
     
-        context = {'form': form, 'formset': formset, 'posting': posting, 'config': posting.config}
-        return render(request, 'ta/new_contract.html',context)
+    else:   
+        form = TAContractForm(instance=contract)
+        formset = TACourseFormset(instance=contract)
+        form = TAContractForm(initial={'pay_start': posting.config['start'], 'pay_end': posting.config['end']})
+    
+    form.fields['position_number'].choices = position_choices       
+    for f in formset:
+        f.fields['course'].widget.attrs['class']  = 'course_select'
+        f.fields['bu'].widget.attrs['value'] = 0
+    
+    context = {'form': form, 'formset': formset, 'posting': posting, 'config': posting.config}
+    return render(request, 'ta/new_contract.html',context)
 
 def _copy_posting_defaults(source, destination):
     """

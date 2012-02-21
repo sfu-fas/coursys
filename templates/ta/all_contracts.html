@@ -19,31 +19,32 @@
 {% endblock %}
 
 {%block content%}
-{%if notes %}
+{%if contracts %}
 <div class="datatable_container">
 <table id="notes" class="display">
   <thead>
   	<tr>
-  		<th scope="col"></th>
-  		<th scope="col"></th>
-  		<th scope="col"></th>
-  		<th scope="col"></th>
+  		<th scope="col">Applicant</th>
+  		<th scope="col">Posting</th>
+  		<th scope="col">Deadline</th>
+  		<th scope="col">View</th>
   		<th scope="col"></th>
   	</tr>
   </thead>
   <tbody>
   {% for contract in contracts %}
-  <tr><td scope="row">
-  	 	
+  <tr>
+  	<td>
+  	 	{{ contract.applicant }}
   	</td>
   	<td>
-  		
+  		{{ contract.ta_posting }}
   	</td>
   	<td>
-  		
+  		{{ contract.deadline }}
   	</td>
   	<td>
-  		
+  	
   	<td>
   	</td>
   </tr>
@@ -59,14 +60,14 @@
 
 <div id="ta_new_con">
 <h1>New Contract</h1>
-<form action="" method="post" id="form">{% csrf_token %}
+<form action="" method="get" id="form">{% csrf_token %}
 	<select name="posting" id="posting">
 		{% for post in postings %}
 		<option value="{{post.slug}}">{{post}}</option>
 		{% endfor %}
 	</select>
 	<div class="helptext">Select the associated unit/semester</div>
-	<input class="submit" type="submit" id="submit" value="Create" />
+	<input class="submit" type="submit" id="submit" value="Create"/>
 </form>
 </div>
 {%endblock content%}

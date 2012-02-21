@@ -153,7 +153,7 @@ class TAContractForm(forms.ModelForm):
      #   super(TAContractForm,self).__init__(*args,**kwargs)
     
     
-    sin = forms.CharField(min_length=9, max_length=9)
+    #sin = forms.CharField(min_length=9, max_length=9)
     #position_number = 
     
     class Meta:

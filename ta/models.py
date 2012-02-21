@@ -274,23 +274,17 @@ class TAContract(models.Model):
     """    
     TA Contract, filled in by TAAD
     """
-    #person = models.ForeignKey(Person, limit_choices_to={'person':Q(semester=get_semester)})
     #ta_application = models.ForeignKey(TAApplication)
     ta_posting = models.ForeignKey(TAPosting)
     applicant = models.ForeignKey(Person)
-    sin = models.PositiveIntegerField(unique=True)
-    #department = models.ForeignKey(Unit)
-    #appt_start = models.DateField(help_text='yyyy-mm-dd')
-    #appt_end = models.DateField()
+    sin = models.PositiveIntegerField(unique=True,verbose_name="SIN",help_text="Applicant's social insurance number")
     pay_start = models.DateField()
     pay_end = models.DateField()
     position_number = models.ForeignKey(Account)
     appt_category = models.CharField(max_length=4, choices=CATEGORY_CHOICES, verbose_name="Appointment Category")
     appt = models.CharField(max_length=4, choices=APPOINTMENT_CHOICES, verbose_name="Appointment")
     pay_per_bu = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Pay per Base Unit Semester Rate.",)
-                #help_text='Usually $934.00 per BU per Semester')
     scholarship_per_bu = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Scholarship per Base Unit Semester Rate.",)
-        #help_text='Usually $129.00 per BU per Semester')
     deadline = models.DateField(help_text='Deadline for acceptance')
     remarks = models.TextField(blank=True)
     appt_cond = models.BooleanField(default=False)
@@ -298,9 +292,6 @@ class TAContract(models.Model):
     created_by = models.CharField(max_length=8, null=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)
-    #courses = models.ForeignKey(CourseOffering)
-    #description = models.CharField(max_length=3, choices=DESC_CHOICES, blank=False, null=False) 
-    #total_bu = models.DecimalField(max_digits=4, decimal_places=2)
         
     def __unicode__(self):
         return (self.applicant)
@@ -310,8 +301,6 @@ class TACourse(models.Model):
     contract = models.ForeignKey(TAContract)
     description = models.CharField(max_length=3, choices=DESC_CHOICES, blank=False, null=False)
     bu = models.DecimalField(max_digits=4, decimal_places=2)
-    
-    #appt = models.CharField(max_length=4, choices=APPT_CHOICES)
     
     class Meta:
         unique_together = (('course', 'contract'),)
