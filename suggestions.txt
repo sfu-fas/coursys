@@ -1,0 +1,3 @@
+need "everything about this student" for instructors: all times as student/TA
+
+Tech Requirements for courses: required software, version range, platform. Feedback from tech to instructor about upgrades. Discussion of requirement details [Chingtai]

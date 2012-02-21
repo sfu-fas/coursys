@@ -160,9 +160,9 @@ class CaseLetterReviewForm(forms.ModelForm):
 
 class CaseLetterSentForm(forms.ModelForm):
     def clean(self):
-        letter_sent = self.cleaned_data['letter_sent']
-        date = self.cleaned_data['letter_date']
-        text = self.cleaned_data['letter_text']
+        letter_sent = self.cleaned_data.get('letter_sent', '')
+        date = self.cleaned_data.get('letter_date', '')
+        text = self.cleaned_data.get('letter_text', '')
         case = self.instance
 
         if letter_sent=="MAIL":
