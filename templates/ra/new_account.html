@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}New Account{% endblock %}
+{% block h1 %}New Account{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="/ra">Create New Account</a></li>{% endblock %}
+
+{% block content %}
+<div id="form_container">
+    <form action="{% url ra.views.new_account %}" method="POST">{% csrf_token %}
+        <fieldset style="list-style: none;">
+            <legend>Account Information</legend>
+            {{ accountform.as_ul }}
+            <p><input type="submit" value="Submit"></p>
+        </fieldset>
+    </form>  
+</div>
+
+{% endblock %}

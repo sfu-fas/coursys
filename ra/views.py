@@ -3,7 +3,7 @@ from django.shortcuts import render_to_response, get_object_or_404, render
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib import messages
 from ra.models import RAAppointment, Project, Account
-from ra.forms import RAForm, RASearchForm
+from ra.forms import RAForm, RASearchForm, AccountForm
 from grad.forms import possible_supervisors
 from coredata.models import Member, Person, Role, Unit
 from courselib.auth import requires_role
@@ -73,3 +73,33 @@ def view(request, ra_slug):
     appointment = get_object_or_404(RAAppointment, slug=ra_slug)
     student = Person.objects.get(userid=appointment.person.userid)
     return render(request, 'ra/view.html', {'appointment': appointment, 'student': student}, context_instance=RequestContext(request))
+
+@requires_role("FUND")
+def new_account(request):
+    accountform = AccountForm(request.POST or None)
+    if request.method == 'POST':
+        if accountform.is_valid():
+            accountform.save()
+            return HttpResponseRedirect(reverse('dashboard.views.index'))
+    return render(request, 'ra/new_account.html', {'accountform': accountform})
+
+@requires_role("FUND")
+def accounts_index(request):
+    depts = Role.objects.filter(person__userid=request.user.username, role='FUND').values('unit_id')
+    accounts = Account.objects.filter(unit__id__in=depts).order_by("account_number")
+    return render(request, 'ra/accounts_index.html', {'accounts': accounts}, context_instance=RequestContext(request))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -17,7 +17,6 @@ class RAForm(forms.ModelForm):
         cleaned_data = self.cleaned_data
         return cleaned_data 
         
-
     class Meta:
         model = RAAppointment
         exclude = ('config',)
@@ -46,3 +45,7 @@ class StudentField(forms.ModelChoiceField):
 
 class RASearchForm(forms.Form):
     search = StudentField()
+
+class AccountForm(forms.ModelForm):
+    class Meta:
+        model = Account
