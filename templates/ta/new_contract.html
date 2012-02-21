@@ -27,8 +27,8 @@
 		var schol_sem = (bu * schol_rate).toFixed(2)
 		$('#salary_sem').val(salary_sem)
 		$('#schol_sem').val(schol_sem)
-		var salary_bi = (salary_sem / 17 * 2).toFixed(2)
-		var schol_bi = (schol_sem / 17 * 2).toFixed(2)
+		var salary_bi = (salary_sem / "{{posting.payperiods}}").toFixed(2)
+		var schol_bi = (schol_sem / "{{posting.payperiods}}").toFixed(2)
 		$('#salary_bi').val(salary_bi)
 		$('#schol_bi').val(schol_bi)
 	}
@@ -129,19 +129,11 @@
         </tr>
 	    <tr>
             <th class="ui-state-default">Open Date</th>
-            <td>{{ posting.opens|date:'Y-m-d' }}</td>
+            <td>{{ posting.opens }}</td>
         </tr>
 	    <tr>
             <th class="ui-state-default">Close Date</th>
-            <td>{{ posting.closes|date:'Y-m-d' }}</td>
-        </tr>
-        	    <tr>
-            <th class="ui-state-default">Start Date</th>
-            <td>{{ config.start }}</td>
-        </tr>
-	    <tr>
-            <th class="ui-state-default">End Date</th>
-            <td>{{ config.end }}</td>
+            <td>{{ posting.closes }}</td>
         </tr>
         </tbody>
     </table>
