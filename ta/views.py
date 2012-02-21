@@ -13,6 +13,7 @@ from ta.forms import TUGForm, TAApplicationForm, TAContractForm, CoursePreferenc
 from log.models import LogEntry
 from django.forms.models import inlineformset_factory
 from django.forms.formsets import formset_factory
+import datetime
 
 @requires_course_staff_by_slug
 def index_page(request, course_slug):
@@ -322,13 +323,22 @@ def new_contract(request, post_slug):
         context = {'form': form, 'formset': formset, 'posting': posting, 'config': posting.config}
         return render(request, 'ta/new_contract.html',context)
 
+def _copy_posting_defaults(source, destination):
+    """
+    Copy some defaults from source posting to the destination
+    """
+    destination.set_salary(source.salary())
+    destination.set_scholarship(source.scholarship())
+    destination.set_bu_defaults(source.bu_defaults())
+    destination.set_payperiods(source.payperiods())
+
 @requires_role("TAAD")
 def edit_posting(request, post_slug=None):
     unit_choices = [(u.id, unicode(u)) for u in request.units]
 
     today = datetime.date.today()
     semester_choices = [(s.id, unicode(s)) for s in Semester.objects.filter(start__gt=today).order_by('start')]
-    # TODO: display only relevant semester/unit offerings
+    # TODO: display only relevant semester/unit offerings (with AJAX magic)
     offerings = CourseOffering.objects.filter(owner__in=request.units).select_related('course')
     excluded_choices = list(set(((u"%s (%s)" % (o.course,  o.title), o.course_id) for o in offerings)))
     excluded_choices.sort()
@@ -345,9 +355,15 @@ def edit_posting(request, post_slug=None):
         posting = TAPosting()
         editing = False
 
-        # heuristic default: non-lecture sections, except distance, are excluded
-        default_exclude = set((o.course_id for o in offerings.filter(component="SEC").exclude(section__startswith="C")))
-        posting.config['excluded'] = default_exclude
+        # populate from previous semester if possible
+        old_postings = TAPosting.objects.filter(unit__in=request.units).order_by('-semester')
+        if old_postings:
+            old = old_postings[0]
+            _copy_posting_defaults(old, posting)
+        else:
+            # heuristic default: non-lecture sections, except distance, are excluded
+            default_exclude = set((o.course_id for o in offerings.filter(component="SEC").exclude(section__startswith="C")))
+            posting.config['excluded'] = default_exclude
     
     if request.method == "POST":
         form = TAPostingForm(request.POST, instance=posting)
@@ -371,7 +387,6 @@ def edit_posting(request, post_slug=None):
         form.fields['unit'].choices = unit_choices
         form.fields['semester'].choices = semester_choices
         form.fields['excluded'].choices = excluded_choices
-        # TODO: take default salary/semester/BU defaults from last posting by this unit
     
     context = {'form': form, 'editing': editing, 'posting': posting}
     return render(request, 'ta/edit_posting.html', context)

@@ -197,13 +197,15 @@ class PayField(forms.MultiValueField):
         return values
 
 
-
 class TAPostingForm(forms.ModelForm):
     start = forms.DateField(label="Contract Start", help_text='Default start date for contracts')
     end = forms.DateField(label="Contract End", help_text='Default end date for contracts')
     salary = PayField(label="Salary per BU", help_text="Default pay rates for contracts")
     scholarship = PayField(label="Scholarship per BU", help_text="Default scholarship rates for contracts")
-    excluded = forms.MultipleChoiceField(help_text="Courses that should <strong>not</strong> be selectable for TA positions", choices=[], widget=forms.SelectMultiple(attrs={'size': 15}))
+    excluded = forms.MultipleChoiceField(help_text="Courses that should <strong>not</strong> be selectable for TA positions",
+            choices=[], required=False, widget=forms.SelectMultiple(attrs={'size': 15}))
+    payperiods = forms.IntegerField(label="Pay periods", help_text='Number of pay periods in the semester',
+            max_value=20, min_value=1, widget=forms.TextInput(attrs={'size': 5}))
 
     # TODO: sanity-check the dates against semester start/end
     
@@ -219,7 +221,13 @@ class TAPostingForm(forms.ModelForm):
         self.initial['start'] = self.instance.start()
         self.initial['end'] = self.instance.end()
         self.initial['excluded'] = self.instance.excluded()
+        self.initial['payperiods'] = self.instance.payperiods()
     
+    def clean_payperiods(self):
+        payperiods = self.cleaned_data['payperiods']
+        self.instance.config['payperiods'] = payperiods
+        return payperiods
+
     def clean_start(self):
         start = self.cleaned_data['start']
         self.instance.config['start'] = unicode(start)

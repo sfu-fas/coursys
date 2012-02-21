@@ -124,6 +124,7 @@ class TAPosting(models.Model):
         # 'start': default start date for contracts ('YYYY-MM-DD')
         # 'end': default end date for contracts ('YYYY-MM-DD')
         # 'excluded': courses to exclude from posting (list of Course.id values)
+        # 'payperiods': number of pay periods in the semeseter
 
     defaults = {
             'salary': ['0.00']*len(CATEGORY_CHOICES),
@@ -132,6 +133,7 @@ class TAPosting(models.Model):
             'end': '',
             'excluded': [],
             'bu_defaults': {},
+            'payperiods': 14,
             }
     salary, set_salary = getter_setter('salary')
     scholarship, set_scholarship = getter_setter('scholarship')
@@ -139,7 +141,8 @@ class TAPosting(models.Model):
     end, set_end = getter_setter('end')
     excluded, set_excluded = getter_setter('excluded')
     bu_defaults, set_bu_defaults = getter_setter('bu_defaults')
-
+    payperiods, set_payperiods = getter_setter('payperiods')
+    
     class Meta:
         unique_together = (('unit', 'semester'),)
     def __unicode__(self): 
