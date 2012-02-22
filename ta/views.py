@@ -231,11 +231,20 @@ def all_applications(request):
             }
     return render(request, 'ta/all_applications.html', context)
 
-@requires_role("TAAD")
+@login_required
 def view_application(request, app_id):
+    
     application = TAApplication.objects.get(id=app_id)
-    if application.posting.unit not in request.units:
-        ForbiddenResponse(request, 'You cannot access this posting')
+    roles = Role.objects.filter(role="TAAD", person__userid=request.user.username)
+   
+    #Only TA Administrator or owner of application can view it
+    if application.person.userid != request.user.username:
+        units = [r.unit for r in roles]
+        if roles.count() == 0:
+            return ForbiddenResponse(request, 'You cannot access this posting')
+        elif application.posting.unit not in units:
+            return ForbiddenResponse(request, 'You cannot access this posting')
+   
     courses = CoursePreference.objects.filter(app=app_id)
     return render(request, 'ta/view_application.html', {'application':application, 'courses':courses})
 
