@@ -63,15 +63,17 @@ class Supervisor(models.Model):
     """
     student = models.ForeignKey(GradStudent)
     supervisor = models.ForeignKey(Person, blank=True, null=True, help_text="Please choose a Supervisor.")
-    external = models.CharField(max_length=200, blank=True, null=True, help_text="Any supervisor not in our records.")
+    external = models.CharField(max_length=200, blank=True, null=True, help_text="Any non-SFU supervisor.")
     position = models.SmallIntegerField(null=False)
     is_senior = models.BooleanField()
     is_potential = models.BooleanField()
+    #removed = models.BooleanField(default=False)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True) 
     created_by = models.CharField(max_length=32, null=False, help_text='Supervisor added by.')
-    modified_by = models.CharField(max_length=32, null=True, help_text='Supervisor modified by.' , verbose_name='Last Modified By')      
+    modified_by = models.CharField(max_length=32, null=True, help_text='Supervisor modified by.', verbose_name='Last Modified By')
+          
     class Meta:
         unique_together = ("student", "position")
     

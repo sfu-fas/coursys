@@ -47,6 +47,7 @@
 		</tbody>
 	</table>
 </div>
+{% if potential_supervisors_form %}
 <div id="form_container">
 	<form method="post" action="{% url grad.views.manage_supervisors grad_slug=grad.slug %}">
 		{% csrf_token %}
@@ -61,6 +62,7 @@
 		</fieldset>
 	</form>
 </div>
+{% endif %}
 <div id="formset_container">
 	<form method="post" action="{% url grad.views.update_supervisors grad_slug=grad.slug %}">
 		{% csrf_token %}

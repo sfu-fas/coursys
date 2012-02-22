@@ -269,6 +269,11 @@ APPOINTMENT_CHOICES = (
         ("INIT","Initial: Initial appointment to this position"),
         ("REAP","Reappointment: Reappointment to same position or revision to appointment"),       
     )
+STATUS_CHOICES = (
+        ("OPN","Open"),
+        ("REJ","Rejected"),       
+        ("ACC","Accepted"),       
+    )
 
 class TAContract(models.Model):
     """    
@@ -277,7 +282,7 @@ class TAContract(models.Model):
     #ta_application = models.ForeignKey(TAApplication)
     ta_posting = models.ForeignKey(TAPosting)
     applicant = models.ForeignKey(Person)
-    sin = models.PositiveIntegerField(unique=True,verbose_name="SIN",help_text="Applicant's social insurance number")
+    sin = models.PositiveIntegerField(unique=True,verbose_name="SIN",help_text="Social insurance number")
     pay_start = models.DateField()
     pay_end = models.DateField()
     position_number = models.ForeignKey(Account)
@@ -292,6 +297,7 @@ class TAContract(models.Model):
     created_by = models.CharField(max_length=8, null=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)
+    #status  = models.CharField(max_length=3, choices=STATUS_CHOICES, verbose_name="Appointment Status")
         
     def __unicode__(self):
         return (self.applicant)

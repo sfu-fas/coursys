@@ -1,14 +1,14 @@
 from django.core.urlresolvers import reverse
-from django.shortcuts import render_to_response, get_object_or_404, get_list_or_404, render
-from django.http import HttpResponseRedirect, HttpResponse
-from grad.forms import *
+from django.shortcuts import get_object_or_404, get_list_or_404, render
+from django.http import HttpResponseRedirect
+from grad.models import GradStudent, GradProgram, Supervisor, GradRequirement, CompletedRequirement, GradStatus
+from grad.forms import SupervisorForm, PotentialSupervisorForm, GradAcademicForm, GradProgramForm, \
+        GradStudentForm, GradStatusForm, GradRequirementForm, possible_supervisors
 from coredata.models import Person, Role, Unit, Semester, CAMPUS_CHOICES
-from django.template import RequestContext
+#from django.template import RequestContext
 from django import forms
 from django.forms.models import modelformset_factory, inlineformset_factory
-from courselib.auth import *
-from django.core import serializers
-from django.utils.safestring import mark_safe
+from courselib.auth import requires_role
 import datetime
 from django.forms.formsets import formset_factory
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
@@ -93,7 +93,8 @@ def view_all(request, grad_slug):
 @requires_role("GRAD")
 def manage_supervisors(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
-    supervisors = Supervisor.objects.filter(student=grad, position__gte=1)
+    supervisors = Supervisor.objects.filter(student=grad, position__gte=1).select_related('supervisor')
+    supervisor_people = [s.supervisor for s in supervisors if s.supervisor]
     # Using filter because get returns an error when there are no matching queries
     pot_supervisor = Supervisor.objects.filter(student=grad, position=0) 
     # Initialize potential supervisor to first on of the list of results
@@ -108,10 +109,9 @@ def manage_supervisors(request, grad_slug):
         
     supervisors_formset = modelformset_factory(Supervisor, form=SupervisorForm, extra=extra_form, max_num=4)(queryset=supervisors,prefix="form")
     for f in supervisors_formset:
-        f.fields['supervisor'].choices = [("","External")] + possible_supervisors([grad.program.unit])
+        f.set_supervisor_choices(possible_supervisors([grad.program.unit], extras=supervisor_people))
         f.fields['position'].widget = forms.HiddenInput()
         if(extra_form == 1):
-            print f.fields['position'].initial
             f.fields['position'].initial = 1
 
     if request.method == 'POST':
@@ -129,8 +129,7 @@ def manage_supervisors(request, grad_slug):
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))
     else:
         potential_supervisors_form = PotentialSupervisorForm(instance=pot_supervisor, prefix="pot_sup")
-        potential_supervisors_form.fields['supervisor'].choices = \
-                possible_supervisors([grad.program.unit])
+        potential_supervisors_form.set_supervisor_choices(possible_supervisors([grad.program.unit]))
 
     # set frontend defaults
     page_title = "%s's Supervisor(s) Record" % (grad.person.first_name)
@@ -149,22 +148,37 @@ def manage_supervisors(request, grad_slug):
 @requires_role("GRAD")
 def update_supervisors(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
+    supervisors = Supervisor.objects.filter(student=grad, position__gte=1).select_related('supervisor')
+    supervisor_people = [s.supervisor for s in supervisors if s.supervisor]
     if request.method == 'POST':
         supervisors_formset = modelformset_factory(Supervisor, form=SupervisorForm)(request.POST,prefix="form")
-
+        for f in supervisors_formset:
+            f.set_supervisor_choices(possible_supervisors([grad.program.unit], extras=supervisor_people))
+            f.fields['position'].widget = forms.HiddenInput()
+        
         if supervisors_formset.is_valid():
             #change gradstudent's last updated info to newest
             grad.updated_at = datetime.datetime.now()
             grad.created_by = request.user.username  
-            grad.save()                
-            temp = supervisors_formset.save(commit=False)
-            for entry in temp:
-                entry.student = grad
+            grad.save()
+            for s in supervisors_formset:
+                s.instance.student = grad
             supervisors_formset.save()
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))
         else:
-            print supervisors_formset.errors
-            return HttpResponseRedirect(reverse(manage_supervisors, kwargs={'grad_slug':grad_slug}))
+            page_title = "%s's Supervisor(s) Record" % (grad.person.first_name)
+            crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
+            gp = grad.person.get_fields 
+            context = {
+               'supervisors_formset': supervisors_formset,
+               #'potential_supervisors_form': potential_supervisors_form,
+               'page_title' : page_title,
+               'crumb' : crumb,
+               'grad' : grad,
+               'gp' : gp,
+               }
+            return render(request, 'grad/manage_supervisors.html', context)
+            #return HttpResponseRedirect(reverse(manage_supervisors, kwargs={'grad_slug':grad_slug}))
 
     else:
         return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug': grad_slug}))
