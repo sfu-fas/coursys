@@ -166,15 +166,19 @@ def escape_arg(a):
     """
     Escape argument for DB2
     """
+    # Based on description of PHP's db2_escape_string
     if type(a) in (int,long):
         return str(a)
     
+    a = unicode(a).encode('utf8')
     # assume it's a string if we don't know any better
     a = a.replace("\\", "\\\\")
     a = a.replace("'", "\\'")
     a = a.replace('"', '\\"')
     a = a.replace("\r", "\\r")
     a = a.replace("\n", "\\n")
+    a = a.replace("\x00", "\\\x00")
+    a = a.replace("\x1a", "\\\x1a")
     return "'"+a+"'"
 
 def execute_query(db, query, args):

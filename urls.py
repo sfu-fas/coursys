@@ -72,6 +72,8 @@ urlpatterns += patterns('',
     url(r'^data/courses/(?P<semester>\d{4})$', 'dashboard.views.courses_json'),
     url(r'^data/offerings$', 'coredata.views.offerings_search'),
     url(r'^data/offering$', 'coredata.views.offering_by_id'),
+    url(r'^data/students$', 'coredata.views.student_search'),
+    url(r'^data/sims_people', 'coredata.views.sims_person_search'),
 
     url(r'^' + COURSE_SLUG + '/$', 'grades.views.course_info'),
         url(r'^m/' + COURSE_SLUG + '/$', 'mobile.views.course_info'),
@@ -251,11 +253,9 @@ urlpatterns += patterns('',
     url(r'^admin/roles/(?P<role_id>\d+)/delete$', 'coredata.views.delete_unit_role'),
     url(r'^admin/roles/new$', 'coredata.views.new_unit_role'),
 
-    
     # Advisor Notes
     
     url(r'^advising/$', 'advisornotes.views.advising'),
-    url(r'^data/students$', 'coredata.views.student_search'),
     url(r'^advising/students/' + USERID_SLUG + '/notes/new$', 'advisornotes.views.new_note'),
     url(r'^advising/students/' + USERID_SLUG + '/$', 'advisornotes.views.student_notes'),
     url(r'^advising/students/' + USERID_SLUG + '/notes/' + NOTE_ID + '$', 'advisornotes.views.view_note'),
