@@ -116,7 +116,6 @@ class GradRequirement(models.Model):
     """
     A requirement that a unit has for grad students
     """
-    unit = models.ForeignKey(Unit)
     program = models.ForeignKey(GradProgram, null=False, blank=False)       
     description = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)

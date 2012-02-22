@@ -16277,7 +16277,6 @@
    "created_at": "2012-02-08 18:32:37", 
    "description": "CMPT 891", 
    "program": 1, 
-   "unit": 2, 
    "updated_at": "2012-02-08 18:32:37"
   }, 
   "model": "grad.gradrequirement", 
@@ -16288,7 +16287,6 @@
    "created_at": "2012-02-08 18:33:05", 
    "description": "CMPT 890", 
    "program": 1, 
-   "unit": 2, 
    "updated_at": "2012-02-08 18:33:05"
   }, 
   "model": "grad.gradrequirement", 
@@ -16299,7 +16297,6 @@
    "created_at": "2012-02-16 21:11:24", 
    "description": "Breathing", 
    "program": 1, 
-   "unit": 2, 
    "updated_at": "2012-02-16 21:11:24"
   }, 
   "model": "grad.gradrequirement", 
@@ -16310,7 +16307,6 @@
    "created_at": "2012-02-16 21:11:31", 
    "description": "Writing", 
    "program": 3, 
-   "unit": 2, 
    "updated_at": "2012-02-16 21:11:31"
   }, 
   "model": "grad.gradrequirement", 
@@ -16321,7 +16317,6 @@
    "created_at": "2012-02-16 21:11:46", 
    "description": "Gasping", 
    "program": 2, 
-   "unit": 2, 
    "updated_at": "2012-02-16 21:11:46"
   }, 
   "model": "grad.gradrequirement", 
@@ -16332,7 +16327,6 @@
    "created_at": "2012-02-16 21:11:53", 
    "description": "Quantity Rules", 
    "program": 1, 
-   "unit": 2, 
    "updated_at": "2012-02-16 21:11:53"
   }, 
   "model": "grad.gradrequirement", 
@@ -16343,7 +16337,6 @@
    "created_at": "2012-02-16 21:12:02", 
    "description": "Quality Rulez", 
    "program": 3, 
-   "unit": 2, 
    "updated_at": "2012-02-16 21:12:02"
   }, 
   "model": "grad.gradrequirement", 
