@@ -22,12 +22,14 @@
     <tr>
       <th>Course</th>
       <th>Taken</th>
+      <th>Experience</th>
     </tr>
     <tr>
       {% for course in courses %}
         <tr>
           <td>{{ course.course }}</td>
           <td>{{ course.get_taken_display }}</td>
+          <td>{{ course.get_exper_display }}</td>
         </tr>
       {% endfor %}
     </tr>

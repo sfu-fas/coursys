@@ -314,7 +314,9 @@ TAKEN_CHOICES = (
         ('NO', 'No, I don\'t know the material well'),
         )
 EXPER_CHOICES = (
-        ('TST', 'Placeholder option'),
+        ('FAM', 'Very familiar with course material'),
+        ('SOM', 'Somewhat familiar with course material'),
+        ('NOT', 'Not familiar with course material'),
         )
 
 class CoursePreference(models.Model):

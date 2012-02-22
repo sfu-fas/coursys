@@ -176,7 +176,7 @@ def new_application(request, post_slug):
             
             #Add each campus preference to application
             campus_count = CampusPreference.objects.values('campus').distinct().count()
-            for i in range(1,campus_count):
+            for i in range(1,campus_count+1):
                 app.campus_preferences.add(request.POST['campus_preference'+str(i)])
     
             ta_form.save_m2m()
