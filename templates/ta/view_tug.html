@@ -19,8 +19,12 @@
 <div id="actions">
 <h2 class="heading">Actions</h2>
 <ul>
+{% if user_role == "ADMN" %}
+<li><a href="{% url ta.views.all_tugs_admin %}">View All TUGs</a></li>
+{% else %}
 <li><a href="{% url ta.views.edit_tug course_slug=course.slug userid=ta.person.userid %}">Edit TUG</a></li>
 <li><a href="{% url ta.views.all_tugs course_slug=course.slug %}">View All TUGs</a></li>
+{% endif %}
 <li><a href="javascript:print()">Print TUG</a></li>
 </ul>
 </div>

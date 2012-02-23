@@ -141,7 +141,9 @@ def view_tug(request, course_slug, userid):
         max_hours = tug.base_units * 42
         total_hours = sum(params.get('total',0) for _, params in tug.config.iteritems())
         
-        context = {'tug': tug, 'ta':member, 'course':course, 'maxHours':max_hours, 'totalHours':total_hours}
+        context = {'tug': tug, 'ta':member, 'course':course, 
+                'maxHours':max_hours, 'totalHours':total_hours,
+                'user_role':curr_user_role}
         return render(request, 'ta/view_tug.html',context)
 
 @requires_course_staff_by_slug
