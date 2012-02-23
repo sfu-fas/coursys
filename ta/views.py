@@ -16,12 +16,14 @@ from django.forms.models import inlineformset_factory
 from django.forms.formsets import formset_factory
 import datetime
 
-@requires_course_staff_by_slug
+#@requires_course_staff_by_slug
+@login_required
 def index_page(request, course_slug):
-    if is_course_staff_by_slug(request, course_slug):
-        return render(request, 'ta/index.html',{})
-    else:
-        return ForbiddenResponse(request)
+    return HttpResponseRedirect(reverse(all_tugs, args=(course_slug,)))
+    #~ if is_course_staff_by_slug(request, course_slug):
+        #~ return render(request, 'ta/index.html',{})
+    #~ else:
+        #~ return ForbiddenResponse(request)
         
 @login_required
 def all_tugs(request, course_slug):
