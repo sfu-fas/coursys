@@ -133,7 +133,7 @@ class TAPosting(models.Model):
             'end': '',
             'excluded': [],
             'bu_defaults': {},
-            'payperiods': 14,
+            'payperiods': 8,
             }
     salary, set_salary = getter_setter('salary')
     scholarship, set_scholarship = getter_setter('scholarship')
@@ -288,9 +288,10 @@ APPOINTMENT_CHOICES = (
         ("REAP","Reappointment: Reappointment to same position or revision to appointment"),       
     )
 STATUS_CHOICES = (
-        ("OPN","Open"),
+        ("OPN","Open"), # offer made, but not accepted/rejected
         ("REJ","Rejected"),       
         ("ACC","Accepted"),       
+        ("CAN","Cancelled"),       
     )
 
 class TAContract(models.Model):
@@ -316,7 +317,9 @@ class TAContract(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)
     #status  = models.CharField(max_length=3, choices=STATUS_CHOICES, verbose_name="Appointment Status")
-        
+    
+    class Meta:
+        unique_together = (('ta_posting', 'applicant'),)
     def __unicode__(self):
         return "%s" % (self.applicant)
 

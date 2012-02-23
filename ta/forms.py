@@ -315,7 +315,7 @@ class TAPostingForm(forms.ModelForm):
         excluded = [int(e) for e in excluded]
         self.instance.config['excluded'] = excluded
         return excluded
-
+    
     def clean_skills(self):
         skills = self.cleaned_data['skills']
         skills = [s.strip() for s in skills.split("\n")]
