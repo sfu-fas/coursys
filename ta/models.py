@@ -1,5 +1,5 @@
 from django.db import models
-from coredata.models import Person, Member, Course, Semester, Unit ,CourseOffering, CAMPUS_CHOICES 
+from coredata.models import Person, Member, Course, Semester, Unit ,CourseOffering, CAMPUS_CHOICES, CAMPUSES
 from ra.models import Account
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter #, getter_setter_2
@@ -200,35 +200,22 @@ class TAPosting(models.Model):
         extra = offering.extra_bu()
         return default + extra
 
-LEVEL_CHOICES = (
-    ('0_EXPR', 'Expert'),
-    ('1_SOME', 'Some'),
-    ('2_NONE', 'None'),
-)
 
 class Skill(models.Model):
     """
-    Skills an applicant specifies in their application.  Skills are specific to a department.
+    Skills an applicant specifies in their application.  Skills are specific to a posting.
     """
+    posting = models.ForeignKey(TAPosting)
     name = models.CharField(max_length=30)
-    unit = models.ForeignKey(Unit)
-    level = models.CharField(max_length=6, choices=LEVEL_CHOICES)
+    position = models.IntegerField()
     
+    class Meta:
+        ordering = ['position']
+        unique_together = (('posting', 'position'))
     def __unicode__(self):
-        return "Name: %s  Level: %s" % (self.name, self.get_level_display())
+        return "%s in %s" % (self.name, self.posting)
 
-PREFERENCE_CHOICES = (
-        ('0_PRF', 'Prefered'),
-        ('1_WIL', 'Willing'),
-        ('2_NOT', 'Not willing'),
-)
 
-class CampusPreference(models.Model):
-    """
-    Preference ranking for all campuses
-    """
-    campus = models.CharField(max_length=4, choices=CAMPUS_CHOICES)
-    rank = models.CharField(max_length=5, choices=PREFERENCE_CHOICES)
 
 class TAApplication(models.Model):
     """
@@ -241,8 +228,8 @@ class TAApplication(models.Model):
             help_text='Maximum number of base units you\'re interested in taking (5 is a "full" TA-ship)')
     sin = models.PositiveIntegerField(verbose_name="SIN",
             help_text="Your social insurance number")
-    campus_preferences = models.ManyToManyField(CampusPreference)
-    skills = models.ManyToManyField(Skill) 
+    #campus_preferences = models.ManyToManyField('CampusPreference')
+    #skills = models.ManyToManyField(Skill) 
     experience =  models.TextField(blank=True, null=True,
         verbose_name="Experience",
         help_text='Describe any other experience that you think may be relevant to these courses.')
@@ -256,8 +243,39 @@ class TAApplication(models.Model):
     class Meta:
         unique_together = (('person', 'posting'),)
     def __unicode__(self):
-        return "Person: %s  Semester: %s" % (self.person, self.semester)
+        return "Person: %s  Posting: %s" % (self.person, self.posting)
 
+PREFERENCE_CHOICES = (
+        ('PRF', 'Prefered'),
+        ('WIL', 'Willing'),
+        ('NOT', 'Not willing'),
+)
+PREFERENCES = dict(PREFERENCE_CHOICES)
+
+class CampusPreference(models.Model):
+    """
+    Preference ranking for a campuses
+    """
+    app = models.ForeignKey(TAApplication)
+    campus = models.CharField(max_length=4, choices=CAMPUS_CHOICES)
+    pref = models.CharField(max_length=3, choices=PREFERENCE_CHOICES)
+
+LEVEL_CHOICES = (
+    ('EXPR', 'Expert'),
+    ('SOME', 'Some'),
+    ('NONE', 'None'),
+)
+LEVELS = dict(LEVEL_CHOICES)
+class SkillLevel(models.Model):
+    """
+    Skill of an applicant
+    """
+    skill = models.ForeignKey(Skill)
+    app = models.ForeignKey(TAApplication)
+    level = models.CharField(max_length=4, choices=LEVEL_CHOICES)
+    
+    #def __unicode__(self):
+    #    return "%s for %s" % (self.skill, self.app)
 
 
 DESC_CHOICES = (

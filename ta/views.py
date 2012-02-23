@@ -5,7 +5,8 @@ from django.contrib import messages
 from courselib.auth import requires_course_staff_by_slug, requires_role, \
     is_course_staff_by_slug, has_role, ForbiddenResponse
 from django.contrib.auth.decorators import login_required
-from ta.models import TUG, Skill, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, CampusPreference
+from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, CampusPreference,\
+    CAMPUS_CHOICES, CAMPUSES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS
 from ra.models import Account
 from coredata.models import Member, Role, CourseOffering, Person, Semester
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, CoursePreferenceForm, \
@@ -158,42 +159,59 @@ def edit_tug(request, course_slug, userid):
 @login_required
 def new_application(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug)
+    course_choices = [(c.id, unicode(c)) for c in posting.selectable_courses()]
+    used_campuses = set((vals['campus'] for vals in posting.selectable_offerings().order_by('campus').values('campus').distinct()))
+    skills = Skill.objects.filter(posting=posting)
     CoursesFormSet = formset_factory(CoursePreferenceForm, extra=1, max_num=10)
     if request.method == "POST":
         ta_form = TAApplicationForm(request.POST, prefix='ta')
         courses_formset = CoursesFormSet(request.POST)
+        for f in courses_formset:
+            f.fields['course'].choices = course_choices
+
         if ta_form.is_valid() and courses_formset.is_valid():
             person = get_object_or_404(Person, userid=request.user.username)
             app = ta_form.save(commit=False)
             app.posting = posting
             app.person = person
             app.save()
-
-            #Add every skill to application
-            skill_count = Skill.objects.filter(unit=posting.unit.id).values('name').distinct().count()
-            for i in range(1,skill_count+1):
-                app.skills.add(request.POST['skills'+str(i)])
-            
-            #Add each campus preference to application
-            campus_count = CampusPreference.objects.values('campus').distinct().count()
-            for i in range(1,campus_count+1):
-                app.campus_preferences.add(request.POST['campus_preference'+str(i)])
-    
             ta_form.save_m2m()
-
-            application = TAApplication.objects.get(id=app.id)
+            
+            # extract campus and skill values; create objects
+            for c in used_campuses:
+                val = request.POST.get('campus-'+c, None)
+                if val not in PREFERENCES:
+                    val = 'WIL'
+                cp = CampusPreference(app=app, campus=c, pref=val)
+                cp.save()
+            
+            for s in skills:
+                val = request.POST.get('skill-'+str(s.position), None)
+                if val not in LEVELS:
+                    val = 'NONE'
+                sl = SkillLevel(skill=s, app=app, level=val)
+                sl.save()
+            
+            # save course preferences
             for form in courses_formset:
                 course = form.save(commit=False)
-                course.app = application
+                course.app = app
                 course.save()
             return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'app_id':app.id}))
-
-        else:
-            print ta_form
-            print "ta form valid:" + str(ta_form.is_valid())
-            #print "course form valid:" + str(course_form.is_valid())
-        #TODO: figure out propper redirect
-        return HttpResponseRedirect('')
+        
+        # redisplaying form: build values for template with entered values
+        campus_preferences = []
+        for c in used_campuses:
+            val = request.POST.get('campus-'+c, None)
+            if val not in PREFERENCES:
+                val = 'WIL'
+            campus_preferences.append((c, CAMPUSES[c], val))
+        skill_values = []
+        for s in skills:
+            val = request.POST.get('skill-'+str(s.position), None)
+            if val not in LEVELS:
+                val = 'NONE'
+            skill_values.append((s.position, s.name, val))
 
     elif request.is_ajax():
         # TO DO: Update formset to correct number of forms displayed
@@ -201,23 +219,21 @@ def new_application(request, post_slug):
     else:
         courses_formset = CoursesFormSet()
         for f in courses_formset:
-            course_choices = [(c.id, unicode(c)) for c in posting.selectable_courses()]
             f.fields['course'].choices = course_choices
         ta_form = TAApplicationForm(prefix='ta')
-        campus_names = CampusPreference.objects.order_by('campus').values('campus').distinct() 
-        campus_preferences = CampusPreference.objects.all()
-        skill_names = Skill.objects.filter(unit=posting.unit).order_by('name').values('name').distinct() 
-        skills = Skill.objects.filter(unit=posting.unit).order_by('name','level')
-        context = {
+        campus_preferences = [(lbl, name, 'WIL') for lbl,name in CAMPUS_CHOICES if lbl in used_campuses]
+        skill_values = [(s.position, s.name, 'NONE') for s in skills]
+
+    context = {
                     'posting':posting,
                     'ta_form':ta_form,
                     'courses_formset':courses_formset,
-                    'campus_names':campus_names,
                     'campus_preferences':campus_preferences,
-                    'skill_names':skill_names,
-                    'skills':skills
+                    'campus_pref_choices':PREFERENCE_CHOICES,
+                    'skill_values': skill_values,
+                    'skill_choices': LEVEL_CHOICES,
                   }
-        return render(request, 'ta/new_application.html', context)
+    return render(request, 'ta/new_application.html', context)
 
 @requires_role("TAAD")
 def all_applications(request):
@@ -231,6 +247,7 @@ def all_applications(request):
             }
     return render(request, 'ta/all_applications.html', context)
 
+# TODO: shouldn't be visible to all users
 @login_required
 def view_application(request, app_id):
     
@@ -245,8 +262,16 @@ def view_application(request, app_id):
         elif application.posting.unit not in units:
             return ForbiddenResponse(request, 'You cannot access this posting')
    
-    courses = CoursePreference.objects.filter(app=app_id)
-    return render(request, 'ta/view_application.html', {'application':application, 'courses':courses})
+    courses = CoursePreference.objects.filter(app=application)
+    skills = SkillLevel.objects.filter(app=application).select_related('skill')
+    campuses = CampusPreference.objects.filter(app=application).select_related('campus')
+    context = {
+            'application':application,
+            'courses':courses,
+            'skills': skills,
+            'campuses': campuses,
+            }
+    return render(request, 'ta/view_application.html', context)
 
 @login_required
 def view_postings(request):
@@ -344,6 +369,7 @@ def _copy_posting_defaults(source, destination):
     destination.set_scholarship(source.scholarship())
     destination.set_bu_defaults(source.bu_defaults())
     destination.set_payperiods(source.payperiods())
+    # TODO: also copy Skill values
 
 @requires_role("TAAD")
 def edit_posting(request, post_slug=None):
@@ -386,6 +412,7 @@ def edit_posting(request, post_slug=None):
         if form.is_valid():
             form.instance.slug = None
             form.save()
+            [s.save() for s in form.cleaned_data['skills']]
             l = LogEntry(userid=request.user.username,
                   description="Edited TAPosting for %s in %s." % (form.instance.unit, form.instance.semester),
                   related_object=form.instance)

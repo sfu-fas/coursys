@@ -11,6 +11,7 @@ class SIMSConn(object):
     sims_user = "ggbaker"
     sims_db = "csrpt"
     dbpass_file = "./dbpass"
+    table_prefix = "dbsastg."
     
     _instance = None
     def __new__(cls, *args, **kwargs):
@@ -52,6 +53,7 @@ class SIMSConn(object):
         return "'"+a+"'"
 
     def execute(self, query, args):
+        "Execute a query, safely substituting arguments"
         # should be ensuring real/active connection here?
         clean_args = tuple((self.escape_arg(a) for a in args))
         real_query = query % clean_args
@@ -69,12 +71,14 @@ class SIMSConn(object):
             return v
 
     def __iter__(self):
+        "Iterate query results"
         row = self.db.fetchone()
         while row:
             yield tuple((self.prep_value(v) for v in row))
             row = self.db.fetchone()
 
     def rows(self):
+        "List of query results"
         return list(self.__iter__())
 
 

@@ -9,7 +9,6 @@
     <tr><th>Name</th><td>{{ application.person.name }}</td></tr>
     <tr><th>Semester</th><td>{{ application.posting.semester }}</td></tr>
     <tr><th>Category</th><td>{{ application.get_category_display }}</td></tr>
-    <tr><th>SIN</th><td>{{ application.sin }}</td></tr>
     <tr><th>Base Units</th><td>{{ application.base_units }}</td></tr>
     <tr><th>Experience</th><td>{{ application.experience }}</td></tr>
     <tr><th>Course Load</th><td>{{ application.course_load }}</td></tr>
@@ -39,8 +38,8 @@
   <table class="info">
     <h2>Campus Preference:</h2> 
     <tr>
-      {% for campus in application.campus_preferences.all %}
-        <tr><th>{{ campus.get_campus_display }}</th><td>{{ campus.get_rank_display }}</td></tr>
+      {% for campus in campuses %}
+        <tr><th>{{ campus.get_campus_display }}</th><td>{{ campus.get_pref_display }}</td></tr>
       {% endfor %}
     </tr>
   </table>   
@@ -48,8 +47,8 @@
   <table class="info">
     <h2>Skills:</h2>
     <tr>
-      {% for skill in application.skills.all %}
-        <tr><th>{{ skill.name }}</th><td>{{ skill.get_level_display }}</td></tr>
+      {% for skill in skills %}
+        <tr><th>{{ skill.skill.name }}</th><td>{{ skill.get_level_display }}</td></tr>
       {% endfor %}
     </tr>
   </table>

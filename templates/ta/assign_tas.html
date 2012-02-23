@@ -38,12 +38,12 @@
 <tbody>
 {% for o in offerings %}
 <tr>
-  <td scope="row" title="{{o.title}}">{{o.name}}</td>
+  <td scope="row" title="{{o.title}}"><a href="">{{o.name}}</a></td>
   <td>{% for instructor in o.instructors %}<a href="mailto:{{ instructor.email }}">{{ instructor.sortname }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</td>
   <td class="num">{{o.enrl_tot}}</td>
   <td class="num">{{ o|display_bu:posting }}</td>
-  <td class="num"></td>
-  <td class="num"></td>
+  <td class="num">?</td>
+  <td class="num">?</td>
 </tr>	
 {% endfor %}
 </tbody>

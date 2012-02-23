@@ -4,7 +4,7 @@ from django.forms.forms import BoundField
 from django.forms.util import ErrorList
 from django.utils.datastructures import SortedDict
 from coredata.models import Member, CAMPUS_CHOICES
-from ta.models import TUG, TAApplication,TAContract, CoursePreference, TACourse, TAPosting, CATEGORY_CHOICES
+from ta.models import TUG, TAApplication,TAContract, CoursePreference, TACourse, TAPosting, Skill, CATEGORY_CHOICES
 from ta.util import table_row__Form, update_and_return
 from django.core.exceptions import ValidationError
 import itertools, decimal, datetime
@@ -202,10 +202,12 @@ class TAPostingForm(forms.ModelForm):
     end = forms.DateField(label="Contract End", help_text='Default end date for contracts')
     salary = PayField(label="Salary per BU", help_text="Default pay rates for contracts")
     scholarship = PayField(label="Scholarship per BU", help_text="Default scholarship rates for contracts")
-    excluded = forms.MultipleChoiceField(help_text="Courses that should <strong>not</strong> be selectable for TA positions",
-            choices=[], required=False, widget=forms.SelectMultiple(attrs={'size': 15}))
     payperiods = forms.IntegerField(label="Pay periods", help_text='Number of pay periods in the semester',
             max_value=20, min_value=1, widget=forms.TextInput(attrs={'size': 5}))
+    excluded = forms.MultipleChoiceField(help_text="Courses that should <strong>not</strong> be selectable for TA positions",
+            choices=[], required=False, widget=forms.SelectMultiple(attrs={'size': 15}))
+    skills = forms.CharField(label="Skills", help_text='Skills to ask applicants about: one per line', required=False,
+                          widget=forms.Textarea())
 
     # TODO: sanity-check the dates against semester start/end
     
@@ -222,6 +224,8 @@ class TAPostingForm(forms.ModelForm):
         self.initial['end'] = self.instance.end()
         self.initial['excluded'] = self.instance.excluded()
         self.initial['payperiods'] = self.instance.payperiods()
+        skills = Skill.objects.filter(posting=self.instance)
+        self.initial['skills'] = '\n'.join((s.name for s in skills))
     
     def clean_payperiods(self):
         payperiods = self.cleaned_data['payperiods']
@@ -285,6 +289,23 @@ class TAPostingForm(forms.ModelForm):
         excluded = [int(e) for e in excluded]
         self.instance.config['excluded'] = excluded
         return excluded
+
+    def clean_skills(self):
+        skills = self.cleaned_data['skills']
+        skills = [s.strip() for s in skills.split("\n")]
+        old_skills = Skill.objects.filter(posting=self.instance)
+        res = []
+        for i, skill in enumerate(skills):
+            if len(old_skills) < i+1:
+                # nothing existing
+                new = Skill(posting=self.instance, name=skill, position=i)
+                res.append(new)
+            else:
+                # update old
+                old = old_skills[i]
+                old.name = skill
+                res.append(old)
+        return res
 
 class BUForm(forms.Form):
     students = forms.IntegerField(min_value=0, max_value=1000)

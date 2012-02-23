@@ -51,16 +51,12 @@
 <fieldset>
     <legend>Campus Preferences</legend>
     <table id="borderless">
-    {% for cn in campus_names %}
-        {% for cp in campus_preferences %}
-            {% if cp.campus == cn.campus %}
-            {% ifchanged %}<tr><td><b>{{ cp.get_campus_display }}: </b></td>{% endifchanged %}
-            <td>
-            <input type="radio" value={{ cp.id }} name="campus_preference{{ forloop.parentloop.counter }}" > {{ cp.get_rank_display }}</input>
-            </td>
-            {% endif %}
-        {% endfor %}
-        </tr>
+    {% for lbl,name,pref in campus_preferences %}
+    <tr><td scope="row">{{name}}:</td>
+      {% for plbl,pname in campus_pref_choices %}
+      <td><input type="radio" name="campus-{{lbl}}" value="{{plbl}}" {% if pref == plbl %}checked="checked" {% endif %}/> {{pname}}</td>
+      {% endfor %}
+    </tr>
     {% endfor %}
     </table>
 </fieldset>
@@ -68,16 +64,12 @@
 <fieldset>
     <legend>Skills:</legend>
     <table id="borderless">
-    {% for sn in skill_names %}
-        {% for skill in skills %}
-            {% if sn.name == skill.name %}
-            {% ifchanged %}<tr><td><b>{{ skill.name }}: </b></td>{% endifchanged %}
-            <td>
-            <input type="radio" value="{{ skill.id }}" name="skills{{ forloop.parentloop.counter}}" > {{ skill.get_level_display }}</input>
-            </td>
-            {% endif %}
-        {% endfor %}
-        </tr>
+    {% for i,name,pref in skill_values %}
+    <tr><td scope="row">{{name}}:</td>
+        {% for slbl,sname in skill_choices %}
+        <td><input type="radio" name="skill-{{i}}" value="{{slbl}}" {% if pref == slbl %}checked="checked" {% endif %}/> {{sname}}</td>
+      {% endfor %}
+    </tr>
     {% endfor %}
     </table>
 </fieldset>
