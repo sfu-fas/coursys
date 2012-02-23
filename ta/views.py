@@ -10,7 +10,7 @@ from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContra
 from ra.models import Account
 from coredata.models import Member, Role, CourseOffering, Person, Semester
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, CoursePreferenceForm, \
-    TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm
+    TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet
 from log.models import LogEntry
 from django.forms.models import inlineformset_factory
 from django.forms.formsets import formset_factory
@@ -316,7 +316,7 @@ def new_contract(request, post_slug):
         ForbiddenResponse(request, 'You cannot access this posting')
     course_choices = [('','---------')] + [(c.id, c.name()) for c in posting.selectable_offerings()]
     position_choices = [(a.id, a.position_number) for a in Account.objects.filter(unit=posting.unit)]
-    TACourseFormset = inlineformset_factory(TAContract, TACourse, extra=3, can_delete=False, form=TACourseForm)
+    TACourseFormset = inlineformset_factory(TAContract, TACourse, extra=3, can_delete=False, form=TACourseForm, formset=BaseTACourseFormSet)
     contract = TAContract()
     formset = TACourseFormset(instance=contract)
     
@@ -347,7 +347,8 @@ def new_contract(request, post_slug):
                 formset.save()
                 messages.success(request, "Created TA Contract for %s for %s." % (contract.applicant, posting))
                 return HttpResponseRedirect(reverse(all_contracts))
-    
+        else:
+            print formset.forms.errors
     else:   
         form = TAContractForm(instance=contract)
         formset = TACourseFormset(instance=contract)
@@ -356,7 +357,7 @@ def new_contract(request, post_slug):
     form.fields['position_number'].choices = position_choices       
     for f in formset:
         f.fields['course'].widget.attrs['class']  = 'course_select'
-        f.fields['bu'].widget.attrs['value'] = 0
+        f.fields['course'].choices = course_choices
     
     context = {'form': form, 'formset': formset, 'posting': posting, 'config': posting.config}
     return render(request, 'ta/new_contract.html',context)

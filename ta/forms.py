@@ -9,6 +9,7 @@ from ta.util import table_row__Form, update_and_return
 from django.core.exceptions import ValidationError
 import itertools, decimal, datetime
 from django.forms.formsets import formset_factory
+from django.forms.models import BaseInlineFormSet
 
 @table_row__Form
 class TUGDutyForm(forms.Form):
@@ -165,6 +166,31 @@ class TACourseForm(forms.ModelForm):
         model = TACourse
         exclude = ('contract',) 
 
+class BaseTACourseFormSet(BaseInlineFormSet):
+    '''
+    #maybe do some initial setting here
+    def __init__(self, activity_components, *args, **kwargs):
+        super(BaseCommonProblemFormSet, self).__init__(*args, **kwargs)
+        for form in self.forms:
+            form.fields['penalty'].widget.attrs['size'] = 5
+            if activity_components:
+                # limit the choices of activity components
+                form.fields['activity_component'].queryset = activity_components
+    '''
+    def clean(self):
+        self.validate_unique()
+        count = 0
+        #if any(self.errors):
+        #    return
+        for form in self.forms:
+            try:
+                if form.has_changed() and form.cleaned_data:
+                    count += 1
+            except AttributeError:
+                pass
+        if count < 1:
+            raise forms.ValidationError(u"Please select at least one course")
+        
 # helpers for the TAPostingForm
 class LabelTextInput(forms.TextInput):
     "TextInput with a bonus label"

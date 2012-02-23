@@ -318,7 +318,7 @@ class TAContract(models.Model):
     #status  = models.CharField(max_length=3, choices=STATUS_CHOICES, verbose_name="Appointment Status")
         
     def __unicode__(self):
-        return (self.applicant)
+        return "%s" % (self.applicant)
 
 class TACourse(models.Model):
     course = models.ForeignKey(CourseOffering, blank=False, null=False)
