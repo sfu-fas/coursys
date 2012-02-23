@@ -3,9 +3,9 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 sys.path.append('.')
 
 # create "objs" by selecting all objects you want to serialize
-from coredata.models import *
-from discipline.models import *
-objs = itertools.chain( CourseOffering.objects.all(), MeetingTime.objects.all() )
+from ta.models import *
+
+objs = itertools.chain( TAPosting.objects.all())
 
 # output the JSON: copy into test_data.json when you're sure it's right.
 from django.core import serializers
