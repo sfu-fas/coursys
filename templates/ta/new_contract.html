@@ -74,8 +74,11 @@
     	$("#id_pay_start").datepicker({'dateFormat': 'yy-mm-dd'});
     	$("#id_pay_end").datepicker({'dateFormat': 'yy-mm-dd'});
     	$("#id_deadline").datepicker({'dateFormat': 'yy-mm-dd'});
-    	$('#messages').hide()
-		
+    	if(!('{{formset.non_form_errors}}'))
+    		$('#messages').hide()
+    	else
+    		$('.errorlist li').attr('class','error')
+ 		
 		$('.course_select').change(function(){
 			var cid = $(this).val()
 			var bu_inp = '#' + this.id.replace('-course','-bu')
@@ -149,7 +152,9 @@
 {{ form|as_dl }}
 </fieldset>
 
-<div class="container">{{formset.forms.errors}}<div id="messages"><ul></ul></div></div>
+<div class="container">
+	<div id="messages">{{formset.non_form_errors}}<ul></ul></div>
+</div>
 
 <fieldset>
 <legend>Course and Payment Details</legend>
