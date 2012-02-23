@@ -32,6 +32,7 @@ function add(){
 	    
 		$('#id_form-TOTAL_FORMS').val(total_forms+1);
 		$('#supervisor-forms').append($(newForm));
+		selectOptions = $('select[id*="supervisor"]');
 		if (total_forms+1 == max_forms){
 			$('#add_btn').attr('disabled', true).css('background-color','#bba');
 		}
@@ -39,14 +40,35 @@ function add(){
 }
 
 
+var currentSelections = new Object();
+var optionsList = new Object();
+var options;
 
-function update(el, url) {
-	$.ajax({
-		url : url,
-		success : function(data) {
-			if(console && console.log) {
-				console.log(data);
-			}
-		}
+function processSelections(selectOptions){
+	// create a clean copy of the dropdown options
+	if(options == null){
+		options = $(selectOptions[0]).clone();
+		options.find('option:selected').removeAttr('selected');
+		options = options.find('option');
+	}
+	
+	// store the current selections
+	$(selectOptions).each(function(){
+		currentSelections[$(this).attr('id')] = $(this).val();
 	});
+	
+	// loop through each select dropdown and disable currently selected values excluding "External"
+	$(selectOptions).each(function(i, ele){
+		$.each(currentSelections,function(key,val){
+			if(key != $(ele).attr('id') && val!=''){
+				$(ele).find('option[value='+val+']').attr('disabled',true);
+			}
+			else{
+				$(ele).attr('disabled',false);
+				console.log(currentSelections);
+			}
+		});
+	
+	});
+
 }

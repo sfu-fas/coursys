@@ -94,10 +94,18 @@
 	// dynamically append button for no-script compatibility
 	$(function() {
 		$("#form_btns").append('<input id="add_btn" class="submit" type="button" value="Add Another" onclick="add()" />');
+		var selectOptions = $('select[id*="supervisor"]');
+		processSelections(selectOptions);
+		selectOptions.each(function(){
+			$(this).change(function(){
+				processSelections(selectOptions);
+				$('#'+$(this).attr('id').replace('supervisor_0','external')).val('');
+			});
+		});
 		var total_forms = $('#id_form-TOTAL_FORMS').val()*1;
 		var max_forms = $('#id_form-MAX_NUM_FORMS').val()*1;
 		if (total_forms*1 >= max_forms){
-			$("#add_btn").attr("disabled", true).css("background-color","#bba");
+			$('#add_btn').attr('disabled', true).css('background-color','#bba');
 		}
 	});
 
