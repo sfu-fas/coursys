@@ -11,20 +11,56 @@
 {% endblock %}
 
 {% block content %}
+
+{# or maybe use datatables? #}
+
+{% regroup tas_with_tugs by ta.offering as course_list %}
+{% for course in course_list %}
+{{ course.grouper.name }}
+<ul>
+	{% for t in course.list %}
+	<li>
+		{% if not t.tug == None %}
+			<a href="{% url ta.views.view_tug course_slug=course.grouper.slug userid=t.ta.person.userid %}">
+				{{t.ta.person}} 
+			</a> (Last Updated: {{ t.tug.last_updated|default:"Unknown" }})
+		{% else %}
+			{{t.ta.person}} - 
+			{% if not_ta %}
+			<a href="{% url ta.views.new_tug course_slug=course.grouper.slug userid=t.ta.person.userid %}">
+				Create TUG
+			</a>
+			{% else %}
+			No TUG
+			{% endif %}
+			
+		{% endif %}
+	</li>
+	{% endfor %}
+</ul>
+{% endfor %} 
+{% if empty_courses %}
+<h3>The following courses do not have any TAs listed:</h3>
+{% endif %}
+{% for course in empty_courses %}
+<p>{{ course.name }}</p>
+{% endfor %}
+
+{% comment %}
 {% for course in courses %}
 {{ course.name }}
 <ul>
 	<li style="display:none"></li> <!-- TO DO:  have a better way to handle courses without TA and be xhtml valid -->
-	{% for ta, tug in tas_with_tugs %}
-		{% if ta.offering == course %}
+	{% for t in tas_with_tugs %}
+		{% if t.ta.offering == course %}
 			<li>
-				{% if not tug == None %}
-					<a href="{% url ta.views.view_tug course_slug=course.slug userid=ta.person.userid %}">
-						{{ta.person}} 
-					</a> (Last Updated: {% if tug.last_updated == "" %}{{ tug.last_updated }} {% else %} Unknown {% endif %})
+				{% if not t.tug == None %}
+					<a href="{% url ta.views.view_tug course_slug=course.slug userid=t.ta.person.userid %}">
+						{{t.ta.person}} 
+					</a> (Last Updated: {% if t.tug.last_updated == "" %}{{ t.tug.last_updated }} {% else %} Unknown {% endif %})
 				{% else %}
-					{{ta.person}}{% if not_ta %} - 
-					<a href="{% url ta.views.new_tug course_slug=course.slug userid=ta.person.userid %}">
+					{{t.ta.person}}{% if not_ta %} - 
+					<a href="{% url ta.views.new_tug course_slug=course.slug userid=t.ta.person.userid %}">
 						Create TUG
 					</a>{% endif %}
 					
@@ -34,6 +70,6 @@
 	{% endfor %}
 </ul>
 {% endfor %}
-
+{% endcomment %}
 
 {% endblock %}

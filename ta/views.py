@@ -74,12 +74,15 @@ def _all_tugs_admin(request):
     unit = Role.objects.get(person__userid=request.user.username).unit
     courses = CourseOffering.objects.filter(owner=unit) # TO DO: Make this reference the CourseOffering's "Owner" field once it's been added
     tas = Member.objects.filter(offering__in=courses, role="TA")
-    tas_with_tugs = [(ta, tryget(ta)) for ta in tas]
-
+    tas_with_tugs = [{'ta':ta, 'tug':tryget(ta)} for ta in tas]
+    print tas_with_tugs
     context = {
                'tas_with_tugs':tas_with_tugs,
                'unit':unit,
-               'courses':courses
+               'courses':courses,
+               # todo: figure out a way to express empty_courses in template code
+               # perhaps write a custom filter
+               'empty_courses':[course for course in courses if not any(course == ta.offering for ta in tas )]
                 }
     
     return render(request, 'ta/all_tugs_admin.html', context)
