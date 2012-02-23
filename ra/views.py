@@ -80,7 +80,7 @@ def new_account(request):
     if request.method == 'POST':
         if accountform.is_valid():
             accountform.save()
-            return HttpResponseRedirect(reverse('dashboard.views.index'))
+            return HttpResponseRedirect(reverse('ra.views.accounts_index'))
     return render(request, 'ra/new_account.html', {'accountform': accountform})
 
 @requires_role("FUND")
@@ -89,8 +89,24 @@ def accounts_index(request):
     accounts = Account.objects.filter(unit__id__in=depts).order_by("account_number")
     return render(request, 'ra/accounts_index.html', {'accounts': accounts}, context_instance=RequestContext(request))
 
+@requires_role("FUND")
+def delete_account(request, account_slug):
+    account = get_object_or_404(Account, slug=account_slug)
+    messages.success(request, 'Deleted account ' + str(account.account_number))
+    account.delete()
+    return HttpResponseRedirect(reverse(accounts_index))
 
-
+@requires_role("FUND")
+def edit_account(request, account_slug):
+    account = get_object_or_404(Account, slug=account_slug)
+    if request.method == 'POST':
+        accountform = AccountForm(request.POST, instance=account)
+        if accountform.is_valid():
+            accountform.save()
+            return HttpResponseRedirect(reverse(accounts_index))
+    else:
+        accountform = AccountForm(instance=account)
+    return render(request, 'ra/edit_account.html', {'accountform': accountform, 'account': account}, context_instance=RequestContext(request))
 
 
 

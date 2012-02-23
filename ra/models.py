@@ -35,6 +35,9 @@ class Account(models.Model):
     account_number = models.PositiveIntegerField()
     position_number = models.PositiveIntegerField()
     title = models.CharField(max_length=60)
+    def autoslug(self):
+        return make_slug(self.unit.label + '-' + unicode(self.account_number) + '-' + unicode(self.title))
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
 
     def __unicode__(self):
         return unicode(self.account_number)
