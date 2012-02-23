@@ -8,7 +8,7 @@ from django.utils.encoding import force_unicode
 
 class RAForm(forms.ModelForm):
     person = forms.CharField(label='Hire')
-    units = forms.DecimalField(max_digits=6, decimal_places=3, label="Pay period units")
+    units = forms.DecimalField(max_digits=6, decimal_places=3, label="Number of Pay Periods")
 
     def clean_person(self):
         return Person.objects.get(emplid=self.cleaned_data['person'])
