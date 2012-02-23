@@ -3,7 +3,8 @@ from django.shortcuts import get_object_or_404, render
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from courselib.auth import requires_course_staff_by_slug, requires_role, \
-    is_course_staff_by_slug, has_role, ForbiddenResponse
+    is_course_staff_by_slug, requires_course_staff_or_dept_admn_by_slug, \
+    has_role, ForbiddenResponse
 from django.contrib.auth.decorators import login_required
 from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, CampusPreference,\
     CAMPUS_CHOICES, CAMPUSES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS
@@ -116,11 +117,16 @@ def new_tug(request, course_slug, userid):
                    }
         return render(request,'ta/new_tug.html',context)
 
-@requires_course_staff_by_slug    
+@requires_course_staff_or_dept_admn_by_slug    
 def view_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     member = get_object_or_404(Member, offering=course, person__userid=userid)
-    curr_user_role = Member.objects.get(person__userid=request.user.username,offering=course).role
+    try:
+        curr_user_role = Member.objects.get(person__userid=request.user.username,offering=course).role
+    except Member.DoesNotExist:
+        # we'll just assume this since it's the only other possibility 
+        #  since we're checking authorization in the decorator
+        curr_user_role = "ADMN"
     
     #If the currently logged in user is a TA for the course and is viewing a TUG for another TA, show forbidden message
     if(curr_user_role =="TA" and not userid==request.user.username ): 

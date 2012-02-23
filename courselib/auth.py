@@ -158,6 +158,25 @@ def requires_course_staff_by_slug(function=None, login_url=None):
     else:
         return actual_decorator
 
+def is_dept_admn_by_slug(request, course_slug, **kwargs):
+    offering = CourseOffering.objects.get(slug=course_slug)
+    return Role.objects.filter(person__userid=request.user.username, role='ADMN',
+#            unit__label__in=('UNIV', offering.owner.label)).count() > 0
+            unit=offering.owner).count() > 0
+
+def requires_course_staff_or_dept_admn_by_slug(function=None, login_url=None):
+    """
+    Allows access if user is a staff member (instructor, TA, approver) from course indicated by 'course_slug'
+    *or* if they are the departmental admin for the course's department 
+    """
+    def test_func(request, **kwargs):
+        return is_course_staff_by_slug(request, **kwargs) or is_dept_admn_by_slug(request, **kwargs)
+    actual_decorator = user_passes_test(test_func, login_url=login_url)
+    if function:
+        return actual_decorator(function)
+    else:
+        return actual_decorator
+
 
 def is_discipline_user(request, course_slug, **kwargs):
     """
