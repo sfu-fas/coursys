@@ -289,6 +289,10 @@ urlpatterns += patterns('',
     url(r'^ra/accounts/$', 'ra.views.accounts_index'),
     url(r'^ra/accounts/' + ACCOUNT_SLUG + '/delete$', 'ra.views.delete_account'),
     url(r'^ra/accounts/' + ACCOUNT_SLUG + '/edit$', 'ra.views.edit_account'),
+    url(r'^ra/projects/new$', 'ra.views.new_project'),    
+    url(r'^ra/projects/$', 'ra.views.projects_index'),
+    url(r'^ra/projects/' + PROJECT_SLUG + '/delete$', 'ra.views.delete_project'),
+    url(r'^ra/projects/' + PROJECT_SLUG + '/edit$', 'ra.views.edit_project'),
 
    
     

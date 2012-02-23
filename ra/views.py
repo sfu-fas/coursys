@@ -3,7 +3,7 @@ from django.shortcuts import render_to_response, get_object_or_404, render
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib import messages
 from ra.models import RAAppointment, Project, Account
-from ra.forms import RAForm, RASearchForm, AccountForm
+from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm
 from grad.forms import possible_supervisors
 from coredata.models import Member, Person, Role, Unit
 from courselib.auth import requires_role
@@ -108,14 +108,36 @@ def edit_account(request, account_slug):
         accountform = AccountForm(instance=account)
     return render(request, 'ra/edit_account.html', {'accountform': accountform, 'account': account}, context_instance=RequestContext(request))
 
+@requires_role("FUND")
+def new_project(request):
+    projectform = ProjectForm(request.POST or None)
+    if request.method == 'POST':
+        if projectform.is_valid():
+            projectform.save()
+            return HttpResponseRedirect(reverse('ra.views.projects_index'))
+    return render(request, 'ra/new_project.html', {'projectform': projectform})
 
+@requires_role("FUND")
+def projects_index(request):
+    depts = Role.objects.filter(person__userid=request.user.username, role='FUND').values('unit_id')
+    projects = Project.objects.filter(unit__id__in=depts).order_by("project_number")
+    return render(request, 'ra/projects_index.html', {'projects': projects}, context_instance=RequestContext(request))
 
+@requires_role("FUND")
+def delete_project(request, project_slug):
+    project = get_object_or_404(Project, slug=project_slug)
+    messages.success(request, 'Deleted project ' + str(project.project_number))
+    project.delete()
+    return HttpResponseRedirect(reverse(projects_index))
 
-
-
-
-
-
-
-
-
+@requires_role("FUND")
+def edit_project(request, project_slug):
+    project = get_object_or_404(Project, slug=project_slug)
+    if request.method == 'POST':
+        projectform = ProjectForm(request.POST, instance=project)
+        if projectform.is_valid():
+            projectform.save()
+            return HttpResponseRedirect(reverse(projects_index))
+    else:
+        projectform = ProjectForm(instance=project)
+    return render(request, 'ra/edit_project.html', {'projectform': projectform, 'project': project}, context_instance=RequestContext(request))

@@ -49,3 +49,7 @@ class RASearchForm(forms.Form):
 class AccountForm(forms.ModelForm):
     class Meta:
         model = Account
+
+class ProjectForm(forms.ModelForm):
+    class Meta:
+        model = Project

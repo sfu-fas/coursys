@@ -23,6 +23,9 @@ class Project(models.Model):
     unit = models.ForeignKey(Unit, null=False, blank=False)
     project_number = models.PositiveIntegerField()
     fund_number = models.PositiveIntegerField()
+    def autoslug(self):
+        return make_slug(self.unit.label + '-' + unicode(self.project_number))
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
 
     def __unicode__(self):
         return unicode(self.project_number)

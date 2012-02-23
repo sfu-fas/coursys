@@ -4,7 +4,7 @@
 {% block title %}Edit Account{% endblock %}
 {% block h1 %}Edit Account{% endblock %}
 
-{% block subbreadcrumbs %}&gt; <li><a href="{% url ra.views.accounts_index %}">Accounts</a></li> <li> &gt; Edit Account</li><li> &gt; {{ account.account_number}} - {{ account.title }}</li>{% endblock %}
+{% block subbreadcrumbs %}&gt; <li><a href="{% url ra.views.accounts_index %}">Accounts</a></li><li>&gt; Edit Account</li><li> &gt; {{ account.account_number}} - {{ account.title }}</li>{% endblock %}
 
 {% block content %}
 <div id="form_container">

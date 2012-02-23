@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Edit Project{% endblock %}
+{% block h1 %}Edit Project{% endblock %}
+
+{% block subbreadcrumbs %}&gt; <li><a href="{% url ra.views.projects_index %}">Projects</a></li><li>&gt; Edit Project</li><li> &gt; {{ project.project_number}}</li>{% endblock %}
+
+{% block content %}
+<div id="form_container">
+    <form action="{% url ra.views.edit_project project_slug=project.slug %}" method="POST">{% csrf_token %}
+        <fieldset style="list-style: none;">
+            <legend>Project Information</legend>
+            {{ projectform.as_ul }}
+            <p><input type="submit" value="Submit"></p>
+        </fieldset>
+    </form>  
+</div>
+
+{% endblock %}
