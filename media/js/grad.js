@@ -32,43 +32,34 @@ function add(){
 	    
 		$('#id_form-TOTAL_FORMS').val(total_forms+1);
 		$('#supervisor-forms').append($(newForm));
-		selectOptions = $('select[id*="supervisor"]');
+		processSelection($('select[id*="supervisor"]'));
 		if (total_forms+1 == max_forms){
 			$('#add_btn').attr('disabled', true).css('background-color','#bba');
 		}
 	}
 }
 
-
 var currentSelections = new Object();
-var optionsList = new Object();
-var options;
 
-function processSelections(selectOptions){
-	// create a clean copy of the dropdown options
-	if(options == null){
-		options = $(selectOptions[0]).clone();
-		options.find('option:selected').removeAttr('selected');
-		options = options.find('option');
-	}
-	
+ function processSelections(selectOptions){
 	// store the current selections
 	$(selectOptions).each(function(){
 		currentSelections[$(this).attr('id')] = $(this).val();
 	});
 	
-	// loop through each select dropdown and disable currently selected values excluding "External"
+	// loop through each select dropdown and do the following:
+	// 1. clear all disabled values
+	// 2. disable currently selected values in other drop downs EXCEPT for the "Other" value
+	
+	$(selectOptions).each(function(i,ele){
+		
+	});
 	$(selectOptions).each(function(i, ele){
+		$(ele).find('option:disabled').attr('disabled',false);
 		$.each(currentSelections,function(key,val){
 			if(key != $(ele).attr('id') && val!=''){
 				$(ele).find('option[value='+val+']').attr('disabled',true);
 			}
-			else{
-				$(ele).attr('disabled',false);
-				console.log(currentSelections);
-			}
 		});
-	
 	});
-
-}
+ }

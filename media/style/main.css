@@ -650,6 +650,49 @@ div.collapsible {
 #main #form_container p {
   margin-left: 1em;
 }
+/* 
+ * duplicating #form_container styles into .form_container 
+ */
+.form_container {
+    margin: 0 1em 0 0;
+    clear: both;
+}
+.form_container .errorindicator, .form_container .successindicator, .form_container .warningindicator {
+    border: 1px solid;
+    padding: 0.5em;
+    background-color: #F8F8C2;
+    margin-bottom: 1em;
+    margin-top: 0;
+}
+.form_container .successindicator {
+    border: 1px solid green;
+    color: green;
+}
+.form_container .errorindicator {
+    border: 1px solid red;
+    color: red;
+}
+.form_container .warningindicator {
+    border: 1px solid orange;
+    color: orange;
+}
+.form_container .errorlist {
+    color: red;
+}
+.form_container .requireindicator {
+    padding: 0 0 0 1em;
+    color: #D52E2D;
+}
+#main .form_container h3 {
+  margin-left: 1em;
+}
+#main .form_container p {
+  margin-left: 1em;
+}
+/*  
+ * end copied of #form_container
+ */
+
 /*
  * field set
  */

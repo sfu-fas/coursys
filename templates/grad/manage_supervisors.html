@@ -48,14 +48,14 @@
 	</table>
 </div>
 {% if potential_supervisors_form %}
-<div id="form_container">
+<div id="form_container" class="form_container">
 	<form method="post" action="{% url grad.views.manage_supervisors grad_slug=grad.slug %}">
 		{% csrf_token %}
 		<fieldset>
 			<legend>
 				Potential Supervisor
 			</legend>
-			{{ potential_supervisors_form|as_dl_2 }}
+			{{ potential_supervisors_form.as_p }}
 			<p>
 				<input class="submit" type="submit" value="Update" />
 			</p>
@@ -63,7 +63,7 @@
 	</form>
 </div>
 {% endif %}
-<div id="formset_container">
+<div id="formset_container" class="form_container">
 	<form method="post" action="{% url grad.views.update_supervisors grad_slug=grad.slug %}">
 		{% csrf_token %}
 		{{ supervisors_formset.management_form }}
@@ -90,16 +90,19 @@
 	</form>
 	<a class="button" href="{% url grad.views.view_all grad_slug=grad.slug %}">Cancel</a>
 </div>
+
 <script type="text/javascript">
 	// dynamically append button for no-script compatibility
 	$(function() {
 		$("#form_btns").append('<input id="add_btn" class="submit" type="button" value="Add Another" onclick="add()" />');
-		var selectOptions = $('select[id*="supervisor"]');
-		processSelections(selectOptions);
+		processSelections($('select[id*="supervisor"]'));
 		selectOptions.each(function(){
 			$(this).change(function(){
-				processSelections(selectOptions);
-				$('#'+$(this).attr('id').replace('supervisor_0','external')).val('');
+				processSelections($('select[id*="supervisor"]'));
+				// exclude potential
+				if($(this).attr('id').indexOf('pot')==-1){
+					$('#'+$(this).attr('id').replace('supervisor_0','external')).val('');
+				}
 			});
 		});
 		var total_forms = $('#id_form-TOTAL_FORMS').val()*1;
@@ -110,4 +113,5 @@
 	});
 
 </script>
+
 {% endblock %} 
