@@ -176,6 +176,14 @@ def new_application(request, post_slug):
     used_campuses = set((vals['campus'] for vals in posting.selectable_offerings().order_by('campus').values('campus').distinct()))
     skills = Skill.objects.filter(posting=posting)
     CoursesFormSet = formset_factory(CoursePreferenceForm, extra=1, max_num=10)
+    
+    person = get_object_or_404(Person, userid=request.user.username)
+    existing_app = TAApplication.objects.filter(person=person, posting=posting)
+    if existing_app.count() > 0: 
+        messages.success(request, "You have already applied for the %s %s posting." % (posting.unit, posting.semester))
+        return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'app_id':existing_app[0].id}))
+        
+
     if request.method == "POST":
         ta_form = TAApplicationForm(request.POST, prefix='ta')
         courses_formset = CoursesFormSet(request.POST)
@@ -183,7 +191,6 @@ def new_application(request, post_slug):
             f.fields['course'].choices = course_choices
 
         if ta_form.is_valid() and courses_formset.is_valid():
-            person = get_object_or_404(Person, userid=request.user.username)
             app = ta_form.save(commit=False)
             app.posting = posting
             app.person = person
