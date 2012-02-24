@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, render
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.contrib import messages
-from courselib.auth import requires_course_staff_by_slug, requires_role, \
+from courselib.auth import requires_course_staff_by_slug, requires_course_instr_by_slug, requires_role, \
     is_course_staff_by_slug, requires_course_staff_or_dept_admn_by_slug, \
     has_role, ForbiddenResponse
 from django.contrib.auth.decorators import login_required
@@ -89,7 +89,7 @@ def _all_tugs_admin(request):
     return render(request, 'ta/all_tugs_admin.html', context)
 
 
-@requires_course_staff_by_slug    
+@requires_course_instr_by_slug    
 def new_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     member = get_object_or_404(Member, offering=course, person__userid=userid)
@@ -147,7 +147,7 @@ def view_tug(request, course_slug, userid):
                 'user_role':curr_user_role}
         return render(request, 'ta/view_tug.html',context)
 
-@requires_course_staff_by_slug
+@requires_course_instr_by_slug
 def edit_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     member = get_object_or_404(Member, offering=course, person__userid=userid)

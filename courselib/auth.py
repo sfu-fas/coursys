@@ -158,6 +158,25 @@ def requires_course_staff_by_slug(function=None, login_url=None):
     else:
         return actual_decorator
 
+def is_course_instr_by_slug(request, course_slug, **kwargs):
+    """
+    Return True if user is a staff member (instructor, TA, approver) from course indicated by 'course_slug' keyword.
+    """
+    memberships = Member.objects.filter(offering__slug=course_slug, person__userid=request.user.username,
+            role__in=['INST', 'APPR'], offering__graded=True).exclude(offering__component="CAN")
+    count = memberships.count()
+    return count>0
+
+def requires_course_instr_by_slug(function=None, login_url=None):
+    """
+    Allows access if user is a staff member (instructor, TA, approver) from course indicated by 'course_slug'.
+    """
+    actual_decorator = user_passes_test(is_course_instr_by_slug, login_url=login_url)
+    if function:
+        return actual_decorator(function)
+    else:
+        return actual_decorator
+
 def is_dept_admn_by_slug(request, course_slug, **kwargs):
     offering = CourseOffering.objects.get(slug=course_slug)
     return Role.objects.filter(person__userid=request.user.username, role='ADMN',

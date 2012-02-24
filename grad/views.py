@@ -197,6 +197,7 @@ def manage_requirements(request, grad_slug):
     #calculate/find missing reqs
     completed_req = CompletedRequirement.objects.filter(student=grad)
     req = GradRequirement.objects.filter(program=grad.program)
+    req_choices = [(u'', u'\u2014')] + [(r.id, r.description) for r in req]
     missing_req = req    
     for s in completed_req:
         missing_req = missing_req.exclude(description=s.requirement.description)
@@ -204,7 +205,10 @@ def manage_requirements(request, grad_slug):
     
     ReqFormSet = inlineformset_factory(GradStudent, CompletedRequirement, max_num=num_missing, can_order=False) 
     if request.method == 'POST':
-        req_formset = ReqFormSet(request.POST, request.FILES, instance=grad, prefix='req')        
+        req_formset = ReqFormSet(request.POST, request.FILES, instance=grad, prefix='req')
+        for f in req_formset:
+            f.fields['requirement'].choices = req_choices 
+
         if req_formset.is_valid():
             #change gradstudent's last updated info to newest
             grad.updated_at = datetime.datetime.now()
@@ -219,6 +223,8 @@ def manage_requirements(request, grad_slug):
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))
     else:
         req_formset = ReqFormSet(instance=grad, prefix='req')
+        for f in req_formset:
+            f.fields['requirement'].choices = req_choices
 
     # set frontend defaults
     page_title = "%s's Requirements Record" % (grad.person.first_name)
@@ -355,8 +361,10 @@ def new(request):
 # temporary for adding new programs/requirements
 @requires_role("GRAD")
 def new_program(request):
+    unit_choices = [(u.id, u.name) for u in request.units]
     if request.method == 'POST':
         form = GradProgramForm(request.POST)
+        form.fields['unit'].choices = unit_choices 
         if form.is_valid():
             form.save()
             messages.success(request, "Created new program %s for %s." % (form.instance.label, form.instance.unit))
@@ -366,7 +374,8 @@ def new_program(request):
             l.save()                        
             return HttpResponseRedirect(reverse(programs))
     else:
-        form = GradProgramForm(initial={'unit': 2})     
+        form = GradProgramForm()    
+        form.fields['unit'].choices = unit_choices
 
     page_title = 'New Program'  
     crumb = 'New Program' 
@@ -379,7 +388,7 @@ def new_program(request):
 
 @requires_role("GRAD")
 def programs(request):
-    programs = GradProgram.objects.all()
+    programs = GradProgram.objects.filter(unit__in=request.units)
     
     # set frontend defaults
     page_title = 'Graduate Programs Records'
@@ -393,7 +402,7 @@ def programs(request):
 
 @requires_role("GRAD")
 def requirements(request):
-    requirements = GradRequirement.objects.all()
+    requirements = GradRequirement.objects.filter(program__unit__in=request.units)
 
     page_title = 'Graduate Requirements'
     crumb = 'Grad Requirements'     
@@ -406,8 +415,10 @@ def requirements(request):
 
 @requires_role("GRAD")
 def new_requirement(request):
+    program_choices = [(p.id, p.label) for p in GradProgram.objects.filter(unit__in=request.units)]
     if request.method == 'POST':
         form = GradRequirementForm(request.POST)
+        form.fields['program'].choices = program_choices
         if form.is_valid():
             form.save()
             messages.success(request, "Created new grad requirement %s in %s." % (form.instance.description, form.instance.program))
@@ -417,7 +428,8 @@ def new_requirement(request):
             l.save()            
             return HttpResponseRedirect(reverse(requirements))
     else:
-        form = GradRequirementForm(initial={'unit': 2})     
+        form = GradRequirementForm()
+        form.fields['program'].choices = program_choices
 
     page_title = 'New Requirement'  
     crumb = 'New Requirement' 

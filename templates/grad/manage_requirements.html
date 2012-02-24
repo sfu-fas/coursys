@@ -3,6 +3,20 @@
 {% load mobile_tags %}
 {% load form_display %}
 
+{% block headextra %}
+<script type="text/javascript">
+  $(function() {
+  	$("input").each(function(i) { // turn on datepicker for each date input (the hard way)
+  		var id = $(this).attr('id');
+  		if ( id === undefined ) {
+  		} else if (id.substr(-5) == "-date") {
+  			$(this).datepicker({'dateFormat': 'yy-mm-dd'});
+  		}
+  	});
+  });
+</script>
+{% endblock %}
+
 {% block actions %}
 <div id="actions">
 	<h2>Actions</h2>
