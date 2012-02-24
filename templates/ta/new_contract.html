@@ -40,8 +40,8 @@
 		var valid = true
 		var html = ""
 		
-		if(cat){
-			if($('#id_appt_category').val()=="" && $('#messages ul').html()!=""){
+		if(cat==true){
+			if($('#id_appt_category').val()==""){
 				html += '<li class="warning">Please select an appointment type</li>'
 				valid = false
 			}

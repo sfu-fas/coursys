@@ -205,10 +205,11 @@ class BaseTACourseFormSet(BaseInlineFormSet):
         #check no duplicate course selection
         courses = []
         for form in self.forms:
-            course = form.cleaned_data['course']
-            if(course in courses):
-                    raise forms.ValidationError(u"Duplicate course selection")
-            courses.append(c)  
+            if form.cleaned_data['course']:
+                course = form.cleaned_data['course']
+                if(course in courses):
+                        raise forms.ValidationError(u"Duplicate course selection")
+                courses.append(course)  
         
 # helpers for the TAPostingForm
 class LabelTextInput(forms.TextInput):
