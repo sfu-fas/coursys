@@ -12,6 +12,8 @@ from courselib.auth import requires_role
 import datetime
 from django.forms.formsets import formset_factory
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
+from django.contrib import messages
+from log.models import LogEntry
 
 # get semester based on input datetime. defaults to today
 # returns semseter object
@@ -126,6 +128,7 @@ def manage_supervisors(request, grad_slug):
             superF.student = grad #Passing grad student info to model
             superF.position = 0   #Hard coding potential supervisor and passing to model
             superF.save()
+            messages.success(request, "Updated Potential Supervisor.")
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))
     else:
         potential_supervisors_form = PotentialSupervisorForm(instance=pot_supervisor, prefix="pot_sup")
@@ -164,6 +167,7 @@ def update_supervisors(request, grad_slug):
             for s in supervisors_formset:
                 s.instance.student = grad
             supervisors_formset.save()
+            messages.success(request, "Updated Supervisor Information.")
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))
         else:
             page_title = "%s's Supervisor(s) Record" % (grad.person.first_name)
@@ -204,6 +208,7 @@ def manage_requirements(request, grad_slug):
             grad.created_by = request.user.username            
             grad.save()
             req_formset.save()
+            messages.success(request, "Updated Grad Requirements for %s." % (req_formset.instance.person))
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))
     else:
         req_formset = ReqFormSet(instance=grad, prefix='req')
@@ -235,6 +240,7 @@ def manage_academics(request, grad_slug):
             gradF.modified_by = request.user.username
             grad.slug = None
             gradF.save()
+            messages.success(request, "Updated Grad Academics for %s." % (grad_form.instance.person))
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad.slug}))
     else:
         grad_form = GradAcademicForm(instance=grad, prefix="grad")
@@ -266,6 +272,7 @@ def manage_status(request, grad_slug):
             grad.created_by = request.user.username
             grad.save()                
             status_formset.save()
+            messages.success(request, "Updated Status History for %s." % (status_formset.instance.person))
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))
     else:
         status_formset = StatusFormSet(instance=grad, prefix='stat', queryset=GradStatus.objects.filter(hidden=False))
@@ -309,6 +316,7 @@ def new(request):
             statusF.created_by = request.user.username
             statusF.student_id = gradF.id
             status_form.save()
+            messages.success(request, "Created new grad student %s." % (grad_form.instance.person))
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':gradF.slug}))
     else:
         #req_list = get_list_or_404(GradRequirement)
@@ -340,6 +348,7 @@ def new_program(request):
         form = GradProgramForm(request.POST)
         if form.is_valid():
             form.save()
+            messages.success(request, "Created new program %s for %s." % (form.instance.label, form.instance.unit))
             return HttpResponseRedirect(reverse(programs))
     else:
         form = GradProgramForm(initial={'unit': 2})     
@@ -386,6 +395,7 @@ def new_requirement(request):
         form = GradRequirementForm(request.POST)
         if form.is_valid():
             form.save()
+            messages.success(request, "Created new grad requirement %s in %s." % (form.instance.description, form.instance.program))
             return HttpResponseRedirect(reverse(requirements))
     else:
         form = GradRequirementForm(initial={'unit': 2})     
