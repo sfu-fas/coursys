@@ -367,8 +367,6 @@ def new_contract(request, post_slug):
                 formset.save()
                 messages.success(request, "Created TA Contract for %s for %s." % (contract.applicant, posting))
                 return HttpResponseRedirect(reverse(all_contracts))
-        else:
-            print formset.forms.errors
     else:   
         form = TAContractForm(instance=contract)
         formset = TACourseFormset(instance=contract)

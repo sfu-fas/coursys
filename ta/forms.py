@@ -146,42 +146,48 @@ class CoursePreferenceForm(forms.ModelForm):
         exclude = ('app',) 
 
 class TAContractForm(forms.ModelForm):
+    #def clean_sin(self):
+        #sin = sin.sub,replace(' ','')
+        #sin = sin.sub.replace('-','')
+        #sin = forms.CharField(min_length=9, max_length=9)
+        
     #apps = TAApplication.objects.filter(semester=get_semester())
     #person = [app.person for app in apps]
     #self.field['person'].queryset = person
     
     #def __init__(self,my_var,*args,**kwargs):
      #   super(TAContractForm,self).__init__(*args,**kwargs)
-    
-    
-    #sin = forms.CharField(min_length=9, max_length=9)
-    #position_number = 
-    
+         
     class Meta:
         model = TAContract
         exclude = ['pay_per_bu', 'scholarship_per_bu', 'ta_posting', 'created_by']
-                
+        
+    def clean_pay_start(self):
+        start = self.cleaned_data['pay_start']
+        return start
+
+    def clean_pay_end(self):
+        end = self.cleaned_data['pay_end']
+        if 'pay_start' in self.cleaned_data:
+            start = self.cleaned_data['pay_start']
+            if start >= end:
+                raise forms.ValidationError("Contracts must end after they start")
+        return end
+
 class TACourseForm(forms.ModelForm):
     class Meta:
         model = TACourse
         exclude = ('contract',) 
 
 class BaseTACourseFormSet(BaseInlineFormSet):
-    '''
-    #maybe do some initial setting here
-    def __init__(self, activity_components, *args, **kwargs):
-        super(BaseCommonProblemFormSet, self).__init__(*args, **kwargs)
-        for form in self.forms:
-            form.fields['penalty'].widget.attrs['size'] = 5
-            if activity_components:
-                # limit the choices of activity components
-                form.fields['activity_component'].queryset = activity_components
-    '''
+    #need at least one course
     def clean(self):
         self.validate_unique()
+        
+        #check at least once course selected
         count = 0
-        #if any(self.errors):
-        #    return
+        if any(self.errors):
+            return
         for form in self.forms:
             try:
                 if form.has_changed() and form.cleaned_data:
@@ -190,6 +196,14 @@ class BaseTACourseFormSet(BaseInlineFormSet):
                 pass
         if count < 1:
             raise forms.ValidationError(u"Please select at least one course")
+        
+        #check no duplicate course selection
+        courses = []
+        for form in self.forms:
+            course = form.cleaned_data['course']
+            if(course in courses):
+                    raise forms.ValidationError(u"Duplicate course selection")
+            courses.append(c)  
         
 # helpers for the TAPostingForm
 class LabelTextInput(forms.TextInput):

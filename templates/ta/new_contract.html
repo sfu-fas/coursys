@@ -33,30 +33,32 @@
 		$('#schol_bi').val(schol_bi)
 	}
 	
-	function validate(){
+	function validate(cat){
 		$('#messages').hide()
+		if($('#messages ul.errorlist').html!='')
+			$('#messages ul.errorlist').html("")
 		var valid = true
 		var html = ""
-		if($('#id_appt_category').val()==""){
-			html += '<li class="warning">Please select an appointment type</li>'
-			valid = false
+		
+		if(cat){
+			if($('#id_appt_category').val()=="" && $('#messages ul').html()!=""){
+				html += '<li class="warning">Please select an appointment type</li>'
+				valid = false
+			}
 		}
 		var clist = new Array()
 		$('.course_select').each(function(){
 			if($(this).val()!="")
 				clist.push($(this).val())
-		})
-		if(clist.length==0){
-			html += '<li class="warning">Please select at least one course</li>'
-			valid = false
-		}
+		})	
+
 		if(!check_dup(clist.sort())){
 			html += '<li class="warning">Duplicate course selection</li>'
 			valid = false
 		}
 			
     	if(html!=""){
-    		$('#messages ul').html(html)
+    		$('#messages ul.warninglist').html(html)
     		$('#messages').show()
     	}
     	return valid;
@@ -79,7 +81,9 @@
     	else
     		$('.errorlist li').attr('class','error')
  		
-		$('.course_select').change(function(){
+		$(".course_select").change(function(){
+			if(!validate(false))
+				return
 			var cid = $(this).val()
 			var bu_inp = '#' + this.id.replace('-course','-bu')
 			if(cid != ''){//nonempty selection
@@ -97,21 +101,24 @@
     	//if previously selected, wipe and enforce reselect/resend ajax to avoid NaN values
     	if($('#salary_sem').val()=="")
     		$('#id_appt_category').val("")
+    		
     	$('#id_appt_category').change(function(){
     		var cat = $(this).val()
-    		$.post("{% url ta.views.new_contract post_slug=posting.slug %}",
+    		if(cat!=''){
+    			$.post("{% url ta.views.new_contract post_slug=posting.slug %}",
   				{'csrfmiddlewaretoken': "{{csrf_token}}", 'appt_cat': cat},
   				function(data){
     				$('#salary_per_bu').val(data.split(',')[0])
     				$('#schol_per_bu').val(data.split(',')[1])
     				if($('#salary_bi').val()!="")
    			 			calculate()
-   			 	});   			 
+   			 	}); 
+    		}  			 
     	})
     	
     	//calcuate event
     	$('#button_cal').click(function(){
-    		if(validate())
+    		if(validate(true))
     			calculate()
     	})
     });
@@ -153,7 +160,7 @@
 </fieldset>
 
 <div class="container">
-	<div id="messages">{{formset.non_form_errors}}<ul></ul></div>
+	<div id="messages">{{formset.non_form_errors}}<ul class="warninglist"></ul></div>
 </div>
 
 <fieldset>
@@ -170,7 +177,7 @@
         </thead>  
         <tbody>
 		  {% for form in formset.forms %} 	      
-		      {{ form|display_form_as_row }}
+		      {{ form|display_form_as_row:"deleted_flag" }}
 	      {% endfor %}
 	      <tr id="cal_tr">
 	      	<td></td>
@@ -210,7 +217,7 @@
    </div>
 </fieldset>
 
-<p><input type="submit" class="submit" value="Submit" /></p>
+<p><input id="submit" type="submit" class="submit" value="Submit" /></p>
 
 </form>
 </div>
