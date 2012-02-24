@@ -1,3 +1,4 @@
+import re
 from django import forms
 from django.utils.safestring import mark_safe
 from django.forms.forms import BoundField
@@ -145,22 +146,20 @@ class CoursePreferenceForm(forms.ModelForm):
         model = CoursePreference
         exclude = ('app',) 
 
-class TAContractForm(forms.ModelForm):
-    def clean_sin(self):
-        sin = sin.sub,replace(' ','')
-        sin = sin.sub.replace('-','')
-        sin = forms.CharField(min_length=9, max_length=9)
-        
-    #apps = TAApplication.objects.filter(semester=get_semester())
-    #person = [app.person for app in apps]
-    #self.field['person'].queryset = person
-    
+class TAContractForm(forms.ModelForm):    
     #def __init__(self,my_var,*args,**kwargs):
      #   super(TAContractForm,self).__init__(*args,**kwargs)
          
     class Meta:
         model = TAContract
         exclude = ['pay_per_bu', 'scholarship_per_bu', 'ta_posting', 'created_by']
+    
+    def clean_sin(self):
+        sin = self.cleaned_data['sin']
+        sin = re.sub('[ -]+','',str(sin))
+        if not re.match('\d{9}$',sin):
+            raise forms.ValidationError("Invalid SIN")
+        return sin
         
     def clean_pay_start(self):
         start = self.cleaned_data['pay_start']
@@ -187,11 +186,10 @@ class TACourseForm(forms.ModelForm):
         exclude = ('contract',) 
 
 class BaseTACourseFormSet(BaseInlineFormSet):
-    #need at least one course
     def clean(self):
         self.validate_unique()
         
-        #check at least once course selected
+        #check at least one course selected
         count = 0
         if any(self.errors):
             return

@@ -298,10 +298,9 @@ class TAContract(models.Model):
     """    
     TA Contract, filled in by TAAD
     """
-    #ta_application = models.ForeignKey(TAApplication)
     ta_posting = models.ForeignKey(TAPosting)
     applicant = models.ForeignKey(Person)
-    sin = models.PositiveIntegerField(unique=True,verbose_name="SIN",help_text="Social insurance number")
+    sin = models.CharField(max_length=30, unique=True,verbose_name="SIN",help_text="Social insurance number")
     pay_start = models.DateField()
     pay_end = models.DateField()
     position_number = models.ForeignKey(Account)
@@ -309,17 +308,19 @@ class TAContract(models.Model):
     appt = models.CharField(max_length=4, choices=APPOINTMENT_CHOICES, verbose_name="Appointment")
     pay_per_bu = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Pay per Base Unit Semester Rate.",)
     scholarship_per_bu = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Scholarship per Base Unit Semester Rate.",)
-    deadline = models.DateField(help_text='Deadline for acceptance')
-    remarks = models.TextField(blank=True)
     appt_cond = models.BooleanField(default=False)
     appt_tssu = models.BooleanField(default=True)
+    deadline = models.DateField(help_text='Deadline for acceptance')
+    status  = models.CharField(max_length=3, choices=STATUS_CHOICES, verbose_name="Appointment Status", default="Open")
+    remarks = models.TextField(blank=True)
+    
     created_by = models.CharField(max_length=8, null=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)
-    #status  = models.CharField(max_length=3, choices=STATUS_CHOICES, verbose_name="Appointment Status")
     
     class Meta:
         unique_together = (('ta_posting', 'applicant'),)
+        
     def __unicode__(self):
         return "%s" % (self.applicant)
 
@@ -330,7 +331,8 @@ class TACourse(models.Model):
     bu = models.DecimalField(max_digits=4, decimal_places=2)
     
     class Meta:
-        unique_together = (('course', 'contract'),)
+        unique_together = (('contract', 'course'),)
+    
     def __unicode__(self):
         return "Course: %s  TA: %s" % (self.course, self.contract)
     
