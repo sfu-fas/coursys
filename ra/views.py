@@ -77,6 +77,7 @@ def view(request, ra_slug):
 @requires_role("FUND")
 def new_account(request):
     accountform = AccountForm(request.POST or None)
+    accountform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
     if request.method == 'POST':
         if accountform.is_valid():
             accountform.save()
@@ -106,11 +107,13 @@ def edit_account(request, account_slug):
             return HttpResponseRedirect(reverse(accounts_index))
     else:
         accountform = AccountForm(instance=account)
+        accountform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
     return render(request, 'ra/edit_account.html', {'accountform': accountform, 'account': account}, context_instance=RequestContext(request))
 
 @requires_role("FUND")
 def new_project(request):
     projectform = ProjectForm(request.POST or None)
+    projectform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
     if request.method == 'POST':
         if projectform.is_valid():
             projectform.save()
@@ -140,4 +143,5 @@ def edit_project(request, project_slug):
             return HttpResponseRedirect(reverse(projects_index))
     else:
         projectform = ProjectForm(instance=project)
+        projectform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
     return render(request, 'ra/edit_project.html', {'projectform': projectform, 'project': project}, context_instance=RequestContext(request))
