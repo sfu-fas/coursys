@@ -146,10 +146,10 @@ class CoursePreferenceForm(forms.ModelForm):
         exclude = ('app',) 
 
 class TAContractForm(forms.ModelForm):
-    #def clean_sin(self):
-        #sin = sin.sub,replace(' ','')
-        #sin = sin.sub.replace('-','')
-        #sin = forms.CharField(min_length=9, max_length=9)
+    def clean_sin(self):
+        sin = sin.sub,replace(' ','')
+        sin = sin.sub.replace('-','')
+        sin = forms.CharField(min_length=9, max_length=9)
         
     #apps = TAApplication.objects.filter(semester=get_semester())
     #person = [app.person for app in apps]
@@ -173,6 +173,13 @@ class TAContractForm(forms.ModelForm):
             if start >= end:
                 raise forms.ValidationError("Contracts must end after they start")
         return end
+    
+    def clean_deadline(self):
+        deadline = self.cleaned_data['deadline']
+        today = datetime.date.today()
+        if deadline < today:
+            raise forms.ValidationError("Deadline for acceptance cannot be before today")
+        return deadline
 
 class TACourseForm(forms.ModelForm):
     class Meta:

@@ -1,6 +1,7 @@
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.core.urlresolvers import reverse
+from django.db.models import Q
 from django.contrib import messages
 from courselib.auth import requires_course_staff_by_slug, requires_role, \
     is_course_staff_by_slug, requires_course_staff_or_dept_admn_by_slug, \
@@ -336,6 +337,8 @@ def new_contract(request, post_slug):
         ForbiddenResponse(request, 'You cannot access this posting')
     course_choices = [('','---------')] + [(c.id, c.name()) for c in posting.selectable_offerings()]
     position_choices = [(a.id, a.position_number) for a in Account.objects.filter(unit=posting.unit)]
+    app_choices = [('','---------')] + [(p.id, unicode(p)) for p in Person.objects.exclude(Q(pk__in=posting.tacontract_set.all().values_list('applicant', flat=True)) )]
+    
     TACourseFormset = inlineformset_factory(TAContract, TACourse, extra=3, can_delete=False, form=TACourseForm, formset=BaseTACourseFormSet)
     contract = TAContract()
     formset = TACourseFormset(instance=contract)
@@ -362,7 +365,8 @@ def new_contract(request, post_slug):
                 contract.scholarship_per_bu = request.POST['scholarship_per_bu']
                 contract.pay_start = form.cleaned_data['pay_start']
                 contract.pay_end = form.cleaned_data['pay_end']
-                contract.created_by = Person.objects.get(userid = request.user.username)
+                contract.created_by = request.user.username
+                contract.updated_at = updated_at = datetime.datetime.now()
                 contract.save()
                 formset.save()
                 messages.success(request, "Created TA Contract for %s for %s." % (contract.applicant, posting))
@@ -372,7 +376,8 @@ def new_contract(request, post_slug):
         formset = TACourseFormset(instance=contract)
         form = TAContractForm(initial={'pay_start': posting.config['start'], 'pay_end': posting.config['end']})
     
-    form.fields['position_number'].choices = position_choices       
+    form.fields['position_number'].choices = position_choices 
+    form.fields['applicant'].choices = app_choices      
     for f in formset:
         f.fields['course'].widget.attrs['class']  = 'course_select'
         f.fields['course'].choices = course_choices
