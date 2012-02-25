@@ -2,20 +2,8 @@
 
 {% block h1 %}Edit Time Use Guideline{% endblock %}
 
-{% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
-<li>&gt; Edit {{ta.first_name}}'s TUG</li>
-{% endblock %}
+{% block verb %}Edit{% endblock %}
 
-{% block actions %}
-<div id="actions">
-    <h2 class="heading">Actions</h2>
-    <ul>
-        <li><a href="{% url ta.views.all_tugs course_slug=course.slug %}">View All TUGs</a></li>
-        <li><a href="{% url ta.views.view_tug course_slug=course.slug userid=userid %}">View current TUG</a></li>
-    </ul>
-</div>
-{% endblock %}
 {% block formaction %}{% url ta.views.edit_tug course_slug=course.slug userid=userid %}{% endblock %}
 {% block submittext %}Save{% endblock %}
 {% block extrascripts %}

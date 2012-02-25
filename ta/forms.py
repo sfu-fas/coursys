@@ -30,6 +30,7 @@ class TUGDutyForm(forms.Form):
     comment.widget.attrs['class'] = u'comment'
     comment.manual_css_classes = [u'comment']
 
+
 class TUGDutyLabelForm(forms.Form):
     label = forms.CharField(label="Other:", 
             error_messages={'required': 'Please specify'})
@@ -44,12 +45,21 @@ class TUGDutyOtherForm(TUGDutyLabelForm, TUGDutyForm):
         kwargs['empty_permitted'] = (kwargs.get('empty_permitted', False) or
                 (initial and initial.get('label')))
         super(TUGDutyOtherForm, self).__init__(*args, **kwargs)
-    
+        self.fields['label'].required = False
+        self.fields['total'].required = False
+        
     def as_table_row(self):
         label = self.fields.pop('label')
         html = TUGDutyForm.as_table_row(self)
         self.fields.insert(0, 'label', label)
         return html
+
+    def clean(self):
+        data = self.cleaned_data
+        if (data.get('total', None) or data.get('weekly', None)) and not data.get('label', None):
+            raise forms.ValidationError('Must enter label')
+        return super(TUGDutyForm, self).clean()
+
 class TUGForm(forms.ModelForm):
     '''
     userid and offering must be defined or instance must be defined.
@@ -110,7 +120,8 @@ class TUGForm(forms.ModelForm):
                     for field, klass in field_names_and_formclasses)
         
     def clean_member(self):
-        assert(self.cleaned_data['member'] == self.initial['member'])
+        if self.cleaned_data['member'] != self.initial['member']:
+            raise forms.ValidationError("Wrong member")
         return self.cleaned_data['member']
     def is_valid(self):
         return (all(form.is_valid() for form in self.subforms.itervalues()) 

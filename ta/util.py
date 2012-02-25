@@ -53,8 +53,8 @@ def html_output_alt(self, normal_row, error_row, row_ender, help_text_html, erro
                 'html_class_attr': html_class_attr
             })
 
-    if top_errors:
-        output.insert(0, error_row % force_unicode(top_errors))
+    #if top_errors:
+    #    output.insert(0, error_row % force_unicode(top_errors))
 
     if hidden_fields: # Insert any hidden fields in the last row.
         str_hidden = u''.join(hidden_fields)

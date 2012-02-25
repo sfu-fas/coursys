@@ -81,7 +81,7 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_SLUG + '/new_message$', 'dashboard.views.new_message'),
     url(r'^' + COURSE_SLUG + '/config/$', 'grades.views.course_config'),
     url(r'^' + COURSE_SLUG + '/config/tas$', 'coredata.views.manage_tas'),
-    url(r'^' + COURSE_SLUG + '/copysetup/$', 'marking.views.copy_course_setup'),
+    url(r'^' + COURSE_SLUG + '/config/copysetup$', 'marking.views.copy_course_setup'),
     
     # course groups
 
@@ -202,11 +202,11 @@ urlpatterns += patterns('',
 
     # TA's TUGs
 
-    url(r'^' + COURSE_SLUG + '/config/tugs/$', 'ta.views.index_page'),
-    url(r'^tugs/all$', 'ta.views.all_tugs_admin'),
-    url(r'^' + COURSE_SLUG + '/config/tugs/all$', 'ta.views.all_tugs'),
+    #url(r'^' + COURSE_SLUG + '/config/tugs/$', 'ta.views.index_page'),
+    url(r'^tugs/$', 'ta.views.all_tugs_admin'),
+    url(r'^' + COURSE_SLUG + '/config/tugs/$', 'ta.views.all_tugs'),
+    url(r'^' + COURSE_SLUG + '/config/tugs/' + USERID_SLUG + '/$', 'ta.views.view_tug'),
     url(r'^' + COURSE_SLUG + '/config/tugs/' + USERID_SLUG + '/new$', 'ta.views.new_tug'),
-    url(r'^' + COURSE_SLUG + '/config/tugs/' + USERID_SLUG + '/view$', 'ta.views.view_tug'),
     url(r'^' + COURSE_SLUG + '/config/tugs/' + USERID_SLUG + '/edit$', 'ta.views.edit_tug'),
 
     # redirect for old-style activity URLs (must be last to avoid conflict with other rules)

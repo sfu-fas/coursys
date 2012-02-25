@@ -6,10 +6,7 @@
 {% block h1 %}
 	Time Use Guidelines for {{course.name}}
 {% endblock %}
-{% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
-<li>&gt; All TUGs</li>
-{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url grades.views.course_config course_slug=course.slug %}">Setup</a></li><li>&gt; TUGs</li>{% endblock %}
 
 {% block content %}
 <ul>

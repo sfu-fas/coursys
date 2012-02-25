@@ -16,7 +16,7 @@ from ta.forms import TUGForm, TAApplicationForm, TAContractForm, CoursePreferenc
 from log.models import LogEntry
 from django.forms.models import inlineformset_factory
 from django.forms.formsets import formset_factory
-import datetime
+import datetime, decimal
 
 #@requires_course_staff_by_slug
 @login_required
@@ -124,7 +124,7 @@ def new_tug(request, course_slug, userid):
 @requires_course_staff_or_dept_admn_by_slug    
 def view_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    member = get_object_or_404(Member, offering=course, person__userid=userid)
+    member = get_object_or_404(Member, offering=course, person__userid=userid, role="TA")
     try:
         curr_user_role = Member.objects.get(person__userid=request.user.username,offering=course).role
     except Member.DoesNotExist:
@@ -136,11 +136,9 @@ def view_tug(request, course_slug, userid):
     if(curr_user_role =="TA" and not userid==request.user.username ): 
         return ForbiddenResponse(request)
     else:
-        course = get_object_or_404(CourseOffering, slug=course_slug)
-        member = get_object_or_404(Member, offering=course, person__userid=userid)
         tug = get_object_or_404(TUG, member=member)
         max_hours = tug.base_units * 42
-        total_hours = sum(params.get('total',0) for _, params in tug.config.iteritems())
+        total_hours = sum(decimal.Decimal(params.get('total',0)) for _, params in tug.config.iteritems() if params.get('total',0) is not None)
         
         context = {'tug': tug, 'ta':member, 'course':course, 
                 'maxHours':max_hours, 'totalHours':total_hours,

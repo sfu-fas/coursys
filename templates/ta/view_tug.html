@@ -8,12 +8,12 @@
 <link rel="stylesheet" href="{{MEDIA_URL}}ta/css/view-tug-print.css" media="print" />
 {% endblock %}
 
-{% block h1 %}{{course.name}} Time Use Guideline for {{ta.person}} {% endblock %}
+{% block title %}{{course.name}} TUG for {{ta.person}} {% endblock %}
+{% block h1 %}{{course.name}} TUG for {{ta.person}} {% endblock %}
 
-{% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
-<li>&gt; {{ta.person.first_name}}'s TUG</li>
-{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url grades.views.course_config course_slug=course.slug %}">Setup</a></li><li>&gt; <a href="{% url ta.views.all_tugs course_slug=course.slug %}">TUGs</a></li><li>&gt; {{ta.person.name}}</li>{% endblock %}
+
+
 
 {% block actions %}
 <div id="actions">
@@ -23,7 +23,6 @@
 <li><a href="{% url ta.views.all_tugs_admin %}">View All TUGs</a></li>
 {% else %}
 <li><a href="{% url ta.views.edit_tug course_slug=course.slug userid=ta.person.userid %}">Edit TUG</a></li>
-<li><a href="{% url ta.views.all_tugs course_slug=course.slug %}">View All TUGs</a></li>
 {% endif %}
 <li><a href="javascript:print()">Print TUG</a></li>
 </ul>

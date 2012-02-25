@@ -12,24 +12,13 @@ $(document).ready(function() {
 //]]></script>
 {% endblock %}
 
+{% block title %}Create Time Use Guideline{% endblock %}
 {% block h1 %}Create Time Use Guideline{% endblock %}
 
-{% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
-<li>&gt; New Tug for {{ta.first_name}}</li>
-{% endblock %}
-
-{% block actions %}
-<div id="actions">
-<h2 class="heading">Actions</h2>
-<ul>
-<li><a href="{% url ta.views.all_tugs course_slug=course.slug %}">View All TUGs</a></li>
-
-</ul>
-</div>
-{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; <a href="{% url grades.views.course_config course_slug=course.slug %}">Setup</a></li><li>&gt; <a href="{% url ta.views.all_tugs course_slug=course.slug %}">TUGs</a></li><li>&gt; <a href="{% url ta.views.view_tug course_slug=course.slug userid=userid %}">{{ta.name}}</a></li><li>&gt; {% block verb %}Create{% endblock %}</li>{% endblock %}
 
 {% block content %}
+<div id="form_container">
 <form action="{% block formaction %}{% url ta.views.new_tug course_slug=course.slug userid=userid %}{% endblock %}" method="post">{% csrf_token %}
 <fieldset id="edit-time-use-guideline">
 
@@ -43,6 +32,7 @@ $(document).ready(function() {
 {% for form in form.subforms.itervalues %}
 <tr>
 <th>
+{{form.non_field_errors}}
 {% if form.label_editable %}
 Other: {{ form.label.as_widget }}{{form.label.errors}}
 {% else %}
@@ -64,7 +54,9 @@ Other: {{ form.label.as_widget }}{{form.label.errors}}
 <p><input class='submit' type="submit" value="{% block submittext %}Create{% endblock %}" /></p>
 </fieldset>
 </form>
-<h3 class="instructions" id="instructions-header">More Information:</h3>
+</div>
+
+<h3 class="instructions" id="instructions-header">TUG Information:</h3>
 <div class="instructions" id="instructions-section">
 <p>This form is based on the form in Appendix C (p. 73) of the 
 <a href="http://www.tssu.ca/wp-content/uploads/2010/01/CA-2004-2010.pdf">
