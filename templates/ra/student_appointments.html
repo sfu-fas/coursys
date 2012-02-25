@@ -4,6 +4,20 @@
 
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url ra.views.search %}">RA Appointment Search</a></li><li>&gt; Appointments for {{ student.first_name }} {{ student.last_name }}</li>{% endblock %}
 
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#appointments').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'aaSorting': [[1, 'asc']],
+  } );
+} );
+</script>
+{% endblock %}
+
 {% block actions %}
 <div id="actions">
 <h2>Actions</h2>
@@ -42,15 +56,32 @@
 </div>
 
 {%if appointments %}
-  {% for appointment in appointments %}
-    <p><a href="/ra/view/{{appointment.slug}}">
-    <h2 class="appointment show" id="appointment-{{appointment.id}}">{{appointment.account.title}} appointed by {{appointment.hiring_faculty.first_name}} {{appointment.hiring_faculty.last_name}} from 
-    {{appointment.start_date}} to 
-    {{appointment.end_date}}</h2>
-    </a></p>
-  {% endfor %}
+    <div class="datatable_container">
+        <table id="appointments" class="display">
+            <thead>
+                <tr>
+                    <th scope="col">Start Date</th>
+                    <th scope="col">End Date</th>
+                    <th scope="col">Title</th>
+                    <th scope="col">Hiring Faculty</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for appointment in appointments %}
+            <tr>
+                <td scope="row"><span class="sort">{{ appointment.start_date }}</span>{{ appointment.start_date }}</td>
+                <td>{{ appointment.end_date }}</td>
+                <td>{{ appointment.account.title }}</td>
+                <td>{{ appointment.hiring_faculty.first_name}} {{ appointment.hiring_faculty.last_name }}</td>
+                <td><a href="{% url ra.views.edit ra_slug=appointment.slug %}">Edit</a></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
 {%else%}
-    <p>No notes yet</p>
+    <p>No RA Appointments found.</p>
 {%endif%}
 
 {%endblock content%}
