@@ -73,13 +73,13 @@ class SupervisorForm(ModelForm):
 
     def clean(self):
         data = self.cleaned_data
-        print data
         if 'supervisor' in data and not data['supervisor'] == None:
             if data['external']:
                 raise forms.ValidationError("Please enter only one of Supervisor or an External supervisor.")
         else:
             if not data['external']:
-                raise forms.ValidationError("Please have at least one of Supervisor or an External supervisor.")
+                print "No supervisor data has been passed. Treat form as empty"
+                #raise forms.ValidationError("Please have at least one of Supervisor or an External supervisor.")
         return data
     
     class Meta:
