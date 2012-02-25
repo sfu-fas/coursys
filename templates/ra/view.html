@@ -1,67 +1,93 @@
 {% extends "base.html" %}
-{% block title %}RA Appointment for {{ student.first_name}} {{ student.last_name }}{% endblock %}
-{% block h1 %}RA Appointment for {{ student.first_name}} {{ student.last_name }}{% endblock %}
+{% block title %}
+  RA Appointment for {{ student.first_name}} {{ student.last_name }}
+{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url ra.views.search %}">RA Appointment Search</a></li><li>&gt; <a href="/ra/{{student.userid}}"> Appointments for {{ student.first_name }} {{ student.last_name }} </a></li><li>&gt; {{ appointment.account.title }}: {{ appointment.start_date }} - {{ appointment.end_date}} {% endblock %}
+{% block h1 %}
+  RA Appointment for {{ student.first_name}} {{ student.last_name }}
+{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url ra.views.search %}">RA Appointment Search</a></li><li>&gt; <a href="{% url ra.views.student_appointments userid=appointment.person.userid %}">Appointments for {{ student.first_name }} {{ student.last_name }}</a></li><li>&gt; {{ appointment.account.title }}: {{ appointment.start_date }} - {{ appointment.end_date}}</li>
+{% endblock %}
 
 {% block actions %}
-<div id="actions">
-<h2>Actions</h2>
-<ul>
-<li><a href="/ra/edit/{{ appointment.slug }}/">Update this appointment</a></li>
-</ul>
-</div>
+  <div id="actions">
+    <h2>Actions</h2>
+    <ul>
+      <li>
+        <a href="{% url ra.views.edit ra_slug= appointment.slug %}">Update this appointment</a>
+      </li>
+    </ul>
+  </div>
 {% endblock %}
 
 {%block content%}
 <div class="table_container">
-    <h2>Personal Information:</h2>
-    <table class="info">
-        <tr><th>Student Number:</th><td>{{ student.emplid }}</td></tr>
-        <tr><th>Last Name:</th><td>{{ student.last_name }}</td></tr>
-        <tr><th>First Name:</th><td>{{ student.first_name }}</td></tr>
-        <tr><th>Email:</th><td></td></tr>
-        <tr><th>Department:</th><td>{{ appointment.account.unit.name }}</td></tr>
-    </table>
+  <h2>Personal Information:</h2>
+  <table class="info">
+    <tr><th>Student Number:</th><td>{{ student.emplid }}</td></tr>
+    <tr><th>Last Name:</th><td>{{ student.last_name }}</td></tr>
+    <tr><th>First Name:</th><td>{{ student.first_name }}</td></tr>
+    <tr><th>Email:</th><td></td></tr>
+    <tr><th>Department:</th><td>{{ appointment.account.unit.name }}</td></tr>
+  </table>
 </div>
 
 <div class="table_container">
-    <h2>Contract Information</h2>
-    <table class="info">
-        <tr><th>Hiring Faculty:</th><td>{{ appointment.hiring_faculty }}</td></tr>
-        <tr><th>Hiring Category:</th><td>{{ appointment.hiring_category }}</td></tr>
-        <tr><th>Fund Number:</th><td>{{ appointment.project.fund_number }}</td></tr>
-        <tr><th>Project Number:</th><td>{{ appointment.project.project_number }}</td></tr>
-        <tr><th>Account Number:</th><td>{{ appointment.account.account_number }} - {{ appointment.account.title }}</td></tr>
-        <tr><th>Position Number:</th><td>{{ appointment.account.position_number }}</td></tr>
-        <tr><th>Start Date:</th><td>{{ appointment.start_date }}</td></tr>
-        <tr><th>End Date:</th><td>{{ appointment.end_date }}</td></tr>
-        <tr><th>Re-appointment to same position:</th><td>{{ appointment.reappointment }}</td></tr>
-    </table>
+  <h2>Contract Information</h2>
+  <table class="info">
+    <tr><th>Hiring Faculty:</th>
+      <td>{{ appointment.hiring_faculty }}</td></tr>
+    <tr><th>Hiring Category:</th>
+      <td>{{ appointment.get_hiring_category_display }}</td></tr>
+    <tr><th>Fund Number:</th>
+      <td>{{ appointment.project.fund_number }}</td></tr>
+    <tr><th>Project Number:</th>
+      <td>{{ appointment.project.project_number }}</td></tr>
+    <tr><th>Account Number:</th>
+      <td>{{ appointment.account.account_number }} - 
+          {{ appointment.account.title }}</td></tr>
+    <tr><th>Position Number:</th>
+      <td>{{ appointment.account.position_number }}</td></tr>
+    <tr><th>Start Date:</th>
+      <td>{{ appointment.start_date }}</td></tr>
+    <tr><th>End Date:</th>
+      <td>{{ appointment.end_date }}</td></tr>
+    <tr><th>Re-appointment to same position:</th>
+      <td>{{ appointment.reappointment }}</td></tr>
+  </table>
 </div>
 
 <div class="table_container">
-    <h2>Salary Details</h2>
-    <table class="info">
-        <tr><th>Earning Rate:</th><td>{{ appointment.pay_period }}: {{ appointment.pay_amount }}</td></tr>
-        <tr><th>Employment Hours:</th><td>{{ appointment.employment_hours }}:{{ appointment.employment_minutes }}</td></tr>
-        <tr><th>Pay Period: Units:</th><td>{{ appointment.units }}</td></tr>
-    </table>
+  <h2>Salary Details</h2>
+  <table class="info">
+    <tr><th>Earning Rate:</th>
+      <td>{{ appointment.get_pay_period_display }}: 
+          ${{ appointment.pay_amount }}</td></tr>
+    <tr><th>Employment Time:</th>
+      <td>{{ appointment.employment_hours }}:{{ appointment.employment_minutes|stringformat:"02d" }</td></tr>
+    <tr><th>Pay Period: Units:</th>
+      <td>{{ appointment.units }}</td></tr>
+  </table>
 </div>
 
 <div class="table_container">
-    <h2>Benefit Options</h2>
-    <table class="info">
-        <tr><th>50% of Medical Service Plan:</th><td>{{ appointment.medical_benefits }}</td></tr>
-        <tr><th>50% of Dental Plan:</th><td>{{ appointment.dental_benefits }}</td></tr>
-    </table>
+  <h2>Benefit Options</h2>
+  <table class="info">
+    <tr><th>50% of Medical Service Plan:</th>
+      <td>{{ appointment.medical_benefits }}</td></tr>
+    <tr><th>50% of Dental Plan:</th>
+      <td>{{ appointment.dental_benefits }}</td></tr>
+  </table>
 </div>
 
 <div class="table_container">
-    <h2>Other Information</h2>
-    <table class="info">
-        <tr><th>Notes:</th><td>{{ appointment.notes }}</td></tr>
-        <tr><th>Comments:</th><td>{{ appointment.comments }}</td></tr>
-    </table>
+  <h2>Other Information</h2>
+  <table class="info">
+    <tr><th>Notes:</th>
+      <td>{{ appointment.notes }}</td></tr>
+    <tr><th>Comments:</th>
+      <td>{{ appointment.comments }}</td></tr>
+  </table>
 </div>
 {%endblock content%}
