@@ -8,52 +8,53 @@
 <script type="text/javascript">
 $(document).ready(function() {
   $('#accounts').dataTable( {
-    'bPaginate': false,
-    'bInfo': false,
-    'bLengthChange': false,
-    "bJQueryUI": true,
-    'aaSorting': [[1, 'asc']],
+  'bPaginate': false,
+  'bInfo': false,
+  'bLengthChange': false,
+  "bJQueryUI": true,
+  'aaSorting': [[1, 'asc']],
   } );
 } );
 function confirmDelete(url) {
   if ( confirm("Are you sure you want to delete this account?") ) {
-    document.location = url;
+  document.location = url;
   };
 }
 </script>
 {% endblock %}
 
 {% block actions %}
-<div id="actions">
-<h2>Actions</h2>
-<ul>
-<li><a href="{% url ra.views.new_account %}">New Account</a></li>
-</ul>
-</div>
+  <div id="actions">
+  <h2>Actions</h2>
+    <ul>
+      <li><a href="{% url ra.views.new_account %}">New Account</a></li>
+    </ul>
+  </div>
 {% endblock %}
 
 {%block content%}
-<div class="datatable_container">
-<table id="accounts" class="display">
-  <thead>
-    <tr>
-        <th scope="col">Account Number</th>
-        <th scope="col">Title</th>
-        <th scope="col">Position Number</th>
-        <th scope="col">Unit</th>
-        <th scope="col">Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for account in accounts %}
-  <tr>
-    <td scope="row"><span class="sort">{{account.account_number}}</span>{{account.account_number}}</td>
-    <td>{{account.title}}</td>
-    <td>{{account.position_number}}</td>
-    <td>{{account.unit}}</td>
-    <td><a href="{% url ra.views.edit_account account_slug=account.slug %}">Edit</a> <a href="javascript:confirmDelete('{% url ra.views.delete_account account_slug=account.slug %}');">Delete</a></td></tr>
-  {% endfor %}
-  </tbody>
-</table>
-</div>
+  <div class="datatable_container">
+    <table id="accounts" class="display">
+      <thead>
+        <tr>
+          <th scope="col">Account Number</th>
+          <th scope="col">Title</th>
+          <th scope="col">Position Number</th>
+          <th scope="col">Unit</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for account in accounts %}
+          <tr>
+            <td scope="row"><span class="sort">{{account.account_number}}</span>{{account.account_number}}</td>
+            <td>{{account.title}}</td>
+            <td>{{account.position_number}}</td>
+            <td>{{account.unit}}</td>
+            <td><a href="{% url ra.views.edit_account account_slug=account.slug %}">Edit</a> <a href="javascript:confirmDelete('{% url ra.views.delete_account account_slug=account.slug %}');">Delete</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 {%endblock content%}

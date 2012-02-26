@@ -7,14 +7,13 @@
 {% block subbreadcrumbs %}&gt; <li><a href="{% url ra.views.accounts_index %}">Accounts</a></li><li>&gt; Edit Account</li><li> &gt; {{ account.account_number}} - {{ account.title }}</li>{% endblock %}
 
 {% block content %}
-<div id="form_container">
+  <div id="form_container">
     <form action="{% url ra.views.edit_account account_slug=account.slug %}" method="POST">{% csrf_token %}
-        <fieldset style="list-style: none;">
-            <legend>Account Information</legend>
-            {{ accountform.as_ul }}
-            <p><input type="submit" value="Submit"></p>
-        </fieldset>
+      <fieldset style="list-style: none;">
+        <legend>Account Information</legend>
+        {{ accountform.as_ul }}
+        <p><input type="submit" value="Submit"></p>
+      </fieldset>
     </form>  
-</div>
-
+  </div>
 {% endblock %}

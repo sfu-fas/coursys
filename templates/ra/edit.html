@@ -13,21 +13,20 @@ $(document).ready(function() {
 });
 //]]></script>{% endblock %}
 
-{% block title %}Update RA Appointment{% endblock %}
-{% block h1 %}Update RA Appointment{% endblock %}
+{% block title %}Update RA Appointment for {{ appointment.person.first_name }} {{ appointment.person.last_name }}{% endblock %}
+{% block h1 %}Update RA Appointment for {{ appointment.person.first_name }} {{ appointment.person.last_name }}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="/ra">RA Appointments</a></li>
-<li>&gt; Update RA Appointment</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url ra.views.search %}">RA Appointments</a></li><li><a href="{% url ra.views.student_appointments userid=appointment.person.userid%}">&gt; RA Appointments for {{ appointment.person.first_name }} {{ appointment.person.last_name }}</a></li><li>&gt; Update RA Appointment</li>{% endblock %}
 
 {% block content %}
 <div id="form_container">
-    <form action="{% url ra.views.new %}" method="POST">{% csrf_token %}
-        <fieldset style="list-style: none;">
-            <legend>Personal Information</legend>
-            {{ raform.as_ul }}
-            <p><input type="submit" value="Submit"></p>
-        </fieldset>
-    </form>  
+  <form action="{% url ra.views.edit ra_slug=appointment.slug %}" method="POST">{% csrf_token %}
+    <fieldset style="list-style: none;">
+      <legend>Personal Information</legend>
+      {{ raform.as_ul }}
+      <p><input type="submit" value="Submit"></p>
+    </fieldset>
+  </form>  
 </div>
 
 {% endblock %}

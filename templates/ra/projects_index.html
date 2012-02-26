@@ -8,11 +8,11 @@
 <script type="text/javascript">
 $(document).ready(function() {
   $('#projects').dataTable( {
-    'bPaginate': false,
-    'bInfo': false,
-    'bLengthChange': false,
-    "bJQueryUI": true,
-    'aaSorting': [[1, 'asc']],
+  'bPaginate': false,
+  'bInfo': false,
+  'bLengthChange': false,
+  "bJQueryUI": true,
+  'aaSorting': [[1, 'asc']],
   } );
 } );
 function confirmDelete(url) {
@@ -25,33 +25,33 @@ function confirmDelete(url) {
 
 {% block actions %}
 <div id="actions">
-<h2>Actions</h2>
-<ul>
-<li><a href="{% url ra.views.new_project %}">New Project</a></li>
-</ul>
+  <h2>Actions</h2>
+    <ul>
+      <li><a href="{% url ra.views.new_project %}">New Project</a></li>
+    </ul>
 </div>
 {% endblock %}
 
 {%block content%}
 <div class="datatable_container">
-<table id="projects" class="display">
-  <thead>
-    <tr>
+  <table id="projects" class="display">
+    <thead>
+      <tr>
         <th scope="col">Project Number</th>
         <th scope="col">Position Number</th>
         <th scope="col">Unit</th>
         <th scope="col">Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for project in projects %}
-  <tr>
-    <td scope="row"><span class="sort">{{project.project_number}}</span>{{project.project_number}}</td>
-    <td>{{project.fund_number}}</td>
-    <td>{{project.unit}}</td>
-    <td><a href="{% url ra.views.edit_project project_slug=project.slug %}">Edit</a> <a href="javascript:confirmDelete('{% url ra.views.delete_project project_slug=project.slug %}');">Delete</a></td></tr>
-  {% endfor %}
-  </tbody>
-</table>
+      </tr>
+    </thead>
+    <tbody>
+      {% for project in projects %}
+        <tr>
+          <td scope="row"><span class="sort">{{project.project_number}}</span>{{project.project_number}}</td>
+          <td>{{project.fund_number}}</td>
+          <td>{{project.unit}}</td>
+          <td><a href="{% url ra.views.edit_project project_slug=project.slug %}">Edit</a> <a href="javascript:confirmDelete('{% url ra.views.delete_project project_slug=project.slug %}');">Delete</a></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 {%endblock content%}

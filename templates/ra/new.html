@@ -16,18 +16,17 @@ $(document).ready(function() {
 {% block title %}New RA Appointment{% endblock %}
 {% block h1 %}New RA Appointment{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="/ra">RA Appointments</a></li>
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url ra.views.search %}">RA Appointments</a></li>
 <li>&gt; New RA Appointment</li>{% endblock %}
 
 {% block content %}
-<div id="form_container">
+  <div id="form_container">
     <form action="{% url ra.views.new %}" method="POST">{% csrf_token %}
-        <fieldset style="list-style: none;">
-            <legend>Personal Information</legend>
-            {{ raform.as_ul }}
-            <p><input type="submit" value="Submit"></p>
-        </fieldset>
+      <fieldset style="list-style: none;">
+        <legend>Personal Information</legend>
+        {{ raform.as_ul }}
+        <p><input type="submit" value="Submit"></p>
+      </fieldset>
     </form>  
-</div>
-
+  </div>
 {% endblock %}

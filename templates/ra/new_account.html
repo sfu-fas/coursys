@@ -7,14 +7,13 @@
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url ra.views.accounts_index %}">Accounts</a></li><li>&gt; Create New Account</li>{% endblock %}
 
 {% block content %}
-<div id="form_container">
+  <div id="form_container">
     <form action="{% url ra.views.new_account %}" method="POST">{% csrf_token %}
-        <fieldset style="list-style: none;">
-            <legend>Account Information</legend>
-            {{ accountform.as_ul }}
-            <p><input type="submit" value="Submit"></p>
-        </fieldset>
+      <fieldset style="list-style: none;">
+        <legend>Account Information</legend>
+        {{ accountform.as_ul }}
+        <p><input type="submit" value="Submit"></p>
+      </fieldset>
     </form>  
-</div>
-
+  </div>
 {% endblock %}

@@ -15,7 +15,7 @@
     <h2>Actions</h2>
     <ul>
       <li>
-        <a href="{% url ra.views.edit ra_slug= appointment.slug %}">Update this appointment</a>
+        <a href="{% url ra.views.edit ra_slug=appointment.slug %}">Update this appointment</a>
       </li>
     </ul>
   </div>
@@ -65,7 +65,7 @@
       <td>{{ appointment.get_pay_period_display }}: 
           ${{ appointment.pay_amount }}</td></tr>
     <tr><th>Employment Time:</th>
-      <td>{{ appointment.employment_hours }}:{{ appointment.employment_minutes|stringformat:"02d" }</td></tr>
+      <td>{{ appointment.employment_hours }}:{{ appointment.employment_minutes|stringformat:"02d" }}</td></tr>
     <tr><th>Pay Period: Units:</th>
       <td>{{ appointment.units }}</td></tr>
   </table>
