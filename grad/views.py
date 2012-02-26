@@ -177,10 +177,10 @@ def update_supervisors(request, grad_slug):
                     
             supervisors_formset.save()
             messages.success(request, "Updated Supervisor(s) for %s." % (grad))
-#            l = LogEntry(userid=request.user.username,
-#                  description="Updated Supervisor(s) for %s." % (grad),
-#                  related_object=supervisors_formset)
-#            l.save()
+            l = LogEntry(userid=request.user.username,
+                  description="Updated Supervisor(s) for %s." % (grad),
+                  related_object=grad)
+            l.save()
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))
         else:
             page_title = "%s's Supervisor(s) Record" % (grad.person.first_name)
