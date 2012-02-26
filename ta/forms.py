@@ -151,6 +151,13 @@ class TAApplicationForm(forms.ModelForm):
                    'sin': forms.TextInput(attrs={'size': 9}),
                    }
 
+    def clean_sin(self):
+        sin = self.cleaned_data['sin']
+        sin = re.sub('[ -]+','',str(sin))
+        if not re.match('\d{9}$',sin):
+            raise forms.ValidationError("Invalid SIN")
+        return sin
+
 class CoursePreferenceForm(forms.ModelForm):
 
     class Meta:

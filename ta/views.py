@@ -270,16 +270,16 @@ def all_applications(request):
 @login_required
 def view_application(request, app_id):
     
-    application = TAApplication.objects.get(id=app_id)
+    application = get_object_or_404(TAApplication, id=app_id)
     roles = Role.objects.filter(role="TAAD", person__userid=request.user.username)
    
     #Only TA Administrator or owner of application can view it
     if application.person.userid != request.user.username:
         units = [r.unit for r in roles]
         if roles.count() == 0:
-            return ForbiddenResponse(request, 'You cannot access this posting')
+            return ForbiddenResponse(request, 'You cannot access this application')
         elif application.posting.unit not in units:
-            return ForbiddenResponse(request, 'You cannot access this posting')
+            return ForbiddenResponse(request, 'You cannot access this application')
    
     courses = CoursePreference.objects.filter(app=application)
     skills = SkillLevel.objects.filter(app=application).select_related('skill')
