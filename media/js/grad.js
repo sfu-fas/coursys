@@ -17,11 +17,22 @@ function add(){
 	        var new_id = 'id_' + new_name;
        		$(this).attr({'name': new_name, 'id': new_id});	
         	$(this).val('');
-        	if(new_name.indexOf("id")!=-1){
+        	if(new_name.indexOf('id')!=-1){
         		$(this).val(''); // ensures id gets cleared
         	}
-	        if(new_id.indexOf("position")!=-1){
+	        if(new_id.indexOf('position')!=-1){
         		$(this).val((total_forms+1)); //increment position
+	        }
+	        if(new_name.indexOf("supervisor_0")!=-1){
+	        	$(this).find('option').removeAttr('selected');
+	        	// copy event handlers. For some reason, clone(true) is not cloning the handlers as it should.
+	        	$(this).change(function(){
+	        		processSelections($('select[id*="supervisor"]'));
+					// exclude potential
+					if($(this).attr('id').indexOf('pot')==-1){
+						$('#'+$(this).attr('id').replace('supervisor_0','external')).val('');
+					}
+	        	})
 	        }
 	    });
 	    	    
@@ -32,7 +43,7 @@ function add(){
 	    
 		$('#id_form-TOTAL_FORMS').val(total_forms+1);
 		$('#supervisor-forms').append($(newForm));
-		processSelection($('select[id*="supervisor"]'));
+		processSelections($('select[id*="supervisor"]'));
 		if (total_forms+1 == max_forms){
 			$('#add_btn').attr('disabled', true).css('background-color','#bba');
 		}

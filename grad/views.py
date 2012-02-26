@@ -172,15 +172,14 @@ def update_supervisors(request, grad_slug):
                 if (not s.cleaned_data['supervisor'] == None or s.cleaned_data['external'] == None):
                     s.instance.student = grad
                 else:
-                    s.cleaned_data['positoin'] = None
+                    s.cleaned_data = None
                     s._changed_data = []
-                    print s._changed_data
                     
             supervisors_formset.save()
             messages.success(request, "Updated Supervisor(s) for %s." % (grad))
 #            l = LogEntry(userid=request.user.username,
 #                  description="Updated Supervisor(s) for %s." % (grad),
-#                  related_object=supervisors_formset.instance)
+#                  related_object=supervisors_formset)
 #            l.save()
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))
         else:
