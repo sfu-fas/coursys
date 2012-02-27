@@ -6,7 +6,7 @@
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url ta.views.all_contracts%}">TA Contracts</a></li>
-<li>&gt; View Contract</li>
+<li>&gt; {{ contract.applicant.name }}'s Contract</li>
 {% endblock %}
 
 {% block content %}
@@ -23,7 +23,7 @@
     <tr><th>Status</th><td>{{ contract.get_status_display }}</td></tr>
     <tr><th>Start Date</th><td>{{ contract.pay_start }}</td></tr>
     <tr><th>End Date</th><td>{{ contract.pay_end }}</td></tr>
-    <tr><th>Deadline</th><td>{{ contract.deadline }}</td></tr>
+    <tr><th>Contract Deadline</th><td>{{ contract.deadline }}</td></tr>
     <tr><th>Conditional</th><td>{{ contract.appt_cond }}</td></tr>
     <tr><th>Appointment in TSSU</th><td>{{ contract.appt_tssu }}</td></tr>
   </table>
