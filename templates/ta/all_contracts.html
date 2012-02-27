@@ -28,25 +28,17 @@
   		<th scope="col">Posting</th>
   		<th scope="col">Deadline</th>
   		<th scope="col">View</th>
-  		<th scope="col"></th>
+  		<th scope="col">Edit</th>
   	</tr>
   </thead>
   <tbody>
   {% for contract in contracts %}
   <tr>
-  	<td>
-  	 	{{ contract.applicant }}
-  	</td>
-  	<td>
-  		{{ contract.ta_posting }}
-  	</td>
-  	<td>
-  		{{ contract.deadline }}
-  	</td>
-  	<td>
-  	
-  	<td>
-  	</td>
+  	<td>{{ contract.applicant }}</td>
+  	<td>{{ contract.ta_posting }}</td>
+  	<td>{{ contract.deadline }}</td>
+  	<td><a href="{% url ta.views.view_contract contract_id=contract.id%}">View</a></td>
+  	<td><a href="{% url ta.views.edit_contract post_slug=contract.ta_posting.slug contract_id=contract.id%}">Edit</a></td>
   </tr>
   {% endfor %}
   </tbody>
