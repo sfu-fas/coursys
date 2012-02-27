@@ -140,7 +140,8 @@ class CompletedRequirement(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')    
-
+    class meta:
+        unique_together = (("requirement", "student"),)
     def __unicode__(self):
         return "%s" % (self.requirement)
 

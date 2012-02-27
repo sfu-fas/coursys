@@ -10,7 +10,6 @@ from django import forms
 from django.forms.models import modelformset_factory, inlineformset_factory
 from courselib.auth import requires_role
 import datetime
-from django.forms.formsets import formset_factory
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from django.contrib import messages
 from log.models import LogEntry
@@ -44,9 +43,6 @@ def index(request):
         grads_page = paginator.page(p)
     except (InvalidPage, EmptyPage):
         grads_page = paginator.page(paginator.num_pages)    
-    
-    
-    #find most recent update per student
     
     # set frontend defaults
     page_title = 'Graduate Student Records'  
