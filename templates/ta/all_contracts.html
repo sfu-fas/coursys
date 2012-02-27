@@ -10,7 +10,7 @@
     $(document).ready(function() {
     	//setting post_slug
     	$('#submit').click(function(){
-    		$('#form').attr("action","/ta/contract/" + $('#posting').val() + "/new") 
+    		$('#create').attr("href","/ta/contracts/" + $('#posting').val() + "/new") 
     	})
     });
     
@@ -21,7 +21,7 @@
 {%block content%}
 {%if contracts %}
 <div class="datatable_container">
-<table id="notes" class="display">
+<table class="display">
   <thead>
   	<tr>
   		<th scope="col">Applicant</th>
@@ -60,14 +60,14 @@
 
 <div id="ta_new_con">
 <h1>New Contract</h1>
-<form action="" method="get" id="form">{% csrf_token %}
+<form>
 	<select name="posting" id="posting">
 		{% for post in postings %}
 		<option value="{{post.slug}}">{{post}}</option>
 		{% endfor %}
 	</select>
 	<div class="helptext">Select the associated unit/semester</div>
-	<input class="submit" type="submit" id="submit" value="Create"/>
+	<a id="create" href=""><button type="button" class="submit" id="submit">Create</button></a>
 </form>
 </div>
 {%endblock content%}
