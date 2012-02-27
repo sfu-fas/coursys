@@ -1,9 +1,63 @@
 var WEEKS_PER_SEMESTER = 13
 
 $(function(){
-	$('#id_base_units').change(function(){
-		if($(this).val()<=0){
-			alert("Base units cannot be negative!");
+	getErrorList = function(el){
+		erl = el.siblings(".errorlist");
+		if(erl.length > 0){
+			return erl;
+		}
+		else {
+			el.before("<ul class=\"errorlist\"></ul>");
+			return el.prev();
+		}
+	}
+	
+	$('#id_base_units').change(function() {
+		el = getErrorList($(this).parent());
+		// see ta.forms.TUGForm.base_units for appropriate error messages
+		// there's probably a nice django plugin/something that does this automatically
+		//   look at that if this needs to be maintained a lot
+
+		emptymsg = el.children("li:contains('Base units are required.')");
+		nanmsg = el.children("li:contains('Base units must be a number.')");
+		posmsg = el.children("li:contains('Base units must be positive.')");
+		if($.trim($(this).val()).length == 0) {
+			if(emptymsg.length == 0) {
+				el.append("<li>Base units are required.</li>");
+			}
+			nanmsg.remove();
+			posmsg.remove();
+			return;
+		}
+		else {
+			emptymsg.remove();
+		}
+		if(isNaN($(this).val())) {
+			if(nanmsg.length == 0) {
+				el.append("<li>Base units must be a number.</li>");
+			}
+		}
+		else {
+			nanmsg.remove();
+		}
+		if($(this).val()<=0) {
+			//alert("Base units cannot be negative!");
+			if(posmsg.length == 0) {
+				el.append("<li>Base units must be positive.</li>");
+			}
+		}
+		else {
+			posmsg.remove();
+			// also set the holiday hours if it's unset
+			
+		}
+		if(!(isNaN($(this).val()) || $(this).val()<=0)) {
+			if (!($("#id_holiday-total").val())) {
+	            $("#id_holiday-total").val($(this).val());
+			}
+		}
+		if(el.children().length == 0) {
+			el.remove();
 		}
 		$('#maxHours').html($(this).val()*42);
 		
@@ -20,11 +74,11 @@ $(function(){
 		updateTotalHours();
 	})
 	
-	$("#id_base_units").change(function(){
-        if (!($("#id_holiday-total").val())) {
-            $("#id_holiday-total").val($(this).val());
-    }
-	})
+//	$("#id_base_units").change(function(){
+//        if (!($("#id_holiday-total").val())) {
+//            $("#id_holiday-total").val($(this).val());
+//    }
+//	})
 	
 }());
 

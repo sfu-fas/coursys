@@ -64,6 +64,11 @@ class TUGForm(forms.ModelForm):
     '''
     userid and offering must be defined or instance must be defined.
     '''
+    base_units = forms.DecimalField(min_value=0, 
+            error_messages={"min_value":"Base units must be positive.",
+                            "invalid":"Base units must be a number.",
+                            "required":"Base units are required."})
+    
     class Meta:
         model = TUG
         exclude = ('config',)
