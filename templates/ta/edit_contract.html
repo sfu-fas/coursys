@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% load course_display form_display %}
 
-{% block title %}New TA Contract {% endblock %}
-{% block h1 %}New TA Contract {% endblock %}
+{% block title %}{% if editing %}Edit Contract for {{ contract.applicant.name }}{% else %}New TA Contract{% endif %}{% endblock %}
+{% block h1 %} {% if editing %}Edit Contract for {{ contract.applicant.name }}{% else %}New TA Contract{% endif %}{% endblock %}
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url ta.views.all_contracts %}">TA Contracts</a></li>
-<li>&gt; New</li>
+<li>&gt; {% if editing %}Edit{% else %}New{% endif %}</li>
 {% endblock %}
 
 {% block headextra %}
@@ -71,6 +71,17 @@
 		}
 		return true
 	}
+	
+	function set_rates(cat){
+		$.post("{% url ta.views.edit_contract post_slug=posting.slug %}",
+			{'csrfmiddlewaretoken': "{{csrf_token}}", 'appt_cat': cat},
+			function(data){
+			$('#salary_per_bu').val(data.split(',')[0])
+			$('#schol_per_bu').val(data.split(',')[1])
+			if($('#salary_bi').val()!="")
+			calculate()
+			}); 
+	}
 		
     $(document).ready(function() {
     	$("#id_pay_start").datepicker({'dateFormat': 'yy-mm-dd'});
@@ -87,7 +98,7 @@
 			var cid = $(this).val()
 			var bu_inp = '#' + this.id.replace('-course','-bu')
 			if(cid != ''){//nonempty selection
-				$.post("{% url ta.views.new_contract post_slug=posting.slug %}",
+				$.post("{% url ta.views.edit_contract post_slug=posting.slug %}",
 				{'csrfmiddlewaretoken': "{{csrf_token}}", 'course': cid},
 				function(data){
 					$(bu_inp).val(data)
@@ -99,21 +110,15 @@
     	    	
     	//setting rates per bu based on appt category
     	//if previously selected, wipe and enforce reselect/resend ajax to avoid NaN values
-    	if($('#salary_sem').val()=="")
+    	if($('#id_appt_category').val() != "")
+    		set_rates($('#id_appt_category').val())
+    	else if($('#salary_sem').val()=="")
     		$('#id_appt_category').val("")
     		
     	$('#id_appt_category').change(function(){
     		var cat = $(this).val()
-    		if(cat!=''){
-    			$.post("{% url ta.views.new_contract post_slug=posting.slug %}",
-  				{'csrfmiddlewaretoken': "{{csrf_token}}", 'appt_cat': cat},
-  				function(data){
-    				$('#salary_per_bu').val(data.split(',')[0])
-    				$('#schol_per_bu').val(data.split(',')[1])
-    				if($('#salary_bi').val()!="")
-   			 			calculate()
-   			 	}); 
-    		}  			 
+    		if(cat!='')
+    			set_rates(cat)
     	})
     	
     	//calcuate event
@@ -133,19 +138,19 @@
 	<table class="info">
         <tbody>
 	    <tr>
-	    	<th class="ui-state-default">Semester</th>
+	    	<th>Semester</th>
             <td>{{ posting.semester }}</td>
         </tr>
 	    <tr>
-            <th class="ui-state-default">Unit</th>
+            <th>Unit</th>
             <td>{{ posting.unit }}</td>
         </tr>
 	    <tr>
-            <th class="ui-state-default">Open Date</th>
+            <th>Open Date</th>
             <td>{{ posting.opens }}</td>
         </tr>
 	    <tr>
-            <th class="ui-state-default">Close Date</th>
+            <th>Close Date</th>
             <td>{{ posting.closes }}</td>
         </tr>
         </tbody>
@@ -153,7 +158,7 @@
 </div>
 
 <div id="form_container">
-<form action="{% url ta.views.new_contract post_slug=posting.slug%}" method="post">{% csrf_token %}
+<form action="" method="post">{% csrf_token %}
 <fieldset class="wide">
 <legend>General Info</legend>
 {{ form|as_dl }}
@@ -172,12 +177,15 @@
           <tr>
          	<th scope="col">Course</th>
          	<th scope="col">Description</th>
-         	<th scope="col">Base Unit</th>         
+         	<th scope="col">Base Unit</th>
+         	{% if editing %}
+         	<th scope="col">Delete?</th>
+         	{% endif %}
           </tr>         
         </thead>  
         <tbody>
 		  {% for form in formset.forms %} 	      
-		      {{ form|display_form_as_row:"deleted_flag" }}
+		      {{ form|display_form_as_row}}
 	      {% endfor %}
 	      <tr id="cal_tr">
 	      	<td></td>

@@ -329,7 +329,12 @@ def all_contracts(request):
     return render(request, 'ta/all_contracts.html', {'contracts':contracts, 'postings':postings})
 
 @requires_role("TAAD")
-def new_contract(request, post_slug):
+def view_contract(request, contract_id):
+    contract = get_object_or_404(TAContract, pk=contract_id)
+    return render(request, 'ta/view_contract.html', {'contract':contract})
+
+@requires_role("TAAD")
+def edit_contract(request, post_slug, contract_id=None):
     posting = get_object_or_404(TAPosting, slug=post_slug)
     if posting.unit not in request.units:
         ForbiddenResponse(request, 'You cannot access this posting')
@@ -337,12 +342,23 @@ def new_contract(request, post_slug):
     position_choices = [(a.id, a.position_number) for a in Account.objects.filter(unit=posting.unit)]
     app_choices = [('','---------')] + [(p.id, unicode(p)) for p in Person.objects.exclude(Q(pk__in=posting.tacontract_set.all().values_list('applicant', flat=True)) )]
     
-    TACourseFormset = inlineformset_factory(TAContract, TACourse, extra=3, can_delete=False, form=TACourseForm, formset=BaseTACourseFormSet)
-    contract = TAContract()
+    #number of course form to populate
+    num = 3
+    if contract_id:
+        # editing existing contract
+        contract = get_object_or_404(TAContract, id=contract_id)
+        num = num - contract.tacourse_set.all().count()
+        editing = True
+    else:
+        # creating new contract
+        contract = TAContract()
+        editing = False
+
+    TACourseFormset = inlineformset_factory(TAContract, TACourse, extra=num, can_delete=editing, form=TACourseForm, formset=BaseTACourseFormSet)
     formset = TACourseFormset(instance=contract)
     
     if request.method == "POST":
-        form = TAContractForm(request.POST)
+        form = TAContractForm(request.POST, instance=contract)
         
         if request.is_ajax():
             if('appt_cat' in request.POST):
@@ -372,16 +388,17 @@ def new_contract(request, post_slug):
     else:   
         form = TAContractForm(instance=contract)
         formset = TACourseFormset(instance=contract)
-        form = TAContractForm(initial={'pay_start': posting.config['start'], 'pay_end': posting.config['end']})
+        if not editing:
+            form = TAContractForm(initial={'pay_start': posting.config['start'], 'pay_end': posting.config['end']})
+            form.fields['applicant'].choices = app_choices
     
-    form.fields['position_number'].choices = position_choices 
-    form.fields['applicant'].choices = app_choices      
+    form.fields['position_number'].choices = position_choices       
     for f in formset:
         f.fields['course'].widget.attrs['class']  = 'course_select'
         f.fields['course'].choices = course_choices
     
-    context = {'form': form, 'formset': formset, 'posting': posting, 'config': posting.config}
-    return render(request, 'ta/new_contract.html',context)
+    context = {'form': form, 'formset': formset, 'posting': posting, 'config': posting.config, 'editing': editing, 'contract': contract}
+    return render(request, 'ta/edit_contract.html',context)
 
 def _copy_posting_defaults(source, destination):
     """

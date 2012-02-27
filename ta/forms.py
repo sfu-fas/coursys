@@ -164,14 +164,18 @@ class CoursePreferenceForm(forms.ModelForm):
         model = CoursePreference
         exclude = ('app',) 
 
-class TAContractForm(forms.ModelForm):    
-    #def __init__(self,my_var,*args,**kwargs):
-     #   super(TAContractForm,self).__init__(*args,**kwargs)
-         
+class TAContractForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(TAContractForm, self).__init__(*args, **kwargs)
+        instance = getattr(self, 'instance', None)
+        
+        if instance and instance.id:
+            del self.fields['applicant']
+        
     class Meta:
         model = TAContract
         exclude = ['pay_per_bu', 'scholarship_per_bu', 'ta_posting', 'created_by']
-    
+                
     def clean_sin(self):
         sin = self.cleaned_data['sin']
         sin = re.sub('[ -]+','',str(sin))
@@ -213,7 +217,7 @@ class BaseTACourseFormSet(BaseInlineFormSet):
             return
         for form in self.forms:
             try:
-                if form.has_changed() and form.cleaned_data:
+                if form.cleaned_data:
                     count += 1
             except AttributeError:
                 pass
@@ -223,7 +227,7 @@ class BaseTACourseFormSet(BaseInlineFormSet):
         #check no duplicate course selection
         courses = []
         for form in self.forms:
-            if form.cleaned_data['course']:
+            if form.cleaned_data and form.cleaned_data['course']:
                 course = form.cleaned_data['course']
                 if(course in courses):
                         raise forms.ValidationError(u"Duplicate course selection")
