@@ -303,10 +303,12 @@ APPOINTMENT_CHOICES = (
         ("REAP","Reappointment: Reappointment to same position or revision to appointment"),       
     )
 STATUS_CHOICES = (
-        ("OPN","Open"), # offer made, but not accepted/rejected
-        ("REJ","Rejected"),       
-        ("ACC","Accepted"),       
-        ("CAN","Cancelled"),       
+        ("NEW","New"), # not yet sent to TA
+        ("OPN","Open"), # offer made, but not accepted/rejected/cancelled
+        ("REJ","Rejected"),
+        ("ACC","Accepted"),
+        ("SGN","Contract Signed"), # after accepted and manager has signed contract
+        ("CAN","Cancelled"),
     )
 
 class TAContract(models.Model):
