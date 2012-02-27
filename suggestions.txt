@@ -1,3 +1,7 @@
 need "everything about this student" for instructors: all times as student/TA
 
 Tech Requirements for courses: required software, version range, platform. Feedback from tech to instructor about upgrades. Discussion of requirement details [Chingtai]
+
+Mobile version should provide more of the full site functionality  eg. histogram for student assignments
+
+Exams are often divided up by quesiton to different TAs.  The ability to batch enter grades for only a couple of questions for an exam/assignment.
