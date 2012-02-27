@@ -7,6 +7,8 @@ from courselib.slugs import make_slug
 from grad.views import get_semester
 from autoslug import AutoSlugField
 import decimal
+from dashboard.models import NewsItem
+from django.core.urlresolvers import reverse
 
 class TUG(models.Model):
     """
@@ -99,6 +101,21 @@ preparation, e.g. 4 hours reduction for 4.17 B.U. appointment.'''}}
 
     def __unicode__(self):
         return "TA: %s  Base Units: %s" % (self.member.person.userid, self.base_units)
+    
+    def save(self, newsitem=True, newsitem_author=None, *args, **kwargs):
+        super(TUG, self).save(*args, **kwargs)
+        if newsitem:
+            n = NewsItem(user=self.member.person, author=newsitem_author, course=self.member.offering,
+                    source_app='ta', title='%s Time Use Guideline Changed' % (self.member.offering.name()),
+                    content='Your Time Use Guideline for %s has been changed.' % (self.member.offering.name()),
+                    url=self.get_absolute_url())
+            n.save()
+            
+    def get_absolute_url(self):
+        return reverse('ta.views.view_tug', kwargs={
+                'course_slug': self.member.offering.slug, 
+                'userid':self.member.person.userid})
+    
 
 CATEGORY_CHOICES = ( # order must match list in TAPosting.config['salary']
         ('GTA1', 'Masters'),

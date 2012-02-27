@@ -107,8 +107,7 @@ def new_tug(request, course_slug, userid):
             form = TUGForm(data=request.POST, offering=course,userid=userid)
             if form.is_valid():
                 tug = form.save(False)
-                # TODO: set the ta member once it's no longer included in the form
-                tug.save()
+                tug.save(newsitem_author=Person.objects.get(userid=request.user.username))
                 return HttpResponseRedirect(reverse(view_tug, args=(course.slug, userid)))
         else:
             form = TUGForm(offering=course,userid=userid)
@@ -154,8 +153,7 @@ def edit_tug(request, course_slug, userid):
         form = TUGForm(request.POST, instance=tug)
         if form.is_valid():
             tug = form.save(False)
-            # TODO: set the ta member once it's no longer included in the form
-            tug.save()
+            tug.save(newsitem_author=Person.objects.get(userid=request.user.username))
             return HttpResponseRedirect(reverse(view_tug, args=(course.slug, userid)))
     else:
         form = TUGForm(instance=tug)
