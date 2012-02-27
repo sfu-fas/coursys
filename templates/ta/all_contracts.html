@@ -16,6 +16,14 @@
     
 //]]>
 </script>
+<style type="text/css">
+   div#ta_new_con {
+		overflow: hidden;
+		white-space: nowrap;
+		width: 43%
+}
+</style>
+
 {% endblock %}
 
 {%block content%}
@@ -58,8 +66,9 @@
 		<option value="{{post.slug}}">{{post}}</option>
 		{% endfor %}
 	</select>
+	<a id="create" href="" style="height:0"><button type="button" class="submit" id="submit">Create</button></a>
 	<div class="helptext">Select the associated unit/semester</div>
-	<a id="create" href=""><button type="button" class="submit" id="submit">Create</button></a>
+	
 </form>
 </div>
 {%endblock content%}

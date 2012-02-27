@@ -13,6 +13,7 @@
 
 <div class="table_container">
   <h2>General Information:</h2> 
+  
   <table class="info">
   	<tr><th>Semester</th><td>{{ contract.ta_posting }}</td></tr>
   	<tr><th>Applicant SIN</th><td>{{ contract.sin }}</td></tr>
@@ -29,9 +30,13 @@
   <table class="info">
   <tr><th>Remarks</th><td>{{ contract.remarks }}</td></tr>
   </table>
+   <form><p><a  id="submit" href="{% url ta.views.edit_contract post_slug=contract.ta_posting.slug contract_id=contract.id%}"><input type="submit" class="submit" value="Edit" /></a></p></form>	  
+  <br/>
   <h2>Course and Payment Details:</h2> 
   <table class="info">
 
   </table>
+  
+
 </div>
 {% endblock %}
