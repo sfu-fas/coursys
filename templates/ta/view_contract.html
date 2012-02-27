@@ -30,13 +30,11 @@
   <table class="info">
   <tr><th>Remarks</th><td>{{ contract.remarks }}</td></tr>
   </table>
-   <form><p><a  id="submit" href="{% url ta.views.edit_contract post_slug=contract.ta_posting.slug contract_id=contract.id%}"><input type="submit" class="submit" value="Edit" /></a></p></form>	  
-  <br/>
   <h2>Course and Payment Details:</h2> 
   <table class="info">
 
   </table>
-  
+ <form><p><a  id="submit" href="{% url ta.views.edit_contract post_slug=contract.ta_posting.slug contract_id=contract.id%}"><input type="submit" class="submit" value="Edit" /></a></p></form>	    
 
 </div>
 {% endblock %}
