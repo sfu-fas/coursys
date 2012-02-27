@@ -5,7 +5,7 @@ from django.utils.html import escape
 register = template.Library()
 
 @register.filter
-def as_dl(form, safe=False):
+def as_dl(form, safe=False, excludefields=[]):
     """
     Output a Form as a nice <dl>
     """
@@ -20,6 +20,9 @@ def as_dl(form, safe=False):
     out.append('<dl class="dlform">')
     reqcount = 0
     for field in form.visible_fields():
+        if field.name in excludefields:
+            continue
+
         reqtext = ''
         if field.field.required:
             reqtext = ' <span class="required">*</span>'
@@ -84,4 +87,12 @@ def as_dl_safe(form):
     Like as_dl, but assumes helptext is a safe string
     """
     return as_dl(form, safe=True)
+
+@register.filter
+def as_dl_excludefields(form, excl):
+    """
+    Like as_dl, but allows excluding some fields with filter argument
+    """
+    excllist = excl.split(',')
+    return as_dl(form, excludefields=excllist)
 
