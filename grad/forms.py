@@ -134,10 +134,10 @@ class GradStudentForm(ModelForm):
 class GradStatusForm(ModelForm):
     class Meta:
         model = GradStatus
-        exclude = ('end', 'student', 'notes', 'created_by')
+        exclude = ('student', 'created_by', 'hidden')
         hidden = ('id')
-        
-        
+
+
 class GradRequirementForm(ModelForm):
     class Meta:
         model = GradRequirement

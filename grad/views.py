@@ -284,31 +284,40 @@ def manage_academics(request, grad_slug):
 @requires_role("GRAD")
 def manage_status(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
+    status_history = get_list_or_404(GradStatus, student=grad.id, hidden=False)
+    #StatusFormSet = inlineformset_factory(GradStudent, GradStatus, extra=1, can_order=False, can_delete=False) 
 
-    StatusFormSet = inlineformset_factory(GradStudent, GradStatus, extra=1, can_order=False, can_delete=False) 
-    if request.method == 'POST':   
-        status_formset = StatusFormSet(request.POST, request.FILES, instance=grad, prefix='stat')
-        if status_formset.is_valid():
+    if request.method == 'POST':
+        new_status_form = GradStatusForm(request.POST)
+        #status_formset = StatusFormSet(request.POST, request.FILES, instance=grad, prefix='stat')
+        #if status_formset.is_valid():
+        if new_status_form.is_valid():
             #change gradstudent's last updated/by info to newest
             grad.updated_at = datetime.datetime.now()
             grad.created_by = request.user.username
-            grad.save()                
-            status_formset.save()
-            messages.success(request, "Updated Status History for %s." % (status_formset.instance.person))
-            l = LogEntry(userid=request.user.username,
-                  description="Updated Status History for %s." % (status_formset.instance.person),
-                  related_object=status_formset.instance)
-            l.save()                       
+            grad.save()
+            #status_formset.save()
+            new_actual_status = new_status_form.save(commit=False)
+            new_actual_status.student = grad
+            new_actual_status.save()
+            #messages.success(request, "Updated Status History for %s." % (status_formset.instance.person))
+            #l = LogEntry(userid=request.user.username,
+                  #description="Updated Status History for %s." % (status_formset.instance.person),
+                  #related_object=status_formset.instance)
+            #l.save()                       
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))
     else:
-        status_formset = StatusFormSet(instance=grad, prefix='stat', queryset=GradStatus.objects.filter(hidden=False))
+        #status_formset = StatusFormSet(instance=grad, prefix='stat', queryset=GradStatus.objects.filter(hidden=False))
+        new_status_form = GradStatusForm()
 
     # set frontend defaults
     page_title = "%s 's Status Record" % (grad.person.first_name)
     crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
     gp = grad.person.get_fields
     context = {
-               'status_formset': status_formset,
+               #'status_formset': status_formset,
+               'new_status' : new_status_form,
+               'status_history' : status_history,
                'page_title' : page_title,
                'crumb' : crumb,
                'grad' : grad,
