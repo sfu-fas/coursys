@@ -165,16 +165,28 @@ class CoursePreferenceForm(forms.ModelForm):
         exclude = ('app',) 
 
 class TAContractForm(forms.ModelForm):
+ 
+    #pay_per_bu = forms.DecimalField(max_digits=8, decimal_places=2)
+    #scholarship_per_bu = forms.DecimalField(max_digits=8, decimal_places=2) 
+          
     def __init__(self, *args, **kwargs):
         super(TAContractForm, self).__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
         
         if instance and instance.id:
             del self.fields['applicant']
+    
+    def clean_pay_per_bu(self):
+        pay = self.cleaned_data['pay_per_bu']
+        try:
+            pay = decimal.Decimal(pay).quantize(decimal.Decimal('1.00'))
+        except decimal.InvalidOperation:
+            raise forms.ValidationError("Pay per BU values must be numbers")
+        return pay
         
     class Meta:
         model = TAContract
-        exclude = ['pay_per_bu', 'scholarship_per_bu', 'ta_posting', 'created_by']
+        exclude = ['pay_per_bu','scholarship_per_bu', 'ta_posting', 'created_by']
                 
     def clean_sin(self):
         sin = self.cleaned_data['sin']
@@ -201,13 +213,18 @@ class TAContractForm(forms.ModelForm):
         if deadline < today:
             raise forms.ValidationError("Deadline for acceptance cannot be before today")
         return deadline
+    
+    
 
-class TACourseForm(forms.ModelForm):
+    
+
+class TACourseForm(forms.ModelForm):   
+           
     class Meta:
         model = TACourse
         exclude = ('contract',) 
 
-class BaseTACourseFormSet(BaseInlineFormSet):
+class BaseTACourseFormSet(BaseInlineFormSet):    
     def clean(self):
         self.validate_unique()
         

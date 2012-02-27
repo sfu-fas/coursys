@@ -377,13 +377,18 @@ def edit_contract(request, post_slug, contract_id=None):
                 contract.ta_posting = posting
                 contract.pay_per_bu = request.POST['pay_per_bu']
                 contract.scholarship_per_bu = request.POST['scholarship_per_bu']
+                #contract.pay_per_bu = form.cleaned_data['pay_per_bu']
+                    
                 contract.pay_start = form.cleaned_data['pay_start']
                 contract.pay_end = form.cleaned_data['pay_end']
                 contract.created_by = request.user.username
-                contract.updated_at = updated_at = datetime.datetime.now()
+                contract.updated_at = datetime.datetime.now()
                 contract.save()
                 formset.save()
-                messages.success(request, "Created TA Contract for %s for %s." % (contract.applicant, posting))
+                if not editing:
+                    messages.success(request, "Created TA Contract for %s for %s." % (contract.applicant, posting))
+                else:
+                    messages.success(request, "Edited TA Contract for %s for %s." % (contract.applicant, posting))
                 return HttpResponseRedirect(reverse(all_contracts))
     else:   
         form = TAContractForm(instance=contract)
