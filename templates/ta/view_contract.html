@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load form_display %}
 
-{% block title %}TA Contract for {{ contract.applicant.name }} {% endblock %}
-{% block h1 %} TA Contract for {{ contract.applicant.name }} {% endblock %}
+{% block title %}TA Contract for {{ contract.applicant }} {% endblock %}
+{% block h1 %} TA Contract for {{ contract.applicant }} {% endblock %}
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url ta.views.all_contracts%}">TA Contracts</a></li>
