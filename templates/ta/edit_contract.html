@@ -66,7 +66,7 @@
 		
 		if(cat==true){
 			if($('#id_appt_category').val()==""){
-				html += '<li class="warning">Please select an appointment type</li>'
+				html += '<li class="warning">Please select an appointment category</li>'
 				valid = false
 			}
 		}
@@ -108,30 +108,58 @@
 	}
 		
     $(document).ready(function() {
-    	$("#id_pay_start").datepicker({'dateFormat': 'yy-mm-dd'});
-    	$("#id_pay_end").datepicker({'dateFormat': 'yy-mm-dd'});
-    	$("#id_deadline").datepicker({'dateFormat': 'yy-mm-dd'});
+    	$('#id_pay_start').datepicker({'dateFormat': 'yy-mm-dd'});
+    	$('#id_pay_end').datepicker({'dateFormat': 'yy-mm-dd'});
+    	$('#id_deadline').datepicker({'dateFormat': 'yy-mm-dd'});
+    	
     	if(!('{{formset.non_form_errors}}'))
     		$('#messages').hide()
     	else
     		$('.errorlist li').attr('class','error')
  		
-		$(".course_select").change(function(){
+ 		//ajax to get default required BU
+		$('.course_select').change(function(){
 			if(!validate(false))
 				return
 			var cid = $(this).val()
 			var bu_inp = '#' + this.id.replace('-course','-bu')
+			var desc_sel = '#' + this.id.replace('-course','-description')
 			if(cid != ''){//nonempty selection
 				$.post("{% url ta.views.edit_contract post_slug=posting.slug %}",
 				{'csrfmiddlewaretoken': "{{csrf_token}}", 'course': cid},
 				function(data){
-					$(bu_inp).val(data)
+					var val = parseFloat(data)
+					if($(desc_sel).val()=='OML')
+						val += 0.17
+					$(bu_inp).val(val)
 				})
 			}
 			else
 				$(bu_inp).val(0)
     	})
-    	    	
+    	
+    	//retain old values
+    	$('.desc_select').each(function(){
+    		$(this).data('orig', $(this).val())
+    	})
+    	//deal with course description change
+    	$('.desc_select').change(function(){
+    		var cid = $(this).val()
+			var course_sel = '#' + this.id.replace('-description','-course')
+			var bu_inp = '#' + this.id.replace('-description','-bu')
+			if(cid == 'OML' && $(bu_inp).val() != '' ){
+				//validate bu value is numerical
+				val = $(bu_inp).val()
+				$(bu_inp).val(parseFloat(val) + 0.17)
+			}
+			else if($(this).data('orig') == 'OML' && $(bu_inp).val() != ''){
+				//validate bu value is numerical
+				val = $(bu_inp).val()
+				$(bu_inp).val(parseFloat(val) - 0.17)
+			}
+			$(this).data('orig', $(this).val())
+    	})
+    	
     	//setting rates per bu based on appt category
     	//if previously selected, wipe and enforce reselect/resend ajax to avoid NaN values
     	if($('#id_appt_category').val() != "")
