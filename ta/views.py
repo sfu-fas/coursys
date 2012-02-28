@@ -373,7 +373,7 @@ def edit_contract(request, post_slug, contract_id=None):
             formset = TACourseFormset(request.POST, instance=contract)
             if formset.is_valid():
                 contract.ta_posting = posting
-                contract.pay_per_bu = request.POST['pay_per_bu']
+                #contract.pay_per_bu = request.POST['pay_per_bu']
                 contract.scholarship_per_bu = request.POST['scholarship_per_bu']
                 #contract.pay_per_bu = form.cleaned_data['pay_per_bu']
                     

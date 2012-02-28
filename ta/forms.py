@@ -188,10 +188,11 @@ class TAContractForm(forms.ModelForm):
         except decimal.InvalidOperation:
             raise forms.ValidationError("Pay per BU values must be numbers")
         return pay
+    
         
     class Meta:
         model = TAContract
-        exclude = ['pay_per_bu','scholarship_per_bu', 'ta_posting', 'created_by']
+        exclude = ['ta_posting', 'created_by']
                 
     def clean_sin(self):
         sin = self.cleaned_data['sin']
