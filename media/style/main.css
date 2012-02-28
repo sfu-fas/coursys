@@ -1489,6 +1489,7 @@ div.note-box p.hideshow {
 /* TA contract template */
 #ta_course{
 	margin: 15px 20px 10px;	
+	width: 650px;
 }
 
 #ta_pay{
@@ -1500,7 +1501,7 @@ div.note-box p.hideshow {
 }
 
 #ta_course select{
-	width: 150px;	
+	width: 180px;	
 }
 
 #ta_pay input{

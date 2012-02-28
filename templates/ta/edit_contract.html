@@ -11,6 +11,8 @@
 
 {% block headextra %}
 <script type="text/javascript">
+//<![CDATA[
+
 	function alertBoth()
 	{
 		alert("Pay Per BU and Scholarship Per Bu are not numbers!");
@@ -98,10 +100,10 @@
 		$.post("{% url ta.views.edit_contract post_slug=posting.slug %}",
 			{'csrfmiddlewaretoken': "{{csrf_token}}", 'appt_cat': cat},
 			function(data){
-			$('#salary_per_bu').val(data.split(',')[0])
-			$('#schol_per_bu').val(data.split(',')[1])
-			if($('#salary_bi').val()!="")
-			calculate()
+				$('#id_pay_per_bu').val(data.split(',')[0])
+				$('#id_scholarship_per_bu').val(data.split(',')[1])
+				if($('#salary_bi').val()!="")
+					calculate()
 			}); 
 	}
 		
