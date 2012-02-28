@@ -12,6 +12,22 @@
 {% block headextra %}
 <script type="text/javascript">
 //<![CDATA[
+
+	function alertBoth()
+	{
+		alert("Pay Per BU and Scholarship Per Bu are not numbers!");
+	}
+
+	function alertPPB()
+	{
+		alert("Pay Per BU not a number!");
+	}
+	
+	function alertSPB()
+	{
+		alert("Scholarship Per BU not a number!");
+	}
+	
 	function calculate(){
 		var total = 0;
 		for(var i = 0; i < 3; i++){
@@ -20,8 +36,16 @@
 				total += val
 		}
 		$('#total_bu').val(total)   
-		var salary_rate = parseFloat($('#salary_per_bu').val())
-		var schol_rate = parseFloat($('#schol_per_bu').val())
+		
+		if ( isNaN($('#id_pay_per_bu').val() ) ){
+			alertPPB();
+		}
+		else if ( isNaN($('#id_scholarship_per_bu').val() ) ){
+			alertSPB();
+		}
+		
+		var salary_rate = parseFloat($('#id_pay_per_bu').val())
+		var schol_rate = parseFloat($('#id_scholarship_per_bu').val())
 		var bu = parseFloat($('#total_bu').val())
 		var salary_sem = (bu * salary_rate).toFixed(2)
 		var schol_sem = (bu * schol_rate).toFixed(2)
@@ -161,7 +185,7 @@
 <form action="" method="post">{% csrf_token %}
 <fieldset class="wide">
 <legend>General Info</legend>
-{{ form|as_dl }}
+{{ form|as_dl_excludefields:"pay_per_bu,scholarship_per_bu"}}   
 </fieldset>
 
 <div class="container">
@@ -210,13 +234,15 @@
         <tbody>
         	<tr> 
         		<th class="ui-state-default">Salary</th>
-				<td><input id="salary_per_bu" type="text" name="pay_per_bu" value=""/></td>
+				<td>{{form.pay_per_bu}}</td>
+				<!--<td><input id="salary_per_bu" type="text" name="pay_per_bu" value=""/></td>-->
         		<td><input id="salary_bi" type=text readonly="readonly" value="" /></td>
         		<td><input id="salary_sem" type=text readonly="readonly" value="" /></td>
         	</tr>
         	<tr>
         		<th class="ui-state-default">Scholarship</th>
-        		<td><input id="schol_per_bu" type="text" name="scholarship_per_bu" value=""/></td>
+				<td>{{form.scholarship_per_bu}}</td>
+        		<!--<td><input id="schol_per_bu" type="text" name="scholarship_per_bu" value=""/></td>-->
         		<td><input id="schol_bi" type=text readonly="readonly" value="" /></td>
         		<td><input id="schol_sem" type=text readonly="readonly" value="" /></td>
         	</tr>
