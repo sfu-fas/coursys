@@ -1,0 +1,1 @@
+The .ttf files were produced by opening the SFU's OpenType fonts with FontForge and saving as TrueType.
