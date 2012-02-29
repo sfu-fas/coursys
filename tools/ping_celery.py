@@ -4,10 +4,20 @@ sys.path.append('.')
 
 from coredata.tasks import ping
 from celery.exceptions import TimeoutError
+from djkombu.models import Message
+import time
 
 res = ping.delay()
 try:
-    res.get(timeout=30)
+    # try to run a task
+    res.get(timeout=20)
 except TimeoutError:
-    print "Celery ping failed: celeryd probably isn't running."
+    # if it doesn't return, see if there's other stuff being processed
+    count1 = Message.objects.filter(visible=True).count()
+    time.sleep(10)
+    count2 = Message.objects.filter(visible=True).count()
+    
+    if count1 == count2:
+        print "Celery ping failed: celeryd probably isn't running."
+    
 

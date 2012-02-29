@@ -587,6 +587,15 @@ def import_offering(db, tadb, amaintdb, offering):
     import_students(db, amaintdb, offering)
     import_meeting_times(db, offering)
     update_offering_repositories(offering)
+
+@transaction.commit_on_success    
+def import_units(db):
+    """
+    Import all data for the course: instructors, TAs, students, meeting times.
+    """
+    n = execute_query(db, "SELECT acad_org, descr FROM dbsastg.ps_acad_org_tbl WHERE eff_status='A'", ())
+    for acad_org, descr in rows(db):
+        print acad_org, descr
     
     
 @transaction.commit_on_success
@@ -706,7 +715,7 @@ def main():
     # cleanup old news items
     NewsItem.objects.filter(updated__lt=datetime.datetime.now()-datetime.timedelta(days=120)).delete()
     # cleanup old log entries
-    LogEntry.objects.filter(datetime__lt=datetime.datetime.now()-datetime.timedelta(days=365)).delete()
+    LogEntry.objects.filter(datetime__lt=datetime.datetime.now()-datetime.timedelta(days=240)).delete()
     # cleanup already-run Celery jobs
     if settings.USE_CELERY:
         import djkombu.models
