@@ -92,8 +92,8 @@ def config(request):
 
 def _get_memberships(userid):
     today = datetime.date.today()
-    past1 = today.replace(year=today.year-1) # 1 year ago
-    past2 = today.replace(year=today.year-2) # 2 years ago
+    past1 = today - datetime.timedelta(days=365) # 1 year ago
+    past2 = today - datetime.timedelta(days=730) # 2 years ago
     memberships = Member.objects.exclude(role="DROP").exclude(offering__component="CAN") \
             .filter(offering__graded=True, person__userid=userid) \
             .filter(offering__semester__end__gte=past2) \
