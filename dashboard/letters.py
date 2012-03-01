@@ -82,8 +82,6 @@ class LetterPageTemplate(PageTemplate):
                                       fontName='BemboMTPro',
                                       fontSize=10,
                                       leading=10,
-                                      allowWidows=0,
-                                      allowOrphans=0,
                                       textColor=doc.sfu_grey)
         lines = ['9971 Applied Sciences Building', '8888 University Drive, Burnaby, BC', 'Canada V5A 1S6']
         self._put_lines(doc, c, lines, 2*inch, self.pg_h - self.top_margin - 0.75*inch, 2.25*inch, addr_style, 8, 1.5)
@@ -96,7 +94,6 @@ class LetterPageTemplate(PageTemplate):
         """
         Draw the bottom-of-page part of the letterhead (used on all pages)
         """
-
         c.setFont('BemboMTPro', 12)
         c.setFillColor(doc.sfu_red)
         self._drawStringLeading(c, self.lr_margin + 6, 0.5*inch, u'Simon Fraser University'.translate(doc.sc_trans_bembo), charspace=1.4)
@@ -134,12 +131,6 @@ class OfficialLetter(BaseDocTemplate):
         kwargs['pageTemplates'] = [LetterheadTemplate(pagesize=pagesize), LetterPageTemplate(pagesize=pagesize)]
         BaseDocTemplate.__init__(self, filename, *args, **kwargs)
     
-    def handle_pageEnd(self):
-        BaseDocTemplate.handle_pageEnd(self)
-        # only first page is on full letterhead
-        #self.pageTemplate = self.pageTemplates[1]
-        self.handle_nextPageTemplate(1)
-
     def build_contents(self):
         # contents for testing
         import datetime
@@ -148,38 +139,38 @@ class OfficialLetter(BaseDocTemplate):
         salutation = "Dear Mr. Person,"
         closing = "Sincerely,"
         from_name_lines = ['Greg Baker', 'Lecturer, School of Computing Science']
-        paragraphs = ["Paragraph "*50] * 5
+        import random
+        lengths = [random.randint(10,80) for _ in range(random.randint(5,50))]
+        paragraphs = ["Paragraph "*l for l in lengths]
 
-        #contents = [NextPageTemplate(0)]
         contents = []
-        space = Spacer(1, 12)
+        space_height = 12
                 
         contents.append(Paragraph(date.strftime('%B %d, %Y'), self.content_style))
-        contents.append(space)
+        contents.append(Spacer(1, space_height))
+        contents.append(NextPageTemplate(1)) # switch to non-letterhead on next page
         
         for line in to_addr_lines:
             contents.append(Paragraph(line, self.content_style))
-        contents.append(space)
-        contents.append(space)
+        contents.append(Spacer(1, 2*space_height))
         contents.append(Paragraph(salutation, self.content_style))
-        contents.append(space)
+        contents.append(Spacer(1, space_height))
         
         for line in paragraphs[:-1]:
             # last paragraph is put in the KeepTogether below, to prevent bad page break
             contents.append(Paragraph(line, self.content_style))
-            contents.append(space)
+            contents.append(Spacer(1, space_height))
         
         close = []
         close.append(Paragraph(paragraphs[-1], self.content_style))
-        close.append(space)
-        close.append(space)
+        close.append(Spacer(1, 2*space_height))
         close.append(Paragraph(closing, self.content_style))
         close.append(Spacer(1, 36))
         for line in from_name_lines:
             close.append(Paragraph(line, self.content_style))
         
         contents.append(KeepTogether(close))
-        #contents.append(NextPageTemplate(0))
+        contents.append(NextPageTemplate(0)) # next letter starts on letterhead again
         contents.append(PageBreak())
         
         return contents
@@ -204,6 +195,8 @@ class OfficialLetter(BaseDocTemplate):
                                       fontName='BemboMTPro',
                                       fontSize=12,
                                       leading=12,
+                                      allowWidows=0,
+                                      allowOrphans=0,
                                       alignment=TA_JUSTIFY,
                                       textColor=self.black)
 
