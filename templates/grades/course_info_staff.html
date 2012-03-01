@@ -118,6 +118,9 @@
 	{% if any_group %}<li><a href="{% url groups.views.groupmanage course_slug=course.slug %}">Manage Groups</a></li>{% endif %}
         <li><a href="{% url discipline.views.index course_slug=course.slug %}">Dishonesty Cases</a></li>
         <li><a href="{% url pages.views.index_page course_slug=course.slug %}">Course Pages</a></li>
+    {% if member.role == "TA" %}
+        <li class="newsec"><a href="{% url ta.views.view_tug course_slug=course.slug userid=user.username %}">Time Use Guideline</a></li>
+    {% endif %}
     </ul>
 </div>
 {% endblock %}
