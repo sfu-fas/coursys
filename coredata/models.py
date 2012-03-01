@@ -331,13 +331,15 @@ class CourseOffering(models.Model):
         # 'department': department responsible for course (used by discipline module)
         # 'taemail': TAs' contact email (if not their personal email)
         # 'labtut': are there lab sections? (default False)
+        # 'labtas': TAs get the 0.17 lab/tutorial bonus (default False)
         # 'uses_svn': create SVN repos for this course? (default False)
         # 'indiv_svn': do instructors/TAs have access to student SVN repos? (default False)
         # 'combined': is this a combined section (e.g. two crosslisted sections integrated)
         # 'extra_bu': number of TA base units required
     
-    defaults = {'taemail': None, 'url': None, 'labtut': False, 'indiv_svn': False, 'combined': False, 'uses_svn': False, 'extra_bu': '0'}
+    defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False, 'combined': False, 'uses_svn': False, 'extra_bu': '0'}
     labtut, set_labtut = getter_setter('labtut')
+    labtas, set_labtas = getter_setter('labtas')
     url, set_url = getter_setter('url')
     taemail, set_taemail = getter_setter('taemail')
     indiv_svn, set_indiv_svn = getter_setter('indiv_svn')
