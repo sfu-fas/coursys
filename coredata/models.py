@@ -599,6 +599,20 @@ class Unit(models.Model):
              help_text="Next unit up in the hierarchy.")
     acad_org = models.CharField(max_length=10, null=True, blank=True, db_index=True, unique=True, help_text="ACAD_ORG field from SIMS")
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
+        # 'address': list of (3) lines in mailing address (default: SFU main address)
+        # 'email': contact email address (may be None)
+        # 'web': URL
+        # 'tel': contact phone number
+        # 'fax': fax number (may be None)
+    
+    defaults = {'address': ['8888 University Drive', 'Burnaby, BC', 'Canada V5A 1S6'],
+                'email': None, 'tel': '778.782.3111', 'fax': None, 'web': 'http://www.sfu.ca/'}
+    address, set_address = getter_setter('address')
+    email, set_email = getter_setter('email')
+    tel, set_tel = getter_setter('tel')
+    fax, set_fax = getter_setter('fax')
+    web, set_web = getter_setter('web')
+
     class Meta:
         ordering = ['label']
     def __unicode__(self):

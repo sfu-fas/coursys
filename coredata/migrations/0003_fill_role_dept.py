@@ -8,7 +8,7 @@ class Migration(DataMigration):
 
     def forwards(self, orm):
         # make sure global unit exists
-        unit = orm.Unit(label="UNIV", name="University-wide")
+        unit = orm.Unit(label="UNIV", name="Simon Fraser University")
         unit.save()
         for role in orm.Role.objects.all():
             # 'UNIV' is the new global permission

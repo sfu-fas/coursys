@@ -7,7 +7,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont  
 from reportlab.lib.colors import CMYKColor
 from reportlab.lib.enums import TA_JUSTIFY
-import os
+import os, datetime
 
 PAPER_SIZE = letter
 media_path = os.path.join('external', 'sfu')
@@ -50,12 +50,8 @@ class LetterPageTemplate(PageTemplate):
         """
         ypos = y
         for line in lines:
-            if line == '':
-                p = Spacer(1, font_size)
-            else:
-                #print dir(doc)
-                line = unicode(line).translate(doc.digit_trans)
-                p = Paragraph(line, style)
+            line = unicode(line).translate(doc.digit_trans)
+            p = Paragraph(line, style)
             _,h = p.wrap(width, 1*inch)
             p.drawOn(canvas, x, ypos-h)
             ypos -= h + leading
@@ -65,31 +61,6 @@ class LetterPageTemplate(PageTemplate):
         # non-first pages only get the footer, not the header
         self._draw_footer(c, doc)
 
-    def _draw_header(self, c, doc):
-        """
-        Draw the top-of-page part of the letterhead (used only on first page of letter)
-        """
-        # SFU logo
-        c.drawImage(doc.logofile, x=self.lr_margin + 6, y=self.pg_h-self.top_margin-0.5*inch, width=1*inch, height=0.5*inch)
-
-        # unit text
-        c.setFont('BemboMTPro', 12)
-        c.setFillColor(doc.sfu_blue)
-        self._drawStringLeading(c, 2*inch, self.pg_h - self.top_margin - 0.375*inch, u'School of Computing Science'.translate(doc.sc_trans_bembo), charspace=1.2)
-
-        # address blocks
-        addr_style = ParagraphStyle(name='Normal',
-                                      fontName='BemboMTPro',
-                                      fontSize=10,
-                                      leading=10,
-                                      textColor=doc.sfu_grey)
-        lines = ['9971 Applied Sciences Building', '8888 University Drive, Burnaby, BC', 'Canada V5A 1S6']
-        self._put_lines(doc, c, lines, 2*inch, self.pg_h - self.top_margin - 0.75*inch, 2.25*inch, addr_style, 8, 1.5)
-        lines = [u'Tel'.translate(doc.sc_trans_bembo) + ': 778-782-4277', u'Fax'.translate(doc.sc_trans_bembo) + ': 778-782-3045']
-        self._put_lines(doc, c, lines, 4.5*inch, self.pg_h - self.top_margin - 0.75*inch, 1.5*inch, addr_style, 8, 1.5)
-        lines = ['csdept@cs.sfu.ca', 'www.cs.sfu.ca']
-        self._put_lines(doc, c, lines, 6.25*inch, self.pg_h - self.top_margin - 0.75*inch, 1.5*inch, addr_style, 8, 1.5)
-        
     def _draw_footer(self, c, doc):
         """
         Draw the bottom-of-page part of the letterhead (used on all pages)
@@ -103,6 +74,10 @@ class LetterPageTemplate(PageTemplate):
         
 
 class LetterheadTemplate(LetterPageTemplate):
+    def __init__(self, unit, *args, **kwargs):
+        LetterPageTemplate.__init__(self, *args, **kwargs)
+        self.unit = unit
+    
     def beforeDrawPage(self, c, doc):
         "Draw the letterhead before anything else"
         self._draw_header(c, doc)
@@ -112,11 +87,42 @@ class LetterheadTemplate(LetterPageTemplate):
         frame = Frame(self.lr_margin, inch, self.para_width, self.pg_h-3*inch)
         return frame
 
-class UseLetterhead(Flowable):
-    def draw(self):
-        x = self._frame
-        print x
-        print dir(x)
+    def _draw_header(self, c, doc):
+        """
+        Draw the top-of-page part of the letterhead (used only on first page of letter)
+        """
+        # SFU logo
+        c.drawImage(doc.logofile, x=self.lr_margin + 6, y=self.pg_h-self.top_margin-0.5*inch, width=1*inch, height=0.5*inch)
+
+        # unit text
+        c.setFont('BemboMTPro', 12)
+        c.setFillColor(doc.sfu_blue)
+        self._drawStringLeading(c, 2*inch, self.pg_h - self.top_margin - 0.375*inch, self.unit.name.translate(doc.sc_trans_bembo), charspace=1.2)
+
+        # address/contact blocks
+        addr_style = ParagraphStyle(name='Normal',
+                                      fontName='BemboMTPro',
+                                      fontSize=10,
+                                      leading=10,
+                                      textColor=doc.sfu_grey)
+        self._put_lines(doc, c, self.unit.address(), 2*inch, self.pg_h - self.top_margin - 0.75*inch, 2.25*inch, addr_style, 8, 1.5)
+
+        lines = [u'Tel'.translate(doc.sc_trans_bembo) + ' ' + self.unit.tel()]
+        if self.unit.fax():
+            lines.append(u'Fax'.translate(doc.sc_trans_bembo) + ' ' + self.unit.fax())
+        self._put_lines(doc, c, lines, 4.5*inch, self.pg_h - self.top_margin - 0.75*inch, 1.5*inch, addr_style, 8, 1.5)
+
+        lines = []
+        if self.unit.email():
+            lines.append(self.unit.email())
+        web = self.unit.web()
+        if web.startswith("http://"):
+            web = web[7:]
+        if web.endswith("/"):
+            web = web[:-1]
+        lines.append(web)
+        self._put_lines(doc, c, lines, 6.25*inch, self.pg_h - self.top_margin - 0.75*inch, 1.5*inch, addr_style, 8, 1.5)
+        
 
 
 class OfficialLetter(BaseDocTemplate):
@@ -125,55 +131,20 @@ class OfficialLetter(BaseDocTemplate):
     
     Implements "2009" version of letterhead in SFU graphic design specs: http://www.sfu.ca/clf/downloads.html
     """
-    def __init__(self, filename, pagesize=PAPER_SIZE, *args, **kwargs):
+    def __init__(self, filename, unit, pagesize=PAPER_SIZE, *args, **kwargs):
         self._media_setup()
         kwargs['pagesize'] = pagesize
-        kwargs['pageTemplates'] = [LetterheadTemplate(pagesize=pagesize), LetterPageTemplate(pagesize=pagesize)]
+        kwargs['pageTemplates'] = [LetterheadTemplate(pagesize=pagesize, unit=unit), LetterPageTemplate(pagesize=pagesize)]
         BaseDocTemplate.__init__(self, filename, *args, **kwargs)
+        self.contents = [] # to be a list of Flowables
     
-    def build_contents(self):
-        # contents for testing
-        import datetime
-        date = datetime.date.today()
-        to_addr_lines = ['Some Person', '123 Fake St', 'Vancouver, BC, Canada']
-        salutation = "Dear Mr. Person,"
-        closing = "Sincerely,"
-        from_name_lines = ['Greg Baker', 'Lecturer, School of Computing Science']
-        import random
-        lengths = [random.randint(10,80) for _ in range(random.randint(5,50))]
-        paragraphs = ["Paragraph "*l for l in lengths]
-
-        contents = []
-        space_height = 12
-                
-        contents.append(Paragraph(date.strftime('%B %d, %Y'), self.content_style))
-        contents.append(Spacer(1, space_height))
-        contents.append(NextPageTemplate(1)) # switch to non-letterhead on next page
-        
-        for line in to_addr_lines:
-            contents.append(Paragraph(line, self.content_style))
-        contents.append(Spacer(1, 2*space_height))
-        contents.append(Paragraph(salutation, self.content_style))
-        contents.append(Spacer(1, space_height))
-        
-        for line in paragraphs[:-1]:
-            # last paragraph is put in the KeepTogether below, to prevent bad page break
-            contents.append(Paragraph(line, self.content_style))
-            contents.append(Spacer(1, space_height))
-        
-        close = []
-        close.append(Paragraph(paragraphs[-1], self.content_style))
-        close.append(Spacer(1, 2*space_height))
-        close.append(Paragraph(closing, self.content_style))
-        close.append(Spacer(1, 36))
-        for line in from_name_lines:
-            close.append(Paragraph(line, self.content_style))
-        
-        contents.append(KeepTogether(close))
-        contents.append(NextPageTemplate(0)) # next letter starts on letterhead again
-        contents.append(PageBreak())
-        
-        return contents
+    def add_letter(self, letter):
+        "Add the given LetterContents object to this document"
+        self.contents.extend(letter._contents(self))
+    
+    def write(self):
+        "Write the PDF contents out"
+        self.build(self.contents)
 
     def _media_setup(self):
         "Get all of the media needed for the letterhead"
@@ -191,10 +162,11 @@ class OfficialLetter(BaseDocTemplate):
         self.black = CMYKColor(0, 0, 0, 1)
         
         # styles
+        self.line_height = 12
         self.content_style = ParagraphStyle(name='Normal',
                                       fontName='BemboMTPro',
                                       fontSize=12,
-                                      leading=12,
+                                      leading=self.line_height,
                                       allowWidows=0,
                                       allowOrphans=0,
                                       alignment=TA_JUSTIFY,
@@ -219,3 +191,58 @@ class OfficialLetter(BaseDocTemplate):
             self.sc_trans_bembo[65+d] = unichr(0xE004 + offset)
             self.sc_trans_bembo[97+d] = unichr(0xE004 + offset)
 
+
+class LetterContents(object):
+    """
+    Contents of a single letter.
+    """
+    def __init__(self, to_addr_lines, from_name_lines, date=None, salutation="To whom it may concern", closing="Sincerely"):
+        self.date = date or datetime.date.today()
+        self.salutation = salutation
+        self.closing = closing
+        self.paragraphs = []
+        self.to_addr_lines = to_addr_lines
+        self.from_name_lines = from_name_lines
+        
+    def add_paragraph(self, text):
+        "Add a paragraph (represented as a string) to the letter: used by OfficialLetter.add_letter"
+        self.paragraphs.append(text)
+
+    def add_paragraphs(self, paragraphs):
+        "Add a list of paragraphs (strings) to the letter"
+        self.paragraphs.extend(paragraphs)
+    
+    def _contents(self, letter):
+        "Builds of contents that can be added to a letter"
+        contents = []
+        space_height = letter.line_height
+        style = letter.content_style
+
+        contents.append(Paragraph(self.date.strftime('%B %d, %Y').replace(' 0', ' '), style))
+        contents.append(Spacer(1, space_height))
+        contents.append(NextPageTemplate(1)) # switch to non-letterhead on next page
+        
+        for line in self.to_addr_lines:
+            contents.append(Paragraph(line, style))
+        contents.append(Spacer(1, 2*space_height))
+        contents.append(Paragraph(self.salutation+",", style))
+        contents.append(Spacer(1, space_height))
+        
+        for line in self.paragraphs[:-1]:
+            # last paragraph is put in the KeepTogether below, to prevent bad page break
+            contents.append(Paragraph(line, style))
+            contents.append(Spacer(1, space_height))
+        
+        close = []
+        close.append(Paragraph(self.paragraphs[-1], style))
+        close.append(Spacer(1, 2*space_height))
+        close.append(Paragraph(self.closing+",", style))
+        close.append(Spacer(1, 36))
+        for line in self.from_name_lines:
+            close.append(Paragraph(line, style))
+        
+        contents.append(KeepTogether(close))
+        contents.append(NextPageTemplate(0)) # next letter starts on letterhead again
+        contents.append(PageBreak())
+        
+        return contents
