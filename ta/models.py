@@ -217,6 +217,18 @@ class TAPosting(models.Model):
         extra = offering.extra_bu()
         return default + extra
 
+    def assigned_bu(self, offering):
+        """
+        BUs already assigned to this course
+        """
+        return decimal.Decimal(0.00)
+
+    def applicant_count(self, offering):
+        """
+        Number of people who have applied to TA this offering
+        """
+        prefs = CoursePreference.objects.filter(app__posting__semester=self.semester, app__posting__unit=self.unit, course=offering.course)
+        return prefs.count()
 
 class Skill(models.Model):
     """

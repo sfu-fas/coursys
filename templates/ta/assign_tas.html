@@ -34,16 +34,18 @@
 
 <div class="datatable_container">
 <table class="display" id="offerings">
-<thead><tr><th scope="col">Offering</th><th scope="col">Instructor</th><th scope="col">Enrol</th><th scope="col">Required BU</th><th scope="col">Assigned BU</th><th scope="col">Diff</th></tr></thead>
+<thead><tr><th scope="col">Offering</th><th scope="col">Instructor</th><th scope="col">Enrol</th><th scope="col">Campus</th><th scope="col">Applicants</th><th scope="col">Required BU</th><th scope="col">Assigned BU</th><th scope="col">Diff</th></tr></thead>
 <tbody>
 {% for o in offerings %}
 <tr>
   <td scope="row" title="{{o.title}}"><a href="">{{o.name}}</a></td>
   <td>{% for instructor in o.instructors %}<a href="mailto:{{ instructor.email }}">{{ instructor.sortname }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</td>
   <td class="num">{{o.enrl_tot}}</td>
+  <td class="num">{{o.get_campus_display}}</td>
+  <td class="num">{{ o|display_applicant_count:posting }}</td>
   <td class="num">{{ o|display_bu:posting }}</td>
-  <td class="num">?</td>
-  <td class="num">?</td>
+  <td class="num">{{ o|display_assigned_bu:posting }}</td>
+  <td class="num">{{ o|display_bu_difference:posting }}</td>
 </tr>	
 {% endfor %}
 </tbody>
