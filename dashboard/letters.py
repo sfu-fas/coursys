@@ -97,9 +97,18 @@ class LetterheadTemplate(LetterPageTemplate):
         # unit text
         c.setFont('BemboMTPro', 12)
         c.setFillColor(doc.sfu_blue)
-        self._drawStringLeading(c, 2*inch, self.pg_h - self.top_margin - 0.375*inch, self.unit.name.translate(doc.sc_trans_bembo), charspace=1.2)
+        parent = self.unit.parent
+        if parent.label == 'UNIV':
+            # faculty-level unit: just the unit name
+            self._drawStringLeading(c, 2*inch, self.pg_h - self.top_margin - 0.375*inch, self.unit.name.translate(doc.sc_trans_bembo), charspace=1.2)
+        else:
+            # department with faculty above it: display both
+            self._drawStringLeading(c, 2*inch, self.pg_h - self.top_margin - 0.325*inch, self.unit.name.translate(doc.sc_trans_bembo), charspace=1.2)
+            c.setFillColor(doc.sfu_grey)
+            c.setFont('BemboMTPro', 8.5)
+            self._drawStringLeading(c, 2*inch, self.pg_h - self.top_margin - 0.48*inch, parent.name, charspace=0.3)
 
-        # address/contact blocks
+        # address block
         addr_style = ParagraphStyle(name='Normal',
                                       fontName='BemboMTPro',
                                       fontSize=10,
@@ -107,11 +116,13 @@ class LetterheadTemplate(LetterPageTemplate):
                                       textColor=doc.sfu_grey)
         self._put_lines(doc, c, self.unit.address(), 2*inch, self.pg_h - self.top_margin - 0.75*inch, 2.25*inch, addr_style, 8, 1.5)
 
+        # phone numbers block
         lines = [u'Tel'.translate(doc.sc_trans_bembo) + ' ' + self.unit.tel()]
         if self.unit.fax():
             lines.append(u'Fax'.translate(doc.sc_trans_bembo) + ' ' + self.unit.fax())
         self._put_lines(doc, c, lines, 4.5*inch, self.pg_h - self.top_margin - 0.75*inch, 1.5*inch, addr_style, 8, 1.5)
 
+        # web and email block
         lines = []
         if self.unit.email():
             lines.append(self.unit.email())
@@ -162,7 +173,7 @@ class OfficialLetter(BaseDocTemplate):
         self.black = CMYKColor(0, 0, 0, 1)
         
         # styles
-        self.line_height = 12
+        self.line_height = 13
         self.content_style = ParagraphStyle(name='Normal',
                                       fontName='BemboMTPro',
                                       fontSize=12,
@@ -196,11 +207,11 @@ class LetterContents(object):
     """
     Contents of a single letter.
     """
-    def __init__(self, to_addr_lines, from_name_lines, date=None, salutation="To whom it may concern", closing="Sincerely"):
+    def __init__(self, to_addr_lines, from_name_lines, date=None, salutation="To whom it may concern", closing="Sincerely", paragraphs=None):
         self.date = date or datetime.date.today()
         self.salutation = salutation
         self.closing = closing
-        self.paragraphs = []
+        self.paragraphs = paragraphs or []
         self.to_addr_lines = to_addr_lines
         self.from_name_lines = from_name_lines
         
@@ -237,7 +248,7 @@ class LetterContents(object):
         close.append(Paragraph(self.paragraphs[-1], style))
         close.append(Spacer(1, 2*space_height))
         close.append(Paragraph(self.closing+",", style))
-        close.append(Spacer(1, 36))
+        close.append(Spacer(1, 5*space_height))
         for line in self.from_name_lines:
             close.append(Paragraph(line, style))
         

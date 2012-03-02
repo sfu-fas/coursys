@@ -19,7 +19,7 @@ def sample_letter():
 response = open("letter.pdf", "w")
 
 unit = Unit.objects.get(label="CMPT")
-doc = OfficialLetter(request, unit=unit)
+doc = OfficialLetter(response, unit=unit)
 doc.add_letter(sample_letter())
 doc.add_letter(sample_letter())
 doc.add_letter(sample_letter())
