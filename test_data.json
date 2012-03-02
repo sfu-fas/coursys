@@ -10360,7 +10360,7 @@
  },
  {
   "fields": {
-   "config": "{}",
+   "config": "{\"email\": \"pb@sfu.ca\",\"phones\":\"\",\"addresses\":\"\",\"gender\":\"M \",\"citizen\":\"China\",\"visa\":\"Permanent Resident\"}",
    "emplid": 200000103,
    "first_name": "Petra",
    "last_name": "Berenbrink",

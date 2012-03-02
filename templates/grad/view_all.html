@@ -40,15 +40,30 @@
 <div class="table_container">
 	<table class="info">
 		<tbody>
-			{% for field, value in gp %}
 			<tr>
-				<th><label>{{field}} :</label></th>
-				<td> {{ value }} </td>
+				<th>Student # : </th><td>{{grad.person.emplid}}</td>
+				<th>User ID : </th><td>{{grad.person.userid}}</td>
 			</tr>
-			{% endfor %}
+			<tr>
+				<th>Full Name : </th><td>{{grad.person.first_name}} {{grad.person.middle_name}} {{grad.person.last_name}}</td>
+				<th>Preferred First Name : </th><td>{{grad.person.pref_first_name}}</td>
+			</tr>
+			<tr>
+				<th>Address : </th><td>{{grad.person.config.addresses}}</td>
+				<th>Phone numbers : </th><td>{{grad.person.config.phones}}</td>
+			</tr>
+			<tr>
+				<th>Citizenship : </th><td>{{grad.person.config.citizen}}</td>
+				<th>Visa : </th><td>{{grad.person.config.visa}}</td>
+			</tr>
+			<tr>
+				<th>Gender : </th><td>{{grad.person.config.gender}}</td>
+				<th>Email : </th><td>{{grad.person.config.email}}</td>
+			</tr>
 		</tbody>
 	</table>
-</div><br />
+</div>
+<br />
 <div align="center">
 	<p class="helptext">
 		Last updated : {{grad.updated_at}}. By:
