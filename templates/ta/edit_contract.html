@@ -96,6 +96,7 @@
 		return true
 	}
 	
+	//ajax to get default rates
 	function set_rates(cat){
 		$.post("{% url ta.views.edit_contract post_slug=posting.slug %}",
 			{'csrfmiddlewaretoken': "{{csrf_token}}", 'appt_cat': cat},
@@ -117,6 +118,26 @@
     	else
     		$('.errorlist li').attr('class','error')
  		
+ 		//ajax to get default appt_cat and sin for an application
+ 		$('#id_applicant').change(function(){
+ 			aid = $('#id_applicant').val()
+ 			if(aid != ''){//nonempty selection
+				$.post("{% url ta.views.edit_contract post_slug=posting.slug %}",
+				{'csrfmiddlewaretoken': "{{csrf_token}}", 'applicant': aid},
+				function(data){
+					if(data.length > 0){
+						$('#id_sin').val(data.split(',')[0])
+						$('#id_appt_category').val(data.split(',')[1])
+						set_rates(data.split(',')[1])
+					}
+					else{
+						$('#id_sin').val('')
+						$('#id_appt_category').val('')
+					}
+				})
+			}
+ 		})
+ 		
  		//ajax to get default required BU
 		$('.course_select').change(function(){
 			if(!validate(false))
@@ -131,7 +152,7 @@
 					var val = parseFloat(data)
 					if($(desc_sel).val()=='OML')
 						val += 0.17
-					$(bu_inp).val(val)
+					$(bu_inp).val(val.toFixed(2))
 				})
 			}
 			else
@@ -150,22 +171,21 @@
 			if(cid == 'OML' && $(bu_inp).val() != '' ){
 				//validate bu value is numerical
 				val = $(bu_inp).val()
-				$(bu_inp).val(parseFloat(val) + 0.17)
+				$(bu_inp).val((parseFloat(val) + 0.17).toFixed(2))
 			}
 			else if($(this).data('orig') == 'OML' && $(bu_inp).val() != ''){
 				//validate bu value is numerical
 				val = $(bu_inp).val()
-				$(bu_inp).val(parseFloat(val) - 0.17)
+				$(bu_inp).val((parseFloat(val) - 0.17).toFixed(2))
 			}
 			$(this).data('orig', $(this).val())
     	})
     	
     	//setting rates per bu based on appt category
-    	//if previously selected, wipe and enforce reselect/resend ajax to avoid NaN values
     	if($('#id_appt_category').val() != "")
     		set_rates($('#id_appt_category').val())
-    	else if($('#salary_sem').val()=="")
-    		$('#id_appt_category').val("")
+    	//else if($('#salary_sem').val()=="")
+    	//	$('#id_appt_category').val("")
     		
     	$('#id_appt_category').change(function(){
     		var cat = $(this).val()

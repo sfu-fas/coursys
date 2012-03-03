@@ -327,7 +327,7 @@ def edit_contract(request, post_slug, contract_id=None):
     course_choices = [('','---------')] + [(c.id, c.name()) for c in posting.selectable_offerings()]
     position_choices = [(a.id, a.position_number) for a in Account.objects.filter(unit=posting.unit)]
     app_choices = [('','---------')] + [(p.id, unicode(p)) for p in Person.objects.exclude(Q(pk__in=posting.tacontract_set.all().values_list('applicant', flat=True)) )]
-    
+        
     #number of course form to populate
     num = 3
     if contract_id:
@@ -356,6 +356,18 @@ def edit_contract(request, post_slug, contract_id=None):
                 co = get_object_or_404(CourseOffering, pk=course)
                 req_bu = posting.required_bu(co)
                 return HttpResponse(req_bu)
+            if('applicant' in request.POST):
+                results = ''
+                app = TAApplication.objects.filter(person=request.POST['applicant'], posting=posting)
+                if(app.count() > 0):              
+                    results = app[0].sin, ',', app[0].category
+                    print results
+                else:
+                    #try to find applicaion from other postings, grab from latest
+                    app = TAApplication.objects.filter(person=request.POST['applicant']).order_by('-id')
+                    if(app.count() > 0):
+                        results = app[0].sin, ',', app[0].category
+                return HttpResponse(results)
         elif form.is_valid():
             contract = form.save(commit=False)
             formset = TACourseFormset(request.POST, instance=contract)
