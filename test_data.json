@@ -10360,7 +10360,7 @@
  },
  {
   "fields": {
-   "config": "{\"email\": \"pb@sfu.ca\",\"phones\":\"\",\"addresses\":\"\",\"gender\":\"M \",\"citizen\":\"China\",\"visa\":\"Permanent Resident\"}",
+   "config": "{\"email\": \"pb@sfu.ca\",\"phones\":{\"home\":\" 1234567\",\"cell\":\" 1234568\",\"main\":\" 1234567\",\"pref\":\" 1234567\"},\"addresses\":{\"home\":\"123 Stanley Road, Vancouver, BC, Canada\",\"mail\":\"123 Evernote Road, Vancouver, BC, Canada\"},\"gender\":\"M \",\"citizen\":\"China\",\"visa\":\"Permanent Resident\"}",
    "emplid": 200000103,
    "first_name": "Petra",
    "last_name": "Berenbrink",

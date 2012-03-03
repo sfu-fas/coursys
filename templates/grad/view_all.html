@@ -49,8 +49,24 @@
 				<th>Preferred First Name : </th><td>{{grad.person.pref_first_name}}</td>
 			</tr>
 			<tr>
-				<th>Address : </th><td>{{grad.person.config.addresses}}</td>
-				<th>Phone numbers : </th><td>{{grad.person.config.phones}}</td>
+				<th>Home Address : </th>
+				<td>{{grad.person.config.addresses.home}}</td>
+				<th>Mail Address : </th>
+				<td>{{grad.person.config.addresses.mail}} </td>
+			</tr>
+			<tr>
+				<th> Home Phone :
+				<br />
+				Mobile Phone : </th>
+				<td>{{grad.person.config.phones.home}}
+				<br />
+				{{grad.person.config.phones.cell}} </td>
+				<th> Main Phone:
+				<br />
+				Preferred Phone: </th>
+				<td> {{grad.person.config.phones.main}}
+				<br />
+				{{grad.person.config.phones.pref}}</td>
 			</tr>
 			<tr>
 				<th>Citizenship : </th><td>{{grad.person.config.citizen}}</td>
