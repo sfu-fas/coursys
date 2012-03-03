@@ -27,6 +27,7 @@
 {{ courses_formset.management_form }}
 <fieldset>
     <legend>Course Preferences</legend>
+    <h3>Select courses in order of most preferred to least preferred</h3>
     <div id="course-forms">
         {% for form in courses_formset %}
             <div id="course-form-{{ forloop.counter0 }}">
