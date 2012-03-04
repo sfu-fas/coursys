@@ -8,6 +8,7 @@ from grad.forms import possible_supervisors
 from coredata.models import Member, Person, Role, Unit, Semester
 from courselib.auth import requires_role
 from django.template import RequestContext
+from datetime import date, timedelta
 
 #This is the search function that that returns a list of RA Appointments related to the query.
 @requires_role("FUND")
@@ -39,6 +40,16 @@ def student_appointments(request, userid):
     student = Person.objects.get(userid=userid)
     return render(request, 'ra/student_appointments.html', {'appointments': appointments, 'student': student}, context_instance=RequestContext(request))
 
+#A helper method to determine the number of pay periods between two dates.
+def pay_periods(start_date, end_date):
+    weekdays = 0
+    while start_date <= end_date:
+        if start_date.weekday() != 5 and start_date.weekday() != 6:
+            weekdays += 1
+        start_date += timedelta(days=1)
+    return float(weekdays)/10
+
+
 #New RA Appointment
 @requires_role("FUND")
 def new(request):
@@ -50,8 +61,9 @@ def new(request):
             messages.success(request, 'Created RA Appointment for ' + appointment.person.first_name + " " + appointment.person.last_name)
             return HttpResponseRedirect(reverse(student_appointments, kwargs=({'userid': userid})))
     else:
-        semester = Semester.first_relevant()    
-        raform = RAForm(initial={'start_date': semester.start, 'end_date': semester.end})
+        semester = Semester.first_relevant() 
+        units = str(pay_periods(semester.start, semester.end))
+        raform = RAForm(initial={'start_date': semester.start, 'end_date': semester.end, 'units': units})
         raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
         raform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
         raform.fields['project'].choices = [(p.id, unicode(p.project_number)) for p in Project.objects.filter(unit__in=request.units)]
