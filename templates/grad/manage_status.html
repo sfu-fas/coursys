@@ -66,7 +66,6 @@
             <th>Start Semester</th>
             <th>End Semester</th>
             <th>Notes</th>
-            <th>Delete</th>
         </tr>
         </thead>
         <tbody>
@@ -76,7 +75,6 @@
                 <td> {{ s.start }} </td>
                 <td> {{ s.end }} </td>
                 <td> {{ s.notes }} </td>
-                <td> {{ s.hidden }} </td>
             </tr>
             {% endfor %}
             <tr>
@@ -90,52 +88,4 @@
     </div>
     </form>
 </div>
-<!--
-<div id="form_container">
-	<form method="post" action="{% url grad.views.manage_status grad_slug=grad.slug %}">
-		{% csrf_token %}
-		{{ status_formset.management_form }}
-		<div class="datatable_container bigdatatable">
-			<table class="display" id="status">
-				<thead>
-					<tr>
-						<th colspan="5">Status History</th>
-					</tr>
-					<tr>
-						<th>Status</th>
-						<th>Start Semester</th>
-						<th>End Semester</th>
-						<th>Notes</th>
-						<th>Delete</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td></td>
-						<td>First semester of this status.</td>
-						<td>Final semester of this status.</td>
-						<td></td>
-					</tr>
-					{% for r in status_formset %}
-					{% if form.non_field_errors %}
-					<tr>
-						<td colspan="5">{{ form.non_field_errors }}</td>
-					</tr>
-					{% endif %}
-					<tr>
-					{{ r.id }}
-					{% for field in r.visible_fields %}
-						<td>{{ field }} {{ field.errors }}</td>
-					{% endfor %}
-					</tr>
-					{% endfor%}
-				</tbody>
-			</table>
-			<p>
-				<input class="submit" type="submit" value="Save">
-			</p>
-		</div>
-	</form>
-	<a class="button" href="{% url grad.views.view_all grad_slug=grad.slug %}">Cancel</a>
-</div> -->
 {% endblock %} 
