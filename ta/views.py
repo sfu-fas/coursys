@@ -352,10 +352,16 @@ def edit_contract(request, post_slug, contract_id=None):
                 results = posting.config['salary'][index] + ',' + posting.config['scholarship'][index]
                 return HttpResponse(results)
             if('course' in request.POST):
+                results = ''
                 course = request.POST['course']
                 co = get_object_or_404(CourseOffering, pk=course)
                 req_bu = posting.required_bu(co)
-                return HttpResponse(req_bu)
+                results += str(req_bu)
+                if(len(co.config) > 0 and co.config['labtut']):
+                    results += ',OML'
+                else:
+                    results += ',OM'
+                return HttpResponse(results)
             if('applicant' in request.POST):
                 results = ''
                 app = TAApplication.objects.filter(person=request.POST['applicant'], posting=posting)

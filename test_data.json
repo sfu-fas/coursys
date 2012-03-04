@@ -3480,7 +3480,7 @@
    "campus": "BRNBY",
    "class_nbr": 13731,
    "component": "LEC",
-   "config": "{}",
+   "config": "{\"labtut\": true, \"labtas\": true}",
    "course": 3,
    "crse_id": 14580,
    "enrl_cap": 180,

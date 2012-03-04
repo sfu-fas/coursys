@@ -149,7 +149,9 @@
 				$.post("{% url ta.views.edit_contract post_slug=posting.slug %}",
 				{'csrfmiddlewaretoken': "{{csrf_token}}", 'course': cid},
 				function(data){
-					var val = parseFloat(data)
+					var val = parseFloat(data.split(',')[0])
+					$(desc_sel).val(data.split(',')[1])
+					$(desc_sel).data('orig', $(desc_sel).val())
 					if($(desc_sel).val()=='OML')
 						val += 0.17
 					$(bu_inp).val(val.toFixed(2))
@@ -169,17 +171,21 @@
 			var course_sel = '#' + this.id.replace('-description','-course')
 			var bu_inp = '#' + this.id.replace('-description','-bu')
 			if(cid == 'OML' && $(bu_inp).val() != '' ){
-				//validate bu value is numerical
+				//validate bu value is positive number
 				val = $(bu_inp).val()
+				//if(!isNaN(val))
 				$(bu_inp).val((parseFloat(val) + 0.17).toFixed(2))
 			}
 			else if($(this).data('orig') == 'OML' && $(bu_inp).val() != ''){
-				//validate bu value is numerical
+				//validate bu value is positive number
 				val = $(bu_inp).val()
-				$(bu_inp).val((parseFloat(val) - 0.17).toFixed(2))
+				if(!isNaN(val) && parseFloat(val) >= 0.17)
+					$(bu_inp).val((parseFloat(val) - 0.17).toFixed(2))
 			}
 			$(this).data('orig', $(this).val())
     	})
+    	//user manually changinb BU field
+    	
     	
     	//setting rates per bu based on appt category
     	if($('#id_appt_category').val() != "")
