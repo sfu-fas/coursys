@@ -309,14 +309,18 @@ def assign_tas(request, post_slug):
     return render(request, 'ta/assign_tas.html', context) 
 
 @requires_role("TAAD")
-def course_tas(request, course_slug):
+def course_tas(request, post_slug, course_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug)
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     prefs = CoursePreference.objects.filter(course=offering.course) 
     apps = []
+    campus_prefs = []
     for p in prefs:
         apps.append(p.app)
+        campus_preference = CampusPreference.objects.get(app=p.app, campus=offering.campus)
+        campus_prefs.append(campus_preference)
     
-    context = {'offering':offering, 'applications': apps}
+    context = {'posting':posting, 'offering':offering, 'applications': apps, 'campus_preferences':campus_prefs}
     return render(request, 'ta/assign_bu.html', context) 
 
 @requires_role("TAAD")

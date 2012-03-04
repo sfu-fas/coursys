@@ -26,3 +26,11 @@ def display_bu_difference(offering, posting):
 @register.filter
 def display_applicant_count(offering, posting):
     return posting.applicant_count(offering)
+
+@register.filter
+def display_applicant_count(offering, posting):
+    return posting.applicant_count(offering)
+
+@register.filter
+def display_campus_preference(campus_preferences, index):
+    return campus_preferences[index].get_pref_display()

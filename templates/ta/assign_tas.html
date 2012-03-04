@@ -38,7 +38,7 @@
 <tbody>
 {% for o in offerings %}
 <tr>
-  <td scope="row" title="{{o.title}}"><a href="{% url ta.views.course_tas course_slug=o.slug %}">{{o.name}}</a></td>
+  <td scope="row" title="{{o.title}}"><a href="{% url ta.views.course_tas post_slug=posting.slug, course_slug=o.slug %}">{{o.name}}</a></td>
   <td>{% for instructor in o.instructors %}<a href="mailto:{{ instructor.email }}">{{ instructor.sortname }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</td>
   <td class="num">{{o.enrl_tot}}</td>
   <td class="num">{{o.get_campus_display}}</td>

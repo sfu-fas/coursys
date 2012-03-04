@@ -221,7 +221,7 @@ urlpatterns += patterns('',
     url(r'^ta/postings/' + POST_SLUG + '/bu$', 'ta.views.edit_bu'),
     url(r'^ta/postings/' + POST_SLUG + '/bu_formset$', 'ta.views.bu_formset'),
     url(r'^ta/postings/' + POST_SLUG + '/apps/$', 'ta.views.assign_tas'),
-    url(r'^ta/assign_tas/' + COURSE_SLUG + '$', 'ta.views.course_tas'),
+    url(r'^ta/assign_tas/' + POST_SLUG + '/' + COURSE_SLUG + '$', 'ta.views.course_tas'),
     url(r'^ta/application/all$', 'ta.views.all_applications'),
     url(r'^ta/application/' + APP_ID + '$', 'ta.views.view_application'),
 	
