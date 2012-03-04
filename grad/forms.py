@@ -3,6 +3,8 @@ from django import forms
 from grad.models import Supervisor, GradProgram, GradStudent, GradStatus,\
     GradRequirement, CompletedRequirement
 from coredata.models import Person, Member
+from django.forms.formsets import BaseFormSet
+from django.core.exceptions import ValidationError
 
 class LabelTextInput(forms.TextInput):
     "TextInput with a bonus label"
@@ -115,6 +117,30 @@ def possible_supervisors(units, extras=[]):
     people = list(people)
     people.sort()
     return [(p.id, p.name()) for p in people]
+
+class BaseSupervisorsFormSet(BaseFormSet):
+    def clean(self):
+        if any(self.errors):
+            return
+        supervisors = []
+        # Create supervisors array based on data
+        # if there are any empty forms before non-empty forms
+        # display validation error
+        for i in range(0,self.total_form_count()):
+            form = self.forms[i]
+            if (form.cleaned_data['supervisor'] != None):
+                supervisors.insert(i,form.cleaned_data['supervisor'])
+            elif form.cleaned_data['external'] != None and form.cleaned_data['external'] != '':
+                supervisors.insert(i,form.cleaned_data['external'])
+            else:
+                supervisors.insert(i,None)
+
+        for i in range(len(supervisors)):
+            for j in range(len(supervisors)):
+                if i<j and supervisors[j] != None and supervisors[i] == None:
+                    raise forms.ValidationError("Please fill in supervisor forms in order.")
+        
+                    
 
 class GradAcademicForm(ModelForm):
     class Meta: 

@@ -75,6 +75,7 @@
 				Choose only a Supervisor or enter an External.
 			</p>
 			<div id="supervisor-forms">
+				{{ supervisors_formset.non_form_errors }}
 			{% for form in supervisors_formset.forms %}
 				<div id="supervisor-form-{{ forloop.counter0 }}">
 					<p id="supervisor-form-{{ forloop.counter0 }}-label">Supervisor {{ forloop.counter }}:</p>

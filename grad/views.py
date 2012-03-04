@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, get_list_or_404, render
 from django.http import HttpResponseRedirect
 from grad.models import GradStudent, GradProgram, Supervisor, GradRequirement, CompletedRequirement, GradStatus
 from grad.forms import SupervisorForm, PotentialSupervisorForm, GradAcademicForm, GradProgramForm, \
-        GradStudentForm, GradStatusForm, GradRequirementForm, possible_supervisors
+        GradStudentForm, GradStatusForm, GradRequirementForm, possible_supervisors, BaseSupervisorsFormSet
 from coredata.models import Person, Role, Unit, Semester, CAMPUS_CHOICES
 #from django.template import RequestContext
 from django import forms
@@ -105,7 +105,7 @@ def manage_supervisors(request, grad_slug):
     else:
         pot_supervisor = pot_supervisor[0]
         
-    supervisors_formset = modelformset_factory(Supervisor, form=SupervisorForm, extra=extra_form, max_num=4)(queryset=supervisors,prefix="form")
+    supervisors_formset = modelformset_factory(Supervisor, form=SupervisorForm, formset=BaseSupervisorsFormSet, extra=extra_form, max_num=4)(queryset=supervisors,prefix="form")
     for f in supervisors_formset:
         f.set_supervisor_choices(possible_supervisors([grad.program.unit], extras=supervisor_people))
         f.fields['position'].widget = forms.HiddenInput()
@@ -154,7 +154,7 @@ def update_supervisors(request, grad_slug):
     supervisors = Supervisor.objects.filter(student=grad, position__gte=1).select_related('supervisor')
     supervisor_people = [s.supervisor for s in supervisors if s.supervisor]
     if request.method == 'POST':
-        supervisors_formset = modelformset_factory(Supervisor, form=SupervisorForm)(request.POST,prefix="form")
+        supervisors_formset = modelformset_factory(Supervisor, form=SupervisorForm, formset=BaseSupervisorsFormSet)(request.POST,prefix="form")
         for f in supervisors_formset:
             f.set_supervisor_choices(possible_supervisors([grad.program.unit], extras=supervisor_people))
             f.fields['position'].widget = forms.HiddenInput()
