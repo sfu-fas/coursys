@@ -309,6 +309,17 @@ def assign_tas(request, post_slug):
     return render(request, 'ta/assign_tas.html', context) 
 
 @requires_role("TAAD")
+def course_tas(request, course_slug):
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    prefs = CoursePreference.objects.filter(course=offering.course) 
+    apps = []
+    for p in prefs:
+        apps.append(p.app)
+    
+    context = {'offering':offering, 'applications': apps}
+    return render(request, 'ta/assign_bu.html', context) 
+
+@requires_role("TAAD")
 def all_contracts(request):
     contracts = TAContract.objects.all()
     postings = TAPosting.objects.filter(unit__in=request.units)
