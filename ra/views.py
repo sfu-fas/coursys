@@ -5,7 +5,7 @@ from django.contrib import messages
 from ra.models import RAAppointment, Project, Account
 from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm
 from grad.forms import possible_supervisors
-from coredata.models import Member, Person, Role, Unit
+from coredata.models import Member, Person, Role, Unit, Semester
 from courselib.auth import requires_role
 from django.template import RequestContext
 
@@ -41,19 +41,21 @@ def student_appointments(request, userid):
 
 #New RA Appointment
 @requires_role("FUND")
-def new(request):    
-    raform = RAForm(request.POST or None)
-    #Change following fields to make them human readable, or to reduce the number of undesirable choices.
-    raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
-    raform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
-    raform.fields['project'].choices = [(p.id, unicode(p.project_number)) for p in Project.objects.filter(unit__in=request.units)]
-    raform.fields['account'].choices = [(a.id, u'%s (%s)' % (a.account_number, a.title)) for a in Account.objects.filter(unit__in=request.units)]
+def new(request):
     if request.method == 'POST':
+        raform = RAForm(request.POST)
         if raform.is_valid():
             userid = raform.cleaned_data['person'].userid
             appointment = raform.save()
             messages.success(request, 'Created RA Appointment for ' + appointment.person.first_name + " " + appointment.person.last_name)
             return HttpResponseRedirect(reverse(student_appointments, kwargs=({'userid': userid})))
+    else:
+        semester = Semester.first_relevant()    
+        raform = RAForm(initial={'start_date': semester.start, 'end_date': semester.end})
+        raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
+        raform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
+        raform.fields['project'].choices = [(p.id, unicode(p.project_number)) for p in Project.objects.filter(unit__in=request.units)]
+        raform.fields['account'].choices = [(a.id, u'%s (%s)' % (a.account_number, a.title)) for a in Account.objects.filter(unit__in=request.units)]
     return render(request, 'ra/new.html', { 'raform': raform })
 
 #Edit RA Appointment

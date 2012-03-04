@@ -6,8 +6,10 @@ from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 
 HIRING_CATEGORY_CHOICES = (
+    ('U', 'Undergrad'),
+    ('E', 'Employee'),
+    ('N', 'None'),
     ('S', 'Scholarship'),
-    # TODO: populate hiring category choices.
     )
     
 PAY_TYPE_CHOICES = (
