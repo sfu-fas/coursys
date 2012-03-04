@@ -157,11 +157,13 @@
 					$(bu_inp).val(val.toFixed(2))
 				})
 			}
-			else
+			else{
 				$(bu_inp).val(0)
+				$(desc_sel).val('')
+			}
     	})
     	
-    	//retain old values
+    	//retain old values for course description select
     	$('.desc_select').each(function(){
     		$(this).data('orig', $(this).val())
     	})
@@ -184,8 +186,9 @@
 			}
 			$(this).data('orig', $(this).val())
     	})
-    	//user manually changinb BU field
-    	
+    	//user manually changing BU field - VALIDATION?
+    	//$('.bu_inp').each(function(){
+    	//})
     	
     	//setting rates per bu based on appt category
     	if($('#id_appt_category').val() != "")

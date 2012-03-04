@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Sum
 from coredata.models import Person, Member, Course, Semester, Unit ,CourseOffering, CAMPUS_CHOICES, CAMPUSES
 from ra.models import Account
 from jsonfield import JSONField
@@ -221,7 +222,11 @@ class TAPosting(models.Model):
         """
         BUs already assigned to this course
         """
-        return decimal.Decimal(0.00)
+        total = 0.00
+        tacourses = TACourse.objects.filter(contract__ta_posting=self, course=offering)
+        if(tacourses.count() > 0):
+            total = tacourses.aggregate(Sum('bu'))['bu__sum']
+        return decimal.Decimal(total)
 
     def applicant_count(self, offering):
         """

@@ -356,6 +356,13 @@ def edit_contract(request, post_slug, contract_id=None):
                 course = request.POST['course']
                 co = get_object_or_404(CourseOffering, pk=course)
                 req_bu = posting.required_bu(co)
+                assigned_bu = posting.assigned_bu(co)
+                #subtracting assigned_bu from req_bu
+                if(assigned_bu > req_bu):
+                    req_bu = 0.0
+                else:
+                    req_bu -= assigned_bu
+                
                 results += str(req_bu)
                 if(len(co.config) > 0 and co.config['labtut']):
                     results += ',OML'
@@ -405,6 +412,7 @@ def edit_contract(request, post_slug, contract_id=None):
     for f in formset:
         f.fields['course'].widget.attrs['class']  = 'course_select'
         f.fields['description'].widget.attrs['class']  = 'desc_select'
+        f.fields['bu'].widget.attrs['class']  = 'bu_inp'
         f.fields['course'].choices = course_choices
     
     context = {'form': form, 'formset': formset, 'posting': posting, 'config': posting.config, 'editing': editing, 'contract': contract}
