@@ -108,6 +108,8 @@ class Semester(models.Model):
 
     class Meta:
         ordering = ['name']
+    def __cmp__(self, other):
+       return cmp(self.name, other.name)
 
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
@@ -188,6 +190,11 @@ class Semester(models.Model):
             hour=time.hour, minute=time.minute, second=time.second,
             microsecond=time.microsecond, tzinfo=time.tzinfo)
         return dt
+
+    def previous_semester(self):
+        "semester before this one"
+        before = Semester.objects.filter(start__lt=self.start).order_by('-start')
+        return before[0]
     
     @classmethod
     def next_starting(cls):

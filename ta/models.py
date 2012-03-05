@@ -346,7 +346,7 @@ class TAContract(models.Model):
     scholarship_per_bu = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Scholarship per Base Unit Semester Rate.",)
     appt_cond = models.BooleanField(default=False, verbose_name="Conditional")
     appt_tssu = models.BooleanField(default=True, verbose_name="Appointment in TSSU")
-    deadline = models.DateField(help_text='Deadline for acceptance')
+    deadline = models.DateField(verbose_name="Acceptance Deadline", help_text='Deadline for the applicant to accept/decline the offer')
     status  = models.CharField(max_length=3, choices=STATUS_CHOICES, verbose_name="Appointment Status", default="NEW")
     remarks = models.TextField(blank=True)
     
