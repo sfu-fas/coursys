@@ -97,7 +97,7 @@
 	$(function() {
 		$("#form_btns").append('<input id="add_btn" class="submit" type="button" value="Add Another" onclick="add()" />');
 		processSelections($('select[id*="supervisor"]'));
-		selectOptions.each(function(){
+		$('select[id*="supervisor"]').each(function(){
 			$(this).change(function(){
 				processSelections($('select[id*="supervisor"]'));
 				// exclude potential
