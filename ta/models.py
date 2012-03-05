@@ -18,7 +18,7 @@ class TUG(models.Model):
     Based on form in Appendix C (p. 73) of the collective agreement:
     http://www.tssu.ca/wp-content/uploads/2010/01/CA-2004-2010.pdf
     """	
-    member = models.ForeignKey(Member, null=False)
+    member = models.ForeignKey(Member, null=False, unique=True)
     base_units = models.DecimalField(max_digits=4, decimal_places=2, blank=False, null=False)
     last_update = models.DateField(auto_now=True)
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
