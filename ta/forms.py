@@ -180,7 +180,11 @@ class TAContractForm(forms.ModelForm):
         
         if instance and instance.id:
             del self.fields['applicant']
-    
+
+    class Meta:
+        model = TAContract
+        exclude = ['ta_posting', 'created_by']
+        
     def clean_pay_per_bu(self):
         pay = self.cleaned_data['pay_per_bu']
         try:
@@ -189,10 +193,14 @@ class TAContractForm(forms.ModelForm):
             raise forms.ValidationError("Pay per BU values must be numbers")
         return pay
     
+    def clean_scholarship_per_bu(self):
+        schol = self.cleaned_data['scholarship_per_bu']
+        try:
+            schol = decimal.Decimal(schol).quantize(decimal.Decimal('1.00'))
+        except decimal.InvalidOperation:
+            raise forms.ValidationError("Scholarship per BU values must be numbers")
+        return schol
         
-    class Meta:
-        model = TAContract
-        exclude = ['ta_posting', 'created_by']
                 
     def clean_sin(self):
         sin = self.cleaned_data['sin']
@@ -220,10 +228,6 @@ class TAContractForm(forms.ModelForm):
             raise forms.ValidationError("Deadline for acceptance cannot be before today")
         return deadline
     
-    
-
-    
-
 class TACourseForm(forms.ModelForm):   
            
     class Meta:

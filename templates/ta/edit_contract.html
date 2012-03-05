@@ -12,7 +12,7 @@
 {% block headextra %}
 <script type="text/javascript">
 //<![CDATA[
-
+/*
 	function alertBoth()
 	{
 		alert("Pay Per BU and Scholarship Per Bu are not numbers!");
@@ -26,7 +26,7 @@
 	function alertSPB()
 	{
 		alert("Scholarship Per BU not a number!");
-	}
+	} */
 	
 	function calculate(){
 		var total = 0;
@@ -36,13 +36,13 @@
 				total += val
 		}
 		$('#total_bu').val(total)   
-		
+	/*	
 		if ( isNaN($('#id_pay_per_bu').val() ) ){
 			alertPPB();
 		}
 		else if ( isNaN($('#id_scholarship_per_bu').val() ) ){
 			alertSPB();
-		}
+		} */
 		
 		var salary_rate = parseFloat($('#id_pay_per_bu').val())
 		var schol_rate = parseFloat($('#id_scholarship_per_bu').val())
@@ -291,15 +291,15 @@
         <tbody>
         	<tr> 
         		<th class="ui-state-default">Salary</th>
-				<td>{{form.pay_per_bu}}</td>
+				<td>{{ form|as_dl_usefield:"pay_per_bu"}} </td>	
 				<!--<td><input id="salary_per_bu" type="text" name="pay_per_bu" value=""/></td>-->
         		<td><input id="salary_bi" type=text readonly="readonly" value="" /></td>
         		<td><input id="salary_sem" type=text readonly="readonly" value="" /></td>
         	</tr>
         	<tr>
         		<th class="ui-state-default">Scholarship</th>
-				<td>{{form.scholarship_per_bu}}</td>
-        		<!--<td><input id="schol_per_bu" type="text" name="scholarship_per_bu" value=""/></td>-->
+				<td>{{ form|as_dl_usefield:"scholarship_per_bu"}} </td>
+				<!--<td><input id="schol_per_bu" type="text" name="id_scholarship_per_bu" value=""/></td>-->
         		<td><input id="schol_bi" type=text readonly="readonly" value="" /></td>
         		<td><input id="schol_sem" type=text readonly="readonly" value="" /></td>
         	</tr>

@@ -408,10 +408,9 @@ def edit_contract(request, post_slug, contract_id=None):
             formset = TACourseFormset(request.POST, instance=contract)
             if formset.is_valid():
                 contract.ta_posting = posting
-                #contract.pay_per_bu = request.POST['pay_per_bu']
-                contract.scholarship_per_bu = request.POST['scholarship_per_bu']
-                #contract.pay_per_bu = form.cleaned_data['pay_per_bu']
-                    
+#                contract.pay_per_bu = request.POST['pay_per_bu']
+                #contract.scholarship_per_bu = request.POST['scholarship_per_bu']
+                contract.pay_per_bu = form.cleaned_data['pay_per_bu']
                 contract.pay_start = form.cleaned_data['pay_start']
                 contract.pay_end = form.cleaned_data['pay_end']
                 contract.created_by = request.user.username
@@ -425,6 +424,9 @@ def edit_contract(request, post_slug, contract_id=None):
                 return HttpResponseRedirect(reverse(all_contracts))
     else:   
         form = TAContractForm(instance=contract)
+        print
+        print form
+        print 
         formset = TACourseFormset(instance=contract)
         if not editing:
             form = TAContractForm(initial={'pay_start': posting.config['start'], 'pay_end': posting.config['end']})
