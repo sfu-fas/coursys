@@ -121,6 +121,7 @@ def copy_course_setup(request, course_slug):
             .filter(offering__graded=True, person__userid=userid) \
             .select_related('offering','offering__semester')
    
+    from pages.models import Page
     class CourseChoiceField(ModelChoiceField):
         def label_from_instance(self, obj):
             return "%s" % (obj.offering)
@@ -135,7 +136,8 @@ def copy_course_setup(request, course_slug):
             select_form = CourseSourceForm(request.POST, prefix = "select-form")
             if select_form.is_valid():
                 source_course = select_form.cleaned_data['course'].offering
-                source_setup = Activity.objects.filter(offering = source_course, deleted = False) 
+                source_setup = Activity.objects.filter(offering = source_course, deleted = False)
+                source_pages = Page.objects.filter(offering=source_course)
                 conflicting_acts = _find_setup_conflicts(source_setup, target_setup)
                 rename_forms =[ ActivityRenameForm(prefix=act.id) for act in conflicting_acts ]
             else:
@@ -145,7 +147,8 @@ def copy_course_setup(request, course_slug):
             
         else: # POST request for renaming and copy    
             source_course = get_object_or_404(CourseOffering, slug = source_slug)
-            source_setup = Activity.objects.filter(offering = source_course, deleted = False)  
+            source_setup = Activity.objects.filter(offering = source_course, deleted = False) 
+            source_pages = Page.objects.filter(offering=source_course)
             conflicting_acts = _find_setup_conflicts(source_setup, target_setup)   
             
             if conflicting_acts: # check the renamed activities
@@ -170,7 +173,7 @@ def copy_course_setup(request, course_slug):
             messages.add_message(request, messages.ERROR, error_info)   
         
         return render_to_response("marking/copy_course_setup.html",\
-                {'course' : course, 'source_course' : source_course,\
+                {'course' : course, 'source_course' : source_course, "source_pages": source_pages,\
                 'source_setup' : source_setup, 'conflicting_activities' : zip(conflicting_acts, rename_forms)},\
                 context_instance=RequestContext(request))
             

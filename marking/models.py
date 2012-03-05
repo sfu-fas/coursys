@@ -1,5 +1,5 @@
 import copy
-from django.db import models
+from django.db import models, IntegrityError
 from django.core.urlresolvers import reverse
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, NumericGrade,LetterGrade,LETTER_GRADE_CHOICES
 from grades.models import all_activities_filter, neaten_activity_positions
@@ -13,7 +13,7 @@ from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
-import os.path, decimal
+import os, decimal
 
 MarkingSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
@@ -428,7 +428,8 @@ def copyCourseSetup(course_copy_from, course_copy_to):
     copy all the activities setup from one course to another
     copy numeric activities with their marking components, common problems and submission components
     """
-    #print "copying numeric activities ..."
+    
+    # copy Activities (and related content)
     all_activities = all_activities_filter(offering=course_copy_from)
 
     for activity in all_activities:
@@ -472,7 +473,58 @@ def copyCourseSetup(course_copy_from, course_copy_to):
             activity.exam_activity = a
         
         activity.save()
-         
+    
+    
+    # copy the Pages
+    from pages.models import Page, PageFilesStorage, attachment_upload_to
+    for p in Page.objects.filter(offering=course_copy_from):
+        new_p = copy.deepcopy(p)
+        new_p.id = None
+        new_p.pk = None
+        new_p.offering = course_copy_to
+        while True:
+            count = 0
+            orig_label = new_p.label
+            try:
+                new_p.save()
+                break
+            except IntegrityError:
+                count += 1
+                new_p.label = orig_label + "-" + str(count)
+            
+        v = p.current_version()
+        new_v = copy.deepcopy(v)
+        new_v.id = None
+        new_v.pk = None
+        new_v.page = new_p
+        # collapse old version history
+        new_v.wikitext = v.get_wikitext()
+        new_v.diff = None
+        new_v.diff_from = None
+        
+        if new_v.file_attachment:
+            # copy the file (so we can safely remove old semesters'
+            # files without leaving bad path reference)
+            src = v.file_attachment.path
+            path = attachment_upload_to(new_v, new_v.file_name)
+            dst = PageFilesStorage.path(path)
+            dstpath, dstfile = os.path.split(dst)
+            while os.path.exists(os.path.join(dstpath, dstfile)):
+                # handle duplicates by mangling the directory name
+                dstpath += "_"
+            dst = os.path.join(dstpath, dstfile)
+            new_v.file_attachment = dst
+
+            os.makedirs(dstpath)
+            try:
+                os.link(src, dst)
+            except:
+                # any problems with the hardlink: try simple copy
+                import shutil
+                shutil.copyfile(src, dst)
+
+        new_v.save()
+
 
 
 from django.forms import ValidationError

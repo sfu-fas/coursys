@@ -83,7 +83,7 @@
             <tr>
                 <th class="ui-state-default">Your Grade</th>
                 <td>
-               {{ grade.display_with_percentage_student }}
+               <strong>{{ grade.display_with_percentage_student }}</strong>
                {% if activity.is_numeric %}
                {% ifnotequal grade.flag 'NOGR' %} 
                {% ifnotequal grade.flag 'CALC' %} 
