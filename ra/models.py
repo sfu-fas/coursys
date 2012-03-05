@@ -64,7 +64,7 @@ class RAAppointment(models.Model):
     # The amount paid hourly, biweekly, or as a lump sum.
     pay_amount = models.DecimalField(max_digits=6, decimal_places=2, help_text="The amount paid either hourly, biweekly, or in a lump sum.")
     employment_hours = models.PositiveSmallIntegerField()
-    employment_minutes = models.PositiveSmallIntegerField(default=0)
+    employment_minutes = models.PositiveSmallIntegerField()
     units = models.DecimalField(max_digits=6, decimal_places=3)
     reappointment = models.BooleanField(default=False, help_text="Are we re-appointing to the same position?")
     medical_benefits = models.BooleanField(default=False, help_text="50% of Medical Service Plan")
