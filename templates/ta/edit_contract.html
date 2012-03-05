@@ -6,7 +6,7 @@
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url ta.views.all_contracts %}">TA Contracts</a></li>
-<li>&gt; {% if editing %}Edit{% else %}New{% endif %}</li>
+<li>&gt; {% if editing %}{{ contract.applicant.name }} Edit{% else %}New{% endif %}</li>
 {% endblock %}
 
 {% block headextra %}
