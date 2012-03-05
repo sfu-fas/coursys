@@ -107,7 +107,7 @@ def manage_supervisors(request, grad_slug):
     else:
         pot_supervisor = pot_supervisor[0]
         
-    supervisors_formset = modelformset_factory(Supervisor, form=SupervisorForm, formset=BaseSupervisorsFormSet, extra=extra_form, max_num=4)(queryset=supervisors,prefix="form")
+    supervisors_formset = modelformset_factory(Supervisor, form=SupervisorForm, extra=extra_form, max_num=4)(queryset=supervisors,prefix="form")
     for f in supervisors_formset:
         f.set_supervisor_choices(possible_supervisors([grad.program.unit], extras=supervisor_people))
         f.fields['position'].widget = forms.HiddenInput()
