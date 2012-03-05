@@ -89,7 +89,9 @@ def new_tug(request, course_slug, userid):
 #    else:
     # Nothing is done as of now until further details as to how to "pre-fill" 
     # #158    TUG: courses with lab sections should be pre-filled as appropriate
-    has_lab_or_tut = course.labtut()
+    has_lab_or_tut = course.labtut()# placeholder until the following line works
+    #TODO: add 'labta' config field to member
+    #has_lab_or_tut = course.labtas() and member.labta()
         
     if request.method == "POST":
         form = TUGForm(data=request.POST, offering=course,userid=userid)
@@ -98,7 +100,12 @@ def new_tug(request, course_slug, userid):
             tug.save(newsitem_author=Person.objects.get(userid=request.user.username))
             return HttpResponseRedirect(reverse(view_tug, args=(course.slug, userid)))
     else:
-        form = TUGForm(offering=course,userid=userid)
+        if has_lab_or_tut:
+            form = TUGForm(offering=course,userid=userid, initial=
+                    {'other1':{'label':'Planning','total':13,
+                               'comment':'Attendance at a TA/TM Day/Training'}})
+        else:
+            form = TUGForm(offering=course,userid=userid)
     
     context = {'ta':member.person,
                'course':course,
