@@ -1,0 +1,12 @@
+{% extends "grad/index.html" %}
+{% load markup %}
+{% load mobile_tags %}
+
+{% block actions %}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
+<li>&gt; <a href="{% url grad.views.search %}">Search</a></li>
+<li>&gt; Search Results</li>
+{% endblock %}

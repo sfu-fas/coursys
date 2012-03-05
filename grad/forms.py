@@ -1,5 +1,6 @@
 from django.forms.models import ModelForm
 from django import forms
+import grad.models as gradmodels
 from grad.models import Supervisor, GradProgram, GradStudent, GradStatus,\
     GradRequirement, CompletedRequirement
 from coredata.models import Person, Member
@@ -172,3 +173,13 @@ class CompletedRequirementForm(ModelForm):
     class Meta:
         model = CompletedRequirement
         fields = ('requirement', 'semester', 'date', 'notes')
+
+class SearchForm(forms.Form):
+    #TODO: finish
+    start_semester_from = forms.DateField()
+    start_semester_to = forms.DateField()
+    end_semester_from = forms.DateField()
+    end_semester_to = forms.DateField()
+    program = forms.CharField()
+    status = forms.MultipleChoiceField(gradmodels.STATUS_CHOICES,
+            widget=forms.CheckboxSelectMultiple)

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load mobile_tags %}
+{% load form_display %}
+
+{% block title %}{{page_title}}{% endblock %}
+{% block h1 %}{{page_title}}{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
+<li>&gt; Search</li>
+{% endblock %}
+
+{% block content %}
+<div id="form_container">
+    <form action="{% url grad.views.search %}" method="GET">
+    	<fieldset>
+			{#<legend>Advanced Search</legend>#}
+            {{ form|as_dl }}
+        <p><input  class="submit"  type="submit" value="Search"></p>
+        </fieldset>
+    </form>
+	<a class="button" href="{% url grad.views.index %}">Back</a>
+</div>
+{% endblock %} 

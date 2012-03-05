@@ -267,6 +267,7 @@ urlpatterns += patterns('',
     # Graduate student database
 
     url(r'^grad/$', 'grad.views.index'),
+    url(r'^grad/search', 'grad.views.search'),
     
     url(r'^grad/program/new', 'grad.views.new_program'),   
     url(r'^grad/program/$', 'grad.views.programs'),

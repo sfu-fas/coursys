@@ -3,7 +3,8 @@ from django.shortcuts import get_object_or_404, get_list_or_404, render
 from django.http import HttpResponseRedirect
 from grad.models import GradStudent, GradProgram, Supervisor, GradRequirement, CompletedRequirement, GradStatus
 from grad.forms import SupervisorForm, PotentialSupervisorForm, GradAcademicForm, GradProgramForm, \
-        GradStudentForm, GradStatusForm, GradRequirementForm, possible_supervisors, BaseSupervisorsFormSet
+        GradStudentForm, GradStatusForm, GradRequirementForm, possible_supervisors, BaseSupervisorsFormSet,\
+    SearchForm
 from coredata.models import Person, Role, Unit, Semester, CAMPUS_CHOICES
 #from django.template import RequestContext
 from django import forms
@@ -13,6 +14,7 @@ import datetime
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from django.contrib import messages
 from log.models import LogEntry
+from django.db.models import Q
 
 # get semester based on input datetime. defaults to today
 # returns semseter object
@@ -459,3 +461,29 @@ def new_requirement(request):
 
 # End of Temp
 #############################################################
+
+@requires_role("GRAD")
+def search(request):
+    if len(request.GET) == 0:
+        form = SearchForm()
+    else:
+        form = SearchForm(request.GET)
+    if form.is_valid():
+        query = Q()
+        #TODO: construct search query from form's data
+        
+        grads = GradStudent.objects.filter(query)
+        
+        context = {
+                   'page_title' : 'Graduate Student Search Results',
+                   'crumb' : 'Grads',
+                   'grads': grads,
+                   }
+        return render(request, 'grad/search_results.html', context)
+    else:
+        page_title = 'Graduate Student Advanced Search'
+        context = {
+                   'page_title' : page_title,
+                   'form':form
+                   }
+        return render(request, 'grad/search.html', context)
