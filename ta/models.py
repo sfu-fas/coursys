@@ -271,7 +271,8 @@ class TAApplication(models.Model):
         verbose_name="Other financial support",
         help_text='Describe any other funding you expect to receive this semester (grad students only).')
     comments = models.TextField(verbose_name="Additional comments", blank=True, null=True)
-    
+    rank = models.IntegerField(blank=False, default=0) 
+ 
     class Meta:
         unique_together = (('person', 'posting'),)
     def __unicode__(self):
