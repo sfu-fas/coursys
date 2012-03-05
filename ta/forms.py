@@ -383,7 +383,7 @@ class TAPostingForm(forms.ModelForm):
     
     def clean_skills(self):
         skills = self.cleaned_data['skills']
-        skills = [s.strip() for s in skills.split("\n")]
+        skills = [s.strip() for s in skills.split("\n") if len(s.strip()) > 0]
         old_skills = Skill.objects.filter(posting=self.instance)
         res = []
         for i, skill in enumerate(skills):

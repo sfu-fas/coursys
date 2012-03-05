@@ -484,7 +484,15 @@ def edit_posting(request, post_slug=None):
         if form.is_valid():
             form.instance.slug = None
             form.save()
-            [s.save() for s in form.cleaned_data['skills']]
+            found_skills = set()
+            for s in form.cleaned_data['skills']:
+                s.posting = form.instance
+                s.save()
+                found_skills.add(s.id)
+            
+            # if any skills were dropped, remove them
+            Skill.objects.filter(posting=form.instance).exclude(id__in=found_skills).delete()
+            
             l = LogEntry(userid=request.user.username,
                   description="Edited TAPosting for %s in %s." % (form.instance.unit, form.instance.semester),
                   related_object=form.instance)
