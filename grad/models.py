@@ -1,5 +1,6 @@
 from django.db import models
-from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES
+from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES,\
+    CourseOffering
 from django.forms.models import ModelForm
 from django import forms
 from autoslug import AutoSlugField
@@ -186,3 +187,31 @@ class GradStatus(models.Model):
     
     def __unicode__(self):
         return "Grad Status: %s %s" % (self.status, self.student)
+
+
+"""
+Financial
+"""
+
+class ScholarshipType(models.Model):
+    unit = models.ForeignKey(Unit)
+    name = models.CharField(max_length=256)
+    class meta:
+        unique_together = ("unit", "name")
+
+class Scholarship(models.Model):
+    scholarship_type = models.ForeignKey(ScholarshipType)
+    person = models.ForeignKey(Person)
+    amount = models.DecimalField(verbose_name="Scholarship Amount", max_digits=8, decimal_places=2)
+    semester = models.ForeignKey(Semester)
+    
+class Other_Scholarship(models.Model):
+    person = models.ForeignKey(Person)
+    amount = models.DecimalField(verbose_name="Scholarship Amount", max_digits=8, decimal_places=2)
+    
+class Promise(models.Model):
+    person = models.ForeignKey(Person)
+    amount = models.DecimalField(verbose_name="Scholarship Amount", max_digits=8, decimal_places=2)
+    start_semester = models.ForeignKey(Semester)
+    end_semester = models.ForeignKey(Semester)
+    
