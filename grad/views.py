@@ -15,6 +15,7 @@ from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from django.contrib import messages
 from log.models import LogEntry
 from django.db.models import Q
+from django.utils.encoding import iri_to_uri
 
 # get semester based on input datetime. defaults to today
 # returns semseter object
@@ -469,8 +470,13 @@ def search(request):
     else:
         form = SearchForm(request.GET)
     if form.is_valid():
+        query_string = iri_to_uri(request.META.get('QUERY_STRING',''))
+        #TODO: add a button to save the search
+        #TODO: prefill common querys
+        #TODO: add a model to save these queries; save the query string
         query = Q()
         #TODO: construct search query from form's data
+        #NOTE: use getlist on request.GET rather than __getitem__
         
         grads = GradStudent.objects.filter(query)
         
