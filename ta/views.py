@@ -12,7 +12,7 @@ from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContra
 from ra.models import Account
 from coredata.models import Member, Role, CourseOffering, Person, Semester
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, CoursePreferenceForm, \
-    TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet
+    TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm
 from log.models import LogEntry
 from django.forms.models import inlineformset_factory
 from django.forms.formsets import formset_factory
@@ -316,18 +316,33 @@ def assign_tas(request, post_slug):
     return render(request, 'ta/assign_tas.html', context) 
 
 @requires_role("TAAD")
-def course_tas(request, post_slug, course_slug):
+def assign_bus(request, post_slug, course_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug)
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     prefs = CoursePreference.objects.filter(course=offering.course) 
     apps = []
     campus_prefs = []
+    initial = []
+
     for p in prefs:
         apps.append(p.app)
         campus_preference = CampusPreference.objects.get(app=p.app, campus=offering.campus)
         campus_prefs.append(campus_preference)
+        initial.append({'rank': p.app.rank})
+
+    AssignBUFormSet = formset_factory(AssignBUForm)
     
-    context = {'posting':posting, 'offering':offering, 'applications': apps, 'campus_preferences':campus_prefs}
+    #Save ranks and BU's
+    if request.method == "POST":
+        formset = AssignBUFormSet(request.POST)
+        for i in range(0, len(apps)):
+            apps[i].rank = formset[i]['rank'].value()
+            apps[i].save()
+
+    else: 
+        formset = AssignBUFormSet(initial=initial)
+ 
+    context = {'formset':formset, 'posting':posting, 'offering':offering, 'applications': apps, 'campus_preferences':campus_prefs}
     return render(request, 'ta/assign_bu.html', context) 
 
 @requires_role("TAAD")

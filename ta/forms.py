@@ -415,3 +415,6 @@ LEVEL_CHOICES = (
                  )
 class TAPostingBUForm(forms.Form):
     level = forms.ChoiceField(choices=LEVEL_CHOICES)
+
+class AssignBUForm(forms.Form):
+    rank = forms.IntegerField(min_value=0, label="rank")

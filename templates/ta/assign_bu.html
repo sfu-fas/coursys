@@ -17,14 +17,6 @@
         "bPaginate": false,
 		"bJQueryUI": true,
 		"aaSorting": [[0, "asc"]],
-		"aoColumns": [
-		    null,
-		    null,
-            null,
-            null,
-            null,
-            null,
-		]
 	});
   });
 </script>
@@ -38,6 +30,8 @@ Assigned BU: {{ offering|display_assigned_bu:posting }}
 Remaining BUs: {{ offering|display_bu_difference:posting }}
 </b></p>
 
+<form action="{% url ta.views.assign_bus post_slug=posting.slug, course_slug=offering.slug %}" method="post">{% csrf_token %}
+{{ formset.management_form }}
 <div class="datatable_container">
 <table class="display" id="applications">
 <thead>
@@ -53,7 +47,12 @@ Remaining BUs: {{ offering|display_bu_difference:posting }}
 {% for a in applications %}
       <tr>
         <td scope="row"><a href="{% url ta.views.view_application app_id=a.id %}">{{ a.person.last_name }}, {{ a.person.first_name }}</a></td>
-        <td class="num"><input id="rank" type=text value="{{ a.rank }}" /></td>
+        <td class="num">{% for form in formset %}
+        {% ifequal forloop.counter forloop.parentloop.counter %}
+          {{ form.rank }}
+        {% endifequal %}
+        {% endfor %}
+        </td>
         <td scope="row">?</td>
         <td scope="row">{{ campus_preferences|display_campus_preference:forloop.counter0 }}</a></td>
         <td scope="row"><input id="bu" type=text value="" /></td>
@@ -62,5 +61,7 @@ Remaining BUs: {{ offering|display_bu_difference:posting }}
 </tbody>
 </table>
 </div>
+<input id="submit" class="submit" type="submit" value="submit"/>
+</form>
 
 {% endblock %}
