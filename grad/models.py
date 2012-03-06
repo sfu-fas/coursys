@@ -201,16 +201,17 @@ class ScholarshipType(models.Model):
 
 class Scholarship(models.Model):
     scholarship_type = models.ForeignKey(ScholarshipType)
-    person = models.ForeignKey(Person)
+    person = models.ForeignKey(GradStudent)
     amount = models.DecimalField(verbose_name="Scholarship Amount", max_digits=8, decimal_places=2)
     semester = models.ForeignKey(Semester)
     
 class Other_Scholarship(models.Model):
-    person = models.ForeignKey(Person)
+    person = models.ForeignKey(GradStudent)
+    description = models.CharField(max_length=100, blank=True)
     amount = models.DecimalField(verbose_name="Scholarship Amount", max_digits=8, decimal_places=2)
     
 class Promise(models.Model):
-    person = models.ForeignKey(Person)
+    person = models.ForeignKey(GradStudent)
     amount = models.DecimalField(verbose_name="Scholarship Amount", max_digits=8, decimal_places=2)
     start_semester = models.ForeignKey(Semester)
     end_semester = models.ForeignKey(Semester)
