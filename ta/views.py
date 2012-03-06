@@ -364,8 +364,9 @@ def edit_contract(request, post_slug, contract_id=None):
         ForbiddenResponse(request, 'You cannot access this posting')
     course_choices = [('','---------')] + [(c.id, c.name()) for c in posting.selectable_offerings()]
     position_choices = [(a.id, a.position_number) for a in Account.objects.filter(unit=posting.unit)]
-    app_choices = [('','---------')] + [(p.id, unicode(p)) for p in Person.objects.exclude(Q(pk__in=posting.tacontract_set.all().values_list('applicant', flat=True)) )]
-        
+    #app_choices = [('','---------')] + [(p.id, unicode(p)) for p in Person.objects.exclude(Q(pk__in=posting.tacontract_set.all().values_list('applicant', flat=True)) )]
+    app_choices = [('','---------')] + [(a.id, unicode(a)) for a in TAApplication.objects.filter(posting=posting).exclude(Q(person__id__in=posting.tacontract_set.all().values_list('applicant', flat=True)))]
+      
     #number of course form to populate
     num = 3
     if contract_id:
@@ -425,8 +426,6 @@ def edit_contract(request, post_slug, contract_id=None):
             formset = TACourseFormset(request.POST, instance=contract)
             if formset.is_valid():
                 contract.ta_posting = posting
-#                contract.pay_per_bu = request.POST['pay_per_bu']
-                #contract.scholarship_per_bu = request.POST['scholarship_per_bu']
                 contract.pay_per_bu = form.cleaned_data['pay_per_bu']
                 contract.pay_start = form.cleaned_data['pay_start']
                 contract.pay_end = form.cleaned_data['pay_end']

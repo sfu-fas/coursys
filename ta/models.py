@@ -189,7 +189,7 @@ class TAPosting(models.Model):
         excl = set(self.excluded())
         offerings = CourseOffering.objects.filter(semester=self.semester, owner=self.unit).exclude(course__id__in=excl)
         return offerings
-    
+        
     def cat_index(self, val):
         indexer = dict((v[0],k) for k,v in enumerate(CATEGORY_CHOICES))
         return indexer.get(val)
@@ -279,7 +279,7 @@ class TAApplication(models.Model):
     class Meta:
         unique_together = (('person', 'posting'),)
     def __unicode__(self):
-        return "Person: %s  Posting: %s" % (self.person, self.posting)
+        return "%s  Posting: %s" % (self.person, self.posting)
 
 PREFERENCE_CHOICES = (
         ('PRF', 'Prefered'),
