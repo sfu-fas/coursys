@@ -40,6 +40,7 @@ Remaining BUs: {{ offering|display_bu_difference:posting }}
       <th scope="col">Rank</th>
       <th scope="col">Course Rank</th>
       <th scope="col">Campus Preference</th>
+      <th scope="col">Max BUs</th>
       <th scope="col">Base Units</th>
     </tr>
 </thead>
@@ -55,6 +56,7 @@ Remaining BUs: {{ offering|display_bu_difference:posting }}
         </td>
         <td scope="row">?</td>
         <td scope="row">{{ campus_preferences|display_campus_preference:forloop.counter0 }}</a></td>
+        <td scope="row">{{ a.base_units }}</a></td>
         <td scope="row"><input id="bu" type=text value="" /></td>
       </tr>	
 {% endfor %}
