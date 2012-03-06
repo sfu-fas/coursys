@@ -141,6 +141,7 @@ class TAPosting(models.Model):
         # 'scholarship': default scholarship rates per BU for each GTA1, GTA2, UTA, EXT
         # 'start': default start date for contracts ('YYYY-MM-DD')
         # 'end': default end date for contracts ('YYYY-MM-DD')
+        # 'deadline': default deadline to accept contracts ('YYYY-MM-DD')
         # 'excluded': courses to exclude from posting (list of Course.id values)
         # 'payperiods': number of pay periods in the semeseter
 
@@ -149,6 +150,7 @@ class TAPosting(models.Model):
             'scholarship': ['0.00']*len(CATEGORY_CHOICES),
             'start': '',
             'end': '',
+            'deadline': '',
             'excluded': [],
             'bu_defaults': {},
             'payperiods': 8,
@@ -157,6 +159,7 @@ class TAPosting(models.Model):
     scholarship, set_scholarship = getter_setter('scholarship')
     start, set_start = getter_setter('start')
     end, set_end = getter_setter('end')
+    deadline, set_deadline = getter_setter('deadline')
     excluded, set_excluded = getter_setter('excluded')
     bu_defaults, set_bu_defaults = getter_setter('bu_defaults')
     payperiods, set_payperiods = getter_setter('payperiods')

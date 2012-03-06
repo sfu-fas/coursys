@@ -1,13 +1,13 @@
 import re
 from django import forms
-from django.utils.safestring import mark_safe
-from django.forms.forms import BoundField
+#from django.utils.safestring import mark_safe
+#from django.forms.forms import BoundField
 from django.forms.util import ErrorList
 from django.utils.datastructures import SortedDict
-from coredata.models import Member, CAMPUS_CHOICES
+from coredata.models import Member
 from ta.models import TUG, TAApplication,TAContract, CoursePreference, TACourse, TAPosting, Skill, CATEGORY_CHOICES
-from ta.util import table_row__Form, update_and_return
-from django.core.exceptions import ValidationError
+from ta.util import table_row__Form
+#from django.core.exceptions import ValidationError
 import itertools, decimal, datetime
 from django.forms.formsets import formset_factory
 from django.forms.models import BaseInlineFormSet
@@ -295,6 +295,7 @@ class PayField(forms.MultiValueField):
 class TAPostingForm(forms.ModelForm):
     start = forms.DateField(label="Contract Start", help_text='Default start date for contracts')
     end = forms.DateField(label="Contract End", help_text='Default end date for contracts')
+    deadline = forms.DateField(label="Acceptance Deadline", help_text='Default deadline for apointees to accept/decline contracts')
     salary = PayField(label="Salary per BU", help_text="Default pay rates for contracts")
     scholarship = PayField(label="Scholarship per BU", help_text="Default scholarship rates for contracts")
     payperiods = forms.IntegerField(label="Pay periods", help_text='Number of pay periods in the semester',
@@ -317,6 +318,7 @@ class TAPostingForm(forms.ModelForm):
         self.initial['scholarship'] = self.instance.scholarship()
         self.initial['start'] = self.instance.start()
         self.initial['end'] = self.instance.end()
+        self.initial['deadline'] = self.instance.deadline()
         self.initial['excluded'] = self.instance.excluded()
         self.initial['payperiods'] = self.instance.payperiods()
         skills = Skill.objects.filter(posting=self.instance)
@@ -340,12 +342,17 @@ class TAPostingForm(forms.ModelForm):
                 raise forms.ValidationError("Contracts must end after they start")
         self.instance.config['end'] = unicode(end)
         return end
+
+    def clean_deadline(self):
+        deadline = self.cleaned_data['deadline']
+        self.instance.config['deadline'] = unicode(deadline)
+        return deadline
         
     def clean_opens(self):
         opens = self.cleaned_data['opens']
-        today = datetime.date.today()
-        if opens < today:
-            raise forms.ValidationError("Postings cannot open before today")
+        #today = datetime.date.today()
+        #if opens < today:
+        #    raise forms.ValidationError("Postings cannot open before today")
         return opens
 
     def clean_closes(self):
