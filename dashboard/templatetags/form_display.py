@@ -58,7 +58,7 @@ def as_dl_nolabel(form, safe=False, includefield=[]):
             out.append(unicode(field))
         out.append('</div>')
         
-    out.append('<dl class="dlform">')
+    #out.append('<dl class="dlform">')
     reqcount = 0
     for field in form.visible_fields():
         if field.name in includefield:
@@ -80,7 +80,7 @@ def as_dl_nolabel(form, safe=False, includefield=[]):
                     out.append('<div class="helptext">%s</div>' % (escape(field.help_text)))
             out.append('</dd>')
     
-    out.append('</dl>')
+    #out.append('</dl>')
     if reqcount > 0:
         out.append('<p class="helptext"><span class="required">*</span> This field is required.</p>')
     return mark_safe('\n'.join(out))
