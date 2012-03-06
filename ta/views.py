@@ -440,10 +440,7 @@ def edit_contract(request, post_slug, contract_id=None):
                     messages.success(request, "Edited TA Contract for %s for %s." % (contract.applicant, posting))
                 return HttpResponseRedirect(reverse(all_contracts))
     else:   
-        form = TAContractForm(instance=contract)
-        print
-        print form
-        print 
+        form = TAContractForm(instance=contract) 
         formset = TACourseFormset(instance=contract)
         if not editing:
             form = TAContractForm(initial={'pay_start': posting.start(), 'pay_end': posting.end(), 'deadline': posting.deadline()})
