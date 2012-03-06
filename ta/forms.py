@@ -167,7 +167,7 @@ class CoursePreferenceForm(forms.ModelForm):
 
     class Meta:
         model = CoursePreference
-        exclude = ('app',) 
+        exclude = ('app','rank') 
 
 class TAContractForm(forms.ModelForm):
  

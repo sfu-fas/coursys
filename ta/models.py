@@ -389,6 +389,7 @@ class CoursePreference(models.Model):
     course = models.ForeignKey(Course)
     taken = models.CharField(max_length=3, choices=TAKEN_CHOICES, blank=False, null=False)
     exper = models.CharField(max_length=3, choices=EXPER_CHOICES, blank=False, null=False)
+    rank = models.IntegerField(blank=False)
 
     def __unicode__(self):
         return "Course: %s  Taken: %s" % (self.course, self.taken)

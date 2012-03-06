@@ -205,9 +205,10 @@ def new_application(request, post_slug):
                 sl.save()
             
             # save course preferences
-            for form in courses_formset:
+            for (rank,form) in enumerate(courses_formset):
                 course = form.save(commit=False)
                 course.app = app
+                course.rank = rank+1
                 course.save()
             return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'app_id':app.id}))
         
@@ -319,12 +320,12 @@ def assign_tas(request, post_slug):
 def assign_bus(request, post_slug, course_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug)
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    prefs = CoursePreference.objects.filter(course=offering.course) 
+    course_prefs = CoursePreference.objects.filter(course=offering.course) 
     apps = []
     campus_prefs = []
     initial = []
 
-    for p in prefs:
+    for p in course_prefs:
         apps.append(p.app)
         campus_preference = CampusPreference.objects.get(app=p.app, campus=offering.campus)
         campus_prefs.append(campus_preference)
@@ -342,7 +343,7 @@ def assign_bus(request, post_slug, course_slug):
     else: 
         formset = AssignBUFormSet(initial=initial)
  
-    context = {'formset':formset, 'posting':posting, 'offering':offering, 'applications': apps, 'campus_preferences':campus_prefs}
+    context = {'formset':formset, 'posting':posting, 'offering':offering, 'applications': apps, 'course_preferences': course_prefs, 'campus_preferences':campus_prefs}
     return render(request, 'ta/assign_bu.html', context) 
 
 @requires_role("TAAD")

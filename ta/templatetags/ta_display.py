@@ -34,3 +34,7 @@ def display_applicant_count(offering, posting):
 @register.filter
 def display_campus_preference(campus_preferences, index):
     return campus_preferences[index].get_pref_display()
+
+@register.filter
+def display_course_rank(course_preferences, index):
+    return course_preferences[index].rank

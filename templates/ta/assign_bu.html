@@ -54,7 +54,7 @@ Remaining BUs: {{ offering|display_bu_difference:posting }}
         {% endifequal %}
         {% endfor %}
         </td>
-        <td scope="row">?</td>
+        <td scope="row">{{ course_preferences|display_course_rank:forloop.counter0 }}</td>
         <td scope="row">{{ campus_preferences|display_campus_preference:forloop.counter0 }}</a></td>
         <td scope="row">{{ a.base_units }}</a></td>
         <td scope="row"><input id="bu" type=text value="" /></td>
