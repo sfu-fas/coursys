@@ -416,6 +416,7 @@ def edit_contract(request, post_slug, contract_id=None):
                 else:
                     #try to find applicaion from other postings, grab from latest
                     app = TAApplication.objects.filter(person=request.POST['applicant']).order_by('-id')
+                    
                     if(app.count() > 0):
                         results = app[0].sin, ',', app[0].category
                 return HttpResponse(results)
@@ -445,7 +446,7 @@ def edit_contract(request, post_slug, contract_id=None):
         print 
         formset = TACourseFormset(instance=contract)
         if not editing:
-            form = TAContractForm(initial={'pay_start': posting.config['start'], 'pay_end': posting.config['end']})
+            form = TAContractForm(initial={'pay_start': posting.start(), 'pay_end': posting.end(), 'deadline': posting.deadline()})
             form.fields['applicant'].choices = app_choices
     
     form.fields['position_number'].choices = position_choices       
