@@ -205,10 +205,10 @@ class Scholarship(models.Model):
     amount = models.DecimalField(verbose_name="Scholarship Amount", max_digits=8, decimal_places=2)
     semester = models.ForeignKey(Semester)
     
-class Other_Scholarship(models.Model):
+class OtherFunding(models.Model):
     person = models.ForeignKey(GradStudent)
-    description = models.CharField(max_length=100, blank=True)
-    amount = models.DecimalField(verbose_name="Scholarship Amount", max_digits=8, decimal_places=2)
+    description = models.CharField(max_length=100, blank=False)
+    amount = models.DecimalField(verbose_name="Funding Amount", max_digits=8, decimal_places=2)
     
 class Promise(models.Model):
     person = models.ForeignKey(GradStudent)
