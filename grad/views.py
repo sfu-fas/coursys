@@ -293,11 +293,17 @@ def manage_status(request, grad_slug):
         new_status_form = GradStatusForm(request.POST)
         if new_status_form.is_valid():
             # Close previous status
-            # TODO This should probably be the semester *before* the start
-            # semester of the new status, but not earlier than the start semester 
-            # of the status we're closing.
-            GradStatus.objects.filter(student=grad, end=None).update(end=new_status_form.instance.start)
-            
+            # Assuming that only one status can be unclosed at once.
+            old_status_end = new_status_form.instance.start.previous_semester()
+            old_status_start = GradStatus.objects.get(student=grad, end=None).start
+
+            # Status should not be negative in length, but end in the semester they started.
+            if old_status_start > old_status_end:
+                old_status_end = old_status_start
+
+            GradStatus.objects.filter(student=grad, end=None).update(end=old_status_end)
+
+            # Save new status
             new_actual_status = new_status_form.save(commit=False)
             new_actual_status.student = grad
             new_actual_status.save()
