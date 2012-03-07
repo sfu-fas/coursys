@@ -491,20 +491,34 @@ class DisciplineCaseInstr(DisciplineCaseBase):
         self.letter_text = html_body
         self.letter_date = datetime.date.today()
         self.save()
-
-        # decide who to BCC
-        roles = Role.objects.filter(
-                models.Q(role="DICC", unit=self.offering.owner)
-                | models.Q(role="DICC", unit__label="UNIV"))
-        bcc_emails = [r.person.full_email() for r in roles]
         
+        # instructor/student email
         email = EmailMultiAlternatives(
             subject='Academic dishonesty in %s' % (self.offering),
             body=text_body,
             from_email=self.owner.full_email(),
             to=[self.student.full_email()],
             cc=[self.owner.full_email()],
-            bcc=bcc_emails,
+            )
+        email.attach_alternative("<html><body>" + html_body + "</body></html>", "text/html")
+        attach = self.public_attachments()
+        for f in attach:
+            f.attachment.open()
+            email.attach(f.filename(), f.attachment.read(), f.mediatype)
+        email.send(fail_silently=False)
+
+        # copy for filing
+        roles = Role.objects.filter(
+                models.Q(role="DICC", unit=self.offering.owner)
+                | models.Q(role="DICC", unit__label="UNIV"))
+        filing_emails = [r.person.full_email() for r in roles]
+
+        email = EmailMultiAlternatives(
+            subject='Academic dishonesty in %s' % (self.offering),
+            body=text_body,
+            from_email=self.owner.full_email(),
+            to=filing_emails,
+            cc=[self.owner.full_email()],
             )
         email.attach_alternative("<html><body>" + html_body + "</body></html>", "text/html")
         attach = self.public_attachments()
@@ -661,25 +675,26 @@ class RelatedObject(models.Model):
     # any object that has a .short_str() method (which is used as its label)
 
 
+def _disc_upload_to(self, instance, filename):
+    """
+    path to upload case attachment
+    """
+    fullpath = os.path.join(
+        instance.case.offering.slug,
+        "_discipline",
+        str(instance.case.id),
+        datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
+        filename.encode('ascii', 'ignore'))
+    return fullpath
+
 class CaseAttachment(models.Model):
     """
     A piece of evidence to attach to a case
     """
-    def upload_to(instance, filename):
-        """
-        path to upload case attachment
-        """
-        fullpath = os.path.join(
-            instance.case.offering.slug,
-            "_discipline",
-            str(instance.case.id),
-            datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S"),
-            filename.encode('ascii', 'ignore'))
-        return fullpath
 
     case = models.ForeignKey(DisciplineCaseBase)
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Name", help_text="Identifying name for the attachment")
-    attachment = models.FileField(upload_to=upload_to, max_length=500, verbose_name="File", storage=DisciplineSystemStorage)
+    attachment = models.FileField(upload_to=_disc_upload_to, max_length=500, verbose_name="File", storage=DisciplineSystemStorage)
     mediatype = models.CharField(null=True, blank=True, max_length=200)
     public = models.BooleanField(default=True, verbose_name="Public?", 
             help_text='Public files will be included in correspondence with student. Private files will be retained as information about the case.')
