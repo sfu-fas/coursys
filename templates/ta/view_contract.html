@@ -62,7 +62,7 @@
 		
   </table>
   
- <form><p><a  id="submit" href="{% url ta.views.edit_contract post_slug=contract.ta_posting.slug contract_id=contract.id%}"><input type="submit" class="submit" value="Edit" /></a></p></form>	    
+ <form><p><a  id="submit" href="{% url ta.views.edit_contract post_slug=contract.posting.slug contract_id=contract.id userid=contract.application.person.userid %}"><button type="button" class="submit" id="submit">Edit</button></a></p></form>	    
 
 </div>
 {% endblock %}
