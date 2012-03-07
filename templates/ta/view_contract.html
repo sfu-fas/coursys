@@ -1,21 +1,20 @@
 {% extends "base.html" %}
 {% load form_display course_display%}
 
-{% block title %}TA Contract for {{ contract.applicant }} {% endblock %}
-{% block h1 %} TA Contract for {{ contract.applicant }} {% endblock %}
-
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url ta.views.all_contracts%}">TA Contracts</a></li>
-<li>&gt; {{ contract.applicant.name }}'s Contract</li>
+<li>&gt; {{ contract.application.person.name }}'s Contract</li>
 {% endblock %}
 
-{% block content %}
+{% block title %}TA Contract for {{ contract.application.person }} {% endblock %}
+{% block h1 %} TA Contract for {{ contract.application.person }} {% endblock %}
 
+{% block content %}
 <div class="table_container">
   <h2>General Information:</h2> 
   
   <table class="info">
-  	<tr><th>Semester</th><td>{{ contract.ta_posting }}</td></tr>
+  	<tr><th>Semester</th><td>{{ contract.posting }}</td></tr>
   	<tr><th>Applicant SIN</th><td>{{ contract.sin }}</td></tr>
   	<tr><th>Category</th><td>{{ contract.get_appt_category_display }}</td></tr>
   	<tr><th>Appointment Type</th><td>{{ contract.get_appt_display }}</td></tr>

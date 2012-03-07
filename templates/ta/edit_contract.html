@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% load course_display form_display %}
 
-{% block title %}{% if editing %}Edit Contract for {{ contract.applicant }}{% else %}New TA Contract{% endif %}{% endblock %}
-{% block h1 %} {% if editing %}Edit Contract for {{ contract.applicant }}{% else %}New TA Contract{% endif %}{% endblock %}
+{% block title %}{% if editing %}Edit Contract for {{ contract.application.person }}{% else %}New TA Contract{% endif %}{% endblock %}
+{% block h1 %} {% if editing %}Edit Contract for {{ contract.application.person }}{% else %}New TA Contract{% endif %}{% endblock %}
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url ta.views.all_contracts %}">TA Contracts</a></li>
-<li>&gt; {% if editing %}{{ contract.applicant.name }} Edit{% else %}New{% endif %}</li>
+<li>&gt; {% if editing %}{{ contract.application.person.name }} Edit{% else %}New{% endif %}</li>
 {% endblock %}
 
 {% block headextra %}
@@ -115,6 +115,7 @@
 			}
  		})*/
  		
+		
  		//ajax to get default required BU
 		$('.course_select').change(function(){
 			if(!validate(false))
