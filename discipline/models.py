@@ -1,7 +1,7 @@
 from django.db import models
 from coredata.models import Person, Member, CourseOffering, Role
 from grades.models import Activity
-from django.http import Http404
+#from django.http import Http404
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.core.mail import EmailMessage, EmailMultiAlternatives
@@ -11,7 +11,7 @@ from autoslug import AutoSlugField
 from django.core.files.storage import FileSystemStorage
 from django.utils.text import wrap
 from django.conf import settings
-from django.shortcuts import get_object_or_404
+#from django.shortcuts import get_object_or_404
 from courselib.slugs import make_slug
 import string, os, datetime, json
 
@@ -206,7 +206,7 @@ class DisciplineCaseBase(models.Model):
             except CaseClass.DoesNotExist:
                 pass
 
-        return case
+        return self
     
     owner = models.ForeignKey(Person, help_text="The person who created/owns this case.")
     offering = models.ForeignKey(CourseOffering)
@@ -475,7 +475,8 @@ class DisciplineCaseInstr(DisciplineCaseBase):
             subject='Academic dishonesty in %s' % (self.offering),
             body=body,
             from_email=self.owner.email(),
-            to=[self.student.email(), self.owner.email()],
+            to=[self.student.email()],
+            cc=[self.owner.email()],
             )
         
         email.send(fail_silently=False)
@@ -493,15 +494,16 @@ class DisciplineCaseInstr(DisciplineCaseBase):
 
         # decide who to BCC
         roles = Role.objects.filter(
-                models.Q(role="DICC", department=self.offering.department())
-                | models.Q(role="DICC", department="!!!!"))
+                models.Q(role="DICC", unit=self.offering.owner)
+                | models.Q(role="DICC", unit__label="UNIV"))
         bcc_emails = [r.person.full_email() for r in roles]
         
         email = EmailMultiAlternatives(
             subject='Academic dishonesty in %s' % (self.offering),
             body=text_body,
             from_email=self.owner.full_email(),
-            to=[self.student.full_email(), self.owner.full_email()],
+            to=[self.student.full_email()],
+            cc=[self.owner.full_email()],
             bcc=bcc_emails,
             )
         email.attach_alternative("<html><body>" + html_body + "</body></html>", "text/html")
