@@ -315,9 +315,8 @@ class SkillLevel(models.Model):
 
 
 DESC_CHOICES = (
-        ('OM','office/marking'),
-        ('OML','office/marking/lab/tutorial')
-        
+        ('OM','Office;Marking'),
+        ('OML','Office;Marking;Lab/Tutorial')
     )
 
 APPOINTMENT_CHOICES = (

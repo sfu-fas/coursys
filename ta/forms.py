@@ -189,6 +189,8 @@ class TAContractForm(forms.ModelForm):
         pay = self.cleaned_data['pay_per_bu']
         try:
             pay = decimal.Decimal(pay).quantize(decimal.Decimal('1.00'))
+ 
+            
         except decimal.InvalidOperation:
             raise forms.ValidationError("Pay per BU values must be numbers")
         return pay

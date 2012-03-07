@@ -16,7 +16,14 @@ from ta.forms import TUGForm, TAApplicationForm, TAContractForm, CoursePreferenc
 from log.models import LogEntry
 from django.forms.models import inlineformset_factory
 from django.forms.formsets import formset_factory
-import datetime, decimal
+import datetime, decimal, locale 
+locale.setlocale( locale.LC_ALL, '' )
+
+#not sure if i should put this here but...for now...its going here
+
+def format_currency(i):
+    return locale.currency(float(i), grouping=True)
+
 
 #@requires_course_staff_by_slug
 @login_required
@@ -355,7 +362,11 @@ def all_contracts(request):
 @requires_role("TAAD")
 def view_contract(request, contract_id):
     contract = get_object_or_404(TAContract, pk=contract_id)
-    return render(request, 'ta/view_contract.html', {'contract':contract})
+    #ta courses get all courses with contract_id
+    courses = TACourse.objects.filter(contract=contract)
+    contract.pay_per_bu = format_currency(contract.pay_per_bu)
+    contract.scholarship_per_bu = format_currency(contract.scholarship_per_bu)
+    return render(request, 'ta/view_contract.html', {'contract':contract, 'courses':courses})
 
 @requires_role("TAAD")
 def edit_contract(request, post_slug, contract_id=None):
@@ -413,7 +424,6 @@ def edit_contract(request, post_slug, contract_id=None):
                 app = TAApplication.objects.filter(person=request.POST['applicant'], posting=posting)
                 if(app.count() > 0):              
                     results = app[0].sin, ',', app[0].category
-                    print results
                 else:
                     #try to find applicaion from other postings, grab from latest
                     app = TAApplication.objects.filter(person=request.POST['applicant']).order_by('-id')

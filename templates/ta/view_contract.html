@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load form_display %}
+{% load form_display course_display%}
 
 {% block title %}TA Contract for {{ contract.applicant }} {% endblock %}
 {% block h1 %} TA Contract for {{ contract.applicant }} {% endblock %}
@@ -30,10 +30,38 @@
   <table class="info">
   <tr><th>Remarks</th><td>{{ contract.remarks }}</td></tr>
   </table>
-  <h2>Course and Payment Details:</h2> 
+  
+  <h2>Courses Assigned</h2> 
+  <table class="info">
+		<thead class="form_head">
+          <tr>
+         	<th scope="col">Course Name</th>
+         	<th scope="col">Description</th>
+         	<th scope="col">Base Unit</th>
+          </tr>         
+        </thead>  
+		<tbody>
+			<!-- Courses-->
+			
+			{% for course in courses %}
+			<tr>
+				<td>{{course.course.subject}} {{course.course.number}} {{course.course.section}}</td>
+				<td>{{ course.get_description_display }}</td>
+				<td>{{course.bu}}</td>
+			<tr/>
+			{% endfor %}		
+			
+		</tbody>
+  </table>
+  
+   <h2>Payment Details:</h2> 
   <table class="info">
 
+		<tr><th>Pay Per BU</th><td>{{contract.pay_per_bu}}</td></tr>
+		<tr><th>Scholarship per BU</th><td>{{contract.scholarship_per_bu}}</td></tr>  
+		
   </table>
+  
  <form><p><a  id="submit" href="{% url ta.views.edit_contract post_slug=contract.ta_posting.slug contract_id=contract.id%}"><input type="submit" class="submit" value="Edit" /></a></p></form>	    
 
 </div>
