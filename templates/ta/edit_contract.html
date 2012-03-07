@@ -74,7 +74,7 @@
 	
 	//ajax to get default rates
 	function set_rates(cat){
-		$.post("{% url ta.views.edit_contract post_slug=posting.slug %}",
+		$.post("{% url ta.views.edit_contract post_slug=posting.slug userid=userid %}",
 			{'csrfmiddlewaretoken': "{{csrf_token}}", 'appt_cat': cat},
 			function(data){
 				$('#id_pay_per_bu').val(data.split(',')[0])
@@ -95,10 +95,11 @@
     		$('.errorlist li').attr('class','error')
  		
  		//ajax to get default appt_cat and sin for an application
+ 		/*
  		$('#id_applicant').change(function(){
  			aid = $('#id_applicant').val()
  			if(aid != ''){//nonempty selection
-				$.post("{% url ta.views.edit_contract post_slug=posting.slug %}",
+				$.post("{% url ta.views.edit_contract post_slug=posting.slug userid=userid %}",
 				{'csrfmiddlewaretoken': "{{csrf_token}}", 'applicant': aid},
 				function(data){
 					if(data.length > 0){
@@ -112,7 +113,7 @@
 					}
 				})
 			}
- 		})
+ 		})*/
  		
  		//ajax to get default required BU
 		$('.course_select').change(function(){
@@ -122,7 +123,7 @@
 			var bu_inp = '#' + this.id.replace('-course','-bu')
 			var desc_sel = '#' + this.id.replace('-course','-description')
 			if(cid != ''){//nonempty selection
-				$.post("{% url ta.views.edit_contract post_slug=posting.slug %}",
+				$.post("{% url ta.views.edit_contract post_slug=posting.slug userid=userid%}",
 				{'csrfmiddlewaretoken': "{{csrf_token}}", 'course': cid},
 				function(data){
 					var val = parseFloat(data.split(',')[0])
@@ -184,8 +185,6 @@
     			calculate()
     	})
     });
-    
-//]]>
 </script>
 {% endblock %}
 
@@ -268,14 +267,12 @@
         	<tr> 
         		<th class="ui-state-default">Salary</th>
 				<td>{{ form|as_dl_usefield:"pay_per_bu"}} </td>	
-				<!--<td><input id="salary_per_bu" type="text" name="pay_per_bu" value=""/></td>-->
         		<td><input id="salary_bi" type=text readonly="readonly" value="" /></td>
         		<td><input id="salary_sem" type=text readonly="readonly" value="" /></td>
         	</tr>
         	<tr>
         		<th class="ui-state-default">Scholarship</th>
 				<td>{{ form|as_dl_usefield:"scholarship_per_bu"}} </td>
-				<!--<td><input id="schol_per_bu" type="text" name="id_scholarship_per_bu" value=""/></td>-->
         		<td><input id="schol_bi" type=text readonly="readonly" value="" /></td>
         		<td><input id="schol_sem" type=text readonly="readonly" value="" /></td>
         	</tr>

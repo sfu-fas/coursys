@@ -1474,9 +1474,13 @@ div.note-box p.hideshow {
 	width: 120px;
 }
 
-#ta_new_con{
-	width: 35%;	
+div#ta_new_con{
+	width: 500px;	
 	margin-bottom: 50px;
+}
+
+#ta_new_con select{
+	min-width: 500px;	
 }
 
 td.table-row-label{

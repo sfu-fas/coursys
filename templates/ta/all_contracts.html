@@ -10,20 +10,13 @@
     $(document).ready(function() {
     	//setting post_slug
     	$('#submit').click(function(){
-    		$('#create').attr("href","/ta/contracts/" + $('#posting').val() + "/new") 
+    		var slugs = $('#posting').val().split(" ")
+    		$('#create').attr("href","/ta/contracts/" + slugs[0] + "/" + slugs[1] + "/new") 
     	})
     });
     
 //]]>
 </script>
-<style type="text/css">
-   div#ta_new_con {
-		overflow: hidden;
-		white-space: nowrap;
-		width: 43%
-}
-</style>
-
 {% endblock %}
 
 {%block content%}
@@ -42,11 +35,11 @@
   <tbody>
   {% for contract in contracts %}
   <tr>
-  	<td>{{ contract.applicant }}</td>
-  	<td>{{ contract.ta_posting }}</td>
+  	<td>{{ contract.application.person }}</td>
+  	<td>{{ contract.posting }}</td>
   	<td>{{ contract.deadline }}</td>
   	<td><a href="{% url ta.views.view_contract contract_id=contract.id%}">View</a></td>
-  	<td><a href="{% url ta.views.edit_contract post_slug=contract.ta_posting.slug contract_id=contract.id%}">Edit</a></td>
+  	<td><a href="{% url ta.views.edit_contract post_slug=contract.posting.slug contract_id=contract.id userid=contract.application.person.userid%}">Edit</a></td>
   </tr>
   {% endfor %}
   </tbody>
@@ -62,12 +55,12 @@
 <h1>New Contract</h1>
 <form>
 	<select name="posting" id="posting">
-		{% for post in postings %}
-		<option value="{{post.slug}}">{{post}}</option>
+		{% for app in applications %}
+		<option value="{{app.posting.slug}} {{app.person.userid}}">{{app}}</option>
 		{% endfor %}
 	</select>
 	<a id="create" href="" style="height:0"><button type="button" class="submit" id="submit">Create</button></a>
-	<div class="helptext">Select the associated unit/semester</div>
+	<div class="helptext">Select the associated application</div>
 	
 </form>
 </div>

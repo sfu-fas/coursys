@@ -226,7 +226,7 @@ class TAPosting(models.Model):
         BUs already assigned to this course
         """
         total = 0.00
-        tacourses = TACourse.objects.filter(contract__ta_posting=self, course=offering)
+        tacourses = TACourse.objects.filter(contract__posting=self, course=offering)
         if(tacourses.count() > 0):
             total = tacourses.aggregate(Sum('bu'))['bu__sum']
         return decimal.Decimal(total)
@@ -336,9 +336,10 @@ class TAContract(models.Model):
     """    
     TA Contract, filled in by TAAD
     """
-    ta_posting = models.ForeignKey(TAPosting)
-    applicant = models.ForeignKey(Person)
-    sin = models.CharField(max_length=30, unique=True,verbose_name="SIN",help_text="Social insurance number")
+    posting = models.ForeignKey(TAPosting)
+    application = models.ForeignKey(TAApplication)
+    #applicant = models.ForeignKey(Person)
+    sin = models.CharField(max_length=30, verbose_name="SIN",help_text="Social insurance number")
     pay_start = models.DateField()
     pay_end = models.DateField()
     position_number = models.ForeignKey(Account)
@@ -357,7 +358,7 @@ class TAContract(models.Model):
     updated_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        unique_together = (('ta_posting', 'applicant'),)
+        unique_together = (('posting', 'application'),)
         
     def __unicode__(self):
         return "%s" % (self.applicant)

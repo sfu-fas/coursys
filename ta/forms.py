@@ -178,12 +178,12 @@ class TAContractForm(forms.ModelForm):
         super(TAContractForm, self).__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
         
-        if instance and instance.id:
-            del self.fields['applicant']
+        #if instance and instance.id:
+        #    del self.fields['applicant']
 
     class Meta:
         model = TAContract
-        exclude = ['ta_posting', 'created_by']
+        exclude = ['posting', 'application', 'created_by']
         
     def clean_pay_per_bu(self):
         pay = self.cleaned_data['pay_per_bu']

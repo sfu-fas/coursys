@@ -357,7 +357,9 @@ def assign_bus(request, post_slug, course_slug):
 def all_contracts(request):
     contracts = TAContract.objects.all()
     postings = TAPosting.objects.filter(unit__in=request.units)
-    return render(request, 'ta/all_contracts.html', {'contracts':contracts, 'postings':postings})
+    #applications = TAApplication.objects.all().exclude(Q(person__id__in=TAContract.objects.all().values_list('applicant', flat=True)))
+    applications = TAApplication.objects.all().exclude(Q(id__in=TAContract.objects.all().values_list('application', flat=True)))
+    return render(request, 'ta/all_contracts.html', {'contracts':contracts, 'postings':postings, 'applications':applications})
 
 @requires_role("TAAD")
 def view_contract(request, contract_id):
@@ -369,27 +371,29 @@ def view_contract(request, contract_id):
     return render(request, 'ta/view_contract.html', {'contract':contract, 'courses':courses})
 
 @requires_role("TAAD")
-def edit_contract(request, post_slug, contract_id=None):
+def edit_contract(request, post_slug, userid=None, contract_id=None):
     posting = get_object_or_404(TAPosting, slug=post_slug)
+    
     if posting.unit not in request.units:
         ForbiddenResponse(request, 'You cannot access this posting')
     course_choices = [('','---------')] + [(c.id, c.name()) for c in posting.selectable_offerings()]
     position_choices = [(a.id, a.position_number) for a in Account.objects.filter(unit=posting.unit)]
     #app_choices = [('','---------')] + [(p.id, unicode(p)) for p in Person.objects.exclude(Q(pk__in=posting.tacontract_set.all().values_list('applicant', flat=True)) )]
-    app_choices = [('','---------')] + [(a.id, unicode(a)) for a in TAApplication.objects.filter(posting=posting).exclude(Q(person__id__in=posting.tacontract_set.all().values_list('applicant', flat=True)))]
-      
+          
     #number of course form to populate
     num = 3
     if contract_id:
         # editing existing contract
         contract = get_object_or_404(TAContract, id=contract_id)
+        application = contract.application
         num = num - contract.tacourse_set.all().count()
         editing = True
     else:
         # creating new contract
         contract = TAContract()
+        application = TAApplication.objects.get(person__userid=userid, posting=posting)
         editing = False
-
+    
     TACourseFormset = inlineformset_factory(TAContract, TACourse, extra=num, can_delete=editing, form=TACourseForm, formset=BaseTACourseFormSet)
     formset = TACourseFormset(instance=contract)
     
@@ -419,6 +423,7 @@ def edit_contract(request, post_slug, contract_id=None):
                 else:
                     results += ',OM'
                 return HttpResponse(results)
+            """
             if('applicant' in request.POST):
                 results = ''
                 app = TAApplication.objects.filter(person=request.POST['applicant'], posting=posting)
@@ -431,11 +436,14 @@ def edit_contract(request, post_slug, contract_id=None):
                     if(app.count() > 0):
                         results = app[0].sin, ',', app[0].category
                 return HttpResponse(results)
+            """
         elif form.is_valid():
             contract = form.save(commit=False)
             formset = TACourseFormset(request.POST, instance=contract)
             if formset.is_valid():
-                contract.ta_posting = posting
+                #contract.applicant = application.person
+                contract.application = application
+                contract.posting = posting
                 contract.pay_per_bu = form.cleaned_data['pay_per_bu']
                 contract.pay_start = form.cleaned_data['pay_start']
                 contract.pay_end = form.cleaned_data['pay_end']
@@ -444,16 +452,22 @@ def edit_contract(request, post_slug, contract_id=None):
                 contract.save()
                 formset.save()
                 if not editing:
-                    messages.success(request, "Created TA Contract for %s for %s." % (contract.applicant, posting))
+                    messages.success(request, "Created TA Contract for %s for %s." % (contract.application.person, posting))
                 else:
-                    messages.success(request, "Edited TA Contract for %s for %s." % (contract.applicant, posting))
+                    messages.success(request, "Edited TA Contract for %s for %s." % (contract.application.person, posting))
                 return HttpResponseRedirect(reverse(all_contracts))
     else:   
         form = TAContractForm(instance=contract) 
         formset = TACourseFormset(instance=contract)
         if not editing:
-            form = TAContractForm(initial={'pay_start': posting.start(), 'pay_end': posting.end(), 'deadline': posting.deadline()})
-            form.fields['applicant'].choices = app_choices
+            initial={'sin': application.sin,
+                     'appt_category': application.category,
+                     'pay_start': posting.start(), 
+                     'pay_end': posting.end(), 
+                     'deadline': posting.deadline()}
+                     
+            form = TAContractForm(initial=initial)
+            #form.fields['applicant'].choices = app_choices
     
     form.fields['position_number'].choices = position_choices       
     for f in formset:
@@ -462,7 +476,7 @@ def edit_contract(request, post_slug, contract_id=None):
         f.fields['bu'].widget.attrs['class']  = 'bu_inp'
         f.fields['course'].choices = course_choices
     
-    context = {'form': form, 'formset': formset, 'posting': posting, 'config': posting.config, 'editing': editing, 'contract': contract}
+    context = {'form': form, 'formset': formset, 'posting': posting, 'editing': editing, 'contract': contract, 'application': application, 'userid': userid}
     return render(request, 'ta/edit_contract.html',context)
 
 def _copy_posting_defaults(source, destination):
