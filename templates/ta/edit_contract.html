@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load course_display form_display %}
 
-{% block title %}{% if editing %}Edit Contract for {{ contract.application.person }}{% else %}New TA Contract{% endif %}{% endblock %}
-{% block h1 %} {% if editing %}Edit Contract for {{ contract.application.person }}{% else %}New TA Contract{% endif %}{% endblock %}
+{% block title %}{% if editing %}Edit Contract for {{ contract.application.person }}{% else %}New TA Contract for {{application.person}}{% endif %}{% endblock %}
+{% block h1 %} {% if editing %}Edit Contract for {{ contract.application.person }}{% else %}New TA Contract for {{application.person}}{% endif %}{% endblock %}
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url ta.views.all_contracts %}">TA Contracts</a></li>
