@@ -305,6 +305,7 @@ urlpatterns += patterns('',
 if not settings.DEPLOYED:
     # URLs for development only:
     urlpatterns += patterns('',
+        url(r'^auth$', 'dashboard.views.fake_login'),
         #(r'^admin/(.*)', admin.site.root),
         (r'^media/(?P<path>.*)$', 'django.views.static.serve',
             {'document_root': settings.MEDIA_ROOT}),

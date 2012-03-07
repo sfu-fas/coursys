@@ -636,7 +636,7 @@ ROLE_CHOICES = (
         ('COOP', 'Co-op Staff'),
         ('PLAN', 'Planning Administrator'),
         ('DISC', 'Discipline Case Administrator'),
-        ('DICC', 'Discipline Case Filer (email BCC)'),
+        ('DICC', 'Discipline Case Filer (email CC)'),
         ('ADMN', 'Departmental Administrator'),
         ('TAAD', 'TA Administrator'),
         ('GRAD', 'Grad Student Administrator'),
@@ -649,7 +649,7 @@ UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'TAAD', 'GRAD', 'FUND'] # roles department
 ROLE_DESCR = {
               'ADVS': 'Has access to the advisor notes.',
               'DISC': 'Can manage academic discipline cases in the unit: should include your Academic Integrity Coordinator.',
-              'DICC': 'Will be BCCed on all discipline case letters in the unit: include whoever files your discipline cases.',
+              'DICC': 'Will be copied on all discipline case letters in the unit: include whoever files your discipline cases.',
               'TAAD': 'Can administer TA job postings and appointments.',
               'GRAD': 'Can view and update the grad student database.',
               'FUND': 'Can work with the grad student funding database.',

@@ -52,10 +52,38 @@ def index(request):
     staff_memberships = [m for m in memberships if m.role in ['INST', 'TA', 'APPR']] # for docs link
     news_list = _get_news_list(userid, 5)
     roles = Role.all_roles(userid)
-        
+
     context = {'memberships': memberships, 'staff_memberships': staff_memberships, 'news_list': news_list, 'roles': roles}
     return render_to_response("dashboard/index.html",context,context_instance=RequestContext(request))
 
+
+def fake_login(request):
+    """
+    Fake login view for devel without access to the fake CAS server
+    """
+    import socket
+    from django.contrib.auth import login
+    from django.contrib.auth.models import User
+    hostname = socket.gethostname()
+    if settings.DEPLOYED or hostname.startswith('courses') or not settings.CAS_SERVER_URL.startswith('http://lefty.cmpt.sfu.ca'):
+        # make damn sure we're not in production
+        raise NotImplementedError
+    
+    if 'userid' in request.GET:
+        username = request.GET['userid']
+        try:
+            user = User.objects.get(username__iexact=username)
+        except User.DoesNotExist:
+            user = User.objects.create_user(username, '')
+            user.save()
+        user.backend = 'django.contrib.auth.backends.ModelBackend'
+        login(request, user)
+        return HttpResponseRedirect('/')
+
+    response = HttpResponse('<form action="">Userid: <input type="text" name="userid" /></form>')
+    return response
+    
+    
 
 @login_required
 def config(request):
