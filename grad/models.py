@@ -7,6 +7,7 @@ from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from django.template.defaultfilters import capfirst
 from django.core.paginator import Page
+from django.contrib.admin.util import related_name
 
 class GradProgram(models.Model):
     unit = models.ForeignKey(Unit, null=False, blank=False)
@@ -213,6 +214,6 @@ class OtherFunding(models.Model):
 class Promise(models.Model):
     person = models.ForeignKey(GradStudent)
     amount = models.DecimalField(verbose_name="Scholarship Amount", max_digits=8, decimal_places=2)
-    start_semester = models.ForeignKey(Semester)
-    end_semester = models.ForeignKey(Semester)
+#    start_semester = models.ForeignKey(Semester)
+#    end_semester = models.ForeignKey(Semester)
     
