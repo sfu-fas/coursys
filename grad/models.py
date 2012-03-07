@@ -7,7 +7,6 @@ from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from django.template.defaultfilters import capfirst
 from django.core.paginator import Page
-from django.contrib.admin.util import related_name
 
 class GradProgram(models.Model):
     unit = models.ForeignKey(Unit, null=False, blank=False)
