@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load mobile_tags %}
+{% load form_display %}
+
+{% block title %}{{page_title}}{% endblock %}
+{% block h1 %}{{page_title}}{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+
+
+{% block subbreadcrumbs %}
+<li>
+	&gt; <a href="{% url grad.views.index %}">Grads</a>
+</li>
+<li>
+	&gt; <a href="{% url grad.views.view_all grad_slug=grad.slug%}">{{crumb}}</a>
+</li>
+
+<li>
+	&gt; Financial Summary
+</li>
+
+{% endblock %}
+
+
+
+{% block content %}
+<div id="form_container">
+    <form action="{% url grad.views.financials grad_slug=grad.slug%}" method="GET">
+    	
+    </form>
+	<a class="button" href="{% url grad.views.index %}">Back</a>
+</div>
+{% endblock %} 

@@ -1,7 +1,8 @@
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
 from django.http import HttpResponseRedirect
-from grad.models import GradStudent, GradProgram, Supervisor, GradRequirement, CompletedRequirement, GradStatus
+from grad.models import GradStudent, GradProgram, Supervisor, GradRequirement, CompletedRequirement, GradStatus, \
+        ScholarshipType, Scholarship, Promise, OtherFunding
 from grad.forms import SupervisorForm, PotentialSupervisorForm, GradAcademicForm, GradProgramForm, \
         GradStudentForm, GradStatusForm, GradRequirementForm, possible_supervisors, BaseSupervisorsFormSet,\
     SearchForm
@@ -75,7 +76,7 @@ def view_all(request, grad_slug):
     
     # set frontend defaults
     page_title = "%s 's Graduate Student Record" % (grad.person.first_name)
-    crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
+    crumb = "%s, %s" % (grad.person.first_name, grad.person.last_name)
 
     gp = grad.person.get_fields
     context = {
@@ -139,7 +140,7 @@ def manage_supervisors(request, grad_slug):
 
     # set frontend defaults
     page_title = "%s's Supervisor(s) Record" % (grad.person.first_name)
-    crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
+    crumb = "%s, %s" % (grad.person.first_name, grad.person.last_name)
     gp = grad.person.get_fields 
     context = {
                'supervisors_formset': supervisors_formset,
@@ -183,7 +184,7 @@ def update_supervisors(request, grad_slug):
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))
         else:
             page_title = "%s's Supervisor(s) Record" % (grad.person.first_name)
-            crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
+            crumb = "%s, %s" % (grad.person.first_name, grad.person.last_name)
             gp = grad.person.get_fields 
             context = {
                'supervisors_formset': supervisors_formset,
@@ -237,7 +238,7 @@ def manage_requirements(request, grad_slug):
 
     # set frontend defaults
     page_title = "%s's Requirements Record" % (grad.person.first_name)
-    crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
+    crumb = "%s, %s" % (grad.person.first_name, grad.person.last_name)
     gp = grad.person.get_fields     
     context = {
                'req_formset': req_formset,
@@ -272,7 +273,7 @@ def manage_academics(request, grad_slug):
 
     # set frontend defaults
     page_title = "%s 's Graduate Academic Record" % (grad.person.first_name)
-    crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
+    crumb = "%s, %s" % (grad.person.first_name, grad.person.last_name)
     gp = grad.person.get_fields 
     context = {
                'grad_form': grad_form,
@@ -324,7 +325,7 @@ def manage_status(request, grad_slug):
 
     # set frontend defaults
     page_title = "%s 's Status Record" % (grad.person.first_name)
-    crumb = "%s %s" % (grad.person.first_name, grad.person.last_name)
+    crumb = "%s, %s" % (grad.person.first_name, grad.person.last_name)
     gp = grad.person.get_fields
     context = {
                'new_status' : new_status_form,
@@ -499,3 +500,32 @@ def search(request):
                    'form':form
                    }
         return render(request, 'grad/search.html', context)
+# End of Temp
+#############################################################
+@requires_role("GRAD")
+def financials(request, grad_slug):
+    grad = get_object_or_404(GradStudent, slug=grad_slug)
+    status_history = get_list_or_404(GradStatus, student=grad, hidden=False)
+    
+    scholarship = Scholarship.objects.all()
+    type = ScholarshipType.objects.all()
+    promise = Promise.objects.all()
+    other = OtherFunding.objects.all()
+    
+   
+    
+    # set frontend defaults
+    page_title = "%s's Financial Summary" % (grad.person.first_name)
+    crumb = "%s, %s" % (grad.person.last_name, grad.person.first_name)
+
+    context = {'scholarship':scholarship,
+               'type':type,
+               'promise':promise,
+               'other':other,
+               'page_title':page_title,
+               'crumb':crumb,
+               'grad':grad,
+               
+               }
+    return render(request,'grad/view_financials.html',context)
+    

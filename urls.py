@@ -275,6 +275,8 @@ urlpatterns += patterns('',
     url(r'^grad/requirement/$', 'grad.views.requirements'),
     url(r'^grad/requirement/new', 'grad.views.new_requirement'),    
     
+    
+    
     url(r'^grad/'+ GRAD_SLUG + '/$', 'grad.views.view_all'),    
     url(r'^grad/'+ GRAD_SLUG + '/manage_academics$', 'grad.views.manage_academics'),
     url(r'^grad/'+ GRAD_SLUG + '/manage_supervisors$', 'grad.views.manage_supervisors'),
@@ -282,6 +284,8 @@ urlpatterns += patterns('',
     url(r'^grad/'+ GRAD_SLUG + '/manage_status$', 'grad.views.manage_status'),
     url(r'^grad/'+ GRAD_SLUG + '/manage_requirements$', 'grad.views.manage_requirements'),    
     url(r'^grad/new', 'grad.views.new'),
+
+    url(r'^grad/'+ GRAD_SLUG + '/financial_report$', 'grad.views.financials'),
 
     # RA database
 
