@@ -19,6 +19,7 @@ def sample_letter():
     return letter
 
 response = open("letter.pdf", "w")
+# response = HttpReponse(...)
 
 unit = Unit.objects.get(label="CMPT")
 doc = OfficialLetter(response, unit=unit)
@@ -27,6 +28,7 @@ doc.add_letter(sample_letter())
 doc.add_letter(sample_letter())
 doc.write()
 
+# return response
 
 
 
