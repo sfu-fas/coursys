@@ -3,6 +3,21 @@
 {% load mobile_tags %}
 {% load form_display %}
 
+{% block headextra %}
+<link type="text/css" href="{{MEDIA_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
+<script type="text/javascript" src="{{MEDIA_URL}}multiselect/js/ui.multiselect.js"></script>
+<script type="text/javascript">
+  $(function() {
+    df = {'dateFormat': 'yy-mm-dd'};
+    $("#id_start_semester_from").datepicker(df);
+    $("#id_start_semester_to").datepicker(df);
+    $("#id_end_semester_from").datepicker(df);
+    $("#id_end_semester_to").datepicker(df);
+    $("#id_student_status").css("min-height", "250px").multiselect();
+  });
+</script>
+{% endblock %}
+
 {% block title %}{{page_title}}{% endblock %}
 {% block h1 %}{{page_title}}{% endblock %}
 
@@ -16,13 +31,29 @@
 
 {% block content %}
 <div id="form_container">
-    <form action="{% url grad.views.search %}" method="GET">
-    	<fieldset>
-			{#<legend>Advanced Search</legend>#}
+    <form id="searchform" action="{% url grad.views.search %}" method="GET">
+        <fieldset>
+            {#<legend>Advanced Search</legend>#}
             {{ form|as_dl }}
-        <p><input  class="submit"  type="submit" value="Search"></p>
+        <p><input id="submitbutton" class="submit"  type="submit" value="Search"></p>
         </fieldset>
     </form>
-	<a class="button" href="{% url grad.views.index %}">Back</a>
+    <a class="button" href="{% url grad.views.index %}">Back</a>
 </div>
-{% endblock %} 
+
+<script type="text/javascript">
+<!--
+
+$("#submitbutton").click(function(){
+      quizSearchForm = $("#searchform");
+      //disable empty fields so they don't clutter up the url
+      inputs = quizSearchForm.find(':input[value=""]');
+      inputs.attr('disabled', true);
+      quizSearchForm.submit();
+    });
+    
+$("#searchform").find(':input[value=""]').attr('disabled', false);
+
+//-->
+</script>
+{% endblock %}

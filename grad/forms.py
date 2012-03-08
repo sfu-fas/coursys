@@ -3,9 +3,10 @@ from django import forms
 import grad.models as gradmodels
 from grad.models import Supervisor, GradProgram, GradStudent, GradStatus,\
     GradRequirement, CompletedRequirement
-from coredata.models import Person, Member
+from coredata.models import Person, Member, Semester, CAMPUS_CHOICES
 from django.forms.formsets import BaseFormSet
 from django.core.exceptions import ValidationError
+from django.forms.widgets import NullBooleanSelect
 
 class LabelTextInput(forms.TextInput):
     "TextInput with a bonus label"
@@ -174,12 +175,55 @@ class CompletedRequirementForm(ModelForm):
         model = CompletedRequirement
         fields = ('requirement', 'semester', 'date', 'notes')
 
+def choices_with_negate(choices):
+    return (list(choices) + [('NOT_' + k, 'Not ' + v) for k, v in choices])
+
+class NullBooleanSelect_Filter(NullBooleanSelect):
+    def __init__(self, attrs=None):
+        choices = ((u'', '---------'), (u'2', 'Yes'), (u'3', 'No'))
+        super(NullBooleanSelect, self).__init__(attrs, choices)
+
+    def render(self, name, value, attrs=None, choices=()):
+        try:
+            value = {True: u'2', False: u'3', u'2': u'2', u'3': u'3'}[value]
+        except KeyError:
+            value = u''
+        return super(NullBooleanSelect_Filter, self).render(name, value, attrs, choices)
+
 class SearchForm(forms.Form):
     #TODO: finish
-    start_semester_from = forms.DateField()
-    start_semester_to = forms.DateField()
-    end_semester_from = forms.DateField()
-    end_semester_to = forms.DateField()
-    program = forms.CharField()
-    status = forms.MultipleChoiceField(gradmodels.STATUS_CHOICES,
-            widget=forms.CheckboxSelectMultiple)
+    
+    #TODO: create a MultiValuefield to combine all start_semester* fields
+    start_semester_from = forms.DateField(required=False, 
+            help_text='Search for when the Grad student has applied')
+    start_semester_to = forms.DateField(required=False)
+    start_semester = forms.ModelChoiceField(Semester.objects.all(), required=False)
+    # also use it for end_semester*
+    end_semester_from = forms.DateField(required=False)
+    end_semester_to = forms.DateField(required=False)
+    end_semester = forms.ModelChoiceField(Semester.objects.all(), required=False)
+    
+    # requirements?
+    student_status = forms.MultipleChoiceField(choices_with_negate(gradmodels.STATUS_CHOICES),
+#            widget=forms.CheckboxSelectMultiple,
+            required=False,
+            )
+    archive_sp = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
+    
+    #program = forms.CharField(required=False)
+    program = forms.ModelChoiceField(GradProgram.objects.all(), required=False)
+    degree = forms.ChoiceField(choices=(
+            ('','---------'),
+            ('INTL','International'),
+            ('CAN','Canadian')
+            ), required=False)
+    financial_support = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
+    campus = forms.ChoiceField([('','---------')]+list(CAMPUS_CHOICES), required=False)
+    gpa_min = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False)
+    gpa_max = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False)
+    gender = forms.ChoiceField((('','---------'), ('M','Male'), ('F','Female'), ('U','unknown')),
+            required=False)
+    visa_held = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
+    scholarship_from = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
+    scholarship_to = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
+    scholarship_semester = forms.ModelChoiceField(Semester.objects.all(), required=False)
