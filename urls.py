@@ -256,6 +256,10 @@ urlpatterns += patterns('',
     url(r'^admin/roles/$', 'coredata.views.unit_role_list'),
     url(r'^admin/roles/(?P<role_id>\d+)/delete$', 'coredata.views.delete_unit_role'),
     url(r'^admin/roles/new$', 'coredata.views.new_unit_role'),
+    url(r'^admin/signatures/$', 'dashboard.views.signatures'),
+    url(r'^admin/signatures/new$', 'dashboard.views.new_signature'),
+    url(r'^admin/signatures/' + USERID_SLUG + '/view$', 'dashboard.views.view_signature'),
+    url(r'^admin/signatures/' + USERID_SLUG + '/delete', 'dashboard.views.delete_signature'),
 
     # Advisor Notes
     

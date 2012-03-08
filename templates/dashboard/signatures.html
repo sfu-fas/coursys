@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load markup %}
+
+{% block title %}Signatures{% endblock %}
+{% block h1 %}Signatures{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; Admin </li><li>&gt; Signatures</li>{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('#sigstable').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    "aoColumns": [
+      null,
+      null,
+      null,
+    ]
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+<h2>Actions</h2>
+<ul>
+<li><a href="{% url dashboard.views.new_signature %}">Add Signature</a></li>
+</ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div class="datatable_container">
+<table id="sigstable" class="display">
+  <thead><tr><th scope="col">Person</th><th scope="col">Signature</th><th scope="col">Actions</th></tr></thead>
+  <tbody>
+  {% for s in sigs %}
+  <tr>
+  <td>{{s.user.name}}</a></td>
+  <td><img src="{% url dashboard.views.view_signature userid=s.user.userid %}" alt="/{{s.user.name}}/" style="max-width: 3in; max-height: 0.75in" /></td>
+  <td><form action="{% url dashboard.views.delete_signature userid=s.user.userid %}" method="post">{% csrf_token %}<input type="submit" value="Delete" /></form></td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% endblock %}

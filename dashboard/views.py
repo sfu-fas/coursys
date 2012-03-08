@@ -1,5 +1,5 @@
 #from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
@@ -12,13 +12,13 @@ from coredata.models import Member, CourseOffering, Person, Role, Semester, Meet
 from grades.models import Activity, NumericActivity
 from groups.models import Group, GroupMember
 from courselib.auth import requires_course_staff_by_slug, requires_course_by_slug, NotFoundResponse, ForbiddenResponse
-from dashboard.models import NewsItem, UserConfig
+from dashboard.models import NewsItem, UserConfig, Signature, new_feed_token
 from dashboard.forms import *
 from django.contrib import messages
 from log.models import LogEntry
 import random, datetime, time, json, urlparse
 from advisornotes.models import AdvisorNote
-from courselib.auth import *
+from courselib.auth import requires_role
 from icalendar import Calendar, Event, Alarm
 import pytz
 
@@ -54,7 +54,7 @@ def index(request):
     roles = Role.all_roles(userid)
 
     context = {'memberships': memberships, 'staff_memberships': staff_memberships, 'news_list': news_list, 'roles': roles}
-    return render_to_response("dashboard/index.html",context,context_instance=RequestContext(request))
+    return render(request, "dashboard/index.html", context)
 
 
 def fake_login(request):
@@ -115,7 +115,7 @@ def config(request):
         newsconfig = configs[0].value
     
     context={'caltoken': caltoken, 'newstoken': newstoken, 'newsconfig': newsconfig, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL}
-    return render_to_response("dashboard/config.html", context, context_instance=RequestContext(request))
+    return render(request, "dashboard/config.html", context)
 
 
 def _get_memberships(userid):
@@ -156,7 +156,7 @@ def new_message(request, course_slug):
             return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': offering.slug}))
     else:
         form = MessageForm()    
-    return render_to_response("dashboard/new_message.html", {"form" : form,'course': offering}, context_instance=RequestContext(request))
+    return render(request, "dashboard/new_message.html", {"form" : form,'course': offering})
 
 
 @cache_page(60 * 15)
@@ -188,7 +188,7 @@ def atom_feed(request, token, userid, course_slug=None):
         updated = '2000-01-01T00:00:00Z'
 
     context = {"news_list": news_list, 'person': user, 'updated': updated, 'course': course, 'server_url': settings.BASE_ABS_URL}
-    return render_to_response("dashboard/atom_feed.xml", context, context_instance=RequestContext(request),mimetype="application/atom+xml")
+    return render(request, "dashboard/atom_feed.xml", context, content_type="application/atom+xml")
 
 
 
@@ -352,9 +352,9 @@ def calendar(request):
     """
     Calendar display: all the hard work is JS/AJAX.
     """
-    user = get_object_or_404(Person, userid=request.user.username)
+    #user = get_object_or_404(Person, userid=request.user.username)
     context = {}
-    return render_to_response("dashboard/calendar.html", context, context_instance=RequestContext(request))
+    return render(request, "dashboard/calendar.html", context)
 
 
 @login_required
@@ -414,7 +414,7 @@ def create_calendar_url(request):
             form = FeedSetupForm()
 
     context = {'form': form}
-    return render_to_response("dashboard/calendar_url.html", context, context_instance=RequestContext(request))
+    return render(request, "dashboard/calendar_url.html", context)
 
 
 @login_required
@@ -438,7 +438,7 @@ def disable_calendar_url(request):
         form = FeedSetupForm({'agree': True})
 
     context = {'form': form}
-    return render_to_response("dashboard/disable_calendar_url.html", context, context_instance=RequestContext(request))
+    return render(request, "dashboard/disable_calendar_url.html", context)
 
 
 @login_required
@@ -468,7 +468,7 @@ def news_config(request):
         form = NewsConfigForm(initial)
 
     context = {'form': form}
-    return render_to_response("dashboard/news_config.html", context, context_instance=RequestContext(request))
+    return render(request, "dashboard/news_config.html", context)
 
 
 
@@ -480,7 +480,7 @@ def news_list(request):
     user = get_object_or_404(Person, userid = request.user.username)
     news_list = NewsItem.objects.filter(user = user).order_by('-updated')
     
-    return render_to_response("dashboard/all_news.html", {"news_list": news_list}, context_instance=RequestContext(request))
+    return render(request, "dashboard/all_news.html", {"news_list": news_list})
 
 
 @login_required
@@ -507,7 +507,7 @@ def create_news_url(request):
             form = FeedSetupForm()
 
     context = {'form': form}
-    return render_to_response("dashboard/news_url.html", context, context_instance=RequestContext(request))
+    return render(request, "dashboard/news_url.html", context)
     
 @login_required
 def disable_news_url(request):
@@ -523,7 +523,67 @@ def disable_news_url(request):
         form = FeedSetupForm({'agree': True})
 
     context = {'form': form}
-    return render_to_response("dashboard/disable_news_url.html", context, context_instance=RequestContext(request))
+    return render(request, "dashboard/disable_news_url.html", context)
+
+
+@requires_role('ADMN')
+def signatures(request):
+    roles = Role.objects.filter(unit__in=request.units).select_related('person')
+    people = [p.person for p in roles]
+    sigs = Signature.objects.filter(user__in=people)
+    context = {'sigs': sigs}
+    return render(request, "dashboard/signatures.html", context)
+
+
+@requires_role('ADMN')
+def view_signature(request, userid):
+    roles = Role.objects.filter(unit__in=request.units).select_related('person')
+    people = [p.person for p in roles]
+    sig = get_object_or_404(Signature, user__in=people, user__userid=userid)
+    
+    response = HttpResponse(sig.sig, mimetype='image/png')
+    response['Content-Disposition'] = 'inline; filename=%s.png' % (userid)
+    response['Content-Length'] = sig.sig.size
+    return response
+
+@requires_role('ADMN')
+def delete_signature(request, userid):
+    roles = Role.objects.filter(unit__in=request.units).select_related('person')
+    people = [p.person for p in roles]
+    sig = get_object_or_404(Signature, user__in=people, user__userid=userid)
+    
+    if request.method == 'POST':
+        sig.sig.delete(save=False)
+        sig.delete()
+        messages.add_message(request, messages.SUCCESS, 'Deleted signature for %s.' % (sig.user.name()))
+
+    return HttpResponseRedirect(reverse('dashboard.views.signatures'))
+
+@requires_role('ADMN')
+def new_signature(request):
+    roles = Role.objects.filter(unit__in=request.units).select_related('person')
+    people = set((p.person for p in roles))
+    people = sorted(list(people))
+    person_choices = [(p.id, p.sortname()) for p in people]
+    
+    if request.method == 'POST':
+        form = SignatureForm(request.POST, request.FILES)
+        form.fields['person'].choices = person_choices
+        if form.is_valid():
+            person = Person.objects.get(id=form.cleaned_data['person'])
+            sig, created = Signature.objects.get_or_create(user=person)
+            if not created:
+                sig.sig.delete(save=False)
+            sig.sig = form.cleaned_data['signature']
+            sig.save()
+            
+            messages.add_message(request, messages.SUCCESS, 'Created signature for %s.' % (sig.user.name()))
+            return HttpResponseRedirect(reverse('dashboard.views.signatures'))
+    else:
+        form = SignatureForm()
+        form.fields['person'].choices = person_choices
+    context = {'form': form}
+    return render(request, "dashboard/new_signature.html", context)
 
 
 
@@ -531,7 +591,7 @@ def disable_news_url(request):
 
 def list_docs(request):
     context = {}
-    return render_to_response("docs/index.html", context, context_instance=RequestContext(request))
+    return render(request, "docs/index.html", context)
 
 def view_doc(request, doc_slug):
     context = {'BASE_ABS_URL': settings.BASE_ABS_URL}
@@ -595,7 +655,7 @@ def view_doc(request, doc_slug):
             context['act1'] = None
             context['act2'] = None
 
-    return render_to_response("docs/doc_" + doc_slug + ".html", context, context_instance=RequestContext(request))
+    return render(request, "docs/doc_" + doc_slug + ".html", context)
 
 
 # data export views

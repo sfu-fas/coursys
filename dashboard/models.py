@@ -8,7 +8,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.core.urlresolvers import reverse
 from autoslug.settings import slugify
 from jsonfield import JSONField
-import random, hashlib
+import random, hashlib, os
 
 import textile
 Textile = textile.Textile(restricted=True)
@@ -194,5 +194,27 @@ class UserConfig(models.Model):
     def __unicode__(self):
         return "%s: %s='%s'" % (self.user.userid, self.key, self.value)
 
+from django.core.files.storage import FileSystemStorage
+SignatureStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
+
+def _sig_upload_to(instance, filename):
+    """
+    path to upload case attachment
+    """
+    fullpath = os.path.join(
+        "signatures",
+        str(instance.user.userid),
+        filename.encode('ascii', 'ignore'))
+    return fullpath
 
 
+class Signature(models.Model):
+    """
+    User's signature (for letters)
+    """
+    user = models.ForeignKey(Person, null=False)
+    sig = models.ImageField(upload_to=_sig_upload_to, storage=SignatureStorage, max_length=500)
+    resolution = 200 # expect 200 dpi images
+    
+    def __unicode__(self):
+        return "Signature of %s" % (self.user.name())

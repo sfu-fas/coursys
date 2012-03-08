@@ -1,5 +1,5 @@
 from django import forms
-from dashboard.models import *
+from dashboard.models import NewsItem
 
 class MessageForm(forms.ModelForm):
     class Meta:
@@ -18,5 +18,14 @@ class FeedSetupForm(forms.Form):
 
 class NewsConfigForm(forms.Form):
     want_email = forms.BooleanField(required=False, label="Send Email", help_text="Send emails of new notifications to your email?")
+    
+class SignatureForm(forms.Form):
+    person = forms.ChoiceField(choices=[])
+    signature = forms.ImageField(required=True, help_text="Must be a PNG image, scanned at 200dpi: around 75 pixels tall and 500 pixels wide.")
+    
+    def clean_signature(self):
+        sig = self.cleaned_data['signature']
+        # TODO: check image type/size/colours
+        return sig
     
 

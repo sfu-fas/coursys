@@ -4,7 +4,8 @@ sys.path.append('.')
 sys.path.append('external')
 
 from dashboard.letters import OfficialLetter, LetterContents
-from coredata.models import Unit
+from coredata.models import Unit, Person
+from dashboard.models import Signature
 import random
 
 from django.contrib.webdesign.lorem_ipsum import paragraphs
@@ -12,7 +13,8 @@ from django.contrib.webdesign.lorem_ipsum import paragraphs
 def sample_letter():
     to_addr_lines = ['Some Person', '123 Fake St', 'Vancouver, BC, Canada']
     from_name_lines = ['Greg Baker', 'Lecturer, School of Computing Science']
-    letter = LetterContents(to_addr_lines=to_addr_lines, from_name_lines=from_name_lines)
+    signer = Person.objects.get(userid="ggbaker")
+    letter = LetterContents(to_addr_lines=to_addr_lines, from_name_lines=from_name_lines, signer=signer)
     letter.add_paragraphs(paragraphs(random.randint(5,20)))
     return letter
 

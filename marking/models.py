@@ -501,6 +501,7 @@ def copyCourseSetup(course_copy_from, course_copy_to):
         new_v.wikitext = v.get_wikitext()
         new_v.diff = None
         new_v.diff_from = None
+        new_v.comment = "Page migrated from %s" % (course_copy_from)
         
         if new_v.file_attachment:
             # copy the file (so we can safely remove old semesters'

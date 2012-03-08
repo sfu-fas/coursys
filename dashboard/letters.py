@@ -1,5 +1,5 @@
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import Paragraph, Spacer, Frame, KeepTogether, Flowable, NextPageTemplate, PageBreak
+from reportlab.platypus import Paragraph, Spacer, Frame, KeepTogether, Flowable, NextPageTemplate, PageBreak, Image
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.pdfgen import textobject
@@ -8,8 +8,10 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.colors import CMYKColor
 from reportlab.lib.enums import TA_JUSTIFY
 import os, datetime
+from dashboard.models import Signature
 
 PAPER_SIZE = letter
+black = CMYKColor(0, 0, 0, 1)
 media_path = os.path.join('external', 'sfu')
 
 from reportlab.platypus.doctemplate import PageTemplate, BaseDocTemplate
@@ -170,19 +172,7 @@ class OfficialLetter(BaseDocTemplate):
         self.sfu_red = CMYKColor(0, 1, 0.79, 0.2)
         self.sfu_grey = CMYKColor(0, 0, 0.15, 0.82)
         self.sfu_blue = CMYKColor(1, 0.68, 0, 0.12)
-        self.black = CMYKColor(0, 0, 0, 1)
         
-        # styles
-        self.line_height = 13
-        self.content_style = ParagraphStyle(name='Normal',
-                                      fontName='BemboMTPro',
-                                      fontSize=12,
-                                      leading=self.line_height,
-                                      allowWidows=0,
-                                      allowOrphans=0,
-                                      alignment=TA_JUSTIFY,
-                                      textColor=self.black)
-
         # translate digits to old-style numerals (in their Bembo character positions)
         self.digit_trans = {}
         for d in range(10):
@@ -206,28 +196,50 @@ class OfficialLetter(BaseDocTemplate):
 class LetterContents(object):
     """
     Contents of a single letter.
+    
+    to_addr_lines: the lines of the recipient's address (list of strings)
+    from_name_lines: the sender's name (and title, etc) (list of strings)
+    date: sending date of the letter (datetime.date object)
+    saluations: letter's salutation (string)
+    closing: letter's closing (string)
+    signer: person signing the letter, if knows (a coredata.models.Person)
     """
-    def __init__(self, to_addr_lines, from_name_lines, date=None, salutation="To whom it may concern", closing="Sincerely", paragraphs=None):
+    def __init__(self, to_addr_lines, from_name_lines, date=None, salutation="To whom it may concern",
+                 closing="Yours truly", signer=None, paragraphs=None):
         self.date = date or datetime.date.today()
         self.salutation = salutation
         self.closing = closing
-        self.paragraphs = paragraphs or []
+        self.flowables = []
         self.to_addr_lines = to_addr_lines
         self.from_name_lines = from_name_lines
+        self.signer = signer
+        if paragraphs:
+            self.add_paragraphs(paragraphs)
+        
+        # styles
+        self.line_height = 13
+        self.content_style = ParagraphStyle(name='Normal',
+                                      fontName='BemboMTPro',
+                                      fontSize=12,
+                                      leading=self.line_height,
+                                      allowWidows=0,
+                                      allowOrphans=0,
+                                      alignment=TA_JUSTIFY,
+                                      textColor=black)
         
     def add_paragraph(self, text):
         "Add a paragraph (represented as a string) to the letter: used by OfficialLetter.add_letter"
-        self.paragraphs.append(text)
+        self.flowables.append(Paragraph(text, self.content_style))
 
     def add_paragraphs(self, paragraphs):
         "Add a list of paragraphs (strings) to the letter"
-        self.paragraphs.extend(paragraphs)
+        self.flowables.extend([Paragraph(text, self.content_style) for text in paragraphs])
     
     def _contents(self, letter):
         "Builds of contents that can be added to a letter"
         contents = []
-        space_height = letter.line_height
-        style = letter.content_style
+        space_height = self.line_height
+        style = self.content_style
 
         contents.append(Paragraph(self.date.strftime('%B %d, %Y').replace(' 0', ' '), style))
         contents.append(Spacer(1, space_height))
@@ -239,16 +251,32 @@ class LetterContents(object):
         contents.append(Paragraph(self.salutation+",", style))
         contents.append(Spacer(1, space_height))
         
-        for line in self.paragraphs[:-1]:
+        for f in self.flowables[:-1]:
             # last paragraph is put in the KeepTogether below, to prevent bad page break
-            contents.append(Paragraph(line, style))
+            contents.append(f)
             contents.append(Spacer(1, space_height))
         
+        # closing block (kept together on one page)
         close = []
-        close.append(Paragraph(self.paragraphs[-1], style))
+        close.append(self.flowables[-1])
         close.append(Spacer(1, 2*space_height))
         close.append(Paragraph(self.closing+",", style))
-        close.append(Spacer(1, 5*space_height))
+        # signature
+        if self.signer:
+            try:
+                sig = Signature.objects.get(user=self.signer)
+                sig.sig.open()
+                wid = sig.sig.width / float(sig.resolution) * inch
+                hei = sig.sig.height / float(sig.resolution) * inch
+                img = Image(sig.sig, width=wid, height=hei)
+                img.hAlign = 'LEFT'
+                close.append(Spacer(1, space_height))
+                close.append(img)
+            except Signature.DoesNotExist:
+                close.append(Spacer(1, 4*space_height))
+        else:
+            close.append(Spacer(1, 4*space_height))
+        
         for line in self.from_name_lines:
             close.append(Paragraph(line, style))
         

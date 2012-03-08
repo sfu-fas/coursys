@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Add Signature{% endblock %}
+{% block h1 %}Add Signature{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; Admin </li><li>&gt; <a href="{% url dashboard.views.signatures %}">Signatures</a></li><li>&gt; New</li>{% endblock %}
+
+{% block content %}
+<form action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+{{form|as_dl}}
+<p><input type="submit" value="Add Signature" /></p>
+</form>
+{% endblock %}
