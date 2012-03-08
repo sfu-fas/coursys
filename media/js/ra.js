@@ -15,44 +15,26 @@ function ra_autocomplete() {
         });
     });
 }
-/*
-function update_hourly() {
-    var rate = $("#id_rate").val();
-    var amount = $("#id_amount").val();
-    var hours_input = $("#id_hours").val();
-    if (amount !== "") {
-        if (rate == "H") {
-            $('#id_hourly_rate').text("Hourly Rate: $" + amount);
-        }
-        else if ((rate == "L" || rate == "B") && hours_input !== "") {
-            var total = parseFloat(amount, 10);
-            var num_hours = parseFloat(hours_input, 10);
-            var num_minutes = parseFloat($("#id_minutes").val());
-            if (isNaN(num_minutes)){
-                num_minutes = 0;
-            }
-            var pay_rate = (total / (num_hours + (num_minutes / 60)));
-            $('#id_hourly_rate').text("Hourly Rate: $" + pay_rate.toFixed(2));
-        }
-    }
+function update_lump_sum() {
+    var lump_sum = parseFloat($("#id_lump_sum_pay").val());
+    var num_periods = parseFloat($("#id_pay_periods").val());
+    var num_hours = parseFloat($("#id_hours").val());
+    $("#id_hourly_pay").val((lump_sum / (num_periods * num_hours)).toFixed(2));
+    $("#id_biweekly_pay").val((lump_sum / num_periods).toFixed(2));  
 }
 
-$(document).ready(function() {
-    $('#id_periods').parent().append('<div id="id_hourly_rate"></div>');
-    $("#id_amount").change(function() {
-        update_hourly();
-    });
-    $("#id_rate").change(function() {
-        update_hourly();
-    });
-    $("#id_hours").change(function() {
-        update_hourly();
-    });
-    $("#id_minutes").change(function() {
-        update_hourly();
-    });
-    $("#id_periods").change(function() {
-        update_hourly();
-    });
-});​
-*/
+function update_biweekly() {
+    var biweekly = parseFloat($("#id_biweekly_pay").val());
+    var num_periods = parseFloat($("#id_pay_periods").val());
+    var num_hours = parseFloat($("#id_hours").val());
+    $("#id_lump_sum_pay").val((biweekly * num_periods).toFixed(2));
+    $("#id_hourly_pay").val((biweekly / num_hours).toFixed(2));
+}
+
+function update_hourly() {
+    var hourly = parseFloat($("#id_hourly_pay").val());
+    var num_periods = parseFloat($("#id_pay_periods").val());
+    var num_hours = parseFloat($("#id_hours").val());
+    $("#id_lump_sum_pay").val((hourly * num_hours * num_periods).toFixed(2));
+    $("#id_biweekly_pay").val((hourly * num_hours).toFixed(2));
+}

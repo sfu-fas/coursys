@@ -49,7 +49,6 @@ def pay_periods(start_date, end_date):
         start_date += timedelta(days=1)
     return float(weekdays)/10
 
-
 #New RA Appointment
 @requires_role("FUND")
 def new(request):
@@ -62,8 +61,8 @@ def new(request):
             return HttpResponseRedirect(reverse(student_appointments, kwargs=({'userid': userid})))
     else:
         semester = Semester.first_relevant() 
-        units = str(pay_periods(semester.start, semester.end))
-        raform = RAForm(initial={'start_date': semester.start, 'end_date': semester.end, 'units': units})
+        periods = str(pay_periods(semester.start, semester.end))
+        raform = RAForm(initial={'start_date': semester.start, 'end_date': semester.end, 'pay_periods': periods, 'hours': 70 })
         raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
         raform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
         raform.fields['project'].choices = [(p.id, unicode(p.project_number)) for p in Project.objects.filter(unit__in=request.units)]
