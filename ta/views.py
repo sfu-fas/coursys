@@ -347,11 +347,25 @@ def assign_bus(request, post_slug, course_slug):
             apps[i].rank = formset[i]['rank'].value()
             apps[i].save()
 
-    else: 
-        formset = AssignBUFormSet(initial=initial)
- 
-    context = {'formset':formset, 'posting':posting, 'offering':offering, 'applications': apps, 'course_preferences': course_prefs, 'campus_preferences':campus_prefs}
+    formset = AssignBUFormSet(initial=initial)
+    try:
+        extra_bu = offering.config['extra_bu']
+    except KeyError:
+        extra_bu = decimal.Decimal('0.00')
+    context = {'formset':formset, 'posting':posting, 'offering':offering, 'extra_bu':extra_bu, 'applications': apps, 'course_preferences': course_prefs, 'campus_preferences':campus_prefs}
     return render(request, 'ta/assign_bu.html', context) 
+
+@requires_role("TAAD")
+def update_course_bus(request, post_slug, course_slug):
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+        
+    if request.method == "POST":
+        extra_bu = decimal.Decimal(request.POST['extra_bu'])
+        offering.config['extra_bu'] = extra_bu
+        offering.save()
+        
+    return HttpResponseRedirect(reverse(assign_bus, args=(post_slug,course_slug,)))
+
 
 @requires_role("TAAD")
 def all_contracts(request):
