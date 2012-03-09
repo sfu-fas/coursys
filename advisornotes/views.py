@@ -11,35 +11,67 @@ from advisornotes.forms import AdvisorNoteForm, StudentSelect, StudentField, Stu
 from django.contrib import messages
 from courselib.search import get_query
 import json
+from coredata.queries import find_person, add_person, SIMSProblem
+from log.models import LogEntry
+
+def _redirect_to_notes(student):
+    """
+    Not all possible students have an active computing account: use userid if we can, or emplid if not.
+    """
+    if student.userid:
+        return HttpResponseRedirect(reverse('advisornotes.views.student_notes', kwargs={'userid': student.userid}))
+    else:        
+        return HttpResponseRedirect(reverse('advisornotes.views.student_notes', kwargs={'userid': student.emplid}))
+
+def _find_userid_or_emplid(userid):
+    """
+    Search by userid or emplid
+    """
+    try:
+        int(userid)
+        return Q(userid=userid) | Q(emplid=userid)
+    except ValueError:
+        return Q(userid=userid)
 
 @requires_advisor
-def advising(request, student_id=None):
-    if student_id:
-        student = get_object_or_404(Person, id=student_id)
-    else:
-        student = None
+def advising(request):
         
     if request.method == 'POST':
         # find the student if we can and redirect to info page
         form = StudentSearchForm(request.POST)
         if not form.is_valid():
-            messages.add_message(request, messages.ERROR, 'Invalid search')
-            context = {'form': form}
+            simserror = ''
+            if 'search' in form.data:
+                emplid = form.data['search']
+                simsinfo = find_person(emplid)
+                if isinstance(simsinfo, SIMSProblem):
+                    simserror = simsinfo
+                    simsinfo = None
+            else:
+                simsinfo = None
+            
+            context = {'form': form, 'simsinfo': simsinfo, 'simserror': simserror}
             return render_to_response('advisornotes/student_search.html', context, context_instance=RequestContext(request))
         search = form.cleaned_data['search']
-        return HttpResponseRedirect(reverse('advisornotes.views.student_notes', kwargs={'userid': search.userid}))        
-    if student_id:
-        form = StudentSearchForm(instance=student, initial={'student': student.userid})
-    else:
-        form = StudentSearchForm()
+        return _redirect_to_notes(search)
+    form = StudentSearchForm()
     context = {'form': form}
     return render_to_response('advisornotes/student_search.html', context, context_instance=RequestContext(request))
 
 @requires_role('ADVS')
-def new_note(request,userid):
-    student = Person.objects.get(userid = userid)
-    #depts = Role.objects.filter(person__userid=request.user.username, role='ADVS').values('unit_id')
-    #unit_choices = Unit.objects.filter(id__in=depts).values_list('id','name')
+def sims_add_person(request):
+    if request.method == 'POST':
+        emplid = request.POST.get('emplid', None)
+        if emplid:
+            p = add_person(emplid)
+            return _redirect_to_notes(p)
+    
+    return HttpResponseRedirect(reverse('advisornotes.views.advising', kwargs={}))        
+
+
+@requires_role('ADVS')
+def new_note(request, userid):
+    student = get_object_or_404(Person, _find_userid_or_emplid(userid))
     unit_choices = [(u.id, unicode(u)) for u in request.units]
 
     if request.method == 'POST':
@@ -47,8 +79,8 @@ def new_note(request,userid):
         form.fields['unit'].choices = unit_choices
         if form.is_valid():
             note = form.save(False)
-            note.student_id= student.id
-            note.advisor_id = Person.objects.get(userid = request.user.username).id
+            note.student = student
+            note.advisor = Person.objects.get(userid=request.user.username)
 
             if 'file_attachment' in request.FILES:
                 upfile = request.FILES['file_attachment']
@@ -56,47 +88,43 @@ def new_note(request,userid):
                 messages.add_message(request, messages.SUCCESS, 'Created file attachment "%s".' % (upfile.name))
                 
             note.save()
-            """
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=("new note: for %s") % (form.instance.student),
+                  description=("new note for %s by %s") % (form.instance.student, request.user.username),
                   related_object=form.instance)
             l.save()
-            """
-            messages.add_message(request, messages.SUCCESS, 'Note created successfully.' )
+            messages.add_message(request, messages.SUCCESS, 'Note created.' )
             notes = AdvisorNote.objects.filter(student__userid=userid)
-            return redirect('..', {'notes': notes, 'student' : student})
-            # FIX: the '..' doesn't seem optimal, but I can't find a better way
+            return _redirect_to_notes(student)
     else:
         form = AdvisorNoteForm(initial={'student': student })
         form.fields['unit'].choices = unit_choices
-    return render(request, 'advisornotes/new_note.html', {'form': form, 'student':student} )
+    return render(request, 'advisornotes/new_note.html', {'form': form, 'student':student, 'userid': userid} )
  
-@requires_role('ADVS')
-def view_note(request, userid, note_id):
-    note = get_object_or_404(AdvisorNote, pk=note_id)
-    student = Person.objects.get(userid=userid)
-    return render(request, 'advisornotes/view_note.html', {'note': note, 'student':student}, context_instance=RequestContext(request))
+#@requires_role('ADVS')
+#def view_note(request, userid, note_id):
+#    note = get_object_or_404(AdvisorNote, pk=note_id, unit__in=request.units)
+#    student = get_object_or_404(Person, _find_userid_or_emplid(userid))
+#    return render(request, 'advisornotes/view_note.html', {'note': note, 'student':student}, context_instance=RequestContext(request))
 
-@requires_advisor
-def student_notes(request,userid):
+@requires_role('ADVS')
+def student_notes(request, userid):
+    student = get_object_or_404(Person, _find_userid_or_emplid(userid))
     if request.POST:
         if request.is_ajax():
-            note = get_object_or_404(AdvisorNote, pk=request.POST['note_id'])
+            note = get_object_or_404(AdvisorNote, pk=request.POST['note_id'], unit__in=request.units)
             if request.POST['hide']=="yes":
                 note.hidden=True
             else:
                 note.hidden=False
             note.save()
             
-    depts = Role.objects.filter(person__userid=request.user.username, role='ADVS').values('unit_id')
-    notes = AdvisorNote.objects.filter(student__userid=userid, unit__id__in=depts).order_by("-created_at")
-    student = Person.objects.get(userid=userid)
-    return render(request, 'advisornotes/student_notes.html', {'notes': notes, 'student' : student}, context_instance=RequestContext(request))
+    notes = AdvisorNote.objects.filter(student=student, unit__in=request.units).order_by("-created_at")
+    return render(request, 'advisornotes/student_notes.html', {'notes': notes, 'student' : student, 'userid': userid}, context_instance=RequestContext(request))
     
-@requires_advisor
+@requires_role('ADVS')
 def download_file(request, userid, note_id):
-    note = AdvisorNote.objects.get(id = note_id)
+    note = AdvisorNote.objects.get(id=note_id, unit__in=request.units)
     note.file_attachment.open()
     resp = HttpResponse(note.file_attachment, mimetype=note.file_mediatype)
     resp['Content-Disposition'] = 'inline; filename=' + note.attachment_filename()

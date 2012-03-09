@@ -219,7 +219,7 @@ class LetterContents(object):
         # styles
         self.line_height = 13
         self.content_style = ParagraphStyle(name='Normal',
-                                      fontName='Helvetica',
+                                      fontName='BemboMTPro',
                                       fontSize=12,
                                       leading=self.line_height,
                                       allowWidows=0,

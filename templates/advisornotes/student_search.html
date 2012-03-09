@@ -17,8 +17,23 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block content %}
+<div id="form_container">
 <form action="" method="post" width="100">{% csrf_token %}
+<fieldset>
 {{form.as_p}}
 <p><input class="submit" type="submit" value="Submit" /></p>
+</fieldset>
 </form>
+
+{% if simserror %}
+<p class="empty">Problem when checking SIMS for missing student data: {{simserror}}.</p>
+{% endif %}
+{% if simsinfo %}
+<form action="{% url advisornotes.views.sims_add_person %}" method="post">{% csrf_token %}
+<p>Person found in SIMS: {{ simsinfo.last_name }}, {{ simsinfo.first_name }}, {{ simsinfo.emplid }}.
+<input type="hidden" name="emplid" value="{{ simsinfo.emplid }}" />
+<input type="submit" value="Add From SIMS"/></p>
+</form>
+{% endif %}
+</div>
 {% endblock %}

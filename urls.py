@@ -266,10 +266,11 @@ urlpatterns += patterns('',
     # Advisor Notes
     
     url(r'^advising/$', 'advisornotes.views.advising'),
-    url(r'^advising/students/' + USERID_SLUG + '/notes/new$', 'advisornotes.views.new_note'),
-    url(r'^advising/students/' + USERID_SLUG + '/$', 'advisornotes.views.student_notes'),
-    url(r'^advising/students/' + USERID_SLUG + '/notes/' + NOTE_ID + '$', 'advisornotes.views.view_note'),
-    url(r'^advising/students/' + USERID_SLUG + '/notes/' + NOTE_ID + '/download$', 'advisornotes.views.download_file'),
+    url(r'^advising/sims_add$', 'advisornotes.views.sims_add_person'),
+    url(r'^advising/students/' + USERID_OR_EMPLID + '/new$', 'advisornotes.views.new_note'),
+    url(r'^advising/students/' + USERID_OR_EMPLID + '/$', 'advisornotes.views.student_notes'),
+    #url(r'^advising/students/' + USERID_OR_EMPLID + '/' + NOTE_ID + '$', 'advisornotes.views.view_note'),
+    url(r'^advising/students/' + USERID_OR_EMPLID + '/' + NOTE_ID + '/file', 'advisornotes.views.download_file'),
     
     # Graduate student database
 

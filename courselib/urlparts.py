@@ -10,6 +10,9 @@ COURSE_ACTIVITY_SLUG = COURSE_SLUG + '/\+' + ACTIVITY_SLUG
 COURSE_ACTIVITY_SLUG_OLD = COURSE_SLUG + '/' + ACTIVITY_SLUG
 
 USERID_SLUG = '(?P<userid>[\w\-]+)'
+# USERID_OR_EMPLID is the same as USERID_SLUG, but might be a userid or emplid (use
+# in cases where there might be no active computing account for the person).
+USERID_OR_EMPLID = USERID_SLUG
 GROUP_SLUG  = '(?P<group_slug>' + GROUP_SLUG_RE + ')'
 
 COMPONENT_SLUG = '(?P<component_slug>' + SLUG_RE + ')'

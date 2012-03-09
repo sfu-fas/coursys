@@ -1,6 +1,12 @@
+from coredata.models import Person
+from django.db import transaction
+
 class SIMSConn(object):
     """
     Singleton object representing SIMS DB connection
+    
+    Exceptions that might be thrown:
+      SIMSConn.DatabaseError
     
     singleton pattern implementation from: http://stackoverflow.com/questions/42558/python-and-the-singleton-pattern
     
@@ -30,6 +36,7 @@ class SIMSConn(object):
         simspasswd = passfile.next().strip()
         
         import DB2
+        SIMSConn.DatabaseError = DB2.DatabaseError
         dbconn = DB2.connect(dsn=self.sims_db, uid=self.sims_user, pwd=simspasswd)
         return dbconn, dbconn.cursor()
 
@@ -82,15 +89,46 @@ class SIMSConn(object):
         return list(self.__iter__())
 
 
+class SIMSProblem(unicode):
+    """
+    Class used to pass back problems with the SIMS connection.
+    """
+    pass
+
+
 def find_person(emplid):
     """
-    Find the person in SIMS: return data or None
+    Find the person in SIMS: return data or None (not found) or a SIMSProblem instance (error message).
     """
-    db = SIMSConn()
-    db.execute("SELECT emplid, last_name, first_name, middle_name FROM dbsastg.ps_personal_data WHERE emplid=%s",
-               (str(emplid),))
+    try:
+        db = SIMSConn()
+        db.execute("SELECT emplid, last_name, first_name, middle_name FROM dbsastg.ps_personal_data WHERE emplid=%s",
+                   (str(emplid),))
 
-    for emplid, last_name, first_name, middle_name in db:
-        return {'emplid': emplid, 'last_name': last_name, 'first_name': first_name, 'middle_name': middle_name}
+        for emplid, last_name, first_name, middle_name in db:
+            return {'emplid': emplid, 'last_name': last_name, 'first_name': first_name, 'middle_name': middle_name}
+    except SIMSConn.DatabaseError:
+        return SIMSProblem("could not connect to reporting database")
+
+
+def add_person(emplid):
+    """
+    Add a Person object based on the found SIMS data
+    """
+    data = find_person(emplid)
+    if not data:
+        return
+
+    with transaction.commit_on_success():
+        ps = Person.objects.filter(emplid=data['emplid'])
+        if ps:
+            # person already there: ignore
+            return ps[0]
+        p = Person(emplid=data['emplid'], userid=None, last_name=data['last_name'], first_name=data['first_name'],
+                   pref_first_name=data['first_name'], middle_name=data['middle_name'])
+        p.save()
+    return p
+
+
 
 
