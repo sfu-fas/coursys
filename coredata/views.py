@@ -244,6 +244,13 @@ def manage_tas(request, course_slug):
 # views for departmental admins to manage permissions
 
 @requires_role("ADMN")
+def unit_admin(request):
+    """
+    Unit admin front page
+    """
+    return render(request, 'coredata/unit_admin.html', {})
+
+@requires_role("ADMN")
 def unit_role_list(request):
     """
     Display list of who has what role (for department admins)

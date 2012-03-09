@@ -526,6 +526,8 @@ def disable_news_url(request):
     return render(request, "dashboard/disable_news_url.html", context)
 
 
+# management of Signature objects by manager
+
 @requires_role('ADMN')
 def signatures(request):
     roles = Role.objects.filter(unit__in=request.units).select_related('person')

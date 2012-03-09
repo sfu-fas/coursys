@@ -15,7 +15,7 @@ def sample_letter():
     from_name_lines = ['Greg Baker', 'Lecturer, School of Computing Science']
     signer = Person.objects.get(userid="ggbaker")
     letter = LetterContents(to_addr_lines=to_addr_lines, from_name_lines=from_name_lines, signer=signer)
-    letter.add_paragraphs(paragraphs(random.randint(5,20)))
+    letter.add_paragraphs(paragraphs(random.randint(5,15)))
     return letter
 
 response = open("letter.pdf", "w")

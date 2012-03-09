@@ -254,6 +254,7 @@ urlpatterns += patterns('',
     url(r'^sysadmin/dishonesty/edit/(?P<template_id>\d+)$', 'discipline.views.edit_template'),
     url(r'^sysadmin/dishonesty/delete/(?P<template_id>\d+)$', 'discipline.views.delete_template'),
 
+    url(r'^admin/$', 'coredata.views.unit_admin'),
     url(r'^admin/roles/$', 'coredata.views.unit_role_list'),
     url(r'^admin/roles/(?P<role_id>\d+)/delete$', 'coredata.views.delete_unit_role'),
     url(r'^admin/roles/new$', 'coredata.views.new_unit_role'),

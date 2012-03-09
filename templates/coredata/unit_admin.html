@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Department Admin{% endblock %}
+{% block h1 %}Department Admin{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; Admin</li>{% endblock %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    <li><a href="{% url coredata.views.unit_role_list %}">Manage Roles</a></li>
+    <li><a href="{% url dashboard.views.signatures %}">Manage Signatures</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+{% endblock %}

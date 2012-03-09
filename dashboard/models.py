@@ -213,7 +213,7 @@ class Signature(models.Model):
     User's signature (for letters)
     """
     user = models.ForeignKey(Person, null=False)
-    sig = models.ImageField(upload_to=_sig_upload_to, storage=SignatureStorage, max_length=500)
+    sig = models.FileField(upload_to=_sig_upload_to, storage=SignatureStorage, max_length=500)
     resolution = 200 # expect 200 dpi images
     
     def __unicode__(self):

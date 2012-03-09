@@ -43,7 +43,7 @@ $(document).ready(function() {
     <li  class='newsec'><a href="{% url ta.views.view_postings %}">TA Job Postings</a></li>
     {% if 'TAAD' in roles %}<li><a href="{% url ta.views.all_applications %}">View TA Applications</a></li>{% endif %}
     {% if 'TAAD' in roles %}<li><a href="{% url ta.views.all_contracts %}">TA Contracts</a></li>{% endif %}
-    {% if 'ADMN' in roles %}<li class="newsec"><a href="{% url coredata.views.unit_role_list %}">Manage User Roles</a></li>{% endif %}
+    {% if 'ADMN' in roles %}<li class="newsec"><a href="{% url coredata.views.unit_admin %}">Department Management</a></li>{% endif %}
     </ul>
 </div>
 {% endblock %}
