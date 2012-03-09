@@ -2,6 +2,7 @@ from django import forms
 from django.conf import settings
 from grades.models import ACTIVITY_STATUS_CHOICES, NumericActivity, LetterActivity, CalNumericActivity, Activity, NumericGrade, LetterGrade,ACTIVITY_TYPES, LETTER_GRADE_CHOICES
 from coredata.models import CourseOffering
+from groups.models import GroupMember
 from django.utils.safestring import mark_safe
 import pickle
 from grades.formulas import parse, activities_dictionary, cols_used
@@ -98,6 +99,20 @@ class ActivityForm(forms.Form):
         
         return short_name
 
+    def _cant_change_group_reason(self, old_act):
+        """
+        Returns reason the group status can't be changed (or None if it can be).
+        """
+        if old_act.due_date and old_act.due_date < datetime.datetime.now():
+            return 'due date has passed'
+        if Submission.objects.filter(activity=old_act):
+            return 'submissions have already been made'
+        if NumericGrade.objects.filter(activity=old_act).exclude(flag="NOGR") \
+                or LetterGrade.objects.filter(activity=old_act).exclude(flag="NOGR"):
+            return 'grades have already been given'
+        
+        return None
+
     def clean_group(self):
         if self._addform_validate:
             # adding new activity: any value okay
@@ -112,19 +127,39 @@ class ActivityForm(forms.Form):
         
         if new_group != old.group:
             # attempting to switch group <-> individual: make sure that's allowed
-            if old.due_date and old.due_date < datetime.datetime.now():
-                raise forms.ValidationError('Cannot change group/individual status: due date has passed.')
-            if Submission.objects.filter(activity=old):
-                raise forms.ValidationError('Cannot change group/individual status: submissions have already been made.')
-            if NumericGrade.objects.filter(activity=old).exclude(flag="NOGR") \
-                    or LetterGrade.objects.filter(activity=old).exclude(flag="NOGR"):
-                raise forms.ValidationError('Cannot change group/individual status: grades have already been given.')
+            reason = self._cant_change_group_reason(old)
+            if reason:
+                raise forms.ValidationError('Cannot change group/individual status: ' + reason + '.')
 
         if new_group:
             # apparently 0 == True in this world.  Should fix GROUP_STATUS*
             return '0'
         else:
             return '1'
+
+    def clean_extend_group(self):
+        extend_group = self.cleaned_data['extend_group']
+        if extend_group == 'None':
+            return None
+        
+        if 'group' not in self.cleaned_data or self.cleaned_data['group'] == '1':
+            raise forms.ValidationError('Cannot extend groups on non-group activity.')
+        
+        if self._addform_validate:
+            # adding new activity: any value okay
+            return self.cleaned_data['group']
+        
+        members = GroupMember.objects.filter(student__offering__slug=self._course_slug, activity__slug=self._activity_slug)
+        if members:
+            raise forms.ValidationError('Cannot extend groups: groups exist for this activity.')
+        
+        # have things started?
+        old = Activity.objects.get(offering__slug=self._course_slug, slug=self._activity_slug)
+        reason = self._cant_change_group_reason(old)
+        if reason:
+            raise forms.ValidationError('Cannot extend groups: ' + reason + '.')
+        return extend_group
+
 
 class NumericActivityForm(ActivityForm):
         

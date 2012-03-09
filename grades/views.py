@@ -836,24 +836,36 @@ def edit_activity(request, course_slug, activity_slug):
     if (len(activities) == 1):
         activity = activities[0]
 
+        # extend group options
+        activities_list = [(None, u'\u2014'),]
+        activities = all_activities_filter(offering=course)
+        for a in activities:
+            if a.group == True and a.id != activity.id:
+                activities_list.append((a.slug, a.name))
+
         from_page = request.GET.get('from_page')
         
         if request.method == 'POST': # If the form has been submitted...
             if isinstance(activity, CalNumericActivity):
-                form = CalNumericActivityForm(request.POST) # A form bound to the POST data
+                form = CalNumericActivityForm(request.POST)
             elif isinstance(activity, NumericActivity):
-                form = NumericActivityForm(request.POST) # A form bound to the POST data
+                form = NumericActivityForm(request.POST, previous_activities=activities_list) 
             elif isinstance(activity, CalLetterActivity):
-                form = CalLetterActivityForm(request.POST) # A form bound to the POST data
+                form = CalLetterActivityForm(request.POST)
                 form.fields['numeric_activity'].choices = numact_choices
                 form.fields['exam_activity'].choices = examact_choices
             elif isinstance(activity, LetterActivity):
-                form = LetterActivityForm(request.POST) # A form bound to the POST data
+                form = LetterActivityForm(request.POST, previous_activities=activities_list)
 
             form.activate_editform_validation(course_slug, activity_slug)
             
             if  form.is_valid(): # All validation rules pass                	
                 _populate_activity_from_formdata(activity, form.cleaned_data)
+
+                if activity.group == True and form.cleaned_data['extend_group'] is not None:
+                    a2 = [i for i in activities if i.slug == form.cleaned_data['extend_group']]
+                    if len(a2) > 0:
+                        add_activity_to_group(activity, a2[0], course)
                 
                 activity.save()
                 #LOG EVENT#
@@ -876,14 +888,14 @@ def edit_activity(request, course_slug, activity_slug):
             if isinstance(activity, CalNumericActivity):
                 form = CalNumericActivityForm(datadict)
             elif isinstance(activity, NumericActivity):
-                form = NumericActivityForm(datadict)
+                form = NumericActivityForm(datadict, previous_activities=activities_list)
             elif isinstance(activity, CalLetterActivity):
                 form = CalLetterActivityForm(datadict)
                 form.fields['numeric_activity'].choices = numact_choices
                 form.fields['exam_activity'].choices = examact_choices
                 # set initial value in form to current value
             elif isinstance(activity, LetterActivity):
-                form = LetterActivityForm(datadict)
+                form = LetterActivityForm(datadict, previous_activities=activities_list)
             elif isinstance(activity, CalLetterActivity):
                 form = CalLetterActivityForm(datadict)
                 form.fields['numeric_activity'].choices = numact_choices
