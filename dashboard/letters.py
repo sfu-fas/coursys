@@ -219,7 +219,7 @@ class LetterContents(object):
         # styles
         self.line_height = 13
         self.content_style = ParagraphStyle(name='Normal',
-                                      fontName='BemboMTPro',
+                                      fontName='Helvetica',
                                       fontSize=12,
                                       leading=self.line_height,
                                       allowWidows=0,
@@ -263,11 +263,15 @@ class LetterContents(object):
         close.append(Paragraph(self.closing+",", style))
         # signature
         if self.signer:
+            import PIL
             try:
                 sig = Signature.objects.get(user=self.signer)
                 sig.sig.open()
-                wid = sig.sig.width / float(sig.resolution) * inch
-                hei = sig.sig.height / float(sig.resolution) * inch
+                img = PIL.Image.open(sig.sig)
+                width, height = img.size
+                wid = width / float(sig.resolution) * inch
+                hei = height / float(sig.resolution) * inch
+                sig.sig.open()
                 img = Image(sig.sig, width=wid, height=hei)
                 img.hAlign = 'LEFT'
                 close.append(Spacer(1, space_height))
