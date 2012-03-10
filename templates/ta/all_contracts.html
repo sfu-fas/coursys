@@ -1,21 +1,25 @@
 {% extends "base.html" %}
-{% block title %}TA Contracts{% endblock %}
-{% block h1 %}TA Contracts{% endblock %}
+{% block title %}TA Contracts for {{ posting }}{% endblock %}
+{% block h1 %}TA Contracts for {{ posting }}{% endblock %}
 
 {% block subbreadcrumbs %}<li>&gt; TA Contracts</li>{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
-//<![CDATA[
     $(document).ready(function() {
     	//setting post_slug
     	$('#submit').click(function(){
-    		var slugs = $('#posting').val().split(" ")
+    		var slugs = $('#app').val().split(" ")
     		$('#create').attr("href","/ta/contracts/" + slugs[0] + "/" + slugs[1] + "/new") 
     	})
+
+		$('#posting').change(function(){
+    		//$.post("{% url ta.views.all_contracts  %}",
+    		//{'csrfmiddlewaretoken': "{{csrf_token}}", 'slug':$('#posting').val()})
+    		window.location.href = "/ta/contracts/" + $('#posting').val()
+    		//window.location = "/ta/contracts/" + $('#posting').val()
+    	})
     });
-    
-//]]>
 </script>
 {% endblock %}
 
@@ -51,16 +55,30 @@
 	<p>No contracts yet</p>
 {%endif%}
 
-<div id="ta_new_con">
-<h1>New Contract</h1>
+<div id="ta_con">
+<h2>New Contract</h2>
 <form>
-	<select name="posting" id="posting">
+	<select name="app" id="app">
 		{% for app in applications %}
-		<option value="{{app.posting.slug}} {{app.person.userid}}">{{app}}</option>
+		<option value="{{app.posting.slug}} {{app.person.userid}}">{{ app.person }}</option>
 		{% endfor %}
 	</select>
 	<a id="create" href="" style="height:0"><button type="button" class="submit" id="submit">Create</button></a>
-	<div class="helptext">Select the associated application</div>
+	<div class="helptext">Select the associated applicant</div>
+	
+</form>
+</div>
+
+<div id="ta_con">
+<h2>History</h2>
+<form>
+	<select name="posting" id="posting">
+		<option value="">---------</option>
+		{% for post in postings %}
+		<option value="{{ post.slug }}">{{ post }}</option>
+		{% endfor %}
+	</select>
+	<div class="helptext">Select the posting to view the associated contracts</div>
 	
 </form>
 </div>
