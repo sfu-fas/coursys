@@ -1,5 +1,5 @@
 import sys, os, datetime, string, time, copy
-import DB2, MySQLdb, random
+import DB2, MySQLdb, random, re
 sys.path.append(".")
 sys.path.append("..")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
@@ -166,19 +166,15 @@ def escape_arg(a):
     """
     Escape argument for DB2
     """
-    # Based on description of PHP's db2_escape_string
     if type(a) in (int,long):
         return str(a)
     
-    a = unicode(a).encode('utf8')
     # assume it's a string if we don't know any better
     a = a.replace("\\", "\\\\")
     a = a.replace("'", "\\'")
     a = a.replace('"', '\\"')
     a = a.replace("\r", "\\r")
     a = a.replace("\n", "\\n")
-    a = a.replace("\x00", "\\\x00")
-    a = a.replace("\x1a", "\\\x1a")
     return "'"+a+"'"
 
 def execute_query(db, query, args):
@@ -366,8 +362,23 @@ def import_offerings(db, DATA_WHERE):
 
     return imported_offerings
 
+def _person_save(db, amaintdb, p):
+    """
+    Save this person object, dealing with duplicate userid as appropriate
+    """
+    try:
+        p.save()
+    except IntegrityError:
+        print "    Changed userid: " + userid
+        # other account with userid must have been deactivated: update
+        other = Person.objects.get(userid=userid)
+        assert other.emplid != p.emplid
+        get_person(db, amaintdb, other.emplid)
+        # try again now
+        p.save()
+
 imported_people = {}
-def get_person(db, amaintdb, emplid):
+def get_person(db, amaintdb, emplid, commit=True):
     """
     Get/update personal info for this emplid and return (updated & saved) Person object.
     """
@@ -400,23 +411,101 @@ def get_person(db, amaintdb, emplid):
             p.first_name = first_name
             p.middle_name = middle_name
             p.pref_first_name = pref_first_name
-            try:
-                p.save()
-            except IntegrityError:
-                print "    Changed userid: " + userid
-                # other account with userid must have been deactivated: update
-                other = Person.objects.get(userid=userid)
-                assert other.emplid != p.emplid
-                get_person(db, amaintdb, other.emplid)
-                # try again now
-                p.save()
+            if commit:
+                _person_save(db, amaintdb, p)
         else:
             # newly-found person: insert
             p = Person(emplid=emplid, userid=userid, last_name=last_name, first_name=first_name, middle_name=middle_name, pref_first_name=pref_first_name)
-            p.save()
+            if commit:
+                _person_save(db, amaintdb, p)
         
         imported_people[emplid] = p
         return p
+
+imported_people_full = {}
+multiple_breaks = re.compile(r'\n\n+')
+def get_person_full(db, amaintdb, emplid):
+    """
+    Get/update personal info: does get_person() plus additional info we need for some users.
+    """
+    global imported_people_full
+    # use imported_people_full as a cache
+    if emplid in imported_people_full:
+        return imported_people_full[emplid]
+    
+    p = get_person(db, amaintdb, emplid, commit=False)
+    
+    # get phone numbers
+    execute_query(db, 'SELECT phone_type, country_code, phone, extension, pref_phone_flag FROM dbsastg.ps_personal_phone WHERE emplid=%s', (str(emplid),))
+    phones = {}
+    p.config['phones'] = phones
+    for phone_type, country_code, phone, extension, pref_phone in iter_rows(db):
+        full_number = phone.replace('/', '-')
+        if country_code:
+            full_number = country_code + '-' + full_number
+        if extension:
+            full_number = full_number + " ext " + extension
+        
+        if pref_phone == 'Y':
+            phones['pref'] = full_number
+        if phone_type == 'HOME':
+            phones['home'] = full_number
+        elif phone_type == 'CELL':
+            phones['cell'] = full_number
+        elif phone_type == 'MAIN':
+            phones['main'] = full_number
+    
+    # get addresses
+    # sorting by effdt to get the latest in the dictionary
+    execute_query(db, "SELECT address_type, effdt, eff_status, c.descrshort, address1, address2, address3, address4, city, state, postal FROM dbsastg.ps_addresses a, dbsastg.ps_country_tbl c WHERE emplid=%s AND eff_status='A' AND a.country=c.country ORDER BY effdt ASC", (str(emplid),))
+    addresses = {}
+    p.config['addresses'] = addresses
+    for address_type, effdt, eff_status, country, address1, address2, address3, address4, city, state, postal in iter_rows(db):
+        cityline = city
+        if state:
+            cityline += ', ' + state
+        if country != 'Canada':
+            cityline += ', ' + country
+        full_address = '\n'.join((address1, address2, address3, address4, cityline, postal))
+        full_address = multiple_breaks.sub('\n', full_address)
+        
+        if address_type == 'HOME':
+            addresses['home'] = full_address
+        elif address_type == 'MAIL':
+            addresses['mail'] = full_address
+
+    # get citizenzhip
+    execute_query(db, "SELECT c.descrshort FROM dbsastg.ps_citizenship cit, dbsastg.ps_country_tbl c WHERE emplid=%s AND cit.country=c.country", (str(emplid),))
+    if 'citizen' in p.config:
+        del p.config['citizen']
+    for country, in iter_rows(db):
+        p.config['citizen'] = country
+
+    # get Canadian visa status
+    # sorting by effdt to get the latest in the dictionary
+    execute_query(db, "SELECT t.descrshort FROM dbsastg.ps_visa_pmt_data v, dbsastg.ps_visa_permit_tbl t WHERE emplid=%s AND v.visa_permit_type=t.visa_permit_type AND v.country=t.country AND v.country='CAN' AND v.visa_wrkpmt_status='A' AND t.eff_status='A' ORDER BY v.effdt ASC", (str(emplid),))
+    if 'visa' in p.config:
+        del p.config['visa']
+    for desc, in iter_rows(db):
+        p.config['visa'] = desc
+
+    # emails
+    #execute_query(db, "SELECT e_addr_type, email_addr, pref_email_flag FROM dbsastg.ps_email_addresses c WHERE emplid=%s", (str(emplid),))
+    #for e_addr_type, email_addr, pref_email_flag in iter_rows(db):
+    #    print (e_addr_type, email_addr, pref_email_flag)
+    
+    # other stuff from ps_personal_data
+    execute_query(db, 'SELECT sex FROM dbsastg.ps_personal_data WHERE emplid=%s', (str(emplid),))
+    if 'gender' in p.config:
+        del p.config['gender']
+    for sex, in iter_rows(db):
+        if sex:
+            p.config['gender'] = sex # 'M', 'F', 'U'
+
+    imported_people_full[emplid] = p
+    #_person_save(db, amaintdb, p)
+    return p
+
 
 
 def fix_mtg_info(section, stnd_mtg_pat):
