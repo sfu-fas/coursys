@@ -385,7 +385,7 @@ def view_contract(request, contract_id):
     return render(request, 'ta/view_contract.html', {'contract':contract, 'courses':courses})
 
 @requires_role("TAAD")
-def edit_contract(request, post_slug, userid=None, contract_id=None):
+def edit_contract(request, post_slug, userid):
     posting = get_object_or_404(TAPosting, slug=post_slug)
     
     if posting.unit not in request.units:
@@ -396,9 +396,9 @@ def edit_contract(request, post_slug, userid=None, contract_id=None):
           
     #number of course form to populate
     num = 3
-    if contract_id:
-        # editing existing contract
-        contract = get_object_or_404(TAContract, id=contract_id)
+    contract = TAContract.objects.filter(posting=posting, application__person__userid=userid)
+    if contract.count() > 0:
+        contract = contract[0]
         application = contract.application
         num = num - contract.tacourse_set.all().count()
         editing = True

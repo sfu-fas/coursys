@@ -39,7 +39,7 @@
   	<td>{{ contract.posting }}</td>
   	<td>{{ contract.deadline }}</td>
   	<td><a href="{% url ta.views.view_contract contract_id=contract.id%}">View</a></td>
-  	<td><a href="{% url ta.views.edit_contract post_slug=contract.posting.slug contract_id=contract.id userid=contract.application.person.userid%}">Edit</a></td>
+  	<td><a href="{% url ta.views.edit_contract post_slug=contract.posting.slug userid=contract.application.person.userid%}">Edit</a></td>
   </tr>
   {% endfor %}
   </tbody>

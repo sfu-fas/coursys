@@ -228,8 +228,7 @@ urlpatterns += patterns('',
 	
 	url(r'^ta/contracts/$', 'ta.views.all_contracts'),
 	url(r'^ta/contracts/' + POST_SLUG + '/' + USERID_SLUG + '/new$', 'ta.views.edit_contract'),
-    url(r'^ta/contracts/' + POST_SLUG + '/' + USERID_SLUG + '/(?P<contract_id>\d+)/edit$', 'ta.views.edit_contract'),
-    #url(r'^ta/contracts/' + POST_SLUG + '/(?P<contract_id>\d+)/edit$', 'ta.views.edit_contract'),
+    url(r'^ta/contracts/' + POST_SLUG + '/' + USERID_SLUG + '/edit$', 'ta.views.edit_contract'),
     url(r'^ta/contracts/(?P<contract_id>\d+)$', 'ta.views.view_contract'),
 
     # system admin
