@@ -338,12 +338,11 @@ class TAContract(models.Model):
     """
     posting = models.ForeignKey(TAPosting)
     application = models.ForeignKey(TAApplication)
-    #applicant = models.ForeignKey(Person)
     sin = models.CharField(max_length=30, verbose_name="SIN",help_text="Social insurance number")
     pay_start = models.DateField()
     pay_end = models.DateField()
     position_number = models.ForeignKey(Account)
-    appt_category = models.CharField(max_length=4, choices=CATEGORY_CHOICES, verbose_name="Appointment Category")
+    appt_category = models.CharField(max_length=4, choices=CATEGORY_CHOICES, verbose_name="Appointment Category", default="GTA1")
     appt = models.CharField(max_length=4, choices=APPOINTMENT_CHOICES, verbose_name="Appointment", default="INIT")
     pay_per_bu = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Pay per Base Unit Semester Rate.",)
     scholarship_per_bu = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Scholarship per Base Unit Semester Rate.",)

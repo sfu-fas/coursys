@@ -167,17 +167,12 @@
 
     	
     	//setting rates per bu based on appt category
-    	/*
-    	if($('#id_appt_category').val() != "")
+    	if("{{ editing }}" == 'False'){
     		set_rates($('#id_appt_category').val())
-    	else if($('#salary_sem').val()=="")
-    		$('#id_appt_category').val("")
-    	*/
-    		
+    	}
+    	
     	$('#id_appt_category').change(function(){
-    		var cat = $(this).val()
-    		if(cat!='')
-    			set_rates(cat)
+			set_rates($(this).val())
     	})
     	
     	//calcuate event
