@@ -368,12 +368,18 @@ def update_course_bus(request, post_slug, course_slug):
 
 
 @requires_role("TAAD")
-def all_contracts(request):
-    contracts = TAContract.objects.all()
-    postings = TAPosting.objects.filter(unit__in=request.units)
+def all_contracts(request, post_slug=None):
+    #contracts = TAContract.objects.all()
+    if post_slug:
+        posting = get_object_or_404(TAPosting, slug=post_slug)
+        contracts = TAContract.objects.filter(posting=posting)
+    else:
+        posting = TAPosting.objects.get(semester=Semester.next_starting())
+        contracts = TAContract.objects.filter(posting=posting)
+    #postings = TAPosting.objects.filter(unit__in=request.units)
     #applications = TAApplication.objects.all().exclude(Q(person__id__in=TAContract.objects.all().values_list('applicant', flat=True)))
-    applications = TAApplication.objects.all().exclude(Q(id__in=TAContract.objects.all().values_list('application', flat=True)))
-    return render(request, 'ta/all_contracts.html', {'contracts':contracts, 'postings':postings, 'applications':applications})
+    applications = TAApplication.objects.filter(posting=posting).exclude(Q(id__in=TAContract.objects.filter(posting=posting).values_list('application', flat=True)))
+    return render(request, 'ta/all_contracts.html', {'contracts':contracts, 'posting':posting, 'applications':applications})
 
 @requires_role("TAAD")
 def view_contract(request, contract_id):
