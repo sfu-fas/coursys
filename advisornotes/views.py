@@ -35,7 +35,6 @@ def _find_userid_or_emplid(userid):
 
 @requires_advisor
 def advising(request):
-        
     if request.method == 'POST':
         # find the student if we can and redirect to info page
         form = StudentSearchForm(request.POST)
@@ -43,7 +42,7 @@ def advising(request):
             simserror = ''
             if 'search' in form.data:
                 emplid = form.data['search']
-                simsinfo = find_person(emplid)
+                simsinfo = find_person(emplid.strip())
                 if isinstance(simsinfo, SIMSProblem):
                     simserror = simsinfo
                     simsinfo = None
@@ -63,8 +62,9 @@ def sims_add_person(request):
     if request.method == 'POST':
         emplid = request.POST.get('emplid', None)
         if emplid:
-            p = add_person(emplid)
-            return _redirect_to_notes(p)
+            p = add_person(emplid.strip())
+            if isinstance(p, Person):
+                return _redirect_to_notes(p)
     
     return HttpResponseRedirect(reverse('advisornotes.views.advising', kwargs={}))        
 

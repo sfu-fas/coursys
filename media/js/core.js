@@ -179,11 +179,7 @@ function student_autocomplete(id) {
       minLength: 2,
       select: function(event, ui){
         $(this).data("val", ui.item.value);
-        //label = ui.item.label.replace(regexp, "")
-        //$('#' + id).parent().after("<li>" + label +"</li>");
       }
-    }).bind('blur', function(){
-      $(this).val($(this).data("val"))
     });
   });
 }

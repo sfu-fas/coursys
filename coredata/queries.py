@@ -95,21 +95,40 @@ class SIMSProblem(unicode):
     """
     pass
 
+def SIMS_problem_handler(func):
+    """
+    Decorator to deal somewhat gracefully with any SIMS database problems.
+    Any decorated function may return a SIMSProblem instance to indicate a
+    problem with the database connection.
+    
+    Should be applied to any functions that use a SIMSConn object.
+    """
+    def wrapped(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            # check for the types of errors we know might happen
+            # (need more than regular exception syntax, since SIMSConn.DatabaseError isn't always there)
+            if hasattr(SIMSConn, 'DatabaseError') and isinstance(e, SIMSConn.DatabaseError):
+                return SIMSProblem("could not connect to reporting database")
+            elif isinstance(e, ImportError):
+                return SIMSProblem("could not import DB2 module")
+            raise e
 
+    wrapped.__name__ = func.__name__
+    return wrapped
+
+@SIMS_problem_handler
 def find_person(emplid):
     """
     Find the person in SIMS: return data or None (not found) or a SIMSProblem instance (error message).
     """
-    try:
-        db = SIMSConn()
-        db.execute("SELECT emplid, last_name, first_name, middle_name FROM dbsastg.ps_personal_data WHERE emplid=%s",
-                   (str(emplid),))
+    db = SIMSConn()
+    db.execute("SELECT emplid, last_name, first_name, middle_name FROM dbsastg.ps_personal_data WHERE emplid=%s",
+               (str(emplid),))
 
-        for emplid, last_name, first_name, middle_name in db:
-            return {'emplid': emplid, 'last_name': last_name, 'first_name': first_name, 'middle_name': middle_name}
-    except SIMSConn.DatabaseError:
-        return SIMSProblem("could not connect to reporting database")
-
+    for emplid, last_name, first_name, middle_name in db:
+        return {'emplid': emplid, 'last_name': last_name, 'first_name': first_name, 'middle_name': middle_name}
 
 def add_person(emplid):
     """
@@ -118,6 +137,8 @@ def add_person(emplid):
     data = find_person(emplid)
     if not data:
         return
+    elif isinstance(data, SIMSProblem):
+        return data
 
     with transaction.commit_on_success():
         ps = Person.objects.filter(emplid=data['emplid'])
