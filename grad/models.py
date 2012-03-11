@@ -7,6 +7,7 @@ from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from django.template.defaultfilters import capfirst
 from django.core.paginator import Page
+from external.jsonfield import JSONField
 
 class GradProgram(models.Model):
     unit = models.ForeignKey(Unit, null=False, blank=False)
@@ -188,6 +189,41 @@ class GradStatus(models.Model):
     def __unicode__(self):
         return "Grad Status: %s %s" % (self.status, self.student)
 
+"""
+Letters
+"""
+
+class LetterTemplate(models.Model):
+    unit = models.ForeignKey(Unit, null=False, blank=False)
+    label = models.CharField(max_length=256, unique=True, null=False)
+        # choices: visa, international, msc offer, phd offer, special student offer, qualifying student offer
+    content = models.TextField(help_text="I.e. 'This is to confirm {{title}} {{last_name}} ... '")
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.CharField(max_length=32, null=False, help_text='Letter template created by.')    
+    def __unicode__(self):
+        return "%s in %s" % (self.label, self.unit)
+    
+class Letter(models.Model):
+    student = models.ForeignKey(GradStudent, null=False, blank=False)
+    content = models.TextField(help_text="I.e. 'This is to confirm Mr. Baker ... '")
+    template = models.ForeignKey(LetterTemplate)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.CharField(max_length=32, null=False, help_text='Letter generation requseted by.')
+    config = JSONField(default={}) # addition configuration for within the letter
+        # 'title': Mr. Ms.
+        # 'first_name': applicant's first name
+        # 'last_name': applicant's last name
+        # 'address': includes street, city/province/postal, country
+        # 'empl_data': type of employment RA, TA
+        # 'fund_type': RA, TA, Scholarship
+        # 'fund_amount_sem': amount of money paid per semester
+        # 'his_her' : "his" or "her"
+        # 'program': program enrolled in
+        # 'first_season': semster when grad will begin his studies; fall, summer, spring
+        # 'first_year': year to begin; 2011
+        # 'first_month': month to begin; September
+    def __unicode__(self):
+        return "%s letter for %s" % (self.template.label, self.student)
 
 """
 Financial

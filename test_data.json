@@ -19071,8 +19071,139 @@
   "model": "grad.gradstatus", 
   "pk": 6
  }, 
- 
+ {
+  "fields": {
+   "content": "This is to confirm {{title}} {{last_name}}... ",
+   "created_at": "2012-03-10 19:11:33",
+   "created_by": "ggbaker",
+   "label": "International",
+   "unit": 2
+  },
+  "model": "grad.lettertemplate",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "content": "This is to confirm {{title}} {{last_name}}... ",
+   "created_at": "2012-03-10 19:11:57",
+   "created_by": "ggbaker",
+   "label": "Visa",
+   "unit": 2
+  },
+  "model": "grad.lettertemplate",
+  "pk": 2
+ },
+ {
+  "fields": {
+   "content": "This is to confirm {{first_name}} {{last_name}} in {{program}} living at \r\n{{address}} applying to be an {{empl_data}} starting {{his_her}} first studies in {{first_season}} {{first_year}}.",
+   "created_at": "2012-03-10 19:14:06",
+   "created_by": "ggbaker",
+   "label": "MSc Offer",
+   "unit": 2
+  },
+  "model": "grad.lettertemplate",
+  "pk": 3
+ },
+ {
+  "fields": {
+   "content": "This is to confirm {{first_name}} {{last_name}} in {{program}} living at \r\n{{address}} applying for PhD starting {{his_her}} first studies in {{first_season}} {{first_year}}.",
+   "created_at": "2012-03-10 19:14:34",
+   "created_by": "ggbaker",
+   "label": "PhD Offer",
+   "unit": 2
+  },
+  "model": "grad.lettertemplate",
+  "pk": 4
+ },
+ {
+  "fields": {
+   "content": "This is to confirm {{first_name}} {{last_name}} in {{program}} living at \r\n{{address}} applying for PhD starting {{his_her}} first studies in {{first_season}} {{first_year}}.",
+   "created_at": "2012-03-10 19:14:48",
+   "created_by": "ggbaker",
+   "label": "Special Student Offer",
+   "unit": 2
+  },
+  "model": "grad.lettertemplate",
+  "pk": 5
+ },
+ {
+  "fields": {
+   "content": "This is to confirm {{first_name}} {{last_name}} in {{program}} living at \r\n{{address}} applying for PhD starting {{his_her}} first studies in {{first_season}} {{first_year}}.",
+   "created_at": "2012-03-10 19:15:05",
+   "created_by": "ggbaker",
+   "label": "Qualifying Student Offer",
+   "unit": 2
+  },
+  "model": "grad.lettertemplate",
+  "pk": 6
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "content": "This is to confirm Bradley Bart in School of Computing Science applying for PhD starting his first studies in Fall 2013.",
+   "created_at": "2012-03-10 19:16:19",
+   "created_by": "ggbaker",
+   "student": 1,
+   "template": 6
+  },
+  "model": "grad.letter",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "content": "This is to confirm Petra Berenbrink in School of Computing Science applying for PhD starting his first studies in Fall 2013.",
+   "created_at": "2012-03-10 19:16:35",
+   "created_by": "ggbaker",
+   "student": 2,
+   "template": 5
+  },
+  "model": "grad.letter",
+  "pk": 2
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "content": "This is to confirm Anthony Dixon in School of Computing Science applying for PhD starting his first studies in Fall 2013.",
+   "created_at": "2012-03-10 19:16:57",
+   "created_by": "ggbaker",
+   "student": 4,
+   "template": 4
+  },
+  "model": "grad.letter",
+  "pk": 3
+ } ,
 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
   {
   "fields": {
    "account_number": 5265, 

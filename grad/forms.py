@@ -2,7 +2,7 @@ from django.forms.models import ModelForm
 from django import forms
 import grad.models as gradmodels
 from grad.models import Supervisor, GradProgram, GradStudent, GradStatus,\
-    GradRequirement, CompletedRequirement
+    GradRequirement, CompletedRequirement, LetterTemplate, Letter
 from coredata.models import Person, Member, Semester, CAMPUS_CHOICES
 from django.forms.formsets import BaseFormSet
 from django.core.exceptions import ValidationError
@@ -165,7 +165,6 @@ class GradStatusForm(ModelForm):
         exclude = ('student', 'created_by', 'hidden')
         hidden = ('id')
 
-
 class GradRequirementForm(ModelForm):
     class Meta:
         model = GradRequirement
@@ -174,6 +173,16 @@ class CompletedRequirementForm(ModelForm):
     class Meta:
         model = CompletedRequirement
         fields = ('requirement', 'semester', 'date', 'notes')
+
+class LetterTemplateForm(ModelForm):
+    class Meta:
+        model = LetterTemplate
+        exclude = ('created_by')
+
+class LetterForm(ModelForm):
+    class Meta: 
+        model = Letter
+        exclude = ('created_by', 'config')
 
 def choices_with_negate(choices):
     return (list(choices) + [('NOT_' + k, 'Not ' + v) for k, v in choices])

@@ -273,7 +273,7 @@ urlpatterns += patterns('',
     url(r'^advising/students/' + USERID_OR_EMPLID + '/' + NOTE_ID + '/file', 'advisornotes.views.download_file'),
     url(r'^advising/students/' + USERID_OR_EMPLID + '/moreinfo$', 'advisornotes.views.student_more_info'),
     
-    # Graduate student database
+#----- Graduate student database
 
     url(r'^grad/$', 'grad.views.index'),
     url(r'^grad/search', 'grad.views.search'),
@@ -283,7 +283,10 @@ urlpatterns += patterns('',
     url(r'^grad/requirement/$', 'grad.views.requirements'),
     url(r'^grad/requirement/new', 'grad.views.new_requirement'),    
     
-    
+    url(r'^grad/letterTemplates/$', 'grad.views.letter_templates'),
+    url(r'^grad/letterTemplates/new', 'grad.views.new_letter_template'),
+    url(r'^grad/letter/$', 'grad.views.letters'),
+    url(r'^grad/letter/new', 'grad.views.new_letter'),
     
     url(r'^grad/'+ GRAD_SLUG + '/$', 'grad.views.view_all'),    
     url(r'^grad/'+ GRAD_SLUG + '/manage_academics$', 'grad.views.manage_academics'),
