@@ -39,23 +39,37 @@ def advising(request):
         # find the student if we can and redirect to info page
         form = StudentSearchForm(request.POST)
         if not form.is_valid():
-            simserror = ''
-            if 'search' in form.data:
-                emplid = form.data['search']
-                simsinfo = find_person(emplid.strip())
-                if isinstance(simsinfo, SIMSProblem):
-                    simserror = simsinfo
-                    simsinfo = None
-            else:
-                simsinfo = None
-            
-            context = {'form': form, 'simsinfo': simsinfo, 'simserror': simserror}
+            simssearch = None
+            if 'search' in form.data and form.data['search'].strip().isdigit():
+                simssearch = form.data['search'].strip()
+            context = {'form': form, 'simssearch': simssearch}
             return render_to_response('advisornotes/student_search.html', context, context_instance=RequestContext(request))
         search = form.cleaned_data['search']
         return _redirect_to_notes(search)
     form = StudentSearchForm()
     context = {'form': form}
     return render_to_response('advisornotes/student_search.html', context, context_instance=RequestContext(request))
+
+@requires_role('ADVS')
+def sims_search(request):
+    emplid = request.GET.get('emplid', None)
+    data = None
+    if emplid:
+        try:
+            emplid = int(emplid.strip())
+            data = find_person(emplid)
+            if isinstance(data, SIMSProblem):
+                data = {'error': data}
+        except ValueError:
+            # not an integer, so not an emplid to search for
+            data = None
+    
+    if not data:
+        data = {'error': 'could not find person in SIMS database'}
+
+    response = HttpResponse(mimetype='application/json')
+    json.dump(data, response, indent=1)
+    return response
 
 @requires_role('ADVS')
 def sims_add_person(request):

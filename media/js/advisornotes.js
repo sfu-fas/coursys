@@ -1,9 +1,34 @@
+function search_sims(url, emplid, formurl, csrftoken) {
+    // for not-found student, do SIMS search and report result (with form to add if relevant)
+    $('#fetchwait').show();
+    $.ajax({
+        url: url + '?emplid=' + emplid,
+        success: function(data){
+            console.log(data);
+            if (data['error']) {
+                res = '<p class="empty">Problem when checking SIMS for missing student data: ' + data['error'] + '.</p>';
+            } else {
+                res = '<form action="' + formurl + '" method="post">' + csrftoken
+                res += '<input type="hidden" name="emplid" value="' + emplid + '" />'
+                res += '<p>Emplid found in SIMS: ' + data['last_name'] + ', ' + data['first_name']
+                if (data['userid']) {
+                    res += ', ' + data['userid']
+                }
+                res += '. <input type="submit" value="Add From SIMS"/></p></form>'
+            }
+            $('#simsresult').append(res);
+            $('#fetchwait').hide();
+        },
+    });
+}
 
 function add_to_info(key, value) {
+    // add this key/value to the info table
     $('table.info').append('<tr class="dynamic"><th class="ui-state-default">' + key + '</th><td>' + value + '</td></tr>')
 }
 
 function get_more_info(url) {
+    // fetch more info on this student from SIMS
     $('#fetchwait').show();
     $.ajax({
         url: url,

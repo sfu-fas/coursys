@@ -266,6 +266,7 @@ urlpatterns += patterns('',
     # Advisor Notes
     
     url(r'^advising/$', 'advisornotes.views.advising'),
+    url(r'^advising/sims_search$', 'advisornotes.views.sims_search'),
     url(r'^advising/sims_add$', 'advisornotes.views.sims_add_person'),
     url(r'^advising/students/' + USERID_OR_EMPLID + '/new$', 'advisornotes.views.new_note'),
     url(r'^advising/students/' + USERID_OR_EMPLID + '/$', 'advisornotes.views.student_notes'),
