@@ -7,6 +7,8 @@ from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter
+from django.utils.safestring import mark_safe
+from django.utils.html import escape
 
 def repo_name(offering, slug):
     """
@@ -57,8 +59,10 @@ class Person(models.Model):
     def email(self):
         if 'email' in self.config:
             return self.config['email']
-        else:
+        elif self.userid:
             return "%s@sfu.ca" % (self.userid)
+        else:
+            return None
     def full_email(self):
         return "%s <%s>" % (self.name(), self.email())
     def __cmp__(self, other):
@@ -70,6 +74,13 @@ class Person(models.Model):
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
     
+    def email_mailto(self):
+        "A mailto: URL for this person's email address: handles the case where we don't know an email for them."
+        email = self.email()
+        if email:
+            return mark_safe('<a href="mailto:%s">%s</a>' % (escape(email), escape(email)))
+        else:
+            return "None"
     def search_label_value(self):
         return "%s (%s), %s" % (self.name(), self.userid, self.emplid)
     def get_fields(self):

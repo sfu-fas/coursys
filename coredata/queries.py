@@ -160,7 +160,14 @@ def find_person(emplid):
                (str(emplid),))
 
     for emplid, last_name, first_name, middle_name in db:
-        return {'emplid': emplid, 'last_name': last_name, 'first_name': first_name, 'middle_name': middle_name}
+        # use emails to guess userid: if not found, leave unset and hope AMAINT has it on next nightly update
+        userid = None
+        db.execute("SELECT e_addr_type, email_addr, pref_email_flag FROM dbsastg.ps_email_addresses c WHERE emplid=%s", (str(emplid),))
+        for _, email_addr, _ in db:
+            if email_addr.endswith('@sfu.ca'):
+                userid = email_addr[:-7]
+
+        return {'emplid': emplid, 'last_name': last_name, 'first_name': first_name, 'middle_name': middle_name, 'userid': userid}
 
 def add_person(emplid):
     """
@@ -177,8 +184,8 @@ def add_person(emplid):
         if ps:
             # person already there: ignore
             return ps[0]
-        p = Person(emplid=data['emplid'], userid=None, last_name=data['last_name'], first_name=data['first_name'],
-                   pref_first_name=data['first_name'], middle_name=data['middle_name'])
+        p = Person(emplid=data['emplid'], last_name=data['last_name'], first_name=data['first_name'],
+                   pref_first_name=data['first_name'], middle_name=data['middle_name'], userid=data['userid'])
         p.save()
     return p
 

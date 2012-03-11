@@ -30,7 +30,7 @@ $(document).ready(function() {
 {% endif %}
 {% if simsinfo %}
 <form action="{% url advisornotes.views.sims_add_person %}" method="post">{% csrf_token %}
-<p>Person found in SIMS: {{ simsinfo.last_name }}, {{ simsinfo.first_name }}, {{ simsinfo.emplid }}.
+<p>Person found in SIMS: {{ simsinfo.last_name }}, {{ simsinfo.first_name }}, {{ simsinfo.emplid }}{% if simsinfo.userid %}, {{ simsinfo.userid }}{% endif %}.
 <input type="hidden" name="emplid" value="{{ simsinfo.emplid }}" />
 <input type="submit" value="Add From SIMS"/></p>
 </form>
