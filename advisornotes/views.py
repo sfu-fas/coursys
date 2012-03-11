@@ -6,13 +6,13 @@ from django.contrib.auth.decorators import login_required
 from advisornotes.models import AdvisorNote
 from coredata.models import Member, Person, Role, Unit
 from django.template import RequestContext
-from courselib.auth import requires_role, requires_advisor, ForbiddenResponse, HttpResponseRedirect
+from courselib.auth import requires_role, ForbiddenResponse, HttpResponseRedirect
 from advisornotes.forms import AdvisorNoteForm, StudentSelect, StudentField, StudentSearchForm
 from django.contrib import messages
 from courselib.search import get_query
-import json
-from coredata.queries import find_person, add_person, SIMSProblem
+from coredata.queries import find_person, add_person, more_personal_info, SIMSProblem
 from log.models import LogEntry
+import json
 
 def _redirect_to_notes(student):
     """
@@ -33,7 +33,7 @@ def _find_userid_or_emplid(userid):
     except ValueError:
         return Q(userid=userid)
 
-@requires_advisor
+@requires_role('ADVS')
 def advising(request):
     if request.method == 'POST':
         # find the student if we can and redirect to info page
@@ -130,4 +130,21 @@ def download_file(request, userid, note_id):
     resp['Content-Disposition'] = 'inline; filename=' + note.attachment_filename()
     return resp
 
+
+@requires_role('ADVS')
+def student_more_info(request, userid):
+    """
+    AJAX request for contact info, etc. (queries SIMS directly)
+    """
+    student = get_object_or_404(Person, _find_userid_or_emplid(userid))
+    data = more_personal_info(student.emplid)
     
+    if isinstance(data, SIMSProblem):
+        data = {'error': data}
+    #elif data is None:
+    #    data = {'error': 'Student not found in SIMS.'}
+    
+    response = HttpResponse(mimetype='application/json')
+    json.dump(data, response, indent=1)
+    return response
+
