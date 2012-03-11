@@ -508,6 +508,33 @@ def new_letter_template(request):
                }
     return render(request, 'grad/new_letter_template.html', context)
 
+@requires_role("GRAD")
+def manage_letter_template(request, letter_template_slug):
+    letter_template = get_object_or_404(LetterTemplate, slug=letter_template_slug)
+    if request.method == 'POST':
+        form = LetterTemplateForm(request.POST, instance=letter_template)
+        if form.is_valid():
+            f = form.save(commit=False)
+            f.created_by = request.user.username            
+            f.save()
+            messages.success(request, "Updated %s letter for %s." % (form.instance.template.label, form.instance.student))
+            l = LogEntry(userid=request.user.username,
+                  description="Updated new %s letter for %s." % (form.instance.template.label, form.instance.student),
+                  related_object=form.instance)
+            l.save()            
+            return HttpResponseRedirect(reverse(letters))
+    else:
+        form = LetterTemplateForm(instance=letter_template)
+
+    page_title = 'Manage Letter Template'  
+    crumb = 'Manage' 
+    context = {
+               'form': form,
+               'page_title' : page_title,
+               'crumb' : crumb,
+               'letter_template' : letter_template
+               }
+    return render(request, 'grad/manage_letter_template.html', context)
 
 @requires_role("GRAD")
 def letters(request):
@@ -548,6 +575,34 @@ def new_letter(request):
                'crumb' : crumb
                }
     return render(request, 'grad/new_letter.html', context)
+
+@requires_role("GRAD")
+def manage_letter(request, letter_slug):
+    letter = get_object_or_404(Letter, slug=letter_slug)
+    if request.method == 'POST':
+        form = LetterForm(request.POST, instance=letter)
+        if form.is_valid():
+            f = form.save(commit=False)
+            f.created_by = request.user.username            
+            f.save()
+            messages.success(request, "Updated new %s letter for %s." % (form.instance.template.label, form.instance.student))
+            l = LogEntry(userid=request.user.username,
+                  description="Updated new %s letter for %s." % (form.instance.template.label, form.instance.student),
+                  related_object=form.instance)
+            l.save()            
+            return HttpResponseRedirect(reverse(letters))
+    else:
+        form = LetterForm(instance=letter)
+
+    page_title = 'Manage Letter'  
+    crumb = 'Manage' 
+    context = {
+               'form': form,
+               'page_title' : page_title,
+               'crumb' : crumb,
+               'letter' : letter
+               }
+    return render(request, 'grad/manage_letter.html', context)
 
 
 @requires_role("GRAD")

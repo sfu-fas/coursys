@@ -39,3 +39,5 @@ RA_SLUG = '(?P<ra_slug>' + SLUG_RE + ')'
 ACCOUNT_SLUG = '(?P<account_slug>' + SLUG_RE +')'
 PROJECT_SLUG = '(?P<project_slug>' + SLUG_RE +')'
 
+LETTER_SLUG = '(?P<letter_slug>' + SLUG_RE + ')'
+LETTER_TEMPLATE_SLUG = '(?P<letter_template_slug>' + SLUG_RE + ')'

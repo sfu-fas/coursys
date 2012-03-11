@@ -46,7 +46,8 @@
             <tr>
                 <th scope="col">Template Name</th>
 				<th scope="col">Content</th>
-				<th scope="col">Created At</th>				
+				<th scope="col">Created At</th>	
+				<th scope="col">Action</th>			
             </tr>
 		</thead>
         <tbody>
@@ -55,7 +56,7 @@
             <td>{{s.label}}</td>
             <td>{{s.content}}</td>
             <td>{{s.created_at}}</td>        
-          
+          	<td><a href="{% url grad.views.manage_letter_template letter_template_slug=s.slug %}">Manage</a></td>
         </tr>
         {% endfor %}
         </tbody>

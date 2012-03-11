@@ -46,7 +46,8 @@
 				<th scope="col">Last Name</th>
 				<th scope="col">First Name</th>
                 <th scope="col">Template Used</th>				
-				<th scope="col">Created At</th>				
+				<th scope="col">Created At</th>	
+				<th scope="col">Action</th>									
             </tr>
 		</thead>
         <tbody>
@@ -56,7 +57,8 @@
             <td>{{s.student.person.last_name}}</td>
             <td>{{s.student.person.first_name}}</td>
             <td>{{s.template.label}}</td>            
-            <td>{{s.created_at}}</td>        
+            <td>{{s.created_at}}</td>            
+          	<td><a href="{% url grad.views.manage_letter letter_slug=s.slug %}">Manage</a></td> 
           
         </tr>
         {% endfor %}

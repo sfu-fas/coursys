@@ -200,6 +200,10 @@ class LetterTemplate(models.Model):
     content = models.TextField(help_text="I.e. 'This is to confirm {{title}} {{last_name}} ... '")
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.CharField(max_length=32, null=False, help_text='Letter template created by.')    
+
+    def autoslug(self):
+        return make_slug(self.unit.label + "-" + self.label)  
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False)      
     def __unicode__(self):
         return "%s in %s" % (self.label, self.unit)
     
@@ -221,7 +225,10 @@ class Letter(models.Model):
         # 'program': program enrolled in
         # 'first_season': semster when grad will begin his studies; fall, summer, spring
         # 'first_year': year to begin; 2011
-        # 'first_month': month to begin; September
+        # 'first_month': month to begin; September  
+    def autoslug(self):
+        return make_slug(self.student.person.userid + "-" + self.template.label)     
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False)            
     def __unicode__(self):
         return "%s letter for %s" % (self.template.label, self.student)
 
