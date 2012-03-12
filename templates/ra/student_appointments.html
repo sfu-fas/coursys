@@ -84,12 +84,14 @@
               {{ appointment.start_date }}</td>
           <td>{{ appointment.end_date }}</td>
           <td>{{ appointment.account.title }}</td>
-          <td>{{ appointment.hiring_faculty.first_name}} 
-              {{ appointment.hiring_faculty.last_name }}</td>
+          <td>{{ appointment.hiring_faculty.last_name}}, 
+              {{ appointment.hiring_faculty.first_name }}</td>
           <td><a href="{% url ra.views.view ra_slug=appointment.slug %}">
             View </a>
             <a href="{% url ra.views.edit ra_slug=appointment.slug %}">
-              Edit</a></td>
+              Edit</a>
+              <a href="{%url ra.views.reappoint ra_slug=appointment.slug %}">
+                Reappoint</a></td>
         </tr>
         {% endfor %}
         </tbody>

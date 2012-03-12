@@ -12,9 +12,15 @@ class RAForm(forms.ModelForm):
     def clean_person(self):
         return Person.objects.get(emplid=self.cleaned_data['person'])
 
-    def clean(self):
-        cleaned_data = self.cleaned_data
-        return cleaned_data 
+    def clean_hours(self):
+        data = self.cleaned_data['hours']
+        if int(data) > 70:
+            raise forms.ValidationError("The maximum number of work hours is 70.")
+        return data
+
+    # def clean(self):
+    #     cleaned_data = self.cleaned_data
+    #     return cleaned_data 
         
     class Meta:
         model = RAAppointment

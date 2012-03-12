@@ -90,6 +90,20 @@ def edit(request, ra_slug):
         raform.fields['account'].choices = [(a.id, u'%s (%s)' % (a.account_number, a.title)) for a in Account.objects.filter(unit__in=request.units)]
     return render(request, 'ra/edit.html', { 'raform': raform, 'appointment': appointment })
 
+#Quick Reappoint, The difference between this and edit is that the reappointment box is automatically checked, and date information is filled out as if a new appointment is being created.
+#Since all reappointments will be new appointments, no post method is present, rather the new appointment template is rendered with the existing data which will call the new method above when posting.
+@requires_role("FUND")
+def reappoint(request, ra_slug):
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug)    
+    semester = Semester.first_relevant()
+    periods = str(pay_periods(semester.start, semester.end))
+    raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid, 'reappointment': True, 'start_date': semester.start, 'end_date': semester.end, 'pay_periods': periods, 'hours': 70 })
+    raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
+    raform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
+    raform.fields['project'].choices = [(p.id, unicode(p.project_number)) for p in Project.objects.filter(unit__in=request.units)]
+    raform.fields['account'].choices = [(a.id, u'%s (%s)' % (a.account_number, a.title)) for a in Account.objects.filter(unit__in=request.units)]
+    return render(request, 'ra/new.html', { 'raform': raform, 'appointment': appointment })
+
 #View RA Appointment
 @requires_role("FUND")
 def view(request, ra_slug):

@@ -4,7 +4,6 @@
 {% block headextra %}
 <script type="text/javascript" src="/media/js/ra.js"></script>
 <script type="text/javascript">
-//<![CDATA[
 $(document).ready(function() {
   $("id_person").focus();
   ra_autocomplete('id_person');
@@ -25,8 +24,10 @@ $(document).ready(function() {
   $("#id_hours").change(function() {
     update_lump_sum();
   });
+
 });
-//]]></script>{% endblock %}
+</script>
+{% endblock %}
 
 {% block title %}New RA Appointment{% endblock %}
 {% block h1 %}New RA Appointment{% endblock %}
