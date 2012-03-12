@@ -262,6 +262,7 @@ urlpatterns += patterns('',
     url(r'^admin/signatures/new$', 'dashboard.views.new_signature'),
     url(r'^admin/signatures/' + USERID_SLUG + '/view$', 'dashboard.views.view_signature'),
     url(r'^admin/signatures/' + USERID_SLUG + '/delete', 'dashboard.views.delete_signature'),
+    url(r'^admin/(?P<unit_slug>\w+)/address$', 'coredata.views.unit_address'),
 
     # Advisor Notes
     

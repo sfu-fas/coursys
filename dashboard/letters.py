@@ -119,9 +119,9 @@ class LetterheadTemplate(LetterPageTemplate):
         self._put_lines(doc, c, self.unit.address(), 2*inch, self.pg_h - self.top_margin - 0.75*inch, 2.25*inch, addr_style, 8, 1.5)
 
         # phone numbers block
-        lines = [u'Tel'.translate(doc.sc_trans_bembo) + ' ' + self.unit.tel()]
+        lines = [u'Tel'.translate(doc.sc_trans_bembo) + ' ' + self.unit.tel().replace('-', '.')]
         if self.unit.fax():
-            lines.append(u'Fax'.translate(doc.sc_trans_bembo) + ' ' + self.unit.fax())
+            lines.append(u'Fax'.translate(doc.sc_trans_bembo) + ' ' + self.unit.fax().replace('-', '.'))
         self._put_lines(doc, c, lines, 4.5*inch, self.pg_h - self.top_margin - 0.75*inch, 1.5*inch, addr_style, 8, 1.5)
 
         # web and email block

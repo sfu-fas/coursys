@@ -78,6 +78,12 @@ def sims_add_person(request):
         if emplid:
             p = add_person(emplid.strip())
             if isinstance(p, Person):
+                #LOG EVENT#
+                l = LogEntry(userid=request.user.username,
+                       description=("added %s (%s) from SIMS") % (p.name(), p.emplid),
+                      related_object=p)
+                l.save()
+                messages.add_message(request, messages.SUCCESS, 'Record for %s created.' % (p.name()) )
                 return _redirect_to_notes(p)
     
     return HttpResponseRedirect(reverse('advisornotes.views.advising', kwargs={}))        

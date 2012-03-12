@@ -147,3 +147,70 @@ class TAForm(forms.Form):
                 raise forms.ValidationError, "That user already has role %s in this course." % (m.get_role_display())
 
         return userid
+
+from django.contrib.localflavor.ca.forms import CAPhoneNumberField
+class UnitAddressForm(forms.Form):
+    addr1 = forms.CharField(required=True, label="Address 1", help_text='First address line, e.g. "7654 Academic Quadrangle".',
+                            widget=forms.TextInput(attrs={'size': 25}))
+    addr2 = forms.CharField(required=True, label="Address 2", initial="8888 University Drive, Burnaby, BC", help_text='Second address line, e.g. "8888 University Drive, Burnaby, BC".',
+                            widget=forms.TextInput(attrs={'size': 25}))
+    addr3 = forms.CharField(required=False, label="Address 3", initial="Canada V5A 1S6", help_text='Third address line, e.g. "Canada V5A 1S6".',
+                            widget=forms.TextInput(attrs={'size': 25}))
+    phone = CAPhoneNumberField(required=True, label="Phone Number", initial="778-782-3111", help_text='General phone number for the department',
+                            widget=forms.TextInput(attrs={'size': 12}))
+    fax = CAPhoneNumberField(required=False, label="Fax Number", help_text='Fax number for the department',
+                            widget=forms.TextInput(attrs={'size': 12}))
+    web = forms.URLField(required=True, label="Web", help_text="URL of the department's web site", verify_exists=True)
+    email = forms.EmailField(required=False, label="Email", help_text='General contact email for the department')
+
+    def __init__(self, unit, *args, **kwargs):
+        super(UnitAddressForm, self).__init__(*args, **kwargs)
+        self.unit = unit
+        if 'address' in unit.config:
+            self.initial['addr1'] = unit.config['address'][0]
+            if len(unit.config['address']) > 1:
+                self.initial['addr2'] = unit.config['address'][1]
+            else:
+                self.initial['addr2'] = ''
+            if len(unit.config['address']) > 2:
+                self.initial['addr3'] = unit.config['address'][2]
+            else:
+                self.initial['addr3'] = ''
+
+        if 'tel' in unit.config:
+            self.initial['phone'] = unit.config['tel']
+        if 'fax' in unit.config:
+            self.initial['fax'] = unit.config['fax']
+        if 'web' in unit.config:
+            self.initial['web'] = unit.config['web']
+        if 'email' in unit.config:
+            self.initial['email'] = unit.config['email']
+    
+    def copy_to_unit(self):
+        data = self.cleaned_data
+        addr = []
+        if 'addr1' in data and data['addr1']:
+            addr.append(data['addr1'])
+        if 'addr2' in data and data['addr2']:
+            addr.append(data['addr2'])
+        if 'addr3' in data and data['addr3']:
+            addr.append(data['addr3'])
+        self.unit.config['address'] = addr
+        
+        if 'phone' in data and data['phone']:
+            self.unit.config['tel'] = data['phone']
+        else:
+            del self.unit.config['tel']
+        if 'fax' in data and data['fax']:
+            self.unit.config['fax'] = data['fax']
+        else:
+            del self.unit.config['fax']
+        if 'web' in data and data['web']:
+            self.unit.config['web'] = data['web']
+        else:
+            del self.unit.config['web']
+        if 'email' in data and data['email']:
+            self.unit.config['email'] = data['email']
+        else:
+            del self.unit.config['email']
+

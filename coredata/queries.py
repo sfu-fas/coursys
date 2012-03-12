@@ -9,9 +9,6 @@ class SIMSConn(object):
     """
     Singleton object representing SIMS DB connection
     
-    Exceptions that might be thrown:
-      SIMSConn.DatabaseError
-    
     singleton pattern implementation from: http://stackoverflow.com/questions/42558/python-and-the-singleton-pattern
     
     Absolutely NOT thread safe.
@@ -156,13 +153,13 @@ def find_person(emplid):
     Find the person in SIMS: return data or None (not found) or a SIMSProblem instance (error message).
     """
     db = SIMSConn()
-    db.execute("SELECT emplid, last_name, first_name, middle_name FROM dbsastg.ps_personal_data WHERE emplid=%s",
+    db.execute("SELECT emplid, last_name, first_name, middle_name FROM " + db.table_prefix + "ps_personal_data WHERE emplid=%s",
                (str(emplid),))
 
     for emplid, last_name, first_name, middle_name in db:
         # use emails to guess userid: if not found, leave unset and hope AMAINT has it on next nightly update
         userid = None
-        db.execute("SELECT e_addr_type, email_addr, pref_email_flag FROM dbsastg.ps_email_addresses c WHERE emplid=%s", (str(emplid),))
+        db.execute("SELECT e_addr_type, email_addr, pref_email_flag FROM " + db.table_prefix + "ps_email_addresses c WHERE emplid=%s", (str(emplid),))
         for _, email_addr, _ in db:
             if email_addr.endswith('@sfu.ca'):
                 userid = email_addr[:-7]
@@ -203,7 +200,7 @@ def more_personal_info(emplid):
     data = {}
     
     # get phone numbers
-    db.execute('SELECT phone_type, country_code, phone, extension, pref_phone_flag FROM dbsastg.ps_personal_phone WHERE emplid=%s', (str(emplid),))
+    db.execute('SELECT phone_type, country_code, phone, extension, pref_phone_flag FROM ' + db.table_prefix + 'ps_personal_phone WHERE emplid=%s', (str(emplid),))
     phones = {}
     data['phones'] = phones
     for phone_type, country_code, phone, extension, pref_phone in db:
@@ -224,7 +221,7 @@ def more_personal_info(emplid):
     
     # get addresses
     # sorting by effdt to get the latest in the dictionary
-    db.execute("SELECT address_type, effdt, eff_status, c.descrshort, address1, address2, address3, address4, city, state, postal FROM dbsastg.ps_addresses a, dbsastg.ps_country_tbl c WHERE emplid=%s AND eff_status='A' AND a.country=c.country ORDER BY effdt ASC", (str(emplid),))
+    db.execute("SELECT address_type, effdt, eff_status, c.descrshort, address1, address2, address3, address4, city, state, postal FROM " + db.table_prefix + "ps_addresses a, " + db.table_prefix + "ps_country_tbl c WHERE emplid=%s AND eff_status='A' AND a.country=c.country ORDER BY effdt ASC", (str(emplid),))
     addresses = {}
     data['addresses'] = addresses
     for address_type, _, _, country, address1, address2, address3, address4, city, state, postal in db:
@@ -243,7 +240,7 @@ def more_personal_info(emplid):
 
 
     # get citizenzhip
-    db.execute("SELECT c.descrshort FROM dbsastg.ps_citizenship cit, dbsastg.ps_country_tbl c WHERE emplid=%s AND cit.country=c.country", (str(emplid),))
+    db.execute("SELECT c.descrshort FROM " + db.table_prefix + "ps_citizenship cit, dbsastg.ps_country_tbl c WHERE emplid=%s AND cit.country=c.country", (str(emplid),))
     #if 'citizen' in p.config:
     #    del p.config['citizen']
     for country, in db:
@@ -251,19 +248,19 @@ def more_personal_info(emplid):
 
     # get Canadian visa status
     # sorting by effdt to get the latest in the dictionary
-    db.execute("SELECT t.descrshort FROM dbsastg.ps_visa_pmt_data v, dbsastg.ps_visa_permit_tbl t WHERE emplid=%s AND v.visa_permit_type=t.visa_permit_type AND v.country=t.country AND v.country='CAN' AND v.visa_wrkpmt_status='A' AND t.eff_status='A' ORDER BY v.effdt ASC", (str(emplid),))
+    db.execute("SELECT t.descrshort FROM dbsastg.ps_visa_pmt_data v, " + db.table_prefix + "ps_visa_permit_tbl t WHERE emplid=%s AND v.visa_permit_type=t.visa_permit_type AND v.country=t.country AND v.country='CAN' AND v.visa_wrkpmt_status='A' AND t.eff_status='A' ORDER BY v.effdt ASC", (str(emplid),))
     #if 'visa' in p.config:
     #    del p.config['visa']
     for desc, in db:
         data['visa'] = desc
 
     # emails
-    #execute_query(db, "SELECT e_addr_type, email_addr, pref_email_flag FROM dbsastg.ps_email_addresses c WHERE emplid=%s", (str(emplid),))
+    #execute_query(db, "SELECT e_addr_type, email_addr, pref_email_flag FROM " + db.table_prefix + "ps_email_addresses c WHERE emplid=%s", (str(emplid),))
     #for e_addr_type, email_addr, pref_email_flag in iter_rows(db):
     #    print (e_addr_type, email_addr, pref_email_flag)
     
     # other stuff from ps_personal_data
-    db.execute('SELECT sex FROM dbsastg.ps_personal_data WHERE emplid=%s', (str(emplid),))
+    db.execute('SELECT sex FROM ' + db.table_prefix + 'ps_personal_data WHERE emplid=%s', (str(emplid),))
     #if 'gender' in p.config:
     #    del p.config['gender']
     for sex, in db:

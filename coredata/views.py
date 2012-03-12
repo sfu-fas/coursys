@@ -1,10 +1,10 @@
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm
+from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm, UnitAddressForm
 from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse
 from courselib.search import get_query
-from coredata.models import Person, Semester, CourseOffering, Member, Role, UNIT_ROLES, ROLES, ROLE_DESCR
+from coredata.models import Person, Semester, CourseOffering, Member, Role, Unit, UNIT_ROLES, ROLES, ROLE_DESCR
 from log.models import LogEntry
 from django.core.urlresolvers import reverse
 from django.contrib import messages
@@ -248,7 +248,7 @@ def unit_admin(request):
     """
     Unit admin front page
     """
-    return render(request, 'coredata/unit_admin.html', {})
+    return render(request, 'coredata/unit_admin.html', {'units': request.units})
 
 @requires_role("ADMN")
 def unit_role_list(request):
@@ -295,6 +295,31 @@ def delete_unit_role(request, role_id):
     
     role.delete()
     return HttpResponseRedirect(reverse(unit_role_list))
+
+
+@requires_role('ADMN')
+def unit_address(request, unit_slug):
+    unit = get_object_or_404(Unit, slug=unit_slug)
+    if unit not in request.units:
+        return ForbiddenResponse(request, "Not an admin for this unit")
+    
+    if request.method == 'POST':
+        form = UnitAddressForm(data=request.POST, unit=unit)
+        if form.is_valid():
+            print form.cleaned_data
+            form.copy_to_unit()
+            unit.save()
+            
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("updated contact info for %s") % (unit.label),
+                  related_object=unit)
+            l.save()
+            return HttpResponseRedirect(reverse('coredata.views.unit_admin'))
+    else:
+        form = UnitAddressForm(unit=unit)
+    context = {'unit': unit, 'form': form}
+    return render(request, "coredata/unit_address.html", context)
 
 
 

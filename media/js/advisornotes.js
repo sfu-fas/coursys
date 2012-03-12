@@ -10,7 +10,7 @@ function search_sims(url, emplid, formurl, csrftoken) {
             } else {
                 res = '<form action="' + formurl + '" method="post">' + csrftoken
                 res += '<input type="hidden" name="emplid" value="' + emplid + '" />'
-                res += '<p>Emplid found in SIMS: ' + data['last_name'] + ', ' + data['first_name']
+                res += '<p>Student number found in SIMS: ' + data['last_name'] + ', ' + data['first_name']
                 if (data['userid']) {
                     res += ', ' + data['userid']
                 }

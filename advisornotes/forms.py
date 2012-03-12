@@ -35,7 +35,7 @@ class StudentField(forms.ModelChoiceField):
         try:
             st = Person.objects.get(emplid=value)
         except (ValueError, Person.DoesNotExist):
-            raise forms.ValidationError("Unknown person selected")
+            raise forms.ValidationError("Could not find person's record.")
         return st
     
 class StudentSearchForm(forms.Form):
