@@ -9,11 +9,12 @@
 <script type="text/javascript">
   $(function() {
     df = {'dateFormat': 'yy-mm-dd'};
-    $("#id_start_semester_from").datepicker(df);
-    $("#id_start_semester_to").datepicker(df);
-    $("#id_end_semester_from").datepicker(df);
-    $("#id_end_semester_to").datepicker(df);
-    $("#id_student_status").css("min-height", "250px").multiselect();
+    $("#id_date_from").datepicker(df);
+    $("#id_date_to").datepicker(df);
+    $("#id_student_status").css("min-height", "180px").multiselect();
+    $("#id_accepted_status").css("min-height", "160px").multiselect();
+    $("#id_has_comments").css("min-height", "100px").multiselect();
+    $("#id_campus").css("min-height", "160px").multiselect();
   });
 </script>
 {% endblock %}

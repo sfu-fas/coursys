@@ -189,6 +189,11 @@ class LetterForm(ModelForm):
 def choices_with_negate(choices):
     return (list(choices) + [('NOT_' + k, 'Not ' + v) for k, v in choices])
 
+class NullBooleanSelect_Optional(NullBooleanSelect):
+    def __init__(self, *args, **kwargs):
+        super(NullBooleanSelect_Optional, self).__init__(*args, **kwargs)
+        self.choices = [(u'', '---------')] + self.choices
+
 class NullBooleanSelect_Filter(NullBooleanSelect):
     def __init__(self, attrs=None):
         choices = ((u'', '---------'), (u'2', 'Yes'), (u'3', 'No'))
@@ -201,40 +206,81 @@ class NullBooleanSelect_Filter(NullBooleanSelect):
             value = u''
         return super(NullBooleanSelect_Filter, self).render(name, value, attrs, choices)
 
+# should be moved into whatever model this is stored in
+# This is also a guess at which statuses are mutually exclusive
+ACCEPTED_CHOICES = (
+        ('REJT', 'Rejected'),
+        ('DECL', 'Declined Offer'),
+        ('EXPI', 'Expired'),
+        ('CONF', 'Confirmed'),
+        ('CANC', 'Cancelled'),
+        ('UNKN', 'Unknown'),
+        )
+
+DATE_CHOICES = (('','---------'),
+        ('GPRC', 'Grad Program Created'),
+        ('GPRU', 'Grad Program Updated'),
+        ('GSTC', 'Grad Student Created'),
+        ('GSTU', 'Grad Student Updated'),
+        ('GSAC', 'Grad Status Created'),
+        ('GSAU', 'Grad Status Updated'),
+        )
+
+COMMENTS_CHOICES = (
+        ('FINC','Financial Comments'),
+        ('GRAD','Grad Sec Comments'),
+        ('POST','Post Grad Comments'),
+        )
+
 class SearchForm(forms.Form):
     #TODO: finish
     
-    #TODO: create a MultiValuefield to combine all start_semester* fields
-    start_semester_from = forms.DateField(required=False, 
-            help_text='Search for when the Grad student has applied')
-    start_semester_to = forms.DateField(required=False)
-    start_semester = forms.ModelChoiceField(Semester.objects.all(), required=False)
-    # also use it for end_semester*
-    end_semester_from = forms.DateField(required=False)
-    end_semester_to = forms.DateField(required=False)
+    date_from = forms.DateField(required=False) 
+    date_to = forms.DateField(required=False)
+    date_search_type = forms.ChoiceField(DATE_CHOICES, required=False,
+            help_text='Not Implemented')
+    
+    start_semester = forms.ModelChoiceField(Semester.objects.all(), required=False,
+            help_text='Semester in which the Grad student has applied to start')
     end_semester = forms.ModelChoiceField(Semester.objects.all(), required=False)
     
     # requirements?
-    student_status = forms.MultipleChoiceField(choices_with_negate(gradmodels.STATUS_CHOICES),
+    student_status = forms.MultipleChoiceField(gradmodels.STATUS_CHOICES,
 #            widget=forms.CheckboxSelectMultiple,
             required=False,
+            help_text='Uses "or", selecting nothing means any'
             )
-    archive_sp = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
+    accepted_status = forms.MultipleChoiceField(ACCEPTED_CHOICES, required=False,
+            help_text='Not Implemented; Uses "or", selecting nothing means any')
+    archive_sp = forms.NullBooleanField(required=False, 
+            widget=NullBooleanSelect_Filter,
+            help_text='Not Implemented')
+    has_comments = forms.MultipleChoiceField(COMMENTS_CHOICES, required=False,
+            help_text='Not Implemented; Uses "or", selecting nothing means any')
     
     #program = forms.CharField(required=False)
     program = forms.ModelChoiceField(GradProgram.objects.all(), required=False)
-    degree = forms.ChoiceField(choices=(
-            ('','---------'),
-            ('INTL','International'),
-            ('CAN','Canadian')
-            ), required=False)
-    financial_support = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
-    campus = forms.ChoiceField([('','---------')]+list(CAMPUS_CHOICES), required=False)
+#    degree = forms.ChoiceField(choices=(
+#            ('','---------'),
+#            ('INTL','International'),
+#            ('CAN','Canadian')
+#            ), required=False)
+    is_canadian = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
+    
+    has_financial_support = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter,
+            help_text='Not Implemented')
+    campus = forms.MultipleChoiceField(CAMPUS_CHOICES, required=False,
+            help_text='Uses "or", selecting nothing means any')
     gpa_min = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False)
-    gpa_max = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False)
+    gpa_max = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False,
+            help_text='Not Implemented')
     gender = forms.ChoiceField((('','---------'), ('M','Male'), ('F','Female'), ('U','unknown')),
-            required=False)
-    visa_held = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
-    scholarship_from = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
-    scholarship_to = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
-    scholarship_semester = forms.ModelChoiceField(Semester.objects.all(), required=False)
+            required=False,
+            help_text='Not Implemented')
+    visa_held = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter,
+            help_text='Not Implemented')
+#    scholarship_from = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
+#    scholarship_to = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
+    scholarship_sem = forms.ModelChoiceField(Semester.objects.all(),
+            label='Scholarship Semester Received',required=False,
+            help_text='Not Implemented')
