@@ -213,7 +213,18 @@
 <form action="" method="post">{% csrf_token %}
 <fieldset class="wide">
 <legend>General Info</legend>
+{%if editing%}
 {{ form|as_dl_excludefields:"pay_per_bu,scholarship_per_bu"}}   
+{%else%}
+{{ form|as_dl_excludefields:"pay_per_bu,scholarship_per_bu,status"}}   
+<dt><label for="id_status" style="display:none">Appointment Status: <span class="required" ></span></label></dt><dd>
+
+<div class="field"  style="display:none"><select  name="status" id="id_status" >
+<option value="NEW" selected="selected">New</option>
+</select></div>
+</dd>
+{%endif%}
+
 </fieldset>
 
 <div class="container">
