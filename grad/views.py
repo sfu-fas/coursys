@@ -518,12 +518,12 @@ def manage_letter_template(request, letter_template_slug):
             f = form.save(commit=False)
             f.created_by = request.user.username            
             f.save()
-            messages.success(request, "Updated %s letter for %s." % (form.instance.template.label, form.instance.student))
+            messages.success(request, "Updated %s letter for %s." % (form.instance.label, form.instance.unit))
             l = LogEntry(userid=request.user.username,
-                  description="Updated new %s letter for %s." % (form.instance.template.label, form.instance.student),
+                  description="Updated new %s letter for %s." % (form.instance.label, form.instance.unit),
                   related_object=form.instance)
             l.save()            
-            return HttpResponseRedirect(reverse(letters))
+            return HttpResponseRedirect(reverse(letter_templates))
     else:
         form = LetterTemplateForm(instance=letter_template)
 
