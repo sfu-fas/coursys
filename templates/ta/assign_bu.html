@@ -46,7 +46,7 @@ Remaining BUs: {{ offering|display_bu_difference:posting }}
       <th scope="col">Course Rank</th>
       <th scope="col">Campus Preference</th>
       <th scope="col">Max BUs</th>
-      <th scope="col">Base Units</th>
+      <th scope="col">Assigned Base Units</th>
     </tr>
 </thead>
 <tbody>
@@ -62,7 +62,12 @@ Remaining BUs: {{ offering|display_bu_difference:posting }}
         <td scope="row">{{ course_preferences|display_course_rank:forloop.counter0 }}</td>
         <td scope="row">{{ campus_preferences|display_campus_preference:forloop.counter0 }}</a></td>
         <td scope="row">{{ a.base_units }}</a></td>
-        <td scope="row"><input id="bu" type=text value="" /></td>
+        <td scope="row">{% for form in formset %}
+        {% ifequal forloop.counter forloop.parentloop.counter %}
+          {{ form.bu }}
+        {% endifequal %}
+        {% endfor %}
+        </td>
       </tr>	
 {% endfor %}
 </tbody>

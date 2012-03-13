@@ -360,7 +360,7 @@ class TAContract(models.Model):
         unique_together = (('posting', 'application'),)
         
     def __unicode__(self):
-        return "%s" % (self.applicant)
+        return "%s" % (self.application.person)
 
 class TACourse(models.Model):
     course = models.ForeignKey(CourseOffering, blank=False, null=False)

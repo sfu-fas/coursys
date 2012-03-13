@@ -328,26 +328,45 @@ def assign_bus(request, post_slug, course_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug)
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     course_prefs = CoursePreference.objects.filter(course=offering.course) 
+    #a ta that has been assigned BU to this course might not be on the list
+    tacourses = TACourse.objects.filter(course=offering)
+    
     apps = []
     campus_prefs = []
+    assigned_ta = []
     initial = []
 
     for p in course_prefs:
+        init = {}
+        assigned = None
         apps.append(p.app)
         campus_preference = CampusPreference.objects.get(app=p.app, campus=offering.campus)
         campus_prefs.append(campus_preference)
-        initial.append({'rank': p.app.rank})
+        #find BU assigned to this applicant through contract
+        app_tacourses = tacourses.filter(contract__application=p.app)
+        if app_tacourses.count() == 1:
+            init['bu'] = app_tacourses[0].bu
+            assigned = app_tacourses[0]
+        assigned_ta.append(assigned)
+        init['rank'] = p.rank
+        initial.append(init)
 
     AssignBUFormSet = formset_factory(AssignBUForm)
     
     #Save ranks and BU's
+    #need validation
     if request.method == "POST":
         formset = AssignBUFormSet(request.POST)
         for i in range(0, len(apps)):
+            #update rank
             apps[i].rank = formset[i]['rank'].value()
             apps[i].save()
-
-    formset = AssignBUFormSet(initial=initial)
+            #update bu
+            assigned_ta[i].bu = formset[i]['bu'].value()
+            assigned_ta[i].save()
+    else:
+        formset = AssignBUFormSet(initial=initial)
+    
     try:
         extra_bu = offering.config['extra_bu']
     except KeyError:
@@ -449,25 +468,12 @@ def edit_contract(request, post_slug, userid):
                     req_bu -= assigned_bu
                 
                 results += str(req_bu)
-                if(len(co.config) > 0 and co.config['labtut']):
+                print co.config
+                if(len(co.config) > 0 and co.config.has_key('labtut')):
                     results += ',OML'
                 else:
                     results += ',OM'
                 return HttpResponse(results)
-            """
-            if('applicant' in request.POST):
-                results = ''
-                app = TAApplication.objects.filter(person=request.POST['applicant'], posting=posting)
-                if(app.count() > 0):              
-                    results = app[0].sin, ',', app[0].category
-                else:
-                    #try to find applicaion from other postings, grab from latest
-                    app = TAApplication.objects.filter(person=request.POST['applicant']).order_by('-id')
-                    
-                    if(app.count() > 0):
-                        results = app[0].sin, ',', app[0].category
-                return HttpResponse(results)
-            """
         elif form.is_valid():
             contract = form.save(commit=False)
             formset = TACourseFormset(request.POST, instance=contract)
@@ -486,8 +492,8 @@ def edit_contract(request, post_slug, userid):
                     messages.success(request, "Created TA Contract for %s for %s." % (contract.application.person, posting))
                 else:
                     messages.success(request, "Edited TA Contract for %s for %s." % (contract.application.person, posting))
-                return HttpResponseRedirect(reverse(all_contracts))
-    else:   
+                return HttpResponseRedirect(reverse(all_contracts, args=(post_slug,)))
+    else:
         form = TAContractForm(instance=contract) 
         formset = TACourseFormset(instance=contract)
         if not editing:
