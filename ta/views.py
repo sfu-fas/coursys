@@ -416,9 +416,33 @@ def view_contract(request, post_slug, userid):
         contract = contract[0]
         application = contract.application
     courses = TACourse.objects.filter(contract=contract)
-        
     
-    return render(request, 'ta/view_contract.html', {'contract':contract, 'courses':courses})
+    total = 0
+    for course in courses:
+        total = total +course.bu
+    
+    pp = posting.config['payperiods']
+    salary_sem = (total*contract.pay_per_bu)
+    schol_sem = (total*contract.scholarship_per_bu)
+    salary_sem_out = format_currency(salary_sem)
+    schol_sem_out = format_currency(schol_sem)
+    salary_bi = format_currency(salary_sem / pp)
+    schol_bi = format_currency(schol_sem / pp)
+
+
+    context =   {'contract':contract,
+                 'courses':courses,
+                 'pay':format_currency(contract.pay_per_bu),
+                 'scholarship':format_currency(contract.scholarship_per_bu),
+                 'salary_bi':salary_bi,
+                 'schol_bi':schol_bi,
+                 'salary_sem':salary_sem_out,
+                 'schol_sem':schol_sem_out
+                 }
+     
+    
+    
+    return render(request, 'ta/view_contract.html', context)
 
 @requires_role("TAAD")
 def edit_contract(request, post_slug, userid):
