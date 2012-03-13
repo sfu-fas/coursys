@@ -9,7 +9,63 @@
 {% block actions %}
 {% endblock %}
 
+{% block headextra %}
+<style type="text/css">
+/* from W3 Dot Leaders */
+ul.leaders {
+    max-width: 60%;
+    padding-left: 2em;
+    overflow-x: hidden;
+    list-style: none
+    }
+ul.leaders li:before {
+    float: left;
+    width: 0;
+    white-space: nowrap;
+    content:
+ ". . . . . . . . . . . . . . . . . . . . "
+ ". . . . . . . . . . . . . . . . . . . . "
+ ". . . . . . . . . . . . . . . . . . . . "
+ ". . . . . . . . . . . . . . . . . . . . "
+ }
+ul.leaders span:first-child {
+    padding-right: 0em;
+    background: white
+}
+ul.leaders span + span {
+    float: right;
+    padding-left: 0em;
+    background: white
+}
+    
+div.left-col_container {
+	 width: 100%;
+	 float:left; 
+	 position: relative;
+}
 
+div.right-col_container {
+	width: 40%; 
+	float: right; 
+	padding-left: 1em; 
+	padding-top: 1em; 
+	border-left: 2px solid #000;
+}
+
+div.left-col_content {
+	position: relative; 
+	float: left; 
+	right: 150%;
+}
+
+div.right-col_content {
+	position: relative; 
+	float: left;
+}
+
+</style>
+
+{% endblock %}
 
 {% block subbreadcrumbs %}
 <li>
@@ -28,10 +84,37 @@
 
 
 {% block content %}
-<div id="form_container">
-    <form action="{% url grad.views.financials grad_slug=grad.slug%}" method="GET">
-    	
-    </form>
-	<a class="button" href="{% url grad.views.index %}">Back</a>
+
+<div id="column_container">
+	Status: {{ status.get_status_display }}
+	{% for promise_period in promise_periods %}
+		
+	<h2> {{ promise_period.scholarship_details.semester }} </h2>
+    <div class="left-col_container">
+	    <div class="right-col_container">
+			{% for scholarships in promise_period.scholarship_details %}
+			<div class="left-col_content">
+				<ul class="leaders">
+					{% for scholarship in scholarships %}
+					<li>
+						<span>{{ scholarship.name }}</span>
+						<span> {{ scholarship.amount }} </span>
+					</li>
+					{% endfor %}
+					
+				</ul>
+			</div>
+			{% endfor %}
+			
+			<div id="promises" class="right-col_content">
+				{{ semester.promise }}
+			</div>
+			
+	    </div>
+    </div>
+	{% endfor %}
+
 </div>
+
+
 {% endblock %} 

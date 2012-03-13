@@ -239,22 +239,31 @@ Financial
 class ScholarshipType(models.Model):
     unit = models.ForeignKey(Unit)
     name = models.CharField(max_length=256)
+    eligible = models.BooleanField()
+    comments = models.TextField(blank=True)
     class meta:
         unique_together = ("unit", "name")
 
 class Scholarship(models.Model):
     scholarship_type = models.ForeignKey(ScholarshipType)
-    person = models.ForeignKey(GradStudent)
+    student = models.ForeignKey(GradStudent)
     amount = models.DecimalField(verbose_name="Scholarship Amount", max_digits=8, decimal_places=2)
-    semester = models.ForeignKey(Semester)
+    start_semester = models.ForeignKey(Semester, related_name="scholarship_start")
+    end_semester = models.ForeignKey(Semester, related_name="scholarship_end")
+    comments = models.TextField(blank=True)
+    
     
 class OtherFunding(models.Model):
-    person = models.ForeignKey(GradStudent)
+    student = models.ForeignKey(GradStudent)
+    semester = models.ForeignKey(Semester, related_name="other_funding")
     description = models.CharField(max_length=100, blank=False)
     amount = models.DecimalField(verbose_name="Funding Amount", max_digits=8, decimal_places=2)
+    eligible = models.BooleanField()
+    comments = models.TextField(blank=True)
     
 class Promise(models.Model):
-    person = models.ForeignKey(GradStudent)
+    student = models.ForeignKey(GradStudent)
     amount = models.DecimalField(verbose_name="Scholarship Amount", max_digits=8, decimal_places=2)
     start_semester = models.ForeignKey(Semester, related_name="promise_start")
     end_semester = models.ForeignKey(Semester, related_name="promise_end")
+    comments = models.TextField(blank=True)

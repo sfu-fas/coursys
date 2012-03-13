@@ -681,27 +681,62 @@ def search(request):
 @requires_role("GRAD")
 def financials(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
-    status_history = get_list_or_404(GradStatus, student=grad, hidden=False)
+    current_status = GradStatus.objects.get(student=grad, hidden=False, end=None)
+    eligible_scholarships = ScholarshipType.objects.filter(eligible=True)
+    scholarships = Scholarship.objects.filter(student=grad)
+    promises_qs = Promise.objects.filter(student=grad)
+    other_fundings = OtherFunding.objects.filter(student=grad)
     
-    scholarship = Scholarship.objects.all()
-    type = ScholarshipType.objects.all()
-    promise = Promise.objects.all()
-    other = OtherFunding.objects.all()
+    # Create a list of promises that encapsulating 
+    # 1. a dictionary of semesters that span the promise that encapsulates
+    # 1.1. A list of all scholarships in each semester
+    # 1.2. A list of all other fundings in each semseter
+    # 1.3. Semester total of scholarships and other funding that counts towards promise
+    # 2. Promised amount for the period
+    # 3. Owing amount for the period
     
-   
-    
+    promises = []
+    for promise in promises_qs:
+        semesters = Semester.objects.filter(start__gte=promise.start_semester.start,end__lte=promise.end_semester.end)
+        total_received = 0
+        promise_semesters = []
+        for semester in semesters:
+            semester_total = 0
+            scholarships_in_semester = {}
+            semester_scholarships = scholarships.filter(start_semester=semester)
+            semester_eligible_scholarships = semester_scholarships.filter(scholarship_type__in=eligible_scholarships)
+            semester_other_fundings = other_fundings.filter(semester=semester)
+            scholarships_in_semester['scholarships'] = semester_scholarships
+            scholarships_in_semester['other_funding'] = semester_other_fundings
+            
+            for semester_eligible_scholarship in semester_eligible_scholarships:
+                    semester_total += semester_eligible_scholarship.amount
+            for semester_other_funding in semester_other_fundings:
+                if semester_other_funding.eligible == True:
+                    semester_total += semester_other_funding.amount
+            scholarships_in_semester['semester_total'] = semester_total
+            total_received += semester_total
+            promise_semesters.append({'semester': semester, 
+                                      'scholarship_details': scholarships_in_semester})    
+               
+        promises.append({'promise':promise_semesters, 
+                                'promised_amount': promise.amount, 
+                                'received_amount':total_received, 
+                                'owing_amount': total_received-promise.amount})
+        
     # set frontend defaults
     page_title = "%s's Financial Summary" % (grad.person.first_name)
     crumb = "%s, %s" % (grad.person.last_name, grad.person.first_name)
 
-    context = {'scholarship':scholarship,
-               'type':type,
-               'promise':promise,
-               'other':other,
+
+    
+
+    context = {
+               'promises_qs': promises,
                'page_title':page_title,
                'crumb':crumb,
                'grad':grad,
-               
+               'status': current_status,
                }
     return render(request,'grad/view_financials.html',context)
     
