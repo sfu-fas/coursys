@@ -159,7 +159,7 @@ def find_person(emplid):
     for emplid, last_name, first_name, middle_name in db:
         # use emails to guess userid: if not found, leave unset and hope AMAINT has it on next nightly update
         userid = None
-        db.execute("SELECT e_addr_type, email_addr, pref_email_flag FROM " + db.table_prefix + "ps_email_addresses c WHERE emplid=%s", (str(emplid),))
+        db.execute("SELECT e_addr_type, email_addr, pref_email_flag FROM " + db.table_prefix + "ps_email_addresses c WHERE e_addr_type='CAMP' and emplid=%s", (str(emplid),))
         for _, email_addr, _ in db:
             if email_addr.endswith('@sfu.ca'):
                 userid = email_addr[:-7]

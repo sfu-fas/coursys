@@ -4,7 +4,6 @@ function search_sims(url, emplid, formurl, csrftoken) {
     $.ajax({
         url: url + '?emplid=' + emplid,
         success: function(data){
-            console.log(data);
             if (data['error']) {
                 res = '<p class="empty">Problem when checking SIMS for missing student data: ' + data['error'] + '.</p>';
             } else {
@@ -19,6 +18,11 @@ function search_sims(url, emplid, formurl, csrftoken) {
             $('#simsresult').append(res);
             $('#fetchwait').hide();
         },
+        error: function(jqXHR, textStatus, errorThrown) {
+			res = '<p class="empty">Could not contact server to check for missing student data.</p>';
+			$('#simsresult').append(res);
+			$('#fetchwait').hide();    	
+        }
     });
 }
 
@@ -61,6 +65,10 @@ function get_more_info(url) {
             }
             $('#fetchwait').hide();
             $('#moreinfo').remove();
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+			alert('Could not contact server.')
+			$('#fetchwait').hide();    	
         }
     });
 }

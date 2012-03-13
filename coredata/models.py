@@ -38,6 +38,8 @@ class Person(models.Model):
         # 'gender': 'M', 'F', 'U'
         # 'citizen': country of citizenship (e.g. 'Canada')
         # 'visa': Canadian visa status (e.g. 'No visa st', 'Perm resid')
+        # 'birthdate': birth date (e.g. '1980-12-31')
+        # 'applic_email': application email address
     
     defaults = {'email': None}
     _, set_email = getter_setter('email')
@@ -61,6 +63,8 @@ class Person(models.Model):
             return self.config['email']
         elif self.userid:
             return "%s@sfu.ca" % (self.userid)
+        #elif 'applic_email' in self.config:
+        #    return self.config['applic_email']
         else:
             return None
     def full_email(self):

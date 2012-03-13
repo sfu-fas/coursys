@@ -6,7 +6,7 @@ from grad.models import GradStudent, GradProgram, Supervisor, GradRequirement, C
     Letter
 from grad.forms import SupervisorForm, PotentialSupervisorForm, GradAcademicForm, GradProgramForm, \
         GradStudentForm, GradStatusForm, GradRequirementForm, possible_supervisors, BaseSupervisorsFormSet,\
-    SearchForm, LetterTemplateForm, LetterForm
+    SearchForm, LetterTemplateForm, LetterForm, UploadApplicantsForm
 from coredata.models import Person, Role, Unit, Semester, CAMPUS_CHOICES
 #from django.template import RequestContext
 from django import forms
@@ -21,7 +21,7 @@ from django.utils.encoding import iri_to_uri
 from itertools import ifilter
 
 # get semester based on input datetime. defaults to today
-# returns semseter object
+# returns semseter object7
 def get_semester(date=datetime.date.today()):
     year = date.year
     next_sem = 0
@@ -466,6 +466,27 @@ def new_requirement(request):
                'crumb' : crumb
                }
     return render(request, 'grad/new_requirement.html', context)
+
+@requires_role("GRAD")
+def import_applic(request):
+    if request.method == 'POST':
+        form = UploadApplicantsForm(data=request.POST, files=request.FILES)
+        if form.is_valid():
+            pass
+            #form.save()
+            #messages.success(request, "Created new grad requirement %s in %s." % (form.instance.description, form.instance.program))
+            #l = LogEntry(userid=request.user.username,
+            #      description="Created new grad requirement %s in %s." % (form.instance.description, form.instance.program),
+            #      related_object=form.instance)
+            #l.save()            
+            #return HttpResponseRedirect(reverse(requirements))
+    else:
+        form = UploadApplicantsForm()
+
+    context = {
+               'form': form,
+               }
+    return render(request, 'grad/import_applic.html', context)
 
 @requires_role("GRAD")
 def letter_templates(request):
