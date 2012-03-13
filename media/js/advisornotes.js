@@ -63,6 +63,14 @@ function get_more_info(url) {
             if (data['visa']) {
                 add_to_info('Visa', data['visa']);
             }
+            if (data['programs']) {
+                var programs = data['programs']
+                var res = '';
+                for (var i=0; i<programs.length; i++) {
+                    res += programs[i] + '<br/>'; 
+                }
+                add_to_info('Programs', res);
+            }
             $('#fetchwait').hide();
             $('#moreinfo').remove();
         },

@@ -1,7 +1,7 @@
 from coredata.models import Person
 from django.db import transaction
 from django.core.cache import cache
-import re
+import re, hashlib
 
 multiple_breaks = re.compile(r'\n\n+')
 
@@ -21,6 +21,7 @@ class SIMSConn(object):
     table_prefix = "dbsastg."
     
     _instance = None
+    DatabaseError = None
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
             cls._instance = super(SIMSConn, cls).__new__(cls, *args, **kwargs)
@@ -66,6 +67,7 @@ class SIMSConn(object):
         clean_args = tuple((self.escape_arg(a) for a in args))
         real_query = query % clean_args
         #print ">>>", real_query
+        self.query = real_query
         return self.db.execute(real_query)
 
 
@@ -105,35 +107,38 @@ def SIMS_problem_handler(func):
     Should be applied to any functions that use a SIMSConn object.
     """
     def wrapped(*args, **kwargs):
+        # check for the types of errors we know might happen and return an error message in a SIMSProblem
         try:
             return func(*args, **kwargs)
-        except Exception as e:
-            # check for the types of errors we know might happen
-            # (need more than regular exception syntax, since SIMSConn.DatabaseError isn't always there)
-            if hasattr(SIMSConn, 'DatabaseError') and isinstance(e, SIMSConn.DatabaseError):
-                return SIMSProblem("could not connect to reporting database")
-            elif isinstance(e, ImportError):
-                return SIMSProblem("could not import DB2 module")
-            raise e
+        except SIMSConn.DatabaseError:
+            return SIMSProblem("could not connect to reporting database")
+        except ImportError:
+            return SIMSProblem("could not import DB2 module")
 
     wrapped.__name__ = func.__name__
     return wrapped
 
-def cache_by_emplid(func, seconds=38800): # 8 hours by default
+def _args_to_key(args, kwargs):
+    "Hash arguments to get a cache key"
+    h = hashlib.new('md5')
+    h.update(unicode(args))
+    h.update(unicode(kwargs))
+    return h.hexdigest()
+    
+def cache_by_args(func, seconds=38800): # 8 hours by default
     """
     Decorator to cache query results from SIMS (if successful: no SIMSProblem).
-    Requires an 'emplid' argument to the function that uniquely identifies the results.
+    Requires arguments that are (1) hashabl and (2) can be converted to strings that uniquely identifies the results.
     Return results must be pickle-able so they can be cached. 
     """
-    def wrapped(emplid, *args, **kwargs):
-        key = "simscache-" + func.__name__ + "-" + str(emplid)
+    def wrapped(*args, **kwargs):
+        key = "simscache-" + func.__name__ + "-" + _args_to_key(args, kwargs)
         # first check cache
         cacheres = cache.get(key)
         if cacheres:
             return cacheres
         
         # not in cache: calculate
-        kwargs['emplid'] = emplid
         res = func(*args, **kwargs)
         if isinstance(res, SIMSProblem):
             # problem: don't cache
@@ -146,7 +151,7 @@ def cache_by_emplid(func, seconds=38800): # 8 hours by default
     wrapped.__name__ = func.__name__
     return wrapped
 
-@cache_by_emplid
+@cache_by_args
 @SIMS_problem_handler
 def find_person(emplid):
     """
@@ -187,9 +192,9 @@ def add_person(emplid):
     return p
 
 
-@cache_by_emplid
+@cache_by_args
 @SIMS_problem_handler
-def more_personal_info(emplid):
+def more_personal_info(emplid, programs=False):
     """
     Get contact info for student: return data or None (not found) or a SIMSProblem instance (error message).
     
@@ -267,6 +272,25 @@ def more_personal_info(emplid):
         if sex:
             data['gender'] = sex # 'M', 'F', 'U'    
     
+    # academic programs
+    if programs:
+        programs = []
+        data['programs'] = programs
+        first_dt = None
+        db.execute("SELECT p.effdt, p.acad_plan, d.descr, d.trnscr_descr FROM " + db.table_prefix + "ps_acad_plan p, " + db.table_prefix + 
+               "ps_acad_plan_tbl d WHERE p.acad_plan=d.acad_plan AND d.eff_status='A' AND p.emplid=%s ORDER BY p.effdt DESC, p.EFFSEQ", (str(emplid),))
+        for effdt, acad_plan, descr, transcript in db:
+            # only display programs from most recent declaration
+            if first_dt is None:
+                first_dt = effdt
+            elif effdt != first_dt:
+                break
+            
+            label = transcript or descr
+            prog = "%s (%s)" % (label, acad_plan)
+            programs.append(prog)
+    
     return data
+
 
 

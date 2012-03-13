@@ -157,7 +157,7 @@ def student_more_info(request, userid):
     AJAX request for contact info, etc. (queries SIMS directly)
     """
     student = get_object_or_404(Person, _find_userid_or_emplid(userid))
-    data = more_personal_info(student.emplid)
+    data = more_personal_info(student.emplid, programs=True)
     
     if isinstance(data, SIMSProblem):
         data = {'error': data}
