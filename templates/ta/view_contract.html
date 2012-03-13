@@ -58,10 +58,12 @@
 
 		<tr><th>Pay Per BU</th><td>{{contract.pay_per_bu}}</td></tr>
 		<tr><th>Scholarship per BU</th><td>{{contract.scholarship_per_bu}}</td></tr>  
+		<tr><th>Scholarship per BU</th><td></td></tr>  
+		<tr><th>Scholarship per BU</th><td></td></tr>  
 		
   </table>
   
- <form><p><a  id="submit" href="{% url ta.views.edit_contract post_slug=contract.posting.slug contract_id=contract.id userid=contract.application.person.userid %}"><button type="button" class="submit" id="submit">Edit</button></a></p></form>	    
- 
+ <form><p><a  id="submit" href="{% url ta.views.edit_contract post_slug=contract.posting.slug userid=contract.application.person.userid %}"><button type="button" class="submit" id="submit">Edit</button></a></p></form>	    
+
 </div>
 {% endblock %}

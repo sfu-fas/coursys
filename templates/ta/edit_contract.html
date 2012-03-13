@@ -9,6 +9,10 @@
 <li>&gt; {% if editing %}Editing {{ contract.application.person.name }}'s Contract{% else %}New Contract for {{application.person.name}}{% endif %}</li>
 {% endblock %}
 
+<div class="container">
+	<div id="messages">{{formset.non_form_errors}}<ul class="warninglist"></ul></div>
+</div>
+
 {% block headextra %}
 <script type="text/javascript">	
 	function calculate(){
@@ -182,6 +186,7 @@
     	})
     });
 </script>
+
 {% endblock %}
 
 {% block content %}
@@ -218,7 +223,6 @@
 {%else%}
 {{ form|as_dl_excludefields:"pay_per_bu,scholarship_per_bu,status"}}   
 <dt><label for="id_status" style="display:none">Appointment Status: <span class="required" ></span></label></dt><dd>
-
 <div class="field"  style="display:none"><select  name="status" id="id_status" >
 <option value="NEW" selected="selected">New</option>
 </select></div>
@@ -226,10 +230,6 @@
 {%endif%}
 
 </fieldset>
-
-<div class="container">
-	<div id="messages">{{formset.non_form_errors}}<ul class="warninglist"></ul></div>
-</div>
 
 <fieldset>
 <legend>Course and Payment Details</legend>

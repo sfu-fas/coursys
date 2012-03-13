@@ -382,12 +382,23 @@ def all_contracts(request, post_slug=None):
     return render(request, 'ta/all_contracts.html', {'contracts':contracts, 'posting':posting, 'applications':applications, 'postings':postings})
 
 @requires_role("TAAD")
-def view_contract(request, contract_id):
-    contract = get_object_or_404(TAContract, pk=contract_id)
+def view_contract(request, post_slug, userid):
+    #contract = get_object_or_404(TAContract, pk=contract_id)
     #ta courses get all courses with contract_id
+    #courses = TACourse.objects.filter(contract=contract)
+    #contract.pay_per_bu = format_currency(contract.pay_per_bu)
+    #contract.scholarship_per_bu = format_currency(contract.scholarship_per_bu)
+    
+    posting = get_object_or_404(TAPosting, slug=post_slug)
+    if posting.unit not in request.units:
+        ForbiddenResponse(request, 'You cannot access this posting')
+    contract = TAContract.objects.filter(posting=posting, application__person__userid=userid)
+    if contract.count() > 0:
+        contract = contract[0]
+        application = contract.application
     courses = TACourse.objects.filter(contract=contract)
-    contract.pay_per_bu = format_currency(contract.pay_per_bu)
-    contract.scholarship_per_bu = format_currency(contract.scholarship_per_bu)
+        
+    
     return render(request, 'ta/view_contract.html', {'contract':contract, 'courses':courses})
 
 @requires_role("TAAD")
