@@ -18,6 +18,7 @@ from django.forms.models import inlineformset_factory
 from django.forms.formsets import formset_factory
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 import datetime, decimal, locale 
+import unicodecsv as csv
 
 
 locale.setlocale( locale.LC_ALL, '' ) #fiddle with this if u cant get the following function to work
@@ -688,3 +689,63 @@ def edit_bu(request, post_slug):
 
     context = {'form': form, 'formset': formset, 'posting': posting, 'level': level}
     return render(request, 'ta/edit_bu.html',context)
+
+
+@requires_role("TAAD")
+def generate_csv(request, post_slug):
+
+    csvWriter = csv.writer(open('test.csv','wb'), delimiter='|', quotechar='\"')
+
+    posting = get_object_or_404(TAPosting, slug=post_slug)
+    if posting.unit not in request.units:
+        ForbiddenResponse(request, 'You cannot access this posting')
+    
+    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit)
+    # ignore excluded courses
+    excl = set(posting.excluded())
+    offerings = [o for o in all_offerings if o.course_id not in excl]
+    excluded = [o for o in all_offerings if o.course_id in excl]
+  
+    course_prefs = []
+    for o in offerings:
+        cp = CoursePreference.objects.filter(course=o.course)
+        for c in cp:
+            course_prefs.append(c)
+    
+    num_offerings = len(offerings)
+    apps = []
+    course_list = []
+    while len(course_prefs) != 0:
+        app = course_prefs[0].app
+        course_list.append([p for p in course_prefs if p.app == app])
+        course_prefs = [p for p in course_prefs if p.app != app] 
+
+    #Insert empty char for proper csv display
+    off = [str(o.course) + ' ' + str(o.section) for o in offerings]
+    off.insert(0,'')
+    csvWriter.writerow(off)
+
+    csv_rows = []
+    csv_row = []
+    for cp in course_list:
+        name = cp[0].app.person.last_name + ', ' + cp[0].app.person.first_name
+        csv_row.append(name)
+
+        for o in offerings:
+            found = False
+            for c in cp:
+                if o.course == c.course:
+                    csv_row.append(c.rank)
+                    found = True
+                    cp.remove(c)
+            if not found:
+                csv_row.append('')
+        csv_rows.append(csv_row)
+        csv_row = []
+
+    csv_rows.sort()
+    for row in csv_rows:
+        csvWriter.writerow(row)
+
+    context = {'posting': posting, 'offerings': offerings, 'excluded': excluded}
+    return render(request, 'ta/assign_tas.html', context) 
