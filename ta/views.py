@@ -17,6 +17,8 @@ from log.models import LogEntry
 from django.forms.models import inlineformset_factory
 from django.forms.formsets import formset_factory
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
+from django.core.servers.basehttp import FileWrapper
+import os
 import datetime, decimal, locale 
 import unicodecsv as csv
 
@@ -694,17 +696,11 @@ def edit_bu(request, post_slug):
 @requires_role("TAAD")
 def generate_csv(request, post_slug):
 
-    csvWriter = csv.writer(open('test.csv','wb'), delimiter='|', quotechar='\"')
-
     posting = get_object_or_404(TAPosting, slug=post_slug)
-    if posting.unit not in request.units:
-        ForbiddenResponse(request, 'You cannot access this posting')
-    
+
     all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit)
-    # ignore excluded courses
     excl = set(posting.excluded())
     offerings = [o for o in all_offerings if o.course_id not in excl]
-    excluded = [o for o in all_offerings if o.course_id in excl]
   
     course_prefs = []
     for o in offerings:
@@ -712,22 +708,26 @@ def generate_csv(request, post_slug):
         for c in cp:
             course_prefs.append(c)
     
-    num_offerings = len(offerings)
-    apps = []
-    course_list = []
+    # Collect course prefs from same application and put them
+    # in sub lists that correspond to a csv row
+    app_course_list = []
     while len(course_prefs) != 0:
         app = course_prefs[0].app
-        course_list.append([p for p in course_prefs if p.app == app])
+        app_course_list.append([p for p in course_prefs if p.app == app])
         course_prefs = [p for p in course_prefs if p.app != app] 
 
-    #Insert empty char for proper csv display
+    filename = str(posting.slug) + '.csv'
+    csvWriter = csv.writer(open(filename,'wb'), delimiter='|', quotechar='\"')
+    
+    #First csv row, all the course names
     off = [str(o.course) + ' ' + str(o.section) for o in offerings]
     off.insert(0,'')
     csvWriter.writerow(off)
 
+    #Construct remaining csv rows of applicant name and course rank
     csv_rows = []
     csv_row = []
-    for cp in course_list:
+    for cp in app_course_list:
         name = cp[0].app.person.last_name + ', ' + cp[0].app.person.first_name
         csv_row.append(name)
 
@@ -747,5 +747,11 @@ def generate_csv(request, post_slug):
     for row in csv_rows:
         csvWriter.writerow(row)
 
-    context = {'posting': posting, 'offerings': offerings, 'excluded': excluded}
-    return render(request, 'ta/assign_tas.html', context) 
+    file = open(filename, 'rb')
+    response = HttpResponse(FileWrapper(file), mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=%s'% filename
+    try:
+        os.remove(filename)
+    except OSError:
+        print "Warning: error removing temporary file."
+    return response

@@ -31,7 +31,7 @@
 {% endblock %}
 
 {% block content %}
-
+<a href="{% url ta.views.generate_csv post_slug=posting.slug %}">Download Applicant Spreadsheet</a>
 <div class="datatable_container">
 <table class="display" id="offerings">
 <thead><tr><th scope="col">Offering</th><th scope="col">Instructor</th><th scope="col">Enrol</th><th scope="col">Campus</th><th scope="col">Applicants</th><th scope="col">Required BU</th><th scope="col">Assigned BU</th><th scope="col">Diff</th></tr></thead>
