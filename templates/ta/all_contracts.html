@@ -20,18 +20,37 @@
     		//window.location = "/ta/contracts/" + $('#posting').val()
     	})
     });
+	
+	//for contract table
+		$(document).ready(function() {
+		$('#contracts').dataTable({
+			"bJQueryUI" : true,
+			"aaSorting" : [[4, "dsc"]],
+			"iDisplayLength" : 10,
+			"sPaginationType" : "full_numbers",
+		});
+	});
+
+	
+	
 </script>
 {% endblock %}
 
 {%block content%}
 {%if contracts %}
 <div class="datatable_container">
-<table class="display">
+<table class="display" id="contracts">
   <thead>
   	<tr>
-  		<th scope="col">Applicant</th>
-  		<th scope="col">Posting</th>
-  		<th scope="col">Deadline</th>
+	<!--#name, appointment category, rank, deadline, status. Total BU, Courses TA-ing , view/edit-->
+  		<th scope="col">Last Name</th>
+		<th scope="col">First Name</th>
+  		<th scope="col">Appt Category</th>
+		<th scope="col">Rank</th>
+		<th scope="col">Status</th>
+		<th scope="col">Total BU</th>
+		<th scope="col">Courses TA-ing</th>
+		<th scope="col">Deadline</th>
   		<th scope="col">View</th>
   		<th scope="col">Edit</th>
   	</tr>
@@ -39,9 +58,14 @@
   <tbody>
   {% for contract in contracts %}
   <tr>
-  	<td>{{ contract.application.person }}</td>
-  	<td>{{ contract.posting }}</td>
-  	<td>{{ contract.deadline }}</td>
+  	<td>{{ contract.application.person.last_name }}</td> <!--#lastname-->
+  	<td>{{ contract.application.person.last_name }}</td> <!--#first name-->
+  	<td>{{contract.appt_category}}</td><!--#appt category-->
+	<td>{{contract.application.rank}}</td> <!--#rank-->
+	<td>{{contract.status}}</td><!--#status-->
+	<td></td><!--#totalbu-->
+	<td></td><!--#courses ta-ing-->
+	<td>{{ contract.deadline }}</td><!--#deadline-->
   	<td><a href="{% url ta.views.view_contract post_slug=contract.posting.slug userid=contract.application.person.userid%}">View</a></td>
   	<td><a href="{% url ta.views.edit_contract post_slug=contract.posting.slug userid=contract.application.person.userid%}">Edit</a></td>
   </tr>

@@ -16,10 +16,11 @@ from ta.forms import TUGForm, TAApplicationForm, TAContractForm, CoursePreferenc
 from log.models import LogEntry
 from django.forms.models import inlineformset_factory
 from django.forms.formsets import formset_factory
+from django.core.paginator import Paginator, EmptyPage, InvalidPage
 import datetime, decimal, locale 
 
-#not sure if i should put this here but...for now...its going here
 
+locale.setlocale( locale.LC_ALL, '' ) #fiddle with this if u cant get the following function to work
 def format_currency(i):
     return locale.currency(float(i), grouping=True)
 
@@ -394,12 +395,24 @@ def update_course_bus(request, post_slug, course_slug):
 @requires_role("TAAD")
 def all_contracts(request, post_slug=None):
     #contracts = TAContract.objects.all()
+    
+    #name, appointment category, rank, deadline, status. Total BU, Courses TA-ing , view/edit
     if post_slug:
         posting = get_object_or_404(TAPosting, slug=post_slug)
         contracts = TAContract.objects.filter(posting=posting)
     else:
         posting = TAPosting.objects.get(semester=Semester.next_starting())
         contracts = TAContract.objects.filter(posting=posting)
+    paginator = Paginator(contracts,5)
+    
+    try:
+        p = int(request.GET.get("page",'1'))
+    except ValueError:p=1
+    
+    try:
+        contract_page = paginator.page(p)
+    except(InvalidPage, EmptyPage):
+        contract_page.paginator.page(paginator.num_pages)
         
     postings = TAPosting.objects.filter(unit__in=request.units).exclude(Q(semester=posting.semester))
     applications = TAApplication.objects.filter(posting=posting).exclude(Q(id__in=TAContract.objects.filter(posting=posting).values_list('application', flat=True)))
@@ -524,7 +537,8 @@ def edit_contract(request, post_slug, userid):
                      'appt_category': application.category,
                      'pay_start': posting.start(), 
                      'pay_end': posting.end(), 
-                     'deadline': posting.deadline()}
+                     'deadline': posting.deadline()
+                     }
                      
             form = TAContractForm(initial=initial)
 

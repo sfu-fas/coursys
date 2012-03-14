@@ -331,6 +331,7 @@ STATUS_CHOICES = (
         ("SGN","Contract Signed"), # after accepted and manager has signed contract
         ("CAN","Cancelled"),
     )
+STATUS = dict(STATUS_CHOICES)
 
 class TAContract(models.Model):
     """    
