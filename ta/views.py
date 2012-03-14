@@ -481,7 +481,7 @@ def edit_contract(request, post_slug, userid):
         if request.is_ajax():
             if('appt_cat' in request.POST):
                 index = posting.cat_index(request.POST['appt_cat'])
-                results = posting.salary()[index] + ',' + posting.scholarship()['scholarship'][index]
+                results = posting.salary()[index] + ',' + posting.scholarship()[index]
                 return HttpResponse(results)
             if('course' in request.POST):
                 results = ''
