@@ -342,10 +342,10 @@ def assign_bus(request, post_slug, course_slug):
         campus_preference = CampusPreference.objects.get(app=p.app, campus=offering.campus)
         campus_prefs.append(campus_preference)
         #find BU assigned to this applicant through contract
-        app_tacourses = tacourses.filter(contract__application=p.app)
-        if app_tacourses.count() == 1:
-            init['bu'] = app_tacourses[0].bu
-            assigned = app_tacourses[0]
+        app_tacourse = tacourses.filter(contract__application=p.app)
+        if app_tacourse.count() == 1:
+            init['bu'] = app_tacourse[0].bu
+            assigned = app_tacourse[0]
         assigned_ta.append(assigned)
         init['rank'] = p.rank
         initial.append(init)
@@ -356,17 +356,19 @@ def assign_bus(request, post_slug, course_slug):
     #need validation
     if request.method == "POST":
         formset = AssignBUFormSet(request.POST)
-        for i in range(0, len(apps)):
+        for i in range(len(apps)):
             #update rank
             apps[i].rank = formset[i]['rank'].value()
             apps[i].save()
-            #update bu
-            if assigned_ta[i] == None: #no contract yet
-                #contract = TAContract(application=apps[i])
-                contract = TAContract()
-            else:    
+            if assigned_ta[i] == None: #create new contract
+                contract = TAContract(created_by=request.user.username)
+                contract.first_assign(apps[i], posting)
+                bu = formset[i]['bu'].value()
+                tacourse = TACourse.objects.create(course=offering, description=offering.get_desc(), contract=contract, bu=bu)
+            else: #update bu for existing TACourse
                 assigned_ta[i].bu = formset[i]['bu'].value()
-            assigned_ta[i].save()
+                assigned_ta[i].save()
+        return HttpResponseRedirect(reverse(assign_tas, args=(post_slug,)))
     else:
         formset = AssignBUFormSet(initial=initial)
     
@@ -479,7 +481,7 @@ def edit_contract(request, post_slug, userid):
         if request.is_ajax():
             if('appt_cat' in request.POST):
                 index = posting.cat_index(request.POST['appt_cat'])
-                results = posting.config['salary'][index] + ',' + posting.config['scholarship'][index]
+                results = posting.salary()[index] + ',' + posting.scholarship()['scholarship'][index]
                 return HttpResponse(results)
             if('course' in request.POST):
                 results = ''
@@ -495,7 +497,7 @@ def edit_contract(request, post_slug, userid):
                 
                 results += str(req_bu)
                 print co.config
-                if(len(co.config) > 0 and co.config.has_key('labtut')):
+                if co.labtut():
                     results += ',OML'
                 else:
                     results += ',OM'

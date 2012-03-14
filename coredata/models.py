@@ -463,7 +463,13 @@ class CourseOffering(models.Model):
             or cmp(self.section, other.section)
     def search_label_value(self):
         return "%s (%s)" % (self.name(), self.semester.label())
-
+    
+    def get_desc(self):
+        if self.labtut():
+            return 'OML'
+        else:
+            return 'OM'
+        
     class Meta:
         ordering = ['-semester', 'subject', 'number', 'section']
         unique_together = (
