@@ -16,9 +16,7 @@ import datetime
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from django.contrib import messages
 from log.models import LogEntry
-from django.db.models import Q
 from django.utils.encoding import iri_to_uri
-from itertools import ifilter
 
 # get semester based on input datetime. defaults to today
 # returns semseter object7
@@ -641,25 +639,7 @@ def search(request):
         #TODO: finish constructing search query from form's data
         #NOTE: use getlist on request.GET rather than __getitem__
         #TODO: move the query making code into the form
-        def make_query(query_string, query_param=None):
-            if query_string in form.cleaned_data and form.cleaned_data[query_string]:
-                if query_param is None:
-                    query_param = query_string
-                return Q(**{query_param:form.cleaned_data[query_string]})
-            return None
-        queries = (
-                ('start_semester', 'gradstatus__start'),
-                ('end_semester', 'gradstatus__end'),
-                ('student_status', 'gradstatus__status__in'),
-                ('program',),
-                ('is_canadian',),
-                ('campus',)
-                )
         
-        query = reduce(Q.__and__, 
-                    ifilter(lambda x:x is not None,
-                        (make_query(*qargs) for qargs in queries)),
-                    Q())
         
         grads = GradStudent.objects.filter(query)
         

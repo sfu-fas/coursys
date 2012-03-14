@@ -1,5 +1,6 @@
 from django.forms.models import ModelForm
 from django import forms
+from django.db.models import Q
 import grad.models as gradmodels
 from grad.models import Supervisor, GradProgram, GradStudent, GradStatus,\
     GradRequirement, CompletedRequirement, LetterTemplate, Letter
@@ -7,6 +8,7 @@ from coredata.models import Person, Member, Semester, CAMPUS_CHOICES
 from django.forms.formsets import BaseFormSet
 from django.core.exceptions import ValidationError
 from django.forms.widgets import NullBooleanSelect
+from itertools import ifilter
 import unicodecsv as csv
 
 class LabelTextInput(forms.TextInput):
@@ -190,11 +192,6 @@ class LetterForm(ModelForm):
 def choices_with_negate(choices):
     return (list(choices) + [('NOT_' + k, 'Not ' + v) for k, v in choices])
 
-class NullBooleanSelect_Optional(NullBooleanSelect):
-    def __init__(self, *args, **kwargs):
-        super(NullBooleanSelect_Optional, self).__init__(*args, **kwargs)
-        self.choices = [(u'', '---------')] + self.choices
-
 class NullBooleanSelect_Filter(NullBooleanSelect):
     def __init__(self, attrs=None):
         choices = ((u'', '---------'), (u'2', 'Yes'), (u'3', 'No'))
@@ -236,14 +233,9 @@ COMMENTS_CHOICES = (
 class SearchForm(forms.Form):
     #TODO: finish
     
-    date_from = forms.DateField(required=False) 
-    date_to = forms.DateField(required=False)
-    date_search_type = forms.ChoiceField(DATE_CHOICES, required=False,
-            help_text='Not Implemented')
-    
-    start_semester = forms.ModelChoiceField(Semester.objects.all(), required=False,
+    start_semester = forms.ModelMultipleChoiceField(Semester.objects.all(), required=False,
             help_text='Semester in which the Grad student has applied to start')
-    end_semester = forms.ModelChoiceField(Semester.objects.all(), required=False)
+    end_semester = forms.ModelMultipleChoiceField(Semester.objects.all(), required=False)
     
     # requirements?
     student_status = forms.MultipleChoiceField(gradmodels.STATUS_CHOICES,
@@ -285,6 +277,29 @@ class SearchForm(forms.Form):
     scholarship_sem = forms.ModelChoiceField(Semester.objects.all(),
             label='Scholarship Semester Received',required=False,
             help_text='Not Implemented')
+    
+    def make_query(self, query_string, query_param=None):
+        if query_string in self.cleaned_data and self.cleaned_data[query_string]:
+            if query_param is None:
+                query_param = query_string
+            return Q(**{query_param:self.cleaned_data[query_string]})
+        return None
+    
+    def get_query(self):
+        queries = (
+                ('start_semester', 'gradstatus__start'),
+                ('end_semester', 'gradstatus__end'),
+                ('student_status', 'gradstatus__status__in'),
+                ('program',),
+                ('is_canadian',),
+                ('campus',)
+                )
+        
+        query = reduce(Q.__and__, 
+                    ifilter(lambda x:x is not None,
+                        (self.make_query(*qargs) for qargs in queries)),
+                    Q())
+        return query
 
 
 from coredata.queries import add_person, SIMSProblem
