@@ -9,10 +9,6 @@
 <li>&gt; {% if editing %}Editing {{ contract.application.person.name }}'s Contract{% else %}New Contract for {{application.person.name}}{% endif %}</li>
 {% endblock %}
 
-<div class="container">
-	<div id="messages">{{formset.non_form_errors}}<ul class="warninglist"></ul></div>
-</div>
-
 {% block headextra %}
 <script type="text/javascript">	
 	function calculate(){
@@ -37,19 +33,13 @@
 		$('#schol_bi').val(schol_bi)
 	}
 	
-	function validate(cat){
+	function validate(){
 		$('#messages').hide()
 		if($('#messages ul.errorlist').html!='')
 			$('#messages ul.errorlist').html("")
 		var valid = true
 		var html = ""
 		
-		if(cat==true){
-			if($('#id_appt_category').val()==""){
-				html += '<li class="warning">Please select an appointment category</li>'
-				valid = false
-			}
-		}
 		var clist = new Array()
 		$('.course_select').each(function(){
 			if($(this).val()!="")
@@ -96,33 +86,11 @@
     	if(!('{{formset.non_form_errors}}'))
     		$('#messages').hide()
     	else
-    		$('.errorlist li').attr('class','error')
- 		
- 		//ajax to get default appt_cat and sin for an application
- 		/*
- 		$('#id_applicant').change(function(){
- 			aid = $('#id_applicant').val()
- 			if(aid != ''){//nonempty selection
-				$.post("{% url ta.views.edit_contract post_slug=posting.slug userid=userid %}",
-				{'csrfmiddlewaretoken': "{{csrf_token}}", 'applicant': aid},
-				function(data){
-					if(data.length > 0){
-						$('#id_sin').val(data.split(',')[0])
-						$('#id_appt_category').val(data.split(',')[1])
-						set_rates(data.split(',')[1])
-					}
-					else{
-						$('#id_sin').val('')
-						$('#id_appt_category').val('')
-					}
-				})
-			}
- 		})*/
- 		
-			
+    		$('.errorlist li').attr('class','error') 		
+ 					
  		//ajax to get default required BU
 		$('.course_select').change(function(){
-			if(!validate(false))
+			if(!validate())
 				return
 			var cid = $(this).val()
 			var bu_inp = '#' + this.id.replace('-course','-bu')
@@ -230,6 +198,10 @@
 {%endif%}
 
 </fieldset>
+
+<div class="container">
+	<div id="messages">{{formset.non_form_errors}}<ul class="warninglist"></ul></div>
+</div>
 
 <fieldset>
 <legend>Course and Payment Details</legend>

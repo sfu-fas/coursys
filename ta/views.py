@@ -17,7 +17,6 @@ from log.models import LogEntry
 from django.forms.models import inlineformset_factory
 from django.forms.formsets import formset_factory
 import datetime, decimal, locale 
-locale.setlocale( locale.LC_ALL, '' )
 
 #not sure if i should put this here but...for now...its going here
 
@@ -362,7 +361,11 @@ def assign_bus(request, post_slug, course_slug):
             apps[i].rank = formset[i]['rank'].value()
             apps[i].save()
             #update bu
-            assigned_ta[i].bu = formset[i]['bu'].value()
+            if assigned_ta[i] == None: #no contract yet
+                #contract = TAContract(application=apps[i])
+                contract = TAContract()
+            else:    
+                assigned_ta[i].bu = formset[i]['bu'].value()
             assigned_ta[i].save()
     else:
         formset = AssignBUFormSet(initial=initial)
@@ -452,7 +455,6 @@ def edit_contract(request, post_slug, userid):
         ForbiddenResponse(request, 'You cannot access this posting')
     course_choices = [('','---------')] + [(c.id, c.name()) for c in posting.selectable_offerings()]
     position_choices = [(a.id, a.position_number) for a in Account.objects.filter(unit=posting.unit)]
-    #app_choices = [('','---------')] + [(p.id, unicode(p)) for p in Person.objects.exclude(Q(pk__in=posting.tacontract_set.all().values_list('applicant', flat=True)) )]
           
     #number of course form to populate
     num = 3
@@ -502,14 +504,9 @@ def edit_contract(request, post_slug, userid):
             contract = form.save(commit=False)
             formset = TACourseFormset(request.POST, instance=contract)
             if formset.is_valid():
-                #contract.applicant = application.person
                 contract.application = application
                 contract.posting = posting
-                contract.pay_per_bu = form.cleaned_data['pay_per_bu']
-                contract.pay_start = form.cleaned_data['pay_start']
-                contract.pay_end = form.cleaned_data['pay_end']
                 contract.created_by = request.user.username
-                contract.updated_at = datetime.datetime.now()
                 contract.save()
                 formset.save()
                 if not editing:
@@ -528,8 +525,7 @@ def edit_contract(request, post_slug, userid):
                      'deadline': posting.deadline()}
                      
             form = TAContractForm(initial=initial)
-            #form.fields['applicant'].choices = app_choices
-    
+
     form.fields['position_number'].choices = position_choices       
     for f in formset:
         f.fields['course'].widget.attrs['class']  = 'course_select'
