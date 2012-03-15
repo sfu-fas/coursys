@@ -1501,3 +1501,7 @@ td.table-row-label{
 	background-color:#F2EFE9;
 }
 
+#ta_app input{
+	width: 80px;	
+}
+

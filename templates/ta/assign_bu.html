@@ -38,7 +38,7 @@ Remaining BUs: {{ offering|display_bu_difference:posting }}
 <form action="{% url ta.views.assign_bus post_slug=posting.slug, course_slug=offering.slug %}" method="post">{% csrf_token %}
 {{ formset.management_form }}
 <div class="datatable_container">
-<table class="display" id="applications">
+<table class="display" id="ta_app">
 <thead>
     <tr>
       <th scope="col">Applicant</th>
@@ -46,7 +46,7 @@ Remaining BUs: {{ offering|display_bu_difference:posting }}
       <th scope="col">Course Rank</th>
       <th scope="col">Campus Preference</th>
       <th scope="col">Max BUs</th>
-      <th scope="col">Assigned Base Units</th>
+      <th scope="col">Assigned BUs</th>
     </tr>
 </thead>
 <tbody>
