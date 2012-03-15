@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load mobile_tags %}
+{% load form_display %}
+
+{% block title %}{{page_title}}{% endblock %}
+{% block h1 %}{{page_title}}{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+
+
+{% block subbreadcrumbs %}
+<li>
+	&gt; <a href="{% url grad.views.index %}">Grads</a>
+</li>
+<li>
+	&gt; <a href="{% url grad.views.view_all grad_slug=grad.slug%}">{{crumb}}</a>
+</li>
+
+<li>
+	&gt; Manage Promise
+</li>
+
+{% endblock %}
+
+
+
+{% block content %}
+  		<div class="table_container">
+	<table class="info">
+		<tbody>
+			<tr>
+				<th>Student # : </th><td>{{grad.person.emplid}}</td>
+				<th>User ID : </th><td>{{grad.person.userid}}</td>
+			</tr>
+			<tr>
+				<th>Full Name : </th><td>{{grad.person.first_name}} {{grad.person.middle_name}} {{grad.person.last_name}}</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+<div id="form_container">
+    <form action="{% url grad.views.new_promise grad_slug=grad.slug%}" method="post">{% csrf_token %}
+    	<fieldset>
+              {{ promise_form|as_dl_2 }}
+        <p><input  class="submit"  type="submit" value="Submit"></p>
+        </fieldset>
+    </form>
+	<a class="button" href="{% url grad.views.index %}">Back</a>
+</div>
+{% endblock %} 
+
