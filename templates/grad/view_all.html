@@ -23,6 +23,9 @@
 			<a href="{% url grad.views.financials grad_slug=grad.slug %}">Financial Summary</a>
 			<a href="{% url grad.views.new_letter grad_slug=grad.slug %}"> New Letter </a>
 		</li>
+		<li>
+			<a href="{% url grad.views.new_promise grad_slug=grad.slug %}">New Promise</a>	
+		</li>
 	</ul>
 </div>
 {% endblock %}
