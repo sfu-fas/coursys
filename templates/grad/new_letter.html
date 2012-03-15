@@ -11,7 +11,7 @@
 	&gt; <a href="{% url grad.views.index %}">Grad</a>
 </li>
 <li>
-	&gt; <a href="{% url grad.views.letters %}">Letters</a>
+	&gt; <a href="{% url grad.views.view_all grad_slug=grad.slug %}">{{grad.person.last_name}}, {{grad.person.first_name}}</a>
 </li>
 <li>
 	&gt; {{crumb}}
@@ -20,16 +20,39 @@
 {% block headextra %}
 <script type="text/javascript">
 	$(document).ready(function() {
-		$('#id_template').change(function() {
-			
-			var template_id
-			template_id = $("#id_template").val();
-			$("#id_content").empty();
-			$("#id_content").append({{templates}});
+		$('#id_content').attr("disabled", "disabled");
+		$('#content_note').show();
+		urlMap = {
+		{% for k in templates %}
+		'{{k.id}}' : '{% url grad.views.get_letter_text grad_slug=grad.slug letter_template_id=k.id %}'
+		{% if not forloop.last %},{% endif %}
+		{% endfor %}
+		};
 
+		function getData(url) {
+			$.ajax({
+				type : "GET",
+				url : url,
+				success : function(data) {
+					$("#id_content").append(data);
+				}
+			})
+		}
+
+		$("#id_template").change(function() {
+			var template_val
+			template_val = $("#id_template").val();
+			$("#id_content").empty();
+			if(template_val == 0) {
+				$('#id_content').attr("disabled", "disabled");
+				$('#content_note').show();
+			} else {
+				url = urlMap[$(this).val()];
+				$('#id_content').removeAttr("disabled");
+				$('#content_note').hide();
+				getData(url);
+			}
 		});
-		
-		
 	});
 
 </script>
@@ -42,9 +65,7 @@
 			<legend>
 				Letter Info
 			</legend>
-			{% if form.non_field_errors %}
 			{{ form.non_field_errors }}
-			{% endif %}
 			<div style="float: left; width: 40%;">
 				<dl class="dlform">
 					<dt>
@@ -53,7 +74,7 @@
 					<dd>
 						{{grad.person.emplid}}
 						<br />
-						{{grad.person.last_name}}, {{grad.person.first_name}}
+						{{grad.person.last_name}}, {{grad.person.first_name}}{{form.student.errors}}
 					</dd>
 				</dl>
 			</div>
@@ -63,20 +84,34 @@
 						Template:
 					</dt>
 					<dd>
-						{{form.template}}
+						<select name="template" id="id_template">
+							<option value=0> --- Pick an existing template --- </option>
+							{% for t in templates%} 
+								<option value={{t.id}}>{{t.label}}</option>
+							{% endfor %}
+						</select>
+						{{form.template.errors}}
 					</dd>
 				</dl>
 			</div>
 			<div style="float:left; width:100%">
 				<dl class="dlform">
 					<dt>
-						Contents:*
+						<div style="float:left; width: 40%">
+							Contents:*
+						</div>
+						<div style="float:left; color: red; font-weight: normal " id="content_note">
+							^ Please select a template. ^
+						</div>
 					</dt>
 					<dd>
 						{{form.content}}{{form.content.errors}}
 					</dd>
 				</dl>
 			</div>
+			<p hidden=true>
+				{{form.student}}{{form.student.errors}}
+			</p>
 			<p>
 				<input  class="submit"  type="submit" value="Submit">
 			</p>

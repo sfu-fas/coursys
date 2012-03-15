@@ -551,6 +551,7 @@ def new_letter_template(request):
 
 @requires_role("GRAD")
 def manage_letter_template(request, letter_template_slug):
+    unit_choices = [(u.id, u.name) for u in request.units]    
     letter_template = get_object_or_404(LetterTemplate, slug=letter_template_slug)
     if request.method == 'POST':
         form = LetterTemplateForm(request.POST, instance=letter_template)
@@ -566,6 +567,7 @@ def manage_letter_template(request, letter_template_slug):
             return HttpResponseRedirect(reverse(letter_templates))
     else:
         form = LetterTemplateForm(instance=letter_template)
+        form.fields['unit'].choices = unit_choices 
 
     page_title = 'Manage Letter Template'  
     crumb = 'Manage' 
@@ -600,8 +602,7 @@ def new_letter(request, grad_slug):
         form = LetterForm(request.POST)
         if form.is_valid():
             f = form.save(commit=False)
-            f.created_by = request.user.username   
-            f.student = grad         
+            f.created_by = request.user.username
             f.save()
             messages.success(request, "Created new %s letter for %s." % (form.instance.template.label, form.instance.student))
             l = LogEntry(userid=request.user.username,
@@ -610,11 +611,11 @@ def new_letter(request, grad_slug):
             l.save()            
             return HttpResponseRedirect(reverse(letters))
     else:
-        form = LetterForm()
+        form = LetterForm(initial={'student':grad})
         
 
     page_title = 'New Letter'  
-    crumb = 'New' 
+    crumb = 'New Letter' 
     context = {
                'form': form,
                'page_title' : page_title,
@@ -628,17 +629,13 @@ def new_letter(request, grad_slug):
 """
 Get the text from letter template
 """
-def get_letter_text(request, grad_slug, letter_template_slug):
+def get_letter_text(request, grad_slug, letter_template_id):
     if request.is_ajax():
-        message = "AJAX desu."
+        grad = get_object_or_404(GradStudent, slug=grad_slug)
+        lt = get_object_or_404(LetterTemplate, id=letter_template_id)
+        text = lt.content 
     else:
-        message = "No AJAX detected." 
-    # content: the body with template tags
-    # student: the grad student user is creating a letter for 
-    text = message + "Start of text."
-    
-    
-    text += "End of text."
+        text = "No such template, please create one." 
     return HttpResponse(text)
 
 @requires_role("GRAD")

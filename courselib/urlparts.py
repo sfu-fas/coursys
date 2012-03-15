@@ -41,3 +41,4 @@ PROJECT_SLUG = '(?P<project_slug>' + SLUG_RE +')'
 
 LETTER_SLUG = '(?P<letter_slug>' + SLUG_RE + ')'
 LETTER_TEMPLATE_SLUG = '(?P<letter_template_slug>' + SLUG_RE + ')'
+LETTER_TEMPLATE_ID = '(?P<letter_template_id>' + ID_RE + ')'
