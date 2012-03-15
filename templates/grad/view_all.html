@@ -20,12 +20,37 @@
 			<a href="{% url grad.views.manage_status grad_slug=grad.slug  %}">Manage Status</a>
 		</li>
 		<li class="newsec">
-			<a href="{% url grad.views.financials grad_slug=grad.slug %}">Financial Summary</a>	
+			<a href="{% url grad.views.financials grad_slug=grad.slug %}">Financial Summary</a>
 			<a href="{% url grad.views.new_letter grad_slug=grad.slug %}"> New Letter </a>
 		</li>
-		
 	</ul>
 </div>
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+	function toggle(open_btn, close_btn, body) {
+		$(body).hide();
+		$(close_btn).hide();
+		
+		$(open_btn).click(function() {
+			$(body).show('slow');
+			$(close_btn).show();
+			$(open_btn).hide();			
+		});
+
+		$(close_btn).click(function() {
+			$(body).hide();
+			$(close_btn).hide();
+			$(open_btn).show();	
+		});
+	}
+
+	$(document).ready(function() {
+		toggle('#open-academics-btn', '#close-academics-btn', '#academics-body');
+	
+	});
+</script>
 {% endblock %}
 
 {% block title %}{{page_title}}{% endblock %}
@@ -99,13 +124,24 @@
 	<table class="display" id="academics">
 		<thead>
 			<tr>
-				<th colspan="3"> Academics
-				<div align="right">
-					<a href="{% url grad.views.manage_academics grad_slug=grad.slug  %}">Manage Academics</a>
+				<th colspan="3" >
+				<div style="float: left; width: 100%">
+					<div style="float: left; width: 100%">
+						Academics
+					</div>
+					<div style="float: left;" id="open-academics-btn">
+						[Click to expand]
+					</div>
+					<div style="float: left" id="close-academics-btn">
+						[Click to collapse]
+					</div>					
+					<div style="float: right">
+						<a href="{% url grad.views.manage_academics grad_slug=grad.slug  %}">Manage Academics</a>
+					</div>
 				</div></th>
 			</tr>
 		</thead>
-		<tbody>
+		<tbody id="academics-body">
 			<tr>
 				<td>
 				<dl>

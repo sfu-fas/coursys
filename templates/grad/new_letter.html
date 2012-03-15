@@ -21,7 +21,7 @@
 <script type="text/javascript">
 	$(document).ready(function() {
 		$('#id_content').attr("disabled", "disabled");
-		$('#content_note').show();
+		$('#content_note').show('slow');
 		urlMap = {
 		{% for k in templates %}
 		'{{k.id}}' : '{% url grad.views.get_letter_text grad_slug=grad.slug letter_template_id=k.id %}'
@@ -45,11 +45,11 @@
 			$("#id_content").empty();
 			if(template_val == 0) {
 				$('#id_content').attr("disabled", "disabled");
-				$('#content_note').show();
+				$('#content_note').show('slow');
 			} else {
 				url = urlMap[$(this).val()];
 				$('#id_content').removeAttr("disabled");
-				$('#content_note').hide();
+				$('#content_note').hide('slow');
 				getData(url);
 			}
 		});
