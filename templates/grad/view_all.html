@@ -32,24 +32,25 @@
 	function toggle(open_btn, close_btn, body) {
 		$(body).hide();
 		$(close_btn).hide();
-		
+
 		$(open_btn).click(function() {
 			$(body).show('slow');
 			$(close_btn).show();
-			$(open_btn).hide();			
+			$(open_btn).hide();
 		});
 
 		$(close_btn).click(function() {
 			$(body).hide();
 			$(close_btn).hide();
-			$(open_btn).show();	
+			$(open_btn).show();
 		});
 	}
 
+
 	$(document).ready(function() {
 		toggle('#open-academics-btn', '#close-academics-btn', '#academics-body');
-	
 	});
+
 </script>
 {% endblock %}
 
@@ -134,7 +135,7 @@
 					</div>
 					<div style="float: left" id="close-academics-btn">
 						[Click to collapse]
-					</div>					
+					</div>
 					<div style="float: right">
 						<a href="{% url grad.views.manage_academics grad_slug=grad.slug  %}">Manage Academics</a>
 					</div>
@@ -237,7 +238,7 @@
 	<hr>
 </div>
 <br />
-<div class="datatable_container bigdatatable">
+<div class="datatable_container bigdatatable"  style="float: left; width: 85%">
 	<table class="display" id="grads">
 		<thead>
 			<tr>
@@ -264,6 +265,29 @@
 				<td colspan="3">
 				<p class="empty">
 					Student has not completed any requirements.
+				</p></td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+<div class="datatable_container bigdatatable" style="float: left; width: 12%">
+	<table class="display" id="letter">
+		<thead>
+			<tr>
+				<th >Previous Letters</th>
+			</tr>
+		</thead>
+		<tbody id="letter-body">
+			{% for s in letter%}
+			<tr>
+				<td> <a href="{% url grad.views.view_all_letters grad_slug=grad.slug%}">{{s.template.label}} </a></td>
+			</tr>
+			{% empty %}
+			<tr>
+				<td>
+				<p class="empty">
+					No Existing Letter
 				</p></td>
 			</tr>
 			{% endfor %}

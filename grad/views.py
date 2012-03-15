@@ -66,7 +66,7 @@ def view_all(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
     supervisors = Supervisor.objects.filter(student=grad)
     status_history = get_list_or_404(GradStatus, student=grad, hidden=False)
-    
+    letter = Letter.objects.filter(student=grad)
     #calculate missing reqs
     completed_req = CompletedRequirement.objects.filter(student=grad)
     req = GradRequirement.objects.filter(program=grad.program)
@@ -87,7 +87,8 @@ def view_all(request, grad_slug):
                'status_history' : status_history,
                'supervisors' : supervisors,
                'completed_req' : completed_req,
-               'missing_req' : missing_req         
+               'missing_req' : missing_req,
+               'letter' : letter         
                }
     return render(request, 'grad/view_all.html', context)
 
@@ -586,6 +587,21 @@ def letters(request):
     letters = Letter.objects.filter(template__unit__in=request.units)
 
     page_title = 'All Letters'
+    crumb = 'Letters'     
+    context = {
+               'page_title' : page_title,
+               'crumb' : crumb,
+               'letters': letters                 
+               }
+    return render(request, 'grad/letters.html', context)
+
+
+@requires_role("GRAD")
+def view_all_letters(request, grad_slug):
+    grad = get_object_or_404(GradStudent, slug=grad_slug)
+    letters = Letter.objects.filter(student=grad)
+
+    page_title = 'Letters for ' + grad.person.last_name + "," + grad.person.first_name
     crumb = 'Letters'     
     context = {
                'page_title' : page_title,
