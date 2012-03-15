@@ -32,15 +32,17 @@
 <li>
 	&gt; <a href="{% url grad.views.index %}">Grad</a>
 </li>
+{% if grad %}
+<li>
+	&gt; <a href="{% url grad.views.view_all grad_slug=grad.slug%}">{{grad.person.last_name}}, {{grad.person.first_name}}</a> 
+</li>
+{% endif %}
 <li>
 	&gt; {{crumb}}
 </li>
 {% endblock %}
 
 {% block content %}
-<p>
-	For School of Computing Science (CMPT)
-</p>
 <div class="datatable_container">
 	<table class="display" id="letters">
 		<thead>

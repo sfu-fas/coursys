@@ -606,7 +606,8 @@ def view_all_letters(request, grad_slug):
     context = {
                'page_title' : page_title,
                'crumb' : crumb,
-               'letters': letters                 
+               'letters': letters,
+               'grad' : grad                 
                }
     return render(request, 'grad/letters.html', context)
 

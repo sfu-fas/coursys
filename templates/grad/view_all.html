@@ -273,32 +273,6 @@
 			{% endfor %}
 		</tbody>
 	</table>
-</div>
-<div class="datatable_container bigdatatable" style="float: left; width: 12%">
-	<table class="display" id="letter">
-		<thead>
-			<tr>
-				<th >Previous Letters</th>
-			</tr>
-		</thead>
-		<tbody id="letter-body">
-			{% for s in letter%}
-			<tr>
-				<td> <a href="{% url grad.views.view_all_letters grad_slug=grad.slug%}">{{s.template.label}} </a></td>
-			</tr>
-			{% empty %}
-			<tr>
-				<td>
-				<p class="empty">
-					No Existing Letter
-				</p></td>
-			</tr>
-			{% endfor %}
-		</tbody>
-	</table>
-</div>
-<br />
-<div class="datatable_container bigdatatable">
 	<table class="display" id="missing_req">
 		<thead>
 			<tr>
@@ -322,10 +296,33 @@
 			</tr>
 			{% endfor %}
 		</tbody>
-	</table>
-	<br />
-	<hr>
+	</table><br /><hr />
 </div>
+<div class="datatable_container bigdatatable" style="float: left; width: 12%">
+	<table class="display" id="letter">
+		<thead>
+			<tr>
+				<th >Previous Letters</th>
+			</tr>
+		</thead>
+		<tbody id="letter-body">
+			{% for s in letter%}
+			<tr>
+				<td><a href="{% url grad.views.view_all_letters grad_slug=grad.slug%}">{{s.template.label}} </a></td>
+			</tr>
+			{% empty %}
+			<tr>
+				<td>
+				<p class="empty">
+					No Existing Letter
+				</p></td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+<br />
+<hr>
 <br />
 <div class="datatable_container bigdatatable">
 	<table class="display" id="status">
