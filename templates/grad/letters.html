@@ -16,11 +16,12 @@
 {% endblock %}
 {% block actions %}
 <div id="actions">
-<h2>Actions</h2>
-<ul>
-<li><a href="{% url grad.views.new_letter%}">New Letter</a></li>
-<li  class="newsec"><a href="{% url grad.views.letter_templates %}">View Letter Templates</a></li>
-</ul>
+	<h2>Actions</h2>
+	<ul>
+		<li  class="newsec">
+			<a href="{% url grad.views.letter_templates %}">View Letter Templates</a>
+		</li>
+	</ul>
 </div>
 {% endblock %}
 
@@ -37,33 +38,33 @@
 {% endblock %}
 
 {% block content %}
-<p>For School of Computing Science (CMPT)</p>
+<p>
+	For School of Computing Science (CMPT)
+</p>
 <div class="datatable_container">
-    <table class="display" id="letters">
-        <thead>
-            <tr>
+	<table class="display" id="letters">
+		<thead>
+			<tr>
 				<th scope="col">Student ID </th>
 				<th scope="col">Last Name</th>
 				<th scope="col">First Name</th>
-                <th scope="col">Template Used</th>				
-				<th scope="col">Created At</th>	
-				<th scope="col">Action</th>									
-            </tr>
+				<th scope="col">Template Used</th>
+				<th scope="col">Created At</th>
+				<th scope="col">Action</th>
+			</tr>
 		</thead>
-        <tbody>
-        {% for s in letters %}
-        <tr>
-            <td>{{s.student.person.emplid}}</td>
-            <td>{{s.student.person.last_name}}</td>
-            <td>{{s.student.person.first_name}}</td>
-            <td>{{s.template.label}}</td>            
-            <td>{{s.created_at}}</td>            
-          	<td><a href="{% url grad.views.manage_letter letter_slug=s.slug %}">Manage</a></td> 
-          
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+		<tbody>
+			{% for s in letters %}
+			<tr>
+				<td>{{s.student.person.emplid}}</td>
+				<td>{{s.student.person.last_name}}</td>
+				<td>{{s.student.person.first_name}}</td>
+				<td>{{s.template.label}}</td>
+				<td>{{s.created_at}}</td>
+				<td><a href="{% url grad.views.manage_letter letter_slug=s.slug %}">Manage</a></td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
 </div>
-
-{% endblock %}
+{% endblock %} 

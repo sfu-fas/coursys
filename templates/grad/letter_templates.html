@@ -54,7 +54,7 @@
         {% for s in templates %}
         <tr>
             <td>{{s.label}}</td>
-            <td>{{s.content}}</td>
+            <td>{{s.content|slice:":75"}}</td>
             <td>{{s.created_at}}</td>        
           	<td><a href="{% url grad.views.manage_letter_template letter_template_slug=s.slug %}">Manage</a></td>
         </tr>

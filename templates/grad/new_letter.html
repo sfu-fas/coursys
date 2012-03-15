@@ -6,16 +6,82 @@
 {% block title %}{{page_title}}{% endblock %}
 {% block h1 %}{{page_title}}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li><li>&gt; {{crumb}}</li>{% endblock %}
+{% block subbreadcrumbs %}
+<li>
+	&gt; <a href="{% url grad.views.index %}">Grad</a>
+</li>
+<li>
+	&gt; <a href="{% url grad.views.letters %}">Letters</a>
+</li>
+<li>
+	&gt; {{crumb}}
+</li>
+{% endblock %}
+{% block headextra %}
+<script type="text/javascript">
+	$(document).ready(function() {
+		$('#id_template').change(function() {
+			
+			var template_id
+			template_id = $("#id_template").val();
+			$("#id_content").empty();
+			$("#id_content").append({{templates}});
+
+		});
+		
+		
+	});
+
+</script>
+{% endblock %}
 {% block content %}
 <div id="form_container">
-    <form action="{% url grad.views.new_letter %}" method="POST">{% csrf_token %}
-    	<fieldset>
-			<legend>Letter Info</legend>
-              {{ form|as_dl_2 }}
-        <p><input  class="submit"  type="submit" value="Submit"></p>
-        </fieldset>
-    </form>
+	<form action="{% url grad.views.new_letter grad_slug=grad.slug%}" method="POST">
+		{% csrf_token %}
+		<fieldset>
+			<legend>
+				Letter Info
+			</legend>
+			{% if form.non_field_errors %}
+			{{ form.non_field_errors }}
+			{% endif %}
+			<div style="float: left; width: 40%;">
+				<dl class="dlform">
+					<dt>
+						Student:
+					</dt>
+					<dd>
+						{{grad.person.emplid}}
+						<br />
+						{{grad.person.last_name}}, {{grad.person.first_name}}
+					</dd>
+				</dl>
+			</div>
+			<div style="float: left;">
+				<dl class="dlform">
+					<dt>
+						Template:
+					</dt>
+					<dd>
+						{{form.template}}
+					</dd>
+				</dl>
+			</div>
+			<div style="float:left; width:100%">
+				<dl class="dlform">
+					<dt>
+						Contents:*
+					</dt>
+					<dd>
+						{{form.content}}{{form.content.errors}}
+					</dd>
+				</dl>
+			</div>
+			<p>
+				<input  class="submit"  type="submit" value="Submit">
+			</p>
+		</fieldset>
+	</form>
 	<a class="button" href="{% url grad.views.index %}">Back</a>
 </div>
 {% endblock %} 

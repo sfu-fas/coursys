@@ -51,15 +51,36 @@
 					</dd>
 				</dl>
 			</div>
-			<div style="float:left; width:100%">
-				<dl class="dlform">
-					<dt>
-						Contents:*
-					</dt>
-					<dd>
-						{{form.content}}{{form.content.errors}}
-					</dd>
-				</dl>
+			<div style="float:left; width: 100%">
+				<div style="float: left">
+					<dl class="dlform">
+						<dt>
+							Contents:*
+						</dt>
+						<dd>
+							{{form.content}}{{form.content.errors}}
+						</dd>
+					</dl>
+				</div>
+				<div style="float: left; width: 25%">
+					<dl>
+						<dt>
+							Available tags:
+						</dt>
+						<dd>
+							<dl>
+								{%for tag, val in LETTER_TAGS %}
+								<dt>
+									{%templatetag openvariable%} {{tag}} {%templatetag closevariable%}
+								</dt>
+								<dd>
+									{{val}}
+								</dd>
+								{%endfor%}
+							</dl>
+						</dd>
+					</dl>
+				</div>
 			</div>
 			<p>
 				<input  class="submit"  type="submit" value="Submit">

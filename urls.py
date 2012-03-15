@@ -288,11 +288,12 @@ urlpatterns += patterns('',
     url(r'^grad/requirement/new', 'grad.views.new_requirement'),    
 
     url(r'^grad/letter/$', 'grad.views.letters'),
-    url(r'^grad/letter/new', 'grad.views.new_letter'),
+    url(r'^grad/' + GRAD_SLUG + '/letter/new', 'grad.views.new_letter'),
     url(r'^grad/letter/'+ LETTER_SLUG + '/manage', 'grad.views.manage_letter'),    
     url(r'^grad/letterTemplates/$', 'grad.views.letter_templates'),
     url(r'^grad/letterTemplates/new', 'grad.views.new_letter_template'),
     url(r'^grad/letterTemplates/'+ LETTER_TEMPLATE_SLUG + '/manage', 'grad.views.manage_letter_template'),    
+    url(r'^grad/letter/' + GRAD_SLUG + '/' + LETTER_TEMPLATE_SLUG + 'get_letter_text', 'grad.views.get_letter_text'),
     
     url(r'^grad/'+ GRAD_SLUG + '/$', 'grad.views.view_all'),    
     url(r'^grad/'+ GRAD_SLUG + '/manage_academics$', 'grad.views.manage_academics'),

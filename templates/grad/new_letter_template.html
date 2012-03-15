@@ -6,16 +6,78 @@
 {% block title %}{{page_title}}{% endblock %}
 {% block h1 %}{{page_title}}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li><li>&gt; {{crumb}}</li>{% endblock %}
+{% block subbreadcrumbs %}
+<li>
+	&gt; <a href="{% url grad.views.index %}">Grad</a>
+</li>
+<li>
+	&gt; <a href="{% url grad.views.letters %}">Letters</a>
+</li>
+<li>
+	&gt; <a href="{% url grad.views.letter_templates %}">Letter Template</a>
+</li>
+<li>
+	&gt; {{crumb}}
+</li>
+{% endblock %}
 {% block content %}
 <div id="form_container">
-    <form action="{% url grad.views.new_letter_template %}" method="POST">{% csrf_token %}
-    	<fieldset>
-			<legend>Letter Template Info</legend>
-              {{ form|as_dl_2 }}
-        <p><input  class="submit"  type="submit" value="Submit"></p>
-        </fieldset>
-    </form>
+	<form action="{% url grad.views.new_letter_template %}" method="POST">
+		{% csrf_token %}
+		<fieldset>
+			<legend>
+				Letter Template Info
+			</legend>
+			<div style="float: left; width: 40%;">
+				<dl class="dlform">
+					<dt>
+						Template Name:
+					</dt>
+					<dd>
+						{{form.label}}{{form.label.errors}}
+					</dd>
+				</dl>
+			</div>
+			<div style="float: left;">
+				<dl class="dlform">
+					<dt>
+						Department:
+					</dt>
+					<dd>
+						{{form.unit}} {{form.unit.errors}}
+					</dd>
+				</dl>
+			</div>
+			<div style="float:left; width: 100%">
+				<div style="float: left">
+					<dl class="dlform">
+						<dt>
+							Contents:*
+						</dt>
+						<dd>
+							{{form.content}}{{form.content.errors}}
+						</dd>
+					</dl>
+				</div>
+				<div style="float: left; width: 25%">
+					<br />
+					<dl>
+						{%for tag, val in LETTER_TAGS.items %}
+						<dt>
+							{%templatetag openvariable%} {{tag}} {%templatetag closevariable%}
+						</dt>
+						<dd>
+							{{val}}
+						</dd>
+						{%endfor%}
+					</dl>
+				</div>
+			</div>
+			<p>
+				<input  class="submit"  type="submit" value="Submit">
+			</p>
+		</fieldset>
+	</form>
 	<a class="button" href="{% url grad.views.index %}">Back</a>
 </div>
 {% endblock %} 

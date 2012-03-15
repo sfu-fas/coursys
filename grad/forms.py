@@ -178,7 +178,7 @@ class CompletedRequirementForm(ModelForm):
         fields = ('requirement', 'semester', 'date', 'notes')
 
 class LetterTemplateForm(ModelForm):
-    content = forms.CharField(widget=forms.Textarea(attrs={'rows':'25', 'cols': '100'}))    
+    content = forms.CharField(widget=forms.Textarea(attrs={'rows':'35', 'cols': '70'}))    
     class Meta:
         model = LetterTemplate
         exclude = ('created_by')

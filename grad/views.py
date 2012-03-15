@@ -1,6 +1,6 @@
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from grad.models import GradStudent, GradProgram, Supervisor, GradRequirement, CompletedRequirement, GradStatus, \
         ScholarshipType, Scholarship, Promise, OtherFunding, LetterTemplate,\
     Letter
@@ -499,6 +499,25 @@ def letter_templates(request):
                }
     return render(request, 'grad/letter_templates.html', context)
 
+"""
+List of tags
+"""
+
+LETTER_TAGS = {
+               'title': 'Mr. Ms.',
+               'first_name': 'applicant\'s first name',
+               'last_name': 'applicant\'s last name',
+               'address': 'includes street, city/province/postal, country',
+               'empl_data': 'type of employment RA, TA',
+               'fund_type': 'RA, TA, Scholarship',
+               'fund_amount_sem': 'amount of money paid per semester',
+               'his_her' : '"his" or "her"',
+               'program': 'program enrolled in',
+               'first_season': 'semster when grad will begin his studies; fall, summer, spring',
+               'first_year': 'year to begin; 2011',
+               'first_month': 'month to begin; September'
+               }
+
 @requires_role("GRAD")
 def new_letter_template(request):
     unit_choices = [(u.id, u.name) for u in request.units]
@@ -509,9 +528,9 @@ def new_letter_template(request):
             f = form.save(commit=False)
             f.created_by = request.user.username            
             f.save()
-            messages.success(request, "Created new letter template %s in %s." % (form.instance.label, form.instance.unit))
+            messages.success(request, "Created new letter template %s for %s." % (form.instance.label, form.instance.unit))
             l = LogEntry(userid=request.user.username,
-                  description="Created new letter template %s in %s." % (form.instance.label, form.instance.unit),
+                  description="Created new letter template %s for %s." % (form.instance.label, form.instance.unit),
                   related_object=form.instance)
             l.save()            
             return HttpResponseRedirect(reverse(letter_templates))
@@ -520,11 +539,13 @@ def new_letter_template(request):
         form.fields['unit'].choices = unit_choices 
 
     page_title = 'New Letter Template'  
-    crumb = 'New' 
+    crumb = 'New'
+    lt = sorted(LETTER_TAGS.iteritems()) 
     context = {
                'form': form,
                'page_title' : page_title,
-               'crumb' : crumb
+               'crumb' : crumb,
+               'LETTER_TAGS' : lt
                }
     return render(request, 'grad/new_letter_template.html', context)
 
@@ -548,11 +569,13 @@ def manage_letter_template(request, letter_template_slug):
 
     page_title = 'Manage Letter Template'  
     crumb = 'Manage' 
+    lt = sorted(LETTER_TAGS.iteritems())
     context = {
                'form': form,
                'page_title' : page_title,
                'crumb' : crumb,
-               'letter_template' : letter_template
+               'letter_template' : letter_template,
+               'LETTER_TAGS' : lt
                }
     return render(request, 'grad/manage_letter_template.html', context)
 
@@ -560,7 +583,7 @@ def manage_letter_template(request, letter_template_slug):
 def letters(request):
     letters = Letter.objects.filter(template__unit__in=request.units)
 
-    page_title = 'Letters'
+    page_title = 'All Letters'
     crumb = 'Letters'     
     context = {
                'page_title' : page_title,
@@ -570,13 +593,15 @@ def letters(request):
     return render(request, 'grad/letters.html', context)
 
 @requires_role("GRAD")
-def new_letter(request):
-
+def new_letter(request, grad_slug):
+    grad = get_object_or_404(GradStudent, slug=grad_slug)
+    templates = LetterTemplate.objects.filter(unit=2)
     if request.method == 'POST':
         form = LetterForm(request.POST)
         if form.is_valid():
             f = form.save(commit=False)
-            f.created_by = request.user.username            
+            f.created_by = request.user.username   
+            f.student = grad         
             f.save()
             messages.success(request, "Created new %s letter for %s." % (form.instance.template.label, form.instance.student))
             l = LogEntry(userid=request.user.username,
@@ -586,15 +611,35 @@ def new_letter(request):
             return HttpResponseRedirect(reverse(letters))
     else:
         form = LetterForm()
+        
 
     page_title = 'New Letter'  
     crumb = 'New' 
     context = {
                'form': form,
                'page_title' : page_title,
-               'crumb' : crumb
+               'crumb' : crumb,
+               'grad' : grad,
+               'templates' : templates
                }
     return render(request, 'grad/new_letter.html', context)
+
+
+"""
+Get the text from letter template
+"""
+def get_letter_text(request, grad_slug, letter_template_slug):
+    if request.is_ajax():
+        message = "AJAX desu."
+    else:
+        message = "No AJAX detected." 
+    # content: the body with template tags
+    # student: the grad student user is creating a letter for 
+    text = message + "Start of text."
+    
+    
+    text += "End of text."
+    return HttpResponse(text)
 
 @requires_role("GRAD")
 def manage_letter(request, letter_slug):
