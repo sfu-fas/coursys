@@ -3,7 +3,7 @@ from django import forms
 from django.db.models import Q
 import grad.models as gradmodels
 from grad.models import Supervisor, GradProgram, GradStudent, GradStatus,\
-    GradRequirement, CompletedRequirement, LetterTemplate, Letter
+    GradRequirement, CompletedRequirement, LetterTemplate, Letter, Promise
 from coredata.models import Person, Member, Semester, CAMPUS_CHOICES
 from django.forms.formsets import BaseFormSet
 from django.core.exceptions import ValidationError
@@ -203,6 +203,14 @@ class NullBooleanSelect_Filter(NullBooleanSelect):
         except KeyError:
             value = u''
         return super(NullBooleanSelect_Filter, self).render(name, value, attrs, choices)
+
+class new_promiseForm(ModelForm):
+    class Meta:
+        model = Promise
+        exclude = ('student','comments')
+      
+        
+
 
 # should be moved into whatever model this is stored in
 # This is also a guess at which statuses are mutually exclusive
