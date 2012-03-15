@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load course_display ta_display %}
+{% load form_display ta_display %}
 
 {% block title %}Assign TAs for {{ offering.subject }} {{ offering.number }} {{ offering.section }} at {{ offering.get_campus_display }}{% endblock %}
 {% block h1 %}Assign TAs for {{ offering.subject }} {{ offering.number }} {{ offering.section }} at {{ offering.get_campus_display }}{% endblock %}
@@ -37,7 +37,7 @@ Remaining BUs: {{ offering|display_bu_difference:posting }}
 
 <form action="{% url ta.views.assign_bus post_slug=posting.slug, course_slug=offering.slug %}" method="post">{% csrf_token %}
 {{ formset.management_form }}
-<div class="datatable_container">
+<div class="form_container">
 <table class="display" id="ta_app">
 <thead>
     <tr>
@@ -53,18 +53,18 @@ Remaining BUs: {{ offering|display_bu_difference:posting }}
 {% for a in applications %}
       <tr>
         <td scope="row"><a href="{% url ta.views.view_application app_id=a.id %}">{{ a.person.last_name }}, {{ a.person.first_name }}</a></td>
-        <td class="num">{% for form in formset %}
+        <td>{% for form in formset %}
         {% ifequal forloop.counter forloop.parentloop.counter %}
-          {{ form.rank }}
+          {{ form|as_dl_usefield:'rank' }}
         {% endifequal %}
         {% endfor %}
         </td>
         <td scope="row">{{ course_preferences|display_course_rank:forloop.counter0 }}</td>
         <td scope="row">{{ campus_preferences|display_campus_preference:forloop.counter0 }}</a></td>
         <td scope="row">{{ a.base_units }}</a></td>
-        <td scope="row">{% for form in formset %}
+        <td>{% for form in formset %}
         {% ifequal forloop.counter forloop.parentloop.counter %}
-          {{ form.bu }}
+          {{ form|as_dl_usefield:'bu' }}
         {% endifequal %}
         {% endfor %}
         </td>

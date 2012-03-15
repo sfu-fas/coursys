@@ -46,7 +46,7 @@ def as_dl(form, safe=False, excludefields=[]):
     return mark_safe('\n'.join(out))
 
 @register.filter
-def as_dl_nolabel(form, safe=False, includefield=[]):
+def as_dl_nolabel(form, safe=False, includefield=[], req_text=True):
     """
     Output a Form as a nice <dl>
     """
@@ -81,7 +81,7 @@ def as_dl_nolabel(form, safe=False, includefield=[]):
             out.append('</dd>')
     
     #out.append('</dl>')
-    if reqcount > 0:
+    if reqcount > 0 and req_text:
         out.append('<p class="helptext"><span class="required">*</span> This field is required.</p>')
     return mark_safe('\n'.join(out))
 
@@ -140,8 +140,9 @@ def as_dl_excludefields(form, excl):
 def as_dl_usefield(form, incl):
     """
     Like as_dl, but allows including some fields with filter argument
+    Hide helptext
     """
     incllist = incl.split(',')
-    return as_dl_nolabel(form, includefield=incllist)
+    return as_dl_nolabel(form, includefield=incllist, req_text=False)
 
 

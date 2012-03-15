@@ -357,22 +357,22 @@ def assign_bus(request, post_slug, course_slug):
     AssignBUFormSet = formset_factory(AssignBUForm)
     
     #Save ranks and BU's
-    #need validation
     if request.method == "POST":
         formset = AssignBUFormSet(request.POST)
-        for i in range(len(apps)):
-            #update rank
-            apps[i].rank = formset[i]['rank'].value()
-            apps[i].save()
-            if assigned_ta[i] == None: #create new contract
-                contract = TAContract(created_by=request.user.username)
-                contract.first_assign(apps[i], posting)
-                bu = formset[i]['bu'].value()
-                tacourse = TACourse.objects.create(course=offering, description=offering.get_desc(), contract=contract, bu=bu)
-            else: #update bu for existing TACourse
-                assigned_ta[i].bu = formset[i]['bu'].value()
-                assigned_ta[i].save()
-        return HttpResponseRedirect(reverse(assign_tas, args=(post_slug,)))
+        if formset.is_valid():
+            for i in range(len(apps)):
+                #update rank
+                apps[i].rank = formset[i]['rank'].value()
+                apps[i].save()
+                if assigned_ta[i] == None: #create new contract
+                    contract = TAContract(created_by=request.user.username)
+                    contract.first_assign(apps[i], posting)
+                    bu = formset[i]['bu'].value()
+                    tacourse = TACourse.objects.create(course=offering, description=offering.get_desc(), contract=contract, bu=bu)
+                else: #update bu for existing TACourse
+                    assigned_ta[i].bu = formset[i]['bu'].value()
+                    assigned_ta[i].save()
+            return HttpResponseRedirect(reverse(assign_tas, args=(post_slug,)))
     else:
         formset = AssignBUFormSet(initial=initial)
     
