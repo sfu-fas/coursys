@@ -252,12 +252,14 @@ class SearchForm(forms.Form):
             help_text='Not Implemented; Uses "or", selecting nothing means any')
     
     #program = forms.CharField(required=False)
-    program = forms.ModelChoiceField(GradProgram.objects.all(), required=False)
+    program = forms.ModelMultipleChoiceField(GradProgram.objects.all(), required=False)
 #    degree = forms.ChoiceField(choices=(
 #            ('','---------'),
 #            ('INTL','International'),
 #            ('CAN','Canadian')
 #            ), required=False)
+    requirements = forms.ModelMultipleChoiceField(GradRequirement.objects.all(), required=False,
+            help_text='Not Implemented')
     is_canadian = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
     
     has_financial_support = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter,
@@ -268,17 +270,16 @@ class SearchForm(forms.Form):
     gpa_max = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False,
             help_text='Not Implemented')
     gender = forms.ChoiceField((('','---------'), ('M','Male'), ('F','Female'), ('U','unknown')),
-            required=False,
-            help_text='Not Implemented')
+            required=False)
     visa_held = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter,
             help_text='Not Implemented')
 #    scholarship_from = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
 #    scholarship_to = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
-    scholarship_sem = forms.ModelChoiceField(Semester.objects.all(),
+    scholarship_sem = forms.ModelMultipleChoiceField(Semester.objects.all(),
             label='Scholarship Semester Received',required=False,
             help_text='Not Implemented')
     
-    def make_query(self, query_string, query_param=None):
+    def _make_query(self, query_string, query_param=None):
         if query_string in self.cleaned_data and self.cleaned_data[query_string]:
             if query_param is None:
                 query_param = query_string
@@ -286,19 +287,32 @@ class SearchForm(forms.Form):
         return None
     
     def get_query(self):
+        if not self.is_valid():
+            raise Exception, "The form needs to be valid to get the search query"
         queries = (
-                ('start_semester', 'gradstatus__start'),
-                ('end_semester', 'gradstatus__end'),
+                ('start_semester', 'gradstatus__start__in'),
+                ('end_semester', 'gradstatus__end__in'),
                 ('student_status', 'gradstatus__status__in'),
-                ('program',),
+                ('program','program__in'),
                 ('is_canadian',),
-                ('campus',)
+                ('campus','campus__in'),
                 )
         
+        # passes all of the tuples in queries to _make_query as arguments
+        # (which returns a single Q object) and then combines them (reduce)
+        # into one Q object using the & operator
         query = reduce(Q.__and__, 
                     ifilter(lambda x:x is not None,
-                        (self.make_query(*qargs) for qargs in queries)),
+                        (self._make_query(*qargs) for qargs in queries)),
                     Q())
+        
+        # super complex stuff to get searching for gender to work nicely, because it's in a config field
+        if 'gender' in self.cleaned_data and self.cleaned_data['gender']:
+            gender_query = Q(person__config__icontains='"gender": "%s"' % self.cleaned_data['gender'])
+            if self.cleaned_data['gender'] == 'U':
+                gender_query |= ~Q(person__config__icontains='"gender":')
+            query &= gender_query
+            
         return query
 
 

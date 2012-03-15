@@ -43,6 +43,8 @@ class Person(models.Model):
     
     defaults = {'email': None}
     _, set_email = getter_setter('email')
+    gender, set_gender = getter_setter('gender')
+    
 
     def __unicode__(self):
         return "%s, %s" % (self.last_name, self.first_name)

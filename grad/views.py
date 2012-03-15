@@ -632,7 +632,9 @@ def search(request):
     else:
         form = SearchForm(request.GET)
     if form.is_valid():
-        query_string = iri_to_uri(request.META.get('QUERY_STRING',''))
+        # if we store the query string in the database 
+        #query_string = iri_to_uri(request.META.get('QUERY_STRING',''))
+        
         #TODO: add a button to save the search
         #TODO: prefill common querys
         #TODO: add a model to save these queries; save the query string
@@ -640,7 +642,7 @@ def search(request):
         #NOTE: use getlist on request.GET rather than __getitem__
         #TODO: move the query making code into the form
         
-        
+        query = form.get_query()
         grads = GradStudent.objects.filter(query)
         
         context = {
