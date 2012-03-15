@@ -324,8 +324,8 @@ APPOINTMENT_CHOICES = (
         ("REAP","Reappointment: Reappointment to same position or revision to appointment"),       
     )
 STATUS_CHOICES = (
-        ("NEW","New"), # not yet sent to TA
-        ("OPN","Open"), # offer made, but not accepted/rejected/cancelled
+        ("NEW","Draft"), # not yet sent to TA
+        ("OPN","Offered"), # offer made, but not accepted/rejected/cancelled
         ("REJ","Rejected"),
         ("ACC","Accepted"),
         ("SGN","Contract Signed"), # after accepted and manager has signed contract
