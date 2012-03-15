@@ -7,7 +7,7 @@
 	$(document).ready(function() {
 		$('#grads').dataTable({
 			"bJQueryUI" : true,
-			"aaSorting" : [[4, "dsc"]],
+			"aaSorting" : [[4, "desc"]],
 			"iDisplayLength" : 10,
 			"sPaginationType" : "full_numbers",
 		});
@@ -62,8 +62,7 @@
 				<td>{{s.person.first_name}}</td>
 				<td>{{s.person.last_name}}</td>
 				<td>{{s.updated_at}}</td>
-				<td><a href="{% url grad.views.view_all grad_slug=s.slug %}"> View </a> | 
-					<a href="{% url grad.views.new_letter grad_slug=s.slug %}"> New Letter </a>
+				<td><a href="{% url grad.views.view_all grad_slug=s.slug %}"> View </a>
 				</td>
 			</tr>
 			{%empty%}
