@@ -3,29 +3,8 @@
 
 {% block headextra %}
 <script type="text/javascript" src="/media/js/ra.js"></script>
-<script type="text/javascript">
-$(document).ready(function() {
-  $("id_person").focus();
-  ra_autocomplete('id_person');
-  $("#id_start_date").datepicker({'dateFormat': 'yy-mm-dd'});
-  $("#id_end_date").datepicker({'dateFormat': 'yy-mm-dd'});
-  $("#id_lump_sum_pay").change(function() {
-    update_lump_sum();
-  });
-  $("#id_biweekly_pay").change(function() {
-    update_biweekly();
-  });
-  $("#id_pay_periods").change(function() {
-    update_lump_sum();
-  });
-  $("#id_hourly_pay").change(function() {
-    update_hourly();
-  });
-  $("#id_hours").change(function() {
-    update_lump_sum();
-  });
-});
-</script>
+<link rel="stylesheet" type="text/css" href="/media/ra/ra.css" />
+
 {% endblock %}
 
 {% block title %}Update RA Appointment for {{ appointment.person.first_name }} {{ appointment.person.last_name }}{% endblock %}
@@ -34,14 +13,38 @@ $(document).ready(function() {
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url ra.views.search %}">RA Appointments</a></li><li><a href="{% url ra.views.student_appointments userid=appointment.person.userid%}">&gt; RA Appointments for {{ appointment.person.first_name }} {{ appointment.person.last_name }}</a></li><li>&gt; Update RA Appointment</li>{% endblock %}
 
 {% block content %}
-<div id="form_container">
-  <form action="{% url ra.views.edit ra_slug=appointment.slug %}" method="POST">{% csrf_token %}
-    <fieldset style="list-style: none;">
-      <legend>Personal Information</legend>
-      {{ raform.as_ul }}
-      <p><input type="submit" value="Submit"></p>
-    </fieldset>
-  </form>  
-</div>
+  <div id="form_container">
+    <form action="{% url ra.views.edit ra_slug=appointment.slug %}" method="POST">{% csrf_token %}
+      <fieldset style="list-style: none;">
+        <legend>Personal Information</legend>
+        {{ raform|as_dl_excludefields:"lump_sum_pay,biweekly_pay,pay_periods,hourly_pay,hours,reappointment,medical_benefits,dental_benefits,notes,comments" }}
 
+        <p><legend>Salary Information</legend></p>
+        <p>
+          <span id="lump_sum_label">{{ raform.lump_sum_pay.label }}:*</span> 
+          {{raform.lump_sum_pay }}
+        </p>
+      
+        <p>
+          <span id="biweekly_pay_label">{{ raform.biweekly_pay.label }}:*</span> 
+          {{ raform.biweekly_pay }}
+          <span id="pay_periods_label">{{ raform.pay_periods.label }}:*</span> 
+          {{ raform.pay_periods }}
+        </p>
+      
+        <p>
+          <span id="hourly_pay_label">{{ raform.hourly_pay.label }}:*</span> 
+          {{ raform.hourly_pay }}
+          <span id="hours_label">{{ raform.hours.label }}:*</span> 
+          {{ raform.hours }}
+        </p>
+
+        <p class="helptext">* This field is required.</p>
+        
+        <p><legend>Other Information</legend></p>
+        {{ raform|as_dl_excludefields:"person,hiring_faculty,unit,hiring_category,project,account,start_date,end_date,lump_sum_pay,biweekly_pay,pay_periods,hourly_pay,hours" }}
+        <p><input type="submit" value="Submit"></p>
+      </fieldset>
+    </form>  
+  </div>
 {% endblock %}

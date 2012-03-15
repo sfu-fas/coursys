@@ -61,13 +61,26 @@
 <div class="table_container">
   <h2>Salary Details</h2>
   <table class="info">
-    <tr><th>Earning Rate:</th>
-      <td>{{ appointment.get_pay_period_display }}: 
-          ${{ appointment.pay_amount }}</td></tr>
-    <tr><th>Employment Time:</th>
-      <td>{{ appointment.employment_hours }}:{{ appointment.employment_minutes|stringformat:"02d" }}</td></tr>
-    <tr><th>Pay Period: Units:</th>
-      <td>{{ appointment.units }}</td></tr>
+    <tr>
+      <th>Total Pay Amount:</th> 
+      <td>${{ appointment.lump_sum_pay }}</td>
+    </tr>
+    <tr>
+      <th>Biweekly Pay:</th>
+      <td>${{ appointment.biweekly_pay }}</td>
+    </tr>
+    <tr>
+      <th>Hourly Pay:</th>
+      <td>${{ appointment.hourly_pay }}</td>
+    </tr>
+    <tr>
+      <th>Pay Periods:</th>
+      <td>{{ appointment.pay_periods }}</td>
+    </tr>
+    <tr>
+      <th>Hours per pay period:</th>
+      <td>{{ appointment.hours }}</td>
+    </tr>
   </table>
 </div>
 

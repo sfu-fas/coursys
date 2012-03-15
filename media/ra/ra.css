@@ -1,0 +1,29 @@
+#lump_sum_label {
+    padding-right: 5px;
+    padding-left: 45px;
+    font-weight: bold;
+}
+
+#biweekly_pay_label {
+    font-weight: bold;
+    padding-right: 5px;
+    padding-left: 57px;
+}
+
+#pay_periods_label {
+    font-weight: bold;
+    padding-right: 5px;
+    padding-left: 5px;
+}
+
+#hourly_pay_label {
+    font-weight: bold;
+    padding-right: 5px;
+    padding-left: 71px;
+}
+
+#hours_label {
+    font-weight: bold;
+    padding-right: 5px;
+    padding-left: 42px;
+}

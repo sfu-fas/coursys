@@ -38,3 +38,26 @@ function update_hourly() {
     $("#id_lump_sum_pay").val((hourly * num_hours * num_periods).toFixed(2));
     $("#id_biweekly_pay").val((hourly * num_hours).toFixed(2));
 }
+
+$(document).ready(function() {
+  $("id_person").focus();
+  ra_autocomplete('id_person');
+  $("#id_start_date").datepicker({'dateFormat': 'yy-mm-dd'});
+  $("#id_end_date").datepicker({'dateFormat': 'yy-mm-dd'});
+  $("#id_lump_sum_pay").change(function() {
+    update_lump_sum();
+  });
+  $("#id_biweekly_pay").change(function() {
+    update_biweekly();
+  });
+  $("#id_pay_periods").change(function() {
+    update_lump_sum();
+  });
+  $("#id_hourly_pay").change(function() {
+    update_hourly();
+  });
+  $("#id_hours").change(function() {
+    update_lump_sum();
+  });
+
+});

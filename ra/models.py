@@ -62,8 +62,8 @@ class RAAppointment(models.Model):
     end_date = models.DateField(auto_now=False, auto_now_add=False)
     lump_sum_pay = models.DecimalField(max_digits=6, decimal_places=2)
     biweekly_pay = models.DecimalField(max_digits=6, decimal_places=2)
-    hourly_pay = models.DecimalField(max_digits=6, decimal_places=2)
     pay_periods = models.DecimalField(max_digits=6, decimal_places=3)
+    hourly_pay = models.DecimalField(max_digits=6, decimal_places=2)
     hours = models.PositiveSmallIntegerField()
     # pay_period = models.CharField(max_length=60, choices=PAY_TYPE_CHOICES)
     # # The amount paid hourly, biweekly, or as a lump sum.
