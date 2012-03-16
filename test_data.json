@@ -19288,5 +19288,231 @@
   },
   "model": "ta.taposting",
   "pk": 2
+ },
+  {
+  "fields": {
+   "application": 1,
+   "appt": "INIT",
+   "appt_category": "ETA",
+   "appt_cond": false,
+   "appt_tssu": true,
+   "created_at": "2012-03-06 23:54:11",
+   "created_by": "ggbaker",
+   "deadline": "2012-03-15",
+   "pay_end": "2012-12-31",
+   "pay_per_bu": "50",
+   "pay_start": "2012-08-01",
+   "position_number": 2,
+   "posting": 2,
+   "remarks": "",
+   "scholarship_per_bu": "7",
+   "sin": "123456789",
+   "status": "REJ",
+   "updated_at": "2012-03-13 16:41:13"
+  },
+  "model": "ta.tacontract",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "application": 2,
+   "appt": "INIT",
+   "appt_category": "UTA",
+   "appt_cond": false,
+   "appt_tssu": true,
+   "created_at": "2012-03-09 14:31:25",
+   "created_by": "ggbaker",
+   "deadline": "2012-04-12",
+   "pay_end": "2012-12-31",
+   "pay_per_bu": "3",
+   "pay_start": "2012-08-01",
+   "position_number": 2,
+   "posting": 2,
+   "remarks": "",
+   "scholarship_per_bu": "7",
+   "sin": "987654321",
+   "status": "NEW",
+   "updated_at": "2012-03-09 14:31:25"
+  },
+  "model": "ta.tacontract",
+  "pk": 2
+ },
+ {
+  "fields": {
+   "application": 3,
+   "appt": "INIT",
+   "appt_category": "GTA1",
+   "appt_cond": false,
+   "appt_tssu": true,
+   "created_at": "2012-03-12 12:18:58",
+   "created_by": "ggbaker",
+   "deadline": "2012-06-21",
+   "pay_end": "2012-12-31",
+   "pay_per_bu": "1",
+   "pay_start": "2012-08-01",
+   "position_number": 2,
+   "posting": 2,
+   "remarks": "",
+   "scholarship_per_bu": "5",
+   "sin": "543216789",
+   "status": "NEW",
+   "updated_at": "2012-03-12 12:18:58"
+  },
+  "model": "ta.tacontract",
+  "pk": 3
+ },
+ {
+  "fields": {
+   "application": 5,
+   "appt": "INIT",
+   "appt_category": "GTA2",
+   "appt_cond": false,
+   "appt_tssu": true,
+   "created_at": "2012-03-14 01:30:56",
+   "created_by": "ggbaker",
+   "deadline": "2012-04-11",
+   "pay_end": "2012-07-31",
+   "pay_per_bu": "124",
+   "pay_start": "2012-03-07",
+   "position_number": 2,
+   "posting": 1,
+   "remarks": "",
+   "scholarship_per_bu": "142",
+   "sin": "124456578",
+   "status": "NEW",
+   "updated_at": "2012-03-14 01:30:56"
+  },
+  "model": "ta.tacontract",
+  "pk": 4
+ },
+ {
+  "fields": {
+   "bu": "5",
+   "contract": 1,
+   "course": 120,
+   "description": "OM"
+  },
+  "model": "ta.tacourse",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "bu": "5.17",
+   "contract": 1,
+   "course": 118,
+   "description": "OM"
+  },
+  "model": "ta.tacourse",
+  "pk": 2
+ },
+ {
+  "fields": {
+   "bu": "0",
+   "contract": 2,
+   "course": 115,
+   "description": "OM"
+  },
+  "model": "ta.tacourse",
+  "pk": 3
+ },
+ {
+  "fields": {
+   "bu": "0",
+   "contract": 3,
+   "course": 117,
+   "description": "OM"
+  },
+  "model": "ta.tacourse",
+  "pk": 4
+ },
+ {
+  "fields": {
+   "bu": "5",
+   "contract": 4,
+   "course": 189,
+   "description": "OM"
+  },
+  "model": "ta.tacourse",
+  "pk": 5
+ },
+ {
+  "fields": {
+   "base_units": "5",
+   "category": "GTA1",
+   "comments": "123123",
+   "course_load": "123123",
+   "experience": "12312",
+   "other_support": "123123",
+   "person": 16,
+   "posting": 2,
+   "rank": 0,
+   "sin": "123456789"
+  },
+  "model": "ta.taapplication",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "base_units": "3",
+   "category": "GTA1",
+   "comments": "14",
+   "course_load": "123",
+   "experience": "234",
+   "other_support": "213",
+   "person": 135,
+   "posting": 2,
+   "rank": 0,
+   "sin": "987654321"
+  },
+  "model": "ta.taapplication",
+  "pk": 2
+ },
+ {
+  "fields": {
+   "base_units": "5",
+   "category": "GTA1",
+   "comments": "123",
+   "course_load": "13",
+   "experience": "13",
+   "other_support": "",
+   "person": 93,
+   "posting": 2,
+   "rank": 0,
+   "sin": "543216789"
+  },
+  "model": "ta.taapplication",
+  "pk": 3
+ },
+ {
+  "fields": {
+   "base_units": "5",
+   "category": "GTA1",
+   "comments": "23",
+   "course_load": "1231",
+   "experience": "1231",
+   "other_support": "12331",
+   "person": 53,
+   "posting": 2,
+   "rank": 0,
+   "sin": "124325752"
+  },
+  "model": "ta.taapplication",
+  "pk": 4
+ },
+ {
+  "fields": {
+   "base_units": "5",
+   "category": "GTA1",
+   "comments": "wr",
+   "course_load": "wer",
+   "experience": "re",
+   "other_support": "wr",
+   "person": 16,
+   "posting": 1,
+   "rank": 0,
+   "sin": "124456578"
+  },
+  "model": "ta.taapplication",
+  "pk": 5
  }
 ]
