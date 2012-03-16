@@ -741,7 +741,9 @@ def generate_csv(request, post_slug):
         course_prefs = [p for p in course_prefs if p.app != app] 
 
     filename = str(posting.slug) + '.csv'
-    csvWriter = csv.writer(open(filename,'wb'), delimiter='|', quotechar='\"')
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=%s'% filename
+    csvWriter = csv.writer(response)
     
     #First csv row, all the course names
     off = [str(o.course) + ' ' + str(o.section) for o in offerings]
@@ -771,11 +773,4 @@ def generate_csv(request, post_slug):
     for row in csv_rows:
         csvWriter.writerow(row)
 
-    file = open(filename, 'rb')
-    response = HttpResponse(FileWrapper(file), mimetype='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=%s'% filename
-    try:
-        os.remove(filename)
-    except OSError:
-        print "Warning: error removing temporary file."
     return response
