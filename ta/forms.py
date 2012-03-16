@@ -270,7 +270,6 @@ class LabelTextInput(forms.TextInput):
         super(LabelTextInput, self).__init__(*args, **kwargs)
     def render(self, *args, **kwargs):
         return " " + self.label + ": " + super(LabelTextInput, self).render(*args, **kwargs)
-
 class PayWidget(forms.MultiWidget):
     "Widget for entering salary/scholarship values"
     def __init__(self, *args, **kwargs):
@@ -281,7 +280,6 @@ class PayWidget(forms.MultiWidget):
     def decompress(self, value):
         # should already be a list: if we get here, have no defaults
         return [0]*len(CATEGORY_CHOICES)
-
 class PayField(forms.MultiValueField):
     "Field for entering salary/scholarship values"
     def __init__(self, *args, **kwargs):
@@ -293,6 +291,35 @@ class PayField(forms.MultiValueField):
     def compress(self, values):
         return values
 
+from ra.models import Account
+class LabelSelect(forms.Select):
+    "Select with a bonus label"
+    def __init__(self, label, *args, **kwargs):
+        self.label = label
+        super(LabelSelect, self).__init__(*args, **kwargs)
+    def render(self, *args, **kwargs):
+        return " " + self.label + ": " + super(LabelSelect, self).render(*args, **kwargs)
+class AccountsWidget(forms.MultiWidget):
+    "Widget for selecting Account values"
+    def __init__(self, *args, **kwargs):
+        widgets = [LabelSelect(label=c[0]) for c in CATEGORY_CHOICES]
+        kwargs['widgets'] = widgets
+        super(AccountsWidget, self).__init__(*args, **kwargs)
+    
+    def decompress(self, value):
+        # should already be a list: if we get here, have no defaults
+        return [0]*len(CATEGORY_CHOICES)
+class AccountsField(forms.MultiValueField):
+    "Field for selecting Account values"
+    def __init__(self, *args, **kwargs):
+        fields = [forms.ModelChoiceField(Account.objects.all()) for _ in CATEGORY_CHOICES]
+        kwargs['fields'] = fields
+        kwargs['widget'] = AccountsWidget()
+        super(AccountsField, self).__init__(*args, **kwargs)
+
+    def compress(self, values):
+        return values
+
 
 class TAPostingForm(forms.ModelForm):
     start = forms.DateField(label="Contract Start", help_text='Default start date for contracts')
@@ -300,8 +327,10 @@ class TAPostingForm(forms.ModelForm):
     deadline = forms.DateField(label="Acceptance Deadline", help_text='Default deadline for apointees to accept/decline contracts')
     salary = PayField(label="Salary per BU", help_text="Default pay rates for contracts")
     scholarship = PayField(label="Scholarship per BU", help_text="Default scholarship rates for contracts")
+    accounts = AccountsField(label="Position Number", help_text="Default position number for contracts")
     payperiods = forms.IntegerField(label="Pay periods", help_text='Number of pay periods in the semester',
             max_value=20, min_value=1, widget=forms.TextInput(attrs={'size': 5}))
+    contact = forms.EmailField(label="Contact Email", help_text="Email address to give applicants/offers to ask questions.")
     excluded = forms.MultipleChoiceField(help_text="Courses that should <strong>not</strong> be selectable for TA positions",
             choices=[], required=False, widget=forms.SelectMultiple(attrs={'size': 15}))
     skills = forms.CharField(label="Skills", help_text='Skills to ask applicants about: one per line', required=False,
@@ -319,10 +348,12 @@ class TAPostingForm(forms.ModelForm):
         self.initial['salary'] = self.instance.salary()
         self.initial['scholarship'] = self.instance.scholarship()
         self.initial['start'] = self.instance.start()
+        self.initial['accounts'] = self.instance.accounts()
         self.initial['end'] = self.instance.end()
         self.initial['deadline'] = self.instance.deadline()
         self.initial['excluded'] = self.instance.excluded()
         self.initial['payperiods'] = self.instance.payperiods()
+        self.initial['contact'] = self.instance.contact()
         skills = Skill.objects.filter(posting=self.instance)
         self.initial['skills'] = '\n'.join((s.name for s in skills))
     
@@ -330,6 +361,11 @@ class TAPostingForm(forms.ModelForm):
         payperiods = self.cleaned_data['payperiods']
         self.instance.config['payperiods'] = payperiods
         return payperiods
+
+    def clean_contact(self):
+        contact = self.cleaned_data['contact']
+        self.instance.config['contact'] = contact
+        return contact
 
     def clean_start(self):
         start = self.cleaned_data['start']
@@ -387,6 +423,11 @@ class TAPostingForm(forms.ModelForm):
 
         self.instance.config['scholarship'] = [str(s) for s in schols]
         return schols
+
+    def clean_accounts(self):
+        accounts = self.cleaned_data['accounts']
+        self.instance.config['accounts'] = [a.id for a in accounts]
+        return [a.id for a in accounts]
     
     def clean_excluded(self):
         excluded = self.cleaned_data['excluded']

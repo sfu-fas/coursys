@@ -139,30 +139,36 @@ class TAPosting(models.Model):
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
         # 'salary': default pay rates per BU for each GTA1, GTA2, UTA, EXT: ['1.00', '2.00', '3.00', '4.00']
         # 'scholarship': default scholarship rates per BU for each GTA1, GTA2, UTA, EXT
+        # 'accounts': default accounts for GTA1, GTA2, UTA, EXT (ra.models.Account.id values)
         # 'start': default start date for contracts ('YYYY-MM-DD')
         # 'end': default end date for contracts ('YYYY-MM-DD')
         # 'deadline': default deadline to accept contracts ('YYYY-MM-DD')
         # 'excluded': courses to exclude from posting (list of Course.id values)
         # 'payperiods': number of pay periods in the semeseter
+        # 'contact': contact email for offer questions
 
     defaults = {
             'salary': ['0.00']*len(CATEGORY_CHOICES),
             'scholarship': ['0.00']*len(CATEGORY_CHOICES),
+            'accounts': [None]*len(CATEGORY_CHOICES),
             'start': '',
             'end': '',
             'deadline': '',
             'excluded': [],
             'bu_defaults': {},
             'payperiods': 8,
+            'contact': '',
             }
     salary, set_salary = getter_setter('salary')
     scholarship, set_scholarship = getter_setter('scholarship')
+    accounts, set_accounts = getter_setter('accounts')
     start, set_start = getter_setter('start')
     end, set_end = getter_setter('end')
     deadline, set_deadline = getter_setter('deadline')
     excluded, set_excluded = getter_setter('excluded')
     bu_defaults, set_bu_defaults = getter_setter('bu_defaults')
     payperiods, set_payperiods = getter_setter('payperiods')
+    contact, set_contact = getter_setter('contact')
     
     class Meta:
         unique_together = (('unit', 'semester'),)

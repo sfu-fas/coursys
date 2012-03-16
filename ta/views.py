@@ -601,13 +601,16 @@ def _copy_posting_defaults(source, destination):
     """
     destination.set_salary(source.salary())
     destination.set_scholarship(source.scholarship())
+    destination.set_accounts(source.accounts())
     destination.set_bu_defaults(source.bu_defaults())
     destination.set_payperiods(source.payperiods())
+    destination.set_contact(source.contact())
     # TODO: also copy Skill values
 
 @requires_role("TAAD")
 def edit_posting(request, post_slug=None):
     unit_choices = [(u.id, unicode(u)) for u in request.units]
+    account_choices = [(a.id, "%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit__in=request.units)]
 
     today = datetime.date.today()
     semester_choices = [(s.id, unicode(s)) for s in Semester.objects.filter(start__gt=today).order_by('start')]
@@ -637,12 +640,17 @@ def edit_posting(request, post_slug=None):
             # heuristic default: non-lecture sections, except distance, are excluded
             default_exclude = set((o.course_id for o in offerings.filter(component="SEC").exclude(section__startswith="C")))
             posting.config['excluded'] = default_exclude
+            posting.config['contact'] = Person.objects.get(userid=request.user.username).email()
     
     if request.method == "POST":
-        form = TAPostingForm(request.POST, instance=posting)
+        form = TAPostingForm(data=request.POST, instance=posting)
         form.fields['unit'].choices = unit_choices
         form.fields['semester'].choices = semester_choices
         form.fields['excluded'].choices = excluded_choices
+        for f in form.fields['accounts'].fields:
+            f.choices = account_choices
+        for w in form.fields['accounts'].widget.widgets:
+            w.choices = account_choices
         if form.is_valid():
             form.instance.slug = None
             form.save()
@@ -669,7 +677,11 @@ def edit_posting(request, post_slug=None):
         form.fields['unit'].choices = unit_choices
         form.fields['semester'].choices = semester_choices
         form.fields['excluded'].choices = excluded_choices
-    
+        for f in form.fields['accounts'].fields:
+            f.choices = account_choices
+        for w in form.fields['accounts'].widget.widgets:
+            w.choices = account_choices
+
     context = {'form': form, 'editing': editing, 'posting': posting}
     return render(request, 'ta/edit_posting.html', context)
 
