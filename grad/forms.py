@@ -6,8 +6,9 @@ from grad.models import Supervisor, GradProgram, GradStudent, GradStatus,\
     GradRequirement, CompletedRequirement, LetterTemplate, Letter, Promise
 from coredata.models import Person, Member, Semester, CAMPUS_CHOICES
 from django.forms.formsets import BaseFormSet
-from django.core.exceptions import ValidationError
+#from django.core.exceptions import ValidationError
 from django.forms.widgets import NullBooleanSelect
+from django.template import Template, TemplateSyntaxError
 from itertools import ifilter
 import unicodecsv as csv
 
@@ -182,6 +183,14 @@ class LetterTemplateForm(ModelForm):
     class Meta:
         model = LetterTemplate
         exclude = ('created_by')
+    
+    def clean_content(self):
+        content = self.cleaned_data['content']
+        try:
+            Template(content)
+        except TemplateSyntaxError as e:
+            raise forms.ValidationError('Syntax error in template: ' + unicode(e))
+        return content
 
 class LetterForm(ModelForm):
     content = forms.CharField(widget=forms.Textarea(attrs={'rows':'25', 'cols': '100'})) 
