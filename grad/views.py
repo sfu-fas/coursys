@@ -617,7 +617,8 @@ def view_all_letters(request, grad_slug):
 def new_letter(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
     templates = LetterTemplate.objects.filter(unit=2)
-    ls = get_letter_dict(grad)
+    if "{}" not in str(grad.person.config):
+        ls = get_letter_dict(grad)
     if request.method == 'POST':
         form = LetterForm(request.POST)
         if form.is_valid():
