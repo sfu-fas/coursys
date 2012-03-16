@@ -416,6 +416,30 @@ def all_contracts(request, post_slug=None):
         contract_page = paginator.page(p)
     except(InvalidPage, EmptyPage):
         contract_page.paginator.page(paginator.num_pages)
+    
+    """contracts = 
+    for contract  in contracts: 
+    crs = TACourse(..)   //find crs
+        total_bu += ..
+        crs_list += ...
+    contract.total_bu = total _bu"""
+    
+    for contract in contracts:
+        total_bu =0
+        crs_list = ''
+        courses = TACourse.objects.filter(contract=contract)
+        for course in courses:
+            total_bu += course.bu
+            crs_list += course.course.subject+" "+course.course.number+" "+course.course.section+"("+str(course.bu)+")\n"
+        contract.total_bu = total_bu
+        contract.crs_list = crs_list
+    print
+    print
+    print contract.total_bu
+    print contract.crs_list
+    
+    
+    
         
     postings = TAPosting.objects.filter(unit__in=request.units).exclude(Q(semester=posting.semester))
     applications = TAApplication.objects.filter(posting=posting).exclude(Q(id__in=TAContract.objects.filter(posting=posting).values_list('application', flat=True)))
