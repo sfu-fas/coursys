@@ -362,7 +362,7 @@ def import_offerings(db, DATA_WHERE):
 
     return imported_offerings
 
-def _person_save(db, amaintdb, p):
+def _person_save(db, amaintdb, p, userid):
     """
     Save this person object, dealing with duplicate userid as appropriate
     """
@@ -412,12 +412,12 @@ def get_person(db, amaintdb, emplid, commit=True):
             p.middle_name = middle_name
             p.pref_first_name = pref_first_name
             if commit:
-                _person_save(db, amaintdb, p)
+                _person_save(db, amaintdb, p, userid)
         else:
             # newly-found person: insert
             p = Person(emplid=emplid, userid=userid, last_name=last_name, first_name=first_name, middle_name=middle_name, pref_first_name=pref_first_name)
             if commit:
-                _person_save(db, amaintdb, p)
+                _person_save(db, amaintdb, p, userid)
         
         imported_people[emplid] = p
         return p

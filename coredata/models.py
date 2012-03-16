@@ -40,6 +40,7 @@ class Person(models.Model):
         # 'visa': Canadian visa status (e.g. 'No visa st', 'Perm resid')
         # 'birthdate': birth date (e.g. '1980-12-31')
         # 'applic_email': application email address
+        # 'title': 'Mr', 'Ms', 'Mrs', etc.
     
     defaults = {'email': None}
     _, set_email = getter_setter('email')
@@ -71,6 +72,16 @@ class Person(models.Model):
             return None
     def full_email(self):
         return "%s <%s>" % (self.name(), self.email())
+    def title(self):
+        if 'title' in self.config:
+            return self.config['title']
+        elif 'gender' in self.config and self.config['gender'] == 'M':
+            return 'Mr'
+        elif 'gender' in self.config and self.config['gender'] == 'F':
+            return 'Ms'
+        else:
+            return 'M'
+
     def __cmp__(self, other):
         return cmp((self.last_name, self.first_name, self.userid), (other.last_name, other.first_name, other.userid))
     class Meta:

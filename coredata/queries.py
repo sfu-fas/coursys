@@ -91,6 +91,10 @@ class SIMSConn(object):
         "List of query results"
         return list(self.__iter__())
 
+    def fetchone(self):
+        row = self.db.fetchone()
+        return tuple((self.prep_value(v) for v in row))
+
 
 class SIMSProblem(unicode):
     """
@@ -152,6 +156,19 @@ def cache_by_args(func, seconds=38800): # 8 hours by default
     return wrapped
 
 @cache_by_args
+def userid_from_sims(emplid):
+    """
+    Guess userid from campus email address.
+    """
+    db = SIMSConn()
+    db.execute("SELECT e_addr_type, email_addr, pref_email_flag FROM " + db.table_prefix + "ps_email_addresses c WHERE e_addr_type='CAMP' and emplid=%s", (str(emplid),))
+    userid = None
+    for _, email_addr, _ in db:
+        if email_addr.endswith('@sfu.ca'):
+            userid = email_addr[:-7]
+    return userid
+
+@cache_by_args
 @SIMS_problem_handler
 def find_person(emplid):
     """
@@ -163,13 +180,9 @@ def find_person(emplid):
 
     for emplid, last_name, first_name, middle_name in db:
         # use emails to guess userid: if not found, leave unset and hope AMAINT has it on next nightly update
-        userid = None
-        db.execute("SELECT e_addr_type, email_addr, pref_email_flag FROM " + db.table_prefix + "ps_email_addresses c WHERE e_addr_type='CAMP' and emplid=%s", (str(emplid),))
-        for _, email_addr, _ in db:
-            if email_addr.endswith('@sfu.ca'):
-                userid = email_addr[:-7]
-
+        userid = userid_from_sims(emplid)
         return {'emplid': emplid, 'last_name': last_name, 'first_name': first_name, 'middle_name': middle_name, 'userid': userid}
+
 
 def add_person(emplid):
     """
@@ -190,6 +203,44 @@ def add_person(emplid):
                    pref_first_name=data['first_name'], middle_name=data['middle_name'], userid=data['userid'])
         p.save()
     return p
+
+
+@cache_by_args
+@SIMS_problem_handler
+def get_names(emplid):
+    """
+    Basic personal info to populate Person object
+    
+    Returns (last_name, first_name, middle_name, pref_first_name, title).
+    """
+    # TODO: importer_rodb should use this.
+    db = SIMSConn()
+    
+    #userid = userid_from_sims(emplid)
+    last_name = None
+    first_name = None
+    middle_name = None
+    pref_first_name = None
+    title = None
+    
+    db.execute("SELECT name_type, name_prefix, last_name, first_name, middle_name FROM dbsastg.ps_names WHERE "
+               "emplid=%s AND eff_status='A' AND name_type IN ('PRI','PRF') "
+               "ORDER BY effdt", (str(emplid),))
+    # order by effdt to leave the latest in the dictionary at end
+    for name_type, prefix, last, first, middle in db:
+        if name_type == 'PRI':
+            last_name = last
+            first_name = first
+            middle_name = middle
+            title = prefix
+        elif name_type == 'PRF':
+            pref_first_name = first
+
+    # ensure we have a pref_first_name of some kind
+    if not pref_first_name:
+        pref_first_name = first_name
+    
+    return last_name, first_name, middle_name, pref_first_name, title
 
 
 @cache_by_args
