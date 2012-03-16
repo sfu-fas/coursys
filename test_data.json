@@ -19149,49 +19149,7 @@
   "model": "grad.lettertemplate",
   "pk": 7
  },
- {
-  "fields": {
-   "config": "{\"program\": \"Skipping \", \"first_name\": \"Petra\", \"last_name\": \"Berenbrink\", \"empl_data\": \"[[type of employment RA, TA]]\", \"title\": \"Mr.\", \"first_year\": \"[[year to begin; 2011]]\", \"first_season\": \"[[semster when grad will begin his studies; fall, summer, spring]]\", \"fund_type\": \"[[RA / TA / Scholarship]]\", \"fund_amount_sem\": \"[[amount of money paid per semester]]\", \"first_month\": \"[[month to begin; September]]\", \"address\": \"\\\"123 Stanley Road, Vancouver, BC, Canada\\\"\", \"his_her\": \"his\"}",
-   "content": "This is to confirm Petra Berenbrink in Skipping  living at \r\n\"123 Stanley Road, Vancouver, BC, Canada\" applying for PhD starting his first studies in [[semster when grad will begin his studies; fall, summer, spring]] [[year to begin; 2011]].",
-   "created_at": "2012-03-15 17:43:09",
-   "created_by": "ggbaker",
-   "slug": "petra-phd-offer",
-   "student": 2,
-   "template": 4
-  },
-  "model": "grad.letter",
-  "pk": 1
- },
- {
-  "fields": {
-   "config": "{\"program\": \"Skipping \", \"first_name\": \"Petra\", \"last_name\": \"Berenbrink\",
- \"empl_data\": \"[[type of employment RA, TA]]\", \"title\": \"Mr.\", \"first_year\": \"[[year to begin; 2011]]\", \"first_season\": \"[[semster when grad will begin his studies; fall, summer, spring]]\", \"fund_type\": \"[[RA / TA / Scholarship]]\", \"fund_amount_sem\": \"[[amount of money paid per semester]]\", \"first_month\": \"[[month to begin; September]]\", \"address\": \"\\\"123 Stanley Road, Vancouver, BC, Canada\\\"\", \"his_her\": \"his\"}",
-   "content": "This is to confirm Petra Berenbrink in Skipping  living at \r\n\"123 Stanley Road, Vancouver, BC, Canada\" applying for PhD starting his first studies in [[semster when grad will begin
-his studies; fall, summer, spring]] [[year to begin; 2011]].",
-   "created_at": "2012-03-15 17:43:19",
-   "created_by": "ggbaker",
-   "slug": "petra-special-student-offer",
-   "student": 2,
-   "template": 5
-  },
-  "model": "grad.letter",
-  "pk": 2
- },
- {
-  "fields": {
-   "config": "{\"program\": \"Skipping \", \"first_name\": \"Petra\", \"last_name\": \"Berenbrink\", \"empl_data\": \"[[type of employment RA, TA]]\", \"title\": \"Mr.\", \"first_year\": \"[[year to begin; 2011]]\", \"first_season\": \"[[semster when grad will begin his studies; fall, summer, spring]]\", \"fund_type\": \"[[RA / TA / Scholarship]]\", \"fund_amount_sem\": \"[[amount of money paid per semester]]\", \"first_month\": \"[[month to begin; September]]\", \"address\": \"\\\"123 Stanley Road, Vancouver, BC, Canada\\\"\", \"his_her\": \"his\"}",
-   "content": "This is to confirm Mr. Berenbrink... ",
-   "created_at": "2012-03-15 17:43:23",
-   "created_by": "ggbaker",
-   "slug": "petra-visa",
-   "student": 2,
-   "template": 2
-  },
-  "model": "grad.letter",
-  "pk": 3
- }
- 
- 
+
  
  
  
