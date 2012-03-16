@@ -2,10 +2,10 @@ from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
 from django.http import HttpResponseRedirect, HttpResponse
 from grad.models import GradStudent, GradProgram, Supervisor, GradRequirement, CompletedRequirement, GradStatus, \
-        ScholarshipType, Scholarship, Promise, OtherFunding, LetterTemplate,\
+        ScholarshipType, Scholarship, Promise, OtherFunding, LetterTemplate, \
     Letter
 from grad.forms import SupervisorForm, PotentialSupervisorForm, GradAcademicForm, GradProgramForm, \
-        GradStudentForm, GradStatusForm, GradRequirementForm, possible_supervisors, BaseSupervisorsFormSet,\
+        GradStudentForm, GradStatusForm, GradRequirementForm, possible_supervisors, BaseSupervisorsFormSet, \
     SearchForm, LetterTemplateForm, LetterForm, UploadApplicantsForm, new_promiseForm
 from coredata.models import Person, Role, Unit, Semester, CAMPUS_CHOICES
 #from django.template import RequestContext
@@ -17,6 +17,8 @@ from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from django.contrib import messages
 from log.models import LogEntry
 from django.utils.encoding import iri_to_uri
+from django.template.base import Template
+from django.template.context import Context
 
 # get semester based on input datetime. defaults to today
 # returns semseter object7
@@ -110,7 +112,7 @@ def manage_supervisors(request, grad_slug):
     else:
         pot_supervisor = pot_supervisor[0]
         
-    supervisors_formset = modelformset_factory(Supervisor, form=SupervisorForm, extra=extra_form, max_num=4)(queryset=supervisors,prefix="form")
+    supervisors_formset = modelformset_factory(Supervisor, form=SupervisorForm, extra=extra_form, max_num=4)(queryset=supervisors, prefix="form")
     for f in supervisors_formset:
         f.set_supervisor_choices(possible_supervisors([grad.program.unit], extras=supervisor_people))
         f.fields['position'].widget = forms.HiddenInput()
@@ -159,7 +161,7 @@ def update_supervisors(request, grad_slug):
     supervisors = Supervisor.objects.filter(student=grad, position__gte=1).select_related('supervisor')
     supervisor_people = [s.supervisor for s in supervisors if s.supervisor]
     if request.method == 'POST':
-        supervisors_formset = modelformset_factory(Supervisor, form=SupervisorForm, formset=BaseSupervisorsFormSet)(request.POST,prefix="form")
+        supervisors_formset = modelformset_factory(Supervisor, form=SupervisorForm, formset=BaseSupervisorsFormSet)(request.POST, prefix="form")
         for f in supervisors_formset:
             f.set_supervisor_choices(possible_supervisors([grad.program.unit], extras=supervisor_people))
             f.fields['position'].widget = forms.HiddenInput()
@@ -642,17 +644,54 @@ def new_letter(request, grad_slug):
                }
     return render(request, 'grad/new_letter.html', context)
 
-
+def get_letter_dict(grad):
+    gender = grad.person.config['gender']
+    if "M" in gender:
+        title = "Mr."
+        hisher = "his"
+    elif "F" in gender:
+        title = "Ms."
+        hisher = "her"
+    else:
+        title = "Mr./Ms."
+        hisher = "his/her"
+    
+    first_name = grad.person.first_name
+    last_name = grad.person.last_name
+    address = grad.person.config['addresses']['home']
+    program = grad.program
+    ls = {
+            'title' : title,
+            'his_her' : hisher,          
+            'first_name': first_name,
+            'last_name': last_name,
+            'address': '\"' + address + '\"',
+            'empl_data': "[[type of employment RA, TA]]",
+            'fund_type': "[[RA / TA / Scholarship]]",
+            'fund_amount_sem': "[[amount of money paid per semester]]",
+            'program': program,
+            'first_season': "[[semster when grad will begin his studies; fall, summer, spring]]",
+            'first_year': "[[year to begin; 2011]]",
+            'first_month': "[[month to begin; September]]"            
+          
+          }
+    return ls
 """
 Get the text from letter template
 """
 def get_letter_text(request, grad_slug, letter_template_id):
+    text = ""
     if request.is_ajax():
         grad = get_object_or_404(GradStudent, slug=grad_slug)
         lt = get_object_or_404(LetterTemplate, id=letter_template_id)
-        text = lt.content 
+        temp = Template(lt.content)
+        ls = get_letter_dict(grad)
+        print ls
+        text = temp.render(Context(ls))
+        
     else:
-        text = "No such template, please create one." 
+        text = "No ajax recieved." 
+
     return HttpResponse(text)
 
 @requires_role("GRAD")
@@ -738,7 +777,7 @@ def financials(request, grad_slug):
     
     promises = []
     for promise in promises_qs:
-        semesters = Semester.objects.filter(start__gte=promise.start_semester.start,end__lte=promise.end_semester.end)
+        semesters = Semester.objects.filter(start__gte=promise.start_semester.start, end__lte=promise.end_semester.end)
         total_received = 0
         promise_semesters = []
         for semester in semesters:
@@ -757,13 +796,13 @@ def financials(request, grad_slug):
                     semester_total += semester_other_funding.amount
             scholarships_in_semester['semester_total'] = semester_total
             total_received += semester_total
-            promise_semesters.append({'semester': semester, 
+            promise_semesters.append({'semester': semester,
                                       'scholarship_details': scholarships_in_semester})    
                
-        promises.append({'promise':promise_semesters, 
-                                'promised_amount': promise.amount, 
-                                'received_amount':total_received, 
-                                'owing_amount': total_received-promise.amount})
+        promises.append({'promise':promise_semesters,
+                                'promised_amount': promise.amount,
+                                'received_amount':total_received,
+                                'owing_amount': total_received - promise.amount})
         
     # set frontend defaults
     page_title = "%s's Financial Summary" % (grad.person.first_name)
@@ -779,7 +818,7 @@ def financials(request, grad_slug):
                'grad':grad,
                'status': current_status,
                }
-    return render(request,'grad/view_financials.html',context)
+    return render(request, 'grad/view_financials.html', context)
     
 @requires_role("FUND")
 def new_promise(request, grad_slug):
@@ -790,7 +829,7 @@ def new_promise(request, grad_slug):
             temp = promise_form.save(commit=False)
             temp.student = grad
             temp.save()
-            messages.success(request, "Promise amount %s saved for %s."  % (promise_form.cleaned_data['amount'], grad) )
+            messages.success(request, "Promise amount %s saved for %s." % (promise_form.cleaned_data['amount'], grad))
             
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad.slug}))
     else:
@@ -804,5 +843,5 @@ def new_promise(request, grad_slug):
                 'grad':grad,
                 'promise_form': promise_form
     }
-    return render(request,'grad/manage_promise.html',context)
+    return render(request, 'grad/manage_promise.html', context)
    

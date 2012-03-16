@@ -19137,6 +19137,20 @@
   "model": "grad.lettertemplate",
   "pk": 6
  },
+  {
+  "fields": {
+   "content": "{{ address }}\r\n{{ empl_data }}\r\n{{ first_month }}\r\n{{ first_name }}\r\n{{ first_season }}\r\n{{ first_year }}\r\n{{ fund_amount_sem }}\r\n{{ fund_type }}\r\n{{ his_her }}\r\n{{ last_name }}\r\n{{ program }}\r\n{{ title }}\r\n\r\nCheers!",
+   "created_at": "2012-03-15 17:03:22",
+   "created_by": "ggbaker",
+   "label": "All Tags",
+   "slug": "cmpt-all-tags",
+   "unit": 2
+  },
+  "model": "grad.lettertemplate",
+  "pk": 7
+ },
+ 
+ 
  {
   "fields": {
    "config": "{}",

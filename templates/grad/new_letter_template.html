@@ -60,22 +60,27 @@
 					</dl>
 				</div>
 				<div style="float: left; width: 25%">
-					<br />
 					<dl>
-						{%for tag, val in LETTER_TAGS.items %}
 						<dt>
-							{%templatetag openvariable%} {{tag}} {%templatetag closevariable%}
+							Available tags:
 						</dt>
 						<dd>
-							{{val}}
+							<dl>
+								{%for tag, val in LETTER_TAGS %}
+								<dt>
+									{%templatetag openvariable%} {{tag}} {%templatetag closevariable%}
+								</dt>
+								<dd>
+									{{val}}
+								</dd>
+								{%endfor%}
+							</dl>
 						</dd>
-						{%endfor%}
 					</dl>
 				</div>
-			</div>
-			<p>
-				<input  class="submit"  type="submit" value="Submit">
-			</p>
+				<p>
+					<input  class="submit"  type="submit" value="Submit">
+				</p>
 		</fieldset>
 	</form>
 	<a class="button" href="{% url grad.views.index %}">Back</a>

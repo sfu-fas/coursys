@@ -20,11 +20,16 @@
 			<a href="{% url grad.views.manage_status grad_slug=grad.slug  %}">Manage Status</a>
 		</li>
 		<li class="newsec">
-			<a href="{% url grad.views.financials grad_slug=grad.slug %}">Financial Summary</a>
 			<a href="{% url grad.views.new_letter grad_slug=grad.slug %}"> New Letter </a>
 		</li>
 		<li>
-			<a href="{% url grad.views.new_promise grad_slug=grad.slug %}">New Promise</a>	
+			<a href="{% url grad.views.view_all_letters grad_slug=grad.slug %}"> Manage Letters </a>
+		</li>
+		<li class="newsec">
+			<a href="{% url grad.views.financials grad_slug=grad.slug %}">Financial Summary</a>
+		</li>
+		<li>
+			<a href="{% url grad.views.new_promise grad_slug=grad.slug %}">New Promise</a>
 		</li>
 	</ul>
 </div>
@@ -241,7 +246,7 @@
 	<hr>
 </div>
 <br />
-<div class="datatable_container bigdatatable"  style="float: left; width: 85%">
+<div class="datatable_container bigdatatable">
 	<table class="display" id="grads">
 		<thead>
 			<tr>
@@ -296,33 +301,10 @@
 			</tr>
 			{% endfor %}
 		</tbody>
-	</table><br /><hr />
-</div>
-<div class="datatable_container bigdatatable" style="float: left; width: 12%">
-	<table class="display" id="letter">
-		<thead>
-			<tr>
-				<th >Previous Letters</th>
-			</tr>
-		</thead>
-		<tbody id="letter-body">
-			{% for s in letter%}
-			<tr>
-				<td><a href="{% url grad.views.view_all_letters grad_slug=grad.slug%}">{{s.template.label}} </a></td>
-			</tr>
-			{% empty %}
-			<tr>
-				<td>
-				<p class="empty">
-					No Existing Letter
-				</p></td>
-			</tr>
-			{% endfor %}
-		</tbody>
 	</table>
+	<br />
+	<hr />
 </div>
-<br />
-<hr>
 <br />
 <div class="datatable_container bigdatatable">
 	<table class="display" id="status">
