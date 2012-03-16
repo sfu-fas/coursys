@@ -19152,7 +19152,45 @@
 
  
  
- 
+ {
+  "fields": {
+   "config": "{\"program\": \"Skipping \", \"first_name\": \"Petra\", \"last_name\": \"Berenbrink\", \"empl_data\": \"OO type of employment RA, TA OO\", \"title\": \"Mr.\", \"first_year\": \"OO year to begin; 2011 OO\", \"first_season\": \"OO semster when grad will begin his studies; fall, summer, spring OO\", \"fund_type\": \"OO RA / TA / Scholarship]]\", \"fund_amount_sem\": \"OO amount of money paid per semester OO\", \"first_month\": \"OO month to begin; September OO\", \"address\": \"\\\"123 Stanley Road, Vancouver, BC, Canada\\\"\", \"his_her\": \"his\"}", 
+   "content": "\"123 Stanley Road, Vancouver, BC, Canada\"\r\nOO type of employment RA, TA OO\r\nOO month to begin; September OO\r\nPetra\r\nOO semster when grad will begin his studies; fall, summer, spring OO\r\nOO year to begin; 2011 OO\r\nOO amount of money paid per semester OO\r\nOO RA / TA / Scholarship]]\r\nhis\r\nBerenbrink\r\nSkipping \r\nMr.\r\n\r\nCheers!", 
+   "created_at": "2012-03-15 20:02:12", 
+   "created_by": "ggbaker", 
+   "slug": "petra-all-tags", 
+   "student": 2, 
+   "template": 7
+  }, 
+  "model": "grad.letter", 
+  "pk": 1
+ }, 
+ {
+  "fields": {
+   "config": "{\"program\": \"Skipping \", \"first_name\": \"Petra\", \"last_name\": \"Berenbrink\", \"empl_data\": \"OO type of employment RA, TA OO\", \"title\": \"Mr.\", \"first_year\": \"OO year to begin; 2011 OO\", \"first_season\": \"OO semster when grad will begin his studies; fall, summer, spring OO\", \"fund_type\": \"OO RA / TA / Scholarship]]\", \"fund_amount_sem\": \"OO amount of money paid per semester OO\", \"first_month\": \"OO month to begin; September OO\", \"address\": \"\\\"123 Stanley Road, Vancouver, BC, Canada\\\"\", \"his_her\": \"his\"}", 
+   "content": "This is to confirm Petra Berenbrink in Skipping  living at \r\n\"123 Stanley Road, Vancouver, BC, Canada\" applying for PhD starting his first studies in OO semster when grad will begin his studies; fall, summer, spring OO OO year to begin; 2011 OO.", 
+   "created_at": "2012-03-15 20:02:17", 
+   "created_by": "ggbaker", 
+   "slug": "petra-special-student-offer", 
+   "student": 2, 
+   "template": 5
+  }, 
+  "model": "grad.letter", 
+  "pk": 2
+ }, 
+ {
+  "fields": {
+   "config": "{\"program\": \"Skipping \", \"first_name\": \"Petra\", \"last_name\": \"Berenbrink\", \"empl_data\": \"OO type of employment RA, TA OO\", \"title\": \"Mr.\", \"first_year\": \"OO year to begin; 2011 OO\", \"first_season\": \"OO semster when grad will begin his studies; fall, summer, spring OO\", \"fund_type\": \"OO RA / TA / Scholarship]]\", \"fund_amount_sem\": \"OO amount of money paid per semester OO\", \"first_month\": \"OO month to begin; September OO\", \"address\": \"\\\"123 Stanley Road, Vancouver, BC, Canada\\\"\", \"his_her\": \"his\"}", 
+   "content": "This is to confirm Petra Berenbrink in Skipping  living at \r\n\"123 Stanley Road, Vancouver, BC, Canada\" applying to be an OO type of employment RA, TA OO starting his first studies in OO semster when grad will begin his studies; fall, summer, spring OO OO year to begin; 2011 OO.", 
+   "created_at": "2012-03-15 20:02:20", 
+   "created_by": "ggbaker", 
+   "slug": "petra-msc-offer", 
+   "student": 2, 
+   "template": 3
+  }, 
+  "model": "grad.letter", 
+  "pk": 3
+ }, 
  
  
  

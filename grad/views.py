@@ -668,13 +668,13 @@ def get_letter_dict(grad):
             'first_name': first_name,
             'last_name': last_name,
             'address': '\"' + address + '\"',
-            'empl_data': "[[type of employment RA, TA]]",
-            'fund_type': "[[RA / TA / Scholarship]]",
-            'fund_amount_sem': "[[amount of money paid per semester]]",
+            'empl_data': "OO type of employment RA, TA OO",
+            'fund_type': "OO RA / TA / Scholarship]]",
+            'fund_amount_sem': "OO amount of money paid per semester OO",
             'program': program.label,
-            'first_season': "[[semster when grad will begin his studies; fall, summer, spring]]",
-            'first_year': "[[year to begin; 2011]]",
-            'first_month': "[[month to begin; September]]"
+            'first_season': "OO semster when grad will begin his studies; fall, summer, spring OO",
+            'first_year': "OO year to begin; 2011 OO",
+            'first_month': "OO month to begin; September OO"
           }
     return ls
 """
