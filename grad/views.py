@@ -683,12 +683,14 @@ def get_letter_text(request, grad_slug, letter_template_id):
     text = ""
     if request.is_ajax():
         grad = get_object_or_404(GradStudent, slug=grad_slug)
-        lt = get_object_or_404(LetterTemplate, id=letter_template_id)
-        temp = Template(lt.content)
-        ls = get_letter_dict(grad)
-        print ls
-        text = temp.render(Context(ls))
-        
+        print "{}" in grad.person.config
+        if "{}" in str(grad.person.config):
+            text = "There are no configs found in the student's profile.\n Please update profile in order to get templates to work."
+        else: 
+            lt = get_object_or_404(LetterTemplate, id=letter_template_id)
+            temp = Template(lt.content)
+            ls = get_letter_dict(grad)
+            text = temp.render(Context(ls))
     else:
         text = "No ajax recieved." 
 
