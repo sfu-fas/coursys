@@ -617,11 +617,13 @@ def view_all_letters(request, grad_slug):
 def new_letter(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
     templates = LetterTemplate.objects.filter(unit=2)
+    ls = get_letter_dict(grad)
     if request.method == 'POST':
         form = LetterForm(request.POST)
         if form.is_valid():
             f = form.save(commit=False)
             f.created_by = request.user.username
+            f.config = ls
             f.save()
             messages.success(request, "Created new %s letter for %s." % (form.instance.template.label, form.instance.student))
             l = LogEntry(userid=request.user.username,
@@ -669,11 +671,10 @@ def get_letter_dict(grad):
             'empl_data': "[[type of employment RA, TA]]",
             'fund_type': "[[RA / TA / Scholarship]]",
             'fund_amount_sem': "[[amount of money paid per semester]]",
-            'program': program,
+            'program': program.label,
             'first_season': "[[semster when grad will begin his studies; fall, summer, spring]]",
             'first_year': "[[year to begin; 2011]]",
-            'first_month': "[[month to begin; September]]"            
-          
+            'first_month': "[[month to begin; September]]"
           }
     return ls
 """
@@ -683,7 +684,6 @@ def get_letter_text(request, grad_slug, letter_template_id):
     text = ""
     if request.is_ajax():
         grad = get_object_or_404(GradStudent, slug=grad_slug)
-        print "{}" in grad.person.config
         if "{}" in str(grad.person.config):
             text = "There are no configs found in the student's profile.\n Please update profile in order to get templates to work."
         else: 
