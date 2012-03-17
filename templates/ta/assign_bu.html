@@ -56,13 +56,13 @@
 <form>
     <table id="borderless">
     <tr>
-        <td>Extra Base Units:&nbsp;<input id="extra_bu" name="extra_bu" type="text" value="{{ extra_bu }}"/></td>
+        <td>Extra Base Units:&nbsp;<input id="extra_bu" name="extra_bu" type="text" value="{{ offering.config.extra_bu }}"/></td>
     </tr>
     <tr>
-        <td>Lab or tutorial:&nbsp;<input id="labtut"  name="labtut" type="checkbox" {% if labtut %}checked="yes"{% endif %}/></td>
+        <td>Lab or tutorial:&nbsp;<input id="labtut"  name="labtut" type="checkbox" {% if offering.config.labtut %}checked="yes"{% endif %}/></td>
     </tr>
     <tr>
-        <td>TA runs lab:&nbsp;<input id="labtas" name="labtas" type="checkbox" {% if labtas %}checked="yes"{% endif %}/></td>
+        <td>TA runs lab:&nbsp;<input id="labtas" name="labtas" type="checkbox" {% if offering.config.labtas %}checked="yes"{% endif %}/></td>
     </tr>
     </table>
     <button type="button" class="submit" type="submit" onclick="update()">Update</button>

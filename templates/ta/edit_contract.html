@@ -5,7 +5,7 @@
 {% block h1 %} {% if editing %}Edit Contract for {{ contract.application.person }}{% else %}New Contract for {{application.person}}{% endif %}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url ta.views.all_contracts %}">TA Contracts</a></li>
+<li>&gt; <a href="{% url ta.views.all_contracts post_slug=posting.slug %}">TA Contracts</a></li>
 <li>&gt; {% if editing %}Editing {{ contract.application.person.name }}'s Contract{% else %}New Contract for {{application.person.name}}{% endif %}</li>
 {% endblock %}
 
@@ -71,8 +71,10 @@
 		$.post("{% url ta.views.edit_contract post_slug=posting.slug userid=userid %}",
 			{'csrfmiddlewaretoken': "{{csrf_token}}", 'appt_cat': cat},
 			function(data){
-				$('#id_pay_per_bu').val(data.split(',')[0])
-				$('#id_scholarship_per_bu').val(data.split(',')[1])
+				vals = data.split(',')
+				$('#id_pay_per_bu').val(vals[0])
+				$('#id_scholarship_per_bu').val(vals[1])
+				$('#id_position_number').val(vals[2])
 				if($('#salary_bi').val()!="")
 					calculate()
 			}); 

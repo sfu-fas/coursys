@@ -405,10 +405,7 @@ def assign_bus(request, post_slug, course_slug):
                     #unassign bu to this offering for this applicant
                     #TODO: remove contract if 0 TACourse?
                     else:
-                        print "deleting course"
                         assigned_ta[i].delete()
-                        
-                        
             return HttpResponseRedirect(reverse(assign_tas, args=(post_slug,)))
     else:
         formset = AssignBUFormSet(initial=initial)
@@ -417,19 +414,7 @@ def assign_bus(request, post_slug, course_slug):
     for f in formset:
         f.fields['bu'].widget.attrs['class']  = 'bu_inp'
     
-    try:
-        extra_bu = offering.config['extra_bu']
-    except KeyError:
-        extra_bu = decimal.Decimal('0.00')
-    try:
-        labtut = offering.config['labtut']
-    except KeyError:
-        labtut = False
-    try:
-        labtas = offering.config['labtas']
-    except KeyError:
-        labtas = False
-    context = {'formset':formset, 'posting':posting, 'offering':offering, 'extra_bu':extra_bu, 'labtut':labtut, 'labtas':labtas, 'applications': apps, 'course_preferences': course_prefs, 'campus_preferences':campus_prefs}
+    context = {'formset':formset, 'posting':posting, 'offering':offering, 'applications': apps, 'course_preferences': course_prefs, 'campus_preferences':campus_prefs}
     return render(request, 'ta/assign_bu.html', context) 
 
 @requires_role("TAAD")
@@ -557,8 +542,8 @@ def edit_contract(request, post_slug, userid):
     if posting.unit not in request.units:
         ForbiddenResponse(request, 'You cannot access this posting')
     course_choices = [('','---------')] + [(c.id, c.name()) for c in posting.selectable_offerings()]
-    position_choices = [(a.id, a.position_number) for a in Account.objects.filter(unit=posting.unit)]
-          
+    position_choices = [(a.id, "%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit=posting.unit)]
+    
     #number of course form to populate
     num = 3
     contract = TAContract.objects.filter(posting=posting, application__person__userid=userid)
@@ -582,7 +567,8 @@ def edit_contract(request, post_slug, userid):
         if request.is_ajax():
             if('appt_cat' in request.POST):
                 index = posting.cat_index(request.POST['appt_cat'])
-                results = posting.salary()[index] + ',' + posting.scholarship()[index]
+                results = posting.salary()[index] + ',' + posting.scholarship()[index] + ',' + str(posting.accounts()[index])
+                print results
                 return HttpResponse(results)
             if('course' in request.POST):
                 results = ''
@@ -622,6 +608,7 @@ def edit_contract(request, post_slug, userid):
         if not editing:
             initial={'sin': application.sin,
                      'appt_category': application.category,
+                     'position_number': posting.accounts()[posting.cat_index(application.category)],
                      'pay_start': posting.start(), 
                      'pay_end': posting.end(), 
                      'deadline': posting.deadline()
