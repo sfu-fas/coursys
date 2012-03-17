@@ -385,14 +385,25 @@ def assign_bus(request, post_slug, course_slug):
                 #update rank
                 apps[i].rank = formset[i]['rank'].value()
                 apps[i].save()
-                if assigned_ta[i] == None: #create new contract
-                    contract = TAContract(created_by=request.user.username)
-                    contract.first_assign(apps[i], posting)
-                    bu = formset[i]['bu'].value()
-                    tacourse = TACourse.objects.create(course=offering, description=offering.get_desc(), contract=contract, bu=bu)
-                else: #update bu for existing TACourse
-                    assigned_ta[i].bu = formset[i]['bu'].value()
-                    assigned_ta[i].save()
+                
+                if assigned_ta[i] == None: 
+                    #create new contract if bu field is nonempty
+                    if formset[i]['bu'].value() != '':
+                        contract = TAContract(created_by=request.user.username)
+                        contract.first_assign(apps[i], posting)
+                        bu = formset[i]['bu'].value()
+                        tacourse = TACourse.objects.create(course=offering, description=offering.get_desc(), contract=contract, bu=bu)
+                else: 
+                    #update bu for existing TACourse
+                    if formset[i]['bu'].value() != '':
+                        assigned_ta[i].bu = formset[i]['bu'].value()
+                        assigned_ta[i].save()
+                    #unassign bu to this offering for this applicant
+                    #TODO: remove contract if 0 TACourse?
+                    else:
+                        assigned_ta[i].delete()
+                        
+                        
             return HttpResponseRedirect(reverse(assign_tas, args=(post_slug,)))
     else:
         formset = AssignBUFormSet(initial=initial)

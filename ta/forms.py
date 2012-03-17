@@ -468,4 +468,5 @@ class TAPostingBUForm(forms.Form):
 
 class AssignBUForm(forms.Form):
     rank = forms.IntegerField(min_value=0, label="rank")
-    bu = forms.DecimalField(min_value=0, max_digits=5, decimal_places=2)
+    bu = forms.DecimalField(min_value=0, max_digits=5, decimal_places=2, required=False)
+    
