@@ -13,39 +13,69 @@
 <script type="text/javascript" src="{{MEDIA_URL}}multiselect/js/ui.multiselect.js"></script>
 <script type="text/javascript">
   $(function() {
-  	table = $('#applications').dataTable({
+  	table = $('#ta_app').dataTable({
         "bPaginate": false,
 		"bJQueryUI": true,
 		"aaSorting": [[0, "asc"]],
 	});
   });
+  
+  function update(){
+  	var bu = $('#extra_bu').val()
+  	var labtut = "no"
+  	var labtas = "no"
+  	if($('#labtut').attr('checked'))
+  		labtut = "yes"
+  	if($('#labtas').attr('checked'))
+  		labtas = "yes"
+  	
+  	$.post("{% url ta.views.assign_bus post_slug=posting.slug, course_slug=offering.slug %}",
+  			{'csrfmiddlewaretoken': "{{csrf_token}}", 'extra_bu': bu, 'labtut': labtut, 'labtas': labtas},
+				function(data){
+					if(data > 0) //add 0.17
+						change_bu(0.17)
+					else if(data < 0) //minus 0.17
+						change_bu(-0.17)
+				})
+  }
+  
+  function change_bu(bu){
+  	$('.bu_inp').each(function(){
+  		var val = $(this).val()
+  		if($(this).val()!=''){
+  			var val = $(this).val()
+			$(this).val((parseFloat(val) + bu).toFixed(2))
+		}
+		else if(bu > 0)
+			$(this).val(0.17) 
+	})
+  }
+  
 </script>
 {% endblock %}
 
 {% block content %}
-
-<form action="{% url ta.views.update_course_bus post_slug=posting.slug, course_slug=offering.slug %}" method="post">{% csrf_token %}
+<form>
     <table id="borderless">
     <tr>
-        <td>Extra Base Units:<input id="extra_bu" name="extra_bu" type="text" value="{{ extra_bu }}"/></td>
+        <td>Extra Base Units:&nbsp;<input id="extra_bu" name="extra_bu" type="text" value="{{ extra_bu }}"/></td>
     </tr>
     <tr>
-        <td>Lab or tutorial: <input name="labtut" type="checkbox" value="{{ labtut}}" {% if labtut %}checked="yes"{% endif %}/></td>
+        <td>Lab or tutorial:&nbsp;<input id="labtut"  name="labtut" type="checkbox" {% if labtut %}checked="yes"{% endif %}/></td>
     </tr>
     <tr>
-        <td>TA runs lab: <input name="labtas" type="checkbox" value="{{ labtas }}" {% if labtas %}checked="yes"{% endif %}/></td>
+        <td>TA runs lab:&nbsp;<input id="labtas" name="labtas" type="checkbox" {% if labtas %}checked="yes"{% endif %}/></td>
     </tr>
     </table>
-    <input id="submit" class="submit" type="submit" value="update"/>
+    <button type="button" class="submit" type="submit" onclick="update()">Update</button>
 </form>
-
 <p><b>
 Required BU: {{ offering|display_bu:posting }}
 Assigned BU: {{ offering|display_assigned_bu:posting }}
 Remaining BUs: {{ offering|display_bu_difference:posting }}
 </b></p>
 
-<form action="{% url ta.views.assign_bus post_slug=posting.slug, course_slug=offering.slug %}" method="post">{% csrf_token %}
+<form action="{% url ta.views.assign_bus post_slug=posting.slug, course_slug=offering.slug%}" method="post">{% csrf_token %}
 {{ formset.management_form }}
 <div class="form_container">
 <table class="display" id="ta_app">

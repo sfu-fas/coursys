@@ -338,7 +338,28 @@ def assign_bus(request, post_slug, course_slug):
     campus_prefs = []
     assigned_ta = []
     initial = []
-
+    
+    if request.method == "POST" and request.is_ajax():
+        act = 0
+        extra_bu = decimal.Decimal(request.POST['extra_bu'])
+        offering.config['extra_bu'] = extra_bu
+        if request.POST['labtut'] == "yes":
+            offering.config['labtut'] = True
+        else:
+            offering.config['labtut'] = False
+            
+        if request.POST['labtas'] == "yes":
+            if not offering.labtas(): #changed from F to T
+                offering.config['labtas'] = True
+                act = 1
+        else:
+            if offering.labtas(): #changed from T to F
+                offering.config['labtas'] = False
+                act = -1
+        offering.save()
+        
+        return HttpResponse(act)
+        
     for p in course_prefs:
         init = {}
         assigned = None
@@ -376,6 +397,10 @@ def assign_bus(request, post_slug, course_slug):
     else:
         formset = AssignBUFormSet(initial=initial)
     
+    #add class to bu input for js
+    for f in formset:
+        f.fields['bu'].widget.attrs['class']  = 'bu_inp'
+    
     try:
         extra_bu = offering.config['extra_bu']
     except KeyError:
@@ -403,11 +428,15 @@ def update_course_bus(request, post_slug, course_slug):
         except KeyError:
             offering.config['labtut'] = False
         try:
-            offering.config['labtas'] = request.POST['labtas']
+            labtas = request.POST['labtas']
+            if offering.labtas() != labtas:
+                print labtas
+            offering.config['labtas'] = labtas
         except KeyError:
+            if offering.labtas() == 'on':
+                print offering.labtas()
             offering.config['labtas'] = False
         offering.save()
-        
     return HttpResponseRedirect(reverse(assign_bus, args=(post_slug,course_slug,)))
 
 
@@ -552,8 +581,7 @@ def edit_contract(request, post_slug, userid):
                     req_bu -= assigned_bu
                 
                 results += str(req_bu)
-                print co.config
-                if co.labtut():
+                if co.labtas():
                     results += ',OML'
                 else:
                     results += ',OM'
