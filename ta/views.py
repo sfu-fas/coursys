@@ -334,11 +334,6 @@ def assign_bus(request, post_slug, course_slug):
     #a ta that has been assigned BU to this course might not be on the list
     tacourses = TACourse.objects.filter(course=offering)
     
-    apps = []
-    campus_prefs = []
-    assigned_ta = []
-    initial = []
-    
     if request.method == "POST" and request.is_ajax():
         act = 0
         extra_bu = decimal.Decimal(request.POST['extra_bu'])
@@ -356,10 +351,14 @@ def assign_bus(request, post_slug, course_slug):
             if offering.labtas(): #changed from T to F
                 offering.config['labtas'] = False
                 act = -1
-        offering.save()
-        
+        offering.save()    
         return HttpResponse(act)
-        
+
+    apps = []
+    campus_prefs = []
+    assigned_ta = []
+    initial = []
+    
     for p in course_prefs:
         init = {}
         assigned = None
@@ -387,10 +386,15 @@ def assign_bus(request, post_slug, course_slug):
                 apps[i].save()
                 
                 if assigned_ta[i] == None: 
-                    #create new contract if bu field is nonempty
+                    #create new TACourse if bu field is nonempty
                     if formset[i]['bu'].value() != '':
-                        contract = TAContract(created_by=request.user.username)
-                        contract.first_assign(apps[i], posting)
+                        #create new TAContract if there isn't one
+                        contracts = TAContract.objects.filter(application=apps[i], posting=posting)
+                        if contracts.count > 0: #count is 1
+                            contract = contracts[0]
+                        else:
+                            contract = TAContract(created_by=request.user.username)
+                            contract.first_assign(apps[i], posting)
                         bu = formset[i]['bu'].value()
                         tacourse = TACourse.objects.create(course=offering, description=offering.get_desc(), contract=contract, bu=bu)
                 else: 
@@ -401,6 +405,7 @@ def assign_bus(request, post_slug, course_slug):
                     #unassign bu to this offering for this applicant
                     #TODO: remove contract if 0 TACourse?
                     else:
+                        print "deleting course"
                         assigned_ta[i].delete()
                         
                         
