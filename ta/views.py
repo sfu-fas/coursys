@@ -390,7 +390,7 @@ def assign_bus(request, post_slug, course_slug):
                     if formset[i]['bu'].value() != '':
                         #create new TAContract if there isn't one
                         contracts = TAContract.objects.filter(application=apps[i], posting=posting)
-                        if contracts.count > 0: #count is 1
+                        if contracts.count() > 0: #count is 1
                             contract = contracts[0]
                         else:
                             contract = TAContract(created_by=request.user.username)
