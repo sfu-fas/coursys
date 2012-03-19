@@ -60,7 +60,7 @@
   <tr>
   	<td>{{ contract.application.person }}</td> <!--#lastname-->
   	 <!--<td>{{ contract.application.person.first_name }}</td>-#first name-->
-  	<td>{{contract.appt_category}}</td><!--#appt category-->
+  	<td>{{contract.get_appt_category_display}} ({{contract.appt_category}})</td><!--#appt category-->
 	<td>{{contract.application.rank}}</td> <!--#rank-->
 	<td>{{contract.get_status_display}}</td><!--#status-->
 	<td>{{contract.total_bu}}</td><!--#totalbu-->
