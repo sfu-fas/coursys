@@ -16,34 +16,36 @@
   <div id="form_container">
     <form action="{% url ra.views.edit ra_slug=appointment.slug %}" method="POST">{% csrf_token %}
       <fieldset style="list-style: none;">
-        <legend>Personal Information</legend>
+        <legend>Contract Information</legend>
         {{ raform|as_dl_excludefields:"lump_sum_pay,biweekly_pay,pay_periods,hourly_pay,hours,reappointment,medical_benefits,dental_benefits,notes,comments" }}
 
         <p><legend>Salary Information</legend></p>
-        <p>
-          <span id="lump_sum_label">{{ raform.lump_sum_pay.label }}:*</span> 
-          {{raform.lump_sum_pay }}
-        </p>
-      
-        <p>
-          <span id="biweekly_pay_label">{{ raform.biweekly_pay.label }}:*</span> 
-          {{ raform.biweekly_pay }}
-          <span id="pay_periods_label">{{ raform.pay_periods.label }}:*</span> 
-          {{ raform.pay_periods }}
-        </p>
-      
-        <p>
-          <span id="hourly_pay_label">{{ raform.hourly_pay.label }}:*</span> 
-          {{ raform.hourly_pay }}
-          <span id="hours_label">{{ raform.hours.label }}:*</span> 
-          {{ raform.hours }}
-        </p>
+        <table id="salary_info">
+          <tr>
+            <td class="salary_first">{{ raform.lump_sum_pay.label }}:*</td>
+            <td>{{raform.lump_sum_pay }}</td>
+          </tr>
+                
+          <tr>
+            <td class="salary_first">{{ raform.biweekly_pay.label }}:*</td>
+            <td>{{ raform.biweekly_pay }}</td>
+            <td class="salary_label">{{ raform.pay_periods.label }}:*</td>
+            <td>{{ raform.pay_periods }}</td>
+          </tr>
+                
+          <tr>
+            <td class="salary_first">{{ raform.hourly_pay.label }}:*</td> 
+            <td>{{ raform.hourly_pay }}</td>
+            <td class="salary_label">{{ raform.hours.label }}:*</td>
+            <td>{{ raform.hours }}</td>
+          </tr>
+        </table>
 
         <p class="helptext">* This field is required.</p>
         
         <p><legend>Other Information</legend></p>
         {{ raform|as_dl_excludefields:"person,hiring_faculty,unit,hiring_category,project,account,start_date,end_date,lump_sum_pay,biweekly_pay,pay_periods,hourly_pay,hours" }}
-        <p><input type="submit" value="Submit"></p>
+        <p><input type="submit" class="submit" value="Submit" /></p>
       </fieldset>
     </form>  
   </div>

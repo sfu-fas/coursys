@@ -9,6 +9,8 @@ from coredata.models import Member, Person, Role, Unit, Semester
 from courselib.auth import requires_role
 from django.template import RequestContext
 from datetime import date, timedelta
+from grad.models import Scholarship, ScholarshipType
+import json
 
 #This is the search function that that returns a list of RA Appointments related to the query.
 @requires_role("FUND")
@@ -190,3 +192,16 @@ def edit_project(request, project_slug):
         projectform = ProjectForm(instance=project)
         projectform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
     return render(request, 'ra/edit_project.html', {'projectform': projectform, 'project': project}, context_instance=RequestContext(request))
+
+@requires_role("FUND")
+def search_scholarships_by_student(request, student_id):
+    #check permissions
+    roles = Role.all_roles(request.user.username)
+    allowed = set(['FUND'])
+    if not (roles & allowed):
+        return ForbiddenResponse(request, "Not permitted to search scholarships by student.")
+    scholarships = Scholarship.objects.filter(student__person__emplid=student_id)
+    response = HttpResponse(mimetype="application/json")
+    data = [{'name': s.scholarship_type.name, 'unit': s.scholarship_type.unit.label, 'start': s.start_semester.name, 'end': s.end_semester.name} for s in scholarships]
+    json.dump(data, response, indent=1)
+    return response

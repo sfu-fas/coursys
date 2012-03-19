@@ -39,6 +39,11 @@ function update_hourly() {
     $("#id_biweekly_pay").val((hourly * num_hours).toFixed(2));
 }
 
+function update_student() {
+
+
+}
+
 $(document).ready(function() {
   $("id_person").focus();
   ra_autocomplete('id_person');
@@ -59,5 +64,6 @@ $(document).ready(function() {
   $("#id_hours").change(function() {
     update_lump_sum();
   });
+  $("#id_student")
 
 });

@@ -4,6 +4,7 @@ from jsonfield import JSONField
 from courselib.json_fields import getter_setter
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
+from grad.models import Scholarship
 
 HIRING_CATEGORY_CHOICES = (
     ('U', 'Undergrad'),
@@ -56,6 +57,7 @@ class RAAppointment(models.Model):
     unit = models.ForeignKey(Unit, help_text='The unit that owns the appointment', null=False, blank=False)
     hiring_category = models.CharField(max_length=60, choices=HIRING_CATEGORY_CHOICES)
     #hiring_department = models.ForeignKey()
+    scholarship = models.ForeignKey(Scholarship, null=True, blank=True, help_text='Optional.')
     project = models.ForeignKey(Project, null=False, blank=False)
     account = models.ForeignKey(Account, null=False, blank=False)
     start_date = models.DateField(auto_now=False, auto_now_add=False)
@@ -74,7 +76,7 @@ class RAAppointment(models.Model):
     reappointment = models.BooleanField(default=False, help_text="Are we re-appointing to the same position?")
     medical_benefits = models.BooleanField(default=False, help_text="50% of Medical Service Plan")
     dental_benefits = models.BooleanField(default=False, help_text="50% of Dental Plan")
-    notes = models.TextField(blank=True, help_text="<p>Biweekly emplyment earnings rates must include vacation pay, hourly rates will automatically have vacation pay added. The employer cost of statutory benefits will be charged to the amount to the earnings rate.</p>");
+    notes = models.TextField(blank=True, help_text="Biweekly emplyment earnings rates must include vacation pay, hourly rates will automatically have vacation pay added. The employer cost of statutory benefits will be charged to the amount to the earnings rate.");
     comments = models.TextField(blank=True, help_text="For internal use");
     def autoslug(self):
         return make_slug(self.unit.label + '-' + unicode(self.start_date.year) + '-' + self.person.userid)

@@ -8,6 +8,7 @@ from django.utils.encoding import force_unicode
 
 class RAForm(forms.ModelForm):
     person = forms.CharField(label='Hire')
+    scholarship = forms.ChoiceField(choices=((None, '---------'),), required=False, help_text='Used only if Hiring Category is "Scholarship".')
 
     def clean_person(self):
         return Person.objects.get(emplid=self.cleaned_data['person'])

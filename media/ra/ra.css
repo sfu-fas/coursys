@@ -1,29 +1,17 @@
-#lump_sum_label {
-    padding-right: 5px;
-    padding-left: 45px;
-    font-weight: bold;
+table#salary_info, table#salary_info td {
+    border-style: none;
 }
 
-#biweekly_pay_label {
-    font-weight: bold;
-    padding-right: 5px;
-    padding-left: 57px;
+table#salary_info td {
+    padding-right: 0.4em;
+    height: 2.3em;
 }
 
-#pay_periods_label {
-    font-weight: bold;
-    padding-right: 5px;
-    padding-left: 5px;
+td.salary_first {
+    width: 10.7em;
 }
 
-#hourly_pay_label {
+td.salary_first, td.salary_label {
+    text-align: right;
     font-weight: bold;
-    padding-right: 5px;
-    padding-left: 71px;
-}
-
-#hours_label {
-    font-weight: bold;
-    padding-right: 5px;
-    padding-left: 42px;
 }
