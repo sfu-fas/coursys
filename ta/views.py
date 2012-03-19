@@ -473,14 +473,7 @@ def all_contracts(request, post_slug=None):
             total_bu += course.bu
             crs_list += course.course.subject+" "+course.course.number+" "+course.course.section+"("+str(course.bu)+")\n"
         contract.total_bu = total_bu
-        contract.crs_list = crs_list
-    print
-    print
-    print contract.total_bu
-    print contract.crs_list
-    
-    
-    
+        contract.crs_list = crs_list    
         
     postings = TAPosting.objects.filter(unit__in=request.units).exclude(Q(semester=posting.semester))
     applications = TAApplication.objects.filter(posting=posting).exclude(Q(id__in=TAContract.objects.filter(posting=posting).values_list('application', flat=True)))
