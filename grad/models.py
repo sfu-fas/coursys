@@ -263,7 +263,13 @@ class OtherFunding(models.Model):
     
 class Promise(models.Model):
     student = models.ForeignKey(GradStudent)
-    amount = models.DecimalField(verbose_name="Scholarship Amount", max_digits=8, decimal_places=2)
+    amount = models.DecimalField(verbose_name="Promise Amount", max_digits=8, decimal_places=2)
     start_semester = models.ForeignKey(Semester, related_name="promise_start")
     end_semester = models.ForeignKey(Semester, related_name="promise_end")
     comments = models.TextField(blank=True)
+    def get_fields(self):
+        # make a list of field/values.
+        k = []
+        for field in Promise._meta.fields:
+                k.append([capfirst(field.verbose_name), field.value_to_string(self)])
+        return k    

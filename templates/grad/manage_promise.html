@@ -41,7 +41,8 @@
 	</table>
 </div>
 <div id="form_container">
-    <form action="{% url grad.views.new_promise grad_slug=grad.slug%}" method="post">{% csrf_token %}
+    <form action="{% url grad.views.new_promise grad_slug=grad.slug%}" method="POST">
+    	{% csrf_token %}
     	<fieldset>
               {{ promise_form|as_dl_2 }}
         <p><input  class="submit"  type="submit" value="Submit"></p>

@@ -372,6 +372,7 @@ def new(request):
         grad_form = GradStudentForm(prefix="grad", initial={'program': prog_list[0], 'campus': CAMPUS_CHOICES[0][0] })
         supervisors_form = PotentialSupervisorForm(prefix="sup",)  
         status_form = GradStatusForm(prefix="stat", initial={'status': 'ACTI', 'start': get_semester() })  
+        
         #initial: 'start' returns nothing if there are no future semester available in DB 
 
     # set frontend defaults
@@ -827,7 +828,7 @@ def financials(request, grad_slug):
 def new_promise(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
     if request.method == 'POST':
-        promise_form = new_promiseForm(request.POST)
+        promise_form = new_promiseForm(request.POST )
         if promise_form.is_valid():
             temp = promise_form.save(commit=False)
             temp.student = grad
@@ -836,7 +837,10 @@ def new_promise(request, grad_slug):
             
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad.slug}))
     else:
-        promise_form = new_promiseForm()
+        temp = get_semester
+        print "semester"
+        print temp
+        promise_form = new_promiseForm(initial={'start_semester': get_semester(), 'amount':'$0.00'})
 
     page_title = "New Promise"
     crumb = "%s, %s" % (grad.person.last_name, grad.person.first_name)
