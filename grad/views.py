@@ -767,7 +767,7 @@ def financials(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
     current_status = GradStatus.objects.get(student=grad, hidden=False, end=None)
     eligible_scholarships = ScholarshipType.objects.filter(eligible=True)
-    scholarships = Scholarship.objects.filter(student=grad)
+    scholarships_qs = Scholarship.objects.filter(student=grad)
     promises_qs = Promise.objects.filter(student=grad)
     other_fundings = OtherFunding.objects.filter(student=grad)
     
@@ -780,14 +780,15 @@ def financials(request, grad_slug):
     # 3. Owing amount for the period
     
     promises = []
+
     for promise in promises_qs:
-        semesters = Semester.objects.filter(start__gte=promise.start_semester.start, end__lte=promise.end_semester.end)
+        semesters_qs = Semester.objects.filter(start__gte=promise.start_semester.start, end__lte=promise.end_semester.end)
         total_received = 0
         promise_semesters = []
-        for semester in semesters:
+        for semester in semesters_qs:
             semester_total = 0
             scholarships_in_semester = {}
-            semester_scholarships = scholarships.filter(start_semester=semester)
+            semester_scholarships = scholarships_qs.filter(start_semester=semester)
             semester_eligible_scholarships = semester_scholarships.filter(scholarship_type__in=eligible_scholarships)
             semester_other_fundings = other_fundings.filter(semester=semester)
             scholarships_in_semester['scholarships'] = semester_scholarships
@@ -802,21 +803,19 @@ def financials(request, grad_slug):
             total_received += semester_total
             promise_semesters.append({'semester': semester,
                                       'scholarship_details': scholarships_in_semester})    
-               
+        
         promises.append({'promise':promise_semesters,
                                 'promised_amount': promise.amount,
-                                'received_amount':total_received,
+                                'received_amount': total_received,
                                 'owing_amount': total_received - promise.amount})
-        
+
+
     # set frontend defaults
     page_title = "%s's Financial Summary" % (grad.person.first_name)
     crumb = "%s, %s" % (grad.person.last_name, grad.person.first_name)
 
-
-    
-
     context = {
-               'promises_qs': promises,
+               'promises': promises,
                'page_title':page_title,
                'crumb':crumb,
                'grad':grad,

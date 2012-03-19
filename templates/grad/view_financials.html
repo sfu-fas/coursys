@@ -13,8 +13,9 @@
 <style type="text/css">
 /* from W3 Dot Leaders */
 ul.leaders {
-    max-width: 60%;
+    max-width: 100%;
     padding-left: 2em;
+    padding-right: 2em;
     overflow-x: hidden;
     list-style: none
     }
@@ -45,22 +46,39 @@ div.left-col_container {
 }
 
 div.right-col_container {
-	width: 40%; 
+	width: 20%; 
 	float: right; 
 	padding-left: 1em; 
-	padding-top: 1em; 
-	border-left: 2px solid #000;
+	padding-top: 1em;
 }
 
 div.left-col_content {
-	position: relative; 
+	position: relative;
+	padding-left: 2em; 
+	padding-right: 2em;
 	float: left; 
-	right: 150%;
 }
 
 div.right-col_content {
 	position: relative; 
-	float: left;
+	text-align: right;
+	width: 20%;
+	padding-right: 1em;
+	float: right;
+}
+
+div.hr{
+	border: 1px solid black;
+	width: 98%;
+}
+
+div.scholarship_divider{
+	border-right: 2px solid black;
+	width: 75%;
+}
+
+span.label {
+ 	font-weight: bold
 }
 
 </style>
@@ -85,36 +103,71 @@ div.right-col_content {
 
 {% block content %}
 
-<div id="column_container">
-	Status: {{ status.get_status_display }}
-	{% for promise_period in promise_periods %}
-		
-	<h2> {{ promise_period.scholarship_details.semester }} </h2>
-    <div class="left-col_container">
-	    <div class="right-col_container">
-			{% for scholarships in promise_period.scholarship_details %}
-			<div class="left-col_content">
-				<ul class="leaders">
-					{% for scholarship in scholarships %}
-					<li>
-						<span>{{ scholarship.name }}</span>
-						<span> {{ scholarship.amount }} </span>
-					</li>
-					{% endfor %}
-					
-				</ul>
-			</div>
-			{% endfor %}
-			
-			<div id="promises" class="right-col_content">
-				{{ semester.promise }}
-			</div>
-			
-	    </div>
+<div id="content_container">
+	Status: {{ status.get_status_display }}	
+	<div class="scholarship_divider">
+	{% for promise in promises %}
+		{% for scholarship_details in promise.promise %}
+			<h2> {{ scholarship_details.semester }} </h2>
+		    <div class="left-col_container">
+				<div class="left-col_content">
+					{% if scholarship_details.scholarship_details.scholarships %}
+						<span class="label"> Scholarships: </span>
+						<ul class="leaders">
+						{% for scholarship in scholarship_details.scholarship_details.scholarships %}
+							<li>
+							{% if scholarship.scholarship_type.eligible %}
+									<span>{{scholarship.scholarship_type.name}}</span>
+									<span> ${{ scholarship.amount|floatformat:2 }} </span>
+							{% else %}
+									<span>{{scholarship.scholarship_type.name}} (${{ scholarship.amount|floatformat:2 }})</span>
+									<span> Not Eligible </span>
+							{% endif %}
+							</li>
+						{% endfor %}
+						</ul>
+					{% endif %}
+					{% if scholarship_details.scholarship_details.other_funding %}
+						<span class="label"> Other Funding: </span>
+						<ul class="leader">
+							{% for other_funding in scholarship_details.scholarship_details.other_funding %}
+								<li>
+									{% if other_funding.eligible %}
+									<span>{{ other_funding.description}}</span>
+									<span> ${{ other_funding.amount|floatformat:2 }} </span>
+									{% else %}
+									<span>{{ other_funding.description}} (${{ other_funding.amount|floatformat:2 }})</span>
+									<span> Not Eligible </span>
+									{% endif %}
+								</li>
+							{% endfor %}
+						</ul>
+					{% endif %}
+					{% if scholarship_details.scholarship_details.semester_total %}
+					<div class="hr"></div>
+					<span style="float: left;" class="label">Semester Sub-Total</span>
+					<span style="float: right; padding-right: 2em;"> ${{ scholarship_details.scholarship_details.semester_total|floatformat:2 }} </span>
+					{% endif %}
+				</div>
+		    </div>
+	    {% endfor %}
     </div>
+    <div class="right-col_content">
+		<span class="label"> Promised Amount: </span> ${{ promise.promised_amount|floatformat:2 }} <br />
+		<span class="label"> Received Amount: </span> ${{ promise.received_amount|floatformat:2 }} <br />
+		<div class="hr"></div>
+		{% if promise.owing_amount %}
+			<span style="color: red" class="label">
+				Amount Owing: (${{ promise.owing_amount|floatformat:2 }})
+			</span> 
+		{% else %}
+			<span class="label">
+				Amount Owing: None
+			</span>
+		{% endif %}
+		
+	</div>
 	{% endfor %}
-
 </div>
-
 
 {% endblock %} 
