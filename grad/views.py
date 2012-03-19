@@ -19,6 +19,8 @@ from log.models import LogEntry
 from django.utils.encoding import iri_to_uri
 from django.template.base import Template
 from django.template.context import Context
+import copy
+import itertools
 
 # get semester based on input datetime. defaults to today
 # returns semseter object7
@@ -729,6 +731,17 @@ def manage_letter(request, letter_slug):
 
 @requires_role("GRAD")
 def search(request):
+    # clean out empty query args, mainly for debugging so it's easier to see what
+    # search arguments are being passed
+    if len(request.GET) > 0:
+        cleaned_get = copy.copy(request.GET)
+        for k,l in request.GET.iterlists():
+            if len(filter(lambda x:len(x) > 0, l)) == 0:
+                del cleaned_get[k]
+        if len(cleaned_get) < len(request.GET):
+            return HttpResponseRedirect(reverse(search) + '?' + cleaned_get.urlencode())
+    # TODO: move the above code to a separate function
+    
     if len(request.GET) == 0:
         form = SearchForm()
     else:
