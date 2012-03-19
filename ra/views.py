@@ -65,6 +65,7 @@ def new(request):
         semester = Semester.first_relevant() 
         periods = str(pay_periods(semester.start, semester.end))
         raform = RAForm(initial={'start_date': semester.start, 'end_date': semester.end, 'pay_periods': periods, 'hours': 70 })
+        raform.fields['scholarship'].choices=[("", "---------")]
         raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
         raform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
         raform.fields['project'].choices = [(p.id, unicode(p.project_number)) for p in Project.objects.filter(unit__in=request.units)]
@@ -202,6 +203,6 @@ def search_scholarships_by_student(request, student_id):
         return ForbiddenResponse(request, "Not permitted to search scholarships by student.")
     scholarships = Scholarship.objects.filter(student__person__emplid=student_id)
     response = HttpResponse(mimetype="application/json")
-    data = [{'name': s.scholarship_type.name, 'unit': s.scholarship_type.unit.label, 'start': s.start_semester.name, 'end': s.end_semester.name} for s in scholarships]
+    data = [{'value': s.pk, 'display': s.scholarship_type.unit.label + ": " + s.scholarship_type.name + " (" + s.start_semester.name + " to " + s.end_semester.name + ")"}  for s in scholarships]
     json.dump(data, response, indent=1)
     return response

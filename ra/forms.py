@@ -5,13 +5,18 @@ from coredata.models import Person, Role
 #from django.core.exceptions import ObjectDoesNotExist
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
+from grad.models import Scholarship
 
 class RAForm(forms.ModelForm):
     person = forms.CharField(label='Hire')
-    scholarship = forms.ChoiceField(choices=((None, '---------'),), required=False, help_text='Used only if Hiring Category is "Scholarship".')
+    #scholarship = forms.ChoiceField(choices=((None, '---------'),), required=False, help_text='Used only if Hiring Category is "Scholarship".')
 
     def clean_person(self):
         return Person.objects.get(emplid=self.cleaned_data['person'])
+
+    # def clean_scholarship(self):
+    #     print "test"
+    #     return Scholarship.objects.get(pk=self.cleaned_data['scholarship'])
 
     def clean_hours(self):
         data = self.cleaned_data['hours']
@@ -19,9 +24,10 @@ class RAForm(forms.ModelForm):
             raise forms.ValidationError("The maximum number of work hours is 70.")
         return data
 
-    # def clean(self):
-    #     cleaned_data = self.cleaned_data
-    #     return cleaned_data 
+    def clean(self):
+        #cleaned_data['scholarship'] = Scholarship.objects.get(pk=self.cleaned_data['scholarship'])
+        cleaned_data = self.cleaned_data
+        return cleaned_data 
         
     class Meta:
         model = RAAppointment

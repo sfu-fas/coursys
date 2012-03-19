@@ -40,6 +40,14 @@
       <td>{{ appointment.hiring_faculty }}</td></tr>
     <tr><th>Hiring Category:</th>
       <td>{{ appointment.get_hiring_category_display }}</td></tr>
+    <tr>
+      <th>Scholarship:</th>
+      <td>
+        {% if appointment.scholarship %}
+        {{ appointment.scholarship.scholarship_type.unit.label }}: {{ appointment.scholarship.scholarship_type.name }} ({{ appointment.scholarship.start_semester.name }} - {{ appointment.scholarship.end_semester.name }})
+        {% endif %}
+      </td>
+    </tr>
     <tr><th>Fund Number:</th>
       <td>{{ appointment.project.fund_number }}</td></tr>
     <tr><th>Project Number:</th>
