@@ -250,9 +250,12 @@ COMMENTS_CHOICES = (
 class SearchForm(forms.Form):
     #TODO: finish
     
-    start_semester = forms.ModelMultipleChoiceField(Semester.objects.all(), required=False,
+    start_semester_start = forms.ModelChoiceField(Semester.objects.all(), required=False,
             help_text='Semester in which the Grad student has applied to start')
-    end_semester = forms.ModelMultipleChoiceField(Semester.objects.all(), required=False)
+    start_semester_end = forms.ModelChoiceField(Semester.objects.all(), required=False,
+            help_text='Semester in which the Grad student has applied to start')
+    end_semester_start = forms.ModelChoiceField(Semester.objects.all(), required=False)
+    end_semester_end = forms.ModelChoiceField(Semester.objects.all(), required=False)
     
     # requirements?
     student_status = forms.MultipleChoiceField(gradmodels.STATUS_CHOICES,
@@ -307,8 +310,11 @@ class SearchForm(forms.Form):
         if not self.is_valid():
             raise Exception, "The form needs to be valid to get the search query"
         queries = (
-                ('start_semester', 'gradstatus__start__in'),
-                ('end_semester', 'gradstatus__end__in'),
+                # Possible use __range=(start_date, end_date) ?
+                ('start_semester_start', 'gradstatus__start__gte'),
+                ('start_semester_end', 'gradstatus__start__lte'),
+                ('end_semester_start', 'gradstatus__end__gte'),
+                ('end_semester_end', 'gradstatus__end__lte'),
                 ('student_status', 'gradstatus__status__in'),
                 ('program','program__in'),
                 ('is_canadian',),
