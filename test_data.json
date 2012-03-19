@@ -19552,5 +19552,38 @@
   },
   "model": "ta.taapplication",
   "pk": 5
+ },
+  {
+  "fields": {
+   "amount": "9000",
+   "comments": "Test Promise",
+   "end_semester": 4,
+   "start_semester": 1,
+   "student": 1
+  },
+  "model": "grad.promise",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "comments": "Testing Scholarship",
+   "eligible": true,
+   "name": "GEA10055",
+   "unit": 2
+  },
+  "model": "grad.scholarshiptype",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "amount": "5000",
+   "comments": "Testing Scholarship Entry",
+   "end_semester": 1,
+   "scholarship_type": 1,
+   "start_semester": 1,
+   "student": 1
+  },
+  "model": "grad.scholarship",
+  "pk": 1
  }
 ]
