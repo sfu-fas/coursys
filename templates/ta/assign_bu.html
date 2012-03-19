@@ -62,10 +62,6 @@
             <div class="inputfield"><input id="extra_bu" name="extra_bu" type="text" value="{{ offering.config.extra_bu }}"/></div>
         </li>
         <li>
-            <label>Lab or tutorial:&nbsp;</label>
-            <div class="inputfield"><input id="labtut"  name="labtut" type="checkbox" {% if offering.config.labtut %}checked="yes"{% endif %}/></div>
-        </li>
-        <li>
             <label>TA runs lab:&nbsp;</label>
             <div class="inputfield"><input id="labtas" name="labtas" type="checkbox" {% if offering.config.labtas %}checked="yes"{% endif %}/></div>
             <div class="helptext">(+0.17 BU)</div>
@@ -88,6 +84,7 @@ Remaining BUs: {{ offering|display_bu_difference:posting }}
     <tr>
       <th scope="col">Applicant</th>
       <th scope="col">Rank</th>
+      <th scope="col">Category</th>
       <th scope="col">Course Rank</th>
       <th scope="col">Campus Preference</th>
       <th scope="col">Max BUs</th>
@@ -104,6 +101,7 @@ Remaining BUs: {{ offering|display_bu_difference:posting }}
         {% endifequal %}
         {% endfor %}
         </td>
+        <td scope="row">{{ a.get_category_display }}</a></td>
         <td scope="row">{{ course_preferences|display_course_rank:forloop.counter0 }}</td>
         <td scope="row">{{ campus_preferences|display_campus_preference:forloop.counter0 }}</a></td>
         <td scope="row">{{ a.base_units }}</a></td>

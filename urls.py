@@ -225,7 +225,6 @@ urlpatterns += patterns('',
     url(r'^ta/postings/' + POST_SLUG + '/apps/$', 'ta.views.assign_tas'),
     url(r'^ta/postings/' + POST_SLUG + '/' + COURSE_SLUG + '$', 'ta.views.assign_bus'),
     #url(r'^ta/postings/' + POST_SLUG + '/' + COURSE_SLUG + '/update_course_bus$', 'ta.views.update_course_bus'),
-    url(r'^ta/application/all$', 'ta.views.all_applications'),
     url(r'^ta/application/' + APP_ID + '$', 'ta.views.view_application'),
 	
     url(r'^ta/contracts/$', 'ta.views.all_contracts'),

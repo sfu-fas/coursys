@@ -253,18 +253,6 @@ def new_application(request, post_slug):
                   }
     return render(request, 'ta/new_application.html', context)
 
-@requires_role("TAAD")
-def all_applications(request):
-    roles = Role.objects.filter(role="TAAD", person__userid=request.user.username)
-    units = [r.unit for r in roles]
-    postings = TAPosting.objects.filter(unit__in=units)
-    applications = TAApplication.objects.filter(posting__in=postings)
-    context = {
-            'units':units,
-            'applications':applications,
-            }
-    return render(request, 'ta/all_applications.html', context)
-
 # TODO: shouldn't be visible to all users
 @login_required
 def view_application(request, app_id):
@@ -333,10 +321,6 @@ def assign_bus(request, post_slug, course_slug):
         act = 0
         extra_bu = decimal.Decimal(request.POST['extra_bu'])
         offering.config['extra_bu'] = extra_bu
-        if request.POST['labtut'] == "yes":
-            offering.config['labtut'] = True
-        else:
-            offering.config['labtut'] = False
             
         if request.POST['labtas'] == "yes":
             if not offering.labtas(): #changed from F to T
@@ -419,10 +403,6 @@ def update_course_bus(request, post_slug, course_slug):
     if request.method == "POST":
         extra_bu = decimal.Decimal(request.POST['extra_bu'])
         offering.config['extra_bu'] = extra_bu
-        try:
-            offering.config['labtut'] = request.POST['labtut']
-        except KeyError:
-            offering.config['labtut'] = False
         try:
             labtas = request.POST['labtas']
             if offering.labtas() != labtas:
