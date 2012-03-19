@@ -2,7 +2,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import Paragraph, Spacer, Frame, KeepTogether, Flowable, NextPageTemplate, PageBreak, Image
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import inch
-from reportlab.pdfgen import textobject
+from reportlab.pdfgen import textobject, canvas
 from reportlab.pdfbase import pdfmetrics  
 from reportlab.pdfbase.ttfonts import TTFont  
 from reportlab.lib.colors import CMYKColor
@@ -289,3 +289,100 @@ class LetterContents(object):
         contents.append(PageBreak())
         
         return contents
+
+
+BOX_OFFSET = 0.078125*inch # how far boxes are from the edges (i.e. from the larger box)
+ENTRY_SIZE = 0.375*inch # height of a data entry box
+ENTRY_HEIGHT = ENTRY_SIZE + BOX_OFFSET # height difference for adjacent entry boxes
+LABEL_OFFSET = 2 # right offset of a label from the box position
+LABEL_HEIGHT = 8 # height of a label (i.e. offset of top of box)
+DATA_BUMP = 4 # how far to move data up from bottom of box
+MAIN_WIDTH = 7.5*inch # size of the main box
+MAIN_HEIGHT = 7.5*inch # size of the main box
+
+class RAForm(object):
+    def __init__(self, ra):
+        self.ra = ra
+    
+    def _draw_box_right(self, x, y, label, content, width=MAIN_WIDTH-BOX_OFFSET):
+        self._draw_box_left(x=MAIN_WIDTH - x - width - BOX_OFFSET, y=y, label=label, content=content, width=width)
+        
+    def _draw_box_left(self, x, y, label, content, width=MAIN_WIDTH-BOX_OFFSET):
+        """
+        Draw one text entry box with the above parameters.
+        
+        "width" parameter should include one BOX_OFFSET
+        """
+        # box
+        self.c.setStrokeColor(black)
+        self.c.setLineWidth(2)
+        self.c.rect(x + BOX_OFFSET, y - BOX_OFFSET - ENTRY_SIZE, width - BOX_OFFSET, ENTRY_SIZE)
+
+        # label
+        self.c.setFont("Helvetica", 6)
+        self.c.drawString(x + BOX_OFFSET + LABEL_OFFSET, y - BOX_OFFSET - LABEL_HEIGHT, label)
+        
+        # content
+        self.c.setFont("Helvetica", 12)
+        self.c.drawString(x + BOX_OFFSET + 2*LABEL_OFFSET, y - BOX_OFFSET - ENTRY_SIZE + DATA_BUMP, content)
+    
+    def _rule(self, height):
+        self.c.setStrokeColor(black)
+        self.c.setLineWidth(2)
+        self.c.line(0, height, MAIN_WIDTH, height)
+    
+    def draw_pdf(self, outfile):
+        """
+        Generates PDF in the file object (which could be a Django HttpResponse).
+        """
+        c = canvas.Canvas(outfile, pagesize=letter)
+        self.c = c
+        
+        # draw form
+        c.translate(0.5*inch, 2.25*inch) # origin = lower-left of the main box
+    
+        c.setStrokeColor(black)
+        c.setLineWidth(2)
+        c.rect(0, 0, MAIN_WIDTH, MAIN_HEIGHT)
+        
+        c.setFont("Helvetica", 10)
+        c.drawCentredString(4*inch, 8.125*inch, "SIMON FRASER UNIVERSITY")
+        c.setFont("Helvetica-Bold", 14)
+        c.drawCentredString(4*inch, 7.875*inch, "Student, Research & Other Non-Union")
+        c.drawCentredString(4*inch, 7.625*inch, "Appointments")
+        
+        # SIN
+        sin = "%09i" % (self.ra.sin)
+        sin = sin[:3] + '-' + sin[3:6] + '-' + sin[6:]
+        self._draw_box_left(0, MAIN_HEIGHT, width=3.125*inch, label="SOCIAL INSURANCE NUMBER (SIN)", content=sin)
+
+        # emplid
+        emplid = unicode(self.ra.person.emplid)
+        emplid = emplid[:5] + '-' + emplid[5:]
+        self._draw_box_right(0, MAIN_HEIGHT, width=3.375*inch, label="SFU ID #", content=emplid)
+        
+        # names
+        self._draw_box_left(0, MAIN_HEIGHT - ENTRY_HEIGHT, label="LAST OR FAMILY NAME", content=self.ra.person.last_name)
+        self._draw_box_left(0, MAIN_HEIGHT - 2*ENTRY_HEIGHT, label="FIRST NAME", content=self.ra.person.first_name)
+        
+        height = MAIN_HEIGHT - 3*ENTRY_HEIGHT - BOX_OFFSET
+        self._rule(height)
+        
+        # position
+        self._draw_box_left(0, height, width=3.125*inch, label="POSITION NUMBER", content='[position #]')
+        self._draw_box_right(0, height, width=3.75*inch, label="POSITION TITLE", content='[position title]')
+        
+        # department
+        self._draw_box_left(0, height - ENTRY_HEIGHT, width=3.125*inch, label="DEPARTMENT", content=self.ra.unit.name)
+        
+        c.showPage()
+        c.save()
+
+
+def ra_form(ra, outfile):
+    """
+    Generate FPP4 form for this RAAppointment.
+    """
+    form = RAForm(ra)
+    return form.draw_pdf(outfile)
+
