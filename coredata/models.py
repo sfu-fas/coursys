@@ -42,7 +42,7 @@ class Person(models.Model):
         # 'applic_email': application email address
         # 'title': 'Mr', 'Ms', 'Mrs', etc.
     
-    defaults = {'email': None}
+    defaults = {'email': None, 'gender':'U'}
     _, set_email = getter_setter('email')
     gender, set_gender = getter_setter('gender')
     

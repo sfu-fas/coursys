@@ -322,16 +322,15 @@ class SearchForm(forms.Form):
                     ifilter(lambda x:x is not None,
                         (self._make_query(*qargs) for qargs in queries)),
                     Q())
-        
-        # super complex stuff to get searching for gender to work nicely, because it's in a config field
-        if 'gender' in self.cleaned_data and self.cleaned_data['gender']:
-            gender_query = Q(person__config__icontains='"gender": "%s"' % self.cleaned_data['gender'])
-            if self.cleaned_data['gender'] == 'U':
-                gender_query |= ~Q(person__config__icontains='"gender":')
-            query &= gender_query
             
         return query
-
+    def secondary_filter(self, gradstudent):
+        if 'gender' in self.cleaned_data and self.cleaned_data['gender']:
+            gender = gradstudent.person.gender() == self.cleaned_data['gender']
+        else:
+            gender = True # ignored
+        # if you're going to add more, just add '&& otherthing && otherthing2 ...'
+        return gender
 
 from coredata.queries import add_person, SIMSProblem
 import datetime

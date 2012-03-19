@@ -746,7 +746,9 @@ def search(request):
         
         query = form.get_query()
         grads = GradStudent.objects.filter(query)
-        
+        grads = filter(form.secondary_filter, grads)
+        # if performance becomes an issue, use this instead
+        #grads = itertools.ifilter(form.secondary_filter, grads)
         context = {
                    'page_title' : 'Graduate Student Search Results',
                    'crumb' : 'Grads',
