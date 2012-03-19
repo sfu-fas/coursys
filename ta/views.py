@@ -28,14 +28,9 @@ def format_currency(i):
     return locale.currency(float(i), grouping=True)
 
 
-#@requires_course_staff_by_slug
 @login_required
 def index_page(request, course_slug):
     return HttpResponseRedirect(reverse(all_tugs, args=(course_slug,)))
-    #~ if is_course_staff_by_slug(request, course_slug):
-        #~ return render(request, 'ta/index.html',{})
-    #~ else:
-        #~ return ForbiddenResponse(request)
 
 # helps zip tas and tugs together
 # basically performs a left outer join between tas and tugs
@@ -551,11 +546,16 @@ def edit_contract(request, post_slug, userid):
         contract = contract[0]
         application = contract.application
         num = num - contract.tacourse_set.all().count()
+        old_status = contract.get_status_display()
+        if contract.status not in ['NEW', 'OPN']:
+            # after editing, revert to open
+            contract.status = 'OPN'
         editing = True
     else:
         # creating new contract
         contract = TAContract()
         application = TAApplication.objects.get(person__userid=userid, posting=posting)
+        old_status = None
         editing = False
     
     TACourseFormset = inlineformset_factory(TAContract, TACourse, extra=num, can_delete=editing, form=TACourseForm, formset=BaseTACourseFormSet)
@@ -568,7 +568,7 @@ def edit_contract(request, post_slug, userid):
             if('appt_cat' in request.POST):
                 index = posting.cat_index(request.POST['appt_cat'])
                 results = posting.salary()[index] + ',' + posting.scholarship()[index] + ',' + str(posting.accounts()[index])
-                print results
+                #print results
                 return HttpResponse(results)
             if('course' in request.POST):
                 results = ''
@@ -632,7 +632,9 @@ def edit_contract(request, post_slug, userid):
         f.fields['bu'].widget.attrs['class']  = 'bu_inp'
         f.fields['course'].choices = course_choices
     
-    context = {'form': form, 'formset': formset, 'posting': posting, 'editing': editing, 'contract': contract, 'application': application, 'userid': userid}
+    context = {'form': form, 'formset': formset, 'posting': posting, 'editing': editing,
+               'old_status': old_status, 'contract': contract, 'application': application,
+               'userid': userid}
     return render(request, 'ta/edit_contract.html',context)
 
 def _copy_posting_defaults(source, destination):

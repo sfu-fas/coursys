@@ -10,7 +10,8 @@
 {% endblock %}
 
 {% block headextra %}
-<script type="text/javascript">	
+<script type="text/javascript">
+    var old_status = {% if old_status %}'{{old_status|escapejs}}'{% else %}null{% endif %};
 	function calculate(){
 		var total = 0;
 		for(var i = 0; i < 3; i++){
@@ -78,6 +79,19 @@
 				if($('#salary_bi').val()!="")
 					calculate()
 			}); 
+	}
+	
+	function button_update() {
+		var button = $('#submit');
+		var val = $("#id_status").val();
+		if (val == 'OPN') {
+			button.attr('value', 'Save and offer contract');
+		} else if (val == 'NEW') {
+			button.attr('value', 'Save draft contract');			
+		} else {
+			button.attr('value', 'Update contract');			
+		}
+		
 	}
 		
     $(document).ready(function() {
@@ -154,6 +168,13 @@
     		if(validate(true))
     			calculate()
     	})
+    	
+    	// set up status info
+    	if ( old_status ) {
+			$("#id_status").after(' <div class="helptext">Was "' + old_status + '". Should be "offered" after changes are made.</div>');    		
+    	}    	
+    	$("#id_status").change(button_update);
+    	button_update();
     });
 </script>
 
