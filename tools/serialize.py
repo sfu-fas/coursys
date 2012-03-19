@@ -3,9 +3,9 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 sys.path.append('.')
 
 # create "objs" by selecting all objects you want to serialize
-from ta.models import *
+from ra.models import *
 
-objs = itertools.chain( TAPosting.objects.all())
+objs = itertools.chain(RAAppointment.objects.all())
 
 # output the JSON: copy into test_data.json when you're sure it's right.
 from django.core import serializers

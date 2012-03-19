@@ -19585,5 +19585,99 @@
   },
   "model": "grad.scholarship",
   "pk": 1
+ },
+  {
+  "fields": {
+   "campus": "BRNBY", 
+   "comments": "", 
+   "created_at": "2012-03-19 10:24:02", 
+   "created_by": "ggbaker", 
+   "english_fluency": "", 
+   "is_canadian": null, 
+   "modified_by": null, 
+   "mother_tongue": "", 
+   "passport_issued_by": "", 
+   "person": 93, 
+   "program": 1, 
+   "research_area": "high", 
+   "slug": "0grad1-jumping", 
+   "special_arrangements": null, 
+   "updated_at": "2012-03-19 10:24:02"
+  }, 
+  "model": "grad.gradstudent", 
+  "pk": 7
+ },
+ {
+  "fields": {
+   "comments": "", 
+   "eligible": true, 
+   "name": "New Scholarship", 
+   "unit": 2
+  }, 
+  "model": "grad.scholarshiptype", 
+  "pk": 1
+ }, 
+ {
+  "fields": {
+   "comments": "", 
+   "eligible": true, 
+   "name": "New Scholarship too", 
+   "unit": 2
+  }, 
+  "model": "grad.scholarshiptype", 
+  "pk": 2
+ },
+ {
+  "fields": {
+   "amount": "5000", 
+   "comments": "", 
+   "end_semester": 4, 
+   "scholarship_type": 1, 
+   "start_semester": 1, 
+   "student": 7
+  }, 
+  "model": "grad.scholarship", 
+  "pk": 1
+ }, 
+ {
+  "fields": {
+   "amount": "5000", 
+   "comments": "", 
+   "end_semester": 4, 
+   "scholarship_type": 2, 
+   "start_semester": 1, 
+   "student": 7
+  }, 
+  "model": "grad.scholarship", 
+  "pk": 2
+ },
+ {
+  "fields": {
+   "account": 2, 
+   "biweekly_pay": "700", 
+   "comments": "", 
+   "config": "{}", 
+   "created_at": "2012-03-19 10:31:39", 
+   "dental_benefits": false, 
+   "end_date": "2012-04-11", 
+   "hiring_category": "S", 
+   "hiring_faculty": 16, 
+   "hourly_pay": "10", 
+   "hours": 70, 
+   "lump_sum_pay": "4900", 
+   "medical_benefits": false, 
+   "notes": "", 
+   "pay_periods": "7", 
+   "person": 93, 
+   "project": 1, 
+   "reappointment": false, 
+   "scholarship": 1, 
+   "sin": 123456789, 
+   "slug": "cmpt-2012-0grad1", 
+   "start_date": "2012-01-05", 
+   "unit": 2
+  }, 
+  "model": "ra.raappointment", 
+  "pk": 1
  }
 ]

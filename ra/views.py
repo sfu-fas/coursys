@@ -88,6 +88,7 @@ def edit(request, ra_slug):
         raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid})
         #As in the new method, choices are restricted to relevant options.
         raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
+        raform.fields['scholarship'].choices = [(s.pk, s.scholarship_type.unit.label + ": " + s.scholarship_type.name + " (" + s.start_semester.name + " to " + s.end_semester.name + ")") for s in Scholarship.objects.filter(student__person__emplid = appointment.person.emplid)]
         raform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
         raform.fields['project'].choices = [(p.id, unicode(p.project_number)) for p in Project.objects.filter(unit__in=request.units)]
         raform.fields['account'].choices = [(a.id, u'%s (%s)' % (a.account_number, a.title)) for a in Account.objects.filter(unit__in=request.units)]

@@ -9,6 +9,7 @@ from grad.models import Scholarship
 
 class RAForm(forms.ModelForm):
     person = forms.CharField(label='Hire')
+    sin = forms.IntegerField(label='SIN')
     #scholarship = forms.ChoiceField(choices=((None, '---------'),), required=False, help_text='Used only if Hiring Category is "Scholarship".')
 
     def clean_person(self):
