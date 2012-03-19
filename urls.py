@@ -280,13 +280,14 @@ urlpatterns += patterns('',
 #----- Graduate student database
 
     url(r'^grad/$', 'grad.views.index'),
-    url(r'^grad/import', 'grad.views.import_applic'),
-    url(r'^grad/search', 'grad.views.search'),
+    url(r'^grad/import$', 'grad.views.import_applic'),
+    url(r'^grad/search$', 'grad.views.search'),
+    url(r'^grad/search_results$', 'grad.views.search_results'),
     
-    url(r'^grad/program/new', 'grad.views.new_program'),   
+    url(r'^grad/program/new$', 'grad.views.new_program'),   
     url(r'^grad/program/$', 'grad.views.programs'),
     url(r'^grad/requirement/$', 'grad.views.requirements'),
-    url(r'^grad/requirement/new', 'grad.views.new_requirement'),    
+    url(r'^grad/requirement/new$', 'grad.views.new_requirement'),    
 
     url(r'^grad/letter/$', 'grad.views.letters'),
     url(r'^grad/' + GRAD_SLUG + '/letter/new', 'grad.views.new_letter'),
