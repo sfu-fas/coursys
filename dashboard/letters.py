@@ -1,7 +1,7 @@
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import Paragraph, Spacer, Frame, KeepTogether, Flowable, NextPageTemplate, PageBreak, Image
 from reportlab.lib.styles import ParagraphStyle
-from reportlab.lib.units import inch
+from reportlab.lib.units import inch, mm
 from reportlab.pdfgen import textobject, canvas
 from reportlab.pdfbase import pdfmetrics  
 from reportlab.pdfbase.ttfonts import TTFont  
@@ -444,5 +444,97 @@ def ra_form(ra, outfile):
     Generate FPP4 form for this RAAppointment.
     """
     form = RAForm(ra)
+    return form.draw_pdf(outfile)
+
+
+class TAForm(object):
+    BOX_HEIGHT = 0.25*inch
+    LABEL_RIGHT = 2
+    LABEL_UP = 2
+    CONTENT_RIGHT = 4
+    CONTENT_UP = 4
+    LABEL_SIZE = 6
+
+    def __init__(self, contract):
+        self.contract = contract
+    
+    def _draw_box(self, x, y, width, label='', label_size=LABEL_SIZE, content=''):
+        height = self.BOX_HEIGHT
+        self.c.setLineWidth(1)
+        self.c.rect(x, y, width, height)
+        
+        if label:
+            self.c.setFont("Helvetica", label_size)
+            self.c.drawString(x + self.LABEL_RIGHT, y + height + self.LABEL_UP, label)
+        
+        if content:
+            self.c.setFont("Helvetica", 12)
+            self.c.drawString(x + self.CONTENT_RIGHT, y + self.CONTENT_UP, content)
+
+    def draw_pdf(self, outfile):
+        """
+        Generates PDF in the file object (which could be a Django HttpResponse).
+        """
+        c = canvas.Canvas(outfile, pagesize=letter)
+        self.c = c
+        self.c.setStrokeColor(black)
+
+        # draw form
+        c.translate(0.625*inch, 1.25*inch) # origin = lower-left of the main box
+        
+        # main outline
+        c.setStrokeColor(black)
+        c.setLineWidth(2)
+        p = c.beginPath()
+        p.moveTo(0,0)
+        p.lineTo(0, 8.875*inch)
+        p.lineTo(43*mm, 8.875*inch)
+        p.lineTo(43*mm, 8.625*inch)
+        p.lineTo(7.25*inch, 8.625*inch)
+        p.lineTo(7.25*inch, 0)
+        p.close()
+        c.drawPath(p, stroke=1, fill=0)
+        
+        # personal info
+        self._draw_box(0, 8.625*inch, 43*mm, label="SFU ID #", content=unicode(self.contract.application.person.emplid))
+        self._draw_box(0, 210*mm, 43*mm, label="CANADA SOCIAL INSURANCE NO.", content=unicode(self.contract.application.sin))
+        self._draw_box(46*mm, 210*mm, 74*mm, label="LAST OR FAMILY NAME", content=unicode(self.contract.application.person.last_name))
+        self._draw_box(125*mm, 210*mm, 50*mm, label="FIRST NAME", content=unicode(self.contract.application.person.first_name))
+        self._draw_box(15*mm, 202*mm, 160*mm) # HOME ADDRESS
+        c.setFont("Helvetica", self.LABEL_SIZE)
+        c.drawString(2, 206*mm, "HOME")
+        c.drawString(2, 203*mm, "ADDRESS")
+        
+        # appointment basic info
+        c.drawString(2, 194*mm, "DEPARTMENT")
+        self._draw_box(20*mm, 193*mm, 78*mm, content=unicode(self.contract.application.posting.unit.name)) # DEPARTMENT
+        self._draw_box(102*mm, 193*mm, 32*mm, label="APPOINTMENT START DATE", content=unicode(self.contract.pay_start))
+        self._draw_box(139*mm, 193*mm, 32*mm, label="APPOINTMENT END DATE", content=unicode(self.contract.pay_end))
+        
+        # initial appointment boxes
+        c.rect(14*mm, 185*mm, 5*mm, 5*mm, fill=1)
+        c.rect(14*mm, 176*mm, 5*mm, 5*mm, fill=0)
+        c.setFont("Helvetica", self.LABEL_SIZE)
+        c.drawString(21*mm, 188*mm, "INITIAL APPOINTMENT TO")
+        c.drawString(21*mm, 186*mm, "THIS POSITION NUMBER")
+        c.setFont("Helvetica", 5)
+        c.drawString(21*mm, 179*mm, "REAPPOINTMENT TO SAME POSITION")
+        c.drawString(21*mm, 177*mm, "NUMBER OR REVISION TO APPOINTMENT")
+
+        # position info
+        self._draw_box(60*mm, 176*mm, 37*mm, label="POSITION NUMBER", content=unicode(self.contract.position_number.position_number))
+        self._draw_box(102*mm, 176*mm, 32*mm, label="PAYROLL START DATE", content=unicode(self.contract.pay_start))
+        self._draw_box(139*mm, 176*mm, 32*mm, label="PAYROLL END DATE", content=unicode(self.contract.pay_end))
+        
+        
+
+        c.showPage()
+        c.save()
+
+def ta_form(contract, outfile):
+    """
+    Generate TA Appointment Form for this TAContract.
+    """
+    form = TAForm(contract)
     return form.draw_pdf(outfile)
 
