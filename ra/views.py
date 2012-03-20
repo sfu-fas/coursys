@@ -10,6 +10,7 @@ from courselib.auth import requires_role
 from django.template import RequestContext
 from datetime import date, timedelta
 from grad.models import Scholarship, ScholarshipType
+from dashboard.letters import ra_form
 import json
 
 #This is the search function that that returns a list of RA Appointments related to the query.
@@ -114,6 +115,15 @@ def view(request, ra_slug):
     appointment = get_object_or_404(RAAppointment, slug=ra_slug)
     student = Person.objects.get(userid=appointment.person.userid)
     return render(request, 'ra/view.html', {'appointment': appointment, 'student': student}, context_instance=RequestContext(request))
+
+#View RA Appointment Form (PDF)
+@requires_role("FUND")
+def form(request, ra_slug):
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug)
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = 'inline; filename=%s.pdf' % (appointment.slug)
+    ra_form(appointment, response)
+    return response
 
 #Methods relating to Account creation. These are all straight forward.
 @requires_role("FUND")

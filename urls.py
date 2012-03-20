@@ -313,9 +313,6 @@ urlpatterns += patterns('',
     url(r'^ra/$', 'ra.views.search'),
     url(r'^ra/search/' + USERID_SLUG + '/$', 'ra.views.student_appointments'),
     url(r'^ra/new$', 'ra.views.new'),
-    url(r'^ra/view/' + RA_SLUG + '/$', 'ra.views.view'),
-    url(r'^ra/edit/' + RA_SLUG + '/$', 'ra.views.edit'),
-    url(r'^ra/reappoint/' + RA_SLUG + '/$', 'ra.views.reappoint'),
     url(r'^ra/accounts/new$', 'ra.views.new_account'),
     url(r'^ra/accounts/$', 'ra.views.accounts_index'),
     url(r'^ra/accounts/' + ACCOUNT_SLUG + '/delete$', 'ra.views.delete_account'),
@@ -324,9 +321,11 @@ urlpatterns += patterns('',
     url(r'^ra/projects/$', 'ra.views.projects_index'),
     url(r'^ra/projects/' + PROJECT_SLUG + '/delete$', 'ra.views.delete_project'),
     url(r'^ra/projects/' + PROJECT_SLUG + '/edit$', 'ra.views.edit_project'),
+    url(r'^ra/' + RA_SLUG + '/$', 'ra.views.view'),
+    url(r'^ra/' + RA_SLUG + '/form$', 'ra.views.form'),
+    url(r'^ra/' + RA_SLUG + '/edit$', 'ra.views.edit'),
+    url(r'^ra/' + RA_SLUG + '/reappoint$', 'ra.views.reappoint'),
 
-   
-    
 )
 if not settings.DEPLOYED:
     # URLs for development only:

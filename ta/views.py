@@ -569,6 +569,8 @@ def edit_contract(request, post_slug, userid):
                 #If course isn't in applicants prefered courses, add it with rank 0
                 course_prefs = [c.course for c in CoursePreference.objects.filter(app=contract.application)]
                 for form in formset[:-1]:
+                    if 'course' not in form.cleaned_data:
+                        continue
                     offering = form.cleaned_data['course']
                     if offering.course not in course_prefs:
                         new_course_pref = CoursePreference(app=application, course=offering.course, taken='YES', exper='FAM', rank=0)
