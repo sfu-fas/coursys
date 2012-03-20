@@ -6,13 +6,14 @@ from reportlab.pdfgen import textobject, canvas
 from reportlab.pdfbase import pdfmetrics  
 from reportlab.pdfbase.ttfonts import TTFont  
 from reportlab.lib.colors import CMYKColor
-from reportlab.lib.enums import TA_JUSTIFY
+from reportlab.lib.enums import TA_JUSTIFY, TA_LEFT
 import os, datetime
 from dashboard.models import Signature
 
 PAPER_SIZE = letter
 black = CMYKColor(0, 0, 0, 1)
 media_path = os.path.join('external', 'sfu')
+logofile = os.path.join(media_path, 'logo.png')
 
 from reportlab.platypus.doctemplate import PageTemplate, BaseDocTemplate
 
@@ -94,7 +95,7 @@ class LetterheadTemplate(LetterPageTemplate):
         Draw the top-of-page part of the letterhead (used only on first page of letter)
         """
         # SFU logo
-        c.drawImage(doc.logofile, x=self.lr_margin + 6, y=self.pg_h-self.top_margin-0.5*inch, width=1*inch, height=0.5*inch)
+        c.drawImage(logofile, x=self.lr_margin + 6, y=self.pg_h-self.top_margin-0.5*inch, width=1*inch, height=0.5*inch)
 
         # unit text
         c.setFont('Helvetica', 12)
@@ -166,7 +167,6 @@ class OfficialLetter(BaseDocTemplate):
         #pdfmetrics.registerFont(TTFont("Helvetica", ttfFile))  
         ttfFile = os.path.join(media_path, 'Helvetica.ttf')
         #pdfmetrics.registerFont(TTFont("Helvetica", ttfFile))  
-        self.logofile = os.path.join(media_path, 'logo.png')
         
         # graphic standards colours
         self.sfu_red = CMYKColor(0, 1, 0.79, 0.2)
@@ -292,64 +292,83 @@ class LetterContents(object):
 
 
 class RAForm(object):
-    BOX_OFFSET = 0.078125*inch # how far boxes are from the edges (i.e. from the larger box)
-    ENTRY_SIZE = 0.375*inch # height of a data entry box
+    BOX_OFFSET = 0.1*inch # how far boxes are from the edges (i.e. from the larger box)
+    ENTRY_SIZE = 0.4*inch # height of a data entry box
     ENTRY_HEIGHT = ENTRY_SIZE + BOX_OFFSET # height difference for adjacent entry boxes
     LABEL_OFFSET = 2 # right offset of a label from the box position
     LABEL_HEIGHT = 8 # height of a label (i.e. offset of top of box)
     DATA_BUMP = 4 # how far to move data up from bottom of box
     MAIN_WIDTH = 7.5*inch # size of the main box
     MAIN_HEIGHT = 7.5*inch # size of the main box
-    CHECK_SIZE = 0.125*inch # checkbox size
+    CHECK_SIZE = 0.1*inch # checkbox size
+    NOTE_STYLE = ParagraphStyle(name='Normal',
+                                fontName='Helvetica',
+                                fontSize=10,
+                                leading=11,
+                                alignment=TA_LEFT,
+                                textColor=black)
 
     def __init__(self, ra):
         self.ra = ra
     
-    def _draw_box_right(self, x, y, label, content, width=MAIN_WIDTH-BOX_OFFSET):
-        self._draw_box_left(x=self.MAIN_WIDTH - x - width - self.BOX_OFFSET, y=y, label=label, content=content, width=width)
+    def _draw_box_right(self, x, y, label, content, width=MAIN_WIDTH-BOX_OFFSET, tick=False):
+        self._draw_box_left(x=self.MAIN_WIDTH - x - width - self.BOX_OFFSET, y=y, label=label,
+                            content=content, width=width, tick=tick)
         
-    def _draw_box_left(self, x, y, label, content, width=MAIN_WIDTH-BOX_OFFSET):
+    def _draw_box_left(self, x, y, label, content, width=MAIN_WIDTH-BOX_OFFSET, tick=False):
         """
         Draw one text entry box with the above parameters.
         
         "width" parameter should include one BOX_OFFSET
         """
-        # box
+        # box/tickmark
         self.c.setLineWidth(2)
-        self.c.rect(x + self.BOX_OFFSET, y - self.BOX_OFFSET - self.ENTRY_SIZE, width - self.BOX_OFFSET, self.ENTRY_SIZE)
+        if not tick:
+            self.c.rect(x + self.BOX_OFFSET, y - self.BOX_OFFSET - self.ENTRY_SIZE, width - self.BOX_OFFSET, self.ENTRY_SIZE)
+        else:
+            self.c.line(x + self.BOX_OFFSET, y - self.BOX_OFFSET - self.ENTRY_SIZE, x + self.BOX_OFFSET, y - self.BOX_OFFSET - self.ENTRY_SIZE + 0.2*inch)
 
         # label
         self.c.setFont("Helvetica", 6)
         self.c.drawString(x + self.BOX_OFFSET + self.LABEL_OFFSET, y - self.BOX_OFFSET - self.LABEL_HEIGHT, label)
         
         # content
-        self.c.setFont("Helvetica", 12)
+        self.c.setFont("Helvetica-Bold", 12)
         self.c.drawString(x + self.BOX_OFFSET + 2*self.LABEL_OFFSET, y - self.BOX_OFFSET - self.ENTRY_SIZE + self.DATA_BUMP, content)
     
     def _rule(self, height):
         self.c.setLineWidth(2)
         self.c.line(0, height, self.MAIN_WIDTH, height)
     
+    def _signature_line(self, x, y, width, label):
+        self.c.setLineWidth(1)
+        self.c.line(x, y, x+width, y)
+        self.c.setFont("Helvetica", 6)
+        self.c.drawString(x, y-7, label)
+        
+    
     def draw_pdf(self, outfile):
         """
         Generates PDF in the file object (which could be a Django HttpResponse).
         """
-        c = canvas.Canvas(outfile, pagesize=letter)
-        self.c = c
+        self.c = canvas.Canvas(outfile, pagesize=letter)
         self.c.setStrokeColor(black)
 
         # draw form
-        c.translate(0.5*inch, 2.25*inch) # origin = lower-left of the main box
+        self.c.translate(0.5*inch, 2.25*inch) # origin = lower-left of the main box
     
-        c.setStrokeColor(black)
-        c.setLineWidth(2)
-        c.rect(0, 0, self.MAIN_WIDTH, self.MAIN_HEIGHT)
+        self.c.setStrokeColor(black)
+        self.c.setLineWidth(2)
+        self.c.rect(0, 0, self.MAIN_WIDTH, self.MAIN_HEIGHT)
         
-        c.setFont("Helvetica", 10)
-        c.drawCentredString(4*inch, 8.125*inch, "SIMON FRASER UNIVERSITY")
-        c.setFont("Helvetica-Bold", 14)
-        c.drawCentredString(4*inch, 7.875*inch, "Student, Research & Other Non-Union")
-        c.drawCentredString(4*inch, 7.625*inch, "Appointments")
+        self.c.setFont("Helvetica", 10)
+        self.c.drawCentredString(4*inch, 8.25*inch, "SIMON FRASER UNIVERSITY")
+        self.c.setFont("Helvetica-Bold", 14)
+        self.c.drawCentredString(4*inch, 8*inch, "Student, Research & Other Non-Union")
+        self.c.drawCentredString(4*inch, 7.75*inch, "Appointments")
+        self.c.drawImage(logofile, x=0.5*inch, y=7.75*inch, width=1*inch, height=0.5*inch)
+        self.c.setFont("Helvetica", 6)
+        self.c.drawCentredString(4*inch, 7.6*inch, "PLEASE SEE GUIDE TO THE COMPLETION OF APPOINTMENT FOR FPP4")
         
         # SIN
         sin = "%09i" % (self.ra.sin)
@@ -365,25 +384,29 @@ class RAForm(object):
         self._draw_box_left(0, self.MAIN_HEIGHT - self.ENTRY_HEIGHT, label="LAST OR FAMILY NAME", content=self.ra.person.last_name)
         self._draw_box_left(0, self.MAIN_HEIGHT - 2*self.ENTRY_HEIGHT, label="FIRST NAME", content=self.ra.person.first_name)
         
-        height = self.MAIN_HEIGHT - 3*self.ENTRY_HEIGHT - self.BOX_OFFSET
+        height = 5.875*inch
         self._rule(height)
         
         # position
-        self._draw_box_left(0, height, width=3.125*inch, label="POSITION NUMBER", content=unicode(self.ra.account.position_number))
+        self._draw_box_left(0, height, width=3.125*inch, label="POSITION NUMBER", content='') # to be filled by HR
         self._draw_box_right(0, height, width=3.75*inch, label="POSITION TITLE", content=unicode(self.ra.account.title))
         
         # department
         self._draw_box_left(0, height - self.ENTRY_HEIGHT, width=3.125*inch, label="DEPARTMENT", content=self.ra.unit.name)
         
         # fund/project/account
-        self._draw_box_right(0, height - self.ENTRY_HEIGHT, width=3.75*inch, label="FUND (2)", content='XX...')
-        
-        height = height - 2*self.ENTRY_HEIGHT - self.BOX_OFFSET
+        self._draw_box_right(0, height - self.ENTRY_HEIGHT, width=3.75*inch, label="FUND", content=unicode(self.ra.project.fund_number))
+        self._draw_box_right(0, height - self.ENTRY_HEIGHT, width=3*inch,
+                             label="DEPARTMENT/PROJECT NUM", tick=True, content=unicode(self.ra.project.project_number))
+        self._draw_box_right(0, height - self.ENTRY_HEIGHT, width=1.25*inch,
+                             label="ACCOUNT", tick=True, content=unicode(self.ra.account.account_number))
+
+        height = 4.75*inch
         self._rule(height)
         
         # dates
-        self._draw_box_left(0, height, width=2.125*inch, label="START DATE (yyyy/mm/dd)", content=unicode(self.ra.start_date))
-        self._draw_box_left(3*inch, height, width=1.5*inch, label="END DATE (yyyy/mm/dd)", content=unicode(self.ra.end_date))
+        self._draw_box_left(0, height, width=2.125*inch, label="START DATE (yyyy/mm/dd)", content=unicode(self.ra.start_date).replace('-', '/'))
+        self._draw_box_left(3*inch, height, width=1.5*inch, label="END DATE (yyyy/mm/dd)", content=unicode(self.ra.end_date).replace('-', '/'))
 
         # health benefit check boxes        
         self.c.setLineWidth(1)
@@ -400,12 +423,19 @@ class RAForm(object):
         # pay
         self._draw_box_left(0, height - self.ENTRY_HEIGHT, width=2.125*inch, label="HOURLY", content="$  " + unicode(self.ra.hourly_pay))
         self._draw_box_left(3*inch, height - self.ENTRY_HEIGHT, width=1.5*inch, label="BI-WEEKLY", content="$  " + unicode(self.ra.biweekly_pay))
-        self._draw_box_right(0, height - self.ENTRY_HEIGHT, width=2.25*inch, label="LUMP SUM ADJUSTMENT", content="$  " + unicode(self.ra.lump_sum_pay))
+        self._draw_box_right(0, height - self.ENTRY_HEIGHT, width=2.25*inch, label="LUMP SUM ADJUSTMENT", content='')
+        # "$  " + unicode(self.ra.lump_sum_pay)       
         
-        self._draw_box_left(3*inch, height - 2*self.ENTRY_HEIGHT, width=1.5*inch, label="BI-WEEKLY", content="HH:MM")
-        self._draw_box_left(self.MAIN_WIDTH - self.BOX_OFFSET - 2.25*inch, height - 2*self.ENTRY_HEIGHT, width=1*inch, label="LUMP SUM", content="HH:MM")
+        hours = "%i : 00" % (self.ra.hours)
+        self._draw_box_left(3*inch, height - 2*self.ENTRY_HEIGHT, width=1.5*inch, label="BI-WEEKLY HOURS", content=hours)
+        self._draw_box_left(self.MAIN_WIDTH - self.BOX_OFFSET - 2.25*inch, height - 2*self.ENTRY_HEIGHT, width=1*inch, label="LUMP SUM", content='')
         
-        height = height - 3*self.ENTRY_HEIGHT - self.BOX_OFFSET
+        self.c.setFont("Helvetica-Bold", 8)
+        self.c.drawString(self.BOX_OFFSET, height - 1.125*inch, "Enter Hourly Rate if Paid by the hour.")
+        self.c.drawString(self.BOX_OFFSET, height - 1.125*inch - 9, "Enter Biweekly rate if salary.  DO NOT")
+        self.c.drawString(self.BOX_OFFSET, height - 1.125*inch - 18, "ENTER BOTH.")
+        
+        height = 3*inch
         self._rule(height)
         
         # appointment type checkboxes
@@ -431,12 +461,49 @@ class RAForm(object):
         self.c.rect(4*inch, height - self.BOX_OFFSET - 5*self.CHECK_SIZE, self.CHECK_SIZE, self.CHECK_SIZE, fill=fills[3])
         self.c.drawString(4*inch + 1.5*self.CHECK_SIZE, height - self.BOX_OFFSET - 4.5*self.CHECK_SIZE - 3, "NON STUDENT")
         
-        height = height - 7*self.CHECK_SIZE
+        height = 2.25*inch
         self._rule(height)
         
+        # notes
+        self.c.setFont("Helvetica", 6)
+        self.c.drawString(self.BOX_OFFSET, height - self.LABEL_HEIGHT, "NOTES:")
+        self.c.setFont("Helvetica", 4)
+        self.c.drawString(1.25*inch, height - 7, "BI-WEEKLY EMPLOYMENT EARNINGS RATE MUST INCLUDE VACATION PAY. HOURLY RATES WILL AUTOMATICALLY HAVE VACATION PAY ADDED.")
+        self.c.drawString(1.25*inch, height - 12, "THE EMPLOYER COST OF STATUTORY BENEFITS WILL BE CHARGED TO THE ACCOUNT IN ADDITION TO THE EARNINGS RATE.")
         
-        c.showPage()
-        c.save()
+        f = Frame(self.BOX_OFFSET, height - 1.125*inch, self.MAIN_WIDTH - 2*self.BOX_OFFSET, 1*inch) # showBoundary=1
+        notes = []
+        default_note = "For total amount of $%s over %i pay periods." % (self.ra.lump_sum_pay, self.ra.pay_periods)
+        notes.append(Paragraph(default_note, style=self.NOTE_STYLE))
+        notes.append(Spacer(1, 8))
+        notes.append(Paragraph(self.ra.notes, style=self.NOTE_STYLE))
+        f.addFromList(notes, self.c)
+
+        height = 1.125*inch
+        self._rule(height)
+        
+        # signatures
+        self._signature_line(self.BOX_OFFSET, height - 0.325*inch, 2*inch, "SIGNING AUTHORITY")
+        self._signature_line(3.125*inch, height - 0.325*inch, 1.125*inch, "FINANCIAL SERVICES")
+        self._signature_line(5.5*inch, height - 0.325*inch, 1.25*inch, "DATA ENTRY")
+        self._signature_line(self.BOX_OFFSET, height - 0.75*inch, 2*inch, "DATE")
+        self._signature_line(3.125*inch, height - 0.75*inch, 1.125*inch, "DATE")
+        self._signature_line(5.5*inch, height - 0.75*inch, 1.25*inch, "DATE")
+        
+        # footer
+        self.c.setFont("Helvetica", 4)
+        height = 0
+        self.c.drawString(0, height-10, "THE INFORMATION ON THIS FORM IS COLLECTED UNDER THE AUTHORITY OF THE UNIVERSITY ACT (RSBC 1996, C. 468), THE INCOME TAX ACT, THE PENSION PLAN ACT, THE EMPLOYMENT INSURANCE ACT, THE FINANCIAL INFORMATION ACT")
+        self.c.drawString(0, height-15, "OF BC, AND THE WORKERS COMPENSATION ACT OF BC. THE INFORMATION ON THIS FORM IS USED BY THE UNIVERSITY FOR PAYROLL AND BENEFIT PLAN ADMINISTRATION, STATISTICAL COMPILATIONS, AND OPERATING PRGRAMS")
+        self.c.drawString(0, height-20, "AND ACTIVITIES AS REQUIRED BY UNIVERSITY POLICIES. THE INFORMATION ON THIS FORM IS DISCLOSED TO GOVERNMENT AGENCIES AS REQURIED BY THE GOVERNMENT ACTS. YOUR BANKING INFORMATION IS DIESCLOSED")
+        self.c.drawString(0, height-25, "TO FINANCIAL INSTITUTIONS FOR THE PURPOSE OF DIRECT DEPOSIT. IN ACCORDANCE WITH THE FINANCIAL INFORMATION ACT OF BC, YOUR NAME AND REMUNERATION  IS PUBLIC INFORMATION AND MAY BE PUBLISHED.")
+        self.c.drawString(0, height-35, "IF YOU HAVE ANY QUESTIONS ABOUT THE COLLECTION AND USE OF THIS INFORMATION, PLEASE CONTACT THE SIMON FRASER UNIVERSITY PAYROLL SUPERVISOR.")
+
+        self.c.setFont("Helvetica-Bold", 6)
+        self.c.drawString(0, height-50, "REVISED Nov 2004 (produced by CourSys RAForm)")
+        
+        self.c.showPage()
+        self.c.save()
 
 
 def ra_form(ra, outfile):
