@@ -291,21 +291,22 @@ class LetterContents(object):
         return contents
 
 
-BOX_OFFSET = 0.078125*inch # how far boxes are from the edges (i.e. from the larger box)
-ENTRY_SIZE = 0.375*inch # height of a data entry box
-ENTRY_HEIGHT = ENTRY_SIZE + BOX_OFFSET # height difference for adjacent entry boxes
-LABEL_OFFSET = 2 # right offset of a label from the box position
-LABEL_HEIGHT = 8 # height of a label (i.e. offset of top of box)
-DATA_BUMP = 4 # how far to move data up from bottom of box
-MAIN_WIDTH = 7.5*inch # size of the main box
-MAIN_HEIGHT = 7.5*inch # size of the main box
-
 class RAForm(object):
+    BOX_OFFSET = 0.078125*inch # how far boxes are from the edges (i.e. from the larger box)
+    ENTRY_SIZE = 0.375*inch # height of a data entry box
+    ENTRY_HEIGHT = ENTRY_SIZE + BOX_OFFSET # height difference for adjacent entry boxes
+    LABEL_OFFSET = 2 # right offset of a label from the box position
+    LABEL_HEIGHT = 8 # height of a label (i.e. offset of top of box)
+    DATA_BUMP = 4 # how far to move data up from bottom of box
+    MAIN_WIDTH = 7.5*inch # size of the main box
+    MAIN_HEIGHT = 7.5*inch # size of the main box
+    CHECK_SIZE = 0.125*inch # checkbox size
+
     def __init__(self, ra):
         self.ra = ra
     
     def _draw_box_right(self, x, y, label, content, width=MAIN_WIDTH-BOX_OFFSET):
-        self._draw_box_left(x=MAIN_WIDTH - x - width - BOX_OFFSET, y=y, label=label, content=content, width=width)
+        self._draw_box_left(x=self.MAIN_WIDTH - x - width - self.BOX_OFFSET, y=y, label=label, content=content, width=width)
         
     def _draw_box_left(self, x, y, label, content, width=MAIN_WIDTH-BOX_OFFSET):
         """
@@ -314,22 +315,20 @@ class RAForm(object):
         "width" parameter should include one BOX_OFFSET
         """
         # box
-        self.c.setStrokeColor(black)
         self.c.setLineWidth(2)
-        self.c.rect(x + BOX_OFFSET, y - BOX_OFFSET - ENTRY_SIZE, width - BOX_OFFSET, ENTRY_SIZE)
+        self.c.rect(x + self.BOX_OFFSET, y - self.BOX_OFFSET - self.ENTRY_SIZE, width - self.BOX_OFFSET, self.ENTRY_SIZE)
 
         # label
         self.c.setFont("Helvetica", 6)
-        self.c.drawString(x + BOX_OFFSET + LABEL_OFFSET, y - BOX_OFFSET - LABEL_HEIGHT, label)
+        self.c.drawString(x + self.BOX_OFFSET + self.LABEL_OFFSET, y - self.BOX_OFFSET - self.LABEL_HEIGHT, label)
         
         # content
         self.c.setFont("Helvetica", 12)
-        self.c.drawString(x + BOX_OFFSET + 2*LABEL_OFFSET, y - BOX_OFFSET - ENTRY_SIZE + DATA_BUMP, content)
+        self.c.drawString(x + self.BOX_OFFSET + 2*self.LABEL_OFFSET, y - self.BOX_OFFSET - self.ENTRY_SIZE + self.DATA_BUMP, content)
     
     def _rule(self, height):
-        self.c.setStrokeColor(black)
         self.c.setLineWidth(2)
-        self.c.line(0, height, MAIN_WIDTH, height)
+        self.c.line(0, height, self.MAIN_WIDTH, height)
     
     def draw_pdf(self, outfile):
         """
@@ -337,13 +336,14 @@ class RAForm(object):
         """
         c = canvas.Canvas(outfile, pagesize=letter)
         self.c = c
-        
+        self.c.setStrokeColor(black)
+
         # draw form
         c.translate(0.5*inch, 2.25*inch) # origin = lower-left of the main box
     
         c.setStrokeColor(black)
         c.setLineWidth(2)
-        c.rect(0, 0, MAIN_WIDTH, MAIN_HEIGHT)
+        c.rect(0, 0, self.MAIN_WIDTH, self.MAIN_HEIGHT)
         
         c.setFont("Helvetica", 10)
         c.drawCentredString(4*inch, 8.125*inch, "SIMON FRASER UNIVERSITY")
@@ -354,26 +354,86 @@ class RAForm(object):
         # SIN
         sin = "%09i" % (self.ra.sin)
         sin = sin[:3] + '-' + sin[3:6] + '-' + sin[6:]
-        self._draw_box_left(0, MAIN_HEIGHT, width=3.125*inch, label="SOCIAL INSURANCE NUMBER (SIN)", content=sin)
+        self._draw_box_left(0, self.MAIN_HEIGHT, width=3.125*inch, label="SOCIAL INSURANCE NUMBER (SIN)", content=sin)
 
         # emplid
         emplid = unicode(self.ra.person.emplid)
         emplid = emplid[:5] + '-' + emplid[5:]
-        self._draw_box_right(0, MAIN_HEIGHT, width=3.375*inch, label="SFU ID #", content=emplid)
+        self._draw_box_right(0, self.MAIN_HEIGHT, width=3.375*inch, label="SFU ID #", content=emplid)
         
         # names
-        self._draw_box_left(0, MAIN_HEIGHT - ENTRY_HEIGHT, label="LAST OR FAMILY NAME", content=self.ra.person.last_name)
-        self._draw_box_left(0, MAIN_HEIGHT - 2*ENTRY_HEIGHT, label="FIRST NAME", content=self.ra.person.first_name)
+        self._draw_box_left(0, self.MAIN_HEIGHT - self.ENTRY_HEIGHT, label="LAST OR FAMILY NAME", content=self.ra.person.last_name)
+        self._draw_box_left(0, self.MAIN_HEIGHT - 2*self.ENTRY_HEIGHT, label="FIRST NAME", content=self.ra.person.first_name)
         
-        height = MAIN_HEIGHT - 3*ENTRY_HEIGHT - BOX_OFFSET
+        height = self.MAIN_HEIGHT - 3*self.ENTRY_HEIGHT - self.BOX_OFFSET
         self._rule(height)
         
         # position
-        self._draw_box_left(0, height, width=3.125*inch, label="POSITION NUMBER", content='[position #]')
-        self._draw_box_right(0, height, width=3.75*inch, label="POSITION TITLE", content='[position title]')
+        self._draw_box_left(0, height, width=3.125*inch, label="POSITION NUMBER", content=unicode(self.ra.account.position_number))
+        self._draw_box_right(0, height, width=3.75*inch, label="POSITION TITLE", content=unicode(self.ra.account.title))
         
         # department
-        self._draw_box_left(0, height - ENTRY_HEIGHT, width=3.125*inch, label="DEPARTMENT", content=self.ra.unit.name)
+        self._draw_box_left(0, height - self.ENTRY_HEIGHT, width=3.125*inch, label="DEPARTMENT", content=self.ra.unit.name)
+        
+        # fund/project/account
+        self._draw_box_right(0, height - self.ENTRY_HEIGHT, width=3.75*inch, label="FUND (2)", content='XX...')
+        
+        height = height - 2*self.ENTRY_HEIGHT - self.BOX_OFFSET
+        self._rule(height)
+        
+        # dates
+        self._draw_box_left(0, height, width=2.125*inch, label="START DATE (yyyy/mm/dd)", content=unicode(self.ra.start_date))
+        self._draw_box_left(3*inch, height, width=1.5*inch, label="END DATE (yyyy/mm/dd)", content=unicode(self.ra.end_date))
+
+        # health benefit check boxes        
+        self.c.setLineWidth(1)
+        self.c.setFont("Helvetica", 6)
+        if self.ra.medical_benefits:
+            fills = [1, 0]
+        else:
+            fills = [0, 1]
+        self.c.rect(5*inch, height - self.BOX_OFFSET - self.CHECK_SIZE, self.CHECK_SIZE, self.CHECK_SIZE, fill=fills[0])
+        self.c.drawString(5*inch + 1.5*self.CHECK_SIZE, height - self.BOX_OFFSET - 0.5*self.CHECK_SIZE - 3, "Yes, Eligible for Health Benefits")
+        self.c.rect(5*inch, height - self.BOX_OFFSET - 2.5*self.CHECK_SIZE, self.CHECK_SIZE, self.CHECK_SIZE, fill=fills[1])
+        self.c.drawString(5*inch + 1.5*self.CHECK_SIZE, height - self.BOX_OFFSET - 2*self.CHECK_SIZE - 3, "Not Eligible for Health Benefits")
+        
+        # pay
+        self._draw_box_left(0, height - self.ENTRY_HEIGHT, width=2.125*inch, label="HOURLY", content="$  " + unicode(self.ra.hourly_pay))
+        self._draw_box_left(3*inch, height - self.ENTRY_HEIGHT, width=1.5*inch, label="BI-WEEKLY", content="$  " + unicode(self.ra.biweekly_pay))
+        self._draw_box_right(0, height - self.ENTRY_HEIGHT, width=2.25*inch, label="LUMP SUM ADJUSTMENT", content="$  " + unicode(self.ra.lump_sum_pay))
+        
+        self._draw_box_left(3*inch, height - 2*self.ENTRY_HEIGHT, width=1.5*inch, label="BI-WEEKLY", content="HH:MM")
+        self._draw_box_left(self.MAIN_WIDTH - self.BOX_OFFSET - 2.25*inch, height - 2*self.ENTRY_HEIGHT, width=1*inch, label="LUMP SUM", content="HH:MM")
+        
+        height = height - 3*self.ENTRY_HEIGHT - self.BOX_OFFSET
+        self._rule(height)
+        
+        # appointment type checkboxes
+        if self.ra.hiring_category == 'U':
+            fills = [0,0,1,0]
+        elif self.ra.hiring_category == 'E':
+            fills = [0,1,0,0]
+        elif self.ra.hiring_category == 'N':
+            fills = [0,0,0,1]
+        elif self.ra.hiring_category == 'S':
+            fills = [1,0,0,0]
+        else:
+            fills = [0,0,0,0]
+        
+        self.c.setLineWidth(1)
+        self.c.setFont("Helvetica", 6)
+        self.c.rect(0.75*inch, height - self.BOX_OFFSET - self.CHECK_SIZE, self.CHECK_SIZE, self.CHECK_SIZE, fill=fills[0])
+        self.c.drawString(0.75*inch + 1.5*self.CHECK_SIZE, height - self.BOX_OFFSET - 0.5*self.CHECK_SIZE - 3, "GRAD STUDENT RESEARCH ASSISTANT (SCHOLARSHIP INCOME)")
+        self.c.rect(4*inch, height - self.BOX_OFFSET - self.CHECK_SIZE, self.CHECK_SIZE, self.CHECK_SIZE, fill=fills[1])
+        self.c.drawString(4*inch + 1.5*self.CHECK_SIZE, height - self.BOX_OFFSET - 0.5*self.CHECK_SIZE - 3, "GRAD STUDENT RESEARCH ASSISTANT (EMPLOYMENT INCOME)")
+        self.c.rect(4*inch, height - self.BOX_OFFSET - 3*self.CHECK_SIZE, self.CHECK_SIZE, self.CHECK_SIZE, fill=fills[2])
+        self.c.drawString(4*inch + 1.5*self.CHECK_SIZE, height - self.BOX_OFFSET - 2.5*self.CHECK_SIZE - 3, "UNDERGRAD STUDENT")
+        self.c.rect(4*inch, height - self.BOX_OFFSET - 5*self.CHECK_SIZE, self.CHECK_SIZE, self.CHECK_SIZE, fill=fills[3])
+        self.c.drawString(4*inch + 1.5*self.CHECK_SIZE, height - self.BOX_OFFSET - 4.5*self.CHECK_SIZE - 3, "NON STUDENT")
+        
+        height = height - 7*self.CHECK_SIZE
+        self._rule(height)
+        
         
         c.showPage()
         c.save()

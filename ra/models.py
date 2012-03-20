@@ -8,9 +8,9 @@ from grad.models import Scholarship
 
 HIRING_CATEGORY_CHOICES = (
     ('U', 'Undergrad'),
-    ('E', 'Employee'),
-    ('N', 'None'),
-    ('S', 'Scholarship'),
+    ('E', 'Grad Employee'),
+    ('N', 'Non-Student'),
+    ('S', 'Grad Scholarship'),
     )
     
 PAY_TYPE_CHOICES = (
