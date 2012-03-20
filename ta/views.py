@@ -14,6 +14,7 @@ from coredata.models import Member, Role, CourseOffering, Person, Semester
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, CoursePreferenceForm, \
     TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm
 from log.models import LogEntry
+from dashboard.letters import ta_form
 from django.forms.models import inlineformset_factory
 from django.forms.formsets import formset_factory
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
@@ -502,6 +503,16 @@ def view_contract(request, post_slug, userid):
     
     
     return render(request, 'ta/view_contract.html', context)
+
+@requires_role("TAAD")
+def view_form(request, post_slug, userid):
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    contract = get_object_or_404(TAContract, posting=posting, application__person__userid=userid)
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = 'inline; filename=%s-%s.pdf' % (posting.slug, userid)
+    ta_form(contract, response)
+    return response
+
 
 @requires_role("TAAD")
 def edit_contract(request, post_slug, userid):

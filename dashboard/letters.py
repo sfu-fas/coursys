@@ -2,6 +2,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import Paragraph, Spacer, Frame, KeepTogether, Flowable, NextPageTemplate, PageBreak, Image
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import inch, mm
+from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import textobject, canvas
 from reportlab.pdfbase import pdfmetrics  
 from reportlab.pdfbase.ttfonts import TTFont  
@@ -577,13 +578,13 @@ class TAForm(object):
         p.lineTo(main_width, 0)
         p.close()
         self.c.drawPath(p, stroke=1, fill=0)
-        
+
         # personal info
         self._draw_box(0, 8.625*inch, 43*mm, label="SFU ID #", content=unicode(self.contract.application.person.emplid))
         self._draw_box(0, 210*mm, 43*mm, label="CANADA SOCIAL INSURANCE NO.", content=unicode(self.contract.application.sin))
         self._draw_box(46*mm, 210*mm, 74*mm, label="LAST OR FAMILY NAME", content=unicode(self.contract.application.person.last_name))
         self._draw_box(125*mm, 210*mm, 50*mm, label="FIRST NAME", content=unicode(self.contract.application.person.first_name))
-        self._draw_box(15*mm, 202*mm, 160*mm) # HOME ADDRESS
+        self._draw_box(15*mm, 202*mm, 160*mm, content="c/o " + unicode(self.contract.application.posting.unit.name)) # ADDRESS
         self.c.setFont("Helvetica", self.LABEL_SIZE)
         self.c.drawString(2, 206*mm, "HOME")
         self.c.drawString(2, 203*mm, "ADDRESS")
@@ -630,9 +631,9 @@ class TAForm(object):
             self.c.rect(51*mm, h, 74*mm, 6*mm)
             self.c.rect(125*mm, h, 23*mm, 6*mm)
             
-            self.c.setFont("Helvetica", self.CONTENT_SIZE-1)
+            self.c.setFont("Helvetica", self.CONTENT_SIZE-2)
             if crs:
-                self.c.drawString(25*mm, h + 1*mm, crs.course.subject + ' ' + crs.course.number)
+                self.c.drawString(25*mm, h + 1*mm, crs.course.subject + ' ' + crs.course.number + ' ' + crs.course.section[:2])
                 self.c.drawString(52*mm, h + 1*mm, crs.get_description_display())
                 self.c.drawRightString(147*mm, h + 1*mm, "%.2f" % (crs.bu))
                 total_bu += crs.bu
@@ -661,7 +662,7 @@ class TAForm(object):
         self._draw_box(33*mm, 111*mm, 32*mm, label="BIWEEKLY RATE", right=True, content="%.2f" % (biweek_schol))
         self._draw_box(79*mm, 111*mm, 32*mm, label="SEMESTER RATE", right=True, content="%.2f" % (total_schol))
 
-        self._draw_box(139*mm, 122*mm, 32*mm, label="EFF. DATE FOR RATE CHANGES", content='')
+        self._draw_box(139*mm, 122*mm, 32*mm, label="EFF. DATE FOR RATE CHANGES", content=unicode(self.contract.pay_start))
         self.c.setFont("Helvetica", 5)
         self.c.drawString(114*mm, 125*mm, "THESE RATES INCLUDE 4%")
         self.c.drawString(114*mm, 123*mm, "VACATION PAY")
@@ -683,8 +684,6 @@ class TAForm(object):
         self.c.drawString(100*mm, 78*mm, "DEADLINE FOR ACCEPTANCE")
         self._draw_box(139*mm, 76*mm, 32*mm, label="", content=unicode(self.contract.deadline))
         
-        self.c.setFont("Helvetica-Bold", 6)
-        self.c.drawString(5*mm, 60*mm, "2. Citizenship")
 
         self.c.setFont("Helvetica", 6)
         self.c.drawString(5*mm, 71*mm, "1. a) This offer of appointment is conditional upon you accepting this appointment by signing and dating this appointment form (see bottom right hand corner box) and returning the signed")
@@ -692,7 +691,7 @@ class TAForm(object):
         self.c.drawString(5*mm, 71*mm - 14, "1. b) If this is an initial appointment in the TSSU bargaining unit, then as a condition of employment under the terms of the Colletive Agreement you must complete and sign the first two")
         self.c.drawString(5*mm, 71*mm - 21, 'sections of the attached form entitled "Appendix A to Article IV Dues and Union Membership or Non Membership" and return it with this appointment form.')
         
-        self.c.drawString(34*mm, 60*mm, "Please complete a) or b) below")
+        self.c.drawString(5*mm, 60*mm, "2. Citizenship        Please complete a) or b) below")
         self.c.drawString(10*mm, 60*mm - 7, "a) First appointment in the category. Please check the box which indicates your status.")
         
         self.c.drawString(15*mm, 53*mm, "i Canadian citizen")
@@ -718,10 +717,27 @@ class TAForm(object):
         self.c.drawString(5*mm, 28*mm, "4. If you do not wish to accept this offer of appointment, please advise the department as soon as possible. If you have not accepted this appointment by the deadline shown above, it will")
         self.c.drawString(5*mm, 28*mm - 7, "be assumed that you have declined the offer of appointment")
 
-        self.c.drawString(35*mm, 20*mm, "Appointment conditional upon enrolment")
-        self.c.rect(79*mm, 19*mm, 3*mm, 3*mm)
+        self.c.drawString(15*mm, 20*mm, "Appointment conditional upon enrolment")
+        fill = 1 if self.contract.appt_cond else 0
+        self.c.rect(59*mm, 19*mm, 3*mm, 3*mm, fill=fill)
+        self.c.drawString(79*mm, 20*mm, "Appointment in TSSU Bargaining unit")
+        fill = 1 if self.contract.appt_tssu else 0
+        self.c.rect(120*mm, 19*mm, 3*mm, 3*mm, fill=fill)
         
         # signatures
+        sigs = Signature.objects.filter(user__userid=self.contract.created_by)
+        if sigs:
+            import PIL
+            sig = sigs[0]
+            sig.sig.open()
+            img = PIL.Image.open(sig.sig)
+            width, height = img.size
+            hei = 8*mm
+            wid = 1.0*width/height * hei
+            sig.sig.open()
+            ir = ImageReader(sig.sig)
+            self.c.drawImage(ir, x=3*mm, y=9*mm, width=wid, height=hei)
+
         self.c.setLineWidth(1)
         self.c.line(0, 18*mm, main_width, 18*mm)
         self.c.line(0, 9*mm, main_width, 9*mm)
@@ -735,8 +751,13 @@ class TAForm(object):
         self.c.drawString(1*mm, 1*mm, "DATE")
         self.c.drawString(61*mm, 1*mm, "DATE")
         self.c.drawString(121*mm, 1*mm, "DATE")
-
+        
+        self.c.setFont("Helvetica", self.CONTENT_SIZE)
+        date = datetime.date.today()
+        self.c.drawString(10*mm, 2*mm, unicode(date))
+        
         # footer
+        self.c.setFont("Helvetica", self.LABEL_SIZE)
         self.c.drawString(1*mm, -3*mm, "ORIGINAL: DEAN     COPY : EMPLOYEE     COPY : DEPARTMENT     COPY : UNION (IF TSSU APP'T)     COPY: PAYROLL")
         self.c.setFont("Helvetica", 3.25)
         self.c.drawString(1*mm, -5*mm, "THE INFORMATION ON THIS FORM IS COLLECTED UNDER THE AUTHORITY OF THE UNIVERSITY ACT (RSBC 1996, C.468), THE INCOME TAX ACT, THE PENSION PLAN ACT, THE EMPLOYMENT INSURANCE ACT, THE FINANCIAL INFORMATION ACT OF BC, AND THE WORKERS COMPENSATION ACT OF BC. THE")

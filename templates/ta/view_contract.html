@@ -6,8 +6,18 @@
 <li>&gt; {{ contract.application.person.name }}'s Contract</li>
 {% endblock %}
 
-{% block title %}Contract for {{ contract.application.person }} {% endblock %}
-{% block h1 %} Contract for {{ contract.application.person }} {% endblock %}
+{% block title %}Contract for {{ contract.application.person }}{% endblock %}
+{% block h1 %}Contract for {{ contract.application.person }}{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    <li><a href="{% url ta.views.edit_contract post_slug=contract.posting.slug userid=contract.application.person.userid %}">Edit Contract</a></li>
+    <li><a href="{% url ta.views.view_form post_slug=contract.posting.slug userid=contract.application.person.userid %}">Appointment Form</a></li>
+    </ul>
+</div>
+{% endblock %}
 
 {% block content %}
 <div class="table_container">
@@ -80,7 +90,7 @@
         </tbody>
       </table>
    </div>
- <form><p><a  id="submit" href="{% url ta.views.edit_contract post_slug=contract.posting.slug userid=contract.application.person.userid %}"><button type="button" class="submit" id="submit">Edit</button></a></p></form>	    
+ <form>	    
 
 </div>
 {% endblock %}

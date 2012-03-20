@@ -21,7 +21,7 @@ class NewsConfigForm(forms.Form):
     
 class SignatureForm(forms.Form):
     person = forms.ChoiceField(choices=[])
-    signature = forms.ImageField(required=True, help_text="Must be a PNG image, scanned at 200dpi: around 150 pixels high and 600 pixels wide.")
+    signature = forms.ImageField(required=True, help_text="Must be a PNG image, scanned at 200dpi: around 100 pixels high and 600 pixels wide.")
     
     def clean_signature(self):
         sig = self.cleaned_data['signature']
