@@ -22,6 +22,30 @@ from django.template.context import Context
 import copy
 import itertools
 
+from dashboard.letters import OfficialLetter, LetterContents
+from dashboard.models import Signature
+from django.contrib.webdesign.lorem_ipsum import paragraphs
+
+
+def make_letter(body, from_emplid, to_grad_slug):
+    to_addr_lines = ['Some Person', '123 Fake St', 'Vancouver, BC, Canada']
+    from_name_lines = ['Greg Baker', 'Lecturer, School of Computing Science']
+    signer = Person.objects.get(userid="ggbaker")
+    letter = LetterContents(to_addr_lines=to_addr_lines, from_name_lines=from_name_lines, signer=signer)
+    letter.add_paragraphs(body)
+    return letter
+
+def view_letter_pdf(body_text, from_emplid, to_grad_slug):
+    response = HttpResponse(mimetype='application/pdf')
+    response['Content-Disposition'] = 'attachment';     
+    response['Content-Disposition'] = 'filename=letter.pdf';
+
+    unit = Unit.objects.get(label="CMPT")
+    doc = OfficialLetter(response, unit=unit)
+    doc.add_letter(make_letter(body_text, from_emplid, to_grad_slug))
+    doc.write()
+    return response
+
 # get semester based on input datetime. defaults to today
 # returns semseter object7
 def get_semester(date=datetime.date.today()):
@@ -69,7 +93,7 @@ def view_all(request, grad_slug):
     # will display academic, personal, FIN, status history, supervisor
     grad = get_object_or_404(GradStudent, slug=grad_slug)
     supervisors = Supervisor.objects.filter(student=grad)
-    status_history = get_list_or_404(GradStatus, student=grad, hidden=False)
+    status_history = GradStatus.objects.filter(student=grad, hidden=False)
     letter = Letter.objects.filter(student=grad)
     #calculate missing reqs
     completed_req = CompletedRequirement.objects.filter(student=grad)
@@ -668,7 +692,7 @@ def get_letter_dict(grad):
     program = grad.program
     ls = {
             'title' : title,
-            'his_her' : hisher,          
+            'his_her' : hisher,
             'first_name': first_name,
             'last_name': last_name,
             'address': '\"' + address + '\"',
@@ -735,7 +759,7 @@ def search(request):
     # search arguments are being passed
     if len(request.GET) > 0:
         cleaned_get = copy.copy(request.GET)
-        for k,l in request.GET.iterlists():
+        for k, l in request.GET.iterlists():
             if len(filter(lambda x:len(x) > 0, l)) == 0:
                 del cleaned_get[k]
         if len(cleaned_get) < len(request.GET):
@@ -803,13 +827,13 @@ def search_results(request):
         total = results.count()
         results = list(results)
         results = results + results + results + results + results + results
-        grads = results[start:start+count]
+        grads = results[start:start + count]
         for g in grads:
             rows.append([g.person.emplid])
         
         print rows
         data = {
-                'iTotalRecords': total*6,
+                'iTotalRecords': total * 6,
                 'aaData': rows,
                 }
     if 'sEcho' in request.GET:
@@ -884,7 +908,7 @@ def financials(request, grad_slug):
 def new_promise(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
     if request.method == 'POST':
-        promise_form = new_promiseForm(request.POST )
+        promise_form = new_promiseForm(request.POST)
         if promise_form.is_valid():
             temp = promise_form.save(commit=False)
             temp.student = grad
