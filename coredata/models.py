@@ -493,7 +493,7 @@ class CourseOffering(models.Model):
         return "%s (%s)" % (self.name(), self.semester.label())
     
     def get_desc(self):
-        if self.labtut():
+        if self.labtas():
             return 'OML'
         else:
             return 'OM'
