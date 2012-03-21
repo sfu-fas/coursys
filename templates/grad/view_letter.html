@@ -10,6 +10,11 @@
 <li>
 	&gt; <a href="{% url grad.views.index %}">Grad</a>
 </li>
+{% if grad %}
+<li>
+	&gt; <a href="{% url grad.views.view_all grad_slug=grad.slug%}">{{grad.person.last_name}}, {{grad.person.first_name}}</a> 
+</li>
+{% endif %}
 <li>
 	&gt; <a href="{% url grad.views.letters %}">Letters</a>
 </li>
@@ -43,21 +48,55 @@
 				</dd>
 			</dl>
 		</div>
-		<div style="float:left; width:100%">
+		<div style="float: left; width: 40%">
 			<dl class="dlform">
 				<dt>
-					Contents:*
+					Send Date:
 				</dt>
 				<dd>
-					<br />
-					{{letter.content}}
-					<br />
+					{{letter.date}}
 				</dd>
 			</dl>
 		</div>
-		
+		<div style="float: left; width: 20%">
+			<dl class="dlform">
+				<dt>
+					Created By:
+				</dt>
+				<dd>
+					{{letter.created_by}}
+				</dd>
+			</dl>
+		</div>
+		<div style="float: left;">
+			<dl class="dlform">
+				<dt>
+					Created At:
+				</dt>
+				<dd>
+					{{letter.created_at}}
+				</dd>
+			</dl>
+		</div>		
+		<div style="float:left; width:100%">
+			<dl class="dlform">
+				<dt>
+					Contents:
+				</dt>
+				<dd>
+					<div style="width: 90%; margin: 15px;">
+					{{letter.content}}
+					</div>
+				</dd>
+			</dl>
+		</div>
 	</fieldset>
-	<div style="float:left;"><a class="button" href="{% url grad.views.view_all_letters grad_slug=grad.slug %}">Back</a></div>
-	<div style="float:right; padding-right: 10px;"><a class="button" href="{% url grad.views.get_letter letter_slug=letter.slug %}">Get PDF</a><br /></div>
+	<div style="float:left;">
+		<a class="button" href="{% url grad.views.view_all_letters grad_slug=grad.slug %}">Back</a>
+	</div>
+	<div style="float:right; padding-right: 10px;">
+		<a class="button" href="{% url grad.views.get_letter letter_slug=letter.slug %}">Get PDF</a>
+		<br />
+	</div>
 </div>
 {% endblock %} 
