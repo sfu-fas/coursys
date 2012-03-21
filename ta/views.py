@@ -23,8 +23,6 @@ from django.core.servers.basehttp import FileWrapper
 import os
 import datetime, decimal, locale 
 import unicodecsv as csv
-from chameleon.compiler import str
-
 
 locale.setlocale( locale.LC_ALL, '' ) #fiddle with this if u cant get the following function to work
 def format_currency(i):
