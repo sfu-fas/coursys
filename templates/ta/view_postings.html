@@ -48,7 +48,7 @@
 {% for p in postings %}
 <li>
   <a href="{% url ta.views.new_application post_slug=p.slug auto_id='auto_id' %}">{{p}}</a>
-  {% if is_admin %}<a href="{% url ta.views.new_application post_slug=p.slug auto_id='manual_id' %}">[Manual Application]</a>{% endif %}
+  {% if is_admin %}[<a href="{% url ta.views.new_application post_slug=p.slug auto_id='manual_id' %}">Manual Application</a>]{% endif %}
 </li>
 {% empty %}
 <li class="empty">No open postings</li>

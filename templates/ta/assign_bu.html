@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% load form_display ta_display %}
 
-{% block title %}Assign TAs for {{ offering.subject }} {{ offering.number }} {{ offering.section }} at {{ offering.get_campus_display }}{% endblock %}
-{% block h1 %}Assign TAs for {{ offering.subject }} {{ offering.number }} {{ offering.section }} at {{ offering.get_campus_display }}{% endblock %}
+{% block title %}Assign TAs for {{ offering.subject }} {{ offering.number }} {{ offering.section }} at {{ offering.get_campus_display}}{% endblock %}
+{% block h1 %}Assign TAs for {{ offering.subject }} {{ offering.number }} {{ offering.section }} at {{ offering.get_campus_display}}</br>
+{% endblock %}
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li><li>&gt; {{ posting.unit.label }} {{ posting.semester }} </li><li>&gt; <a href="{% url ta.views.assign_tas post_slug=posting.slug %}">Assign TAs</a></li><li>&gt; {{ offering.subject }} {{ offering.number }} {{ offering.section }}</li> 
@@ -77,6 +78,12 @@
 
 {% block content %}
 
+<h2>
+Instructor:
+{% for instructor in instructors %}
+    {{ instructor.last_name }}, {{ instructor.first_name }}</br>
+{% endfor %}
+</h2>
 
 <form>
 	<div class="container">

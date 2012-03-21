@@ -326,6 +326,7 @@ def assign_tas(request, post_slug):
 def assign_bus(request, post_slug, course_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug)
     offering = get_object_or_404(CourseOffering, slug=course_slug)
+    instructors = offering.instructors()
     course_prefs = CoursePreference.objects.filter(course=offering.course) 
     #a ta that has been assigned BU to this course might not be on the list
     tacourses = TACourse.objects.filter(course=offering)
@@ -415,7 +416,7 @@ def assign_bus(request, post_slug, course_slug):
         if assigned_ta[i] != None and assigned_ta[i].description == 'OML':
             formset[i].fields['bu'].help_text = 'TA runs lab'
     
-    context = {'formset':formset, 'posting':posting, 'offering':offering, 'applications': apps, 'course_preferences': course_prefs, 'campus_preferences':campus_prefs}
+    context = {'formset':formset, 'posting':posting, 'offering':offering, 'instructors':instructors, 'applications': apps, 'course_preferences': course_prefs, 'campus_preferences':campus_prefs}
     return render(request, 'ta/assign_bu.html', context) 
 
 @requires_role("TAAD")
