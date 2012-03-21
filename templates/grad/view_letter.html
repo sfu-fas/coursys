@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load mobile_tags %}
+{% load form_display %}
+
+{% block title %}{{page_title}}{% endblock %}
+{% block h1 %}{{page_title}}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>
+	&gt; <a href="{% url grad.views.index %}">Grad</a>
+</li>
+<li>
+	&gt; <a href="{% url grad.views.letters %}">Letters</a>
+</li>
+<li>
+	&gt; {{crumb}}
+</li>
+{% endblock %}
+{% block content %}
+<div id="form_container">
+	<fieldset>
+		<legend>
+			Letter Info
+		</legend>
+		<div style="float: left; width: 40%;">
+			<dl class="dlform">
+				<dt>
+					Student:
+				</dt>
+				<dd>
+					{{letter.student.person.emplid}}- {{letter.student.person.last_name}}, {{letter.student.person.first_name}}
+				</dd>
+			</dl>
+		</div>
+		<div style="float: left;">
+			<dl class="dlform">
+				<dt>
+					Template:
+				</dt>
+				<dd>
+					{{letter.template.label}} Letter for {{letter.template.unit}}
+				</dd>
+			</dl>
+		</div>
+		<div style="float:left; width:100%">
+			<dl class="dlform">
+				<dt>
+					Contents:*
+				</dt>
+				<dd>
+					<br />
+					{{letter.content}}
+					<br />
+				</dd>
+			</dl>
+		</div>
+		
+	</fieldset>
+	<div style="float:left;"><a class="button" href="{% url grad.views.view_all_letters grad_slug=grad.slug %}">Back</a></div>
+	<div style="float:right; padding-right: 10px;"><a class="button" href="{% url grad.views.get_letter letter_slug=letter.slug %}">Get PDF</a><br /></div>
+</div>
+{% endblock %} 

@@ -27,27 +27,8 @@ from dashboard.models import Signature
 from django.contrib.webdesign.lorem_ipsum import paragraphs
 
 
-def make_letter(body, from_emplid, to_grad_slug):
-    to_addr_lines = ['Some Person', '123 Fake St', 'Vancouver, BC, Canada']
-    from_name_lines = ['Greg Baker', 'Lecturer, School of Computing Science']
-    signer = Person.objects.get(userid="ggbaker")
-    letter = LetterContents(to_addr_lines=to_addr_lines, from_name_lines=from_name_lines, signer=signer)
-    letter.add_paragraphs(body)
-    return letter
-
-def view_letter_pdf(body_text, from_emplid, to_grad_slug):
-    response = HttpResponse(mimetype='application/pdf')
-    response['Content-Disposition'] = 'attachment';     
-    response['Content-Disposition'] = 'filename=letter.pdf';
-
-    unit = Unit.objects.get(label="CMPT")
-    doc = OfficialLetter(response, unit=unit)
-    doc.add_letter(make_letter(body_text, from_emplid, to_grad_slug))
-    doc.write()
-    return response
-
 # get semester based on input datetime. defaults to today
-# returns semseter object7
+# returns semseter object
 def get_semester(date=datetime.date.today()):
     year = date.year
     next_sem = 0
@@ -762,36 +743,21 @@ def get_letter(request, letter_slug):
     return response
 
 
-
-"""
 @requires_role("GRAD")
-def manage_letter(request, letter_slug):
+def view_letter(request, letter_slug):
     letter = get_object_or_404(Letter, slug=letter_slug)
-    if request.method == 'POST':
-        form = LetterForm(request.POST, instance=letter)
-        if form.is_valid():
-            f = form.save(commit=False)
-            f.created_by = request.user.username            
-            f.save()
-            messages.success(request, "Updated new %s letter for %s." % (form.instance.template.label, form.instance.student))
-            l = LogEntry(userid=request.user.username,
-                  description="Updated new %s letter for %s." % (form.instance.template.label, form.instance.student),
-                  related_object=form.instance)
-            l.save()            
-            return HttpResponseRedirect(reverse(letters))
-    else:
-        form = LetterForm(instance=letter)
+    grad = get_object_or_404(GradStudent, person=letter.student.person)
 
-    page_title = 'Manage Letter'  
-    crumb = 'Manage' 
+    page_title = 'View Letter'  
+    crumb = 'View' 
     context = {
-               'form': form,
                'page_title' : page_title,
                'crumb' : crumb,
-               'letter' : letter
+               'letter' : letter,
+               'grad' : grad
                }
-    return render(request, 'grad/manage_letter.html', context)
-"""
+    return render(request, 'grad/view_letter.html', context)
+
 
 @requires_role("GRAD")
 def search(request):

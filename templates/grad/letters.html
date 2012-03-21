@@ -63,7 +63,7 @@
 				<td>{{s.student.person.first_name}}</td>
 				<td>{{s.template.label}}</td>
 				<td>{{s.created_at}}</td>
-				<td><a href="{% url grad.views.get_letter letter_slug=s.slug %}">Get</a></td>
+				<td><a href="{% url grad.views.get_letter letter_slug=s.slug %}">Get PDF</a> | <a href="{% url grad.views.view_letter letter_slug=s.slug %}">View Body</a></td>
 			</tr>
 			{% endfor %}
 		</tbody>
