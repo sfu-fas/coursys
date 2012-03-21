@@ -12933,7 +12933,7 @@
  },
  {
   "fields": {
-   "config": "{}",
+   "config": "{\"gender\":\"M\"}",
    "emplid": 200000101,
    "first_name": "Gregory",
    "last_name": "Baker",
@@ -12946,7 +12946,7 @@
  },
  {
   "fields": {
-   "config": "{}",
+   "config": "{\"gender\":\"M\"}",
    "emplid": 200000102,
    "first_name": "Bradley",
    "last_name": "Bart",
@@ -12959,7 +12959,7 @@
  },
  {
   "fields": {
-   "config": "{\"email\": \"pb@sfu.ca\",\"phones\":{\"home\":\" 1234567\",\"cell\":\" 1234568\",\"main\":\" 1234567\",\"pref\":\" 1234567\"},\"addresses\":{\"home\":\"123 Stanley Road, Vancouver, BC, Canada\",\"mail\":\"123 Evernote Road, Vancouver, BC, Canada\"},\"gender\":\"M\",\"citizen\":\"China\",\"visa\":\"Permanent Resident\"}",
+   "config": "{\"email\": \"pb@sfu.ca\",\"phones\":{\"home\":\" 1234567\",\"cell\":\" 1234568\",\"main\":\" 1234567\",\"pref\":\" 1234567\"},\"addresses\":{\"home\":\"123 Stanley Road, Vancouver, BC, Canada\",\"mail\":\"123 Evernote Road, Vancouver, BC, Canada\"},\"gender\":\"F\",\"citizen\":\"China\",\"visa\":\"Permanent Resident\"}",
    "emplid": 200000103,
    "first_name": "Petra",
    "last_name": "Berenbrink",
@@ -12985,7 +12985,7 @@
  },
  {
   "fields": {
-   "config": "{}",
+   "config": "{\"gender\":\"M\"}",
    "emplid": 200000105,
    "first_name": "Andrei",
    "last_name": "Bulatov",
@@ -13050,7 +13050,7 @@
  },
  {
   "fields": {
-   "config": "{}",
+   "config": "{\"gender\":\"M\"}",
    "emplid": 200000110,
    "first_name": "Anthony",
    "last_name": "Dixon",
@@ -13115,7 +13115,7 @@
  },
  {
   "fields": {
-   "config": "{}",
+   "config": "{\"gender\":\"F\"}",
    "emplid": 200000115,
    "first_name": "Ayse",
    "last_name": "Ergun",
@@ -14324,7 +14324,7 @@
  },
  {
   "fields": {
-   "config": "{}",
+   "config": "{\"gender\":\"M\"}",
    "emplid": 200000164,
    "first_name": "Rngqimvo",
    "last_name": "Student",

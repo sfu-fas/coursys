@@ -278,8 +278,8 @@ class SearchForm(forms.Form):
 #            ('INTL','International'),
 #            ('CAN','Canadian')
 #            ), required=False)
-    requirements = forms.ModelMultipleChoiceField(GradRequirement.objects.all(), required=False,
-            help_text='Not Implemented')
+    completed_requirements = forms.ModelMultipleChoiceField(GradRequirement.objects.all(),
+        required=False)
     is_canadian = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
     
     has_financial_support = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter,
@@ -310,13 +310,14 @@ class SearchForm(forms.Form):
         if not self.is_valid():
             raise Exception, "The form needs to be valid to get the search query"
         queries = (
-                # Possible use __range=(start_date, end_date) ?
+                # Possibly use __range=(start_date, end_date) ?
                 ('start_semester_start', 'gradstatus__start__gte'),
                 ('start_semester_end', 'gradstatus__start__lte'),
                 ('end_semester_start', 'gradstatus__end__gte'),
                 ('end_semester_end', 'gradstatus__end__lte'),
                 ('student_status', 'gradstatus__status__in'),
                 ('program','program__in'),
+                ('completed_requirements','completedrequirement__requirement__in'),
                 ('is_canadian',),
                 ('campus','campus__in'),
                 )
