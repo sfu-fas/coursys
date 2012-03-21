@@ -565,7 +565,6 @@ def edit_contract(request, post_slug, userid):
     
     TACourseFormset = inlineformset_factory(TAContract, TACourse, extra=num, can_delete=editing, form=TACourseForm, formset=BaseTACourseFormSet)
     formset = TACourseFormset(instance=contract)
-    
     if request.method == "POST":
         form = TAContractForm(request.POST, instance=contract)
         
@@ -596,10 +595,9 @@ def edit_contract(request, post_slug, userid):
             contract = form.save(commit=False)
             formset = TACourseFormset(request.POST, instance=contract)
             if formset.is_valid():
-                
                 #If course isn't in applicants prefered courses, add it with rank 0
                 course_prefs = [c.course for c in CoursePreference.objects.filter(app=contract.application)]
-                for form in formset[:-1]:
+                for form in formset:
                     if 'course' not in form.cleaned_data:
                         continue
                     offering = form.cleaned_data['course']
