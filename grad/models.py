@@ -209,8 +209,15 @@ class LetterTemplate(models.Model):
     
 class Letter(models.Model):
     student = models.ForeignKey(GradStudent, null=False, blank=False)
+    date = models.DateField(help_text="The sending date of the letter")
+    to_lines = models.TextField(help_text='Delivery address for the letter')
     content = models.TextField(help_text="I.e. 'This is to confirm Mr. Baker ... '")
     template = models.ForeignKey(LetterTemplate)
+    salutation = models.CharField(max_length=100, default="To whom it may concern")
+    closing = models.CharField(max_length=100, default="Yours truly")
+    from_person = models.ForeignKey(Person, null=True)
+    from_lines = models.TextField(help_text='Name (and title) of the signer, e.g. "John Smith, Program Director"')
+    
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.CharField(max_length=32, null=False, help_text='Letter generation requseted by.')
     config = JSONField(default={}) # addition configuration for within the letter
@@ -228,7 +235,7 @@ class Letter(models.Model):
         # 'first_month': month to begin; September  
     def autoslug(self):
         return make_slug(self.student.person.userid + "-" + self.template.label)     
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False)            
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)            
     def __unicode__(self):
         return "%s letter for %s" % (self.template.label, self.student)
 

@@ -8,10 +8,10 @@ from grad.forms import SupervisorForm, PotentialSupervisorForm, GradAcademicForm
         GradStudentForm, GradStatusForm, GradRequirementForm, possible_supervisors, BaseSupervisorsFormSet, \
     SearchForm, LetterTemplateForm, LetterForm, UploadApplicantsForm, new_promiseForm
 from coredata.models import Person, Role, Unit, Semester, CAMPUS_CHOICES
-#from django.template import RequestContext
+from coredata.queries import more_personal_info, SIMSProblem
 from django import forms
 from django.forms.models import modelformset_factory, inlineformset_factory
-from courselib.auth import requires_role
+from courselib.auth import requires_role, ForbiddenResponse
 import datetime, json
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from django.contrib import messages
@@ -643,11 +643,13 @@ def view_all_letters(request, grad_slug):
 @requires_role("GRAD")
 def new_letter(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
-    templates = LetterTemplate.objects.filter(unit=2)
-    if "{}" not in str(grad.person.config):
-        ls = get_letter_dict(grad)
+    templates = LetterTemplate.objects.filter(unit=grad.program.unit)
+    from_choices = [('', u'\u2014')] + [(r.person.id, "%s, %s" % (r.person.name(), r.get_role_display()))
+                                        for r in Role.objects.filter(unit=grad.program.unit)]
+    ls = get_letter_dict(grad)
     if request.method == 'POST':
         form = LetterForm(request.POST)
+        form.fields['from_person'].choices = from_choices
         if form.is_valid():
             f = form.save(commit=False)
             f.created_by = request.user.username
@@ -660,7 +662,8 @@ def new_letter(request, grad_slug):
             l.save()            
             return HttpResponseRedirect(reverse(letters))
     else:
-        form = LetterForm(initial={'student':grad})
+        form = LetterForm(initial={'student': grad, 'date': datetime.date.today()})
+        form.fields['from_person'].choices = from_choices
         
 
     page_title = 'New Letter'  
@@ -675,31 +678,37 @@ def new_letter(request, grad_slug):
     return render(request, 'grad/new_letter.html', context)
 
 def get_letter_dict(grad):
-    gender = grad.person.config['gender']
-    if "M" in gender:
-        title = "Mr."
-        hisher = "his"
-    elif "F" in gender:
-        title = "Ms."
-        hisher = "her"
-    else:
-        title = "Mr./Ms."
-        hisher = "his/her"
-    
+    gender = grad.person.gender()
+    title = grad.person.title()
     first_name = grad.person.first_name
     last_name = grad.person.last_name
-    address = grad.person.config['addresses']['home']
-    program = grad.program
+    addresses = grad.person.addresses()
+    program = grad.program.description
+
+    if 'home' in addresses:
+        address = addresses['home']
+    elif 'work' in addresses:
+        address = addresses['work']
+    else:
+        address = ''
+
+    if gender == "M" :
+        hisher = "his"
+    elif gender == "F":
+        hisher = "her"
+    else:
+        hisher = "his/her"
+        
     ls = {
             'title' : title,
             'his_her' : hisher,
             'first_name': first_name,
             'last_name': last_name,
-            'address': '\"' + address + '\"',
+            'address':  address,
             'empl_data': "OO type of employment RA, TA OO",
             'fund_type': "OO RA / TA / Scholarship]]",
             'fund_amount_sem': "OO amount of money paid per semester OO",
-            'program': program.label,
+            'program': program,
             'first_season': "OO semster when grad will begin his studies; fall, summer, spring OO",
             'first_year': "OO year to begin; 2011 OO",
             'first_month': "OO month to begin; September OO"
@@ -708,22 +717,53 @@ def get_letter_dict(grad):
 """
 Get the text from letter template
 """
+@requires_role("GRAD")
 def get_letter_text(request, grad_slug, letter_template_id):
     text = ""
-    if request.is_ajax():
-        grad = get_object_or_404(GradStudent, slug=grad_slug)
-        if "{}" in str(grad.person.config):
-            text = "There are no configs found in the student's profile.\n Please update profile in order to get templates to work."
-        else: 
-            lt = get_object_or_404(LetterTemplate, id=letter_template_id)
-            temp = Template(lt.content)
-            ls = get_letter_dict(grad)
-            text = temp.render(Context(ls))
-    else:
-        text = "No ajax recieved." 
+    grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
+    if False and "{}" in str(grad.person.config):
+        text = "There are no configs found in the student's profile.\n Please update profile in order to get templates to work."
+    else: 
+        lt = get_object_or_404(LetterTemplate, id=letter_template_id)
+        temp = Template(lt.content)
+        ls = get_letter_dict(grad)
+        text = temp.render(Context(ls))
 
     return HttpResponse(text)
 
+@requires_role("GRAD")
+def get_addresses(request):
+    if 'id' not in request.GET:
+        return ForbiddenResponse(request, 'must send id')
+    sid = request.GET['id']
+    grad = get_object_or_404(GradStudent, id=sid, program__unit__in=request.units)
+    emplid = grad.person.emplid
+    
+    data = more_personal_info(emplid)
+    if isinstance(data, SIMSProblem):
+        data = {'error': unicode(data)}
+    else:
+        data = {'addresses': data['addresses']}
+    resp = HttpResponse(mimetype="application/json")
+    json.dump(data, resp, indent=1)
+    return resp
+
+@requires_role("GRAD")
+def get_letter(request, letter_slug):
+    letter = get_object_or_404(Letter, slug=letter_slug, student__program__unit__in=request.units)
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = 'inline; filename=%s.pdf' % (letter_slug)
+    doc = OfficialLetter(response, unit=letter.student.program.unit)
+    l = LetterContents(to_addr_lines=letter.to_lines.split("\n"), from_name_lines=letter.from_lines.split("\n"), date=letter.date, salutation=letter.salutation,
+                 closing=letter.closing, signer=letter.from_person)
+    l.add_paragraphs(["Paragraph 1.", "Paragraph 2.", "Paragraph 3."])
+    doc.add_letter(l)
+    doc.write() 
+    return response
+
+
+
+"""
 @requires_role("GRAD")
 def manage_letter(request, letter_slug):
     letter = get_object_or_404(Letter, slug=letter_slug)
@@ -751,7 +791,7 @@ def manage_letter(request, letter_slug):
                'letter' : letter
                }
     return render(request, 'grad/manage_letter.html', context)
-
+"""
 
 @requires_role("GRAD")
 def search(request):

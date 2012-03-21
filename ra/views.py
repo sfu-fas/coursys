@@ -6,7 +6,7 @@ from ra.models import RAAppointment, Project, Account
 from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm
 from grad.forms import possible_supervisors
 from coredata.models import Member, Person, Role, Unit, Semester
-from courselib.auth import requires_role
+from courselib.auth import requires_role, ForbiddenResponse
 from django.template import RequestContext
 from datetime import date, timedelta
 from grad.models import Scholarship, ScholarshipType

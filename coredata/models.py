@@ -42,9 +42,10 @@ class Person(models.Model):
         # 'applic_email': application email address
         # 'title': 'Mr', 'Ms', 'Mrs', etc.
     
-    defaults = {'email': None, 'gender':'U'}
+    defaults = {'email': None, 'gender': 'U', 'addresses': {}}
     _, set_email = getter_setter('email')
     gender, set_gender = getter_setter('gender')
+    addresses, set_addresses = getter_setter('addresses')
     
 
     def __unicode__(self):

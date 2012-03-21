@@ -69,10 +69,10 @@ class LetterPageTemplate(PageTemplate):
         """
         Draw the bottom-of-page part of the letterhead (used on all pages)
         """
-        c.setFont('Helvetica', 12)
+        c.setFont('BemboMTPro', 12)
         c.setFillColor(doc.sfu_red)
         self._drawStringLeading(c, self.lr_margin + 6, 0.5*inch, u'Simon Fraser University'.translate(doc.sc_trans_bembo), charspace=1.4)
-        c.setFont('Helvetica', 6)
+        c.setFont('DINPro', 6)
         c.setFillColor(doc.sfu_grey)
         self._drawStringLeading(c, 3.15*inch, 0.5*inch, u'Engaging the World'.upper(), charspace=2)
         
@@ -99,7 +99,7 @@ class LetterheadTemplate(LetterPageTemplate):
         c.drawImage(logofile, x=self.lr_margin + 6, y=self.pg_h-self.top_margin-0.5*inch, width=1*inch, height=0.5*inch)
 
         # unit text
-        c.setFont('Helvetica', 12)
+        c.setFont('BemboMTPro', 12)
         c.setFillColor(doc.sfu_blue)
         parent = self.unit.parent
         if parent.label == 'UNIV':
@@ -109,12 +109,12 @@ class LetterheadTemplate(LetterPageTemplate):
             # department with faculty above it: display both
             self._drawStringLeading(c, 2*inch, self.pg_h - self.top_margin - 0.325*inch, self.unit.name.translate(doc.sc_trans_bembo), charspace=1.2)
             c.setFillColor(doc.sfu_grey)
-            c.setFont('Helvetica', 8.5)
+            c.setFont('BemboMTPro', 8.5)
             self._drawStringLeading(c, 2*inch, self.pg_h - self.top_margin - 0.48*inch, parent.name, charspace=0.3)
 
         # address block
         addr_style = ParagraphStyle(name='Normal',
-                                      fontName='Helvetica',
+                                      fontName='BemboMTPro',
                                       fontSize=10,
                                       leading=10,
                                       textColor=doc.sfu_grey)
@@ -164,10 +164,10 @@ class OfficialLetter(BaseDocTemplate):
     def _media_setup(self):
         "Get all of the media needed for the letterhead"
         # fonts and logo
-        ttfFile = os.path.join(media_path, 'Helvetica.ttf')
-        #pdfmetrics.registerFont(TTFont("Helvetica", ttfFile))  
-        ttfFile = os.path.join(media_path, 'Helvetica.ttf')
-        #pdfmetrics.registerFont(TTFont("Helvetica", ttfFile))  
+        ttfFile = os.path.join(media_path, 'BemboMTPro-Regular.ttf')
+        pdfmetrics.registerFont(TTFont("BemboMTPro", ttfFile))  
+        ttfFile = os.path.join(media_path, 'DINPro-Regular.ttf')
+        pdfmetrics.registerFont(TTFont("DINPro", ttfFile))  
         
         # graphic standards colours
         self.sfu_red = CMYKColor(0, 1, 0.79, 0.2)

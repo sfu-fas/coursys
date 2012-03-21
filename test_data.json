@@ -19160,7 +19160,8 @@
    "created_by": "ggbaker", 
    "slug": "petra-all-tags", 
    "student": 2, 
-   "template": 7
+   "template": 7,
+   "date": "2012-03-15"
   }, 
   "model": "grad.letter", 
   "pk": 1
@@ -19173,7 +19174,8 @@
    "created_by": "ggbaker", 
    "slug": "petra-special-student-offer", 
    "student": 2, 
-   "template": 5
+   "template": 5,
+   "date": "2012-03-15"
   }, 
   "model": "grad.letter", 
   "pk": 2
@@ -19186,7 +19188,8 @@
    "created_by": "ggbaker", 
    "slug": "petra-msc-offer", 
    "student": 2, 
-   "template": 3
+   "template": 3,
+   "date": "2012-03-15"
   }, 
   "model": "grad.letter", 
   "pk": 3

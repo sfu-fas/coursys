@@ -193,10 +193,15 @@ class LetterTemplateForm(ModelForm):
         return content
 
 class LetterForm(ModelForm):
-    content = forms.CharField(widget=forms.Textarea(attrs={'rows':'25', 'cols': '100'})) 
     class Meta: 
         model = Letter
         exclude = ('created_by', 'config')
+        widgets = {
+                   'student': forms.HiddenInput(),
+                   'to_lines': forms.Textarea(attrs={'rows': 4, 'cols': 50}),
+                   'from_lines': forms.Textarea(attrs={'rows': 3, 'cols': 30}),
+                   'content': forms.Textarea(attrs={'rows':'25', 'cols': '100'}),
+                   }
 
 def choices_with_negate(choices):
     return (list(choices) + [('NOT_' + k, 'Not ' + v) for k, v in choices])

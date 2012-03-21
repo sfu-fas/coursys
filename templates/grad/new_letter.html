@@ -3,8 +3,8 @@
 {% load mobile_tags %}
 {% load form_display %}
 
-{% block title %}{{page_title}}{% endblock %}
-{% block h1 %}{{page_title}}{% endblock %}
+{% block title %}New Letter for {{grad.person.last_name}}, {{grad.person.first_name}}{% endblock %}
+{% block h1 %}New Letter for {{grad.person.last_name}}, {{grad.person.first_name}}{% endblock %}
 
 {% block subbreadcrumbs %}
 <li>
@@ -19,8 +19,68 @@
 {% endblock %}
 {% block headextra %}
 <script type="text/javascript">
+    function getData(url) {
+        $.ajax({
+            type : "GET",
+            url : url,
+            success : function(data) {
+                $("#id_content").append(data);
+            }
+        })
+    }
+    function update_from_lines() {
+        var label = $("#id_from_person option:selected").text();
+        var lines = label.split(", ");
+        var from = lines.join("\r\n");
+        $("#id_from_lines").val(from);
+    }
+    var address_map = {};
+    function update_to_lines() {
+        var label = $("#id_address").val();
+        $("#id_to_lines").val(address_map[label]);
+    }
+    
+    function get_addresses(url) {
+        // insert widget into form
+        var prev = $('#id_date').parent().parent();
+        var element = '<dt><label for="id_address">Addresses:</label></dt><dd><div class="field">';
+        element += '<select id="id_address"><option value="none">&mdash;</option></select>';
+        element += '<img src="{{MEDIA_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" /></div>';
+        element += '<div class="helptext">Known addresses for the student</div></dd>';
+        prev.after(element)
+        
+        // get student's mailing addresses from the server (asynchronously)
+        var id=$('#id_student').val();
+        $.ajax({
+            type: 'GET',
+            url: url + '?id=' + id,
+            error: function(data) {
+                $("#fetchwait").hide();
+            },
+            success: function(data) {
+                if (data.error !== undefined) {
+                    $("#fetchwait").after(' <span class="empty">Error: '+data.error+'</span>');
+                    $("#fetchwait").hide();
+                }
+                if (data.addresses.mail !== undefined) {
+                    addr = data.addresses.mail;
+                    address_map['mail'] = addr;
+                    $("#id_address").append('<option value="mail">Mailing address: ' + addr.split('\n').join(', ') +'</option>')
+                }
+                if (data.addresses.home !== undefined) {
+                    addr = data.addresses.home;
+                    address_map['home'] = addr;
+                    $("#id_address").append('<option value="home">Home address: ' + addr.split('\n').join(', ') +'</option>')
+                }
+                $("#fetchwait").hide();
+                $("#id_address").change(update_to_lines);
+            }
+        });
+    }
+
 	$(document).ready(function() {
 		$('#id_content').attr("disabled", "disabled");
+		$("#id_date").datepicker({'dateFormat': 'yy-mm-dd'});
 		$('#content_note').show('slow');
 		urlMap = {
 		{% for k in templates %}
@@ -28,16 +88,8 @@
 		{% if not forloop.last %},{% endif %}
 		{% endfor %}
 		};
-
-		function getData(url) {
-			$.ajax({
-				type : "GET",
-				url : url,
-				success : function(data) {
-					$("#id_content").append(data);
-				}
-			})
-		}
+		
+		get_addresses('{% url grad.views.get_addresses %}')
 
 		$("#id_template").change(function() {
 			var template_val
@@ -53,6 +105,8 @@
 				getData(url);
 			}
 		});
+		
+		$("#id_from_person").change(update_from_lines);
 	});
 
 </script>
@@ -66,52 +120,27 @@
 				Letter Info
 			</legend>
 			{{ form.non_field_errors }}
-			<div style="float: left; width: 40%;">
-				<dl class="dlform">
-					<dt>
-						Student:
-					</dt>
-					<dd>
-						{{grad.person.emplid}}
-						<br />
-						{{grad.person.last_name}}, {{grad.person.first_name}}{{form.student.errors}}
-					</dd>
-				</dl>
-			</div>
-			<div style="float: left;">
-				<dl class="dlform">
-					<dt>
-						Template:
-					</dt>
-					<dd>
-						<select name="template" id="id_template">
-							<option value=0> --- Pick an existing template --- </option>
-							{% for t in templates%} 
-								<option value={{t.id}}>{{t.label}}</option>
-							{% endfor %}
-						</select>
-						{{form.template.errors}}
-					</dd>
-				</dl>
-			</div>
-			<div style="float:left; width:100%">
-				<dl class="dlform">
-					<dt>
-						<div style="float:left; width: 40%">
-							Contents:*
-						</div>
-						<div style="float:left; color: red; font-weight: normal " id="content_note">
-							^ Please select a template. ^
-						</div>
-					</dt>
-					<dd>
-						{{form.content}}{{form.content.errors}}
-					</dd>
-				</dl>
-			</div>
-			<p hidden=true>
-				{{form.student}}{{form.student.errors}}
-			</p>
+                <dl class="dlform">
+                    <dt>
+                        Template:
+                    </dt>
+                    <dd>
+                        <select name="template" id="id_template">
+                            <option value=0> --- Pick an existing template --- </option>
+                            {% for t in templates%} 
+                                <option value={{t.id}}>{{t.label}}</option>
+                            {% endfor %}
+                        </select>
+                        {{form.template.errors}}
+                    </dd>
+                </dl>
+			
+            <div style="color: red; font-weight: normal; position: relative" id="content_note">
+                ^ Please select a template. ^
+            </div>
+            <div style="clear: both"></div>
+			{{form|as_dl_excludefields:"template"}}
+
 			<p>
 				<input  class="submit"  type="submit" value="Submit">
 			</p>
