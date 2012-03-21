@@ -146,7 +146,7 @@ class TUGForm(forms.ModelForm):
 #        self.instance
         self.instance.config = self.cleaned_data['config']
         return super(TUGForm, self).save(*args, **kwargs)
-    
+
 class TAApplicationForm(forms.ModelForm):
     class Meta:
         model = TAApplication

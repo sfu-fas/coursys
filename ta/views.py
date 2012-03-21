@@ -13,6 +13,7 @@ from ra.models import Account
 from coredata.models import Member, Role, CourseOffering, Person, Semester
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, CoursePreferenceForm, \
     TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm
+from advisornotes.forms import StudentSearchForm
 from log.models import LogEntry
 from dashboard.letters import ta_form
 from django.forms.models import inlineformset_factory
@@ -169,21 +170,30 @@ def edit_tug(request, course_slug, userid):
     return render(request, 'ta/edit_tug.html',context)
 
 @login_required
-def new_application(request, post_slug):
+def new_application(request, post_slug, auto_id):
     posting = get_object_or_404(TAPosting, slug=post_slug)
     course_choices = [(c.id, unicode(c)) for c in posting.selectable_courses()]
     used_campuses = set((vals['campus'] for vals in posting.selectable_offerings().order_by('campus').values('campus').distinct()))
     skills = Skill.objects.filter(posting=posting)
-    CoursesFormSet = formset_factory(CoursePreferenceForm, extra=1, max_num=10)
-    
-    person = get_object_or_404(Person, userid=request.user.username)
-    existing_app = TAApplication.objects.filter(person=person, posting=posting)
-    if existing_app.count() > 0: 
-        messages.success(request, "You have already applied for the %s %s posting." % (posting.unit, posting.semester))
-        return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'app_id':existing_app[0].id}))
-        
-
+    CoursesFormSet = formset_factory(CoursePreferenceForm, extra=1, max_num=10)  
+ 
+    if auto_id == 'auto_id': 
+        person = get_object_or_404(Person, userid=request.user.username)
+        existing_app = TAApplication.objects.filter(person=person, posting=posting)
+        if existing_app.count() > 0: 
+            messages.success(request, "You have already applied for the %s %s posting." % (posting.unit, posting.semester))
+            return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'app_id':existing_app[0].id}))
+       
     if request.method == "POST":
+        #Try to manually retrieve person
+        if auto_id == 'manual_id':
+            try:
+                person = get_object_or_404(Person, emplid=int(request.POST['search']))
+            except ValueError:
+                search_form = StudentSearchForm(request.POST['search'])
+                messages.error(request, "Invalid id %s for person." % (request.POST['search']))
+                return HttpResponseRedirect(reverse('ta.views.new_application', args=(post_slug,auto_id,)))
+
         ta_form = TAApplicationForm(request.POST, prefix='ta')
         courses_formset = CoursesFormSet(request.POST)
         for f in courses_formset:
@@ -237,6 +247,7 @@ def new_application(request, post_slug):
         # TO DO: Update formset to correct number of forms displayed
         return HttpResponse("AJAX Completed") #return updated form.
     else:
+        search_form = StudentSearchForm()
         courses_formset = CoursesFormSet()
         for f in courses_formset:
             f.fields['course'].choices = course_choices
@@ -246,7 +257,9 @@ def new_application(request, post_slug):
 
     context = {
                     'posting':posting,
+                    'auto_id':auto_id,
                     'ta_form':ta_form,
+                    'search_form':search_form,
                     'courses_formset':courses_formset,
                     'campus_preferences':campus_preferences,
                     'campus_pref_choices':PREFERENCE_CHOICES,

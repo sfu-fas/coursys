@@ -11,14 +11,34 @@
 
 {% block headextra %}
 <script type="text/javascript" src="{{MEDIA_URL}}js/application.js"></script>
-{% endblock %} 
+<script type="text/javascript" src="{{MEDIA_URL}}js/advisornotes.js"></script>
+
+<script type="text/javascript">
+//<![CDATA[
+$(document).ready(function() {
+  $("id_search").focus();
+  student_autocomplete('id_search');
+  {% if simssearch %}
+  search_sims('{% url advisornotes.views.sims_search %}', '{{simssearch}}', '{% url advisornotes.views.sims_add_person %}', '{% filter escapejs %}{% csrf_token %}{% endfilter %}');
+  {% endif %}
+});
+//]]></script>{% endblock %}
 
 {% block content %}
 
 <div id="form_container">
-<form action="{% url ta.views.new_application post_slug=posting.slug %}" method="post">{% csrf_token %}
+<form action="{% url ta.views.new_application post_slug=posting.slug auto_id=auto_id %}" method="post">{% csrf_token %}
 <fieldset>
     <legend>{{ posting.unit.name }} TA Application</legend>
+   
+    {% if auto_id == "manual_id" %} 
+        {{search_form.as_p}}
+        
+        <div id="simsresult">
+        <img src="{{MEDIA_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" style="display:none" />
+        </div>
+    {% endif %}
+
     {{ ta_form|as_dl }}
 
 </fieldset>
