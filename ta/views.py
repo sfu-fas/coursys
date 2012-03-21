@@ -412,8 +412,10 @@ def assign_bus(request, post_slug, course_slug):
         formset = AssignBUFormSet(initial=initial)
     
     #add class to bu input for js
-    for f in formset:
-        f.fields['bu'].widget.attrs['class']  = 'bu_inp'
+    for i in range(len(apps)):
+        formset[i].fields['bu'].widget.attrs['class']  = 'bu_inp'
+        if assigned_ta[i] != None and assigned_ta[i].description == 'OML':
+            formset[i].fields['bu'].help_text = 'TA runs lab'
     
     context = {'formset':formset, 'posting':posting, 'offering':offering, 'applications': apps, 'course_preferences': course_prefs, 'campus_preferences':campus_prefs}
     return render(request, 'ta/assign_bu.html', context) 

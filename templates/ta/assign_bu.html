@@ -54,8 +54,10 @@
   	$('.bu_inp').each(function(){
   		var val = $(this).val()
   		if($(this).val()!=''){
-  			var val = $(this).val()
-			$(this).val((parseFloat(val) + bu).toFixed(2))
+  			if($(this).parent().next().length == 0){ //go with default
+  				var val = $(this).val()
+				$(this).val((parseFloat(val) + bu).toFixed(2))
+			}
 		}
 	})
   }
