@@ -217,7 +217,7 @@ urlpatterns += patterns('',
     
     url(r'^ta/postings/$', 'ta.views.view_postings'),
     url(r'^ta/postings/new$', 'ta.views.edit_posting'),
-    url(r'^ta/postings/' + POST_SLUG + '/(?P<auto_id>\w+)$', 'ta.views.new_application'),
+    url(r'^ta/postings/' + POST_SLUG + '/(?P<auto_id>(auto_id|manual_id))$', 'ta.views.new_application'),
     url(r'^ta/postings/' + POST_SLUG + '/generate_csv$', 'ta.views.generate_csv'),
     url(r'^ta/postings/' + POST_SLUG + '/edit$', 'ta.views.edit_posting'),
     url(r'^ta/postings/' + POST_SLUG + '/bu$', 'ta.views.edit_bu'),
