@@ -22,6 +22,7 @@ from django.core.servers.basehttp import FileWrapper
 import os
 import datetime, decimal, locale 
 import unicodecsv as csv
+from chameleon.compiler import str
 
 
 locale.setlocale( locale.LC_ALL, '' ) #fiddle with this if u cant get the following function to work
@@ -320,8 +321,16 @@ def assign_bus(request, post_slug, course_slug):
     
     if request.method == "POST" and request.is_ajax():
         act = 0
-        extra_bu = decimal.Decimal(request.POST['extra_bu'])
-        offering.config['extra_bu'] = extra_bu
+        msg = ''
+        
+        #validation
+        extra_bu = request.POST['extra_bu']
+        if extra_bu != '':
+            try:
+                extra_bu = decimal.Decimal(extra_bu)
+                offering.config['extra_bu'] = extra_bu
+            except:
+                msg = "Extra BU needs to be a decimal number."
             
         if request.POST['labtas'] == "yes":
             if not offering.labtas(): #changed from F to T
@@ -332,7 +341,7 @@ def assign_bus(request, post_slug, course_slug):
                 offering.config['labtas'] = False
                 act = -1
         offering.save()    
-        return HttpResponse(act)
+        return HttpResponse(str(act) + ',' + msg)
 
     apps = []
     campus_prefs = []
@@ -383,7 +392,6 @@ def assign_bus(request, post_slug, course_slug):
                         assigned_ta[i].bu = formset[i]['bu'].value()
                         assigned_ta[i].save()
                     #unassign bu to this offering for this applicant
-                    #TODO: remove contract if 0 TACourse?
                     else:
                         assigned_ta[i].delete()
             return HttpResponseRedirect(reverse(assign_tas, args=(post_slug,)))
@@ -552,7 +560,6 @@ def edit_contract(request, post_slug, userid):
             if('appt_cat' in request.POST):
                 index = posting.cat_index(request.POST['appt_cat'])
                 results = posting.salary()[index] + ',' + posting.scholarship()[index] + ',' + str(posting.accounts()[index])
-                #print results
                 return HttpResponse(results)
             if('course' in request.POST):
                 results = ''
@@ -592,6 +599,7 @@ def edit_contract(request, post_slug, userid):
                 contract.created_by = request.user.username
                 contract.save()
                 formset.save()
+
                 if not editing:
                     messages.success(request, "Created TA Contract for %s for %s." % (contract.application.person, posting))
                 else:

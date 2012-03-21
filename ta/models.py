@@ -374,12 +374,11 @@ class TAContract(models.Model):
         self.posting = posting
         self.sin = application.sin
         self.appt_category = application.category
-        #default??
-        self.position_number_id = 7
         self.pay_start = posting.start()
         self.pay_end = posting.end()
         self.deadline = posting.deadline()
         index = posting.cat_index(application.category)
+        self.position_number = Account.objects.get(pk=posting.accounts()[index])
         self.pay_per_bu = posting.salary()[index]
         self.scholarship_per_bu = posting.scholarship()[index]
         self.save()

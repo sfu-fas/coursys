@@ -18,6 +18,9 @@
 		"bJQueryUI": true,
 		"aaSorting": [[0, "asc"]],
 	});
+	
+	$('#messages').hide()
+	
   });
   
   function update(){
@@ -32,10 +35,18 @@
   	$.post("{% url ta.views.assign_bus post_slug=posting.slug, course_slug=offering.slug %}",
   			{'csrfmiddlewaretoken': "{{csrf_token}}", 'extra_bu': bu, 'labtut': labtut, 'labtas': labtas},
 				function(data){
-					if(data > 0) //add 0.17
+					data = data.split(',')
+					if(data[0] > 0) //add 0.17
 						change_bu(0.17)
-					else if(data < 0) //minus 0.17
+					else if(data[0] < 0) //minus 0.17
 						change_bu(-0.17)
+					
+					if(data[1] != ''){
+						$('#messages ul.warninglist').html('<li class="warning">' + data[1] + '</li>')
+    					$('#messages').show()
+					}
+					else
+						$('#messages').hide()
 				})
   }
   
@@ -53,7 +64,13 @@
 {% endblock %}
 
 {% block content %}
+
+
 <form>
+	<div class="container">
+		<div id="messages"><ul class="warninglist"></ul></div>
+	</div>
+    
     <fieldset>
     <legend>Additional Course Configuration</legend>
         <ul>
