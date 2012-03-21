@@ -18,6 +18,9 @@
 <div id="actions">
 	<h2>Actions</h2>
 	<ul>
+		<li>
+			<a href="{% url grad.views.new_letter grad_slug=grad.slug %}"> New Letter </a>
+		</li>
 		<li  class="newsec">
 			<a href="{% url grad.views.letter_templates %}">View Letter Templates</a>
 		</li>
@@ -34,7 +37,7 @@
 </li>
 {% if grad %}
 <li>
-	&gt; <a href="{% url grad.views.view_all grad_slug=grad.slug%}">{{grad.person.last_name}}, {{grad.person.first_name}}</a> 
+	&gt; <a href="{% url grad.views.view_all grad_slug=grad.slug%}">{{grad.person.last_name}}, {{grad.person.first_name}}</a>
 </li>
 {% endif %}
 <li>

@@ -19152,48 +19152,85 @@
 
  
  
+ 
+ 
+ 
  {
   "fields": {
-   "config": "{\"program\": \"Skipping \", \"first_name\": \"Petra\", \"last_name\": \"Berenbrink\", \"empl_data\": \"OO type of employment RA, TA OO\", \"title\": \"Mr.\", \"first_year\": \"OO year to begin; 2011 OO\", \"first_season\": \"OO semster when grad will begin his studies; fall, summer, spring OO\", \"fund_type\": \"OO RA / TA / Scholarship]]\", \"fund_amount_sem\": \"OO amount of money paid per semester OO\", \"first_month\": \"OO month to begin; September OO\", \"address\": \"\\\"123 Stanley Road, Vancouver, BC, Canada\\\"\", \"his_her\": \"his\"}", 
-   "content": "\"123 Stanley Road, Vancouver, BC, Canada\"\r\nOO type of employment RA, TA OO\r\nOO month to begin; September OO\r\nPetra\r\nOO semster when grad will begin his studies; fall, summer, spring OO\r\nOO year to begin; 2011 OO\r\nOO amount of money paid per semester OO\r\nOO RA / TA / Scholarship]]\r\nhis\r\nBerenbrink\r\nSkipping \r\nMr.\r\n\r\nCheers!", 
-   "created_at": "2012-03-15 20:02:12", 
+   "closing": "Yours truly", 
+   "config": "{\"program\": \"Johnny\", \"first_name\": \"Ayse\", \"last_name\": \"Ergun\", \"empl_data\": \"OO type of employment RA, TA OO\", \"title\": \"Ms\", \"first_year\": \"OO year to begin; 2011 OO\", \"first_season\": \"OO semster when grad will begin his studies; fall, summer, spring OO\", \"fund_type\": \"OO RA / TA / Scholarship]]\", \"fund_amount_sem\": \"OO amount of money paid per semester OO\", \"first_month\": \"OO month to begin; September OO\", \"address\": \"\", \"his_her\": \"her\"}", 
+   "content": "This is to confirm Ayse Ergun in Johnny living at \r\n applying to be an OO type of employment RA, TA OO starting her first studies in OO semster when grad will begin his studies; fall, summer, spring OO OO year to begin; 2011 OO.", 
+   "created_at": "2012-03-21 15:26:11", 
    "created_by": "ggbaker", 
-   "slug": "petra-all-tags", 
-   "student": 2, 
-   "template": 7,
-   "date": "2012-03-15"
+   "date": "2012-03-21", 
+   "from_lines": "Susan Kindersley\r\nGrad Student Administrator", 
+   "from_person": 134, 
+   "salutation": "To whom it may concern", 
+   "slug": "funda-msc-offer", 
+   "student": 6, 
+   "template": 3, 
+   "to_lines": "123 Stanley Road, \r\nVancouver, BC, \r\nCanada, V3V 3V3"
   }, 
   "model": "grad.letter", 
   "pk": 1
  }, 
  {
   "fields": {
-   "config": "{\"program\": \"Skipping \", \"first_name\": \"Petra\", \"last_name\": \"Berenbrink\", \"empl_data\": \"OO type of employment RA, TA OO\", \"title\": \"Mr.\", \"first_year\": \"OO year to begin; 2011 OO\", \"first_season\": \"OO semster when grad will begin his studies; fall, summer, spring OO\", \"fund_type\": \"OO RA / TA / Scholarship]]\", \"fund_amount_sem\": \"OO amount of money paid per semester OO\", \"first_month\": \"OO month to begin; September OO\", \"address\": \"\\\"123 Stanley Road, Vancouver, BC, Canada\\\"\", \"his_her\": \"his\"}", 
-   "content": "This is to confirm Petra Berenbrink in Skipping  living at \r\n\"123 Stanley Road, Vancouver, BC, Canada\" applying for PhD starting his first studies in OO semster when grad will begin his studies; fall, summer, spring OO OO year to begin; 2011 OO.", 
-   "created_at": "2012-03-15 20:02:17", 
+   "closing": "Yours truly", 
+   "config": "{\"program\": \"Johnny\", \"first_name\": \"Rngqimvo\", \"last_name\": \"Student\", \"empl_data\": \"OO type of employment RA, TA OO\", \"title\": \"Mr\", \"first_year\": \"OO year to begin; 2011 OO\", \"first_season\": \"OO semster when grad will begin his studies; fall, summer, spring OO\", \"fund_type\": \"OO RA / TA / Scholarship]]\", \"fund_amount_sem\": \"OO amount of money paid per semester OO\", \"first_month\": \"OO month to begin; September OO\", \"address\": \"\", \"his_her\": \"his\"}", 
+   "content": "This is to confirm Rngqimvo Student in Johnny living at \r\n applying for PhD starting his first studies in OO semster when grad will begin his studies; fall, summer, spring OO OO year to begin; 2011 OO.", 
+   "created_at": "2012-03-21 15:26:26", 
    "created_by": "ggbaker", 
-   "slug": "petra-special-student-offer", 
-   "student": 2, 
-   "template": 5,
-   "date": "2012-03-15"
+   "date": "2012-03-21", 
+   "from_lines": "Susan Kindersley\r\nGrad Student Administrator", 
+   "from_person": 134, 
+   "salutation": "To whom it may concern", 
+   "slug": "0aaa11-phd-offer", 
+   "student": 5, 
+   "template": 4, 
+   "to_lines": "123 Stanley Road, \r\nVancouver, BC, \r\nCanada, V3V 3V3"
   }, 
   "model": "grad.letter", 
   "pk": 2
  }, 
  {
   "fields": {
-   "config": "{\"program\": \"Skipping \", \"first_name\": \"Petra\", \"last_name\": \"Berenbrink\", \"empl_data\": \"OO type of employment RA, TA OO\", \"title\": \"Mr.\", \"first_year\": \"OO year to begin; 2011 OO\", \"first_season\": \"OO semster when grad will begin his studies; fall, summer, spring OO\", \"fund_type\": \"OO RA / TA / Scholarship]]\", \"fund_amount_sem\": \"OO amount of money paid per semester OO\", \"first_month\": \"OO month to begin; September OO\", \"address\": \"\\\"123 Stanley Road, Vancouver, BC, Canada\\\"\", \"his_her\": \"his\"}", 
-   "content": "This is to confirm Petra Berenbrink in Skipping  living at \r\n\"123 Stanley Road, Vancouver, BC, Canada\" applying to be an OO type of employment RA, TA OO starting his first studies in OO semster when grad will begin his studies; fall, summer, spring OO OO year to begin; 2011 OO.", 
-   "created_at": "2012-03-15 20:02:20", 
+   "closing": "Yours truly", 
+   "config": "{\"program\": \"Johnny\", \"first_name\": \"Petra\", \"last_name\": \"Berenbrink\", \"empl_data\": \"OO type of employment RA, TA OO\", \"title\": \"Ms\", \"first_year\": \"OO year to begin; 2011 OO\", \"first_season\": \"OO semster when grad will begin his studies; fall, summer, spring OO\", \"fund_type\": \"OO RA / TA / Scholarship]]\", \"fund_amount_sem\": \"OO amount of money paid per semester OO\", \"first_month\": \"OO month to begin; September OO\", \"address\": \"123 Stanley Road, Vancouver, BC, Canada\", \"his_her\": \"her\"}", 
+   "content": "This is to confirm Petra Berenbrink in Johnny living at \r\n123 Stanley Road, Vancouver, BC, Canada applying for PhD starting her first studies in OO semster when grad will begin his studies; fall, summer, spring OO OO year to begin; 2011 OO.", 
+   "created_at": "2012-03-21 15:26:49", 
    "created_by": "ggbaker", 
-   "slug": "petra-msc-offer", 
+   "date": "2012-03-21", 
+   "from_lines": "Susan Kindersley\r\nGrad Student Administrator", 
+   "from_person": 134, 
+   "salutation": "To whom it may concern", 
+   "slug": "petra-special-student-offer", 
    "student": 2, 
-   "template": 3,
-   "date": "2012-03-15"
+   "template": 5, 
+   "to_lines": "123 Stanley Road, \r\nVancouver, BC, \r\nCanada, V3V 3V3"
   }, 
   "model": "grad.letter", 
   "pk": 3
  }, 
+ {
+  "fields": {
+   "closing": "Yours truly", 
+   "config": "{\"program\": \"Johnny\", \"first_name\": \"Petra\", \"last_name\": \"Berenbrink\", \"empl_data\": \"OO type of employment RA, TA OO\", \"title\": \"Ms\", \"first_year\": \"OO year to begin; 2011 OO\", \"first_season\": \"OO semster when grad will begin his studies; fall, summer, spring OO\", \"fund_type\": \"OO RA / TA / Scholarship]]\", \"fund_amount_sem\": \"OO amount of money paid per semester OO\", \"first_month\": \"OO month to begin; September OO\", \"address\": \"123 Stanley Road, Vancouver, BC, Canada\", \"his_her\": \"her\"}", 
+   "content": "123 Stanley Road, Vancouver, BC, Canada\r\nOO type of employment RA, TA OO\r\nOO month to begin; September OO\r\nPetra\r\nOO semster when grad will begin his studies; fall, summer, spring OO\r\nOO year to begin; 2011 OO\r\nOO amount of money paid per semester OO\r\nOO RA / TA / Scholarship OO\r\nher\r\nBerenbrink\r\nJohnny\r\nMs\r\n\r\n", 
+   "created_at": "2012-03-21 15:27:13", 
+   "created_by": "ggbaker", 
+   "date": "2012-03-21", 
+   "from_lines": "Susan Kindersley\r\nGrad Student Administrator", 
+   "from_person": 134, 
+   "salutation": "To whom it may concern", 
+   "slug": "petra-all-tags", 
+   "student": 2, 
+   "template": 7, 
+   "to_lines": "123 Stanley Road, \r\nVancouver, BC, \r\nCanada, V3V 3V3"
+  }, 
+  "model": "grad.letter", 
+  "pk": 4
+ },
  
  
  
