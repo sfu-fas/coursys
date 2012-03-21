@@ -173,6 +173,8 @@ def new_application(request, post_slug, auto_id):
     course_choices = [(c.id, unicode(c)) for c in posting.selectable_courses()]
     used_campuses = set((vals['campus'] for vals in posting.selectable_offerings().order_by('campus').values('campus').distinct()))
     skills = Skill.objects.filter(posting=posting)
+    
+    #Set default values for max and min courses if not in posting config
     try:
         max_courses = posting.config['max_courses']
     except KeyError:
@@ -192,8 +194,8 @@ def new_application(request, post_slug, auto_id):
             return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'app_id':existing_app[0].id}))
        
     if request.method == "POST":
-        #Try to manually retrieve person
         search_form = StudentSearchForm(request.POST)
+        #Try to manually retrieve person
         if auto_id == 'manual_id':
             try:
                 person = get_object_or_404(Person, emplid=int(request.POST['search']))
