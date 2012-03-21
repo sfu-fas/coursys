@@ -146,6 +146,8 @@ class TAPosting(models.Model):
         # 'excluded': courses to exclude from posting (list of Course.id values)
         # 'payperiods': number of pay periods in the semeseter
         # 'contact': contact email for offer questions
+        # 'max_courses': Maximum number of courses an applicant can select
+        # 'min_courses': Minimum number of courses an applicant can select
 
     defaults = {
             'salary': ['0.00']*len(CATEGORY_CHOICES),
@@ -157,6 +159,8 @@ class TAPosting(models.Model):
             'excluded': [],
             'bu_defaults': {},
             'payperiods': 8,
+            'max_courses': 10,
+            'min_courses': 1,
             'contact': '',
             }
     salary, set_salary = getter_setter('salary')
@@ -168,6 +172,8 @@ class TAPosting(models.Model):
     excluded, set_excluded = getter_setter('excluded')
     bu_defaults, set_bu_defaults = getter_setter('bu_defaults')
     payperiods, set_payperiods = getter_setter('payperiods')
+    max_courses, set_max_courses = getter_setter('max_courses')
+    min_courses, set_min_courses = getter_setter('min_courses')
     contact, set_contact = getter_setter('contact')
     
     class Meta:

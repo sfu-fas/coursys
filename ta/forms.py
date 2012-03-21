@@ -331,6 +331,8 @@ class TAPostingForm(forms.ModelForm):
     payperiods = forms.IntegerField(label="Pay periods", help_text='Number of pay periods in the semester',
             max_value=20, min_value=1, widget=forms.TextInput(attrs={'size': 5}))
     contact = forms.EmailField(label="Contact Email", help_text="Email address to give applicants/offers to ask questions.")
+    max_courses = forms.IntegerField(label="Maximum courses", help_text="The maximum number of courses an applicant can specify.")
+    min_courses = forms.IntegerField(label="Minimum courses", help_text="The minimum number of courses an applicant can specify.")
     excluded = forms.MultipleChoiceField(help_text="Courses that should <strong>not</strong> be selectable for TA positions",
             choices=[], required=False, widget=forms.SelectMultiple(attrs={'size': 15}))
     skills = forms.CharField(label="Skills", help_text='Skills to ask applicants about: one per line', required=False,
@@ -344,7 +346,7 @@ class TAPostingForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super(TAPostingForm, self).__init__(*args, **kwargs)
-        # populat initial data fron instance.config
+        # populate initial data fron instance.config
         self.initial['salary'] = self.instance.salary()
         self.initial['scholarship'] = self.instance.scholarship()
         self.initial['start'] = self.instance.start()
@@ -352,6 +354,8 @@ class TAPostingForm(forms.ModelForm):
         self.initial['end'] = self.instance.end()
         self.initial['deadline'] = self.instance.deadline()
         self.initial['excluded'] = self.instance.excluded()
+        self.initial['max_courses'] = self.instance.max_courses()
+        self.initial['min_courses'] = self.instance.min_courses()
         self.initial['payperiods'] = self.instance.payperiods()
         self.initial['contact'] = self.instance.contact()
         skills = Skill.objects.filter(posting=self.instance)
@@ -428,6 +432,19 @@ class TAPostingForm(forms.ModelForm):
         accounts = self.cleaned_data['accounts']
         self.instance.config['accounts'] = [a.id for a in accounts]
         return [a.id for a in accounts]
+    
+    def clean_max_courses(self):
+        max_courses = self.cleaned_data['max_courses']
+        self.instance.config['max_courses'] = max_courses
+        return max_courses
+    
+    def clean_min_courses(self):
+        min_courses = self.cleaned_data['min_courses']
+        max_courses = self.cleaned_data['max_courses']
+        self.instance.config['min_courses'] = min_courses
+        if max_courses < min_courses:
+            raise forms.ValidationError("Maximum courses must be greater than Minimum courses")
+        return min_courses
     
     def clean_excluded(self):
         excluded = self.cleaned_data['excluded']
