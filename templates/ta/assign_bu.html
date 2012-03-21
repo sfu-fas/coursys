@@ -21,6 +21,16 @@
 	
 	$('#messages').hide()
 	
+	$('.bu_inp').change(function(){
+		var max = parseFloat($(this).parent().parent().prev().html())
+		if(!isNaN($(this).val()) && parseFloat($(this).val()) > max){
+			$('#messages ul.warninglist').html('<li class="warning">Assigned BU exceeds the maximum BU</li>')
+    		$('#messages').show()
+    	}
+    	else
+    		$('#messages').hide()
+	})
+	
   });
   
   function update(){
