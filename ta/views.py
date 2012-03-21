@@ -173,7 +173,16 @@ def new_application(request, post_slug, auto_id):
     course_choices = [(c.id, unicode(c)) for c in posting.selectable_courses()]
     used_campuses = set((vals['campus'] for vals in posting.selectable_offerings().order_by('campus').values('campus').distinct()))
     skills = Skill.objects.filter(posting=posting)
-    CoursesFormSet = formset_factory(CoursePreferenceForm, extra=1, max_num=10)  
+    try:
+        max_courses = posting.config['max_courses']
+    except KeyError:
+        max_courses = 10;
+    try:
+        min_courses = posting.config['min_courses']
+    except KeyError:
+        min_courses = 1;
+
+    CoursesFormSet = formset_factory(CoursePreferenceForm, extra=min_courses, max_num=max_courses) 
  
     if auto_id == 'auto_id': 
         person = get_object_or_404(Person, userid=request.user.username)
@@ -184,6 +193,7 @@ def new_application(request, post_slug, auto_id):
        
     if request.method == "POST":
         #Try to manually retrieve person
+        search_form = StudentSearchForm(request.POST)
         if auto_id == 'manual_id':
             try:
                 person = get_object_or_404(Person, emplid=int(request.POST['search']))
