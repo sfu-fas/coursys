@@ -216,7 +216,7 @@ class TAPosting(models.Model):
         
         defaults = self.bu_defaults()[level]
         defaults.sort()
-        count = offering.enrl_totge
+        count = offering.enrl_tot
         # get highest cutoff <= actual student count
         last = decimal.Decimal(0)
         for s,b in defaults:
