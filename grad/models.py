@@ -210,7 +210,7 @@ class LetterTemplate(models.Model):
 class Letter(models.Model):
     student = models.ForeignKey(GradStudent, null=False, blank=False)
     date = models.DateField(help_text="The sending date of the letter")
-    to_lines = models.TextField(help_text='Delivery address for the letter')
+    to_lines = models.TextField(help_text='Delivery address for the letter', null=True, blank=True)
     content = models.TextField(help_text="I.e. 'This is to confirm Mr. Baker ... '")
     template = models.ForeignKey(LetterTemplate)
     salutation = models.CharField(max_length=100, default="To whom it may concern")
