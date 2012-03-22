@@ -270,7 +270,7 @@ class SearchForm(forms.Form):
             help_text='Uses "or", selecting nothing means any'
             )
     accepted_status = forms.MultipleChoiceField(ACCEPTED_CHOICES, required=False,
-            help_text='Not Implemented; Uses "or", selecting nothing means any')
+            help_text='Not Implemented; needs more data in the database; Uses "or", selecting nothing means any')
     archive_sp = forms.NullBooleanField(required=False, 
             widget=NullBooleanSelect_Filter,
             help_text='Not Implemented; needs more data in the database')
@@ -310,12 +310,11 @@ class SearchForm(forms.Form):
     gender = forms.ChoiceField((('','---------'), ('M','Male'), ('F','Female'), ('U','unknown')),
             required=False)
     visa_held = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter,
-            help_text='Not Implemented')
+            help_text='Not Implemented, needs more data in the database')
 #    scholarship_from = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
 #    scholarship_to = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
     scholarship_sem = forms.ModelMultipleChoiceField(Semester.objects.all(),
-            label='Scholarship Semester Received',required=False,
-            help_text='Not Implemented')
+            label='Scholarship Semester Received',required=False)
     
     def clean_requirements_search_type(self):
         value = self.cleaned_data['requirements_search_type']
@@ -350,6 +349,7 @@ class SearchForm(forms.Form):
                 ('completed_requirements','completedrequirement__requirement__in'),
                 ('is_canadian',),
                 ('campus','campus__in'),
+                ('scholarship_sem', 'scholarship__start_semester__in'),
                 ]
         manual_queries = []
         if self.cleaned_data.get('financial_support', None) is not None:
