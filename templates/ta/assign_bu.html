@@ -46,18 +46,23 @@
   	$.post("{% url ta.views.assign_bus post_slug=posting.slug, course_slug=offering.slug %}",
   			{'csrfmiddlewaretoken': "{{csrf_token}}", 'extra_bu': bu, 'labtut': labtut, 'labtas': labtas},
 				function(data){
-					data = data.split(',')
-					if(data[0] > 0) //add 0.17
+					data = JSON.parse(data)
+					if(data.act > 0) //add 0.17
 						change_bu(0.17)
 					else if(data[0] < 0) //minus 0.17
 						change_bu(-0.17)
 					
-					if(data[1] != ''){
+					if(data.msg != ''){
 						$('#messages ul.warninglist').html('<li class="warning">' + data[1] + '</li>')
     					$('#messages').show()
 					}
 					else
 						$('#messages').hide()
+					
+					if(data.req_bu != ''){
+						$('#req_bu').html(data.req_bu)
+						$('#rem_bu').html(data.rem_bu)
+					}
 				})
   }
   
@@ -106,11 +111,16 @@ Instructor:
         <button type="button" class="submit" type="submit" onclick="update()">Update</button>
     </fieldset>
 </form>
-<p><b>
-Required BU: {{ offering|display_bu:posting }}
-Assigned BU: {{ offering|display_assigned_bu:posting }}
-Remaining BUs: {{ offering|display_bu_difference:posting }}
-</b></p>
+
+<div id= "config">
+<p id="info">
+<b>
+Required BU: <span id="req_bu">{{ offering|display_bu:posting }}</span>
+Assigned BU: <span id="a_bu"> {{ offering|display_assigned_bu:posting }}</span>
+Remaining BUs: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span>
+</b>
+</p>
+</div>
 
 <form action="{% url ta.views.assign_bus post_slug=posting.slug, course_slug=offering.slug%}" method="post">{% csrf_token %}
 {{ formset.management_form }}

@@ -23,6 +23,8 @@ from django.core.servers.basehttp import FileWrapper
 import os
 import datetime, decimal, locale 
 import unicodecsv as csv
+from ta.templatetags import ta_display
+import json
 
 locale.setlocale( locale.LC_ALL, '' ) #fiddle with this if u cant get the following function to work
 def format_currency(i):
@@ -345,14 +347,19 @@ def assign_bus(request, post_slug, course_slug):
     
     if request.method == "POST" and request.is_ajax():
         act = 0
+        extra = 0
         msg = ''
+        req_bu = ''
+        rem_bu = ''
         
-        #validation
         extra_bu = request.POST['extra_bu']
         if extra_bu != '':
             try:
                 extra_bu = decimal.Decimal(extra_bu)
-                offering.config['extra_bu'] = extra_bu
+                if extra_bu != offering.extra_bu():
+                    offering.config['extra_bu'] = extra_bu
+                    req_bu = ta_display.display_bu(offering, posting)
+                    rem_bu = ta_display.display_bu_difference(offering, posting)
             except:
                 msg = "Extra BU needs to be a decimal number."
             
@@ -364,8 +371,9 @@ def assign_bus(request, post_slug, course_slug):
             if offering.labtas(): #changed from T to F
                 offering.config['labtas'] = False
                 act = -1
-        offering.save()    
-        return HttpResponse(str(act) + ',' + msg)
+        offering.save()
+        data = {'act': act , 'msg': msg, 'req_bu': req_bu, 'rem_bu': rem_bu }
+        return HttpResponse(json.dumps( data ))
 
     apps = []
     campus_prefs = []
@@ -415,6 +423,8 @@ def assign_bus(request, post_slug, course_slug):
                     if formset[i]['bu'].value() != '':
                         assigned_ta[i].bu = formset[i]['bu'].value()
                         assigned_ta[i].save()
+                        #TODO: udates tacourse description, need to distinguish by default or set manually 
+                        
                     #unassign bu to this offering for this applicant
                     else:
                         assigned_ta[i].delete()
