@@ -781,12 +781,9 @@ def search(request):
         # if we store the query string in the database 
         #query_string = iri_to_uri(request.META.get('QUERY_STRING',''))
         
-        #TODO: add a button to save the search
-        #TODO: prefill common querys
-        #TODO: add a model to save these queries; save the query string
-        #TODO: finish constructing search query from form's data
-        #NOTE: use getlist on request.GET rather than __getitem__
-        #TODO: move the query making code into the form
+        #TODO: (1) finish constructing search query from form's data
+        #TODO: (2) make a form and add column selection
+        #TODO: (3) implement search saving (model, ui)
         
         query = form.get_query()
         grads = GradStudent.objects.filter(query)
