@@ -348,7 +348,7 @@ class RAForm(object):
         self.c.drawString(x, y-7, label)
         
     
-    def draw_pdf(self, outfile):
+    def draw_pdf(self, contract):
         """
         Generates PDF in the file object (which could be a Django HttpResponse).
         """
@@ -530,8 +530,11 @@ class TAForm(object):
                                 alignment=TA_LEFT,
                                 textColor=black)
 
-    def __init__(self, contract):
-        self.contract = contract
+    def __init__(self, outfile):
+        """
+        Create TA Appointment Form(s) in the file object (which could be a Django HttpResponse).
+        """
+        self.c = canvas.Canvas(outfile, pagesize=letter)
     
     def _draw_box(self, x, y, width, label='', label_size=LABEL_SIZE, content='', content_size=CONTENT_SIZE, right=False):
         height = self.BOX_HEIGHT
@@ -549,14 +552,11 @@ class TAForm(object):
             else:
                 self.c.drawString(x + self.CONTENT_RIGHT, y + self.CONTENT_UP, content)
 
-    def draw_pdf(self, outfile):
+    def draw_form(self, contract):
         """
-        Generates PDF in the file object (which could be a Django HttpResponse).
+        Generates form for this contract
         """
-        self.c = canvas.Canvas(outfile, pagesize=letter)
         self.c.setStrokeColor(black)
-
-        # draw form
         self.c.translate(0.625*inch, 1.25*inch) # origin = lower-left of the main box
         main_width = 7.25*inch
 
@@ -580,20 +580,20 @@ class TAForm(object):
         self.c.drawPath(p, stroke=1, fill=0)
 
         # personal info
-        self._draw_box(0, 8.625*inch, 43*mm, label="SFU ID #", content=unicode(self.contract.application.person.emplid))
-        self._draw_box(0, 210*mm, 43*mm, label="CANADA SOCIAL INSURANCE NO.", content=unicode(self.contract.application.sin))
-        self._draw_box(46*mm, 210*mm, 74*mm, label="LAST OR FAMILY NAME", content=unicode(self.contract.application.person.last_name))
-        self._draw_box(125*mm, 210*mm, 50*mm, label="FIRST NAME", content=unicode(self.contract.application.person.first_name))
-        self._draw_box(15*mm, 202*mm, 160*mm, content="c/o " + unicode(self.contract.application.posting.unit.name)) # ADDRESS
+        self._draw_box(0, 8.625*inch, 43*mm, label="SFU ID #", content=unicode(contract.application.person.emplid))
+        self._draw_box(0, 210*mm, 43*mm, label="CANADA SOCIAL INSURANCE NO.", content=unicode(contract.application.sin))
+        self._draw_box(46*mm, 210*mm, 74*mm, label="LAST OR FAMILY NAME", content=unicode(contract.application.person.last_name))
+        self._draw_box(125*mm, 210*mm, 50*mm, label="FIRST NAME", content=unicode(contract.application.person.first_name))
+        self._draw_box(15*mm, 202*mm, 160*mm, content="c/o " + unicode(contract.application.posting.unit.name)) # ADDRESS
         self.c.setFont("Helvetica", self.LABEL_SIZE)
         self.c.drawString(2, 206*mm, "HOME")
         self.c.drawString(2, 203*mm, "ADDRESS")
         
         # appointment basic info
         self.c.drawString(2, 194*mm, "DEPARTMENT")
-        self._draw_box(20*mm, 193*mm, 78*mm, content=unicode(self.contract.application.posting.unit.name)) # DEPARTMENT
-        self._draw_box(102*mm, 193*mm, 32*mm, label="APPOINTMENT START DATE", content=unicode(self.contract.pay_start))
-        self._draw_box(139*mm, 193*mm, 32*mm, label="APPOINTMENT END DATE", content=unicode(self.contract.pay_end))
+        self._draw_box(20*mm, 193*mm, 78*mm, content=unicode(contract.application.posting.unit.name)) # DEPARTMENT
+        self._draw_box(102*mm, 193*mm, 32*mm, label="APPOINTMENT START DATE", content=unicode(contract.pay_start))
+        self._draw_box(139*mm, 193*mm, 32*mm, label="APPOINTMENT END DATE", content=unicode(contract.pay_end))
         
         # initial appointment boxes
         self.c.rect(14*mm, 185*mm, 5*mm, 5*mm, fill=1)
@@ -606,9 +606,9 @@ class TAForm(object):
         self.c.drawString(21*mm, 177*mm, "NUMBER OR REVISION TO APPOINTMENT")
 
         # position info
-        self._draw_box(60*mm, 176*mm, 37*mm, label="POSITION NUMBER", content=unicode(self.contract.position_number.position_number))
-        self._draw_box(102*mm, 176*mm, 32*mm, label="PAYROLL START DATE", content=unicode(self.contract.pay_start))
-        self._draw_box(139*mm, 176*mm, 32*mm, label="PAYROLL END DATE", content=unicode(self.contract.pay_end))
+        self._draw_box(60*mm, 176*mm, 37*mm, label="POSITION NUMBER", content=unicode(contract.position_number.position_number))
+        self._draw_box(102*mm, 176*mm, 32*mm, label="PAYROLL START DATE", content=unicode(contract.pay_start))
+        self._draw_box(139*mm, 176*mm, 32*mm, label="PAYROLL END DATE", content=unicode(contract.pay_end))
         
         # course assignment headers
         self.c.setFont("Helvetica-Bold", self.LABEL_SIZE)
@@ -623,7 +623,7 @@ class TAForm(object):
         self.c.drawString(132*mm, 169*mm, "BASE UNITS")
 
         # course assignments
-        courses = self.contract.tacourse_set.filter(bu__gt=0)
+        courses = contract.tacourse_set.filter(bu__gt=0)
         total_bu = 0
         for i, crs in zip(range(5), list(courses)+[None]*5):
             h = 162*mm - i*6*mm # bottom of this row
@@ -641,13 +641,13 @@ class TAForm(object):
         self.c.rect(125*mm, 132*mm, 23*mm, 6*mm)
         self.c.drawRightString(147*mm, 133*mm, "%.2f" % (total_bu))
         
-        self._draw_box(153*mm, 155*mm, 22*mm, label="APPT. CATEGORY", content=self.contract.application.category)
+        self._draw_box(153*mm, 155*mm, 22*mm, label="APPT. CATEGORY", content=contract.application.category)
             
         # salary/scholarship
-        pp = self.contract.posting.config['payperiods']
-        total_pay = total_bu*self.contract.pay_per_bu
+        pp = contract.posting.config['payperiods']
+        total_pay = total_bu*contract.pay_per_bu
         biweek_pay = total_pay/pp
-        total_schol = total_bu*self.contract.scholarship_per_bu
+        total_schol = total_bu*contract.scholarship_per_bu
         biweek_schol = total_schol/pp
         self.c.setFont("Helvetica-Bold", self.LABEL_SIZE)
         self.c.drawString(8*mm, 123*mm, "SALARY")
@@ -662,7 +662,7 @@ class TAForm(object):
         self._draw_box(33*mm, 111*mm, 32*mm, label="BIWEEKLY RATE", right=True, content="%.2f" % (biweek_schol))
         self._draw_box(79*mm, 111*mm, 32*mm, label="SEMESTER RATE", right=True, content="%.2f" % (total_schol))
 
-        self._draw_box(139*mm, 122*mm, 32*mm, label="EFF. DATE FOR RATE CHANGES", content=unicode(self.contract.pay_start))
+        self._draw_box(139*mm, 122*mm, 32*mm, label="EFF. DATE FOR RATE CHANGES", content=unicode(contract.pay_start))
         self.c.setFont("Helvetica", 5)
         self.c.drawString(114*mm, 125*mm, "THESE RATES INCLUDE 4%")
         self.c.drawString(114*mm, 123*mm, "VACATION PAY")
@@ -672,7 +672,7 @@ class TAForm(object):
         self.c.drawString(1*mm, 103*mm, "REMARKS")
         f = Frame(3*mm, 82*mm, main_width - 6*mm, 22*mm) #, showBoundary=1 
         notes = []
-        notes.append(Paragraph(self.contract.remarks, style=self.NOTE_STYLE))
+        notes.append(Paragraph(contract.remarks, style=self.NOTE_STYLE))
         f.addFromList(notes, self.c)
 
         # instructions
@@ -682,7 +682,7 @@ class TAForm(object):
         self.c.line(0, 76*mm+self.BOX_HEIGHT, main_width, 76*mm+self.BOX_HEIGHT)
         self.c.setFont("Helvetica", self.LABEL_SIZE)
         self.c.drawString(100*mm, 78*mm, "DEADLINE FOR ACCEPTANCE")
-        self._draw_box(139*mm, 76*mm, 32*mm, label="", content=unicode(self.contract.deadline))
+        self._draw_box(139*mm, 76*mm, 32*mm, label="", content=unicode(contract.deadline))
         
 
         self.c.setFont("Helvetica", 6)
@@ -718,14 +718,14 @@ class TAForm(object):
         self.c.drawString(5*mm, 28*mm - 7, "be assumed that you have declined the offer of appointment")
 
         self.c.drawString(15*mm, 20*mm, "Appointment conditional upon enrolment")
-        fill = 1 if self.contract.appt_cond else 0
+        fill = 1 if contract.appt_cond else 0
         self.c.rect(59*mm, 19*mm, 3*mm, 3*mm, fill=fill)
         self.c.drawString(79*mm, 20*mm, "Appointment in TSSU Bargaining unit")
-        fill = 1 if self.contract.appt_tssu else 0
+        fill = 1 if contract.appt_tssu else 0
         self.c.rect(120*mm, 19*mm, 3*mm, 3*mm, fill=fill)
         
         # signatures
-        sigs = Signature.objects.filter(user__userid=self.contract.created_by)
+        sigs = Signature.objects.filter(user__userid=contract.created_by)
         if sigs:
             import PIL
             sig = sigs[0]
@@ -770,12 +770,24 @@ class TAForm(object):
         self.c.drawString(1*mm, -18*mm, "Updated December 2004 (produced by CourSys TAForm)")
 
         self.c.showPage()
+    
+    def save(self):
         self.c.save()
 
 def ta_form(contract, outfile):
     """
     Generate TA Appointment Form for this TAContract.
     """
-    form = TAForm(contract)
-    return form.draw_pdf(outfile)
+    doc = TAForm(outfile)
+    doc.draw_form(contract)
+    doc.save()
+
+def ta_forms(contracts, outfile):
+    """
+    Generate TA Appointment Forms for this list of TAContracts (in one PDF)
+    """
+    doc = TAForm(outfile)
+    for c in contracts:
+        doc.draw_form(c)
+    doc.save()
 
