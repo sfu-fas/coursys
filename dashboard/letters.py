@@ -348,7 +348,7 @@ class RAForm(object):
         self.c.drawString(x, y-7, label)
         
     
-    def draw_pdf(self, contract):
+    def draw_pdf(self, outfile):
         """
         Generates PDF in the file object (which could be a Django HttpResponse).
         """
