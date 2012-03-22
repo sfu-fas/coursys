@@ -930,37 +930,6 @@ def financials(request, grad_slug):
                 received += semester.get('scholarship_details').get('semester_total')
         owing = received - promise.amount
         promises.append({'promise':promise, 'received': received, 'owing': owing})
-        
-#    
-#
-#    for promise in promises_qs:
-#        semesters_qs = Semester.objects.filter(start__gte=promise.start_semester.start, end__lte=promise.end_semester.end)
-#        total_received = 0
-#        promise_semesters = []
-#        for semester in semesters_qs:
-#            semester_total = 0
-#            scholarships_in_semester = {}
-#            semester_scholarships = scholarships_qs.filter(start_semester=semester)
-#            semester_eligible_scholarships = semester_scholarships.filter(scholarship_type__in=eligible_scholarships)
-#            semester_other_fundings = other_fundings.filter(semester=semester)
-#            scholarships_in_semester['scholarships'] = semester_scholarships
-#            scholarships_in_semester['other_funding'] = semester_other_fundings
-#            
-#            for semester_eligible_scholarship in semester_eligible_scholarships:
-#                    semester_total += semester_eligible_scholarship.amount
-#            for semester_other_funding in semester_other_fundings:
-#                if semester_other_funding.eligible == True:
-#                    semester_total += semester_other_funding.amount
-#            scholarships_in_semester['semester_total'] = semester_total
-#            total_received += semester_total
-#            promise_semesters.append({'semester': semester,
-#                                      'scholarship_details': scholarships_in_semester})    
-#        
-#        promises.append({'promise':promise_semesters,
-#                                'promised_amount': promise.amount,
-#                                'received_amount': total_received,
-#                                'owing_amount': total_received - promise.amount})
-
 
     # set frontend defaults
     page_title = "%s's Financial Summary" % (grad.person.first_name)
