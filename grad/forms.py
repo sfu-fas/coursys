@@ -299,7 +299,7 @@ class SearchForm(forms.Form):
             help_text='Uses "or", selecting nothing means any')
     gpa_min = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False)
     gpa_max = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False,
-            help_text='Not Implemented')
+            help_text='Not Implemented; needs more data in the database')
     gender = forms.ChoiceField((('','---------'), ('M','Male'), ('F','Female'), ('U','unknown')),
             required=False)
     visa_held = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter,
@@ -339,6 +339,15 @@ class SearchForm(forms.Form):
                 ('campus','campus__in'),
                 ]
         manual_queries = []
+        if self.cleaned_data.get('has_financial_support', None) is not None:
+            qury = (Q(scholarship__amount__gt=0) | 
+                    Q(otherfunding__amount__gt=0) | 
+                    Q(promise__amount__gt=0)
+                    )
+            if self.cleaned_data['has_financial_support']:
+                manual_queries.append(qury)
+            else:
+                manual_queries.append(~qury)
 #        if self.cleaned_data.get('completed_requirements', False):
 #            if self.cleaned_data['requirements_search_type'] == 'OR':
 #                auto_queries.append(('completed_requirements', 'completedrequirement__requirement__in'))
@@ -355,7 +364,7 @@ class SearchForm(forms.Form):
                         manual_queries),
                     Q())
         
-        return query
+        return query#, exclude_query
     def secondary_filter(self, gradstudent):
         if 'gender' in self.cleaned_data and self.cleaned_data['gender']:
             gender = gradstudent.person.gender() == self.cleaned_data['gender']
