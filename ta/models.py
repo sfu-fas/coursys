@@ -216,7 +216,7 @@ class TAPosting(models.Model):
         
         defaults = self.bu_defaults()[level]
         defaults.sort()
-        count = offering.enrl_tot
+        count = offering.enrl_totge
         # get highest cutoff <= actual student count
         last = decimal.Decimal(0)
         for s,b in defaults:
@@ -330,6 +330,7 @@ DESC_CHOICES = (
         ('OM','Office;Marking'),
         ('OML','Office;Marking;Lab/Tutorial')
     )
+LABTUT_DESC = ['OML'] # descriptions that deserve 0.17 bonus
 
 APPOINTMENT_CHOICES = (
         ("INIT","Initial: Initial appointment to this position"),
@@ -400,6 +401,11 @@ class TACourse(models.Model):
     
     def __unicode__(self):
         return "Course: %s  TA: %s" % (self.course, self.contract)
+    def has_labtut(self):
+        """
+        Does this assignment deserve the 0.17 bonus?
+        """
+        return self.description in LABTUT_DESC
     
 TAKEN_CHOICES = (
         ('YES', 'Yes: this course at SFU'),
@@ -412,6 +418,7 @@ EXPER_CHOICES = (
         ('SOM', 'Somewhat familiar with course material'),
         ('NOT', 'Not familiar with course material'),
         )
+    
 
 class CoursePreference(models.Model):
     app = models.ForeignKey(TAApplication)
