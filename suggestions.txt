@@ -5,3 +5,5 @@ Tech Requirements for courses: required software, version range, platform. Feedb
 Mobile version should provide more of the full site functionality  eg. histogram for student assignments
 
 Exams are often divided up by quesiton to different TAs.  The ability to batch enter grades for only a couple of questions for an exam/assignment.
+
+Some students want to receive notification upon assignment submission and ability to see submission status for assignment on course dashboard rather than going into Make Submission.
