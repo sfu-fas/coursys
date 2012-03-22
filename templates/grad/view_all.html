@@ -37,9 +37,23 @@
 
 {% block headextra %}
 <script type="text/javascript">
-	function toggle(open_btn, close_btn, body) {
+	function toggle(title_btn, open_btn, close_btn, body) {
 		$(body).hide();
 		$(close_btn).hide();
+
+
+		$(title_btn).click(function(){
+			if ($(body).is(':hidden')){
+				$(body).show();
+				$(close_btn).show();
+				$(open_btn).hide();
+			}
+			else{
+				$(body).hide();
+				$(close_btn).hide();
+				$(open_btn).show();
+			}
+		})
 
 		$(open_btn).click(function() {
 			$(body).show('slow');
@@ -56,7 +70,7 @@
 
 
 	$(document).ready(function() {
-		toggle('#open-academics-btn', '#close-academics-btn', '#academics-body');
+		toggle('#academic-btn', '#open-academics-btn', '#close-academics-btn', '#academics-body');
 	});
 
 </script>
@@ -135,7 +149,7 @@
 			<tr>
 				<th colspan="3" >
 				<div style="float: left; width: 100%">
-					<div style="float: left; width: 100%">
+					<div style="float: left; width: 100%" id="academic-btn">
 						Academics
 					</div>
 					<div style="float: left;" id="open-academics-btn">
