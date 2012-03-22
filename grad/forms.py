@@ -293,8 +293,15 @@ class SearchForm(forms.Form):
 #            required=False, widget=forms.RadioSelect)
     is_canadian = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
     
-    has_financial_support = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter,
-            help_text='Not Implemented')
+#    has_financial_support = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter,
+#            help_text='Not Implemented')
+    financial_support = forms.MultipleChoiceField((
+            ('N','None'),
+            ('S','Scholarship'),
+            ('O','Other Funding'),
+            ('P','Promise')
+            ),required=False)
+    
     campus = forms.MultipleChoiceField(CAMPUS_CHOICES, required=False,
             help_text='Uses "or", selecting nothing means any')
     gpa_min = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False)
@@ -314,6 +321,12 @@ class SearchForm(forms.Form):
         value = self.cleaned_data['requirements_search_type']
         if not value and self.cleaned_data['requirements']:
             raise ValidationError, "Specify a search type for requirements"
+        return value
+    
+    def clean_financial_support(self):
+        value = self.cleaned_data['financial_support']
+        if 'N' in value and len(value) > 1:
+            raise ValidationError, u"If 'None' is selected, nothing else can be selected"
         return value
     
     def _make_query(self, query_string, query_param=None):
@@ -339,15 +352,14 @@ class SearchForm(forms.Form):
                 ('campus','campus__in'),
                 ]
         manual_queries = []
-        if self.cleaned_data.get('has_financial_support', None) is not None:
-            qury = (Q(scholarship__amount__gt=0) | 
-                    Q(otherfunding__amount__gt=0) | 
-                    Q(promise__amount__gt=0)
-                    )
-            if self.cleaned_data['has_financial_support']:
-                manual_queries.append(qury)
-            else:
-                manual_queries.append(~qury)
+        if self.cleaned_data.get('financial_support', None) is not None:
+            if 'S' in self.cleaned_data['financial_support']:
+                manual_queries.append(Q(scholarship__amount__gt=0))
+            if 'O' in self.cleaned_data['financial_support']:
+                manual_queries.append(Q(otherfunding__amount__gt=0))
+            if 'P' in self.cleaned_data['financial_support']:
+                manual_queries.append(Q(promise__amount__gt=0))
+        
 #        if self.cleaned_data.get('completed_requirements', False):
 #            if self.cleaned_data['requirements_search_type'] == 'OR':
 #                auto_queries.append(('completed_requirements', 'completedrequirement__requirement__in'))
@@ -365,13 +377,26 @@ class SearchForm(forms.Form):
                     Q())
         
         return query#, exclude_query
-    def secondary_filter(self, gradstudent):
-        if 'gender' in self.cleaned_data and self.cleaned_data['gender']:
-            gender = gradstudent.person.gender() == self.cleaned_data['gender']
-        else:
-            gender = True # ignored
-        # if you're going to add more, just add '&& otherthing && otherthing2 ...'
-        return gender
+    def secondary_filter(self):
+        financial_support_students = None
+        if self.cleaned_data.get('financial_support', None) is not None:
+            if 'N' in self.cleaned_data['financial_support']:
+                financial_support_students = GradStudent.objects.filter(
+                        Q(scholarship__amount__gt=0) |
+                        Q(otherfunding__amount__gt=0) |
+                        Q(promise__amount__gt=0))
+        def actual_filter(gradstudent):
+            if 'gender' in self.cleaned_data and self.cleaned_data['gender']:
+                gender = gradstudent.person.gender() == self.cleaned_data['gender']
+            else:
+                gender = True # ignored
+            if financial_support_students is not None:
+                no_financial_support = gradstudent not in financial_support_students
+            else:
+                no_financial_support = True # ignored
+            
+            return gender and no_financial_support
+        return actual_filter
 
 from coredata.queries import add_person, SIMSProblem
 import datetime

@@ -786,8 +786,8 @@ def search(request):
         #TODO: (3) implement search saving (model, ui)
         
         query = form.get_query()
-        grads = GradStudent.objects.filter(query)
-        grads = filter(form.secondary_filter, grads)
+        grads = GradStudent.objects.filter(query).distinct()
+        grads = filter(form.secondary_filter(), grads)
         # if performance becomes an issue, use this instead
         #grads = itertools.ifilter(form.secondary_filter, grads)
         context = {
