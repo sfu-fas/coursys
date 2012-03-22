@@ -9,8 +9,9 @@ from django.forms.formsets import BaseFormSet
 #from django.core.exceptions import ValidationError
 from django.forms.widgets import NullBooleanSelect
 from django.template import Template, TemplateSyntaxError
-from itertools import ifilter
+from itertools import ifilter, chain
 import unicodecsv as csv
+from django.core.exceptions import ValidationError
 
 class LabelTextInput(forms.TextInput):
     "TextInput with a bonus label"
@@ -272,9 +273,10 @@ class SearchForm(forms.Form):
             help_text='Not Implemented; Uses "or", selecting nothing means any')
     archive_sp = forms.NullBooleanField(required=False, 
             widget=NullBooleanSelect_Filter,
-            help_text='Not Implemented')
+            help_text='Not Implemented; needs more data in the database')
     has_comments = forms.MultipleChoiceField(COMMENTS_CHOICES, required=False,
-            help_text='Not Implemented; Uses "or", selecting nothing means any')
+            help_text='Not Implemented; needs more data in the database;'
+            ' Uses "or", selecting nothing means any')
     
     #program = forms.CharField(required=False)
     program = forms.ModelMultipleChoiceField(GradProgram.objects.all(), required=False)
@@ -285,6 +287,10 @@ class SearchForm(forms.Form):
 #            ), required=False)
     completed_requirements = forms.ModelMultipleChoiceField(GradRequirement.objects.all(),
         required=False)
+#    requirements_search_type = forms.ChoiceField((
+#            ('AND','Student must have all of these requirements'),
+#            ('OR','Student must have any of these requirements')),
+#            required=False, widget=forms.RadioSelect)
     is_canadian = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
     
     has_financial_support = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter,
@@ -304,6 +310,12 @@ class SearchForm(forms.Form):
             label='Scholarship Semester Received',required=False,
             help_text='Not Implemented')
     
+    def clean_requirements_search_type(self):
+        value = self.cleaned_data['requirements_search_type']
+        if not value and self.cleaned_data['requirements']:
+            raise ValidationError, "Specify a search type for requirements"
+        return value
+    
     def _make_query(self, query_string, query_param=None):
         if query_string in self.cleaned_data and self.cleaned_data[query_string]:
             if query_param is None:
@@ -314,7 +326,7 @@ class SearchForm(forms.Form):
     def get_query(self):
         if not self.is_valid():
             raise Exception, "The form needs to be valid to get the search query"
-        queries = (
+        auto_queries = [
                 # Possibly use __range=(start_date, end_date) ?
                 ('start_semester_start', 'gradstatus__start__gte'),
                 ('start_semester_end', 'gradstatus__start__lte'),
@@ -325,16 +337,24 @@ class SearchForm(forms.Form):
                 ('completed_requirements','completedrequirement__requirement__in'),
                 ('is_canadian',),
                 ('campus','campus__in'),
-                )
-        
-        # passes all of the tuples in queries to _make_query as arguments
-        # (which returns a single Q object) and then combines them (reduce)
-        # into one Q object using the & operator
-        query = reduce(Q.__and__, 
-                    ifilter(lambda x:x is not None,
-                        (self._make_query(*qargs) for qargs in queries)),
-                    Q())
+                ]
+        manual_queries = []
+#        if self.cleaned_data.get('completed_requirements', False):
+#            if self.cleaned_data['requirements_search_type'] == 'OR':
+#                auto_queries.append(('completed_requirements', 'completedrequirement__requirement__in'))
+#            else:
+#                manual_queries += [Q(completedrequirement__requirement=requirement) 
+#                        for requirement in self.cleaned_data['completed_requirements']]
             
+        # passes all of the tuples in auto_queries to _make_query as arguments
+        # (which returns a single Q object) and then reduces the auto_queries
+        # and manual_queries into one Q object using the & operator
+        query = reduce(Q.__and__, 
+                    chain(ifilter(lambda x:x is not None, 
+                        (self._make_query(*qargs) for qargs in auto_queries)),
+                        manual_queries),
+                    Q())
+        
         return query
     def secondary_filter(self, gradstudent):
         if 'gender' in self.cleaned_data and self.cleaned_data['gender']:
