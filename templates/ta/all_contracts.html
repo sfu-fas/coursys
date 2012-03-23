@@ -65,7 +65,7 @@
 	<td>{{contract.get_status_display}}</td><!--#status-->
 	<td>{{contract.total_bu}}</td><!--#totalbu-->
 	<td>{{contract.crs_list|linebreaksbr}}</td><!--#courses ta-ing-->
-	<td>{{ contract.deadline }}</td><!--#deadline-->
+	<td>{{ contract.deadline|date:"M d Y" }}</td><!--#deadline-->
   	<td><a href="{% url ta.views.view_contract post_slug=contract.posting.slug userid=contract.application.person.userid%}">View</a>&nbsp;
   	<a href="{% url ta.views.edit_contract post_slug=contract.posting.slug userid=contract.application.person.userid%}">Edit</a></td>
   </tr>

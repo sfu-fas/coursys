@@ -10,8 +10,9 @@ from django.contrib.auth.decorators import login_required
 from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, CampusPreference,\
     CAMPUS_CHOICES, CAMPUSES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS
 from ra.models import Account
+from dashboard.models import NewsItem
 from coredata.models import Member, Role, CourseOffering, Person, Semester
-from ta.forms import TUGForm, TAApplicationForm, TAContractForm, CoursePreferenceForm, \
+from ta.forms import TUGForm, TAApplicationForm, TAContractForm, TAAcceptanceForm, CoursePreferenceForm, \
     TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm
 from advisornotes.forms import StudentSearchForm
 from log.models import LogEntry
@@ -26,10 +27,17 @@ import unicodecsv as csv
 from ta.templatetags import ta_display
 import json
 
-locale.setlocale( locale.LC_ALL, '' ) #fiddle with this if u cant get the following function to work
+locale.setlocale( locale.LC_ALL, '' ) #fiddle with this if you cant get the following function to work
 def format_currency(i):
+    """used to properly format money"""
     return locale.currency(float(i), grouping=True)
 
+def get_total_bu(courses):
+    """calculates the total bu given a list of courses"""
+    total = 0
+    for course in courses:
+        total = total +course.bu
+    return int(total)
 
 @login_required
 def index_page(request, course_slug):
@@ -511,6 +519,46 @@ def all_contracts(request, post_slug=None):
     applications = TAApplication.objects.filter(posting=posting).exclude(Q(id__in=TAContract.objects.filter(posting=posting).values_list('application', flat=True)))
     return render(request, 'ta/all_contracts.html', {'contracts':contracts, 'posting':posting, 'applications':applications, 'postings':postings})
 
+@login_required
+def accept_contract(request, post_slug, userid):
+    posting = get_object_or_404(TAPosting, slug=post_slug)
+    person = get_object_or_404(Person, userid=request.user.username)
+    
+    contract = TAContract.objects.filter(posting=posting, application__person__userid=userid)
+    if contract.count() > 0:
+        contract = contract[0]
+        application = TAApplication.objects.get(person__userid=userid, posting=posting)
+        
+    courses = TACourse.objects.filter(contract=contract)
+    total = get_total_bu(courses)
+    
+    if request.method == "POST":
+        form = TAAcceptanceForm(request.POST, instance=contract)
+        print
+        print form.fields
+        print form.is_valid()
+        print form.errors
+        if form.is_valid():
+            contract =form.save(commit=False)
+            contract.posting = posting
+            contract.application = application
+            contract.sin = request.POST['sin']
+            contract.status = request.POST['status']
+            contract.save()
+            messages.success(request, "Successfully %s the offer." % (contract.get_status_display()))
+            ##not sure where to redirect to...so currently redirects to itself
+            return HttpResponseRedirect(reverse(accept_contract, args=(post_slug,userid)))
+    else:   
+        form = TAContractForm(instance=contract) 
+        
+    
+    context = {'contract':contract, 
+               'person': person,
+               'courses':courses,
+               'total':total,
+               'form':form}
+    return render(request, 'ta/accept.html', context)
+
 @requires_role("TAAD")
 def view_contract(request, post_slug, userid):
     #contract = get_object_or_404(TAContract, pk=contract_id)
@@ -525,12 +573,9 @@ def view_contract(request, post_slug, userid):
     contract = TAContract.objects.filter(posting=posting, application__person__userid=userid)
     if contract.count() > 0:
         contract = contract[0]
-        application = contract.application
     courses = TACourse.objects.filter(contract=contract)
     
-    total = 0
-    for course in courses:
-        total = total +course.bu
+    total = get_total_bu(courses)
     
     pp = posting.config['payperiods']
     salary_sem = (total*contract.pay_per_bu)
@@ -548,7 +593,8 @@ def view_contract(request, post_slug, userid):
                  'salary_bi':salary_bi,
                  'schol_bi':schol_bi,
                  'salary_sem':salary_sem_out,
-                 'schol_sem':schol_sem_out
+                 'schol_sem':schol_sem_out,
+                 'total':total
                  }
      
     
@@ -638,6 +684,8 @@ def edit_contract(request, post_slug, userid):
                 contract.application = application
                 contract.posting = posting
                 contract.created_by = request.user.username
+                #create news item
+                #news = NewsItem
                 contract.save()
                 formset.save()
 

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load form_display course_display%}
+
+{% block subbreadcrumbs %}
+<li>&gt; {{ person }}'s Contract Offer</li>
+{% endblock %}
+
+{% block title %}Contract Offer for {{ contract.application.person }}{% endblock %}
+{% block h1 %}Contract Offer for {{ contract.application.person }}{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+
+{% block content %}
+
+<p>You have been selected to TA the following courses:</p>
+<br/>
+<div class="table_container">
+<table class="info">
+		<thead class="form_head">
+          <tr>
+         	<th scope="col">Course Name</th>
+         	<th scope="col">Description</th>
+         	<th scope="col">Base Unit</th>
+          </tr>         
+        </thead>  
+		<tbody>
+			<!-- Courses-->
+			
+			{% for course in courses %}
+			<tr>
+				<td>{{course.course.subject}} {{course.course.number}} {{course.course.section}}</td>
+				<td>{{ course.get_description_display }}</td>
+				<td>{{course.bu}}</td>
+			<tr/>
+			{% endfor %}		
+			<tr id="cal_tr">
+	      	<td></td>
+	      	<td class="table-row-label" id="total_bu_label" align="right">Total Base Units:&nbsp;</td>
+	      	<td class="table-row-label">{{total}}</td>
+	      </tr>		
+		</tbody>
+  </table>
+</div>
+<div id="form_container">
+<form action="" method="post">{% csrf_token %}
+		<p> Please make sure the following information is correct, otherwise you don't get paid.</p>
+	    {{ form|as_dl_usefield:"sin"}}
+			
+		<p><em>Accept</em> or <em>Reject</em> the offered Contract?
+		<div class="field"><select name="status" id="id_status">
+			<option value="ACC">Accepted</option>
+			<option value="REJ">Rejected</option>
+			</select></div>
+		</dd>
+<p><input id="submit" type="submit" class="submit" value="Submit" /></p>
+</form>
+</div>
+{% endblock %}

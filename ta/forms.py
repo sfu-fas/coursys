@@ -168,6 +168,25 @@ class CoursePreferenceForm(forms.ModelForm):
     class Meta:
         model = CoursePreference
         exclude = ('app','rank') 
+        
+class TAAcceptanceForm(forms.ModelForm):
+    
+       
+    class eta:
+        model = TAContract
+        exclude = [
+                   'pay_start','pay_end','appt_category', 'position_number', 
+                  'appt',
+                  'pay_per_bu', 
+                  'scholarship_per_bu',
+                  'appt_cond ',
+                  'appt_tssu',
+                  'deadline',
+                  'remarks',
+                  'created_by',
+                  'created_at'
+                  ]
+    
 
 class TAContractForm(forms.ModelForm):
  
