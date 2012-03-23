@@ -114,11 +114,10 @@ Instructor:
 
 <div id= "config">
 <p id="info">
-<b>
 Required BU: <span id="req_bu">{{ offering|display_bu:posting }}</span>
-Assigned BU: <span id="a_bu"> {{ offering|display_assigned_bu:posting }}</span>
-Remaining BUs: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span>
-</b>
+(<span id="req_bu">{{ offering|display_bu_cap:posting }}</span> @ enrollment cap),
+assigned: <span id="a_bu"> {{ offering|display_assigned_bu:posting }}</span>,
+remaining: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span>.
 </p>
 </div>
 

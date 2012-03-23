@@ -206,17 +206,18 @@ class TAPosting(models.Model):
         indexer = dict((v[0],k) for k,v in enumerate(CATEGORY_CHOICES))
         return indexer.get(val)
     
-    def default_bu(self, offering):
+    def default_bu(self, offering, count=None):
         """
         Default BUs to assign for this course offering
         """
+        if count is None:
+            count = offering.enrl_tot
         level = offering.number[0] + "00"
         if level not in self.bu_defaults():
             return decimal.Decimal(0)
         
         defaults = self.bu_defaults()[level]
         defaults.sort()
-        count = offering.enrl_tot
         # get highest cutoff <= actual student count
         last = decimal.Decimal(0)
         for s,b in defaults:
@@ -225,11 +226,19 @@ class TAPosting(models.Model):
             last = b
         return decimal.Decimal(last) # if off the top of scale, return max
 
-    def required_bu(self, offering):
+    def required_bu(self, offering, count=None):
         """
         Actual BUs to assign to this course: default + extra
         """
-        default = self.default_bu(offering)
+        default = self.default_bu(offering, count=count)
+        extra = offering.extra_bu()
+        return default + extra
+
+    def required_bu_cap(self, offering):
+        """
+        Actual BUs to assign to this course at its enrolment cap
+        """
+        default = self.default_bu(offering, offering.enrl_cap)
         extra = offering.extra_bu()
         return default + extra
 
