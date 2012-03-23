@@ -271,9 +271,6 @@ class SearchForm(forms.Form):
             )
     accepted_status = forms.MultipleChoiceField(ACCEPTED_CHOICES, required=False,
             help_text='Not Implemented; needs more data in the database; Uses "or", selecting nothing means any')
-    archive_sp = forms.NullBooleanField(required=False, 
-            widget=NullBooleanSelect_Filter,
-            help_text='Not Implemented; needs more data in the database')
     has_comments = forms.MultipleChoiceField(COMMENTS_CHOICES, required=False,
             help_text='Not Implemented; needs more data in the database;'
             ' Uses "or", selecting nothing means any')

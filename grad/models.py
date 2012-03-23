@@ -155,9 +155,10 @@ STATUS_CHOICES = (
         ('GRAD', 'Graduated'),
         ('NOND', 'Non-degree'),
         ('GONE', 'Gone'),
+        ('ARSP', 'Archive SP'), # Special Arrangements and GONE
         )
 STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
-STATUS_INACTIVE = ('LEAV', 'WIDR', 'GRAD', 'GONE') # statuses that mean "not here"
+STATUS_INACTIVE = ('LEAV', 'WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "not here"
 
 class GradStatus(models.Model):
     """
