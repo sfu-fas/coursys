@@ -12,6 +12,7 @@ from django.template import Template, TemplateSyntaxError
 from itertools import ifilter, chain
 import unicodecsv as csv
 from django.core.exceptions import ValidationError
+from django.utils.safestring import mark_safe
 
 class LabelTextInput(forms.TextInput):
     "TextInput with a bonus label"
@@ -282,12 +283,13 @@ class SearchForm(forms.Form):
 #            ('INTL','International'),
 #            ('CAN','Canadian')
 #            ), required=False)
-    completed_requirements = forms.ModelMultipleChoiceField(GradRequirement.objects.all(),
-        required=False)
-#    requirements_search_type = forms.ChoiceField((
-#            ('AND','Student must have all of these requirements'),
-#            ('OR','Student must have any of these requirements')),
-#            required=False, widget=forms.RadioSelect)
+    requirements = forms.ModelMultipleChoiceField(GradRequirement.objects.all(),
+            label='Completed requirements', required=False)
+    requirements_st = forms.ChoiceField((
+            ('AND',mark_safe(u'Student must have completed <em>all</em> of these requirements')),
+            ('OR',mark_safe(u'Student must have completed <em>any</em> of these requirements'))),
+            label='Requirements search type', required=False, 
+            widget=forms.RadioSelect)
     is_canadian = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
     
 #    has_financial_support = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter,
@@ -313,10 +315,10 @@ class SearchForm(forms.Form):
     scholarship_sem = forms.ModelMultipleChoiceField(Semester.objects.all(),
             label='Scholarship Semester Received',required=False)
     
-    def clean_requirements_search_type(self):
-        value = self.cleaned_data['requirements_search_type']
-        if not value and self.cleaned_data['requirements']:
-            raise ValidationError, "Specify a search type for requirements"
+    def clean_requirements_st(self):
+        value = self.cleaned_data['requirements_st']
+        if not value and len(self.cleaned_data['requirements']) > 1:
+            raise ValidationError, u"Specify a search type for requirements"
         return value
     
     def clean_financial_support(self):
@@ -343,7 +345,7 @@ class SearchForm(forms.Form):
                 ('end_semester_end', 'gradstatus__end__lte'),
                 ('student_status', 'gradstatus__status__in'),
                 ('program','program__in'),
-                ('completed_requirements','completedrequirement__requirement__in'),
+#                ('requirements','completedrequirement__requirement__in'),
                 ('is_canadian',),
                 ('campus','campus__in'),
                 ('scholarship_sem', 'scholarship__start_semester__in'),
@@ -357,12 +359,13 @@ class SearchForm(forms.Form):
             if 'P' in self.cleaned_data['financial_support']:
                 manual_queries.append(Q(promise__amount__gt=0))
         
-#        if self.cleaned_data.get('completed_requirements', False):
-#            if self.cleaned_data['requirements_search_type'] == 'OR':
-#                auto_queries.append(('completed_requirements', 'completedrequirement__requirement__in'))
-#            else:
-#                manual_queries += [Q(completedrequirement__requirement=requirement) 
-#                        for requirement in self.cleaned_data['completed_requirements']]
+        if self.cleaned_data.get('requirements', False):
+            if self.cleaned_data['requirements_st'] == 'OR':
+                auto_queries.append(('requirements', 'completedrequirement__requirement__in'))
+            else:
+                
+                manual_queries += [Q(pk__in=requirement.completedrequirement_set.all().values('student_id')) 
+                        for requirement in self.cleaned_data['requirements']]
             
         # passes all of the tuples in auto_queries to _make_query as arguments
         # (which returns a single Q object) and then reduces the auto_queries
