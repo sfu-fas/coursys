@@ -27,11 +27,11 @@ $(document).ready(function() {
 {% block content %}
 
 <div id="form_container">
-<form action="{% url ta.views.new_application post_slug=posting.slug auto_id=auto_id %}" method="post">{% csrf_token %}
+<form action="" method="post">{% csrf_token %}
 <fieldset>
     <legend>{{ posting.unit.name }} TA Application</legend>
    
-    {% if auto_id == "manual_id" %} 
+    {% if manual %} 
         {{search_form.as_p}}
         
         <div id="simsresult">

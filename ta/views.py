@@ -169,8 +169,15 @@ def edit_tug(request, course_slug, userid):
     
     return render(request, 'ta/edit_tug.html',context)
 
+@requires_role("TAAD")
+def new_application_manual(request, post_slug):
+    return _new_application(request, post_slug, manual=True)
+
 @login_required
-def new_application(request, post_slug, auto_id):
+def new_application(request, post_slug):
+    return _new_application(request, post_slug, manual=False)
+
+def _new_application(request, post_slug, manual=False):
     posting = get_object_or_404(TAPosting, slug=post_slug)
     course_choices = [(c.id, unicode(c)) for c in posting.selectable_courses()]
     used_campuses = set((vals['campus'] for vals in posting.selectable_offerings().order_by('campus').values('campus').distinct()))
@@ -188,7 +195,7 @@ def new_application(request, post_slug, auto_id):
 
     CoursesFormSet = formset_factory(CoursePreferenceForm, extra=min_courses, max_num=max_courses) 
  
-    if auto_id == 'auto_id': 
+    if not manual: 
         person = get_object_or_404(Person, userid=request.user.username)
         existing_app = TAApplication.objects.filter(person=person, posting=posting)
         if existing_app.count() > 0: 
@@ -198,14 +205,16 @@ def new_application(request, post_slug, auto_id):
     if request.method == "POST":
         search_form = StudentSearchForm(request.POST)
         #Try to manually retrieve person
-        if auto_id == 'manual_id':
+        if manual:
             try:
                 person = get_object_or_404(Person, emplid=int(request.POST['search']))
             except ValueError:
                 search_form = StudentSearchForm(request.POST['search'])
                 messages.error(request, "Invalid id %s for person." % (request.POST['search']))
-                return HttpResponseRedirect(reverse('ta.views.new_application', args=(post_slug,auto_id,)))
-
+                if manual:
+                    return HttpResponseRedirect(reverse('ta.views.new_application_manual', args=(post_slug,)))
+                else:
+                    return HttpResponseRedirect(reverse('ta.views.new_application', args=(post_slug,)))
         ta_form = TAApplicationForm(request.POST, prefix='ta')
         courses_formset = CoursesFormSet(request.POST)
         for f in courses_formset:
@@ -269,7 +278,7 @@ def new_application(request, post_slug, auto_id):
 
     context = {
                     'posting':posting,
-                    'auto_id':auto_id,
+                    'manual':manual,
                     'ta_form':ta_form,
                     'search_form':search_form,
                     'courses_formset':courses_formset,
