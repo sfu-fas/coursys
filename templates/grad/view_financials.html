@@ -70,7 +70,31 @@ span.label {
 }
 
 </style>
+<script>
+	$(document).ready(function() {
+		{% for semester in semesters %}{% for scholarship in semester.scholarship_details.scholarships %}
+		$('#{{semester.semester.name}}-{{scholarship.scholarship.id}}-comment').hide();
+		{% endfor %}{% endfor %}
+		{% for semester in semesters %}
+		$('#{{semester.semester.name}}-comments-btn').click(function(){
+			{% for scholarship in semester.scholarship_details.scholarships %}
+			if ($('#{{semester.semester.name}}-{{scholarship.scholarship.id}}-comment').is(':hidden')){
+				$('#{{semester.semester.name}}-{{scholarship.scholarship.id}}-comment').show();
+			}else {
+				$('#{{semester.semester.name}}-{{scholarship.scholarship.id}}-comment').hide();
+			}
+			{% for other_funding in semester.scholarship_details.other_funding %}
+			if ($('#{{semester.semester.name}}-{{other_funding.id}}-comment').is(':hidden')){
+				$('#{{semester.semester.name}}-{{other_funding.id}}-comment').show();
+			}else {
+				$('#{{semester.semester.name}}-{{other_funding.id}}-comment').hide();
+			}			
+			{% endfor %}{% endfor %}			
+		});
 
+		{% endfor %}
+	});
+</script>
 {% endblock %}
 
 {% block subbreadcrumbs %}
@@ -97,7 +121,8 @@ span.label {
 		<h2> {{ semester.semester }} - Status: {{ semester.status }} </h2>
 			<div class="scholarship_content">
 				{% if semester.scholarship_details.scholarships %}
-					<span class="label"> Scholarships: </span>
+					<span class="label"> Scholarships: </span> 
+					<div style="float: right" id="{{semester.semester.name}}-comments-btn"> <a>[View Comments]</a></div>
 					<ul class="leaders">
 					{% for scholarship in semester.scholarship_details.scholarships %}
 						<li>
@@ -109,8 +134,10 @@ span.label {
 								<span> Not Eligible </span>
 						{% endif %}
 						</li>
-						{% if scholarship.scholarship.comment %}
-							<li class="comment"><p>{{ scholarship.scholarship.comment }}</p></li>
+						{% if scholarship.scholarship.comments %}
+							<li class="comment" id="{{semester.semester.name}}-{{scholarship.scholarship.id}}-comment">
+								{{ scholarship.scholarship.comments }}
+								</li>
 						{% endif %}
 					{% endfor %}
 					</ul>
@@ -129,7 +156,7 @@ span.label {
 								{% endif %}
 							</li>
 							{% if other_funding.comment %}
-								<li class="comment"><p>{{ other_funding.comment }}</p></li>
+								<li class="comment" id="{{semester.semester.name}}-{{other_funding.id}}-comment">{{ other_funding.comment }}</li>
 							{% endif %}
 						{% endfor %}
 					</ul>
