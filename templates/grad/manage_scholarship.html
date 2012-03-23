@@ -41,7 +41,7 @@
 	</table>
 </div>
 <div id="form_container">
-    <form action="{% url grad.views.new_scholarship grad_slug=grad.slug%}" method="POST">
+    <form action="{% url grad.views.manage_scholarship grad_slug=grad.slug%}" method="POST">
     	{% csrf_token %}
     	<fieldset>
     		

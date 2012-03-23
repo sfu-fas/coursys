@@ -5,7 +5,6 @@ from ra.models import Account
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter #, getter_setter_2
 from courselib.slugs import make_slug
-from grad.views import get_semester
 from autoslug import AutoSlugField
 import decimal
 from dashboard.models import NewsItem

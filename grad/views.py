@@ -7,6 +7,8 @@ from grad.models import GradStudent, GradProgram, Supervisor, GradRequirement, C
 from grad.forms import SupervisorForm, PotentialSupervisorForm, GradAcademicForm, GradProgramForm, \
         GradStudentForm, GradStatusForm, GradRequirementForm, possible_supervisors, BaseSupervisorsFormSet, \
     SearchForm, LetterTemplateForm, LetterForm, UploadApplicantsForm, new_promiseForm, new_scholarshipForm
+from ta.models import TAContract, TAApplication
+from ra.models import RAAppointment
 from coredata.models import Person, Role, Unit, Semester, CAMPUS_CHOICES
 from coredata.queries import more_personal_info, SIMSProblem
 from django import forms
@@ -890,6 +892,9 @@ def financials(request, grad_slug):
             earliest_semester = other_funding.semester 
         if(latest_semester < other_funding.semester):
             latest_semester = other_funding.semester
+
+    applications = TAApplication.objects.filter(person=grad)
+    contracts = TAContract.objects.filter(application__in=applications)            
     
     semesters = []
     semesters_qs = Semester.objects.filter(start__gte=earliest_semester.start, end__lte=latest_semester.end).order_by('-name')
@@ -916,9 +921,12 @@ def financials(request, grad_slug):
             if semester_other_funding.eligible == True:
                 semester_total += semester_other_funding.amount
         scholarships_in_semester['semester_total'] = semester_total
-         
-        promise = promises_qs.get(start_semester__lte=semester,end_semester__gte=semester)
-        semester_promised_amount = promise.amount/(promise.end_semester - promise.start_semester +1)
+        try:
+            promise = promises_qs.get(start_semester__lte=semester,end_semester__gte=semester)
+            semester_promised_amount = promise.amount/(promise.end_semester - promise.start_semester +1)
+        except:
+            promise = Promise.objects.none()
+            semester_promised_amount = 0
         
         semester_owing = scholarships_in_semester['semester_total'] - semester_promised_amount
         
@@ -1005,4 +1013,4 @@ def manage_scholarship(request, grad_slug):
                 'grad':grad,
                 'scholarship_form': scholarship_form
     }
-    return render(request, 'grad/manage_promise.html', context)
+    return render(request, 'grad/manage_scholarship.html', context)

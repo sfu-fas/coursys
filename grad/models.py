@@ -251,6 +251,8 @@ class ScholarshipType(models.Model):
     comments = models.TextField(blank=True, null=True)
     class meta:
         unique_together = ("unit", "name")
+    def __unicode__(self):
+        return "%s - %s" % (self.unit.label, self.name)
 
 class Scholarship(models.Model):
     scholarship_type = models.ForeignKey(ScholarshipType)
