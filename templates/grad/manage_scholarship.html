@@ -20,13 +20,15 @@
 </li>
 
 <li>
-	&gt; Manage Promise
+	&gt; Manage Scholarship
 </li>
 
 {% endblock %}
 
+
+
 {% block content %}
-<div class="table_container">
+  		<div class="table_container">
 	<table class="info">
 		<tbody>
 			<tr>
@@ -39,10 +41,12 @@
 	</table>
 </div>
 <div id="form_container">
-    <form action="{% url grad.views.new_promise grad_slug=grad.slug%}" method="POST">
+    <form action="{% url grad.views.new_scholarship grad_slug=grad.slug%}" method="POST">
     	{% csrf_token %}
     	<fieldset>
-              {{ Promise_form|as_dl_2 }}
+    		
+    		
+              {{ scholarship_form|as_dl_2 }}
         <p><input  class="submit"  type="submit" value="Submit"></p>
         </fieldset>
     </form>

@@ -3,7 +3,7 @@ from django import forms
 from django.db.models import Q
 import grad.models as gradmodels
 from grad.models import Supervisor, GradProgram, GradStudent, GradStatus,\
-    GradRequirement, CompletedRequirement, LetterTemplate, Letter, Promise
+    GradRequirement, CompletedRequirement, LetterTemplate, Letter, Promise, Scholarship
 from coredata.models import Person, Member, Semester, CAMPUS_CHOICES
 from django.forms.formsets import BaseFormSet
 #from django.core.exceptions import ValidationError
@@ -225,7 +225,10 @@ class new_promiseForm(ModelForm):
         model = Promise
         exclude = ('student','comments')
       
-        
+class new_scholarshipForm(ModelForm):
+    class Meta:
+        model = Scholarship
+                
 
 
 # should be moved into whatever model this is stored in

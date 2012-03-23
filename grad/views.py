@@ -6,7 +6,7 @@ from grad.models import GradStudent, GradProgram, Supervisor, GradRequirement, C
     Letter
 from grad.forms import SupervisorForm, PotentialSupervisorForm, GradAcademicForm, GradProgramForm, \
         GradStudentForm, GradStatusForm, GradRequirementForm, possible_supervisors, BaseSupervisorsFormSet, \
-    SearchForm, LetterTemplateForm, LetterForm, UploadApplicantsForm, new_promiseForm
+    SearchForm, LetterTemplateForm, LetterForm, UploadApplicantsForm, new_promiseForm, new_scholarshipForm
 from coredata.models import Person, Role, Unit, Semester, CAMPUS_CHOICES
 from coredata.queries import more_personal_info, SIMSProblem
 from django import forms
@@ -942,7 +942,7 @@ def financials(request, grad_slug):
                }
     return render(request, 'grad/view_financials.html', context)
     
-@requires_role("FUND")
+@requires_role("GRAD")
 def new_promise(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
     if request.method == 'POST':
@@ -966,7 +966,34 @@ def new_promise(request, grad_slug):
     context = {'page_title':page_title,
                 'crum':crumb,
                 'grad':grad,
-                'promise_form': promise_form
+                'Promise_form': promise_form
     }
     return render(request, 'grad/manage_promise.html', context)
-   
+
+@requires_role("GRAD")
+def manage_scholarship(request, grad_slug):
+    grad = get_object_or_404(GradStudent, slug = grad_slug)
+    if request.method == 'POST':
+        scholarship_form = new_scholarshipForm(request.POST)
+        if scholarship_form.is_valid():
+            temp = scholarship_form.save(commit=False)
+            temp.student = grad
+            temp.save()
+            messages.success(request, "Scholarship %s sucessfully saved." % (promise_form.cleaned_data['amount'], grad))
+            
+            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad.slug}))
+    else:
+        temp = get_semester
+        print "semester"
+        print temp
+        scholarship_form = new_scholarshipForm()
+
+    page_title = "New Scholarship"
+    crumb = "%s, %s" % (grad.person.last_name, grad.person.first_name)
+
+    context = {'page_title':page_title,
+                'crum':crumb,
+                'grad':grad,
+                'scholarship_form': scholarship_form
+    }
+    return render(request, 'grad/manage_promise.html', context)
