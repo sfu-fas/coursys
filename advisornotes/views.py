@@ -158,6 +158,7 @@ def student_more_info(request, userid):
     """
     student = get_object_or_404(Person, _find_userid_or_emplid(userid))
     data = more_personal_info(student.emplid, programs=True)
+    #print data
     
     if isinstance(data, SIMSProblem):
         data = {'error': data}

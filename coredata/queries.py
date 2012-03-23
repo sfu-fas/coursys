@@ -341,6 +341,12 @@ def more_personal_info(emplid, programs=False):
             prog = "%s (%s)" % (label, acad_plan)
             programs.append(prog)
     
+    # GPA and credit count
+    db.execute('SELECT cum_gpa, tot_cumulative FROM ' + db.table_prefix + 'ps_stdnt_car_term WHERE emplid=%s ORDER BY strm DESC FETCH FIRST 1 ROWS ONLY', (str(emplid),))
+    for gpa, cred in db:
+        data['gpa'] = gpa
+        data['credits'] = cred
+    
     return data
 
 
