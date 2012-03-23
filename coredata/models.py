@@ -41,11 +41,15 @@ class Person(models.Model):
         # 'birthdate': birth date (e.g. '1980-12-31')
         # 'applic_email': application email address
         # 'title': 'Mr', 'Ms', 'Mrs', etc.
+        # 'gpa': Most recent CGPA for this student
+        # 'ccredits': Number of completed credits
     
-    defaults = {'email': None, 'gender': 'U', 'addresses': {}}
+    defaults = {'email': None, 'gender': 'U', 'addresses': {}, 'gpa': None, 'ccredits': None}
     _, set_email = getter_setter('email')
-    gender, set_gender = getter_setter('gender')
-    addresses, set_addresses = getter_setter('addresses')
+    gender, _ = getter_setter('gender')
+    addresses, _ = getter_setter('addresses')
+    gpa, _ = getter_setter('gpa')
+    ccredits, _ = getter_setter('ccredits')
     
 
     def __unicode__(self):

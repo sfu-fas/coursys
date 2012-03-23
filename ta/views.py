@@ -460,10 +460,10 @@ def update_course_bus(request, post_slug, course_slug):
         try:
             labtas = request.POST['labtas']
             if offering.labtas() != labtas:
-            offering.config['labtas'] = labtas
+                offering.config['labtas'] = labtas
         except KeyError:
             if offering.labtas() == 'on':
-            offering.config['labtas'] = False
+                offering.config['labtas'] = False
         offering.save()
     return HttpResponseRedirect(reverse(assign_bus, args=(post_slug,course_slug,)))
 
