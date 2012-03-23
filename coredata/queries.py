@@ -13,7 +13,7 @@ class SIMSConn(object):
     
     Absolutely NOT thread safe.
     Implemented as a singleton to minimize number of times SIMS connection overhead occurs.
-    Should only be created on-demand (in function) to minimize startup for non-SIMS requests.
+    Should only be created on-demand (in function) to minimize startup for non-SIMS processes.
     """
     sims_user = "ggbaker"
     sims_db = "csrpt"
@@ -132,8 +132,8 @@ def _args_to_key(args, kwargs):
 def cache_by_args(func, seconds=38800): # 8 hours by default
     """
     Decorator to cache query results from SIMS (if successful: no SIMSProblem).
-    Requires arguments that are (1) hashabl and (2) can be converted to strings that uniquely identifies the results.
-    Return results must be pickle-able so they can be cached. 
+    Requires arguments that can be converted to strings that uniquely identifies the results.
+    Return results must be pickle-able so they can be cached.
     """
     def wrapped(*args, **kwargs):
         key = "simscache-" + func.__name__ + "-" + _args_to_key(args, kwargs)
@@ -327,16 +327,15 @@ def more_personal_info(emplid, programs=False):
     if programs:
         programs = []
         data['programs'] = programs
-        first_dt = None
-        db.execute("SELECT p.effdt, p.acad_plan, d.descr, d.trnscr_descr FROM " + db.table_prefix + "ps_acad_plan p, " + db.table_prefix + 
-               "ps_acad_plan_tbl d WHERE p.acad_plan=d.acad_plan AND d.eff_status='A' AND p.emplid=%s ORDER BY p.effdt DESC, p.EFFSEQ", (str(emplid),))
-        for effdt, acad_plan, descr, transcript in db:
-            # only display programs from most recent declaration
-            if first_dt is None:
-                first_dt = effdt
-            elif effdt != first_dt:
-                break
-            
+        db.execute("SELECT apt.acad_plan, apt.descr, apt.trnscr_descr from "
+                   "(select max(effdt) as effdt from " + db.table_prefix + "ps_acad_plan where emplid=%s) as last, "
+                   + db.table_prefix + "ps_acad_plan as ap, "
+                   + db.table_prefix + "ps_acad_plan_tbl as apt, "
+                   "(select acad_plan, max(effdt) as effdt from dbsastg.ps_acad_plan_tbl GROUP BY acad_plan) as lastplan "
+                   "WHERE (apt.acad_plan=ap.acad_plan AND last.effdt=ap.effdt "
+                   "AND apt.effdt=lastplan.effdt AND lastplan.acad_plan=ap.acad_plan "
+                   "AND apt.eff_status='A' AND ap.emplid=%s)", (str(emplid), str(emplid)))
+        for acad_plan, descr, transcript in db:
             label = transcript or descr
             prog = "%s (%s)" % (label, acad_plan)
             programs.append(prog)
@@ -350,4 +349,32 @@ def more_personal_info(emplid, programs=False):
     return data
 
 
+'''
+@cache_by_args
+@SIMS_problem_handler
+def acad_plan_count(acad_plan):
+    """
+    Return number of majors in academic plan (e.g. 'CMPTMAJ') or a SIMSProblem instance (error message).
+    
+    Returns the same dictionary format as Person.config (for the fields it finds).
+    """
+    db = SIMSConn()
+    data = {}
+    
+    db.execute("SELECT max(effdt) as effdt from " + db.table_prefix + "ps_acad_plan_tbl WHERE acad_plan=%s", (acad_plan,))
+    lastdt = db.fetchone()[0]
+    
+    # emplids who have ever been in acad_plan
+    emplid_in = "(select emplid from  dbsastg.ps_acad_plan where acad_plan=%s group by emplid)"
+    # last effdt for all students we might care about
+    last_effdt = "(select emplid, max(effdt) as effdt from dbsastg.ps_acad_plan where emplid in "+emplid_in+" group by emplid)"
+    
+    db.execute("SELECT * FROM "
+               + last_effdt + " as last, "
+               + db.table_prefix + "ps_acad_plan as ap "
+               "WHERE ap.emplid=last.emplid AND ap.effdt=last.effdt AND ap.acad_plan=%s"
+               , (acad_plan, acad_plan))
+    for row in db:
+        print row
 
+'''
