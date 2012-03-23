@@ -628,7 +628,7 @@ def edit_contract(request, post_slug, userid):
             formset = TACourseFormset(request.POST, instance=contract)
             if formset.is_valid():
                 #If course isn't in applicants prefered courses, add it with rank 0
-                course_prefs = [c.course for c in CoursePreference.objects.filter(app=contract.application)]
+                course_prefs = [c.course for c in CoursePreference.objects.filter(app=application)]
                 for form in formset:
                     if 'course' not in form.cleaned_data:
                         continue
