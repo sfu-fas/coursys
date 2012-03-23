@@ -627,6 +627,12 @@ def new_letter(request, grad_slug):
     templates = LetterTemplate.objects.filter(unit=grad.program.unit)
     from_choices = [('', u'\u2014')] + [(r.person.id, "%s, %s" % (r.person.name(), r.get_role_display()))
                                         for r in Role.objects.filter(unit=grad.program.unit)]
+    directors = Role.objects.filter(unit=grad.program.unit, role='GRPD').order_by('-id')
+    if directors:
+        default_from = directors[0].person.id
+    else:
+        default_from = None
+    
     ls = get_letter_dict(grad)
     if request.method == 'POST':
         form = LetterForm(request.POST)
@@ -643,7 +649,7 @@ def new_letter(request, grad_slug):
             l.save()            
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))
     else:
-        form = LetterForm(initial={'student': grad, 'date': datetime.date.today()})
+        form = LetterForm(initial={'student': grad, 'date': datetime.date.today(), 'from_person': default_from})
         form.fields['from_person'].choices = from_choices
         
 
@@ -729,6 +735,7 @@ def get_addresses(request):
     json.dump(data, resp, indent=1)
     return resp
 
+from pages.models import _normalize_newlines
 @requires_role("GRAD")
 def get_letter(request, letter_slug):
     letter = get_object_or_404(Letter, slug=letter_slug, student__program__unit__in=request.units)
@@ -738,7 +745,9 @@ def get_letter(request, letter_slug):
     doc = OfficialLetter(response, unit=letter.student.program.unit)
     l = LetterContents(to_addr_lines=letter.to_lines.split("\n"), from_name_lines=letter.from_lines.split("\n"), date=letter.date, salutation=letter.salutation,
                  closing=letter.closing, signer=letter.from_person)
-    l.add_paragraphs([letter.content])
+    content_text = _normalize_newlines(letter.content.rstrip())
+    content_lines = content_text.split("\n\n")
+    l.add_paragraphs(content_lines)
     doc.add_letter(l)
     doc.write() 
     return response

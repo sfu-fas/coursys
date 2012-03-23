@@ -30,10 +30,14 @@
 	}
 
 	function update_from_lines() {
-		var label = $("#id_from_person option:selected").text();
-		var lines = label.split(", ");
-		var from = lines.join("\r\n");
-		$("#id_from_lines").val(from);
+        if ($('#id_from_person').val() == '' ) {
+            $("#id_from_lines").val('');
+        } else { 
+            var label = $("#id_from_person option:selected").text();
+            var lines = label.split(", ");
+            var from = lines.join("\r\n");
+            $("#id_from_lines").val(from);
+        }
 	}
 
 	var address_map = {};
@@ -110,6 +114,7 @@
 		});
 
 		$("#id_from_person").change(update_from_lines);
+		update_from_lines();
 	});
 
 </script>

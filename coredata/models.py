@@ -690,18 +690,20 @@ ROLE_CHOICES = (
         ('ADMN', 'Departmental Administrator'),
         ('TAAD', 'TA Administrator'),
         ('GRAD', 'Grad Student Administrator'),
+        ('GRPD', 'Graduate Program Director'),
         ('FUND', 'Grad Funding Administrator'),
         ('SYSA', 'System Administrator'),
         ('NONE', 'none'),
         )
 ROLES = dict(ROLE_CHOICES)
-UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'TAAD', 'GRAD', 'FUND'] # roles departmental admins ('ADMN') are allowed to assign with their unit
+UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'TAAD', 'GRAD', 'FUND', 'GRPD'] # roles departmental admins ('ADMN') are allowed to assign with their unit
 ROLE_DESCR = {
               'ADVS': 'Has access to the advisor notes.',
               'DISC': 'Can manage academic discipline cases in the unit: should include your Academic Integrity Coordinator.',
               'DICC': 'Will be copied on all discipline case letters in the unit: include whoever files your discipline cases.',
               'TAAD': 'Can administer TA job postings and appointments.',
               'GRAD': 'Can view and update the grad student database.',
+              'GRPD': 'Director of the graduate program: typically the signer of grad-related letters.',
               'FUND': 'Can work with the grad student funding database.',
               }
 class Role(models.Model):
