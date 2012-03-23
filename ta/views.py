@@ -401,7 +401,7 @@ def assign_bus(request, post_slug, course_slug):
             init['bu'] = app_tacourse[0].bu
             assigned = app_tacourse[0]
         assigned_ta.append(assigned)
-        init['rank'] = p.rank
+        init['rank'] = p.app.rank
         initial.append(init)
 
     AssignBUFormSet = formset_factory(AssignBUForm)
@@ -460,11 +460,9 @@ def update_course_bus(request, post_slug, course_slug):
         try:
             labtas = request.POST['labtas']
             if offering.labtas() != labtas:
-                print labtas
             offering.config['labtas'] = labtas
         except KeyError:
             if offering.labtas() == 'on':
-                print offering.labtas()
             offering.config['labtas'] = False
         offering.save()
     return HttpResponseRedirect(reverse(assign_bus, args=(post_slug,course_slug,)))
