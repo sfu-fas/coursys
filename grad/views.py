@@ -979,7 +979,7 @@ def manage_scholarship(request, grad_slug):
             temp = scholarship_form.save(commit=False)
             temp.student = grad
             temp.save()
-            messages.success(request, "Scholarship %s sucessfully saved." % (promise_form.cleaned_data['amount'], grad))
+            messages.success(request, "Scholarship sucessfully saved.")
             
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad.slug}))
     else:
