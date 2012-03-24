@@ -261,6 +261,8 @@ class Scholarship(models.Model):
     start_semester = models.ForeignKey(Semester, related_name="scholarship_start")
     end_semester = models.ForeignKey(Semester, related_name="scholarship_end")
     comments = models.TextField(blank=True, null=True)
+    def __unicode__(self):
+        return "%s (%s)" % (self.scholarship_type, self.amount)
     
     
 class OtherFunding(models.Model):

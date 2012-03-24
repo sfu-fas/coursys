@@ -19604,6 +19604,7 @@
   "model": "grad.promise",
   "pk": 2
  },
+
  {
   "fields": {
    "comments": "Testing Scholarship",
@@ -19614,18 +19615,7 @@
   "model": "grad.scholarshiptype",
   "pk": 2
  },
- {
-  "fields": {
-   "amount": "5000",
-   "comments": "Testing Scholarship Entry",
-   "end_semester": 1,
-   "scholarship_type": 1,
-   "start_semester": 1,
-   "student": 1
-  },
-  "model": "grad.scholarship",
-  "pk": 2
- },
+
  {
   "fields": {
    "comments": "", 
@@ -19640,11 +19630,232 @@
   "fields": {
    "comments": "", 
    "eligible": true, 
-   "name": "New Scholarship too", 
+   "name": "New Scholarship to", 
    "unit": 2
   }, 
   "model": "grad.scholarshiptype", 
   "pk": 1
+ },
+ 
+ {
+  "fields": {
+   "amount": "5000", 
+   "comments": "", 
+   "end_semester": 4, 
+   "scholarship_type": 1, 
+   "start_semester": 1, 
+   "student": 1
+  }, 
+  "model": "grad.scholarship", 
+  "pk": 2
+ },
+  {
+  "fields": {
+   "comments": "",
+   "eligible": true,
+   "name": "New Scholarship too",
+   "unit": 2
+  },
+  "model": "grad.scholarshiptype",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "comments": "Testing Scholarship",
+   "eligible": true,
+   "name": "GEA10055",
+   "unit": 2
+  },
+  "model": "grad.scholarshiptype",
+  "pk": 2
+ },
+ {
+  "fields": {
+   "comments": "computing science grad fellowship scholarship",
+   "eligible": true,
+   "name": "CS_GF ",
+   "unit": 2
+  },
+  "model": "grad.scholarshiptype",
+  "pk": 3
+ },
+ {
+  "fields": {
+   "comments": "",
+   "eligible": true,
+   "name": "CSS/FAS Grad Student Award ",
+   "unit": 2
+  },
+  "model": "grad.scholarshiptype",
+  "pk": 4
+ },
+ {
+  "fields": {
+   "comments": "i have no clue what this is, \"top_up\"? ",
+   "eligible": false,
+   "name": "FAS RA Top-up ",
+   "unit": 3
+  },
+  "model": "grad.scholarshiptype",
+  "pk": 5
+ },
+ {
+  "fields": {
+   "comments": "assuming that this is some sort of independent scholarship from a company",
+   "eligible": false,
+   "name": "Franklin & Helen Van Pykstra Grad. Scholarship ",
+   "unit": 1
+  },
+  "model": "grad.scholarshiptype",
+  "pk": 6
+ },
+ {
+  "fields": {
+   "comments": "",
+   "eligible": true,
+   "name": "NSERC CGS D2 ",
+   "unit": 2
+  },
+  "model": "grad.scholarshiptype",
+  "pk": 7
+ },
+ {
+  "fields": {
+   "comments": "",
+   "eligible": false,
+   "name": "NSERC CGSD3 ",
+   "unit": 2
+  },
+  "model": "grad.scholarshiptype",
+  "pk": 8
+ },
+ {
+  "fields": {
+   "comments": "",
+   "eligible": false,
+   "name": "NSERC FAS-Top-up ",
+   "unit": 3
+  },
+  "model": "grad.scholarshiptype",
+  "pk": 9
+ },
+ {
+  "fields": {
+   "comments": "",
+   "eligible": true,
+   "name": "President_Ph.D_Research_Stipend ",
+   "unit": 1
+  },
+  "model": "grad.scholarshiptype",
+  "pk": 10
+ },
+  {
+  "fields": {
+   "amount": "5000",
+   "comments": "",
+   "end_semester": 4,
+   "scholarship_type": 2,
+   "start_semester": 1,
+   "student": 1
+  },
+  "model": "grad.scholarship",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "amount": "5000",
+   "comments": "",
+   "end_semester": 4,
+   "scholarship_type": 1,
+   "start_semester": 1,
+   "student": 1
+  },
+  "model": "grad.scholarship",
+  "pk": 2
+ },
+ {
+  "fields": {
+   "amount": "2500",
+   "comments": "",
+   "end_semester": 5,
+   "scholarship_type": 2,
+   "start_semester": 3,
+   "student": 6
+  },
+  "model": "grad.scholarship",
+  "pk": 3
+ },
+ {
+  "fields": {
+   "amount": "3000",
+   "comments": "this is a multi semester scholarship",
+   "end_semester": 5,
+   "scholarship_type": 3,
+   "start_semester": 1,
+   "student": 6
+  },
+  "model": "grad.scholarship",
+  "pk": 4
+ },
+ {
+  "fields": {
+   "amount": "260",
+   "comments": "",
+   "end_semester": 5,
+   "scholarship_type": 9,
+   "start_semester": 4,
+   "student": 6
+  },
+  "model": "grad.scholarship",
+  "pk": 5
+ },
+ {
+  "fields": {
+   "amount": "2000",
+   "comments": "This scholarship only spans 1 semester",
+   "end_semester": 3,
+   "scholarship_type": 3,
+   "start_semester": 2,
+   "student": 1
+  },
+  "model": "grad.scholarship",
+  "pk": 6
+ },
+ {
+  "fields": {
+   "amount": "9000",
+   "comments": "another scholarship to only span 1 semester",
+   "end_semester": 4,
+   "scholarship_type": 7,
+   "start_semester": 3,
+   "student": 1
+  },
+  "model": "grad.scholarship",
+  "pk": 7
+ },
+ {
+  "fields": {
+   "amount": "5000",
+   "comments": "scholarship spans 3 semesters",
+   "end_semester": 5,
+   "scholarship_type": 7,
+   "start_semester": 3,
+   "student": 3
+  },
+  "model": "grad.scholarship",
+  "pk": 8
+ },
+   {
+  "fields": {
+   "amount": "5000",
+   "comments": "Testing Scholarship Entry",
+   "end_semester": 1,
+   "scholarship_type": 1,
+   "start_semester": 1,
+   "student": 1
+  },
+  "model": "grad.scholarship",
+  "pk": 2
  },
  {
   "fields": {
@@ -19657,19 +19868,6 @@
   }, 
   "model": "grad.scholarship", 
   "pk": 1
- }, 
- {
-  "fields": {
-   "amount": "5000", 
-   "comments": "", 
-   "end_semester": 4, 
-   "scholarship_type": 1, 
-   "start_semester": 1, 
-   "student": 1
-  }, 
-  "model": "grad.scholarship", 
-  "pk": 2
  }
- 
  
 ]

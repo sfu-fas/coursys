@@ -6,7 +6,8 @@ from grad.models import GradStudent, GradProgram, Supervisor, GradRequirement, C
     Letter
 from grad.forms import SupervisorForm, PotentialSupervisorForm, GradAcademicForm, GradProgramForm, \
         GradStudentForm, GradStatusForm, GradRequirementForm, possible_supervisors, BaseSupervisorsFormSet, \
-    SearchForm, LetterTemplateForm, LetterForm, UploadApplicantsForm, new_promiseForm, new_scholarshipForm
+    SearchForm, LetterTemplateForm, LetterForm, UploadApplicantsForm, new_promiseForm, new_scholarshipForm,\
+    new_scholarshipTypeForm
 from ta.models import TAContract, TAApplication
 from ra.models import RAAppointment
 from coredata.models import Person, Role, Unit, Semester, CAMPUS_CHOICES
@@ -996,21 +997,41 @@ def manage_scholarship(request, grad_slug):
             temp = scholarship_form.save(commit=False)
             temp.student = grad
             temp.save()
-            messages.success(request, "Scholarship sucessfully saved.")
+            messages.success(request, "Scholarship for %s sucessfully saved." % (grad))
             
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad.slug}))
     else:
         temp = get_semester
         print "semester"
         print temp
-        scholarship_form = new_scholarshipForm()
+        scholarship_form = new_scholarshipForm(initial={'student':grad,'start_semester':get_semester(),'amount':'$0.00'})
 
     page_title = "New Scholarship"
     crumb = "%s, %s" % (grad.person.last_name, grad.person.first_name)
 
     context = {'page_title':page_title,
-                'crum':crumb,
+                'crumb':crumb,
                 'grad':grad,
                 'scholarship_form': scholarship_form
     }
     return render(request, 'grad/manage_scholarship.html', context)
+
+@requires_role("GRAD")
+def manage_scholarshipType(request):
+
+    if request.method == 'POST':
+        scholarshipType_form = new_scholarshipTypeForm(request.POST)
+        if scholarshipType_form.is_valid():
+            scholarshipType_form.save()
+            messages.success(request, "Scholarship Type sucessfully saved.")
+            
+            return HttpResponseRedirect(reverse(index))
+    else:
+        scholarshipType_form = new_scholarshipTypeForm()
+
+    page_title = "New Scholarship Type"
+   
+    context = {'page_title':page_title,
+                'new_scholarshipTypeForm': scholarshipType_form
+    }
+    return render(request, 'grad/manage_scholarshipType.html', context)
