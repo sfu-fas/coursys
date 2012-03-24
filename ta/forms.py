@@ -151,16 +151,17 @@ class TAApplicationForm(forms.ModelForm):
     class Meta:
         model = TAApplication
         exclude = ('posting','person','skills','campus_preferences','rank')
-        widgets = {
-                   'base_units': forms.TextInput(attrs={'size': 5}),
-                   'sin': forms.TextInput(attrs={'size': 9}),
-                   }
+        widgets = {'base_units': forms.TextInput(attrs={'size': 5}),}
 
     def clean_sin(self):
-        sin = self.cleaned_data['sin']
-        sin = re.sub('[ -]+','',str(sin))
-        if not re.match('\d{9}$',sin):
-            raise forms.ValidationError("Invalid SIN")
+        print self.data
+        if self.data['ta-sin'].strip() =='':
+            sin = '000000000'
+        else:
+            sin = self.cleaned_data['ta-sin']
+            sin = re.sub('[ -]+','',str(sin))
+            if not re.match('\d{9}$',sin):
+                raise forms.ValidationError("Invalid SIN")
         return sin
 
 class CoursePreferenceForm(forms.ModelForm):
@@ -196,13 +197,13 @@ class TAContractForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(TAContractForm, self).__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
-        
-        #if instance and instance.id:
-        #    del self.fields['applicant']
+        if instance.id and instance.sin == '000000000':
+            self.fields['sin'].help_text = "Valid SIN is required for receiving payments"
 
     class Meta:
         model = TAContract
         exclude = ['posting', 'application', 'created_by']
+        
         
     def clean_pay_per_bu(self):
         pay = self.cleaned_data['pay_per_bu']
@@ -222,7 +223,6 @@ class TAContractForm(forms.ModelForm):
             raise forms.ValidationError("Scholarship per BU values must be numbers")
         return schol
         
-                
     def clean_sin(self):
         sin = self.cleaned_data['sin']
         sin = re.sub('[ -]+','',str(sin))
@@ -249,11 +249,14 @@ class TAContractForm(forms.ModelForm):
             raise forms.ValidationError("Deadline for acceptance cannot be before today")
         return deadline
     
-class TACourseForm(forms.ModelForm):   
-           
+class TACourseForm(forms.ModelForm):           
     class Meta:
         model = TACourse
-        exclude = ('contract',) 
+        exclude = ('contract',)
+        widgets = {'course': forms.Select(attrs={'class': 'course_select'}),
+                   'description': forms.Select(attrs={'class': 'desc_select'}),
+                   'bu': forms.TextInput(attrs={'class': 'bu_inp'})
+                   }
 
 class BaseTACourseFormSet(BaseInlineFormSet):    
     def clean(self):

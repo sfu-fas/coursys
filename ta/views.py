@@ -710,9 +710,6 @@ def edit_contract(request, post_slug, userid):
 
     form.fields['position_number'].choices = position_choices       
     for f in formset:
-        f.fields['course'].widget.attrs['class']  = 'course_select'
-        f.fields['description'].widget.attrs['class']  = 'desc_select'
-        f.fields['bu'].widget.attrs['class']  = 'bu_inp'
         f.fields['course'].choices = course_choices
     
     context = {'form': form, 'formset': formset, 'posting': posting, 'editing': editing,

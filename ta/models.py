@@ -283,8 +283,7 @@ class TAApplication(models.Model):
     category = models.CharField(max_length=4, blank=False, null=False, choices=CATEGORY_CHOICES)
     base_units = models.DecimalField(max_digits=4, decimal_places=2,
             help_text='Maximum number of base units you\'re interested in taking (5 is a "full" TA-ship)')
-    sin = models.CharField(max_length=30, verbose_name="SIN", help_text="Social insurance number")
-    #sin = models.PositiveIntegerField(verbose_name="SIN",help_text="Your social insurance number")
+    sin = models.CharField(blank=True, max_length=30, verbose_name="SIN", help_text="Social insurance number (required for receiving payments)")
     experience =  models.TextField(blank=True, null=True,
         verbose_name="Experience",
         help_text='Describe any other experience that you think may be relevant to these courses.')

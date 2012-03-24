@@ -175,6 +175,10 @@
     	}    	
     	$("#id_status").change(button_update);
     	button_update();
+    	
+    	// alert manager if sin is not yet filled with valid number
+    	if($("#id_sin").val() == '000000000')
+    		$("#id_sin").parent().next().css({'color': 'red'})
     });
 </script>
 
