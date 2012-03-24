@@ -255,7 +255,7 @@ class TAPosting(models.Model):
         """
         Number of people who have applied to TA this offering
         """
-        prefs = CoursePreference.objects.filter(app__posting__semester=self.semester, app__posting__unit=self.unit, course=offering.course)
+        prefs = CoursePreference.objects.filter(app__posting__semester=self.semester,app__late=False, app__posting__unit=self.unit, course=offering.course)
         return prefs.count()
 
 class Skill(models.Model):

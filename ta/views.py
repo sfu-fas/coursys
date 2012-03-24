@@ -354,7 +354,6 @@ def assign_tas(request, post_slug):
     if posting.unit not in request.units:
         ForbiddenResponse(request, 'You cannot access this posting')
     
-    apps = TAApplication.objects.filter(posting=posting)
     all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit)
     # ignore excluded courses
     excl = set(posting.excluded())
@@ -369,7 +368,7 @@ def assign_bus(request, post_slug, course_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug)
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     instructors = offering.instructors()
-    course_prefs = CoursePreference.objects.filter(course=offering.course) 
+    course_prefs = CoursePreference.objects.filter(course=offering.course,app__late=False) 
     #a ta that has been assigned BU to this course might not be on the list
     tacourses = TACourse.objects.filter(course=offering)
     
