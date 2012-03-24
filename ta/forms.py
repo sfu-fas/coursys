@@ -150,15 +150,15 @@ class TUGForm(forms.ModelForm):
 class TAApplicationForm(forms.ModelForm):
     class Meta:
         model = TAApplication
-        exclude = ('posting','person','skills','campus_preferences','rank')
+        exclude = ('posting','person','skills','campus_preferences','rank','late')
         widgets = {'base_units': forms.TextInput(attrs={'size': 5}),}
 
     def clean_sin(self):
         print self.data
-        if self.data['ta-sin'].strip() =='':
+        sin = self.cleaned_data['sin']
+        if sin.strip() =='':
             sin = '000000000'
         else:
-            sin = self.cleaned_data['ta-sin']
             sin = re.sub('[ -]+','',str(sin))
             if not re.match('\d{9}$',sin):
                 raise forms.ValidationError("Invalid SIN")

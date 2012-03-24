@@ -234,6 +234,11 @@ def _new_application(request, post_slug, manual=False):
 
         if ta_form.is_valid() and courses_formset.is_valid():
             app = ta_form.save(commit=False)
+            today = datetime.date.today()
+            if(posting.closes < today):
+                app.late = True
+            else:
+                app.late = False
             app.posting = posting
             app.person = person
             app.save()
@@ -287,7 +292,9 @@ def _new_application(request, post_slug, manual=False):
         ta_form = TAApplicationForm(prefix='ta')
         campus_preferences = [(lbl, name, 'WIL') for lbl,name in CAMPUS_CHOICES if lbl in used_campuses]
         skill_values = [(s.position, s.name, 'NONE') for s in skills]
-
+        today = datetime.date.today()
+        if(posting.closes < today):
+            messages.warning(request, "The closing date for this posting has past.  Your application will be marked 'late' and may not be considered.")
     context = {
                     'posting':posting,
                     'manual':manual,
