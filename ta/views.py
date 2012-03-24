@@ -39,6 +39,10 @@ def get_total_bu(courses):
         total = total +course.bu
     return int(total)
 
+def create_news(person, title, url ):
+    n = NewsItem(user=person, source_app ="TA Management",title=title, url = url)
+    n.save()
+
 @login_required
 def index_page(request, course_slug):
     return HttpResponseRedirect(reverse(all_tugs, args=(course_slug,)))
@@ -685,7 +689,14 @@ def edit_contract(request, post_slug, userid):
                 contract.posting = posting
                 contract.created_by = request.user.username
                 #create news item
-                #news = NewsItem
+                person = application.person
+                
+                offer_url = "http://127.0.0.1:8000/ta/contracts/"+ post_slug +"/"+ userid +"/accept"
+                print
+                print person
+                print "TA Contract Offer for %s" %person
+                print offer_url
+                create_news(person=person,title="TA Contract Offer for %s" %person, url = offer_url)
                 contract.save()
                 formset.save()
 

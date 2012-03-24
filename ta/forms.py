@@ -171,7 +171,7 @@ class CoursePreferenceForm(forms.ModelForm):
         exclude = ('app','rank') 
         
 class TAAcceptanceForm(forms.ModelForm):
-    
+    sin = forms.CharField(label="SIN", help_text="Social insurance number")
        
     class eta:
         model = TAContract
