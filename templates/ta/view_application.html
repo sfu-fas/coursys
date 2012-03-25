@@ -6,9 +6,11 @@
 {% block content %}
 
 <div class="table_container">
-  <h2>General Information:</h2> 
+  <h2>General Information:</h2>
+  {% if application.late %}
+    <p>This application was submitted late.  <a href="{% url ta.views.update_application app_id=application.id %}">Remove late status.</a></p>
+  {% endif %}
   <table class="info">
-    {% if application.late %}<tr><th>Late</th><td>This application was submitted late</td></tr>{% endif %}
     <tr><th>Name</th><td>{{ application.person.name }} ({{application.person.email_mailto}})</td></tr>
     <tr><th>Semester</th><td>{{ application.posting.semester }}</td></tr>
     <tr><th>Category</th><td>{{ application.get_category_display }}</td></tr>

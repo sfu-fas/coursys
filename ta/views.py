@@ -309,7 +309,15 @@ def _new_application(request, post_slug, manual=False):
                   }
     return render(request, 'ta/new_application.html', context)
 
-# TODO: shouldn't be visible to all users
+@requires_role("TAAD")
+def update_application(request, app_id):
+    application = get_object_or_404(TAApplication, id=app_id)
+    application.late = False
+    application.save()
+    messages.success(request, "Removed late status from the application.")
+    return HttpResponseRedirect(reverse(view_application, args=(app_id)))
+    
+
 @login_required
 def view_application(request, app_id):
     
