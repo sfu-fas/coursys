@@ -398,7 +398,7 @@ def assign_bus(request, post_slug, course_slug):
                     rem_bu = ta_display.display_bu_difference(offering, posting)
             except:
                 msg = "Extra BU needs to be a decimal number."
-            
+         
         if request.POST['labtas'] == "yes":
             if not offering.labtas(): #changed from F to T
                 offering.config['labtas'] = True
@@ -460,9 +460,7 @@ def assign_bus(request, post_slug, course_slug):
                     #update bu for existing TACourse
                     if formset[i]['bu'].value() != '':
                         assigned_ta[i].bu = formset[i]['bu'].value()
-                        assigned_ta[i].save()
-                        #TODO: udates tacourse description, need to distinguish by default or set manually 
-                        
+                        assigned_ta[i].save()                        
                     #unassign bu to this offering for this applicant
                     else:
                         assigned_ta[i].delete()
@@ -471,10 +469,12 @@ def assign_bus(request, post_slug, course_slug):
         formset = AssignBUFormSet(initial=initial)
     
     #add class to bu input for js
+    """
     for i in range(len(apps)):
         formset[i].fields['bu'].widget.attrs['class']  = 'bu_inp'
         if assigned_ta[i] != None and assigned_ta[i].description == 'OML':
             formset[i].fields['bu'].help_text = 'TA runs lab'
+    """
     
     context = {'formset':formset, 'posting':posting, 'offering':offering, 'instructors':instructors, 'applications': apps, 'course_preferences': course_prefs, 'campus_preferences':campus_prefs}
     return render(request, 'ta/assign_bu.html', context) 
@@ -705,6 +705,7 @@ def edit_contract(request, post_slug, userid):
                 contract.application = application
                 contract.posting = posting
                 contract.created_by = request.user.username
+                
                 #create news item
                 person = application.person
                 
@@ -714,6 +715,8 @@ def edit_contract(request, post_slug, userid):
                 print "TA Contract Offer for %s" %person
                 print offer_url
                 create_news(person=person,title="TA Contract Offer for %s" %person, url = offer_url)
+                
+                
                 contract.save()
                 formset.save()
 

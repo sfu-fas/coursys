@@ -49,7 +49,7 @@
 					data = JSON.parse(data)
 					if(data.act > 0) //add 0.17
 						change_bu(0.17)
-					else if(data[0] < 0) //minus 0.17
+					else if(data.act < 0) //minus 0.17
 						change_bu(-0.17)
 					
 					if(data.msg != ''){
@@ -70,11 +70,17 @@
   	$('.bu_inp').each(function(){
   		var val = $(this).val()
   		if($(this).val()!=''){
+  			var val = $(this).val()
+  			$(this).val((parseFloat(val) + bu).toFixed(2))
+  		}
+  		/*
+  		if($(this).val()!=''){
   			if($(this).parent().next().length == 0){ //go with default
   				var val = $(this).val()
 				$(this).val((parseFloat(val) + bu).toFixed(2))
 			}
 		}
+		*/
 	})
   }
   
