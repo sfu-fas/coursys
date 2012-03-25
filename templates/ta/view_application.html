@@ -9,7 +9,7 @@
   <h2>General Information:</h2> 
   <table class="info">
     {% if application.late %}<tr><th>Late</th><td>This application was submitted late</td></tr>{% endif %}
-    <tr><th>Name</th><td>{{ application.person.name }}</td></tr>
+    <tr><th>Name</th><td>{{ application.person.name }} ({{application.person.email_mailto}})</td></tr>
     <tr><th>Semester</th><td>{{ application.posting.semester }}</td></tr>
     <tr><th>Category</th><td>{{ application.get_category_display }}</td></tr>
     <tr><th>Base Units</th><td>{{ application.base_units }}</td></tr>

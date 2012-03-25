@@ -1,6 +1,7 @@
 from django import template
 register = template.Library()
 import decimal
+from django.utils.safestring import mark_safe
 
 def _bu_display(offering, posting, count):
     default = posting.default_bu(offering, count=count)
@@ -28,7 +29,12 @@ def display_assigned_bu(offering, posting):
 def display_bu_difference(offering, posting):
     required = posting.required_bu(offering)
     assigned = posting.assigned_bu(offering)
-    return "%.2f" % (required-assigned)
+    diff = required-assigned
+    if diff < 0:
+        return mark_safe('<span class="over">%.2f</span>' % (diff))
+    elif diff > 0:
+        return mark_safe('<span class="under">%.2f</span>' % (diff))
+    return mark_safe("<span>%.2f</span>" % (diff))
 
 @register.filter
 def display_applicant_count(offering, posting):

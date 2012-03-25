@@ -44,7 +44,7 @@ jQuery.fn.dataTableExt.oSort['by-nolinkmark-asc']  = function(x,y) { return noli
 jQuery.fn.dataTableExt.oSort['by-nolinkmark-desc'] = function(x,y) { return nolinkmark_cmp(y,x) };
 
 /* jQuery Datatables sorting ignoring any <a> (e.g. '<a href="foo">123</a>' sorts by '123') */
-span_re = new RegExp('<span .+>(.+)</span>');
+span_re = new RegExp('<span.*>(.+)</span>');
 function nospan_cmp(x,y) {
   xc = span_re.exec(x);
   yc = span_re.exec(y);
@@ -53,11 +53,7 @@ function nospan_cmp(x,y) {
   if ( yc == null ) { return 1; }
   xc = parseFloat(xc[1]);
   yc = parseFloat(yc[1]);
-  console.log(xc)
-  console.log(yc)
-  res =((xc < yc) ? -1 : ((xc > yc) ? 1 : 0));
-  console.log(res)
-  return res
+  return ((xc < yc) ? -1 : ((xc > yc) ? 1 : 0));
 }
 jQuery.fn.dataTableExt.oSort['by-nospan-asc']  = function(x,y) { return nospan_cmp(x,y) };
 jQuery.fn.dataTableExt.oSort['by-nospan-desc'] = function(x,y) { return nospan_cmp(y,x) };

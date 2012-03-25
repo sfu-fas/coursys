@@ -129,6 +129,7 @@ remaining: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span
     <tr>
       <th scope="col">Applicant</th>
       <th scope="col">Rank</th>
+      <th scope="col">Grad Program</th>
       <th scope="col">Category</th>
       <th scope="col">Course Rank</th>
       <th scope="col">Campus Preference</th>
@@ -146,10 +147,13 @@ remaining: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span
         {% endifequal %}
         {% endfor %}
         </td>
-        <td scope="row">{{ a.get_category_display }}</a></td>
-        <td scope="row">{{ course_preferences|display_course_rank:forloop.counter0 }}</td>
-        <td scope="row">{{ campus_preferences|display_campus_preference:forloop.counter0 }}</a></td>
-        <td scope="row">{{ a.base_units }}</a></td>
+        <td>{% for st in a.statuses %}
+            {{st.student.program.label}} ({{st.student.program.unit.label}}, {{st.get_status_display}}) {% if not forloop.last %}<br />{% endif %}
+            {% endfor %}</td>
+        <td>{{ a.get_category_display }}</a></td>
+        <td>{{ course_preferences|display_course_rank:forloop.counter0 }}</td>
+        <td >{{ campus_preferences|display_campus_preference:forloop.counter0 }}</a></td>
+        <td>{{ a.base_units }}</a></td>
         <td>{% for form in formset %}
         {% ifequal forloop.counter forloop.parentloop.counter %}
           {{ form|as_dl_usefield:'bu' }}

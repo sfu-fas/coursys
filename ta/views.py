@@ -12,6 +12,7 @@ from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContra
 from ra.models import Account
 from dashboard.models import NewsItem
 from coredata.models import Member, Role, CourseOffering, Person, Semester
+from grad.models import GradStatus
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, TAAcceptanceForm, CoursePreferenceForm, \
     TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm
 from advisornotes.forms import StudentSearchForm
@@ -418,6 +419,8 @@ def assign_bus(request, post_slug, course_slug):
     for p in course_prefs:
         init = {}
         assigned = None
+        statuses = GradStatus.objects.filter(student__person=p.app.person, end=None).select_related('student__program__unit')
+        p.app.statuses = statuses # annotate the application with their current grad status(es)
         apps.append(p.app)
         campus_preference = CampusPreference.objects.get(app=p.app, campus=offering.campus)
         campus_prefs.append(campus_preference)
