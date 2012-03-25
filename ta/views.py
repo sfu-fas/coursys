@@ -334,6 +334,14 @@ def view_application(request, app_id):
             }
     return render(request, 'ta/view_application.html', context)
 
+@requires_role("TAAD")
+def view_late_applications(request,post_slug):
+    applications = TAApplication.objects.filter(posting__slug=post_slug, late=True)
+    context = {
+        'applications':applications,
+    }
+    return render(request, 'ta/late_applications.html', context)
+
 @login_required
 def view_postings(request):
     roles = Role.objects.filter(role="TAAD", person__userid=request.user.username)

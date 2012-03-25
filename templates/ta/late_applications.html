@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load course_display ta_display %}
+
+{% block title %}Late Applications {% endblock %}
+{% block h1 %}Late Applications {% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li><li>&gt; {{ posting.unit.label }} {{ posting.semester }} </li><li>&gt; Assign TAs</li>
+{% endblock %}
+
+{% block headextra %}
+<link type="text/css" href="{{MEDIA_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
+<script type="text/javascript" src="{{MEDIA_URL}}js/core.js"></script>
+<script type="text/javascript" src="{{MEDIA_URL}}multiselect/js/ui.multiselect.js"></script>
+<script type="text/javascript">
+  $(function() {
+  	table = $('#offerings').dataTable({
+        "bPaginate": false,
+		"bJQueryUI": true,
+		"aaSorting": [[0, "asc"]],
+	});
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="datatable_container">
+<table class="display" id="offerings">
+<thead><tr>
+<th scope="col">Name</th>
+<tbody>
+{% for a in applications %}
+<tr>
+  <td class="num"><a href="{% url ta.views.view_application app_id=a.id %}">{{ a.person.last_name }}, {{ a.person.first_name }}</a></td>
+</tr>	
+{% endfor %}
+</tbody>
+</table>
+</div>
+
+{% endblock %}

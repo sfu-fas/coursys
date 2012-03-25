@@ -227,14 +227,14 @@ urlpatterns += patterns('',
     url(r'^ta/postings/' + POST_SLUG + '/' + COURSE_SLUG + '$', 'ta.views.assign_bus'),
     #url(r'^ta/postings/' + POST_SLUG + '/' + COURSE_SLUG + '/update_course_bus$', 'ta.views.update_course_bus'),
     url(r'^ta/application/' + APP_ID + '$', 'ta.views.view_application'),
-	
+    url(r'^ta/application/' + POST_SLUG + '/late/$', 'ta.views.view_late_applications'),
     url(r'^ta/contracts/$', 'ta.views.all_contracts'),
-	url(r'^ta/contracts/' + POST_SLUG + '/$', 'ta.views.all_contracts'),
-	url(r'^ta/contracts/' + POST_SLUG + '/' + USERID_SLUG + '/new$', 'ta.views.edit_contract'),
+    url(r'^ta/contracts/' + POST_SLUG + '/$', 'ta.views.all_contracts'),
+    url(r'^ta/contracts/' + POST_SLUG + '/' + USERID_SLUG + '/new$', 'ta.views.edit_contract'),
     url(r'^ta/contracts/' + POST_SLUG + '/' + USERID_SLUG + '/edit$', 'ta.views.edit_contract'),
     url(r'^ta/contracts/' + POST_SLUG + '/' + USERID_SLUG + '/view$', 'ta.views.view_contract'),
     url(r'^ta/contracts/' + POST_SLUG + '/' + USERID_SLUG + '/form', 'ta.views.view_form'),
-	url(r'^ta/contracts/' + POST_SLUG + '/' + USERID_SLUG + '/accept$', 'ta.views.accept_contract'),
+    url(r'^ta/contracts/' + POST_SLUG + '/' + USERID_SLUG + '/accept$', 'ta.views.accept_contract'),
 
     # system admin
 
