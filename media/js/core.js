@@ -22,7 +22,7 @@ link_re = new RegExp('<a .+>(.+)</a>');
 function nolink_cmp(x,y) {
   xc = link_re.exec(x);
   yc = link_re.exec(y);
-  if ( xc == null && yc == null ) { return -0 }
+  if ( xc == null && yc == null ) { return 0 }
   if ( xc == null ) { return -1; }
   if ( yc == null ) { return 1; }
   xc = xc[1];
@@ -42,6 +42,26 @@ function nolinkmark_cmp(x,y) {
 }
 jQuery.fn.dataTableExt.oSort['by-nolinkmark-asc']  = function(x,y) { return nolinkmark_cmp(x,y) };
 jQuery.fn.dataTableExt.oSort['by-nolinkmark-desc'] = function(x,y) { return nolinkmark_cmp(y,x) };
+
+/* jQuery Datatables sorting ignoring any <a> (e.g. '<a href="foo">123</a>' sorts by '123') */
+span_re = new RegExp('<span .+>(.+)</span>');
+function nospan_cmp(x,y) {
+  xc = span_re.exec(x);
+  yc = span_re.exec(y);
+  if ( xc == null && yc == null ) { return 0 }
+  if ( xc == null ) { return -1; }
+  if ( yc == null ) { return 1; }
+  xc = parseFloat(xc[1]);
+  yc = parseFloat(yc[1]);
+  console.log(xc)
+  console.log(yc)
+  res =((xc < yc) ? -1 : ((xc > yc) ? 1 : 0));
+  console.log(res)
+  return res
+}
+jQuery.fn.dataTableExt.oSort['by-nospan-asc']  = function(x,y) { return nospan_cmp(x,y) };
+jQuery.fn.dataTableExt.oSort['by-nospan-desc'] = function(x,y) { return nospan_cmp(y,x) };
+
 
 /* jQuery Datatables sorting for letter grades in links */
 letter_map = {"WE": 15, "WD": 15, "FX": 17, "DE": 12, "FD": 14, "GN": 16, "CN": 17, "C+": 6, "C-": 8, "A+": 0, "A-": 2, "A": 1, "C": 7, "B": 4, "AE": 17, "D": 9, "F": 11, "CC": 17, "IP": 16, "CF": 17, "N": 13, "P": 10, "AU": 17, "W": 15, "CR": 17, "B-": 5, "B+": 3} /* generated: see LETTER_POSITION in grades/models.py */
