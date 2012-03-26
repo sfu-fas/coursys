@@ -8,7 +8,14 @@
 
 {% block headextra %}
 <script type="text/javascript">
-    $(document).ready(function() {
+    $(function() {
+    	$('#contracts').dataTable({
+			"bJQueryUI" : true,
+			"iDisplayLength" : 10,
+			"aaSorting" : [[4, "desc"]],
+			"sPaginationType" : "full_numbers",
+		});
+		
     	//setting post_slug
     	$('#submit').click(function(){
     		var slugs = $('#app').val().split(" ")
@@ -21,31 +28,22 @@
     	
     	//send batch offers
     	$("#select_tog").change(function() {
-  			$(".offer").attr('checked', this.checked);
-    	});
+  			$(".offer").attr('checked', this.checked)
+    	})
     	
+    	$(".offer").change(function(){
+    		if($("#select_tog").attr('checked'))
+    			$("#select_tog").attr('checked', false)
+    	})
     	
     });
-	
-	//for contract table	
-	$(document).ready(function() {
-		$('#contracts').dataTable({
-			"bJQueryUI" : true,
-			"iDisplayLength" : 10,
-			"aaSorting" : [[4, "desc"]],
-			"sPaginationType" : "full_numbers",
-		});
-	});
 
-	
-	
 </script>
 {% endblock %}
 
 {%block content%}
 {%if contracts %}
-<form>
-{{ formset.management_form }}
+<form action="" method="post">{% csrf_token %}
 <div class="datatable_container">
 <table class="display" id="contracts">
   <thead>
@@ -78,14 +76,14 @@
   		<a href="{% url ta.views.view_contract post_slug=contract.posting.slug userid=contract.application.person.userid%}">View</a>&nbsp;
   		<a href="{% url ta.views.edit_contract post_slug=contract.posting.slug userid=contract.application.person.userid%}">Edit</a>&nbsp;
   	</td>
-  	<td>{% if contract.status == 'NEW' %} {{form|as_dl_usefield:"offer"}} {% endif %} </td>
+  	<td>{% if contract.status == 'NEW' %} <input name="contract_{{contract.id}}" class="offer" type="checkbox"/> {% endif %} </td>
   </tr>
   {% endfor %}
   </tbody>
 </table>
 </div>
-
-
+<input id="send" class="submit" type="submit" value="Send"/>
+</form>
 {%else%}
 	<p>No contracts yet</p>
 {%endif%}

@@ -14,7 +14,7 @@ from dashboard.models import NewsItem
 from coredata.models import Member, Role, CourseOffering, Person, Semester
 from grad.models import GradStatus
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, TAAcceptanceForm, CoursePreferenceForm, \
-    TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm, TAOfferForm
+    TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm
 from advisornotes.forms import StudentSearchForm
 from log.models import LogEntry
 from dashboard.letters import ta_form
@@ -525,16 +525,21 @@ def all_contracts(request, post_slug=None):
     except(InvalidPage, EmptyPage):
         contract_page.paginator.page(paginator.num_pages)
     
-    """contracts = 
-    for contract  in contracts: 
-    crs = TACourse(..)   //find crs
-        total_bu += ..
-        crs_list += ...
-    contract.total_bu = total _bu"""
-    
-    form = TAOfferForm()
-    #if request.method == "POST":
-        
+    if request.method == "POST":
+        ccount = 0
+        for contract in contracts:
+           cname = u'contract_%s' % contract.id
+           if cname in request.POST:
+               #send offer for this offer
+               #update status to offerred (pre validation?)
+               contract.status = 'OPN'
+               contract.save()
+               ccount += 1
+        if ccount > 1:
+            messages.success(request, "Successfully sent %s offers." % ccount)
+        elif ccount > 0:
+            messages.success(request, "Successfully sent offer")
+            
     for contract in contracts:
         total_bu =0
         crs_list = ''
@@ -544,10 +549,10 @@ def all_contracts(request, post_slug=None):
             crs_list += course.course.subject+" "+course.course.number+" "+course.course.section+"("+str(course.bu)+")\n"
         contract.total_bu = total_bu
         contract.crs_list = crs_list    
-        
+            
     postings = TAPosting.objects.filter(unit__in=request.units).exclude(Q(semester=posting.semester))
     applications = TAApplication.objects.filter(posting=posting).exclude(Q(id__in=TAContract.objects.filter(posting=posting).values_list('application', flat=True)))
-    return render(request, 'ta/all_contracts.html', {'contracts':contracts, 'posting':posting, 'applications':applications, 'postings':postings, 'form': form})
+    return render(request, 'ta/all_contracts.html', {'contracts':contracts, 'posting':posting, 'applications':applications, 'postings':postings})
 
 @login_required
 def accept_contract(request, post_slug, userid):
@@ -714,7 +719,7 @@ def edit_contract(request, post_slug, userid):
                 contract.application = application
                 contract.posting = posting
                 contract.created_by = request.user.username
-                """
+                
                 #create news item
                 person = application.person
                 
@@ -724,7 +729,7 @@ def edit_contract(request, post_slug, userid):
                 print "TA Contract Offer for %s" %person
                 print offer_url
                 create_news(person=person,title="TA Contract Offer for %s" %person, url = offer_url)
-                """
+                
                 
                 contract.save()
                 formset.save()

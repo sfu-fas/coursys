@@ -509,7 +509,3 @@ class AssignBUForm(forms.Form):
     rank = forms.IntegerField(min_value=0, label="rank")
     bu = forms.DecimalField(min_value=0, max_digits=5, decimal_places=2, required=False)
     bu.widget.attrs['class'] = u'bu_inp'
-    
-class TAOfferForm(forms.Form):
-    offer = forms.BooleanField(required=False)
-    offer.widget.attrs['class'] = u'offer'
