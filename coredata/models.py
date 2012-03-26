@@ -667,12 +667,14 @@ class Unit(models.Model):
         # 'fax': fax number (may be None)
     
     defaults = {'address': ['8888 University Drive', 'Burnaby, BC', 'Canada V5A 1S6'],
-                'email': None, 'tel': '778.782.3111', 'fax': None, 'web': 'http://www.sfu.ca/'}
+                'email': None, 'tel': '778.782.3111', 'fax': None, 'web': 'http://www.sfu.ca/',
+                'deptid': ''}
     address, set_address = getter_setter('address')
     email, set_email = getter_setter('email')
     tel, set_tel = getter_setter('tel')
     fax, set_fax = getter_setter('fax')
     web, set_web = getter_setter('web')
+    deptid, set_deptid = getter_setter('deptid')
 
     class Meta:
         ordering = ['label']

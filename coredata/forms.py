@@ -162,6 +162,9 @@ class UnitAddressForm(forms.Form):
                             widget=forms.TextInput(attrs={'size': 12}))
     web = forms.URLField(required=True, label="Web", help_text="URL of the department's web site", verify_exists=True)
     email = forms.EmailField(required=False, label="Email", help_text='General contact email for the department')
+    deptid = forms.CharField(required=False, label="Dept ID",
+                               widget=forms.TextInput(attrs={'size': 5}),
+                               help_text='Department ID (cost centre) for financial services. e.g. "12345". Used for TA/RA contracts.')
 
     def __init__(self, unit, *args, **kwargs):
         super(UnitAddressForm, self).__init__(*args, **kwargs)
@@ -185,6 +188,8 @@ class UnitAddressForm(forms.Form):
             self.initial['web'] = unit.config['web']
         if 'email' in unit.config:
             self.initial['email'] = unit.config['email']
+        if 'deptid' in unit.config:
+            self.initial['deptid'] = unit.config['deptid']
     
     def copy_to_unit(self):
         data = self.cleaned_data
@@ -213,4 +218,8 @@ class UnitAddressForm(forms.Form):
             self.unit.config['email'] = data['email']
         else:
             del self.unit.config['email']
+        if 'deptid' in data and data['deptid']:
+            self.unit.config['deptid'] = data['deptid']
+        else:
+            del self.unit.config['deptid']
 

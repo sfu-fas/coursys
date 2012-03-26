@@ -40,8 +40,9 @@ def get_total_bu(courses):
         total = total +course.bu
     return int(total)
 
-def create_news(person, title, url ):
-    n = NewsItem(user=person, source_app ="TA Management",title=title, url = url)
+def create_news(person, url, from_user):
+    n = NewsItem(user=person, source_app="ta_contract", title="TA Contract Offer for %s" % (person),
+                 url=url, author=from_user)
     n.save()
 
 @login_required
@@ -587,10 +588,10 @@ def contracts_csv(request, post_slug):
         salary_total = (total_bu + prep_units) * c.pay_per_bu
         schol_total = (total_bu + prep_units) * c.scholarship_per_bu
         row = [batchid, posting.semester.name, signed, benefits, c.application.person.emplid, c.application.sin]
-        row.extend([c.application.person.last_name, c.application.person.first_name,c.application.person.middle_name])
+        row.extend([c.application.person.last_name, c.application.person.first_name, c.application.person.middle_name])
         row.extend([c.pay_start.strftime("%Y%m%d"), c.pay_end.strftime("%Y%m%d"), 'REH', 'REH'])
         row.extend([c.position_number.position_number, '', '', 'TSU', '', c.application.category])
-        row.extend(['*fund*', '*dept id*', '', c.position_number.account_number, prep_units, total_bu])
+        row.extend(['*fund*', posting.unit.deptid(), '', c.position_number.account_number, prep_units, total_bu])
         row.extend(['T', "%.2f"%(salary_total), '', '', '', schol_rate, "%.2f"%(schol_total), '', '', '', ''])
         writer.writerow(row)
     
@@ -767,13 +768,14 @@ def edit_contract(request, post_slug, userid):
                 #create news item
                 person = application.person
                 
-                offer_url = "http://127.0.0.1:8000/ta/contracts/"+ post_slug +"/"+ userid +"/accept"
+                #offer_url = "http://127.0.0.1:8000/ta/contracts/"+ post_slug +"/"+ userid +"/accept"
+                offer_url = reverse('ta.views.accept_contract', kwargs={'post_slug': post_slug, 'userid': userid})
                 print
                 print person
                 print "TA Contract Offer for %s" %person
                 print offer_url
-                create_news(person=person,title="TA Contract Offer for %s" %person, url = offer_url)
-                
+                from_user = Person.objects.get(userid=request.user.username)
+                create_news(person, offer_url, from_user)
                 
                 contract.save()
                 formset.save()

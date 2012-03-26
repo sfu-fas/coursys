@@ -64,7 +64,7 @@ class NewsItem(models.Model):
         """
         Determine who the email should appear to come from: perfer to use course contact email if exists.
         """
-        if self.course.taemail():
+        if self.course and self.course.taemail():
             if self.author:
                 return "%s <%s> (per %s)" % (self.course.name(), self.course.taemail(), self.author.name())
             else:
@@ -89,15 +89,19 @@ class NewsItem(models.Model):
         """
         Email this news item to the user.
         """
-        subject = u"%s: %s" % (self.course.name(), self.title)
-        to_email = self.user.full_email()
-        from_email = self.email_from()
         headers = {
                 'Precedence': 'bulk',
                 'Auto-Submitted': 'auto-generated',
-                'X-course': self.course.slug,
                 'X-coursys-topic': self.source_display(),
                 }
+
+        if self.course:
+            subject = u"%s: %s" % (self.course.name(), self.title)
+            headers['X-course'] = self.course.slug
+        else:
+            subject = self.title
+        to_email = self.user.full_email()
+        from_email = self.email_from()
         if self.author:
             headers['Sender'] = self.author.email()
         else:
@@ -112,7 +116,10 @@ class NewsItem(models.Model):
         text_content += u"\n--\nYou received this email from CourSys. If you do not wish to receive\nthese notifications by email, you can edit your email settings here:\n  "
         text_content += settings.BASE_ABS_URL + reverse('dashboard.views.news_config')
         
-        html_content = u'<h3>%s: <a href="%s">%s</a></h3>\n' % (self.course.name(), url, self.title)
+        if self.course:
+            html_content = u'<h3>%s: <a href="%s">%s</a></h3>\n' % (self.course.name(), url, self.title)
+        else:
+            html_content = u'<h3><a href="%s">%s</a></h3>\n' % (url, self.title)
         html_content += self.content_xhtml()
         html_content += u'\n<p style="font-size: smaller; border-top: 1px solid black;">You received this email from CourSys. If you do not wish to receive\nthese notifications by email, you can <a href="' + settings.BASE_ABS_URL + reverse('dashboard.views.news_config') + '">change your email settings</a>.</p>'
         

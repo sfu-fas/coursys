@@ -18288,7 +18288,7 @@
  },
  {
   "fields": {
-   "config": "{\"web\": \"http://www.cs.sfu.ca\", \"fax\": \"778-782-3045\", \"tel\": \"778-782-4277\", \"email\": \"csdept@cs.sfu.ca\", \"address\": [\"9971 Applied Sciences Building\", \"8888 University Drive, Burnaby, BC\", \"Canada V5A 1S6\"]}",
+   "config": "{\"web\": \"http://www.cs.sfu.ca\", \"fax\": \"778-782-3045\", \"tel\": \"778-782-4277\", \"email\": \"csdept@cs.sfu.ca\", \"address\": [\"9971 Applied Sciences Building\", \"8888 University Drive, Burnaby, BC\", \"Canada V5A 1S6\"], \"deptid\": \"12345\"}",
    "label": "CMPT",
    "name": "School of Computing Science",
    "parent": 3,
