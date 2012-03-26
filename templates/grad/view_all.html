@@ -31,8 +31,9 @@
 		<li>
 			<a href="{% url grad.views.new_promise grad_slug=grad.slug %}">New Promise</a>
 		</li>
-		<li><a href="{% url grad.views.manage_scholarship grad_slug=grad.slug %}">Add Scholarship</a></li>
-		
+		<li>
+			<a href="{% url grad.views.manage_scholarship grad_slug=grad.slug %}">Add Scholarship</a>
+		</li>
 	</ul>
 </div>
 {% endblock %}
@@ -43,14 +44,12 @@
 		$(body).hide();
 		$(close_btn).hide();
 
-
-		$(title_btn).click(function(){
-			if ($(body).is(':hidden')){
+		$(title_btn).click(function() {
+			if($(body).is(':hidden')) {
 				$(body).show();
 				$(close_btn).show();
 				$(open_btn).hide();
-			}
-			else{
+			} else {
 				$(body).hide();
 				$(close_btn).hide();
 				$(open_btn).show();
@@ -189,10 +188,10 @@
 				<td>
 				<dl>
 					<dt>
-						<label>Campus :</label>
+						<label>Main Location :</label>
 					</dt>
 					<dd>
-						{{ grad.campus }}
+						{{ grad.get_campus_display }}
 					</dd>
 				</dl></td>
 			</tr>
@@ -235,13 +234,22 @@
 						{{ grad.passport_issued_by }}
 					</dd>
 				</dl></td>
-				<td colspan="2">
+				<td>
 				<dl>
 					<dt>
 						<label>Special Arrangements : </label>
 					</dt>
 					<dd>
 						{{grad.special_arrangements}}
+					</dd>
+				</dl></td>
+				<td>
+				<dl>
+					<dt>
+						<label>Application Status : </label>
+					</dt>
+					<dd>
+						{{grad.get_application_status_display}}
 					</dd>
 				</dl></td>
 			</tr>
@@ -382,7 +390,9 @@
 			</tr>
 			{% endfor %}
 			{% else %}
-			<tr><td class="empty">  There are no status history for this grad. Contact an Administrator to check. </td></tr>
+			<tr>
+				<td class="empty"> There are no status history for this grad. Contact an Administrator to check. </td>
+			</tr>
 			{% endif %}
 		</tbody>
 	</table>

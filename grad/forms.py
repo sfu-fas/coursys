@@ -154,7 +154,7 @@ class BaseSupervisorsFormSet(BaseFormSet):
 class GradAcademicForm(ModelForm):
     class Meta: 
         model = GradStudent
-        fields = ('program', 'research_area', 'campus', 'english_fluency', 'mother_tongue', 'is_canadian', 'passport_issued_by', 'special_arrangements', 'comments')
+        fields = ('program', 'research_area', 'campus', 'english_fluency', 'mother_tongue', 'is_canadian', 'passport_issued_by', 'special_arrangements', 'application_status', 'comments')
 
 class GradProgramForm(ModelForm):
     class Meta:

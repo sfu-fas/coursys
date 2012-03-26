@@ -1,5 +1,5 @@
 from django.db import models
-from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES,\
+from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES, \
     CourseOffering
 from django.forms.models import ModelForm
 from django import forms
@@ -28,6 +28,17 @@ class GradProgram(models.Model):
     def __unicode__ (self):
         return "%s" % (self.label)
 
+APPLICATION_STATUS_CHOICES = (
+        ('ONRE', 'In-Review'),
+        ('REJE', 'Rejected'),   
+        ('DECL', 'Declined'),
+        ('EXPI', 'Expired'),
+        ('CONF', 'Confirmed'),
+        ('CANC', 'Cancelled'),
+        ('UNKN', 'Unknown'),
+        )
+# order: In-Review, rej/dec? , expired, cancelled, confirmed, unknown
+
 class GradStudent(models.Model):
     person = models.ForeignKey(Person, help_text="Type in student ID or number.", null=False, blank=False, unique=True)
     program = models.ForeignKey(GradProgram, null=False, blank=False)
@@ -45,6 +56,7 @@ class GradStudent(models.Model):
     passport_issued_by = models.CharField(max_length=25, blank=True, help_text="I.e. US, China")
     special_arrangements = models.NullBooleanField(verbose_name='Special Arrgmnts')
     comments = models.TextField(max_length=250, blank=True, help_text="Additional information.")
+    application_status = models.CharField(max_length=4, choices=APPLICATION_STATUS_CHOICES, default='CONF')
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')
@@ -87,7 +99,7 @@ class Supervisor(models.Model):
                 pass
 			# TO DO: quick workaround to getting actual values displaying instead of ids
 			# There's probably a more elegant way of doing this 
-            elif field.name =="supervisor" or field.name == "student":
+            elif field.name == "supervisor" or field.name == "student":
                 nameOfPerson = ""
                 #if field.name == "supervisor": 
                 #    nameOfPerson = Person.objects.get(id=field.value_to_string(self))
