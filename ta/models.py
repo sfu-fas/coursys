@@ -383,7 +383,27 @@ class TAContract(models.Model):
         
     def __unicode__(self):
         return "%s" % (self.application.person)
-    
+
+    def save(self, *args, **kwargs):
+        super(TAContract, self).save(*args, **kwargs)
+
+        # if signed, create the Member objects so they have access to the courses.
+        courses = TACourse.objects.filter(contract=self)
+        for crs in courses:
+            members = Member.objects.filter(person=self.application.person, offering=crs.course).exclude(role='DROP')
+            if (self.status == 'SGN' and crs.bu > 0) and not members:
+                # signed, but not a member: create
+                m = Member(person=self.application.person, offering=crs.course, role='TA',
+                           added_reason='CTA', credits=0, career='NONS')
+                m.save()
+            elif (self.status != 'SGN' or crs.bu == 0) and members:
+                # already in course, but status isn't signed: remove
+                m = members[0]
+                if m.role == 'TA' and m.added_reason == 'CTA':
+                    m.role = 'DROP'
+                    m.save()
+
+
     def first_assign(self, application, posting):
         self.application = application
         self.posting = posting
@@ -397,7 +417,7 @@ class TAContract(models.Model):
         self.pay_per_bu = posting.salary()[index]
         self.scholarship_per_bu = posting.scholarship()[index]
         self.save()
-            
+
 class TACourse(models.Model):
     course = models.ForeignKey(CourseOffering, blank=False, null=False)
     contract = models.ForeignKey(TAContract)

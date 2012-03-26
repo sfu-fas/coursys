@@ -171,7 +171,7 @@
     	
     	// set up status info
     	if ( old_status ) {
-			$("#id_status").after(' <div class="helptext">Was "' + old_status + '". Should be "offered" after changes are made.</div>');    		
+			$("#id_status").after(' <div class="helptext">Set to "offered" after changes are made. Previous value was "' + old_status + '".</div>');    		
     	}    	
     	$("#id_status").change(button_update);
     	button_update();

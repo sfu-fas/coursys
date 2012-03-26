@@ -529,6 +529,7 @@ class Member(models.Model):
     REASON_CHOICES = (
         ('AUTO', 'Automatically added'),
         ('TRU', 'TRU/OU Distance Student'),
+        ('CTA', 'CourSys-Appointed TA'),
         ('TA', 'Additional TA'),
         ('TAIN', 'TA added by instructor'),
         ('INST', 'Additional Instructor'),
