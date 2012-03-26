@@ -5,6 +5,7 @@ from django.forms.models import ModelForm
 from django import forms
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
+from courselib.json_fields import getter_setter
 from django.template.defaultfilters import capfirst
 from django.core.paginator import Page
 from external.jsonfield import JSONField
@@ -62,6 +63,11 @@ class GradStudent(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')
     created_by = models.CharField(max_length=32, null=False, help_text='Grad Student created by.')
     modified_by = models.CharField(max_length=32, null=True, help_text='Grad Student modified by.', verbose_name='Last Modified By')
+
+    config = JSONField(default={}) # addition configuration
+        # 'sin': Social Insurance Number
+    sin, set_sin = getter_setter('sin')
+
     def get_fields(self):
         # make a list of field/values.
         k = []
