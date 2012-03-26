@@ -150,6 +150,9 @@ class TAForm(forms.Form):
 
 from django.contrib.localflavor.ca.forms import CAPhoneNumberField
 class UnitAddressForm(forms.Form):
+    informal_name = forms.CharField(required=True, label="Informal Name", max_length=25,
+                            help_text='Informal (letterhead) name for the unit (e.g. name without "School of" or "Department").',
+                            widget=forms.TextInput(attrs={'size': 20}))
     addr1 = forms.CharField(required=True, label="Address 1", help_text='First address line, e.g. "7654 Academic Quadrangle".',
                             widget=forms.TextInput(attrs={'size': 25}))
     addr2 = forms.CharField(required=True, label="Address 2", initial="8888 University Drive, Burnaby, BC", help_text='Second address line, e.g. "8888 University Drive, Burnaby, BC".',
@@ -190,6 +193,16 @@ class UnitAddressForm(forms.Form):
             self.initial['email'] = unit.config['email']
         if 'deptid' in unit.config:
             self.initial['deptid'] = unit.config['deptid']
+        if 'informal_name' in unit.config:
+            self.initial['informal_name'] = unit.config['informal_name']
+        else:
+            self.initial['informal_name'] = unit.name
+    
+    def _set_or_delete(self, data, datakey, config, configkey):
+        if datakey in data and data[datakey]:
+            config[configkey] = data[datakey]
+        elif configkey in config:
+            del config[configkey]
     
     def copy_to_unit(self):
         data = self.cleaned_data
@@ -202,24 +215,11 @@ class UnitAddressForm(forms.Form):
             addr.append(data['addr3'])
         self.unit.config['address'] = addr
         
-        if 'phone' in data and data['phone']:
-            self.unit.config['tel'] = data['phone']
-        else:
-            del self.unit.config['tel']
-        if 'fax' in data and data['fax']:
-            self.unit.config['fax'] = data['fax']
-        else:
-            del self.unit.config['fax']
-        if 'web' in data and data['web']:
-            self.unit.config['web'] = data['web']
-        else:
-            del self.unit.config['web']
-        if 'email' in data and data['email']:
-            self.unit.config['email'] = data['email']
-        else:
-            del self.unit.config['email']
-        if 'deptid' in data and data['deptid']:
-            self.unit.config['deptid'] = data['deptid']
-        else:
-            del self.unit.config['deptid']
+        self._set_or_delete(data, 'phone', self.unit.config, 'tel')
+        self._set_or_delete(data, 'fax', self.unit.config, 'fax')
+        self._set_or_delete(data, 'web', self.unit.config, 'web')
+        self._set_or_delete(data, 'email', self.unit.config, 'email')
+        self._set_or_delete(data, 'deptid', self.unit.config, 'deptid')
+        self._set_or_delete(data, 'phone', self.unit.config, 'tel')
+        self._set_or_delete(data, 'informal_name', self.unit.config, 'informal_name')
 

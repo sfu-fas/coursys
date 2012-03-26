@@ -393,7 +393,7 @@ class RAForm(object):
         self._draw_box_right(0, height, width=3.75*inch, label="POSITION TITLE", content=unicode(self.ra.account.title))
         
         # department
-        dept = self.ra.unit.name
+        dept = self.ra.unit.informal_name()
         if self.ra.unit.deptid():
             dept += " (%s)" % (self.ra.unit.deptid())
         self._draw_box_left(0, height - self.ENTRY_HEIGHT, width=3.125*inch, label="DEPARTMENT", content=dept)
@@ -593,7 +593,7 @@ class TAForm(object):
         
         # appointment basic info
         self.c.drawString(2, 194*mm, "DEPARTMENT")
-        dept = unicode(contract.application.posting.unit.name)
+        dept = unicode(contract.application.posting.unit.informal_name())
         if contract.application.posting.unit.deptid():
             dept += " (%s)" % (contract.application.posting.unit.deptid())
         self._draw_box(20*mm, 193*mm, 78*mm, content=dept) # DEPARTMENT

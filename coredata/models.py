@@ -655,7 +655,7 @@ class Unit(models.Model):
     label = models.CharField(max_length=4, null=False, blank=False, db_index=True, unique=True,
             help_text="The unit code, e.g. 'CMPT'.")
     name = models.CharField(max_length=60, null=False, blank=False,
-           help_text="The name of the unit, e.g. 'Computing Science'.")
+           help_text="The full name of the unit, e.g. 'School of Computing Science'.")
     parent = models.ForeignKey('Unit', null=True, blank=True,
              help_text="Next unit up in the hierarchy.")
     acad_org = models.CharField(max_length=10, null=True, blank=True, db_index=True, unique=True, help_text="ACAD_ORG field from SIMS")
@@ -665,6 +665,7 @@ class Unit(models.Model):
         # 'web': URL
         # 'tel': contact phone number
         # 'fax': fax number (may be None)
+        # 'informal_name': formal name of the unit (e.g. "Computing Science").
     
     defaults = {'address': ['8888 University Drive', 'Burnaby, BC', 'Canada V5A 1S6'],
                 'email': None, 'tel': '778.782.3111', 'fax': None, 'web': 'http://www.sfu.ca/',
@@ -675,6 +676,7 @@ class Unit(models.Model):
     fax, set_fax = getter_setter('fax')
     web, set_web = getter_setter('web')
     deptid, set_deptid = getter_setter('deptid')
+    _, set_informal_name = getter_setter('informal_name')
 
     class Meta:
         ordering = ['label']
@@ -683,6 +685,12 @@ class Unit(models.Model):
     def autoslug(self):
         return self.label.lower()
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    
+    def informal_name(self):
+        if 'informal_name' in self.config and self.config['informal_name']:
+            return self.config['informal_name']
+        else:
+            return self.name
 
 
 ROLE_CHOICES = (
