@@ -71,6 +71,12 @@ function get_more_info(url) {
                 }
                 add_to_info('Programs', res);
             }
+            if (data['gpa']) {
+                add_to_info('CGPA', data['gpa']);
+            }
+            if (data['ccredits']) {
+                add_to_info('Credits', data['ccredits']);
+            }
             $('#fetchwait').hide();
             $('#moreinfo').remove();
         },
