@@ -333,6 +333,7 @@ urlpatterns += patterns('',
     url(r'^ra/projects/' + PROJECT_SLUG + '/edit$', 'ra.views.edit_project'),
     url(r'^ra/' + RA_SLUG + '/$', 'ra.views.view'),
     url(r'^ra/' + RA_SLUG + '/form$', 'ra.views.form'),
+    url(r'^ra/' + RA_SLUG + '/letter$', 'ra.views.letter'),
     url(r'^ra/' + RA_SLUG + '/edit$', 'ra.views.edit'),
     url(r'^ra/' + RA_SLUG + '/reappoint$', 'ra.views.reappoint'),
 

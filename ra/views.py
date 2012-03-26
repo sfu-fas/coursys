@@ -10,7 +10,7 @@ from courselib.auth import requires_role, ForbiddenResponse
 from django.template import RequestContext
 from datetime import date, timedelta
 from grad.models import Scholarship, ScholarshipType
-from dashboard.letters import ra_form
+from dashboard.letters import ra_form, OfficialLetter, LetterContents
 import json
 
 #This is the search function that that returns a list of RA Appointments related to the query.
@@ -89,7 +89,10 @@ def edit(request, ra_slug):
         raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid})
         #As in the new method, choices are restricted to relevant options.
         raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
-        raform.fields['scholarship'].choices = [(s.pk, s.scholarship_type.unit.label + ": " + s.scholarship_type.name + " (" + s.start_semester.name + " to " + s.end_semester.name + ")") for s in Scholarship.objects.filter(student__person__emplid = appointment.person.emplid)]
+        scholarship_choices = [("", "---------")]
+        for s in Scholarship.objects.filter(student__person__emplid = appointment.person.emplid):
+            scholarship_choices.append((s.pk, s.scholarship_type.unit.label + ": " + s.scholarship_type.name + " (" + s.start_semester.name + " to " + s.end_semester.name + ")"))
+        raform.fields['scholarship'].choices = scholarship_choices
         raform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
         raform.fields['project'].choices = [(p.id, unicode(p.project_number)) for p in Project.objects.filter(unit__in=request.units)]
         raform.fields['account'].choices = [(a.id, u'%s (%s)' % (a.account_number, a.title)) for a in Account.objects.filter(unit__in=request.units)]
@@ -104,7 +107,10 @@ def reappoint(request, ra_slug):
     periods = str(pay_periods(semester.start, semester.end))
     raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid, 'reappointment': True, 'start_date': semester.start, 'end_date': semester.end, 'pay_periods': periods, 'hours': 70 })
     raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
-    raform.fields['scholarship'].choices = [(s.pk, s.scholarship_type.unit.label + ": " + s.scholarship_type.name + " (" + s.start_semester.name + " to " + s.end_semester.name + ")") for s in Scholarship.objects.filter(student__person__emplid = appointment.person.emplid)]
+    scholarship_choices = [("", "---------")]
+    for s in Scholarship.objects.filter(student__person__emplid = appointment.person.emplid):
+            scholarship_choices.append((s.pk, s.scholarship_type.unit.label + ": " + s.scholarship_type.name + " (" + s.start_semester.name + " to " + s.end_semester.name + ")"))
+    raform.fields['scholarship'].choices = scholarship_choices
     raform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
     raform.fields['project'].choices = [(p.id, unicode(p.project_number)) for p in Project.objects.filter(unit__in=request.units)]
     raform.fields['account'].choices = [(a.id, u'%s (%s)' % (a.account_number, a.title)) for a in Account.objects.filter(unit__in=request.units)]
@@ -125,6 +131,29 @@ def form(request, ra_slug):
     response['Content-Disposition'] = 'inline; filename=%s.pdf' % (appointment.slug)
     ra_form(appointment, response)
     return response
+
+@requires_role("FUND")
+def letter(request, ra_slug):
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug)
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = 'inline; filename=%s-letter.pdf' % (appointment.slug)
+    letter = OfficialLetter(response, unit=appointment.unit)
+    contents = LetterContents(to_addr_lines="", from_name_lines="", salutation="Dear " + appointment.person.first_name, closing="Yours Truly,", signer=appointment.hiring_faculty)
+    
+    #TODO: figure out what to do with position name, how to specify which type of payment will be used, check grammar issues.
+    paragraphs = [
+        """This is to confirm remuneration of work performed as a Research Assistant from """ + appointment.start_date.strftime("%B %d, %y") +  """ to """  + appointment.end_date.strftime("%B %d, %y") + """, will be a Lump Sum payment of $""" + str(appointment.lump_sum_pay) + """.""",
+        """Termination of this appointment may be initiated by either party giving one (1) week notice, except in the case of termination for cause.""",
+        """This contract of employment exists solely between myself as recipient of research grant funds and your self. In no manner of form does this employment relationship extend to or affect Simon Fraser University in any way.""",
+        """The primary purpose of this appointment is to assist you in furthering your education and the pursuit of your degree through the performance of research activities in your field of study. As such, payment for these activities will be classified as scholarship income for taxation purposes. Accordingly, there will be no income tax, CPP or EI deductions from income. You should set aside funds to cover your eventual income tax obligation; note that the first $3K total annual income from scholarship sources is not taxable.""",
+        """Basic Benefits: further details are in SFU Policies and Procedures R 50.02, which can be found on the SFU website.""",
+        """If you accept the terms of this appointment, please sign and return the enclosed copy of this letter, retaining the original for your records.""",
+    ]
+    contents.add_paragraphs(paragraphs)
+    letter.add_letter(contents)
+    letter.write()
+    return response
+
 
 #Methods relating to Account creation. These are all straight forward.
 @requires_role("FUND")

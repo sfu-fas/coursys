@@ -15,10 +15,6 @@ class RAForm(forms.ModelForm):
     def clean_person(self):
         return Person.objects.get(emplid=self.cleaned_data['person'])
 
-    # def clean_scholarship(self):
-    #     print "test"
-    #     return Scholarship.objects.get(pk=self.cleaned_data['scholarship'])
-
     def clean_hours(self):
         data = self.cleaned_data['hours']
         if int(data) > 70:
@@ -26,7 +22,6 @@ class RAForm(forms.ModelForm):
         return data
 
     def clean(self):
-        #cleaned_data['scholarship'] = Scholarship.objects.get(pk=self.cleaned_data['scholarship'])
         cleaned_data = self.cleaned_data
         return cleaned_data 
         
