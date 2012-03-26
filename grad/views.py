@@ -39,8 +39,8 @@ def get_semester(date=datetime.date.today()):
         if next_sem == 1:
             # take this semster
             return s
-        if date > s.start:
-            if date < s.end :
+        if date >= s.start:
+            if date <= s.end :
                 return s
             else:
                 #take the next semseter
@@ -868,6 +868,11 @@ def financials(request, grad_slug):
     promises_qs = Promise.objects.filter(student=grad)
     other_fundings = OtherFunding.objects.filter(student=grad)
     
+    applications = TAApplication.objects.filter(person=grad.person)
+    contracts = TAContract.objects.filter(application__in=applications, status="ACC")
+    appointments = RAAppointment.objects.filter(person=grad.person)       
+    
+    
     # initialize earliest starting and latest ending semesters for display. 
     # Falls back on current semester if none 
     earliest_semester = get_semester() # set earliest semester as current semester
@@ -893,10 +898,19 @@ def financials(request, grad_slug):
             earliest_semester = other_funding.semester 
         if(latest_semester < other_funding.semester):
             latest_semester = other_funding.semester
+    for contract in contracts:
+        if(earliest_semester > contract.posting.semester):
+            earliest_semester = contract.posting.semester
+        if(latest_semester < contract.posting.semester):
+            latest_semester = contract.posting.semester 
+    for appointment in appointments:
+        app_start_sem = get_semester(appointment.start_date)
+        app_end_sem = get_semester(appointment.end_date)
+        if(earliest_semester > app_start_sem):
+            earliest_semester = app_start_sem
+        if(latest_semester < app_end_sem):
+            latest_semester = app_end_sem
 
-    applications = TAApplication.objects.filter(person=grad)
-    contracts = TAContract.objects.filter(application__in=applications)            
-    
     semesters = []
     semesters_qs = Semester.objects.filter(start__gte=earliest_semester.start, end__lte=latest_semester.end).order_by('-name')
 
@@ -935,7 +949,20 @@ def financials(request, grad_slug):
         for s in GradStatus.objects.filter(student=grad):
             if s.start <= semester and (s.end == None or semester <= s.end) :
                 status = s.get_status_display()
-        semesters.append({'semester':semester, 'status':status,'scholarship_details':scholarships_in_semester, 'promise':promise, 'promised_amount':semester_promised_amount,'owing':semester_owing})
+        
+        type = ""
+        for contract in contracts:
+            if contract.posting.semester == semester:
+                type = "TA"
+                
+        for appointment in appointments:
+            app_start_sem = get_semester(appointment.start_date)
+            app_end_sem = get_semester(appointment.end_date)
+            print "%s <= %s %s >= %s" % (app_start_sem, semester, app_end_sem, semester)
+            if app_start_sem >= semester or app_end_sem >= semester:
+                type = "RA" 
+        
+        semesters.append({'semester':semester, 'status':status,'scholarship_details':scholarships_in_semester, 'promise':promise, 'promised_amount':semester_promised_amount,'owing':semester_owing, 'type': type})
 
     promises = []
     for promise in promises_qs:
