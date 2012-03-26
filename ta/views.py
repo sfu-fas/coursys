@@ -766,6 +766,7 @@ def edit_contract(request, post_slug, userid):
                 contract.created_by = request.user.username
                 
                 #create news item
+                # if contract.status == "OPN":
                 person = application.person
                 
                 #offer_url = "http://127.0.0.1:8000/ta/contracts/"+ post_slug +"/"+ userid +"/accept"
