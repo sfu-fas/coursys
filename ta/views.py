@@ -14,7 +14,7 @@ from dashboard.models import NewsItem
 from coredata.models import Member, Role, CourseOffering, Person, Semester
 from grad.models import GradStatus
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, TAAcceptanceForm, CoursePreferenceForm, \
-    TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm
+    TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm, TAOfferForm
 from advisornotes.forms import StudentSearchForm
 from log.models import LogEntry
 from dashboard.letters import ta_form
@@ -506,9 +506,7 @@ def update_course_bus(request, post_slug, course_slug):
 
 
 @requires_role("TAAD")
-def all_contracts(request, post_slug=None):
-    #contracts = TAContract.objects.all()
-    
+def all_contracts(request, post_slug=None):    
     #name, appointment category, rank, deadline, status. Total BU, Courses TA-ing , view/edit
     if post_slug:
         posting = get_object_or_404(TAPosting, slug=post_slug)
@@ -534,6 +532,9 @@ def all_contracts(request, post_slug=None):
         crs_list += ...
     contract.total_bu = total _bu"""
     
+    form = TAOfferForm()
+    #if request.method == "POST":
+        
     for contract in contracts:
         total_bu =0
         crs_list = ''
@@ -546,7 +547,7 @@ def all_contracts(request, post_slug=None):
         
     postings = TAPosting.objects.filter(unit__in=request.units).exclude(Q(semester=posting.semester))
     applications = TAApplication.objects.filter(posting=posting).exclude(Q(id__in=TAContract.objects.filter(posting=posting).values_list('application', flat=True)))
-    return render(request, 'ta/all_contracts.html', {'contracts':contracts, 'posting':posting, 'applications':applications, 'postings':postings})
+    return render(request, 'ta/all_contracts.html', {'contracts':contracts, 'posting':posting, 'applications':applications, 'postings':postings, 'form': form})
 
 @login_required
 def accept_contract(request, post_slug, userid):
@@ -713,7 +714,7 @@ def edit_contract(request, post_slug, userid):
                 contract.application = application
                 contract.posting = posting
                 contract.created_by = request.user.username
-                
+                """
                 #create news item
                 person = application.person
                 
@@ -723,7 +724,7 @@ def edit_contract(request, post_slug, userid):
                 print "TA Contract Offer for %s" %person
                 print offer_url
                 create_news(person=person,title="TA Contract Offer for %s" %person, url = offer_url)
-                
+                """
                 
                 contract.save()
                 formset.save()
