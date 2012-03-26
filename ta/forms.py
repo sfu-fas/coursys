@@ -352,7 +352,7 @@ class TAPostingForm(forms.ModelForm):
     accounts = AccountsField(label="Position Number", help_text="Default position number for contracts")
     payperiods = forms.IntegerField(label="Pay periods", help_text='Number of pay periods in the semester',
             max_value=20, min_value=1, widget=forms.TextInput(attrs={'size': 5}))
-    contact = forms.EmailField(label="Contact Email", help_text="Email address to give applicants/offers to ask questions.")
+    contact = forms.ChoiceField(label="Contact Person", help_text="Person to give applicants/offers to ask questions.")
     max_courses = forms.IntegerField(label="Maximum courses", help_text="The maximum number of courses an applicant can specify.")
     min_courses = forms.IntegerField(label="Minimum courses", help_text="The minimum number of courses an applicant can specify.")
     excluded = forms.MultipleChoiceField(help_text="Courses that should <strong>not</strong> be selectable for TA positions",

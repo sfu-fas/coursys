@@ -144,7 +144,7 @@ class TAPosting(models.Model):
         # 'deadline': default deadline to accept contracts ('YYYY-MM-DD')
         # 'excluded': courses to exclude from posting (list of Course.id values)
         # 'payperiods': number of pay periods in the semeseter
-        # 'contact': contact email for offer questions
+        # 'contact': contact person for offer questions (Person.id value)
         # 'max_courses': Maximum number of courses an applicant can select
         # 'min_courses': Minimum number of courses an applicant can select
 
@@ -160,7 +160,7 @@ class TAPosting(models.Model):
             'payperiods': 8,
             'max_courses': 10,
             'min_courses': 1,
-            'contact': '',
+            'contact': None,
             }
     salary, set_salary = getter_setter('salary')
     scholarship, set_scholarship = getter_setter('scholarship')

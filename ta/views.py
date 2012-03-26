@@ -529,13 +529,13 @@ def all_contracts(request, post_slug=None):
     if request.method == "POST":
         ccount = 0
         for contract in contracts:
-           cname = u'contract_%s' % contract.id
-           if cname in request.POST:
-               #send offer for this offer
-               #update status to offerred (pre validation?)
-               contract.status = 'OPN'
-               contract.save()
-               ccount += 1
+            cname = u'contract_%s' % contract.id
+            if cname in request.POST:
+                #send offer for this offer
+                #update status to offerred (pre validation?)
+                contract.status = 'OPN'
+                contract.save()
+                ccount += 1
         if ccount > 1:
             messages.success(request, "Successfully sent %s offers." % ccount)
         elif ccount > 0:
@@ -774,7 +774,7 @@ def edit_contract(request, post_slug, userid):
                 print person
                 print "TA Contract Offer for %s" %person
                 print offer_url
-                from_user = Person.objects.get(userid=request.user.username)
+                from_user = Person.objects.get(id=posting.contact())
                 create_news(person, offer_url, from_user)
                 
                 contract.save()
@@ -824,6 +824,7 @@ def _copy_posting_defaults(source, destination):
 def edit_posting(request, post_slug=None):
     unit_choices = [(u.id, unicode(u)) for u in request.units]
     account_choices = [(a.id, "%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit__in=request.units)]
+    contact_choices = [(r.person.id, "%s (%s)" % (r.person.name(), r.get_role_display())) for r in Role.objects.filter(unit__in=request.units)]
 
     today = datetime.date.today()
     semester_choices = [(s.id, unicode(s)) for s in Semester.objects.filter(start__gt=today).order_by('start')]
@@ -860,6 +861,7 @@ def edit_posting(request, post_slug=None):
         form.fields['unit'].choices = unit_choices
         form.fields['semester'].choices = semester_choices
         form.fields['excluded'].choices = excluded_choices
+        form.fields['contact'].choices = contact_choices
         for f in form.fields['accounts'].fields:
             f.choices = account_choices
         for w in form.fields['accounts'].widget.widgets:
@@ -890,6 +892,7 @@ def edit_posting(request, post_slug=None):
         form.fields['unit'].choices = unit_choices
         form.fields['semester'].choices = semester_choices
         form.fields['excluded'].choices = excluded_choices
+        form.fields['contact'].choices = contact_choices
         for f in form.fields['accounts'].fields:
             f.choices = account_choices
         for w in form.fields['accounts'].widget.widgets:
