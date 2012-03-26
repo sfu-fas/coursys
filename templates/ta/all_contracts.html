@@ -41,6 +41,16 @@
 </script>
 {% endblock %}
 
+
+{% block actions %}
+<div id="actions">
+<h2 class="heading">Actions</h2>
+<ul>
+<li><a href="{% url ta.views.contracts_csv post_slug=posting.slug %}">HR upload file</a></li>
+</ul>
+</div>
+{% endblock %}
+
 {%block content%}
 {%if contracts %}
 <form action="" method="post">{% csrf_token %}

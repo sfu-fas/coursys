@@ -554,6 +554,50 @@ def all_contracts(request, post_slug=None):
     applications = TAApplication.objects.filter(posting=posting).exclude(Q(id__in=TAContract.objects.filter(posting=posting).values_list('application', flat=True)))
     return render(request, 'ta/all_contracts.html', {'contracts':contracts, 'posting':posting, 'applications':applications, 'postings':postings})
 
+@requires_role("TAAD")
+def contracts_csv(request, post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'inline; filename=%s.csv' % (posting.slug)
+    writer = csv.writer(response)
+    writer.writerow(['Batch ID', 'Term ID', 'Contract Signed', 'Benefits Indicator', 'EmplID', 'SIN',
+                     'Last Name', 'First Name 1', 'First Name 2', 'Payroll Start Date', 'Payroll End Date',
+                     'Action', 'Action Reason', 'Position Number', 'Job Code', 'Full_Part time', 'Pay Group',
+                     'Employee Class', 'Category', 'Fund', 'Dept ID (cost center)', 'Project', 'Account',
+                     'Prep Units', 'Base Units', 'Appt Comp Freq', 'Semester Base Salary Rate',
+                     'Biweekly Base Salary Pay Rate', 'Hourly Rate', 'Standard Hours', 'Scholarship Rate Code',
+                     'Semester Scholarship Salary Pay Rate', 'Biweekly Scholarship Salary Pay Rate', 'Lump Sum Amount',
+                     'Lump Sum Hours', 'Scholarship Lump Sum'])
+    
+    contracts = TAContract.objects.filter(posting=posting, status__in=['ACC', 'SGN']) \
+                .select_related('semester', 'application__person')
+    batchid = '%s_%s_01' % (posting.unit.label, datetime.date.today().strftime("%Y%m%d"))
+    for c in contracts:
+        courses = TACourse.objects.filter(contract=c)
+        total_bu = 0
+        prep_units = 0
+        for crs in courses:
+            total_bu += crs.bu
+            if crs.has_labtut():
+                prep_units += 0.17
+        
+        signed = 'Y' if c.status=='SGN' else 'N'
+        benefits = 'Y'
+        schol_rate = 'TSCH' if c.scholarship_per_bu else ''
+        salary_total = (total_bu + prep_units) * c.pay_per_bu
+        schol_total = (total_bu + prep_units) * c.scholarship_per_bu
+        row = [batchid, posting.semester.name, signed, benefits, c.application.person.emplid, c.application.sin]
+        row.extend([c.application.person.last_name, c.application.person.first_name,c.application.person.middle_name])
+        row.extend([c.pay_start.strftime("%Y%m%d"), c.pay_end.strftime("%Y%m%d"), 'REH', 'REH'])
+        row.extend([c.position_number.position_number, '', '', 'TSU', '', c.application.category])
+        row.extend(['*fund*', '*dept id*', '', c.position_number.account_number, prep_units, total_bu])
+        row.extend(['T', "%.2f"%(salary_total), '', '', '', schol_rate, "%.2f"%(schol_total), '', '', '', ''])
+        writer.writerow(row)
+    
+    return response
+    
+
+
 @login_required
 def accept_contract(request, post_slug, userid):
     posting = get_object_or_404(TAPosting, slug=post_slug)

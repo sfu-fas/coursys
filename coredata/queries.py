@@ -335,6 +335,7 @@ def more_personal_info(emplid, programs=False):
                    "WHERE (apt.acad_plan=ap.acad_plan AND last.effdt=ap.effdt "
                    "AND apt.effdt=lastplan.effdt AND lastplan.acad_plan=ap.acad_plan "
                    "AND apt.eff_status='A' AND ap.emplid=%s)", (str(emplid), str(emplid)))
+        #  AND apt.trnscr_print_fl='Y'
         for acad_plan, descr, transcript in db:
             label = transcript or descr
             prog = "%s (%s)" % (label, acad_plan)
