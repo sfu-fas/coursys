@@ -393,7 +393,10 @@ class RAForm(object):
         self._draw_box_right(0, height, width=3.75*inch, label="POSITION TITLE", content=unicode(self.ra.account.title))
         
         # department
-        self._draw_box_left(0, height - self.ENTRY_HEIGHT, width=3.125*inch, label="DEPARTMENT", content=self.ra.unit.name)
+        dept = self.ra.unit.name
+        if self.ra.unit.deptid():
+            dept += " (%s)" % (self.ra.unit.deptid())
+        self._draw_box_left(0, height - self.ENTRY_HEIGHT, width=3.125*inch, label="DEPARTMENT", content=dept)
         
         # fund/project/account
         self._draw_box_right(0, height - self.ENTRY_HEIGHT, width=3.75*inch, label="FUND", content=unicode(self.ra.project.fund_number))
@@ -425,7 +428,6 @@ class RAForm(object):
         self._draw_box_left(0, height - self.ENTRY_HEIGHT, width=2.125*inch, label="HOURLY", content="$  " + unicode(self.ra.hourly_pay))
         self._draw_box_left(3*inch, height - self.ENTRY_HEIGHT, width=1.5*inch, label="BI-WEEKLY", content="$  " + unicode(self.ra.biweekly_pay))
         self._draw_box_right(0, height - self.ENTRY_HEIGHT, width=2.25*inch, label="LUMP SUM ADJUSTMENT", content='')
-        # "$  " + unicode(self.ra.lump_sum_pay)       
         
         hours = "%i : 00" % (self.ra.hours)
         self._draw_box_left(3*inch, height - 2*self.ENTRY_HEIGHT, width=1.5*inch, label="BI-WEEKLY HOURS", content=hours)
@@ -591,7 +593,10 @@ class TAForm(object):
         
         # appointment basic info
         self.c.drawString(2, 194*mm, "DEPARTMENT")
-        self._draw_box(20*mm, 193*mm, 78*mm, content=unicode(contract.application.posting.unit.name)) # DEPARTMENT
+        dept = unicode(contract.application.posting.unit.name)
+        if contract.application.posting.unit.deptid():
+            dept += " (%s)" % (contract.application.posting.unit.deptid())
+        self._draw_box(20*mm, 193*mm, 78*mm, content=dept) # DEPARTMENT
         self._draw_box(102*mm, 193*mm, 32*mm, label="APPOINTMENT START DATE", content=unicode(contract.pay_start))
         self._draw_box(139*mm, 193*mm, 32*mm, label="APPOINTMENT END DATE", content=unicode(contract.pay_end))
         

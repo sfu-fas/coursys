@@ -58,11 +58,14 @@ $(document).ready(function() {
 <div id="newsitems">
   {% for news in news_list %}
     <div class="newsitem">
+    <h3>
+   	{% if news.course %}{{news.course.name}}: {% endif %} 
    	{%if news.url%}
-   	 	<h3>{{news.course.name}}: <a href="{{news.url}}">{{news.title}}</a></h3>
+   	 	<a href="{{news.url}}">{{news.title}}</a>
    	{%else%}
-   		<h3>{{news.course.name}}: {{news.title}}</h3>
+   		{{news.title}}</h3>
    	{% endif %}
+   	</h3>
     <div class="newsmore">
     <div class="newsdate">{{news.published|date:'r'}}</div>
     <div class="newscontent">{{news.content_xhtml}}</div>
