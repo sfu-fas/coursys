@@ -322,7 +322,19 @@ class SearchForm(forms.Form):
 #    scholarship_to = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
     scholarship_sem = forms.ModelMultipleChoiceField(Semester.objects.all(),
             label='Scholarship Semester Received',required=False)
+
+    # Column filters
+    col_program = forms.BooleanField(label="Program", initial=True,required=False)
+    col_research_area = forms.BooleanField(label="Research Area", initial=True,required=False)
+    col_campus = forms.BooleanField(label="Campus",required=False)
+    col_english_fluency = forms.BooleanField(label="English Fluency",required=False)
+    col_mother_tongue = forms.BooleanField(label="Mother Tongue",required=False)
+    col_canadian = forms.BooleanField(label="Canadian",required=False)
+    col_passport_from = forms.BooleanField(label="Passport Country",required=False)
     
+    col_status = forms.BooleanField(label="Current Status", initial=True,required=False)
+    col_start_semester = forms.BooleanField(label="Start Semester", initial=True,required=False)
+   
     def clean_requirements_st(self):
         value = self.cleaned_data['requirements_st']
         if not value and len(self.cleaned_data['requirements']) > 1:
