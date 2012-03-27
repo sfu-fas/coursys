@@ -615,6 +615,7 @@ def accept_contract(request, post_slug, userid):
     
     
     if request.method == "POST":
+
         form = TAAcceptanceForm(request.POST, instance=contract)
         if form.is_valid():
             contract = form.save(commit=False)
@@ -626,6 +627,10 @@ def accept_contract(request, post_slug, userid):
             if grad.count()>0:
                 grad[0].config['sin'] = request.POST['sin']
            
+            if "reject" in request.POST:
+                contract.status = 'REJ'
+            elif "accept" in request.POST:
+                contract.status = 'ACC'
             contract.save()
             messages.success(request, "Successfully %s the offer." % (contract.get_status_display()))
             ##not sure where to redirect to...so currently redirects to itself

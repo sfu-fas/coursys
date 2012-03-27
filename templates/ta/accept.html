@@ -88,15 +88,15 @@
 		<p> Please make sure the following information is correct, otherwise you don't get paid.</p>
 	    {{ form|as_dl_usefield:"sin"}}
 			
-		<!--<p><em>Accept</em> or <em>Reject</em> the offered Contract?
+<!--<p><em>Accept</em> or <em>Reject</em> the offered Contract?
 		<div class="field"><select name="status" id="id_status">
 			<option value="ACC">Accepted</option>
 			<option value="REJ">Rejected</option>
 			</select></div>
 		</dd>  
-<p><input id="submit" type="submit" class="submit" value="Submit" /></p>		-->
+<p><input id="submit" type="submit" class="submit" value="Submit" /></p>-->
 			
-<p><input id="submit" type="submit" class="submit" value="Reject" /><input id="submit" type="submit" class="submit" value="Accept" /></p>
+<p><input id="submit" name="reject" type="submit" class="submit" value="Reject" /><input id="submit" name="accept" type="submit" class="submit" value="Accept" /></p>
 <p><em>** Please contact {{ contract.posting.contact.name }} &lt;{{ contract.posting.contact.email_mailto }}&gt; after <b>accepting</b> the contract.</em> </p>
 </form>
 </div>
