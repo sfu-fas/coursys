@@ -4,10 +4,7 @@
 {% block title %}{% if editing %}Edit Posting for {{ posting.unit.label }} in {{ posting.semester }}{% else %}New TA Job Posting{% endif %}{% endblock %}
 {% block h1 %}{% if editing %}Edit Posting for {{ posting.unit.label }} in {{ posting.semester }}{% else %}New TA Job Posting{% endif %}{% endblock %}
 
-{% block subbreadcrumbs %}
-<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
-{% if editing %}<li>&gt; {{ posting.unit.label }} {{ posting.semester }}</li>{% else %}<li>&gt; New</li>{% endif %}
-{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>{% if editing %}<li>&gt; <a href="{% url ta.views.posting_admin post_slug=posting.slug %}">{{ posting.short_str }}</a></li><li>&gt; Edit</li>{% else %}<li>&gt; New</li>{% endif %}{% endblock %}
 
 {% block headextra %}
 <link type="text/css" href="{{MEDIA_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />

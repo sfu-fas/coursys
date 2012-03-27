@@ -37,8 +37,8 @@ def get_total_bu(courses):
     """calculates the total bu given a list of courses"""
     total = 0
     for course in courses:
-        total = total +course.bu
-    return int(total)
+        total = total + course.bu
+    return total
 
 def create_news(person, url, from_user):
     n = NewsItem(user=person, source_app="ta_contract", title="TA Contract Offer for %s" % (person),
@@ -61,7 +61,6 @@ def tryget(member):
 def all_tugs(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     tas = Member.objects.filter(offering=course, role="TA")
-    #TODO: maybe use filter?
     current_user = Member.objects.get(person__userid=request.user.username, offering=course)
     #If a TA is accessing, only his/her own TUG should be viewable
 #    is_ta = current_user in tas
@@ -214,7 +213,7 @@ def _new_application(request, post_slug, manual=False):
         existing_app = TAApplication.objects.filter(person=person, posting=posting)
         if existing_app.count() > 0: 
             messages.success(request, "You have already applied for the %s %s posting." % (posting.unit, posting.semester))
-            return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'app_id':existing_app[0].id}))
+            return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'post_slug': existing_app[0].posting.slug, 'userid': existing_app[0].person.userid}))
        
     if request.method == "POST":
         search_form = StudentSearchForm(request.POST)
@@ -267,7 +266,7 @@ def _new_application(request, post_slug, manual=False):
                 course.app = app
                 course.rank = rank+1
                 course.save()
-            return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'app_id':app.id}))
+            return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'post_slug': app.posting.slug, 'userid': app.person.userid}))
         
         # redisplaying form: build values for template with entered values
         campus_preferences = []
@@ -311,18 +310,17 @@ def _new_application(request, post_slug, manual=False):
     return render(request, 'ta/new_application.html', context)
 
 @requires_role("TAAD")
-def update_application(request, app_id):
-    application = get_object_or_404(TAApplication, id=app_id)
+def update_application(request, post_slug, userid):
+    application = get_object_or_404(TAApplication, posting__slug=post_slug, person__userid=userid, posting__unit__in=request.units)
     application.late = False
     application.save()
     messages.success(request, "Removed late status from the application.")
-    return HttpResponseRedirect(reverse(view_application, args=(app_id)))
+    return HttpResponseRedirect(reverse(view_application, kwargs={'post_slug': application.posting.slug, 'userid': application.person.userid}))
     
 
 @login_required
-def view_application(request, app_id):
-    
-    application = get_object_or_404(TAApplication, id=app_id)
+def view_application(request, post_slug, userid):
+    application = get_object_or_404(TAApplication, posting__slug=post_slug, person__userid=userid)
     roles = Role.objects.filter(role="TAAD", person__userid=request.user.username)
    
     #Only TA Administrator or owner of application can view it
@@ -346,8 +344,10 @@ def view_application(request, app_id):
 
 @requires_role("TAAD")
 def view_late_applications(request,post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     applications = TAApplication.objects.filter(posting__slug=post_slug, late=True)
     context = {
+        'posting': posting,
         'applications':applications,
     }
     return render(request, 'ta/late_applications.html', context)
@@ -434,7 +434,11 @@ def assign_bus(request, post_slug, course_slug):
         statuses = GradStatus.objects.filter(student__person=p.app.person, end=None).select_related('student__program__unit')
         p.app.statuses = statuses # annotate the application with their current grad status(es)
         apps.append(p.app)
-        campus_preference = CampusPreference.objects.get(app=p.app, campus=offering.campus)
+        try:
+            campus_preference = CampusPreference.objects.get(app=p.app, campus=offering.campus)
+        except CampusPreference.DoesNotExist:
+            # temporary fake object: shouldn't happen, but don't die if it does
+            campus_preference = CampusPreference(app=p.app, campus=offering.campus, pref="NOT")
         campus_prefs.append(campus_preference)
         #find BU assigned to this applicant through contract
         app_tacourse = tacourses.filter(contract__application=p.app)
@@ -510,16 +514,9 @@ def update_course_bus(request, post_slug, course_slug):
 
 
 @requires_role("TAAD")
-def all_contracts(request, post_slug=None):    
+def all_contracts(request, post_slug):    
     #name, appointment category, rank, deadline, status. Total BU, Courses TA-ing , view/edit
-    if post_slug:
-        posting = get_object_or_404(TAPosting, slug=post_slug)
-    else:
-        posting = TAPosting.objects.get(semester=Semester.next_starting())
-    
-    if posting.unit not in request.units:
-        ForbiddenResponse(request, 'You cannot access this page')
-        
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     contracts = TAContract.objects.filter(posting=posting)
     paginator = Paginator(contracts,5)
     
@@ -557,9 +554,9 @@ def all_contracts(request, post_slug=None):
         contract.total_bu = total_bu
         contract.crs_list = crs_list    
             
-    postings = TAPosting.objects.filter(unit__in=request.units).exclude(Q(semester=posting.semester))
+    #postings = TAPosting.objects.filter(unit__in=request.units).exclude(Q(semester=posting.semester))
     applications = TAApplication.objects.filter(posting=posting).exclude(Q(id__in=TAContract.objects.filter(posting=posting).values_list('application', flat=True)))
-    return render(request, 'ta/all_contracts.html', {'contracts':contracts, 'posting':posting, 'applications':applications, 'postings':postings})
+    return render(request, 'ta/all_contracts.html', {'contracts':contracts, 'posting':posting, 'applications':applications})
 
 @requires_role("TAAD")
 def contracts_csv(request, post_slug):
@@ -672,7 +669,8 @@ def view_contract(request, post_slug, userid):
     schol_bi = format_currency(schol_sem / pp)
 
 
-    context =   {'contract':contract,
+    context =   {'posting': posting,
+                 'contract':contract,
                  'courses':courses,
                  'pay':format_currency(contract.pay_per_bu),
                  'scholarship':format_currency(contract.scholarship_per_bu),
@@ -781,7 +779,7 @@ def edit_contract(request, post_slug, userid):
                 print person
                 print "TA Contract Offer for %s" %person
                 print offer_url
-                from_user = Person.objects.get(id=posting.contact())
+                from_user = posting.contact()
                 create_news(person, offer_url, from_user)
                 
                 contract.save()
@@ -824,14 +822,15 @@ def _copy_posting_defaults(source, destination):
     destination.set_accounts(source.accounts())
     destination.set_bu_defaults(source.bu_defaults())
     destination.set_payperiods(source.payperiods())
-    destination.set_contact(source.contact())
+    destination.set_contact(source.contact().id)
     # TODO: also copy Skill values
 
 @requires_role("TAAD")
 def edit_posting(request, post_slug=None):
     unit_choices = [(u.id, unicode(u)) for u in request.units]
     account_choices = [(a.id, "%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit__in=request.units)]
-    contact_choices = [(r.person.id, "%s (%s)" % (r.person.name(), r.get_role_display())) for r in Role.objects.filter(unit__in=request.units)]
+    contact_choices = [(r.person.id, "%s" % (r.person.name())) for r in Role.objects.filter(unit__in=request.units)]
+    contact_choices = list(set(contact_choices))
 
     today = datetime.date.today()
     semester_choices = [(s.id, unicode(s)) for s in Semester.objects.filter(start__gt=today).order_by('start')]
@@ -861,7 +860,7 @@ def edit_posting(request, post_slug=None):
             # heuristic default: non-lecture sections, except distance, are excluded
             default_exclude = set((o.course_id for o in offerings.filter(component="SEC").exclude(section__startswith="C")))
             posting.config['excluded'] = default_exclude
-            posting.config['contact'] = Person.objects.get(userid=request.user.username).email()
+            posting.config['contact'] = Person.objects.get(userid=request.user.username).id
     
     if request.method == "POST":
         form = TAPostingForm(data=request.POST, instance=posting)
@@ -907,6 +906,14 @@ def edit_posting(request, post_slug=None):
 
     context = {'form': form, 'editing': editing, 'posting': posting}
     return render(request, 'ta/edit_posting.html', context)
+
+
+@requires_role("TAAD")
+def posting_admin(request, post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug)
+
+    context = {'posting': posting}
+    return render(request, 'ta/posting_admin.html', context)
 
 
 @requires_role("TAAD")

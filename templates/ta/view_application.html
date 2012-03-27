@@ -8,7 +8,7 @@
 <div class="table_container">
   <h2>General Information:</h2>
   {% if application.late %}
-    <p>This application was submitted late.  <a href="{% url ta.views.update_application app_id=application.id %}">Remove late status.</a></p>
+    <p>This application was submitted late.  <a href="{% url ta.views.update_application post_slug=application.posting.slug userid=application.person.userid %}">Remove late status.</a></p>
   {% endif %}
   <table class="info">
     <tr><th>Name</th><td>{{ application.person.name }} ({{application.person.email_mailto}})</td></tr>

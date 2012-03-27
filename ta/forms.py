@@ -379,7 +379,7 @@ class TAPostingForm(forms.ModelForm):
         self.initial['max_courses'] = self.instance.max_courses()
         self.initial['min_courses'] = self.instance.min_courses()
         self.initial['payperiods'] = self.instance.payperiods()
-        self.initial['contact'] = self.instance.contact()
+        self.initial['contact'] = self.instance.contact().id
         skills = Skill.objects.filter(posting=self.instance)
         self.initial['skills'] = '\n'.join((s.name for s in skills))
     
@@ -422,8 +422,8 @@ class TAPostingForm(forms.ModelForm):
     def clean_closes(self):
         closes = self.cleaned_data['closes']
         today = datetime.date.today()
-        if closes <= today:
-            raise forms.ValidationError("Postings must close after today")
+        #if closes <= today:
+        #    raise forms.ValidationError("Postings must close after today")
         if 'opens' in self.cleaned_data:
             opens = self.cleaned_data['opens']
             if opens >= closes:

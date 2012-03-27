@@ -173,14 +173,22 @@ class TAPosting(models.Model):
     payperiods, set_payperiods = getter_setter('payperiods')
     max_courses, set_max_courses = getter_setter('max_courses')
     min_courses, set_min_courses = getter_setter('min_courses')
-    contact, set_contact = getter_setter('contact')
+    _, set_contact = getter_setter('contact')
     
     class Meta:
         unique_together = (('unit', 'semester'),)
     def __unicode__(self): 
         return "%s, %s" % (self.unit.name, self.semester)
+    def short_str(self):
+        return "%s %s" % (self.unit.label, self.semester)
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+    
+    def contact(self):
+        if 'contact' in self.config:
+            return Person.objects.get(id=self.config['contact'])
+        else:
+            return None
     
     def selectable_courses(self):
         """
@@ -341,8 +349,8 @@ DESC_CHOICES = (
 LABTUT_DESC = ['OML'] # descriptions that deserve 0.17 bonus
 
 APPOINTMENT_CHOICES = (
-        ("INIT","Initial: Initial appointment to this position"),
-        ("REAP","Reappointment: Reappointment to same position or revision to appointment"),       
+        ("INIT","Initial appointment to this position"),
+        ("REAP","Reappointment to same position or revision to appointment"),       
     )
 STATUS_CHOICES = (
         ("NEW","Draft"), # not yet sent to TA

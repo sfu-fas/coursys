@@ -5,8 +5,11 @@
 {% block h1 %}Late Applications {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li><li>&gt; {{ posting.unit.label }} {{ posting.semester }} </li><li>&gt; Assign TAs</li>
+<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
+<li>&gt; <a href="{% url ta.views.posting_admin post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li>&gt; Late Applications</li>
 {% endblock %}
+
 
 {% block headextra %}
 <link type="text/css" href="{{MEDIA_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
@@ -31,7 +34,7 @@
 <tbody>
 {% for a in applications %}
 <tr>
-  <td class="num"><a href="{% url ta.views.view_application app_id=a.id %}">{{ a.person.last_name }}, {{ a.person.first_name }}</a></td>
+  <td><a href="{% url ta.views.view_application post_slug=posting.slug userid=a.person.userid %}">{{ a.person.last_name }}, {{ a.person.first_name }}</a></td>
 </tr>	
 {% endfor %}
 </tbody>

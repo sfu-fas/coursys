@@ -4,10 +4,18 @@
 {% block title %}TA Contracts for {{ posting }}{% endblock %}
 {% block h1 %}TA Contracts for {{ posting }}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; TA Contracts</li>{% endblock %}
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
+<li>&gt; <a href="{% url ta.views.posting_admin post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li>&gt; Contracts</li>
+{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
+    var application_urls = new Array();
+    {% for app in applications %}
+    application_urls['{{ app.id }}'] = '{% url ta.views.edit_contract post_slug=posting.slug userid=app.person.userid %}';
+    {% endfor %}
     $(function() {
     	$('#contracts').dataTable({
 			"bJQueryUI" : true,
@@ -18,14 +26,10 @@
 		
     	//setting post_slug
     	$('#submit').click(function(){
-    		var slugs = $('#app').val().split(" ")
-    		$('#create').attr("href","/ta/contracts/" + slugs[0] + "/" + slugs[1] + "/new") 
+    		var url = application_urls[$('#app').val()]
+    		$('#create').attr("href", url)
     	})
 
-		$('#posting').change(function(){
-    		window.location.href = "/ta/contracts/" + $('#posting').val()
-    	})
-    	
     	//send batch offers
     	$("#select_tog").change(function() {
   			$(".offer").attr('checked', this.checked)
@@ -103,7 +107,7 @@
 <form>
 	<select name="app" id="app">
 		{% for app in applications %}
-		<option value="{{app.posting.slug}} {{app.person.userid}}">{{ app.person }}</option>
+		<option value="{{app.id}}">{{ app.person }}</option>
 		{% endfor %}
 	</select>
 	<a id="create" href="" style="height:0"><button type="button" class="submit" id="submit">Create</button></a>
@@ -112,17 +116,4 @@
 </form>
 </div>
 
-<div id="ta_con">
-<h2>Contracts for Other Postings:</h2>
-<form>
-	<select name="posting" id="posting">
-		<option value="">---------</option>
-		{% for post in postings %}
-		<option value="{{ post.slug }}">{{ post }}</option>
-		{% endfor %}
-	</select>
-	<div class="helptext">Select the posting to view the associated contracts</div>
-	
-</form>
-</div>
 {%endblock content%}

@@ -6,7 +6,10 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li><li>&gt; {{ posting.unit.label }} {{ posting.semester }} </li><li>&gt; <a href="{% url ta.views.assign_tas post_slug=posting.slug %}">Assign TAs</a></li><li>&gt; {{ offering.subject }} {{ offering.number }} {{ offering.section }}</li> 
+<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
+<li>&gt; <a href="{% url ta.views.posting_admin post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li>&gt; <a href="{% url ta.views.assign_tas post_slug=posting.slug %}">Assign TAs</a></li>
+<li>&gt; {{ offering.subject }} {{ offering.number }} {{ offering.section }}</li> 
 {% endblock %}
 
 {% block headextra %}
@@ -107,6 +110,7 @@ Instructor:
         <li>
             <label>Extra Base Units:&nbsp;</label>
             <div class="inputfield"><input id="extra_bu" name="extra_bu" type="text" value="{{ offering.config.extra_bu }}"/></div>
+            <div class="helptext">(Extra base units to assign, in addition to the calculated defaults.)</div>
         </li>
         <li>
             <label>TA runs lab:&nbsp;</label>
@@ -146,7 +150,7 @@ remaining: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span
 <tbody>
 {% for a in applications %}
       <tr>
-        <td scope="row"><a href="{% url ta.views.view_application app_id=a.id %}">{{ a.person.last_name }}, {{ a.person.first_name }}</a></td>
+        <td scope="row"><a href="{% url ta.views.view_application post_slug=posting.slug userid=a.person.userid %}">{{ a.person.last_name }}, {{ a.person.first_name }}</a></td>
         <td>{% for form in formset %}
         {% ifequal forloop.counter forloop.parentloop.counter %}
           {{ form|as_dl_usefield:'rank' }}

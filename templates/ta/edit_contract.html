@@ -1,12 +1,19 @@
 {% extends "base.html" %}
 {% load course_display form_display %}
 
-{% block title %}{% if editing %}Edit Contract for {{ contract.application.person }}{% else %}New Contract for {{application.person}}{% endif %}{% endblock %}
-{% block h1 %} {% if editing %}Edit Contract for {{ contract.application.person }}{% else %}New Contract for {{application.person}}{% endif %}{% endblock %}
+{% block title %}{% if editing %}Edit Contract for {{ contract.application.person.name }}{% else %}New Contract for {{application.person}}{% endif %}{% endblock %}
+{% block h1 %} {% if editing %}Edit Contract for {{ contract.application.person.name }}{% else %}New Contract for {{application.person}}{% endif %}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url ta.views.all_contracts post_slug=posting.slug %}">TA Contracts</a></li>
-<li>&gt; {% if editing %}Editing {{ contract.application.person.name }}'s Contract{% else %}New Contract for {{application.person.name}}{% endif %}</li>
+<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
+<li>&gt; <a href="{% url ta.views.posting_admin post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li>&gt; <a href="{% url ta.views.all_contracts post_slug=posting.slug %}">Contracts</a></li>
+{% if editing %}
+<li>&gt; <a href="{% url ta.views.view_contract post_slug=posting.slug userid=contract.application.person.userid %}">{{ contract.application.person.name }}</a></li>
+<li>&gt; Edit</li>
+{% else %}
+<li>&gt; New</li>
+{% endif %}
 {% endblock %}
 
 {% block headextra %}
@@ -190,21 +197,15 @@
 	<table class="info">
         <tbody>
 	    <tr>
-	    	<th>Semester</th>
-            <td>{{ posting.semester }}</td>
+	    	<th>Posting</th>
+            <td>{{ posting }}</td>
         </tr>
+{% if editing %}
 	    <tr>
-            <th>Unit</th>
-            <td>{{ posting.unit }}</td>
+            <th>TA</th>
+            <td>{{ contract.application.person }} ({{ contract.application.person.email_mailto }}, {{ contract.application.person.emplid}})</td>
         </tr>
-	    <tr>
-            <th>Open Date</th>
-            <td>{{ posting.opens }}</td>
-        </tr>
-	    <tr>
-            <th>Close Date</th>
-            <td>{{ posting.closes }}</td>
-        </tr>
+{% endif %}
         </tbody>
     </table>
 </div>

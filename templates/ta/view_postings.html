@@ -23,19 +23,10 @@
 {% block content %}
 
 {% if is_admin %}
-<h2>Your Postings</h2>
+<h2>Posting Administration</h2>
 <ul>
 {% for p in owned %}
-<li>{{p}}
-[
-<a href="{% url ta.views.edit_posting post_slug=p.slug %}">Edit</a> |
-<a href="{% url ta.views.edit_bu post_slug=p.slug %}">BU defaults</a> |
-<a href="{% url ta.views.assign_tas post_slug=p.slug %}">Assign TAs</a> |
-<a href="{% url ta.views.view_late_applications post_slug=p.slug %}">Late Applications</a> |
-<a href="{% url ta.views.all_contracts post_slug=p.slug %}">TA Contracts</a>
-]
-
-</li>
+<li><a href="{% url ta.views.posting_admin post_slug=p.slug %}">{{p}}</a></li>
 {% empty %}
 <li class="empty">None</li>
 {% endfor %}
@@ -49,7 +40,6 @@
 {% for p in postings %}
 <li>
   <a href="{% url ta.views.new_application post_slug=p.slug %}">{{p}}</a>
-  {% if is_admin %}[<a href="{% url ta.views.new_application_manual post_slug=p.slug %}">Manual Application</a>]{% endif %}
 </li>
 {% empty %}
 <li class="empty">No open postings</li>

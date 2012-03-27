@@ -2,7 +2,6 @@ function confirmSubmit(action) {
   return confirm("Are you sure you wish to " + action + "?");
 }
 
-
 /* jQuery Datatables sorting by mark (e.g. "4.5/10") */
 function mark_cmp(x,y) {
   xn = parseFloat(x.split("/", 1), 10)
@@ -43,20 +42,46 @@ function nolinkmark_cmp(x,y) {
 jQuery.fn.dataTableExt.oSort['by-nolinkmark-asc']  = function(x,y) { return nolinkmark_cmp(x,y) };
 jQuery.fn.dataTableExt.oSort['by-nolinkmark-desc'] = function(x,y) { return nolinkmark_cmp(y,x) };
 
-/* jQuery Datatables sorting ignoring any <a> (e.g. '<a href="foo">123</a>' sorts by '123') */
-span_re = new RegExp('<span.*>(.+)</span>');
-function nospan_cmp(x,y) {
-  xc = span_re.exec(x);
-  yc = span_re.exec(y);
-  if ( xc == null && yc == null ) { return 0 }
-  if ( xc == null ) { return -1; }
-  if ( yc == null ) { return 1; }
-  xc = parseFloat(xc[1]);
-  yc = parseFloat(yc[1]);
+/* jQuery Datatables sorting ignoring any tag */
+tag_re = new RegExp('<(\\w+).*>(.+)</(\\1)>');
+function notag_cmp(x,y) {
+  xc = tag_re.exec(x);
+  yc = tag_re.exec(y);
+  if ( xc == null ) { xc = x; }
+  if ( yc == null ) { yc = y; }
+  xc = xc[2];
+  yc = yc[2];
   return ((xc < yc) ? -1 : ((xc > yc) ? 1 : 0));
 }
-jQuery.fn.dataTableExt.oSort['by-nospan-asc']  = function(x,y) { return nospan_cmp(x,y) };
-jQuery.fn.dataTableExt.oSort['by-nospan-desc'] = function(x,y) { return nospan_cmp(y,x) };
+jQuery.fn.dataTableExt.oSort['by-notag-asc']  = function(x,y) { return notag_cmp(x,y) };
+jQuery.fn.dataTableExt.oSort['by-notag-desc'] = function(x,y) { return notag_cmp(y,x) };
+
+function notagnum_cmp(x,y) {
+  xc = tag_re.exec(x);
+  yc = tag_re.exec(y);
+  if ( xc == null ) { xc = [0,0,x]; }
+  if ( yc == null ) { yc = [0,0,y]; }
+  xc = parseFloat(xc[2]);
+  yc = parseFloat(yc[2]);
+  return ((xc < yc) ? -1 : ((xc > yc) ? 1 : 0));
+}
+jQuery.fn.dataTableExt.oSort['by-notagnum-asc']  = function(x,y) { return notagnum_cmp(x,y) };
+jQuery.fn.dataTableExt.oSort['by-notagnum-desc'] = function(x,y) { return notagnum_cmp(y,x) };
+
+/* sorting by a "xyz = number" expression */
+result_re = new RegExp('.+ = (.+)$');
+function result_cmp(x,y) {
+  xc = result_re.exec(x);
+  yc = result_re.exec(y);
+  if ( xc == null ) { xc = [0,x]; }
+  if ( yc == null ) { yc = [0,y]; }
+  xc = parseFloat(xc[1]);
+  yc = parseFloat(yc[1]);
+  console.log((xc,yc))
+  return ((xc < yc) ? -1 : ((xc > yc) ? 1 : 0));
+}
+jQuery.fn.dataTableExt.oSort['by-result-asc']  = function(x,y) { return result_cmp(x,y) };
+jQuery.fn.dataTableExt.oSort['by-result-desc'] = function(x,y) { return result_cmp(y,x) };
 
 
 /* jQuery Datatables sorting for letter grades in links */

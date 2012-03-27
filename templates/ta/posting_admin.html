@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load markup %}
+
+{% block title %}TA Postings: {{posting}}{% endblock %}
+{% block h1 %}TA Postings: {{posting}}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li><li>&gt; {{posting.short_str}}</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    <li><a href="{% url ta.views.edit_posting post_slug=posting.slug %}">Edit Posting</a></li>
+    <li><a href="{% url ta.views.edit_bu post_slug=posting.slug %}">Edit BU defaults</a></li>
+    <li class="newsec"><a href="{% url ta.views.view_late_applications post_slug=posting.slug %}">Late Applications</a></li>
+    <li><a href="{% url ta.views.new_application_manual post_slug=posting.slug %}">Apply for Student</a></li>
+    <li class="newsec"><a href="{% url ta.views.assign_tas post_slug=posting.slug %}">Assign TAs</a></li>
+    <li><a href="{% url ta.views.all_contracts post_slug=posting.slug %}">TA Contracts</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="table_container">
+<table class="info">
+  <tr><th>Applications Open</th><td>{{ posting.opens }}</td></tr>
+  <tr><th>Applications Close</th><td>{{ posting.closes }}</td></tr>
+  <tr><th>Contact Person</th><td>{{ posting.contact.name }} &lt;{{ posting.contact.email_mailto }}&gt;</td></tr>
+</table>
+</div>
+
+{% endblock %}
