@@ -2,7 +2,7 @@
 {% load form_display course_display%}
 
 {% block subbreadcrumbs %}
-<li>&gt; {{ person.first_name }}'s Contract Offer</li>
+<li>&gt; {{ contract.application.person.first_name }}'s Contract Offer</li>
 {% endblock %}
 
 {% block title %}Contract Offer for {{ contract.application.person }}{% endblock %}
@@ -93,9 +93,11 @@
 			<option value="ACC">Accepted</option>
 			<option value="REJ">Rejected</option>
 			</select></div>
-		</dd>  -->
+		</dd>  
+<p><input id="submit" type="submit" class="submit" value="Submit" /></p>		-->
+			
 <p><input id="submit" type="submit" class="submit" value="Reject" /><input id="submit" type="submit" class="submit" value="Accept" /></p>
-<p><em>** Please contact {{contact}} after <b>accepting</b> the contract </em> </p>
+<p><em>** Please contact {{ contract.posting.contact.name }} &lt;{{ contract.posting.contact.email_mailto }}&gt; after <b>accepting</b> the contract.</em> </p>
 </form>
 </div>
 {% endblock %}

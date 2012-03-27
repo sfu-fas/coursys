@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, CampusPreference,\
     CAMPUS_CHOICES, CAMPUSES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS
 from ra.models import Account
+from grad.models import GradStudent 
 from dashboard.models import NewsItem
 from coredata.models import Member, Role, CourseOffering, Person, Semester
 from grad.models import GradStatus
@@ -242,6 +243,11 @@ def _new_application(request, post_slug, manual=False):
                 app.late = False
             app.posting = posting
             app.person = person
+            
+            grad = GradStudent.objects.filter(person=person)           
+            if grad.count()>0:
+                grad[0].config['sin'] = request.POST['sin']
+                
             app.save()
             ta_form.save_m2m()
             
@@ -600,13 +606,13 @@ def accept_contract(request, post_slug, userid):
     #this could be refactored used in multiple places
     pp = posting.config['payperiods']
     pdead = posting.config['deadline']
-    pcontact = posting.config['contact']
     salary_sem = (total*contract.pay_per_bu)
     schol_sem = (total*contract.scholarship_per_bu)
     salary_sem_out = format_currency(salary_sem)
     schol_sem_out = format_currency(schol_sem)
     salary_bi = format_currency(salary_sem / pp)
     schol_bi = format_currency(schol_sem / pp)
+    
     
     if request.method == "POST":
         form = TAAcceptanceForm(request.POST, instance=contract)
@@ -616,6 +622,10 @@ def accept_contract(request, post_slug, userid):
             contract.application = application
             contract.sin = request.POST['sin']
             #contract.status = request.POST['status']
+            grad = GradStudent.objects.filter(person=person)           
+            if grad.count()>0:
+                grad[0].config['sin'] = request.POST['sin']
+           
             contract.save()
             messages.success(request, "Successfully %s the offer." % (contract.get_status_display()))
             ##not sure where to redirect to...so currently redirects to itself
@@ -625,7 +635,6 @@ def accept_contract(request, post_slug, userid):
         
     
     context = { 'contract':contract, 
-                'person': person,
                 'courses':courses,
                 'pay':format_currency(contract.pay_per_bu),
                 'scholarship':format_currency(contract.scholarship_per_bu),
@@ -635,7 +644,6 @@ def accept_contract(request, post_slug, userid):
                 'schol_sem':schol_sem_out,
                 'total':total,
                 'acc_deadline': pdead,
-                'contact': pcontact,
                 'form':form
             }
     return render(request, 'ta/accept.html', context)
@@ -779,11 +787,15 @@ def edit_contract(request, post_slug, userid):
                 #create news item
                 # if contract.status == "OPN":
                 person = application.person
-                #offer_url = "http://127.0.0.1:8000/ta/contracts/"+ post_slug +"/"+ userid +"/accept"
+                
                 offer_url = reverse('ta.views.accept_contract', kwargs={'post_slug': post_slug, 'userid': userid})
                 from_user = posting.contact()
                 if contract.status == 'OPN':
                     create_news(person, offer_url, from_user)
+                
+                grad = GradStudent.objects.filter(person=person)           
+                if grad.count()>0:
+                    grad[0].config['sin'] = request.POST['sin']
                 
                 contract.save()
                 formset.save()
