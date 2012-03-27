@@ -17,7 +17,7 @@ from ta.forms import TUGForm, TAApplicationForm, TAContractForm, TAAcceptanceFor
     TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm
 from advisornotes.forms import StudentSearchForm
 from log.models import LogEntry
-from dashboard.letters import ta_form
+from dashboard.letters import ta_form, ta_forms
 from django.forms.models import inlineformset_factory
 from django.forms.formsets import formset_factory
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
@@ -674,6 +674,15 @@ def view_form(request, post_slug, userid):
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename=%s-%s.pdf' % (posting.slug, userid)
     ta_form(contract, response)
+    return response
+
+@requires_role("TAAD")
+def contracts_forms(request, post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    contracts = TAContract.objects.filter(posting=posting, status='ACC')
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = 'inline; filename=%s.pdf' % (posting.slug)
+    ta_forms(contracts, response)
     return response
 
 
