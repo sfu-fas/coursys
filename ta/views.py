@@ -597,18 +597,25 @@ def accept_contract(request, post_slug, userid):
     courses = TACourse.objects.filter(contract=contract)
     total = get_total_bu(courses)
     
+    #this could be refactored used in multiple places
+    pp = posting.config['payperiods']
+    pdead = posting.config['deadline']
+    pcontact = posting.config['contact']
+    salary_sem = (total*contract.pay_per_bu)
+    schol_sem = (total*contract.scholarship_per_bu)
+    salary_sem_out = format_currency(salary_sem)
+    schol_sem_out = format_currency(schol_sem)
+    salary_bi = format_currency(salary_sem / pp)
+    schol_bi = format_currency(schol_sem / pp)
+    
     if request.method == "POST":
         form = TAAcceptanceForm(request.POST, instance=contract)
-        print
-        print form.fields
-        print form.is_valid()
-        print form.errors
         if form.is_valid():
-            contract =form.save(commit=False)
+            contract = form.save(commit=False)
             contract.posting = posting
             contract.application = application
             contract.sin = request.POST['sin']
-            contract.status = request.POST['status']
+            #contract.status = request.POST['status']
             contract.save()
             messages.success(request, "Successfully %s the offer." % (contract.get_status_display()))
             ##not sure where to redirect to...so currently redirects to itself
@@ -617,11 +624,20 @@ def accept_contract(request, post_slug, userid):
         form = TAContractForm(instance=contract) 
         
     
-    context = {'contract':contract, 
-               'person': person,
-               'courses':courses,
-               'total':total,
-               'form':form}
+    context = { 'contract':contract, 
+                'person': person,
+                'courses':courses,
+                'pay':format_currency(contract.pay_per_bu),
+                'scholarship':format_currency(contract.scholarship_per_bu),
+                'salary_bi':salary_bi,
+                'schol_bi':schol_bi,
+                'salary_sem':salary_sem_out,
+                'schol_sem':schol_sem_out,
+                'total':total,
+                'acc_deadline': pdead,
+                'contact': pcontact,
+                'form':form
+            }
     return render(request, 'ta/accept.html', context)
 
 @requires_role("TAAD")
@@ -763,15 +779,11 @@ def edit_contract(request, post_slug, userid):
                 #create news item
                 # if contract.status == "OPN":
                 person = application.person
-                
                 #offer_url = "http://127.0.0.1:8000/ta/contracts/"+ post_slug +"/"+ userid +"/accept"
                 offer_url = reverse('ta.views.accept_contract', kwargs={'post_slug': post_slug, 'userid': userid})
-                print
-                print person
-                print "TA Contract Offer for %s" %person
-                print offer_url
                 from_user = posting.contact()
-                create_news(person, offer_url, from_user)
+                if contract.status == 'OPN':
+                    create_news(person, offer_url, from_user)
                 
                 contract.save()
                 formset.save()

@@ -2,7 +2,7 @@
 {% load form_display course_display%}
 
 {% block subbreadcrumbs %}
-<li>&gt; {{ person }}'s Contract Offer</li>
+<li>&gt; {{ person.first_name }}'s Contract Offer</li>
 {% endblock %}
 
 {% block title %}Contract Offer for {{ contract.application.person }}{% endblock %}
@@ -14,8 +14,15 @@
 
 {% block content %}
 
-<p>You have been selected to TA the following courses:</p>
-<br/>
+<div class="table_container">
+<h3>You have been chosen to be a TA for {{contract.posting.semester}}!.</h3>
+ <table class="info">
+	<tr><th>Acceptance Deadline</th><td>{{ acc_deadline}}</td></tr>
+</table>
+
+</div> 
+
+<h2>Courses Assigned:</h2> 
 <div class="table_container">
 <table class="info">
 		<thead class="form_head">
@@ -31,7 +38,7 @@
 			{% for course in courses %}
 			<tr>
 				<td>{{course.course.subject}} {{course.course.number}} {{course.course.section}}</td>
-				<td>{{ course.get_description_display }}</td>
+				<td>{{course.get_description_display }}</td>
 				<td>{{course.bu}}</td>
 			<tr/>
 			{% endfor %}		
@@ -43,18 +50,52 @@
 		</tbody>
   </table>
 </div>
+
+<h2>Payment Information:</h2> 
+<div class="table_container"> 
+      <table class="info">
+      	<thead class="form_head">
+          <tr>
+         	<th scope="col"></th>
+         	<th scope="col">Pay Per BU</th>
+         	<th scope="col">Biweekly Rate</th>
+         	<th scope="col">Semester Rate</th>
+          </tr>         
+        </thead>  
+        <tbody>
+        	<tr> 
+        		<th class="ui-state-default">Salary</th>
+				<td>{{pay}}</td>	
+        		<td>{{salary_bi}}</td>
+        		<td>{{salary_sem}}</td>
+        	</tr>
+        	<tr>
+        		<th class="ui-state-default">Scholarship</th>
+				<td>{{scholarship}}</td>
+        		<td>{{schol_bi}}</td>
+        		<td>{{schol_sem}}</td>
+        	</tr>
+        </tbody>
+      </table>
+	  <table class="info">
+			<tr><th>Start Date</th><td>{{ contract.pay_start }}</td></tr>
+			<tr><th>End Date</th><td>{{ contract.pay_end }}</td></tr>
+	  </table>
+</div>
+
 <div id="form_container">
 <form action="" method="post">{% csrf_token %}
 		<p> Please make sure the following information is correct, otherwise you don't get paid.</p>
 	    {{ form|as_dl_usefield:"sin"}}
 			
-		<p><em>Accept</em> or <em>Reject</em> the offered Contract?
+		<!--<p><em>Accept</em> or <em>Reject</em> the offered Contract?
 		<div class="field"><select name="status" id="id_status">
 			<option value="ACC">Accepted</option>
 			<option value="REJ">Rejected</option>
 			</select></div>
-		</dd>
-<p><input id="submit" type="submit" class="submit" value="Submit" /></p>
+		</dd>  -->
+<p><input id="submit" type="submit" class="submit" value="Reject" /><input id="submit" type="submit" class="submit" value="Accept" /></p>
+<p><em>** Please contact {{contact}} after <b>accepting</b> the contract </em> </p>
 </form>
 </div>
 {% endblock %}
