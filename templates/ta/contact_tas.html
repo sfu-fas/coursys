@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Contact TAs for {{posting}}{% endblock %}
+{% block h1 %}Contact TAs for {{posting}}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
+<li>&gt; <a href="{% url ta.views.posting_admin post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li>&gt; Contact TAs</li>
+{% endblock %}
+
+{% block headextra %}
+<link type="text/css" href="{{MEDIA_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
+<script type="text/javascript" src="{{MEDIA_URL}}multiselect/js/ui.multiselect.js"></script>
+<script type="text/javascript">
+  function get_recipients() {
+  	var selected = $('#id_statuses :selected');
+  	var st='';
+  	selected.each(function(){
+  	  st += $(this).val() + ",";
+  	})
+  	$.ajax({
+      url: "?statuses="+st.slice(0,-1),
+      success: function(data, textStatus, jqXHR) {
+      	$("#contactlist").text("Emails of selected contracts: " + data.contacts);
+      }
+    });
+  }
+  $(function() {
+    $("#id_statuses").css("min-height", "160px").multiselect({});
+    //$("#id_statuses").click(get_recipients);
+  });
+
+</script>
+{% endblock %}
+
+{% block actions %}{% endblock %}
+
+{% block content %}
+<div id="form_container">
+<form action="" method="post">{% csrf_token %}
+<fieldset>
+<legend>Message Details</legend>
+{{ form|as_dl_safe }}
+<p><input id="submitbutton" class="submit"  type="submit" value="Send Message"></p>
+</fieldset>
+</form>
+</div>
+
+<p><a href="javascript:get_recipients()">Get email list</a></p>
+
+<p id="contactlist"></p>
+
+
+{% endblock %}

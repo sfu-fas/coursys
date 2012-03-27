@@ -15,7 +15,7 @@ from dashboard.models import NewsItem
 from coredata.models import Member, Role, CourseOffering, Person, Semester
 from grad.models import GradStatus
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, TAAcceptanceForm, CoursePreferenceForm, \
-    TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm
+    TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm, TAContactForm
 from advisornotes.forms import StudentSearchForm
 from log.models import LogEntry
 from dashboard.letters import ta_form, ta_forms
@@ -185,6 +185,7 @@ def edit_tug(request, course_slug, userid):
 
 @requires_role("TAAD")
 def new_application_manual(request, post_slug):
+    get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     return _new_application(request, post_slug, manual=True)
 
 @login_required
@@ -374,7 +375,7 @@ def view_postings(request):
 
 @requires_role("TAAD")
 def assign_tas(request, post_slug):
-    posting = get_object_or_404(TAPosting, slug=post_slug)
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     if posting.unit not in request.units:
         ForbiddenResponse(request, 'You cannot access this page')
     
@@ -389,7 +390,7 @@ def assign_tas(request, post_slug):
 
 @requires_role("TAAD")
 def assign_bus(request, post_slug, course_slug):
-    posting = get_object_or_404(TAPosting, slug=post_slug)
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     if posting.unit not in request.units:
         ForbiddenResponse(request, 'You cannot access this page')
     
@@ -865,7 +866,7 @@ def edit_posting(request, post_slug=None):
     
     if post_slug:
         # editing existing
-        posting = get_object_or_404(TAPosting, slug=post_slug)
+        posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
         if posting.unit not in request.units:
             ForbiddenResponse(request, 'You cannot access this posting')
         editing = True
@@ -933,7 +934,7 @@ def edit_posting(request, post_slug=None):
 
 @requires_role("TAAD")
 def posting_admin(request, post_slug):
-    posting = get_object_or_404(TAPosting, slug=post_slug)
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
 
     context = {'posting': posting}
     return render(request, 'ta/posting_admin.html', context)
@@ -946,7 +947,7 @@ def bu_formset(request, post_slug):
     
     Called in edit_bu.html to dynmically change formset as selected
     """
-    posting = get_object_or_404(TAPosting, slug=post_slug)
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     if posting.unit not in request.units:
         ForbiddenResponse(request, 'You cannot access this page')
     
@@ -967,7 +968,7 @@ def bu_formset(request, post_slug):
 
 @requires_role("TAAD")
 def edit_bu(request, post_slug):
-    posting = get_object_or_404(TAPosting, slug=post_slug)
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     if posting.unit not in request.units:
         ForbiddenResponse(request, 'You cannot access this page')
 
@@ -1000,7 +1001,7 @@ def edit_bu(request, post_slug):
 
 @requires_role("TAAD")
 def generate_csv(request, post_slug):
-    posting = get_object_or_404(TAPosting, slug=post_slug)
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     if posting.unit not in request.units:
         ForbiddenResponse(request, 'You cannot access this page')
     
@@ -1059,10 +1060,7 @@ def generate_csv(request, post_slug):
 
 @requires_role("TAAD")
 def view_financial(request, post_slug):
-    posting = get_object_or_404(TAPosting, slug=post_slug)
-    if posting.unit not in request.units:
-        ForbiddenResponse(request, 'You cannot access this page')
-    
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)    
     all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit)
     # ignore excluded courses
     excl = set(posting.excluded())
@@ -1071,3 +1069,41 @@ def view_financial(request, post_slug):
     
     context = {'posting': posting, 'offerings': offerings, 'excluded': excluded}
     return render(request, 'ta/view_financial.html', context) 
+
+@requires_role("TAAD")
+def contact_tas(request, post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    if request.method == "POST":
+        form = TAContactForm(request.POST)
+        if form.is_valid():
+            contracts = TAContract.objects.filter(posting=posting, status__in=form.cleaned_data['statuses']).select_related('application__person')
+            from_person = Person.objects.get(userid=request.user.username)
+            # message each person
+            count = 0
+            for c in contracts:
+                person = c.application.person
+                url = ''
+                if 'url' in form.cleaned_data and form.cleaned_data['url']:
+                    url = form.cleaned_data['url']
+                n = NewsItem(user=person, author=from_person, course=None, source_app='ta_contract',
+                             title=form.cleaned_data['subject'], content=form.cleaned_data['text'], url=url)
+                n.save()
+                count += 1
+            
+            messages.success(request, "Message sent to %i TAs." % (count))
+            return HttpResponseRedirect(reverse('ta.views.posting_admin', kwargs={'post_slug': posting.slug}))
+    
+    elif 'statuses' in request.GET:
+        statuses = request.GET['statuses'].split(',')
+        contracts = TAContract.objects.filter(posting=posting, status__in=statuses).select_related('application__person')
+        emails = [c.application.person.full_email() for c in contracts]
+        
+        resp = HttpResponse(mimetype="application/json")
+        data = {'contacts': ", ".join(emails)}
+        json.dump(data, resp, indent=1)
+        return resp
+    else:
+        form = TAContactForm()
+
+    context = {'posting': posting, 'form': form}
+    return render(request, 'ta/contact_tas.html', context) 

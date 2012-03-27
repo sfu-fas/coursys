@@ -5,7 +5,8 @@ from django import forms
 from django.forms.util import ErrorList
 from django.utils.datastructures import SortedDict
 from coredata.models import Member
-from ta.models import TUG, TAApplication,TAContract, CoursePreference, TACourse, TAPosting, Skill, CATEGORY_CHOICES
+from ta.models import TUG, TAApplication,TAContract, CoursePreference, TACourse, TAPosting, Skill, \
+        CATEGORY_CHOICES, STATUS_CHOICES
 from ta.util import table_row__Form
 #from django.core.exceptions import ValidationError
 import itertools, decimal, datetime
@@ -509,3 +510,12 @@ class AssignBUForm(forms.Form):
     rank = forms.IntegerField(min_value=0, label="rank")
     bu = forms.DecimalField(min_value=0, max_digits=5, decimal_places=2, required=False)
     bu.widget.attrs['class'] = u'bu_inp'
+
+class TAContactForm(forms.Form):
+    statuses = forms.MultipleChoiceField(choices=STATUS_CHOICES, help_text="Contract statuses to be contacted")
+    subject = forms.CharField()
+    text = forms.CharField(widget=forms.Textarea(), help_text='Message body. <a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a> allowed.')
+    url = forms.URLField(label="URL", required=False, help_text='Link to include in the message. (optional)')
+
+
+
