@@ -370,7 +370,7 @@ def view_postings(request):
 def assign_tas(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug)
     if posting.unit not in request.units:
-        ForbiddenResponse(request, 'You cannot access this posting')
+        ForbiddenResponse(request, 'You cannot access this page')
     
     all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit)
     # ignore excluded courses
@@ -384,6 +384,9 @@ def assign_tas(request, post_slug):
 @requires_role("TAAD")
 def assign_bus(request, post_slug, course_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug)
+    if posting.unit not in request.units:
+        ForbiddenResponse(request, 'You cannot access this page')
+    
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     instructors = offering.instructors()
     course_prefs = CoursePreference.objects.filter(course=offering.course,app__late=False) 
@@ -511,10 +514,13 @@ def all_contracts(request, post_slug=None):
     #name, appointment category, rank, deadline, status. Total BU, Courses TA-ing , view/edit
     if post_slug:
         posting = get_object_or_404(TAPosting, slug=post_slug)
-        contracts = TAContract.objects.filter(posting=posting)
     else:
         posting = TAPosting.objects.get(semester=Semester.next_starting())
-        contracts = TAContract.objects.filter(posting=posting)
+    
+    if posting.unit not in request.units:
+        ForbiddenResponse(request, 'You cannot access this page')
+        
+    contracts = TAContract.objects.filter(posting=posting)
     paginator = Paginator(contracts,5)
     
     try:
@@ -647,9 +653,9 @@ def view_contract(request, post_slug, userid):
     #contract.pay_per_bu = format_currency(contract.pay_per_bu)
     #contract.scholarship_per_bu = format_currency(contract.scholarship_per_bu)
     
-    posting = get_object_or_404(TAPosting, slug=post_slug)
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     if posting.unit not in request.units:
-        ForbiddenResponse(request, 'You cannot access this posting')
+        ForbiddenResponse(request, 'You cannot access this page')
     contract = TAContract.objects.filter(posting=posting, application__person__userid=userid)
     if contract.count() > 0:
         contract = contract[0]
@@ -693,10 +699,10 @@ def view_form(request, post_slug, userid):
 
 @requires_role("TAAD")
 def edit_contract(request, post_slug, userid):
-    posting = get_object_or_404(TAPosting, slug=post_slug)
-    
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     if posting.unit not in request.units:
-        ForbiddenResponse(request, 'You cannot access this posting')
+        ForbiddenResponse(request, 'You cannot access this page')
+        
     course_choices = [('','---------')] + [(c.id, c.name()) for c in posting.selectable_offerings()]
     position_choices = [(a.id, "%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit=posting.unit)]
     
@@ -912,7 +918,7 @@ def bu_formset(request, post_slug):
     """
     posting = get_object_or_404(TAPosting, slug=post_slug)
     if posting.unit not in request.units:
-        ForbiddenResponse(request, 'You cannot access this posting')
+        ForbiddenResponse(request, 'You cannot access this page')
     
     if 'level' not in request.GET:
         return ForbiddenResponse(request, 'must give level')
@@ -933,7 +939,7 @@ def bu_formset(request, post_slug):
 def edit_bu(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug)
     if posting.unit not in request.units:
-        ForbiddenResponse(request, 'You cannot access this posting')
+        ForbiddenResponse(request, 'You cannot access this page')
 
     formset = None # used in bu_formset.html as defaults if present; AJAX magic if not
     level = None
@@ -964,9 +970,10 @@ def edit_bu(request, post_slug):
 
 @requires_role("TAAD")
 def generate_csv(request, post_slug):
-
     posting = get_object_or_404(TAPosting, slug=post_slug)
-
+    if posting.unit not in request.units:
+        ForbiddenResponse(request, 'You cannot access this page')
+    
     all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit)
     excl = set(posting.excluded())
     offerings = [o for o in all_offerings if o.course_id not in excl]
