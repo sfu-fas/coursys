@@ -519,14 +519,17 @@ def all_contracts(request, post_slug):
     
     if request.method == "POST":
         ccount = 0
+        from_user = posting.contact()
         for contract in contracts:
             cname = u'contract_%s' % contract.id
             if cname in request.POST:
-                #send offer for this offer
-                #update status to offerred (pre validation?)
+                app = contract.application.person
+                offer_url = reverse('ta.views.accept_contract', kwargs={'post_slug': post_slug, 'userid': app.userid})
                 contract.status = 'OPN'
+                create_news(app, offer_url, from_user)
                 contract.save()
                 ccount += 1
+                
         if ccount > 1:
             messages.success(request, "Successfully sent %s offers." % ccount)
         elif ccount > 0:
