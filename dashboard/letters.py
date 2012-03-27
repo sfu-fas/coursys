@@ -1,5 +1,5 @@
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import Paragraph, Spacer, Frame, KeepTogether, Flowable, NextPageTemplate, PageBreak, Image
+from reportlab.platypus import Paragraph, Spacer, Frame, KeepTogether, NextPageTemplate, PageBreak, Image, Table, TableStyle
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import inch, mm
 from reportlab.lib.utils import ImageReader
@@ -206,13 +206,14 @@ class LetterContents(object):
     signer: person signing the letter, if knows (a coredata.models.Person)
     """
     def __init__(self, to_addr_lines, from_name_lines, date=None, salutation="To whom it may concern",
-                 closing="Yours truly", signer=None, paragraphs=None):
+                 closing="Yours truly", signer=None, paragraphs=None, cosigner_lines=None):
         self.date = date or datetime.date.today()
         self.salutation = salutation
         self.closing = closing
         self.flowables = []
         self.to_addr_lines = to_addr_lines
         self.from_name_lines = from_name_lines
+        self.cosigner_lines = cosigner_lines
         self.signer = signer
         if paragraphs:
             self.add_paragraphs(paragraphs)
@@ -261,8 +262,9 @@ class LetterContents(object):
         close = []
         close.append(self.flowables[-1])
         close.append(Spacer(1, 2*space_height))
-        close.append(Paragraph(self.closing+",", style))
         # signature
+        signature = [Paragraph(self.closing+",", style)]
+        img = None
         if self.signer:
             import PIL
             try:
@@ -275,15 +277,40 @@ class LetterContents(object):
                 sig.sig.open()
                 img = Image(sig.sig, width=wid, height=hei)
                 img.hAlign = 'LEFT'
-                close.append(Spacer(1, space_height))
-                close.append(img)
+                signature.append(Spacer(1, space_height))
+                signature.append(img)
             except Signature.DoesNotExist:
-                close.append(Spacer(1, 4*space_height))
+                signature.append(Spacer(1, 4*space_height))
         else:
-            close.append(Spacer(1, 4*space_height))
+            signature.append(Spacer(1, 4*space_height))
         
         for line in self.from_name_lines:
-            close.append(Paragraph(line, style))
+            signature.append(Paragraph(line, style))
+
+        if self.cosigner_lines:
+            # we have two signatures to display: rebuild the signature part in a table with both
+            data = []
+            data.append([Paragraph(self.closing+",", style), Paragraph(self.cosigner_lines[0]+",", style)])
+            if img:
+                data.append([img, Spacer(1, 4*space_height)])
+            else:
+                data.append([Spacer(1, 4*space_height), Spacer(1, 4*space_height)])
+
+            extra = [''] * (len(self.from_name_lines) + len(self.cosigner_lines[1:]))
+            for l1,l2 in zip(self.from_name_lines+extra, self.cosigner_lines[1:]+extra):
+                if l1 or l2:
+                    data.append([Paragraph(l1, style), Paragraph(l2, style)])            
+            
+            sig_table = Table(data)
+            sig_table.setStyle(TableStyle(
+                    [('LEFTPADDING', (0,0), (-1,-1), 0),
+                     ('RIGHTPADDING', (0,0), (-1,-1), 0),
+                     ('TOPPADDING', (0,0), (-1,-1), 0),
+                     ('BOTTOMPADDING', (0,0), (-1,-1), 0)]))
+
+            close.append(sig_table)
+        else:
+            close.extend(signature)
         
         contents.append(KeepTogether(close))
         contents.append(NextPageTemplate(0)) # next letter starts on letterhead again
