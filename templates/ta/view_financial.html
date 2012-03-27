@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load course_display ta_display %}
+
+{% block title %}Financial Summary for TA Appointments for {{ posting }}{% endblock %}
+{% block h1 %}Financial Summary for TA Appointments for {{ posting }}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
+<li>&gt; <a href="{% url ta.views.posting_admin post_slug=posting.slug %}">{{ posting.short_str }}</a>
+<li>&gt; Financial</li>
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+  $(function() {
+  	$('#offerings').dataTable({
+			"bJQueryUI" : true,
+			"iDisplayLength" : 25,
+			"aaSorting": [[3, "desc"]],
+			"sPaginationType" : "full_numbers",
+	});
+  });  
+</script>
+
+{% endblock %}
+
+{% block content %}
+<div class="datatable_container">
+<table class="display" id="offerings">
+<thead>
+	<tr>
+		<th scope="col">Offering</th>
+		<th scope="col">Campus</th>
+		<th scope="col">Assigned BU</th>
+		<th scope="col">Total Amount</th>
+	</tr>
+</thead>
+<tbody>
+{% for o in offerings %}
+<tr>
+  <td scope="row" title="{{o.title}}"><a href="{% url ta.views.assign_bus post_slug=posting.slug, course_slug=o.slug %}">{{o.name}}</a></td>
+  <td class="num">{{o.get_campus_display}}</td>
+  <td class="num">{{ o|display_assigned_bu:posting }}</td>
+  <td class="num">{{ o|display_total_pay:posting }}</td>
+</tr>	
+{% endfor %}
+</tbody>
+</table>
+<p class="helptext">
+These offerings have been excluded from the above because they are in the exclusion list of the <a href="{% url ta.views.edit_posting post_slug=posting.slug %}">original posting</a>: 
+{% for o in excluded %}{{ o.name }}{% if not forloop.last %}, {% endif %}{% endfor %}.
+</p>
+</div>
+
+{% endblock %}

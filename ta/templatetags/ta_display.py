@@ -1,7 +1,8 @@
 from django import template
 register = template.Library()
-import decimal
+import decimal, locale
 from django.utils.safestring import mark_safe
+locale.setlocale( locale.LC_ALL, '' )
 
 def _bu_display(offering, posting, count):
     default = posting.default_bu(offering, count=count)
@@ -47,3 +48,8 @@ def display_campus_preference(campus_preferences, index):
 @register.filter
 def display_course_rank(course_preferences, index):
     return course_preferences[index].rank
+
+@register.filter
+def display_total_pay(offering, posting):
+    amt = locale.currency(float(posting.total_pay(offering)))
+    return mark_safe('<strong>%s</strong>' % (amt)) 

@@ -496,24 +496,6 @@ def assign_bus(request, post_slug, course_slug):
     return render(request, 'ta/assign_bu.html', context) 
 
 @requires_role("TAAD")
-def update_course_bus(request, post_slug, course_slug):
-    offering = get_object_or_404(CourseOffering, slug=course_slug)
-        
-    if request.method == "POST":
-        extra_bu = decimal.Decimal(request.POST['extra_bu'])
-        offering.config['extra_bu'] = extra_bu
-        try:
-            labtas = request.POST['labtas']
-            if offering.labtas() != labtas:
-                offering.config['labtas'] = labtas
-        except KeyError:
-            if offering.labtas() == 'on':
-                offering.config['labtas'] = False
-        offering.save()
-    return HttpResponseRedirect(reverse(assign_bus, args=(post_slug,course_slug,)))
-
-
-@requires_role("TAAD")
 def all_contracts(request, post_slug):    
     #name, appointment category, rank, deadline, status. Total BU, Courses TA-ing , view/edit
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
@@ -1033,3 +1015,18 @@ def generate_csv(request, post_slug):
         csvWriter.writerow(row)
 
     return response
+
+@requires_role("TAAD")
+def view_financial(request, post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug)
+    if posting.unit not in request.units:
+        ForbiddenResponse(request, 'You cannot access this page')
+    
+    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit)
+    # ignore excluded courses
+    excl = set(posting.excluded())
+    offerings = [o for o in all_offerings if o.course_id not in excl]
+    excluded = [o for o in all_offerings if o.course_id in excl]
+    
+    context = {'posting': posting, 'offerings': offerings, 'excluded': excluded}
+    return render(request, 'ta/view_financial.html', context) 

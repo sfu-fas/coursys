@@ -265,7 +265,18 @@ class TAPosting(models.Model):
         """
         prefs = CoursePreference.objects.filter(app__posting__semester=self.semester,app__late=False, app__posting__unit=self.unit, course=offering.course)
         return prefs.count()
-
+    
+    def total_pay(self, offering):
+        """
+        Payments for all tacourses associated with this offering 
+        """
+        total = 0
+        tacourses = TACourse.objects.filter(course=offering, contract__posting=self)
+        for course in tacourses:
+            total += course.pay()
+        return total
+        
+        
 class Skill(models.Model):
     """
     Skills an applicant specifies in their application.  Skills are specific to a posting.
@@ -443,6 +454,11 @@ class TACourse(models.Model):
         """
         return self.description in LABTUT_DESC
     
+    def pay(self):
+        contract = self.contract
+        total = self.bu * (contract.pay_per_bu + contract.scholarship_per_bu)
+        return total
+        
 TAKEN_CHOICES = (
         ('YES', 'Yes: this course at SFU'),
         ('SIM', 'Yes: a similar course elsewhere'),
@@ -455,7 +471,6 @@ EXPER_CHOICES = (
         ('NOT', 'Not familiar with course material'),
         )
     
-
 class CoursePreference(models.Model):
     app = models.ForeignKey(TAApplication)
     course = models.ForeignKey(Course)
