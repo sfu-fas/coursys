@@ -232,8 +232,8 @@ def get_names(emplid):
             pref_first_name = first
 
     # ensure we have a pref_first_name of some kind
-    if not pref_first_name:
-        pref_first_name = first_name
+    #if not pref_first_name:
+    #    pref_first_name = first_name
     
     return last_name, first_name, middle_name, pref_first_name, title
 

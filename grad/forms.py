@@ -483,7 +483,7 @@ def process_pcs_export(csvdata):
     # find the columns by their heading, so we're tolerant of small changes to export format
     titles = data.next()
     column = {}
-    req_columns = set(['emplid'])
+    req_columns = set(['emplid', 'email', 'dob', 'citizen', 'program', 'lastup'])
     for i, header in enumerate(titles):
         if header == 'Application ID':
             column['emplid'] = i
@@ -506,7 +506,7 @@ def process_pcs_export(csvdata):
 
     missing = req_columns - set(column.keys())
     if missing:
-        raise forms.ValidationError(u"Missing columns in export: " + ', '.join(missing))
+        return  u"Missing columns in export: " + ', '.join(missing)
 
     # process data rows
     count = 0

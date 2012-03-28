@@ -47,8 +47,6 @@ Column logic:
 	oTable = $('#student_grades').dataTable({
                 "bPaginate": false,
 		"bJQueryUI": true,
-		"sPaginationType": "full_numbers",
-		"iDisplayLength" : 50,
 		"aaSorting": [[0, "asc"]],
 		"aoColumns": [
 		    null,
@@ -387,20 +385,6 @@ Column logic:
 	    </tr>
 	    {% endwith %}
 	    {% endwith %}
-	    {% empty %}
-	    <tr>
-		<td class="empty">No student</td>
-		<td></td>
-		<td></td>
-		<td></td>
-		<td></td>
-		{% if activity.group %}<td></td>{% endif %}
-		{% if not activity.is_numeric and activity.is_calculated %}<td></td>{% endif %}
-		<td></td>
-		{% if not activity.is_calculated and activity.is_numeric %}<td></td>{% endif %}
-		{% if not activity.is_calculated %}<td></td>{% endif %}
-		{% if activity.is_calculated and activity.is_numeric %}<td></td>{% endif %}
-	    </tr>
 	    {% endfor %}
         </tbody>
     </table>

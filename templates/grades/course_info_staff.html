@@ -16,9 +16,8 @@
         // activate dataTable ui
 	var oTable = $('#activities').dataTable({
 		"bJQueryUI": true,
-		"sPaginationType": "full_numbers",
-		"iDisplayLength" : 50,
-		"bSort": false
+		"bSort": false,
+		"bPaginate": false,
 	});
 	
 	// The following code deals with activity reordering
@@ -247,17 +246,7 @@
                 <td class="{{activity.due_class}}">{{ activity.due_date }}</td>
             </tr>
             {% endwith %}
-	    {% empty %}
-	    <tr>
-		<td class="empty">No activities defined</td>
-		<td></td>
-		<td></td>
-		<td></td>
-		<td></td>
-		<td></td>
-		<td></td>
-	    </tr>
-            {% endfor %}
+          {% endfor %}
         </tbody>
     </table>
 </div>
