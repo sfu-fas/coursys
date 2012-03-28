@@ -206,21 +206,6 @@ class LetterForm(ModelForm):
                    'content': forms.Textarea(attrs={'rows':'25', 'cols': '100'}),
                    }
 
-def choices_with_negate(choices):
-    return (list(choices) + [('NOT_' + k, 'Not ' + v) for k, v in choices])
-
-class NullBooleanSelect_Filter(NullBooleanSelect):
-    def __init__(self, attrs=None):
-        choices = ((u'', '---------'), (u'2', 'Yes'), (u'3', 'No'))
-        super(NullBooleanSelect, self).__init__(attrs, choices)
-
-    def render(self, name, value, attrs=None, choices=()):
-        try:
-            value = {True: u'2', False: u'3', u'2': u'2', u'3': u'3'}[value]
-        except KeyError:
-            value = u''
-        return super(NullBooleanSelect_Filter, self).render(name, value, attrs, choices)
-
 class new_promiseForm(ModelForm):
     class Meta:
         model = Promise
@@ -235,6 +220,63 @@ class new_scholarshipTypeForm(ModelForm):
     class Meta:
         model = ScholarshipType
 
+# creates an 'atom' to represent 'Unknown' (but it's not None) 
+Unknown = type('Unknown', (object,), {'__repr__':lambda self:'Unknown'})()
+
+class NullBooleanSearchSelect(forms.widgets.Select):
+    """
+    A Select Widget intended to be used with NullBooleanSearchField.
+    """
+    def __init__(self, attrs=None):
+        choices = ((u'', '---------'), (u'2', u'Yes'), (u'3', u'No'), (u'1', u'Unknown'))
+        super(NullBooleanSearchSelect, self).__init__(attrs, choices)
+
+    def render(self, name, value, attrs=None, choices=()):
+        try:
+            value = {Unknown: u'1', True: u'2', False: u'3', u'1':u'1', u'2': u'2', u'3': u'3'}[value]
+        except KeyError:
+            value = u''
+        return super(NullBooleanSearchSelect, self).render(name, value, attrs, choices)
+
+    def value_from_datadict(self, data, files, name):
+        value = data.get(name, None)
+        return {u'1': Unknown,
+                Unknown: Unknown,
+                'Unknown': Unknown,
+                u'2': True,
+                True: True,
+                'True': True,
+                u'3': False,
+                'False': False,
+                False: False}.get(value, None)
+
+    def _has_changed(self, initial, data):
+        # For a NullBooleanSearchSelect, None (empty), Unknown (unknown) 
+        # and False (No) are not the same
+        if initial is not None and initial is not Unknown:
+            initial = bool(initial)
+        if data is not None and data is not Unknown:
+            data = bool(data)
+        return initial != data
+
+class NullBooleanSearchField(forms.NullBooleanField):
+    """
+    A field whose valid values are Empty, None, True and False. Invalid values are
+    cleaned to Empty.
+    """
+    widget = NullBooleanSearchSelect
+
+    def to_python(self, value):
+        if value in (True, 'True', '1'):
+            return True
+        elif value in (False, 'False', '0'):
+            return False
+        elif value in (Unknown, 'Unknown', '-1'):
+            return Unknown
+        else:
+            return ''
+
+    validate = forms.BooleanField.validate
 
 # should be moved into whatever model this is stored in
 # This is also a guess at which statuses are mutually exclusive
@@ -298,10 +340,8 @@ class SearchForm(forms.Form):
             ('OR',mark_safe(u'Student must have completed <em>any</em> of these requirements'))),
             label='Requirements search type', required=False, 
             widget=forms.RadioSelect)
-    is_canadian = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
+    is_canadian = NullBooleanSearchField(required=False)
     
-#    has_financial_support = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter,
-#            help_text='Not Implemented')
     financial_support = forms.MultipleChoiceField((
             ('N','None'),
             ('S','Scholarship'),
@@ -314,12 +354,10 @@ class SearchForm(forms.Form):
     gpa_min = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False)
     gpa_max = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False,
             help_text='Not Implemented; needs more data in the database')
-    gender = forms.ChoiceField((('','---------'), ('M','Male'), ('F','Female'), ('U','unknown')),
+    gender = forms.ChoiceField((('','---------'), ('M','Male'), ('F','Female'), ('U','Unknown')),
             required=False)
-    visa_held = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter,
+    visa_held = NullBooleanSearchField(required=False, 
             help_text='Not Implemented, needs more data in the database')
-#    scholarship_from = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
-#    scholarship_to = forms.NullBooleanField(required=False, widget=NullBooleanSelect_Filter)
     scholarship_sem = forms.ModelMultipleChoiceField(Semester.objects.all(),
             label='Scholarship Semester Received',required=False)
 
@@ -348,10 +386,17 @@ class SearchForm(forms.Form):
         return value
     
     def _make_query(self, query_string, query_param=None):
-        if query_string in self.cleaned_data and self.cleaned_data[query_string]:
+        query_value = self.cleaned_data[query_string]
+        try:
+            query_val_len = len(query_value)
+        except TypeError:
+            query_val_len = 1
+        if query_string in self.cleaned_data and query_value is not None and query_val_len > 0:
             if query_param is None:
                 query_param = query_string
-            return Q(**{query_param:self.cleaned_data[query_string]})
+            if query_value is Unknown:
+                query_value = None
+            return Q(**{query_param:query_value})
         return None
     
     def get_query(self):
@@ -395,7 +440,7 @@ class SearchForm(forms.Form):
                         (self._make_query(*qargs) for qargs in auto_queries)),
                         manual_queries),
                     Q())
-        
+        print self.cleaned_data
         return query#, exclude_query
     def secondary_filter(self):
         financial_support_students = None
