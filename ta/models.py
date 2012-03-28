@@ -314,6 +314,7 @@ class TAApplication(models.Model):
     comments = models.TextField(verbose_name="Additional comments", blank=True, null=True)
     rank = models.IntegerField(blank=False, default=0) 
     late = models.BooleanField(blank=False, default=False)
+    admin_created = models.BooleanField(blank=False, default=False)
  
     class Meta:
         unique_together = (('person', 'posting'),)

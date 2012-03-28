@@ -151,7 +151,7 @@ class TUGForm(forms.ModelForm):
 class TAApplicationForm(forms.ModelForm):
     class Meta:
         model = TAApplication
-        exclude = ('posting','person','skills','campus_preferences','rank','late')
+        exclude = ('posting','person','skills','campus_preferences','rank','late','admin_created')
         widgets = {'base_units': forms.TextInput(attrs={'size': 5}),}
 
     def clean_sin(self):

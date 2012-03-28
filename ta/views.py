@@ -226,10 +226,8 @@ def _new_application(request, post_slug, manual=False):
             except ValueError:
                 search_form = StudentSearchForm(request.POST['search'])
                 messages.error(request, "Invalid id %s for person." % (request.POST['search']))
-                if manual:
-                    return HttpResponseRedirect(reverse('ta.views.new_application_manual', args=(post_slug,)))
-                else:
-                    return HttpResponseRedirect(reverse('ta.views.new_application', args=(post_slug,)))
+                return HttpResponseRedirect(reverse('ta.views.new_application_manual', args=(post_slug,)))
+        
         ta_form = TAApplicationForm(request.POST, prefix='ta')
         courses_formset = CoursesFormSet(request.POST)
         for f in courses_formset:
@@ -244,10 +242,12 @@ def _new_application(request, post_slug, manual=False):
                 app.late = False
             app.posting = posting
             app.person = person
+            if manual:
+                app.admin_create = True
             
             grad = GradStudent.objects.filter(person=person)           
             if grad.count()>0:
-                grad[0].config['sin'] = request.POST['sin']
+                grad[0].config['sin'] = request.POST['ta-sin']
                 
             app.save()
             ta_form.save_m2m()
