@@ -5,7 +5,6 @@ from south.v2 import SchemaMigration
 from django.db import models
 
 class Migration(SchemaMigration):
-    no_dry_run = True
     def forwards(self, orm):
         
         # Adding model 'Course'
@@ -25,10 +24,11 @@ class Migration(SchemaMigration):
         db.add_column('coredata_courseoffering', 'course', self.gf('django.db.models.fields.related.ForeignKey')(default=0, to=orm['coredata.Course']), keep_default=False)
 
         # fill in .course fields
-        from coredata.models import CourseOffering
-        for o in orm.CourseOffering.objects.all():
-            o = CourseOffering.objects.get(id=o.id)
-            o.set_course()
+        if not db.dry_run:
+            from coredata.models import CourseOffering
+            for o in orm.CourseOffering.objects.all():
+                o = CourseOffering.objects.get(id=o.id)
+                o.set_course()
 
 
     def backwards(self, orm):
