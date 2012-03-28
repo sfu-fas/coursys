@@ -350,32 +350,24 @@ def more_personal_info(emplid, programs=False):
     return data
 
 
-'''
 @cache_by_args
 @SIMS_problem_handler
-def acad_plan_count(acad_plan):
+def acad_plan_count(acad_plan, strm):
     """
-    Return number of majors in academic plan (e.g. 'CMPTMAJ') or a SIMSProblem instance (error message).
-    
-    Returns the same dictionary format as Person.config (for the fields it finds).
+    Return number of majors in academic plan (e.g. 'CMPTMAJ') in the semester or a SIMSProblem instance (error message).
     """
     db = SIMSConn()
-    data = {}
-    
-    db.execute("SELECT max(effdt) as effdt from " + db.table_prefix + "ps_acad_plan_tbl WHERE acad_plan=%s", (acad_plan,))
-    lastdt = db.fetchone()[0]
-    
-    # emplids who have ever been in acad_plan
-    emplid_in = "(select emplid from  dbsastg.ps_acad_plan where acad_plan=%s group by emplid)"
-    # last effdt for all students we might care about
-    last_effdt = "(select emplid, max(effdt) as effdt from dbsastg.ps_acad_plan where emplid in "+emplid_in+" group by emplid)"
-    
-    db.execute("SELECT * FROM "
-               + last_effdt + " as last, "
-               + db.table_prefix + "ps_acad_plan as ap "
-               "WHERE ap.emplid=last.emplid AND ap.effdt=last.effdt AND ap.acad_plan=%s"
-               , (acad_plan, acad_plan))
-    for row in db:
-        print row
 
-'''
+    # most recent acad_plan, most recent acad_plan *in this program* for each student active this semester
+    last_prog_plan = "(SELECT ap.emplid, max(ap.effdt) as effdtprog, max(ap2.effdt) as effdt " \
+                     "FROM " + db.table_prefix + "ps_acad_plan ap, " + db.table_prefix + "ps_acad_plan ap2, " + db.table_prefix + "ps_stdnt_car_term ct "\
+                     "WHERE ap.emplid=ct.emplid and ap.emplid=ap2.emplid and ct.strm=%s and ap.acad_plan=%s " \
+                     "and ct.stdnt_car_nbr=ap.stdnt_car_nbr GROUP BY ap.emplid)"
+
+    # select those whose most recent program is in this acad_plan
+    db.execute("SELECT count(*) FROM " + last_prog_plan + " WHERE effdtprog=effdt", (strm, acad_plan))
+    return db.fetchone()[0]
+    #for row in db:
+    #    print row
+
+
