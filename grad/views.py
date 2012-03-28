@@ -1,6 +1,7 @@
 from django.core.urlresolvers import reverse
 from django.shortcuts import get_object_or_404, get_list_or_404, render
 from django.http import HttpResponseRedirect, HttpResponse
+from django.conf import settings
 from grad.models import GradStudent, GradProgram, Supervisor, GradRequirement, CompletedRequirement, GradStatus, \
         ScholarshipType, Scholarship, Promise, OtherFunding, LetterTemplate, \
     Letter
@@ -484,14 +485,22 @@ def import_applic(request):
     if request.method == 'POST':
         form = UploadApplicantsForm(data=request.POST, files=request.FILES)
         if form.is_valid():
-            pass
-            #form.save()
-            #messages.success(request, "Created new grad requirement %s in %s." % (form.instance.description, form.instance.program))
-            #l = LogEntry(userid=request.user.username,
-            #      description="Created new grad requirement %s in %s." % (form.instance.description, form.instance.program),
-            #      related_object=form.instance)
-            #l.save()            
-            #return HttpResponseRedirect(reverse(requirements))
+            data = form.cleaned_data['csvfile'].read()
+            if settings.USE_CELERY:
+                from grad.tasks import process_pcs_task
+                user = Person.objects.get(userid=request.user.username)
+                process_pcs_task.delay(data, user.email())
+                messages.success(request, "Importing applicant data. You will receive an email with the results in a few minutes.")
+            else:
+                from grad.forms import process_pcs_export
+                process_pcs_export(data)
+                messages.success(request, "Imported applicant data.")
+
+            l = LogEntry(userid=request.user.username,
+                  description="Imported grad applicants")
+            l.save()            
+
+            return HttpResponseRedirect(reverse(index))
     else:
         form = UploadApplicantsForm()
 
@@ -729,11 +738,11 @@ def get_addresses(request):
     grad = get_object_or_404(GradStudent, id=sid, program__unit__in=request.units)
     emplid = grad.person.emplid
     
-    data = more_personal_info(emplid)
-    if isinstance(data, SIMSProblem):
-        data = {'error': unicode(data)}
-    else:
-        data = {'addresses': data['addresses']}
+    try:
+        data = more_personal_info(emplid, needed=['addresses'])
+    except SIMSProblem as e:
+        data = {'error': e.message}
+        
     resp = HttpResponse(mimetype="application/json")
     json.dump(data, resp, indent=1)
     return resp

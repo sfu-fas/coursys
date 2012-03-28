@@ -57,9 +57,10 @@ def sims_search(request):
     if emplid:
         try:
             emplid = int(emplid.strip())
-            data = find_person(emplid)
-            if isinstance(data, SIMSProblem):
-                data = {'error': data}
+            try:
+                data = find_person(emplid)
+            except SIMSProblem as e:
+                data = {'error': e.message}
         except ValueError:
             # not an integer, so not an emplid to search for
             data = None
@@ -76,7 +77,11 @@ def sims_add_person(request):
     if request.method == 'POST':
         emplid = request.POST.get('emplid', None)
         if emplid:
-            p = add_person(emplid.strip())
+            try:
+                p = add_person(emplid.strip())
+            except SIMSProblem:
+                p = None
+
             if isinstance(p, Person):
                 #LOG EVENT#
                 l = LogEntry(userid=request.user.username,
@@ -157,13 +162,10 @@ def student_more_info(request, userid):
     AJAX request for contact info, etc. (queries SIMS directly)
     """
     student = get_object_or_404(Person, _find_userid_or_emplid(userid))
-    data = more_personal_info(student.emplid, programs=True)
-    #print data
-    
-    if isinstance(data, SIMSProblem):
-        data = {'error': data}
-    #elif data is None:
-    #    data = {'error': 'Student not found in SIMS.'}
+    try:
+        data = more_personal_info(student.emplid)
+    except SIMSProblem as e:
+        data = {'error': e.message}
     
     response = HttpResponse(mimetype='application/json')
     json.dump(data, response, indent=1)

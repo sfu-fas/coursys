@@ -2,6 +2,7 @@ from django import forms
 from coredata.models import Role, Person, Member, CourseOffering
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
+from django.contrib.localflavor.ca.forms import CAPhoneNumberField
 
 class OfferingSelect(forms.Select):
     input_type = 'text'
@@ -148,7 +149,6 @@ class TAForm(forms.Form):
 
         return userid
 
-from django.contrib.localflavor.ca.forms import CAPhoneNumberField
 class UnitAddressForm(forms.Form):
     informal_name = forms.CharField(required=True, label="Informal Name", max_length=25,
                             help_text='Informal (letterhead) name for the unit (e.g. name without "School of" or "Department").',

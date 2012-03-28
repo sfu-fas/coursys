@@ -96,7 +96,7 @@ class SIMSConn(object):
         return tuple((self.prep_value(v) for v in row))
 
 
-class SIMSProblem(unicode):
+class SIMSProblem(Exception):
     """
     Class used to pass back problems with the SIMS connection.
     """
@@ -105,7 +105,7 @@ class SIMSProblem(unicode):
 def SIMS_problem_handler(func):
     """
     Decorator to deal somewhat gracefully with any SIMS database problems.
-    Any decorated function may return a SIMSProblem instance to indicate a
+    Any decorated function may raise a SIMSProblem instance to indicate a
     problem with the database connection.
     
     Should be applied to any functions that use a SIMSConn object.
@@ -115,9 +115,9 @@ def SIMS_problem_handler(func):
         try:
             return func(*args, **kwargs)
         except SIMSConn.DatabaseError:
-            return SIMSProblem("could not connect to reporting database")
+            raise SIMSProblem, "could not connect to reporting database"
         except ImportError:
-            return SIMSProblem("could not import DB2 module")
+            raise SIMSProblem, "could not import DB2 module"
 
     wrapped.__name__ = func.__name__
     return wrapped
@@ -144,11 +144,8 @@ def cache_by_args(func, seconds=38800): # 8 hours by default
         
         # not in cache: calculate
         res = func(*args, **kwargs)
-        if isinstance(res, SIMSProblem):
-            # problem: don't cache
-            return res
-        
-        # real result: cache it
+
+        # got a result (with no exception thrown): cache it
         cache.set(key, res, seconds)
         return res
     
@@ -172,7 +169,7 @@ def userid_from_sims(emplid):
 @SIMS_problem_handler
 def find_person(emplid):
     """
-    Find the person in SIMS: return data or None (not found) or a SIMSProblem instance (error message).
+    Find the person in SIMS: return data or None (not found) or may raise a SIMSProblem.
     """
     db = SIMSConn()
     db.execute("SELECT emplid, last_name, first_name, middle_name FROM " + db.table_prefix + "ps_personal_data WHERE emplid=%s",
@@ -191,8 +188,6 @@ def add_person(emplid):
     data = find_person(emplid)
     if not data:
         return
-    elif isinstance(data, SIMSProblem):
-        return data
 
     with transaction.commit_on_success():
         ps = Person.objects.filter(emplid=data['emplid'])
@@ -243,72 +238,79 @@ def get_names(emplid):
     return last_name, first_name, middle_name, pref_first_name, title
 
 
+ALLFIELDS = 'alldata'
 @cache_by_args
 @SIMS_problem_handler
-def more_personal_info(emplid, programs=False):
+def more_personal_info(emplid, needed=ALLFIELDS):
     """
     Get contact info for student: return data or None (not found) or a SIMSProblem instance (error message).
     
     Returns the same dictionary format as Person.config (for the fields it finds).
+    
+    needed is a list containing the values needed in the result (if available), or ALLFIELDS
     """
     # TODO: importer_rodb should use this.
     db = SIMSConn()
     data = {}
     
     # get phone numbers
-    db.execute('SELECT phone_type, country_code, phone, extension, pref_phone_flag FROM ' + db.table_prefix + 'ps_personal_phone WHERE emplid=%s', (str(emplid),))
-    phones = {}
-    data['phones'] = phones
-    for phone_type, country_code, phone, extension, pref_phone in db:
-        full_number = phone.replace('/', '-')
-        if country_code:
-            full_number = country_code + '-' + full_number
-        if extension:
-            full_number = full_number + " ext " + extension
-        
-        if pref_phone == 'Y':
-            phones['pref'] = full_number
-        if phone_type == 'HOME':
-            phones['home'] = full_number
-        elif phone_type == 'CELL':
-            phones['cell'] = full_number
-        elif phone_type == 'MAIN':
-            phones['main'] = full_number
-    
+    if needed == ALLFIELDS or 'phones' in needed:
+        db.execute('SELECT phone_type, country_code, phone, extension, pref_phone_flag FROM ' + db.table_prefix + 'ps_personal_phone WHERE emplid=%s', (str(emplid),))
+        phones = {}
+        data['phones'] = phones
+        for phone_type, country_code, phone, extension, pref_phone in db:
+            full_number = phone.replace('/', '-')
+            if country_code:
+                full_number = country_code + '-' + full_number
+            if extension:
+                full_number = full_number + " ext " + extension
+            
+            if pref_phone == 'Y':
+                phones['pref'] = full_number
+            if phone_type == 'HOME':
+                phones['home'] = full_number
+            elif phone_type == 'CELL':
+                phones['cell'] = full_number
+            elif phone_type == 'MAIN':
+                phones['main'] = full_number
+
     # get addresses
-    # sorting by effdt to get the latest in the dictionary
-    db.execute("SELECT address_type, effdt, eff_status, c.descrshort, address1, address2, address3, address4, city, state, postal FROM " + db.table_prefix + "ps_addresses a, " + db.table_prefix + "ps_country_tbl c WHERE emplid=%s AND eff_status='A' AND a.country=c.country ORDER BY effdt ASC", (str(emplid),))
-    addresses = {}
-    data['addresses'] = addresses
-    for address_type, _, _, country, address1, address2, address3, address4, city, state, postal in db:
-        cityline = city
-        if state:
-            cityline += ', ' + state
-        if country != 'Canada':
-            cityline += ', ' + country
-        full_address = '\n'.join((address1, address2, address3, address4, cityline, postal))
-        full_address = multiple_breaks.sub('\n', full_address)
-        
-        if address_type == 'HOME':
-            addresses['home'] = full_address
-        elif address_type == 'MAIL':
-            addresses['mail'] = full_address
+    if needed == ALLFIELDS or 'addresses' in needed:
+        # sorting by effdt to get the latest in the dictionary
+        db.execute("SELECT address_type, effdt, eff_status, c.descrshort, address1, address2, address3, address4, city, state, postal FROM " + db.table_prefix + "ps_addresses a, " + db.table_prefix + "ps_country_tbl c WHERE emplid=%s AND eff_status='A' AND a.country=c.country ORDER BY effdt ASC", (str(emplid),))
+        addresses = {}
+        data['addresses'] = addresses
+        for address_type, _, _, country, address1, address2, address3, address4, city, state, postal in db:
+            cityline = city
+            if state:
+                cityline += ', ' + state
+            if country != 'Canada':
+                cityline += ', ' + country
+            full_address = '\n'.join((address1, address2, address3, address4, cityline, postal))
+            full_address = multiple_breaks.sub('\n', full_address)
+            
+            if address_type == 'HOME':
+                addresses['home'] = full_address
+            elif address_type == 'MAIL':
+                addresses['mail'] = full_address
 
 
     # get citizenzhip
-    db.execute("SELECT c.descrshort FROM " + db.table_prefix + "ps_citizenship cit, dbsastg.ps_country_tbl c WHERE emplid=%s AND cit.country=c.country", (str(emplid),))
-    #if 'citizen' in p.config:
-    #    del p.config['citizen']
-    for country, in db:
-        data['citizen'] = country
+    if needed == ALLFIELDS or 'citizen' in needed:
+        db.execute("SELECT c.descrshort FROM " + db.table_prefix + "ps_citizenship cit, dbsastg.ps_country_tbl c WHERE emplid=%s AND cit.country=c.country", (str(emplid),))
+        #if 'citizen' in p.config:
+        #    del p.config['citizen']
+        for country, in db:
+            data['citizen'] = country
 
     # get Canadian visa status
-    # sorting by effdt to get the latest in the dictionary
-    db.execute("SELECT t.descrshort FROM dbsastg.ps_visa_pmt_data v, " + db.table_prefix + "ps_visa_permit_tbl t WHERE emplid=%s AND v.visa_permit_type=t.visa_permit_type AND v.country=t.country AND v.country='CAN' AND v.visa_wrkpmt_status='A' AND t.eff_status='A' ORDER BY v.effdt ASC", (str(emplid),))
-    #if 'visa' in p.config:
-    #    del p.config['visa']
-    for desc, in db:
-        data['visa'] = desc
+    if needed == ALLFIELDS or 'visa' in needed:
+        # sorting by effdt to get the latest in the dictionary
+        db.execute("SELECT t.descrshort FROM dbsastg.ps_visa_pmt_data v, " + db.table_prefix + "ps_visa_permit_tbl t WHERE emplid=%s AND v.visa_permit_type=t.visa_permit_type AND v.country=t.country AND v.country='CAN' AND v.visa_wrkpmt_status='A' AND t.eff_status='A' ORDER BY v.effdt ASC", (str(emplid),))
+        #if 'visa' in p.config:
+        #    del p.config['visa']
+        for desc, in db:
+            data['visa'] = desc
 
     # emails
     #execute_query(db, "SELECT e_addr_type, email_addr, pref_email_flag FROM " + db.table_prefix + "ps_email_addresses c WHERE emplid=%s", (str(emplid),))
@@ -316,15 +318,16 @@ def more_personal_info(emplid, programs=False):
     #    print (e_addr_type, email_addr, pref_email_flag)
     
     # other stuff from ps_personal_data
-    db.execute('SELECT sex FROM ' + db.table_prefix + 'ps_personal_data WHERE emplid=%s', (str(emplid),))
-    #if 'gender' in p.config:
-    #    del p.config['gender']
-    for sex, in db:
-        if sex:
-            data['gender'] = sex # 'M', 'F', 'U'    
+    if needed == ALLFIELDS or 'gender' in needed:
+        db.execute('SELECT sex FROM ' + db.table_prefix + 'ps_personal_data WHERE emplid=%s', (str(emplid),))
+        #if 'gender' in p.config:
+        #    del p.config['gender']
+        for sex, in db:
+            if sex:
+                data['gender'] = sex # 'M', 'F', 'U'    
     
     # academic programs
-    if programs:
+    if needed == ALLFIELDS or 'programs' in needed:
         programs = []
         data['programs'] = programs
         db.execute("SELECT apt.acad_plan, apt.descr, apt.trnscr_descr from "
@@ -342,10 +345,11 @@ def more_personal_info(emplid, programs=False):
             programs.append(prog)
     
     # GPA and credit count
-    db.execute('SELECT cum_gpa, tot_cumulative FROM ' + db.table_prefix + 'ps_stdnt_car_term WHERE emplid=%s ORDER BY strm DESC FETCH FIRST 1 ROWS ONLY', (str(emplid),))
-    for gpa, cred in db:
-        data['gpa'] = gpa
-        data['ccredits'] = cred
+    if needed == ALLFIELDS or 'gpa' in needed or 'ccredits' in needed:
+        db.execute('SELECT cum_gpa, tot_cumulative FROM ' + db.table_prefix + 'ps_stdnt_car_term WHERE emplid=%s ORDER BY strm DESC FETCH FIRST 1 ROWS ONLY', (str(emplid),))
+        for gpa, cred in db:
+            data['gpa'] = gpa
+            data['ccredits'] = cred
     
     return data
 

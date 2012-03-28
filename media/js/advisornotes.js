@@ -40,6 +40,7 @@ function get_more_info(url) {
             $('table.info tr.dynamic').remove();
             if (data['error']) {
                 alert('Error: ' + data['error']);
+                $('#fetchwait').hide();
                 return;
             }
 

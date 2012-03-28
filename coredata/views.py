@@ -377,7 +377,7 @@ def offering_by_id(request):
 
 from coredata.queries import find_person
 @login_required
-def sims_person_search(request):
+def XXX_sims_person_search(request):
     # check permissions
     roles = Role.all_roles(request.user.username)
     allowed = set(['ADVS', 'ADMN', 'GRAD', 'FUND'])

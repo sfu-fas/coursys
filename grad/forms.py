@@ -463,8 +463,6 @@ class SearchForm(forms.Form):
             return gender and no_financial_support
         return actual_filter
 
-from coredata.queries import add_person, SIMSProblem
-import datetime
 class UploadApplicantsForm(forms.Form):
     csvfile = forms.FileField(required=True, label="PCS data export")
     
@@ -474,78 +472,88 @@ class UploadApplicantsForm(forms.Form):
            (not csvfile.name.endswith('.CSV')):
             raise forms.ValidationError(u"Only .csv files are permitted")
         
-        return self._process_pcs_export(csvfile)
+        return csvfile
 
-    def _process_pcs_export(self, csvfile):
-        data = csv.reader(csvfile)
-        warnings = []
+from coredata.queries import add_person, SIMSProblem
+import datetime, StringIO
+def process_pcs_export(csvdata):
+    data = csv.reader(StringIO.StringIO(csvdata))
+    warnings = []
 
-        # find the columsn by their heading, so we're tolerant of small changes to export format
-        titles = data.next()
-        column = {}
-        req_columns = set(['emplid'])
-        for i, header in enumerate(titles):
-            if header == 'Application ID':
-                column['emplid'] = i
-            elif header == 'Contact Email':
-                column['email'] = i
-            #elif header.startswith('Application ('):
-            #    column['name'] = i
-            elif header == 'Date of Birth':
-                column['dob'] = i
-            #elif header == 'Gender':
-            #    column['gender'] = i
-            elif header == 'Citizenship':
-                column['citizen'] = i
-            #elif header == 'First Language':
-            #    column['firstlang'] = i
-            elif header == 'Program of Study':
-                column['program'] = i
-            elif header == 'Last Update':
-                column['lastup'] = i
+    # find the columns by their heading, so we're tolerant of small changes to export format
+    titles = data.next()
+    column = {}
+    req_columns = set(['emplid'])
+    for i, header in enumerate(titles):
+        if header == 'Application ID':
+            column['emplid'] = i
+        elif header == 'Contact Email':
+            column['email'] = i
+        #elif header.startswith('Application ('):
+        #    column['name'] = i
+        elif header == 'Date of Birth':
+            column['dob'] = i
+        #elif header == 'Gender':
+        #    column['gender'] = i
+        elif header == 'Citizenship':
+            column['citizen'] = i
+        #elif header == 'First Language':
+        #    column['firstlang'] = i
+        elif header == 'Program of Study':
+            column['program'] = i
+        elif header == 'Last Update':
+            column['lastup'] = i
 
-        missing = req_columns - set(column.keys())
-        if missing:
-            raise forms.ValidationError(u"Missing columns in export: " + ', '.join(missing))
+    missing = req_columns - set(column.keys())
+    if missing:
+        raise forms.ValidationError(u"Missing columns in export: " + ', '.join(missing))
 
-        # process data rows
-        for i, row in enumerate(data):
-            if len(row) == 0:
-                continue
-            i += 2
+    # process data rows
+    count = 0
+    for i, row in enumerate(data):
+        if len(row) == 0:
+            continue
+        i += 2
 
-            emplid = row[column['emplid']]
-            email = row[column['email']]
-            #name = row[column['name']]
-            dob = row[column['dob']]
-            #gender = row[column['gender']]
-            citizen = row[column['citizen']]
-            #firstlang = row[column['firstlang']]
-            #program = row[column['program']]
-            #lastup = row[column['lastup']]
+        emplid = row[column['emplid']]
+        email = row[column['email']]
+        #name = row[column['name']]
+        dob = row[column['dob']]
+        #gender = row[column['gender']]
+        citizen = row[column['citizen']]
+        #firstlang = row[column['firstlang']]
+        #program = row[column['program']]
+        #lastup = row[column['lastup']]
 
-            # get Person, from SIMS if necessary
+        # get Person, from SIMS if necessary
+        try:
+            p = Person.objects.get(emplid=emplid)
+        except Person.DoesNotExist:
             try:
-                p = Person.objects.get(emplid=emplid)
-            except Person.DoesNotExist:
                 p = add_person(emplid)
-            
-            if isinstance(p, SIMSProblem):
-                raise forms.ValidationError(u"Problem with reporting database: " + unicode(p))
+            except SIMSProblem as e:
+                return e.message
 
-            print p
+        #print p
 
-            if email: p.config['applic_email'] = email
-            if citizen: p.config['citizen'] = citizen
+        if email: p.config['applic_email'] = email
+        if citizen: p.config['citizen'] = citizen
 
-            if dob:
-                try:
-                    dt = datetime.datetime.strptime(dob, "%Y-%m-%d")
-                    p.config['birthdate'] = dt.date().isoformat()
-                except ValueError:
-                    warnings.append("Bad birthdate in row %i." % (i))
-            
-            p.save()
+        if dob:
+            try:
+                dt = datetime.datetime.strptime(dob, "%Y-%m-%d")
+                p.config['birthdate'] = dt.date().isoformat()
+            except ValueError:
+                warnings.append("Bad birthdate in row %i." % (i))
         
-        print warnings
+        p.save()
+        count += 1
+    
+    message = 'Imported information on %i students.\n' % (count)
+    if warnings:
+        message += '\nWarnings:\n'
+        for w in warnings:
+            message += '  ' + w + '\n'
+
+    return message
         
