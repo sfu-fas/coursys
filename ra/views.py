@@ -152,9 +152,13 @@ def letter(request, ra_slug):
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename=%s-letter.pdf' % (appointment.slug)
     letter = OfficialLetter(response, unit=appointment.unit)
-    contents = LetterContents(to_addr_lines=[], from_name_lines=[appointment.hiring_faculty.first_name + " " + appointment.hiring_faculty.last_name, appointment.unit.name], salutation="Dear " + appointment.person.first_name, closing="Yours Truly,", signer=appointment.hiring_faculty)
-    
-    #TODO: figure out what to do with position name, how to specify which type of payment will be used, check grammar issues.
+    contents = LetterContents(
+        to_addr_lines=[], 
+        from_name_lines=[appointment.hiring_faculty.first_name + " " + appointment.hiring_faculty.last_name,        appointment.unit.name], 
+        salutation="Dear " + appointment.person.first_name, 
+        closing="Yours Truly", 
+        signer=appointment.hiring_faculty,
+        cosigner_lines=['I agree to the conditions of employment', appointment.person.first_name + " " + appointment.person.last_name])
     paragraphs = [
         """This is to confirm remuneration of work performed as a Research Assistant from """ + appointment.start_date.strftime("%B %d, %y") +  """ to """  + appointment.end_date.strftime("%B %d, %y") + """, will be a Lump Sum payment of $""" + str(appointment.lump_sum_pay) + """.""",
         """Termination of this appointment may be initiated by either party giving one (1) week notice, except in the case of termination for cause.""",
