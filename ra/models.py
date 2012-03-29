@@ -63,6 +63,7 @@ class RAAppointment(models.Model):
     account = models.ForeignKey(Account, null=False, blank=False)
     start_date = models.DateField(auto_now=False, auto_now_add=False)
     end_date = models.DateField(auto_now=False, auto_now_add=False)
+    pay_frequency = models.CharField(max_length=60, choices=PAY_TYPE_CHOICES, default ='L')
     lump_sum_pay = models.DecimalField(max_digits=6, decimal_places=2)
     biweekly_pay = models.DecimalField(max_digits=6, decimal_places=2)
     pay_periods = models.DecimalField(max_digits=6, decimal_places=3)

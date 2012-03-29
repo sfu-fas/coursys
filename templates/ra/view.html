@@ -72,6 +72,10 @@
   <h2>Salary Details</h2>
   <table class="info">
     <tr>
+      <th>Pay Frequency</th>
+      <td>{{ appointment.get_pay_frequency_display }}</td>
+    </tr>
+    <tr>
       <th>Total Pay Amount:</th> 
       <td>${{ appointment.lump_sum_pay }}</td>
     </tr>
