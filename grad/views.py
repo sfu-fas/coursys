@@ -875,11 +875,12 @@ def financials(request, grad_slug):
     curr_user = request.user
     grad = get_object_or_404(GradStudent, slug=grad_slug)
     is_supervisor = False
+    is_student = curr_user.username == grad.person.userid
     for supervisor in Supervisor.objects.filter(student=grad):
         if supervisor.supervisor.id == curr_user.username:
             is_supervisor = True
     
-    if curr_user.username == grad.person.userid or is_supervisor or has_role("GRAD",request):
+    if is_student or is_supervisor or has_role("GRAD",request):
         
         current_status = GradStatus.objects.get(student=grad, hidden=False, end=None)
         grad_status_qs = GradStatus.objects.filter(student=grad, status="ACTI")
@@ -1009,6 +1010,12 @@ def financials(request, grad_slug):
         # set frontend defaults
         page_title = "%s's Financial Summary" % (grad.person.first_name)
         crumb = "%s, %s" % (grad.person.last_name, grad.person.first_name)
+
+        units = []
+        try:
+            units=request.units
+        except:
+            units = []
     
         context = {
                    'semesters': semesters,
@@ -1017,6 +1024,7 @@ def financials(request, grad_slug):
                    'crumb':crumb,
                    'grad':grad,
                    'status': current_status,
+                   'unit': units,
                    }
         return render(request, 'grad/view_financials.html', context)
     else:

@@ -19712,7 +19712,7 @@
  {
   "fields": {
    "comments": "",
-   "eligible": true,
+   "eligible": false,
    "name": "NSERC CGS D2 ",
    "unit": 2
   },
