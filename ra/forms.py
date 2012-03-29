@@ -5,7 +5,7 @@ from coredata.models import Person, Role
 #from django.core.exceptions import ObjectDoesNotExist
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
-from grad.models import Scholarship
+from grad.models import Scholarship, GradStudent
 
 class RAForm(forms.ModelForm):
     person = forms.CharField(label='Hire')
@@ -14,6 +14,15 @@ class RAForm(forms.ModelForm):
 
     def clean_person(self):
         return Person.objects.get(emplid=self.cleaned_data['person'])
+
+    def clean_sin(self):
+        sin = self.cleaned_data['sin']
+        person_object = Person.objects.get(emplid=self['person'].value())
+        gradstudent = GradStudent.objects.get(person=person_object)
+        print "setting " + person_object.first_name + " sin to " + str(sin)
+        gradstudent.config['sin'] = sin
+        gradstudent.save()
+        return sin
 
     def clean_hours(self):
         data = self.cleaned_data['hours']
