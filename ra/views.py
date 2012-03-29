@@ -73,6 +73,20 @@ def new(request):
         raform.fields['account'].choices = [(a.id, u'%s (%s)' % (a.account_number, a.title)) for a in Account.objects.filter(unit__in=request.units)]
     return render(request, 'ra/new.html', { 'raform': raform })
 
+#New RA Appointment with student pre-filled.
+@requires_role("FUND")
+def new_student(request, userid):
+    semester = Semester.first_relevant() 
+    periods = str(pay_periods(semester.start, semester.end))
+    raform = RAForm(initial={'person': userid, 'start_date': semester.start, 'end_date': semester.end, 'pay_periods': periods, 'hours': 70 })
+    raform.fields['scholarship'].choices=[("", "---------")]
+    raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
+    raform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
+    raform.fields['project'].choices = [(p.id, unicode(p.project_number)) for p in Project.objects.filter(unit__in=request.units)]
+    raform.fields['account'].choices = [(a.id, u'%s (%s)' % (a.account_number, a.title)) for a in Account.objects.filter(unit__in=request.units)]
+    person = Person.objects.get(emplid=userid)
+    return render(request, 'ra/new.html', { 'raform': raform, 'person': person })
+
 #Edit RA Appointment
 @requires_role("FUND")
 def edit(request, ra_slug):
