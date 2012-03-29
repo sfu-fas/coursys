@@ -81,6 +81,15 @@ div#messages li {
   margin: 0;
   padding: 0 0 0 20px;
 }
+fieldset div#messages{
+  margin-left: 1em;
+}
+fieldset div#messages ul {
+  margin: 0 0.5em 0 0;
+}
+fieldset div#messages li{
+  float: none;
+}
 div#messages .success {
     color: #92be2c;
     background-image: url('../icons/action_check.png');

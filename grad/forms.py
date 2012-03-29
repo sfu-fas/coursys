@@ -282,8 +282,7 @@ class NullBooleanSearchField(forms.NullBooleanField):
 class SearchForm(forms.Form):
     #TODO: finish
     
-    start_semester_start = forms.ModelChoiceField(Semester.objects.all(), required=False,
-            help_text='Semester in which the Grad student has applied to start')
+    start_semester_start = forms.ModelChoiceField(Semester.objects.all(), required=False)
     start_semester_end = forms.ModelChoiceField(Semester.objects.all(), required=False,
             help_text='Semester in which the Grad student has applied to start')
     end_semester_start = forms.ModelChoiceField(Semester.objects.all(), required=False)
@@ -293,11 +292,9 @@ class SearchForm(forms.Form):
     student_status = forms.MultipleChoiceField(gradmodels.STATUS_CHOICES,
 #            widget=forms.CheckboxSelectMultiple,
             required=False,
-            help_text='Uses "or", selecting nothing means any'
             )
     application_status = forms.MultipleChoiceField(gradmodels.APPLICATION_STATUS_CHOICES, 
             required=False,
-            help_text='Uses "or", selecting nothing means any'
             )
     
     #program = forms.CharField(required=False)
@@ -345,7 +342,41 @@ class SearchForm(forms.Form):
     
     col_status = forms.BooleanField(label="Current Status", initial=True,required=False)
     col_start_semester = forms.BooleanField(label="Start Semester", initial=True,required=False)
-   
+    
+    semester_range_fields = [
+            'start_semester_start',
+            'start_semester_end',
+            'end_semester_start',
+            'end_semester_end',]
+    
+    regular_fields = [
+            'student_status',
+            'application_status',
+            'program',
+            'requirements',
+            'requirements_st',
+            'is_canadian',
+            'financial_support',
+            'campus',
+            'gender',
+            'visa_held',
+            'scholarship_sem',]
+#    regular_fields = ','.join(regular_fields)
+    number_range_fields = [
+            'gpa_min',
+            'gpa_max']
+
+    col_fields = [
+            'col_program',
+            'col_research_area',
+            'col_campus',
+            'col_english_fluency',
+            'col_mother_tongue',
+            'col_canadian',
+            'col_passport_from',
+            'col_status',
+            'col_start_semester']
+    
     def clean_requirements_st(self):
         value = self.cleaned_data['requirements_st']
         if not value and len(self.cleaned_data['requirements']) > 1:

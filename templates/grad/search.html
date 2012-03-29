@@ -8,15 +8,28 @@
 <script type="text/javascript" src="{{MEDIA_URL}}multiselect/js/ui.multiselect.js"></script>
 <script type="text/javascript">
   $(function() {
-    df = {'dateFormat': 'yy-mm-dd'};
-    $("#id_date_from").datepicker(df);
-    $("#id_date_to").datepicker(df);
     $("#id_student_status").css("min-height", "180px").multiselect();
-    $("#id_accepted_status").css("min-height", "160px").multiselect();
-    $("#id_has_comments").css("min-height", "100px").multiselect();
+    $("#id_application_status").css("min-height", "160px").multiselect();
+    $("#id_program").css("min-height", "160px").multiselect();
+    $("#id_requirements").css("min-height", "160px").multiselect();
+    $("#id_financial_support").css("min-height", "120px").multiselect();
+    $("#id_scholarship_sem").css("min-height", "160px").multiselect();
     $("#id_campus").css("min-height", "160px").multiselect();
   });
 </script>
+{% comment %}<style type="text/css">
+<!--
+.ui-multiselect { min-width: 421px; max-width: 421px;}
+
+.ui-multiselect div.selected { max-width:210px; min-width:210px;}
+
+.ui-multiselect div.available { max-width:210px; min-width:210px;}
+
+.ui-multiselect .ui-state-default { max-width:210px;}
+.ui-multiselect .ui-widget-header { max-width:210px;}
+ 
+-->
+</style>{% endcomment %}
 {% endblock %}
 
 {% block title %}{{page_title}}{% endblock %}
@@ -35,11 +48,24 @@
     <form id="searchform" action="{% url grad.views.search %}" method="GET">
         <fieldset>
             {#<legend>Advanced Search</legend>#}
-            {{ form|as_dl }}
-        <p><input id="submitbutton" class="submit"  type="submit" value="Search"></p>
+            <div id="messages"><ul><li class="info">
+            If you don't make a selection in a category, that category is ignored.
+            </li>
+            <li class="info">
+            Unless specified, all multiple select searches will search for any of the conditions.
+            </li></ul></div>
+            {{ form|as_dl_includefields:form.semester_range_fields }}
+            {{ form|as_dl_includefields:form.regular_fields }}
+            {{ form|as_dl_includefields:form.number_range_fields }}
         </fieldset>
+        <fieldset>
+        	<legend>Column Selection</legend>
+            {{ form|as_dl_includefields:form.col_fields }}
+            {#{{form|as_dl}}#}
+        </fieldset>
+        <p><input id="submitbutton" class="submit"  type="submit" value="Search"></p>
     </form>
-    <a class="button" href="{% url grad.views.index %}">Back</a>
+    <a class="button" href="{% url grad.views.index %}" style="clear:both">Back</a>
 </div>
 {% comment %}
 <script type="text/javascript">

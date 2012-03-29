@@ -5,7 +5,7 @@ from django.utils.html import escape
 register = template.Library()
 
 @register.filter
-def as_dl(form, safe=False, excludefields=[]):
+def as_dl(form, safe=False, excludefields=[], includefields=None):
     """
     Output a Form as a nice <dl>
     """
@@ -20,7 +20,8 @@ def as_dl(form, safe=False, excludefields=[]):
     out.append('<dl class="dlform">')
     reqcount = 0
     for field in form.visible_fields():
-        if field.name in excludefields:
+        if field.name in excludefields or (
+                includefields is not None and field.name not in includefields) :
             continue
 
         reqtext = ''
@@ -145,4 +146,14 @@ def as_dl_usefield(form, incl):
     incllist = incl.split(',')
     return as_dl_nolabel(form, includefield=incllist, req_text=False)
 
-
+@register.filter
+def as_dl_includefields(form, incl):
+    """
+    Like as_dl, but allows including some fields with filter argument
+    Hide helptext
+    """
+    if isinstance(incl, list):
+        incllist = incl
+    else:
+        incllist = incl.split(',')
+    return as_dl(form, includefields=incllist)
