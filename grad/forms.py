@@ -14,6 +14,7 @@ from itertools import ifilter, chain
 import unicodecsv as csv
 from django.core.exceptions import ValidationError
 from django.utils.safestring import mark_safe
+from django.core.validators import EMPTY_VALUES
 
 class LabelTextInput(forms.TextInput):
     "TextInput with a bonus label"
@@ -278,32 +279,6 @@ class NullBooleanSearchField(forms.NullBooleanField):
 
     validate = forms.BooleanField.validate
 
-# should be moved into whatever model this is stored in
-# This is also a guess at which statuses are mutually exclusive
-ACCEPTED_CHOICES = (
-        ('REJT', 'Rejected'),
-        ('DECL', 'Declined Offer'),
-        ('EXPI', 'Expired'),
-        ('CONF', 'Confirmed'),
-        ('CANC', 'Cancelled'),
-        ('UNKN', 'Unknown'),
-        )
-
-DATE_CHOICES = (('','---------'),
-        ('GPRC', 'Grad Program Created'),
-        ('GPRU', 'Grad Program Updated'),
-        ('GSTC', 'Grad Student Created'),
-        ('GSTU', 'Grad Student Updated'),
-        ('GSAC', 'Grad Status Created'),
-        ('GSAU', 'Grad Status Updated'),
-        )
-
-COMMENTS_CHOICES = (
-        ('FINC','Financial Comments'),
-        ('GRAD','Grad Sec Comments'),
-        ('POST','Post Grad Comments'),
-        )
-
 class SearchForm(forms.Form):
     #TODO: finish
     
@@ -320,11 +295,10 @@ class SearchForm(forms.Form):
             required=False,
             help_text='Uses "or", selecting nothing means any'
             )
-    accepted_status = forms.MultipleChoiceField(ACCEPTED_CHOICES, required=False,
-            help_text='Not Implemented; needs more data in the database; Uses "or", selecting nothing means any')
-    has_comments = forms.MultipleChoiceField(COMMENTS_CHOICES, required=False,
-            help_text='Not Implemented; needs more data in the database;'
-            ' Uses "or", selecting nothing means any')
+    application_status = forms.MultipleChoiceField(gradmodels.APPLICATION_STATUS_CHOICES, 
+            required=False,
+            help_text='Uses "or", selecting nothing means any'
+            )
     
     #program = forms.CharField(required=False)
     program = forms.ModelMultipleChoiceField(GradProgram.objects.all(), required=False)
@@ -352,12 +326,11 @@ class SearchForm(forms.Form):
     campus = forms.MultipleChoiceField(CAMPUS_CHOICES, required=False,
             help_text='Uses "or", selecting nothing means any')
     gpa_min = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False)
-    gpa_max = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False,
-            help_text='Not Implemented; needs more data in the database')
+    gpa_max = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False)
     gender = forms.ChoiceField((('','---------'), ('M','Male'), ('F','Female'), ('U','Unknown')),
             required=False)
     visa_held = NullBooleanSearchField(required=False, 
-            help_text='Not Implemented, needs more data in the database')
+            help_text='Not Implemented, needs clarification on data in the database')
     scholarship_sem = forms.ModelMultipleChoiceField(Semester.objects.all(),
             label='Scholarship Semester Received',required=False)
 
@@ -386,12 +359,8 @@ class SearchForm(forms.Form):
         return value
     
     def _make_query(self, query_string, query_param=None):
-        query_value = self.cleaned_data[query_string]
-        try:
-            query_val_len = len(query_value)
-        except TypeError:
-            query_val_len = 1
-        if query_string in self.cleaned_data and query_value is not None and query_val_len > 0:
+        query_value = self.cleaned_data.get(query_string, None)
+        if query_value not in EMPTY_VALUES:
             if query_param is None:
                 query_param = query_string
             if query_value is Unknown:
@@ -409,6 +378,7 @@ class SearchForm(forms.Form):
                 ('end_semester_start', 'gradstatus__end__gte'),
                 ('end_semester_end', 'gradstatus__end__lte'),
                 ('student_status', 'gradstatus__status__in'),
+                ('application_status',),
                 ('program','program__in'),
 #                ('requirements','completedrequirement__requirement__in'),
                 ('is_canadian',),
@@ -450,18 +420,22 @@ class SearchForm(forms.Form):
                         Q(scholarship__amount__gt=0) |
                         Q(otherfunding__amount__gt=0) |
                         Q(promise__amount__gt=0))
-        def actual_filter(gradstudent):
-            if 'gender' in self.cleaned_data and self.cleaned_data['gender']:
-                gender = gradstudent.person.gender() == self.cleaned_data['gender']
-            else:
-                gender = True # ignored
-            if financial_support_students is not None:
-                no_financial_support = gradstudent not in financial_support_students
-            else:
-                no_financial_support = True # ignored
-            
-            return gender and no_financial_support
-        return actual_filter
+        return lambda gradstudent: \
+                    ((gradstudent.person.gender() == self.cleaned_data['gender']
+                    if self.cleaned_data.get('gender', None) not in EMPTY_VALUES
+                    else True) and
+                    
+                    (gradstudent.person.gpa() >= self.cleaned_data['gpa_min']
+                    if self.cleaned_data.get('gpa_min', None) not in EMPTY_VALUES
+                    else True) and
+                    
+                    (gradstudent.person.gpa() <= self.cleaned_data['gpa_max']
+                    if self.cleaned_data.get('gpa_max', None) not in EMPTY_VALUES
+                    else True) and
+                    
+                    (gradstudent not in financial_support_students
+                    if financial_support_students is not None
+                    else True))
 
 class UploadApplicantsForm(forms.Form):
     csvfile = forms.FileField(required=True, label="PCS data export")

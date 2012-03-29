@@ -32,7 +32,7 @@ class GradProgram(models.Model):
 APPLICATION_STATUS_CHOICES = (
         ('ONRE', 'In-Review'),
         ('REJE', 'Rejected'),   
-        ('DECL', 'Declined'),
+        ('DECL', 'Declined Offer'),
         ('EXPI', 'Expired'),
         ('CONF', 'Confirmed'),
         ('CANC', 'Cancelled'),
