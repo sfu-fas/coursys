@@ -28,7 +28,10 @@ ul.leaders li:before {
  ". . . . . . . . . . . . . . . . . . . . "
  }
 ul.leaders li.comment:before{
-	content:""
+	content:"";
+}
+ul.leaders li.helptext{
+	padding-left: 2em;
 }
 ul.leaders span:first-child {
     padding-right: 1em;
@@ -135,8 +138,12 @@ span.label {
 						{% endif %}
 						</li>
 						{% if scholarship.scholarship.comments %}
-							<li class="comment" id="{{semester.semester.name}}-{{scholarship.scholarship.id}}-comment">
+							<li class="helptext comment" id="{{semester.semester.name}}-{{scholarship.scholarship.id}}-comment">
 								{{ scholarship.scholarship.comments }}
+							</li>
+							{% else %}
+							<li class="helptext comment" id="{{semester.semester.name}}-{{scholarship.scholarship.id}}-comment">
+								No comments recorded.    
 							</li>
 						{% endif %}
 					{% endfor %}
@@ -156,7 +163,11 @@ span.label {
 								{% endif %}
 							</li>
 							{% if other_funding.comment %}
-								<li class="comment" id="{{semester.semester.name}}-{{other_funding.id}}-comment">{{ other_funding.comment }}</li>
+								<li class="helptext comment" id="{{semester.semester.name}}-{{other_funding.id}}-comment">{{ other_funding.comment }}</li>
+														{% else %}
+							<li class="helptext comment" id="{{semester.semester.name}}-{{scholarship.scholarship.id}}-comment">
+								No comments recorded.
+							</li>
 							{% endif %}
 						{% endfor %}
 					</ul>
