@@ -279,6 +279,19 @@ class NullBooleanSearchField(forms.NullBooleanField):
 
     validate = forms.BooleanField.validate
 
+COLUMN_CHOICES = (
+        ('emplid', 'Employee ID'),
+        ('userid', 'User ID'),
+        ('firstn', 'First Name'),
+        ('middle', 'Middle Name'),
+        ('lastna', 'Last Name'),
+        ('preffi', 'Preferred First Name'),
+        # TODO Include stuff from config eg. email, phone, address
+        ('progra', 'Program'),
+        ('resear', 'Research Area'),
+        ('campus', 'Campus'),
+        )
+
 class SearchForm(forms.Form):
     #TODO: finish
     
@@ -331,17 +344,8 @@ class SearchForm(forms.Form):
     scholarship_sem = forms.ModelMultipleChoiceField(Semester.objects.all(),
             label='Scholarship Semester Received',required=False)
 
-    # Column filters
-    col_program = forms.BooleanField(label="Program", initial=True,required=False)
-    col_research_area = forms.BooleanField(label="Research Area", initial=True,required=False)
-    col_campus = forms.BooleanField(label="Campus",required=False)
-    col_english_fluency = forms.BooleanField(label="English Fluency",required=False)
-    col_mother_tongue = forms.BooleanField(label="Mother Tongue",required=False)
-    col_canadian = forms.BooleanField(label="Canadian",required=False)
-    col_passport_from = forms.BooleanField(label="Passport Country",required=False)
-    
-    col_status = forms.BooleanField(label="Current Status", initial=True,required=False)
-    col_start_semester = forms.BooleanField(label="Start Semester", initial=True,required=False)
+    columns = forms.MultipleChoiceField(COLUMN_CHOICES, initial=('emplid', 'userid'),
+            help_text='Columns to display in the search results.')
     
     semester_range_fields = [
             'start_semester_start',

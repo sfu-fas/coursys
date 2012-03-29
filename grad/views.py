@@ -813,6 +813,7 @@ def search(request):
         grads = filter(form.secondary_filter(), grads)
         # if performance becomes an issue, use this instead
         #grads = itertools.ifilter(form.secondary_filter, grads)
+        # TODO get list of columns selected and send that seperately
         context = {
                    'page_title' : 'Graduate Student Search Results',
                    'crumb' : 'Grads',
