@@ -53,3 +53,8 @@ def display_course_rank(course_preferences, index):
 def display_total_pay(offering, posting):
     amt = locale.currency(float(posting.total_pay(offering)))
     return mark_safe('<strong>%s</strong>' % (amt)) 
+
+@register.filter
+def display_all_total_pay(val):
+    amt = locale.currency(float(val))
+    return mark_safe('<strong>%s</strong>' % (amt)) 

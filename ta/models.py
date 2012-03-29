@@ -275,6 +275,18 @@ class TAPosting(models.Model):
         for course in tacourses:
             total += course.pay()
         return total
+    
+    def all_total(self):
+        """
+        BU's and Payments for all tacourses associated with all offerings 
+        """
+        pay = 0
+        bus = 0
+        tacourses = TACourse.objects.filter(contract__posting=self)
+        for course in tacourses:
+            pay += course.pay()
+            bus += course.bu
+        return (bus, pay)
         
         
 class Skill(models.Model):

@@ -534,7 +534,7 @@ def all_contracts(request, post_slug):
         if ccount > 1:
             messages.success(request, "Successfully sent %s offers." % ccount)
         elif ccount > 0:
-            messages.success(request, "Successfully sent offer")
+            messages.success(request, "Successfully sent offer.")
             
     for contract in contracts:
         total_bu =0
@@ -1067,7 +1067,10 @@ def view_financial(request, post_slug):
     offerings = [o for o in all_offerings if o.course_id not in excl]
     excluded = [o for o in all_offerings if o.course_id in excl]
     
-    context = {'posting': posting, 'offerings': offerings, 'excluded': excluded}
+    (bu, pay) = posting.all_total()
+    info = {'course_total': len(offerings), 'bu_total': bu, 'pay_total': pay}
+    
+    context = {'posting': posting, 'offerings': offerings, 'excluded': excluded, 'info': info}
     return render(request, 'ta/view_financial.html', context) 
 
 @requires_role("TAAD")

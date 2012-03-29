@@ -2,7 +2,7 @@
 {% load course_display ta_display %}
 
 {% block title %}Financial Summary for TA Appointments for {{ posting }}{% endblock %}
-{% block h1 %}Financial Summary for TA Appointments for {{ posting }}{% endblock %}
+{% block h1 %}Financial Summary for TA Appointments{% endblock %}
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
@@ -25,6 +25,33 @@
 {% endblock %}
 
 {% block content %}
+<div class="table_container">
+    <table class="info">
+        <tbody>
+	    <tr>
+	    	<th class="ui-state-default">Semester</th>
+            <td>{{ posting.semester }}</td>
+        </tr>
+	    <tr>
+            <th class="ui-state-default">Unit</th>
+            <td>{{ posting.unit }}</td>
+        </tr>
+	    <tr>
+            <th class="ui-state-default">Number of courses </th>
+            <td>{{ info.course_total }}</td>
+        </tr>
+	    <tr>
+            <th class="ui-state-default">Number of BUs</th>
+            <td>{{ info.bu_total }}</td>
+        </tr>
+	    <tr>
+            <th class="ui-state-default">Total Payments</th>
+            <td>{{ info.pay_total|display_all_total_pay }}</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
 <div class="datatable_container">
 <table class="display" id="offerings">
 <thead>
