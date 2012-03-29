@@ -118,7 +118,7 @@ span.label {
 <div id="content_container">
 	<div class="scholarship_divider">
 	{% for semester in semesters %}
-		<h2> {{ semester.semester }} - Status: {{ semester.status }} {% if semester.type %} ({{ semester.type }}) {% else %}{%endif%}</h2>
+		<h2> {{ semester.semester }} - Status: {{ semester.status }} {% if semester.ta_ra.type %} ({{ semester.ta_ra.type }}) {% else %}{%endif%}</h2>
 			<div class="scholarship_content">
 				{% if semester.scholarship_details.scholarships %}
 					<span class="label"> Scholarships: </span> 
@@ -161,6 +161,17 @@ span.label {
 						{% endfor %}
 					</ul>
 				{% endif %}
+				{% if semester.ta_ra.type %}
+				<span class="label"> {{ semester.ta_ra.type }} Details: </span>
+					<ul class="leaders">
+						{% for course in semester.ta_ra.courses %}
+						<li>
+							<span>{{ course.course }}</span>
+							<span> ${{ course.amount|floatformat:2 }}</span>
+						</li>
+						{% endfor %}
+					</ul>
+				{% endif %}
 				{% if semester.scholarship_details.semester_total %}
 				<div class="hr"></div>
 				<span style="float: left;" class="label">Semester Sub-Total</span>
@@ -170,10 +181,12 @@ span.label {
 			<br />
 			<br />
 			
-			
+		{% if not promises %}
+	</div>
+		{% endif %}	
 	    {% for promise in promises %}
 	    {% if promise.promise == semester.promise and semester.semester == promise.promise.start_semester %}
-   </div>
+    </div>
 	    <div class="promise_content">
 			<span class="label"> Promised Amount: </span> ${{ promise.promise.amount|floatformat:2 }} <br />
 			<span class="label"> Received Amount: </span> ${{ promise.received|floatformat:2 }} <br />
@@ -195,7 +208,6 @@ span.label {
 			{% endif %}
 		{% endif %}
 		{% endfor %}
-
 			
 	{% endfor %}
 </div>

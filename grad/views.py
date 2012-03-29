@@ -9,7 +9,8 @@ from grad.forms import SupervisorForm, PotentialSupervisorForm, GradAcademicForm
         GradStudentForm, GradStatusForm, GradRequirementForm, possible_supervisors, BaseSupervisorsFormSet, \
     SearchForm, LetterTemplateForm, LetterForm, UploadApplicantsForm, new_promiseForm, new_scholarshipForm,\
     new_scholarshipTypeForm
-from ta.models import TAContract, TAApplication
+from ta.models import TAContract, TAApplication, TACourse
+#from ta.views import total_pay
 from ra.models import RAAppointment
 from coredata.models import Person, Role, Unit, Semester, CAMPUS_CHOICES
 from coredata.queries import more_personal_info, SIMSProblem
@@ -959,19 +960,31 @@ def financials(request, grad_slug):
             if s.start <= semester and (s.end == None or semester <= s.end) :
                 status = s.get_status_display()
         
+        ta_ra = {}
         type = ""
+        courses = []
+        amount = 0
         for contract in contracts:
             if contract.posting.semester == semester:
                 type = "TA"
+                for course in TACourse.objects.filter(contract=contract):
+                    courses.append({'course':course,'amount':amount})
+#                amount = total_pay()
                 
         for appointment in appointments:
             app_start_sem = get_semester(appointment.start_date)
             app_end_sem = get_semester(appointment.end_date)
-            print "%s <= %s %s >= %s" % (app_start_sem, semester, app_end_sem, semester)
-            if app_start_sem >= semester or app_end_sem >= semester:
-                type = "RA" 
+            if app_start_sem >= semester and app_end_sem <= semester:
+                type = "RA"
+                courses.append({'course':"RA - %s" % appointment.project, 'amount':appointment.lump_sum_pay})
         
-        semesters.append({'semester':semester, 'status':status,'scholarship_details':scholarships_in_semester, 'promise':promise, 'promised_amount':semester_promised_amount,'owing':semester_owing, 'type': type})
+        ta_ra['type'] = type
+        ta_ra['courses'] = courses
+        ta_ra['amount'] = amount    
+        
+        scholarships_in_semester['semester_total'] += amount
+        
+        semesters.append({'semester':semester, 'status':status,'scholarship_details':scholarships_in_semester, 'promise':promise, 'promised_amount':semester_promised_amount,'owing':semester_owing, 'ta_ra': ta_ra})
 
     promises = []
     for promise in promises_qs:
