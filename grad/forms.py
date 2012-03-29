@@ -393,12 +393,16 @@ class SearchForm(forms.Form):
                 manual_queries.append(Q(otherfunding__amount__gt=0))
             if 'P' in self.cleaned_data['financial_support']:
                 manual_queries.append(Q(promise__amount__gt=0))
+            if 'N' in self.cleaned_data['financial_support']:
+                manual_queries.append(
+                        ~Q(pk__in=gradmodels.Scholarship.objects.all().values('student')) &
+                        ~Q(pk__in=gradmodels.OtherFunding.objects.all().values('student')) &
+                        ~Q(pk__in=gradmodels.Promise.objects.all().values('student')))
         
         if self.cleaned_data.get('requirements', False):
             if self.cleaned_data['requirements_st'] == 'OR':
                 auto_queries.append(('requirements', 'completedrequirement__requirement__in'))
             else:
-                
                 manual_queries += [Q(pk__in=requirement.completedrequirement_set.all().values('student_id')) 
                         for requirement in self.cleaned_data['requirements']]
             
@@ -412,30 +416,24 @@ class SearchForm(forms.Form):
                     Q())
         print self.cleaned_data
         return query#, exclude_query
+    
+    def _secondary_filter(self, gradstudent):
+        return ((gradstudent.person.gender() == self.cleaned_data['gender']
+                if self.cleaned_data.get('gender', None) not in EMPTY_VALUES
+                else True) and
+                
+                (gradstudent.person.gpa() >= self.cleaned_data['gpa_min']
+                if self.cleaned_data.get('gpa_min', None) not in EMPTY_VALUES
+                else True) and
+                
+                (gradstudent.person.gpa() <= self.cleaned_data['gpa_max']
+                if self.cleaned_data.get('gpa_max', None) not in EMPTY_VALUES
+                else True))
+    
     def secondary_filter(self):
-        financial_support_students = None
-        if self.cleaned_data.get('financial_support', None) is not None:
-            if 'N' in self.cleaned_data['financial_support']:
-                financial_support_students = GradStudent.objects.filter(
-                        Q(scholarship__amount__gt=0) |
-                        Q(otherfunding__amount__gt=0) |
-                        Q(promise__amount__gt=0))
-        return lambda gradstudent: \
-                    ((gradstudent.person.gender() == self.cleaned_data['gender']
-                    if self.cleaned_data.get('gender', None) not in EMPTY_VALUES
-                    else True) and
-                    
-                    (gradstudent.person.gpa() >= self.cleaned_data['gpa_min']
-                    if self.cleaned_data.get('gpa_min', None) not in EMPTY_VALUES
-                    else True) and
-                    
-                    (gradstudent.person.gpa() <= self.cleaned_data['gpa_max']
-                    if self.cleaned_data.get('gpa_max', None) not in EMPTY_VALUES
-                    else True) and
-                    
-                    (gradstudent not in financial_support_students
-                    if financial_support_students is not None
-                    else True))
+        # this returns a function in case it needs to use a closure
+        # to cache some data used in the filter
+        return self._secondary_filter
 
 class UploadApplicantsForm(forms.Form):
     csvfile = forms.FileField(required=True, label="PCS data export")
