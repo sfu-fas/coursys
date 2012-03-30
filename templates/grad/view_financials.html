@@ -192,12 +192,12 @@ span.label {
 			<br />
 			<br />
 			
-		{% if not promises %}
-	</div>
+		{% if not promises and forloop.last %}
+	</div> <!-- end divider div -->
 		{% endif %}	
 	    {% for promise in promises %}
 	    {% if promise.promise == semester.promise and semester.semester == promise.promise.start_semester %}
-    </div>
+    </div> <!-- end divider div -->
 	    <div class="promise_content">
 			<span class="label"> Promised Amount: </span> ${{ promise.promise.amount|floatformat:2 }} <br />
 			<span class="label"> Received Amount: </span> ${{ promise.received|floatformat:2 }} <br />
@@ -214,7 +214,7 @@ span.label {
 			{% endif %}
 			
 		</div>
-		
+			{# if there are still promises to loop through, create another divider #}
 			{% if not forloop.last %}
 	<div class="divider">
 			{% endif %}

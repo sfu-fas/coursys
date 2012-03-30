@@ -989,8 +989,7 @@ def financials(request, grad_slug):
                 if contract.posting.semester == semester:
                     type = "TA"
                     for course in TACourse.objects.filter(contract=contract):
-                        courses.append({'course':course,'amount':amount})
-    #                amount = total_pay()
+                        courses.append({'course':course.course,'amount': course.pay()})
                     
             for appointment in appointments:
                 app_start_sem = get_semester(appointment.start_date)
