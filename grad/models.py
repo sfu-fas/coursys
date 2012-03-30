@@ -66,6 +66,7 @@ class GradStudent(models.Model):
 
     config = JSONField(default={}) # addition configuration
         # 'sin': Social Insurance Number
+    defaults = {'sin': '000000000'}
     sin, set_sin = getter_setter('sin')
 
     def get_fields(self):

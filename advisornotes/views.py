@@ -1,5 +1,4 @@
 from django.core.urlresolvers import reverse
-from django.db.models import Q
 from django.shortcuts import render_to_response, get_object_or_404, render, redirect
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -9,7 +8,7 @@ from django.template import RequestContext
 from courselib.auth import requires_role, ForbiddenResponse, HttpResponseRedirect
 from advisornotes.forms import AdvisorNoteForm, StudentSelect, StudentField, StudentSearchForm
 from django.contrib import messages
-from courselib.search import get_query
+from courselib.search import get_query, find_userid_or_emplid
 from coredata.queries import find_person, add_person, more_personal_info, SIMSProblem
 from log.models import LogEntry
 import json
@@ -22,16 +21,6 @@ def _redirect_to_notes(student):
         return HttpResponseRedirect(reverse('advisornotes.views.student_notes', kwargs={'userid': student.userid}))
     else:        
         return HttpResponseRedirect(reverse('advisornotes.views.student_notes', kwargs={'userid': student.emplid}))
-
-def _find_userid_or_emplid(userid):
-    """
-    Search by userid or emplid
-    """
-    try:
-        int(userid)
-        return Q(userid=userid) | Q(emplid=userid)
-    except ValueError:
-        return Q(userid=userid)
 
 @requires_role('ADVS')
 def advising(request):
@@ -96,7 +85,7 @@ def sims_add_person(request):
 
 @requires_role('ADVS')
 def new_note(request, userid):
-    student = get_object_or_404(Person, _find_userid_or_emplid(userid))
+    student = get_object_or_404(Person, find_userid_or_emplid(userid))
     unit_choices = [(u.id, unicode(u)) for u in request.units]
 
     if request.method == 'POST':
@@ -134,7 +123,7 @@ def new_note(request, userid):
 
 @requires_role('ADVS')
 def student_notes(request, userid):
-    student = get_object_or_404(Person, _find_userid_or_emplid(userid))
+    student = get_object_or_404(Person, find_userid_or_emplid(userid))
     if request.POST:
         if request.is_ajax():
             note = get_object_or_404(AdvisorNote, pk=request.POST['note_id'], unit__in=request.units)
@@ -161,7 +150,7 @@ def student_more_info(request, userid):
     """
     AJAX request for contact info, etc. (queries SIMS directly)
     """
-    student = get_object_or_404(Person, _find_userid_or_emplid(userid))
+    student = get_object_or_404(Person, find_userid_or_emplid(userid))
     try:
         data = more_personal_info(student.emplid)
     except SIMSProblem as e:

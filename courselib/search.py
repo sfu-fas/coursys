@@ -1,7 +1,18 @@
-# from http://julienphalip.com/post/2825034077/adding-search-to-a-django-site-in-a-snap
 import re
 
 from django.db.models import Q
+
+def find_userid_or_emplid(userid):
+    """
+    Search by userid or emplid
+    """
+    try:
+        int(userid)
+        return Q(userid=userid) | Q(emplid=userid)
+    except ValueError:
+        return Q(userid=userid)
+
+# from http://julienphalip.com/post/2825034077/adding-search-to-a-django-site-in-a-snap
 
 def normalize_query(query_string,
                     findterms=re.compile(r'"([^"]+)"|(\S+)').findall,

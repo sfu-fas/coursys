@@ -324,9 +324,9 @@ urlpatterns += patterns('',
     # RA database
 
     url(r'^ra/$', 'ra.views.search'),
-    url(r'^ra/search/' + USERID_SLUG + '/$', 'ra.views.student_appointments'),
+    url(r'^ra/search/' + USERID_OR_EMPLID + '/$', 'ra.views.student_appointments'),
     url(r'^ra/new$', 'ra.views.new'),
-    url(r'^ra/new/' + USERID_SLUG + '/$', 'ra.views.new_student'),
+    url(r'^ra/new/' + USERID_OR_EMPLID + '/$', 'ra.views.new_student'),
     url(r'^ra/accounts/new$', 'ra.views.new_account'),
     url(r'^ra/accounts/$', 'ra.views.accounts_index'),
     url(r'^ra/accounts/' + ACCOUNT_SLUG + '/delete$', 'ra.views.delete_account'),

@@ -7,6 +7,7 @@ from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm
 from grad.forms import possible_supervisors
 from coredata.models import Member, Person, Role, Unit, Semester
 from courselib.auth import requires_role, ForbiddenResponse
+from courselib.search import find_userid_or_emplid
 from django.template import RequestContext
 from datetime import date, timedelta
 from grad.models import GradStudent, Scholarship, ScholarshipType
@@ -30,7 +31,12 @@ def search(request, student_id=None):
             context = {'form': form}
             return render_to_response('ra/search.html', context, context_instance=RequestContext(request))
         search = form.cleaned_data['search']
-        return HttpResponseRedirect(reverse('ra.views.student_appointments', kwargs={'userid': search.userid}))
+        # deal with people without active computing accounts
+        if search.userid:
+            userid = search.userid
+        else:
+            userid = search.emplid
+        return HttpResponseRedirect(reverse('ra.views.student_appointments', kwargs={'userid': userid}))
     if student_id:
         form = RASearchForm(instance=student, initial={'student': student.userid})
     else:
@@ -38,12 +44,15 @@ def search(request, student_id=None):
     context = {'form': form}
     return render_to_response('ra/search.html', context, context_instance=RequestContext(request))
 
+
+
+
 #This is an index of all RA Appointments belonging to a given person.
 @requires_role("FUND")
 def student_appointments(request, userid):
-    depts = Role.objects.filter(person__userid=request.user.username, role='FUND').values('unit_id')
-    appointments = RAAppointment.objects.filter(person__userid=userid, unit__id__in=depts).order_by("-created_at")
-    student = Person.objects.get(userid=userid)
+    #depts = Role.objects.filter(person__userid=request.user.username, role='FUND').values('unit_id')
+    student = get_object_or_404(Person, find_userid_or_emplid(userid))
+    appointments = RAAppointment.objects.filter(person=student, unit__in=request.units).order_by("-created_at")
     return render(request, 'ra/student_appointments.html', {'appointments': appointments, 'student': student}, context_instance=RequestContext(request))
 
 #A helper method to determine the number of pay periods between two dates.
@@ -81,14 +90,14 @@ def new(request):
 def new_student(request, userid):
     semester = Semester.first_relevant() 
     periods = str(pay_periods(semester.start, semester.end))
+    student = get_object_or_404(Person, find_userid_or_emplid(userid))
+    initial = {'person': userid, 'start_date': semester.start, 'end_date': semester.end, 'pay_periods': periods, 'hours': 70 }
     try:
-        gradstudent = GradStudent.objects.get(person__emplid=userid)
-        sin = gradstudent.config['sin']
-        print "setting sin to " + str(sin)
-        raform = RAForm(initial={'person': userid,'sin': sin, 'start_date': semester.start, 'end_date': semester.end, 'pay_periods': periods, 'hours': 70 })
-    except (ObjectDoesNotExist):    
-        print "no sin found"
-        raform = RAForm(initial={'person': userid, 'start_date': semester.start, 'end_date': semester.end, 'pay_periods': periods, 'hours': 70 })
+        gradstudent = GradStudent.objects.get(person=student)
+        initial['sin'] = gradstudent.sin()
+    except GradStudent.DoesNotExist:
+        pass    
+    raform = RAForm(initial=initial)
     raform.fields['person'] = forms.CharField(widget=forms.HiddenInput())
     raform.fields['scholarship'].choices=[("", "---------")]
     raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)

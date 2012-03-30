@@ -21,7 +21,7 @@ class RAForm(forms.ModelForm):
             person_object = Person.objects.get(emplid=self['person'].value())
             gradstudent = GradStudent.objects.get(person=person_object)
             print "setting " + person_object.first_name + " sin to " + str(sin)
-            gradstudent.config['sin'] = sin
+            gradstudent.set_sin(sin)
             gradstudent.save()
         except (ObjectDoesNotExist):
             pass
