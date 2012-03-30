@@ -2,7 +2,7 @@ from django import forms
 from ra.models import RAAppointment, Account, Project, \
                       HIRING_CATEGORY_CHOICES, PAY_TYPE_CHOICES
 from coredata.models import Person, Role
-#from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
 from grad.models import Scholarship, GradStudent
@@ -17,11 +17,14 @@ class RAForm(forms.ModelForm):
 
     def clean_sin(self):
         sin = self.cleaned_data['sin']
-        person_object = Person.objects.get(emplid=self['person'].value())
-        gradstudent = GradStudent.objects.get(person=person_object)
-        print "setting " + person_object.first_name + " sin to " + str(sin)
-        gradstudent.config['sin'] = sin
-        gradstudent.save()
+        try:
+            person_object = Person.objects.get(emplid=self['person'].value())
+            gradstudent = GradStudent.objects.get(person=person_object)
+            print "setting " + person_object.first_name + " sin to " + str(sin)
+            gradstudent.config['sin'] = sin
+            gradstudent.save()
+        except (ObjectDoesNotExist):
+            pass
         return sin
 
     def clean_hours(self):

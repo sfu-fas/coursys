@@ -9,8 +9,11 @@ from coredata.models import Member, Person, Role, Unit, Semester
 from courselib.auth import requires_role, ForbiddenResponse
 from django.template import RequestContext
 from datetime import date, timedelta
-from grad.models import Scholarship, ScholarshipType
+from grad.models import GradStudent, Scholarship, ScholarshipType
 from dashboard.letters import ra_form, OfficialLetter, LetterContents
+from django import forms
+from django.core.exceptions import ObjectDoesNotExist
+
 import json
 
 #This is the search function that that returns a list of RA Appointments related to the query.
@@ -78,7 +81,15 @@ def new(request):
 def new_student(request, userid):
     semester = Semester.first_relevant() 
     periods = str(pay_periods(semester.start, semester.end))
-    raform = RAForm(initial={'person': userid, 'start_date': semester.start, 'end_date': semester.end, 'pay_periods': periods, 'hours': 70 })
+    try:
+        gradstudent = GradStudent.objects.get(person__emplid=userid)
+        sin = gradstudent.config['sin']
+        print "setting sin to " + str(sin)
+        raform = RAForm(initial={'person': userid,'sin': sin, 'start_date': semester.start, 'end_date': semester.end, 'pay_periods': periods, 'hours': 70 })
+    except (ObjectDoesNotExist):    
+        print "no sin found"
+        raform = RAForm(initial={'person': userid, 'start_date': semester.start, 'end_date': semester.end, 'pay_periods': periods, 'hours': 70 })
+    raform.fields['person'] = forms.CharField(widget=forms.HiddenInput())
     raform.fields['scholarship'].choices=[("", "---------")]
     raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
     raform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
@@ -102,6 +113,7 @@ def edit(request, ra_slug):
         #The initial value needs to be the person's emplid in the form. Django defaults to the pk, which is not human readable.
         raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid})
         #As in the new method, choices are restricted to relevant options.
+        raform.fields['person'] = forms.CharField(widget=forms.HiddenInput())
         raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
         scholarship_choices = [("", "---------")]
         for s in Scholarship.objects.filter(student__person__emplid = appointment.person.emplid):
