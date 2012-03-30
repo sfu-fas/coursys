@@ -254,7 +254,7 @@ class TAPosting(models.Model):
         BUs already assigned to this course
         """
         total = 0.00
-        tacourses = TACourse.objects.filter(contract__posting=self, course=offering)
+        tacourses = TACourse.objects.filter(contract__posting=self, course=offering).exclude(contract__status__in=['REJ', 'CAN'])
         if(tacourses.count() > 0):
             total = tacourses.aggregate(Sum('bu'))['bu__sum']
         return decimal.Decimal(total)
@@ -266,12 +266,20 @@ class TAPosting(models.Model):
         prefs = CoursePreference.objects.filter(app__posting__semester=self.semester,app__late=False, app__posting__unit=self.unit, course=offering.course)
         return prefs.count()
     
+    #TODO: 
+    def ta_count(self, offering):
+        """
+        Number of people who have assigned to be TA for this offering
+        """
+        prefs = CoursePreference.objects.filter(app__posting__semester=self.semester,app__late=False, app__posting__unit=self.unit, course=offering.course)
+        return prefs.count()
+    
     def total_pay(self, offering):
         """
         Payments for all tacourses associated with this offering 
         """
         total = 0
-        tacourses = TACourse.objects.filter(course=offering, contract__posting=self)
+        tacourses = TACourse.objects.filter(course=offering, contract__posting=self).exclude(contract__status__in=['REJ', 'CAN'])
         for course in tacourses:
             total += course.pay()
         return total
@@ -282,7 +290,7 @@ class TAPosting(models.Model):
         """
         pay = 0
         bus = 0
-        tacourses = TACourse.objects.filter(contract__posting=self)
+        tacourses = TACourse.objects.filter(contract__posting=self, contract__status__in=['NEW', 'OPN', 'ACC', 'SGN'])
         for course in tacourses:
             pay += course.pay()
             bus += course.bu
@@ -379,7 +387,7 @@ APPOINTMENT_CHOICES = (
 STATUS_CHOICES = (
         ("NEW","Draft"), # not yet sent to TA
         ("OPN","Offered"), # offer made, but not accepted/rejected/cancelled
-        ("REJ","Rejected"),
+        ("REJ","Rejected"), 
         ("ACC","Accepted"),
         ("SGN","Contract Signed"), # after accepted and manager has signed contract
         ("CAN","Cancelled"),

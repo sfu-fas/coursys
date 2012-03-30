@@ -817,6 +817,7 @@ def edit_contract(request, post_slug, userid):
     else:
         form = TAContractForm(instance=contract) 
         formset = TACourseFormset(instance=contract)
+        print formset
         if not editing:
             initial={'sin': application.sin,
                      'appt_category': application.category,
