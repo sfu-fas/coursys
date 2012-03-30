@@ -5,30 +5,70 @@ import re, hashlib
 
 multiple_breaks = re.compile(r'\n\n+')
 
-class SIMSConn(object):
+class DBConn(object):
     """
-    Singleton object representing SIMS DB connection
+    Singleton object representing DB connection. Implementes a big enough subset of PEP 249 for me.
     
     singleton pattern implementation from: http://stackoverflow.com/questions/42558/python-and-the-singleton-pattern
     
     Absolutely NOT thread safe.
-    Implemented as a singleton to minimize number of times SIMS connection overhead occurs.
-    Should only be created on-demand (in function) to minimize startup for non-SIMS processes.
+    Implemented as a singleton to minimize number of times DB connection overhead occurs.
+    Should only be created on-demand (in function) to minimize startup for other processes.
+    """
+    _instance = None
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(DBConn, cls).__new__(cls, *args, **kwargs)
+        return cls._instance
+
+    def __init__(self, verbose=False):
+        self.conn, self.db = self.get_connection()
+        self.verbose = verbose
+
+    def get_connection(self):
+        raise NotImplementedError
+    def escape_arg(self, a):
+        raise NotImplementedError
+
+    def execute(self, query, args):
+        "Execute a query, safely substituting arguments"
+        # should be ensuring real/active connection here?
+        clean_args = tuple((self.escape_arg(a) for a in args))
+        real_query = query % clean_args
+        if self.verbose:
+            print ">>>", real_query
+        self.query = real_query
+        return self.db.execute(real_query)
+
+    def prep_value(self, v):
+        "Transform a DB result value into the value we want."
+        return v
+
+    def __iter__(self):
+        "Iterate query results"
+        row = self.db.fetchone()
+        while row:
+            yield tuple((self.prep_value(v) for v in row))
+            row = self.db.fetchone()
+
+    def rows(self):
+        "List of query results"
+        return list(self.__iter__())
+
+    def fetchone(self):
+        row = self.db.fetchone()
+        return tuple((self.prep_value(v) for v in row))
+
+class SIMSConn(DBConn):
+    """
+    Singleton object representing SIMS DB connection
     """
     sims_user = "ggbaker"
     sims_db = "csrpt"
     dbpass_file = "./dbpass"
     table_prefix = "dbsastg."
     
-    _instance = None
     DatabaseError = None
-    def __new__(cls, *args, **kwargs):
-        if not cls._instance:
-            cls._instance = super(SIMSConn, cls).__new__(cls, *args, **kwargs)
-        return cls._instance
-
-    def __init__(self):
-        self.conn, self.db = self.get_connection()
 
     def get_connection(self):
         passfile = open(self.dbpass_file)
@@ -49,9 +89,11 @@ class SIMSConn(object):
         # Based on description of PHP's db2_escape_string
         if type(a) in (int,long):
             return str(a)
+        if type(a) in (tuple, list):
+            return '(' + ', '.join((self.escape_arg(v) for v in a)) + ')'
         
-        a = unicode(a).encode('utf8')
         # assume it's a string if we don't know any better
+        a = unicode(a).encode('utf8')
         a = a.replace("\\", "\\\\")
         a = a.replace("'", "\\'")
         a = a.replace('"', '\\"')
@@ -61,16 +103,6 @@ class SIMSConn(object):
         a = a.replace("\x1a", "\\\x1a")
         return "'"+a+"'"
 
-    def execute(self, query, args):
-        "Execute a query, safely substituting arguments"
-        # should be ensuring real/active connection here?
-        clean_args = tuple((self.escape_arg(a) for a in args))
-        real_query = query % clean_args
-        #print ">>>", real_query
-        self.query = real_query
-        return self.db.execute(real_query)
-
-
     def prep_value(self, v):
         """
         get DB2 value into a useful format
@@ -79,21 +111,6 @@ class SIMSConn(object):
             return v.strip().decode('utf8')
         else:
             return v
-
-    def __iter__(self):
-        "Iterate query results"
-        row = self.db.fetchone()
-        while row:
-            yield tuple((self.prep_value(v) for v in row))
-            row = self.db.fetchone()
-
-    def rows(self):
-        "List of query results"
-        return list(self.__iter__())
-
-    def fetchone(self):
-        row = self.db.fetchone()
-        return tuple((self.prep_value(v) for v in row))
 
 
 class SIMSProblem(Exception):
@@ -155,7 +172,7 @@ def cache_by_args(func, seconds=38800): # 8 hours by default
 @cache_by_args
 def userid_from_sims(emplid):
     """
-    Guess userid from campus email address.
+    Guess userid from campus email address. Can be wrong because of mail aliases?
     """
     db = SIMSConn()
     db.execute("SELECT e_addr_type, email_addr, pref_email_flag FROM " + db.table_prefix + "ps_email_addresses c WHERE e_addr_type='CAMP' and emplid=%s", (str(emplid),))
@@ -163,11 +180,13 @@ def userid_from_sims(emplid):
     for _, email_addr, _ in db:
         if email_addr.endswith('@sfu.ca'):
             userid = email_addr[:-7]
+        if len(userid) > 8:
+            userid = None
     return userid
 
 @cache_by_args
 @SIMS_problem_handler
-def find_person(emplid):
+def find_person(emplid, get_userid=True):
     """
     Find the person in SIMS: return data or None (not found) or may raise a SIMSProblem.
     """
@@ -177,11 +196,14 @@ def find_person(emplid):
 
     for emplid, last_name, first_name, middle_name in db:
         # use emails to guess userid: if not found, leave unset and hope AMAINT has it on next nightly update
-        userid = userid_from_sims(emplid)
+        if get_userid:
+            userid = userid_from_sims(emplid)
+        else:
+            userid = None
         return {'emplid': emplid, 'last_name': last_name, 'first_name': first_name, 'middle_name': middle_name, 'userid': userid}
 
 
-def add_person(emplid):
+def add_person(emplid, commit=True):
     """
     Add a Person object based on the found SIMS data
     """
@@ -208,7 +230,6 @@ def get_names(emplid):
     
     Returns (last_name, first_name, middle_name, pref_first_name, title).
     """
-    # TODO: importer_rodb should use this.
     db = SIMSConn()
     
     #userid = userid_from_sims(emplid)

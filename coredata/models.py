@@ -30,7 +30,7 @@ class Person(models.Model):
     last_name = models.CharField(max_length=32)
     first_name = models.CharField(max_length=32)
     middle_name = models.CharField(max_length=32, null=True, blank=True)
-    pref_first_name = models.CharField(max_length=32)
+    pref_first_name = models.CharField(max_length=32, null=True, blank=True)
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
         # 'email': email, if not the default userid@sfu.ca
         # 'phones': dictionary of phone number values. Possible keys: 'pref', 'home', 'cell', 'main'
