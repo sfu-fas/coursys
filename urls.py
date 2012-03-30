@@ -319,7 +319,7 @@ urlpatterns += patterns('',
     url(r'^grad/'+ GRAD_SLUG + '/manage_promise$', 'grad.views.new_promise'),
     url(r'^grad/'+ GRAD_SLUG + '/manage_scholarship$', 'grad.views.manage_scholarship'),
     url(r'^grad/manage_scholarshipType', 'grad.views.manage_scholarshipType'),
-                             
+    url(r'^grad/financial_report$', 'grad.views.student_financials'),                             
 
     # RA database
 

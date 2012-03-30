@@ -41,6 +41,7 @@ $(document).ready(function() {
     {% if 'FUND' in roles %}<li><a href="{% url ra.views.projects_index %}">Manage Projects</a></li>{% endif %}
     {% if 'ADMN' in roles %}<li><a href="{% url ta.views.all_tugs_admin %}">Time Use Guidelines</a></li>{% endif %}
     <li  class='newsec'><a href="{% url ta.views.view_postings %}">TA Job Postings</a></li>
+    {% if is_grad %}<li class='newsec'><a href="{% url grad.views.student_financials %}">Financial Summary</a></li>{% endif %}
     {% if 'ADMN' in roles %}<li class="newsec"><a href="{% url coredata.views.unit_admin %}">Department Management</a></li>{% endif %}
     </ul>
 </div>

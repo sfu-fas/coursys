@@ -870,6 +870,14 @@ def search_results(request):
     json.dump(data, resp, indent=1)
     return resp
 
+@login_required
+def student_financials(request):
+    grad = get_object_or_404(GradStudent,person__userid=request.user.username)
+    # TODO: Even though there should only be one grad, 
+    # figure out the right grad student entry to use
+    # in case there are multiple
+    return HttpResponseRedirect(reverse('grad.views.financials',kwargs={'grad_slug':grad.slug})) 
+
 #@requires_role("GRAD")
 @login_required
 def financials(request, grad_slug):
@@ -965,6 +973,7 @@ def financials(request, grad_slug):
                 promise = Promise.objects.none()
                 semester_promised_amount = 0
             
+             
             semester_owing = scholarships_in_semester['semester_total'] - semester_promised_amount
             
             status = None
@@ -1006,6 +1015,13 @@ def financials(request, grad_slug):
                 if promise == semester.get('promise'):
                     received += semester.get('scholarship_details').get('semester_total')
             owing = received - promise.amount
+            
+            # minor logic for display. 
+            if owing < 0:
+                owing = abs(owing)
+            else:
+                owing = -1
+            
             promises.append({'promise':promise, 'received': received, 'owing': owing})
     
         # set frontend defaults

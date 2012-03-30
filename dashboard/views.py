@@ -21,6 +21,7 @@ from advisornotes.models import AdvisorNote
 from courselib.auth import requires_role
 from icalendar import Calendar, Event, Alarm
 import pytz
+from grad.models import GradStudent
 
 def _display_membership(m, today, student_cutoff):
     """
@@ -52,8 +53,14 @@ def index(request):
     staff_memberships = [m for m in memberships if m.role in ['INST', 'TA', 'APPR']] # for docs link
     news_list = _get_news_list(userid, 5)
     roles = Role.all_roles(userid)
-
-    context = {'memberships': memberships, 'staff_memberships': staff_memberships, 'news_list': news_list, 'roles': roles}
+    # quick logic to figure out whether user is a grad student.
+    is_grad = False
+    try: 
+        is_grad = GradStudent.objects.filter(person__userid=userid).count()>0
+    except:
+        is_grad = False
+    
+    context = {'memberships': memberships, 'staff_memberships': staff_memberships, 'news_list': news_list, 'roles': roles, 'is_grad':is_grad}
     return render(request, "dashboard/index.html", context)
 
 

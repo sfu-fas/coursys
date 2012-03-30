@@ -202,14 +202,15 @@ span.label {
 			<span class="label"> Promised Amount: </span> ${{ promise.promise.amount|floatformat:2 }} <br />
 			<span class="label"> Received Amount: </span> ${{ promise.received|floatformat:2 }} <br />
 			<div class="hr"></div>
-			{% if promise.owing < 0 %}
-				<span style="color: red" class="label">
-					Amount Owing: (${{ promise.promise.owing_amount|floatformat:2 }})
-				</span> 
-			{% else %}
+			{% if promise.owing == -1 %}
 				<span class="label">
 					Amount Owing: None
 				</span>
+				
+			{% else %}
+				<span style="color: red" class="label">
+					Amount Owing: (${{ promise.owing|floatformat:2 }})
+				</span> 
 			{% endif %}
 			
 		</div>
