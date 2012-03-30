@@ -227,7 +227,14 @@ def _new_application(request, post_slug, manual=False):
                 search_form = StudentSearchForm(request.POST['search'])
                 messages.error(request, "Invalid id %s for person." % (request.POST['search']))
                 return HttpResponseRedirect(reverse('ta.views.new_application_manual', args=(post_slug,)))
+            
+            #Check to see if an application already exists for the person 
+            existing_app = TAApplication.objects.filter(person=person, posting=posting)
+            if existing_app.count() > 0: 
+                messages.success(request, "%s has already applied for the %s %s posting." % (person, posting.unit, posting.semester))
+                return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'post_slug': existing_app[0].posting.slug, 'userid': existing_app[0].person.userid}))
         
+ 
         ta_form = TAApplicationForm(request.POST, prefix='ta')
         courses_formset = CoursesFormSet(request.POST)
         for f in courses_formset:
