@@ -58,3 +58,7 @@ def display_total_pay(offering, posting):
 def display_all_total_pay(val):
     amt = locale.currency(float(val))
     return mark_safe('<strong>%s</strong>' % (amt)) 
+
+@register.filter
+def display_ta_count(offering, posting):
+    return posting.ta_count(offering)

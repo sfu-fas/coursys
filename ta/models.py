@@ -266,13 +266,12 @@ class TAPosting(models.Model):
         prefs = CoursePreference.objects.filter(app__posting__semester=self.semester,app__late=False, app__posting__unit=self.unit, course=offering.course)
         return prefs.count()
     
-    #TODO: 
     def ta_count(self, offering):
         """
         Number of people who have assigned to be TA for this offering
         """
-        prefs = CoursePreference.objects.filter(app__posting__semester=self.semester,app__late=False, app__posting__unit=self.unit, course=offering.course)
-        return prefs.count()
+        tacourses = TACourse.objects.filter(contract__posting=self, course=offering).exclude(contract__status__in=['REJ', 'CAN'])
+        return tacourses.count()
     
     def total_pay(self, offering):
         """
@@ -290,11 +289,12 @@ class TAPosting(models.Model):
         """
         pay = 0
         bus = 0
-        tacourses = TACourse.objects.filter(contract__posting=self, contract__status__in=['NEW', 'OPN', 'ACC', 'SGN'])
+        tac = TAContract.objects.filter(posting=self).exclude(status__in=['REJ', 'CAN']).count()
+        tacourses = TACourse.objects.filter(contract__posting=self).exclude(contract__status__in=['REJ', 'CAN'])
         for course in tacourses:
             pay += course.pay()
             bus += course.bu
-        return (bus, pay)
+        return (bus, pay, tac)
         
         
 class Skill(models.Model):

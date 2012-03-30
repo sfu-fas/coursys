@@ -734,7 +734,11 @@ def edit_contract(request, post_slug, userid):
     if contract.count() > 0:
         contract = contract[0]
         application = contract.application
-        num = num - contract.tacourse_set.all().count()
+        cnum = contract.tacourse_set.all().count()
+        if cnum > num:
+            num = 0
+        else:
+            num = num - contract.tacourse_set.all().count()
         old_status = contract.get_status_display()
         if contract.status not in ['NEW', 'OPN']:
             # after editing, revert to open
@@ -817,7 +821,6 @@ def edit_contract(request, post_slug, userid):
     else:
         form = TAContractForm(instance=contract) 
         formset = TACourseFormset(instance=contract)
-        print formset
         if not editing:
             initial={'sin': application.sin,
                      'appt_category': application.category,
@@ -1068,8 +1071,8 @@ def view_financial(request, post_slug):
     offerings = [o for o in all_offerings if o.course_id not in excl]
     excluded = [o for o in all_offerings if o.course_id in excl]
     
-    (bu, pay) = posting.all_total()
-    info = {'course_total': len(offerings), 'bu_total': bu, 'pay_total': pay}
+    (bu, pay, ta) = posting.all_total()
+    info = {'course_total': len(offerings), 'bu_total': bu, 'pay_total': pay, 'ta_count': ta}
     
     context = {'posting': posting, 'offerings': offerings, 'excluded': excluded, 'info': info}
     return render(request, 'ta/view_financial.html', context) 

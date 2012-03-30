@@ -29,23 +29,27 @@
     <table class="info">
         <tbody>
 	    <tr>
-	    	<th class="ui-state-default">Semester</th>
+	    	<th>Semester</th>
             <td>{{ posting.semester }}</td>
         </tr>
 	    <tr>
-            <th class="ui-state-default">Unit</th>
+            <th>Unit</th>
             <td>{{ posting.unit }}</td>
         </tr>
 	    <tr>
-            <th class="ui-state-default">Number of courses </th>
+            <th>Number of courses </th>
             <td>{{ info.course_total }}</td>
         </tr>
+        <tr>
+            <th>Number of TAs</th>
+            <td>{{ info.ta_count }}</td>
+        </tr>
 	    <tr>
-            <th class="ui-state-default">Number of BUs</th>
+            <th>BUs Assigned</th>
             <td>{{ info.bu_total }}</td>
         </tr>
 	    <tr>
-            <th class="ui-state-default">Total Payments</th>
+            <th>Total Payments</th>
             <td>{{ info.pay_total|display_all_total_pay }}</td>
         </tr>
         </tbody>
@@ -58,6 +62,7 @@
 	<tr>
 		<th scope="col">Offering</th>
 		<th scope="col">Campus</th>
+		<th scope="col">Numer of TAs</th>
 		<th scope="col">Assigned BU</th>
 		<th scope="col">Total Amount</th>
 	</tr>
@@ -67,6 +72,7 @@
 <tr>
   <td scope="row" title="{{o.title}}"><a href="{% url ta.views.assign_bus post_slug=posting.slug, course_slug=o.slug %}">{{o.name}}</a></td>
   <td class="num">{{o.get_campus_display}}</td>
+  <td class="num">{{ o|display_ta_count:posting }}</td>
   <td class="num">{{ o|display_assigned_bu:posting }}</td>
   <td class="num">{{ o|display_total_pay:posting }}</td>
 </tr>	
