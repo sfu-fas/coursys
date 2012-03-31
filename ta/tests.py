@@ -2,6 +2,7 @@ from django.test import TestCase
 from ta.models import *
 from coredata.models import Role
 from settings import CAS_SERVER_URL
+from ra.models import Account
 
 from django.test.client import Client
 from django.core.urlresolvers import reverse
@@ -36,6 +37,10 @@ class ApplicationTest(TestCase):
 
         #Create posting that closes in a long time so no applications are late
         posting = TAPosting(semester=s, unit=unit,opens=date(2007,9,4), closes=date(2099,9,4))
+        posting.config['accounts'] = [a.id for a in Account.objects.all()]
+        posting.config['start'] = date(2100,10,10)
+        posting.config['end'] = date(2101,10,10)
+        posting.config['deadline'] = date(2099,9,20)
         posting.save() 
 
         #Create application for posting as well as campus and course preferences
@@ -71,3 +76,21 @@ class ApplicationTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<a href="mailto:%s@sfu.ca"' % (app.person.userid) )
         self.assertContains(response, '<td>%s</td>' % (c1) )
+       
+        #Check the assign_bu page to make sure applicant appears
+        url = reverse('ta.views.assign_bus', kwargs={'post_slug': posting.slug, 'course_slug':self.co1.slug,})
+        response = client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<a href="/ta/%s/application/%s"' % (posting.slug, app.person.userid) )
+       
+        #Assign bu's to the applicant and make sure they show up on assign_ta page 
+        post_data = {
+            'form-TOTAL_FORMS':2,
+            'form-INITIAL_FORMS':1,
+            'form-MAX_NUM_FORMS':'',
+            'form-0-rank':1,
+            'form-0-bu':2.0,
+        }
+        response = client.post(url, post_data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<td class="num">2.00</td>')
