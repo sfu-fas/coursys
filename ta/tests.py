@@ -48,7 +48,6 @@ class ApplicationTest(TestCase):
         cp2.save()
 
         c1 = Course.objects.get(subject="CMPT", number="120")
-        c2 = Course.objects.get(subject="CMPT", number="165")
         
         course1 = CoursePreference(app=app, course=c1, taken="YES", exper="FAM", rank=1)
         course1.save()
@@ -65,3 +64,10 @@ class ApplicationTest(TestCase):
         self.assertContains(response, '<a href="/ta/%s/%s"' % (posting.slug, self.co1.slug) )
         self.assertContains(response, '<a href="/ta/%s/%s"' % (posting.slug, self.co2.slug) )
         self.assertContains(response, '<td class="num">1</td>')
+
+        #Check the view application page to make sure it displays properly
+        url = reverse('ta.views.view_application', kwargs={'post_slug': posting.slug, 'userid':app.person.userid,})
+        response = client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<a href="mailto:%s@sfu.ca"' % (app.person.userid) )
+        self.assertContains(response, '<td>%s</td>' % (c1) )
