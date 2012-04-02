@@ -371,15 +371,7 @@ class SearchForm(forms.Form):
             'gpa_max']
 
     col_fields = [
-            'col_program',
-            'col_research_area',
-            'col_campus',
-            'col_english_fluency',
-            'col_mother_tongue',
-            'col_canadian',
-            'col_passport_from',
-            'col_status',
-            'col_start_semester']
+            'columns']
     
     def clean_requirements_st(self):
         value = self.cleaned_data['requirements_st']
