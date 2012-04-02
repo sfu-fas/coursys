@@ -44,12 +44,14 @@ class Person(models.Model):
         # 'gpa': Most recent CGPA for this student
         # 'ccredits': Number of completed credits
     
-    defaults = {'email': None, 'gender': 'U', 'addresses': {}, 'gpa': None, 'ccredits': None}
+    defaults = {'email': None, 'gender': 'U', 'addresses': {}, 'gpa': None, 'ccredits': None, 'visa': None, 'citizen': None}
     _, set_email = getter_setter('email')
     gender, _ = getter_setter('gender')
     addresses, _ = getter_setter('addresses')
     gpa, _ = getter_setter('gpa')
     ccredits, _ = getter_setter('ccredits')
+    visa, _ = getter_setter('visa')
+    citizen, _ = getter_setter('citizen')
     
 
     def __unicode__(self):
@@ -86,6 +88,11 @@ class Person(models.Model):
             return 'Ms'
         else:
             return 'M'
+    def sortname_pref(self):
+        name = "%s, %s" % (self.last_name, self.first_name)
+        if self.pref_first_name and self.pref_first_name != self.first_name:
+            name += ' (%s)' % (self.pref_first_name)
+        return name
 
     def __cmp__(self, other):
         return cmp((self.last_name, self.first_name, self.userid), (other.last_name, other.first_name, other.userid))

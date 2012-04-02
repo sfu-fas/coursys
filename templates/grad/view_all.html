@@ -7,6 +7,7 @@
 <div id="actions">
 	<h2>Actions</h2>
 	<ul>
+		<li id="moreinfo"><a href="javascript:get_more_info('{% url grad.views.grad_more_info grad_slug=grad.slug %}')">Fetch more info <img src="{{MEDIA_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" style="display:none" /></a></li>
 		<li>
 			<a href="{% url grad.views.manage_academics grad_slug=grad.slug %}">Manage Academics</a>
 		</li>
@@ -39,6 +40,7 @@
 {% endblock %}
 
 {% block headextra %}
+<script type="text/javascript" src="{{MEDIA_URL}}js/advisornotes.js"></script>
 <script type="text/javascript">
 	function toggle(title_btn, open_btn, close_btn, body) {
 		$(body).hide();
@@ -77,62 +79,28 @@
 </script>
 {% endblock %}
 
-{% block title %}{{page_title}}{% endblock %}
-{% block h1 %}{{page_title}}{% endblock %}
+{% block title %}{{grad.person.name}}, {{grad.program.description}}{% endblock %}
+{% block h1 %}{{grad.person.name}}, {{grad.program.description}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>
-	&gt; <a href="{% url grad.views.index %}">Grad</a>
-</li>
-<li>
-	&gt; {{crumb}}
-</li>
+<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
+<li>&gt; {{grad.person.name}}, {{grad.program.label}}</li>
 {% endblock %}
 
 {% block content %}
-{# Display the student's Person related info #}
 <div class="table_container">
 	<table class="info">
 		<tbody>
-			<tr>
-				<th>Student # : </th><td>{{grad.person.emplid}}</td>
-				<th>User ID : </th><td>{{grad.person.userid}}</td>
-			</tr>
-			<tr>
-				<th>Full Name : </th><td>{{grad.person.first_name}} {{grad.person.middle_name}} {{grad.person.last_name}}</td>
-				<th>Preferred First Name : </th><td>{{grad.person.pref_first_name}}</td>
-			</tr>
-			<tr>
-				<th>Home Address : </th>
-				<td>{{grad.person.addresses.home}}</td>
-				<th>Mail Address : </th>
-				<td>{{grad.person.addresses.mail}} </td>
-			</tr>
-			<tr>
-				<th> Home Phone :
-				<br />
-				Mobile Phone : </th>
-				<td>{{grad.person.phones.home}}
-				<br />
-				{{grad.person.phones.cell}} </td>
-				<th> Main Phone:
-				<br />
-				Preferred Phone: </th>
-				<td> {{grad.person.phones.main}}
-				<br />
-				{{grad.person.phones.pref}}</td>
-			</tr>
-			<tr>
-				<th>Citizenship : </th><td>{{grad.person.citizen}}</td>
-				<th>Visa : </th><td>{{grad.person.visa}}</td>
-			</tr>
-			<tr>
-				<th>Gender : </th><td>{{grad.person.gender}}</td>
-				<th>Email : </th><td>{{grad.person.email_mailto}}</td>
-			</tr>
+			<tr><th>Student #</th><td>{{grad.person.emplid}}</td></tr>
+			<tr><th>Name</th><td>{{grad.person.sortname_pref}}</td></tr>
+			<tr><th>Email</th><td>{{grad.person.email_mailto}}</td></tr>
+			<tr><th>Citizenship</th><td>{{ grad.person.citizen|default_if_none:"unknown" }} (visa status: {{ grad.person.visa|default_if_none:"unknown" }})</td></tr>
+			<tr><th>GPA</th><td>{{grad.person.gpa}} ({{grad.person.ccredits}} credits)</td></tr>
+			<tr><th>Gender</th><td>{{grad.person.gender}}</td></tr>
 		</tbody>
 	</table>
 </div>
+
 <br />
 <div align="center">
 	<p class="helptext">

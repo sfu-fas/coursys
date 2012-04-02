@@ -15,6 +15,7 @@ class DBConn(object):
     Implemented as a singleton to minimize number of times DB connection overhead occurs.
     Should only be created on-demand (in function) to minimize startup for other processes.
     """
+    dbpass_file = "./dbpass"
     _instance = None
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
@@ -65,7 +66,6 @@ class SIMSConn(DBConn):
     """
     sims_user = "ggbaker"
     sims_db = "csrpt"
-    dbpass_file = "./dbpass"
     table_prefix = "dbsastg."
     
     DatabaseError = None
@@ -259,7 +259,7 @@ def get_names(emplid):
     return last_name, first_name, middle_name, pref_first_name, title
 
 
-GRADFIELDS = ['ccredits', 'citizen', 'gpa', 'gender']
+GRADFIELDS = ['ccredits', 'citizen', 'gpa', 'gender', 'visa']
 @cache_by_args
 @SIMS_problem_handler
 def grad_student_info(emplid):
@@ -269,7 +269,7 @@ def grad_student_info(emplid):
 ALLFIELDS = 'alldata'
 @cache_by_args
 @SIMS_problem_handler
-def more_personal_info(emplid, needed=ALLFIELDS):
+def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
     """
     Get contact info for student: return data or None (not found) or a SIMSProblem instance (error message).
     
@@ -277,12 +277,11 @@ def more_personal_info(emplid, needed=ALLFIELDS):
     
     needed is a list containing the values needed in the result (if available), or ALLFIELDS
     """
-    # TODO: importer_rodb should use this.
     db = SIMSConn()
     data = {}
     
     # get phone numbers
-    if needed == ALLFIELDS or 'phones' in needed:
+    if (needed == ALLFIELDS or 'phones' in needed) and 'phones' not in exclude:
         db.execute('SELECT phone_type, country_code, phone, extension, pref_phone_flag FROM ' + db.table_prefix + 'ps_personal_phone WHERE emplid=%s', (str(emplid),))
         phones = {}
         data['phones'] = phones
@@ -303,7 +302,7 @@ def more_personal_info(emplid, needed=ALLFIELDS):
                 phones['main'] = full_number
 
     # get addresses
-    if needed == ALLFIELDS or 'addresses' in needed:
+    if (needed == ALLFIELDS or 'addresses' in needed) and 'addresses' not in exclude:
         # sorting by effdt to get the latest in the dictionary
         db.execute("SELECT address_type, effdt, eff_status, c.descrshort, address1, address2, address3, address4, city, state, postal FROM " + db.table_prefix + "ps_addresses a, " + db.table_prefix + "ps_country_tbl c WHERE emplid=%s AND eff_status='A' AND a.country=c.country ORDER BY effdt ASC", (str(emplid),))
         addresses = {}
@@ -324,7 +323,7 @@ def more_personal_info(emplid, needed=ALLFIELDS):
 
 
     # get citizenzhip
-    if needed == ALLFIELDS or 'citizen' in needed:
+    if (needed == ALLFIELDS or 'citizen' in needed) and 'citizen' not in exclude:
         db.execute("SELECT c.descrshort FROM " + db.table_prefix + "ps_citizenship cit, dbsastg.ps_country_tbl c WHERE emplid=%s AND cit.country=c.country", (str(emplid),))
         #if 'citizen' in p.config:
         #    del p.config['citizen']
@@ -332,9 +331,9 @@ def more_personal_info(emplid, needed=ALLFIELDS):
             data['citizen'] = country
 
     # get Canadian visa status
-    if needed == ALLFIELDS or 'visa' in needed:
+    if (needed == ALLFIELDS or 'visa' in needed) and 'visa' not in exclude:
         # sorting by effdt to get the latest in the dictionary
-        db.execute("SELECT t.descrshort FROM dbsastg.ps_visa_pmt_data v, " + db.table_prefix + "ps_visa_permit_tbl t WHERE emplid=%s AND v.visa_permit_type=t.visa_permit_type AND v.country=t.country AND v.country='CAN' AND v.visa_wrkpmt_status='A' AND t.eff_status='A' ORDER BY v.effdt ASC", (str(emplid),))
+        db.execute("SELECT t.descrshort FROM " + db.table_prefix + "ps_visa_pmt_data v, " + db.table_prefix + "ps_visa_permit_tbl t WHERE emplid=%s AND v.visa_permit_type=t.visa_permit_type AND v.country=t.country AND v.country='CAN' AND v.visa_wrkpmt_status='A' AND t.eff_status='A' ORDER BY v.effdt ASC", (str(emplid),))
         #if 'visa' in p.config:
         #    del p.config['visa']
         for desc, in db:
@@ -346,7 +345,7 @@ def more_personal_info(emplid, needed=ALLFIELDS):
     #    print (e_addr_type, email_addr, pref_email_flag)
     
     # other stuff from ps_personal_data
-    if needed == ALLFIELDS or 'gender' in needed:
+    if (needed == ALLFIELDS or 'gender' in needed) and 'gender' not in exclude:
         db.execute('SELECT sex FROM ' + db.table_prefix + 'ps_personal_data WHERE emplid=%s', (str(emplid),))
         #if 'gender' in p.config:
         #    del p.config['gender']
@@ -355,17 +354,18 @@ def more_personal_info(emplid, needed=ALLFIELDS):
                 data['gender'] = sex # 'M', 'F', 'U'    
     
     # academic programs
-    if needed == ALLFIELDS or 'programs' in needed:
+    if (needed == ALLFIELDS or 'programs' in needed) and 'programs' not in exclude:
         programs = []
         data['programs'] = programs
         db.execute("SELECT apt.acad_plan, apt.descr, apt.trnscr_descr from "
                    "(select max(effdt) as effdt from " + db.table_prefix + "ps_acad_plan where emplid=%s) as last, "
+                   "(select effdt, max(effseq) as effseq from " + db.table_prefix + "ps_acad_plan where emplid=%s GROUP BY effdt) as seq, "
                    + db.table_prefix + "ps_acad_plan as ap, "
                    + db.table_prefix + "ps_acad_plan_tbl as apt, "
-                   "(select acad_plan, max(effdt) as effdt from dbsastg.ps_acad_plan_tbl GROUP BY acad_plan) as lastplan "
-                   "WHERE (apt.acad_plan=ap.acad_plan AND last.effdt=ap.effdt "
+                   "(select acad_plan, max(effdt) as effdt from " + db.table_prefix + "ps_acad_plan_tbl GROUP BY acad_plan) as lastplan "
+                   "WHERE (apt.acad_plan=ap.acad_plan AND last.effdt=ap.effdt AND seq.effdt=last.effdt AND seq.effseq=ap.effseq "
                    "AND apt.effdt=lastplan.effdt AND lastplan.acad_plan=ap.acad_plan "
-                   "AND apt.eff_status='A' AND ap.emplid=%s)", (str(emplid), str(emplid)))
+                   "AND apt.eff_status='A' AND ap.emplid=%s)", (str(emplid), str(emplid), str(emplid)))
         #  AND apt.trnscr_print_fl='Y'
         for acad_plan, descr, transcript in db:
             label = transcript or descr
@@ -373,7 +373,7 @@ def more_personal_info(emplid, needed=ALLFIELDS):
             programs.append(prog)
     
     # GPA and credit count
-    if needed == ALLFIELDS or 'gpa' in needed or 'ccredits' in needed:
+    if (needed == ALLFIELDS or 'gpa' in needed or 'ccredits' in needed) and 'ccredits' not in exclude:
         db.execute('SELECT cum_gpa, tot_cumulative FROM ' + db.table_prefix + 'ps_stdnt_car_term WHERE emplid=%s ORDER BY strm DESC FETCH FIRST 1 ROWS ONLY', (str(emplid),))
         for gpa, cred in db:
             data['gpa'] = gpa

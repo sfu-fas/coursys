@@ -82,8 +82,8 @@ def all_tugs(request, course_slug):
         
 @requires_role("ADMN")
 def all_tugs_admin(request):
-    unit = Role.objects.get(person__userid=request.user.username).unit
-    courses = CourseOffering.objects.filter(owner=unit) # TO DO: Make this reference the CourseOffering's "Owner" field once it's been added
+    unit = request.units[0] # TODO: allow selecting unit if multiple
+    courses = CourseOffering.objects.filter(owner__in=request.units)
     tas = Member.objects.filter(offering__in=courses, role="TA")
     tas_with_tugs = [{'ta':ta, 'tug':tryget(ta)} for ta in tas]
     

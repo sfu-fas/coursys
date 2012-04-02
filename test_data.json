@@ -18292,7 +18292,8 @@
    "label": "CMPT",
    "name": "School of Computing Science",
    "parent": 3,
-   "slug": "cmpt"
+   "slug": "cmpt",
+   "acad_org": "COMP SCI"
   },
   "model": "coredata.unit",
   "pk": 2

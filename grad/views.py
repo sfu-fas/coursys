@@ -13,7 +13,7 @@ from ta.models import TAContract, TAApplication, TACourse
 #from ta.views import total_pay
 from ra.models import RAAppointment
 from coredata.models import Person, Role, Unit, Semester, CAMPUS_CHOICES
-from coredata.queries import more_personal_info, SIMSProblem
+from coredata.queries import more_personal_info, SIMSProblem, GRADFIELDS
 from django import forms
 from django.forms.models import modelformset_factory, inlineformset_factory
 from courselib.auth import requires_role, ForbiddenResponse, has_role
@@ -90,13 +90,9 @@ def view_all(request, grad_slug):
         missing_req = missing_req.exclude(description=s.requirement.description)
     
     # set frontend defaults
-    page_title = "%s 's Graduate Student Record" % (grad.person.first_name)
-    crumb = "%s, %s" % (grad.person.first_name, grad.person.last_name)
 
     gp = grad.person.get_fields
     context = {
-               'page_title' : page_title,
-               'crumb' : crumb,
                'grad' : grad,
                'gp' : gp,
                'status_history' : status_history,
@@ -106,6 +102,21 @@ def view_all(request, grad_slug):
                'letter' : letter         
                }
     return render(request, 'grad/view_all.html', context)
+
+@requires_role('GRAD')
+def grad_more_info(request, grad_slug):
+    """
+    AJAX request for contact info, etc. (queries SIMS directly)
+    """
+    grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
+    try:
+        data = more_personal_info(grad.person.emplid, exclude=GRADFIELDS)
+    except SIMSProblem as e:
+        data = {'error': e.message}
+    
+    response = HttpResponse(mimetype='application/json')
+    json.dump(data, response, indent=1)
+    return response
 
 
 @requires_role("GRAD")
