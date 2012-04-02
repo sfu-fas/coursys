@@ -314,6 +314,6 @@ class Promise(models.Model):
 
 class SavedSearch(models.Model):
     person = models.ForeignKey(Person, null=True)
-    query = models.CharField()
+    query = models.TextField()
     config = JSONField(null=False, blank=False, default={})
 
