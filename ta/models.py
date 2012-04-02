@@ -442,6 +442,11 @@ class TAContract(models.Model):
                 if m.role == 'TA' and m.added_reason == 'CTA':
                     m.role = 'DROP'
                     m.save()
+            
+            if self.status in ('CAN', 'REJ'):
+                crs.bu = 0
+                crs.save()
+
 
 
     def first_assign(self, application, posting):
