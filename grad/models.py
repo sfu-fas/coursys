@@ -41,14 +41,16 @@ APPLICATION_STATUS_CHOICES = (
 # order: In-Review, rej/dec? , expired, cancelled, confirmed, unknown
 
 class GradStudent(models.Model):
-    person = models.ForeignKey(Person, help_text="Type in student ID or number.", null=False, blank=False, unique=True)
+    person = models.ForeignKey(Person, help_text="Type in student ID or number.", null=False, blank=False, unique=False)
     program = models.ForeignKey(GradProgram, null=False, blank=False)
     def autoslug(self):
-        # not sure why we need to have program as part of slug 
-        return make_slug(self.person.userid + "-" + self.program.slug)
-        #return make_slug(self.person.userid)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False)
-    research_area = models.CharField('Research Area', max_length=250, blank=False)
+        if self.person.userid:
+            userid = self.person.userid
+        else:
+            userid = str(self.person.emplid)
+        return make_slug(userid + "-" + self.program.slug)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    research_area = models.TextField('Research Area', blank=True)
     campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES, blank=True)
 
     english_fluency = models.CharField(max_length=50, blank=True, help_text="I.e. Read, Write, Speak, All.")
@@ -66,6 +68,7 @@ class GradStudent(models.Model):
 
     config = JSONField(default={}) # addition configuration
         # 'sin': Social Insurance Number
+        # 'app_id': unique identifier for the PCS application import (so we can detect duplicate imports)
     defaults = {'sin': '000000000'}
     sin, set_sin = getter_setter('sin')
 
@@ -76,7 +79,11 @@ class GradStudent(models.Model):
                 k.append([capfirst(field.verbose_name), field.value_to_string(self)])
         return k    
     def __unicode__(self):
-        return "Grad student: %s" % (self.person)   
+        return "Grad student: %s" % (self.person)
+    def save(self, *args, **kwargs):
+        # rebuild slug in case something changes
+        self.slug = None
+        super(GradStudent, self).save(*args, **kwargs)
     
 class Supervisor(models.Model):
     """

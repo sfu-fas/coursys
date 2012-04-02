@@ -71,8 +71,8 @@ class Person(models.Model):
             return self.config['email']
         elif self.userid:
             return "%s@sfu.ca" % (self.userid)
-        #elif 'applic_email' in self.config:
-        #    return self.config['applic_email']
+        elif 'applic_email' in self.config:
+            return self.config['applic_email']
         else:
             return None
     def full_email(self):

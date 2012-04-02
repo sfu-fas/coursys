@@ -4,7 +4,7 @@ sys.path.append(".")
 sys.path.append("..")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 
-from coredata.queries import SIMSConn, DBConn, get_names, more_personal_info
+from coredata.queries import SIMSConn, DBConn, get_names, grad_student_info, GRADFIELDS
 from coredata.models import *
 from dashboard.models import NewsItem
 from log.models import LogEntry
@@ -398,7 +398,7 @@ def get_person(emplid, commit=True):
     
 
 imported_people_full = {}
-def get_person_full(emplid):
+def get_person_grad(emplid):
     """
     Get/update personal info: does get_person() plus additional info we need for grad students
     """
@@ -409,12 +409,11 @@ def get_person_full(emplid):
     
     p = get_person(emplid, commit=False)
     
-    fields = ['ccredits', 'citizen', 'gpa', 'gender']
-    data = more_personal_info(emplid, needed=fields)
+    data = grad_student_info(emplid)
     p.config.update(data)
 
-    # if we tried to update but it's gone, don't keep old version
-    for f in fields:
+    # if we tried to update but it's gone: don't keep old version
+    for f in GRADFIELDS:
         if f not in data and f in p.config:
             del p.config[f]
     

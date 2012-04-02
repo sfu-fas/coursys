@@ -259,6 +259,13 @@ def get_names(emplid):
     return last_name, first_name, middle_name, pref_first_name, title
 
 
+GRADFIELDS = ['ccredits', 'citizen', 'gpa', 'gender']
+@cache_by_args
+@SIMS_problem_handler
+def grad_student_info(emplid):
+    "The info we want in Person.config for all GradStudents"
+    return more_personal_info(emplid, needed=GRADFIELDS)
+
 ALLFIELDS = 'alldata'
 @cache_by_args
 @SIMS_problem_handler

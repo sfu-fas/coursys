@@ -472,6 +472,8 @@ class SearchForm(forms.Form):
 
 class UploadApplicantsForm(forms.Form):
     csvfile = forms.FileField(required=True, label="PCS data export")
+    unit = forms.ChoiceField(choices=[], help_text="The unit students are being imported for")
+    semester = forms.ChoiceField(choices=[], help_text="The application semester")
     
     def clean_csvfile(self):        
         csvfile = self.cleaned_data['csvfile']
@@ -481,79 +483,122 @@ class UploadApplicantsForm(forms.Form):
         
         return csvfile
 
-from coredata.queries import add_person, SIMSProblem
+
+PCS_COLUMNS = [ # (key, header)
+               ('appid', 'ID'),
+               ('emplid', 'Application ID'),
+               ('email', 'Contact Email'),
+               ('dob', 'Date of Birth'),
+               ('program', 'Program of Study'),
+               ('lastup', 'Last Update'),
+               ('resarea', 'Primary Research Area'),
+               ('firstlang', 'First Language'),
+               ]
+
+PCS_COL_LOOKUP = dict(((hdr, key) for key,hdr in PCS_COLUMNS))
+PCS_HDR_LOOKUP = dict(PCS_COLUMNS)
+
+from coredata.models import Unit
+from coredata.queries import add_person, SIMSProblem, grad_student_info
 import datetime, StringIO
-def process_pcs_export(csvdata):
+
+def process_pcs_row(row, column, rownum, unit, semester, user):
+    """
+    Process a single row from the PCS import
+    """
+    warnings = []
+    appid = row[column['appid']]
+    emplid = row[column['emplid']]
+    email = row[column['email']]
+    #name = row[column['name']]
+    dob = row[column['dob']]
+    #gender = row[column['gender']]
+    #citizen = row[column['citizen']]
+    program = row[column['program']]
+
+    # get Person, from SIMS if necessary
+    try:
+        p = Person.objects.get(emplid=emplid)
+    except Person.DoesNotExist:
+        try:
+            p = add_person(emplid)
+        except SIMSProblem as e:
+            return e.message
+
+    # update information on the Person
+    if email: p.config['applic_email'] = email
+
+    if dob:
+        try:
+            dt = datetime.datetime.strptime(dob, "%Y-%m-%d")
+            p.config['birthdate'] = dt.date().isoformat()
+        except ValueError:
+            warnings.append("Bad birthdate in row %i." % (rownum))
+    
+    # get extended SIMS data
+    data = grad_student_info(emplid)
+    p.config.update(data)
+    
+    p.save()
+    
+    # get GradStudent, creating if necessary
+    
+    # a unique identifier for this application, so we can detect repeated imports (and handle gracefully)
+    uid = "%s-%s-%s-%s" % (unit.slug, semester.name, appid, emplid)
+    # TODO: wrong, wrong, wrong. Figure out how to select program from import data
+    program = GradProgram.objects.filter(unit=unit)[0]
+
+    # find the old GradStudent if possible
+    gss = GradStudent.objects.filter(program__unit=unit, person=p)
+    gs = None
+    for g in gss:
+        if 'app_id' in g.config and g.config['app_id'] == uid:
+            gs = g
+            break
+    if not gs:
+        gs = GradStudent(program=program, person=p)
+        gs.config['app_id'] = uid
+    
+    resarea = row[column['resarea']]
+    firstlang = row[column['firstlang']]
+    
+    gs.research_area = resarea
+    gs.mother_tongue = firstlang
+    gs.created_by = user.userid
+    gs.updated_by = user.userid
+    gs.save()
+    
+    return warnings
+
+def process_pcs_export(csvdata, unit_id, semester_id, user):
     data = csv.reader(StringIO.StringIO(csvdata))
+    unit = Unit.objects.get(id=unit_id)
+    semester = Semester.objects.get(id=semester_id)
     warnings = []
 
     # find the columns by their heading, so we're tolerant of small changes to export format
     titles = data.next()
     column = {}
-    req_columns = set(['emplid', 'email', 'dob', 'citizen', 'program', 'lastup'])
+    req_columns = set(PCS_HDR_LOOKUP.keys())
     for i, header in enumerate(titles):
-        if header == 'Application ID':
-            column['emplid'] = i
-        elif header == 'Contact Email':
-            column['email'] = i
+        if header in PCS_COL_LOOKUP:
+            column[PCS_COL_LOOKUP[header]] = i
         #elif header.startswith('Application ('):
         #    column['name'] = i
-        elif header == 'Date of Birth':
-            column['dob'] = i
-        #elif header == 'Gender':
-        #    column['gender'] = i
-        elif header == 'Citizenship':
-            column['citizen'] = i
-        #elif header == 'First Language':
-        #    column['firstlang'] = i
-        elif header == 'Program of Study':
-            column['program'] = i
-        elif header == 'Last Update':
-            column['lastup'] = i
 
     missing = req_columns - set(column.keys())
     if missing:
-        return  u"Missing columns in export: " + ', '.join(missing)
+        return u"Missing columns in export: " + ', '.join([PCS_HDR_LOOKUP[key] for key in missing])
 
     # process data rows
     count = 0
     for i, row in enumerate(data):
         if len(row) == 0:
             continue
-        i += 2
 
-        emplid = row[column['emplid']]
-        email = row[column['email']]
-        #name = row[column['name']]
-        dob = row[column['dob']]
-        #gender = row[column['gender']]
-        citizen = row[column['citizen']]
-        #firstlang = row[column['firstlang']]
-        #program = row[column['program']]
-        #lastup = row[column['lastup']]
+        w = process_pcs_row(row, column, i+2, unit, semester, user)
+        warnings.extend(w)
 
-        # get Person, from SIMS if necessary
-        try:
-            p = Person.objects.get(emplid=emplid)
-        except Person.DoesNotExist:
-            try:
-                p = add_person(emplid)
-            except SIMSProblem as e:
-                return e.message
-
-        #print p
-
-        if email: p.config['applic_email'] = email
-        if citizen: p.config['citizen'] = citizen
-
-        if dob:
-            try:
-                dt = datetime.datetime.strptime(dob, "%Y-%m-%d")
-                p.config['birthdate'] = dt.date().isoformat()
-            except ValueError:
-                warnings.append("Bad birthdate in row %i." % (i))
-        
-        p.save()
         count += 1
     
     message = 'Imported information on %i students.\n' % (count)
