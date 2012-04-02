@@ -310,4 +310,10 @@ class Promise(models.Model):
         k = []
         for field in Promise._meta.fields:
                 k.append([capfirst(field.verbose_name), field.value_to_string(self)])
-        return k    
+        return k
+
+class SavedSearch(models.Model):
+    person = models.ForeignKey(Person, null=True)
+    query = models.CharField()
+    config = JSONField(null=False, blank=False, default={})
+
