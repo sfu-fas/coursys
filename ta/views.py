@@ -225,7 +225,7 @@ def _new_application(request, post_slug, manual=False):
                 person = get_object_or_404(Person, emplid=int(request.POST['search']))
             except ValueError:
                 search_form = StudentSearchForm(request.POST['search'])
-                messages.error(request, "Invalid id %s for person." % (request.POST['search']))
+                messages.error(request, "Invalid emplid %s for person." % (request.POST['search']))
                 return HttpResponseRedirect(reverse('ta.views.new_application_manual', args=(post_slug,)))
             
             #Check to see if an application already exists for the person 
@@ -309,7 +309,7 @@ def _new_application(request, post_slug, manual=False):
         skill_values = [(s.position, s.name, 'NONE') for s in skills]
         today = datetime.date.today()
         if(posting.closes < today):
-            messages.warning(request, "The closing date for this posting has past.  Your application will be marked 'late' and may not be considered.")
+            messages.warning(request, "The closing date for this posting has passed.  Your application will be marked 'late' and may not be considered.")
     context = {
                     'posting':posting,
                     'manual':manual,

@@ -326,7 +326,7 @@ class TAApplication(models.Model):
     experience =  models.TextField(blank=True, null=True,
         verbose_name="Experience",
         help_text='Describe any other experience that you think may be relevant to these courses.')
-    course_load = models.TextField(verbose_name="Intended course load",
+    course_load = models.TextField(blank=True, verbose_name="Intended course load",
         help_text='Describe the intended course load of the semester being applied for.')
     other_support = models.TextField(blank=True, null=True,
         verbose_name="Other financial support",
