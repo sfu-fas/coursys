@@ -55,15 +55,6 @@ def student_appointments(request, userid):
     appointments = RAAppointment.objects.filter(person=student, unit__in=request.units).order_by("-created_at")
     return render(request, 'ra/student_appointments.html', {'appointments': appointments, 'student': student}, context_instance=RequestContext(request))
 
-#A helper method to determine the number of pay periods between two dates.
-def pay_periods(start_date, end_date):
-    weekdays = 0
-    while start_date <= end_date:
-        if start_date.weekday() != 5 and start_date.weekday() != 6:
-            weekdays += 1
-        start_date += timedelta(days=1)
-    return float(weekdays)/10
-
 #New RA Appointment
 @requires_role("FUND")
 def new(request):
@@ -76,8 +67,7 @@ def new(request):
             return HttpResponseRedirect(reverse(student_appointments, kwargs=({'userid': userid})))
     else:
         semester = Semester.first_relevant() 
-        periods = str(pay_periods(semester.start, semester.end))
-        raform = RAForm(initial={'start_date': semester.start, 'end_date': semester.end, 'pay_periods': periods, 'hours': 70 })
+        raform = RAForm(initial={'start_date': semester.start, 'end_date': semester.end, 'hours': 70 })
         raform.fields['scholarship'].choices=[("", "---------")]
         raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
         raform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
@@ -89,9 +79,8 @@ def new(request):
 @requires_role("FUND")
 def new_student(request, userid):
     semester = Semester.first_relevant() 
-    periods = str(pay_periods(semester.start, semester.end))
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
-    initial = {'person': userid, 'start_date': semester.start, 'end_date': semester.end, 'pay_periods': periods, 'hours': 70 }
+    initial = {'person': userid, 'start_date': semester.start, 'end_date': semester.end, 'hours': 70 }
     try:
         gradstudent = GradStudent.objects.get(person=student)
         initial['sin'] = gradstudent.sin()
@@ -112,7 +101,19 @@ def new_student(request, userid):
 def edit(request, ra_slug):
     appointment = get_object_or_404(RAAppointment, slug=ra_slug)    
     if request.method == 'POST':
-        raform = RAForm(request.POST, instance=appointment)
+        data = request.POST.copy()
+        if data['pay_frequency'] == 'L':
+            # force values into the non-submitted (and don't-care) fields for lump sum pay
+            try:
+                pay = float(data['lump_sum_pay'])
+            except ValueError:
+                pay = 1
+            data['biweekly_pay'] = data.get('biweekly_pay', pay)
+            data['hourly_pay'] = data.get('hourly_pay', pay)
+            data['hours'] = 1
+            data['pay_periods'] = 1
+        
+        raform = RAForm(data, instance=appointment)
         if raform.is_valid():
             userid = raform.cleaned_data['person'].userid
             raform.save()
@@ -139,8 +140,7 @@ def edit(request, ra_slug):
 def reappoint(request, ra_slug):
     appointment = get_object_or_404(RAAppointment, slug=ra_slug)    
     semester = Semester.first_relevant()
-    periods = str(pay_periods(semester.start, semester.end))
-    raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid, 'reappointment': True, 'start_date': semester.start, 'end_date': semester.end, 'pay_periods': periods, 'hours': 70 })
+    raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid, 'reappointment': True, 'start_date': semester.start, 'end_date': semester.end, 'hours': 70 })
     raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
     scholarship_choices = [("", "---------")]
     for s in Scholarship.objects.filter(student__person__emplid = appointment.person.emplid):

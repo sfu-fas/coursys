@@ -20,7 +20,7 @@ class RAForm(forms.ModelForm):
         try:
             person_object = Person.objects.get(emplid=self['person'].value())
             gradstudent = GradStudent.objects.get(person=person_object)
-            print "setting " + person_object.first_name + " sin to " + str(sin)
+            #print "setting " + person_object.first_name + " sin to " + str(sin)
             gradstudent.set_sin(sin)
             gradstudent.save()
         except (ObjectDoesNotExist):

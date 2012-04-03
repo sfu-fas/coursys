@@ -452,13 +452,22 @@ class RAForm(object):
         self.c.drawString(5*inch + 1.5*self.CHECK_SIZE, height - self.BOX_OFFSET - 2*self.CHECK_SIZE - 3, "Not Eligible for Health Benefits")
         
         # pay
-        self._draw_box_left(0, height - self.ENTRY_HEIGHT, width=2.125*inch, label="HOURLY", content="$  " + unicode(self.ra.hourly_pay))
-        self._draw_box_left(3*inch, height - self.ENTRY_HEIGHT, width=1.5*inch, label="BI-WEEKLY", content="$  " + unicode(self.ra.biweekly_pay))
+        if self.ra.pay_frequency == 'L':
+            hourly = ''
+            biweekly = ''
+            hours = ''
+            lumpsum = "$%.2f" % (self.ra.lump_sum_pay)
+        else:
+            hourly = "$  %.2f" % (self.ra.hourly_pay)
+            biweekly = "$  %.2f" % (self.ra.biweekly_pay)
+            hours = "%i : 00" % (self.ra.hours)
+            lumpsum = ''
+        self._draw_box_left(0, height - self.ENTRY_HEIGHT, width=2.125*inch, label="HOURLY", content=hourly)
+        self._draw_box_left(3*inch, height - self.ENTRY_HEIGHT, width=1.5*inch, label="BI-WEEKLY", content=biweekly)
         self._draw_box_right(0, height - self.ENTRY_HEIGHT, width=2.25*inch, label="LUMP SUM ADJUSTMENT", content='')
         
-        hours = "%i : 00" % (self.ra.hours)
         self._draw_box_left(3*inch, height - 2*self.ENTRY_HEIGHT, width=1.5*inch, label="BI-WEEKLY HOURS", content=hours)
-        self._draw_box_left(self.MAIN_WIDTH - self.BOX_OFFSET - 2.25*inch, height - 2*self.ENTRY_HEIGHT, width=1*inch, label="LUMP SUM", content='')
+        self._draw_box_left(self.MAIN_WIDTH - self.BOX_OFFSET - 2.25*inch, height - 2*self.ENTRY_HEIGHT, width=1*inch, label="LUMP SUM", content=lumpsum)
         
         self.c.setFont("Helvetica-Bold", 8)
         self.c.drawString(self.BOX_OFFSET, height - 1.125*inch, "Enter Hourly Rate if Paid by the hour.")
@@ -503,9 +512,10 @@ class RAForm(object):
         
         f = Frame(self.BOX_OFFSET, height - 1.125*inch, self.MAIN_WIDTH - 2*self.BOX_OFFSET, 1*inch) # showBoundary=1
         notes = []
-        default_note = "For total amount of $%s over %i pay periods." % (self.ra.lump_sum_pay, self.ra.pay_periods)
-        notes.append(Paragraph(default_note, style=self.NOTE_STYLE))
-        notes.append(Spacer(1, 8))
+        if self.ra.pay_frequency != 'L':
+            default_note = "For total amount of $%s over %i pay periods." % (self.ra.lump_sum_pay, self.ra.pay_periods)
+            notes.append(Paragraph(default_note, style=self.NOTE_STYLE))
+            notes.append(Spacer(1, 8))
         notes.append(Paragraph(self.ra.notes, style=self.NOTE_STYLE))
         f.addFromList(notes, self.c)
 

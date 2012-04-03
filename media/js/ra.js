@@ -41,6 +41,39 @@ function update_hourly() {
   $("#id_biweekly_pay").val((hourly * num_hours).toFixed(2));
 }
 
+function update_pay_frequency() {
+	var v = $("#id_pay_frequency").val();
+	if ( v == 'L' ) {
+		$("#id_hourly_pay").prop('disabled', true);
+		$("#id_biweekly_pay").prop('disabled', true);
+		$("#id_hours").prop('disabled', true).val(1);
+		$("#id_pay_periods").prop('disabled', true).val(1);
+		update_lump_sum();
+	} else {
+		$("#id_hourly_pay").prop('disabled', false);
+		$("#id_biweekly_pay").prop('disabled', false);
+		$("#id_hours").prop('disabled', false);
+		$("#id_pay_periods").prop('disabled', false);
+	}
+}
+
+function update_pay_periods() {
+	var st = new Date($("#id_start_date").val());
+	var en = new Date($("#id_end_date").val());
+	var day = 1000*3600*24; // # of milliseconds in a day
+	var count = 0;
+	
+	// count non-weekend days from st to en (there's a better way, but my JS isn't up to it.)
+	while ( st <= en ) {
+		st = new Date(st.getTime() + day);
+		if ( st.getDay() >= 1 && st.getDay() <= 5 ) {
+			count += 1;
+		}
+	}
+	$("#id_pay_periods").val(count/10);
+}
+
+
 function update_person(id) {
   $.getJSON("/data/scholarships/" + id, function(json) {
     var options = '<option value="" >---------</option>';
@@ -64,22 +97,15 @@ $(document).ready(function() {
   ra_autocomplete('id_person');
   $("#id_start_date").datepicker({'dateFormat': 'yy-mm-dd'});
   $("#id_end_date").datepicker({'dateFormat': 'yy-mm-dd'});
-  $("#id_lump_sum_pay").change(function() {
-    update_lump_sum();
-  });
-  $("#id_biweekly_pay").change(function() {
-    update_biweekly();
-  });
-  $("#id_pay_periods").change(function() {
-    update_lump_sum();
-  });
-  $("#id_hourly_pay").change(function() {
-    update_hourly();
-  });
-  $("#id_hours").change(function() {
-    update_lump_sum();
-  });
-  $("#id_person").change(function() {
-    update_person();
-  });
+  $("#id_lump_sum_pay").change(update_lump_sum);
+  $("#id_biweekly_pay").change(update_biweekly);
+  $("#id_pay_periods").change(update_lump_sum);
+  $("#id_hourly_pay").change(update_hourly);
+  $("#id_hours").change(update_lump_sum);
+  $("#id_pay_frequency").change(update_pay_frequency);
+  update_pay_frequency();
+  $("#id_person").change(update_person);
+  $("#id_start_date").change(update_pay_periods);
+  $("#id_end_date").change(update_pay_periods);
+  update_pay_periods();
 });
