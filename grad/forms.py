@@ -6,7 +6,7 @@ from grad.models import Supervisor, GradProgram, GradStudent, GradStatus,\
     GradRequirement, CompletedRequirement, LetterTemplate, Letter, Promise, Scholarship,\
     ScholarshipType
 from coredata.models import Person, Member, Semester, CAMPUS_CHOICES
-from django.forms.formsets import BaseFormSet
+from django.forms.models import BaseModelFormSet
 #from django.core.exceptions import ValidationError
 from django.forms.widgets import NullBooleanSelect
 from django.template import Template, TemplateSyntaxError
@@ -128,7 +128,7 @@ def possible_supervisors(units, extras=[]):
     people.sort()
     return [(p.id, p.name()) for p in people]
 
-class BaseSupervisorsFormSet(BaseFormSet):
+class BaseSupervisorsFormSet(BaseModelFormSet):
     def clean(self):
         if any(self.errors):
             return

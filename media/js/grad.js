@@ -52,7 +52,7 @@ function add(){
 
 var currentSelections = new Object();
 
- function processSelections(selectOptions){
+function processSelections(selectOptions){
 	// store the current selections
 	$(selectOptions).each(function(){
 		currentSelections[$(this).attr('id')] = $(this).val();

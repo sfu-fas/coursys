@@ -3,23 +3,20 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
-from django.template import RequestContext
 from django.db.models import Count
 from django.views.decorators.cache import cache_page
 from django.views.decorators.gzip import gzip_page
 from django.conf import settings
 from coredata.models import Member, CourseOffering, Person, Role, Semester, MeetingTime
 from grades.models import Activity, NumericActivity
-from groups.models import Group, GroupMember
 from courselib.auth import requires_course_staff_by_slug, requires_course_by_slug, NotFoundResponse, ForbiddenResponse
 from dashboard.models import NewsItem, UserConfig, Signature, new_feed_token
 from dashboard.forms import *
 from django.contrib import messages
 from log.models import LogEntry
-import random, datetime, time, json, urlparse
-from advisornotes.models import AdvisorNote
+import datetime, json, urlparse
 from courselib.auth import requires_role
-from icalendar import Calendar, Event, Alarm
+from icalendar import Calendar, Event
 import pytz
 from grad.models import GradStudent
 
@@ -594,6 +591,34 @@ def new_signature(request):
     context = {'form': form}
     return render(request, "dashboard/new_signature.html", context)
 
+from courselib.search import find_userid_or_emplid
+from grad.models import Supervisor
+
+# everything-about-this-student view
+def student_info(request, userid):
+    student = get_object_or_404(Person, find_userid_or_emplid(userid))
+    user = Person.objects.get(userid=request.user.username)
+    all_instr = [m.offering for m in Member.objects.filter(person=user, role='INST').select_related('offering')]
+    all_ta = [m.offering for m in Member.objects.filter(person=user, role='TA').select_related('offering')]
+    
+    student_instr = Member.objects.filter(person=student, role='STUD', offering__in=all_instr).select_related('offering', 'person')
+    student_ta = Member.objects.filter(person=student, role='STUD', offering__in=all_ta).select_related('offering', 'person')
+    ta_instr = Member.objects.filter(person=student, role='TA', offering__in=all_instr).select_related('offering', 'person')
+    supervisors = Supervisor.objects.filter(student__person=student, supervisor=user)
+    
+    anything = student_instr or student_ta or ta_instr or supervisors
+    if not anything:
+        return NotFoundResponse(request, errormsg="No information found for this student")
+    
+    context = {
+               'student': student,
+               'student_instr': student_instr,
+               'student_ta': student_ta,
+               'ta_instr': ta_instr,
+               'supervisors': supervisors,
+               }
+
+    return render(request, "dashboard/student_info.html", context)
 
 
 # documentation views

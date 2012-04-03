@@ -75,6 +75,7 @@ urlpatterns += patterns('',
     url(r'^data/students$', 'coredata.views.student_search'),
     #url(r'^data/sims_people', 'coredata.views.sims_person_search'),
     url(r'^data/scholarships/(?P<student_id>\d{9})$' , 'ra.views.search_scholarships_by_student'),
+    url(r'^students/' + USERID_OR_EMPLID + '$', 'dashboard.views.student_info'),
 
     url(r'^' + COURSE_SLUG + '/$', 'grades.views.course_info'),
         url(r'^m/' + COURSE_SLUG + '/$', 'mobile.views.course_info'),

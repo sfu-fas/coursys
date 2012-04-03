@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Information About {{student.name}}{% endblock %}
+{% block h1 %}Information About {{student.name}}{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="">Student Info</a></li><li>&gt; {{student.name}}</li>{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+{% if student_instr %}
+<h2 id="student_instr">As Your Student</h2>
+<ul>
+    {% for m in student_instr %}
+    <li><a href="{{m.get_absolute_url}}">{{m.offering}}</a></li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% if ta_instr %}
+<h2 id="ta_instr">As Your TA</h2>
+<ul>
+    {% for m in ta_instr %}
+    <li><a href="{{m.offering.get_absolute_url}}">{{m.offering}}</a></li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% if supervisors %}
+<h2 id="supervisors">On a Graduate Committee</h2>
+<ul>
+    {% for s in supervisors %}
+    <li>{{s.student.program.description}}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+
+{% endblock %}
