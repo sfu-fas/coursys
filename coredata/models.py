@@ -44,7 +44,7 @@ class Person(models.Model):
         # 'gpa': Most recent CGPA for this student
         # 'ccredits': Number of completed credits
     
-    defaults = {'email': None, 'gender': 'U', 'addresses': {}, 'gpa': None, 'ccredits': None, 'visa': None, 'citizen': None}
+    defaults = {'email': None, 'gender': 'U', 'addresses': {}, 'gpa': 0.0, 'ccredits': 0.0, 'visa': None, 'citizen': None}
     _, set_email = getter_setter('email')
     gender, _ = getter_setter('gender')
     addresses, _ = getter_setter('addresses')
@@ -251,6 +251,14 @@ class Semester(models.Model):
         before = Semester.objects.filter(start__lt=self.start).order_by('-start')
         return before[0]
     
+    @classmethod
+    def current(cls):
+        """
+        The current semester
+        """
+        today = datetime.date.today()
+        return Semester.objects.filter(end__gt=today).order_by('start')[0]
+
     @classmethod
     def next_starting(cls):
         """

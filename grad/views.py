@@ -320,17 +320,6 @@ def manage_status(request, grad_slug):
     if request.method == 'POST':
         new_status_form = GradStatusForm(request.POST)
         if new_status_form.is_valid():
-            # Close previous status
-            # Assuming that only one status can be unclosed at once.
-            old_status_end = new_status_form.instance.start.previous_semester()
-            old_status_start = GradStatus.objects.get(student=grad, end=None).start
-
-            # Status should not be negative in length, but end in the semester they started.
-            if old_status_start > old_status_end:
-                old_status_end = old_status_start
-
-            GradStatus.objects.filter(student=grad, end=None).update(end=old_status_end)
-
             # Save new status
             new_actual_status = new_status_form.save(commit=False)
             new_actual_status.student = grad
@@ -348,7 +337,7 @@ def manage_status(request, grad_slug):
             l.save()                       
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))
     else:
-        new_status_form = GradStatusForm()
+        new_status_form = GradStatusForm(initial={'start': Semester.current()})
 
     # set frontend defaults
     page_title = "%s 's Status Record" % (grad.person.first_name)
@@ -515,10 +504,6 @@ def import_applic(request):
                 res = process_pcs_export(data, unit_id, semester_id, user)
                 messages.success(request, "Imported applicant data.")
                 return HttpResponse('<pre>'+res+'</pre>')       
-
-            l = LogEntry(userid=request.user.username, description="Imported grad applicants", related_object=user)
-            l.save()
-            
 
             return HttpResponseRedirect(reverse(index))
     else:

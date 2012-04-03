@@ -1,8 +1,5 @@
 from django.db import models
-from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES, \
-    CourseOffering
-from django.forms.models import ModelForm
-from django import forms
+from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from courselib.json_fields import getter_setter
@@ -111,8 +108,8 @@ class Supervisor(models.Model):
         for field in Supervisor._meta.fields:
             if field.verbose_name == "ID" or field.name == "external":
                 pass
-			# TO DO: quick workaround to getting actual values displaying instead of ids
-			# There's probably a more elegant way of doing this 
+            # TO DO: quick workaround to getting actual values displaying instead of ids
+            # There's probably a more elegant way of doing this 
             elif field.name == "supervisor" or field.name == "student":
                 nameOfPerson = ""
                 #if field.name == "supervisor": 
@@ -174,6 +171,7 @@ class CompletedRequirement(models.Model):
         return "%s" % (self.requirement)
 
 STATUS_CHOICES = (
+        ('APPL', 'Applicant'),
         ('ACTI', 'Active'),
         ('PART', 'Part-Time'),
         ('LEAV', 'On-Leave'),
@@ -206,6 +204,16 @@ class GradStatus(models.Model):
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted, set the hidden flag instead."
 
+    def save(self, close_others=True, *args, **kwargs):
+        super(GradStatus, self).save(*args, **kwargs)
+
+        # make sure any other statuses are closed
+        if close_others:
+            other_gs = GradStatus.objects.filter(student=self.student, end__isnull=True).exclude(id=self.id)
+            for gs in other_gs:
+                gs.end = max(self.start, gs.start)
+                gs.save(close_others=False)
+        
     def get_fields(self):
         # make a list of field/values.
         k = []

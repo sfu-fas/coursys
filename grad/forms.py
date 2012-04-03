@@ -168,6 +168,15 @@ class GradStudentForm(ModelForm):
         exclude = ('created_by', 'modified_by' )
         
 class GradStatusForm(ModelForm):
+    def clean_end(self):
+        en = self.cleaned_data['end']
+        st = self.cleaned_data.get('start', None)
+        if not en:
+            return None
+        if st > en:
+            raise forms.ValidationError("Status cannot end before it begins")
+        return en
+        
     class Meta:
         model = GradStatus
         exclude = ('student', 'created_by', 'hidden')
@@ -492,6 +501,7 @@ PCS_HDR_LOOKUP = dict(PCS_COLUMNS)
 
 from coredata.models import Unit
 from coredata.queries import add_person, SIMSProblem, grad_student_info
+from log.models import LogEntry
 import datetime, StringIO
 
 def process_pcs_row(row, column, rownum, unit, semester, user):
@@ -533,6 +543,8 @@ def process_pcs_row(row, column, rownum, unit, semester, user):
     
     p.save()
     
+    print "Importing %s" % (p)
+    
     # get GradStudent, creating if necessary
     
     # a unique identifier for this application, so we can detect repeated imports (and handle gracefully)
@@ -556,9 +568,20 @@ def process_pcs_row(row, column, rownum, unit, semester, user):
     
     gs.research_area = resarea
     gs.mother_tongue = firstlang
+    # TODO: gs.application_status
     gs.created_by = user.userid
     gs.updated_by = user.userid
     gs.save()
+    
+    # TODO: find more sensible status than "APPL" from SIMS?
+    old_st = GradStatus.objects.filter(student=gs, start__name__gte=semester.name)
+    if not old_st:
+        # if no old status for current semester, create one
+        st = GradStatus(student=gs, status="APPL", start=semester, end=None, notes="PCS import")
+        st.save()
+    
+    l = LogEntry(userid=user.userid, description="Imported grad record for %s (%s) from PCS" % (p.name(), p.emplid), related_object=gs)
+    l.save()
     
     return warnings
 
