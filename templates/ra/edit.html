@@ -10,7 +10,7 @@
 {% block title %}Update RA Appointment for {{ appointment.person.first_name }} {{ appointment.person.last_name }}{% endblock %}
 {% block h1 %}Update RA Appointment for {{ appointment.person.first_name }} {{ appointment.person.last_name }}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url ra.views.search %}">RA Appointments</a></li><li><a href="{% url ra.views.student_appointments userid=appointment.person.userid%}">&gt; RA Appointments for {{ appointment.person.first_name }} {{ appointment.person.last_name }}</a></li><li>&gt; Update RA Appointment</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url ra.views.search %}">RA Appointments</a></li><li>&gt;<a href="{% url ra.views.student_appointments userid=appointment.person.userid%}"> RA Appointments for {{ appointment.person.first_name }} {{ appointment.person.last_name }}</a></li><li>&gt; Update RA Appointment</li>{% endblock %}
 
 {% block content %}
   <div id="form_container">
