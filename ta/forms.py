@@ -155,7 +155,6 @@ class TAApplicationForm(forms.ModelForm):
         widgets = {'base_units': forms.TextInput(attrs={'size': 5}),}
 
     def clean_sin(self):
-        print self.data
         sin = self.cleaned_data['sin']
         if sin.strip() =='':
             sin = '000000000'
@@ -164,6 +163,13 @@ class TAApplicationForm(forms.ModelForm):
             if not re.match('\d{9}$',sin):
                 raise forms.ValidationError("Invalid SIN")
         return sin
+
+    def clean_base_units(self):
+        bu = self.cleaned_data['base_units']
+        print bu
+        if bu > 5 or bu < 0:
+            raise forms.ValidationError("BU ammount must be in the range 0-5")
+        return bu
 
 class CoursePreferenceForm(forms.ModelForm):
 
