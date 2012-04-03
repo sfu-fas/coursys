@@ -569,7 +569,11 @@ class Member(models.Model):
         # 'origsection': The originating section (for crosslisted sections combined here)
         #     represented as a CourseOffering.slug
         #     default: self.offering (if accessed by m.get_origsection())
+        # 'bu': The number of BUs this TA has
 
+    defaults = {'bu': 0}
+    bu, set_bu = getter_setter('bu')
+    
     def __unicode__(self):
         return "%s (%s) in %s" % (self.person.userid, self.person.emplid, self.offering,)
     def short_str(self):

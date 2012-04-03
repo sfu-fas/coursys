@@ -518,7 +518,7 @@ class AssignBUForm(forms.Form):
     bu.widget.attrs['class'] = u'bu_inp'
 
 class TAContactForm(forms.Form):
-    statuses = forms.MultipleChoiceField(choices=STATUS_CHOICES, help_text="Contract statuses to be contacted")
+    statuses = forms.MultipleChoiceField(choices=STATUS_CHOICES, help_text="TAs to contact (according to contract status)")
     subject = forms.CharField()
     text = forms.CharField(widget=forms.Textarea(), help_text='Message body. <a href="http://en.wikipedia.org/wiki/Textile_%28markup_language%29">Textile markup</a> allowed.')
     url = forms.URLField(label="URL", required=False, help_text='Link to include in the message. (optional)')

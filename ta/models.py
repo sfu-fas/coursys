@@ -435,6 +435,7 @@ class TAContract(models.Model):
                 # signed, but not a member: create
                 m = Member(person=self.application.person, offering=crs.course, role='TA',
                            added_reason='CTA', credits=0, career='NONS')
+                m.config['bu'] = crs.bu
                 m.save()
             elif (self.status != 'SGN' or crs.bu == 0) and members:
                 # already in course, but status isn't signed: remove

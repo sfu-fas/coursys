@@ -103,17 +103,8 @@ def all_tugs_admin(request):
 def new_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     member = get_object_or_404(Member, offering=course, person__userid=userid)
-#    curr_user_role = Member.objects.get(person__userid=request.user.username,offering=course).role
-    
-    # TAs should not be creating TUGs
-#    if(curr_user_role =="TA" and not userid==request.user.username ): 
-#        return ForbiddenResponse(request)
-#    else:
-    # Nothing is done as of now until further details as to how to "pre-fill" 
-    # #158    TUG: courses with lab sections should be pre-filled as appropriate
-    has_lab_or_tut = course.labtut()# placeholder until the following line works
-    #TODO: add 'labta' config field to member
-    #has_lab_or_tut = course.labtas() and member.labta()
+    bu = member.bu()
+    has_lab_or_tut = course.labtas()
         
     if request.method == "POST":
         form = TUGForm(data=request.POST, offering=course,userid=userid)
@@ -124,16 +115,16 @@ def new_tug(request, course_slug, userid):
     else:
         if has_lab_or_tut:
             form = TUGForm(offering=course,userid=userid, initial=
-                    {'other1':{'label':'Planning','total':13,
-                               'comment':'Attendance at a TA/TM Day/Training'}})
+                    {'prep':{'total':13, 'comment':'Lab/tutorial prep'},
+                     'holiday':{'total':bu-0.17},
+                     'base_units': bu})
         else:
-            form = TUGForm(offering=course,userid=userid)
+            form = TUGForm(offering=course,userid=userid, initial={'holiday':{'total':bu}, 'base_units': bu})
     
     context = {'ta':member.person,
                'course':course,
                'form':form,
                'userid':userid,
-               #'hasLabOrTut': has_lab_or_tut
                }
     return render(request,'ta/new_tug.html',context)
 
@@ -174,11 +165,11 @@ def edit_tug(request, course_slug, userid):
             return HttpResponseRedirect(reverse(view_tug, args=(course.slug, userid)))
     else:
         form = TUGForm(instance=tug)
+
     context = {'ta':member.person,
                'course':course, 
                'form': form, 
                'userid':userid,
-               #'tug':tug 
                }
     
     return render(request, 'ta/edit_tug.html',context)
