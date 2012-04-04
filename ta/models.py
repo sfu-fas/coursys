@@ -50,7 +50,6 @@ class TUG(models.Model):
     other1 = property(*getter_setter('other1'))
     other2 = property(*getter_setter('other2'))
     
-    @property
     def iterothers(self):
 #        try:
             return (other for key, other in self.config.iteritems() 
@@ -58,7 +57,8 @@ class TUG(models.Model):
                     and other.get('total',0) > 0)
 #        except:
 #            yield self.other1
-#            yield self.other2 
+#            yield self.other2
+    others = lambda self:list(self.iterothers())
     
     def iterfielditems(self):
         return ((field, self.config[field]) for field in self.all_fields 

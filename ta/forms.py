@@ -24,7 +24,8 @@ class TUGDutyForm(forms.Form):
     weekly = forms.DecimalField(label="Weekly hours", required=False)
     weekly.widget.attrs['class'] = u'weekly'
     weekly.manual_css_classes = [u'weekly']
-    total = forms.DecimalField(label="Total hours")
+    total = forms.DecimalField(label="Total hours", 
+            error_messages={'required':u'Number of hours is required.'})
     total.widget.attrs['class'] = u'total'
     total.manual_css_classes = [u'total']
     comment = forms.CharField(label="Comment", required=False)
@@ -44,7 +45,7 @@ class TUGDutyOtherForm(TUGDutyLabelForm, TUGDutyForm):
         initial = kwargs.get('initial', None)
         # allow empty if this is a new TUG or if we're editing and it's empty
         kwargs['empty_permitted'] = (kwargs.get('empty_permitted', False) or
-                (initial and initial.get('label')))
+                (initial and bool(initial.get('label'))))
         super(TUGDutyOtherForm, self).__init__(*args, **kwargs)
         self.fields['label'].required = False
         self.fields['total'].required = False
@@ -54,12 +55,20 @@ class TUGDutyOtherForm(TUGDutyLabelForm, TUGDutyForm):
         html = TUGDutyForm.as_table_row(self)
         self.fields.insert(0, 'label', label)
         return html
-
+    
     def clean(self):
         data = self.cleaned_data
         if (data.get('total', None) or data.get('weekly', None)) and not data.get('label', None):
-            raise forms.ValidationError('Must enter label')
-        return super(TUGDutyForm, self).clean()
+            e = forms.ValidationError('A label is required.')
+            self._errors['label'] = self.error_class(e.messages)
+            raise forms.ValidationError([])
+            
+        if (data.get('label') and not (data.get('total', None))):
+            e = forms.ValidationError(self.fields['total'].error_messages['required'])
+            self._errors['total'] = self.error_class(e.messages)
+            raise forms.ValidationError([])
+        
+        return super(TUGDutyOtherForm, self).clean()
 
 class TUGForm(forms.ModelForm):
     '''
@@ -138,13 +147,15 @@ class TUGForm(forms.ModelForm):
         return super(TUGForm, self).full_clean()
     def clean(self):
         data = super(TUGForm, self).clean()
-        try: data['config'] = SortedDict((field, self.subforms[field].cleaned_data) 
+        get_data = lambda subform: subform.cleaned_data if subform.cleaned_data else subform.initial
+        try: data['config'] = SortedDict((field, get_data(self.subforms[field])) 
                 for field in TUG.all_fields)
-        except AttributeError: pass
+        except AttributeError:
+            raise forms.ValidationError([])
         return data
     def save(self, *args, **kwargs):
-        # TODO: load data from config_form into JSONField
-#        self.instance
+        from pprint import pprint
+        pprint(dict(self.cleaned_data['config']))
         self.instance.config = self.cleaned_data['config']
         return super(TUGForm, self).save(*args, **kwargs)
 
