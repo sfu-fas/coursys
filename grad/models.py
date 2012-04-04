@@ -313,6 +313,8 @@ class Promise(models.Model):
     start_semester = models.ForeignKey(Semester, related_name="promise_start")
     end_semester = models.ForeignKey(Semester, related_name="promise_end")
     comments = models.TextField(blank=True, null=True)
+    def __unicode__(self):
+        return "%s promise for %s" % (self.amount, self.student.person)
     def get_fields(self):
         # make a list of field/values.
         k = []

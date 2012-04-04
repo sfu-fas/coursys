@@ -127,6 +127,18 @@ class CoredataTest(TestCase):
         self.assertEqual(wkday, 2)
 
         self.assertRaises(ValueError, s.week_weekday, date(2007, 9, 2))
+        
+        
+        # test semester arithmetic
+        s = Semester.objects.get(name='1121')
+        self.assertEqual(s.previous_semester().name, '1117')
+        self.assertEqual(s.offset(1).name, '1124')
+        self.assertEqual(s.offset(-1).name, '1117')
+        self.assertEqual(s.offset(2).name, '1127')
+        self.assertEqual(s.offset(-2).name, '1114')
+        self.assertEqual(s - s.offset(-2), 2)
+        self.assertEqual(s.offset(-2) - s, -2)
+        
 
     def test_course_offering(self):
         """

@@ -248,16 +248,26 @@ class Semester(models.Model):
 
     def previous_semester(self):
         "semester before this one"
-        before = Semester.objects.filter(start__lt=self.start).order_by('-start')
-        return before[0]
+        return self.offset(-1)
+    
+    def offset(self, n):
+        "The semester n semesters forward/back in time"
+        if n > 0:
+            return Semester.objects.filter(name__gt=self.name).order_by('name')[n-1]
+        elif n < 0:
+            return Semester.objects.filter(name__lt=self.name).order_by('-name')[(-n)-1]
+        else:
+            return self
     
     @classmethod
     def current(cls):
-        """
-        The current semester
-        """
-        today = datetime.date.today()
-        return Semester.objects.filter(end__gt=today).order_by('start')[0]
+        return cls.get_semester()
+    
+    @classmethod
+    def get_semester(cls, date=None):
+        if not date:
+            date = datetime.date.today()
+        return Semester.objects.filter(start__lt=date).order_by('-start')[0]
 
     @classmethod
     def next_starting(cls):

@@ -4,7 +4,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.conf import settings
 from grad.models import GradStudent, GradProgram, Supervisor, GradRequirement, CompletedRequirement, GradStatus, \
         ScholarshipType, Scholarship, Promise, OtherFunding, LetterTemplate, \
-    Letter
+        Letter, STATUS_ACTIVE
 from grad.forms import SupervisorForm, PotentialSupervisorForm, GradAcademicForm, GradProgramForm, \
         GradStudentForm, GradStatusForm, GradRequirementForm, possible_supervisors, BaseSupervisorsFormSet, \
     SearchForm, LetterTemplateForm, LetterForm, UploadApplicantsForm, new_promiseForm, new_scholarshipForm,\
@@ -23,15 +23,16 @@ from django.contrib import messages
 from log.models import LogEntry
 from django.template.base import Template
 from django.template.context import Context
-import copy
+import copy, itertools
 
 from dashboard.letters import OfficialLetter, LetterContents
 from django.contrib.auth.decorators import login_required
 
+get_semester = Semester.get_semester
 
 # get semester based on input datetime. defaults to today
 # returns semseter object
-def get_semester(date=datetime.date.today()):
+def XXXget_semester(date=datetime.date.today()):
     year = date.year
     next_sem = 0
     for s in Semester.objects.filter(start__year=year).order_by('-start'):
@@ -893,55 +894,37 @@ def financials(request, grad_slug):
     if is_student or is_supervisor or has_role("GRAD",request):
         
         current_status = GradStatus.objects.get(student=grad, hidden=False, end=None)
-        grad_status_qs = GradStatus.objects.filter(student=grad, status="ACTI")
+        grad_status_qs = GradStatus.objects.filter(student=grad, status__in=STATUS_ACTIVE)
         eligible_scholarships = ScholarshipType.objects.filter(eligible=True)
         scholarships_qs = Scholarship.objects.filter(student=grad)
         promises_qs = Promise.objects.filter(student=grad)
         other_fundings = OtherFunding.objects.filter(student=grad)
         
-        applications = TAApplication.objects.filter(person=grad.person)
-        contracts = TAContract.objects.filter(application__in=applications, status="ACC")
-        appointments = RAAppointment.objects.filter(person=grad.person)       
+        #applications = TAApplication.objects.filter(person=grad.person)
+        contracts = TAContract.objects.filter(application__person=grad.person, status="SGN").select_related('posting__semester')
+        appointments = RAAppointment.objects.filter(person=grad.person)
         
         
         # initialize earliest starting and latest ending semesters for display. 
         # Falls back on current semester if none 
-        earliest_semester = get_semester() # set earliest semester as current semester
-        latest_semester = get_semester()   # set latest semester as current semester
-        
-        for status in grad_status_qs:
-            if(earliest_semester > status.start):
-                earliest_semester = status.start
-            if(latest_semester < status.start):
-                latest_semester = status.start
-        for promise in promises_qs:
-            if(earliest_semester > promise.start_semester):
-                earliest_semester = promise.start_semester
-            if(latest_semester < promise.end_semester):
-                latest_semester = promise.end_semester
-        for scholarship in scholarships_qs:
-            if(earliest_semester > scholarship.start_semester):
-                earliest_semester = scholarship.start_semester
-            if(latest_semester < scholarship.end_semester):
-                latest_semester = scholarship.end_semester
-        for other_funding in other_fundings:
-            if(earliest_semester > other_funding.semester):
-                earliest_semester = other_funding.semester 
-            if(latest_semester < other_funding.semester):
-                latest_semester = other_funding.semester
-        for contract in contracts:
-            if(earliest_semester > contract.posting.semester):
-                earliest_semester = contract.posting.semester
-            if(latest_semester < contract.posting.semester):
-                latest_semester = contract.posting.semester 
-        for appointment in appointments:
-            app_start_sem = get_semester(appointment.start_date)
-            app_end_sem = get_semester(appointment.end_date)
-            if(earliest_semester > app_start_sem):
-                earliest_semester = app_start_sem
-            if(latest_semester < app_end_sem):
-                latest_semester = app_end_sem
-    
+        all_semesters = itertools.chain( # every semester we have info for
+                          [get_semester()],
+                          (s.start for s in grad_status_qs),
+                          (s.end for s in grad_status_qs),
+                          (p.start_semester for p in promises_qs),
+                          (p.end_semester for p in promises_qs),
+                          (s.start_semester for s in scholarships_qs),
+                          (s.end_semester for s in scholarships_qs),
+                          (o.semester for o in other_fundings),
+                          (c.posting.semester for c in contracts),
+                          (get_semester(a.start_date) for a in appointments),
+                          (get_semester(a.end_date) for a in appointments),
+                        )
+        all_semesters = itertools.ifilter(lambda x: isinstance(x, Semester), all_semesters)
+        all_semesters = list(all_semesters)
+        earliest_semester = min(all_semesters)
+        latest_semester = max(all_semesters)
+
         semesters = []
         semesters_qs = Semester.objects.filter(start__gte=earliest_semester.start, end__lte=latest_semester.end).order_by('-name')
     
@@ -963,8 +946,10 @@ def financials(request, grad_slug):
                 if(semester_eligible_scholarship.start_semester != semester_eligible_scholarship.end_semester):
                     semester_span = semester_eligible_scholarship.end_semester - semester_eligible_scholarship.start_semester + 1
                     semester_total += semester_eligible_scholarship.amount/semester_span
+                else:
+                    semester_total += semester_eligible_scholarship.amount
             for semester_other_funding in semester_other_fundings:
-                if semester_other_funding.eligible == True:
+                if semester_other_funding.eligible:
                     semester_total += semester_other_funding.amount
             scholarships_in_semester['semester_total'] = semester_total
             try:
@@ -1006,7 +991,9 @@ def financials(request, grad_slug):
             
             scholarships_in_semester['semester_total'] += amount
             
-            semesters.append({'semester':semester, 'status':status,'scholarship_details':scholarships_in_semester, 'promise':promise, 'promised_amount':semester_promised_amount,'owing':semester_owing, 'ta_ra': ta_ra})
+            semesters.append({'semester':semester, 'status':status,'scholarship_details':scholarships_in_semester,
+                              'promise':promise, 'promised_amount':semester_promised_amount, 'owing':semester_owing,
+                              'ta_ra': ta_ra})
     
         promises = []
         for promise in promises_qs:
@@ -1060,10 +1047,7 @@ def new_promise(request, grad_slug):
             
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad.slug}))
     else:
-        temp = get_semester
-        print "semester"
-        print temp
-        promise_form = new_promiseForm(initial={'start_semester': get_semester(), 'amount':'$0.00'})
+        promise_form = new_promiseForm(initial={'start_semester': get_semester().offset(1), 'end_semester': get_semester().offset(3), 'amount':'0.00'})
 
     page_title = "New Promise"
     crumb = "%s, %s" % (grad.person.last_name, grad.person.first_name)
@@ -1088,10 +1072,7 @@ def manage_scholarship(request, grad_slug):
             
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad.slug}))
     else:
-        temp = get_semester
-        print "semester"
-        print temp
-        scholarship_form = new_scholarshipForm(initial={'student':grad,'start_semester':get_semester(),'amount':'$0.00'})
+        scholarship_form = new_scholarshipForm(initial={'student':grad, 'start_semester':get_semester(), 'end_semester':get_semester(), 'amount':'0.00'})
 
     page_title = "New Scholarship"
     crumb = "%s, %s" % (grad.person.last_name, grad.person.first_name)

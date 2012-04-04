@@ -46,6 +46,33 @@
  },
  {
   "fields": {
+   "end": "2013-04-03",
+   "name": "1131",
+   "start": "2013-01-04"
+  },
+  "model": "coredata.semester",
+  "pk": 6
+ },
+ {
+  "fields": {
+   "end": "2013-08-03",
+   "name": "1134",
+   "start": "2013-05-04"
+  },
+  "model": "coredata.semester",
+  "pk": 7
+ },
+ {
+  "fields": {
+   "end": "2013-12-03",
+   "name": "1137",
+   "start": "2013-09-04"
+  },
+  "model": "coredata.semester",
+  "pk": 8
+ },
+ {
+  "fields": {
    "monday": "2011-05-09",
    "semester": 1,
    "week": 1

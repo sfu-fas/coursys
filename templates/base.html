@@ -46,11 +46,11 @@ Logged in as {{user.username}}.
 Not logged in. <a href="/login/">Login</a>
 {% endif %}
 </div>
-				<div id="breadcrumbs">
+				{% block allbreadcrumbs %}<div id="breadcrumbs">
 				  <ul>
 				    {% block breadcrumbs %}<li><a href="/">CourSys</a></li>{% spaceless %}{% block subbreadcrumbs %}{% endblock %}{% endspaceless %}{% endblock %}
 			          </ul>
-				</div>
+				</div>{% endblock %}
 		<h1 id="PageTitle">{% block h1 %}CourSys{% endblock %}</h1>
 	  </div>
 	  <div id="topLinks">

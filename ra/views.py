@@ -78,6 +78,7 @@ def new(request):
 #New RA Appointment with student pre-filled.
 @requires_role("FUND")
 def new_student(request, userid):
+    person = get_object_or_404(Person, emplid=userid)
     semester = Semester.first_relevant() 
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
     initial = {'person': userid, 'start_date': semester.start, 'end_date': semester.end, 'hours': 70 }
@@ -93,7 +94,6 @@ def new_student(request, userid):
     raform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
     raform.fields['project'].choices = [(p.id, unicode(p.project_number)) for p in Project.objects.filter(unit__in=request.units)]
     raform.fields['account'].choices = [(a.id, u'%s (%s)' % (a.account_number, a.title)) for a in Account.objects.filter(unit__in=request.units)]
-    person = Person.objects.get(emplid=userid)
     return render(request, 'ra/new.html', { 'raform': raform, 'person': person })
 
 #Edit RA Appointment
