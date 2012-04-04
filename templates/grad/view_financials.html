@@ -174,7 +174,7 @@ span.label {
 				{% endif %}
 				{% if semester.ta_ra.type %}
 				{% for type in semester.ta_ra.type %}
-				<span class="label"> {{ semester.ta_ra.type }} Details: </span>
+				<span class="label"> {{ type }} Details: </span>
 					<ul class="leaders">
 						{% for course in semester.ta_ra.courses %}
 						<li>
