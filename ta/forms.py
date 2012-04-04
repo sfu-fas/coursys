@@ -154,8 +154,6 @@ class TUGForm(forms.ModelForm):
             raise forms.ValidationError([])
         return data
     def save(self, *args, **kwargs):
-        from pprint import pprint
-        pprint(dict(self.cleaned_data['config']))
         self.instance.config = self.cleaned_data['config']
         return super(TUGForm, self).save(*args, **kwargs)
 
@@ -177,7 +175,6 @@ class TAApplicationForm(forms.ModelForm):
 
     def clean_base_units(self):
         bu = self.cleaned_data['base_units']
-        print bu
         if bu > 5 or bu < 0:
             raise forms.ValidationError("BU ammount must be in the range 0-5")
         return bu
