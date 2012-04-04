@@ -342,7 +342,7 @@ class TAApplication(models.Model):
         return "%s  Posting: %s" % (self.person, self.posting)
 
 PREFERENCE_CHOICES = (
-        ('PRF', 'Prefered'),
+        ('PRF', 'Preferred'),
         ('WIL', 'Willing'),
         ('NOT', 'Not willing'),
 )
