@@ -15,6 +15,9 @@ import unicodecsv as csv
 from django.core.exceptions import ValidationError
 from django.utils.safestring import mark_safe
 from django.core.validators import EMPTY_VALUES
+from advisornotes.forms import StudentSearchForm
+
+QuickSearchForm = StudentSearchForm
 
 class LabelTextInput(forms.TextInput):
     "TextInput with a bonus label"

@@ -1,6 +1,17 @@
-{% extends "grad/index.html" %}
-{% load markup %}
-{% load mobile_tags %}
+{% extends "base.html" %}
+
+{% block headextra %}
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#grads').dataTable({
+            "bJQueryUI" : true,
+            "aaSorting" : [[4, "desc"]],
+            "iDisplayLength" : 50,
+            "sPaginationType" : "full_numbers",
+        });
+    });
+</script>
+{% endblock %}
 
 {% block actions %}
 {% endblock %}
@@ -10,3 +21,40 @@
 <li>&gt; <a href="{% url grad.views.search %}">Search</a></li>
 <li>&gt; Search Results</li>
 {% endblock %}
+
+{% block content %}
+<div class="datatable_container">
+    <table class="display" id="grads">
+        <thead>
+            <tr>
+                <th scope="col">Student #</th>
+                <th scope="col">Student ID</th>
+                <th>First</th>
+                <th>Last</th>
+                <th>Last Updated</th>
+                <th>Manage</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in grads %}
+            <tr>
+                <td scope="row">{{s.person.emplid}}</td>
+                <td scope="row">{{s.person.userid}}</td>
+                <td>{{s.person.first_name}}</td>
+                <td>{{s.person.last_name}}</td>
+                <td>{{s.updated_at}}</td>
+                <td><a href="{% url grad.views.view_all grad_slug=s.slug %}"> View </a>
+                </td>
+            </tr>
+            {%empty%}
+            <tr>
+                <td>
+                <p class="empty">
+                    There are currently no grad student records stored in the database.
+                </p></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %} 

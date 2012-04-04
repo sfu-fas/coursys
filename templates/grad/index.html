@@ -1,23 +1,20 @@
 {% extends "base.html" %}
-{% load markup %}
-{% load mobile_tags %}
 
 {% block headextra %}
 <script type="text/javascript">
+    
 	$(document).ready(function() {
-		$('#grads').dataTable({
-			"bJQueryUI" : true,
-			"aaSorting" : [[4, "desc"]],
-			"iDisplayLength" : 10,
-			"sPaginationType" : "full_numbers",
-		});
+	    $("id_search").focus();
+	    $("#id_search").autocomplete({
+            source: '{% url grad.views.quick_search %}',
+            minLength: 2,
+        });
 	});
-
 </script>
 {% endblock %}
 
-{% block title %}{{page_title}}{% endblock %}
-{% block h1 %}{{page_title}}{% endblock %}
+{% block title %}Graduate Student Records{% endblock %}
+{% block h1 %}Graduate Student Records{% endblock %}
 
 {% block actions %}
 <div id="actions">
@@ -37,45 +34,17 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>
-	&gt; {{crumb}}
-</li>
+<li>&gt; Grads</li>
 {% endblock %}
 
 {% block content %}
-<p>In School of Computing Science (CMPT)</p>
-<div class="datatable_container">
-	<table class="display" id="grads">
-		<thead>
-			<tr>
-				<th scope="col">Student #</th>
-				<th scope="col">Student ID</th>
-				<th>First</th>
-				<th>Last</th>
-				<th>Last Updated</th>
-				<th>Manage</th>
-			</tr>
-		</thead>
-		<tbody>
-			{% for s in grads %}
-			<tr>
-				<td scope="row">{{s.person.emplid}}</td>
-				<td scope="row">{{s.person.userid}}</td>
-				<td>{{s.person.first_name}}</td>
-				<td>{{s.person.last_name}}</td>
-				<td>{{s.updated_at}}</td>
-				<td><a href="{% url grad.views.view_all grad_slug=s.slug %}"> View </a>
-				</td>
-			</tr>
-			{%empty%}
-			<tr>
-				<td>
-				<p class="empty">
-					There are currently no grad student records stored in the database.
-				</p></td>
-			</tr>
-			{% endfor %}
-		</tbody>
-	</table>
-</div>
+<p>You can view grad student records for {{units|pluralize:"this unit,these units"}}: 
+{% for u in units %}{{u.name}}{% if not forloop.last %},{% endif %}{% endfor %}.
+</p>
+
+<form action="{% url grad.views.quick_search %}" method="get" width="100">
+{{form.as_p}}
+<p><input class="submit" type="submit" value="Go" /></p>
+</form>
+
 {% endblock %} 

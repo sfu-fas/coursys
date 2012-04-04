@@ -290,6 +290,7 @@ urlpatterns += patterns('',
     url(r'^grad/$', 'grad.views.index'),
     url(r'^grad/import$', 'grad.views.import_applic'),
     url(r'^grad/search$', 'grad.views.search'),
+    url(r'^grad/qs', 'grad.views.quick_search'),
     url(r'^grad/search_results$', 'grad.views.search_results'),
     
     url(r'^grad/program/new$', 'grad.views.new_program'),   

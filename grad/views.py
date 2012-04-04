@@ -8,28 +8,24 @@ from grad.models import GradStudent, GradProgram, Supervisor, GradRequirement, C
 from grad.forms import SupervisorForm, PotentialSupervisorForm, GradAcademicForm, GradProgramForm, \
         GradStudentForm, GradStatusForm, GradRequirementForm, possible_supervisors, BaseSupervisorsFormSet, \
     SearchForm, LetterTemplateForm, LetterForm, UploadApplicantsForm, new_promiseForm, new_scholarshipForm,\
-    new_scholarshipTypeForm
+    new_scholarshipTypeForm, QuickSearchForm
 from ta.models import TAContract, TAApplication, TACourse
 #from ta.views import total_pay
 from ra.models import RAAppointment
-from coredata.models import Person, Role, Unit, Semester, CAMPUS_CHOICES
+from coredata.models import Person, Role, Semester, CAMPUS_CHOICES
 from coredata.queries import more_personal_info, SIMSProblem, GRADFIELDS
 from django import forms
 from django.forms.models import modelformset_factory, inlineformset_factory
 from courselib.auth import requires_role, ForbiddenResponse, has_role
+from courselib.search import get_query
 import datetime, json
-from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from django.contrib import messages
 from log.models import LogEntry
-from django.utils.encoding import iri_to_uri
 from django.template.base import Template
 from django.template.context import Context
 import copy
-import itertools
 
 from dashboard.letters import OfficialLetter, LetterContents
-from dashboard.models import Signature
-from django.contrib.webdesign.lorem_ipsum import paragraphs
 from django.contrib.auth.decorators import login_required
 
 
@@ -51,34 +47,33 @@ def get_semester(date=datetime.date.today()):
 
 @requires_role("GRAD")
 def index(request):
-    grads = GradStudent.objects.all()
-    paginator = Paginator(grads, 5)
-    
-    try: 
-        p = int(request.GET.get("page", '1'))
-    except ValueError: p = 1
-
-    try:
-        grads_page = paginator.page(p)
-    except (InvalidPage, EmptyPage):
-        grads_page = paginator.page(paginator.num_pages)    
-    
-    # set frontend defaults
-    page_title = 'Graduate Student Records'  
-    crumb = 'Grads' 
-    context = {
-               'page_title' : page_title,
-               'crumb' : crumb,
-               'grads': grads,
-               'grads_page': grads_page               
-               }
+    form = QuickSearchForm()
+    context = {'units': request.units, 'form': form}
     return render(request, 'grad/index.html', context)
+
+@requires_role("GRAD")
+def quick_search(request):
+    if 'term' in request.GET:
+        term = request.GET['term']
+        grads = GradStudent.objects.filter(program__unit__in=request.units) \
+                .filter(get_query(term, ['person__userid', 'person__emplid', 'person__first_name', 'person__last_name', 'person__pref_first_name',
+                                         'program__label', 'program__description'])) \
+                .select_related('person', 'program')[:50]
+        data = [{'value': str(g.slug), 'label': "%s, %s" % (g.person.name(), g.program.label)} for g in grads]
+        response = HttpResponse(mimetype='application/json')
+        json.dump(data, response, indent=1)
+        return response
+    elif 'search' in request.GET:
+        grad_slug = request.GET['search']
+        return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))
+    else:
+        return ForbiddenResponse(request, 'must send term')
 
 
 @requires_role("GRAD")
 def view_all(request, grad_slug):
     # will display academic, personal, FIN, status history, supervisor
-    grad = get_object_or_404(GradStudent, slug=grad_slug)
+    grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     supervisors = Supervisor.objects.filter(student=grad)
     status_history = GradStatus.objects.filter(student=grad, hidden=False)
     letter = Letter.objects.filter(student=grad)
@@ -121,7 +116,7 @@ def grad_more_info(request, grad_slug):
 
 @requires_role("GRAD")
 def manage_supervisors(request, grad_slug):
-    grad = get_object_or_404(GradStudent, slug=grad_slug)
+    grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     supervisors = Supervisor.objects.filter(student=grad, position__gte=1).select_related('supervisor')
     supervisor_people = [s.supervisor for s in supervisors if s.supervisor]
     # Using filter because get returns an error when there are no matching queries
@@ -181,7 +176,7 @@ def manage_supervisors(request, grad_slug):
 
 @requires_role("GRAD")
 def update_supervisors(request, grad_slug):
-    grad = get_object_or_404(GradStudent, slug=grad_slug)
+    grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     supervisors = Supervisor.objects.filter(student=grad, position__gte=1).select_related('supervisor')
     supervisor_people = [s.supervisor for s in supervisors if s.supervisor]
     if request.method == 'POST':
@@ -229,7 +224,7 @@ def update_supervisors(request, grad_slug):
 
 @requires_role("GRAD")
 def manage_requirements(request, grad_slug):
-    grad = get_object_or_404(GradStudent, slug=grad_slug)    
+    grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)    
     
     #calculate/find missing reqs
     completed_req = CompletedRequirement.objects.filter(student=grad)
@@ -280,7 +275,7 @@ def manage_requirements(request, grad_slug):
 
 @requires_role("GRAD")
 def manage_academics(request, grad_slug):
-    grad = get_object_or_404(GradStudent, slug=grad_slug)
+    grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     
     if request.method == 'POST':
         grad_form = GradAcademicForm(request.POST, instance=grad, prefix="grad")
@@ -314,7 +309,7 @@ def manage_academics(request, grad_slug):
 
 @requires_role("GRAD")
 def manage_status(request, grad_slug):
-    grad = get_object_or_404(GradStudent, slug=grad_slug)
+    grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     status_history = get_list_or_404(GradStatus, student=grad.id, hidden=False)
 
     if request.method == 'POST':

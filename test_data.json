@@ -18608,7 +18608,47 @@
  
  
 
-{
+
+ {
+  "fields": {
+   "created_at": "2012-02-06 15:32:02", 
+   "created_by": "", 
+   "description": "MSc Project option", 
+   "label": "MSc Proj", 
+   "modified_by": null, 
+   "unit": 2, 
+   "updated_at": "2012-02-06 15:32:02"
+  }, 
+  "model": "grad.gradprogram", 
+  "pk": 1
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-06 15:32:15", 
+   "created_by": "", 
+   "description": "MSc Thesis option", 
+   "label": "MSc Thesis", 
+   "modified_by": null, 
+   "unit": 2, 
+   "updated_at": "2012-02-06 15:32:15"
+  }, 
+  "model": "grad.gradprogram", 
+  "pk": 2
+ }, 
+ {
+  "fields": {
+   "created_at": "2012-02-06 15:32:24", 
+   "created_by": "", 
+   "description": "PhD", 
+   "label": "PhD ", 
+   "modified_by": null, 
+   "unit": 2, 
+   "updated_at": "2012-02-06 15:32:24"
+  }, 
+  "model": "grad.gradprogram", 
+  "pk": 3
+ }, 
+ {
   "fields": {
    "campus": "BRNBY", 
    "comments": "", 
@@ -18622,7 +18662,6 @@
    "person": 51, 
    "program": 1, 
    "research_area": "Biology", 
-   "slug": "bbart-jumping", 
    "special_arrangements": null, 
    "updated_at": "2012-02-16 22:27:17"
   }, 
@@ -18643,7 +18682,6 @@
    "person": 34, 
    "program": 2, 
    "research_area": "Hula Hoop", 
-   "slug": "petra-skipping", 
    "special_arrangements": null, 
    "updated_at": "2012-02-16 22:27:36"
   }, 
@@ -18664,7 +18702,6 @@
    "person": 45, 
    "program": 3, 
    "research_area": "Drink water", 
-   "slug": "abulatov-running", 
    "special_arrangements": null, 
    "updated_at": "2012-02-16 22:28:10"
   }, 
@@ -18685,7 +18722,6 @@
    "person": 28, 
    "program": 2, 
    "research_area": "Dealings", 
-   "slug": "dixon-skipping", 
    "special_arrangements": null, 
    "updated_at": "2012-02-16 22:28:48"
   }, 
@@ -18706,7 +18742,6 @@
    "person": 64, 
    "program": 2, 
    "research_area": "sleeks", 
-   "slug": "0aaa11-skipping", 
    "special_arrangements": null, 
    "updated_at": "2012-02-16 22:29:10"
   }, 
@@ -18727,55 +18762,13 @@
    "person": 14, 
    "program": 2, 
    "research_area": "Up and down", 
-   "slug": "funda-skipping", 
    "special_arrangements": null, 
    "updated_at": "2012-02-16 22:29:41"
   }, 
   "model": "grad.gradstudent", 
   "pk": 6
  }, 
- {
-  "fields": {
-   "created_at": "2012-02-06 15:32:02", 
-   "created_by": "", 
-   "description": "Jacking", 
-   "label": "Jumping ", 
-   "modified_by": null, 
-   "slug": "jumping", 
-   "unit": 2, 
-   "updated_at": "2012-02-06 15:32:02"
-  }, 
-  "model": "grad.gradprogram", 
-  "pk": 1
- }, 
- {
-  "fields": {
-   "created_at": "2012-02-06 15:32:15", 
-   "created_by": "", 
-   "description": "Johnny", 
-   "label": "Skipping ", 
-   "modified_by": null, 
-   "slug": "skipping", 
-   "unit": 2, 
-   "updated_at": "2012-02-06 15:32:15"
-  }, 
-  "model": "grad.gradprogram", 
-  "pk": 2
- }, 
- {
-  "fields": {
-   "created_at": "2012-02-06 15:32:24", 
-   "created_by": "", 
-   "description": "Puup", 
-   "label": "Running ", 
-   "modified_by": null, 
-   "slug": "running", 
-   "unit": 2, 
-   "updated_at": "2012-02-06 15:32:24"
-  }, 
-  "model": "grad.gradprogram", 
-  "pk": 3
- }, 
+ 
  {
   "fields": {
    "created_at": "2012-02-16 22:27:17", 
