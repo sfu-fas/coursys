@@ -121,7 +121,7 @@ span.label {
 <div id="content_container">
 	<div class="scholarship_divider">
 	{% for semester in semesters %}
-		<h2> {{ semester.semester }} - Status: {{ semester.status }} {% if semester.ta_ra.type %} ({{ semester.ta_ra.type }}) {% else %}{%endif%}</h2>
+		<h2> {{ semester.semester }} - Status: {{ semester.status }} {% if semester.ta_ra.type %} {{ semester.ta_ra.type }} {% else %}{%endif%}</h2>
 			<div class="scholarship_content">
 				{% if semester.scholarship_details.scholarships %}
 					<span class="label"> Scholarships: </span> 
@@ -173,6 +173,7 @@ span.label {
 					</ul>
 				{% endif %}
 				{% if semester.ta_ra.type %}
+				{% for type in semester.ta_ra.type %}
 				<span class="label"> {{ semester.ta_ra.type }} Details: </span>
 					<ul class="leaders">
 						{% for course in semester.ta_ra.courses %}
@@ -182,6 +183,7 @@ span.label {
 						</li>
 						{% endfor %}
 					</ul>
+				{% endfor %}
 				{% endif %}
 				{% if semester.scholarship_details.semester_total %}
 				<div class="hr"></div>

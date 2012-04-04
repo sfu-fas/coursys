@@ -968,24 +968,25 @@ def financials(request, grad_slug):
                     status = s.get_status_display()
             
             ta_ra = {}
-            type = ""
+            position_type = []
             courses = []
             amount = 0
             for contract in contracts:
                 if contract.posting.semester == semester:
-                    type = "TA"
+                    position_type.append("TA")
                     for course in TACourse.objects.filter(contract=contract):
+                        amount += course.pay()
                         courses.append({'course':course.course,'amount': course.pay()})
                     
             for appointment in appointments:
                 app_start_sem = get_semester(appointment.start_date)
                 app_end_sem = get_semester(appointment.end_date)
-                if app_start_sem >= semester and app_end_sem <= semester:
-                    type = "RA"
+                if app_start_sem <= semester and app_end_sem >= semester:
+                    position_type.append("RA")
                     amount = appointment.lump_sum_pay
                     courses.append({'course':"RA - %s" % appointment.project, 'amount':amount })
             
-            ta_ra['type'] = type
+            ta_ra['type'] = position_type
             ta_ra['courses'] = courses
             ta_ra['amount'] = amount
             
