@@ -121,7 +121,7 @@ span.label {
 <div id="content_container">
 	<div class="scholarship_divider">
 	{% for semester in semesters %}
-		<h2> {{ semester.semester }} - Status: {{ semester.status }} {% if semester.type %} {{ semester.type }} {% else %}{%endif%}</h2>
+		<h2> {{ semester.semester }} - Status: {{ semester.status }} {% if semester.type %} ({{ semester.type }}) {% else %}{%endif%}</h2>
 			<div class="scholarship_content">
 				{% if semester.scholarship_details.scholarships %}
 					<span class="label"> Scholarships: </span> 

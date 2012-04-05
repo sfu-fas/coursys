@@ -997,7 +997,7 @@ def financials(request, grad_slug):
             
             semesters.append({'semester':semester, 'status':status,'scholarship_details':scholarships_in_semester,
                               'promise':promise, 'promised_amount':semester_promised_amount, 'owing':semester_owing,
-                              'ta_ra': ta_ra, 'type':position_type})
+                              'ta_ra': ta_ra, 'type': ', '.join(position_type)})
     
         promises = []
         for promise in promises_qs:
