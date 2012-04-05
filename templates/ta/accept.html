@@ -13,7 +13,9 @@
 
 
 {% block content %}
-
+{% if contract.status == 'ACC' %}
+<h2> You have already accepted the offer</h2>
+{%else%}
 <div class="table_container">
 <h3>You have been chosen to be a TA for {{contract.posting.semester}}!</h3>
  <table class="info">
@@ -100,4 +102,5 @@
 <p><em>** Please contact {{ contract.posting.contact.name }} &lt;{{ contract.posting.contact.email_mailto }}&gt; after <b>accepting</b> the contract.</em> </p>
 </form>
 </div>
+{%endif%}
 {% endblock %}
