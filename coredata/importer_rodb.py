@@ -571,7 +571,7 @@ def import_students(offering):
         "FROM " + db.table_prefix + "ps_class_tbl c1, " + db.table_prefix + "ps_class_tbl c2, " \
         + db.table_prefix + "ps_stdnt_enrl s " \
         "WHERE c1.subject=c2.subject and c1.catalog_nbr=c2.catalog_nbr and c2.strm=c1.strm " \
-        "and s.class_nbr=c2.class_nbr and s.strm=c2.strm and s.stdnt_enrl_status='E' " \
+        "and s.class_nbr=c2.class_nbr and s.strm=c2.strm and s.enrl_status_reason IN ('ENRL','EWAT') " \
         "and c1.class_nbr=%s and c1.strm=%s and c2.class_section LIKE %s"
     db.execute(query, (offering.class_nbr, offering.semester.name, offering.section[0:2]+"%"))
     labtut = {}
