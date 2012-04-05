@@ -5,13 +5,21 @@
 
 {% block actions %}
 <div id="actions">
-<h2>Actions</h2>
-<ul>
-<li><a href="{% url grad.views.view_all grad_slug=grad.slug %}">View All Info</a></li>	
-<li class="newsec"><a href="{% url grad.views.manage_requirements grad_slug=grad.slug  %}">Manage Requirements</a></li>
-<li><a href="{% url grad.views.manage_supervisors grad_slug=grad.slug  %}">Manage Supervisors</a></li>
-<li><a href="{% url grad.views.manage_status grad_slug=grad.slug  %}">Manage Status</a></li>
-</ul>
+	<h2>Actions</h2>
+	<ul>
+		<li>
+			<a href="{% url grad.views.view_all grad_slug=grad.slug %}">View All Info</a>
+		</li>
+		<li class="newsec">
+			<a href="{% url grad.views.manage_requirements grad_slug=grad.slug  %}">Manage Requirements</a>
+		</li>
+		<li>
+			<a href="{% url grad.views.manage_supervisors grad_slug=grad.slug  %}">Manage Supervisors</a>
+		</li>
+		<li>
+			<a href="{% url grad.views.manage_status grad_slug=grad.slug  %}">Manage Status</a>
+		</li>
+	</ul>
 </div>
 {% endblock %}
 
@@ -45,7 +53,7 @@
 	</table>
 </div>
 <div id="form_container">
-	<form  method="POST">
+	<form  method="post" action="">
 		{% csrf_token %}
 		<fieldset>
 			<legend>
@@ -53,7 +61,7 @@
 			</legend>
 			{{ grad_form|as_dl_2 }}
 			<p>
-				<input class="submit" type="submit" value="Update">
+				<input class="submit" type="submit" value="Update" />
 			</p>
 		</fieldset>
 	</form>

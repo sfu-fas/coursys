@@ -16,10 +16,12 @@
 {% endblock %}
 {% block actions %}
 <div id="actions">
-<h2>Actions</h2>
-<ul>
-<li><a href="{% url grad.views.new_program %}">New Program</a></li>
-</ul>
+	<h2>Actions</h2>
+	<ul>
+		<li>
+			<a href="{% url grad.views.new_program %}">New Program</a>
+		</li>
+	</ul>
 </div>
 {% endblock %}
 
@@ -36,27 +38,27 @@
 {% endblock %}
 
 {% block content %}
-<p>For School of Computing Science (CMPT)</p>
+<p>
+	For School of Computing Science (CMPT)
+</p>
 <div class="datatable_container">
-    <table class="display" id="programs">
-        <thead>
-            <tr>
-                <th scope="col">Program Name</th>
+	<table class="display" id="programs">
+		<thead>
+			<tr>
+				<th scope="col">Program Name</th>
 				<th scope="col">Description</th>
-				<th scope="col">Updated At</th>				
-            </tr>
+				<th scope="col">Updated At</th>
+			</tr>
 		</thead>
-        <tbody>
-        {% for s in programs %}
-        <tr>
-            <td>{{s.label}}</td>
-            <td>{{s.description}}</td>
-            <td>{{s.updated_at}}</td>        
-          
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+		<tbody>
+			{% for s in programs %}
+			<tr>
+				<td>{{s.label}}</td>
+				<td>{{s.description}}</td>
+				<td>{{s.updated_at}}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
 </div>
-
-{% endblock %}
+{% endblock %} 

@@ -16,10 +16,12 @@
 {% endblock %}
 {% block actions %}
 <div id="actions">
-<h2>Actions</h2>
-<ul>
-<li ><a href="{% url grad.views.new_letter_template %}">New Letter Template</a></li>
-</ul>
+	<h2>Actions</h2>
+	<ul>
+		<li >
+			<a href="{% url grad.views.new_letter_template %}">New Letter Template</a>
+		</li>
+	</ul>
 </div>
 {% endblock %}
 
@@ -36,28 +38,29 @@
 {% endblock %}
 
 {% block content %}
-<p>For School of Computing Science (CMPT)</p>
+<p>
+	For School of Computing Science (CMPT)
+</p>
 <div class="datatable_container">
-    <table class="display" id="letter_templates">
-        <thead>
-            <tr>
-                <th scope="col">Template Name</th>
+	<table class="display" id="letter_templates">
+		<thead>
+			<tr>
+				<th scope="col">Template Name</th>
 				<th scope="col">Content</th>
-				<th scope="col">Created At</th>	
-				<th scope="col">Action</th>			
-            </tr>
+				<th scope="col">Created At</th>
+				<th scope="col">Action</th>
+			</tr>
 		</thead>
-        <tbody>
-        {% for s in templates %}
-        <tr>
-            <td>{{s.label}}</td>
-            <td>{{s.content|slice:":75"}}</td>
-            <td>{{s.created_at}}</td>        
-          	<td><a href="{% url grad.views.manage_letter_template letter_template_slug=s.slug %}">Manage</a></td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+		<tbody>
+			{% for s in templates %}
+			<tr>
+				<td>{{s.label}}</td>
+				<td>{{s.content|slice:":75"}}</td>
+				<td>{{s.created_at}}</td>
+				<td><a href="{% url grad.views.manage_letter_template letter_template_slug=s.slug %}">Manage</a></td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
 </div>
-
-{% endblock %}
+{% endblock %} 

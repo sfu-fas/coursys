@@ -17,7 +17,7 @@
 
 {% block content %}
 <div id="form_container">
-	<form action="{% url grad.views.new %}" method="POST">
+	<form action="{% url grad.views.new %}" method="post">
 		{% csrf_token %}
 		<fieldset>
 			<legend>
@@ -41,7 +41,7 @@
 			{{ status_form|as_dl_2 }}
 		</fieldset>				
 			<p>
-				<input  class="submit"  type="submit" value="Submit">
+				<input  class="submit"  type="submit" value="Submit" />
 			</p>
 	</form>
 	<a class="button" href="{% url grad.views.index %}">Back</a>

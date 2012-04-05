@@ -9,11 +9,11 @@
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li><li>&gt; {{crumb}}</li>{% endblock %}
 {% block content %}
 <div id="form_container">
-    <form action="{% url grad.views.new_requirement %}" method="POST">{% csrf_token %}
+    <form action="{% url grad.views.new_requirement %}" method="post">{% csrf_token %}
     	<fieldset>
 			<legend>Requiremnt Info</legend>
               {{ form|as_dl_2 }}
-        <p><input  class="submit"  type="submit" value="Submit"></p>
+        <p><input  class="submit"  type="submit" value="Submit" /></p>
         </fieldset>
     </form>
 	<a class="button" href="{% url grad.views.index %}">Back</a>

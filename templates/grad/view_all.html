@@ -7,7 +7,9 @@
 <div id="actions">
 	<h2>Actions</h2>
 	<ul>
-		<li id="moreinfo"><a href="javascript:get_more_info('{% url grad.views.grad_more_info grad_slug=grad.slug %}')">Fetch more info <img src="{{MEDIA_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" style="display:none" /></a></li>
+		<li id="moreinfo">
+			<a href="javascript:get_more_info('{% url grad.views.grad_more_info grad_slug=grad.slug %}')">Fetch more info <img src="{{MEDIA_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" style="display:none" /></a>
+		</li>
 		<li>
 			<a href="{% url grad.views.manage_academics grad_slug=grad.slug %}">Manage Academics</a>
 		</li>
@@ -39,8 +41,7 @@
 </div>
 {% endblock %}
 
-{% block headextra %}
-<script type="text/javascript" src="{{MEDIA_URL}}js/advisornotes.js"></script>
+{% block headextra %} <script type="text/javascript" src="{{MEDIA_URL}}js/advisornotes.js"></script>
 <script type="text/javascript">
 	function toggle(title_btn, open_btn, close_btn, body) {
 		$(body).hide();
@@ -83,26 +84,41 @@
 {% block h1 %}{{grad.person.name}}, {{grad.program.description}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
-<li>&gt; {{grad.person.name}}, {{grad.program.label}}</li>
+<li>
+	&gt; <a href="{% url grad.views.index %}">Grad</a>
+</li>
+<li>
+	&gt; {{grad.person.name}}, {{grad.program.label}}
+</li>
 {% endblock %}
 
 {% block content %}
 <div class="table_container">
 	<table class="info">
 		<tbody>
-			<tr><th>Student #</th><td>{{grad.person.emplid}}</td></tr>
-			<tr><th>Name</th><td>{{grad.person.sortname_pref}}</td></tr>
-			<tr><th>Email</th><td>{{grad.person.email_mailto}}</td></tr>
-			<tr><th>Citizenship</th><td>{{ grad.person.citizen|default_if_none:"unknown" }} (visa status: {{ grad.person.visa|default_if_none:"unknown" }})</td></tr>
-			<tr><th>GPA</th><td>{{grad.person.gpa}} ({{grad.person.ccredits}} credits)</td></tr>
-			<tr><th>Gender</th><td>{{grad.person.gender}}</td></tr>
+			<tr>
+				<th>Student #</th><td>{{grad.person.emplid}}</td>
+			</tr>
+			<tr>
+				<th>Name</th><td>{{grad.person.sortname_pref}}</td>
+			</tr>
+			<tr>
+				<th>Email</th><td>{{grad.person.email_mailto}}</td>
+			</tr>
+			<tr>
+				<th>Citizenship</th><td>{{ grad.person.citizen|default_if_none:"unknown" }} (visa status: {{ grad.person.visa|default_if_none:"unknown" }})</td>
+			</tr>
+			<tr>
+				<th>GPA</th><td>{{grad.person.gpa}} ({{grad.person.ccredits}} credits)</td>
+			</tr>
+			<tr>
+				<th>Gender</th><td>{{grad.person.gender}}</td>
+			</tr>
 		</tbody>
 	</table>
 </div>
-
 <br />
-<div align="center">
+<div style="">
 	<p class="helptext">
 		Last updated : {{grad.updated_at}}. By:
 		{% if not grad.modified_by%}
@@ -235,15 +251,18 @@
 		</tbody>
 	</table>
 	<br />
-	<hr>
+	<hr />
 </div>
 <br />
 <div class="datatable_container bigdatatable">
 	<table class="display" id="grads">
 		<thead>
 			<tr>
-				<th colspan="3"> Completed Requirment(s)
-				<div align="right">
+				<th colspan="3">
+				<div style="width: 100%">
+					Completed Requirment(s)
+				</div>
+				<div style="float:right">
 					<a href="{% url grad.views.manage_requirements grad_slug=grad.slug  %}">Manage Requirements</a>
 				</div></th>
 			</tr>
@@ -279,10 +298,7 @@
 		<tbody>
 			{% for s in missing_req %}
 			<tr>
-				<td>
-				<center>
-					{{s.description}}
-				</center></td>
+				<td align="center"> {{s.description}}</td>
 			</tr>
 			{%empty%}
 			<tr>
@@ -299,11 +315,14 @@
 </div>
 <br />
 <div class="datatable_container bigdatatable">
-	<table class="display" id="status">
+	<table class="display" id="supervisors">
 		<thead>
 			<tr>
-				<th colspan="5">Supervisors
-				<div align="right">
+				<th colspan="5">
+				<div style="width: 100%">
+					Supervisors
+				</div>
+				<div style="float: right; ">
 					<a href="{% url grad.views.manage_supervisors grad_slug=grad.slug  %}">Manage Supervisors</a>
 				</div></th>
 			</tr>
@@ -326,15 +345,18 @@
 		</tbody>
 	</table>
 	<br />
-	<hr>
+	<hr />
 </div>
 <br />
 <div class="datatable_container bigdatatable">
 	<table class="display" id="status">
 		<thead>
 			<tr>
-				<th colspan="5">Status History
-				<div align="right">
+				<th colspan="5">
+				<div style="width: 100%">
+					Status History
+				</div>
+				<div style="float: right">
 					<a href="{% url grad.views.manage_status grad_slug=grad.slug  %}">Manage Status</a>
 				</div></th>
 			</tr>
@@ -365,7 +387,7 @@
 		</tbody>
 	</table>
 	<br />
-	<hr>
+	<hr />
 </div>
 <br />
 {% endblock %} 

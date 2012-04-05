@@ -42,7 +42,7 @@
 {% for u in units %}{{u.name}}{% if not forloop.last %},{% endif %}{% endfor %}.
 </p>
 
-<form action="{% url grad.views.quick_search %}" method="get" width="100">
+<form action="{% url grad.views.quick_search %}" method="get">
 {{form.as_p}}
 <p><input class="submit" type="submit" value="Go" /></p>
 </form>

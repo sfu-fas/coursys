@@ -41,13 +41,13 @@
 	</table>
 </div>
 <div id="form_container">
-    <form action="{% url grad.views.manage_scholarship grad_slug=grad.slug%}" method="POST">
+    <form action="{% url grad.views.manage_scholarship grad_slug=grad.slug%}" method="post">
     	{% csrf_token %}
     	<fieldset>
     		
     		
               {{ scholarship_form|as_dl_2 }}
-        <p><input  class="submit"  type="submit" value="Submit"></p>
+        <p><input  class="submit"  type="submit" value="Submit" /></p>
         </fieldset>
     </form>
 	<a class="button" href="{% url grad.views.index %}">Back</a>

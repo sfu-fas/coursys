@@ -46,7 +46,7 @@
 
 {% block content %}
 <div id="form_container">
-    <form id="searchform" action="{% url grad.views.search %}" method="GET">
+    <form id="searchform" action="{% url grad.views.search %}" method="get">
         <fieldset>
             {#<legend>Advanced Search</legend>#}
             <div id="messages"><ul><li class="info">
@@ -64,7 +64,7 @@
             {{ form|as_dl_includefields:form.col_fields }}
             {#{{form|as_dl}}#}
         </fieldset>
-        <p><input id="submitbutton" class="submit"  type="submit" value="Search"></p>
+        <p><input id="submitbutton" class="submit"  type="submit" value="Search" /></p>
     </form>
     <a class="button" href="{% url grad.views.index %}" style="clear:both">Back</a>
 </div>

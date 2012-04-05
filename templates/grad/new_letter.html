@@ -121,7 +121,7 @@
 {% endblock %}
 {% block content %}
 <div id="form_container">
-	<form action="{% url grad.views.new_letter grad_slug=grad.slug%}" method="POST">
+	<form action="{% url grad.views.new_letter grad_slug=grad.slug%}" method="post">
 		{% csrf_token %}
 		<fieldset>
 			<legend>
@@ -150,7 +150,7 @@
 			<div style="clear: both"></div>
 			{{form|as_dl_excludefields:"template"}}
 			<p>
-				<input  class="submit"  type="submit" value="Submit">
+				<input  class="submit"  type="submit" value="Submit" />
 			</p>
 		</fieldset>
 	</form>

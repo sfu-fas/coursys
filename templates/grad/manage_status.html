@@ -51,41 +51,41 @@
 		</tbody>
 	</table>
 </div>
-
 <div id="form_container">
-    <form action="{% url grad.views.manage_status grad_slug=grad.slug %}"  method="post">
-    {% csrf_token %}
-    <div class="datatable_container bigdatatable">
-    <table class="display" id="status">
-        <thead>
-        <tr>
-            <th colspan="5">Status History</th>
-        </tr>
-        <tr>
-            <th>Status</th>
-            <th>Start Semester</th>
-            <th>End Semester</th>
-            <th>Notes</th>
-        </tr>
-        </thead>
-        <tbody>
-            {% for s in status_history %}
-            <tr>
-                <td> {{ s.get_status_display }} </td>
-                <td> {{ s.start }} </td>
-                <td> {{ s.end }} </td>
-                <td> {{ s.notes }} </td>
-            </tr>
-            {% endfor %}
-            <tr>
-            {% for field in new_status.visible_fields %}
-                <td>{{ field }} {{ field.errors }}</td>
-            {% endfor %}
-            </tr>
-        </tbody>
-    </table>
-    <p><input class="submit" type="submit" value="Save"></p>
-    </div>
-    </form>
+	<form action="{% url grad.views.manage_status grad_slug=grad.slug %}"  method="post">
+		{% csrf_token %}
+		<div class="datatable_container bigdatatable">
+			<table class="display" id="status">
+				<thead>
+					<tr>
+						<th colspan="5">Status History</th>
+					</tr>
+					<tr>
+						<th>Status</th>
+						<th>Start Semester</th>
+						<th>End Semester</th>
+						<th>Notes</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for s in status_history %}
+					<tr>
+						<td> {{ s.get_status_display }} </td>
+						<td> {{ s.start }} </td>
+						<td> {{ s.end }} </td>
+						<td> {{ s.notes }} </td>
+					</tr>
+					{% endfor %}
+					<tr>
+						{% for field in new_status.visible_fields %} <td>{{ field }} {{ field.errors }}</td>
+						{% endfor %}
+					</tr>
+				</tbody>
+			</table>
+			<p>
+				<input class="submit" type="submit" value="Save" />
+			</p>
+		</div>
+	</form>
 </div>
 {% endblock %} 

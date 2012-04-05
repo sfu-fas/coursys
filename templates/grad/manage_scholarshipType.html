@@ -23,11 +23,11 @@
 {% block content %}
 
 <div id="form_container">
-    <form action="{% url grad.views.manage_scholarshipType %}" method="POST">
+    <form action="{% url grad.views.manage_scholarshipType %}" method="post">
     	{% csrf_token %}
     	<fieldset>
               {{ new_scholarshipTypeForm|as_dl_2 }}
-        <p><input  class="submit"  type="submit" value="Submit"></p>
+        <p><input  class="submit"  type="submit" value="Submit" /></p>
         </fieldset>
     </form>
 	<a class="button" href="{% url grad.views.index %}">Back</a>

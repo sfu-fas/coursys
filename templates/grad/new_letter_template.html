@@ -19,7 +19,7 @@
 {% endblock %}
 {% block content %}
 <div id="form_container">
-	<form action="{% url grad.views.new_letter_template %}" method="POST">
+	<form action="{% url grad.views.new_letter_template %}" method="post">
 		{% csrf_token %}
 		<fieldset>
 			<legend>
@@ -76,7 +76,7 @@
 					</dl>
 				</div>
 				<p>
-					<input  class="submit"  type="submit" value="Submit">
+					<input  class="submit"  type="submit" value="Submit" />
 				</p>
 		</fieldset>
 	</form>
