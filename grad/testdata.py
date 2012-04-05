@@ -7,6 +7,7 @@ from grad.models import GradStudent, GradProgram, GradStatus, Scholarship,\
     OtherFunding, Promise, GradRequirement, CompletedRequirement,\
     ScholarshipType
 
+# TODO: add fake supervisors (maybe)
 
 def randname(l):
     n = random.choice(string.ascii_uppercase)
@@ -17,7 +18,7 @@ def randname(l):
 def randdesc(l):
     s = ''
     while len(s) < l:
-        s += randname(random.randint(1,int(l*(2.0/3.0))))
+        s += randname(random.randint(1,int(l*(2.0/3.0)))) + ' '
     if len(s) > l:
         s = s[:l]
     return s
@@ -41,17 +42,6 @@ def fake_emplid(emplid=None):
     fakes[emplid] = fake
     return fake
 
-all_gradprograms = {}
-def create_fake_gradprograms():
-    u = Unit.objects.get(label='CMPT')
-    for i in range(10):
-        label='%s%sing' % (randname(4), i)
-        gp = GradProgram(
-                unit=u,
-                label=label)
-        gp.save()
-        all_gradprograms[label] = gp
-
 randnullbool = lambda:random.choice((False, True, None))
 randbool = lambda:random.choice((False, True))
 
@@ -63,22 +53,23 @@ def create_fake_gradstudents():
     """
     for i in range(100):
         userid = "1grad%s" % (i)
-        print userid
         fname = randname(8)
         lname = "Gradstudent"
         p = Person(emplid=fake_emplid(userid), userid=userid, last_name=lname, first_name=fname, middle_name="", pref_first_name=fname[:4])
-        p.gender = random.choice(('M','F','U'))
-        p.gpa = random.triangular(0.0, 4.33, 2.33)
+        p.config['gender'] = random.choice(('M','F','U'))
+        p.config['gpa'] = random.triangular(0.0, 4.33, 2.33)
+        p.config['visa'] = random.choice([x for x,_ in forms.VISA_STATUSES])
+        p.config['citizen'] = random.choice(('Canadian', 'OtherCountrian'))
         p.save()
         all_students[userid] = p
         
         g = GradStudent(
                 person=p,
-                program=random.choice(all_gradprograms.values()),
+                program=random.choice(GradProgram.objects.all()),
                 research_area=randname(8)+'ology',
                 campus=random.choice([x for x,_ in models.CAMPUS_CHOICES]),
                 is_canadian=randnullbool(),
-                application_status=[x for x,_ in models.APPLICATION_STATUS_CHOICES])
+                application_status=random.choice([x for x,_ in models.APPLICATION_STATUS_CHOICES]))
         g.save()
         all_gradstudents[userid] = g
 
@@ -115,7 +106,7 @@ def create_fake_financial_support():
         of = OtherFunding(
                 student=random.choice(all_gradstudents.values()),
                 semester=random.choice(semesters),
-                description=randdesc(60),
+                description=randdesc(40),
                 amount=random.triangular(100.0, 20000.0, 5000.0),
                 eligible=randbool())
         of.save()
@@ -144,17 +135,20 @@ def create_fake_completedrequirements():
 
 def to_json():
     return serializers.serialize("json", 
-            all_gradprograms.values() + 
             all_students.values() + 
             all_gradstudents.values() +
             all_gradstatuses +
             all_financial_support +
-            all_completedrequirements)
+            all_completedrequirements,
+            indent=1)
 
 def main():
-    create_fake_gradprograms()
     create_fake_gradstudents()
     create_fake_gradstatuses()
     create_fake_financial_support()
     create_fake_completedrequirements()
     print to_json()
+
+# to run, call ./manage.py shell
+# from grad import testdata
+# testdata.main()
