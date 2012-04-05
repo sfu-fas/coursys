@@ -4,11 +4,11 @@ from django.db.models import Q
 import grad.models as gradmodels
 from grad.models import Supervisor, GradProgram, GradStudent, GradStatus,\
     GradRequirement, CompletedRequirement, LetterTemplate, Letter, Promise, Scholarship,\
-    ScholarshipType
+    ScholarshipType, SavedSearch
 from coredata.models import Person, Member, Semester, CAMPUS_CHOICES
 from django.forms.models import BaseModelFormSet
 #from django.core.exceptions import ValidationError
-from django.forms.widgets import NullBooleanSelect
+from django.forms.widgets import NullBooleanSelect, HiddenInput
 from django.template import Template, TemplateSyntaxError
 from itertools import ifilter, chain
 import unicodecsv as csv
@@ -320,24 +320,19 @@ VISA_STATUSES = (
         )
 
 class SearchForm(forms.Form):
-    #TODO: finish
-    
     start_semester_start = forms.ModelChoiceField(Semester.objects.all(), required=False)
     start_semester_end = forms.ModelChoiceField(Semester.objects.all(), required=False,
             help_text='Semester in which the Grad student has applied to start')
     end_semester_start = forms.ModelChoiceField(Semester.objects.all(), required=False)
     end_semester_end = forms.ModelChoiceField(Semester.objects.all(), required=False)
     
-    # requirements?
     student_status = forms.MultipleChoiceField(gradmodels.STATUS_CHOICES,
-#            widget=forms.CheckboxSelectMultiple,
             required=False,
             )
     application_status = forms.MultipleChoiceField(gradmodels.APPLICATION_STATUS_CHOICES, 
             required=False,
             )
     
-    #program = forms.CharField(required=False)
     program = forms.ModelMultipleChoiceField(GradProgram.objects.all(), required=False)
 #    degree = forms.ChoiceField(choices=(
 #            ('','---------'),
@@ -497,6 +492,30 @@ class SearchForm(forms.Form):
         # to cache some data used in the filter
         return self._secondary_filter
 
+class SaveSearchForm(ModelForm):
+    class Meta:
+        model = SavedSearch
+        exclude = ('config',)
+        widgets = {
+            'person': HiddenInput(),
+            'query': HiddenInput(),
+        }
+    name = forms.CharField()
+    
+    def __init__(self, *args, **kwargs):
+        super(SaveSearchForm, self).__init__(*args, **kwargs)
+        self.initial['name'] = self.instance.name()
+    
+    def clean(self):
+        super(SaveSearchForm, self).clean()
+        if self.cleaned_data['person'] != self.instance.person:
+            raise ValidationError('Person for saved search must be current user')
+        return self.cleaned_data
+    
+    def save(self, *args, **kwargs):
+        self.instance.set_name(self.cleaned_data['name'])
+        return super(SaveSearchForm, self).save(*args, **kwargs)
+
 class UploadApplicantsForm(forms.Form):
     csvfile = forms.FileField(required=True, label="PCS data export")
     unit = forms.ChoiceField(choices=[], help_text="The unit students are being imported for")
@@ -509,7 +528,7 @@ class UploadApplicantsForm(forms.Form):
             raise forms.ValidationError(u"Only .csv files are permitted")
         
         return csvfile
-
+    
 
 PCS_COLUMNS = [ # (key, header)
                ('appid', 'ID'),

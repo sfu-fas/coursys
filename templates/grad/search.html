@@ -38,6 +38,16 @@
 {% block h1 %}{{page_title}}{% endblock %}
 
 {% block actions %}
+<div id="actions">
+<h2>Saved Searches</h2>
+<ul>
+{% for s in savedsearches %}
+<li><a href="{% url grad.views.search %}?{{ s.query }}">{{ s.name }}</a></li>
+{% empty %}
+<li>No saved searches are available.</li>
+{% endfor %}
+</ul>
+</div>
 {% endblock %}
 
 {% block subbreadcrumbs %}
@@ -46,6 +56,7 @@
 {% endblock %}
 
 {% block content %}
+
 <div id="form_container">
     <form id="searchform" action="{% url grad.views.search %}" method="get">
         <fieldset>

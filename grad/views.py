@@ -4,11 +4,11 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.conf import settings
 from grad.models import GradStudent, GradProgram, Supervisor, GradRequirement, CompletedRequirement, GradStatus, \
         ScholarshipType, Scholarship, Promise, OtherFunding, LetterTemplate, \
-        Letter, STATUS_ACTIVE
+        Letter, STATUS_ACTIVE, SavedSearch
 from grad.forms import SupervisorForm, PotentialSupervisorForm, GradAcademicForm, GradProgramForm, \
         GradStudentForm, GradStatusForm, GradRequirementForm, possible_supervisors, BaseSupervisorsFormSet, \
     SearchForm, LetterTemplateForm, LetterForm, UploadApplicantsForm, new_promiseForm, new_scholarshipForm,\
-    new_scholarshipTypeForm, QuickSearchForm
+    new_scholarshipTypeForm, QuickSearchForm, SaveSearchForm
 from ta.models import TAContract, TAApplication, TACourse
 #from ta.views import total_pay
 from ra.models import RAAppointment
@@ -16,7 +16,8 @@ from coredata.models import Person, Role, Semester, CAMPUS_CHOICES
 from coredata.queries import more_personal_info, SIMSProblem, GRADFIELDS
 from django import forms
 from django.forms.models import modelformset_factory, inlineformset_factory
-from courselib.auth import requires_role, ForbiddenResponse, has_role
+from courselib.auth import requires_role, ForbiddenResponse, has_role,\
+    NotFoundResponse
 from courselib.search import get_query
 import datetime, json
 from django.contrib import messages
@@ -795,20 +796,16 @@ def search(request):
             if len(filter(lambda x:len(x) > 0, l)) == 0:
                 del cleaned_get[k]
         if len(cleaned_get) < len(request.GET):
-            return HttpResponseRedirect(reverse(search) + '?' + cleaned_get.urlencode())
+            return HttpResponseRedirect(reverse(search) + u'?' + cleaned_get.urlencode())
     # TODO: move the above code to a separate function
     
     if len(request.GET) == 0:
         form = SearchForm()
     else:
         form = SearchForm(request.GET)
+    
+    current_user = Person.objects.get(userid=request.user.username)
     if form.is_valid():
-        # if we store the query string in the database 
-        #query_string = iri_to_uri(request.META.get('QUERY_STRING',''))
-        
-        #TODO: (1) finish constructing search query from form's data
-        #TODO: (2) make a form and add column selection
-        #TODO: (3) implement search saving (model, ui)
         
         query = form.get_query()
         grads = GradStudent.objects.filter(query).distinct()
@@ -816,22 +813,30 @@ def search(request):
         # if performance becomes an issue, use this instead
         #grads = itertools.ifilter(form.secondary_filter, grads)
         # TODO get list of columns selected and send that seperately
+        
+        # if we store the query string in the database 
+        query_string = request.META.get('QUERY_STRING','')
+        try:
+            saveform = SaveSearchForm(instance=SavedSearch.objects.get(person=current_user, query=query_string))
+        except SavedSearch.DoesNotExist:
+            saveform = SaveSearchForm(initial={'person':current_user, 'query':query_string})
+        
         columns = form.cleaned_data['columns']
         context = {
-                   'page_title' : 'Graduate Student Search Results',
-                   'crumb' : 'Grads',
                    'grads': grads,
                    'columns': columns,
+                   'saveform' : saveform,
                    }
         return render(request, 'grad/search_results.html', context)
     else:
+        savedsearches = SavedSearch.objects.filter(person__in=(current_user,None))
         page_title = 'Graduate Student Advanced Search'
         context = {
+                   'savedsearches' : savedsearches,
                    'page_title' : page_title,
                    'form':form
                    }
         return render(request, 'grad/search.html', context)
-
 
 @requires_role("GRAD")
 def search_results(request):
@@ -873,6 +878,40 @@ def search_results(request):
     resp = HttpResponse(mimetype="application/json")
     json.dump(data, resp, indent=1)
     return resp
+
+@requires_role("GRAD")
+def save_search(request):
+    current_user = Person.objects.get(userid=request.user.username)
+    saveform = SaveSearchForm(request.POST)
+    try:
+        saveform.instance = SavedSearch.objects.get(
+                person=saveform.data['person'], 
+                query=saveform.data['query'])
+    except SavedSearch.DoesNotExist:
+        saveform.instance = SavedSearch(person=current_user)
+    if saveform.is_valid():
+        saveform.save()
+        return HttpResponseRedirect(reverse(search))
+    else:
+        messages.add_message(request, messages.ERROR, saveform.errors.as_text())
+        return HttpResponseRedirect(reverse(search) + u'?' + saveform.data['query'])
+
+@requires_role("GRAD")
+def delete_savedsearch(request):
+    current_user = Person.objects.get(userid=request.user.username)
+    if request.method != 'POST':
+        return ForbiddenResponse(request)
+    try:
+        savedsearch = SavedSearch.objects.get(
+                person=request.POST['person'], 
+                query=request.POST['query'])
+    except SavedSearch.DoesNotExist:
+        return NotFoundResponse(request, u"This Saved Search doesn't exist.")
+    if current_user != savedsearch.person:
+        return ForbiddenResponse(request, u"You cannot delete this Saved Search.")
+    savedsearch.delete()
+    messages.add_message(request, messages.SUCCESS, u"Saved Search '%s' was successfully deleted." % savedsearch.name())
+    return HttpResponseRedirect(reverse(search))
 
 @login_required
 def student_financials(request):

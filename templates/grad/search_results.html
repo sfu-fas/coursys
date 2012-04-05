@@ -13,9 +13,36 @@
 	});
 
 </script>
+<style type="text/css">
+#actions li label {
+padding: 3px 0.2em 3px 0.8em;
+}
+#actions li input {
+margin: 3px 0 3px 0;
+width: 120px;
+}
+</style>
 {% endblock %}
 
+{% block title %}Grad Student Search Results{% endblock %}
+{% block h1 %}Grad Student Search Results{% endblock %}
+
 {% block actions %}
+<div id="actions">
+<h2>Save this Search</h2>
+<form id="searchform" action="{% url grad.views.save_search %}" method="post">
+<ul>
+{{ saveform.as_ul }}
+</ul>
+{% csrf_token %}
+
+<input id="submitbutton" class="submit"  type="submit" value="{% if saveform.instance.pk %}Update{% else %}Save{% endif %}" />
+{% if saveform.instance.pk %}
+<input id="deletebutton" class="submit"  type="submit" value="Delete" formaction='{% url grad.views.delete_savedsearch %}' />
+{% endif %}
+</form>
+
+</div>
 {% endblock %}
 
 {% block subbreadcrumbs %}
@@ -31,6 +58,10 @@
 {% endblock %}
 
 {% block content %}
+{% if saveform.instance.pk %}
+<p>This search is saved as "{{saveform.instance.name}}".</p>
+{% endif %}
+
 <div class="datatable_container">
 	<table class="display" id="grads">
 		<thead>
@@ -53,7 +84,7 @@
 			<tr>
 				<td>
 				<p class="empty">
-					There are currently no grad student records stored in the database.
+					There are no grad student records that match your search.
 				</p></td>
 			</tr>
 			{% endfor %}

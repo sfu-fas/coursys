@@ -326,4 +326,10 @@ class SavedSearch(models.Model):
     person = models.ForeignKey(Person, null=True)
     query = models.TextField()
     config = JSONField(null=False, blank=False, default={})
+    
+    class Meta:
+        unique_together = (('person', 'query'),)
+        
+    defaults = {'name': ''}
+    name, set_name = getter_setter('name')
 
