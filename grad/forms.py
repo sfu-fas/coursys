@@ -304,6 +304,21 @@ COLUMN_CHOICES = (
         ('campus', 'Campus'),
         )
 
+VISA_STATUSES = (
+        ('Perm Resid', 'Permanent Resident'),
+        ('Student',    'Student Visa'),          # Student Authorization permitting study in Canada
+        ('Diplomat',   'Diplomat'),              # Reciprocal domestic tuition may be extended to dependents of diplomats from certain countries (not all).
+        ('Min Permit', "Minister's Permit"),
+        ('Other',      'Other Visa'),
+        ('Visitor',    "Visitor's Visa"),        # Does not permit long term study in Canada
+        ('Unknown',    'Not Known'),
+        ('New CDN',    "'New' Canadian citizen"),# Naturalized Canadian citizen whose SFU record previously showed another visa/permit status, such as Permanent Resident.
+        ('Conv Refug', 'Convention Refugee'),
+        ('Refugee',    'Refugee'),               # Refugee (status granted)
+        ('Unknown',    'Non-Canadian, Status Unknown'), # Non-Canadian, Status Unknown (incl refugee claimants)
+        ('No Visa St', 'Non-Canadian, No Visa Status'), # Non-Canadian, No Visa Status (student is studying outside Canada)
+        )
+
 class SearchForm(forms.Form):
     #TODO: finish
     
@@ -345,14 +360,12 @@ class SearchForm(forms.Form):
             ('P','Promise')
             ),required=False)
     
-    campus = forms.MultipleChoiceField(CAMPUS_CHOICES, required=False,
-            help_text='Uses "or", selecting nothing means any')
+    campus = forms.MultipleChoiceField(CAMPUS_CHOICES, required=False)
     gpa_min = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False)
     gpa_max = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False)
     gender = forms.ChoiceField((('','---------'), ('M','Male'), ('F','Female'), ('U','Unknown')),
             required=False)
-    visa_held = NullBooleanSearchField(required=False, 
-            help_text='Not Implemented, needs clarification on data in the database')
+    visa = forms.MultipleChoiceField(VISA_STATUSES, required=False,)
     scholarship_sem = forms.ModelMultipleChoiceField(Semester.objects.all(),
             label='Scholarship Semester Received',required=False)
 
@@ -375,7 +388,7 @@ class SearchForm(forms.Form):
             'financial_support',
             'campus',
             'gender',
-            'visa_held',
+            'visa',
             'scholarship_sem',]
 #    regular_fields = ','.join(regular_fields)
     number_range_fields = [
@@ -467,7 +480,17 @@ class SearchForm(forms.Form):
                 
                 (gradstudent.person.gpa() <= self.cleaned_data['gpa_max']
                 if self.cleaned_data.get('gpa_max', None) not in EMPTY_VALUES
-                else True))
+                else True)
+#                and
+#                ((gradstudent.person.config['citizen'].lower() == 'canadian') ==
+#                self.cleaned_data['is_canadian']
+#                if self.cleaned_data.get('is_canadian', None) not in EMPTY_VALUES
+#                else True)
+                and
+                (gradstudent.person.visa() in self.cleaned_data['visa']
+                if self.cleaned_data.get('visa', None) not in EMPTY_VALUES
+                else True)
+                )
     
     def secondary_filter(self):
         # this returns a function in case it needs to use a closure

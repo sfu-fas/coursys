@@ -50,6 +50,7 @@ class Person(models.Model):
     addresses, _ = getter_setter('addresses')
     gpa, _ = getter_setter('gpa')
     ccredits, _ = getter_setter('ccredits')
+    # see grad.forms.VISA_STATUSES for list of possibilites
     visa, _ = getter_setter('visa')
     citizen, _ = getter_setter('citizen')
     

@@ -15,6 +15,7 @@
     $("#id_financial_support").css("min-height", "120px").multiselect();
     $("#id_scholarship_sem").css("min-height", "160px").multiselect();
     $("#id_campus").css("min-height", "160px").multiselect();
+    $("#id_visa").css("min-height", "160px").multiselect();
     $("#id_columns").css("min-height", "180px").multiselect();
   });
 </script>
@@ -68,21 +69,4 @@
     </form>
     <a class="button" href="{% url grad.views.index %}" style="clear:both">Back</a>
 </div>
-{% comment %}
-<script type="text/javascript">
-<!--
-
-$("#submitbutton").click(function(){
-      quizSearchForm = $("#searchform");
-      //disable empty fields so they don't clutter up the url
-      inputs = quizSearchForm.find(':input[value=""]');
-      inputs.attr('disabled', true);
-      quizSearchForm.submit();
-    });
-    
-$("#searchform").find(':input[value=""]').attr('disabled', false);
-
-//-->
-</script>
-{% endcomment %}
 {% endblock %}
