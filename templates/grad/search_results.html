@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load getattribute %}
 
 {% block headextra %}
 <script type="text/javascript">
@@ -34,24 +35,20 @@
 	<table class="display" id="grads">
 		<thead>
 			<tr>
-				<th scope="col">Student #</th>
-				<th scope="col">Student ID</th>
-				<th>First</th>
-				<th>Last</th>
-				<th>Last Updated</th>
+            {% for c in columns %}
+                <th>{{ c }}</th>
+            {% endfor %}
 				<th>Manage</th>
 			</tr>
 		</thead>
 		<tbody>
 			{% for s in grads %}
-			<tr>
-				<td scope="row">{{s.person.emplid}}</td>
-				<td scope="row">{{s.person.userid}}</td>
-				<td>{{s.person.first_name}}</td>
-				<td>{{s.person.last_name}}</td>
-				<td>{{s.updated_at}}</td>
-				<td><a href="{% url grad.views.view_all grad_slug=s.slug %}"> View </a></td>
-			</tr>
+            <tr>
+            {% for c in columns %}
+                <td>{{s|getattribute:c}}</td>
+            {% endfor %}
+                <td><a href="{% url grad.views.view_all grad_slug=s.slug %}"> View </a></td>
+            </tr>
 			{%empty%}
 			<tr>
 				<td>

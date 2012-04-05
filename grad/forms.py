@@ -292,16 +292,16 @@ class NullBooleanSearchField(forms.NullBooleanField):
     validate = forms.BooleanField.validate
 
 COLUMN_CHOICES = (
-        ('emplid', 'Employee ID'),
-        ('userid', 'User ID'),
-        ('firstn', 'First Name'),
-        ('middle', 'Middle Name'),
-        ('lastna', 'Last Name'),
-        ('preffi', 'Preferred First Name'),
+        ('person.emplid',           'Employee ID'),
+        ('person.userid',           'User ID'),
+        ('person.first_name',       'First Name'),
+        ('person.middle_name',      'Middle Name'),
+        ('person.last_name',        'Last Name'),
+        ('person.pref_first_name',  'Preferred First Name'),
         # TODO Include stuff from config eg. email, phone, address
-        ('progra', 'Program'),
-        ('resear', 'Research Area'),
-        ('campus', 'Campus'),
+        ('program',                 'Program'),
+        ('research_area',           'Research Area'),
+        ('campus',                  'Campus'),
         )
 
 VISA_STATUSES = (
