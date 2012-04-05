@@ -73,24 +73,24 @@ span.label {
 }
 
 </style>
-<script>
+<script type="text/javascript">
 	$(document).ready(function() {
 		{% for semester in semesters %}{% for scholarship in semester.scholarship_details.scholarships %}
-		$('#{{semester.semester.name}}-{{scholarship.scholarship.id}}-comment').hide();
+		$('#comment-{{semester.semester.name}}-{{scholarship.scholarship.id}}').hide();
 		{% endfor %}{% endfor %}
 		{% for semester in semesters %}
-		$('#{{semester.semester.name}}-comments-btn').click(function(){
+		$('#comments-btn-{{semester.semester.name}}').click(function(){
 			{% for scholarship in semester.scholarship_details.scholarships %}
-			if ($('#{{semester.semester.name}}-{{scholarship.scholarship.id}}-comment').is(':hidden')){
-				$('#{{semester.semester.name}}-{{scholarship.scholarship.id}}-comment').show();
+			if ($('#comment-{{semester.semester.name}}-{{scholarship.scholarship.id}}').is(':hidden')){
+				$('#comment-{{semester.semester.name}}-{{scholarship.scholarship.id}}').show();
 			}else {
-				$('#{{semester.semester.name}}-{{scholarship.scholarship.id}}-comment').hide();
+				$('#comment-{{semester.semester.name}}-{{scholarship.scholarship.id}}').hide();
 			}
 			{% for other_funding in semester.scholarship_details.other_funding %}
-			if ($('#{{semester.semester.name}}-{{other_funding.id}}-comment').is(':hidden')){
-				$('#{{semester.semester.name}}-{{other_funding.id}}-comment').show();
+			if ($('#comment-{{semester.semester.name}}-{{other_funding.id}}').is(':hidden')){
+				$('#comment-{{semester.semester.name}}-{{other_funding.id}}').show();
 			}else {
-				$('#{{semester.semester.name}}-{{other_funding.id}}-comment').hide();
+				$('#comment-{{semester.semester.name}}-{{other_funding.id}}').hide();
 			}			
 			{% endfor %}{% endfor %}			
 		});
@@ -125,7 +125,7 @@ span.label {
 			<div class="scholarship_content">
 				{% if semester.scholarship_details.scholarships %}
 					<span class="label"> Scholarships: </span> 
-					<div style="float: right" id="{{semester.semester.name}}-comments-btn"> <a>[View Comments]</a></div>
+					<div style="float: right" id="comments-btn-{{semester.semester.name}}"> <a>[View Comments]</a></div>
 					<ul class="leaders">
 					{% for scholarship in semester.scholarship_details.scholarships %}
 						<li>
@@ -138,11 +138,11 @@ span.label {
 						{% endif %}
 						</li>
 						{% if scholarship.scholarship.comments %}
-							<li class="helptext comment" id="{{semester.semester.name}}-{{scholarship.scholarship.id}}-comment">
+							<li class="helptext comment" id="comment-{{semester.semester.name}}-{{scholarship.scholarship.id}}">
 								{{ scholarship.scholarship.comments }}
 							</li>
 							{% else %}
-							<li class="helptext comment" id="{{semester.semester.name}}-{{scholarship.scholarship.id}}-comment">
+							<li class="helptext comment" id="comment-{{semester.semester.name}}-{{scholarship.scholarship.id}}">
 								No comments recorded.    
 							</li>
 						{% endif %}
@@ -163,9 +163,9 @@ span.label {
 								{% endif %}
 							</li>
 							{% if other_funding.comment %}
-								<li class="helptext comment" id="{{semester.semester.name}}-{{other_funding.id}}-comment">{{ other_funding.comment }}</li>
+								<li class="helptext comment" id="comment-{{semester.semester.name}}-{{other_funding.id}}">{{ other_funding.comment }}</li>
 														{% else %}
-							<li class="helptext comment" id="{{semester.semester.name}}-{{scholarship.scholarship.id}}-comment">
+							<li class="helptext comment" id="comment-{{semester.semester.name}}-{{scholarship.scholarship.id}}">
 								No comments recorded.
 							</li>
 							{% endif %}
