@@ -58,8 +58,12 @@ function update_pay_frequency() {
 }
 
 function update_pay_periods() {
-	var st = new Date($("#id_start_date").val());
-	var en = new Date($("#id_end_date").val());
+	var start_text = $("#id_start_date").val();
+	var end_text = $("#id_end_date").val();
+  var start_list = start_text.split("-");
+  var end_list = end_text.split("-");
+  var st = new Date(start_list[0], start_list[1], start_list[2]);
+  var en = new Date(end_list[0], end_list[1], end_list[2]);
 	var day = 1000*3600*24; // # of milliseconds in a day
 	var count = 0;
 	
