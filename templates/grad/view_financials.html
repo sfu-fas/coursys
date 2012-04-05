@@ -217,13 +217,14 @@ span.label {
 			
 		</div>
 			{# if there are still promises to loop through, create another divider #}
-			{% if not forloop.last %}
+			{# if not forloop.last #}
 	<div class="divider">
-			{% endif %}
+			{# endif #}
 		{% endif %}
 		{% endfor %}
 			
 	{% endfor %}
+	</div>
 </div>
 
 {% endblock %} 
