@@ -42,7 +42,7 @@ def get_total_bu(courses):
     return total
 
 def create_news(person, url, from_user):
-    n = NewsItem(user=person, source_app="ta_contract", title="TA Contract Offer for %s" % (person),
+    n = NewsItem(user=person, source_app="ta_contract", title=u"TA Contract Offer for %s" % (person),
                  url=url, author=from_user)
     n.save()
 
@@ -205,7 +205,7 @@ def _new_application(request, post_slug, manual=False):
         person = get_object_or_404(Person, userid=request.user.username)
         existing_app = TAApplication.objects.filter(person=person, posting=posting)
         if existing_app.count() > 0: 
-            messages.success(request, "You have already applied for the %s %s posting." % (posting.unit, posting.semester))
+            messages.success(request, u"You have already applied for the %s %s posting." % (posting.unit, posting.semester))
             return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'post_slug': existing_app[0].posting.slug, 'userid': existing_app[0].person.userid}))
        
     if request.method == "POST":
@@ -216,13 +216,13 @@ def _new_application(request, post_slug, manual=False):
                 person = get_object_or_404(Person, emplid=int(request.POST['search']))
             except ValueError:
                 search_form = StudentSearchForm(request.POST['search'])
-                messages.error(request, "Invalid emplid %s for person." % (request.POST['search']))
+                messages.error(request, u"Invalid emplid %s for person." % (request.POST['search']))
                 return HttpResponseRedirect(reverse('ta.views.new_application_manual', args=(post_slug,)))
             
             #Check to see if an application already exists for the person 
             existing_app = TAApplication.objects.filter(person=person, posting=posting)
             if existing_app.count() > 0: 
-                messages.success(request, "%s has already applied for the %s %s posting." % (person, posting.unit, posting.semester))
+                messages.success(request, u"%s has already applied for the %s %s posting." % (person, posting.unit, posting.semester))
                 return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'post_slug': existing_app[0].posting.slug, 'userid': existing_app[0].person.userid}))
         
  
@@ -634,7 +634,7 @@ def accept_contract(request, post_slug, userid):
             elif "accept" in request.POST:
                 contract.status = 'ACC'
             contract.save()
-            messages.success(request, "Successfully %s the offer." % (contract.get_status_display()))
+            messages.success(request, u"Successfully %s the offer." % (contract.get_status_display()))
             ##not sure where to redirect to...so currently redirects to itself
             return HttpResponseRedirect(reverse(accept_contract, args=(post_slug,userid)))
     else:   
@@ -724,7 +724,7 @@ def edit_contract(request, post_slug, userid):
         ForbiddenResponse(request, 'You cannot access this page')
         
     course_choices = [('','---------')] + [(c.id, c.name()) for c in posting.selectable_offerings()]
-    position_choices = [(a.id, "%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit=posting.unit)]
+    position_choices = [(a.id, u"%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit=posting.unit)]
     
     #number of course form to populate
     num = 3
@@ -812,9 +812,9 @@ def edit_contract(request, post_slug, userid):
                 formset.save()
 
                 if not editing:
-                    messages.success(request, "Created TA Contract for %s for %s." % (contract.application.person, posting))
+                    messages.success(request, u"Created TA Contract for %s for %s." % (contract.application.person, posting))
                 else:
-                    messages.success(request, "Edited TA Contract for %s for %s." % (contract.application.person, posting))
+                    messages.success(request, u"Edited TA Contract for %s for %s." % (contract.application.person, posting))
                 return HttpResponseRedirect(reverse(all_contracts, args=(post_slug,)))
     else:
         form = TAContractForm(instance=contract) 
@@ -854,8 +854,8 @@ def _copy_posting_defaults(source, destination):
 @requires_role("TAAD")
 def edit_posting(request, post_slug=None):
     unit_choices = [(u.id, unicode(u)) for u in request.units]
-    account_choices = [(a.id, "%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit__in=request.units)]
-    contact_choices = [(r.person.id, "%s" % (r.person.name())) for r in Role.objects.filter(unit__in=request.units)]
+    account_choices = [(a.id, u"%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit__in=request.units)]
+    contact_choices = [(r.person.id, r.person.name()) for r in Role.objects.filter(unit__in=request.units)]
     contact_choices = list(set(contact_choices))
 
     today = datetime.date.today()
@@ -911,13 +911,13 @@ def edit_posting(request, post_slug=None):
             Skill.objects.filter(posting=form.instance).exclude(id__in=found_skills).delete()
             
             l = LogEntry(userid=request.user.username,
-                  description="Edited TAPosting for %s in %s." % (form.instance.unit, form.instance.semester),
+                  description=u"Edited TAPosting for %s in %s." % (form.instance.unit, form.instance.semester),
                   related_object=form.instance)
             l.save()
             if editing:
-                messages.success(request, "Edited TA posting for %s in %s." % (form.instance.unit, form.instance.semester))
+                messages.success(request, u"Edited TA posting for %s in %s." % (form.instance.unit, form.instance.semester))
             else:
-                messages.success(request, "Created TA posting for %s in %s." % (form.instance.unit, form.instance.semester))
+                messages.success(request, u"Created TA posting for %s in %s." % (form.instance.unit, form.instance.semester))
             return HttpResponseRedirect(reverse('ta.views.view_postings', kwargs={}))
     else:
         form = TAPostingForm(instance=posting)
