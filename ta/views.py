@@ -1112,3 +1112,10 @@ def contact_tas(request, post_slug):
 
     context = {'posting': posting, 'form': form}
     return render(request, 'ta/contact_tas.html', context) 
+
+@requires_course_instr_by_slug 
+def ta_offers(request, course_slug):
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    contracts = [(ta.contract, ta.bu) for ta in TACourse.objects.filter(course=offering).exclude(contract__status='NEW')]
+    context = {'contracts': contracts, 'course': offering}
+    return render(request, 'ta/view_tas.html', context)

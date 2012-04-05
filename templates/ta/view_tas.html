@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}TA Offers{% endblock %}
+{% block h1 %}TA Offers{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
+<li>&gt; <a href="{% url grades.views.course_config course_slug=course.slug %}">Setup</a></li>
+<li>&gt; TA Offers</li>
+{% endblock %}
+
+{% block content %}
+
+{% if contracts %}
+<div class="datatable_container">
+<table class="display">
+<thead>
+	<tr>
+		<th scope="col">TA Name</th>
+		<th scope="col">Email</th>
+		<th scope="col">Status</th>
+		<th scope="col">Assigned BU</th>
+	</tr>
+</thead>
+<tbody>
+{% for c in contracts %}
+<tr>
+  <td>{{c.0.application.person}}</td>
+  <td><a href="mailto:{{c.0.application.person.email}}">{{c.0.application.person.email}}</a></td>
+  <td>{{ c.0.get_status_display }}</td>
+  <td>{{ c.1 }}</td>
+</tr>	
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% else %}
+<p>No TA Offers.</p>
+{% endif %}
+
+{% endblock %}

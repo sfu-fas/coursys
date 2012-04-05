@@ -210,10 +210,12 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_SLUG + '/config/tugs/' + USERID_SLUG + '/$', 'ta.views.view_tug'),
     url(r'^' + COURSE_SLUG + '/config/tugs/' + USERID_SLUG + '/new$', 'ta.views.new_tug'),
     url(r'^' + COURSE_SLUG + '/config/tugs/' + USERID_SLUG + '/edit$', 'ta.views.edit_tug'),
+    
+    url(r'^' + COURSE_SLUG + '/config/taoffers/$', 'ta.views.ta_offers'),
 
     # redirect for old-style activity URLs (must be last to avoid conflict with other rules)
     url(r'^' + COURSE_ACTIVITY_SLUG_OLD + '(?P<tail>.*)$', 'django.views.generic.simple.redirect_to', {'url': '/%(course_slug)s/@%(activity_slug)s%(tail)s'}), # redirect old activity URLs
-	 
+	
     # TA postings/contracts
     
     url(r'^ta/$', 'ta.views.view_postings'),
@@ -241,7 +243,7 @@ urlpatterns += patterns('',
     url(r'^ta/' + POST_SLUG + '/contracts/' + USERID_SLUG + '/accept$', 'ta.views.accept_contract'),
     url(r'^ta/' + POST_SLUG + '/application/' + USERID_SLUG + '$', 'ta.views.view_application'),
     url(r'^ta/' + POST_SLUG + '/application/' + USERID_SLUG + '/update$', 'ta.views.update_application'),
-
+    
     # system admin
 
     url(r'^sysadmin/$', 'coredata.views.sysadmin'),

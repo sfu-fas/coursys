@@ -13,6 +13,7 @@
 <h2 class="heading">Actions</h2>
 <ul>
 <li><a href="{% url marking.views.copy_course_setup course_slug=course.slug %}">Copy Course Setup</a></li>
+<li><a href="{% url ta.views.ta_offers course_slug=course.slug %}">View TA Offers</a></li>
 <li><a href="{% url coredata.views.manage_tas course_slug=course.slug %}">Manage TAs</a></li>
 <li><a href="{% url ta.views.all_tugs course_slug=course.slug %}">Edit TUGs</a></li>
 </ul>
