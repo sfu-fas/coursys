@@ -967,34 +967,35 @@ def financials(request, grad_slug):
                 if s.start <= semester and (s.end == None or semester <= s.end) :
                     status = s.get_status_display()
             
-            ta_ra = {}
+            ta_ra = []
             position_type = []
-            courses = []
+            
             amount = 0
             for contract in contracts:
+                courses = []
                 if contract.posting.semester == semester:
                     position_type.append("TA")
                     for course in TACourse.objects.filter(contract=contract):
                         amount += course.pay()
                         courses.append({'course':course.course,'amount': course.pay()})
+                    ta_ra.append({'type':"TA",'courses':courses,'amount':amount})
                     
             for appointment in appointments:
+                courses = []
                 app_start_sem = get_semester(appointment.start_date)
                 app_end_sem = get_semester(appointment.end_date)
                 if app_start_sem <= semester and app_end_sem >= semester:
                     position_type.append("RA")
-                    amount = appointment.lump_sum_pay
+                    amount += appointment.lump_sum_pay
                     courses.append({'course':"RA - %s" % appointment.project, 'amount':amount })
+                ta_ra.append({'type':"RA",'courses':courses,'amount':amount})
             
-            ta_ra['type'] = position_type
-            ta_ra['courses'] = courses
-            ta_ra['amount'] = amount
-            
+
             scholarships_in_semester['semester_total'] += amount
             
             semesters.append({'semester':semester, 'status':status,'scholarship_details':scholarships_in_semester,
                               'promise':promise, 'promised_amount':semester_promised_amount, 'owing':semester_owing,
-                              'ta_ra': ta_ra})
+                              'ta_ra': ta_ra, 'type':position_type})
     
         promises = []
         for promise in promises_qs:
