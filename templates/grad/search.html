@@ -29,9 +29,11 @@
 
 .ui-multiselect .ui-state-default { max-width:210px;}
 .ui-multiselect .ui-widget-header { max-width:210px;}
- 
 -->
 </style>{% endcomment %}
+<style type="text/css">
+#deleteinvalidsearchbutton {float: none;}
+</style>
 {% endblock %}
 
 {% block title %}{{page_title}}{% endblock %}
@@ -56,6 +58,16 @@
 {% endblock %}
 
 {% block content %}
+{% if savedsearch %}
+<form id="searchform" action="{% url grad.views.delete_savedsearch %}" method="post">
+
+<input type="hidden" name="person" value="{{ savedsearch.person.pk }}" id="id_person">
+<input type="hidden" name="query" value="{{ savedsearch.query }}" id="id_query">
+{% csrf_token %}
+<p>This saved search, "{{savedsearch.name}}," is no longer valid. Click the following button to delete it.</p>
+<input id="deleteinvalidsearchbutton" class="submit" type="submit" value="Delete this saved search">
+</form>
+{% endif %}
 
 <div id="form_container">
     <form id="searchform" action="{% url grad.views.search %}" method="get">
