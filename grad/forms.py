@@ -104,19 +104,12 @@ class SupervisorForm(ModelForm):
 class PotentialSupervisorForm(ModelForm): 
     def set_supervisor_choices(self, choices):
         self.fields['supervisor'].choices = choices
-
+    
     class Meta:
         model = Supervisor
         exclude = ('student', 'is_potential', 'is_senior', 'position', 'created_by', 'modified_by', 'external', 'removed')
 
-
-def possible_supervisors(units, extras=[]):
-    """
-    .choices list of people who might supervise grad students in these units.
-    Extras to indicate values you know about (e.g. the current value(s))
-    
-    Selects instructors in those units (who still have active computing accounts)
-    """
+def possible_supervisor_people(units):
     # instructors of courses in the unit
     people = set(m.person for m in
              Member.objects.filter(role="INST", offering__owner__in=units).select_related('person')
@@ -125,11 +118,24 @@ def possible_supervisors(units, extras=[]):
     #people |= set(s.supervisor for s in
     #          Supervisor.objects.filter(student__program__unit__in=units).select_related('supervisor') 
     #          if s.supervisor and s.supervisor.userid)
+    return people
     
+def possible_supervisors(units, extras=[], null=False):
+    """
+    .choices list of people who might supervise grad students in these units.
+    Extras to indicate values you know about (e.g. the current value(s))
+    
+    Selects instructors in those units (who still have active computing accounts)
+    """
+    people = possible_supervisor_people(units)
     people |= set(extras)
     people = list(people)
     people.sort()
-    return [(p.id, p.name()) for p in people]
+    supervisors = [(p.id, p.name()) for p in people]
+    if null:
+        return [(-1, u'\u2014')] + supervisors
+    else:
+        return supervisors
 
 class BaseSupervisorsFormSet(BaseModelFormSet):
     def clean(self):
@@ -539,6 +545,7 @@ PCS_COLUMNS = [ # (key, header)
                ('lastup', 'Last Update'),
                ('resarea', 'Primary Research Area'),
                ('firstlang', 'First Language'),
+               ('potsuper', 'S1 name'), # TODO: is that right?
                ]
 
 PCS_COL_LOOKUP = dict(((hdr, key) for key,hdr in PCS_COLUMNS))
@@ -556,16 +563,14 @@ def process_pcs_row(row, column, rownum, unit, semester, user):
     warnings = []
     appid = row[column['appid']]
     emplid = row[column['emplid']]
-    email = row[column['email']]
-    #name = row[column['name']]
-    dob = row[column['dob']]
-    #gender = row[column['gender']]
-    #citizen = row[column['citizen']]
-    program = row[column['program']]
+    #program = row[column['program']]
 
     # get Person, from SIMS if necessary
     try:
-        p = Person.objects.get(emplid=emplid)
+        p = Person.objects.get(emplid=int(emplid))
+    except ValueError:
+        warnings.append("Bad emplid in row %i: not processing that row." % (rownum))
+        return warnings
     except Person.DoesNotExist:
         try:
             p = add_person(emplid)
@@ -573,8 +578,10 @@ def process_pcs_row(row, column, rownum, unit, semester, user):
             return e.message
 
     # update information on the Person
+    email = row[column['email']]
     if email: p.config['applic_email'] = email
 
+    dob = row[column['dob']]
     if dob:
         try:
             dt = datetime.datetime.strptime(dob, "%Y-%m-%d")
@@ -625,6 +632,41 @@ def process_pcs_row(row, column, rownum, unit, semester, user):
         st = GradStatus(student=gs, status="APPL", start=semester, end=None, notes="PCS import")
         st.save()
     
+    
+    # potential supervisor
+    potsuper = row[column['potsuper']]
+    if potsuper:
+        superv = None
+        external = None
+        try:
+            ps_last, ps_first = potsuper.split(', ')
+        except ValueError:
+            warnings.append('Bad potential supervisor name in row %i: will store them as an "external" supervisor.' % (rownum))
+            external = potsuper
+        else:
+            potentials = possible_supervisor_people([unit])
+            potential_ids = [p.id for p in potentials]
+            query = Q(last_name=ps_last, first_name=ps_first) | Q(last_name=ps_last, pref_first_name=ps_first)
+            people = Person.objects.filter(query, id__in=potential_ids)
+            if people.count() == 1:
+                superv = people[0]
+            else:
+                warnings.append('Coundn\'t find potential supervisor in row %i: will store them as an "external" supervisor.' % (rownum))
+                external = potsuper
+
+        old_s = Supervisor.objects.filter(student=gs, is_potential=True)
+        if old_s:
+            s = old_s[0]
+        else:
+            s = Supervisor(student=gs, is_potential=True)
+        s.superv = superv
+        s.external = external
+        s.position = 0
+        s.created_by = user.userid
+        s.modified_by = user.userid
+        s.save()
+                
+        
     l = LogEntry(userid=user.userid, description="Imported grad record for %s (%s) from PCS" % (p.name(), p.emplid), related_object=gs)
     l.save()
     
@@ -649,7 +691,7 @@ def process_pcs_export(csvdata, unit_id, semester_id, user):
     missing = req_columns - set(column.keys())
     if missing:
         return u"Missing columns in export: " + ', '.join([PCS_HDR_LOOKUP[key] for key in missing])
-
+    
     # process data rows
     count = 0
     for i, row in enumerate(data):

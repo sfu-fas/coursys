@@ -142,6 +142,7 @@ def manage_supervisors(request, grad_slug):
 
     if request.method == 'POST':
         potential_supervisors_form = PotentialSupervisorForm(request.POST, instance=pot_supervisor, prefix="pot_sup")
+        potential_supervisors_form.set_supervisor_choices(possible_supervisors([grad.program.unit]))
         if potential_supervisors_form.is_valid():
             #change gradstudent's last updated/by info to newest
             grad.updated_at = datetime.datetime.now()
