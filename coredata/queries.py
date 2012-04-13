@@ -1,7 +1,7 @@
-from coredata.models import Person
+from coredata.models import Person, Semester, SemesterWeek
 from django.db import transaction
 from django.core.cache import cache
-import re, hashlib
+import re, hashlib, datetime
 
 multiple_breaks = re.compile(r'\n\n+')
 
@@ -58,6 +58,8 @@ class DBConn(object):
 
     def fetchone(self):
         row = self.db.fetchone()
+        if row is None:
+            return row
         return tuple((self.prep_value(v) for v in row))
 
 class SIMSConn(DBConn):
@@ -403,3 +405,34 @@ def acad_plan_count(acad_plan, strm):
     #    print row
 
 
+
+@cache_by_args
+@SIMS_problem_handler
+def get_or_create_semester(strm):
+    if not (isinstance(strm, basestring) and strm.isdigit() and len(strm)==4):
+        raise ValueError, "Bad strm"
+    oldsem = Semester.objects.filter(name=strm)
+    if oldsem:
+        return oldsem[0]
+
+    db = SIMSConn()
+    db.execute("SELECT strm, term_begin_dt, term_end_dt FROM " + db.table_prefix + "ps_term_tbl WHERE strm=%s", (strm,))
+    row = db.fetchone()
+    if row is None:
+        raise ValueError, "Not Found"
+    strm, st, en = row
+    
+    # create Semester object
+    st = datetime.datetime.strptime(st, "%Y-%m-%d").date()
+    en = datetime.datetime.strptime(en, "%Y-%m-%d").date()
+    sem = Semester(name=strm, start=st, end=en)
+    sem.save()
+    
+    # also create SemesterWeek object for the first week
+    first_monday = st
+    while first_monday.weekday() != 0:
+        first_monday += datetime.timedelta(days=1)    
+    wk = SemesterWeek(semester=sem, week=1, monday=first_monday)
+    wk.save()
+    
+    return sem

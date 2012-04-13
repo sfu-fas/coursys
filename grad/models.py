@@ -20,7 +20,7 @@ class GradProgram(models.Model):
         # strip the punctutation entirely
         sluglabel = ''.join((c for c in self.label if c.isalnum()))
         return make_slug(sluglabel)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with=('unit',))
     class Meta:
         unique_together = (('unit', 'label'),)
     def __unicode__ (self):
@@ -143,7 +143,7 @@ class GradRequirement(models.Model):
     """
     A requirement that a unit has for grad students
     """
-    program = models.ForeignKey(GradProgram, null=False, blank=False)       
+    program = models.ForeignKey(GradProgram, null=False, blank=False)
     description = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')
@@ -157,11 +157,11 @@ class CompletedRequirement(models.Model):
     """
     requirement = models.ForeignKey(GradRequirement)
     student = models.ForeignKey(GradStudent)
-    semester = models.ForeignKey(Semester, null=True,
+    semester = models.ForeignKey(Semester, null=False,
             help_text="Semester when the requirement was completed")
     date = models.DateField(null=True, blank=True,
             help_text="Date the requirement was completed (optional)")
-    notes = models.TextField(blank=True, help_text="Other notes")
+    notes = models.TextField(null=True, blank=True, help_text="Other notes")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')    

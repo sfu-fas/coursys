@@ -3,9 +3,10 @@ sys.path.append(".")
 sys.path.append("..")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 from django.db import transaction
-from coredata.queries import DBConn, get_names
-from coredata.models import Person
-from grad.models import GradProgram, GradStudent
+from coredata.queries import DBConn, get_names, get_or_create_semester
+from coredata.models import Person, Semester, Unit
+from grad.models import GradProgram, GradStudent, GradRequirement, CompletedRequirement
+from coredata.importer_rodb import get_person_grad
 
 import pymssql, MySQLdb
 
@@ -90,16 +91,33 @@ class Introspection(object):
                 print
 
 class GradImport(object):
-    def __init__(self):
-        self.db = CortezConn()
-        self.db.execute("USE [grad]", ())
-        
+    IMPORT_USER = 'csilop'
     GENDER_MAP = {
                   'male': 'M',
                   'female': 'F',
                   'unknow': 'U',
                   }
-    PROGRAM_MAP = {
+    # names of the requirements, in the same order they appear in the import logic
+    REQ_LIST = ('Supervisory Committee', 'Breadth Program Approved', 'Breadth Requirements', 'Courses Completed',
+                'Depth Exam', 'CMPT 891', 'Thesis Proposal', 'Thesis Defence', 'Research Topic')
+    
+    def __init__(self):
+        self.db = CortezConn()
+        self.db.execute("USE [grad]", ())
+    
+    def cs_setup(self):
+        cmpt = Unit.objects.get(slug='cmpt')
+        programs = [('MSc Thesis', 'MSc Thesis option'), ('MSc Proj', 'MSc Project option'), ('PhD', 'PhD'),
+                    ('Special', 'Special Arrangements'), ('Qualifying', 'Qualifying Student')]
+        for lbl, dsc in programs:
+            gp, new_gp = GradProgram.objects.get_or_create(unit=cmpt, label=lbl)
+            if new_gp:
+                gp.description = dsc
+                gp.created_by = self.IMPORT_USER
+                gp.modified_by = self.IMPORT_USER
+                gp.save()
+
+        self.PROGRAM_MAP = {
                    ('MSc', 'Thesis'): GradProgram.objects.get(unit__slug='cmpt', slug='mscthesis'),
                    ('MSc', 'Project'): GradProgram.objects.get(unit__slug='cmpt', slug='mscproj'),
                    ('MSc', 'Course'): GradProgram.objects.get(unit__slug='cmpt', slug='mscproj'),
@@ -107,17 +125,21 @@ class GradImport(object):
                    ('MSc', None): GradProgram.objects.get(unit__slug='cmpt', slug='mscthesis'), # ???
                    ('PhD', 'Thesis'): GradProgram.objects.get(unit__slug='cmpt', slug='phd'),
                    ('PhD', ''): GradProgram.objects.get(unit__slug='cmpt', slug='phd'),
+                   ('PhD', None): GradProgram.objects.get(unit__slug='cmpt', slug='phd'),
                    ('Special', 'Thesis'): GradProgram.objects.get(unit__slug='cmpt', slug='special'),
                    ('Special', ''): GradProgram.objects.get(unit__slug='cmpt', slug='special'),
+                   ('Special', None): GradProgram.objects.get(unit__slug='cmpt', slug='special'),
                    ('Qualifying', 'Thesis'): GradProgram.objects.get(unit__slug='cmpt', slug='qualifying'),
                    ('Qualifying', ''): GradProgram.objects.get(unit__slug='cmpt', slug='qualifying'),
                    }
-    
+
+
+            
     @transaction.commit_on_success
     def process_grad(self, cortezid, sin, emplid, email, birthdate, gender,
                      english, mothertoungue, canadian, passport, visa, status):
         """
-        Process one 
+        Process one imported student
         
         Argument list must be in the same order at the query in get_students below.
         """
@@ -125,7 +147,9 @@ class GradImport(object):
             # TODO what about them?
             return
 
-        p, new_person = Person.objects.get_or_create(emplid=emplid)
+        #p, new_person = Person.objects.get_or_create(emplid=emplid)
+        p = get_person_grad(emplid, commit=True)
+        new_person = False
 
         # get what we can from SIMS
         if new_person:
@@ -145,18 +169,67 @@ class GradImport(object):
         p.config['gender'] = self.GENDER_MAP[gender.lower()]
         p.config['cortezid'] = cortezid
         
-        #print
-        #print p.__dict__
         p.save()
         #print (mothertoungue, canadian, passport, visa, status)
         
-        self.db.execute("SELECT * FROM AcademicRecord WHERE Identifier=%s", (cortezid,))
-        self.db.execute("SELECT Program, Degreetype, SemesterStarted, SemesterFinished FROM AcademicRecord WHERE Identifier=%s", (cortezid,))
-        for prog, progtype, sem_start, sem_finish in self.db:
+        #self.db.execute("SELECT * FROM AcademicRecord WHERE Identifier=%s", (cortezid,))
+        self.db.execute("SELECT Program, Degreetype, SemesterStarted, SemesterFinished, "
+                        "SupComSelected, BreProApproved, BreReqCompleted, CourseReqCompleted, "
+                        "DepExamCompleted, CMPT891Completed, ThProApproved, ThDefended, ReaTopicChosen "
+                        "FROM AcademicRecord WHERE Identifier=%s", (cortezid,))
+        sys.stdout.write('.')
+        sys.stdout.flush()
+
+        for prog, progtype, sem_start, sem_finish, supcom, brepro, brereq, crscom, depexam, cmpt891, thepro, thedef, reatop  in self.db:
+            try: sem_start = get_or_create_semester(sem_start)
+            except ValueError: sem_start = None
+            try: sem_finish = get_or_create_semester(sem_finish)
+            except ValueError: sem_finish = None
+
             # get/create the GradStudent object
+            if prog is None:
+                # TODO: ???
+                continue
+
             prog = self.PROGRAM_MAP[(prog, progtype)]
-            gs = GradStudent.objects.get_or_create(person=p, program=prog)
-            #gs.save()
+            gs, new_gs = GradStudent.objects.get_or_create(person=p, program=prog)
+            if new_gs:
+                gs.created_by = self.IMPORT_USER
+            gs.modified_by = self.IMPORT_USER
+            gs.save()
+            
+            # fill in their completed requirements
+            # order of reqs must match self.REQ_LIST
+            reqs = (supcom, brepro, brereq, crscom, depexam, cmpt891, thepro, thedef, reatop)
+            for completed, req_name in zip(reqs, self.REQ_LIST):
+                if not completed or completed.lower() in ('not taken',):
+                    continue
+                
+                req, _ = GradRequirement.objects.get_or_create(program=prog, description=req_name)
+                cr, new_cr = CompletedRequirement.objects.get_or_create(requirement=req, student=gs)
+                if new_cr: # if it was already there, don't bother fiddling with it
+                    if completed.lower() == 'passed':
+                        sem = sem_finish
+                        print `sem`
+                        notes = 'No semester on cortez: used finishing semester.'
+                    else:
+                        notes = None
+                        try:
+                            sem = get_or_create_semester(completed)
+                        except ValueError:
+                            sem = get_or_create_semester('0'+completed)
+
+                    cr.semester = sem
+                    cr.notes = notes
+                    cr.save()
+            
+            # statuses
+
+
+                
+            
+            
+                
 
             
 
@@ -166,15 +239,17 @@ class GradImport(object):
         self.db.execute("SELECT pi.Identifier, pi.SIN, pi.StudentNumber, "
                         "pi.Email, pi.BirthDate, pi.Sex, pi.EnglishFluent, pi.MotherTongue, pi.Canadian, pi.Passport, "
                         "pi.Visa, pi.Status FROM PersonalInfo pi "
-                        "WHERE pi.StudentNumber not in (' ', 'na', 'N/A', 'NO', 'Not App.', 'N.A.', '-no-') " 
+                        "WHERE pi.StudentNumber not in (' ', 'na', 'N/A', 'NO', 'Not App.', 'N.A.', '-no-') "
+                        #"AND pi.LastName LIKE 'Ba%%'" 
                         , ())
         for row in list(self.db):
             self.process_grad(*row)
             
             
-            
+
 
 #Introspection().print_schema()
 gradin = GradImport()
+gradin.cs_setup()
 gradin.get_students()
 

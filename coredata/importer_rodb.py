@@ -397,7 +397,7 @@ def get_person(emplid, commit=True):
     
 
 imported_people_full = {}
-def get_person_grad(emplid):
+def get_person_grad(emplid, commit=True):
     """
     Get/update personal info: does get_person() plus additional info we need for grad students
     """
@@ -416,7 +416,8 @@ def get_person_grad(emplid):
         if f not in data and f in p.config:
             del p.config[f]
     
-    p.save()
+    if commit:
+        _person_save(p)
     imported_people_full[emplid] = p
     return p
 
