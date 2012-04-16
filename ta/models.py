@@ -159,7 +159,7 @@ class TAPosting(models.Model):
             'bu_defaults': {},
             'payperiods': 8,
             'max_courses': 10,
-            'min_courses': 1,
+            'min_courses': 5,
             'contact': None,
             }
     salary, set_salary = getter_setter('salary')
@@ -170,7 +170,7 @@ class TAPosting(models.Model):
     deadline, set_deadline = getter_setter('deadline')
     excluded, set_excluded = getter_setter('excluded')
     bu_defaults, set_bu_defaults = getter_setter('bu_defaults')
-    payperiods, set_payperiods = getter_setter('payperiods')
+    payperiods_str, set_payperiods = getter_setter('payperiods')
     max_courses, set_max_courses = getter_setter('max_courses')
     min_courses, set_min_courses = getter_setter('min_courses')
     _, set_contact = getter_setter('contact')
@@ -189,6 +189,8 @@ class TAPosting(models.Model):
             return Person.objects.get(id=self.config['contact'])
         else:
             return None
+    def payperiods(self):
+        return decimal.Decimal(self.payperiods_str())
     
     def selectable_courses(self):
         """
@@ -466,7 +468,7 @@ class TAContract(models.Model):
 
 class TACourse(models.Model):
     course = models.ForeignKey(CourseOffering, blank=False, null=False)
-    contract = models.ForeignKey(TAContract)
+    contract = models.ForeignKey(TAContract, blank=False, null=False)
     description = models.CharField(max_length=3, choices=DESC_CHOICES, blank=False, null=False)
     bu = models.DecimalField(max_digits=4, decimal_places=2)
     

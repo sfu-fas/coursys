@@ -600,7 +600,7 @@ def accept_contract(request, post_slug, userid):
     total = _get_total_bu(courses)
     
     #this could be refactored used in multiple places
-    pp = posting.config['payperiods']
+    pp = posting.payperiods()
     pdead = posting.config['deadline']
     salary_sem = (total*contract.pay_per_bu)
     schol_sem = (total*contract.scholarship_per_bu)
@@ -667,7 +667,7 @@ def view_contract(request, post_slug, userid):
     
     total = _get_total_bu(courses)
     
-    pp = posting.config['payperiods']
+    pp = posting.payperiods()
     salary_sem = (total*contract.pay_per_bu)
     schol_sem = (total*contract.scholarship_per_bu)
     salary_sem_out = _format_currency(salary_sem)
@@ -853,7 +853,10 @@ def edit_posting(request, post_slug=None):
     contact_choices = list(set(contact_choices))
 
     today = datetime.date.today()
-    semester_choices = [(s.id, unicode(s)) for s in Semester.objects.filter(start__gt=today).order_by('start')]
+    if post_slug:
+        semester_choices = [(s.id, unicode(s)) for s in Semester.objects.all().order_by('start')]
+    else:
+        semester_choices = [(s.id, unicode(s)) for s in Semester.objects.filter(start__gt=today).order_by('start')]
     # TODO: display only relevant semester/unit offerings (with AJAX magic)
     offerings = CourseOffering.objects.filter(owner__in=request.units).select_related('course')
     excluded_choices = list(set(((u"%s (%s)" % (o.course,  o.title), o.course_id) for o in offerings)))

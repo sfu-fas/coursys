@@ -19,9 +19,8 @@
     $(function() {
     	$('#contracts').dataTable({
 			"bJQueryUI" : true,
-			"iDisplayLength" : 10,
-			"aaSorting" : [[4, "desc"]],
-			"sPaginationType" : "full_numbers",
+			"bPaginate" : false,
+			"aaSorting" : [[0, "asc"]],
 		});
 		
     	//setting post_slug

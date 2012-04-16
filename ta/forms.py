@@ -365,7 +365,7 @@ class TAPostingForm(forms.ModelForm):
     salary = PayField(label="Salary per BU", help_text="Default pay rates for contracts")
     scholarship = PayField(label="Scholarship per BU", help_text="Default scholarship rates for contracts")
     accounts = AccountsField(label="Position Number", help_text="Default position number for contracts")
-    payperiods = forms.IntegerField(label="Pay periods", help_text='Number of pay periods in the semester',
+    payperiods = forms.DecimalField(label="Pay periods", help_text='Number of pay periods in the semester',
             max_value=20, min_value=1, widget=forms.TextInput(attrs={'size': 5}))
     contact = forms.ChoiceField(label="Contact Person", help_text="Person to give applicants/offers to ask questions.")
     max_courses = forms.IntegerField(label="Maximum courses", help_text="The maximum number of courses an applicant can specify.")
@@ -393,7 +393,7 @@ class TAPostingForm(forms.ModelForm):
         self.initial['excluded'] = self.instance.excluded()
         self.initial['max_courses'] = self.instance.max_courses()
         self.initial['min_courses'] = self.instance.min_courses()
-        self.initial['payperiods'] = self.instance.payperiods()
+        self.initial['payperiods'] = decimal.Decimal(self.instance.payperiods())
         self.initial['contact'] = self.instance.contact().id
         skills = Skill.objects.filter(posting=self.instance)
         self.initial['skills'] = '\n'.join((s.name for s in skills))

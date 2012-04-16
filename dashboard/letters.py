@@ -686,7 +686,7 @@ class TAForm(object):
         self._draw_box(153*mm, 155*mm, 22*mm, label="APPT. CATEGORY", content=contract.application.category)
             
         # salary/scholarship
-        pp = contract.posting.config['payperiods']
+        pp = contract.posting.payperiods()
         total_pay = total_bu*contract.pay_per_bu
         biweek_pay = total_pay/pp
         total_schol = total_bu*contract.scholarship_per_bu

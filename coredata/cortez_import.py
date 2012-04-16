@@ -6,7 +6,10 @@ from django.db import transaction
 from coredata.queries import DBConn, get_names, get_or_create_semester
 from coredata.models import Person, Semester, Unit, CourseOffering
 from grad.models import GradProgram, GradStudent, GradRequirement, CompletedRequirement
-from coredata.importer_rodb import get_person_grad
+from ta.models import TAContract, TAApplication, TAPosting, TACourse
+from ta.models import Account
+from coredata.importer_rodb import get_person, get_person_grad
+import datetime
 
 import pymssql, MySQLdb
 
@@ -72,7 +75,7 @@ class Introspection(object):
             if d in ('model', 'personnel', 'news', 'csguest', 'search', 'space', 'chingtai', 'CE8', 'expenses'):
                 # no access
                 continue
-            if d in ('tasearch', 'master', 'msdb', 'pubs', 'faculty'):
+            if d in ('master', 'msdb', 'pubs', 'faculty'):
                 # can't introspect for some reason
                 continue
             print
@@ -85,7 +88,7 @@ class Introspection(object):
                              ('grad', 'PCS_Identifier'), ('ra', 'deletedContract')):
                     continue
                 rows = self.row_count(d, t)
-                print "%s.%s (%i)" % (d, t, rows)
+                print "%s.dbo.%s (%i)" % (d, t, rows)
                 for name, typ, null, size in self.table_columns(d, t):
                     print "  %s %s(%s) (null %s)" % (name, typ, size, null.strip())
                 print
@@ -249,9 +252,41 @@ class GradImport(object):
 
 class TAImport(object):
     IMPORT_USER = 'csilop'
+    UNIT = Unit.objects.get(slug='cmpt')
+    TA_CONTACT = Person.objects.get(userid='ggbaker')
+    
+    CATEGORY_MAP = {
+                    'mscc': 'GTA1',
+                    'mscp': 'GTA1',
+                    'msct': 'GTA1',
+                    'msc': 'GTA1',
+                    'phd': 'GTA2',
+                    'bsc': 'UTA',
+                    }
+    INITIAL_MAP = {
+                   'yes': 'INIT',
+                   'no': 'REAP',
+                   }
+    
     def __init__(self):
         self.db = CortezConn()
         self.db.execute("USE [esp]", ())
+
+    def setup_accounts(self):
+        accounts = [
+                    ('00691', '11', 'MSc TA'),
+                    ('06406', '11', 'PhD TA'),
+                    ('06407', '11', 'External TA'),
+                    ('99622', '11', 'Undergrad TA'),
+                    ('00690', '11', 'Undergrad TA'),
+                    ]
+        self.positions = {}
+        for p, a, desc in accounts:
+            acc, _ = Account.objects.get_or_create(unit=self.UNIT, position_number=p, account_number=a)
+            acc.title = desc
+            acc.save()
+            self.positions[p] = acc.id
+        
     
     def get_offering_map(self):
         offeringid_map = {}
@@ -265,19 +300,132 @@ class TAImport(object):
                 raise ValueError, "multiple offerings found: " + str(offerings)
             elif offerings:
                 o = offerings[0]
-                offeringid_map[off_id] = o, hasLabs
+                offeringid_map[off_id] = o
+                o.set_labtas(bool(hasLabs))
+                o.save()
         
         return offeringid_map
     
-    def get_tas(self):            
-        #offeringid_map = self.get_offering_map()
+    def get_ta_postings(self):
+        self.setup_accounts()
+        self.db.execute("SELECT currentYear, currentSem, applicationdeadline, acceptdeadline, "
+                        "gta1amount, gta2amount, etaamount, utaamount, "
+                        "gta1scholarship, gta2scholarship, etascholarship, utascholarship, "
+                        "gta1positionNum, gta2positionNum, etapositionNum, utapositionNum, "
+                        "asdday, asdmonth, asdYear, "
+                        "aedday, aedmonth, aedYear "
+                        "FROM tasearch.dbo.semesterinfo", ())
+        for year, sem, applic, accept, gta1a,gta2a,etaa,utaa, gta1s,gta2s,etas,utas, gta1p,gta2p,etap,utap, asd,asm,asy, aed,aem,aey in self.db:
+            strm = year+sem
+            salary = [gta1a,gta2a,etaa,utaa]
+            schol = [gta1s,gta2s,etas,utas]
+            positions = [gta1p,gta2p,etap,utap]
+            positions = [self.positions[p] for p in positions]
+            
+            # fix broken data in system
+            if asy < 1900: asy += 2000
+            if aey < 1900: aey += 2000
+            if strm in ['1107']:
+                asm, asd = asd, asm
+                aem, aed = aed, aem
+            if strm in ['1111']:
+                asm = 1
 
-        self.db.execute("SELECT * from Offerings where emplid='200022802'", ())
-        for row in self.db:
-            print row
-        #self.db.execute("SELECT bu, salary, scholarship from TAOffering", ())
-        #for row in self.db:
-        #    print row
+            start = datetime.date(asy, asm, asd)
+            end = datetime.date(aey, aem, aed)
+            try:
+                applic = datetime.datetime.strptime(applic, "%B %d, %Y").date()
+            except ValueError:
+                applic = start
+            try:
+                accept = datetime.datetime.strptime(accept, "%B %d, %Y").date()
+            except ValueError:
+                accept = start
+
+            semester = get_or_create_semester(strm)
+            postings = TAPosting.objects.filter(unit=self.UNIT, semester=semester)
+            if postings:
+                posting = postings[0]
+            else:
+                posting = TAPosting(unit=self.UNIT, semester=semester)
+
+            posting.opens = applic
+            posting.closes = applic
+            posting.config['salary'] = salary
+            posting.config['scholarship'] = schol
+            posting.config['start'] = start
+            posting.config['end'] = end
+            posting.config['deadline'] = accept
+            posting.config['contact'] = self.TA_CONTACT.id
+            posting.config['accounts'] = positions
+            posting.config['payperiods'] = "%.1f" % ((end-start).total_seconds()/3600/24/14,) # close enough for the import
+            posting.save()
+    
+    
+    def get_tas(self):            
+        self.get_ta_postings()
+        offeringid_map = self.get_offering_map()
+
+        self.db.execute("SELECT o.Offering_ID, o.bu, o.salary, o.scholarship, o.description, "
+                        "o.PayrollStartDate, o.PayrollEndDate, o.PositionNumber, o.initAppointment, "
+                        "o.conditional, o.tssu, o.remarks, i.base, "
+                        "i.studNum, i.category, i.socialInsurance, i.status FROM TAOffering o, tasearch.dbo.tainfo i "
+                        "WHERE o.TA_ID=i.appId", ())
+        for off_id, bu, salary, schol, description, payst, payen, posnum, initial, cond, tssu, remarks, app_bu, emplid, cat, sin, status in self.db:
+            #print (off_id, bu, salary, schol, pos_num, emplid, cat, sin, status)
+            if bu == 0:
+                continue
+            if off_id not in offeringid_map:
+                continue
+            offering = offeringid_map[off_id]
+            p = get_person(emplid, commit=True)
+            posting = TAPosting.objects.get(unit=self.UNIT, semester=offering.semester)
+            
+            # create TAApplication
+            apps = TAApplication.objects.filter(posting=posting, person=p)
+            if apps:
+                app = apps[0]
+            else:
+                app = TAApplication(posting=posting, person=p)
+            
+            app.category = self.CATEGORY_MAP[cat]
+            app.base_units = app_bu
+            app.sin = sin
+            app.save()
+            
+            # create TAContract
+            contracts = TAContract.objects.filter(posting=posting, application=app)
+            if contracts:
+                contract = contracts[0]
+            else:
+                contract = TAContract(posting=posting, application=app)
+            
+            contract.sin = sin
+            contract.pay_start = payst
+            contract.pay_end = payen
+            contract.appt_category = app.category
+            contract.position_number_id = self.positions[posnum]
+            contract.appt = self.INITIAL_MAP[initial]
+            contract.pay_per_bu = "%.2f" % (salary/bu)
+            contract.scholarship_per_bu = "%.2f" % (schol/bu)
+            contract.deadline = posting.deadline()
+            contract.appt_cond = cond
+            contract.appt_tssu = tssu
+            contract.status = 'SGN' if status=='accepted' else 'REJ'
+            contract.remarks = remarks or ''
+            contract.created_by = self.IMPORT_USER
+            contract.save()
+            
+            # create TACourse
+            crses = TACourse.objects.filter(course=offering, contract=contract)
+            if crses:
+                crs = crses[0]
+            else:
+                crs = TACourse(course=offering, contract=contract)
+            
+            crs.description = description
+            crs.bu = bu
+            crs.save()
 
 
 
