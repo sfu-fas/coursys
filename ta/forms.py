@@ -165,7 +165,7 @@ class TAApplicationForm(forms.ModelForm):
 
     def clean_sin(self):
         sin = self.cleaned_data['sin']
-        if sin.strip() =='':
+        if sin.strip() == '':
             sin = '000000000'
         else:
             sin = re.sub('[ -]+','',str(sin))

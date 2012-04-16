@@ -4,7 +4,7 @@ sys.path.append("..")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 from django.db import transaction
 from coredata.queries import DBConn, get_names, get_or_create_semester
-from coredata.models import Person, Semester, Unit
+from coredata.models import Person, Semester, Unit, CourseOffering
 from grad.models import GradProgram, GradStudent, GradRequirement, CompletedRequirement
 from coredata.importer_rodb import get_person_grad
 
@@ -144,7 +144,7 @@ class GradImport(object):
         Argument list must be in the same order at the query in get_students below.
         """
         if not(emplid.isdigit() and len(emplid)==9):
-            # TODO what about them?
+            # TODO: what about them?
             return
 
         #p, new_person = Person.objects.get_or_create(emplid=emplid)
@@ -245,11 +245,46 @@ class GradImport(object):
         for row in list(self.db):
             self.process_grad(*row)
             
-            
+
+
+class TAImport(object):
+    IMPORT_USER = 'csilop'
+    def __init__(self):
+        self.db = CortezConn()
+        self.db.execute("USE [esp]", ())
+    
+    def get_offering_map(self):
+        offeringid_map = {}
+        self.db.execute("SELECT Offering_ID, Semester_Description, Course_Number, Section, o.hasLabs from Offerings o, Resource_Semesters s, Courses c "
+                        "WHERE o.Semester_ID=s.Semester_ID AND o.Course_ID=c.Course_ID", ())
+        for off_id, semname, crsnumber, section, hasLabs in self.db:
+            subject, number = crsnumber.split()
+            offerings = CourseOffering.objects.filter(subject=subject, number__startswith=number, semester__name=semname, section__startswith=section)
+            #print (off_id, semname, crsnumber, section, hasLabs)
+            if offerings.count() > 1:
+                raise ValueError, "multiple offerings found: " + str(offerings)
+            elif offerings:
+                o = offerings[0]
+                offeringid_map[off_id] = o, hasLabs
+        
+        return offeringid_map
+    
+    def get_tas(self):            
+        #offeringid_map = self.get_offering_map()
+
+        self.db.execute("SELECT * from Offerings where emplid='200022802'", ())
+        for row in self.db:
+            print row
+        #self.db.execute("SELECT bu, salary, scholarship from TAOffering", ())
+        #for row in self.db:
+        #    print row
+
 
 
 #Introspection().print_schema()
-gradin = GradImport()
-gradin.cs_setup()
-gradin.get_students()
+#gradin = GradImport()
+#gradin.cs_setup()
+#gradin.get_students()
+tain = TAImport()
+tain.get_tas()
 

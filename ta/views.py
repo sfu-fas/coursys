@@ -4,8 +4,7 @@ from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.contrib import messages
 from courselib.auth import requires_course_staff_by_slug, requires_course_instr_by_slug, requires_role, \
-    is_course_staff_by_slug, requires_course_staff_or_dept_admn_by_slug, \
-    has_role, ForbiddenResponse
+    requires_course_staff_or_dept_admn_by_slug, ForbiddenResponse
 from django.contrib.auth.decorators import login_required
 from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, CampusPreference,\
     CAMPUS_CHOICES, CAMPUSES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS
@@ -22,37 +21,35 @@ from dashboard.letters import ta_form, ta_forms
 from django.forms.models import inlineformset_factory
 from django.forms.formsets import formset_factory
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
-from django.core.servers.basehttp import FileWrapper
-import os
 import datetime, decimal, locale 
 import unicodecsv as csv
 from ta.templatetags import ta_display
 import json
 
 locale.setlocale( locale.LC_ALL, '' ) #fiddle with this if you cant get the following function to work
-def format_currency(i):
+def _format_currency(i):
     """used to properly format money"""
     return locale.currency(float(i), grouping=True)
 
-def get_total_bu(courses):
+def _get_total_bu(courses):
     """calculates the total bu given a list of courses"""
     total = 0
     for course in courses:
         total = total + course.bu
     return total
 
-def create_news(person, url, from_user):
+def _create_news(person, url, from_user):
     n = NewsItem(user=person, source_app="ta_contract", title=u"TA Contract Offer for %s" % (person),
                  url=url, author=from_user)
     n.save()
 
-@login_required
-def index_page(request, course_slug):
-    return HttpResponseRedirect(reverse(all_tugs, args=(course_slug,)))
+#@login_required
+#def index_page(request, course_slug):
+#    return HttpResponseRedirect(reverse(all_tugs, args=(course_slug,)))
 
 # helps zip tas and tugs together
 # basically performs a left outer join between tas and tugs
-def tryget(member):
+def _tryget(member):
     try:
         return TUG.objects.get(member=member)
     except(TUG.DoesNotExist):
@@ -67,32 +64,26 @@ def all_tugs(request, course_slug):
 #    is_ta = current_user in tas
     is_ta = current_user.role == 'TA'
     if is_ta:
-        # TODO: just redirect if the user is just a TA (ask in scrumeeting)
         tas = [current_user]
-        #tas = tas.filter(person__userid=current_user.person.userid)
-    tas_with_tugs = [(ta, tryget(ta)) for ta in tas]
+    tas_with_tugs = [(ta, _tryget(ta)) for ta in tas]
     
     context = {
            'tas_with_tugs':tas_with_tugs,
            'course':course,
            'not_ta':not is_ta
-            }
+           }
     
     return render(request, 'ta/all_tugs.html', context)
         
 @requires_role("ADMN")
 def all_tugs_admin(request):
-    unit = request.units[0] # TODO: allow selecting unit if multiple
     courses = CourseOffering.objects.filter(owner__in=request.units)
     tas = Member.objects.filter(offering__in=courses, role="TA")
-    tas_with_tugs = [{'ta':ta, 'tug':tryget(ta)} for ta in tas]
+    tas_with_tugs = [{'ta':ta, 'tug':_tryget(ta)} for ta in tas]
     
     context = {
                'tas_with_tugs':tas_with_tugs,
-               'unit':unit,
                'courses':courses,
-               # todo: figure out a way to express empty_courses in template code
-               # perhaps write a custom filter
                'empty_courses':[course for course in courses if not any(course == ta.offering for ta in tas )]
                 }
     
@@ -133,14 +124,14 @@ def view_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     member = get_object_or_404(Member, offering=course, person__userid=userid, role="TA")
     try:
-        curr_user_role = Member.objects.get(person__userid=request.user.username,offering=course).role
+        curr_user_role = Member.objects.get(person__userid=request.user.username, offering=course).role
     except Member.DoesNotExist:
         # we'll just assume this since it's the only other possibility 
         #  since we're checking authorization in the decorator
         curr_user_role = "ADMN"
     
     #If the currently logged in user is a TA for the course and is viewing a TUG for another TA, show forbidden message
-    if(curr_user_role =="TA" and not userid==request.user.username ): 
+    if curr_user_role=="TA" and not userid==request.user.username: 
         return ForbiddenResponse(request)
     else:
         tug = get_object_or_404(TUG, member=member)
@@ -156,7 +147,7 @@ def view_tug(request, course_slug, userid):
 def edit_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     member = get_object_or_404(Member, offering=course, person__userid=userid)
-    tug = get_object_or_404(TUG,member=member)
+    tug = get_object_or_404(TUG, member=member)
     if (request.method=="POST"):
         form = TUGForm(request.POST, instance=tug)
         if form.is_valid():
@@ -173,6 +164,9 @@ def edit_tug(request, course_slug, userid):
                }
     
     return render(request, 'ta/edit_tug.html',context)
+
+
+
 
 @requires_role("TAAD")
 def new_application_manual(request, post_slug):
@@ -525,7 +519,7 @@ def all_contracts(request, post_slug):
                 app = contract.application.person
                 offer_url = reverse('ta.views.accept_contract', kwargs={'post_slug': post_slug, 'userid': app.userid})
                 contract.status = 'OPN'
-                create_news(app, offer_url, from_user)
+                _create_news(app, offer_url, from_user)
                 contract.save()
                 ccount += 1
                 
@@ -603,17 +597,17 @@ def accept_contract(request, post_slug, userid):
         application = TAApplication.objects.get(person__userid=userid, posting=posting)
         
     courses = TACourse.objects.filter(contract=contract)
-    total = get_total_bu(courses)
+    total = _get_total_bu(courses)
     
     #this could be refactored used in multiple places
     pp = posting.config['payperiods']
     pdead = posting.config['deadline']
     salary_sem = (total*contract.pay_per_bu)
     schol_sem = (total*contract.scholarship_per_bu)
-    salary_sem_out = format_currency(salary_sem)
-    schol_sem_out = format_currency(schol_sem)
-    salary_bi = format_currency(salary_sem / pp)
-    schol_bi = format_currency(schol_sem / pp)
+    salary_sem_out = _format_currency(salary_sem)
+    schol_sem_out = _format_currency(schol_sem)
+    salary_bi = _format_currency(salary_sem / pp)
+    schol_bi = _format_currency(schol_sem / pp)
     
     
     if request.method == "POST":
@@ -643,8 +637,8 @@ def accept_contract(request, post_slug, userid):
     
     context = { 'contract':contract, 
                 'courses':courses,
-                'pay':format_currency(contract.pay_per_bu),
-                'scholarship':format_currency(contract.scholarship_per_bu),
+                'pay':_format_currency(contract.pay_per_bu),
+                'scholarship':_format_currency(contract.scholarship_per_bu),
                 'salary_bi':salary_bi,
                 'schol_bi':schol_bi,
                 'salary_sem':salary_sem_out,
@@ -671,22 +665,22 @@ def view_contract(request, post_slug, userid):
         contract = contract[0]
     courses = TACourse.objects.filter(contract=contract)
     
-    total = get_total_bu(courses)
+    total = _get_total_bu(courses)
     
     pp = posting.config['payperiods']
     salary_sem = (total*contract.pay_per_bu)
     schol_sem = (total*contract.scholarship_per_bu)
-    salary_sem_out = format_currency(salary_sem)
-    schol_sem_out = format_currency(schol_sem)
-    salary_bi = format_currency(salary_sem / pp)
-    schol_bi = format_currency(schol_sem / pp)
+    salary_sem_out = _format_currency(salary_sem)
+    schol_sem_out = _format_currency(schol_sem)
+    salary_bi = _format_currency(salary_sem / pp)
+    schol_bi = _format_currency(schol_sem / pp)
 
 
     context =   {'posting': posting,
                  'contract':contract,
                  'courses':courses,
-                 'pay':format_currency(contract.pay_per_bu),
-                 'scholarship':format_currency(contract.scholarship_per_bu),
+                 'pay':_format_currency(contract.pay_per_bu),
+                 'scholarship':_format_currency(contract.scholarship_per_bu),
                  'salary_bi':salary_bi,
                  'schol_bi':schol_bi,
                  'salary_sem':salary_sem_out,
@@ -802,7 +796,7 @@ def edit_contract(request, post_slug, userid):
                 offer_url = reverse('ta.views.accept_contract', kwargs={'post_slug': post_slug, 'userid': userid})
                 from_user = posting.contact()
                 if contract.status == 'OPN':
-                    create_news(person, offer_url, from_user)
+                    _create_news(person, offer_url, from_user)
                 
                 grad = GradStudent.objects.filter(person=person)           
                 if grad.count()>0:

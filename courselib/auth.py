@@ -180,7 +180,6 @@ def requires_course_instr_by_slug(function=None, login_url=None):
 def is_dept_admn_by_slug(request, course_slug, **kwargs):
     offering = CourseOffering.objects.get(slug=course_slug)
     return Role.objects.filter(person__userid=request.user.username, role='ADMN',
-#            unit__label__in=('UNIV', offering.owner.label)).count() > 0
             unit=offering.owner).count() > 0
 
 def requires_course_staff_or_dept_admn_by_slug(function=None, login_url=None):

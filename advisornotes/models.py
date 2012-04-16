@@ -3,7 +3,7 @@ from coredata.models import Person, Unit
 from datetime import datetime
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
-import os.path, decimal
+import os.path
 
 NoteSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
@@ -15,7 +15,7 @@ def attachment_upload_to(instance, filename):
             'advisornotes',
             datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.advisor.userid),
             filename.encode('ascii', 'ignore'))
-    return fullpath 
+    return fullpath
 
 class AdvisorNote(models.Model):
     """
@@ -47,6 +47,6 @@ class AdvisorNote(models.Model):
         """
         Return the filename only (no path) for the attachment.
         """
-        path, filename = os.path.split(self.file_attachment.name)
+        _, filename = os.path.split(self.file_attachment.name)
         return filename
 
