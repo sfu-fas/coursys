@@ -59,8 +59,8 @@
   </tr>
   <tr>
   <td colspan="1" class="subrow"></td>
-  <td colspan="1" class="subhead">Comment</td>
-  <td colspan="2">{{component.comment|linebreaks}}</td>
+  <td colspan="1" class="subhead comment">Comment</td>
+  <td colspan="2" class="comment">{{component.comment|linebreaks}}</td>
   </tr>
   
   {% empty %}
@@ -89,8 +89,8 @@
   </tr>
   <tr>
   <td colspan="1" class="subrow"></td>
-  <td colspan="1" class="subhead">Comment</td>
-  <td colspan="2">{{ activity_mark.overall_comment|linebreaks }}</td>
+  <td colspan="1" class="subhead comment">Comment</td>
+  <td colspan="2" class="comment">{{ activity_mark.overall_comment|linebreaks }}</td>
   </tr>
   {% if activity_mark.file_attachment %}
     <tr>

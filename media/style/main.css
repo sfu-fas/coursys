@@ -1123,6 +1123,10 @@ table#common_problems p.component_info{
 #mark_details td {
   border: none;
 }
+#mark_details td.comment {
+  color: #00c;
+  padding-top: 0.5em;
+}
 #mark_details h3 {
   margin-top: 1em !important;
   padding-top: 0;

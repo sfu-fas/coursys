@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}CourSys: Course Pages{% endblock %}
+{% block h1 %}CourSys: Course Pages{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url dashboard.views.list_docs %}">Docs</a></li><li>&gt; Pages</li>{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+
+<h2 id="overview">Overview</h2>
+<p>The course pages feature allows instructors to create course web pages within CourSys.
+The pages can be created with simple wiki markup and access can be controlled as necessary.</p>
+<p>The pages created within the system can be used to create a simple course web site, or to augment an existing site.</p>
+<p>Full edit history is kept for each page, so you can see each version of the page that has been saved. Anyone who can edit the page can view the page history.</p>
+
+<h2 id="permissions">Page Permissions</h2>
+<p>Pages can have permission set for both viewing and editing. Each page can have separate permissions set, as needed. Some example uses of the page permissions:</p>
+<ul>
+<li>Instructor can edit, anyone can view: classic course web page.</li>
+<li>Only TAs can view: administrative course information, marking guidelines.</li>
+<li>Only TAs can view, changed to students can view: assignment solutions released to students after due date.</li>
+<li>Students can edit: shared course wiki page.</li>
+</ul>
+
+<h2 id="creole">Wiki Markup</h2>
+<p>Pages are written with <a href="http://www.wikicreole.org/wiki/Elements">Wiki Creole Markup</a> (list of <a href="http://www.wikicreole.org/wiki/AllMarkup">Wiki Creole markup reference</a>).
+Most <a href="http://www.wikicreole.org/wiki/CreoleAdditions">Creole Additions</a> also work.</p>
+<p></p>
+
+
+<h2 id="extras">Creole Additions</h2>
+
+<p>Some additions have been made to Creole markup that might be useful for course web pages&hellip;</p>
+
+<h3 id="duedate">Due Dates</h3>
+
+<p>You can automatically insert the due date of an activity like this:</p>
+<blockquote><pre>Assignment 1 is due &lt;&lt;duedate Assignment 1>>.</pre></blockquote>
+<p>As long as you spell the activity name correctly, the page will display the due date assigned for the activity and will update if you change it.
+If you'd like to include the date and the time, it is done like this:</p>
+<blockquote><pre>Assignment 2 is due at //exactly// &lt;&lt;duedatetime Assignment 2>>.</pre></blockquote>
+
+
+<h3 id="tex">Formulas</h3>
+
+<p>Formulas can be inserted into pages with TeX markup, using <code>\(&hellip;\)</code> to indicate inline formulas and <code>\[&hellip;\]</code> for display formulas.
+Processing is done with <a href="http://www.mathjax.org/">MathJax</a>, so any TeX it supports should work.</p>
+
+<blockquote><pre>
+Solutions to the quadratic equation \(ax^2 + bx + c\) are
+
+\[ x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}\,. \]</pre></blockquote>
+
+<p>You <strong>must check the &ldquo;Math&rdquo; box</strong> when editing the page to turn MathJax on. Formulas should be visible in any modern browser.</p>
+
+
+<h3 id="syntaxhilighter">Hilighted Code</h3>
+
+<p>Code samples can be syntax-highlighted with <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a>.
+	You only need to specify the language of the code in question.
+	Here are examples of Python and C code that will be hilighted when displayed:</p>
+<blockquote><pre>{{{ [python]
+for i in range(10):
+    print i
+}}}
+
+{{{ [c]
+for (int i=0; i&lt;10; i++) {
+  printf("%i\n", i);
+}
+}}}</pre></blockquote>
+<p>You can use any of the <a href="http://alexgorbatchev.com/SyntaxHighlighter/manual/brushes/">brushes aliases known by SyntaxHighlighter</a> to specify the language.
+<a href="http://www.undermyhat.org/blog/2009/09/list-of-brushes-syntaxhighligher/">Other brushes</a> can be added on request.</p>
+
+
+<h2 id="files">Files</h2>
+<p>If you like, files can be upload to create a &ldquo;page&rdquo; instead of having an HTML page created with the wiki markup.
+This can be used to distribute PDFs or other documents.</p>
+
+
+
+{% endblock %}

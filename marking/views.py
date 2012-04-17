@@ -1303,34 +1303,34 @@ def _mark_all_students_numeric(request, course, activity):
         if error_info == None:
             updated = 0                 
             for i in range(len(memberships)):
-               student = memberships[i].person  
-               ngrade = ngrades[i]
-               new_value = rows[i]['form'].cleaned_data['value'] 
-               # the new mark is blank or the new mark is the same as the old one, do nothing
-               if new_value == None: 
-                   continue
-               if ngrade !=None and ngrade.value == new_value:
-                   # if the student originally has a grade status other than 'GRAD',
-                   # we do not override that status
-                   continue 
-               # save data 
-               if ngrade == None:
+                student = memberships[i].person  
+                ngrade = ngrades[i]
+                new_value = rows[i]['form'].cleaned_data['value'] 
+                # the new mark is blank or the new mark is the same as the old one, do nothing
+                if new_value == None: 
+                    continue
+                if ngrade !=None and ngrade.value == new_value:
+                    # if the student originally has a grade status other than 'GRAD',
+                    # we do not override that status
+                    continue 
+                # save data 
+                if ngrade == None:
                     ngrade = NumericGrade(activity = activity, member = memberships[i]);
-               ngrade.value = new_value
-               ngrade.flag = "GRAD"
-               ngrade.save()
+                ngrade.value = new_value
+                ngrade.flag = "GRAD"
+                ngrade.save()
+                
+                updated += 1     
+                if new_value < 0:
+                    warning_info.append(u"Negative mark given to %s on %s" %(student.userid, activity.name))
+                elif new_value > activity.max_grade:
+                    warning_info.append(u"Bonus mark given to %s on %s" %(student.userid, activity.name))
                
-               updated += 1     
-               if new_value < 0:
-                   warning_info.append(u"Negative mark given to %s on %s" %(student.userid, activity.name))
-               elif new_value > activity.max_grade:
-                   warning_info.append(u"Bonus mark given to %s on %s" %(student.userid, activity.name))
-               
-               #LOG EVENT
-               l = LogEntry(userid=request.user.username,
-                     description=(u"bulk marked %s for %s: %s/%s") % (activity, student.userid, new_value, activity.max_grade),
-                     related_object=ngrade)
-               l.save()                  
+                #LOG EVENT
+                l = LogEntry(userid=request.user.username,
+                      description=(u"bulk marked %s for %s: %s/%s") % (activity, student.userid, new_value, activity.max_grade),
+                      related_object=ngrade)
+                l.save()                  
            
             if updated > 0:
                 messages.add_message(request, messages.SUCCESS, "Marks for all students on %s saved (%s students' grades updated)!" % (activity.name, updated))
@@ -1341,7 +1341,7 @@ def _mark_all_students_numeric(request, course, activity):
     
     else: 
         if request.method == 'POST': # for import
-            fileform = UploadGradeFileForm(request.POST, request.FILES, prefix = 'import-file');
+            fileform = UploadGradeFileForm(request.POST, request.FILES, prefix='import-file');
             if fileform.is_valid() and fileform.cleaned_data['file'] != None:
                 students = course.members.filter(person__role='STUD')
                 error_info = _compose_imported_grades(fileform.cleaned_data['file'], students, imported_data, activity)
@@ -1388,7 +1388,10 @@ def _compose_imported_grades(file, students_qset, data_to_return, activity):
     if error_string != None:
         return error_string
     elif userid_col != None and activity_col != None:
-        return _import_CMS_output(fh, students_qset, data_to_return, userid_col, activity_col)
+        try:
+            return _import_CMS_output(fh, students_qset, data_to_return, userid_col, activity_col)
+        except UnicodeEncodeError:
+            return "File contains bad UTF-8 data: make sure it has been saved as UTF-8 text."
     else:
         return _import_specific_file(fh, students_qset, data_to_return)
 

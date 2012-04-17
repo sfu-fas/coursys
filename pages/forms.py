@@ -6,7 +6,7 @@ class WikiField(forms.CharField):
     def __init__(self, *args, **kwargs):
         self.widget = forms.Textarea(attrs={'cols': 90, 'rows': 30})
         if 'help_text' not in kwargs:
-            kwargs['help_text'] = 'Page formatted in <a href="http://www.wikicreole.org/wiki/AllMarkup">WikiCreole markup</a>.'
+            kwargs['help_text'] = 'Page formatted in <a href="/docs/pages">WikiCreole markup</a>.' # hard-coded URL since this is evaluated before urls.py: could be reverse_lazy?
         super(WikiField, self).__init__(*args, **kwargs)
 
 class CommentField(forms.CharField):
@@ -17,7 +17,6 @@ class CommentField(forms.CharField):
         if 'help_text' not in kwargs:
             kwargs['help_text'] = 'Comment on this change'
         super(CommentField, self).__init__(*args, **kwargs)
-
 
 
 class EditPageFileForm(forms.ModelForm):

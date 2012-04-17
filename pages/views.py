@@ -254,7 +254,6 @@ def import_site(request, course_slug):
         form = SiteImportForm(offering=offering, editor=member, data=request.POST, files=request.FILES)
         if form.is_valid():
             pages, errors = form.cleaned_data['url']
-            print pages
             for label in pages:
                 page, pv = pages[label]
                 page.save()
