@@ -367,6 +367,8 @@ COMPONENT_CHOICES = (
         ('STD', 'Studio'),
         ('OLC', 'OLC'), # ???
         ('STL', 'STL'), # ???
+        ('CNV', 'CNV'), # converted from SIMON?
+        ('OPL', 'Open Lab'), # ???
         ('CAN', 'Cancelled')
         )
 COMPONENTS = dict(COMPONENT_CHOICES)
@@ -439,6 +441,13 @@ class CourseOffering(models.Model):
             words = [str(s).lower() for s in self.semester.name, self.subject, self.number, self.section]
         return '-'.join(words)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+
+    class Meta:
+        ordering = ['-semester', 'subject', 'number', 'section']
+        unique_together = (
+            ('semester', 'subject', 'number', 'section'),
+            ('semester', 'crse_id', 'section'),
+            ('semester', 'class_nbr'))
 
     def __unicode__(self):
         return "%s %s %s (%s)" % (self.subject, self.number, self.section, self.semester.label())
@@ -529,13 +538,6 @@ class CourseOffering(models.Model):
         else:
             return 'OM'
         
-    class Meta:
-        ordering = ['-semester', 'subject', 'number', 'section']
-        unique_together = (
-            ('semester', 'subject', 'number', 'section'),
-            ('semester', 'crse_id', 'section'),
-            ('semester', 'class_nbr'))
-
 
 class Member(models.Model):
     """

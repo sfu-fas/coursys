@@ -8,8 +8,8 @@ from coredata.models import Person, Semester, Unit, CourseOffering
 from grad.models import GradProgram, GradStudent, GradRequirement, CompletedRequirement
 from ta.models import TAContract, TAApplication, TAPosting, TACourse
 from ta.models import Account
-from coredata.importer_rodb import get_person, get_person_grad
-import datetime
+from coredata.importer_rodb import get_person, get_person_grad, import_one_offering
+import datetime, json
 
 import pymssql, MySQLdb
 
@@ -213,7 +213,6 @@ class GradImport(object):
                 if new_cr: # if it was already there, don't bother fiddling with it
                     if completed.lower() == 'passed':
                         sem = sem_finish
-                        print `sem`
                         notes = 'No semester on cortez: used finishing semester.'
                     else:
                         notes = None
@@ -262,11 +261,19 @@ class TAImport(object):
                     'msc': 'GTA1',
                     'phd': 'GTA2',
                     'bsc': 'UTA',
+                    'ext': 'ETA',
+                    '': 'ETA',
                     }
     INITIAL_MAP = {
                    'yes': 'INIT',
+                   None: 'INIT',
                    'no': 'REAP',
                    }
+    TA_DESC_MAP = {
+                   'Office/Marking': 'OM',
+                   'Office/Marking/Labs': 'OML',
+                   }
+    CATEGORY_INDEX = {'GTA1': 0, 'GTA2': 1, 'UTA': 2, 'ETA': 3}
     
     def __init__(self):
         self.db = CortezConn()
@@ -286,14 +293,48 @@ class TAImport(object):
             acc.title = desc
             acc.save()
             self.positions[p] = acc.id
-        
+    
+    def import_offering(self, semname, subject, number, section):
+        db = SIMSConn()
+        db.execute("SELECT "+CLASS_TBL_FIELDS+" FROM " + db.table_prefix + "ps_class_tbl WHERE strm IN %s AND class_section like '%%00' AND "+extra_where, (import_semesters(),))
+
     
     def get_offering_map(self):
+        # try the cache first
+        try:
+            fp = open("offering_map_cache.json", 'r')
+            offeringid_map = json.load(fp)
+            offeringid_map = dict([(k, CourseOffering.objects.get(id=offeringid_map[k])) for k in offeringid_map])
+            self.offeringid_map = offeringid_map
+            fp.close()
+            print "Using cached offering map."
+            return
+        except IOError:
+            pass
+        
         offeringid_map = {}
         self.db.execute("SELECT Offering_ID, Semester_Description, Course_Number, Section, o.hasLabs from Offerings o, Resource_Semesters s, Courses c "
-                        "WHERE o.Semester_ID=s.Semester_ID AND o.Course_ID=c.Course_ID", ())
+                        "WHERE o.Semester_ID=s.Semester_ID AND o.Course_ID=c.Course_ID ORDER BY Semester_Description", ())
         for off_id, semname, crsnumber, section, hasLabs in self.db:
             subject, number = crsnumber.split()
+            
+            # clean up incorrect section numbers
+            if section[0]=='D' and number[0]>'4':
+                section = 'G' + section[1:]
+
+            if number.startswith('00'):
+                number = 'XX' + number[2:]
+            elif number.startswith('0'):
+                number = 'X' + number[1:]
+            if number in ['---', 'XX0', 'XX2']:
+                # ignore old open lab TAs
+                # TODO: is that okay?
+                continue
+            
+            if semname in ['0987', '0991', '0994', '0997'] and subject=='CMPT' and number=='165':
+                # was offered as CMPT 118 then
+                number = '118'
+            
             offerings = CourseOffering.objects.filter(subject=subject, number__startswith=number, semester__name=semname, section__startswith=section)
             #print (off_id, semname, crsnumber, section, hasLabs)
             if offerings.count() > 1:
@@ -303,8 +344,25 @@ class TAImport(object):
                 offeringid_map[off_id] = o
                 o.set_labtas(bool(hasLabs))
                 o.save()
+            else:
+                get_or_create_semester(semname)
+                o = import_one_offering(semname, subject, number, section+'00')
+                if o is None:
+                    print "Can't find:", semname, subject, number, section
+                    continue
+                else:
+                    offeringid_map[off_id] = o
+                    o.set_labtas(bool(hasLabs))
+                    o.save()
         
-        return offeringid_map
+        self.offeringid_map = offeringid_map
+        
+        # drop in a file to cache over multiple runs
+        fp = open("offering_map_cache.json", 'w')
+        # convert offerings to offering.ids for JSON
+        offeringid_map = dict([(k, offeringid_map[k].id) for k in offeringid_map])
+        json.dump(offeringid_map, fp, indent=1)
+        fp.close()
     
     def get_ta_postings(self):
         self.setup_accounts()
@@ -317,9 +375,9 @@ class TAImport(object):
                         "FROM tasearch.dbo.semesterinfo", ())
         for year, sem, applic, accept, gta1a,gta2a,etaa,utaa, gta1s,gta2s,etas,utas, gta1p,gta2p,etap,utap, asd,asm,asy, aed,aem,aey in self.db:
             strm = year+sem
-            salary = [gta1a,gta2a,etaa,utaa]
-            schol = [gta1s,gta2s,etas,utas]
-            positions = [gta1p,gta2p,etap,utap]
+            salary = [gta1a,gta2a,utaa,etaa]
+            schol = [gta1s,gta2s,utas,etas]
+            positions = [gta1p,gta2p,utap,etap]
             positions = [self.positions[p] for p in positions]
             
             # fix broken data in system
@@ -364,22 +422,26 @@ class TAImport(object):
     
     def get_tas(self):            
         self.get_ta_postings()
-        offeringid_map = self.get_offering_map()
+        self.get_offering_map()
 
         self.db.execute("SELECT o.Offering_ID, o.bu, o.salary, o.scholarship, o.description, "
                         "o.PayrollStartDate, o.PayrollEndDate, o.PositionNumber, o.initAppointment, "
                         "o.conditional, o.tssu, o.remarks, i.base, "
                         "i.studNum, i.category, i.socialInsurance, i.status FROM TAOffering o, tasearch.dbo.tainfo i "
-                        "WHERE o.TA_ID=i.appId", ())
+                        "WHERE o.TA_ID=i.appId and i.appYear>'109' ORDER BY i.appYear", ())
         for off_id, bu, salary, schol, description, payst, payen, posnum, initial, cond, tssu, remarks, app_bu, emplid, cat, sin, status in self.db:
             #print (off_id, bu, salary, schol, pos_num, emplid, cat, sin, status)
             if bu == 0:
                 continue
-            if off_id not in offeringid_map:
+            if off_id not in self.offeringid_map:
                 continue
-            offering = offeringid_map[off_id]
+            offering = self.offeringid_map[off_id]
             p = get_person(emplid, commit=True)
-            posting = TAPosting.objects.get(unit=self.UNIT, semester=offering.semester)
+            try:
+                posting = TAPosting.objects.get(unit=self.UNIT, semester=offering.semester)
+            except TAPosting.DoesNotExist:
+                # some old TAs have no config: ignore
+                continue
             
             # create TAApplication
             apps = TAApplication.objects.filter(posting=posting, person=p)
@@ -389,7 +451,7 @@ class TAImport(object):
                 app = TAApplication(posting=posting, person=p)
             
             app.category = self.CATEGORY_MAP[cat]
-            app.base_units = app_bu
+            app.base_units = app_bu or 0
             app.sin = sin
             app.save()
             
@@ -399,12 +461,17 @@ class TAImport(object):
                 contract = contracts[0]
             else:
                 contract = TAContract(posting=posting, application=app)
+
+            try:
+                pos_id = self.positions[posnum]
+            except KeyError:
+                pos_id = posting.config['accounts'][self.CATEGORY_INDEX[app.category]]
             
             contract.sin = sin
-            contract.pay_start = payst
-            contract.pay_end = payen
+            contract.pay_start = payst or offering.semester.start
+            contract.pay_end = payen or offering.semester.end
             contract.appt_category = app.category
-            contract.position_number_id = self.positions[posnum]
+            contract.position_number_id = pos_id
             contract.appt = self.INITIAL_MAP[initial]
             contract.pay_per_bu = "%.2f" % (salary/bu)
             contract.scholarship_per_bu = "%.2f" % (schol/bu)
@@ -423,9 +490,11 @@ class TAImport(object):
             else:
                 crs = TACourse(course=offering, contract=contract)
             
-            crs.description = description
+            crs.description = self.TA_DESC_MAP[description.split()[0]]
             crs.bu = bu
             crs.save()
+            
+            # TODO: do we care about course preferences or skills from application?
 
 
 

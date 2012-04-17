@@ -50,12 +50,7 @@ def index(request):
     staff_memberships = [m for m in memberships if m.role in ['INST', 'TA', 'APPR']] # for docs link
     news_list = _get_news_list(userid, 5)
     roles = Role.all_roles(userid)
-    # quick logic to figure out whether user is a grad student.
-    is_grad = False
-    try: 
-        is_grad = GradStudent.objects.filter(person__userid=userid).count()>0
-    except:
-        is_grad = False
+    is_grad = GradStudent.objects.filter(person__userid=userid).count()>0
     
     context = {'memberships': memberships, 'staff_memberships': staff_memberships, 'news_list': news_list, 'roles': roles, 'is_grad':is_grad}
     return render(request, "dashboard/index.html", context)

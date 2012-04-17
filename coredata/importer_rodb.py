@@ -275,7 +275,7 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
     """
     Import one offering. Returns CourseOffering or None.
     
-    Arguments must be in the same order as import_offerings_new.fields.
+    Arguments must be in the same order as CLASS_TBL_FIELDS.
     """
     semester = Semester.objects.get(name=strm)
     graded = True # non-graded excluded in with "class_section like '%00'" in query
@@ -321,10 +321,37 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
 
     return c
 
+CLASS_TBL_FIELDS = 'subject, catalog_nbr, class_section, strm, crse_id, class_nbr, ssr_component, descr, campus, enrl_cap, enrl_tot, wait_tot, cancel_dt, acad_org' 
+
+def import_one_offering(strm, subject, number, section):
+    """
+    Find a single offering by its details (used by Cortez data importer).
+    """
+    db = SIMSConn(verbose=False)
+    db.execute("SELECT "+CLASS_TBL_FIELDS+" FROM " + db.table_prefix + "ps_class_tbl WHERE "
+               "strm=%s and subject=%s and catalog_nbr LIKE %s and class_section=%s",
+               (strm, subject, '%'+number+'%', section))
+
+    # can have multiple results for intersession courses (and others?). Just taking the first.
+    res = list(db)
+    if not res:
+        # lots of section numbers wrong in cortez: try finding any section as a fallback
+        db.execute("SELECT "+CLASS_TBL_FIELDS+" FROM " + db.table_prefix + "ps_class_tbl WHERE "
+               "strm=%s and subject=%s and catalog_nbr LIKE %s",
+               (strm, subject, '%'+number+'%'))
+        res = list(db)
+        if res:
+            row = res[0]
+            return import_offering(*row)
+        return None
+
+    row = res[0]
+    return import_offering(*row)
+    
 def import_offerings(extra_where='1=1'):
     db = SIMSConn()
-    fields = 'subject, catalog_nbr, class_section, strm, crse_id, class_nbr, ssr_component, descr, campus, enrl_cap, enrl_tot, wait_tot, cancel_dt, acad_org'
-    db.execute("SELECT "+fields+" FROM " + db.table_prefix + "ps_class_tbl WHERE strm IN %s AND class_section like '%%00' AND "+extra_where, (import_semesters(),))
+    db.execute("SELECT "+CLASS_TBL_FIELDS+" FROM " + db.table_prefix + "ps_class_tbl WHERE strm IN %s AND "
+               "class_section like '%%00' AND "+extra_where, (import_semesters(),))
     imported_offerings = set()
     for row in db.rows():
         o = import_offering(*row)
