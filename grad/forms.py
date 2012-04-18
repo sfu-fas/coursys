@@ -97,9 +97,13 @@ class SupervisorForm(ModelForm):
                 #raise forms.ValidationError("Please have at least one of Supervisor or an External supervisor.")
         return data
     
+    def has_changed(self):
+        "Force update even if it doesn't look like anything changed (since view code does fiddle with object)"
+        return True
+    
     class Meta:
         model = Supervisor
-        exclude = ('student', 'is_potential', 'is_senior', 'created_by', 'modified_by', 'removed')
+        exclude = ('student', 'supervisor_type', 'created_by', 'modified_by', 'removed')
         
 class PotentialSupervisorForm(ModelForm): 
     def set_supervisor_choices(self, choices):
@@ -107,7 +111,7 @@ class PotentialSupervisorForm(ModelForm):
     
     class Meta:
         model = Supervisor
-        exclude = ('student', 'is_potential', 'is_senior', 'position', 'created_by', 'modified_by', 'external', 'removed')
+        exclude = ('student', 'supervisor_type', 'position', 'created_by', 'modified_by', 'external', 'removed')
 
 def possible_supervisor_people(units):
     # instructors of courses in the unit

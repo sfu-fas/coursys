@@ -81,7 +81,15 @@ class GradStudent(models.Model):
         # rebuild slug in case something changes
         self.slug = None
         super(GradStudent, self).save(*args, **kwargs)
-    
+
+SUPERVISOR_TYPE_CHOICES = [
+                           ('SEN', 'Senior Supervisor'),
+                           ('COM', 'Committee Member'),
+                           ('POT', 'Potential Supervisor'),
+                           ('CHA', 'Defence Chair'),
+                           ('EXT', 'External Examiner'),
+                           ('SFU', 'SFU Examiner'),
+                           ]
 class Supervisor(models.Model):
     """
     Member (or potential member) of student's supervisory committee.
@@ -90,9 +98,10 @@ class Supervisor(models.Model):
     supervisor = models.ForeignKey(Person, blank=True, null=True, help_text="Please choose a Supervisor.")
     external = models.CharField(max_length=200, blank=True, null=True, help_text="Any non-SFU supervisor.")
     position = models.SmallIntegerField(null=False)
-    is_senior = models.BooleanField()
-    is_potential = models.BooleanField()
-    #removed = models.BooleanField(default=False)
+    #is_senior = models.BooleanField()
+    #is_potential = models.BooleanField()
+    supervisor_type = models.CharField(max_length=3, blank=False, null=False, choices=SUPERVISOR_TYPE_CHOICES)
+    removed = models.BooleanField(default=False) # TODO: actually use removed flag instead of deleting
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True) 
@@ -121,9 +130,9 @@ class Supervisor(models.Model):
                 k.append([capfirst(field.verbose_name), field.value_to_string(self) or None])
         return k        
     def __unicode__(self):
-        return "%s supervising %s" % (self.supervisor or self.external, self.student.person)
+        return "%s (%s) for %s" % (self.supervisor or self.external, self.supervisor_type, self.student.person)
 
-    def save_custom(self, *args, **kwargs):
+    def save(self, *args, **kwargs):
         # make sure the data is coherent: should also be in form validation for nice UI
         is_person = bool(self.supervisor)
         is_ext = bool(self.external)
@@ -132,12 +141,17 @@ class Supervisor(models.Model):
         if not is_person and not is_ext:
             raise ValueError, "Must be either an SFU user or external"
         
-        if self.position == 1 and not self.is_senior:
+        if self.position == 1 and self.supervisor_type != 'SEN':
             raise ValueError, "First supervisor must be senior"
-        if self.position == 1 and is_ext:
-            raise ValueError, "First supervisor must be internal"
+        #if self.position == 1 and is_ext:
+        #    raise ValueError, "First supervisor must be internal"
+        if self.position > 2 and self.supervisor_type == 'SEN':
+            raise ValueError, "Only first two supervisors can be senior"
         
-        super(Page, self).save(*args, **kwargs)
+        if self.supervisor_type in ['SEN', 'COM'] and not (1 <= self.position  <= 4):
+            raise ValueError, "Invalid position for committee member."
+        
+        super(Supervisor, self).save(*args, **kwargs)
 
 class GradRequirement(models.Model):
     """

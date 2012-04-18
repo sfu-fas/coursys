@@ -410,7 +410,7 @@ def acad_plan_count(acad_plan, strm):
 @SIMS_problem_handler
 def get_or_create_semester(strm):
     if not (isinstance(strm, basestring) and strm.isdigit() and len(strm)==4):
-        raise ValueError, "Bad strm"
+        raise ValueError, "Bad strm: " + repr(strm)
     oldsem = Semester.objects.filter(name=strm)
     if oldsem:
         return oldsem[0]

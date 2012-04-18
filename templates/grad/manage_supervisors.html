@@ -78,6 +78,7 @@
 			<legend>
 				Supervisors
 			</legend>
+			<p style="float: right"><input type="checkbox" name="second-co" {% if second_co %}checked="checked" {% endif %}/> Second supervisor is co-senior supervisor</p>
 			<p>
 				Choose only a Supervisor or enter an External.
 			</p>
@@ -89,6 +90,7 @@
 						Supervisor {{ forloop.counter }}:
 					</p>
 					{{ form.as_p }}
+					{{ form.is_second }}
 				</div>
 				{% endfor %}
 			</div>

@@ -660,9 +660,7 @@ def view_contract(request, post_slug, userid):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     if posting.unit not in request.units:
         ForbiddenResponse(request, 'You cannot access this page')
-    contract = TAContract.objects.filter(posting=posting, application__person__userid=userid)
-    if contract.count() > 0:
-        contract = contract[0]
+    contract = get_object_or_404(TAContract, posting=posting, application__person__userid=userid)
     courses = TACourse.objects.filter(contract=contract)
     
     total = _get_total_bu(courses)

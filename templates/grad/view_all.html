@@ -338,7 +338,7 @@
 			<tr>
 				<td>{% if supervisor.supervisor %}{{ supervisor.supervisor }}{% else %}{{ supervisor.external }}{% endif%}</td>
 				<td>{{ supervisor.position }}</td>
-				<td>{% if supervisor.position == 0 %}Potential{% else %} {% if supervisor.position == 1%} Senior {% else %} {% endif %} {% endif %}</td>
+				<td>{{ supervisor.get_supervisor_type_display }}</td>
 				<td>{{ supervisor.updated_at }}</td>
 			</tr>
 			{% endfor %}

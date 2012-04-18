@@ -76,7 +76,7 @@ def quick_search(request):
 def view_all(request, grad_slug):
     # will display academic, personal, FIN, status history, supervisor
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
-    supervisors = Supervisor.objects.filter(student=grad)
+    supervisors = Supervisor.objects.filter(student=grad, removed=False)
     status_history = GradStatus.objects.filter(student=grad, hidden=False)
     letter = Letter.objects.filter(student=grad)
     #calculate missing reqs
@@ -119,10 +119,10 @@ def grad_more_info(request, grad_slug):
 @requires_role("GRAD")
 def manage_supervisors(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
-    supervisors = Supervisor.objects.filter(student=grad, position__gte=1).select_related('supervisor')
+    supervisors = Supervisor.objects.filter(student=grad, supervisor_type__in=['SEN','COM'], removed=False).select_related('supervisor')
     supervisor_people = [s.supervisor for s in supervisors if s.supervisor]
     # Using filter because get returns an error when there are no matching queries
-    pot_supervisor = Supervisor.objects.filter(student=grad, position=0) 
+    pot_supervisor = Supervisor.objects.filter(student=grad, removed=False, supervisor_type='POT') 
     # Initialize potential supervisor to first on of the list of results
     # There should be exactly one match unless there is data error
     extra_form = 0
@@ -152,6 +152,7 @@ def manage_supervisors(request, grad_slug):
             superF.modified_by = request.user.username
             superF.student = grad #Passing grad student info to model
             superF.position = 0   #Hard coding potential supervisor and passing to model
+            superF.supervisor_type = 'POT'
             superF.save()
             messages.success(request, "Updated Potential Supervisor for %s." % (potential_supervisors_form.instance.student))
             l = LogEntry(userid=request.user.username,
@@ -163,12 +164,19 @@ def manage_supervisors(request, grad_slug):
         potential_supervisors_form = PotentialSupervisorForm(instance=pot_supervisor, prefix="pot_sup")
         potential_supervisors_form.set_supervisor_choices(possible_supervisors([grad.program.unit]))
 
+    # check for co-senior supervisor
+    second = supervisors.filter(position=2)
+    second_co = False
+    if second:
+        second_co = second[0].supervisor_type=='SEN'
+
     # set frontend defaults
     page_title = "%s's Supervisor(s) Record" % (grad.person.first_name)
     crumb = "%s, %s" % (grad.person.first_name, grad.person.last_name)
     gp = grad.person.get_fields 
     context = {
                'supervisors_formset': supervisors_formset,
+               'second_co': second_co,
                'potential_supervisors_form': potential_supervisors_form,
                'page_title' : page_title,
                'crumb' : crumb,
@@ -180,7 +188,7 @@ def manage_supervisors(request, grad_slug):
 @requires_role("GRAD")
 def update_supervisors(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
-    supervisors = Supervisor.objects.filter(student=grad, position__gte=1).select_related('supervisor')
+    supervisors = Supervisor.objects.filter(student=grad, supervisor_type__in=['SEN','COM'], removed=False).select_related('supervisor')
     supervisor_people = [s.supervisor for s in supervisors if s.supervisor]
     if request.method == 'POST':
         supervisors_formset = modelformset_factory(Supervisor, form=SupervisorForm, formset=BaseSupervisorsFormSet)(request.POST, prefix="form")
@@ -189,18 +197,21 @@ def update_supervisors(request, grad_slug):
             f.fields['position'].widget = forms.HiddenInput()
         
         if supervisors_formset.is_valid():
+            second_co = 'second-co' in request.POST # is second supervisor is co-senior checked?
             #change gradstudent's last updated info to newest
             grad.updated_at = datetime.datetime.now()
             grad.created_by = request.user.username  
             grad.save()
             for s in supervisors_formset:
-                if (not s.cleaned_data['supervisor'] == None or s.cleaned_data['external'] == None):
-                    s.instance.student = grad
-                else:
-                    s.cleaned_data = None
-                    s._changed_data = []
-                    
+                # infer supervisor_type from other fields we have
+                s.instance.supervisor_type = 'SEN' if s.cleaned_data['position'] == 1 else 'COM'
+                if second_co and 'position' in s.cleaned_data and s.cleaned_data['position'] == 2:
+                    s.instance.supervisor_type = 'SEN'
+
+                s.instance.student = grad
+            
             supervisors_formset.save()
+                    
             messages.success(request, "Updated Supervisor(s) for %s." % (grad))
             l = LogEntry(userid=request.user.username,
                   description="Updated Supervisor(s) for %s." % (grad),
@@ -947,7 +958,7 @@ def financials(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
     is_supervisor = False
     is_student = curr_user.username == grad.person.userid
-    for supervisor in Supervisor.objects.filter(student=grad):
+    for supervisor in Supervisor.objects.filter(student=grad, supervisor_type__in=['SEN','COM'], removed=False):
         if supervisor.supervisor.id == curr_user.username:
             is_supervisor = True
     
