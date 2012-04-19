@@ -882,8 +882,6 @@ def search_results(request):
     rows = []
     data = {}
     if form.is_valid():
-        # ...
-        print request.GET
         try:
             start = int(request.GET['iDisplayStart'])
             count = int(request.GET['iDisplayLength'])
@@ -959,12 +957,12 @@ def financials(request, grad_slug):
     is_supervisor = False
     is_student = curr_user.username == grad.person.userid
     for supervisor in Supervisor.objects.filter(student=grad, supervisor_type__in=['SEN','COM'], removed=False):
-        if supervisor.supervisor.id == curr_user.username:
+        if supervisor.supervisor and supervisor.supervisor.id == curr_user.username:
             is_supervisor = True
     
     if is_student or is_supervisor or has_role("GRAD",request):
         
-        current_status = GradStatus.objects.get(student=grad, hidden=False, end=None)
+        current_status = GradStatus.objects.filter(student=grad, hidden=False).order_by('-start')[0]
         grad_status_qs = GradStatus.objects.filter(student=grad, status__in=STATUS_ACTIVE)
         eligible_scholarships = ScholarshipType.objects.filter(eligible=True)
         scholarships_qs = Scholarship.objects.filter(student=grad)

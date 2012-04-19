@@ -24,11 +24,15 @@ class GradProgram(models.Model):
     class Meta:
         unique_together = (('unit', 'label'),)
     def __unicode__ (self):
-        return "%s" % (self.label)
+        return u"%s" % (self.label)
 
 APPLICATION_STATUS_CHOICES = (
-        ('ONRE', 'In-Review'),
-        ('REJE', 'Rejected'),   
+        ('INCO', 'Incomplete'),
+        ('COMP', 'Complete'),
+        ('INRE', 'In-Review'),
+        ('HOLD', 'Hold'),
+        ('OFFO', 'Offer Out'),
+        ('REJE', 'Rejected'),
         ('DECL', 'Declined Offer'),
         ('EXPI', 'Expired'),
         ('CONF', 'Confirmed'),
@@ -56,7 +60,7 @@ class GradStudent(models.Model):
     passport_issued_by = models.CharField(max_length=25, blank=True, help_text="I.e. US, China")
     special_arrangements = models.NullBooleanField(verbose_name='Special Arrgmnts')
     comments = models.TextField(max_length=250, blank=True, help_text="Additional information.")
-    application_status = models.CharField(max_length=4, choices=APPLICATION_STATUS_CHOICES, default='CONF')
+    application_status = models.CharField(max_length=4, choices=APPLICATION_STATUS_CHOICES, default='UNKN')
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')
@@ -76,7 +80,7 @@ class GradStudent(models.Model):
                 k.append([capfirst(field.verbose_name), field.value_to_string(self)])
         return k    
     def __unicode__(self):
-        return "Grad student: %s" % (self.person)
+        return u"Grad student: %s" % (self.person)
     def save(self, *args, **kwargs):
         # rebuild slug in case something changes
         self.slug = None
@@ -107,9 +111,14 @@ class Supervisor(models.Model):
     updated_at = models.DateTimeField(auto_now=True) 
     created_by = models.CharField(max_length=32, null=False, help_text='Supervisor added by.')
     modified_by = models.CharField(max_length=32, null=True, help_text='Supervisor modified by.', verbose_name='Last Modified By')
+    config = JSONField(default={}) # addition configuration
+        # 'email': Email address (for external)
+    defaults = {'email': None}
+    email, set_email = getter_setter('email')
           
     class Meta:
-        unique_together = ("student", "position")
+        #unique_together = ("student", "position")
+        pass
     
     def get_fields(self):
         # make a list of field/values.
@@ -130,7 +139,7 @@ class Supervisor(models.Model):
                 k.append([capfirst(field.verbose_name), field.value_to_string(self) or None])
         return k        
     def __unicode__(self):
-        return "%s (%s) for %s" % (self.supervisor or self.external, self.supervisor_type, self.student.person)
+        return u"%s (%s) for %s" % (self.supervisor or self.external, self.supervisor_type, self.student.person)
 
     def save(self, *args, **kwargs):
         # make sure the data is coherent: should also be in form validation for nice UI
@@ -151,6 +160,13 @@ class Supervisor(models.Model):
         if self.supervisor_type in ['SEN', 'COM'] and not (1 <= self.position  <= 4):
             raise ValueError, "Invalid position for committee member."
         
+        if self.position > 0:
+            others = Supervisor.objects.filter(student=self.student, position=self.position)
+            if self.id:
+                others = others.exclude(id=self.id)
+            if others:
+                raise ValueError, "Position (>0) must be unique"
+        
         super(Supervisor, self).save(*args, **kwargs)
 
 class GradRequirement(models.Model):
@@ -162,7 +178,7 @@ class GradRequirement(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')
     def __unicode__(self):
-        return "%s" % (self.description)    
+        return u"%s" % (self.description)    
         
 
 class CompletedRequirement(models.Model):
@@ -182,7 +198,7 @@ class CompletedRequirement(models.Model):
     class meta:
         unique_together = (("requirement", "student"),)
     def __unicode__(self):
-        return "%s" % (self.requirement)
+        return u"%s" % (self.requirement)
 
 STATUS_CHOICES = (
         ('APPL', 'Applicant'),
@@ -193,7 +209,7 @@ STATUS_CHOICES = (
         ('GRAD', 'Graduated'),
         ('NOND', 'Non-degree'),
         ('GONE', 'Gone'),
-        ('ARSP', 'Archive SP'), # Special Arrangements and GONE
+        ('ARSP', 'Completed Special'), # Special Arrangements and GONE
         )
 STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
 STATUS_INACTIVE = ('LEAV', 'WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "not here"
@@ -236,7 +252,7 @@ class GradStatus(models.Model):
         return k    
     
     def __unicode__(self):
-        return "Grad Status: %s %s" % (self.status, self.student)
+        return u"Grad Status: %s %s" % (self.status, self.student)
 
 """
 Letters
@@ -254,7 +270,7 @@ class LetterTemplate(models.Model):
         return make_slug(self.unit.label + "-" + self.label)  
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False)      
     def __unicode__(self):
-        return "%s in %s" % (self.label, self.unit)
+        return u"%s in %s" % (self.label, self.unit)
     
 class Letter(models.Model):
     student = models.ForeignKey(GradStudent, null=False, blank=False)
@@ -286,7 +302,7 @@ class Letter(models.Model):
         return make_slug(self.student.person.userid + "-" + self.template.label)     
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)            
     def __unicode__(self):
-        return "%s letter for %s" % (self.template.label, self.student)
+        return u"%s letter for %s" % (self.template.label, self.student)
 
 """
 Financial
@@ -300,7 +316,7 @@ class ScholarshipType(models.Model):
     class meta:
         unique_together = ("unit", "name")
     def __unicode__(self):
-        return "%s - %s" % (self.unit.label, self.name)
+        return u"%s - %s" % (self.unit.label, self.name)
 
 class Scholarship(models.Model):
     scholarship_type = models.ForeignKey(ScholarshipType)
@@ -310,7 +326,7 @@ class Scholarship(models.Model):
     end_semester = models.ForeignKey(Semester, related_name="scholarship_end")
     comments = models.TextField(blank=True, null=True)
     def __unicode__(self):
-        return "%s (%s)" % (self.scholarship_type, self.amount)
+        return u"%s (%s)" % (self.scholarship_type, self.amount)
     
     
 class OtherFunding(models.Model):
@@ -328,7 +344,7 @@ class Promise(models.Model):
     end_semester = models.ForeignKey(Semester, related_name="promise_end")
     comments = models.TextField(blank=True, null=True)
     def __unicode__(self):
-        return "%s promise for %s" % (self.amount, self.student.person)
+        return u"%s promise for %s" % (self.amount, self.student.person)
     def get_fields(self):
         # make a list of field/values.
         k = []

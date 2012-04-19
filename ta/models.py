@@ -378,7 +378,8 @@ class SkillLevel(models.Model):
 
 DESC_CHOICES = (
         ('OM','Office;Marking'),
-        ('OML','Office;Marking;Lab/Tutorial')
+        ('OML','Office;Marking;Lab/Tutorial'),
+        ('OPL','Open Lab'),
     )
 LABTUT_DESC = ['OML'] # descriptions that deserve 0.17 bonus
 
