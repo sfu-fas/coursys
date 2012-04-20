@@ -578,6 +578,7 @@ class Member(models.Model):
     added_reason = models.CharField(max_length=4, choices=REASON_CHOICES)
     labtut_section = models.CharField(max_length=4, null=True, blank=True,
         help_text='Section should be in the form "C101" or "D103".')
+    official_grade = models.CharField(max_length=2, null=True, blank=True)
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
         # 'origsection': The originating section (for crosslisted sections combined here)
         #     represented as a CourseOffering.slug

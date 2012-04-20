@@ -18,7 +18,8 @@ past_cutoff = today - datetime.timedelta(days=30)
 future_cutoff = today + datetime.timedelta(days=60)
 
 # these users will be given sysadmin role (for bootstrapping)
-sysadmin = ["ggbaker", "sumo"]
+#sysadmin = ["ggbaker", "sumo"]
+sysadmin = ["ggbaker"]
 
 # artificial combined sections to create: kwargs for CourseOffering creation,
 # plus 'subsections' list of sections we're combining.
@@ -516,7 +517,7 @@ def import_meeting_times(offering):
 
 
 
-def ensure_member(person, offering, role, cred, added_reason, career, labtut_section=None):
+def ensure_member(person, offering, role, cred, added_reason, career, labtut_section=None, grade=None):
     """
     Make sure this member exists with the right properties.
     """
@@ -538,6 +539,9 @@ def ensure_member(person, offering, role, cred, added_reason, career, labtut_sec
     m.credits = cred
     m.added_reason = added_reason
     m.career = career
+
+    # record official grade if we have it
+    m.official_grade = grade or None
     
     # if offering is being given lab/tutorial sections, flag it as having them
     # there must be some way to detect this in ps_class_tbl, but I can't see it.
@@ -609,12 +613,15 @@ def import_students(offering):
             continue
         labtut[emplid] = section
     
-    db.execute("SELECT emplid, acad_career, unt_taken FROM " + db.table_prefix + "ps_stdnt_enrl "
-               "WHERE class_nbr=%s and strm=%s and stdnt_enrl_status='E'", (offering.class_nbr, offering.semester.name))
-    for emplid, acad_career, unt_taken in db.rows():
+    db.execute("SELECT e.emplid, e.acad_career, e.unt_taken, e.crse_grade_off, r.crse_grade_input "
+               "FROM " + db.table_prefix + "ps_stdnt_enrl e LEFT JOIN " + db.table_prefix + "ps_grade_roster r "
+               "ON e.strm=r.strm and e.acad_career=r.acad_career and e.emplid=r.emplid and e.class_nbr=r.class_nbr "
+               "WHERE e.class_nbr=%s and e.strm=%s and e.stdnt_enrl_status='E'", (offering.class_nbr, offering.semester.name))
+    for emplid, acad_career, unt_taken, grade_official, grade_roster in db.rows():
         p = get_person(emplid)
         sec = labtut.get(emplid, None)
-        ensure_member(p, offering, "STUD", unt_taken, "AUTO", acad_career, labtut_section=sec)
+        grade = grade_official or grade_roster
+        ensure_member(p, offering, "STUD", unt_taken, "AUTO", acad_career, labtut_section=sec, grade=grade)            
 
 def import_offering_members(offering):
     """
@@ -715,6 +722,7 @@ def main():
     
     print "importing course offering list"
     offerings = import_offerings(extra_where="subject='CMPT' and strm IN ('1121', '1124') and catalog_nbr IN (' 383', ' 470')")
+    #offerings = import_offerings(extra_where="subject='CMPT' and strm IN ('1121', '1124') and catalog_nbr IN (' 470')")
     #offerings = import_offerings()
     offerings = list(offerings)
     offerings.sort()

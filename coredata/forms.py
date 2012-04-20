@@ -67,7 +67,7 @@ class MemberForm(forms.ModelForm):
     
     class Meta:
         model = Member
-        exclude = ('config',)
+        exclude = ('config', 'official_grade')
 
 class PersonForm(forms.ModelForm):
     emplid = forms.CharField(max_length=9,
