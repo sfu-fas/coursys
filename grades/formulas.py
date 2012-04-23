@@ -30,7 +30,7 @@ def create_parser():
     
     Parser throws ParseException if something goes wrong.
     """
-    from pyparsing import Literal, Word, Optional, CaselessLiteral, Group, StringStart, StringEnd, Suppress, ParseResults, CharsNotIn, Forward, nums, delimitedList, operatorPrecedence, opAssoc
+    from pyparsing import Literal, Word, Optional, CaselessLiteral, Group, StringStart, StringEnd, Suppress, CharsNotIn, Forward, nums, delimitedList, operatorPrecedence, opAssoc
 
     def column_parse(toks):
         """
@@ -47,7 +47,7 @@ def create_parser():
             col = col[:-6]
             return ("col", set([col]), col, 'fin')
         else:
-	    return ("col", set([col]), col, 'val')
+            return ("col", set([col]), col, 'val')
 
     def actionflag_parse(toks):
         """
@@ -61,12 +61,12 @@ def create_parser():
         raise ParseException, "Unknown flag ([[...]])."
 
     def real_parse(toks):
-	return ("num", set(), float(''.join(toks)))
+        return ("num", set(), float(''.join(toks)))
 
     def func_parse(toks):
         cols = set()
         cols.update(*(t[1] for t in toks[0][1:]))
-	return ("func", cols) + tuple(toks[0])
+        return ("func", cols) + tuple(toks[0])
 
     def expr_parse(s, loc, toks):
         ts = toks[0]
@@ -312,7 +312,7 @@ def create_display(tree, act_dict):
         if flag == 'activitytotal':
             return "ATOTAL"
         else:
-            raise EvalException, "Unknown flag in parse tree: %s"%(func,)
+            raise EvalException, "Unknown flag in parse tree: %s" % (flag,)
     else:
         raise EvalException, "Unknown element in parse tree: %s"%(tree,)
 

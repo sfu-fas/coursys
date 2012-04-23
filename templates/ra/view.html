@@ -1,23 +1,26 @@
 {% extends "base.html" %}
 {% block title %}
-  RA Appointment for {{ student.first_name}} {{ student.last_name }}
+  RA Appointment for {{ student.name }}
 {% endblock %}
 
 {% block h1 %}
-  RA Appointment for {{ student.first_name}} {{ student.last_name }}
+  RA Appointment for {{ student.name }}
 {% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url ra.views.search %}">RA Appointment Search</a></li><li>&gt; <a href="{% url ra.views.student_appointments userid=appointment.person.userid %}">Appointments for {{ student.first_name }} {{ student.last_name }}</a></li><li>&gt; {{ appointment.account.title }}: {{ appointment.start_date }} - {{ appointment.end_date}}</li>
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url ra.views.search %}">RAs</a></li>
+<li>&gt; <a href="{% url ra.views.student_appointments userid=appointment.person.userid %}">{{ student.name }}</a></li>
+<li>&gt; {{ appointment.account.title }} starting {{ appointment.start_date }}</li>
 {% endblock %}
 
 {% block actions %}
   <div id="actions">
     <h2>Actions</h2>
     <ul>
-      <li>
-        <a href="{% url ra.views.edit ra_slug=appointment.slug %}">Update this appointment</a>
-        <a href="{% url ra.views.form ra_slug=appointment.slug %}">Appointment Form</a>
-      </li>
+      <li><a href="{% url ra.views.edit ra_slug=appointment.slug %}">Edit this appointment</a></li>
+      <li><a href="{% url ra.views.form ra_slug=appointment.slug %}">Appointment Form</a></li>
+      <li><a href="{% url ra.views.letter ra_slug=appointment.slug %}">Appointment Letter</a></li>
+      <li><a href="{% url ra.views.reappoint ra_slug=appointment.slug %}">Reappoint</a></li>
     </ul>
   </div>
 {% endblock %}
@@ -29,8 +32,8 @@
     <tr><th>Student Number:</th><td>{{ student.emplid }}</td></tr>
     <tr><th>Last Name:</th><td>{{ student.last_name }}</td></tr>
     <tr><th>First Name:</th><td>{{ student.first_name }}</td></tr>
+    <tr><th>Email:</th><td>{{ student.email_mailto }}</td></tr>
     <tr><th>SIN:</th><td>{{ appointment.sin }}</td></tr>
-    <tr><th>Email:</th><td></td></tr>
     <tr><th>Department:</th><td>{{ appointment.account.unit.name }}</td></tr>
   </table>
 </div>
@@ -63,8 +66,8 @@
       <td>{{ appointment.start_date }}</td></tr>
     <tr><th>End Date:</th>
       <td>{{ appointment.end_date }}</td></tr>
-    <tr><th>Re-appointment to same position:</th>
-      <td>{{ appointment.reappointment }}</td></tr>
+    <tr><th>Re-appointment:</th>
+      <td>{{ appointment.reappointment|yesno }}</td></tr>
   </table>
 </div>
 
@@ -79,6 +82,7 @@
       <th>Total Pay Amount:</th> 
       <td>${{ appointment.lump_sum_pay }}</td>
     </tr>
+    {% if appointment.pay_frequency != 'L' %}
     <tr>
       <th>Biweekly Pay:</th>
       <td>${{ appointment.biweekly_pay }}</td>
@@ -95,6 +99,7 @@
       <th>Hours per pay period:</th>
       <td>{{ appointment.hours }}</td>
     </tr>
+    {% endif %}
   </table>
 </div>
 
@@ -102,9 +107,9 @@
   <h2>Benefit Options</h2>
   <table class="info">
     <tr><th>50% of Medical Service Plan:</th>
-      <td>{{ appointment.medical_benefits }}</td></tr>
+      <td>{{ appointment.medical_benefits|yesno }}</td></tr>
     <tr><th>50% of Dental Plan:</th>
-      <td>{{ appointment.dental_benefits }}</td></tr>
+      <td>{{ appointment.dental_benefits|yesno }}</td></tr>
   </table>
 </div>
 

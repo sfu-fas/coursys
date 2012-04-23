@@ -39,10 +39,10 @@ class CoredataTest(TestCase):
         for s in sems:
             # make sure that every semester has a week #1
             w = s.semesterweek_set.filter(week=1)
-            self.assertEqual(len(w), 1)
+            self.assertEqual(w.count(), 1, "Semester %s doesn't have a SemesterWeek for week 1" % (s))
             # check all week.monday are really Monday
             for w in s.semesterweek_set.all():
-                self.assertEqual(w.monday.weekday(), 0)
+                self.assertEqual(w.monday.weekday(), 0, "Semester %s's SemesterWeek doesn't start on a Monday" % (s))
 
     def test_person(self):
         """

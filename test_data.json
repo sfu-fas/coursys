@@ -127,6 +127,33 @@
  },
  {
   "fields": {
+   "monday": "2013-01-07",
+   "semester": 6,
+   "week": 1
+  },
+  "model": "coredata.semesterweek",
+  "pk": 7
+ },
+ {
+  "fields": {
+   "monday": "2013-05-06",
+   "semester": 7,
+   "week": 1
+  },
+  "model": "coredata.semesterweek",
+  "pk": 8
+ },
+ {
+  "fields": {
+   "monday": "2013-09-09",
+   "semester": 8,
+   "week": 1
+  },
+  "model": "coredata.semesterweek",
+  "pk": 9
+ },
+ {
+  "fields": {
    "campus": "BRNBY",
    "class_nbr": 13729,
    "component": "LEC",

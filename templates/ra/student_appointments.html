@@ -7,9 +7,8 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-  <li>&gt; <a href="{% url ra.views.search %}">RA Appointment Search</a></li>
-  <li>&gt; Appointments for 
-    {{ student.first_name }} {{ student.last_name }}</li>
+<li>&gt; <a href="{% url ra.views.search %}">RAs</a></li>
+<li>&gt; {{ student.name }}</li>
 {% endblock %}
 
 {% block headextra %}

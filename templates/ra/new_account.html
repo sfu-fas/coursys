@@ -4,15 +4,18 @@
 {% block title %}New Account{% endblock %}
 {% block h1 %}New Account{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url ra.views.accounts_index %}">Accounts</a></li><li>&gt; Create New Account</li>{% endblock %}
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url ra.views.search %}">RAs</a></li>
+<li>&gt; <a href="{% url ra.views.accounts_index %}">Accounts</a></li>
+<li>&gt; New</li>{% endblock %}
 
 {% block content %}
   <div id="form_container">
     <form action="{% url ra.views.new_account %}" method="post">{% csrf_token %}
-      <fieldset style="list-style: none;">
+      <fieldset>
         <legend>Account Information</legend>
-        {{ accountform.as_ul }}
-        <p><input type="submit" value="Submit" /></p>
+        {{ accountform|as_dl }}
+        <p><input type="submit" value="Submit" class="submit" /></p>
       </fieldset>
     </form>  
   </div>

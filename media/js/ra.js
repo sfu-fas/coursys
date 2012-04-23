@@ -80,7 +80,7 @@ function update_pay_periods() {
 
 function update_person(id) {
   $.getJSON("/data/scholarships/" + id, function(json) {
-    var options = '<option value="" >---------</option>';
+    var options = '<option value="">—</option>';
     for (var i=0; i < json.length; i++) {
       options += '<option value="' + json[i].value +'">' + json[i].display + '</option>';
     }

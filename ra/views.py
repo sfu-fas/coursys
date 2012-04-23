@@ -5,15 +5,13 @@ from django.contrib import messages
 from ra.models import RAAppointment, Project, Account
 from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm
 from grad.forms import possible_supervisors
-from coredata.models import Member, Person, Role, Unit, Semester
+from coredata.models import Person, Role, Semester
 from courselib.auth import requires_role, ForbiddenResponse
 from courselib.search import find_userid_or_emplid
 from django.template import RequestContext
-from datetime import date, timedelta
-from grad.models import GradStudent, Scholarship, ScholarshipType
+from grad.models import GradStudent, Scholarship
 from dashboard.letters import ra_form, OfficialLetter, LetterContents
 from django import forms
-from django.core.exceptions import ObjectDoesNotExist
 
 import json
 
@@ -55,24 +53,55 @@ def student_appointments(request, userid):
     appointments = RAAppointment.objects.filter(person=student, unit__in=request.units).order_by("-created_at")
     return render(request, 'ra/student_appointments.html', {'appointments': appointments, 'student': student}, context_instance=RequestContext(request))
 
+def _appointment_defaults(units, emplid=None):
+    hiring_faculty_choices = possible_supervisors(units)
+    unit_choices = [(u.id, u.name) for u in units]
+    project_choices = [(p.id, unicode(p)) for p in Project.objects.filter(unit__in=units)]
+    account_choices = [(a.id, unicode(a)) for a in Account.objects.filter(unit__in=units)]
+    scholarship_choices = [("", u'\u2014')]
+    if emplid:
+        for s in Scholarship.objects.filter(student__person__emplid=emplid):
+            scholarship_choices.append((s.pk, s.scholarship_type.unit.label + ": " + s.scholarship_type.name + " (" + s.start_semester.name + " to " + s.end_semester.name + ")"))
+
+    return (scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices)
+    
+
 #New RA Appointment
 @requires_role("FUND")
 def new(request):
+    scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices =_appointment_defaults(request.units)
     if request.method == 'POST':
-        raform = RAForm(request.POST)
+        data = request.POST.copy()
+        if data['pay_frequency'] == 'L':
+            # force values into the non-submitted (and don't-care) fields for lump sum pay
+            try:
+                pay = float(data['lump_sum_pay'])
+            except ValueError:
+                pay = 1
+            data['biweekly_pay'] = data.get('biweekly_pay', pay)
+            data['hourly_pay'] = data.get('hourly_pay', pay)
+            data['hours'] = 1
+            data['pay_periods'] = 1
+
+        raform = RAForm(data)
+        raform.fields['hiring_faculty'].choices = hiring_faculty_choices
+        raform.fields['unit'].choices = unit_choices
+        raform.fields['project'].choices = project_choices
+        raform.fields['account'].choices = account_choices
+
         if raform.is_valid():
             userid = raform.cleaned_data['person'].userid
             appointment = raform.save()
-            messages.success(request, 'Created RA Appointment for ' + appointment.person.first_name + " " + appointment.person.last_name)
+            messages.success(request, 'Created RA Appointment for ' + appointment.person.name())
             return HttpResponseRedirect(reverse(student_appointments, kwargs=({'userid': userid})))
     else:
         semester = Semester.first_relevant() 
         raform = RAForm(initial={'start_date': semester.start, 'end_date': semester.end, 'hours': 70 })
-        raform.fields['scholarship'].choices=[("", "---------")]
-        raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
-        raform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
-        raform.fields['project'].choices = [(p.id, unicode(p.project_number)) for p in Project.objects.filter(unit__in=request.units)]
-        raform.fields['account'].choices = [(a.id, u'%s (%s)' % (a.account_number, a.title)) for a in Account.objects.filter(unit__in=request.units)]
+        raform.fields['scholarship'].choices = scholarship_choices
+        raform.fields['hiring_faculty'].choices = hiring_faculty_choices
+        raform.fields['unit'].choices = unit_choices
+        raform.fields['project'].choices = project_choices
+        raform.fields['account'].choices = account_choices
     return render(request, 'ra/new.html', { 'raform': raform })
 
 #New RA Appointment with student pre-filled.
@@ -81,7 +110,8 @@ def new_student(request, userid):
     person = get_object_or_404(Person, emplid=userid)
     semester = Semester.first_relevant() 
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
-    initial = {'person': userid, 'start_date': semester.start, 'end_date': semester.end, 'hours': 70 }
+    initial = {'person': student.emplid, 'start_date': semester.start, 'end_date': semester.end, 'hours': 70 }
+    scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices =_appointment_defaults(request.units, emplid=student.emplid)
     try:
         gradstudent = GradStudent.objects.get(person=student)
         initial['sin'] = gradstudent.sin()
@@ -89,17 +119,18 @@ def new_student(request, userid):
         pass    
     raform = RAForm(initial=initial)
     raform.fields['person'] = forms.CharField(widget=forms.HiddenInput())
-    raform.fields['scholarship'].choices=[("", "---------")]
-    raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
-    raform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
-    raform.fields['project'].choices = [(p.id, unicode(p.project_number)) for p in Project.objects.filter(unit__in=request.units)]
-    raform.fields['account'].choices = [(a.id, u'%s (%s)' % (a.account_number, a.title)) for a in Account.objects.filter(unit__in=request.units)]
+    raform.fields['scholarship'].choices = scholarship_choices
+    raform.fields['hiring_faculty'].choices = hiring_faculty_choices
+    raform.fields['unit'].choices = unit_choices
+    raform.fields['project'].choices = project_choices
+    raform.fields['account'].choices = account_choices
     return render(request, 'ra/new.html', { 'raform': raform, 'person': person })
 
 #Edit RA Appointment
 @requires_role("FUND")
 def edit(request, ra_slug):
     appointment = get_object_or_404(RAAppointment, slug=ra_slug)    
+    scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices = _appointment_defaults(request.units, emplid=appointment.person.emplid)
     if request.method == 'POST':
         data = request.POST.copy()
         if data['pay_frequency'] == 'L':
@@ -124,14 +155,11 @@ def edit(request, ra_slug):
         raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid})
         #As in the new method, choices are restricted to relevant options.
         raform.fields['person'] = forms.CharField(widget=forms.HiddenInput())
-        raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
-        scholarship_choices = [("", "---------")]
-        for s in Scholarship.objects.filter(student__person__emplid = appointment.person.emplid):
-            scholarship_choices.append((s.pk, s.scholarship_type.unit.label + ": " + s.scholarship_type.name + " (" + s.start_semester.name + " to " + s.end_semester.name + ")"))
+        raform.fields['hiring_faculty'].choices = hiring_faculty_choices
         raform.fields['scholarship'].choices = scholarship_choices
-        raform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
-        raform.fields['project'].choices = [(p.id, unicode(p.project_number)) for p in Project.objects.filter(unit__in=request.units)]
-        raform.fields['account'].choices = [(a.id, u'%s (%s)' % (a.account_number, a.title)) for a in Account.objects.filter(unit__in=request.units)]
+        raform.fields['unit'].choices = unit_choices
+        raform.fields['project'].choices = project_choices
+        raform.fields['account'].choices = account_choices
     return render(request, 'ra/edit.html', { 'raform': raform, 'appointment': appointment })
 
 #Quick Reappoint, The difference between this and edit is that the reappointment box is automatically checked, and date information is filled out as if a new appointment is being created.
@@ -181,7 +209,7 @@ def letter(request, ra_slug):
         signer=appointment.hiring_faculty,
         cosigner_lines=['I agree to the conditions of employment', appointment.person.first_name + " " + appointment.person.last_name])
     paragraphs = [
-        """This is to confirm remuneration of work performed as a Research Assistant from """ + appointment.start_date.strftime("%B %d, %y") +  """ to """  + appointment.end_date.strftime("%B %d, %y") + """, will be a Lump Sum payment of $""" + str(appointment.lump_sum_pay) + """.""",
+        """This is to confirm remuneration of work performed as a Research Assistant from """ + appointment.start_date.strftime("%B %d, %Y") +  """ to """  + appointment.end_date.strftime("%B %d, %Y") + """, will be a Lump Sum payment of $""" + str(appointment.lump_sum_pay) + """.""",
         """Termination of this appointment may be initiated by either party giving one (1) week notice, except in the case of termination for cause.""",
         """This contract of employment exists solely between myself as recipient of research grant funds and your self. In no manner of form does this employment relationship extend to or affect Simon Fraser University in any way.""",
         """The primary purpose of this appointment is to assist you in furthering your education and the pursuit of your degree through the performance of research activities in your field of study. As such, payment for these activities will be classified as scholarship income for taxation purposes. Accordingly, there will be no income tax, CPP or EI deductions from income. You should set aside funds to cover your eventual income tax obligation; note that the first $3K total annual income from scholarship sources is not taxable.""",
@@ -213,12 +241,12 @@ def accounts_index(request):
     accounts = Account.objects.filter(unit__id__in=depts).order_by("account_number")
     return render(request, 'ra/accounts_index.html', {'accounts': accounts}, context_instance=RequestContext(request))
 
-@requires_role("FUND")
-def delete_account(request, account_slug):
-    account = get_object_or_404(Account, slug=account_slug)
-    messages.success(request, 'Deleted account ' + str(account.account_number))
-    account.delete()
-    return HttpResponseRedirect(reverse(accounts_index))
+#@requires_role("FUND")
+#def delete_account(request, account_slug):
+#    account = get_object_or_404(Account, slug=account_slug)
+#    messages.success(request, 'Deleted account ' + str(account.account_number))
+#    account.delete()
+#    return HttpResponseRedirect(reverse(accounts_index))
 
 @requires_role("FUND")
 def edit_account(request, account_slug):
@@ -253,12 +281,12 @@ def projects_index(request):
     projects = Project.objects.filter(unit__id__in=depts).order_by("project_number")
     return render(request, 'ra/projects_index.html', {'projects': projects}, context_instance=RequestContext(request))
 
-@requires_role("FUND")
-def delete_project(request, project_slug):
-    project = get_object_or_404(Project, slug=project_slug)
-    messages.success(request, 'Deleted project ' + str(project.project_number))
-    project.delete()
-    return HttpResponseRedirect(reverse(projects_index))
+#@requires_role("FUND")
+#def delete_project(request, project_slug):
+#    project = get_object_or_404(Project, slug=project_slug)
+#    messages.success(request, 'Deleted project ' + str(project.project_number))
+#    project.delete()
+#    return HttpResponseRedirect(reverse(projects_index))
 
 @requires_role("FUND")
 def edit_project(request, project_slug):

@@ -1,11 +1,9 @@
 from django import forms
-from ra.models import RAAppointment, Account, Project, \
-                      HIRING_CATEGORY_CHOICES, PAY_TYPE_CHOICES
-from coredata.models import Person, Role
-from django.core.exceptions import ObjectDoesNotExist
+from ra.models import RAAppointment, Account, Project
+from coredata.models import Person
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
-from grad.models import Scholarship, GradStudent
+from grad.models import GradStudent
 
 class RAForm(forms.ModelForm):
     person = forms.CharField(label='Hire')
@@ -18,12 +16,12 @@ class RAForm(forms.ModelForm):
     def clean_sin(self):
         sin = self.cleaned_data['sin']
         try:
-            person_object = Person.objects.get(emplid=self['person'].value())
-            gradstudent = GradStudent.objects.get(person=person_object)
+            emplid = int(self['person'].value())
+            gradstudent = GradStudent.objects.get(person__emplid=emplid)
             #print "setting " + person_object.first_name + " sin to " + str(sin)
             gradstudent.set_sin(sin)
             gradstudent.save()
-        except (ObjectDoesNotExist):
+        except (GradStudent.DoesNotExist, ValueError):
             pass
         return sin
 

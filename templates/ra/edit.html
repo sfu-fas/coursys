@@ -4,13 +4,16 @@
 {% block headextra %}
 <script type="text/javascript" src="/media/js/ra.js"></script>
 <link rel="stylesheet" type="text/css" href="/media/ra/ra.css" />
-
 {% endblock %}
 
-{% block title %}Update RA Appointment for {{ appointment.person.first_name }} {{ appointment.person.last_name }}{% endblock %}
-{% block h1 %}Update RA Appointment for {{ appointment.person.first_name }} {{ appointment.person.last_name }}{% endblock %}
+{% block title %}Update RA Appointment for {{ appointment.person.name }}{% endblock %}
+{% block h1 %}Update RA Appointment for {{ appointment.person.name }}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url ra.views.search %}">RA Appointments</a></li><li>&gt;<a href="{% url ra.views.student_appointments userid=appointment.person.userid%}"> RA Appointments for {{ appointment.person.first_name }} {{ appointment.person.last_name }}</a></li><li>&gt; Update RA Appointment</li>{% endblock %}
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url ra.views.search %}">RAs</a></li>
+<li>&gt;<a href="{% url ra.views.student_appointments userid=appointment.person.userid%}"> {{ appointment.person.name }}</a></li>
+<li>&gt; <a href="{% url ra.views.view ra_slug=appointment.slug %}">{{ appointment.account.title }} starting {{ appointment.start_date }}</a></li>
+<li>&gt; Edit</li>{% endblock %}
 
 {% block content %}
   <div id="form_container">

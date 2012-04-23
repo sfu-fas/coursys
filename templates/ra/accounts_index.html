@@ -2,7 +2,10 @@
 {% block title %}Manage Accounts{% endblock %}
 {% block h1 %}Manage Accounts{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; Manage Accounts</li>{% endblock %}
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url ra.views.search %}">RAs</a></li>
+<li>&gt; Accounts</li>
+{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
@@ -51,7 +54,7 @@ function confirmDelete(url) {
             <td>{{account.title}}</td>
             <td>{{account.position_number}}</td>
             <td>{{account.unit}}</td>
-            <td><a href="{% url ra.views.edit_account account_slug=account.slug %}">Edit</a> <a href="javascript:confirmDelete('{% url ra.views.delete_account account_slug=account.slug %}');">Delete</a></td>
+            <td><a href="{% url ra.views.edit_account account_slug=account.slug %}">Edit</a></td>
           </tr>
         {% endfor %}
       </tbody>

@@ -180,6 +180,7 @@
 
 <div class="datatable_container">
     <h2>Course Activities</h2>
+    {% if activities_info %}
     <table class="display" id="activities">
         <thead>
             <tr>
@@ -249,8 +250,11 @@
           {% endfor %}
         </tbody>
     </table>
+    {% else %}
+    <p class="empty">No activities defined. You can <a href="{% url grades.views.activity_choice course_slug=course.slug %}">add an activity</a> to get started.</p>
+    {% endif %}
 </div>
-<p>
-Percent total: {{total_percent}}%
-</p>
+{% if activities_info %}
+<p>Percent total: {{total_percent}}%</p>
+{% endif %}
 {% endblock %}

@@ -2,7 +2,10 @@
 {% block title %}Manage Projects{% endblock %}
 {% block h1 %}Manage Projects{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; Manage Projects</li>{% endblock %}
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url ra.views.search %}">RAs</a></li>
+<li>&gt; Projects</li>
+{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
@@ -49,7 +52,7 @@ function confirmDelete(url) {
           <td scope="row"><span class="sort">{{project.project_number}}</span>{{project.project_number}}</td>
           <td>{{project.fund_number}}</td>
           <td>{{project.unit}}</td>
-          <td><a href="{% url ra.views.edit_project project_slug=project.slug %}">Edit</a> <a href="javascript:confirmDelete('{% url ra.views.delete_project project_slug=project.slug %}');">Delete</a></td></tr>
+          <td><a href="{% url ra.views.edit_project project_slug=project.slug %}">Edit</a></td></tr>
       {% endfor %}
     </tbody>
   </table>

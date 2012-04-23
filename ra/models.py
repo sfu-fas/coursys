@@ -36,7 +36,9 @@ class Project(models.Model):
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
 
     def __unicode__(self):
-        return unicode(self.project_number)
+        return "%06i (%s)" % (self.project_number, self.fund_number)
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
 
 class Account(models.Model):
     """
@@ -51,7 +53,9 @@ class Account(models.Model):
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
 
     def __unicode__(self):
-        return unicode(self.account_number)
+        return "%06i (%s)" % (self.account_number, self.title)
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
 
 class RAAppointment(models.Model):
     """

@@ -426,11 +426,11 @@ class RAForm(object):
         self._draw_box_left(0, height - self.ENTRY_HEIGHT, width=3.125*inch, label="DEPARTMENT", content=dept)
         
         # fund/project/account
-        self._draw_box_right(0, height - self.ENTRY_HEIGHT, width=3.75*inch, label="FUND", content=unicode(self.ra.project.fund_number))
+        self._draw_box_right(0, height - self.ENTRY_HEIGHT, width=3.75*inch, label="FUND", content="%i" % (self.ra.project.fund_number))
         self._draw_box_right(0, height - self.ENTRY_HEIGHT, width=3*inch,
-                             label="DEPARTMENT/PROJECT NUM", tick=True, content=unicode(self.ra.project.project_number))
+                             label="DEPARTMENT/PROJECT NUM", tick=True, content="%06i" % (self.ra.project.project_number))
         self._draw_box_right(0, height - self.ENTRY_HEIGHT, width=1.25*inch,
-                             label="ACCOUNT", tick=True, content=unicode(self.ra.account.account_number))
+                             label="ACCOUNT", tick=True, content="%06i" % (self.ra.account.account_number))
 
         height = 4.75*inch
         self._rule(height)
