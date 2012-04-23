@@ -193,7 +193,11 @@ def eval_parse(tree, activity, act_dict, member, visible):
         elif part=="fin":
             if act.percent:
                 grade = visible_grade(act, member, visible)
-                return grade/float(act.max_grade) * float(act.percent)
+                max_grade = float(act.max_grade)
+                if max_grade:
+                    return grade/max_grade * float(act.percent)
+                else:
+                    return 0.0
             else:
                 return 0.0
 
@@ -218,7 +222,7 @@ def eval_parse(tree, activity, act_dict, member, visible):
                 val *= operand
             elif operator == "/":
                 if operand==0:
-                    val = 0
+                    val = 0.0
                 else:
                     val /= operand
             else:
@@ -233,6 +237,8 @@ def eval_parse(tree, activity, act_dict, member, visible):
         elif func == 'MIN':
             return min(eval_parse(t, activity, act_dict, member, visible) for t in tree[3:])
         elif func == 'AVG':
+            if len(tree) == 3:
+                return 0
             return sum(eval_parse(t, activity, act_dict, member, visible) for t in tree[3:]) / (len(tree)-3)
         elif func == 'BEST':
             # round first argument to an int: it's the number of best items to pick
@@ -255,7 +261,9 @@ def eval_parse(tree, activity, act_dict, member, visible):
             for label in tree[1]:
                 act = act_dict[label]
                 grade = visible_grade(act, member, visible)
-                total += grade/float(act.max_grade) * float(act.percent)
+                max_grade = float(act.max_grade)
+                if max_grade:
+                    total += grade/max_grade * float(act.percent)
             return total
         else:
             raise EvalException, "Unknown flag in parse tree: %s"%(func,)
