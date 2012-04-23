@@ -68,7 +68,7 @@ class SIMSConn(DBConn):
     """
     sims_user = "ggbaker"
     sims_db = "csrpt"
-    table_prefix = "dbsastg."
+    schema = "dbsastg"
     
     DatabaseError = None
 
@@ -82,7 +82,9 @@ class SIMSConn(DBConn):
         import DB2
         SIMSConn.DatabaseError = DB2.DatabaseError
         dbconn = DB2.connect(dsn=self.sims_db, uid=self.sims_user, pwd=simspasswd)
-        return dbconn, dbconn.cursor()
+        cursor = dbconn.cursor()
+        cursor.execute("SET SCHEMA "+self.schema)
+        return dbconn, cursor
 
     def escape_arg(self, a):
         """
@@ -177,7 +179,7 @@ def userid_from_sims(emplid):
     Guess userid from campus email address. Can be wrong because of mail aliases?
     """
     db = SIMSConn()
-    db.execute("SELECT e_addr_type, email_addr, pref_email_flag FROM " + db.table_prefix + "ps_email_addresses c WHERE e_addr_type='CAMP' and emplid=%s", (str(emplid),))
+    db.execute("SELECT e_addr_type, email_addr, pref_email_flag FROM ps_email_addresses c WHERE e_addr_type='CAMP' and emplid=%s", (str(emplid),))
     userid = None
     for _, email_addr, _ in db:
         if email_addr.endswith('@sfu.ca'):
@@ -193,7 +195,7 @@ def find_person(emplid, get_userid=True):
     Find the person in SIMS: return data or None (not found) or may raise a SIMSProblem.
     """
     db = SIMSConn()
-    db.execute("SELECT emplid, last_name, first_name, middle_name FROM " + db.table_prefix + "ps_personal_data WHERE emplid=%s",
+    db.execute("SELECT emplid, last_name, first_name, middle_name FROM ps_personal_data WHERE emplid=%s",
                (str(emplid),))
 
     for emplid, last_name, first_name, middle_name in db:
@@ -284,7 +286,7 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
     
     # get phone numbers
     if (needed == ALLFIELDS or 'phones' in needed) and 'phones' not in exclude:
-        db.execute('SELECT phone_type, country_code, phone, extension, pref_phone_flag FROM ' + db.table_prefix + 'ps_personal_phone WHERE emplid=%s', (str(emplid),))
+        db.execute('SELECT phone_type, country_code, phone, extension, pref_phone_flag FROM ps_personal_phone WHERE emplid=%s', (str(emplid),))
         phones = {}
         data['phones'] = phones
         for phone_type, country_code, phone, extension, pref_phone in db:
@@ -306,7 +308,7 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
     # get addresses
     if (needed == ALLFIELDS or 'addresses' in needed) and 'addresses' not in exclude:
         # sorting by effdt to get the latest in the dictionary
-        db.execute("SELECT address_type, effdt, eff_status, c.descrshort, address1, address2, address3, address4, city, state, postal FROM " + db.table_prefix + "ps_addresses a, " + db.table_prefix + "ps_country_tbl c WHERE emplid=%s AND eff_status='A' AND a.country=c.country ORDER BY effdt ASC", (str(emplid),))
+        db.execute("SELECT address_type, effdt, eff_status, c.descrshort, address1, address2, address3, address4, city, state, postal FROM ps_addresses a, ps_country_tbl c WHERE emplid=%s AND eff_status='A' AND a.country=c.country ORDER BY effdt ASC", (str(emplid),))
         addresses = {}
         data['addresses'] = addresses
         for address_type, _, _, country, address1, address2, address3, address4, city, state, postal in db:
@@ -326,7 +328,7 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
 
     # get citizenzhip
     if (needed == ALLFIELDS or 'citizen' in needed) and 'citizen' not in exclude:
-        db.execute("SELECT c.descrshort FROM " + db.table_prefix + "ps_citizenship cit, dbsastg.ps_country_tbl c WHERE emplid=%s AND cit.country=c.country", (str(emplid),))
+        db.execute("SELECT c.descrshort FROM ps_citizenship cit, dbsastg.ps_country_tbl c WHERE emplid=%s AND cit.country=c.country", (str(emplid),))
         #if 'citizen' in p.config:
         #    del p.config['citizen']
         for country, in db:
@@ -335,20 +337,20 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
     # get Canadian visa status
     if (needed == ALLFIELDS or 'visa' in needed) and 'visa' not in exclude:
         # sorting by effdt to get the latest in the dictionary
-        db.execute("SELECT t.descrshort FROM " + db.table_prefix + "ps_visa_pmt_data v, " + db.table_prefix + "ps_visa_permit_tbl t WHERE emplid=%s AND v.visa_permit_type=t.visa_permit_type AND v.country=t.country AND v.country='CAN' AND v.visa_wrkpmt_status='A' AND t.eff_status='A' ORDER BY v.effdt ASC", (str(emplid),))
+        db.execute("SELECT t.descrshort FROM ps_visa_pmt_data v, ps_visa_permit_tbl t WHERE emplid=%s AND v.visa_permit_type=t.visa_permit_type AND v.country=t.country AND v.country='CAN' AND v.visa_wrkpmt_status='A' AND t.eff_status='A' ORDER BY v.effdt ASC", (str(emplid),))
         #if 'visa' in p.config:
         #    del p.config['visa']
         for desc, in db:
             data['visa'] = desc
 
     # emails
-    #execute_query(db, "SELECT e_addr_type, email_addr, pref_email_flag FROM " + db.table_prefix + "ps_email_addresses c WHERE emplid=%s", (str(emplid),))
+    #execute_query(db, "SELECT e_addr_type, email_addr, pref_email_flag FROM ps_email_addresses c WHERE emplid=%s", (str(emplid),))
     #for e_addr_type, email_addr, pref_email_flag in iter_rows(db):
     #    print (e_addr_type, email_addr, pref_email_flag)
     
     # other stuff from ps_personal_data
     if (needed == ALLFIELDS or 'gender' in needed) and 'gender' not in exclude:
-        db.execute('SELECT sex FROM ' + db.table_prefix + 'ps_personal_data WHERE emplid=%s', (str(emplid),))
+        db.execute('SELECT sex FROM ps_personal_data WHERE emplid=%s', (str(emplid),))
         #if 'gender' in p.config:
         #    del p.config['gender']
         for sex, in db:
@@ -360,11 +362,11 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
         programs = []
         data['programs'] = programs
         db.execute("SELECT apt.acad_plan, apt.descr, apt.trnscr_descr from "
-                   "(select max(effdt) as effdt from " + db.table_prefix + "ps_acad_plan where emplid=%s) as last, "
-                   "(select effdt, max(effseq) as effseq from " + db.table_prefix + "ps_acad_plan where emplid=%s GROUP BY effdt) as seq, "
-                   + db.table_prefix + "ps_acad_plan as ap, "
-                   + db.table_prefix + "ps_acad_plan_tbl as apt, "
-                   "(select acad_plan, max(effdt) as effdt from " + db.table_prefix + "ps_acad_plan_tbl GROUP BY acad_plan) as lastplan "
+                   "(select max(effdt) as effdt from ps_acad_plan where emplid=%s) as last, "
+                   "(select effdt, max(effseq) as effseq from ps_acad_plan where emplid=%s GROUP BY effdt) as seq, "
+                   "ps_acad_plan as ap, "
+                   "ps_acad_plan_tbl as apt, "
+                   "(select acad_plan, max(effdt) as effdt from ps_acad_plan_tbl GROUP BY acad_plan) as lastplan "
                    "WHERE (apt.acad_plan=ap.acad_plan AND last.effdt=ap.effdt AND seq.effdt=last.effdt AND seq.effseq=ap.effseq "
                    "AND apt.effdt=lastplan.effdt AND lastplan.acad_plan=ap.acad_plan "
                    "AND apt.eff_status='A' AND ap.emplid=%s)", (str(emplid), str(emplid), str(emplid)))
@@ -376,7 +378,7 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
     
     # GPA and credit count
     if (needed == ALLFIELDS or 'gpa' in needed or 'ccredits' in needed) and 'ccredits' not in exclude:
-        db.execute('SELECT cum_gpa, tot_cumulative FROM ' + db.table_prefix + 'ps_stdnt_car_term WHERE emplid=%s ORDER BY strm DESC FETCH FIRST 1 ROWS ONLY', (str(emplid),))
+        db.execute('SELECT cum_gpa, tot_cumulative FROM ps_stdnt_car_term WHERE emplid=%s ORDER BY strm DESC FETCH FIRST 1 ROWS ONLY', (str(emplid),))
         for gpa, cred in db:
             data['gpa'] = gpa
             data['ccredits'] = cred
@@ -394,7 +396,7 @@ def acad_plan_count(acad_plan, strm):
 
     # most recent acad_plan, most recent acad_plan *in this program* for each student active this semester
     last_prog_plan = "(SELECT ap.emplid, max(ap.effdt) as effdtprog, max(ap2.effdt) as effdt " \
-                     "FROM " + db.table_prefix + "ps_acad_plan ap, " + db.table_prefix + "ps_acad_plan ap2, " + db.table_prefix + "ps_stdnt_car_term ct "\
+                     "FROM ps_acad_plan ap, ps_acad_plan ap2, ps_stdnt_car_term ct "\
                      "WHERE ap.emplid=ct.emplid and ap.emplid=ap2.emplid and ct.strm=%s and ap.acad_plan=%s " \
                      "and ct.stdnt_car_nbr=ap.stdnt_car_nbr GROUP BY ap.emplid)"
 
@@ -416,7 +418,7 @@ def get_or_create_semester(strm):
         return oldsem[0]
 
     db = SIMSConn()
-    db.execute("SELECT strm, term_begin_dt, term_end_dt FROM " + db.table_prefix + "ps_term_tbl WHERE strm=%s", (strm,))
+    db.execute("SELECT strm, term_begin_dt, term_end_dt FROM ps_term_tbl WHERE strm=%s", (strm,))
     row = db.fetchone()
     if row is None:
         raise ValueError, "Not Found"
