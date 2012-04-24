@@ -183,7 +183,7 @@ def reappoint(request, ra_slug):
 @requires_role("FUND")
 def view(request, ra_slug):
     appointment = get_object_or_404(RAAppointment, slug=ra_slug)
-    student = Person.objects.get(userid=appointment.person.userid)
+    student = appointment.person
     return render(request, 'ra/view.html', {'appointment': appointment, 'student': student}, context_instance=RequestContext(request))
 
 #View RA Appointment Form (PDF)

@@ -266,6 +266,7 @@ Column logic:
 {% endif %}
 
 <div class="datatable_container">
+	{% if students %}
     <table class="display" id="student_grades">
         <thead>
             <tr>
@@ -388,6 +389,8 @@ Column logic:
 	    {% endfor %}
         </tbody>
     </table>
-</div>
+    {% else %}
+    <p class="empty">No students enrolled.</p>
+    {% endif %}</div>
 {% endblock %}
 {% endblock %}

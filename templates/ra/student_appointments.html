@@ -70,6 +70,7 @@
             <th scope="col">Start Date</th>
             <th scope="col">End Date</th>
             <th scope="col">Title</th>
+            <th scope="col">Type</th>
             <th scope="col">Hiring Faculty</th>
             <th scope="col">Actions</th>
           </tr>
@@ -78,10 +79,12 @@
         {% for appointment in appointments %}
         <tr>
           <td scope="row">
-              <span class="sort">{{ appointment.start_date }}</span>
+              <span class="sort">{{ appointment.start_date.isoformat }}</span>
               {{ appointment.start_date }}</td>
-          <td>{{ appointment.end_date }}</td>
+          <td><span class="sort">{{ appointment.end_date.isoformat }}</span>
+          	  {{ appointment.end_date }}</td>
           <td>{{ appointment.account.title }}</td>
+          <td>{{ appointment.get_pay_frequency_display }}</td>
           <td>{{ appointment.hiring_faculty.last_name}}, 
               {{ appointment.hiring_faculty.first_name }}</td>
           <td><a href="{% url ra.views.view ra_slug=appointment.slug %}">View </a> |

@@ -13,11 +13,11 @@ HIRING_CATEGORY_CHOICES = (
     ('S', 'Grad Scholarship'),
     )
     
-PAY_TYPE_CHOICES = (
-    ('H', 'Hourly'),
-    ('B', 'Biweekly'),
-    ('L', 'Lump Sum'),
-    )
+#PAY_TYPE_CHOICES = (
+#    ('H', 'Hourly'),
+#    ('B', 'Biweekly'),
+#    ('L', 'Lump Sum'),
+#    )
 
 PAY_FREQUENCY_CHOICES = (
     ('B', 'Biweekly'),
@@ -74,10 +74,10 @@ class RAAppointment(models.Model):
     end_date = models.DateField(auto_now=False, auto_now_add=False)
     pay_frequency = models.CharField(max_length=60, choices=PAY_FREQUENCY_CHOICES, default ='B')
     lump_sum_pay = models.DecimalField(max_digits=8, decimal_places=2)
-    biweekly_pay = models.DecimalField(max_digits=6, decimal_places=2)
-    pay_periods = models.DecimalField(max_digits=6, decimal_places=3)
-    hourly_pay = models.DecimalField(max_digits=6, decimal_places=2)
-    hours = models.PositiveSmallIntegerField(verbose_name="Biweekly Hours")
+    biweekly_pay = models.DecimalField(max_digits=8, decimal_places=2)
+    pay_periods = models.DecimalField(max_digits=6, decimal_places=1)
+    hourly_pay = models.DecimalField(max_digits=8, decimal_places=2)
+    hours = models.DecimalField(max_digits=5, decimal_places=2, verbose_name="Biweekly Hours")
     # pay_period = models.CharField(max_length=60, choices=PAY_TYPE_CHOICES)
     # # The amount paid hourly, biweekly, or as a lump sum.
     # pay_amount = models.DecimalField(max_digits=6, decimal_places=2, help_text="The amount paid either hourly, biweekly, or in a lump sum.")
@@ -90,7 +90,11 @@ class RAAppointment(models.Model):
     notes = models.TextField(blank=True, help_text="Biweekly emplyment earnings rates must include vacation pay, hourly rates will automatically have vacation pay added. The employer cost of statutory benefits will be charged to the amount to the earnings rate.");
     comments = models.TextField(blank=True, help_text="For internal use")
     def autoslug(self):
-        return make_slug(self.unit.label + '-' + unicode(self.start_date.year) + '-' + self.person.userid)
+        if self.person.userid:
+            ident = self.person.userid
+        else:
+            ident = unicode(self.person.emplid)
+        return make_slug(self.unit.label + '-' + unicode(self.start_date.year) + '-' + ident)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff

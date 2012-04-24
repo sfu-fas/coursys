@@ -8,9 +8,9 @@ from coredata.queries import DBConn, get_names, get_or_create_semester
 from coredata.models import Person, Semester, Unit, CourseOffering
 from grad.models import GradProgram, GradStudent, GradRequirement, CompletedRequirement, Supervisor, GradStatus
 from ta.models import TAContract, TAApplication, TAPosting, TACourse
-from ta.models import Account
+from ra.models import RAAppointment, Account, Project
 from coredata.importer_rodb import get_person, get_person_grad, import_one_offering
-import datetime, json, time
+import datetime, json, time, decimal
 
 import pymssql, MySQLdb
 
@@ -320,11 +320,7 @@ class GradImport(object):
                     print "Duplicate supervisor position for %s: can't import" % (gs)
                     
             
-            # TODO: potential supervisor, exam committee
-            
             # Examining Committee
-            self.db.execute("SELECT * "
-                            "FROM ExamCommittee WHERE Identifier=%s", (cortezid,))
             self.db.execute("SELECT Chair, ExtName, ExtDep, ExtInst, ExtEmail, SFUExaminer "
                             "FROM ExamCommittee WHERE Identifier=%s", (cortezid,))
             for chair, extname, extdep, extinst, extemail, sfuexam in self.db:
@@ -374,6 +370,7 @@ class GradImport(object):
                     sup.modified_by = self.IMPORT_USER
                     sup.save()
 
+            # TODO: potential supervisor
 
             # Status and application status
             self.db.execute("SELECT Status, Date, AsOfSem "
@@ -408,6 +405,10 @@ class GradImport(object):
             gs.application_status = app_st
             gs.save()
 
+        # TODO: Letters and LetterArchive
+        # TODO: Scholarships
+        # TODO: FSPromises
+        # TODO: FinancialSupport
         
         
         
@@ -424,7 +425,7 @@ class GradImport(object):
                         "pi.Visa, pi.Status, pi.LastName FROM PersonalInfo pi "
                         "WHERE pi.StudentNumber not in (' ', 'na', 'N/A', 'NO', 'Not App.', 'N.A.', '-no-') "
                         #"AND pi.LastName in ('Baker', 'Bart', 'Cukierman', 'Fraser')" 
-                        "AND pi.LastName LIKE 'Ji%%'" 
+                        #"AND pi.LastName LIKE 'Ji%%'" 
                         #"AND pi.LastName > 'U'" 
                         "ORDER BY pi.LastName"
                         , ())
@@ -664,10 +665,10 @@ class TAImport(object):
         offering = self.offeringid_map[off_id]
         p = get_person(emplid, commit=True)
 
-        if offering.semester.name == '1007':
-            print offering, (off_id, bu, salary, schol, description, payst, payen, posnum, initial, cond, tssu, remarks, app_bu, emplid, cat, sin, status)
-        else:
-            return
+        #if offering.semester.name == '1007':
+        #    print offering, (off_id, bu, salary, schol, description, payst, payen, posnum, initial, cond, tssu, remarks, app_bu, emplid, cat, sin, status)
+        #else:
+        #    return
         
         try:
             posting = TAPosting.objects.get(unit=self.UNIT, semester=offering.semester)
@@ -746,8 +747,102 @@ class TAImport(object):
             self.get_ta(*row)
 
 
+class RAImport(object):
+    UNIT = Unit.objects.get(slug='cmpt')
+    CATEGORY_MAP = {
+                    'Scholarship': 'S',
+                    }
+    
+    def __init__(self):
+        self.db = CortezConn()
+        self.db.execute("USE [ra]", ())
+    
+    def get_ra(self, fund, project, position, reappt, startdate, enddate, category, faculty, msp, dental, \
+            hourlyrate, biweeklyrate, biweeklyhours, biweeklyamount, lumpsumamount, lumpsumhours, payperiod, \
+            totalamount, salarytype, notes, comments, emplid, sin):
+        """
+        Get one RA record. Argument list must match query in get_ras.
+        """
+        if not emplid or emplid in ['new']:
+            # TODO: do what with them?
+            return
+        p = get_person(emplid, commit=True)
+        #print p
+        ras = RAAppointment.objects.filter(unit=self.UNIT, person=p, start_date=startdate, end_date=enddate)
+        if ras:
+            ra = ras[0]
+        else:
+            ra = RAAppointment(unit=self.UNIT, person=p, start_date=startdate, end_date=enddate)
+        
+        try:
+            int(sin)
+        except (ValueError, TypeError):
+            sin = None
+        ra.sin = sin if sin else 0
+        ra.hiring_faculty = Person.objects.get(userid='ggbaker') # TODO: wrong
+        try:
+            int(project)
+            int(fund)
+        except ValueError:
+            # TODO: handle missing fund/project somehow
+            return
+        proj, _ = Project.objects.get_or_create(unit=self.UNIT, project_number=int(project), fund_number=int(fund))
+        ra.project = proj
+        ra.account = Account.objects.filter(unit=self.UNIT)[0] # TODO: no account number?
+        #if not ((salarytype == '0' and lumpsumamount == 0) or (salarytype == '2' and lumpsumamount != 0)):
+        #    raise ValueError, unicode((lumpsumamount, totalamount, salarytype))
+
+        #print (totalamount, biweeklyamount, payperiod, hourlyrate, biweeklyhours, lumpsumamount)
+        if biweeklyhours == '0.8.8':
+            biweeklyhours = '8.8'
+        elif biweeklyhours == '38.5.5.':
+            biweeklyhours = '38.5'
+        elif biweeklyhours.endswith('.'):
+            biweeklyhours = biweeklyhours[:-1]
+
+        biweeklyhours = decimal.Decimal(biweeklyhours)
+        if salarytype == '0': # bi-weekly
+            ra.pay_frequency = 'B'
+            ra.lump_sum_pay = totalamount
+            ra.biweekly_pay = biweeklyamount
+            ra.pay_periods = payperiod
+            ra.hourly_pay = hourlyrate
+            ra.hours = biweeklyhours
+            # TODO: hourly stuff usually missing: fix it somehow?
+            #print "T", ra.lump_sum_pay, ra.biweekly_pay*decimal.Decimal(ra.pay_periods)
+            #print "H", ra.biweekly_pay, ra.hourly_pay*ra.hours
+        elif salarytype == '2': # lump-sum
+            ra.pay_frequency = 'L'
+            ra.lump_sum_pay = lumpsumamount
+            ra.biweekly_pay = lumpsumamount
+            ra.pay_periods = 1
+            ra.hourly_pay = lumpsumamount
+            ra.hours = 1
+            #print lumpsumamount
+        else:
+            raise ValueError, str(salarytype)
+
+        #print ra.__dict__
+        #print
+        ra.save()
+
+    def get_ras(self):
+        #self.create_projects()
+        #self.db.execute("SELECT * from Contract c LEFT JOIN RA r ON c.Identifier=r.Identifier", ())
+        self.db.execute("SELECT c.FundNumber, c.ProjectNumber, c.PositionNumber, c.ReAppointment, c.StartDate, c.EndDate, "
+                        "c.HiringCategory, c.Faculty, c.MSP, c.DentalPlan, "
+                        "c.HourlyEarningRate, c.BiweeklyEarningRate, c.BiweeklyHoursMin, c.BiweeklyAmount, "
+                        "c.LumpSumAmount, c.LumpSumHours, c.PayPeriod, c.TotalAmount, c.SalaryType, "
+                        "c.Notes, c.Comments, "
+                        "r.StudentNumber, r.SIN "
+                        "FROM Contract c LEFT JOIN RA r ON c.Identifier=r.Identifier", ())
+        for row in self.db:
+            self.get_ra(*row)
+        print all_types
 
 #Introspection().print_schema()
-tain = TAImport().get_tas()
-#gradin = GradImport().get_students()
+
+#TAImport().get_tas()
+#GradImport().get_students()
+RAImport().get_ras()
 

@@ -261,7 +261,7 @@ def get_unit(acad_org):
         unit = Unit.objects.get(acad_org=acad_org)
     except Unit.DoesNotExist:
         db = SIMSConn()
-        db.execute("SELECT descrformal FROM " + db.table_prefix + "ps_acad_org_tbl "
+        db.execute("SELECT descrformal FROM ps_acad_org_tbl "
                    "WHERE eff_status='A' and acad_org=%s", (acad_org,))
         
         name, = db.fetchone()
@@ -329,7 +329,7 @@ def import_one_offering(strm, subject, number, section):
     Find a single offering by its details (used by Cortez data importer).
     """
     db = SIMSConn(verbose=False)
-    db.execute("SELECT "+CLASS_TBL_FIELDS+" FROM " + db.table_prefix + "ps_class_tbl WHERE "
+    db.execute("SELECT "+CLASS_TBL_FIELDS+" FROM ps_class_tbl WHERE "
                "strm=%s and subject=%s and catalog_nbr LIKE %s and class_section=%s",
                (strm, subject, '%'+number+'%', section))
 
@@ -337,7 +337,7 @@ def import_one_offering(strm, subject, number, section):
     res = list(db)
     if not res:
         # lots of section numbers wrong in cortez: try finding any section as a fallback
-        db.execute("SELECT "+CLASS_TBL_FIELDS+" FROM " + db.table_prefix + "ps_class_tbl WHERE "
+        db.execute("SELECT "+CLASS_TBL_FIELDS+" FROM ps_class_tbl WHERE "
                "strm=%s and subject=%s and catalog_nbr LIKE %s",
                (strm, subject, '%'+number+'%'))
         res = list(db)
@@ -351,7 +351,7 @@ def import_one_offering(strm, subject, number, section):
     
 def import_offerings(extra_where='1=1'):
     db = SIMSConn()
-    db.execute("SELECT "+CLASS_TBL_FIELDS+" FROM " + db.table_prefix + "ps_class_tbl WHERE strm IN %s AND "
+    db.execute("SELECT "+CLASS_TBL_FIELDS+" FROM ps_class_tbl WHERE strm IN %s AND "
                "class_section like '%%00' AND "+extra_where, (import_semesters(),))
     imported_offerings = set()
     for row in db.rows():
@@ -477,7 +477,7 @@ def import_meeting_times(offering):
     """
     db = SIMSConn()
     db.execute("SELECT meeting_time_start, meeting_time_end, facility_id, mon,tues,wed,thurs,fri,sat,sun, "
-               "start_dt, end_dt, stnd_mtg_pat, class_section FROM " + db.table_prefix + "ps_class_mtg_pat "
+               "start_dt, end_dt, stnd_mtg_pat, class_section FROM ps_class_mtg_pat "
                "WHERE crse_id=%s and class_section like %s and strm=%s",
                ("%06i" % (int(offering.crse_id)), offering.section[0:2]+"%", offering.semester.name))
     # keep track of meetings we've found, so we can remove old (non-importing semesters and changed/gone)
@@ -557,7 +557,7 @@ def import_instructors(offering):
     "Import instructors for this offering"
     Member.objects.filter(added_reason="AUTO", offering=offering, role="INST").update(role='DROP')
     db = SIMSConn()
-    db.execute("SELECT emplid, instr_role, sched_print_instr FROM " + db.table_prefix + "ps_class_instr WHERE " \
+    db.execute("SELECT emplid, instr_role, sched_print_instr FROM ps_class_instr WHERE " \
                "crse_id=%s and class_section=%s and strm=%s and instr_role='PI' and sched_print_instr='Y'",
                ("%06i" % (int(offering.crse_id)), offering.section, offering.semester.name))
     for emplid, _, _ in db.rows():
@@ -600,8 +600,7 @@ def import_students(offering):
     # WHERE lines: (1) match lab/tut sections of c1 class (2) students in those
     # lab/tut sections (3) with c1 matching offering
     query = "SELECT s.emplid, c2.class_section " \
-        "FROM " + db.table_prefix + "ps_class_tbl c1, " + db.table_prefix + "ps_class_tbl c2, " \
-        + db.table_prefix + "ps_stdnt_enrl s " \
+        "FROM ps_class_tbl c1, ps_class_tbl c2, ps_stdnt_enrl s " \
         "WHERE c1.subject=c2.subject and c1.catalog_nbr=c2.catalog_nbr and c2.strm=c1.strm " \
         "and s.class_nbr=c2.class_nbr and s.strm=c2.strm and s.enrl_status_reason IN ('ENRL','EWAT') " \
         "and c1.class_nbr=%s and c1.strm=%s and c2.class_section LIKE %s"
@@ -614,7 +613,7 @@ def import_students(offering):
         labtut[emplid] = section
     
     db.execute("SELECT e.emplid, e.acad_career, e.unt_taken, e.crse_grade_off, r.crse_grade_input "
-               "FROM " + db.table_prefix + "ps_stdnt_enrl e LEFT JOIN " + db.table_prefix + "ps_grade_roster r "
+               "FROM ps_stdnt_enrl e LEFT JOIN ps_grade_roster r "
                "ON e.strm=r.strm and e.acad_career=r.acad_career and e.emplid=r.emplid and e.class_nbr=r.class_nbr "
                "WHERE e.class_nbr=%s and e.strm=%s and e.stdnt_enrl_status='E'", (offering.class_nbr, offering.semester.name))
     for emplid, acad_career, unt_taken, grade_official, grade_roster in db.rows():

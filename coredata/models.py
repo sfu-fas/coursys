@@ -196,8 +196,8 @@ class Semester(models.Model):
         """
         today = datetime.date.today()
         month_ago = today - datetime.timedelta(days=40)
-        two_weeks_ago = today + datetime.timedelta(days=14)
-        return self.end > month_ago and self.start < two_weeks_ago
+        ten_days_ago = today + datetime.timedelta(days=10)
+        return self.end > month_ago and self.start < ten_days_ago
     
     def week_weekday(self, dt):
         """
