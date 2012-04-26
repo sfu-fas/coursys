@@ -359,9 +359,9 @@ class AccountsField(forms.MultiValueField):
 
 
 class TAPostingForm(forms.ModelForm):
+    deadline = forms.DateField(label="Acceptance Deadline", help_text='Default deadline for apointees to accept/decline contracts')
     start = forms.DateField(label="Contract Start", help_text='Default start date for contracts')
     end = forms.DateField(label="Contract End", help_text='Default end date for contracts')
-    deadline = forms.DateField(label="Acceptance Deadline", help_text='Default deadline for apointees to accept/decline contracts')
     salary = PayField(label="Salary per BU", help_text="Default pay rates for contracts")
     scholarship = PayField(label="Scholarship per BU", help_text="Default scholarship rates for contracts")
     accounts = AccountsField(label="Position Number", help_text="Default position number for contracts")

@@ -5,9 +5,9 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 from django.db import transaction
 from django.db.utils import IntegrityError
 from coredata.queries import DBConn, get_names, get_or_create_semester
-from coredata.models import Person, Semester, Unit, CourseOffering
+from coredata.models import Person, Semester, Unit, CourseOffering, Course
 from grad.models import GradProgram, GradStudent, GradRequirement, CompletedRequirement, Supervisor, GradStatus
-from ta.models import TAContract, TAApplication, TAPosting, TACourse
+from ta.models import TAContract, TAApplication, TAPosting, TACourse, CoursePreference
 from ra.models import RAAppointment, Account, Project
 from coredata.importer_rodb import get_person, get_person_grad, import_one_offering
 import datetime, json, time, decimal
@@ -213,9 +213,9 @@ class GradImport(object):
         Argument list must be in the same order at the query in get_students below.
         """
         # TODO: should use get_person_grad for production run (but get_or_create is good enough for testing)
-        p, new_person = Person.objects.get_or_create(emplid=emplid)
-        #p = get_person_grad(emplid, commit=True)
-        #new_person = False
+        #p, new_person = Person.objects.get_or_create(emplid=emplid)
+        p = get_person_grad(emplid, commit=True)
+        new_person = False
 
         # get what we can from SIMS
         if new_person:
@@ -642,7 +642,7 @@ class TAImport(object):
         return posting
     
     @transaction.commit_on_success
-    def get_ta(self, off_id, bu, salary, schol, description, payst, payen, posnum, initial, cond, tssu, remarks, app_bu, emplid, cat, sin, status):
+    def get_ta(self, off_id, bu, salary, schol, description, payst, payen, posnum, initial, cond, tssu, remarks, app_bu, emplid, cat, sin, status, appid):
         """
         Process one TA
         
@@ -726,7 +726,25 @@ class TAImport(object):
         crs.bu = bu
         crs.save()
         
-        # TODO: do we care about course preferences or skills from application?
+        
+        # course preferences
+        self.db.execute("SELECT course, rank FROM tasearch.dbo.courseranking "
+                        "WHERE appId=%s", (appid,))
+        for course, rank in self.db:
+            if course in ['-', '']:
+                continue
+            #print `course`
+            subj, num = course.split()
+            courses = Course.objects.filter(subject=subj, number=num)
+            if courses.count() > 1:
+                raise "Multiple Courses found for %r" % (course)
+            elif courses.count() == 1:
+                crs = courses[0]
+                CoursePreference.objects.get_or_create(app=app, course=crs, rank=rank)
+            #else:
+            #    print ">>>", course
+
+        # TODO: do we care about skills from application?
 
     
     def get_tas(self):  
@@ -741,10 +759,19 @@ class TAImport(object):
         self.db.execute("SELECT o.Offering_ID, o.bu, o.salary, o.scholarship, o.description, "
                         "o.PayrollStartDate, o.PayrollEndDate, o.PositionNumber, o.initAppointment, "
                         "o.conditional, o.tssu, o.remarks, i.base, "
-                        "i.studNum, i.category, i.socialInsurance, i.status FROM TAOffering o, tasearch.dbo.tainfo i "
-                        "WHERE o.TA_ID=i.appId ORDER BY i.appYear", ()) # and i.appYear>'109' 
+                        "i.studNum, i.category, i.socialInsurance, i.status, i.appId, i.appYear "
+                        "FROM TAOffering o, tasearch.dbo.tainfo i "
+                        "WHERE o.TA_ID=i.appId and i.appYear>='109' ORDER BY i.appYear", ()) # and i.appYear>'109' 
+        initial = None
         for row in list(self.db):
-            self.get_ta(*row)
+            i = row[-1]
+            if i != initial:
+                print "  ", 1900+int(i)
+                initial = i
+                time.sleep(0.5)
+
+            self.get_ta(*row[:-1])
+
 
 
 class RAImport(object):
@@ -757,6 +784,7 @@ class RAImport(object):
         self.db = CortezConn()
         self.db.execute("USE [ra]", ())
     
+    @transaction.commit_on_success
     def get_ra(self, fund, project, position, reappt, startdate, enddate, category, faculty, msp, dental, \
             hourlyrate, biweeklyrate, biweeklyhours, biweeklyamount, lumpsumamount, lumpsumhours, payperiod, \
             totalamount, salarytype, notes, comments, emplid, sin):
@@ -788,7 +816,7 @@ class RAImport(object):
             return
         proj, _ = Project.objects.get_or_create(unit=self.UNIT, project_number=int(project), fund_number=int(fund))
         ra.project = proj
-        ra.account = Account.objects.filter(unit=self.UNIT)[0] # TODO: no account number?
+        ra.account = Account.objects.filter(unit=self.UNIT)[0] # TODO: no account number in cortex DB?
         #if not ((salarytype == '0' and lumpsumamount == 0) or (salarytype == '2' and lumpsumamount != 0)):
         #    raise ValueError, unicode((lumpsumamount, totalamount, salarytype))
 
@@ -829,20 +857,31 @@ class RAImport(object):
     def get_ras(self):
         #self.create_projects()
         #self.db.execute("SELECT * from Contract c LEFT JOIN RA r ON c.Identifier=r.Identifier", ())
+        print "Importing RAs..."
         self.db.execute("SELECT c.FundNumber, c.ProjectNumber, c.PositionNumber, c.ReAppointment, c.StartDate, c.EndDate, "
                         "c.HiringCategory, c.Faculty, c.MSP, c.DentalPlan, "
                         "c.HourlyEarningRate, c.BiweeklyEarningRate, c.BiweeklyHoursMin, c.BiweeklyAmount, "
                         "c.LumpSumAmount, c.LumpSumHours, c.PayPeriod, c.TotalAmount, c.SalaryType, "
                         "c.Notes, c.Comments, "
-                        "r.StudentNumber, r.SIN "
-                        "FROM Contract c LEFT JOIN RA r ON c.Identifier=r.Identifier", ())
+                        "r.StudentNumber, r.SIN, r.FamilyName "
+                        "FROM Contract c LEFT JOIN RA r ON c.Identifier=r.Identifier "
+                        "ORDER BY r.FamilyName", ())
+        initial = None
+        for row in list(self.db):
+            if row[-1]:
+                i = row[-1][0].upper()
+                if i != initial:
+                    print "  ", i
+                    initial = i
+                    time.sleep(0.5)
+
         for row in self.db:
-            self.get_ra(*row)
-        print all_types
+            self.get_ra(*row[:-1])
+        #print all_types
 
 #Introspection().print_schema()
 
-#TAImport().get_tas()
+TAImport().get_tas()
 #GradImport().get_students()
-RAImport().get_ras()
+#RAImport().get_ras()
 

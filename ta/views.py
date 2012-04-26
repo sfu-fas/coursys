@@ -179,7 +179,7 @@ def new_application(request, post_slug):
 
 def _new_application(request, post_slug, manual=False):
     posting = get_object_or_404(TAPosting, slug=post_slug)
-    course_choices = [(c.id, unicode(c)) for c in posting.selectable_courses()]
+    course_choices = [(c.id, unicode(c) + " (" + c.title + ")") for c in posting.selectable_courses()]
     used_campuses = set((vals['campus'] for vals in posting.selectable_offerings().order_by('campus').values('campus').distinct()))
     skills = Skill.objects.filter(posting=posting)
     
@@ -383,12 +383,9 @@ def assign_tas(request, post_slug):
 @requires_role("TAAD")
 def assign_bus(request, post_slug, course_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
-    if posting.unit not in request.units:
-        ForbiddenResponse(request, 'You cannot access this page')
-    
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     instructors = offering.instructors()
-    course_prefs = CoursePreference.objects.filter(course=offering.course,app__late=False) 
+    course_prefs = CoursePreference.objects.filter(app__posting =posting, course=offering.course, app__late=False) 
     #a ta that has been assigned BU to this course might not be on the list
     tacourses = TACourse.objects.filter(course=offering)
     
@@ -856,7 +853,7 @@ def edit_posting(request, post_slug=None):
     else:
         semester_choices = [(s.id, unicode(s)) for s in Semester.objects.filter(start__gt=today).order_by('start')]
     # TODO: display only relevant semester/unit offerings (with AJAX magic)
-    offerings = CourseOffering.objects.filter(owner__in=request.units).select_related('course')
+    offerings = CourseOffering.objects.filter(owner__in=request.units, semester__end__gte=datetime.date.today()).select_related('course')
     excluded_choices = list(set(((u"%s (%s)" % (o.course,  o.title), o.course_id) for o in offerings)))
     excluded_choices.sort()
     excluded_choices = [(cid,label) for label,cid in excluded_choices]

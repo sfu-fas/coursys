@@ -322,7 +322,7 @@ class TAApplication(models.Model):
     posting = models.ForeignKey(TAPosting)
     person = models.ForeignKey(Person)
     category = models.CharField(max_length=4, blank=False, null=False, choices=CATEGORY_CHOICES)
-    base_units = models.DecimalField(max_digits=4, decimal_places=2,
+    base_units = models.DecimalField(max_digits=4, decimal_places=2, default=5,
             help_text='Maximum number of base units you\'re interested in taking (5 is a "full" TA-ship)')
     sin = models.CharField(blank=True, max_length=30, verbose_name="SIN", help_text="Social insurance number (required for receiving payments)")
     experience =  models.TextField(blank=True, null=True,
