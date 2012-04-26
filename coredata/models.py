@@ -693,6 +693,9 @@ class Unit(models.Model):
     parent = models.ForeignKey('Unit', null=True, blank=True,
              help_text="Next unit up in the hierarchy.")
     acad_org = models.CharField(max_length=10, null=True, blank=True, db_index=True, unique=True, help_text="ACAD_ORG field from SIMS")
+    def autoslug(self):
+        return self.label.lower()
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=False)
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
         # 'address': list of (3) lines in mailing address (default: SFU main address)
         # 'email': contact email address (may be None)
@@ -716,9 +719,6 @@ class Unit(models.Model):
         ordering = ['label']
     def __unicode__(self):
         return "%s (%s)" % (self.name, self.label)
-    def autoslug(self):
-        return self.label.lower()
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
     
     def informal_name(self):
         if 'informal_name' in self.config and self.config['informal_name']:

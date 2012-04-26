@@ -18,21 +18,19 @@ MANAGERS = ADMINS
 if DEPLOYED:
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'course_management',
-            'USER': 'courseuser',
-            'PASSWORD': '?????',
-            'HOST': '127.0.0.1',
-            'PORT': '4000',
-            #'OPTIONS': {"init_command": "SET storage_engine=INNODB;"} # needed only for initial table creation
-            'OPTIONS': {"init_command": "SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;"} # Celeryd misbehaves if not set
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': '/home/ggbaker/fastcgi/courses/db.sqlite',
         }
     }
 else:
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': 'db.sqlite',
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'coursysdemo',
+            'USER': 'coursys',
+            'PASSWORD': 'coursyspass',
+            'OPTIONS': {"init_command": "SET storage_engine=INNODB;"} # needed only for initial table creation
+            #'OPTIONS': {"init_command": "SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;"} # Celeryd misbehaves if not set
         }
     }
 
@@ -85,6 +83,7 @@ TEST_EXCLUDE = ('django',)
 
 TEMPLATE_DIRS = (
     'templates',
+    '/home/ggbaker/fastcgi/courses/templates'
 )
 if DEPLOYED:
     TEMPLATE_DIRS = TEMPLATE_DIRS + ('/home/ggbaker/courses/templates',)

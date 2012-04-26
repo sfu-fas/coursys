@@ -9,7 +9,14 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         
         # Adding field 'Unit.slug'
-        db.add_column('coredata_unit', 'slug', self.gf('autoslug.fields.AutoSlugField')(default='', unique_with=(), populate_from=None, max_length=50, unique=True, db_index=True), keep_default=False)
+        db.add_column('coredata_unit', 'slug', self.gf('autoslug.fields.AutoSlugField')(default='', unique_with=(), populate_from=None, max_length=50, unique=False, db_index=True), keep_default=False)
+
+        # work around uniqueness constraint
+        if not db.dry_run:
+            for u in orm.Unit.objects.all():
+                u.slug = u.label.lower()
+                u.save()
+        db.create_unique('coredata_unit', ['slug'])
 
         # Changing field 'Person.pref_first_name'
         db.alter_column('coredata_person', 'pref_first_name', self.gf('django.db.models.fields.CharField')(max_length=32, null=True))
@@ -18,6 +25,7 @@ class Migration(SchemaMigration):
     def backwards(self, orm):
         
         # Deleting field 'Unit.slug'
+        db.delete_unique('coredata_unit', ['slug'])
         db.delete_column('coredata_unit', 'slug')
 
         # Changing field 'Person.pref_first_name'
