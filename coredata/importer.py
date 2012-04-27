@@ -265,7 +265,7 @@ def get_unit(acad_org):
                    "WHERE eff_status='A' and acad_org=%s", (acad_org,))
         
         name, = db.fetchone()
-        unit = Unit(acad_org=acad_org, label=acad_org, name=name, parent=None)
+        unit = Unit(acad_org=acad_org, label=acad_org[:4], name=name, parent=None)
         unit.save()
     
     return unit

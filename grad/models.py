@@ -360,7 +360,8 @@ class SavedSearch(models.Model):
     config = JSONField(null=False, blank=False, default={})
     
     class Meta:
-        unique_together = (('person', 'query'),)
+        #unique_together = (('person', 'query'),)
+        pass
         
     defaults = {'name': ''}
     name, set_name = getter_setter('name')
