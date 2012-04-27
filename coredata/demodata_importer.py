@@ -3,24 +3,26 @@
 #   mysql
 #     drop database coursysdemo;
 #     create database coursysdemo;
-#   ./manage.py syncdb; ./manage.py migrate; echo "dbpassword" | python coredata/demodata-importer.py
+#   ./manage.py syncdb; ./manage.py migrate; python coredata/demodata-importer.py
 
-import MySQLdb, random, string, socket, datetime, itertools
-from django.core import serializers
-from importer import import_host, import_name, import_user, import_port
+import string, socket, datetime, itertools
+#from django.core import serializers
+from importer import *
 from importer import give_sysadmin, create_semesters, import_offerings, import_instructors, import_meeting_times
 from coredata.models import Member, Person, CourseOffering, Semester, SemesterWeek, MeetingTime, Role
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity
-from submission.models.base import SubmissionComponent
-from submission.models.code import CodeComponent
+#from submission.models.base import SubmissionComponent
+#from submission.models.code import CodeComponent
 from submission.models.pdf import PDFComponent
 from marking.models import ActivityComponent
 from groups.models import Group, GroupMember
 
-FIRSTTERM = "1111"
-DATA_WHERE = 'strm>="'+FIRSTTERM+'"'
-FULL_TEST_DATA = "1114-cmpt-120-d100"
-MIN_TEST_DATA = "1114-cmpt-165-c100"
+IMPORT_SEMESTERS = ('1121', '1124')
+
+#FIRSTTERM = "1111"
+#DATA_WHERE = 'strm>="'+FIRSTTERM+'"'
+#FULL_TEST_DATA = "1114-cmpt-120-d100"
+#MIN_TEST_DATA = "1114-cmpt-165-c100"
 
 fakes = {}
 next_emplid = 100
@@ -54,22 +56,6 @@ def randname(l):
     for i in range(l-1):
         n = n + random.choice(string.ascii_lowercase)
     return n
-
-
-
-def test_class_2(slug):
-    """
-    another test course with jsut some student and no other config
-    """
-    crs = CourseOffering.objects.get(slug=slug)
-    for i in range(40):
-        lab = "D1%02i" % (random.randint(1,4))
-        fname = randname(8)
-        p = Person(emplid=fake_emplid(), userid="0bbb%i"%(i), last_name="Student", first_name=fname, middle_name="", pref_first_name=fname[:4])
-        p.save()
-        m = Member(person=p, offering=crs, role="STUD", credits=3, career="UGRD", added_reason="AUTO",
-                labtut_section=lab)
-        m.save()
 
 
 all_students = {}
@@ -116,15 +102,6 @@ def create_classes():
     fill_courses()
 
 
-def import_offering(db, offering):
-    """
-    Import all data for the course: instructors meeting times.
-    """
-    # drop all automatically-added members: will be re-added later on import
-    Member.objects.filter(added_reason="AUTO", offering=offering).update(role='DROP')
-    
-    import_instructors(db, offering)
-    import_meeting_times(db, offering)
 
 def create_others():
     """
@@ -134,69 +111,37 @@ def create_others():
     p.save()
     p = Person(emplid=fake_emplid(), first_name="Danyu", last_name="Zhao", pref_first_name="Danyu", userid="dzhao")
     p.save()
-    r = Role(person=p, role="ADVS", department="CMPT")
-    r.save()
+    #r = Role(person=p, role="ADVS", department="CMPT")
+    #r.save()
 
 
-def serialize(filename):
-    """
-    output JSON of everything we created
-    """
-    objs = itertools.chain(
-            Semester.objects.all(),
-            SemesterWeek.objects.all(),
-            CourseOffering.objects.all(),
-            MeetingTime.objects.all(),
-            Person.objects.all(),
-            Member.objects.all(),
-            Activity.objects.all(),
-            NumericActivity.objects.all(),
-            LetterActivity.objects.all(),
-            CalNumericActivity.objects.all(),
-            CalLetterActivity.objects.all(),
-            SubmissionComponent.objects.all(),
-            CodeComponent.objects.all(),
-            PDFComponent.objects.all(),
-            ActivityComponent.objects.all(),
-            Group.objects.all(),
-            GroupMember.objects.all(),
-            Role.objects.all(),
-            )
+def import_semesters():
+    return IMPORT_SEMESTERS
     
-    data = serializers.serialize("json", objs, sort_keys=True, indent=1)
-    fh = open(filename, "w")
-    fh.write(data)
-    fh.close()
-
-
-def main(passwd):
+def main():
     create_semesters()
-    dbconn = MySQLdb.connect(host=import_host, user=import_user,
-             passwd=passwd, db=import_name, port=import_port)
-    db = dbconn.cursor()
+
     print "importing course offerings"
-    offerings = import_offerings(db, DATA_WHERE)
-    
+    offerings = import_offerings(import_semesters=import_semesters, extra_where="subject='CMPT'")
+    offerings = list(offerings)
+    offerings.sort()
+
+    print "importing course members"
     for o in offerings:
-        import_offering(db, o)
+        import_offering_members(o, students=False)
     
     # should now have all the "real" people: fake their emplids
     fake_emplids()
     
     print "creating fake classess"
     create_classes()
-    
     create_others()
 
     print "giving sysadmin permissions"
     give_sysadmin(['ggbaker', 'sumo'])
-    
-    #serialize("new-test.json")
-
 
 if __name__ == "__main__":
-    passwd = raw_input()
     hostname = socket.gethostname()
     if hostname == 'courses':
         raise NotImplementedError, "Don't do that."
-    main(passwd)
+    main()

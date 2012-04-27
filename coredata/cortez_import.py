@@ -9,7 +9,7 @@ from coredata.models import Person, Semester, Unit, CourseOffering, Course
 from grad.models import GradProgram, GradStudent, GradRequirement, CompletedRequirement, Supervisor, GradStatus
 from ta.models import TAContract, TAApplication, TAPosting, TACourse, CoursePreference
 from ra.models import RAAppointment, Account, Project
-from coredata.importer_rodb import get_person, get_person_grad, import_one_offering
+from coredata.importer import get_person, get_person_grad, import_one_offering
 import datetime, json, time, decimal
 
 import pymssql, MySQLdb
