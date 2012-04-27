@@ -7,11 +7,11 @@ from courselib.auth import requires_course_staff_by_slug, requires_course_instr_
     requires_course_staff_or_dept_admn_by_slug, ForbiddenResponse
 from django.contrib.auth.decorators import login_required
 from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, CampusPreference,\
-    CAMPUS_CHOICES, CAMPUSES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS
+    CAMPUS_CHOICES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS
 from ra.models import Account
 from grad.models import GradStudent 
 from dashboard.models import NewsItem
-from coredata.models import Member, Role, CourseOffering, Person, Semester
+from coredata.models import Member, Role, CourseOffering, Person, Semester, CAMPUSES
 from grad.models import GradStatus
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, TAAcceptanceForm, CoursePreferenceForm, \
     TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm, TAContactForm
@@ -52,39 +52,41 @@ def _create_news(person, url, from_user):
 def _tryget(member):
     try:
         return TUG.objects.get(member=member)
-    except(TUG.DoesNotExist):
+    except TUG.DoesNotExist:
         return None
     
 @requires_course_staff_by_slug
 def all_tugs(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
-    tas = Member.objects.filter(offering=course, role="TA")
     current_user = Member.objects.get(person__userid=request.user.username, offering=course)
-    #If a TA is accessing, only his/her own TUG should be viewable
-#    is_ta = current_user in tas
     is_ta = current_user.role == 'TA'
     if is_ta:
         tas = [current_user]
+    else:
+        tas = Member.objects.filter(offering=course, role="TA")
+
     tas_with_tugs = [(ta, _tryget(ta)) for ta in tas]
     
     context = {
-           'tas_with_tugs':tas_with_tugs,
-           'course':course,
-           'not_ta':not is_ta
+           'tas_with_tugs': tas_with_tugs,
+           'course': course,
+           'not_ta': not is_ta
            }
     
     return render(request, 'ta/all_tugs.html', context)
-        
+
 @requires_role("ADMN")
 def all_tugs_admin(request):
-    courses = CourseOffering.objects.filter(owner__in=request.units)
-    tas = Member.objects.filter(offering__in=courses, role="TA")
+    semester = Semester.current()
+    courses = CourseOffering.objects.filter(owner__in=request.units, semester=semester)
+    tas = Member.objects.filter(offering__in=courses, role="TA").select_related('offering', 'person')
     tas_with_tugs = [{'ta':ta, 'tug':_tryget(ta)} for ta in tas]
     
     context = {
-               'tas_with_tugs':tas_with_tugs,
-               'courses':courses,
-               'empty_courses':[course for course in courses if not any(course == ta.offering for ta in tas )]
+               'semester': semester,
+               'tas_with_tugs': tas_with_tugs,
+               'courses': courses,
+               #'empty_courses': [course for course in courses if not any(course == ta.offering for ta in tas )]
                 }
     
     return render(request, 'ta/all_tugs_admin.html', context)

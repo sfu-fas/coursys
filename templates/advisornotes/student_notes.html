@@ -75,7 +75,10 @@ https://sims.sfu.ca/psp/csprd/EMPLOYEE/HRMS/c/SCC_ADMIN_OVRD_STDNT.SSS_STUDENT_C
 	
     <p>{{note.text|linebreaks}}</p>
     {% if note.file_attachment %}
-    <p><img src="{{MEDIA_URL}}icons/attach.png" alt="download" /><a href="{% url advisornotes.views.download_file userid=userid note_id=note.id%}">{{ note.attachment_filename }}</a> </p> 
+    <p><img src="{{MEDIA_URL}}icons/attach.png" alt="download" />
+    	<a href="{% url advisornotes.views.download_file userid=userid note_id=note.id%}">{{ note.attachment_filename }}</a>
+    	({{ note.file_attachment.size|filesizeformat }})
+    </p> 
     {% endif %}
 	
 	<p class="hideshow">

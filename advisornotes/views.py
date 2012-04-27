@@ -91,7 +91,7 @@ def new_note(request, userid):
         form = AdvisorNoteForm(request.POST, request.FILES)
         form.fields['unit'].choices = unit_choices
         if form.is_valid():
-            note = form.save(False)
+            note = form.save(commit=False)
             note.student = student
             note.advisor = Person.objects.get(userid=request.user.username)
 

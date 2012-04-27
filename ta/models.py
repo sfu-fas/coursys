@@ -1,6 +1,6 @@
 from django.db import models
 from django.db.models import Sum
-from coredata.models import Person, Member, Course, Semester, Unit ,CourseOffering, CAMPUS_CHOICES, CAMPUSES
+from coredata.models import Person, Member, Course, Semester, Unit ,CourseOffering, CAMPUS_CHOICES
 from ra.models import Account
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter #, getter_setter_2

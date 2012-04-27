@@ -2,9 +2,21 @@
 {% load markup %}
 {% load mobile_tags %}
 
+{% block h1 %}Time Use Guidelines for {{semester}}{% endblock %}
+{% block title %}Time Use Guidelines for {{semester}}{% endblock %}
 
-{% block h1 %}Time Use Guidelines{% endblock %}
-{% block title %}Time Use Guidelines{% endblock %}
+{% block headextra %}
+<script type="text/javascript">
+  $(function() {
+  	table = $('#offerings').dataTable({
+        "bPaginate": false,
+		"bJQueryUI": true,
+		"aaSorting": [[0, "asc"]],
+		//"aoColumns": [],
+	});
+  });
+</script>
+{% endblock %}
 
 {% block subbreadcrumbs %}
 <li>&gt; All TUGs</li>
@@ -12,64 +24,37 @@
 
 {% block content %}
 
-{# or maybe use datatables? #}
+<div class="datatable_container">
+<table class="display" id="offerings">
+<thead><tr><th scope="col">Offering</th><th scope="col">Instructor</th><th scope="col">TA</th><th scope="col">TUG</th></tr></thead>
+<tbody>
+{% for data in tas_with_tugs %}
+  <tr>
+  <td>{{data.ta.offering.name}}</td>
+  <td>{% for instructor in data.ta.offering.instructors %}<a href="mailto:{{ instructor.email }}">{{ instructor }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+  <td><a href="mailto:{{ data.ta.person.email }}">{{data.ta.person}}</a></td>
+  <td>
+  	{% if data.tug %}
+  	<span class="sort">{{ data.tug.last_update.isoformat }}</span>
+  	<a href="{% url ta.views.view_tug course_slug=data.ta.offering.slug userid=data.ta.person.userid %}">Last Updated: {{ data.tug.last_update|default:"Unknown" }}</a>
+  	{% else %}
+  	{% endif %}  	
+  </td>
+  </tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
 
-{% regroup tas_with_tugs by ta.offering as course_list %}
-{% for course in course_list %}
-{{ course.grouper.name }}
-<ul>
-	{% for t in course.list %}
-	<li>
-		{% if not t.tug == None %}
-			<a href="{% url ta.views.view_tug course_slug=course.grouper.slug userid=t.ta.person.userid %}">
-				{{t.ta.person}} 
-			</a> (Last Updated: {{ t.tug.last_update|default:"Unknown" }})
-		{% else %}
-			{{t.ta.person}} - 
-			{% if not_ta %}
-			<a href="{% url ta.views.new_tug course_slug=course.grouper.slug userid=t.ta.person.userid %}">
-				Create TUG
-			</a>
-			{% else %}
-			No TUG
-			{% endif %}
-			
-		{% endif %}
-	</li>
-	{% endfor %}
-</ul>
-{% endfor %} 
+{% comment %}
 {% if empty_courses %}
 <h3>The following courses do not have any TAs listed:</h3>
 {% endif %}
-{% for course in empty_courses %}
-<p>{{ course.name }}</p>
-{% endfor %}
-
-{% comment %}
-{% for course in courses %}
-{{ course.name }}
 <ul>
-	<li style="display:none"></li> <!-- TO DO:  have a better way to handle courses without TA and be xhtml valid -->
-	{% for t in tas_with_tugs %}
-		{% if t.ta.offering == course %}
-			<li>
-				{% if not t.tug == None %}
-					<a href="{% url ta.views.view_tug course_slug=course.slug userid=t.ta.person.userid %}">
-						{{t.ta.person}} 
-					</a> (Last Updated: {% if t.tug.last_updated == "" %}{{ t.tug.last_updated }} {% else %} Unknown {% endif %})
-				{% else %}
-					{{t.ta.person}}{% if not_ta %} - 
-					<a href="{% url ta.views.new_tug course_slug=course.slug userid=t.ta.person.userid %}">
-						Create TUG
-					</a>{% endif %}
-					
-				{% endif %}
-			</li>
-		{% endif %}
-	{% endfor %}
-</ul>
+{% for course in empty_courses %}
+<li>{{ course.name }}</li>
 {% endfor %}
+</ul>
 {% endcomment %}
 
 {% endblock %}
