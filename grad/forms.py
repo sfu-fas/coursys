@@ -103,7 +103,7 @@ class SupervisorForm(ModelForm):
     
     class Meta:
         model = Supervisor
-        exclude = ('student', 'supervisor_type', 'created_by', 'modified_by', 'removed')
+        exclude = ('student', 'supervisor_type', 'created_by', 'modified_by', 'removed', 'config')
         
 class PotentialSupervisorForm(ModelForm): 
     def set_supervisor_choices(self, choices):
@@ -111,7 +111,7 @@ class PotentialSupervisorForm(ModelForm):
     
     class Meta:
         model = Supervisor
-        exclude = ('student', 'supervisor_type', 'position', 'created_by', 'modified_by', 'external', 'removed')
+        exclude = ('student', 'supervisor_type', 'position', 'created_by', 'modified_by', 'external', 'removed', 'config')
 
 def possible_supervisor_people(units):
     # instructors of courses in the unit
