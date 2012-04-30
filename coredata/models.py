@@ -31,6 +31,7 @@ class Person(models.Model):
     first_name = models.CharField(max_length=32)
     middle_name = models.CharField(max_length=32, null=True, blank=True)
     pref_first_name = models.CharField(max_length=32, null=True, blank=True)
+    title = models.CharField(max_length=4, null=True, blank=True)
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
         # 'email': email, if not the default userid@sfu.ca
         # 'phones': dictionary of phone number values. Possible keys: 'pref', 'home', 'cell', 'main'
@@ -40,7 +41,6 @@ class Person(models.Model):
         # 'visa': Canadian visa status (e.g. 'No visa st', 'Perm resid')
         # 'birthdate': birth date (e.g. '1980-12-31')
         # 'applic_email': application email address
-        # 'title': 'Mr', 'Ms', 'Mrs', etc.
         # 'gpa': Most recent CGPA for this student
         # 'ccredits': Number of completed credits
     
@@ -80,9 +80,9 @@ class Person(models.Model):
             return None
     def full_email(self):
         return "%s <%s>" % (self.name(), self.email())
-    def title(self):
-        if 'title' in self.config:
-            return self.config['title']
+    def get_title(self):
+        if self.title:
+            return self.title
         elif 'gender' in self.config and self.config['gender'] == 'M':
             return 'Mr'
         elif 'gender' in self.config and self.config['gender'] == 'F':
@@ -695,7 +695,7 @@ class Unit(models.Model):
     acad_org = models.CharField(max_length=10, null=True, blank=True, db_index=True, unique=True, help_text="ACAD_ORG field from SIMS")
     def autoslug(self):
         return self.label.lower()
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=False)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
         # 'address': list of (3) lines in mailing address (default: SFU main address)
         # 'email': contact email address (may be None)

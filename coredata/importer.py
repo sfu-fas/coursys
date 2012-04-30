@@ -420,7 +420,7 @@ def get_person(emplid, commit=True):
     p.first_name = first_name
     p.middle_name = middle_name
     p.pref_first_name = pref_first_name
-    p.config['title'] = title
+    p.title = title
     if commit:
         _person_save(p)
 

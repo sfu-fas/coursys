@@ -243,7 +243,7 @@ def get_names(emplid):
     pref_first_name = None
     title = None
     
-    db.execute("SELECT name_type, name_prefix, last_name, first_name, middle_name FROM dbsastg.ps_names WHERE "
+    db.execute("SELECT name_type, name_prefix, last_name, first_name, middle_name FROM ps_names WHERE "
                "emplid=%s AND eff_status='A' AND name_type IN ('PRI','PRF') "
                "ORDER BY effdt", (str(emplid),))
     # order by effdt to leave the latest in the dictionary at end
@@ -328,7 +328,7 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
 
     # get citizenzhip
     if (needed == ALLFIELDS or 'citizen' in needed) and 'citizen' not in exclude:
-        db.execute("SELECT c.descrshort FROM ps_citizenship cit, dbsastg.ps_country_tbl c WHERE emplid=%s AND cit.country=c.country", (str(emplid),))
+        db.execute("SELECT c.descrshort FROM ps_citizenship cit, ps_country_tbl c WHERE emplid=%s AND cit.country=c.country", (str(emplid),))
         #if 'citizen' in p.config:
         #    del p.config['citizen']
         for country, in db:

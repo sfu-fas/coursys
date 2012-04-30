@@ -683,7 +683,7 @@ def new_letter(request, grad_slug):
 
 def _get_letter_dict(grad):
     gender = grad.person.gender()
-    title = grad.person.title()
+    title = grad.person.get_title()
     first_name = grad.person.first_name
     last_name = grad.person.last_name
     addresses = grad.person.addresses()
