@@ -177,6 +177,16 @@ def _course_info_student(request, course_slug):
                               context_instance=RequestContext(request))
 
 @login_required
+def activity_info_oldurl(request, course_slug, activity_slug, tail):
+    """
+    Redirect old activity URLs to new (somewhat intelligently: don't redirect if there's no activity there)
+    """
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(Activity, slug=activity_slug, offering=course)
+    act_url = reverse('grades.views.activity_info', kwargs={'course_slug': course.slug, 'activity_slug': activity.slug})
+    return HttpResponseRedirect(act_url + tail)
+
+@login_required
 def activity_info(request, course_slug, activity_slug):
     if is_course_student_by_slug(request, course_slug):
         return _activity_info_student(request, course_slug, activity_slug)

@@ -214,7 +214,7 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_SLUG + '/config/taoffers/$', 'ta.views.ta_offers'),
 
     # redirect for old-style activity URLs (must be last to avoid conflict with other rules)
-    url(r'^' + COURSE_ACTIVITY_SLUG_OLD + '(?P<tail>.*)$', 'django.views.generic.simple.redirect_to', {'url': '/%(course_slug)s/@%(activity_slug)s%(tail)s'}), # redirect old activity URLs
+    url(r'^' + COURSE_ACTIVITY_SLUG_OLD + '(?P<tail>.*)$', 'grades.views.activity_info_oldurl'), # redirect old activity URLs
 	
     # TA postings/contracts
     
