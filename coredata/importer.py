@@ -265,7 +265,11 @@ def get_unit(acad_org):
                    "WHERE eff_status='A' and acad_org=%s", (acad_org,))
         
         name, = db.fetchone()
-        unit = Unit(acad_org=acad_org, label=acad_org[:4], name=name, parent=None)
+        if acad_org == 'ENVIRO SCI':
+            label = 'ENVS'
+        else:
+            label = acad_org[:4].strip()
+        unit = Unit(acad_org=acad_org, label=label, name=name, parent=None)
         unit.save()
     
     return unit

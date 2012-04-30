@@ -122,7 +122,7 @@ def main():
     create_semesters()
 
     print "importing course offerings"
-    offerings = import_offerings(import_semesters=import_semesters, extra_where="subject='CMPT'")
+    offerings = import_offerings(import_semesters=import_semesters) # , extra_where="subject='CMPT'"
     offerings = list(offerings)
     offerings.sort()
 
