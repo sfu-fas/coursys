@@ -4,7 +4,7 @@ from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from courselib.json_fields import getter_setter
 from django.template.defaultfilters import capfirst
-from external.jsonfield import JSONField
+from jsonfield import JSONField
 
 class GradProgram(models.Model):
     unit = models.ForeignKey(Unit, null=False, blank=False)
@@ -262,7 +262,7 @@ Letters
 class LetterTemplate(models.Model):
     unit = models.ForeignKey(Unit, null=False, blank=False)
     label = models.CharField(max_length=250, null=False)
-        # choices: visa, international, msc offer, phd offer, special student offer, qualifying student offer
+        # likely choices: visa, international, msc offer, phd offer, special student offer, qualifying student offer
     content = models.TextField(help_text="I.e. 'This is to confirm {{title}} {{last_name}} ... '")
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.CharField(max_length=32, null=False, help_text='Letter template created by.')    

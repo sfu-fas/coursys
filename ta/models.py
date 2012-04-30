@@ -360,6 +360,7 @@ class CampusPreference(models.Model):
 
 LEVEL_CHOICES = (
     ('EXPR', 'Expert'),
+    ('GOOD', 'Good'),
     ('SOME', 'Some'),
     ('NONE', 'None'),
 )

@@ -61,7 +61,7 @@ class Page(models.Model):
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
 
     class Meta:
-        ordering = ['offering', 'label']
+        ordering = ['label']
         unique_together = (('offering', 'label'), )
     
     def save(self, *args, **kwargs):
