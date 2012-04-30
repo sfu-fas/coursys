@@ -4,7 +4,6 @@ from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from courselib.json_fields import getter_setter
 from django.template.defaultfilters import capfirst
-from django.core.paginator import Page
 from external.jsonfield import JSONField
 
 class GradProgram(models.Model):
@@ -222,6 +221,8 @@ class GradStatus(models.Model):
     status = models.CharField(max_length=4, choices=STATUS_CHOICES, blank=False)
     start = models.ForeignKey(Semester, null=False, related_name="start_semester",
             help_text="First semester of this status")
+    start_date = models.DateField(null=True, blank=True,
+            help_text="Date the status began (optional)")
     end = models.ForeignKey(Semester, null=True, blank=True, related_name="end_semester",
             help_text="Final semester of this status: blank for ongoing")
     notes = models.TextField(blank=True, help_text="Other notes")

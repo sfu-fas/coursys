@@ -27,15 +27,9 @@
 {% block h1 %}{{page_title}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>
-	&gt; <a href="{% url grad.views.index %}">Grad</a>
-</li>
-<li>
-	&gt;<a href="{% url grad.views.view_all grad_slug=grad.slug%}"> {{crumb}}</a>
-</li>
-<li>
-	&gt; Academics
-</li>
+<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
+<li>&gt; <a href="{% url grad.views.view_all grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li>&gt; Academics</li>
 {% endblock %}
 
 {% block content %}

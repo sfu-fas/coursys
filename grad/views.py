@@ -290,12 +290,15 @@ def manage_requirements(request, grad_slug):
 @requires_role("GRAD")
 def manage_academics(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
+    program_choices = [(p.id, unicode(p)) for p in GradProgram.objects.filter(unit__in=request.units)]
     
     if request.method == 'POST':
         grad_form = GradAcademicForm(request.POST, instance=grad, prefix="grad")
+        grad_form.fields['program'].choices = program_choices
         if grad_form.is_valid():
             gradF = grad_form.save(commit=False)
             gradF.modified_by = request.user.username
+            gradF.slug = None
             grad.slug = None
             gradF.save()
             messages.success(request, "Updated Grad Academics for %s." % (grad_form.instance.person))
@@ -306,6 +309,7 @@ def manage_academics(request, grad_slug):
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad.slug}))
     else:
         grad_form = GradAcademicForm(instance=grad, prefix="grad")
+        grad_form.fields['program'].choices = program_choices
 
     # set frontend defaults
     page_title = "%s 's Graduate Academic Record" % (grad.person.first_name)
@@ -346,7 +350,7 @@ def manage_status(request, grad_slug):
             l.save()                       
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))
     else:
-        new_status_form = GradStatusForm(initial={'start': Semester.current()})
+        new_status_form = GradStatusForm(initial={'start': Semester.current(), 'start_date': datetime.date.today()})
 
     # set frontend defaults
     page_title = "%s 's Status Record" % (grad.person.first_name)

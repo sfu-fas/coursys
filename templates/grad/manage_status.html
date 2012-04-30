@@ -3,6 +3,16 @@
 {% load mobile_tags %}
 {% load form_display %}
 
+{% block headextra %}
+<script type="text/javascript">
+	$(function() {
+		$("input#id_start_date").datepicker({
+			'dateFormat' : 'yy-mm-dd'
+		});
+	});
+
+</script>
+{% endblock %}
 {% block actions %}
 <div id="actions">
 	<h2>Actions</h2>
@@ -27,15 +37,9 @@
 {% block h1 %}{{page_title}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>
-	&gt; <a href="{% url grad.views.index %}">Grad</a>
-</li>
-<li>
-	&gt;<a href="{% url grad.views.view_all grad_slug=grad.slug%}"> {{crumb}}</a>
-</li>
-<li>
-	&gt; Supervisors
-</li>
+<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
+<li>&gt; <a href="{% url grad.views.view_all grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li>&gt; Status</li>
 {% endblock %}
 
 {% block content %}
@@ -62,8 +66,8 @@
 					</tr>
 					<tr>
 						<th>Status</th>
-						<th>Start Semester</th>
-						<th>End Semester</th>
+						<th>Start</th>
+						<th>End</th>
 						<th>Notes</th>
 					</tr>
 				</thead>
@@ -71,13 +75,18 @@
 					{% for s in status_history %}
 					<tr>
 						<td> {{ s.get_status_display }} </td>
-						<td> {{ s.start }} </td>
+						<td> {{ s.start }} {% if s.start_date %}({{ s.start_date }}){% endif %}</td>
 						<td> {{ s.end }} </td>
 						<td> {{ s.notes }} </td>
 					</tr>
 					{% endfor %}
 					<tr>
-						{% for field in new_status.visible_fields %} <td>{{ field }} {{ field.errors }}</td>
+						<td>{{ new_status.status }} {{ new_status.status.errors }}</td>
+						<td>{{ new_status.start }} {{ new_status.start.errors }}
+							{{ new_status.start_date }} {{ new_status.start_date.errors }}</td>
+						<td>{{ new_status.end }} {{ new_status.end.errors }}</td>
+						<td>{{ new_status.notes }} {{ new_status.notes.errors }}</td>
+						{% for field in new_status.visible_fields %} 
 						{% endfor %}
 					</tr>
 				</tbody>

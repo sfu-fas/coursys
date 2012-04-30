@@ -44,15 +44,9 @@
 {% block h1 %}{{page_title}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>
-	&gt; <a href="{% url grad.views.index %}">Grad</a>
-</li>
-<li>
-	&gt;<a href="{% url grad.views.view_all grad_slug=grad.slug%}"> {{crumb}}</a>
-</li>
-<li>
-	&gt; Requirements
-</li>
+<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
+<li>&gt; <a href="{% url grad.views.view_all grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li>&gt; Requirements</li>
 {% endblock %}
 
 {% block content %}
@@ -112,22 +106,14 @@
 				<thead>
 					<tr>
 						<th>Requirement</th>
-						<th>Semster</th>
-						<th>Date</th>
+						<th>Completion Semster</th>
+						<th>Completion Date</th>
 						<th>Notes</th>
 						{% if req_formset.can_delete %} <th>Delete</th>
 						{% endif %}
 					</tr>
 				</thead>
 				<tbody>
-					<tr>
-						<td></td>
-						<td> Requirement completed by</td>
-						<td></td>
-						<td></td>
-						{% if req_formset.can_delete %} <td></td>
-						{% endif %}
-					</tr>
 					{% for r in req_formset %}
 					<tr>
 						{{ r.id }}

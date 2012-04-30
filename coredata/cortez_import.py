@@ -399,7 +399,7 @@ class GradImport(object):
                     st = GradStatus(student=gs, status=self.STATUS_MAP[status], start=sem, end=None)
                 
                 if date:
-                    st.notes = 'Started %s' % (date.date())
+                    st.start_date = date.date()
                 st.save(close_others=True)
                 
             gs.application_status = app_st
@@ -761,7 +761,7 @@ class TAImport(object):
                         "o.conditional, o.tssu, o.remarks, i.base, "
                         "i.studNum, i.category, i.socialInsurance, i.status, i.appId, i.appYear "
                         "FROM TAOffering o, tasearch.dbo.tainfo i "
-                        "WHERE o.TA_ID=i.appId and i.appYear>='109' ORDER BY i.appYear", ()) # and i.appYear>'109' 
+                        "WHERE o.TA_ID=i.appId ORDER BY i.appYear", ()) # and i.appYear>'109' 
         initial = None
         for row in list(self.db):
             i = row[-1]
@@ -881,7 +881,7 @@ class RAImport(object):
 
 #Introspection().print_schema()
 
-TAImport().get_tas()
-#GradImport().get_students()
+#TAImport().get_tas()
+GradImport().get_students()
 #RAImport().get_ras()
 
