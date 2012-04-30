@@ -719,6 +719,8 @@ class Unit(models.Model):
         ordering = ['label']
     def __unicode__(self):
         return "%s (%s)" % (self.name, self.label)
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
     
     def informal_name(self):
         if 'informal_name' in self.config and self.config['informal_name']:

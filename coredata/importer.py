@@ -725,9 +725,9 @@ def main():
     fix_emplid()
     
     print "importing course offering list"
-    offerings = import_offerings(extra_where="subject='CMPT' and strm IN ('1121', '1124') and catalog_nbr IN (' 383', ' 470')")
+    #offerings = import_offerings(extra_where="subject IN ('GEOG', 'EDUC') and strm='1124' and catalog_nbr LIKE '%%9%%'")
     #offerings = import_offerings(extra_where="subject='CMPT' and strm IN ('1121', '1124') and catalog_nbr IN (' 470')")
-    #offerings = import_offerings()
+    offerings = import_offerings()
     offerings = list(offerings)
     offerings.sort()
 

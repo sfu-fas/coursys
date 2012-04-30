@@ -1,7 +1,8 @@
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm, UnitAddressForm
+from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm, \
+        UnitAddressForm, UnitForm
 from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse
 from courselib.search import get_query
 from coredata.models import Person, Semester, CourseOffering, Member, Role, Unit, UNIT_ROLES, ROLES, ROLE_DESCR
@@ -33,6 +34,7 @@ def new_role(request, role=None):
         form = RoleForm(request.POST)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Added role %s for %s.' % (form.instance.get_role_display(), form.instance.person.name()))
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
                   description=("new role: %s as %s") % (form.instance.person.userid, form.instance.role),
@@ -57,6 +59,40 @@ def delete_role(request, role_id):
     role.delete()
     return HttpResponseRedirect(reverse(role_list))
 
+
+
+@requires_global_role("SYSA")
+def unit_list(request):
+    """
+    Display list of all units
+    """
+    units = Unit.objects.all()
+    return render(request, 'coredata/units.html', {'units': units})
+
+@requires_global_role("SYSA")
+def edit_unit(request, unit_slug=None):
+    if unit_slug:
+        unit = get_object_or_404(Unit, slug=unit_slug)
+    else:
+        unit = Unit()
+    
+    if request.method == 'POST':
+        form = UnitForm(instance=unit, data=request.POST)
+        if form.is_valid():
+            unit.slug = None
+            form.save()
+            messages.success(request, 'Edited unit %s.' % (unit.name))
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("edited unit %s") % (form.instance.slug),
+                  related_object=unit)
+            l.save()
+            return HttpResponseRedirect(reverse(unit_list))
+    else:
+        form = UnitForm(instance=unit)
+    
+    context = {'form': form}
+    return render(request, 'coredata/edit_unit.html', context)
 
 
 

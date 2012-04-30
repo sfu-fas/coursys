@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}Edit Unit{% endblock %}
+{% block h1 %}Edit Unit{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url coredata.views.sysadmin %}">System Admin</a></li>
+<li>&gt; <a href="{% url coredata.views.unit_list %}">Units</a></li>
+<li>&gt; Edit</li>
+{% endblock %}
+
+
+{% block headextra %}
+<script type="text/javascript">
+//<![CDATA[
+  $(document).ready(function() {
+    offering_autocomplete('id_offering');
+  });
+//]]></script>
+{% endblock %}
+
+{% block content %}
+<div id="form_container">
+<form action="" method="post">{% csrf_token %}
+<fieldset>
+<legend>Unit Details</legend>
+{{ form|as_dl }}
+<p><input type="submit" class="submit" value="Submit" /></p>
+</fieldset>
+</form>
+</div>
+
+{% endblock %}

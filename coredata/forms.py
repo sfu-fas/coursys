@@ -1,5 +1,5 @@
 from django import forms
-from coredata.models import Role, Person, Member, CourseOffering
+from coredata.models import Role, Person, Member, CourseOffering, Unit
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
 from django.contrib.localflavor.ca.forms import CAPhoneNumberField
@@ -52,6 +52,22 @@ class RoleForm(forms.ModelForm):
 class UnitRoleForm(RoleForm):
     role = forms.ChoiceField(widget=forms.RadioSelect())
 
+class UnitForm(forms.ModelForm):
+    class Meta:
+        model = Unit
+        exclude = ('config',)
+        widgets = {
+                   'label': forms.TextInput(attrs={'size': 5}),
+                   'name': forms.TextInput(attrs={'size': 40}),
+                   'acad_org': forms.TextInput(attrs={'size': 10}),
+                   }
+
+    # from http://stackoverflow.com/a/1400046/1236542
+    def clean_acad_org(self):
+        acad_org = self.cleaned_data['acad_org']
+        if acad_org == '':
+            acad_org = None
+        return acad_org
 
 class MemberForm(forms.ModelForm):
     person = forms.CharField(min_length=1, max_length=8, label='SFU Userid')

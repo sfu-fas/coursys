@@ -1,9 +1,6 @@
 # do the import with fake data for development
-# suggestion execution:
-#   mysql
-#     drop database coursysdemo;
-#     create database coursysdemo;
-#   ./manage.py syncdb; ./manage.py migrate; python coredata/demodata-importer.py
+# suggested execution:
+#   echo "drop database coursysdemo; create database coursysdemo;" | ./manage.py dbshell && echo "no" | ./manage.py syncdb && ./manage.py migrate && python coredata/demodata_importer.py
 
 import string, socket, datetime, itertools
 #from django.core import serializers
@@ -122,7 +119,7 @@ def main():
     create_semesters()
 
     print "importing course offerings"
-    offerings = import_offerings(import_semesters=import_semesters) # , extra_where="subject='CMPT'"
+    offerings = import_offerings(import_semesters=import_semesters)
     offerings = list(offerings)
     offerings.sort()
 
