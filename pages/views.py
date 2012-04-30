@@ -30,9 +30,15 @@ def _check_allowed(request, offering, acl_value):
     return None    
 
 def index_page(request, course_slug):
+    """ 
+    Index page for a course's site: 'slug/' === 'slug/Index'
+    """
     return view_page(request, course_slug, 'Index')
 
 def all_pages(request, course_slug):
+    """
+    List of all pages (that this user can view) for this offering
+    """
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     member = _check_allowed(request, offering, 'ALL')
     
