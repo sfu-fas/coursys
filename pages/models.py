@@ -15,7 +15,7 @@ WRITE_ACL_CHOICES = [
     ('NONE', 'nobody'),
     ('INST', 'instructor'),
     ('STAF', 'instructor and TAs'),
-    ('STUD', 'students and staff') ]
+    ('STUD', 'students, instructor, TAs') ]
 READ_ACL_CHOICES = WRITE_ACL_CHOICES + [('ALL', 'anybody')]
 
 MEMBER_ROLES = { # map from ACL roles to allowed Member roles

@@ -1,5 +1,5 @@
 import copy
-from django.db import models, IntegrityError
+from django.db import models, IntegrityError, transaction
 from django.core.urlresolvers import reverse
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, NumericGrade,LetterGrade,LETTER_GRADE_CHOICES
 from grades.models import all_activities_filter, neaten_activity_positions
@@ -423,12 +423,18 @@ def save_copied_activity(target_activity, model, target_course_offering):
         old_activity.save()
         target_activity.save()            
 
+@transaction.commit_on_success
 def copyCourseSetup(course_copy_from, course_copy_to):
     """
     copy all the activities setup from one course to another
     copy numeric activities with their marking components, common problems and submission components
     """
-    
+    # copy things in offering's .config dict
+    for f in course_copy_from.copy_config_fields:
+        if f in course_copy_from.config:
+            course_copy_to.config[f] = course_copy_from.config[f]
+    course_copy_to.save()
+
     # copy Activities (and related content)
     all_activities = all_activities_filter(offering=course_copy_from)
 

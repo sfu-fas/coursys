@@ -437,6 +437,7 @@ class CourseOffering(models.Model):
     indiv_svn, set_indiv_svn = getter_setter('indiv_svn')
     combined, set_combined = getter_setter('combined')
     extra_bu_str, set_extra_bu_str = getter_setter('extra_bu')
+    copy_config_fields = ['url', 'taemail', 'indiv_svn'] # fields that should be copied when instructor does "copy course setup"
     
     def autoslug(self):
         # changed slug format for fall 2011
