@@ -31,6 +31,18 @@ function nolink_cmp(x,y) {
 jQuery.fn.dataTableExt.oSort['by-nolink-asc']  = function(x,y) { return nolink_cmp(x,y) };
 jQuery.fn.dataTableExt.oSort['by-nolink-desc'] = function(x,y) { return nolink_cmp(y,x) };
 
+/* jQuery Datatables sorting numerically (with blanks allowed) */
+function numnull_cmp(x,y) {
+  xn = parseFloat(x);
+  yn = parseFloat(y);
+  if (isNaN(xn) && isNaN(yn)) { return 0 };
+  if (isNaN(xn)) { return -1 };
+  if (isNaN(yn)) { return 1 };
+  return ((xn < yn) ? -1 : ((xn > yn) ? 1 : 0));
+}
+jQuery.fn.dataTableExt.oSort['numnull-asc']  = function(x,y) { return numnull_cmp(x,y) };
+jQuery.fn.dataTableExt.oSort['numnull-desc'] = function(x,y) { return numnull_cmp(y,x) };
+
 /* jQuery Datatables sorting combining nolink_cmp and mark_cmp (for marks in links) */
 function nolinkmark_cmp(x,y) {
   xre = link_re.exec(x);

@@ -188,17 +188,10 @@ def _new_application(request, post_slug, manual=False):
     used_campuses = set((vals['campus'] for vals in posting.selectable_offerings().order_by('campus').values('campus').distinct()))
     skills = Skill.objects.filter(posting=posting)
     
-    #Set default values for max and min courses if not in posting config
-    try:
-        max_courses = posting.config['max_courses']
-    except KeyError:
-        max_courses = 10;
-    try:
-        min_courses = posting.config['min_courses']
-    except KeyError:
-        min_courses = 1;
+    max_courses = posting.max_courses()
+    min_courses = posting.min_courses()
 
-    CoursesFormSet = formset_factory(CoursePreferenceForm, extra=min_courses, max_num=max_courses) 
+    CoursesFormSet = formset_factory(CoursePreferenceForm, extra=min_courses, max_num=max_courses)
  
     if not manual: 
         person = get_object_or_404(Person, userid=request.user.username)
@@ -206,6 +199,12 @@ def _new_application(request, post_slug, manual=False):
         if existing_app.count() > 0: 
             messages.success(request, u"You have already applied for the %s %s posting." % (posting.unit, posting.semester))
             return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'post_slug': existing_app[0].posting.slug, 'userid': existing_app[0].person.userid}))
+
+        sin = None
+        for gs in GradStudent.objects.filter(person=person):
+            print gs.config, gs.sin()
+            if gs.sin() != gs.defaults['sin']:
+                sin = gs.sin()
        
     if request.method == "POST":
         search_form = StudentSearchForm(request.POST)
@@ -232,6 +231,14 @@ def _new_application(request, post_slug, manual=False):
 
         if ta_form.is_valid() and courses_formset.is_valid():
             app = ta_form.save(commit=False)
+
+            # if they gave a SIN, populate any GradStudent records
+            if app.sin and app.sin != ta_form.sin_default:
+                for gs in GradStudent.objects.filter(person=person):
+                    if gs.sin() != app.sin:
+                        gs.set_sin(app.sin)
+                        gs.save()
+            
             today = datetime.date.today()
             if(posting.closes < today):
                 app.late = True
@@ -241,10 +248,6 @@ def _new_application(request, post_slug, manual=False):
             app.person = person
             if manual:
                 app.admin_create = True
-            
-            grad = GradStudent.objects.filter(person=person)           
-            if grad.count()>0:
-                grad[0].config['sin'] = request.POST['ta-sin']
                 
             app.save()
             ta_form.save_m2m()
@@ -294,12 +297,13 @@ def _new_application(request, post_slug, manual=False):
         courses_formset = CoursesFormSet()
         for f in courses_formset:
             f.fields['course'].choices = course_choices
-        ta_form = TAApplicationForm(prefix='ta')
+        ta_form = TAApplicationForm(prefix='ta', initial={'sin': sin})
         campus_preferences = [(lbl, name, 'WIL') for lbl,name in CAMPUS_CHOICES if lbl in used_campuses]
         skill_values = [(s.position, s.name, 'NONE') for s in skills]
         today = datetime.date.today()
         if(posting.closes < today):
             messages.warning(request, "The closing date for this posting has passed.  Your application will be marked 'late' and may not be considered.")
+
     context = {
                     'posting':posting,
                     'manual':manual,

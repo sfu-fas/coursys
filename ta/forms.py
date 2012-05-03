@@ -158,6 +158,7 @@ class TUGForm(forms.ModelForm):
         return super(TUGForm, self).save(*args, **kwargs)
 
 class TAApplicationForm(forms.ModelForm):
+    sin_default = '000000000'
     class Meta:
         model = TAApplication
         exclude = ('posting','person','skills','campus_preferences','rank','late','admin_created')
@@ -166,7 +167,7 @@ class TAApplicationForm(forms.ModelForm):
     def clean_sin(self):
         sin = self.cleaned_data['sin']
         if sin.strip() == '':
-            sin = '000000000'
+            sin = self.sin_default
         else:
             sin = re.sub('[ -]+','',str(sin))
             if not re.match('\d{9}$',sin):

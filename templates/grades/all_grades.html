@@ -18,7 +18,7 @@
 		    null,
 		    null,
 		    {% for a in activities %}
-		    {"sType": {% if a.is_numeric%}"numeric"{% else %}"by-letter"{% endif %}}{% if not forloop.last %},{% endif %}
+		    {"sType": {% if a.is_numeric%}"numnull"{% else %}"by-letter"{% endif %}}{% if not forloop.last %},{% endif %}
 		    {% endfor %}
 		]
 	});
