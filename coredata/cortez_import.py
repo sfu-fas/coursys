@@ -879,9 +879,9 @@ class RAImport(object):
             self.get_ra(*row[:-1])
         #print all_types
 
-#Introspection().print_schema()
-
-#TAImport().get_tas()
-GradImport().get_students()
-#RAImport().get_ras()
+if __name__ == '__main__':
+    #Introspection().print_schema()
+    #TAImport().get_tas()
+    GradImport().get_students()
+    #RAImport().get_ras()
 
