@@ -22,6 +22,20 @@
 <li>&gt; All TUGs</li>
 {% endblock %}
 
+{% block actions %}
+<div id="actions">
+<h2 class="heading">Actions</h2>
+<ul>
+{% if semester.previous_semester %}
+<li><a href="{% url ta.views.all_tugs_admin semester_name=semester.previous_semester.name %}">Previous Semester</a></li>
+{% endif %}
+{% if semester.next_semester %}
+<li><a href="{% url ta.views.all_tugs_admin semester_name=semester.next_semester.name %}">Next Semester</a></li>
+{% endif %}
+</ul>
+</div>
+{% endblock %}
+
 {% block content %}
 
 <div class="datatable_container">

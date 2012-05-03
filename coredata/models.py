@@ -250,13 +250,22 @@ class Semester(models.Model):
     def previous_semester(self):
         "semester before this one"
         return self.offset(-1)
+    def next_semester(self):
+        "semester after this one"
+        return self.offset(1)
     
     def offset(self, n):
         "The semester n semesters forward/back in time"
         if n > 0:
-            return Semester.objects.filter(name__gt=self.name).order_by('name')[n-1]
+            try:
+                return Semester.objects.filter(name__gt=self.name).order_by('name')[n-1]
+            except IndexError:
+                return None
         elif n < 0:
-            return Semester.objects.filter(name__lt=self.name).order_by('-name')[(-n)-1]
+            try:
+                return Semester.objects.filter(name__lt=self.name).order_by('-name')[(-n)-1]
+            except IndexError:
+                return None
         else:
             return self
     
