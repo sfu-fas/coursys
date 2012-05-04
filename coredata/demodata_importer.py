@@ -2,17 +2,9 @@
 # suggested execution:
 #   echo "drop database coursysdemo; create database coursysdemo;" | ./manage.py dbshell && echo "no" | ./manage.py syncdb && ./manage.py migrate && python coredata/demodata_importer.py
 
-import string, socket, datetime, itertools
-#from django.core import serializers
-from importer import *
-from importer import give_sysadmin, create_semesters, import_offerings, import_instructors, import_meeting_times
-from coredata.models import Member, Person, CourseOffering, Semester, SemesterWeek, MeetingTime, Role
-from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity
-#from submission.models.base import SubmissionComponent
-#from submission.models.code import CodeComponent
-from submission.models.pdf import PDFComponent
-from marking.models import ActivityComponent
-from groups.models import Group, GroupMember
+import string, socket, random
+from importer import create_semesters, import_offering_members, import_offerings, give_sysadmin
+from coredata.models import Member, Person, CourseOffering
 
 IMPORT_SEMESTERS = ('1121', '1124')
 
@@ -50,7 +42,7 @@ def fake_emplids():
 
 def randname(l):
     n = random.choice(string.ascii_uppercase)
-    for i in range(l-1):
+    for _ in range(l-1):
         n = n + random.choice(string.ascii_lowercase)
     return n
 
@@ -64,9 +56,9 @@ def create_fake_students():
     for lett in string.ascii_lowercase:
         for i in range(21):
             if i==20:
-                userid = "0%sta" % (lett*3)
+                userid = "0%sgrad" % (lett*3)
                 fname = randname(8)
-                lname = "TheTA"
+                lname = "Grad"
             else:
                 userid = "0%s%i" % (lett*3, i)
                 fname = randname(8)
@@ -88,7 +80,7 @@ def fill_courses():
             m.save()
 
         # and the TA
-        userid = "0%sta" % (lett*3)
+        userid = "0%sgrad" % (lett*3)
         m = Member(person=all_students[userid], offering=crs, role="TA", credits=0, career="NONS", added_reason="AUTO")
         m.save()
 

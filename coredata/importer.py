@@ -1,11 +1,12 @@
 import sys, os, datetime, time, copy
-import random, re, MySQLdb
+import random, MySQLdb
 sys.path.append(".")
 sys.path.append("..")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 
 from coredata.queries import SIMSConn, DBConn, get_names, grad_student_info, GRADFIELDS
-from coredata.models import *
+from coredata.models import Person, Semester, SemesterWeek, Unit,CourseOffering, Member, MeetingTime, Role
+from coredata.models import CAMPUSES, COMPONENTS
 from dashboard.models import NewsItem
 from log.models import LogEntry
 from django.db import transaction
@@ -221,6 +222,23 @@ def create_semesters():
         wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2012, 9, 3))
         wk.save()
 
+    s = Semester.objects.filter(name="1131")
+    if not s:
+        s = Semester(name="1131", start=datetime.date(2013, 1, 7), end=datetime.date(2013, 4, 12))
+        s.save()
+        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2013, 1, 7))
+        wk.save()
+        wk = SemesterWeek(semester=s, week=7, monday=datetime.date(2013, 2, 25))
+        wk.save()
+
+    s = Semester.objects.filter(name="1134")
+    if not s:
+        s = Semester(name="1134", start=datetime.date(2013, 5, 6), end=datetime.date(2013, 8, 2))
+        s.save()
+        wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2013, 5, 6))
+        wk.save()
+
+
 
 @transaction.commit_on_success
 def fix_emplid():
@@ -356,7 +374,7 @@ def import_one_offering(strm, subject, number, section):
 def import_offerings(extra_where='1=1', import_semesters=import_semesters):
     db = SIMSConn()
     db.execute("SELECT "+CLASS_TBL_FIELDS+" FROM ps_class_tbl WHERE strm IN %s AND "
-               "class_section like '%%00' AND "+extra_where, (import_semesters(),))
+               "class_section like '%%00' AND ("+extra_where+")", (import_semesters(),))
     imported_offerings = set()
     for row in db.rows():
         o = import_offering(*row)
@@ -629,6 +647,8 @@ def import_students(offering):
 def import_offering_members(offering, students=True):
     """
     Import all data for the course: instructors, TAs, students, meeting times.
+    
+    students=False used by test/demo importers
     """
     #if random.randint(1,40) == 1:
     #    print " ", offering
@@ -638,8 +658,8 @@ def import_offering_members(offering, students=True):
         import_tas(offering)
         import_students(offering)
     import_meeting_times(offering)
-    #update_offering_repositories(offering)
-    # TODO: turn update_offering_repositories back on after testing
+    if settings.SVN_DB_CONNECT:
+        update_offering_repositories(offering)
 
 
 @transaction.commit_on_success

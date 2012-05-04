@@ -556,7 +556,7 @@ def activity_marks_from_JSON(activity, userid, data):
     activity_component_marks = []
     numeric_grades = []
     combine = False # are we combining these marks with existing (as opposed to overwriting)?
-    if 'combine' in data and data['combine'] == True:
+    if 'combine' in data and bool(data['combine']):
         combine = True
 
     for markdata in data['marks']:
