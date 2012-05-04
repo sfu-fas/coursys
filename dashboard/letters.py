@@ -102,7 +102,7 @@ class LetterheadTemplate(LetterPageTemplate):
         c.setFont('BemboMTPro', 12)
         c.setFillColor(doc.sfu_blue)
         parent = self.unit.parent
-        if parent.label == 'UNIV':
+        if not parent or parent.label == 'UNIV':
             # faculty-level unit: just the unit name
             self._drawStringLeading(c, 2*inch, self.pg_h - self.top_margin - 0.375*inch, self.unit.name.translate(doc.sc_trans_bembo), charspace=1.2)
         else:

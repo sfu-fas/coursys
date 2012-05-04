@@ -13,7 +13,7 @@ from submission.models.code import CodeComponent
 from submission.models.pdf import PDFComponent
 from marking.models import ActivityComponent
 from groups.models import Group, GroupMember
-from grad.models import GradProgram, GradStudent, GradStatus
+from grad.models import GradProgram, GradStudent, GradStatus, LetterTemplate
 from discipline.models import DisciplineTemplate
 
 FULL_TEST_DATA = "2012su-cmpt-383-d1"
@@ -159,6 +159,21 @@ def create_grads():
         
         # TODO: supervisors, completed requirements, letter templates and letters 
 
+def create_grad_templ():
+    templates = [
+                 {"unit": Unit.objects.get(slug='comp'),
+                  "label": "offer",
+                  "content": "Congratulations, {{first_name}}, we would like to offer you admission to the {{program}} program in Computing Science at SFU.\r\n\r\nThis is good news. Really."
+                  },
+                 {"unit": Unit.objects.get(slug='comp'),
+                  "label": "visa",
+                  "content": "This is to confirm that {{title}} {{first_name}} {{last_name}} is currently enrolled as a full time student in the {{program}} in the School of Computing Science at SFU."
+                  },
+                 ]
+    for data in templates:
+        t = LetterTemplate(**data)
+        t.save()
+
 
 def create_discipline_templ():
     templates = [
@@ -223,6 +238,7 @@ def serialize(filename):
             GradStudent.objects.all(),
             GradStatus.objects.all(),
             DisciplineTemplate.objects.all(),
+            LetterTemplate.objects.all(),
             )
     
     data = serializers.serialize("json", objs, sort_keys=True, indent=1)
@@ -254,6 +270,7 @@ def main():
     create_classes()
     create_test_classes()
     create_others()
+    create_grad_templ()
     create_discipline_templ()
     combine_sections(get_combined())
     
