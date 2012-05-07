@@ -33,7 +33,10 @@ $(document).ready(function() {
     {# <li><a href="{% url planning.views.semester_plan_index %}">Semester Plans</a></li> #}
     {% if 'DISC' in roles %}<li><a href="{% url discipline.views.chair_index %}">Discipline Cases</a></li>{% endif %}
     {% if 'SYSA' in roles %}<li><a href="{% url coredata.views.sysadmin %}">System Administration</a></li>{% endif %}
-    {% if staff_memberships %}<li><a href="{% url dashboard.views.list_docs %}">View Documentation</a></li>{% endif %}
+    {% if staff_memberships %}
+    <li><a href="{% url dashboard.views.list_docs %}">View Documentation</a></li>
+    <li><a href="{% url dashboard.views.student_info %}">Student Search</a></li>
+    {% endif %}
     {% if 'ADVS' in roles %}<li><a href="{% url advisornotes.views.advising %}">Advisor Notes</a></li>{% endif %}
     {% if 'GRAD' in roles %}<li class="newsec"><a href="{% url grad.views.index %}">Grad Students</a></li>{% endif %}
     {% if 'FUND' in roles %}<li class="newsec"><a href="{% url ra.views.search %}">Research Associates</a></li>{% endif %}

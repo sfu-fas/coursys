@@ -1,24 +1,26 @@
 #from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.views.decorators.cache import cache_page
 from django.views.decorators.gzip import gzip_page
 from django.conf import settings
+from django.contrib import messages
 from coredata.models import Member, CourseOffering, Person, Role, Semester, MeetingTime
 from grades.models import Activity, NumericActivity
-from courselib.auth import requires_course_staff_by_slug, requires_course_by_slug, NotFoundResponse, ForbiddenResponse
+from courselib.auth import requires_course_staff_by_slug, NotFoundResponse
+from courselib.search import find_userid_or_emplid
 from dashboard.models import NewsItem, UserConfig, Signature, new_feed_token
-from dashboard.forms import *
-from django.contrib import messages
+from dashboard.forms import MessageForm, FeedSetupForm, NewsConfigForm, SignatureForm
+from grad.models import GradStudent, Supervisor
 from log.models import LogEntry
 import datetime, json, urlparse
 from courselib.auth import requires_role
 from icalendar import Calendar, Event
 import pytz
-from grad.models import GradStudent
+
 
 def _display_membership(m, today, student_cutoff):
     """
@@ -586,11 +588,19 @@ def new_signature(request):
     context = {'form': form}
     return render(request, "dashboard/new_signature.html", context)
 
-from courselib.search import find_userid_or_emplid
-from grad.models import Supervisor
 
-# everything-about-this-student view
-def student_info(request, userid):
+
+@login_required
+def student_info(request, userid=None):
+    # everything-about-this-student view
+    if not userid and 'q' in request.GET:
+        # redirect query string away
+        return HttpResponseRedirect(reverse('dashboard.views.student_info', kwargs={'userid': request.GET['q']}))
+
+    elif not userid:
+        # display search screen
+        return render(request, "dashboard/student_info_search.html", {})
+
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
     user = Person.objects.get(userid=request.user.username)
     all_instr = [m.offering for m in Member.objects.filter(person=user, role='INST').select_related('offering')]
@@ -603,7 +613,8 @@ def student_info(request, userid):
     
     anything = student_instr or student_ta or ta_instr or supervisors
     if not anything:
-        return NotFoundResponse(request, errormsg="No information found for this student")
+        # match get_object_or_404 behaviour to not leak info
+        raise Http404('No Person matches the given query.')
     
     context = {
                'student': student,
