@@ -70,6 +70,7 @@ class EditPageForm(EditPageFileForm):
     
     math = forms.BooleanField(required=False, help_text='Will this page use <a href="http://www.mathjax.org/">MathJax</a> for displayig TeX or MathML formulas?')
 
+    @transaction.commit_on_success
     def save(self, editor, *args, **kwargs):
         # also create the PageVersion object.
         wikitext = self.cleaned_data['wikitext']
@@ -103,6 +104,7 @@ EditPageForm.restricted_form = EditPageFormRestricted
 class EditFileForm(EditPageFileForm):
     file_attachment = forms.FileField(label="File")
 
+    @transaction.commit_on_success
     def save(self, editor, *args, **kwargs):
         # also create the PageVersion object.
         upfile = self.cleaned_data['file_attachment']
