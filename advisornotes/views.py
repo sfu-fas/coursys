@@ -47,7 +47,7 @@ def note_search(request):
     search = request.GET['search']
     query = get_query(search, ('text',))
     notes = AdvisorNote.objects.filter(query, unit__in=request.units) \
-            .select_related('student', 'advisor').order_by("-created_at")
+            .select_related('student', 'advisor').order_by("-created_at")[:100]
     note_form = NoteSearchForm(initial={'search': search})
     context = {'notes': notes, 'note_form': note_form}
     return render(request, 'advisornotes/note_search.html', context)

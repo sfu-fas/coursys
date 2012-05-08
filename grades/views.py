@@ -485,6 +485,32 @@ def _cutoffsdict(cutoff):
     return data
 
 @requires_course_staff_by_slug
+def compare_official(request, course_slug, activity_slug):
+    """
+    Screen to compare member.official_grade to this letter activity
+    """
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(LetterActivity, slug=activity_slug, offering=course, deleted=False)
+    
+    members = Member.objects.filter(offering=course, role='STUD')
+    grades = dict(((g.member, g.letter_grade)for g in LetterGrade.objects.filter(activity=activity)))
+    data = []
+    
+    for m in members:
+        if m in grades:
+            g = grades[m]
+        else:
+            g = None
+        data.append((m, g, m.official_grade!=g))
+    
+    print data
+    context = {'course': course, 'activity': activity, 'data': data}
+    return render_to_response('grades/compare_official.html', context, context_instance=RequestContext(request))
+    
+    
+
+
+@requires_course_staff_by_slug
 def add_numeric_activity(request, course_slug):
     course = get_object_or_404(CourseOffering, slug=course_slug)
 
