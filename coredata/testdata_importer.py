@@ -126,6 +126,19 @@ def create_others():
     r = Role(person=p, role="ADVS", unit=Unit.objects.get(slug='comp'))
     r.save()
 
+    p = Person.objects.get(userid='ggbaker')
+    r = Role(person=p, role="GRAD", unit=Unit.objects.get(slug='comp'))
+    r.save()
+    r = Role(person=p, role="ADMN", unit=Unit.objects.get(slug='comp'))
+    r.save()
+    r = Role(person=p, role="TAAD", unit=Unit.objects.get(slug='comp'))
+    r.save()
+    r = Role(person=p, role="FUND", unit=Unit.objects.get(slug='comp'))
+    r.save()
+    r = Role(person=Person.objects.get(userid='lou'), role="GRPD", unit=Unit.objects.get(slug='comp'))
+    r.save()
+
+
 def create_grads():
     """
     Put the grad students created before into GradStudent records.
@@ -278,8 +291,7 @@ def main():
     create_grads()
 
     print "giving sysadmin permissions"
-    #give_sysadmin(['ggbaker', 'sumo'])
-    give_sysadmin(['sumo'])
+    give_sysadmin(['ggbaker', 'sumo'])
     
     serialize("new-test.json")
 
