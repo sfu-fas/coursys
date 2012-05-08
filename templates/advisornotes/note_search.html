@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Note Search{% endblock %}
+{% block h1 %}Note Search{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+  $(function() {
+  	table = $('#notes').dataTable({
+        "bPaginate": false,
+		"bJQueryUI": true,
+		//"aaSorting": [[0, "asc"]],
+		//"aoColumns": [],
+	});
+  });
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url advisornotes.views.advising %}">Notes</a></li>
+<li>&gt; Note Search</li>
+{% endblock %}
+
+{% block content %}
+<form action="{% url advisornotes.views.note_search %}" method="get">
+{{note_form.as_p}}
+<p><input class="submit" type="submit" value="Submit" /></p>
+</form>
+
+<div class="datatable_container">
+<table class="display" id="notes">
+<thead><tr><th scope="col">Student</th><th scope="col">Advisor</th><th scope="col">Created</th><th scope="col">Has File</th></tr></thead>
+<tbody>
+{% for note in notes %}
+  <tr>
+  <td><a href="{% url advisornotes.views.student_notes userid=note.student.userid_or_emplid %}">{{note.student.sortname}}</a></td>
+  <td>{{note.advisor.sortname}}</td>
+  <td><span class="sort">{{note.created_at.isoformat}}</span>{{note.created_at}}</td>
+  <td>{% if note.file_attachment %}Y{% endif %}</td>
+  </tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+
+
+{% endblock content %}

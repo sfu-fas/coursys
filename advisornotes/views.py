@@ -1,14 +1,15 @@
 from django.core.urlresolvers import reverse
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
-from advisornotes.models import AdvisorNote
-from coredata.models import Person
 from django.template import RequestContext
-from courselib.auth import requires_role, HttpResponseRedirect
-from advisornotes.forms import AdvisorNoteForm, StudentSearchForm
 from django.contrib import messages
-from courselib.search import find_userid_or_emplid
+from advisornotes.models import AdvisorNote
+from advisornotes.forms import AdvisorNoteForm, StudentSearchForm, NoteSearchForm
+from coredata.models import Person
 from coredata.queries import find_person, add_person, more_personal_info, SIMSProblem
+from courselib.auth import requires_role, HttpResponseRedirect, ForbiddenResponse
+from courselib.search import get_query
+from courselib.search import find_userid_or_emplid
 from log.models import LogEntry
 import json
 
@@ -35,8 +36,22 @@ def advising(request):
         search = form.cleaned_data['search']
         return _redirect_to_notes(search)
     form = StudentSearchForm()
-    context = {'form': form}
+    note_form = NoteSearchForm()
+    context = {'form': form, 'note_form': note_form}
     return render(request, 'advisornotes/student_search.html', context)
+
+@requires_role('ADVS')
+def note_search(request):
+    if 'search' not in request.GET:
+        return ForbiddenResponse, "must send search query"
+    search = request.GET['search']
+    query = get_query(search, ('text',))
+    notes = AdvisorNote.objects.filter(query, unit__in=request.units) \
+            .select_related('student', 'advisor').order_by("-created_at")
+    note_form = NoteSearchForm(initial={'search': search})
+    context = {'notes': notes, 'note_form': note_form}
+    return render(request, 'advisornotes/note_search.html', context)
+
 
 @requires_role('ADVS')
 def sims_search(request):

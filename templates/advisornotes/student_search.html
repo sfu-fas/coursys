@@ -22,7 +22,7 @@ $(document).ready(function() {
 
 {% block content %}
 <div id="form_container">
-<form action="" method="post" width="100">{% csrf_token %}
+<form action="" method="post">{% csrf_token %}
 <fieldset>
 {{form.as_p}}
 <p><input class="submit" type="submit" value="Submit" /></p>
@@ -44,4 +44,12 @@ $(document).ready(function() {
 </form>
 {% endif %}
 </div>
+
+<h2 id="notesearch">Search Content of Notes</h2>
+<form action="{% url advisornotes.views.note_search %}" method="get">
+{{note_form.as_p}}
+<p><input class="submit" type="submit" value="Submit" /></p>
+</form>
 {% endblock %}
+
+

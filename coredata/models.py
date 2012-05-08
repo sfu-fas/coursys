@@ -94,6 +94,9 @@ class Person(models.Model):
         if self.pref_first_name and self.pref_first_name != self.first_name:
             name += ' (%s)' % (self.pref_first_name)
         return name
+    def userid_or_emplid(self):
+        "userid if possible or emplid if not: inverse of find_userid_or_emplid searching"
+        return self.userid or self.emplid
 
     def __cmp__(self, other):
         return cmp((self.last_name, self.first_name, self.userid), (other.last_name, other.first_name, other.userid))

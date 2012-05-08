@@ -39,4 +39,7 @@ class StudentField(forms.ModelChoiceField):
         return st
     
 class StudentSearchForm(forms.Form):
-        search = StudentField()
+    search = StudentField()
+
+class NoteSearchForm(forms.Form):
+    search = forms.CharField()
