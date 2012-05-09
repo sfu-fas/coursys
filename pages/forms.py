@@ -82,9 +82,10 @@ class EditPageForm(EditPageFileForm):
             pv.set_math(self.cleaned_data['math'])
 
         self.instance.offering = self.offering
-        super(EditPageForm, self).save(*args, **kwargs)
+        pg = super(EditPageForm, self).save(*args, **kwargs)
         pv.page=self.instance
         pv.save()
+        return pg
 
 
 class EditPageFormRestricted(EditPageForm):
@@ -93,11 +94,10 @@ class EditPageFormRestricted(EditPageForm):
     """
     def __init__(self, *args, **kwargs):
         super(EditPageFormRestricted, self).__init__(*args, **kwargs)
-        del self.fields['title']
-        del self.fields['label']
-        del self.fields['can_read']
+        if self.instance.label:
+            # can't change label, but can set for a new page
+            del self.fields['label']
         del self.fields['can_write']
-        del self.fields['math']
 
 EditPageForm.restricted_form = EditPageFormRestricted
 
@@ -112,9 +112,10 @@ class EditFileForm(EditPageFileForm):
                          file_name=upfile.name, editor=editor)
 
         self.instance.offering = self.offering
-        super(EditFileForm, self).save(*args, **kwargs)
+        pg = super(EditFileForm, self).save(*args, **kwargs)
         pv.page=self.instance
         pv.save()
+        return pg
 
 class EditFileFormRestricted(EditFileForm):
     """
@@ -122,9 +123,9 @@ class EditFileFormRestricted(EditFileForm):
     """
     def __init__(self, *args, **kwargs):
         super(EditFileFormRestricted, self).__init__(*args, **kwargs)
-        del self.fields['title']
-        del self.fields['label']
-        del self.fields['can_read']
+        if self.instance.label:
+            # can't change label, but can set for a new page
+            del self.fields['label']
         del self.fields['can_write']
 
 EditFileForm.restricted_form = EditFileFormRestricted

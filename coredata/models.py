@@ -431,8 +431,10 @@ class CourseOffering(models.Model):
         # 'indiv_svn': do instructors/TAs have access to student SVN repos? (default False)
         # 'combined': is this a combined section (e.g. two crosslisted sections integrated)
         # 'extra_bu': number of TA base units required
+        # 'page_creators': who is allowed to create new pages?
     
-    defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False, 'combined': False, 'uses_svn': False, 'extra_bu': '0'}
+    defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False, 'combined': False,
+                'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF'}
     labtut, set_labtut = getter_setter('labtut')
     labtas, set_labtas = getter_setter('labtas')
     url, set_url = getter_setter('url')
@@ -440,7 +442,8 @@ class CourseOffering(models.Model):
     indiv_svn, set_indiv_svn = getter_setter('indiv_svn')
     combined, set_combined = getter_setter('combined')
     extra_bu_str, set_extra_bu_str = getter_setter('extra_bu')
-    copy_config_fields = ['url', 'taemail', 'indiv_svn'] # fields that should be copied when instructor does "copy course setup"
+    page_creators, set_page_creators = getter_setter('page_creators')
+    copy_config_fields = ['url', 'taemail', 'indiv_svn', 'page_creators'] # fields that should be copied when instructor does "copy course setup"
     
     def autoslug(self):
         # changed slug format for fall 2011

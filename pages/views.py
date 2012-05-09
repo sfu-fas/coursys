@@ -45,7 +45,7 @@ def all_pages(request, course_slug):
     
     if member and member!=True:
         pages = Page.objects.filter(offering=offering, can_read__in=ACL_ROLES[member.role])
-        can_create = member.role in MEMBER_ROLES['STAF']
+        can_create = member.role in MEMBER_ROLES[offering.page_creators()]
     else:
         pages = Page.objects.filter(offering=offering, can_read='ALL')
         can_create = False
@@ -58,7 +58,7 @@ def view_page(request, course_slug, page_label):
     pages = Page.objects.filter(offering=offering, label=page_label)
     if not pages:
         # missing page: do something more clever than the standard 404
-        member = _check_allowed(request, offering, 'STAF') # staff can create
+        member = _check_allowed(request, offering, offering.page_creators()) # users who can creat
         can_create = bool(member)
         context = {'offering': offering, 'can_create': can_create, 'page_label': page_label}
         return render(request, 'pages/missing_page.html', context, status=404)
@@ -172,7 +172,7 @@ def _edit_pagefile(request, course_slug, page_label, kind):
     else:
         page = None
         version = None
-        member = _check_allowed(request, offering, 'STAF') # staff can create
+        member = _check_allowed(request, offering, offering.page_creators()) # users who can create
     
     # make sure we're looking at the right "kind" (page/file)
     if not kind:
@@ -194,26 +194,36 @@ def _edit_pagefile(request, course_slug, page_label, kind):
     if request.method == 'POST':
         form = Form(instance=page, offering=offering, data=request.POST, files=request.FILES)
         if form.is_valid():
-            form.save(editor=member)
+            instance = form.save(editor=member)
+            
+            # clean up weirdness from restricted form
+            if 'label' not in form.cleaned_data:
+                # happens when student edits an existing page
+                instance.label = page.label
+                instance.save()
+            if 'can_write' not in form.cleaned_data:
+                # happens only when students create a page
+                instance.can_write = 'STUD'
+                instance.save()
             
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description="Edited page %s in %s." % (form.instance.label, offering),
-                  related_object=form.instance)
+                  description="Edited page %s in %s." % (instance.label, offering),
+                  related_object=instance)
             l.save()
             if page:
-                messages.success(request, "Edited "+kind+" \"%s\"." % (form.instance.label))
+                messages.success(request, "Edited "+kind+" \"%s\"." % (instance.label))
             else:
-                messages.success(request, "Created "+kind+" \"%s\"." % (form.instance.label))
+                messages.success(request, "Created "+kind+" \"%s\"." % (instance.label))
 
-            if not page and form.instance.label == 'Index' and not offering.url():
+            if not page and instance.label == 'Index' and not offering.url():
                 # new Index page but no existing course URL: set as course web page
-                url = settings.BASE_ABS_URL + form.instance.get_absolute_url()
+                url = settings.BASE_ABS_URL + instance.get_absolute_url()
                 offering.set_url(url)
                 offering.save()
                 messages.info(request, "Set course URL to new Index page.")
             
-            return HttpResponseRedirect(reverse('pages.views.view_page', kwargs={'course_slug': course_slug, 'page_label': form.instance.label}))
+            return HttpResponseRedirect(reverse('pages.views.view_page', kwargs={'course_slug': course_slug, 'page_label': instance.label}))
     else:
         form = Form(instance=page, offering=offering)
         if 'label' in request.GET:
@@ -261,7 +271,7 @@ def import_page(request, course_slug, page_label):
 @login_required
 def import_site(request, course_slug):
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    member = _check_allowed(request, offering, 'STAF') # staff can create
+    member = _check_allowed(request, offering, 'STAF') # only staff can import
     if not member:
         return ForbiddenResponse(request, 'Not allowed to edit/create pages.')
     
