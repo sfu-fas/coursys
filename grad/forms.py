@@ -529,7 +529,7 @@ class SaveSearchForm(ModelForm):
 class UploadApplicantsForm(forms.Form):
     csvfile = forms.FileField(required=True, label="PCS data export")
     unit = forms.ChoiceField(choices=[], help_text="The unit students are being imported for")
-    semester = forms.ChoiceField(choices=[], help_text="The application semester")
+    semester = forms.ChoiceField(choices=[], help_text="The start semester for these students")
     
     def clean_csvfile(self):        
         csvfile = self.cleaned_data['csvfile']
@@ -627,6 +627,7 @@ def process_pcs_row(row, column, rownum, unit, semester, user):
     # TODO: gs.application_status
     gs.created_by = user.userid
     gs.updated_by = user.userid
+    gs.config['start_semester'] = semester.name
     gs.save()
     
     # TODO: find more sensible status than "APPL" from SIMS?
@@ -658,11 +659,11 @@ def process_pcs_row(row, column, rownum, unit, semester, user):
                 warnings.append('Coundn\'t find potential supervisor in row %i: will store them as an "external" supervisor.' % (rownum))
                 external = potsuper
 
-        old_s = Supervisor.objects.filter(student=gs, is_potential=True)
+        old_s = Supervisor.objects.filter(student=gs, supervisor_type='POT')
         if old_s:
             s = old_s[0]
         else:
-            s = Supervisor(student=gs, is_potential=True)
+            s = Supervisor(student=gs, supervisor_type='POT')
         s.superv = superv
         s.external = external
         s.position = 0

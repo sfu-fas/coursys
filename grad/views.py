@@ -4,7 +4,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.conf import settings
 from grad.models import GradStudent, GradProgram, Supervisor, GradRequirement, CompletedRequirement, GradStatus, \
         ScholarshipType, Scholarship, Promise, OtherFunding, LetterTemplate, \
-        Letter, STATUS_ACTIVE, SavedSearch
+        Letter, STATUS_ACTIVE, SavedSearch, LETTER_TAGS
 from grad.forms import SupervisorForm, PotentialSupervisorForm, GradAcademicForm, GradProgramForm, \
         GradStudentForm, GradStatusForm, GradRequirementForm, possible_supervisors, BaseSupervisorsFormSet, \
     SearchForm, LetterTemplateForm, LetterForm, UploadApplicantsForm, new_promiseForm, new_scholarshipForm,\
@@ -531,20 +531,6 @@ def letter_templates(request):
 List of tags
 """
 
-LETTER_TAGS = {
-               'title': 'Mr. Ms.',
-               'first_name': 'applicant\'s first name',
-               'last_name': 'applicant\'s last name',
-               'address': 'includes street, city/province/postal, country',
-               'empl_data': 'type of employment RA, TA',
-               'fund_type': 'RA, TA, Scholarship',
-               'fund_amount_sem': 'amount of money paid per semester',
-               'his_her' : '"his" or "her"',
-               'program': 'program enrolled in',
-               'first_season': 'semster when grad will begin his studies; fall, summer, spring',
-               'first_year': 'year to begin; 2011',
-               'first_month': 'month to begin; September'
-               }
 
 @requires_role("GRAD")
 def new_letter_template(request):
@@ -650,7 +636,7 @@ def new_letter(request, grad_slug):
     else:
         default_from = None
     
-    ls = _get_letter_dict(grad)
+    ls = grad.letter_info()
     if request.method == 'POST':
         form = LetterForm(request.POST)
         form.fields['from_person'].choices = from_choices
@@ -681,57 +667,18 @@ def new_letter(request, grad_slug):
                }
     return render(request, 'grad/new_letter.html', context)
 
-def _get_letter_dict(grad):
-    gender = grad.person.gender()
-    title = grad.person.get_title()
-    first_name = grad.person.first_name
-    last_name = grad.person.last_name
-    addresses = grad.person.addresses()
-    program = grad.program.description
 
-    if 'home' in addresses:
-        address = addresses['home']
-    elif 'work' in addresses:
-        address = addresses['work']
-    else:
-        address = ''
-
-    if gender == "M" :
-        hisher = "his"
-    elif gender == "F":
-        hisher = "her"
-    else:
-        hisher = "his/her"
-        
-    ls = {
-            'title' : title,
-            'his_her' : hisher,
-            'first_name': first_name,
-            'last_name': last_name,
-            'address':  address,
-            'empl_data': "OO type of employment RA, TA OO",
-            'fund_type': "OO RA / TA / Scholarship]]",
-            'fund_amount_sem': "OO amount of money paid per semester OO",
-            'program': program,
-            'first_season': "OO semster when grad will begin his studies; fall, summer, spring OO",
-            'first_year': "OO year to begin; 2011 OO",
-            'first_month': "OO month to begin; September OO"
-          }
-    return ls
 """
 Get the text from letter template
 """
 @requires_role("GRAD")
 def get_letter_text(request, grad_slug, letter_template_id):
-    text = ""
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
-    if False and "{}" in str(grad.person.config):
-        text = "There are no configs found in the student's profile.\n Please update profile in order to get templates to work."
-    else: 
-        lt = get_object_or_404(LetterTemplate, id=letter_template_id)
-        temp = Template(lt.content)
-        ls = _get_letter_dict(grad)
-        text = temp.render(Context(ls))
+    lt = get_object_or_404(LetterTemplate, id=letter_template_id)
+    temp = Template(lt.content)
+    ls = grad.letter_info()
+    text = temp.render(Context(ls))
+    print ls
 
     return HttpResponse(text)
 

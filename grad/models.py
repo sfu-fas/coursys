@@ -69,6 +69,7 @@ class GradStudent(models.Model):
     config = JSONField(default={}) # addition configuration
         # 'sin': Social Insurance Number
         # 'app_id': unique identifier for the PCS application import (so we can detect duplicate imports)
+        # 'start_semester': first semester of project (if known from PCS import), as a semester.name (e.g. '1127')
     defaults = {'sin': '000000000'}
     sin, set_sin = getter_setter('sin')
 
@@ -84,6 +85,89 @@ class GradStudent(models.Model):
         # rebuild slug in case something changes
         self.slug = None
         super(GradStudent, self).save(*args, **kwargs)
+    
+    def start_semester(self):
+        """
+        Semester this student started
+        """
+        # do we actually know?
+        if 'start_semester' in self.config:
+            return Semester.objects.get(name=self.config['start_semester'])
+        # first active semester
+        active = GradStatus.objects.filter(student=self, status__in=STATUS_ACTIVE).order_by('start')
+        if active:
+            return active[0].start
+        # semester after application
+        applic = GradStatus.objects.filter(student=self, status='APPL').order_by('start')
+        if applic:
+            return applic[0].start.next_semester()
+        # next semester
+        return Semester.current().next_semester()
+        
+    def letter_info(self):
+        gender = self.person.gender()
+        #addresses = self.person.addresses()
+    
+        #if 'home' in addresses:
+        #    address = addresses['home']
+        #elif 'work' in addresses:
+        #    address = addresses['work']
+        #else:
+        #    address = ''
+    
+        if gender == "M" :
+            hisher = "his"
+        elif gender == "F":
+            hisher = "her"
+        else:
+            hisher = "his/her"
+        Hisher = hisher.title()
+        
+        promises = Promise.objects.filter(student=self).order_by('-start_semester')
+        if promises:
+            try:
+                promise = "${:,f}".format(promises[0].amount)
+            except ValueError: # handle Python <2.7
+                promise = '$' + unicode(promises[0].amount)
+        else:
+            promise = u'$0'
+        
+        startsem = self.start_semester()
+        if startsem:
+            startsem = startsem.label()
+        else:
+            startsem = 'UNKNOWN'
+        
+        ls = {
+                'title' : self.person.get_title(),
+                'his_her' : hisher,
+                'His_Her' : Hisher,
+                'first_name': self.person.first_name,
+                'last_name': self.person.last_name,
+                #'address':  address,
+                'promise': promise,
+                'start_semester': startsem,
+                #'empl_data': "OO type of employment RA, TA OO",
+                #'fund_type': "OO RA / TA / Scholarship]]",
+                #'fund_amount_sem': "OO amount of money paid per semester OO",
+                'program': self.program.description,
+              }
+        return ls
+
+# documentation for the fields returned by GradStudent.letter_info
+LETTER_TAGS = {
+               'title': '"Mr", "Miss", etc.',
+               'first_name': 'student\'s first name',
+               'last_name': 'student\'s last name',
+               #'address': 'includes street, city/province/postal, country',
+               #'empl_data': 'type of employment RA, TA',
+               #'fund_type': 'RA, TA, Scholarship',
+               #'fund_amount_sem': 'amount of money paid per semester',
+               'his_her' : '"his" or "her" (or use His_Her for capitalized)',
+               'program': 'the program the student is enrolled in',
+               'start_semester': 'student\'s first semester (e.g. "Summer 2000")',
+               'promise': 'the amount of the (most recent) funding promise to the student (e.g. "$17,000")',
+               }
 
 SUPERVISOR_TYPE_CHOICES = [
                            ('SEN', 'Senior Supervisor'),
@@ -289,20 +373,10 @@ class Letter(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.CharField(max_length=32, null=False, help_text='Letter generation requseted by.')
     config = JSONField(default={}) # addition configuration for within the letter
-        # 'title': Mr. Ms.
-        # 'first_name': applicant's first name
-        # 'last_name': applicant's last name
-        # 'address': includes street, city/province/postal, country
-        # 'empl_data': type of employment RA, TA
-        # 'fund_type': RA, TA, Scholarship
-        # 'fund_amount_sem': amount of money paid per semester
-        # 'his_her' : "his" or "her"
-        # 'program': program enrolled in
-        # 'first_season': semster when grad will begin his studies; fall, summer, spring
-        # 'first_year': year to begin; 2011
-        # 'first_month': month to begin; September  
+        # data returned by grad.letter_info() is stored here.
+
     def autoslug(self):
-        return make_slug(self.student.person.userid + "-" + self.template.label)     
+        return make_slug(self.student.slug + "-" + self.template.label)     
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)            
     def __unicode__(self):
         return u"%s letter for %s" % (self.template.label, self.student)

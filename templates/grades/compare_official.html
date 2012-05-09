@@ -27,7 +27,7 @@
 {% endblock %}
 
 {% block content %}
-{{grades}}
+<p>Official grades are imported from SIMS nightly: they may be up to a day out of date from the actual SIMS database.</p>
 
 <div class="datatable_container">
     <table class="display" id="grades">
@@ -42,7 +42,7 @@
         <tbody>
         {% for m,g,d in data %}
         <tr>
-            <td scope="row"><a href="{{m.get_absolute_url}}">{{m.person.sortname}}</a></td>
+            <td scope="row"><a href="{% url grades.views.student_info course_slug=course.slug userid=m.person.userid %}">{{m.person.sortname}}</a></td>
             <td>{{g|default_if_none:""}}</td>
             <td>{{m.official_grade|default_if_none:""}}</td>
             <td>{{d|yesno:"yes,"}}</td>
