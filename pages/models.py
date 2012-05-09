@@ -3,6 +3,7 @@ from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 from django.utils.safestring import mark_safe
 from django.core.cache import cache
+from django.core.urlresolvers import reverse
 from coredata.models import CourseOffering, Member
 from grades.models import Activity
 
@@ -67,7 +68,13 @@ class Page(models.Model):
     def save(self, *args, **kwargs):
         assert self.label_okay(self.label) is None
         super(Page, self).save(*args, **kwargs)
+
     
+    def get_absolute_url(self):
+        if self.label == 'Index':
+            return reverse('pages.views.index_page', kwargs={'course_slug': self.offering.slug})
+        else:
+            return reverse('pages.views.view_page', kwargs={'course_slug': self.offering.slug, 'page_label': self.label})
     def version_cache_key(self):
         return "page-curver-" + str(self.id)
     def label_okay(self, label):

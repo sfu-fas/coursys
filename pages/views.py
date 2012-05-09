@@ -3,6 +3,7 @@ from django.shortcuts import render, get_object_or_404
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
 from pages.models import Page, PageVersion, MEMBER_ROLES, ACL_ROLES
 from pages.forms import EditPageForm, EditFileForm, PageImportForm, SiteImportForm
 from coredata.models import Member, CourseOffering
@@ -194,6 +195,7 @@ def _edit_pagefile(request, course_slug, page_label, kind):
         form = Form(instance=page, offering=offering, data=request.POST, files=request.FILES)
         if form.is_valid():
             form.save(editor=member)
+            
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
                   description="Edited page %s in %s." % (form.instance.label, offering),
@@ -203,6 +205,13 @@ def _edit_pagefile(request, course_slug, page_label, kind):
                 messages.success(request, "Edited "+kind+" \"%s\"." % (form.instance.label))
             else:
                 messages.success(request, "Created "+kind+" \"%s\"." % (form.instance.label))
+
+            if not page and form.instance.label == 'Index' and not offering.url():
+                # new Index page but no existing course URL: set as course web page
+                url = settings.BASE_ABS_URL + form.instance.get_absolute_url()
+                offering.set_url(url)
+                offering.save()
+                messages.info(request, "Set course URL to new Index page.")
             
             return HttpResponseRedirect(reverse('pages.views.view_page', kwargs={'course_slug': course_slug, 'page_label': form.instance.label}))
     else:
