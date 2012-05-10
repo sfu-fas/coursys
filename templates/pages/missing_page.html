@@ -22,7 +22,9 @@
 <p>The page you have requested doesn't exist.</p>
 
 {% if page_label == "Index" and can_create %}
-<p class="helptext">The &ldquo;pages&ldquo; features of CourSys allow you to post web pages or files for students (or others) to access.  Each page/file has full edit history saved and can have read/write permissions set individually.</p>
+<p class="helptext">The &ldquo;pages&ldquo; features of CourSys allow you to post web pages or files for students (or others) to access.
+Each page/file has full edit history saved and can have read/write permissions set individually.</p>
+<p>Additional <a href="{% url dashboard.views.view_doc doc_slug='pages' %}">documentation is available</a> on course pages.</p>
 {% endif %}
 
 {% endblock %}
