@@ -230,6 +230,7 @@ def _edit_pagefile(request, course_slug, page_label, kind):
             label = request.GET['label']
             if label == 'Index':
                 form.initial['title'] = offering.name()
+                form.fields['label'].help_text += u'\u2014the label "Index" indicates the front page for this course.'
             else:
                 form.initial['title'] = label.title()
             form.initial['label'] = label
