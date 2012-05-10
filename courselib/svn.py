@@ -97,7 +97,7 @@ def _offering_instructors(offering):
     """
     Set of userids of instructors and TAs for this offering
     """
-    return set((m.person.userid for m in offering.member_set.filter(role__in=["INST","TA","APPR"]).select_related('person')))
+    return set((m.person.userid for m in offering.member_set.filter(role__in=["INST","TA","APPR"]).select_related('person') if m.person.userid is not None))
 
 def update_offering_repositories(offering):
     """
