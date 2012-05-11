@@ -789,23 +789,5 @@ class Role(models.Model):
     @classmethod
     def all_roles(cls, userid):
         return set((r.role for r in Role.objects.filter(person__userid=userid)))
-    
-    
-class NonStudent(models.Model):
-    """
-    For a person (propspective student) who isn't part of the university
-    """
-    last_name = models.CharField(max_length=32)
-    first_name = models.CharField(max_length=32)
-    middle_name = models.CharField(max_length=32, null=True, blank=True)
-    pref_first_name = models.CharField(max_length=32, null=True, blank=True)
-    high_school = models.CharField(max_length=32)
-    notes = models.TextField(help_text="Any notes about the student")
-    unit = models.ForeignKey(Unit, help_text='The potential academic unit for the student', null=True, blank=True)
-    
-    def __unicode__(self):
-        return "%s, %s" % (self.last_name, self.first_name)
-    
-    def name(self):
-        return "%s %s" % (self.first_name, self.last_name)
+
     
