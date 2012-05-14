@@ -1,4 +1,5 @@
 from coredata.models import Person, Semester, SemesterWeek
+from django.conf import settings
 from django.db import transaction
 from django.core.cache import cache
 import re, hashlib, datetime
@@ -15,7 +16,7 @@ class DBConn(object):
     Implemented as a singleton to minimize number of times DB connection overhead occurs.
     Should only be created on-demand (in function) to minimize startup for other processes.
     """
-    dbpass_file = "./dbpass"
+    dbpass_file = settings.DB_PASS_FILE
     _instance = None
     def __new__(cls, *args, **kwargs):
         if not cls._instance:

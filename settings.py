@@ -134,6 +134,7 @@ if DEPLOYED:
     } }
     BASE_ABS_URL = "https://courses.cs.sfu.ca"
     SESSION_COOKIE_SECURE = True
+    DB_PASS_FILE = "/home/ggbaker/dbpass"
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # changed below if using Celery
     SVN_PASS = '???'
     SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': 'svnuser', 'passwd': SVN_PASS,
@@ -146,6 +147,7 @@ else:
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     } }
     BASE_ABS_URL = "http://localhost:8000"
+    DB_PASS_FILE = "./dbpass"
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # changed below if using Celery
     SVN_DB_CONNECT = None
 

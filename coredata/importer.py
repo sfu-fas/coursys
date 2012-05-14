@@ -650,9 +650,6 @@ def import_offering_members(offering, students=True):
     
     students=False used by test/demo importers
     """
-    #if random.randint(1,40) == 1:
-    #    print " ", offering
-    print offering
     import_instructors(offering)
     if students:
         import_tas(offering)
@@ -753,7 +750,11 @@ def main():
     offerings.sort()
 
     print "importing course members"
+    last = None
     for o in offerings:
+        if last != o.subject:
+            print o.subject, o.semester
+            last = o.subject
         import_offering_members(o)
         time.sleep(0.5)
 
