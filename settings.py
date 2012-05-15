@@ -25,7 +25,7 @@ if DEPLOYED:
             'HOST': '127.0.0.1',
             'PORT': '4000',
             #'OPTIONS': {"init_command": "SET storage_engine=INNODB;"} # needed only for initial table creation
-            'OPTIONS': {"init_command": "SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;"} # Celeryd misbehaves if not set
+            'OPTIONS': {"init_command": "SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;"}, # Celeryd misbehaves if not set
         }
     }
 else:
@@ -164,11 +164,9 @@ if USE_CELERY:
     DJKOMBU_POLLING_INTERVAL = 10
     CELERY_QUEUES = {
         "celery": {},
-        "email": {},
     }
     CELERY_SEND_TASK_ERROR_EMAILS = True
     CELERY_EMAIL_TASK_CONFIG = {
-        'queue' : 'email',
         'rate_limit' : '30/m',
         #'priority': 7,
     }

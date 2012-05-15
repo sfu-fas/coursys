@@ -2,14 +2,14 @@
   "combine": true,
   "marks": [
     {
-      "userid": "0aaa25",
-      "part-2": {"mark": 1.00, "comment": "0aaa25 2"},
+      "userid": "0aaa12",
+      "part-2": {"mark": 1.00, "comment": "0aaa12 2"},
       "late_percent": 20
     },
     {
-      "userid": "0aaa32",
-      "part-1": {"mark": 5.00, "comment": "0aaa32 1b"},
-      "part-2": {"mark": 2.00, "comment": "0aaa32 2"}
+      "userid": "0aaa8",
+      "part-1": {"mark": 5.00, "comment": "0aaa8 1b"},
+      "part-2": {"mark": 2.00, "comment": "0aaa8 2"}
     }
   ]
 }

@@ -1,5 +1,4 @@
 import io
-import os
 import unicodecsv as csv
 import json
 import decimal
@@ -534,10 +533,15 @@ def _marking_view(request, course_slug, activity_slug, userid, groupmark=False):
     elif 'base_activity_mark' in request.GET:
         # requested "mark based on": get that object
         old_id = request.GET['base_activity_mark']
-        if groupmark:
-            am = get_group_mark_by_id(activity, group, old_id)
+        try:
+            old_id = int(old_id)
+        except ValueError:
+            am = None
         else:
-            am = get_activity_mark_by_id(activity, membership, old_id)
+            if groupmark:
+                am = get_group_mark_by_id(activity, group, old_id)
+            else:
+                am = get_activity_mark_by_id(activity, membership, old_id)
     elif 'load_old' in request.GET:
         # requested load any previous mark: get that object
         try:
@@ -792,7 +796,7 @@ def mark_history_student(request, course_slug, activity_slug, userid):
     
     context = {'course': course, 'activity' : activity, 'student' : student,}
     mark_history_info = get_activity_mark_for_student(activity, membership, True)
-    context.update(mark_history_info)    
+    context.update(mark_history_info)
     return render_to_response("marking/mark_history_student.html", context, context_instance = RequestContext(request))
 
 @requires_course_staff_by_slug

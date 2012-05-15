@@ -3,7 +3,7 @@ from lxml import etree
 import urllib
 
 # course with the test data
-TEST_COURSE_SLUG = '2012sp-cmpt-165-c1'
+TEST_COURSE_SLUG = '2012su-cmpt-383-d1'
 
 def validate_content(testcase, data, page_descr="unknown page"):
     """

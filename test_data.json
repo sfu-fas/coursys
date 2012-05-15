@@ -19102,5 +19102,51 @@
   },
   "model": "advisornotes.advisornote",
   "pk": 1
- } 
+ },
+ {
+  "fields": {
+   "account_number": 12345,
+   "position_number": 12345,
+   "slug": "comp-12345-msc-ta",
+   "title": "MSc TA",
+   "unit": 2
+  },
+  "model": "ra.account",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "account_number": 12346,
+   "position_number": 12346,
+   "slug": "comp-12346-phd-ta",
+   "title": "PhD TA",
+   "unit": 2
+  },
+  "model": "ra.account",
+  "pk": 2
+ },
+ {
+  "fields": {
+   "account_number": 12347,
+   "position_number": 12347,
+   "slug": "comp-12347-undergrad-ta",
+   "title": "Undergrad TA",
+   "unit": 2
+  },
+  "model": "ra.account",
+  "pk": 3
+ },
+ {
+  "fields": {
+   "account_number": 12348,
+   "position_number": 12348,
+   "slug": "comp-12348-external-ta",
+   "title": "External TA",
+   "unit": 2
+  },
+  "model": "ra.account",
+  "pk": 4
+ }
+
+ 
 ]

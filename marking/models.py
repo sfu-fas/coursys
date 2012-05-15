@@ -285,39 +285,39 @@ class GroupActivityMark_LetterGrade(ActivityMark_LetterGrade):
 
        
 def get_activity_mark_by_id(activity, student_membership, activity_mark_id): 
-     """
-     Find the activity_mark with that id if it exists for the student on the activity
-     it could be in the StudentActivityMark or GroupActivityMark
-     return None if not found.
-     """   
+    """
+    Find the activity_mark with that id if it exists for the student on the activity
+    it could be in the StudentActivityMark or GroupActivityMark
+    return None if not found.
+    """   
     # try StudentActivityMark first 
-     try:
-         act_mark = StudentActivityMark.objects.select_related().get(id = activity_mark_id)
-     except StudentActivityMark.DoesNotExist:
-         pass
-     else:
-         # check consistency against activity and membership
-         num_grade = act_mark.numeric_grade 
-         if num_grade.activity == activity and num_grade.member == student_membership:
+    try:
+        act_mark = StudentActivityMark.objects.get(id=activity_mark_id)
+    except StudentActivityMark.DoesNotExist:
+        pass
+    else:
+        # check consistency against activity and membership
+        num_grade = act_mark.numeric_grade 
+        if num_grade.activity == activity and num_grade.member == student_membership:
             return act_mark
         
-     # not found, then try GroupActivityMark          
-     try:
-         act_mark = GroupActivityMark.objects.select_related().get(id = activity_mark_id)
-     except GroupActivityMark.DoesNotExist:
-         pass
-     else:                
-         # check consistency with the activity and membership
-         if act_mark.numeric_activity == activity:
-             group = act_mark.group
-             try:
-                 group_mem = GroupMember.objects.get(group = group, activity = activity, student = student_membership, confirmed = True)
-             except GroupMember.DoesNotExist:
-                 pass
-             else:
-                 return act_mark         
-     
-     return None
+    # not found, then try GroupActivityMark
+    try:
+        act_mark = GroupActivityMark.objects.get(id = activity_mark_id)
+    except GroupActivityMark.DoesNotExist:
+        pass
+    else:                
+        # check consistency with the activity and membership
+        if act_mark.numeric_activity == activity:
+            group = act_mark.group
+            try:
+                group_mem = GroupMember.objects.get(group = group, activity = activity, student = student_membership, confirmed = True)
+            except GroupMember.DoesNotExist:
+                pass
+            else:
+                return act_mark         
+    
+    return None
  
 def get_group_mark_by_id(activity, group, activity_mark_id): 
      """
@@ -325,7 +325,7 @@ def get_group_mark_by_id(activity, group, activity_mark_id):
      return None if not found.
      """            
      try:
-         act_mark = GroupActivityMark.objects.select_related().get(id = activity_mark_id)
+         act_mark = GroupActivityMark.objects.get(id = activity_mark_id)
      except GroupActivityMark.DoesNotExist:
          pass
      else:                
@@ -349,27 +349,26 @@ def get_group_mark(activity, group, include_all = False):
 
 
 def get_activity_mark_for_student(activity, student_membership, include_all = False):
-     """
-     Return the mark for the student on the activity.     
-     if include_all is False, only return the current mark which was most lately created 
-     and thus is currently valid. Otherwise not only return the current mark but also 
-     all the history marks for the student on the activity        
-     """  
-     current_mark = None
-     std_marks = None
-     grp_marks = None     
+    """
+    Return the mark for the student on the activity.     
+    if include_all is False, only return the current mark which was most lately created 
+    and thus is currently valid. Otherwise not only return the current mark but also 
+    all the history marks for the student on the activity        
+    """  
+    current_mark = None
+    grp_marks = None     
      
-     # the mark maybe assigned directly to this student 
-     num_grade = NumericGrade.objects.get(activity = activity, member = student_membership)
-     std_marks = StudentActivityMark.objects.filter(numeric_grade = num_grade)     
-     if std_marks.count() != 0 :
+    # the mark maybe assigned directly to this student 
+    num_grade = NumericGrade.objects.get(activity = activity, member = student_membership)
+    std_marks = StudentActivityMark.objects.filter(numeric_grade = num_grade)     
+    if std_marks.count() != 0 :
         #get the latest one
         current_mark = std_marks.latest('created_at')
         
-     # the mark maybe assigned to this student via the group this student participates for this activity       
-     group_mems = GroupMember.objects.select_related().filter(student = student_membership, activity = activity, confirmed = True)
-     
-     if group_mems.count() > 0:
+    # the mark maybe assigned to this student via the group this student participates for this activity       
+    group_mems = GroupMember.objects.filter(student=student_membership, activity=activity, confirmed=True).select_related('group')
+    
+    if group_mems.count() > 0:
         group = group_mems[0].group # there should be only one group this student is in
         grp_mark_info = get_group_mark(activity, group, True)        
         latest_grp_mark = grp_mark_info['current_mark']
@@ -379,9 +378,9 @@ def get_activity_mark_for_student(activity, student_membership, include_all = Fa
            (latest_grp_mark != None and latest_grp_mark.created_at > current_mark.created_at):
             current_mark = latest_grp_mark
         
-     if not include_all:
-         return current_mark
-     else:
+    if not include_all:
+        return current_mark
+    else:
         return {'current_mark' : current_mark, 
                 'marks_individual' : std_marks,
                 'marks_via_group' : grp_marks}

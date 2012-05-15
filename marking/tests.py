@@ -398,7 +398,7 @@ class TestImportFunctionsNumeric(TestCase):
         data_to_return = {}
         with open(inName, 'r') as inp:
 	    err = _compose_imported_grades(inp, self.students, data_to_return, self.a1)
-        self.assertEqual(err, 'Error found in the file (row 2): Unmatched student number '
+        self.assertEqual(err, 'Error found in the file (row 1): Unmatched student number '
             'or user-id ({0}).'. format(bad_emplid))
         self.assertEqual(len(data_to_return), 0)
 
@@ -645,24 +645,25 @@ class TestMarkingImport(TestCase):
         with open('marking/testfiles/marking_import1.json') as file:
             post_data = {'file':[file]}
             response = self.client.post(url, post_data)
+        
         self.assertEquals(response.status_code, 302)
         
         # check that the parts are there
         marks = StudentActivityMark.objects.filter(activity=self.act)
-        m = marks.get(numeric_grade__member__person__userid="0aaa25")
+        m = marks.get(numeric_grade__member__person__userid="0aaa12")
         self.assertEquals(m.numeric_grade.value, Decimal('3'))
         mc = m.activitycomponentmark_set.get(activity_component__slug="part-1")
         self.assertEquals(mc.value, Decimal('3'))
-        self.assertEquals(mc.comment, "0aaa25 1")
+        self.assertEquals(mc.comment, "0aaa12 1")
         mc = m.activitycomponentmark_set.get(activity_component__slug="part-2")
         self.assertEquals(mc.value, Decimal('0'))
         self.assertEquals(mc.comment, "")
 
-        m = marks.get(numeric_grade__member__person__userid="0aaa32")
+        m = marks.get(numeric_grade__member__person__userid="0aaa8")
         self.assertAlmostEquals(float(m.numeric_grade.value), 3.6)
         mc = m.activitycomponentmark_set.get(activity_component__slug="part-1")
         self.assertEquals(mc.value, Decimal('4'))
-        self.assertEquals(mc.comment, "0aaa32 1a")
+        self.assertEquals(mc.comment, "0aaa8 1a")
         mc = m.activitycomponentmark_set.get(activity_component__slug="part-2")
         self.assertEquals(mc.value, Decimal('0'))
         self.assertEquals(mc.comment, "")
@@ -675,21 +676,21 @@ class TestMarkingImport(TestCase):
         self.assertEquals(response.status_code, 302)
         
         marks = StudentActivityMark.objects.filter(activity=self.act)
-        m = marks.filter(numeric_grade__member__person__userid="0aaa25").latest('created_at')
+        m = marks.filter(numeric_grade__member__person__userid="0aaa12").latest('created_at')
         self.assertAlmostEquals(float(m.numeric_grade.value), 3.2)
         mc = m.activitycomponentmark_set.get(activity_component__slug="part-1")
         self.assertEquals(mc.value, Decimal('3'))
-        self.assertEquals(mc.comment, "0aaa25 1")
+        self.assertEquals(mc.comment, "0aaa12 1")
         mc = m.activitycomponentmark_set.get(activity_component__slug="part-2")
         self.assertEquals(mc.value, Decimal('1'))
-        self.assertEquals(mc.comment, "0aaa25 2")
+        self.assertEquals(mc.comment, "0aaa12 2")
 
-        m = marks.filter(numeric_grade__member__person__userid="0aaa32").latest('created_at')
+        m = marks.filter(numeric_grade__member__person__userid="0aaa8").latest('created_at')
         self.assertAlmostEquals(float(m.numeric_grade.value), 6.3)
         mc = m.activitycomponentmark_set.get(activity_component__slug="part-1")
         self.assertEquals(mc.value, Decimal('5'))
-        self.assertEquals(mc.comment, "0aaa32 1b")
+        self.assertEquals(mc.comment, "0aaa8 1b")
         mc = m.activitycomponentmark_set.get(activity_component__slug="part-2")
         self.assertEquals(mc.value, Decimal('2'))
-        self.assertEquals(mc.comment, "0aaa32 2")
+        self.assertEquals(mc.comment, "0aaa8 2")
 
