@@ -12,6 +12,10 @@ marking: finer-grained marking with a rubric
 mobile: some read-only views for mobile devices
 planning: planning of courses, assigning instructors, etc.
 submission: submission of work (for later grading)
+ta: management of TA applications and assignment
+grad: grade student database
+ra: research assistant database and appointments
+advisornotes: advisor notepads for student advising
 
 OTHER TOP-LEVEL FILES/DIRECTORIES
 courselib: various library code for the system

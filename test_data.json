@@ -19072,5 +19072,35 @@
   },
   "model": "grad.lettertemplate",
   "pk": 2
- }
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "first_name": "Student",
+   "high_school": null,
+   "last_name": "Non",
+   "middle_name": null,
+   "notes": "",
+   "pref_first_name": null,
+   "slug": "student-non",
+   "unit": 2
+  },
+  "model": "advisornotes.nonstudent",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "advisor": 561,
+   "created_at": "2012-05-15 10:52:31",
+   "file_attachment": "",
+   "file_mediatype": null,
+   "hidden": false,
+   "nonstudent": 1,
+   "student": null,
+   "text": "this is a non\nstudent's note",
+   "unit": 2
+  },
+  "model": "advisornotes.advisornote",
+  "pk": 1
+ } 
 ]

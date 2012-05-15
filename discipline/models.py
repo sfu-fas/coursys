@@ -30,7 +30,7 @@ RESPONSE_CHOICES = (
 INSTR_PENALTY_CHOICES = (
         ('WAIT', 'penalty not yet assigned'),
         ('NONE', 'case dropped: no penalty assigned'),
-        ('WARN', 'give the student a warning'),
+        ('WARN', 'give the student a written warning'),
         ('REDO', 'require the student to redo the work, or to do supplementary work'),
         ('MARK', 'assign a low grade for the work'),
         ('ZERO', u'assign a grade of \u201CF\u201D or zero for the work'),

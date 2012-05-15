@@ -1,9 +1,11 @@
 from django.db import models
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
+from autoslug import AutoSlugField
 from coredata.models import Person, Unit
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter
+from courselib.slugs import make_slug
 import datetime, os.path
 
 NoteSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
@@ -29,6 +31,10 @@ class NonStudent(models.Model):
     high_school = models.CharField(max_length=32, null=True, blank=True)
     notes = models.TextField(help_text="Any notes about the student", blank=True)
     unit = models.ForeignKey(Unit, help_text='The potential academic unit for the student', null=True, blank=True)
+    def autoslug(self):
+        return make_slug(self.first_name + ' ' + self.last_name)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
     
     def __unicode__(self):
