@@ -12,11 +12,6 @@ $(document).ready(function() {
     'bInfo': false,
     'bLengthChange': false,
     "bJQueryUI": true,
-    "aoColumns": [
-      null,
-      null,
-      null,
-    ]
   } );
 } );
 </script>
@@ -38,12 +33,14 @@ $(document).ready(function() {
 
 <div class="datatable_container">
 <table id="pagestable" class="display">
-  <thead><tr><th scope="col">Label</th><th scope="col">Page Title</th><th scope="col">Modified</th></tr></thead>
+  <thead><tr><th scope="col">Label</th><th scope="col">Page Title</th><th scope="col">Can Read</th><th scope="col">Can Edit</th><th scope="col">Modified</th></tr></thead>
   <tbody>
   {% for p in pages %}{% with p.current_version as v %}
   <tr>
   <td><a href="{% url pages.views.view_page course_slug=offering.slug page_label=p.label %}">{{p.label}}</a></td>
   <td>{{v.title}}</td>
+  <td>{{p.get_can_read_display}}</td>
+  <td>{{p.get_can_write_display}}</td>
   <td>{{v.created_at}}</td>
   </tr>
   {% endwith %}{% endfor %}
