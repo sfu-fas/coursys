@@ -881,7 +881,7 @@ class RAImport(object):
 
 if __name__ == '__main__':
     #Introspection().print_schema()
-    #TAImport().get_tas()
+    TAImport().get_tas()
     GradImport().get_students()
-    #RAImport().get_ras()
+    RAImport().get_ras()
 
