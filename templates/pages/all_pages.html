@@ -47,5 +47,8 @@ $(document).ready(function() {
   </tbody>
 </table>
 </div>
+{% if member.role == 'INST' or member.role == 'TA' %}
+<p class="helptext">Users see only the pages that they can <strong>read</strong> here, i.e. if you have a page that is only visible to instructors and TAs, students will not see it on this list.</p>
+{% endif %}
 
 {% endblock %}

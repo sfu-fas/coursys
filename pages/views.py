@@ -50,7 +50,7 @@ def all_pages(request, course_slug):
         pages = Page.objects.filter(offering=offering, can_read='ALL')
         can_create = False
 
-    context = {'offering': offering, 'pages': pages, 'can_create': can_create}
+    context = {'offering': offering, 'pages': pages, 'can_create': can_create, 'member': member}
     return render(request, 'pages/all_pages.html', context)
 
 def view_page(request, course_slug, page_label):
