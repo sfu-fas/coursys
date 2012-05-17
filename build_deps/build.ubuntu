@@ -1,0 +1,6 @@
+#!/bin/bash
+
+sudo apt-get install python-pip python-virtualenv python-dev python-lxml subversion
+virtualenv --distribute coursys_dev_env
+source coursys_dev_env/bin/activate
+sudo pip install -r dependencies.txt
