@@ -6,6 +6,7 @@ except ImportError:
     from local_settings_example import local_settings
 
 import getpass
+import time
 
 """ 
 To run this file, you will need:
@@ -98,16 +99,21 @@ def runserver():
         with prefix('source ../'+local_settings['virtualenv']+'/bin/activate'):
             results.append( run('python manage.py runserver 0:8000') )
 
-def test_with_results():
+def complete_build():
+    clone()
+    on()
     config()
     test()
-    
+    off()
+    time.sleep( 2 )
+    clear()
+
     failure = True in [x.failed for x in results]
 
     if failure:
-        print "This should probably do something."
+        print "FAILURE: This should probably do something."
     else:
-        print "This, too, should probably do something." 
+        print "SUCCESS: This, too, should probably do something." 
 
 
 
