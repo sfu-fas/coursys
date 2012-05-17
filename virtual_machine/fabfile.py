@@ -76,11 +76,14 @@ env.hosts = ['127.0.0.1']
 env.user = local_settings['username']
 env.password = local_settings['password']
 env.port = local_settings['ssh_tunnel_port']
+env.warn_only = True
+
+results = []
 
 def clone():
     """ Clone a copy of our VM, leaving us with SSH access to a pristine computer. """
     
-    local('VBoxManage clonevm "'+local_settings['vm_name']+'" --name "'+local_settings['cloned_vm_name']+'" --register --options keepallmacs')
+    results.append( local('VBoxManage clonevm "'+local_settings['vm_name']+'" --name "'+local_settings['cloned_vm_name']+'" --register --options keepallmacs') )
     map_ports()
 
 def map_ports():
@@ -96,22 +99,22 @@ def map_ports():
 
 def forward_port( rule_name, guest_port, host_port ):
     """ Forward guest_vm:<guest_port> to localhost:<host_port> """
-    local('VBoxManage modifyvm "'+local_settings['cloned_vm_name']+'" --natpf1 "'+rule_name+'",tcp,,'+str(host_port)+',,'+str(guest_port) );
+    results.append( local('VBoxManage modifyvm "'+local_settings['cloned_vm_name']+'" --natpf1 "'+rule_name+'",tcp,,'+str(host_port)+',,'+str(guest_port) ) );
 
 def on():
     """ Activate the VM, headless (no visual access). """
     
-    local('VBoxHeadless --startvm '+local_settings['cloned_vm_name']+' &')
+    results.append( local('VBoxHeadless --startvm '+local_settings['cloned_vm_name']+' &') )
 
 def off():
     """ Power down the VM. """
     
-    local('VBoxManage controlvm '+local_settings['cloned_vm_name']+' poweroff')
+    results.append( local('VBoxManage controlvm '+local_settings['cloned_vm_name']+' poweroff') )
 
 def clear():
     """ Destroy the VM. """
     
-    local('VBoxManage unregistervm --delete '+local_settings['cloned_vm_name'] )
+    results.append( local('VBoxManage unregistervm --delete '+local_settings['cloned_vm_name'] ) )
 
 def config():
     """ Configure the VM. """
@@ -120,17 +123,17 @@ def config():
     password = local_settings['svn_password'] if local_settings['svn_password'] != '' else getpass.getpass( prompt="SVN password: " )
 
     with hide('stdout'):
-        sudo('apt-get update')
-    sudo('apt-get install -y ' + ' '.join(local_settings['apt_packages']))
+        results.append( sudo('apt-get update') )
+    results.append( sudo('apt-get install -y ' + ' '.join(local_settings['apt_packages'])) )
     with hide('running'):
-        run('yes "yes"| svn checkout '+local_settings['svn_location']+' --username '+username+' --password '+password)
-    run('virtualenv --distribute ' + local_settings['virtualenv'] )
+        results.append( run('yes "yes"| svn checkout '+local_settings['svn_location']+' --username '+username+' --password '+password) )
+    results.append( run('virtualenv --distribute ' + local_settings['virtualenv'] ) )
     with cd(local_settings['svn_folder']):
         with prefix('source ../'+local_settings['virtualenv']+'/bin/activate'):
-            sudo('pip install -r '+local_settings['location_of_dependencies'])
-            run('python manage.py syncdb --noinput')
-            run('python manage.py migrate')
-            run('python manage.py loaddata test_data')
+            results.append( sudo('pip install -r '+local_settings['location_of_dependencies']) )
+            results.append( run('python manage.py syncdb --noinput') )
+            results.append( run('python manage.py migrate') )
+            results.append( run('python manage.py loaddata test_data') )
 
 def test():
     """ Run the tests """
@@ -139,12 +142,25 @@ def test():
 
     with cd(local_settings['svn_folder']):
         with prefix('source ../'+local_settings['virtualenv']+'/bin/activate'):
-            run('python '+wall+' manage.py test --verbosity ' + str(local_settings['test_verbosity'])) 
+            results.append( run('python '+wall+' manage.py test --verbosity ' + str(local_settings['test_verbosity'])) ) 
 
 def runserver():
     """ Run the django server """
     
     with cd('courses'):
         with prefix('source ../'+local_settings['virtualenv']+'/bin/activate'):
-            run('python manage.py runserver 0:8000')
+            results.append( run('python manage.py runserver 0:8000') )
+
+def test_with_results():
+    config()
+    test()
+    
+    failure = True in [x.failed for x in results]
+
+    if failure:
+        print "This should probably do something."
+    else:
+        print "This, too, should probably do something." 
+
+
 
