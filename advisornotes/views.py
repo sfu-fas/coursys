@@ -174,6 +174,7 @@ def new_nonstudent(request):
         form = NonStudentForm(request.POST)
         if form.is_valid():
             form.save()
+            #To be redirected to just created student once functionality is in place
             return HttpResponseRedirect(reverse('advisornotes.views.advising'))
     else:
         form = NonStudentForm()

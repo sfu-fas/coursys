@@ -1,9 +1,10 @@
-from django import forms
 from advisornotes.models import AdvisorNote, NonStudent
 from coredata.models import Person
-from django.utils.safestring import mark_safe
-from django.utils.encoding import force_unicode
+from django import forms
 from django.forms.models import ModelForm
+from django.utils.encoding import force_unicode
+from django.utils.safestring import mark_safe
+from grades.forms import _required_star
 
 class AdvisorNoteForm(forms.ModelForm):
     class Meta:
@@ -46,6 +47,9 @@ class NoteSearchForm(forms.Form):
     search = forms.CharField()
 
 class NonStudentForm(ModelForm):
+    first_name = forms.CharField(label=mark_safe('First name ' + _required_star))
+    last_name = forms.CharField(label=mark_safe('Last name ' + _required_star))
+    
     class Meta:
         model = NonStudent
         exclude=('config')
