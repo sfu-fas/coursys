@@ -293,6 +293,7 @@ urlpatterns += patterns('',
     #url(r'^advising/students/' + USERID_OR_EMPLID + '/' + NOTE_ID + '$', 'advisornotes.views.view_note'),
     url(r'^advising/students/' + USERID_OR_EMPLID + '/' + NOTE_ID + '/file', 'advisornotes.views.download_file'),
     url(r'^advising/students/' + USERID_OR_EMPLID + '/moreinfo$', 'advisornotes.views.student_more_info'),
+    url(r'^advising/new_prospective_student', 'advisornotes.views.new_nonstudent'),
     
 #----- Graduate student database
 

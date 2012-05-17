@@ -1,8 +1,9 @@
 from django import forms
-from advisornotes.models import AdvisorNote
+from advisornotes.models import AdvisorNote, NonStudent
 from coredata.models import Person
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
+from django.forms.models import ModelForm
 
 class AdvisorNoteForm(forms.ModelForm):
     class Meta:
@@ -43,3 +44,8 @@ class StudentSearchForm(forms.Form):
 
 class NoteSearchForm(forms.Form):
     search = forms.CharField()
+
+class NonStudentForm(ModelForm):
+    class Meta:
+        model = NonStudent
+        exclude=('config')

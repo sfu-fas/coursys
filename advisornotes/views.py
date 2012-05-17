@@ -4,7 +4,8 @@ from django.http import HttpResponse
 from django.template import RequestContext
 from django.contrib import messages
 from advisornotes.models import AdvisorNote
-from advisornotes.forms import AdvisorNoteForm, StudentSearchForm, NoteSearchForm
+from advisornotes.forms import AdvisorNoteForm, StudentSearchForm, NoteSearchForm,\
+    NonStudentForm
 from coredata.models import Person
 from coredata.queries import find_person, add_person, more_personal_info, SIMSProblem
 from courselib.auth import requires_role, HttpResponseRedirect, ForbiddenResponse
@@ -163,3 +164,17 @@ def student_more_info(request, userid):
     json.dump(data, response)
     return response
 
+@requires_role('ADVS')
+def new_nonstudent(request):
+    """
+    View to create a new non-student
+    """
+    
+    if request.POST:
+        form = NonStudentForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('advisornotes.views.advising'))
+    else:
+        form = NonStudentForm()
+    return render(request, 'advisornotes/new_nonstudent.html', {'form': form})

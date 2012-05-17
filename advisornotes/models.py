@@ -29,7 +29,7 @@ class NonStudent(models.Model):
     middle_name = models.CharField(max_length=32, null=True, blank=True)
     pref_first_name = models.CharField(max_length=32, null=True, blank=True)
     high_school = models.CharField(max_length=32, null=True, blank=True)
-    notes = models.TextField(help_text="Any notes about the student", blank=True)
+    notes = models.TextField(help_text="Any general information for the student", blank=True)
     unit = models.ForeignKey(Unit, help_text='The potential academic unit for the student', null=True, blank=True)
     def autoslug(self):
         return make_slug(self.first_name + ' ' + self.last_name)

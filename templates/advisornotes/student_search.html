@@ -18,12 +18,18 @@ $(document).ready(function() {
 {% block subbreadcrumbs %}<li>&gt; Advising</li>{% endblock %}
 
 {% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    	<li><a href="{% url advisornotes.views.new_nonstudent %}">Create new prospective student</a></li>
+    </ul>
+</div>
 {% endblock %}
 
 {% block content %}
-<div id="form_container">
+<div id="form_container" style="clear: left;">
 <form action="" method="post">{% csrf_token %}
-<fieldset>
+<fieldset style="width: 65%">
 {{form.as_p}}
 <p><input class="submit" type="submit" value="Submit" /></p>
 </fieldset>
@@ -46,10 +52,14 @@ $(document).ready(function() {
 </div>
 
 <h2 id="notesearch">Search Content of Notes</h2>
+<div style="margin-right: 1em;">
 <form action="{% url advisornotes.views.note_search %}" method="get">
+<fieldset style="width: 65%; margin-right: 1em;">
 {{note_form.as_p}}
 <p><input class="submit" type="submit" value="Submit" /></p>
+</fieldset>
 </form>
+</div>
 {% endblock %}
 
 
