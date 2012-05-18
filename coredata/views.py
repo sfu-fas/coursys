@@ -6,6 +6,7 @@ from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm,
 from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse
 from courselib.search import get_query
 from coredata.models import Person, Semester, CourseOffering, Member, Role, Unit, UNIT_ROLES, ROLES, ROLE_DESCR
+from advisornotes.models import NonStudent
 from log.models import LogEntry
 from django.core.urlresolvers import reverse
 from django.contrib import messages
@@ -390,10 +391,17 @@ def student_search(request):
         return ForbiddenResponse(request, "Must provide 'term' query.")
     term = request.GET['term']
     response = HttpResponse(mimetype='application/json')
-    query = get_query(term, ['userid', 'emplid', 'first_name', 'last_name'])
 
-    people = Person.objects.filter(query)[:100]
-    data = [{'value': p.emplid, 'label': p.search_label_value()} for p in people]
+    studentQuery = get_query(term, ['userid', 'emplid', 'first_name', 'last_name'])
+    students = Person.objects.filter(studentQuery)[:100]
+
+    nonStudentQuery = get_query(term, ['first_name', 'last_name', 'pref_first_name'])
+    nonStudents = NonStudent.objects.filter(nonStudentQuery)[:100]
+
+    data = [{'value': s.emplid, 'label': s.search_label_value()} for s in students]
+    data.extend([{'value': n.slug, 'label': n.search_label_value()} for n in nonStudents])
+
+    data.sort(key = lambda x: x['label'])
 
     json.dump(data, response, indent=1)
     return response

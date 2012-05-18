@@ -43,6 +43,9 @@ class NonStudent(models.Model):
     def name(self):
         return "%s %s" % (self.first_name, self.last_name)
 
+    def search_label_value(self):
+        return "%s (Prospective)" % (self.name())
+        
 class AdvisorNote(models.Model):
     """
     An academic advisor's note about a student. 

@@ -7,7 +7,7 @@
 <script type="text/javascript">
 //<![CDATA[
 $(document).ready(function() {
-  $("id_search").focus();
+  $("#id_search").focus();
   student_autocomplete('id_search');
   {% if simssearch %}
   search_sims('{% url advisornotes.views.sims_search %}', '{{simssearch}}', '{% url advisornotes.views.sims_add_person %}', '{% filter escapejs %}{% csrf_token %}{% endfilter %}');
