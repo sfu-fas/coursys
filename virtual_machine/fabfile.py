@@ -97,7 +97,7 @@ def runserver():
     
     with cd('courses'):
         with prefix('source ../'+local_settings['virtualenv']+'/bin/activate'):
-            results.append( run('python manage.py runserver 0:8000') )
+            results.append( run('python manage.py runserver 0:8000 &') )
 
 def complete_build():
     off()
@@ -110,6 +110,8 @@ def complete_build():
     time.sleep( 10 )
     config()
     test()
+    time.sleep( 2 )
+    runserver()
 
     failure = True in [x.failed for x in results]
 
