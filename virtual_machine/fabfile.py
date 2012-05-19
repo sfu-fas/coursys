@@ -52,12 +52,12 @@ def forward_port( rule_name, guest_port, host_port ):
 def on():
     """ Activate the VM, headless (no visual access). """
     
-    results.append( local('VBoxHeadless --startvm '+local_settings['cloned_vm_name']+' &') )
+    local('VBoxHeadless --startvm '+local_settings['cloned_vm_name']+' &')
 
 def off():
     """ Power down the VM. """
     
-    results.append( local('VBoxManage controlvm '+local_settings['cloned_vm_name']+' poweroff') )
+    local('VBoxManage controlvm '+local_settings['cloned_vm_name']+' poweroff')
 
 def clear():
     """ Destroy the VM. """
