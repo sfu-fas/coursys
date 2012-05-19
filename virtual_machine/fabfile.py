@@ -100,20 +100,25 @@ def runserver():
             results.append( run('python manage.py runserver 0:8000') )
 
 def complete_build():
+    off()
+    time.sleep( 10 )
+    clear()
+    time.sleep( 10 )
     clone()
+    time.sleep( 10 )
     on()
+    time.sleep( 10 )
     config()
     test()
-    off()
-    time.sleep( 2 )
-    clear()
 
     failure = True in [x.failed for x in results]
 
     if failure:
-        print "FAILURE: This should probably do something."
+        print "FAILURE"
+        exit(1)
     else:
-        print "SUCCESS: This, too, should probably do something." 
+        print "SUCCESS" 
+        exit(0)
 
 
 
