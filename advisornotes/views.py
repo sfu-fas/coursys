@@ -169,13 +169,15 @@ def new_nonstudent(request):
     """
     View to create a new non-student
     """
-    
+    unit_choices = [(u.id, unicode(u)) for u in request.units]
     if request.POST:
         form = NonStudentForm(request.POST)
+        form.fields['unit'].choices = unit_choices
         if form.is_valid():
             form.save()
             #To be redirected to just created student once functionality is in place
             return HttpResponseRedirect(reverse('advisornotes.views.advising'))
     else:
         form = NonStudentForm()
+        form.fields['unit'].choices = unit_choices
     return render(request, 'advisornotes/new_nonstudent.html', {'form': form})
