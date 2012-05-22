@@ -165,9 +165,9 @@ PW=SFUPassword
 <p>And then to connect and use the shell command access:</p>
 <blockquote><pre>ssh -L 127.0.0.1:50000:hutch.ais.sfu.ca:50000 -l ggbaker -N pf.sfu.ca
 . $HOME/sqllib/db2profile
-read -p "Password: " PW
+stty -echo; read -p "Password: " PW; echo; stty echo
 ~/sqllib/bin/db2 CONNECT TO csrpt USER ggbaker USING $PW
-~/sqllib/bin/db2 "SELECT * FROM dbsastg.PS_TERM_TBL WHERE ACAD_YEAR='2012'"</pre></blockquote>
+~/sqllib/bin/db2 "SELECT * FROM dbcsown.PS_TERM_TBL WHERE ACAD_YEAR='2012'"</pre></blockquote>
 </dd>
 
 <dt>Python DB2 library</dt>

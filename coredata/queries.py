@@ -69,7 +69,7 @@ class SIMSConn(DBConn):
     """
     sims_user = "ggbaker"
     sims_db = "csrpt"
-    schema = "dbsastg"
+    schema = "dbcsown"
     
     DatabaseError = None
 
