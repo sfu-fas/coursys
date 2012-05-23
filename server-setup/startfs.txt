@@ -1,6 +1,8 @@
 #!/bin/sh
 FASTCGI_ROOT=/home/ggbaker/fastcgi
 APP_ROOT=/home/ggbaker/courses
+LD_LIBRARY_PATH=/home/ggbaker/sqllib/lib64:/home/ggbaker/sqllib/lib32
+export LD_LIBRARY_PATH
 kill `cat ${FASTCGI_ROOT}/server.pid`
 chown -R www-data ${FASTCGI_ROOT}
 chmod 0700 ${FASTCGI_ROOT}/*
