@@ -18,10 +18,13 @@ def _redirect_to_notes(student):
     """
     Not all students have an active computing account: use userid if we can, or emplid if not.
     """
-    if student.userid:
-        return HttpResponseRedirect(reverse('advisornotes.views.student_notes', kwargs={'userid': student.userid}))
-    else:        
-        return HttpResponseRedirect(reverse('advisornotes.views.student_notes', kwargs={'userid': student.emplid}))
+    if type(student) is Person:
+        if student.userid:
+            return HttpResponseRedirect(reverse('advisornotes.views.student_notes', kwargs={'userid': student.userid}))
+        else:        
+            return HttpResponseRedirect(reverse('advisornotes.views.student_notes', kwargs={'userid': student.emplid}))
+    else:
+        return HttpResponseRedirect(reverse('advisornotes.views.student_notes', kwargs={'nonstudent_slug': student.slug}))
 
 @requires_role('ADVS')
 def advising(request):

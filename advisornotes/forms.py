@@ -36,8 +36,15 @@ class StudentField(forms.ModelChoiceField):
     def to_python(self, value):
         try:
             st = Person.objects.get(emplid=value)
-        except (ValueError, Person.DoesNotExist):
+            return st
+        except:
+            pass
+        
+        try:
+            st = NonStudent.objects.get(slug=value)
+        except (ValueError, NonStudent.DoesNotExist):
             raise forms.ValidationError("Could not find person's record.")
+
         return st
     
 class StudentSearchForm(forms.Form):

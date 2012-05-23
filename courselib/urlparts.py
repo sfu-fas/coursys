@@ -29,6 +29,7 @@ PLAN_SLUG = '(?P<plan_slug>[\w\-]+)'
 SEMESTER = '(?P<semester>\d{4})'
 PAGE_LABEL = '(?P<page_label>[\w\-_\.]+)'
 
+NONSTUDENT_SLUG = '(?P<nonstudent_slug>' + SLUG_RE +')'
 NOTE_ID = '(?P<note_id>' + ID_RE + ')'
 
 APP_ID = '(?P<app_id>' + ID_RE + ')'
