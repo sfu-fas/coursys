@@ -1,4 +1,0 @@
-include perl2python.pl
-include ChangeLog
-include LICENSE
-recursive-include tests *.py

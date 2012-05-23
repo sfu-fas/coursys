@@ -1,4 +1,0 @@
-
-
-[cyrillic]
-pytils >= 0.2

@@ -1,8 +1,0 @@
-build
-dist
-MANIFEST
-*.pyc
-*~
-*.bak
-.*
-tools/NamesList.txt
