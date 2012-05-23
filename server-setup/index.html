@@ -125,9 +125,9 @@ chmod 0711 ~</pre>
   </dd>
 </dl>
 
-
 <h2 id="reporting">Reporting Database Access</h2>
 <dl>
+<!--
 <dt>DB2 client [old DB2 9.5]</dt>
 <dd>
 <p>Some <a href="https://www.sfu.ca/irp/links/pdaug.html">instructions on reporting database</a> connections are provided by the PDAUG group under the heading &ldquo;Instructions for Connecting to CSRPT&rdquo;. These are for Windows, but were adapted here.</p>
@@ -147,15 +147,16 @@ PW=SFUPassword
 ~/sqllib/bin/db2 CONNECT TO csrpt USER ggbaker USING $PW
 ~/sqllib/bin/db2 "SELECT * FROM dbsastg.PS_TERM_TBL WHERE ACAD_YEAR='2012'"</pre></blockquote>
 </dd>
-
+-->
 
 
 <dt>DB2 client</dt>
 <dd>
 <p>Some <a href="https://www.sfu.ca/irp/links/pdaug.html">instructions on reporting database</a> connections are provided by the PDAUG group under the heading &ldquo;Instructions for Connecting to CSRPT&rdquo;. These are for Windows, but were adapted here.</p>
-<p>The installation requires libstdc++5, which I had to get <a href="http://packages.ubuntu.com/lucid-backports/libstdc++5">from lucid-backports</a> and install with <code class="unix">dpkg</code>. Also installed Ubuntu package <code class="unix">libaio1</code>.  [Note: these may no longer be necessary for 9.7?]</p>
+<p>Installed Ubuntu package <code class="unix">libaio1</code>.</p>
 <p>The installer didn't like my userid being in the group &ldquo;users&rdquo;, so I edited <code class="file">/etc/group</code> and <code class="file">/etc/gpasswd</code> to rename the group &ldquo;allusers&rdquo;. Reverted the change after the install. That's some quality security.</p>
-<p>From the <a href="http://www-01.ibm.com/support/docview.wss?rs=71&amp;uid=swg27007053">DB2 downloads page</a>, I downloaded DB2 Version 9.7, fixpack 4, Linux 64-bit, IBM Data Server Client (&ldquo;<code class="file">v9.7fp4_linuxia32_client.tar.gz</code>&rdquo;). Unpack and <code class="unix">./db2_install</code>.</p>
+<p>From the <a href="http://www-01.ibm.com/support/docview.wss?rs=71&amp;uid=swg27007053">DB2 downloads page</a>, I downloaded DB2 Version 9.7, fixpack 4, Linux 64-bit, IBM Data Server Client (&ldquo;<code class="file">v9.7fp4_linuxx64_client.tar.gz</code>&rdquo;). Unpack and <code class="unix">./db2_install</code>.
+	[Note that DB2 client location needs to be reflected in <code class="file">startfs.sh</code> described <a href="#fastcgi">above</a>.]</p>
 <p>Once the client is installed, there are some <a href="https://www-304.ibm.com/support/docview.wss?uid=swg21182248">setup steps for remote DB servers</a>:</p>
 <blockquote><pre>ssh -L 127.0.0.1:50000:hutch.ais.sfu.ca:50000 -l ggbaker -N pf.sfu.ca
 . $HOME/sqllib/db2profile
@@ -181,7 +182,7 @@ sudo python setup.py install</pre></blockquote>
 <dd>
 <p>I have been using GNU Screen to keep the SSH session with the port forward open. It seems to work well and says open indefinitely.</p>
 <blockquote><pre>screen -S reportingDB
-ssh -L 127.0.0.1:50000:verdi.ais.sfu.ca:50000 -l ggbaker -N pf.sfu.ca
+ssh -L 127.0.0.1:50000:hutch.ais.sfu.ca:50000 -l ggbaker -N pf.sfu.ca
 # ctrl-A D [to detach from screen session]</pre></blockquote>
 <p>To get back to the screen session:</p>
 <blockquote><pre>screen -r reportingDB</pre></blockquote>
