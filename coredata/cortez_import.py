@@ -13,14 +13,24 @@ from coredata.importer import get_person, get_person_grad, import_one_offering
 import datetime, json, time, decimal
 
 import pymssql, MySQLdb
+CORTEZ_USER = 'ggbaker'
 
+# with the Ubuntu package python-pymssql, this change must be made
 # in /etc/freetds/freetds.conf: [http://www.freetds.org/userguide/choosingtdsprotocol.htm]
 # [global]
 #    tds version = 7.0
 
+# needs these ports forwarded to the databases:
+#   ssh -L 1433:cortez.cs.sfu.ca:1433 oak.fas.sfu.ca # cortez DB
+#   ssh -L 4000:localhost:4000 -L 50000:localhost:50000 courses.cs.sfu.ca # AMAINT and SIMS
+
+
+# update weird value from test data
+Unit.objects.filter(slug='comp').update(label='CMPT', slug='cmpt')
+
 class CortezConn(DBConn):
     db_host = '127.0.0.1'
-    db_user = "fas.sfu.ca\\ggbaker"
+    db_user = "fas.sfu.ca\\" + CORTEZ_USER
     db_name = "ra"
     def escape_arg(self, a):
         return "'" + MySQLdb.escape_string(str(a)) + "'"
@@ -105,6 +115,7 @@ class GradImport(object):
     REQ_LIST = ('Supervisory Committee', 'Breadth Program Approved', 'Breadth Requirements', 'Courses Completed',
                 'Depth Exam', 'CMPT 891', 'Thesis Proposal', 'Thesis Defence', 'Research Topic')
 
+    # cortez -> coursys status values
     STATUS_MAP = {
                   'Incomplete': 'APPL',
                   'Partial': 'APPL',
@@ -127,6 +138,7 @@ class GradImport(object):
                   'Withdrawn': 'WIDR',
                   'ArchiveSP': 'ARSP',
                   }
+    # cortez status -> coursys application_status values
     APP_STATUS_MAP = {
                       'Incomplete': 'INCO',
                       'Expired': 'INCO',
@@ -216,6 +228,9 @@ class GradImport(object):
         #p, new_person = Person.objects.get_or_create(emplid=emplid)
         p = get_person_grad(emplid, commit=True)
         new_person = False
+        if p is None:
+            # TODO: what to do with emplid-less grads?    
+            return
 
         # get what we can from SIMS
         if new_person:
@@ -243,8 +258,6 @@ class GradImport(object):
                         "DepExamCompleted, CMPT891Completed, ThProApproved, ThDefended, ReaTopicChosen, "
                         "Supervisor1, Supervisor2, Supervisor3, Supervisor4, CoSupervisor "
                         "FROM AcademicRecord WHERE Identifier=%s", (cortezid,))
-        #sys.stdout.write('.')
-        #sys.stdout.flush()
 
         for prog, progtype, sem_start, sem_finish, supcom, brepro, brereq, crscom, depexam, \
                 cmpt891, thepro, thedef, reatop, sup1,sup2,sup3,sup4, cosup in self.db:
@@ -255,7 +268,8 @@ class GradImport(object):
 
             # get/create the GradStudent object
             if prog is None:
-                # TODO: no program => don't import?
+                # no program => don't import
+                # TODO: is that okay?
                 continue
 
             prog = self.PROGRAM_MAP[(prog, progtype)]
@@ -294,8 +308,6 @@ class GradImport(object):
                         except ValueError:
                             sem = get_or_create_semester('0'+completed)
                     
-                    #if not sem:
-                    #    print sem, sem_finish, sem_start, `completed`
                     cr.semester = sem
                     cr.notes = notes
                     cr.save()
@@ -498,7 +510,7 @@ class TAImport(object):
         Create a fake offering for the old open lab/development courses
         """
         o = CourseOffering(subject=subject, number=number, section=section+'00', semester=Semester.objects.get(name=sem),
-                           component='OPL', owner=self.UNIT, title=title)
+                           component='OPL', owner=self.UNIT, title=title, enrl_tot=0, enrl_cap=0, wait_tot=0)
         o.save()
         return o
     
@@ -650,6 +662,9 @@ class TAImport(object):
         """
         if bu == 0:
             return
+        if not(emplid.isdigit() and len(emplid)==9):
+            # TODO: what about them?
+            return
         if off_id not in self.offeringid_map:
             # TODO: Where did these offerings go? I'm troubled.
             print "missing offering_id:", off_id
@@ -664,11 +679,6 @@ class TAImport(object):
             return
         offering = self.offeringid_map[off_id]
         p = get_person(emplid, commit=True)
-
-        #if offering.semester.name == '1007':
-        #    print offering, (off_id, bu, salary, schol, description, payst, payen, posnum, initial, cond, tssu, remarks, app_bu, emplid, cat, sin, status)
-        #else:
-        #    return
         
         try:
             posting = TAPosting.objects.get(unit=self.UNIT, semester=offering.semester)
@@ -744,7 +754,7 @@ class TAImport(object):
             #else:
             #    print ">>>", course
 
-        # TODO: do we care about skills from application?
+        # TODO: do we care about skills from old applications? Probably not?
 
     
     def get_tas(self):  
@@ -807,7 +817,7 @@ class RAImport(object):
         except (ValueError, TypeError):
             sin = None
         ra.sin = sin if sin else 0
-        ra.hiring_faculty = Person.objects.get(userid='ggbaker') # TODO: wrong
+        ra.hiring_faculty = Person.objects.get(userid='ggbaker') # TODO: wrong. Need to get faculty's Person object.
         try:
             int(project)
             int(fund)
@@ -837,8 +847,6 @@ class RAImport(object):
             ra.hourly_pay = hourlyrate
             ra.hours = biweeklyhours
             # TODO: hourly stuff usually missing: fix it somehow?
-            #print "T", ra.lump_sum_pay, ra.biweekly_pay*decimal.Decimal(ra.pay_periods)
-            #print "H", ra.biweekly_pay, ra.hourly_pay*ra.hours
         elif salarytype == '2': # lump-sum
             ra.pay_frequency = 'L'
             ra.lump_sum_pay = lumpsumamount
@@ -881,7 +889,7 @@ class RAImport(object):
 
 if __name__ == '__main__':
     #Introspection().print_schema()
-    TAImport().get_tas()
+    #TAImport().get_tas()
     GradImport().get_students()
     RAImport().get_ras()
 

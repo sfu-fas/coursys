@@ -180,6 +180,7 @@ EMAIL_HOST = 'mailgate.sfu.ca'
 DEFAULT_FROM_EMAIL = 'nobody@courses.cs.sfu.ca'
 DEFAULT_SENDER_EMAIL = 'helpdesk@cs.sfu.ca'
 SVN_URL_BASE = "https://punch.cs.sfu.ca/svn/"
+SIMS_USER = "ggbaker"
 DATE_FORMAT = "D N d Y"
 SHORT_DATE_FORMAT = "N d Y"
 DATETIME_FORMAT = "D N d Y, H:i"

@@ -420,6 +420,11 @@ def get_person(emplid, commit=True):
     
     # get their names
     last_name, first_name, middle_name, pref_first_name, title = get_names(emplid)
+    if last_name is None:
+        # no name = no such person
+        p.userid = None
+        p.save()
+        return p
     
     # get userid from AMAINT
     amaintdb = AMAINTConn()

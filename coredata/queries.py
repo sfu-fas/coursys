@@ -67,7 +67,7 @@ class SIMSConn(DBConn):
     """
     Singleton object representing SIMS DB connection
     """
-    sims_user = "ggbaker"
+    sims_user = settings.SIMS_USER
     sims_db = "csrpt"
     schema = "dbcsown"
     
