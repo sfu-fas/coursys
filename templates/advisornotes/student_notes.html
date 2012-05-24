@@ -33,7 +33,9 @@ $(document).ready(function() {
 <h2>Actions</h2>
 <ul>
 <li><a href="{% url advisornotes.views.new_note userid=userid%}">New Note</a></li>
+{% if not nonstudent %}
 <li id="moreinfo"><a href="javascript:get_more_info('{% url advisornotes.views.student_more_info userid=userid %}')">Fetch more info <img src="{{MEDIA_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" style="display:none" /></a></li>
+{% endif %}
 </ul>
 </div>
 {% endblock %}
@@ -52,17 +54,30 @@ $(document).ready(function() {
         </tr>
 	    <tr>
             <th class="ui-state-default">Middle Name</th>
-            <td>{{ student.middle_name }}</td>
+            <td>{{ student.middle_name|default_if_none:"--" }}
+            </td>
         </tr>
 	    <tr>
             <th class="ui-state-default">Student Number</th>
-            <td>{{ student.emplid }}
-               [<a href="
-https://sims.sfu.ca/psp/csprd/EMPLOYEE/HRMS/c/SCC_ADMIN_OVRD_STDNT.SSS_STUDENT_CENTER.GBL?EMPLID={{student.emplid }}">SIMS record</a>]</td>
+            <td>
+            	{% if nonstudent %}
+            		Not a student (<a href="#">Merge with existing student</a>)
+            	{% endif %}
+            	{% if not nonstudent %}
+            	    {{ student.emplid }}
+               		[<a href="https://sims.sfu.ca/psp/csprd/EMPLOYEE/HRMS/c/SCC_ADMIN_OVRD_STDNT.SSS_STUDENT_CENTER.GBL?EMPLID={{student.emplid }}">SIMS record</a>]
+            	{% endif %}
+			</td>
         </tr>
 	    <tr>
-            <th class="ui-state-default">Email Address</th>
-            <td>{{ student.email_mailto }}</td>
+	    	{% if nonstudent %}
+	    		<th class="ui-state-default">High School</th>
+            	<td>{{ student.high_school|default_if_none:"--" }}</td>
+	    	{% endif %}
+	    	{% if not nonstudent %}
+	    		<th class="ui-state-default">Email Address</th>
+            	<td>{{ student.email_mailto }}</td>
+	    	{% endif %}
         </tr>
         </tbody>
     </table>

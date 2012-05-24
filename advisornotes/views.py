@@ -1,9 +1,9 @@
 from django.core.urlresolvers import reverse
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.template import RequestContext
 from django.contrib import messages
-from advisornotes.models import AdvisorNote
+from advisornotes.models import AdvisorNote, NonStudent
 from advisornotes.forms import AdvisorNoteForm, StudentSearchForm, NoteSearchForm,\
     NonStudentForm
 from coredata.models import Person
@@ -13,6 +13,7 @@ from courselib.search import get_query
 from courselib.search import find_userid_or_emplid
 from log.models import LogEntry
 import json
+from django.core.exceptions import ObjectDoesNotExist
 
 def _redirect_to_notes(student):
     """
@@ -103,7 +104,10 @@ def sims_add_person(request):
 
 @requires_role('ADVS')
 def new_note(request, userid):
-    student = get_object_or_404(Person, find_userid_or_emplid(userid))
+    try:
+        student = Person.objects.get(find_userid_or_emplid(userid))
+    except ObjectDoesNotExist:
+        student = get_object_or_404(NonStudent, slug=userid)
     unit_choices = [(u.id, unicode(u)) for u in request.units]
 
     if request.method == 'POST':
@@ -111,7 +115,10 @@ def new_note(request, userid):
         form.fields['unit'].choices = unit_choices
         if form.is_valid():
             note = form.save(commit=False)
-            note.student = student
+            if isinstance(student, Person):
+                note.student = student
+            else:
+                note.nonstudent = student
             note.advisor = Person.objects.get(userid=request.user.username)
 
             if 'file_attachment' in request.FILES:
@@ -134,15 +141,26 @@ def new_note(request, userid):
 
 @requires_role('ADVS')
 def student_notes(request, userid):
-    student = get_object_or_404(Person, find_userid_or_emplid(userid))
+    
+    try:
+        student = Person.objects.get(find_userid_or_emplid(userid))
+    except ObjectDoesNotExist:
+        student = get_object_or_404(NonStudent, slug=userid)
+    
     if request.POST and 'note_id' in request.POST:
         # the "hide note" box was checked: process
         note = get_object_or_404(AdvisorNote, pk=request.POST['note_id'], unit__in=request.units)
         note.hidden = request.POST['hide']=="yes"
         note.save()
 
-    notes = AdvisorNote.objects.filter(student=student, unit__in=request.units).order_by("-created_at")
-    return render(request, 'advisornotes/student_notes.html', {'notes': notes, 'student' : student, 'userid': userid}, context_instance=RequestContext(request))
+    if isinstance(student, Person):
+        notes = AdvisorNote.objects.filter(student=student, unit__in=request.units).order_by("-created_at")
+        nonstudent = False
+    else:
+        notes = AdvisorNote.objects.filter(nonstudent=student, unit__in=request.units).order_by("-created_at")
+        nonstudent = True
+        
+    return render(request, 'advisornotes/student_notes.html', {'notes': notes, 'student' : student, 'userid': userid, 'nonstudent': nonstudent})
 
 @requires_role('ADVS')
 def download_file(request, userid, note_id):
