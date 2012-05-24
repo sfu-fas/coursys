@@ -44,7 +44,7 @@ urlpatterns += patterns('planning.views',
 
 #---------------------------------------
 urlpatterns += patterns('',
-    url(r'^login/$', 'django_cas.views.login'),
+    url(r'^login/$', 'dashboard.views.login'),
     url(r'^logout/$', 'django_cas.views.logout', {'next_page': '/'}),
     url(r'^logout/(?P<next_page>.*)/$', 'django_cas.views.logout', name='auth_logout_next'),
     url(r'^robots.txt$', direct_to_template, {'template': 'robots.txt', 'mimetype': 'text/plain'}),
