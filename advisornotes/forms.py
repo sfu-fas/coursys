@@ -5,6 +5,8 @@ from django.forms.models import ModelForm
 from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
 from grades.forms import _required_star
+from django.core import validators
+from django.core.exceptions import ValidationError
 
 class AdvisorNoteForm(forms.ModelForm):
     class Meta:
@@ -60,3 +62,22 @@ class NonStudentForm(ModelForm):
     class Meta:
         model = NonStudent
         exclude=('config')
+        
+class MergeStudentField(forms.Field):
+    
+    def to_python(self, value):
+        if value in validators.EMPTY_VALUES:
+            raise ValidationError(self.error_messages['required'])
+        try:
+            student = Person.objects.get(emplid=value)
+        except Person.DoesNotExist:
+            raise forms.ValidationError("Could not find student record")
+        return student
+    
+class MergeStudentForm(forms.Form):
+    
+    student = MergeStudentField(label="Student #")
+    
+    
+    
+    

@@ -282,19 +282,6 @@ urlpatterns += patterns('',
     url(r'^admin/signatures/' + USERID_SLUG + '/delete', 'dashboard.views.delete_signature'),
     url(r'^admin/(?P<unit_slug>[\w-]+)/address$', 'coredata.views.unit_address'),
 
-    # Advisor Notes
-    
-    url(r'^advising/$', 'advisornotes.views.advising'),
-    url(r'^advising/note_search$', 'advisornotes.views.note_search'),
-    url(r'^advising/sims_search$', 'advisornotes.views.sims_search'),
-    url(r'^advising/sims_add$', 'advisornotes.views.sims_add_person'),
-    url(r'^advising/students/' + USERID_OR_EMPLID + '/new$', 'advisornotes.views.new_note'),
-    url(r'^advising/students/' + USERID_OR_EMPLID + '/$', 'advisornotes.views.student_notes'),
-    url(r'^advising/students/' + NONSTUDENT_SLUG + '/$', 'advisornotes.views.student_notes'),
-    #url(r'^advising/students/' + USERID_OR_EMPLID + '/' + NOTE_ID + '$', 'advisornotes.views.view_note'),
-    url(r'^advising/students/' + USERID_OR_EMPLID + '/' + NOTE_ID + '/file', 'advisornotes.views.download_file'),
-    url(r'^advising/students/' + USERID_OR_EMPLID + '/moreinfo$', 'advisornotes.views.student_more_info'),
-    url(r'^advising/new_prospective_student', 'advisornotes.views.new_nonstudent'),
     
 #----- Graduate student database
 
@@ -358,6 +345,25 @@ urlpatterns += patterns('',
     url(r'^ra/' + RA_SLUG + '/reappoint$', 'ra.views.reappoint'),
 
 )
+
+urlpatterns += patterns('',
+    
+    # Advisor Notes
+    
+    url(r'^advising/$', 'advisornotes.views.advising'),
+    url(r'^advising/note_search$', 'advisornotes.views.note_search'),
+    url(r'^advising/sims_search$', 'advisornotes.views.sims_search'),
+    url(r'^advising/sims_add$', 'advisornotes.views.sims_add_person'),
+    url(r'^advising/students/' + USERID_OR_EMPLID + '/new$', 'advisornotes.views.new_note'),
+    url(r'^advising/students/' + USERID_OR_EMPLID + '/$', 'advisornotes.views.student_notes'),
+    url(r'^advising/students/' + NONSTUDENT_SLUG + '/$', 'advisornotes.views.student_notes'),
+    url(r'^advising/students/' + NONSTUDENT_SLUG + '/merge$', 'advisornotes.views.merge_nonstudent'),
+    #url(r'^advising/students/' + USERID_OR_EMPLID + '/' + NOTE_ID + '$', 'advisornotes.views.view_note'),
+    url(r'^advising/students/' + USERID_OR_EMPLID + '/' + NOTE_ID + '/file', 'advisornotes.views.download_file'),
+    url(r'^advising/students/' + USERID_OR_EMPLID + '/moreinfo$', 'advisornotes.views.student_more_info'),
+    url(r'^advising/new_prospective_student', 'advisornotes.views.new_nonstudent'),
+)
+
 if not settings.DEPLOYED:
     # URLs for development only:
     urlpatterns += patterns('',

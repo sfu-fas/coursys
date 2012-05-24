@@ -36,6 +36,9 @@ $(document).ready(function() {
 {% if not nonstudent %}
 <li id="moreinfo"><a href="javascript:get_more_info('{% url advisornotes.views.student_more_info userid=userid %}')">Fetch more info <img src="{{MEDIA_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" style="display:none" /></a></li>
 {% endif %}
+{% if nonstudent %}
+<li><a href="{% url advisornotes.views.merge_nonstudent nonstudent_slug=student.slug %}">Merge with existing student</a></li>
+{% endif %}
 </ul>
 </div>
 {% endblock %}
@@ -61,7 +64,7 @@ $(document).ready(function() {
             <th class="ui-state-default">Student Number</th>
             <td>
             	{% if nonstudent %}
-            		Not a student (<a href="#">Merge with existing student</a>)
+            		Not a student (<a href="{% url advisornotes.views.merge_nonstudent nonstudent_slug=student.slug %}">Merge with existing student</a>)
             	{% endif %}
             	{% if not nonstudent %}
             	    {{ student.emplid }}

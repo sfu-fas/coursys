@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Merge Prospective Student {{ nonstudent.first_name}} {{ nonstudent.last_name }}{% endblock %}
+{% block h1 %}Merge Prospective Student "<i>{{ nonstudent.first_name}} {{ nonstudent.last_name }}</i>"{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li><li>&gt; <a href="{% url advisornotes.views.student_notes nonstudent_slug=nonstudent.slug %}">Notes for {{ nonstudent.first_name }} {{ nonstudent.last_name }}</a></li><li>&gt Merge With Existing Student</li>{% endblock %}
+
+{% block content %}
+<div id="form_container">
+    <form action="{% url advisornotes.views.merge_nonstudent nonstudent_slug=nonstudent.slug %}" method="post">
+		{% csrf_token %}
+		<fieldset>
+            {{ form.as_p }}
+            <p><input class="submit" type="submit" value="Submit" /></p>
+        </fieldset>
+    </form>
+</div>
+{% endblock %}

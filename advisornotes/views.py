@@ -1,11 +1,10 @@
 from django.core.urlresolvers import reverse
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, Http404
-from django.template import RequestContext
+from django.http import HttpResponse
 from django.contrib import messages
 from advisornotes.models import AdvisorNote, NonStudent
 from advisornotes.forms import AdvisorNoteForm, StudentSearchForm, NoteSearchForm,\
-    NonStudentForm
+    NonStudentForm, MergeStudentForm
 from coredata.models import Person
 from coredata.queries import find_person, add_person, more_personal_info, SIMSProblem
 from courselib.auth import requires_role, HttpResponseRedirect, ForbiddenResponse
@@ -195,10 +194,36 @@ def new_nonstudent(request):
         form = NonStudentForm(request.POST)
         form.fields['unit'].choices = unit_choices
         if form.is_valid():
-            form.save()
-            #To be redirected to just created student once functionality is in place
-            return HttpResponseRedirect(reverse('advisornotes.views.advising'))
+            nonstudent = form.save()
+            return _redirect_to_notes(nonstudent)
     else:
         form = NonStudentForm()
         form.fields['unit'].choices = unit_choices
     return render(request, 'advisornotes/new_nonstudent.html', {'form': form})
+
+@requires_role('ADVS')
+def merge_nonstudent(request, nonstudent_slug):
+    """
+    Merge a nonstudent with an existing student
+    """
+    nonstudent = get_object_or_404(NonStudent, slug=nonstudent_slug)
+    
+    if request.method == 'POST':
+        form = MergeStudentForm(request.POST)
+        if form.is_valid():
+            student = form.cleaned_data['student']
+            notes = AdvisorNote.objects.filter(nonstudent=nonstudent)
+            for note in notes:
+                note.nonstudent = None
+                note.student = student
+                note.save()
+            nonstudent.delete()
+            l = LogEntry(userid=request.user.username,
+                  description=("Nonstudent (%s, %s) has been merged with emplid #%s by %s") % (nonstudent.last_name, nonstudent.first_name, student.emplid, request.user),
+                  related_object=student)
+            l.save()
+            messages.add_message(request, messages.SUCCESS, 'Advisor notes successfully merged.' )
+            return _redirect_to_notes(student)
+    else:  
+        form = MergeStudentForm()
+    return render(request, 'advisornotes/merge_nonstudent.html', {'form': form, 'nonstudent': nonstudent})
