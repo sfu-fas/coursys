@@ -43,8 +43,10 @@ class Person(models.Model):
         # 'applic_email': application email address
         # 'gpa': Most recent CGPA for this student
         # 'ccredits': Number of completed credits
+        # 'nonstudent_hs': highschool field from NonStudent record
+        # 'nonstudent_notes': notes field from NonStudent record
     
-    defaults = {'email': None, 'gender': 'U', 'addresses': {}, 'gpa': 0.0, 'ccredits': 0.0, 'visa': None, 'citizen': None}
+    defaults = {'email': None, 'gender': 'U', 'addresses': {}, 'gpa': 0.0, 'ccredits': 0.0, 'visa': None, 'citizen': None, 'nonstudent_hs': '',  'nonstudent_notes': None}
     _, set_email = getter_setter('email')
     gender, _ = getter_setter('gender')
     addresses, _ = getter_setter('addresses')
@@ -53,6 +55,8 @@ class Person(models.Model):
     # see grad.forms.VISA_STATUSES for list of possibilites
     visa, _ = getter_setter('visa')
     citizen, _ = getter_setter('citizen')
+    nonstudent_hs, set_nonstudent_hs = getter_setter('nonstudent_hs')
+    nonstudent_notes, set_nonstudent_notes = getter_setter('nonstudent_notes')
     
 
     def __unicode__(self):
