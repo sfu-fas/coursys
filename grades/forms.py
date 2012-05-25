@@ -147,7 +147,7 @@ class ActivityForm(forms.Form):
         
         if self._addform_validate:
             # adding new activity: any value okay
-            return self.cleaned_data['group']
+            return extend_group
         
         members = GroupMember.objects.filter(student__offering__slug=self._course_slug, activity__slug=self._activity_slug)
         if members:
