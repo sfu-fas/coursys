@@ -7,100 +7,105 @@ Adapted from the Dreamweaver template here: http://www.sfu.ca/clf/web/index.html
 <title>{% block title %}CourSys{% endblock %}</title>
 <link rel="icon" href="{{MEDIA_URL}}icons/favicon.ico" type="image/x-icon" />
 <link rel="shortcut icon" href="{{MEDIA_URL}}icons/favicon.ico" type="image/x-icon" />
-<link rel="stylesheet" href="{{MEDIA_URL}}sfu/css/layout.css" media="all" />
-<script type="text/javascript" src="{{MEDIA_URL}}sfu/js/flyout.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}sfu/js/browserdetect_lite.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}sfu/js/opacity.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}sfu/js/admin.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}sfu/js/random.js"></script>
-<script type="text/javascript" src="{{MEDIA_URL}}sfu/js/onload.js"></script>
-
-<!-- These next two define the rotating banner images.  If you want your own, replace these files with links to your own CSS and JS -->
-<!--<link href="http://www.sfu.ca/css/dynamic/banner.css" rel="stylesheet" type="text/css" />-->
-<!--<script type="text/javascript" src="http://www.sfu.ca/js/dynamic/banner.js"></script>-->
+<link rel="stylesheet" href="{{MEDIA_URL}}sfu/css/common.css" media="all" />
 
 <link rel="stylesheet" href="{{MEDIA_URL}}style/main.css" media="all" />
 <!--[if lte IE 8]>
 <link rel="stylesheet" href="{{MEDIA_URL}}style/main-ie.css" type="text/css" />
 <![endif]-->
+<link type="text/css" href="{{MEDIA_URL}}jquery-ui/css/smoothness/jquery-ui-1.8.16.custom.css" rel="stylesheet" />
+
 <script type="text/javascript" src="{{MEDIA_URL}}jquery-ui/js/jquery-1.6.2.min.js"></script>
 <script type="text/javascript" src="{{MEDIA_URL}}datatables/js/jquery.dataTables.min.js"></script>
-<link type="text/css" href="{{MEDIA_URL}}jquery-ui/css/smoothness/jquery-ui-1.8.16.custom.css" rel="stylesheet" />
 <script type="text/javascript" src="{{MEDIA_URL}}jquery-ui/js/jquery-ui-1.8.16.custom.min.js"></script>
+<script type="text/javascript" src="{{MEDIA_URL}}sfu/js/scripts.js"></script>
 <script type="text/javascript" src="{{MEDIA_URL}}js/core.js"></script>
 {% block headextra %}{% endblock %}
 </head>
 
 <body>
-<div id="absWrapper">
-	<div id="container">
-		<div id="header" class="banner_0">
-		<a href="http://www.sfu.ca/">Simon Fraser University</a>
-		</div>
-		<div id="sideItems">
-<div id="sysmenu">
-{% if user.is_authenticated %}
-Logged in as {{user.username}}.
-<a href="/logout/">Logout</a>
-{% else %}
-Not logged in. <a href="/login/">Login</a>
-{% endif %}
-</div>
+
+	<div id="absWrapper">
+		<div id="container">
+			<div id="banner">
+	        	<a href="//www.sfu.ca">Simon Fraser University</a>
+	    	</div>
+
+	    	<div id="globalNav">
+		        <ul id="campuses">
+		            <li class="sfu"><a href="//www.sfu.ca">sfu.ca</a></li>
+		            <li><a href="http://www.burnaby.sfu.ca">Burnaby</a></li>
+		            <li><a href="http://www.surrey.sfu.ca/">Surrey</a></li>
+		            <li class="last"><a href="http://www.vancouver.sfu.ca/">Vancouver</a></li>               
+		        </ul>
+		        
+		        <ul id="services">
+		            <li class="dropdown" id="online">
+		                <a class="tabs" href="//www.sfu.ca/onlineservices/" style="border-bottom-style: none; ">SFU Online</a>
+		            <ul id="onlineServices" style="z-index: 1000; display: none; "><li><a href="http://connect.sfu.ca">SFU Connect + mySFU</a></li><li><a href="http://www.sfu.ca/alumni/emailforwarding/">Alumni Mail</a></li><li><a href="http://go.sfu.ca">Student Information System</a></li></ul></li>
+		            <li class="dropdown" id="directory">
+		                <a class="tabs" href="//www.sfu.ca/dir/" style="border-bottom-style: none; ">A-Z Links</a>
+		            <ul id="AtoZ" style="z-index: 999; display: none; "><li><a href="http://www.sfu.ca/dir/?a">a</a></li><li><a href="http://www.sfu.ca/dir/?b">b</a></li><li><a href="http://www.sfu.ca/dir/?c">c</a></li><li><a href="http://www.sfu.ca/dir/?d">d</a></li><li><a href="http://www.sfu.ca/dir/?e">e</a></li><li><a href="http://www.sfu.ca/dir/?f">f</a></li><li><a href="http://www.sfu.ca/dir/?g">g</a></li><li><a href="http://www.sfu.ca/dir/?h">h</a></li><li><a href="http://www.sfu.ca/dir/?i">i</a></li><li><a href="http://www.sfu.ca/dir/?j">j</a></li><li><a href="http://www.sfu.ca/dir/?k">k</a></li><li><a href="http://www.sfu.ca/dir/?l">l</a></li><li><a href="http://www.sfu.ca/dir/?m">m</a></li><li><a href="http://www.sfu.ca/dir/?n">n</a></li><li><a href="http://www.sfu.ca/dir/?o">o</a></li><li><a href="http://www.sfu.ca/dir/?p">p</a></li><li><a href="http://www.sfu.ca/dir/?q">q</a></li><li><a href="http://www.sfu.ca/dir/?r">r</a></li><li><a href="http://www.sfu.ca/dir/?s">s</a></li><li><a href="http://www.sfu.ca/dir/?t">t</a></li><li><a href="http://www.sfu.ca/dir/?u">u</a></li><li><a href="http://www.sfu.ca/dir/?v">v</a></li><li><a href="http://www.sfu.ca/dir/?w">w</a></li><li><a href="http://www.sfu.ca/dir/?x">x</a></li><li><a href="http://www.sfu.ca/dir/?y">y</a></li><li><a href="http://www.sfu.ca/dir/?z">z</a></li></ul></li>
+		            <li class="last" id="search">
+		              <form action="//www.sfu.ca/search.html" class="search" method="get">
+		              	<fieldset>
+		                    <input id="s" name="q" type="text" value="Search sfu.ca" />
+		                    <span class="button"><input id="submit" type="submit" value="Search" /></span>
+	                    </fieldset>
+		              </form>
+		            </li>
+		        </ul>
+		    </div>
+
+			<div id="sideItems">
+				<div id="sysmenu">
+				{% if user.is_authenticated %}
+				Logged in as {{user.username}}.
+				<a href="/logout/">Logout</a>
+				{% else %}
+				Not logged in. <a href="/login/">Login</a>
+				{% endif %}
+				</div>
+
 				{% block allbreadcrumbs %}<div id="breadcrumbs">
 				  <ul>
 				    {% block breadcrumbs %}<li><a href="/">CourSys</a></li>{% spaceless %}{% block subbreadcrumbs %}{% endblock %}{% endspaceless %}{% endblock %}
 			          </ul>
 				</div>{% endblock %}
-		<h1 id="PageTitle">{% block h1 %}CourSys{% endblock %}</h1>
-	  </div>
-	  <div id="topLinks">
-			<a href="http://www.sfu.ca/" class="spacer main">SFU.ca</a>
-	
-			<a href="http://www.burnaby.sfu.ca/">Burnaby</a>
-			<div class="divider">|</div>
-			<a href="http://www.surrey.sfu.ca/">Surrey</a>
-			<div class="divider">|</div>
-			<a href="http://www.vancouver.sfu.ca/">Vancouver</a>
-	
-			<form class="search" action="http://www.google.com/u/sfu">
-			<div class="divider">|</div>
-			<p>
-			<input name="sitesearch" type="hidden" value="sfu.ca" checked="checked" />
-			<input type="hidden" name="domains" value="sfu.ca" />
-			<label>SFU Search
-			<input name="q" type="text" size="20" />
-			</label>
-			</p>
-			</form>
-			<ul id="pullDowns" class="flyout">
-				<li><a href="http://www.sfu.ca/onlineservices/index.html">SFU Online</a>
-				<script type="text/javascript" src="{{MEDIA_URL}}sfu/js/SFUonline.js"></script>
-				</li>
-				<li class="divider">|</li>
-				<li><script type="text/javascript" src="{{MEDIA_URL}}sfu/js/AtoZ.js"></script><noscript>
-					<div><a href="http://www.sfu.ca/dir/az_dir.html">A-Z Links</a></div></noscript>
-				</li>
+
+				<h1 id="PageTitle">{% block h1 %}CourSys{% endblock %}</h1>
+		  	</div>
+
+			{% if messages %}
+			<div id="messages">
+			<ul>
+			    {% for message in messages %}
+			    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+			    {% endfor %}
 			</ul>
-	  </div>
+			</div>
+			{% endif %}
 
-{% if messages %}
-<div id="messages">
-<ul>
-    {% for message in messages %}
-    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-    {% endfor %}
-</ul>
-</div>
-{% endif %}
+			{% block actions %}{% endblock %}
 
-{% block actions %}{% endblock %}
+			<div id="main">
+			{% block content %}{% endblock %}
+			</div>
 
-<div id="main">
-{% block content %}{% endblock %}
-</div>
+		</div>
 
-      <div id="footer">8888 University Drive, Burnaby, B.C. Canada V5A 1S6 | <a href="http://www.sfu.ca/webmaster/terms.html">Terms and Conditions</a> | <a href="http://www.sfu.ca/contact/index.html">Contact Us</a> | <a href="http://www.sfu.ca/about/sitemap.html">SiteMap</a> | <a href="http://www.sfu.ca/security/sfuroadconditions/">Road Conditions</a> | &copy; Simon Fraser University</div>
+		<div id="footer">
+		    <ul>
+		        <li>8888 University Drive, Burnaby, B.C. Canada V5A 1S6</li>
+		        <li><a href="//www.sfu.ca/webmaster/terms.html">Terms / Privacy</a></li>
+		        <li><a href="//www.sfu.ca/contact/index.html">Contact SFU</a></li>
+		        <li><a href="//www.sfu.ca/about/sitemap.html">SiteMap</a></li>
+		        <li><a href="//www.sfu.ca/security/sfuroadconditions/">Road Conditions</a></li>
+		        <li>&copy; Simon Fraser University</li>
+		    </ul>
+		</div>
+
 	</div>
-</div>
+
 </body>
 </html>

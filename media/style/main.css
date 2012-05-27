@@ -1,12 +1,10 @@
 /* some mods to SFU template CSS */
-.banner_0 {
-	background-image:url(../sfu/images/banner2-seray-right.jpg);
-}
 div#main p {
   margin-top: 1em;
+  padding: 0;
 }
 #PageTitle {
-  margin: 0.75em 0 0.25em;
+  margin: 0 0 1em;
   padding: 0;
 }
 div#main h3 {
@@ -22,13 +20,10 @@ ul#main_nav {
 #container {
   z-index: auto;
   background-image:url(bgImageWhiteRight.gif);
-  padding-left: 40px;
   right: auto;
-  width: 940px;
+  width: 980px;
 }
-div#header, div#footer {
-  padding-left: 205px;
-}
+
 dt {
   font-weight: bold;
   margin-top: 1em;
@@ -37,6 +32,48 @@ dt {
 div .group_info_area{
     background-image: url('../images/grades/bluep.png');
 }
+
+ul#services li#online:hover ul{
+    width: 165px;
+}
+
+ul#services li input {
+  line-height: 20px;
+  padding-top: 0;
+}
+
+ul#services li#search fieldset {
+  border: 0;
+  margin: 0;
+}
+
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+input[type="file"] {
+  padding: 1px 6px
+}
+
+/* Image replacements for sfu/css/common.css */
+
+#banner {
+  background-image: url(/media/sfu/images/banner2-seray-right.jpg);
+}
+
+#banner a {
+  background-image: url(/media/sfu/images/logo_main.png);
+}
+
+ul#campuses li,
+ul#services li,
+ul#services li span input#submit,
+ul#services li input#submit:hover
+
+{
+  background-image: url(/media/sfu/images/sprites.gif);
+}
+
+/* End image replacements */
 
 
 
@@ -47,23 +84,50 @@ blue    #0054a6
 visited #25316e
 grey    #54534a
 */
+
+div#sideItems {
+  border-left: 25px solid transparent;
+  clear: both;
+  padding: 18px 18px 0;
+}
+
 div#main {
+  border-left: 25px solid transparent;
+  padding: 0 18px;
   margin-bottom: 1.5em;
 }
+
 #sysmenu {
   float: right;
   width: 18em;
   text-align: right;
-  margin: 0.2em 1em 0 0;
-  font-size: 0.81em;
+  font-size: 0.91em;
 }
+
+#breadcrumbs {
+  font-size: 0.91em;
+  margin-bottom: 1em;
+}
+
+#breadcrumbs ul {
+  list-style: none;
+  margin: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+#breadcrumbs li {
+  float: left;
+  margin-right: 0.25em;
+}
+
 .empty {
   font-style: italic;
 }
 div#messages {
   border: 1px solid #b5111b;
   padding: 0.5em;
-  margin: 1em 1em 1em 0;
+  margin: 8px 18px 18px 43px;
   color: #b5111b;
   background-color: #f8f8c2;
 }
@@ -73,7 +137,7 @@ div#messages h3 {
   color: #b5111b;
 }
 div#messages ul {
-  margin: 0 0.5em 0 1.4em;
+  margin: 0 0.5em 0;
   padding: 0;
 }
 div#messages li {
@@ -120,12 +184,12 @@ div#messages .info {
   border: 1px solid #AAAAAA;
   float: right;
   width: 200px;
-  margin: 0 1em 1em 1em;
+  margin: 0 18px 18px;
 }
 #actions h2 {
   background: url("../images/grades/action_box.gif") repeat-x left top #6D6D6D;
   color: #FFF;
-  padding: 3px 10px !important;
+  padding: 4px 10px 3px !important;
   margin: 0 !important;
 }
 #actions ul {
@@ -199,7 +263,7 @@ div#newsitems .collapsible-heading-status, h2.semester .collapsible-heading-stat
 table {
   border-collapse: collapse;
   border: 1px solid black;
-  margin: 0.5em;
+  margin: 0.5em 0;
 }
 table td, table th {
   border: 1px solid black;
@@ -555,7 +619,7 @@ div#main table.info p input {
   width: 600px;
 }
 .datatable_container {
-  /*width: 700px;*/
+  /*width: 695px;*/
   margin: 0 1em 0 0;
 }
 .activity_reference_container {
@@ -1309,16 +1373,15 @@ div.letter p {
 
 /* styles of titles, texts, etc., override SFU's template' */
 #main h2 {
-    font-family: 'Lucida Grande', Lucida, Arial, Verdana, sans-serif;
     margin: 1.5em 0 0 0;
     padding: 0em;
 }
+
 #main h3 {
-    font-family: 'Lucida Grande', Lucida, Arial, Verdana, sa
-    ns-serif;
     margin: 0;
     padding: 0;
 }
+
 a img {
     border-style: none;
 }

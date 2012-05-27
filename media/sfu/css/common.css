@@ -1,0 +1,2128 @@
+#CQ .cq-editrollover-insert-container {
+    background: #fff;
+    opacity: 0.5;
+}
+
+div.image {
+    margin-bottom: 0px;
+}
+
+*{  
+    font-family: Helvetica, Arial, sans-serif;
+}
+
+div,dl,dt,dd,h1,h2,h3,h4,h5,h6,pre,form,fieldset,p,input,textarea,blockquote {
+    margin:0;
+    padding:0;
+}
+
+ul {
+    margin-top: 0px;
+}
+
+ol {
+    margin-bottom: 18px;
+}
+
+html{
+    background-color: #a7a8a0;
+}
+
+body {
+    border-top: 5px solid #0054a6;
+    color: #333;
+    height: 600px;
+    margin: 0 auto;
+    padding: 0;
+    width: 980px;
+    font: 12px/16px Helvetica, Arial, Verdana, sans-serif;
+}
+
+html>body{
+    margin: 0 auto;
+    padding: 0;
+    width: auto;
+    max-width: 980px;
+    height: auto;
+    min-height: 600px;
+}
+
+p{
+    padding-top: 5px;
+    padding-bottom: 10px;
+}
+
+
+#container {
+    background: #fff;
+    float: left;
+    height: 600px;
+    line-height: 1.3em;
+    width: 980px;
+    background: #fff url(/etc/designs/sfu/images/main_bg.gif) top left repeat-y;
+}
+
+html>body #container{
+    height: auto;
+    min-height:600px;
+}
+
+/* Typography */
+
+
+h1 {
+    font: bold 18px/21px "Lucida Grande", Lucida, Arial, Verdana, sans-serif;
+    margin-top: 12px;
+    margin-bottom: 12px;
+    color: #b5111b;
+}
+
+h1 a { font-family: "Lucida Grande", Lucida, Arial, Verdana, sans-serif; }
+
+
+h2 {
+    font: bold 15px/18px "Lucida Grande", Lucida, Arial, Verdana, sans-serif;;
+    color: #000;
+    font-size: 16px;
+    margin-top: 18px;
+    padding-bottom: 12px;
+}
+    
+h2 a { font-family: "Lucida Grande", Lucida, Arial, Verdana, sans-serif; }
+
+h3 {
+    font: bold 13px/16px "Lucida Grande", Lucida, Arial, Verdana, sans-serif;
+    color: #555;
+    margin-top: 12px;
+    padding-bottom: 12px;
+    
+}
+
+
+h3 a { font-family: "Lucida Grande", Lucida, Arial, Verdana, sans-serif; }
+
+
+h4 {
+    color: #555;
+    font: bold 12px/14px "Lucida Grande", Lucida, Arial, Verdana, sans-serif;
+    margin-bottom: 10px;
+    margin-top: 12px;
+}
+
+h4 a { font-family: "Lucida Grande", Lucida, Arial, Verdana, sans-serif; }
+
+h5, h6 {
+    color: #4b4b4b;
+    font: bold 12px/14px "Lucida Grande", Lucida, Arial, Verdana, sans-serif;
+}
+
+h5 a { font-family: "Lucida Grande", Lucida, Arial, Verdana, sans-serif; }
+
+h6 a { font-family: "Lucida Grande", Lucida, Arial, Verdana, sans-serif; }
+
+
+/* Images and links */
+
+.attention {
+    font-weight: bold;
+    color: #b5111b;
+}
+
+a img {
+    border: none;
+}
+
+a{
+    color: #0054a6;
+    text-decoration: none;
+}
+
+a:hover{
+    color: #0054a6;
+    text-decoration: underline;
+}
+
+/* Default SFU banner */
+
+#banner{
+    background: #6d6d64 url(/etc/designs/sfu/images/banner_1.jpg) no-repeat right;
+    border-left: 25px solid #a43e31;
+    height: 70px;
+}
+
+#banner a{
+    background: #6d6d64 url(/etc/designs/sfu/images/logo_main.gif) no-repeat left;
+    float: left;
+    height: 70px;
+    width: 470px;
+    text-indent: -1000em;
+}
+
+/* Top bar global navigation */
+
+#globalNav{ 
+    background-color: #b5111b;
+    border-left: 25px solid #cb5a60;
+    color: #fff;
+    float: left;
+    height: 40px;
+    padding: 5px 0 0 40px;
+    width: 915px;
+}
+
+ul#campuses{
+    float: left;
+    margin: 0;
+    padding: 0; 
+}
+
+ul#campuses li{
+    background: url(/content/dam/sfu/images/common/sprites.gif) no-repeat right -60px;
+    display: inline;
+    float: left;
+    margin: 5px 0 0 10px;
+    padding-right: 10px;
+}
+
+ul#campuses li:last-child{
+    background-image: none;
+}
+
+ul#campuses li.last{
+    background-image: none;
+}
+
+
+ul#campuses li a{
+    color: #fff;
+    display: block;
+    float: left;
+    font: 13px/15px Helvetica, Arial, sans-serif;
+    padding: 0 0 20px;
+    text-decoration: none;
+}
+
+ul#campuses li a:hover{
+    border-bottom: 10px solid #cb5a60;
+    padding: 0 0 10px;
+}
+
+ul#campuses li.sfu{
+    background:none;
+    display: inline;
+    float: left;
+    margin: 5px 48px 0 0;
+    padding-right: 0;
+}
+
+ul#campuses li.sfu a{
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+ul#services{
+    float: right;
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+
+ul#services li{
+    background: url(/content/dam/sfu/images/common/sprites.gif) no-repeat right -60px;
+    float: left;
+    position: relative;
+    margin: 5px 0 0 10px;
+    padding: 0 10px 0 0;
+}
+
+ul#services li a{
+    color: #fff;
+    display: block;
+    font: 13px/15px Helvetica, Arial, sans-serif;
+    padding: 0 0 10px;
+    text-decoration: none;
+}
+
+ul#services li a:hover{
+    border-bottom: 10px solid #cb5a60;
+    padding: 0 0 10px;
+}
+
+ul#services li#online{
+    z-index: 800;
+}
+
+ul#services li#online ul{   
+    display: none;
+    position: absolute; 
+    top: 1em;
+    left: 0;
+}
+
+ul#services li#online > ul {
+    top: auto;
+    left: auto;
+}
+
+ul#services li#online:hover ul{
+    background-color: #cb5a60;
+    display: block;
+    clear: none;
+    width: 160px;
+    margin: 0;
+    padding: 2px 0 0;
+}
+
+ul#services li#online:hover ul li{
+    background: none;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+ul#services li#online:hover ul li a{
+    display: block;
+    font-size: 12px;
+    margin: 0;
+    padding: 2px 5px;
+    width: auto;
+}
+
+ul#services li#online:hover ul li a:hover{
+    background: #b5111b;
+    border:none;
+}
+
+ul#services li#directory{
+    z-index: 700;
+}
+
+ul#services li#directory ul{    
+   background-color: #cb5a60;
+    display: none;
+    position: absolute;
+    width: 164px;
+    top: 1em;
+    left: 0;
+}
+
+ul#services li#directory  > ul {
+    top: auto;
+    left: auto;
+}
+
+ul#services li#directory:hover ul{
+    background-color: #cb5a60;
+    list-style-type: none;
+    clear:none;
+    display: block;
+    margin: 0;
+    padding: 5px 2px;
+}
+
+ul#services li#directory:hover ul li{
+    float: left;
+    height: 16px;
+    margin: 1px;
+    padding: 0;
+    width: 16px;
+}
+
+ul#services li#directory:hover ul li a{
+    border: none;
+    display: block;
+    font-size: 12px;
+    height: 100%;
+    margin: 0;
+    padding: 2px 0 0 0;
+    width: 100%;
+    text-align: center;
+}
+
+ul#services li#directory:hover ul li a:hover{
+    background: #b5111b;
+    border:none;
+}
+
+
+ul#services li:last-child{
+    background-image: none;
+}
+
+ul#services li#search{
+    background-image: none;
+    overflow: hidden;
+}
+
+ul#services li form{
+    margin: 0;
+    padding: 0;
+    height: 20px;
+    float: left;
+}
+
+ul#services li input{
+    background-color: #fff;
+    color: #6d6d64;
+    float: left;
+    margin: 0;
+    height: 20px;
+    padding-left: 4px;
+    padding-top: 2px;
+    line-height: 12px;
+    outline: none;
+    border: none;
+}
+
+ul#services li span input#submit{
+    float: left;
+    height: 20px;
+    padding: 4px 4px 0 20px !important;
+    line-height: 20px;
+    background: #fff url(/content/dam/sfu/images/common/sprites.gif) no-repeat 5px 3px;
+    border: none;
+    width: 20px;
+    text-indent: -100em;
+}
+
+ul#services li input#submit:hover{
+    background: #fff url(/content/dam/sfu/images/common/sprites.gif) no-repeat 5px -17px;
+    border: none;
+}
+
+/* Navigation menu */
+
+#nav {
+    margin-top: 18px;
+    overflow: hidden;
+    background-color: #c7c8c3;
+    width: 170px;
+    float: left;
+    line-height: 1em;
+    border-left: 25px solid #e3e4e1;
+    padding-top: 6px;
+    padding-bottom: 30px;
+    }
+
+#nav ul {
+    margin: 0; 
+    padding: 0;  
+    list-style-type: none; 
+    }
+
+/* Corrects ie6 display bug */
+#nav ul li {
+    color: #555;
+    display: inline;
+    }
+
+
+/* Top-level links */
+#nav ul li a {
+    text-decoration: none;
+    display: block;
+    padding: 4px 8px 4px 8px;
+    text-decoration: none;
+    border-right: 5px solid transparent;
+    color: #555;
+    }
+
+#nav li a:hover {
+    text-decoration: none;
+    background-color: #ddd;
+    border-right: 5px solid #666;
+    }
+
+/* Top-level highlighted links */
+
+#nav li.highlight a {
+    background-color: #ddd;
+    color: #0054a6;
+    text-decoration: none;
+    border-right: 5px solid #666;
+    }
+    
+/* Second-level links */
+
+#nav ul li ul li a {
+    line-height: 1.2em;
+    background-color: #c7c8c3;
+    border-right:  none;
+    display: block;
+    padding: 4px 8px 2px 18px;
+    color: #0054a6;
+}
+
+#nav ul li ul li a:hover {
+    background-color: #c7c8c3;
+    color: #b5111b;
+    border-right: none;
+    }
+
+
+#nav ul li ul li.over a {
+    background: url(/content/dam/sfu/images/common/bullet_red.gif) 7px 8px no-repeat;
+    display:  block;
+}
+
+/* Second-level highlighted links */
+
+#nav ul li ul li.over a {
+    color: #b5111b;
+    list-style-image: url(/content/dam/sfu/images/common/bullet_red.gif);
+}
+    
+/* Third-level links */
+
+#nav ul li ul li ul {
+    margin-left: 10px;
+}
+
+#nav ul li ul li ul li a {
+    color: #3A76B1;
+}
+
+/* Third-level highlighted links */
+
+#nav ul li ul li ul li a:link {
+    color:  #3a76b1;
+}
+
+#nav ul li ul li ul li a:hover {
+    background-image:  none;
+    color:  #0054a6;
+}
+
+#nav ul li ul li ul li.subover a {
+    font-weight: bold;
+}
+
+/* Fourth-level links */
+
+#nav ul li ul li ul li ul li a {
+    color: #3a76b1;
+}
+
+/* Fourth-level highlighted links */
+
+#nav ul li ul li ul li ul li.subover a {
+    color: #3a76b1;
+    font-weight: bold;
+}
+
+
+#nav li.rule {
+    display:  block;
+    padding: 0em;
+    height: 0em;
+    line-height: 0em;
+    margin-left: 8px;
+    margin-bottom: 6px;
+    width: 145px;
+    border-top: 1px dotted #777;
+    }
+
+/* Secondary navigation */
+
+ul.subNav, div.subNav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    margin-top: 12px;
+}
+
+ul.subNav li, div.subNav ul li {
+    color: #555;
+    display: inline;
+}
+
+ul.subNav li a, div.subNav ul li a {
+    text-decoration: none;
+    display: block;
+    padding: 2px 0px 3px 14px;
+    text-decoration: none;
+    border-right: 5px solid transparent;
+    color: #555;
+}
+
+ul.subNav li a:hover, div.subNav ul li a:hover {
+    text-decoration: none;
+    background-color: #ccc;
+    border-right: 5px solid #666;
+}
+
+ul.subNav li p {
+    margin: 0;
+    padding: 0;
+}
+
+div#sub_content_wrapper ul.subNav {
+    margin-left: -10px;
+}
+
+/* Content area structure */
+
+#main_content_wrapper {
+    padding-bottom: 10px;
+    float: left;
+    width: 100%;
+}
+
+div#homeBottom2t #main_content_wrapper {
+    width: 590px;
+}
+
+
+.aboveMainContent {
+    padding-top: 8px;
+}
+
+.aboveSubContent {
+    padding-left: 10px;
+    padding-top: 8px;
+}
+
+.belowSubContent {
+    clear: left;
+    padding-left: 10px;
+    padding-top: 8px;
+}
+
+/* Basic Page Template (1-column content div) */
+
+#content {
+    width: 767px;
+    float: left;
+    padding-left: 18px;
+}
+
+
+/* Three-Column Content and Home Page Template (2-column content div) */
+
+#content_2col {
+    width: 785px;
+    float: left;
+}
+
+#content_2col #main_content_wrapper {
+    width: 572px;
+    float: left;
+    padding-left: 18px;
+    padding-bottom: 30px;
+}
+
+#content_2col div.sub_content {
+    width: 185px;
+    float: left;
+    padding-left: 10px;
+}
+
+#content_2col div#sub_content_wrapper {
+    width: 195px;
+    float: left;
+}
+
+#content_2col div.inheritedsubcontent {
+    padding-left: 10px;
+    margin-bottom: 4px;
+}
+
+#content_2col div.breadcrumb {
+    margin-left: 0px;
+    width: 771px;
+}
+
+/* Basic Page Template breadcrumb (1-column content div) */
+
+div.breadcrumb {
+    margin-left: -18px;
+    width: 771px;
+    color: #ddd;
+    background-color: #6d6d6d;
+    padding: 5px 7px;
+    font-size: 10px;
+}
+
+
+div.breadcrumb a {
+    color: #fff;
+}
+
+/* 3-column 2-tier home page */
+
+#homeTop {
+    width: 785px;
+    float: left;
+    overflow: hidden;
+    background: transparent url(/content/dam/sfu/images/common/3col2t_bg.png) top left repeat-y;
+}
+
+div.homePhoto {
+    min-height: 200px;
+    width: 590px;
+    float: left;
+}
+
+div.caption {
+    overflow: hidden;
+    width: 570px;
+    padding: 10px;
+    margin-top: -5px;
+}
+
+div.homeSubTop {
+    float: right;
+    width: 195px;
+    padding-top: 10px;
+    overflow: hidden;
+}
+
+div.homeSubTop div.text {
+    padding-left: 6px;
+}
+
+div.homeSubTop div.searchwidget {
+    margin-left: 10px;
+    margin-top: 0px;
+}
+
+#homeBottom {
+    min-height: 300px;
+    clear: left;
+    float: left;
+    width: 785px;
+    background-color: #fff;
+    padding-bottom: 30px;
+}
+
+div#homeBottom div.main_content {
+    float: left;
+    width: 572px;
+}
+
+/* 2-tier, 3-column content page */
+
+div#contentBottom div.aboveMainContent, div#contentBottom div.belowMainContent {
+    padding-left: 18px;
+}
+
+div#contentTop {
+    width: 785px;
+    float: left;
+    background: transparent url(/content/dam/sfu/images/common/2col_content_bg.png) top left repeat-y;
+}
+
+div#contentTop div.topPhoto {
+    width: 590px;
+    float: left;
+}
+
+div#contentTop div.topPhoto div.caption p {
+    padding-bottom: 4px;
+}
+
+div#contentTop div.topPhoto br {
+    display: none;
+}
+
+div#contentTop div#sub_content_wrapper {
+    width: 192px;
+    float: left;
+}
+
+div#contentBottom {
+    clear: left;
+    width: 785px;
+    float: left;
+}
+
+div#contentBottom div#main_content_wrapper {
+    float: left;
+    width: 590px;
+    border-top: 15px solid #555;
+    padding-left: 0px;
+}
+
+div#contentBottom div.main_content {
+    padding-left: 18px;
+}
+
+/*
+div#homeBottom div.main_content div.headerText {
+    margin-left: -36px;
+}
+*/
+
+div#contentBottom div.sidebar {
+    float: left;
+    width: 185px;
+    padding-left: 10px;
+    border-top: 15px solid #999;
+}
+
+/* Custom headers */
+
+.headerText {
+    margin-left: -18px;
+}
+
+.sidebarHeader {
+    border-bottom: 1px dotted #ccc;
+    margin-bottom: 8px;
+    padding-top: 18px;
+    text-transform: uppercase;
+}
+
+.sidebarHeader a {
+    color: #000;
+}
+.sidebarHeader p {
+    color: #000;
+    font: bold 11px/12px Helvetica,Arial,sans-serif;
+    padding-bottom: 4px;
+}
+
+.homeFeature {
+    margin-top: 12px;
+    width: 590px;
+    float: left;
+}
+
+.featureHeader {
+    width: 590px;
+    height: 26px;
+    background-color: #5F8FBE;
+}
+
+.featureHeader ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.featureHeader ul li {
+    height: 12px;
+    color: #fff;
+    width: 270px;
+    padding: 6px 0px 8px 18px;
+    float: left;
+}
+
+.featureHeader ul li:first-child {
+    border-right: 1px solid #fff;
+    background-color: #4A82B8;
+}
+
+.homeSubBottom {
+    float: right;
+    width: 160px;
+    padding: 10px;
+    min-height: 200px;
+    margin-right: 10px;
+}
+
+.subHeader {
+    margin-left: -10px;
+    height: 12px;
+    width: 184px;
+    padding: 6px 0px 8px 10px;
+    margin-left: none;
+    background-color: #555;
+    color: #fff;
+    border-left: 1px solid #fff;
+}
+
+div.subHeader p {
+    padding: 0px;
+}
+
+div.homeSubTop h2 span {
+    color: #000;
+    font-size: 12px;
+    font-weight: normal;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+}
+
+/* 2-Tier Right Navigation Home Page */
+
+#homeTop2t {
+    float: left;
+    background: #fff url(/content/dam/sfu/images/common/2t_Rnav_bg.png) top left repeat-y;
+    width: 980px;
+    min-height: 243px;
+}
+
+#homeTop2t #nav {
+    padding-top: 5px;
+    margin-top: 0px;
+    background-color: #dedede;
+    width: 195px;
+    float: left;
+    border-left: none;
+}
+
+#homeTop2t #nav ul:first-child {
+    display: none; /* don't show Home link on this template */
+}
+
+#homeTop2t #nav ul li a {
+    border-right: 5px solid transparent;
+    color: #555;
+    }
+
+#homeTop2t #nav li a:hover {
+    background-color: #ccc;
+    border-right: 5px solid #666;
+    }
+
+#homeTop2t .homeSubTop {
+    width: 195px;
+    float: left;
+    padding-top: 3px;
+}
+
+#homeTop2t .homeSubTop .image {
+    margin-left: 12px;
+}
+
+#homeTop2t .homePhoto .text {
+    padding-left: 18px;
+}
+
+#homeTop2t .homeSubTop .subNav a:hover {
+    background-color: #ddd;
+}
+
+#homeBottom2t {
+    float: left;
+    background: #fff;
+    width: 980px;
+    min-height: 400px;
+}
+
+#homeBottom2t .main_content {
+    float: left;
+    width: 590px;
+}
+
+#homeBottom2t .sub_content {
+    float: left;
+    width: 390px;
+}
+
+#homeBottom2t .featureHeader {
+    margin-left: 0px;
+}
+
+#homeBottom2t .featureHeader p {
+    color: #fff;
+    margin-left: 35px;
+}
+
+#homeBottom2t .noticeHeader {
+    width: 390px;
+    height: 26px;
+    margin-left: -1px;
+    background-color: #7c7c7c;
+    border-left: 1px solid #fff;
+}
+
+#homeBottom2t .noticeHeader ul {
+    margin: 0px;
+    padding: 0px;
+    list-style-type: none;
+}
+
+#homeBottom2t .noticeHeader ul li {
+    height: 12px;
+    color: #fff;
+    padding: 6px 0px 8px 12px;
+    width: 182px;
+    float: left;
+}
+
+#homeBottom2t .noticeHeader ul li:first-child {
+    background-color: #555;
+    border-right: 1px solid #fff;
+}
+
+#homeBottom2t .noticeHeader p {
+    color: #fff;
+    margin-left: 10px;
+}
+
+#homeBottom2t .sub_content .cq-colctrl-lt0-c0, #homeBottom2t .sub_content .cq-colctrl-lt0-c1 {
+    padding-right: 11px;
+    padding-left: 12px;
+    width: 44%;
+}
+
+.featureHeader ul li:first-child {
+    width: 271px;
+}
+
+#homeBottom2t .main_content .cq-colctrl-lt0-c0 {
+    width: 240px;
+    margin-left: 25px;
+    padding-left: 10px;
+}
+
+#homeBottom2t .main_content .cq-colctrl-lt0-c1 {
+    width: 280px;
+    margin-left: 1px;
+    padding-left: 18px;
+}
+
+
+/* Footer */
+
+#footer {
+    background-color: #b6b7b1;
+    color: #fff;
+    clear: both;
+    font: 10px Helvetica, Arial, sans-serif;
+    float: left;
+    text-align: center;
+    width: 100%;
+}
+
+#footer ul {
+    margin: 4px 0;
+    padding: 0;
+}
+
+#footer ul li {
+    display: inline;
+    margin: 0 0 0 4px;
+    padding-right: 4px;
+    border-right: 1px solid #fff;
+}
+
+#footer ul li:last-child{
+    border: none;
+}
+
+#footer a{
+    color: #fff;
+    font-size: 10px;
+    text-decoration: none;
+}
+
+#footer a:hover{
+    color: #fff;
+    text-decoration: underline;
+}
+
+/* Common image styles */
+
+img.outlined {
+    border: 1px solid #999;
+}
+
+img.framed {
+    background-color: #fff;
+    border: 1px solid #999;
+    padding: 5px;
+}
+
+img.fullwidth, div.fullwidth {
+    margin-left: -18px;
+}
+
+img.centred {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Common Text and Image styles */
+
+div.framed img {
+    background-color: #fff;
+    border: 1px solid #999;
+    padding: 5px;
+}
+
+div.outlined img {
+    border: 1px solid #999;
+}
+
+div.framed div.image {
+    margin-right: 20px;
+}
+
+/* Common text component styles */
+
+.ruled {
+    border-top: 1px solid #ddd;
+    margin-bottom: 8px;
+    margin-top: 21px;
+    padding-top: 8px;
+}
+
+.intro {
+    font-size: 14px;
+    line-height: 21px;
+}
+
+.deptNews {
+    background-color: #eef4f9;  
+    padding: 8px;
+    margin-bottom: 25px;
+}
+
+.deptNews h2 {
+    padding-top: 0px;
+    margin-top: 4px;
+}
+
+.deptNotice {
+    background-color: #e7e8e5;  
+    padding: 8px;
+    margin-bottom: 25px;
+}
+
+.deptNotice h2 {
+    padding-top: 0px;
+    margin-top: 4px;
+}
+
+.topMargin {
+    margin-top: 12px;
+}
+
+.bottomMargin {
+    margin-bottom: 12px;
+}
+
+.leftMargin {
+    margin-left: 18px;
+}
+
+.ruledLeft {
+    border-left: 1px solid #ddd;
+    padding-left: 10px;
+}
+
+.ruledRight {
+    border-right: 1px solid #ddd;
+    padding-right: 10px;
+}
+
+
+/* Common text & image component styles */
+
+.textImageHighlight { 
+    width: 95%;
+    padding: 10px;
+    background-color: #eef4f9;
+}
+
+
+.textImageHighlight img {
+    margin-right: 10px;
+    border: 1px solid #777;
+    padding: 5px;
+    background-color: #fff;
+}
+
+div.textimage div.text {
+    margin-right: 5%;
+    width: auto;
+}
+
+/* Lists */
+
+ul.navList {
+    margin: 4px 0px 10px 0px;
+    padding: 0px;
+    list-style: none;
+}
+
+ul.navList li {
+    background: transparent url(/content/dam/sfu/images/common/bullet_blue.gif) 0px 6px no-repeat;
+    padding: 0px 0px 6px 6px;
+    margin: 0px;
+}
+
+ul.navList li p {
+    margin: 0px;
+    padding: 0px;
+}
+
+ol.lower-alpha, div.lower-alpha ol {
+    list-style-type: lower-alpha;
+}
+
+ol.upper-alpha, div.upper-alpha ol {
+    list-style-type: upper-alpha;
+}
+
+div.listed ul {
+    margin: 0px;
+    padding: 0px;
+    list-style-type: none;
+    margin-top: 10px;
+}
+
+div.listed ul li {
+    padding: 4px 0px 0px 11px;
+    background: transparent url(/content/dam/sfu/images/common/bullet_red.gif) 0px 8px no-repeat;
+}
+
+div.listed ul li ul {
+    list-style-type: none;
+    margin-top: 0px;
+    margin-left: 8px;
+    margin-bottom: 6px;
+}
+
+div.listed ul li ul li {
+    font-weight: normal;
+    padding-left: 6px;
+    background: transparent url(/content/dam/sfu/images/common/bullet_blue.gif) 0px 9px no-repeat;
+}
+
+ul li a.current {
+    font-weight: bold;
+}
+
+div.title {
+    margin-bottom: 8px;
+}
+
+/* Forms */
+
+form div input {
+    margin-bottom: 12px;
+}
+
+form div textarea {
+    margin-bottom: 12px;
+}
+
+form div select {
+    margin-bottom: 12px;
+}
+
+.form_error {
+    color: #b5111b;
+}
+
+/* Remove default border from image map images */
+
+img.cq-dd-image {
+    border: none;
+}
+
+/* Fix non-clearing behaviour and width on text and image component */
+
+div.textimage {
+    clear: both;
+    width: 95%;
+}
+
+div.clear {
+    clear: both;
+}
+
+/* Table of Contents component */
+
+div.toc {
+    margin-bottom: 18px;
+}
+
+div.toc p {
+   margin-top: 12px;
+   color: #000;
+   font: 14px/18px "ff-scala-web-1","ff-scala-web-2","Georgia",serif;
+}
+
+div.toc ul {
+    margin: 0px;
+    padding: 0px;
+    list-style-type: none;
+}
+
+div.toc ul li {
+    background: transparent url(/content/dam/sfu/images/common/bullet_red.gif) 0px 10px no-repeat;
+    padding: 6px 0px 0px 11px;
+    margin: 0px;
+}
+
+div.toc ul li ul {
+    margin-top: 5px;
+}
+
+div.toc ul li ul li {
+    font-size: .9em;
+    background: transparent url(/content/dam/sfu/images/common/bullet_blue.gif) 0px 6px no-repeat;
+    padding: 0px 0px 6px 6px;
+}
+
+/* Basic table */
+
+table th {
+    font-weight: bold;
+    text-align: left;
+    font-size: 14px;
+}
+
+table td {
+    padding-left: 5px;
+}
+
+/* Zebra tables */
+
+div.alternate table {
+    margin-bottom: 10px;
+}
+
+/* Search widget */
+
+div.searchwidget {
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+div.searchwidget form {
+    background-color: #fff;
+    border: 1px solid #e7e8e5;
+    padding: 0px;
+    margin: 0px;
+    width: 175px;
+    height: 20px;   
+    overflow: hidden;
+}
+
+div.searchwidget form input {
+    border: none;
+    outline: none;
+    height: 18px;
+    width: 147px;
+    background-color: #fff;
+}
+
+div.searchwidget form input.submit {
+    border: none;
+    height: 20px;
+    line-height: 12px;
+    padding: 4px 4px 0 20px !important;
+    width: 20px;
+    text-indent: -100em;
+    background: #fff url(/etc/designs/sfu/images/itservices/sprites.gif) no-repeat 5px 3px;
+}
+
+div.searchwidget form input.submit:hover {
+    background: #fff url(/etc/designs/sfu/images/itservices/sprites.gif) no-repeat 5px -17px;
+}
+
+div.searchwidget p {
+    margin: 0;
+    padding: 0;
+    font-weight: bold;
+    color: #777;
+}
+
+div.searchRight {
+    display: none;
+}
+
+
+/* Related Topics list for Text or List component */
+
+ul.relatedTopics {
+    margin: 0px;
+    padding: 0px;
+    padding-left: 12px;
+    border-left: 5px solid #eee;
+    list-style-type: none;
+    width: 75%;
+    margin-bottom: 10px;
+}
+
+ul.relatedTopics li {
+    padding: 3px 6px 3px 6px;
+    border-bottom: 1px solid #ddd;
+}
+
+ul.relatedTopics li p {
+    margin: 0px;
+    padding: 0px;
+}
+
+.relatedTopics ul {
+    margin: 0px;
+    padding: 0px;
+    padding-left: 12px;
+    border-left: 5px solid #eee;
+    list-style-type: none;
+    margin-bottom: 10px;
+}
+
+.relatedTopics ul li {
+    padding: 3px 6px 3px 6px;
+    border-bottom: 1px solid #ddd;
+}
+
+/* Column layouts for home page */
+
+div.cq-colctrl-home1 { margin-left: -18px; margin-top: -5px; width: 785px; }
+div.cq-colctrl-home1-c0 { width: 590px; }
+div.cq-colctrl-home1-c1 { width: 170px; padding-left: 10px; }
+
+/* Toggles within columns */
+
+div.parsys_column div.toggleContent {
+    margin-left: 0px;
+    width: 90%;
+}
+
+/* Download link */
+
+div.download span.icon {
+    width: 16px;
+}
+
+/* Feed link */
+
+a.feedlink-icon, a.linkFeed {
+    padding: 2px;
+    font-weight: bold;
+    font-size: 10px;
+    color: #000;
+    text-transform: uppercase;
+    padding-left: 18px;
+    background: transparent url(/content/dam/sfu/images/icons/feed.png) top left no-repeat;
+}
+
+a.feedlink-icon:hover {
+    text-decoration: none;
+}
+
+/* Toggle Hide/Show content */
+
+.toggle {
+    padding-left: 12px;
+    background: transparent url(/content/dam/sfu/images/icons/plus_minus.png) left top no-repeat;
+    padding-bottom: 8px;
+    color: #0054a6;
+    cursor: pointer;
+}
+
+.toggle:hover {
+    text-decoration: underline;
+}
+
+.toggle p {
+    padding-bottom: 0px;
+    padding-top: 0px;
+}
+
+.toggleContent {
+    border-left: 5px solid #eee;
+    padding: 8px 0px 0px 10px;
+    margin: 0 0 18px 12px;
+}
+
+/* Tab Navigation component */
+
+div.tabnav {
+    height: 100%;
+    margin-top: 10px;
+}
+
+div.tabNav {
+    width: 95%;
+    clear: left;
+    height: 26px;
+}
+
+div.tabNav ul {
+    margin: 0;
+    padding: 0;
+}
+
+div.tabNav ul li {
+    list-style-type:none;
+    display:inline;
+    margin-right: 0;
+    position:relative;
+    top:5px;
+}
+
+div.tabNav ul li a {
+    color: #555;
+    display: inline;
+    padding: 5px;
+    border: 1px solid #999;
+    -webkit-border-radius: 7px 7px 0px 0px;
+    -moz-border-radius: 7px 7px 0px 0px;
+    border-radius: 7px 7px 0px 0px;
+    border-bottom: none;
+    max-width: 140px;
+    height: 26px;
+    overflow: hidden;
+    background: #c4dae4; /* for non-css3 browsers */
+    background: -webkit-gradient(linear, left top, left bottom, from(#c4dae4), to(#fff)); /* for webkit browsers */
+    background: -moz-linear-gradient(top,  #c4dae4,  #fff); /* for firefox 3.6+ */  
+}
+
+div.tabNav ul li a:hover {
+    text-decoration: none;
+    background: #fff;
+}
+
+div.tabNav ul li a.current {
+    background: #fff;
+    font-weight: bold;
+    border-bottom: 3px solid #fff;
+}
+
+div.tabNav ul li p {
+    display:inline;
+    padding:0;
+    margin:0;
+}
+
+div.tabContent {
+    min-height: 30px;
+    width: 95%;
+    overflow: hidden;
+    padding: 12px 0 0 12px;
+    margin: 0;
+    margin-bottom: 30px;
+    border: 1px solid #999;
+    -webkit-border-radius: 0px 7px 7px 7px;
+    -moz-border-radius: 0px 7px 7px 7px;
+    border-radius: 0px 7px 7px 7px;
+}
+
+/* Comments */
+
+div.commentGuidelines {
+    margin-top: 18px;
+    padding-top: 4px;
+    font-size: 10px;
+    text-align: right;
+    padding-right: 35px;
+    height: 32px;
+    background: transparent url(/content/dam/sfu/images/icons/comments.png) top right no-repeat;
+}
+
+div.commentGuidelines a {
+    color: #82a0b0;
+}
+
+div#comments {
+    margin-bottom: 30px;
+}
+
+form.comment {
+    margin: 5px 0px 10px 0px;
+    float: left;
+    width: 95%;
+    padding: 10px 0px 10px 10px;
+    border-top: 5px solid #e2edf2;
+    border-bottom: 5px solid #e2edf2;
+    background-color: #f7f7f7;
+}
+
+textarea.comment-text {
+    width: 90%;
+    font-size: 12px;
+}
+
+div.comment-info {
+    width: 90%;
+}
+
+div.comment-block {
+    width: 30%;
+    float: left;
+    margin-right: 20px;
+    margin-top: 10px;
+}
+
+div#comments-count {
+    font-size: 12px;
+    font-weight: normal;
+    clear: left;
+}
+
+div.comment {
+    width: 97%;
+}
+
+div.comment-moderate {
+    color: #000;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding-left: 18px;
+    padding-bottom: 4px;
+    background: transparent url(/content/dam/sfu/images/icons/attention_icon.png) top left no-repeat;
+}
+
+div.comment-header {
+    border-top: 5px solid #e2edf2;
+    padding-top: 6px;
+}
+
+div.comment-header cite {
+    font-style: none;
+    font-size: 10px;
+}
+
+div.comment-replies {
+    margin-top: 8px;
+    color: #888;
+}
+
+#content textarea.comment-text {
+    width: 100%;
+}
+
+/* Standard carousel for 3-column templates */
+
+div.carousel {
+    margin-left: -18px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.cq-carousel {
+    width: 590px;
+    height: 290px;
+}
+
+.cq-carousel-banner-item {
+    width: 590px;
+    height: 343px;
+}
+
+.cq-carousel-banner-item img {
+    width: 590px;
+    height: 243px;
+}
+
+.cq-carousel-banners h3 {
+    display: none;
+    padding: 0px;
+    margin: 0px 10px 0px 18px;
+}
+
+.cq-carousel-banners p {
+    padding: 0px;
+    margin: 0px 10px 0px 18px;
+    line-height: 14px;
+}
+
+.cq-carousel-banner-switches-bc, .cq-carousel-banner-switches-bl, .cq-carousel-banner-switches-br {
+    top: 200px;
+    height: 40px;
+}
+
+ul.cq-carousel-banner-switch {
+    display:inline-block;
+    zoom:1;
+    *display:inline;
+}
+
+div.homePhoto div.carousel {
+   margin-left: 0px;
+}
+
+
+/* Full-width carousel for 2-column templates */
+
+.wideCarousel {
+    width: 785px;
+}
+
+.wideCarousel .cq-carousel-banner-item {
+    width: 785px;
+    height: 235px;
+}
+
+.wideCarousel .cq-carousel-banner-item img {
+    width: 785px;
+    height: 195px;
+}
+
+.wideCarousel .cq-carousel-banner-switches-bc, .wideCarousel .cq-carousel-banner-switches-bl, .wideCarousel .cq-carousel-banner-switches-br {
+    top: 155px;
+}
+
+/* Calendar */
+
+.cq-calendar .content {
+    width: 95% !important;
+    margin-bottom: 20px;
+}
+
+ul.news, ul.fullText, ul.headline, ul.newsFeed, ul.teaser {
+    list-style-type: none;
+    margin: 0px;
+    padding: 0px;
+    width: 95%;
+}
+
+ul.newsList {
+   list-style-type: none;
+   margin: 0px;
+   padding: 0px;
+}
+
+ul.newsList li, ul.news li, ul.fullText li, ul.headline li, ul.newsFeed li, ul.teaser li {
+    margin-bottom: 8px;
+}
+
+br.clearList {
+    clear: left;
+}
+
+ul.newsList li {
+    clear: left;
+}
+
+ul.newsList li img {
+    float: left;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    background-color: #fff;
+    padding: 5px;
+    border: 1px solid #999;
+}
+
+ul.newsList p span {
+    color: #999;
+}
+
+/* News Feed display */
+
+ul.newsFeed li {
+    clear: left;
+    margin: 0px 0px 10px 0px;
+    padding: 0px 10px 0px 0px;
+}
+
+ul.newsFeed div.newsThumbnail {
+    float: left;
+    margin: 0px 20px 10px 0px;
+    padding: 4px;
+    border: 1px solid #ccc;
+}
+
+ul.newsFeed div.newsThumbnail a {
+    width: 115px;
+    height: 115px;
+    display: block;
+}
+
+ul.newsFeed div.newsLead h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0px;
+    padding: 0px;
+    padding-bottom: 6px;
+}
+
+ul.newsFeed div.newsLead h3 a {
+    color: #313428;
+    margin: 0px;
+    padding: 0px;
+}
+
+ul.newsFeed div.newsLead h3 a:hover {
+    color: #b5111a;
+    text-decoration: none;
+}
+
+ul.newsFeed span.newsMeta {
+    color: #777;
+    font-size: 10px;
+}
+
+ul.newsFeed span.newsComments {
+    border-left: 1px solid #777;
+    padding-left: 6px;
+    margin-left: 4px;
+}
+
+ul.newsFeed div.newsLead p a {
+    color: #b5111a;
+}
+
+ul.newsFeed div.newsLead p a:hover {
+    text-decoration: underline;
+}
+
+/* Headlines display */
+
+ul.headline {
+    min-height: 250px;
+    width: 540px;
+}
+
+ul.headline li {
+    float: left;
+    margin-right: 10px;
+    width: 240px;
+}
+
+ul.headline div.storyImage {
+    height: 140px;
+    width: 240px;
+}
+
+ul.headline div.storyImage img {
+    height: 130px;
+    width: 230px;
+}
+
+ul.headline div.storyImage a {
+    height: 130px;
+    width: 230px;
+    background-color: #fff;
+    border: 1px solid #e1e1e1;
+    padding: 4px;
+    float: left;
+    display: block;
+    text-decoration: none;
+}
+
+ul.headline div.storyImage a:hover {
+    text-decoration: none;
+}
+
+ul.headline div.storyImage span.storyMeta {
+    width: 230px;
+    background: #000;
+    color: #ccc;
+    opacity: 0.7;
+    font-weight: 700;
+    height: 25px;
+    float: left;
+    margin: -28px 0px 0px;
+    font-size: 10px;
+}
+
+ul.headline div.storyImage span.storyComments {
+    background: transparent url("/content/dam/sfu/images/icons/comment_bubble.png") 0px 1px no-repeat;
+    float: right;
+    margin: 5px 5px 0px;
+    padding: 0px 0px 0px 12px;
+}
+
+ul.headline div.storyImage span.storyDatestamp {
+    float: left;
+    text-transform: uppercase;
+    color: #999;
+    margin: 5px 5px 0px;
+}
+
+ul.headline div.storyLead h3 {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.4em;
+    margin: 5px;
+    padding-bottom: 0px;
+}
+
+ul.headline div.storyLead h3 a {
+    color: #000;
+}
+
+ul.headline div.storyLead h3 a:hover {
+    color: #b5111a;
+    text-decoration: none;
+}
+
+ul.headline div.storyLead p {
+    margin: 5px;
+}
+
+ul.headline div.storyLead p a {
+    color: #b5111a;
+}
+
+ul.headline div.storyLead p a:hover {
+    text-decoration: underline;
+}
+
+/* Profile display */
+
+ul.profile {
+    margin: 0px;
+    padding: 0px;
+    list-style-type: none;
+    margin-top: 8px;
+    width: 95%;
+}
+
+ul.profile li {
+    padding-bottom: 6px;
+    margin-bottom: 6px;
+    border-bottom: 1px dotted #ccc;
+}
+
+ul.profile li a {
+    font-weight: bold;
+    font-size: 14px;
+    line-height: 16px;
+}
+
+ul.profile li span.subtitle {
+    border-left: 5px solid #eee;
+    padding-left: 6px;
+    margin-left: 4px;
+}
+
+ul.profile li span.tag {
+    font-style: italic;
+    color: #777;
+}
+
+ul.profile li span.desc {
+    margin-top: 4px;
+}
+
+/* Date stamp */
+
+div.datestamp {
+    font-family: "Gill Sans", "Lucida Sans", verdana, arial, sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+/* Gallery Pages */
+
+div.galleryHeader h2 {
+    color: #000;
+    font-size: 18px;
+    padding: 12px 0px;
+    border-top: 5px solid #eee;
+    width: 550px;
+}
+
+div.cq-colctrl-gallery {
+    width: 550px;
+    float: left;
+}
+
+div.cq-colctrl-gallery-c0 { width: 31%; margin-right: 16px; float: left; overflow: hidden; }
+div.cq-colctrl-gallery-c1 { width: 31%; margin-right: 16px; float: left; overflow: hidden; }
+div.cq-colctrl-gallery-c2 { width: 31%; float: left; overflow: hidden; }
+
+div.cq-colctrl-gallery p {
+    padding-bottom: 0px;
+}
+
+div.cq-colctrl-gallery h2 {
+    border-top: none;
+}
+
+div.cq-colctrl-gallery a.box {
+    height: 50px;
+    color: #fff;
+    display: block;
+    text-decoration: none;
+    background-color: #8F8F38;
+    padding: 10px 10px 5px 8px; 
+    border: 5px solid #fff;
+    -webkit-box-shadow: 1px 1px 2px 0px #999;
+    -moz-box-shadow: 1px 1px 2px 0px #999;
+    box-shadow: 1px 1px 2px 0px #999;
+    margin: 2px;
+}
+
+div.cq-colctrl-gallery p.galleryText {
+    color: #555;
+    font-size: 1em;
+    line-height: 1.4em;
+    margin: 8px 0px 0px 8px;
+}
+
+div.cq-colctrl-gallery a.box h1 {
+    margin: 0px;
+    padding: 0px;
+    text-transform: uppercase;
+    font-size: 16px;
+    line-height: 18px;
+    color: #fff;
+}
+
+div.cq-colctrl-gallery a.box h2 {
+    margin: 0px;
+    padding: 0px;
+    text-transform: uppercase;
+    font-size: 10px;
+    line-height: 12px;
+    color: #fff;
+}
+
+div.galleryBox div.galleryHeader h2 {
+    color: #000;
+    font-size: 18px;
+    padding: 12px 0px;
+    border-top: 5px solid #eee;
+    width: 550px;
+}
+
+div.galleryBox p {
+    padding-bottom: 0px;
+}
+
+div.cq-colctrl-gallery a.box, div.galleryBox a.box {
+    height: 50px;
+    color: #fff;
+    display: block;
+    text-decoration: none;
+    background-color: #8F8F38;
+    padding: 10px 10px 5px 8px; 
+    border: 5px solid #fff;
+    -webkit-box-shadow: 1px 1px 2px 0px #999;
+    -moz-box-shadow: 1px 1px 2px 0px #999;
+    box-shadow: 1px 1px 2px 0px #999;
+    margin: 2px;
+}
+
+div.cq-colctrl-gallery a.box:hover, div.galleryBox a.box:hover {
+    background-color: #B6B624;
+}
+
+div.l2 a.box {
+    background-color: #A99320;
+}
+
+div.l2 a.box:hover {
+    background-color: #C2B217;
+}
+
+div.l3 a.box {
+    background-color: #71491D;
+}
+
+div.l3 a.box:hover {
+    background-color: #8A5510;
+}
+
+div.l4 a.box {
+    background-color: #793E39;
+}
+
+div.l4 a.box:hover {
+    background-color: #AD4A42;
+}
+
+div.l5 a.box {
+    background-color: #64644E;
+}
+
+div.l5 a.box:hover {
+    background-color: #7F7F41;
+}
+
+div.galleryBox p.galleryText {
+    color: #555;
+    font-size: 1em;
+    line-height: 1.4em;
+    margin: 8px 0px 0px 8px;
+}
+
+div.galleryBox a.box h1 {
+    margin: 0px;
+    padding: 0px;
+    text-transform: uppercase;
+    font-size: 16px;
+    line-height: 18px;
+    color: #fff;
+}
+
+div.galleryBox a.box h2 {
+    margin: 0px;
+    padding: 0px;
+    text-transform: uppercase;
+    font-size: 10px;
+    line-height: 12px;
+    color: #fff;
+}
+
+/* External Feed component */
+
+div.externalFeed {
+    width: 90%;
+    margin-bottom: 12px;
+}
+
+div.externalFeed h3 {
+    color: #000;
+    font-family: "Gill Sans", "Lucida Sans", verdana, arial, sans-serif;
+    font-size: 10px;
+    line-height: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: bold;
+    padding-bottom: 6px;
+}
+
+div.externalFeed ul {
+    list-style-type: none;
+    margin: 0px;
+    padding: 0px;
+    border-bottom: 1px solid #ddd;
+}
+
+div.externalFeed ul li {
+    padding: 4px 0px;
+    border-top: 1px solid #ddd;
+}
+
+div.externalFeed ul li div {
+    color: #555;
+}
+
+div.externalFeed div.rssFeed h3 {
+    font-family: helvetica, arial, verdana, sans-serif;
+    font-weight: normal;
+    font-size: 12px;
+    padding: 0px;
+    margin: 0px;
+    text-transform: none;
+    letter-spacing: 0px;
+}
+
+/* Course Description component */
+
+div.courseDescription {
+    width: 90%;
+    margin-top: 8px;
+}
+
+div.courseDescription h3 {
+    color: #000;
+    font: bold 14px/16px "Lucida Grande",Lucida,Arial,Verdana,sans-serif;
+    margin-top: 12px;
+    margin-bottom: 0px;
+    padding-bottom: 0px;
+}
+
+div.courseDescription h4 {
+    font-size: 11px;
+    color: #B5111B;
+    margin-top: 4px;
+    text-transform: uppercase;
+}
+
+div.courseDescription p {
+    border-bottom: 5px solid #eee;
+}
+
+/* Sitemap component */
+
+div.linkcontainer {
+    padding-left: 10px;
+}

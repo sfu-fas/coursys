@@ -1,3 +1,5 @@
+var onlineJSON = "/media/sfu/js/online.json"; 
+
 function confirmSubmit(action) {
   return confirm("Are you sure you wish to " + action + "?");
 }
