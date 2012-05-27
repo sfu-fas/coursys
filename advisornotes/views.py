@@ -217,7 +217,12 @@ def merge_nonstudent(request, nonstudent_slug):
                 note.nonstudent = None
                 note.student = student
                 note.save()
+            if nonstudent.high_school:
+                student.set_nonstudent_hs(nonstudent.high_school)
+            if nonstudent.notes:
+                student.set_nonstudent_notes(nonstudent.notes)
             nonstudent.delete()
+            student.save()
             l = LogEntry(userid=request.user.username,
                   description=("Nonstudent (%s, %s) has been merged with emplid #%s by %s") % (nonstudent.last_name, nonstudent.first_name, student.emplid, request.user),
                   related_object=student)

@@ -72,16 +72,24 @@ $(document).ready(function() {
             	{% endif %}
 			</td>
         </tr>
+        {% if not nonstudent %}
 	    <tr>
-	    	{% if nonstudent %}
-	    		<th class="ui-state-default">High School</th>
-            	<td>{{ student.high_school|default_if_none:"--" }}</td>
-	    	{% endif %}
-	    	{% if not nonstudent %}
-	    		<th class="ui-state-default">Email Address</th>
-            	<td>{{ student.email_mailto }}</td>
-	    	{% endif %}
+	    	<th class="ui-state-default">Email Address</th>
+            <td>{{ student.email_mailto }}</td>
         </tr>
+        {% endif %}
+        {% if nonstudent %}
+        <tr>
+	    	<th class="ui-state-default">High School</th>
+            <td>{{ student.high_school|default_if_none:"--" }}</td>
+	    </tr>
+	    {% endif %}
+	    {% if not nonstudent and student.nonstudent_hs %}
+	    <tr>
+	    	<th class="ui-state-default">High School (Pre-admission record)</th>
+            <td>{{ student.nonstudent_hs }}</td>
+	    </tr>    
+	    {% endif %}
         </tbody>
     </table>
 </div>

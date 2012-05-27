@@ -61,7 +61,7 @@ class NonStudentForm(ModelForm):
     
     class Meta:
         model = NonStudent
-        exclude=('config')
+        exclude=('config', 'notes')
         
 class MergeStudentField(forms.Field):
     
