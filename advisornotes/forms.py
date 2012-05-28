@@ -69,6 +69,10 @@ class MergeStudentField(forms.Field):
         if value in validators.EMPTY_VALUES:
             raise ValidationError(self.error_messages['required'])
         try:
+            value = int(value)
+        except ValueError:
+            raise forms.ValidationError("Invalid format")
+        try:
             student = Person.objects.get(emplid=value)
         except Person.DoesNotExist:
             raise forms.ValidationError("Could not find student record")
