@@ -224,7 +224,9 @@ class HTMLWiki(object):
     def handle_tag(self, elt, context=None):
         if context=="textonly":
             return self.handle_contents(elt, block=False, context='textonly')
-        if context=="pre":
+        if context=="pre" and elt.name == 'br':
+            return '\n' # special case for <br> tags in a <pre>
+        elif context=="pre":
             return self.handle_contents(elt, block=False, context='pre')
         
         name = elt.name

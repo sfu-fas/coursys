@@ -4,7 +4,7 @@ from pages.models import Page, PageVersion, READ_ACL_CHOICES, WRITE_ACL_CHOICES
 
 class WikiField(forms.CharField):
     def __init__(self, *args, **kwargs):
-        self.widget = forms.Textarea(attrs={'cols': 90, 'rows': 30})
+        self.widget = forms.Textarea(attrs={'cols': 80, 'rows': 20})
         if 'help_text' not in kwargs:
             kwargs['help_text'] = 'Page formatted in <a href="/docs/pages">WikiCreole markup</a>.' # hard-coded URL since this is evaluated before urls.py: could be reverse_lazy?
         super(WikiField, self).__init__(*args, **kwargs)
@@ -20,6 +20,7 @@ class CommentField(forms.CharField):
 
 
 class EditPageFileForm(forms.ModelForm):
+    markup = forms.CharField(initial="wiki", widget=forms.HiddenInput())
     def __init__(self, offering, *args, **kwargs):
         super(EditPageFileForm, self).__init__(*args, **kwargs)
         # force the right course offering into place
@@ -51,6 +52,21 @@ class EditPageFileForm(forms.ModelForm):
         if error:
             raise forms.ValidationError(error)
         return label
+
+    def clean_wikitext(self):
+        markup = self.data['markup']
+        if markup != 'html':
+            # not HTML input: it's okay as-is
+            return self.data['wikitext']
+        
+        html = self.data['wikitext']
+        converter = HTMLWiki([])
+        try:
+            wiki = converter.from_html(html)
+        except converter.ParseError:
+            raise forms.ValidationError("Could not parse the HTML file.")
+
+        return wiki
 
     class Meta:
         model = Page
