@@ -675,7 +675,7 @@ class RelatedObject(models.Model):
     # any object that has a .short_str() method (which is used as its label)
 
 
-def _disc_upload_to(self, instance, filename):
+def _disc_upload_to(instance, filename):
     """
     path to upload case attachment
     """
