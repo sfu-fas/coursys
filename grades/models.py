@@ -153,6 +153,7 @@ class Activity(models.Model):
             self.deleted = True
             self.name = self.name + suffix
             self.short_name = self.short_name + suffix
+            self.slug = None
             self.save()
 
 
