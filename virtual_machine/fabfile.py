@@ -78,7 +78,7 @@ def config():
     results.append( run('virtualenv --distribute ' + local_settings['virtualenv'] ) )
     with cd(local_settings['svn_folder']):
         with prefix('source ../'+local_settings['virtualenv']+'/bin/activate'):
-            results.append( sudo('pip install -r --index-url=http://asb-9905-01.fas.sfu.ca/simple/ '+local_settings['location_of_dependencies']) )
+            results.append( sudo('pip install --index-url=http://asb-9905-01.fas.sfu.ca/simple/ -r '+local_settings['location_of_dependencies']) )
             results.append( run('python manage.py syncdb --noinput') )
             results.append( run('python manage.py migrate') )
             results.append( run('python manage.py loaddata test_data') )
