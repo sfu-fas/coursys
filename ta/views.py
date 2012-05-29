@@ -141,11 +141,12 @@ def view_tug(request, course_slug, userid):
     else:
         tug = get_object_or_404(TUG, member=member)
         max_hours = tug.base_units * 42
+        has_lab_or_tut = course.labtas()
         total_hours = sum(decimal.Decimal(params.get('total',0)) for _, params in tug.config.iteritems() if params.get('total',0) is not None)
         
         context = {'tug': tug, 'ta':member, 'course':course, 
-                'maxHours':max_hours, 'totalHours':total_hours,
-                'user_role':curr_user_role}
+                'maxHours': max_hours, 'totalHours': total_hours,
+                'user_role': curr_user_role, 'has_lab_or_tut': has_lab_or_tut}
         return render(request, 'ta/view_tug.html',context)
 
 @requires_course_instr_by_slug

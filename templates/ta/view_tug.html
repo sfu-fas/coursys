@@ -56,6 +56,7 @@ Teaching Assistant Time Use Guideline</div>
 	</span>
 	<span id="maxHours"> Maximum Hours: 
 		<span class="tugField">{{ maxHours }}</span>
+		{% if has_lab_or_tut %}<br />[ + 0.17 &times 42 = 7.14 hours of lab/tutorial prep not assigned by instructor]{% endif %}
 	</span>
 </div>
 

@@ -2,7 +2,7 @@
 /* print style for tug form */
 
 #header, #sideItems, #topLinks, #actions, #footer,
- #tugReview {
+ #tugReview, #banner, #globalNav {
 	display:none;
 }
 
@@ -10,6 +10,7 @@
 body {
 	font-family: serif;
     background: none;
+    border: none;
 }
 
 #absWrapper {
