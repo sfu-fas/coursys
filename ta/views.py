@@ -111,9 +111,9 @@ def new_tug(request, course_slug, userid):
     else:
         if has_lab_or_tut:
             form = TUGForm(offering=course,userid=userid, initial=
-                    {'prep':{'total':13, 'comment':'Lab/tutorial prep'},
-                     'holiday':{'total':bu-0.17},
-                     'base_units': bu})
+                    {'holiday':{'total':bu-0.17},
+                     'base_units': bu-0.17})
+            form.fields['base_units'].help_text = '(0.17 base units not assignable because of labs/tutorials)'
         else:
             form = TUGForm(offering=course,userid=userid, initial={'holiday':{'total':bu}, 'base_units': bu})
     
