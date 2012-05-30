@@ -1,4 +1,5 @@
-var WEEKS_PER_SEMESTER = 13
+var WEEKS_PER_SEMESTER = 13;
+var HOURS_PER_BU = 42;
 
 $(function(){
 	getErrorList = function(el){
@@ -59,10 +60,10 @@ $(function(){
 		if(el.children().length == 0) {
 			el.remove();
 		}
-		$('#maxHours').html($(this).val()*42);
+		$('#maxHours').html($(this).val()*HOURS_PER_BU);
 		
 	});
-	$('#maxHours').html($('#id_base_units').val()*42);
+	$('#maxHours').html($('#id_base_units').val()*HOURS_PER_BU);
 	
 	$("input[id$='-weekly']").change(function(){
 		duty = extractDutyNameFromElement(this);

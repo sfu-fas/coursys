@@ -11,7 +11,7 @@ from dashboard.models import NewsItem
 from django.core.urlresolvers import reverse
 
 LAB_BONUS = 0.17
-HOURS_PER_BU = 42
+HOURS_PER_BU = 42 # also in media/js/ta.js
 
 class TUG(models.Model):
     """
