@@ -1,6 +1,9 @@
 from django import forms
 from django.db import transaction
 from pages.models import Page, PageVersion, READ_ACL_CHOICES, WRITE_ACL_CHOICES
+from importer import HTMLWiki
+import urllib2, urlparse
+
 
 class WikiField(forms.CharField):
     def __init__(self, *args, **kwargs):
@@ -145,9 +148,6 @@ class EditFileFormRestricted(EditFileForm):
         del self.fields['can_write']
 
 EditFileForm.restricted_form = EditFileFormRestricted
-
-from importer import HTMLWiki
-import urllib2, urlparse
 
 class SiteImportForm(forms.Form):
     url = forms.URLField(required=True, label='URL', widget=forms.TextInput(attrs={'size':70}))

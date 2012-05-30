@@ -203,6 +203,7 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/import$', 'pages.views.import_page'),
     url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/history$', 'pages.views.page_history'),
     url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/version/(?P<version_id>\d+)$', 'pages.views.page_version'),
+    url(r'^' + COURSE_SLUG + '/pages/' + PAGE_LABEL + '/_convert$', 'pages.views.convert_content'),
 
     # TA's TUGs
 

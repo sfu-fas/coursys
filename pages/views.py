@@ -4,11 +4,14 @@ from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
 from pages.models import Page, PageVersion, MEMBER_ROLES, ACL_ROLES
 from pages.forms import EditPageForm, EditFileForm, PageImportForm, SiteImportForm
 from coredata.models import Member, CourseOffering
 from log.models import LogEntry
 from courselib.auth import NotFoundResponse, ForbiddenResponse
+from importer import HTMLWiki
+import json
 
 def _check_allowed(request, offering, acl_value):
     """
@@ -237,6 +240,42 @@ def _edit_pagefile(request, course_slug, page_label, kind):
 
     context = {'offering': offering, 'page': page, 'form': form, 'kind': kind.title()}
     return render(request, 'pages/edit_page.html', context)
+
+
+@csrf_exempt
+def convert_content(request, course_slug, page_label):
+    """
+    Convert between wikicreole and HTML (AJAX called in editor when switching editing modes)
+    """
+    if request.method != 'POST':
+        return ForbiddenResponse(request, 'POST only')
+    if 'to' not in request.POST:
+        return ForbiddenResponse(request, 'must send "to" language')
+    if 'data' not in request.POST:
+        return ForbiddenResponse(request, 'must sent source "data"')
+
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    page = get_object_or_404(Page, offering=offering, label=page_label)
+    
+    to = request.POST['to']
+    data = request.POST['data']
+    if to == 'html':
+        # convert wikitext to HTML
+        # temporarily change the current version to get the result (but don't save)
+        pv = page.current_version()
+        pv.wikitext = data
+        pv.diff_from = None
+        result = {'data': pv.html_contents()}
+        return HttpResponse(json.dumps(result), mimetype="application/json")
+    else:
+        # convert HTML to wikitext
+        converter = HTMLWiki([])
+        try:
+            wiki = converter.from_html(data)
+        except converter.ParseError:
+            wiki = ''
+        result = {'data': wiki}
+        return HttpResponse(json.dumps(result), mimetype="application/json")
 
 
 @login_required

@@ -8,11 +8,11 @@
 {% block headextra %}
 <script type="text/javascript" src="{{MEDIA_URL}}/tiny_mce/tiny_mce.js"></script>
 <script type="text/javascript">
-function do_wysiwyg() {
-	$('#id_markup').val('html')
+var convert_url = '{% url pages.views.convert_content course_slug=offering.slug page_label=page.label %}';
+function setup_tinymce(id) {
 	tinyMCE.init({
 		mode: "exact",
-		elements: "id_wikitext",    
+		elements: id,
 		theme: "advanced",
 		theme_advanced_toolbar_location: "top",
 		theme_advanced_toolbar_align: "left",
@@ -24,11 +24,41 @@ function do_wysiwyg() {
 		theme_advanced_buttons4: "",
 	});
 }
+function do_wysiwyg() {
+	if ($('#id_markup').val() != 'wiki') {
+		return;		
+	}
+	$('#id_markup').val('html');
+	var current = $('#id_wikitext').val();
+	$.ajax({
+		url: convert_url,
+		type: "POST",
+		data: { data: current, to: "html" },
+	}).done(function(data) {
+		var html = data['data'];
+		$('#id_wikitext').val(html);
+		setup_tinymce('id_wikitext');
+	});
+}
 
 function do_wiki() {
+	if ($('#id_markup').val() != 'html') {
+		console.log('hail')
+		return;		
+	}
 	$('#id_markup').val('wiki')
-	tinyMCE.execCommand('mceFocus', false, 'id_wikitext');
-	tinyMCE.execCommand('mceRemoveControl', false, 'id_wikitext');
+
+	var current = $('#id_wikitext').val();
+	$.ajax({
+		url: convert_url,
+		type: "POST",
+		data: { data: current, to: "wiki" },
+	}).done(function(data) {
+		var wiki = data['data'];
+		tinyMCE.execCommand('mceFocus', false, 'id_wikitext');
+		tinyMCE.execCommand('mceRemoveControl', false, 'id_wikitext');
+		$('#id_wikitext').val(wiki);
+	});
 }
 </script>
 {% endblock %}
