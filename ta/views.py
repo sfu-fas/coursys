@@ -320,9 +320,9 @@ def _new_application(request, post_slug, manual=False):
                   }
     return render(request, 'ta/new_application.html', context)
 
-
+"""
 @login_required
-def XXX_edit_application(request, post_slug, userid):
+def edit_application(request, post_slug, userid):
     posting = get_object_or_404(TAPosting, slug=post_slug)
     if userid != request.user.username:
         return ForbiddenResponse(request)
@@ -352,7 +352,7 @@ def XXX_edit_application(request, post_slug, userid):
                     'skill_choices': LEVEL_CHOICES,
                   }
     return render(request, 'ta/new_application.html', context)
-        
+"""
     
 
 @requires_role("TAAD")

@@ -95,7 +95,7 @@
 <h2>
 Instructor:
 {% for instructor in instructors %}
-    {{ instructor.last_name }}, {{ instructor.first_name }}</br>
+    {{ instructor.sortname }}</br>
 {% endfor %}
 </h2>
 
@@ -109,13 +109,13 @@ Instructor:
         <ul>
         <li>
             <label>Extra Base Units:&nbsp;</label>
-            <div class="inputfield"><input id="extra_bu" name="extra_bu" type="text" value="{{ offering.config.extra_bu }}"/></div>
+            <div class="inputfield"><input id="extra_bu" name="extra_bu" type="text" value="{{ offering.extra_bu }}"/></div>
             <div class="helptext">(Extra base units to assign, in addition to the calculated defaults.)</div>
         </li>
         <li>
-            <label>TA runs lab:&nbsp;</label>
-            <div class="inputfield"><input id="labtas" name="labtas" type="checkbox" {% if offering.config.labtas %}checked="yes"{% endif %}/></div>
-            <div class="helptext">(+{{LAB_BONUS}} BU)</div>
+            <label>TA runs lab/tutorial:&nbsp;</label>
+            <div class="inputfield"><input id="labtas" name="labtas" type="checkbox" {% if offering.labtas %}checked="yes"{% endif %}/></div>
+            <div class="helptext">(i.e. TAs get +{{LAB_BONUS}} BU)</div>
         </li>
         </ul>
         <button type="button" class="submit" type="submit" onclick="update()">Update</button>

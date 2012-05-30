@@ -440,7 +440,7 @@ class CourseOffering(models.Model):
     defaults = {'taemail': None, 'url': None, 'labtut': False, 'labtas': False, 'indiv_svn': False, 'combined': False,
                 'uses_svn': False, 'extra_bu': '0', 'page_creators': 'STAF', 'discussion': False}
     labtut, set_labtut = getter_setter('labtut')
-    labtas, set_labtas = getter_setter('labtas')
+    _, set_labtas = getter_setter('labtas')
     url, set_url = getter_setter('url')
     taemail, set_taemail = getter_setter('taemail')
     indiv_svn, set_indiv_svn = getter_setter('indiv_svn')
@@ -499,6 +499,19 @@ class CourseOffering(models.Model):
     def set_extra_bu(self, v):
         assert isinstance(v, decimal.Decimal)
         self.set_extra_bu_str(str(v))
+    def labtas(self):
+        """
+        Handles the logic for LAB_BONUS base units.
+        
+        Default yes if there are lab/tutorial sections; default no otherwise. 
+        """
+        if 'labtas' in self.config:
+            return self.config['labtas']
+        elif 'labtut' in self.config and self.config['labtut']:
+            return True
+        else:
+            return False
+    
     def set_course(self, save=True):
         """
         Set this objects .course field to a sensible value, creating a Course object if necessary.
