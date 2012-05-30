@@ -320,6 +320,41 @@ def _new_application(request, post_slug, manual=False):
                   }
     return render(request, 'ta/new_application.html', context)
 
+
+@login_required
+def XXX_edit_application(request, post_slug, userid):
+    posting = get_object_or_404(TAPosting, slug=post_slug)
+    if userid != request.user.username:
+        return ForbiddenResponse(request)
+    application = get_object_or_404(TAApplication, posting=posting, person__userid=userid)
+
+    course_choices = [(c.id, unicode(c) + " (" + c.title + ")") for c in posting.selectable_courses()]
+    used_campuses = set((vals['campus'] for vals in posting.selectable_offerings().order_by('campus').values('campus').distinct()))
+    skills = Skill.objects.filter(posting=posting)
+    
+    max_courses = posting.max_courses()
+    min_courses = posting.min_courses()
+
+    if request.method == "POST":
+        pass
+    else:
+        pass
+
+    context = {
+                    'posting':posting,
+                    #'manual':manual,
+                    'ta_form':ta_form,
+                    #'search_form':search_form,
+                    'courses_formset':courses_formset,
+                    'campus_preferences':campus_preferences,
+                    'campus_pref_choices':PREFERENCE_CHOICES,
+                    'skill_values': skill_values,
+                    'skill_choices': LEVEL_CHOICES,
+                  }
+    return render(request, 'ta/new_application.html', context)
+        
+    
+
 @requires_role("TAAD")
 def update_application(request, post_slug, userid):
     application = get_object_or_404(TAApplication, posting__slug=post_slug, person__userid=userid, posting__unit__in=request.units)

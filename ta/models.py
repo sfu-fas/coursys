@@ -110,7 +110,7 @@ preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (LAB_BONUS, 4
         if newsitem:
             n = NewsItem(user=self.member.person, author=newsitem_author, course=self.member.offering,
                     source_app='ta', title='%s Time Use Guideline Changed' % (self.member.offering.name()),
-                    content='Your Time Use Guideline for %s has been changed.' % (self.member.offering.name()),
+                    content='Your Time Use Guideline for %s has been changed. If you have not already, please review it with the instructor.' % (self.member.offering.name()),
                     url=self.get_absolute_url())
             n.save()
             
