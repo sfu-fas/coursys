@@ -4,9 +4,9 @@
 
 import random, socket, datetime, itertools
 from django.core import serializers
-from importer import give_sysadmin, create_semesters, import_offerings, import_offering_members, combine_sections
+from importer import give_sysadmin, create_semesters, import_offerings, import_offering_members, combine_sections, past_cutoff
 from demodata_importer import fake_emplid, fake_emplids, create_classes
-from coredata.models import Member, Person, CourseOffering, Semester, SemesterWeek, MeetingTime, Role, Unit, CAMPUSES
+from coredata.models import Member, Person, CourseOffering, Course, Semester, SemesterWeek, MeetingTime, Role, Unit, CAMPUSES
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity
 from submission.models.base import SubmissionComponent
 from submission.models.code import CodeComponent
@@ -15,6 +15,7 @@ from marking.models import ActivityComponent
 from groups.models import Group, GroupMember
 from grad.models import GradProgram, GradStudent, GradStatus, LetterTemplate
 from discipline.models import DisciplineTemplate
+from ra.models import Account
 
 FULL_TEST_DATA = "2012su-cmpt-383-d1"
 
@@ -135,7 +136,8 @@ def create_others():
     r.save()
     r = Role(person=p, role="FUND", unit=Unit.objects.get(slug='comp'))
     r.save()
-    r = Role(person=Person.objects.get(userid='lou'), role="GRPD", unit=Unit.objects.get(slug='comp'))
+    #print list(Person.objects.all())
+    r = Role(person=Person.objects.get(userid='ter'), role="GRPD", unit=Unit.objects.get(slug='comp'))
     r.save()
 
 
@@ -188,7 +190,7 @@ def create_grad_templ():
         t.save()
 
 
-def create_discipline_templ():
+def create_more_data():
     templates = [
                  {"field": "contact_email_text", 
                   "label": "generic", 
@@ -222,6 +224,16 @@ def create_discipline_templ():
         t = DisciplineTemplate(**data)
         t.save()
 
+    cmpt = Unit.objects.get(slug='comp')
+    a = Account(account_number=12345, position_number=12345, title='MSc TA', unit=cmpt)
+    a.save()
+    a = Account(account_number=12346, position_number=12346, title='PhD TA', unit=cmpt)
+    a.save()
+    a = Account(account_number=12347, position_number=12347, title='External TA', unit=cmpt)
+    a.save()
+    a = Account(account_number=12348, position_number=12348, title='Undergrad TA', unit=cmpt)
+    a.save()
+
 
 def serialize(filename):
     """
@@ -231,6 +243,7 @@ def serialize(filename):
             Semester.objects.all(),
             SemesterWeek.objects.all(),
             CourseOffering.objects.all(),
+            Course.objects.all(),
             MeetingTime.objects.all(),
             Person.objects.all(),
             Member.objects.all(),
@@ -252,6 +265,7 @@ def serialize(filename):
             GradStatus.objects.all(),
             DisciplineTemplate.objects.all(),
             LetterTemplate.objects.all(),
+            Account.objects.all(),
             )
     
     data = serializers.serialize("json", objs, sort_keys=True, indent=1)
@@ -259,13 +273,19 @@ def serialize(filename):
     fh.write(data)
     fh.close()
 
+def import_semesters():
+    """
+    What semesters should we actually import? (returns tuple of strm values)
+    """
+    sems = Semester.objects.filter(end__gte=past_cutoff)
+    return tuple(s.name for s in sems)
 
 def main():
     create_semesters()
     
     print "importing course offerings"
     # get very few courses here so there isn't excess data hanging around
-    offerings = import_offerings(extra_where=
+    offerings = import_offerings(import_semesters=import_semesters, extra_where=
         "(subject='CMPT' AND (catalog_nbr LIKE '%% 383%%' OR catalog_nbr LIKE '%% 47%%')) "
         "OR (subject='ENSC' AND (catalog_nbr LIKE '%% 2_5%%')) "
         )
@@ -284,7 +304,7 @@ def main():
     create_test_classes()
     create_others()
     create_grad_templ()
-    create_discipline_templ()
+    create_more_data()
     combine_sections(get_combined())
     
     print "creating grad students"
@@ -296,56 +316,11 @@ def main():
     serialize("new-test.json")
 
 
+
+
 if __name__ == "__main__":
     hostname = socket.gethostname()
     if hostname == 'courses':
         raise NotImplementedError, "Don't do that."
     main()
 
-
-"""
- {
-  "fields": {
-   "account_number": 12345,
-   "position_number": 12345,
-   "slug": "comp-12345-msc-ta",
-   "title": "MSc TA",
-   "unit": 2
-  },
-  "model": "ra.account",
-  "pk": 1
- },
- {
-  "fields": {
-   "account_number": 12346,
-   "position_number": 12346,
-   "slug": "comp-12346-phd-ta",
-   "title": "PhD TA",
-   "unit": 2
-  },
-  "model": "ra.account",
-  "pk": 2
- },
- {
-  "fields": {
-   "account_number": 12347,
-   "position_number": 12347,
-   "slug": "comp-12347-undergrad-ta",
-   "title": "Undergrad TA",
-   "unit": 2
-  },
-  "model": "ra.account",
-  "pk": 3
- },
- {
-  "fields": {
-   "account_number": 12348,
-   "position_number": 12348,
-   "slug": "comp-12348-external-ta",
-   "title": "External TA",
-   "unit": 2
-  },
-  "model": "ra.account",
-  "pk": 4
- }
-"""
