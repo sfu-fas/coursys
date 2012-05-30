@@ -126,7 +126,7 @@
 					$(desc_sel).val(data.split(',')[1])
 					$(desc_sel).data('orig', $(desc_sel).val())
 					if($(desc_sel).val()=='OML')
-						val += 0.17
+						val += {{LAB_BONUS}}
 					$(bu_inp).val(val.toFixed(2))
 				})
 			}
@@ -149,13 +149,13 @@
 				//validate bu value is positive number
 				val = $(bu_inp).val()
 				//if(!isNaN(val))
-				$(bu_inp).val((parseFloat(val) + 0.17).toFixed(2))
+				$(bu_inp).val((parseFloat(val) + {{LAB_BONUS}}).toFixed(2))
 			}
 			else if($(this).data('orig') == 'OML' && $(bu_inp).val() != ''){
 				//validate bu value is positive number
 				val = $(bu_inp).val()
-				if(!isNaN(val) && parseFloat(val) >= 0.17)
-					$(bu_inp).val((parseFloat(val) - 0.17).toFixed(2))
+				if(!isNaN(val) && parseFloat(val) >= {{LAB_BONUS}})
+					$(bu_inp).val((parseFloat(val) - {{LAB_BONUS}}).toFixed(2))
 			}
 			$(this).data('orig', $(this).val())
     	})

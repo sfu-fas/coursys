@@ -6,6 +6,9 @@
 {% block title %}Time Use Guidelines for {{semester}}{% endblock %}
 
 {% block headextra %}
+<style type="text/css">
+.over { color: #d00; font-weight: bold; }
+</style>
 <script type="text/javascript">
   $(function() {
   	table = $('#offerings').dataTable({
@@ -40,7 +43,8 @@
 
 <div class="datatable_container">
 <table class="display" id="offerings">
-<thead><tr><th scope="col">Offering</th><th scope="col">Instructor</th><th scope="col">TA</th><th scope="col">TUG</th></tr></thead>
+<thead><tr><th scope="col">Offering</th><th scope="col">Instructor</th><th scope="col">TA</th>
+<th scope="col">TUG</th><th scope="col">BU</th><th scope="col">Hours</th></tr></thead>
 <tbody>
 {% for data in tas_with_tugs %}
   <tr>
@@ -52,7 +56,16 @@
   	<span class="sort">{{ data.tug.last_update.isoformat }}</span>
   	<a href="{% url ta.views.view_tug course_slug=data.ta.offering.slug userid=data.ta.person.userid %}">Last Updated: {{ data.tug.last_update|default:"Unknown" }}</a>
   	{% else %}
-  	{% endif %}  	
+  	{% endif %}
+  </td>
+  <td>
+  	{% if data.ta.bu %}{{data.ta.bu}}{% else %}?{% endif %}
+  	{% if data.tug %}({{data.tug.base_units}} in TUG){% endif %}
+  </td>
+  <td class="{% if data.tug and data.tug.total_hours > data.tug.max_hours %}over{% endif %}">
+  	{% if data.tug %}
+  	{{data.tug.total_hours}} / {{data.tug.max_hours}}
+  	{% endif %}
   </td>
   </tr>
 {% endfor %}

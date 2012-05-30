@@ -430,7 +430,7 @@ class CourseOffering(models.Model):
         # 'department': department responsible for course (used by discipline module)
         # 'taemail': TAs' contact email (if not their personal email)
         # 'labtut': are there lab sections? (default False)
-        # 'labtas': TAs get the 0.17 lab/tutorial bonus (default False)
+        # 'labtas': TAs get the LAB_BONUS lab/tutorial bonus (default False)
         # 'uses_svn': create SVN repos for this course? (default False)
         # 'indiv_svn': do instructors/TAs have access to student SVN repos? (default False)
         # 'combined': is this a combined section (e.g. two crosslisted sections integrated)

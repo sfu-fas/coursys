@@ -56,7 +56,7 @@ Teaching Assistant Time Use Guideline</div>
 	</span>
 	<span id="maxHours"> Maximum Hours: 
 		<span class="tugField">{{ maxHours }}</span>
-		{% if has_lab_or_tut %}<br />[ + 0.17 &times 42 = 7.14 hours of lab/tutorial prep not assigned by instructor]{% endif %}
+		{% if has_lab_or_tut %}<br />[ + {{LAB_BONUS}} &times {{HOURS_PER_BU}} = {{LAB_BONUS_HOURS}} hours of lab/tutorial prep not assigned by instructor]{% endif %}
 	</span>
 </div>
 
@@ -126,8 +126,8 @@ Teaching Assistant Time Use Guideline</div>
 				<td> Statutory Holiday Compensation - <br />
 					To compensate for all statutory holidays which 
 					may occur in a semester, the total workload required will be reduced by one (1) hour 
-					for each base unit assigned excluding the additional 0.17 B.U. for preparation, 
-					e.g. 4 hours reduction for 4.17 B.U. appointment.
+					for each base unit assigned excluding the additional {{LAB_BONUS}} B.U. for preparation, 
+					e.g. 4 hours reduction for {{LAB_BONUS_4}} B.U. appointment.
  				</td>
 				<td class="tugField">{{tug.config.holiday.weekly|default_if_none:""}}</td>
 				<td class="tugField">{{tug.config.holiday.total}}</td>
@@ -159,7 +159,7 @@ Teaching Assistant Time Use Guideline</div>
 		and workload review mechanisms in Article XIII E.
 	</p>
 	<p>
-		*There are no hours of work associated with the additional 0.17 base unit for preparation, 
+		*There are no hours of work associated with the additional {{LAB_BONUS}} base unit for preparation, 
 		Article XIII D. 2 b.  See Appendix B for calculation of hours.
 		<br/>
 		**  Includes grading of all assignments, reports and examinations. 

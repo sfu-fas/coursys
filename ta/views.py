@@ -7,7 +7,7 @@ from courselib.auth import requires_course_staff_by_slug, requires_course_instr_
     requires_course_staff_or_dept_admn_by_slug, ForbiddenResponse
 from django.contrib.auth.decorators import login_required
 from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, CampusPreference,\
-    CAMPUS_CHOICES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS
+    CAMPUS_CHOICES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS, LAB_BONUS, HOURS_PER_BU
 from ra.models import Account
 from grad.models import GradStudent 
 from dashboard.models import NewsItem
@@ -111,9 +111,9 @@ def new_tug(request, course_slug, userid):
     else:
         if has_lab_or_tut:
             form = TUGForm(offering=course,userid=userid, initial=
-                    {'holiday':{'total':bu-0.17},
-                     'base_units': bu-0.17})
-            form.fields['base_units'].help_text = '(0.17 base units not assignable because of labs/tutorials)'
+                    {'holiday':{'total':bu-LAB_BONUS},
+                     'base_units': bu-LAB_BONUS})
+            form.fields['base_units'].help_text = '(%s base units not assignable because of labs/tutorials)'%(LAB_BONUS)
         else:
             form = TUGForm(offering=course,userid=userid, initial={'holiday':{'total':bu}, 'base_units': bu})
     
@@ -121,6 +121,8 @@ def new_tug(request, course_slug, userid):
                'course':course,
                'form':form,
                'userid':userid,
+               'LAB_BONUS': LAB_BONUS,
+               'LAB_BONUS_4': LAB_BONUS+4,
                }
     return render(request,'ta/new_tug.html',context)
 
@@ -146,7 +148,8 @@ def view_tug(request, course_slug, userid):
         
         context = {'tug': tug, 'ta':member, 'course':course, 
                 'maxHours': max_hours, 'totalHours': total_hours,
-                'user_role': curr_user_role, 'has_lab_or_tut': has_lab_or_tut}
+                'user_role': curr_user_role, 'has_lab_or_tut': has_lab_or_tut,
+                'LAB_BONUS': LAB_BONUS, 'LAB_BONUS_4': LAB_BONUS+4, 'HOURS_PER_BU': HOURS_PER_BU, 'LAB_BONUS_HOURS': LAB_BONUS*HOURS_PER_BU}
         return render(request, 'ta/view_tug.html',context)
 
 @requires_course_instr_by_slug
@@ -194,6 +197,7 @@ def _new_application(request, post_slug, manual=False):
 
     CoursesFormSet = formset_factory(CoursePreferenceForm, extra=min_courses, max_num=max_courses)
  
+    sin = None
     if not manual: 
         person = get_object_or_404(Person, userid=request.user.username)
         existing_app = TAApplication.objects.filter(person=person, posting=posting)
@@ -201,9 +205,7 @@ def _new_application(request, post_slug, manual=False):
             messages.success(request, u"You have already applied for the %s %s posting." % (posting.unit, posting.semester))
             return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'post_slug': existing_app[0].posting.slug, 'userid': existing_app[0].person.userid}))
 
-        sin = None
         for gs in GradStudent.objects.filter(person=person):
-            print gs.config, gs.sin()
             if gs.sin() != gs.defaults['sin']:
                 sin = gs.sin()
        
@@ -498,7 +500,9 @@ def assign_bus(request, post_slug, course_slug):
             formset[i].fields['bu'].help_text = 'TA runs lab'
     """
     
-    context = {'formset':formset, 'posting':posting, 'offering':offering, 'instructors':instructors, 'applications': apps, 'course_preferences': course_prefs, 'campus_preferences':campus_prefs}
+    context = {'formset':formset, 'posting':posting, 'offering':offering, 'instructors':instructors,
+               'applications': apps, 'course_preferences': course_prefs, 'campus_preferences':campus_prefs,
+               'LAB_BONUS': LAB_BONUS}
     return render(request, 'ta/assign_bu.html', context) 
 
 @requires_role("TAAD")
@@ -574,7 +578,7 @@ def contracts_csv(request, post_slug):
         for crs in courses:
             total_bu += crs.bu
             if crs.has_labtut():
-                prep_units += 0.17
+                prep_units += LAB_BONUS
         
         signed = 'Y' if c.status=='SGN' else 'N'
         benefits = 'Y'
@@ -839,7 +843,7 @@ def edit_contract(request, post_slug, userid):
     
     context = {'form': form, 'formset': formset, 'posting': posting, 'editing': editing,
                'old_status': old_status, 'contract': contract, 'application': application,
-               'userid': userid}
+               'userid': userid, 'LAB_BONUS': LAB_BONUS}
     return render(request, 'ta/edit_contract.html',context)
 
 def _copy_posting_defaults(source, destination):
@@ -871,7 +875,7 @@ def edit_posting(request, post_slug=None):
     excluded_choices = list(set(((u"%s (%s)" % (o.course,  o.title), o.course_id) for o in offerings)))
     excluded_choices.sort()
     excluded_choices = [(cid,label) for label,cid in excluded_choices]
-    
+
     if post_slug:
         # editing existing
         posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)

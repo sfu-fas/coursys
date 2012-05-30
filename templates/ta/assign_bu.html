@@ -50,10 +50,10 @@
   			{'csrfmiddlewaretoken': "{{csrf_token}}", 'extra_bu': bu, 'labtut': labtut, 'labtas': labtas},
 				function(data){
 					data = JSON.parse(data)
-					if(data.act > 0) //add 0.17
-						change_bu(0.17)
-					else if(data.act < 0) //minus 0.17
-						change_bu(-0.17)
+					if(data.act > 0) //add LAB_BONUS
+						change_bu({{LAB_BONUS}})
+					else if(data.act < 0) //minus LAB_BONUS
+						change_bu(-{{LAB_BONUS}})
 					
 					if(data.msg != ''){
 						$('#messages ul.warninglist').html('<li class="warning">' + data[1] + '</li>')
@@ -115,7 +115,7 @@ Instructor:
         <li>
             <label>TA runs lab:&nbsp;</label>
             <div class="inputfield"><input id="labtas" name="labtas" type="checkbox" {% if offering.config.labtas %}checked="yes"{% endif %}/></div>
-            <div class="helptext">(+0.17 BU)</div>
+            <div class="helptext">(+{{LAB_BONUS}} BU)</div>
         </li>
         </ul>
         <button type="button" class="submit" type="submit" onclick="update()">Update</button>

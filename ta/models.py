@@ -10,6 +10,9 @@ import decimal
 from dashboard.models import NewsItem
 from django.core.urlresolvers import reverse
 
+LAB_BONUS = 0.17
+HOURS_PER_BU = 42
+
 class TUG(models.Model):
     """
     Time use guideline filled out by instructors
@@ -94,8 +97,8 @@ class TUG(models.Model):
                     'help':u'8. Statutory Holiday Compensation\u2021',
                     'extra':u'''\u2021To compensate for all statutory holidays which  
 may occur in a semester, the total workload required will be reduced by one (1) 
-hour for each base unit assigned excluding the additional 0.17 B.U. for 
-preparation, e.g. 4 hours reduction for 4.17 B.U. appointment.'''}}
+hour for each base unit assigned excluding the additional %s B.U. for 
+preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (LAB_BONUS, 4, 4+LAB_BONUS)}}
     
     #prep_weekly, set_prep_weekly = getter_setter_2('prep', 'weekly')
 
@@ -116,6 +119,13 @@ preparation, e.g. 4 hours reduction for 4.17 B.U. appointment.'''}}
                 'course_slug': self.member.offering.slug, 
                 'userid':self.member.person.userid})
     
+    def max_hours(self):
+        return self.base_units * HOURS_PER_BU
+    def total_hours(self):
+        """
+        Total number of hours assigned
+        """
+        return sum((decimal.Decimal(data['total']) for _,data in self.iterfielditems() if data['total']))
 
 CATEGORY_CHOICES = ( # order must match list in TAPosting.config['salary']
         ('GTA1', 'Masters'),
@@ -382,7 +392,7 @@ DESC_CHOICES = (
         ('OML','Office;Marking;Lab/Tutorial'),
         ('OPL','Open Lab'),
     )
-LABTUT_DESC = ['OML'] # descriptions that deserve 0.17 bonus
+LABTUT_DESC = ['OML'] # descriptions that deserve LAB_BONUS bonus
 
 APPOINTMENT_CHOICES = (
         ("INIT","Initial appointment to this position"),
@@ -481,7 +491,7 @@ class TACourse(models.Model):
         return "Course: %s  TA: %s" % (self.course, self.contract)
     def has_labtut(self):
         """
-        Does this assignment deserve the 0.17 bonus?
+        Does this assignment deserve the LAB_BONUS bonus?
         """
         return self.description in LABTUT_DESC
     
