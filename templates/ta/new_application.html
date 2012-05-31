@@ -9,15 +9,46 @@
 {% block headextra %}
 <script type="text/javascript" src="{{MEDIA_URL}}js/application.js"></script>
 <script type="text/javascript" src="{{MEDIA_URL}}js/advisornotes.js"></script>
-
+<style type="text/css">
+div#phones {
+  float: right;
+  width: 25%;
+}
+div#phones ul {
+  margin-top: 0;
+  list-style: disc inside;
+}
+div#phones li {
+  margin: 0;
+  padding: 0;
+}
+</style>
 <script type="text/javascript">
 //<![CDATA[
+function get_more_info() {
+	$.ajax({
+		url: "{% url ta.views.get_info post_slug=posting.slug %}",
+		success: function(data, textStatus, jqXHR) {
+			if (data['phones']) {
+				var html = '';
+				html += '<div id="phones"><p>The following phone numbers are on record in <a href="https://go.sfu.ca/">SIS</a>:</p><ul>';
+       	        $.each(data['phones'], function(key, value) {
+           	        html += '<li>' + key + ': ' + value + '</li>';
+               	});
+				html += '</ul><p>Please make sure they are up to date so we can contact you regarding this application if necessary. <a href="http://students.sfu.ca/advising-support/help-videos/contact.html?keepThis=true">Instructions on updating this info</a> are available.</p></div>';
+				$('dl.dlform').before(html);
+	        }
+		},
+	})
+}
+
 $(document).ready(function() {
   $("id_search").focus();
   student_autocomplete('id_search');
   {% if simssearch %}
   search_sims('{% url advisornotes.views.sims_search %}', '{{simssearch}}', '{% url advisornotes.views.sims_add_person %}', '{% filter escapejs %}{% csrf_token %}{% endfilter %}');
   {% endif %}
+  get_more_info();
 });
 //]]></script>{% endblock %}
 
@@ -35,6 +66,8 @@ $(document).ready(function() {
         <img src="{{MEDIA_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" style="display:none" />
         </div>
     {% endif %}
+
+	
 
     {{ ta_form|as_dl }}
 

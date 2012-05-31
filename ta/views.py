@@ -198,7 +198,7 @@ def _new_application(request, post_slug, manual=False):
     CoursesFormSet = formset_factory(CoursePreferenceForm, extra=min_courses, max_num=max_courses)
  
     sin = None
-    if not manual: 
+    if not manual:
         person = get_object_or_404(Person, userid=request.user.username)
         existing_app = TAApplication.objects.filter(person=person, posting=posting)
         if existing_app.count() > 0: 
@@ -353,7 +353,19 @@ def edit_application(request, post_slug, userid):
                   }
     return render(request, 'ta/new_application.html', context)
 """
-    
+
+from coredata.queries import more_personal_info, SIMSProblem
+@login_required
+def get_info(request, post_slug):
+    """
+    AJAX callback for SIMS data (displayed so applicant can see problems)
+    """
+    p = get_object_or_404(Person, userid=request.user.username)
+    try:
+        data = more_personal_info(emplid=p.emplid, needed=['phones'])
+    except SIMSProblem as e:
+        data = {'error': e.message}
+    return HttpResponse(json.dumps(data), mimetype='application/json')
 
 @requires_role("TAAD")
 def update_application(request, post_slug, userid):
@@ -464,7 +476,7 @@ def assign_bus(request, post_slug, course_slug):
                 act = -1
         offering.save()
         data = {'act': act , 'msg': msg, 'req_bu': req_bu, 'rem_bu': rem_bu }
-        return HttpResponse(json.dumps( data ))
+        return HttpResponse(json.dumps(data), mimetype='application/json')
 
     apps = []
     campus_prefs = []
