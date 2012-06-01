@@ -166,7 +166,7 @@ class TAApplicationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(TAApplicationForm, self).__init__(*args, **kwargs)
-        self.fields['sin'].help_text = "Social insurance number (required for receiving payments: if you do't hae a SIN now, you will need it before accepting the contract.)"
+        self.fields['sin'].help_text = "Social insurance number (required for receiving payments: if you don't hae a SIN now, you will need it before accepting the contract.)"
 
     def clean_sin(self):
         sin = self.cleaned_data['sin']
