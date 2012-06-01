@@ -179,12 +179,16 @@ class GradStudentForm(ModelForm):
     class Meta:
         model = GradStudent
         exclude = ('created_by', 'modified_by' )
-        
+
+from courselib.forms import StaffSemesterField
 class GradStatusForm(ModelForm):
+    start = StaffSemesterField()
+    end = StaffSemesterField(required=False)
+        
     def clean_end(self):
-        en = self.cleaned_data['end']
+        en = self.cleaned_data.get('end', None)
         st = self.cleaned_data.get('start', None)
-        if not en:
+        if not en or not st:
             return None
         if st > en:
             raise forms.ValidationError("Status cannot end before it begins")

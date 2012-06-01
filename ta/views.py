@@ -38,9 +38,9 @@ def _get_total_bu(courses):
         total = total + course.bu
     return total
 
-def _create_news(person, url, from_user):
+def _create_news(person, url, from_user, accept_deadline):
     n = NewsItem(user=person, source_app="ta_contract", title=u"TA Contract Offer for %s" % (person),
-                 url=url, author=from_user)
+                 url=url, author=from_user, content="You have been offered a TA contract. You must log in and accept or reject it by %s."%(accept_deadline))
     n.save()
 
 #@login_required
@@ -577,7 +577,7 @@ def all_contracts(request, post_slug):
                 app = contract.application.person
                 offer_url = reverse('ta.views.accept_contract', kwargs={'post_slug': post_slug, 'userid': app.userid})
                 contract.status = 'OPN'
-                _create_news(app, offer_url, from_user)
+                _create_news(app, offer_url, from_user, contract.deadline)
                 contract.save()
                 ccount += 1
                 
@@ -856,7 +856,7 @@ def edit_contract(request, post_slug, userid):
                 offer_url = reverse('ta.views.accept_contract', kwargs={'post_slug': post_slug, 'userid': userid})
                 from_user = posting.contact()
                 if contract.status == 'OPN':
-                    _create_news(person, offer_url, from_user)
+                    _create_news(person, offer_url, from_user, contract.deadline)
                 
                 grad = GradStudent.objects.filter(person=person)           
                 if grad.count()>0:

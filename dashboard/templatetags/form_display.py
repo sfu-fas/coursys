@@ -69,6 +69,7 @@ def as_dl_nolabel(form, safe=False, includefield=[], req_text=True):
                 reqtext = ' <span class="required">*</span>'
                 reqcount += 1
 #            out.append('<dt></label></dt><dd>' %  reqtext)
+            out.append('<dd>')
             out.append(unicode(field.errors))
             if isinstance(field.field.widget, forms.widgets.RadioSelect):
                 out.append('<div class="field radio">%s</div>' % (unicode(field)))

@@ -334,7 +334,7 @@ def manage_status(request, grad_slug):
             l.save()                       
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))
     else:
-        new_status_form = GradStatusForm(initial={'start': Semester.current(), 'start_date': datetime.date.today()})
+        new_status_form = GradStatusForm(initial={'start': Semester.current(), 'start_date': None})
 
     # set frontend defaults
     page_title = "%s 's Status Record" % (grad.person.first_name)
