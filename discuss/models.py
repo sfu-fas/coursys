@@ -6,6 +6,7 @@ import datetime
 TOPIC_STATUSES = (
                   ('OPN', 'Open'),
                   ('ANS', 'Answered'),
+                  ('CLO', 'Closed'),
                   ('HID', 'Hidden'),
                   )
 
@@ -18,7 +19,7 @@ class DiscussionTopic(models.Model):
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     last_post_at = models.DateTimeField(null=True)
-    status = models.CharField(max_length=3, choices=TOPIC_STATUSES)
+    status = models.CharField(max_length=3, choices=TOPIC_STATUSES, default='OPN')
     author = models.ForeignKey(Member)
     config = JSONField(null=False, blank=False, default={})
     
@@ -47,7 +48,7 @@ class DiscussionMessage(models.Model):
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
-    status = models.CharField(max_length=3, choices=MESSAGE_STATUSES)
+    status = models.CharField(max_length=3, choices=MESSAGE_STATUSES, default='VIS')
     author = models.ForeignKey(Member)
     config = JSONField(null=False, blank=False, default={})
     
