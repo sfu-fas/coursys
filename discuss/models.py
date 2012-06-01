@@ -14,7 +14,8 @@ class DiscussionTopic(models.Model):
     A topic (thread) associated with a CourseOffering
     """
     offering = models.ForeignKey(CourseOffering, null=False)
-    title = models.CharField(max_length=30, help_text="The name of the topic that others will see")
+    title = models.CharField(max_length=140, help_text="The name of the topic that others will see")
+    content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     last_post_at = models.DateTimeField(null=True)
     status = models.CharField(max_length=3, choices=TOPIC_STATUSES)
@@ -51,8 +52,8 @@ class DiscussionMessage(models.Model):
     config = JSONField(null=False, blank=False, default={})
     
     def save(self, *args, **kwargs):
-        if not self.pk:
-            self.topic.update_last_post()
         if self.status not in [status[0] for status in MESSAGE_STATUSES]:
             raise ValueError('Invalid topic status')
+        if not self.pk:
+            self.topic.update_last_post()
         super(DiscussionMessage, self).save(*args, **kwargs)
