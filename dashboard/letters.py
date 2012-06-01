@@ -514,8 +514,10 @@ class RAForm(object):
         notes = []
         if self.ra.pay_frequency != 'L':
             default_note = "For total amount of $%s over %i pay periods." % (self.ra.lump_sum_pay, self.ra.pay_periods)
-            notes.append(Paragraph(default_note, style=self.NOTE_STYLE))
-            notes.append(Spacer(1, 8))
+        else:
+            default_note = "Lump sum payment of $%s." % (self.ra.lump_sum_pay,)
+        notes.append(Paragraph(default_note, style=self.NOTE_STYLE))
+        notes.append(Spacer(1, 8))
         notes.append(Paragraph(self.ra.notes, style=self.NOTE_STYLE))
         f.addFromList(notes, self.c)
 

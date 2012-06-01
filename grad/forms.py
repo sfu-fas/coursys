@@ -5,6 +5,7 @@ import grad.models as gradmodels
 from grad.models import Supervisor, GradProgram, GradStudent, GradStatus,\
     GradRequirement, CompletedRequirement, LetterTemplate, Letter, Promise, Scholarship,\
     ScholarshipType, SavedSearch
+from courselib.forms import StaffSemesterField
 from coredata.models import Person, Member, Semester, CAMPUS_CHOICES
 from django.forms.models import BaseModelFormSet
 #from django.core.exceptions import ValidationError
@@ -180,7 +181,6 @@ class GradStudentForm(ModelForm):
         model = GradStudent
         exclude = ('created_by', 'modified_by' )
 
-from courselib.forms import StaffSemesterField
 class GradStatusForm(ModelForm):
     start = StaffSemesterField()
     end = StaffSemesterField(required=False)
@@ -203,7 +203,7 @@ class GradRequirementForm(ModelForm):
     class Meta:
         model = GradRequirement
 
-class CompletedRequirementForm(ModelForm):
+class XXXCompletedRequirementForm(ModelForm):
     class Meta:
         model = CompletedRequirement
         fields = ('requirement', 'semester', 'date', 'notes')
@@ -233,12 +233,16 @@ class LetterForm(ModelForm):
                    'content': forms.Textarea(attrs={'rows':'25', 'cols': '100'}),
                    }
 
-class new_promiseForm(ModelForm):
+class PromiseForm(ModelForm):
+    start_semester = StaffSemesterField()
+    end_semester = StaffSemesterField()
     class Meta:
         model = Promise
         exclude = ('student','comments')
       
-class new_scholarshipForm(ModelForm):
+class ScholarshipForm(ModelForm):
+    start_semester = StaffSemesterField()
+    end_semester = StaffSemesterField()
     class Meta:
         model = Scholarship
         exclude = ('student')

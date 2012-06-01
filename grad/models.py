@@ -388,7 +388,7 @@ Financial
 class ScholarshipType(models.Model):
     unit = models.ForeignKey(Unit)
     name = models.CharField(max_length=256)
-    eligible = models.BooleanField()
+    eligible = models.BooleanField(default=True, help_text="Does this scholarship count towards promises of support?")
     comments = models.TextField(blank=True, null=True)
     class meta:
         unique_together = ("unit", "name")

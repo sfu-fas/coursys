@@ -7,7 +7,7 @@ from grad.models import GradStudent, GradProgram, Supervisor, GradRequirement, C
         Letter, STATUS_ACTIVE, SavedSearch, LETTER_TAGS
 from grad.forms import SupervisorForm, PotentialSupervisorForm, GradAcademicForm, GradProgramForm, \
         GradStudentForm, GradStatusForm, GradRequirementForm, possible_supervisors, BaseSupervisorsFormSet, \
-    SearchForm, LetterTemplateForm, LetterForm, UploadApplicantsForm, new_promiseForm, new_scholarshipForm,\
+    SearchForm, LetterTemplateForm, LetterForm, UploadApplicantsForm, PromiseForm, ScholarshipForm,\
     new_scholarshipTypeForm, QuickSearchForm, SaveSearchForm
 from ta.models import TAContract, TAApplication, TACourse
 #from ta.views import total_pay
@@ -19,6 +19,7 @@ from django.forms.models import modelformset_factory, inlineformset_factory
 from courselib.auth import requires_role, ForbiddenResponse, has_role,\
     NotFoundResponse
 from courselib.search import get_query
+from courselib.forms import StaffSemesterField
 import datetime, json
 from django.contrib import messages
 from log.models import LogEntry
@@ -237,7 +238,8 @@ def manage_requirements(request, grad_slug):
     if request.method == 'POST':
         req_formset = ReqFormSet(request.POST, request.FILES, instance=grad, prefix='req')
         for f in req_formset:
-            f.fields['requirement'].choices = req_choices 
+            f.fields['requirement'].choices = req_choices
+            f.fields['semester'] = StaffSemesterField()
 
         if req_formset.is_valid():
             #change gradstudent's last updated info to newest
@@ -255,6 +257,7 @@ def manage_requirements(request, grad_slug):
         req_formset = ReqFormSet(instance=grad, prefix='req')
         for f in req_formset:
             f.fields['requirement'].choices = req_choices
+            f.fields['semester'] = StaffSemesterField()
 
     # set frontend defaults
     page_title = "%s's Requirements Record" % (grad.person.first_name)
@@ -772,7 +775,7 @@ def search(request):
     
     if form.is_valid():
         query = form.get_query()
-        grads = GradStudent.objects.filter(query).distinct()
+        grads = GradStudent.objects.filter(program__unit__in=request.units).filter(query).distinct()
         grads = filter(form.secondary_filter(), grads)
         # if performance becomes an issue, use this instead
         #grads = itertools.ifilter(form.secondary_filter, grads)
@@ -1042,7 +1045,7 @@ def financials(request, grad_slug):
 def new_promise(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
     if request.method == 'POST':
-        promise_form = new_promiseForm(request.POST)
+        promise_form = PromiseForm(request.POST)
         if promise_form.is_valid():
             temp = promise_form.save(commit=False)
             temp.student = grad
@@ -1051,7 +1054,7 @@ def new_promise(request, grad_slug):
             
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad.slug}))
     else:
-        promise_form = new_promiseForm(initial={'start_semester': get_semester().offset(1), 'end_semester': get_semester().offset(3), 'amount':'0.00'})
+        promise_form = PromiseForm(initial={'start_semester': get_semester().offset(1), 'end_semester': get_semester().offset(3), 'amount':'0.00'})
 
     page_title = "New Promise"
     crumb = "%s, %s" % (grad.person.last_name, grad.person.first_name)
@@ -1067,7 +1070,7 @@ def new_promise(request, grad_slug):
 def manage_scholarship(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug = grad_slug)
     if request.method == 'POST':
-        scholarship_form = new_scholarshipForm(request.POST)
+        scholarship_form = ScholarshipForm(request.POST)
         if scholarship_form.is_valid():
             temp = scholarship_form.save(commit=False)
             temp.student = grad
@@ -1076,7 +1079,7 @@ def manage_scholarship(request, grad_slug):
             
             return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad.slug}))
     else:
-        scholarship_form = new_scholarshipForm(initial={'student':grad, 'start_semester':get_semester(), 'end_semester':get_semester(), 'amount':'0.00'})
+        scholarship_form = ScholarshipForm(initial={'student':grad, 'start_semester':get_semester(), 'end_semester':get_semester(), 'amount':'0.00'})
 
     page_title = "New Scholarship"
     crumb = "%s, %s" % (grad.person.last_name, grad.person.first_name)
@@ -1090,7 +1093,7 @@ def manage_scholarship(request, grad_slug):
 
 @requires_role("GRAD")
 def manage_scholarshipType(request):
-
+    unit_choices = [(u.id, u.name) for u in request.units]
     if request.method == 'POST':
         scholarshipType_form = new_scholarshipTypeForm(request.POST)
         if scholarshipType_form.is_valid():
@@ -1100,6 +1103,7 @@ def manage_scholarshipType(request):
             return HttpResponseRedirect(reverse(index))
     else:
         scholarshipType_form = new_scholarshipTypeForm()
+        scholarshipType_form.fields['unit'].choices = unit_choices
 
     page_title = "New Scholarship Type"
    
