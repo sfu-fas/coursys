@@ -374,7 +374,7 @@ class SearchForm(forms.Form):
     scholarship_sem = forms.ModelMultipleChoiceField(Semester.objects.all(),
             label='Scholarship Semester Received',required=False)
 
-    columns = forms.MultipleChoiceField(COLUMN_CHOICES, initial=('emplid', 'userid'),
+    columns = forms.MultipleChoiceField(COLUMN_CHOICES, initial=('person.emplid', 'person.userid', 'person.first_name', 'person.last_name'),
             help_text='Columns to display in the search results.')
     
     semester_range_fields = [
