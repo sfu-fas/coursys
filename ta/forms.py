@@ -164,6 +164,10 @@ class TAApplicationForm(forms.ModelForm):
         exclude = ('posting','person','skills','campus_preferences','rank','late','admin_created')
         widgets = {'base_units': forms.TextInput(attrs={'size': 5}),}
 
+    def __init__(self, *args, **kwargs):
+        super(TAApplicationForm, self).__init__(*args, **kwargs)
+        self.fields['sin'].help_text = "Social insurance number (required for receiving payments: if you do't hae a SIN now, you will need it before accepting the contract.)"
+
     def clean_sin(self):
         sin = self.cleaned_data['sin']
         if sin.strip() == '':

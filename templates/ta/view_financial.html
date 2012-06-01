@@ -12,14 +12,27 @@
 
 {% block headextra %}
 <script type="text/javascript">
-  $(function() {
-  	$('#offerings').dataTable({
-			"bJQueryUI" : true,
-			"iDisplayLength" : 25,
+	var total, rows;
+	var totalrows = {{offerings|length}};
+	$(function() {
+		$('#offerings').dataTable({
+			"bJQueryUI": true,
+			"iDisplayLength": 25,
 			"aaSorting": [[3, "desc"]],
-			"sPaginationType" : "full_numbers",
-	});
-  });  
+			"sPaginationType": "full_numbers",
+			"fnPreDrawCallback": function() {total=0; rows=0;},
+			"fnRowCallback": function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+				var pay = parseFloat(aData[4].slice(1));
+				total += pay;
+				rows += 1;
+				var text = "$" + total.toFixed(2);
+				if (rows < totalrows) {
+					text +=  " (of only appointments displayed below)";
+				}
+				$("#totalpay").html(text);
+			},
+		});
+	});  
 </script>
 
 {% endblock %}
@@ -50,7 +63,7 @@
         </tr>
 	    <tr>
             <th>Total Payments</th>
-            <td>{{ info.pay_total|display_all_total_pay }}</td>
+            <td id="totalpay">{{ info.pay_total|display_all_total_pay }}</td>
         </tr>
         </tbody>
     </table>
