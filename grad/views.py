@@ -8,7 +8,7 @@ from grad.models import GradStudent, GradProgram, Supervisor, GradRequirement, C
 from grad.forms import SupervisorForm, PotentialSupervisorForm, GradAcademicForm, GradProgramForm, \
         GradStudentForm, GradStatusForm, GradRequirementForm, possible_supervisors, BaseSupervisorsFormSet, \
     SearchForm, LetterTemplateForm, LetterForm, UploadApplicantsForm, PromiseForm, ScholarshipForm,\
-    new_scholarshipTypeForm, QuickSearchForm, SaveSearchForm
+    new_scholarshipTypeForm, QuickSearchForm, SaveSearchForm, COLUMN_CHOICES
 from ta.models import TAContract, TAApplication, TACourse
 #from ta.views import total_pay
 from ra.models import RAAppointment
@@ -26,6 +26,8 @@ from log.models import LogEntry
 from django.template.base import Template
 from django.template.context import Context
 import copy, itertools
+import unicodecsv as csv
+import operator
 
 from dashboard.letters import OfficialLetter, LetterContents
 from django.contrib.auth.decorators import login_required
@@ -787,10 +789,33 @@ def search(request):
             saveform = SaveSearchForm(initial={'person':current_user, 'query':query_string})
         
         columns = form.cleaned_data['columns']
-        context = {
+	# Here, we're using a nested list comprehension to convert column ids into column names - 
+	#  for example 'person.first_name' into 'First Name' - using the COLUMN_CHOICES table provided in forms.py
+        human_readable_column_headers = [[v[1] for i,v in enumerate(COLUMN_CHOICES) if v[0] == column][0] for column in columns]
+        
+        if 'csv' in request.GET:
+            response = HttpResponse(mimetype='text/csv')
+            response['Content-Disposition'] = 'attachment; filename=grad_search.csv'
+            writer = csv.writer( response) 
+            
+            writer.writerow( human_readable_column_headers )
+
+            for grad in grads:
+                row = []
+                for column in columns:
+                    # operator.attrgetter allows you to get nested attributes from a class, using a string 
+                    # example:  print operator.attrgetter("person.first_name")(grad) 
+                    # >> "Abdul" 
+                    row.append( operator.attrgetter(column)(grad) )
+                writer.writerow( row ) 
+            return response
+        
+	context = {
                    'grads': grads,
+                   'human_readable_column_headers': human_readable_column_headers,
                    'columns': columns,
                    'saveform' : saveform,
+                   'csv_link' : request.get_full_path() + "&csv=yes_please"
                    }
         return render(request, 'grad/search_results.html', context)
     else:

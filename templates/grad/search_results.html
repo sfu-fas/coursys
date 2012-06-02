@@ -62,11 +62,13 @@ width: 120px;
 <p>This search is saved as "{{saveform.instance.name}}".</p>
 {% endif %}
 
+<a href='{{ csv_link }}'>CSV Export</a>
+
 <div class="datatable_container">
 	<table class="display" id="grads">
 		<thead>
 			<tr>
-            {% for c in columns %}
+            {% for c in human_readable_column_headers %}
                 <th>{{ c }}</th>
             {% endfor %}
 				<th>Manage</th>
