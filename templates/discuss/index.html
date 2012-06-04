@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load discuss_paginate %}
+{% block title %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
+{% block headextra %}
+<link rel="stylesheet" href="{{MEDIA_URL}}style/discuss.css" media="all" />
+<script type="text/javascript">
+	$(document).ready(function() {
+		$('.discussion-topic-title').hover(function() {
+			$(this).parent().addClass('discussion-highlight');
+		}, function() {
+			$(this).parent().removeClass('discussion-highlight');
+		});
+	}); 
+</script>
+{% endblock %}
+{% block h1 %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>
+	&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a>
+</li>
+<li>
+	&gt; Discussion
+</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+	<h2 class="heading">Actions</h2>
+	<ul>
+		<li>
+			<a href="{% url discuss.views.create_topic course_slug=course.slug %}">Create New Topic</a>
+		</li>
+	</ul>
+</div>
+{% endblock %}
+
+{% block content %}
+{% if topics.object_list|length_is:0 %}
+<i>There are currently no topics</i>
+{% endif %}
+{% if topics.object_list|length > 0 %}
+{{ topics|create_pagination }}
+{% for topic in topics.object_list %}
+<div class="discussion-topic" id="{{ topic.pk }}">
+	<a class="discussion-topic-title" href="#">
+		{% if topic.pinned %}
+			<span style="color: #B5111B">[Pinned]</span>
+		{% endif %}
+		{% if topic.status == 'ANS' %}
+		    <span style="color: #1F6B08">[Answered]</span>
+		{% endif %}
+		{{ topic.title }}
+	</a>
+	<div class="discussion-topic-info">
+		<span class="discussion-topic-author">{{ topic.author.person.name }} ({{topic.author.person.userid}})</span>
+		<span class="discussion-topic-last">
+			{% if topic.message_count == 0 %}
+				Created: <span style="color:#1F6B08">{{ topic.last_activity_at_delta }}</span>
+			{% endif %}
+			{% if topic.message_count > 0 %}
+			    Last Reply:
+			    <span style="color:#1F6B08">{{ topic.last_activity_at_delta }}</span>
+			{% endif %}
+		</span>
+	</div>
+</div>
+{% endfor %}
+{{ topics|create_pagination }}
+{% endif %}
+{% endblock %}
+

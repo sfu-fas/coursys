@@ -18,6 +18,9 @@
     <h2 class="heading">Actions</h2>
     <ul>
 	{% if any_group %}<li><a href="{% url groups.views.groupmanage course_slug=course.slug %}">Manage Groups</a></li>{% endif %}
+	{% if course.discussion %}
+    <li><a href="{% url discuss.views.discussion_index course_slug=course.slug %}">Course Discussion</a></li>    
+    {% endif %}
 	{% if has_index %}<li><a href="{% url pages.views.index_page course_slug=course.slug %}">View Pages</a></li>{% endif %}
     </ul>
 </div>

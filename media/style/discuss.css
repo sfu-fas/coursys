@@ -1,0 +1,115 @@
+.discussion-topic {
+	width: 600px;
+	border: 1px solid #B7B7B7;
+	padding: .6em;
+	margin-bottom: 2px;
+	-webkit-border-radius: 4px;
+	border-radius: 4px;
+	background: #f4f4f4; /* Old browsers */
+	background: -moz-linear-gradient(top, #f4f4f4 0%, #ffffff 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f4f4f4), color-stop(100%,#ffffff)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top, #f4f4f4 0%,#ffffff 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top, #f4f4f4 0%,#ffffff 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top, #f4f4f4 0%,#ffffff 100%); /* IE10+ */
+	background: linear-gradient(top, #f4f4f4 0%,#ffffff 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f4f4f4', endColorstr='#ffffff',GradientType=0 ); /* IE6-9 */
+}
+
+.discussion-highlight {
+	border: 1px solid #666666;
+	-webkit-box-shadow: 0px 0px 3px 1px rgba(0, 0, 0, .3);
+	box-shadow: 0px 0px 3px 1px rgba(0, 0, 0, .3)
+}
+
+.discussion-topic-title {
+/*	color: #0054A6;*/
+	font-weight: bold;
+	font-size: 1.1em;
+	width: 300px;
+	overflow: hidden;
+	zoom: 1;
+}
+
+.discussion-topic-info {
+	padding-top: .3em;
+}
+
+.discussion-topic-author {
+	font-style: italic;
+}
+
+.discussion-topic-last {
+	color: grey;
+	float: right;
+}
+
+.pagination {
+	height: 36px;
+	margin: 14px 0;
+}
+
+.pagination ul {
+	padding-left: 0;
+	display: inline-block;
+	*display: inline;
+	margin-bottom: 0;
+	margin-left: 0;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+	*zoom: 1;
+	-webkit-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+	-moz-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.pagination li {
+	display: inline;
+}
+
+.pagination a {
+	color: #0054A6;
+	font-weight: bold;
+	float: left;
+	padding: 0 10px;
+	line-height: 26px;
+	text-decoration: none;
+	border: 1px solid #B7B7B7;
+	border-left-width: 0;
+}
+
+.pagination a:hover, .pagination .active a {
+	background-color: #f5f5f5;
+}
+
+.pagination .active a {
+	color: #999999;
+	cursor: default;
+}
+
+.pagination .disabled span, .pagination .disabled a, .pagination .disabled a:hover {
+	color: #999999;
+	cursor: default;
+	background-color: transparent;
+}
+
+.pagination li:first-child a {
+	border-left-width: 1px;
+	-webkit-border-radius: 3px 0 0 3px;
+	-moz-border-radius: 3px 0 0 3px;
+	border-radius: 3px 0 0 3px;
+}
+
+.pagination li:last-child a {
+	-webkit-border-radius: 0 3px 3px 0;
+	-moz-border-radius: 0 3px 3px 0;
+	border-radius: 0 3px 3px 0;
+}
+
+.pagination-centered {
+	text-align: center;
+}
+
+.pagination-right {
+	text-align: right;
+}

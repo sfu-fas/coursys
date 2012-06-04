@@ -19860,5 +19860,170 @@
   },
   "model": "ra.account",
   "pk": 4
+ },
+  {
+  "fields": {
+   "author": 10,
+   "config": "{}",
+   "content": "Here are some guidelines...",
+   "last_activity_at": "2012-06-03 19:44:34",
+   "message_count": 0,
+   "offering": 15,
+   "pinned": true,
+   "status": "CLO",
+   "title": "Welcome To CMPT 383"
+  },
+  "model": "discuss.discussiontopic",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "author": 10,
+   "config": "{}",
+   "content": "...",
+   "last_activity_at": "2012-05-03 19:46:09",
+   "message_count": 0,
+   "offering": 15,
+   "pinned": false,
+   "status": "OPN",
+   "title": "For all those who do not know python...."
+  },
+  "model": "discuss.discussiontopic",
+  "pk": 2
+ },
+ {
+  "fields": {
+   "author": 317,
+   "config": "{}",
+   "content": "Why don't pigs fly?",
+   "last_activity_at": "2012-05-22 18:04:05",
+   "message_count": 3,
+   "offering": 15,
+   "pinned": false,
+   "status": "ANS",
+   "title": "Question about assignment 1...."
+  },
+  "model": "discuss.discussiontopic",
+  "pk": 4
+ },
+ {
+  "fields": {
+   "author": 528,
+   "config": "{}",
+   "content": "Question above",
+   "last_activity_at": "2012-06-03 20:13:56",
+   "message_count": 1,
+   "offering": 15,
+   "pinned": false,
+   "status": "ANS",
+   "title": "Is this course graded on a curve?"
+  },
+  "model": "discuss.discussiontopic",
+  "pk": 5
+ },
+ {
+  "fields": {
+   "author": 528,
+   "config": "{}",
+   "content": "Post your favourite!!",
+   "last_activity_at": "2012-06-03 17:14:27",
+   "message_count": 6,
+   "offering": 15,
+   "pinned": false,
+   "status": "OPN",
+   "title": "Your favourite programming language and why"
+  },
+  "model": "discuss.discussiontopic",
+  "pk": 6
+ },
+ {
+  "fields": {
+   "author": 10,
+   "config": "{}",
+   "content": "....",
+   "last_activity_at": "2012-06-02 20:16:35",
+   "message_count": 2,
+   "offering": 15,
+   "pinned": true,
+   "status": "OPN",
+   "title": "Some things that everyone needs to be aware of"
+  },
+  "model": "discuss.discussiontopic",
+  "pk": 7
+ },
+ {
+  "fields": {
+   "author": 320,
+   "config": "{}",
+   "content": "...",
+   "last_activity_at": "2012-06-03 20:17:40",
+   "message_count": 2,
+   "offering": 15,
+   "pinned": false,
+   "status": "ANS",
+   "title": "How do we submit an assignment?"
+  },
+  "model": "discuss.discussiontopic",
+  "pk": 8
+ },
+ {
+  "fields": {
+   "author": 320,
+   "config": "{}",
+   "content": "...",
+   "last_activity_at": "2012-05-22 20:18:02",
+   "message_count": 2,
+   "offering": 15,
+   "pinned": false,
+   "status": "OPN",
+   "title": "Why is this class so hard?"
+  },
+  "model": "discuss.discussiontopic",
+  "pk": 9
+ },
+ {
+  "fields": {
+   "author": 328,
+   "config": "{}",
+   "content": "...",
+   "last_activity_at": "2012-06-03 15:18:55",
+   "message_count": 3,
+   "offering": 15,
+   "pinned": false,
+   "status": "OPN",
+   "title": "What is everyone's opinion of CourseSys?"
+  },
+  "model": "discuss.discussiontopic",
+  "pk": 10
+ },
+ {
+  "fields": {
+   "author": 328,
+   "config": "{}",
+   "content": "Thanks",
+   "last_activity_at": "2012-06-01 20:19:30",
+   "message_count": 0,
+   "offering": 15,
+   "pinned": false,
+   "status": "OPN",
+   "title": "Can you post lecture notes so i don't have to go to class please"
+  },
+  "model": "discuss.discussiontopic",
+  "pk": 11
+ },
+ {
+  "fields": {
+   "author": 328,
+   "config": "{}",
+   "content": "...",
+   "last_activity_at": "2012-06-02 20:20:35",
+   "message_count": 0,
+   "offering": 15,
+   "pinned": false,
+   "status": "OPN",
+   "title": "The best web browser"
+  },
+  "model": "discuss.discussiontopic",
+  "pk": 12
  }
 ]

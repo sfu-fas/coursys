@@ -101,6 +101,10 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_SLUG + '/groups/(?P<group_slug>' + SLUG_RE + ')/add$', 'groups.views.assign_student'),
     url(r'^' + COURSE_SLUG + '/groups/(?P<group_slug>' + SLUG_RE + ')/rename$', 'groups.views.change_name'),
     
+    #Discussion
+    url(r'^' + COURSE_SLUG + '/discussion/$', 'discuss.views.discussion_index'),
+    url(r'^' + COURSE_SLUG + '/discussion/create_topic/$', 'discuss.views.create_topic'),
+    
     # course activities/grades
 
     url(r'^' + COURSE_SLUG + '/grades$', 'grades.views.all_grades'),
