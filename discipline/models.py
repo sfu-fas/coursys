@@ -219,7 +219,7 @@ class DisciplineCaseBase(models.Model):
     
 
     contact_email_text = models.TextField(blank=True, null=True, verbose_name="Contact Email Text",
-            help_text=u'The initial email sent to the student regarding the case. ('+TEXTILEONLYNOTE+'.)')
+            help_text=u'The initial email sent to the student regarding the case. Please also note the date of the email. ('+TEXTILEONLYNOTE+'.)')
     contacted = models.CharField(max_length=4, choices=CONTACT_CHOICES, default="NONE", verbose_name="Student Contacted?",
             help_text='Has the student been informed of the case?')
     contact_date = models.DateField(blank=True, null=True, verbose_name="Initial Contact Date", help_text='Date of initial contact with student regarding the case.')
