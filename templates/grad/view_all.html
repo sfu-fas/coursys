@@ -17,7 +17,7 @@
 			<a href="{% url grad.views.manage_requirements grad_slug=grad.slug  %}">Manage Requirements</a>
 		</li>
 		<li>
-			<a href="{% url grad.views.manage_supervisors grad_slug=grad.slug  %}">Manage Supervisors</a>
+			<a href="{% url grad.views.manage_supervisors grad_slug=grad.slug  %}">Manage Committee</a>
 		</li>
 		<li>
 			<a href="{% url grad.views.manage_status grad_slug=grad.slug  %}">Manage Status</a>
@@ -316,26 +316,22 @@
 			<tr>
 				<th colspan="5">
 				<div style="width: 100%">
-					Supervisors
+					Committee Members
 				</div>
 				<div style="float: right; ">
-					<a href="{% url grad.views.manage_supervisors grad_slug=grad.slug  %}">Manage Supervisors</a>
+					<a href="{% url grad.views.manage_supervisors grad_slug=grad.slug  %}">Manage Committee</a>
 				</div></th>
 			</tr>
 			<tr>
-				<th>Supervisor</th>
-				<th></th>
-				<th></th>
-				<th>Updated At</th>
+				<th>Member</th>
+				<th>Type</th>
 			</tr>
 		</thead>
 		<tbody>
 			{% for supervisor in supervisors %}
 			<tr>
 				<td>{% if supervisor.supervisor %}{{ supervisor.supervisor }}{% else %}{{ supervisor.external }}{% endif%}</td>
-				<td>{{ supervisor.position }}</td>
 				<td>{{ supervisor.get_supervisor_type_display }}</td>
-				<td>{{ supervisor.updated_at }}</td>
 			</tr>
 			{% endfor %}
 		</tbody>

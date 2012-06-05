@@ -170,21 +170,30 @@ LETTER_TAGS = {
                }
 
 SUPERVISOR_TYPE_CHOICES = [
-                           ('SEN', 'Senior Supervisor'),
-                           ('COM', 'Committee Member'),
-                           ('POT', 'Potential Supervisor'),
-                           ('CHA', 'Defence Chair'),
-                           ('EXT', 'External Examiner'),
-                           ('SFU', 'SFU Examiner'),
-                           ]
+    ('SEN', 'Senior Supervisor'),
+    ('COM', 'Committee Member'),
+    ('CHA', 'Defence Chair'),
+    ('EXT', 'External Examiner'),
+    ('SFU', 'SFU Examiner'),
+    ('POT', 'Potential Supervisor'),
+    ]
+SUPERVISOR_TYPE_ORDER = {
+    'SEN': 1,
+    'COM': 2,
+    'CHA': 3,
+    'EXT': 4,
+    'SFU': 5,
+    'POT': 6,
+    }
+
 class Supervisor(models.Model):
     """
     Member (or potential member) of student's supervisory committee.
     """
     student = models.ForeignKey(GradStudent)
-    supervisor = models.ForeignKey(Person, blank=True, null=True, help_text="Please choose a Supervisor.")
-    external = models.CharField(max_length=200, blank=True, null=True, help_text="Any non-SFU supervisor.")
-    position = models.SmallIntegerField(null=False)
+    supervisor = models.ForeignKey(Person, blank=True, null=True, verbose_name="Member")
+    external = models.CharField(max_length=200, blank=True, null=True, help_text="Details if not an SFU internal member")
+    #position = models.SmallIntegerField(null=False)
     #is_senior = models.BooleanField()
     #is_potential = models.BooleanField()
     supervisor_type = models.CharField(max_length=3, blank=False, null=False, choices=SUPERVISOR_TYPE_CHOICES)
@@ -192,8 +201,8 @@ class Supervisor(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True) 
-    created_by = models.CharField(max_length=32, null=False, help_text='Supervisor added by.')
-    modified_by = models.CharField(max_length=32, null=True, help_text='Supervisor modified by.', verbose_name='Last Modified By')
+    created_by = models.CharField(max_length=32, null=False, help_text='Committee member added by.')
+    modified_by = models.CharField(max_length=32, null=True, help_text='Committee member modified by.', verbose_name='Last Modified By')
     config = JSONField(default={}) # addition configuration
         # 'email': Email address (for external)
     defaults = {'email': None}
@@ -233,24 +242,11 @@ class Supervisor(models.Model):
         if not is_person and not is_ext:
             raise ValueError, "Must be either an SFU user or external"
         
-        if self.position == 1 and self.supervisor_type != 'SEN':
-            raise ValueError, "First supervisor must be senior"
-        #if self.position == 1 and is_ext:
-        #    raise ValueError, "First supervisor must be internal"
-        if self.position > 2 and self.supervisor_type == 'SEN':
-            raise ValueError, "Only first two supervisors can be senior"
-        
-        if self.supervisor_type in ['SEN', 'COM'] and not (1 <= self.position  <= 4):
-            raise ValueError, "Invalid position for committee member."
-        
-        if self.position > 0:
-            others = Supervisor.objects.filter(student=self.student, position=self.position)
-            if self.id:
-                others = others.exclude(id=self.id)
-            if others:
-                raise ValueError, "Position (>0) must be unique"
-        
         super(Supervisor, self).save(*args, **kwargs)
+    
+    def type_order(self):
+        "Return key for sorting by supervisor_type"
+        return SUPERVISOR_TYPE_ORDER[self.supervisor_type]
 
 class GradRequirement(models.Model):
     """

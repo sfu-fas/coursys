@@ -78,7 +78,7 @@ class SupervisorField(forms.MultiValueField):
 
 
 class SupervisorForm(ModelForm):
-    supervisor = SupervisorField(required=False)
+    supervisor = SupervisorField(required=False, label="Committee Member")
     
     def set_supervisor_choices(self, choices):
         """
@@ -104,7 +104,7 @@ class SupervisorForm(ModelForm):
     
     class Meta:
         model = Supervisor
-        exclude = ('student', 'supervisor_type', 'created_by', 'modified_by', 'removed', 'config')
+        exclude = ('student', 'created_by', 'modified_by', 'removed', 'config', 'position')
         
 class PotentialSupervisorForm(ModelForm): 
     def set_supervisor_choices(self, choices):

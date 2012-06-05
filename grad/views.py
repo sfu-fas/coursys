@@ -102,9 +102,60 @@ def grad_more_info(request, grad_slug):
     json.dump(data, response, indent=1)
     return response
 
-
 @requires_role("GRAD")
 def manage_supervisors(request, grad_slug):
+    grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
+    supervisors = Supervisor.objects.filter(student=grad).select_related('supervisor')
+    supervisor_people = [s.supervisor for s in supervisors if s.supervisor]
+
+    if request.method == 'POST':
+        form = SupervisorForm(request.POST)
+        form.set_supervisor_choices(possible_supervisors([grad.program.unit], extras=supervisor_people, null=True))
+        if form.is_valid():
+            s = form.save(commit=False)
+            s.modified_by = request.user.username
+            s.student = grad
+            s.save()
+            
+            messages.success(request, "Added committee member for %s." % (grad))
+            l = LogEntry(userid=request.user.username,
+                  description="Added committee member %s for %s." % (s, grad.person.userid),
+                  related_object=s)
+            l.save()              
+            return HttpResponseRedirect(reverse(manage_supervisors, kwargs={'grad_slug':grad_slug}))
+    else:
+        form = SupervisorForm()
+        form.set_supervisor_choices(possible_supervisors([grad.program.unit], extras=supervisor_people, null=True))
+
+    gp = grad.person.get_fields
+    context = {
+               'form': form,
+               'supervisors': supervisors,
+               'grad' : grad,
+               'gp' : gp,
+               }
+    return render(request, 'grad/manage_supervisors.html', context)
+
+
+@requires_role("GRAD")
+def remove_supervisor(request, grad_slug, sup_id):
+    grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
+    supervisor = get_object_or_404(Supervisor, student=grad, id=sup_id)
+    if request.method == 'POST':
+        supervisor.removed = True
+        supervisor.save()
+        messages.success(request, "Removed committe member %s." % (supervisor.supervisor or supervisor.external))
+        l = LogEntry(userid=request.user.username,
+              description="Removed committee member %s for %s." % (supervisor.supervisor or supervisor.external, grad.person.userid),
+              related_object=supervisor)
+        l.save()              
+    
+    return HttpResponseRedirect(reverse(manage_supervisors, kwargs={'grad_slug':grad_slug}))
+
+
+
+@requires_role("GRAD")
+def XXXmanage_supervisors(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     supervisors = Supervisor.objects.filter(student=grad, supervisor_type__in=['SEN','COM'], removed=False).select_related('supervisor')
     supervisor_people = [s.supervisor for s in supervisors if s.supervisor]
@@ -173,7 +224,7 @@ def manage_supervisors(request, grad_slug):
     return render(request, 'grad/manage_supervisors.html', context)
 
 @requires_role("GRAD")
-def update_supervisors(request, grad_slug):
+def XXX_update_supervisors(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     supervisors = Supervisor.objects.filter(student=grad, supervisor_type__in=['SEN','COM'], removed=False).select_related('supervisor')
     supervisor_people = [s.supervisor for s in supervisors if s.supervisor]
