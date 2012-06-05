@@ -10,6 +10,7 @@ from django.core.urlresolvers import reverse
 import os.path
 from django.conf import settings
 from django.utils.safestring import mark_safe
+from courselib.slugs import make_slug
 
 
 STATUS_CHOICES = [
@@ -30,7 +31,9 @@ class SubmissionComponent(models.Model):
     title = models.CharField(max_length=100, help_text='Name for this component (e.g. "Part 1" or "Programming Section")')
     description = models.CharField(max_length=1000, help_text="Short explanation for this component.", null=True,blank=True)
     position = models.PositiveSmallIntegerField(help_text="The order of display for listing components.", null=True,blank=True)
-    slug = AutoSlugField(populate_from='title', null=False, editable=False, unique_with='activity')
+    def autoslug(self):
+        return make_slug(self.title)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='activity')
     deleted = models.BooleanField(default=False, help_text="Component is invisible to students and can't be submitted if checked.")
     specified_filename = models.CharField(max_length=200, help_text="Specify a file name for this component.")
 
