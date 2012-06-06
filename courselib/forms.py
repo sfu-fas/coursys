@@ -15,7 +15,9 @@ class StaffSemesterField(forms.CharField):
         "Convert to semester name for display in widget"
         if isinstance(semester, basestring):
             return semester
-        if semester:
+        if isinstance(semester, int):
+            return "????" #TODO: Fix this. /grad/<xx>/manage_requirements breaks otherwise. 
+        if isinstance(semester, Semester):
             return semester.name
         else:
             return ''
