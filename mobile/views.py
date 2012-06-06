@@ -192,7 +192,7 @@ def student_search(request, course_slug):
 
     q = request.GET.get('q')
     q = q.encode('ascii','ignore')
-    print q
+    #print q
     try:
         keywords = shlex.split(q)
     except:

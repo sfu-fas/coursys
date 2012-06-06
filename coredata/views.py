@@ -343,7 +343,7 @@ def unit_address(request, unit_slug):
     if request.method == 'POST':
         form = UnitAddressForm(data=request.POST, unit=unit)
         if form.is_valid():
-            print form.cleaned_data
+            #print form.cleaned_data
             form.copy_to_unit()
             unit.save()
             

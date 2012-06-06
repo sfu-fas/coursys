@@ -504,7 +504,7 @@ def compare_official(request, course_slug, activity_slug):
             g = None
         data.append((m, g, m.official_grade!=g))
     
-    print data
+    #print data
     context = {'course': course, 'activity': activity, 'data': data}
     return render_to_response('grades/compare_official.html', context, context_instance=RequestContext(request))
     
@@ -1180,7 +1180,7 @@ def class_list(request, course_slug):
         gs = groups.get(gm.student_id, set())
         groups[gm.student_id] = gs
         gs.add(gm.group)
-    print groups
+    #print groups
     
     rows = []
     for m in members:

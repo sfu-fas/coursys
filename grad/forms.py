@@ -94,7 +94,8 @@ class SupervisorForm(ModelForm):
                 raise forms.ValidationError("Please enter only one of Supervisor or an External supervisor.")
         else:
             if not data['external']:
-                print "No supervisor data has been passed. Treat form as empty"
+                pass
+                #print "No supervisor data has been passed. Treat form as empty"
                 #raise forms.ValidationError("Please have at least one of Supervisor or an External supervisor.")
         return data
     
@@ -479,7 +480,7 @@ class SearchForm(forms.Form):
                         (self._make_query(*qargs) for qargs in auto_queries)),
                         manual_queries),
                     Q())
-        print self.cleaned_data
+        #print self.cleaned_data
         return query#, exclude_query
     
     def _secondary_filter(self, gradstudent):
