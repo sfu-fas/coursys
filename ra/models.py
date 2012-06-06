@@ -1,7 +1,7 @@
 from django.db import models
-from coredata.models import Person, Unit
+from coredata.models import Person, Unit, Semester
 from jsonfield import JSONField
-from courselib.json_fields import getter_setter
+#from courselib.json_fields import getter_setter
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from grad.models import Scholarship
@@ -98,3 +98,13 @@ class RAAppointment(models.Model):
 
     class Meta:
         ordering = ['person', 'created_at']
+    
+    def start_semester(self):
+        "Guess the starting semester of this appointment"
+        return Semester.get_semester(self.start_date)
+    def end_semester(self):
+        "Guess the ending semester of this appointment"
+        return Semester.get_semester(self.end_date)
+    def semester_length(self):
+        "The number of semesters this contracts lasts for"
+        return self.end_semester() - self.start_semester() + 1

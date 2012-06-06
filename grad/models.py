@@ -424,6 +424,8 @@ class Promise(models.Model):
         for field in Promise._meta.fields:
                 k.append([capfirst(field.verbose_name), field.value_to_string(self)])
         return k
+    def semester_length(self):
+        return self.end_semester - self.start_semester + 1
 
 class SavedSearch(models.Model):
     person = models.ForeignKey(Person, null=True)

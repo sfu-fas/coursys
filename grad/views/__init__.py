@@ -4,8 +4,8 @@ from view_all import view_all
 from grad_more_info import grad_more_info
 from manage_supervisors import manage_supervisors
 from remove_supervisor import remove_supervisor
-from XXXmanage_supervisors import XXXmanage_supervisors
-from XXX_update_supervisors import XXX_update_supervisors
+#from XXXmanage_supervisors import XXXmanage_supervisors
+#from XXX_update_supervisors import XXX_update_supervisors
 from manage_requirements import manage_requirements
 from manage_academics import manage_academics
 from manage_status import manage_status

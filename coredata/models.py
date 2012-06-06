@@ -284,7 +284,7 @@ class Semester(models.Model):
     def get_semester(cls, date=None):
         if not date:
             date = datetime.date.today()
-        return Semester.objects.filter(start__lt=date).order_by('-start')[0]
+        return Semester.objects.filter(start__lte=date).order_by('-start')[0]
 
     @classmethod
     def next_starting(cls):

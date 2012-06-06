@@ -95,7 +95,7 @@ def new(request):
             messages.success(request, 'Created RA Appointment for ' + appointment.person.name())
             return HttpResponseRedirect(reverse(student_appointments, kwargs=({'userid': userid})))
     else:
-        semester = Semester.first_relevant() 
+        semester = Semester.next_starting() 
         raform = RAForm(initial={'start_date': semester.start, 'end_date': semester.end, 'hours': 70 })
         raform.fields['scholarship'].choices = scholarship_choices
         raform.fields['hiring_faculty'].choices = hiring_faculty_choices
