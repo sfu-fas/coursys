@@ -8,7 +8,8 @@
 {% block headextra %}
 <script type="text/javascript" src="{{MEDIA_URL}}/tiny_mce/tiny_mce.js"></script>
 <script type="text/javascript">
-var convert_url = '{% url pages.views.convert_content course_slug=offering.slug page_label=page.label %}';
+var convert_url = '{% if page %}{% url pages.views.convert_content course_slug=offering.slug page_label=page.label %}{% else %}{% url pages.views.convert_content course_slug=offering.slug %}{% endif %}';
+var csrf_token = '{{csrf_token}}';
 function setup_tinymce(id) {
 	tinyMCE.init({
 		mode: "exact",
@@ -33,7 +34,7 @@ function do_wysiwyg() {
 	$.ajax({
 		url: convert_url,
 		type: "POST",
-		data: { data: current, to: "html" },
+		data: { data: current, to: 'html', 'csrfmiddlewaretoken': csrf_token },
 	}).done(function(data) {
 		var html = data['data'];
 		$('#id_wikitext').val(html);
@@ -52,7 +53,7 @@ function do_wiki() {
 	$.ajax({
 		url: convert_url,
 		type: "POST",
-		data: { data: current, to: "wiki" },
+		data: { data: current, to: "wiki", 'csrfmiddlewaretoken': csrf_token },
 	}).done(function(data) {
 		var wiki = data['data'];
 		tinyMCE.execCommand('mceFocus', false, 'id_wikitext');

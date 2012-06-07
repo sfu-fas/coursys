@@ -24,7 +24,7 @@ MEMBER_ROLES = { # map from ACL roles to allowed Member roles
         'INST': set(['APPR', 'INST']),
         'STAF': set(['APPR', 'INST', 'TA']),
         'STUD': set(['APPR', 'INST', 'TA', 'STUD']),
-        'ALL': set(['APPR', 'INST', 'TA', 'STUD', 'DROP']),
+        'ALL':  set(['APPR', 'INST', 'TA', 'STUD', 'DROP']),
         }
 ACL_ROLES = { # reverse of MEMBER_ROLES: what ACLs is this Member allowed to access?
         'APPR': set(['INST', 'STAF', 'STUD', 'ALL']),

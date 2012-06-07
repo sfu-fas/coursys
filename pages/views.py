@@ -242,8 +242,7 @@ def _edit_pagefile(request, course_slug, page_label, kind):
     return render(request, 'pages/edit_page.html', context)
 
 
-@csrf_exempt
-def convert_content(request, course_slug, page_label):
+def convert_content(request, course_slug, page_label=None):
     """
     Convert between wikicreole and HTML (AJAX called in editor when switching editing modes)
     """
@@ -255,14 +254,20 @@ def convert_content(request, course_slug, page_label):
         return ForbiddenResponse(request, 'must sent source "data"')
 
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    page = get_object_or_404(Page, offering=offering, label=page_label)
     
     to = request.POST['to']
     data = request.POST['data']
     if to == 'html':
         # convert wikitext to HTML
         # temporarily change the current version to get the result (but don't save)
-        pv = page.current_version()
+        if page_label:
+            page = get_object_or_404(Page, offering=offering, label=page_label)
+            pv = page.current_version()
+        else:
+            # create temporary Page for conversion during creation
+            p = Page(offering=offering)
+            pv = PageVersion(page=p)
+        
         pv.wikitext = data
         pv.diff_from = None
         result = {'data': pv.html_contents()}
