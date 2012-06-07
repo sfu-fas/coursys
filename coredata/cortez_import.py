@@ -818,6 +818,9 @@ class RAImport(object):
             sin = None
         ra.sin = sin if sin else 0
         ra.hiring_faculty = Person.objects.get(userid='ggbaker') # TODO: wrong. Need to get faculty's Person object.
+        
+        print ">>>", `faculty`
+        
         try:
             int(project)
             int(fund)
@@ -866,6 +869,9 @@ class RAImport(object):
         #self.create_projects()
         #self.db.execute("SELECT * from Contract c LEFT JOIN RA r ON c.Identifier=r.Identifier", ())
         print "Importing RAs..."
+        self.db.execute("select * from grad.dbo.Staff", ())
+        print list(self.db)
+        
         self.db.execute("SELECT c.FundNumber, c.ProjectNumber, c.PositionNumber, c.ReAppointment, c.StartDate, c.EndDate, "
                         "c.HiringCategory, c.Faculty, c.MSP, c.DentalPlan, "
                         "c.HourlyEarningRate, c.BiweeklyEarningRate, c.BiweeklyHoursMin, c.BiweeklyAmount, "
@@ -883,13 +889,12 @@ class RAImport(object):
                     initial = i
                     time.sleep(0.5)
 
-        for row in self.db:
             self.get_ra(*row[:-1])
         #print all_types
 
 if __name__ == '__main__':
     #Introspection().print_schema()
-    TAImport().get_tas()
-    GradImport().get_students()
+    #TAImport().get_tas()
+    #GradImport().get_students()
     RAImport().get_ras()
 

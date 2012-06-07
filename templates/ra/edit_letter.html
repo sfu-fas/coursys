@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block headextra %}
+<script type="text/javascript" src="/media/js/ra.js"></script>
+<link rel="stylesheet" type="text/css" href="/media/ra/ra.css" />
+{% endblock %}
+
+{% block title %}Edit RA Letter for {{ appointment.person.name }}{% endblock %}
+{% block h1 %}Edit RA Letter for {{ appointment.person.name }}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url ra.views.search %}">RAs</a></li>
+<li>&gt;<a href="{% url ra.views.student_appointments userid=appointment.person.userid%}"> {{ appointment.person.name }}</a></li>
+<li>&gt; <a href="{% url ra.views.view ra_slug=appointment.slug %}">{{ appointment.account.title }} starting {{ appointment.start_date }}</a></li>
+<li>&gt; Edit Letter</li>{% endblock %}
+
+{% block content %}
+  <div id="form_container">
+    <form action="" method="POST">{% csrf_token %}
+      <fieldset>
+        <legend>Contract Information</legend>
+        {{ form|as_dl }}
+        <p><input type="submit" class="submit" value="Submit" /></p>
+      </fieldset>
+    </form>  
+  </div>
+{% endblock %}

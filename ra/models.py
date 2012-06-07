@@ -5,6 +5,7 @@ from jsonfield import JSONField
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from grad.models import Scholarship
+from pages.models import _normalize_newlines
 
 HIRING_CATEGORY_CHOICES = (
     ('U', 'Undergrad'),
@@ -57,6 +58,17 @@ class Account(models.Model):
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
 
+
+DEFAULT_LETTER = [
+        """This is to confirm remuneration of work performed as a Research Assistant from %(start_date)s to %(end_date)s, will be a Lump Sum payment of $%(lump_sum_pay)s.""",
+        """Termination of this appointment may be initiated by either party giving one (1) week notice, except in the case of termination for cause.""",
+        """This contract of employment exists solely between myself as recipient of research grant funds and your self. In no manner of form does this employment relationship extend to or affect Simon Fraser University in any way.""",
+        """The primary purpose of this appointment is to assist you in furthering your education and the pursuit of your degree through the performance of research activities in your field of study. As such, payment for these activities will be classified as scholarship income for taxation purposes. Accordingly, there will be no income tax, CPP or EI deductions from income. You should set aside funds to cover your eventual income tax obligation; note that the first $3K total annual income from scholarship sources is not taxable.""",
+        """Basic Benefits: further details are in SFU Policies and Procedures R 50.02, which can be found on the SFU website.""",
+        """If you accept the terms of this appointment, please sign and return the enclosed copy of this letter, retaining the original for your records.""",
+    ]
+
+
 class RAAppointment(models.Model):
     """
     This stores information about a (Research Assistant)s application and pay.
@@ -71,7 +83,7 @@ class RAAppointment(models.Model):
     account = models.ForeignKey(Account, null=False, blank=False)
     start_date = models.DateField(auto_now=False, auto_now_add=False)
     end_date = models.DateField(auto_now=False, auto_now_add=False)
-    pay_frequency = models.CharField(max_length=60, choices=PAY_FREQUENCY_CHOICES, default ='B')
+    pay_frequency = models.CharField(max_length=60, choices=PAY_FREQUENCY_CHOICES, default='B')
     lump_sum_pay = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Total Pay")
     biweekly_pay = models.DecimalField(max_digits=8, decimal_places=2)
     pay_periods = models.DecimalField(max_digits=6, decimal_places=1)
@@ -82,6 +94,7 @@ class RAAppointment(models.Model):
     dental_benefits = models.BooleanField(default=False, help_text="50% of Dental Plan")
     notes = models.TextField(blank=True, help_text="Biweekly emplyment earnings rates must include vacation pay, hourly rates will automatically have vacation pay added. The employer cost of statutory benefits will be charged to the amount to the earnings rate.");
     comments = models.TextField(blank=True, help_text="For internal use")
+    offer_letter_text = models.TextField(null=True, help_text="Text of the offer letter to be signed by the RA and supervisor.")
     def autoslug(self):
         if self.person.userid:
             ident = self.person.userid
@@ -98,6 +111,25 @@ class RAAppointment(models.Model):
 
     class Meta:
         ordering = ['person', 'created_at']
+    
+    def default_letter_text(self):
+        """
+        Default text for the letter (for editing, or use if not set)
+        """
+        substitutions = {
+            'start_date': self.start_date.strftime("%B %d, %Y"),
+            'end_date': self.end_date.strftime("%B %d, %Y"),
+            'lump_sum_pay': self.lump_sum_pay,
+            }
+        return '\n\n'.join(DEFAULT_LETTER) % substitutions
+    
+    def letter_paragraphs(self):
+        """
+        Return list of paragraphs in the letter (for PDF creation)
+        """
+        text = self.offer_letter_text or self.default_letter_text()
+        text = _normalize_newlines(text)
+        return text.split("\n\n") 
     
     def start_semester(self):
         "Guess the starting semester of this appointment"

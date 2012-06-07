@@ -350,6 +350,7 @@ urlpatterns += patterns('',
     url(r'^ra/' + RA_SLUG + '/form$', 'ra.views.form'),
     url(r'^ra/' + RA_SLUG + '/letter$', 'ra.views.letter'),
     url(r'^ra/' + RA_SLUG + '/edit$', 'ra.views.edit'),
+    url(r'^ra/' + RA_SLUG + '/edit_letter$', 'ra.views.edit_letter'),
     url(r'^ra/' + RA_SLUG + '/reappoint$', 'ra.views.reappoint'),
 
 )

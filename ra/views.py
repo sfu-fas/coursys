@@ -3,7 +3,7 @@ from django.shortcuts import render_to_response, get_object_or_404, render
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib import messages
 from ra.models import RAAppointment, Project, Account
-from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm
+from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm
 from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester
 from courselib.auth import requires_role, ForbiddenResponse
@@ -95,7 +95,7 @@ def new(request):
             messages.success(request, 'Created RA Appointment for ' + appointment.person.name())
             return HttpResponseRedirect(reverse(student_appointments, kwargs=({'userid': userid})))
     else:
-        semester = Semester.next_starting() 
+        semester = Semester.next_starting()
         raform = RAForm(initial={'start_date': semester.start, 'end_date': semester.end, 'hours': 70 })
         raform.fields['scholarship'].choices = scholarship_choices
         raform.fields['hiring_faculty'].choices = hiring_faculty_choices
@@ -108,7 +108,7 @@ def new(request):
 @requires_role("FUND")
 def new_student(request, userid):
     person = get_object_or_404(Person, emplid=userid)
-    semester = Semester.first_relevant() 
+    semester = Semester.next_starting()
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
     initial = {'person': student.emplid, 'start_date': semester.start, 'end_date': semester.end, 'hours': 70 }
     scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices =_appointment_defaults(request.units, emplid=student.emplid)
@@ -179,6 +179,25 @@ def reappoint(request, ra_slug):
     raform.fields['account'].choices = [(a.id, u'%s (%s)' % (a.account_number, a.title)) for a in Account.objects.filter(unit__in=request.units)]
     return render(request, 'ra/new.html', { 'raform': raform, 'appointment': appointment })
 
+@requires_role("FUND")
+def edit_letter(request, ra_slug):
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug)  
+
+    if request.method == 'POST':
+        form = RALetterForm(request.POST, instance=appointment)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Updated RA Letter Text for ' + appointment.person.first_name + " " + appointment.person.last_name)
+            return HttpResponseRedirect(reverse(student_appointments, kwargs=({'userid': appointment.person.userid})))
+    else:
+        if not appointment.offer_letter_text:
+            appointment.offer_letter_text = appointment.default_letter_text()
+        form = RALetterForm(instance=appointment)
+    
+    context = {'appointment': appointment, 'form': form}
+    return render(request, 'ra/edit_letter.html', context)
+
+
 #View RA Appointment
 @requires_role("FUND")
 def view(request, ra_slug):
@@ -203,20 +222,12 @@ def letter(request, ra_slug):
     letter = OfficialLetter(response, unit=appointment.unit)
     contents = LetterContents(
         to_addr_lines=[], 
-        from_name_lines=[appointment.hiring_faculty.first_name + " " + appointment.hiring_faculty.last_name,        appointment.unit.name], 
+        from_name_lines=[appointment.hiring_faculty.first_name + " " + appointment.hiring_faculty.last_name, appointment.unit.name], 
         salutation="Dear " + appointment.person.first_name, 
         closing="Yours Truly", 
         signer=appointment.hiring_faculty,
         cosigner_lines=['I agree to the conditions of employment', appointment.person.first_name + " " + appointment.person.last_name])
-    paragraphs = [
-        """This is to confirm remuneration of work performed as a Research Assistant from """ + appointment.start_date.strftime("%B %d, %Y") +  """ to """  + appointment.end_date.strftime("%B %d, %Y") + """, will be a Lump Sum payment of $""" + str(appointment.lump_sum_pay) + """.""",
-        """Termination of this appointment may be initiated by either party giving one (1) week notice, except in the case of termination for cause.""",
-        """This contract of employment exists solely between myself as recipient of research grant funds and your self. In no manner of form does this employment relationship extend to or affect Simon Fraser University in any way.""",
-        """The primary purpose of this appointment is to assist you in furthering your education and the pursuit of your degree through the performance of research activities in your field of study. As such, payment for these activities will be classified as scholarship income for taxation purposes. Accordingly, there will be no income tax, CPP or EI deductions from income. You should set aside funds to cover your eventual income tax obligation; note that the first $3K total annual income from scholarship sources is not taxable.""",
-        """Basic Benefits: further details are in SFU Policies and Procedures R 50.02, which can be found on the SFU website.""",
-        """If you accept the terms of this appointment, please sign and return the enclosed copy of this letter, retaining the original for your records.""",
-    ]
-    contents.add_paragraphs(paragraphs)
+    contents.add_paragraphs(appointment.letter_paragraphs())
     letter.add_letter(contents)
     letter.write()
     return response

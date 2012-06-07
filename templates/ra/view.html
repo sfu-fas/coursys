@@ -18,6 +18,7 @@
     <h2>Actions</h2>
     <ul>
       <li><a href="{% url ra.views.edit ra_slug=appointment.slug %}">Edit this appointment</a></li>
+      <li><a href="{% url ra.views.edit_letter ra_slug=appointment.slug %}">Edit Letter Text</a></li>
       <li><a href="{% url ra.views.form ra_slug=appointment.slug %}">Appointment Form</a></li>
       <li><a href="{% url ra.views.letter ra_slug=appointment.slug %}">Appointment Letter</a></li>
       <li><a href="{% url ra.views.reappoint ra_slug=appointment.slug %}">Reappoint</a></li>

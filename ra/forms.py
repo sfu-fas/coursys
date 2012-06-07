@@ -37,7 +37,16 @@ class RAForm(forms.ModelForm):
         
     class Meta:
         model = RAAppointment
-        exclude = ('config',)
+        exclude = ('config','offer_letter_text')
+
+class RALetterForm(forms.ModelForm):
+    class Meta:
+        model = RAAppointment
+        fields = ('offer_letter_text',)
+        widgets = {
+                   'offer_letter_text': forms.Textarea(attrs={'rows': 25, 'cols': 85}),
+                   }
+
 
 class StudentSelect(forms.Select):
     input_type = 'text'
