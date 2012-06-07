@@ -353,11 +353,7 @@ class SearchForm(forms.Form):
             )
     
     program = forms.ModelMultipleChoiceField(GradProgram.objects.all(), required=False)
-#    degree = forms.ChoiceField(choices=(
-#            ('','---------'),
-#            ('INTL','International'),
-#            ('CAN','Canadian')
-#            ), required=False)
+    
     requirements = forms.ModelMultipleChoiceField(GradRequirement.objects.all(),
             label='Completed requirements', required=False)
     requirements_st = forms.ChoiceField((
@@ -365,6 +361,9 @@ class SearchForm(forms.Form):
             ('OR',mark_safe(u'Student must have completed <em>any</em> of these requirements'))),
             label='Requirements search type', required=False, 
             widget=forms.RadioSelect)
+    incomplete_requirements = forms.ModelMultipleChoiceField(GradRequirement.objects.all(),
+            label='Incomplete requirements', required=False)
+
     is_canadian = NullBooleanSearchField(required=False)
     
     financial_support = forms.MultipleChoiceField((
@@ -398,6 +397,7 @@ class SearchForm(forms.Form):
             'program',
             'requirements',
             'requirements_st',
+            'incomplete_requirements',
             'is_canadian',
             'financial_support',
             'campus',
@@ -464,6 +464,14 @@ class SearchForm(forms.Form):
                         ~Q(pk__in=gradmodels.Scholarship.objects.all().values('student')) &
                         ~Q(pk__in=gradmodels.OtherFunding.objects.all().values('student')) &
                         ~Q(pk__in=gradmodels.Promise.objects.all().values('student')))
+
+        if self.cleaned_data.get('incomplete_requirements', False):
+            # If a student has ANY of the incomplete requirements he will be included.
+            all_completed_requirement_query_list = [Q(pk__in=requirement.completedrequirement_set.all().values('student_id')) 
+                        for requirement in self.cleaned_data['incomplete_requirements']]
+            all_completed_requirement_query = reduce( Q.__and__, all_completed_requirement_query_list, Q() )
+            any_not_completed_requirement_query = ~all_completed_requirement_query
+            manual_queries.append( any_not_completed_requirement_query )
         
         if self.cleaned_data.get('requirements', False):
             if self.cleaned_data['requirements_st'] == 'OR':

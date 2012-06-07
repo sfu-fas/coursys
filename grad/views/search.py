@@ -29,10 +29,6 @@ def search(request):
         # and put the groups into separate divs, with headers, and use jquery.collapsible
         # on each of the groups
         # also this should allow the user to replace the loaded savedsearch with a new one
-    # TODO: allow loading a saved search into the search form
-        # make a new view for this purpose, or separate the results view into its own
-        # just 'copy' (aka refactor by splitting up and follow DRY) this search view to just 
-        # load the searchform with the savedsearch query as initial
     current_user = Person.objects.get(userid=request.user.username)
     query_string = request.META.get('QUERY_STRING','')
     try:
