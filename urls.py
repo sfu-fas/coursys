@@ -104,6 +104,8 @@ urlpatterns += patterns('',
     #Discussion
     url(r'^' + COURSE_SLUG + '/discussion/$', 'discuss.views.discussion_index'),
     url(r'^' + COURSE_SLUG + '/discussion/create_topic/$', 'discuss.views.create_topic'),
+    url(r'^' + COURSE_SLUG + '/discussion/topic/(?P<topic_id>\d+)/$', 'discuss.views.view_topic'),
+    url(r'^' + COURSE_SLUG + '/discussion/topic/(?P<topic_id>\d+)/change/$', 'discuss.views.change_topic_status'),
     
     # course activities/grades
 

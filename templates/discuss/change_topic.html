@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load grade_student %}
+{% block title %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
+{% block h1 %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>
+	&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a>
+</li>
+<li>
+	&gt; <a href="{% url discuss.views.discussion_index course_slug=course.slug %}">Discussion</a>
+</li>
+<li>
+	&gt; <a href="{% url discuss.views.view_topic course_slug=course.slug topic_id=topic.pk %}">View Topic</a>
+</li>
+	&gt; Manage Topic
+<li>
+	
+</li>
+{% endblock %}
+
+{% block content %}
+<div id="form_container">
+	{% if form.non_field_errors %}
+	<p class="errorindicator">
+		<img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
+		{{ form.non_field_errors }}
+	</p>
+	{% endif %}
+	<form action="{% url discuss.views.change_topic_status course_slug=course.slug topic_id=topic.pk %}" method="post">
+		{% csrf_token %}
+		<fieldset>
+			<legend>
+				Manage Topic
+			</legend>
+			<ul>
+				{{ form.status|activity_field }}
+				{{ form.pinned|activity_field }}
+				<li>
+					<input class="submit" type="submit" value="Submit" />
+				</li>
+			</ul>
+		</fieldset>
+	</form>
+</div>
+{% endblock %}

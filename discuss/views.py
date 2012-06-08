@@ -1,10 +1,10 @@
 from coredata.models import CourseOffering, Person, Member
 from courselib.auth import is_course_student_by_slug, is_course_staff_by_slug
-from discuss.models import DiscussionTopic
+from discuss.models import DiscussionTopic, DiscussionMessage
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
-from discuss.forms import DiscussionTopicForm
+from discuss.forms import DiscussionTopicForm, DiscussionTopicStatusForm
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
@@ -48,7 +48,7 @@ def _get_member_as_author(username, discussion_view, course_slug):
     if discussion_view is 'student':
         return Member.objects.filter(offering__slug=course_slug, person__userid=username, role="STUD", offering__graded=True).exclude(offering__component="CAN")[0]
     elif discussion_view is 'staff':
-        return Member.objects.filter(offering__slug=course_slug, person__userid=username, role__in=['INST','TA', 'APPR'], offering__graded=True).exclude(offering__component="CAN")[0]
+        return Member.objects.filter(offering__slug=course_slug, person__userid=username, role__in=['INST', 'TA', 'APPR'], offering__graded=True).exclude(offering__component="CAN")[0]
     else:
         raise ValueError("Discussion view type must be either 'student' or 'staff'")
     
@@ -72,5 +72,34 @@ def create_topic(request, course_slug):
     else:
         form = DiscussionTopicForm(discussion_view=view)
     return render(request, 'discuss/create_topic.html', {'course': course, 'form': form})
+
+@login_required
+def view_topic(request, course_slug, topic_id):
+    """
+    Page to view a discussion topic and reply
+    """
+    course, view = _get_course_and_view(request, course_slug)
+    topic = get_object_or_404(DiscussionTopic, pk=topic_id, offering=course)
+    replies = DiscussionMessage.objects.filter(topic=topic).order_by('-created_at')
+    return render(request, 'discuss/topic.html', {'course': course, 'topic': topic, 'replies': replies, 'view': view})
+
+@login_required
+def change_topic_status(request, course_slug, topic_id):
+    """
+    Form to change the status of a topic
+    """
+    course, view = _get_course_and_view(request, course_slug)
+    topic = get_object_or_404(DiscussionTopic, pk=topic_id, offering=course)
+    if view is not 'staff':
+        return HttpResponseForbidden()
+    if request.method == 'POST':
+        form = DiscussionTopicStatusForm(request.POST, instance=topic)
+        if form.is_valid():
+            form.save()
+            messages.add_message(request, messages.SUCCESS, 'Discussion topic has been successfully changed.')
+            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_id': topic_id}))
+    else:
+        form = DiscussionTopicStatusForm(instance=topic)
+    return render(request, 'discuss/change_topic.html', {'course': course, 'topic': topic, 'form': form})
     
     

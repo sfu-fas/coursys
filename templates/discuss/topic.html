@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
+{% block headextra %}
+<link rel="stylesheet" href="{{MEDIA_URL}}style/discuss.css" media="all" />
+{% endblock %}
+
+{% block h1 %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>
+	&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a>
+</li>
+<li>
+	&gt; <a href="{% url discuss.views.discussion_index course_slug=course.slug %}">Discussion</a>
+</li>
+<li>
+	&gt; View Topic
+</li>
+{% endblock %}
+{% block actions %}
+<div id="actions">
+	<h2 class="heading">Actions</h2>
+	<ul>
+		<li>
+			<a href="{% url discuss.views.create_topic course_slug=course.slug %}">Create New Topic</a>
+		</li>
+		{% if view == 'staff' %}
+		<li>
+			<a href="{% url discuss.views.change_topic_status course_slug=course.slug topic_id=topic.pk %}">Manage Topic</a>
+		</li>
+		{% endif %}
+	</ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div class="discussion-topic-body">
+	<div class="discussion-topic-header">
+		<span class="discussion-topic-header-title"> 
+			{% if topic.pinned %} 
+			<span style="color: #B5111B">[Pinned]</span> 
+			{% endif %}
+			{% if topic.status == 'ANS' %} 
+			<span style="color: #1F6B08">[Answered]</span> 
+			{% endif %}
+			{{ topic.title }}
+		</span>
+		<div class="discussion-topic-meta">
+			<span class="discussion-topic-author">{{ topic.author.person.name }} ({{topic.author.person.userid}})</span>
+			<span class="discussion-topic-last"><span style="color:#1F6B08">{{ topic.last_activity_at_delta }}</span></span>
+		</div>
+	</div>
+
+	<div class="discussion-topic-content">
+		{{ topic.content }}
+	</div>
+</div>
+
+<div class="discussion-topic-replies-header">
+	Replies:
+</div>
+
+<div class="discussion-topic-replies">
+	{% if topic.status == 'CLO' %}
+	    <i>Replies aren't permitted for this topic</i>
+	{% endif %}
+	{% if topic.status != 'CLO' %}
+	    {% if replies|length_is:0 %}
+		<i>No replies yet...</i>
+		{% endif %}
+		{% if replies|length > 0 %}
+		{% for reply in replies %}
+		{% endfor %}
+		{% endif %}
+	{% endif %}
+</div>
+
+{% endblock %}
+
