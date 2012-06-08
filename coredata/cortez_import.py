@@ -83,7 +83,7 @@ class Introspection(object):
     
     def print_schema(self):
         for d in self.databases():
-            if d in ('model', 'personnel', 'news', 'csguest', 'search', 'space', 'chingtai', 'CE8', 'expenses'):
+            if d in ('model', 'personnel', 'news', 'csguest', 'search', 'space', 'chingtai', 'CE8'):
                 # no access
                 continue
             if d in ('master', 'msdb', 'pubs', 'faculty'):
@@ -96,7 +96,7 @@ class Introspection(object):
                              ('grad', '1_BASIC_INFO_FIX'), ('grad', '2_EMERGENCY_INFO_FIX'), ('grad', '3_EDUCATION_INFO_FIX'),
                              ('grad', '4_REFERENCES_INFO_FIX'), ('grad', '5_TEST_INFO_FIX'), ('grad', '6_LANGUAGES_INFO_FIX'),
                              ('grad', '7_AWARDS_INFO_FIX'), ('grad', '8_RESEARCH_INFO_FIX'), ('grad', '9_EMPLOYMENT_FILE_FIX'),
-                             ('grad', 'PCS_Identifier'), ('ra', 'deletedContract')):
+                             ('grad', 'PCS_Identifier'), ('ra', 'deletedContract'), ('expenses', 'Advances')):
                     continue
                 rows = self.row_count(d, t)
                 print "%s.dbo.%s (%i)" % (d, t, rows)
@@ -782,12 +782,44 @@ class TAImport(object):
 
             self.get_ta(*row[:-1])
 
+from coredata.queries import add_person
+from coredata.importer import AMAINTConn
+
+def find_person_by_userid(userid):
+    amaint = AMAINTConn()
+    amaint.execute('SELECT emplid FROM amaint.idMap WHERE username=%s', (userid,))
+    row = amaint.fetchone()
+    if row is None:
+        raise ValueError, "Unknown userid, "+ userid
+    emplid = row[0]
+    p = add_person(emplid, commit=False, get_userid=False)
+    p.userid = userid
+    p.save()
+    return p
 
 
 class RAImport(object):
     UNIT = Unit.objects.get(slug='cmpt')
     CATEGORY_MAP = {
                     'Scholarship': 'S',
+                    }
+    NAME_MAP = {
+                    'Richard (Hao) Zhang': 'haoz',
+                    'Mohamed Hefeeda (Surrey campus)': 'mhefeeda',
+                    'Alexandra Fedorova': 'fedorova',
+                    'Joe Peters': 'peters',
+                    'David Mitchell': 'dgm',
+                    'Daniel Weiskopf': 301038247,
+                    'Arvind Gupta': 555002157,
+                    'Amanda Woodhall': 'woodhama',
+                    'David Fracchia': 555002200,
+                    'Eugenia Ternovskaia': 'ter',
+                    'Dirk Beyer': 301061499,
+                    'Kay Wiese (Surrey campus)': 200112529,
+                    'Department': 'tbruneau',
+                    'JiaWei Han': 555002003,
+                    'Kori Inkpen': 200028805,
+                    'Qiang Yang': 555002793,
                     }
     
     def __init__(self):
@@ -817,9 +849,30 @@ class RAImport(object):
         except (ValueError, TypeError):
             sin = None
         ra.sin = sin if sin else 0
-        ra.hiring_faculty = Person.objects.get(userid='ggbaker') # TODO: wrong. Need to get faculty's Person object.
         
-        print ">>>", `faculty`
+        if faculty in self.NAME_MAP:
+            faculty_userid = self.NAME_MAP[faculty]
+        else:
+            self.db.execute("select StaffID from expenses.dbo.StaffLU where (FirstName+' '+LastName)=%s", (faculty,))
+            row = self.db.fetchone()
+            if row is None:
+                raise ValueError, 'missing faculty name, ' + `faculty`
+            faculty_userid = row[0]
+            self.NAME_MAP[faculty] = faculty_userid
+        
+        #print ">>>", `faculty`, faculty_userid
+        try:
+            if isinstance(faculty_userid, basestring):
+                ra.hiring_faculty = Person.objects.get(userid=faculty_userid)
+            else:
+                ra.hiring_faculty = Person.objects.get(emplid=faculty_userid)
+        except Person.DoesNotExist:
+            if isinstance(faculty_userid, basestring):
+                ra.hiring_faculty = find_person_by_userid(faculty_userid)
+            else:
+                p = add_person(faculty_userid, commit=True, get_userid=False)
+                ra.hiring_faculty = p
+
         
         try:
             int(project)
@@ -869,8 +922,8 @@ class RAImport(object):
         #self.create_projects()
         #self.db.execute("SELECT * from Contract c LEFT JOIN RA r ON c.Identifier=r.Identifier", ())
         print "Importing RAs..."
-        self.db.execute("select * from grad.dbo.Staff", ())
-        print list(self.db)
+        #self.db.execute("select * from expenses.dbo.StaffLU", ())
+        #print list(self.db)
         
         self.db.execute("SELECT c.FundNumber, c.ProjectNumber, c.PositionNumber, c.ReAppointment, c.StartDate, c.EndDate, "
                         "c.HiringCategory, c.Faculty, c.MSP, c.DentalPlan, "

@@ -208,11 +208,11 @@ def find_person(emplid, get_userid=True):
         return {'emplid': emplid, 'last_name': last_name, 'first_name': first_name, 'middle_name': middle_name, 'userid': userid}
 
 
-def add_person(emplid, commit=True):
+def add_person(emplid, commit=True, get_userid=True):
     """
     Add a Person object based on the found SIMS data
     """
-    data = find_person(emplid)
+    data = find_person(emplid, get_userid=get_userid)
     if not data:
         return
 
