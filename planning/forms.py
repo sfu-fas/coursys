@@ -31,12 +31,15 @@ class IntentionForm(ModelFormWithInstructor):
             'note': forms.Textarea(attrs={'rows':2, 'cols':40}),
         }
 
+class CourseForm(forms.ModelForm):
+    class Meta:
+        model = Course
+
 class PlanBasicsForm(forms.ModelForm):
     class Meta:
         model = SemesterPlan
 
 class CopyPlanForm(forms.ModelForm):
-
     copy_plan_from = forms.ChoiceField()
     def __init__(self, *args, **kwargs):
 	super(CopyPlanForm, self).__init__(*args, **kwargs)
@@ -48,9 +51,8 @@ class CopyPlanForm(forms.ModelForm):
 
 
 class OfferingBasicsForm(forms.ModelForm):
-
-    #lab_sections = forms.CharField()
     lab_sections = forms.ChoiceField(choices=LAB_SECTION_CHOICES)
+    enrl_cap = forms.IntegerField(label="Enrollment cap")
     def clean_section(self):
         section = self.cleaned_data['section']
         if not section_re.match(section):

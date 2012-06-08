@@ -1,5 +1,5 @@
 from django.db import models
-from coredata.models import Person, Role, Semester, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES, Member
+from coredata.models import Person, Role, Semester, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES, Member, Unit
 from django.forms import ModelForm
 from autoslug import AutoSlugField
 from dashboard.models import *
@@ -16,7 +16,8 @@ class Course(models.Model):
         help_text='Subject code, like "CMPT" or "FAN".')
     number = models.CharField(max_length=4, null=False, db_index=True,
         help_text='Course number, like "120" or "XX1".')
-    title = models.CharField(max_length=30, help_text='The course title.')
+    title = models.CharField(max_length=80, help_text='The course title.')
+    unit = models.ForeignKey(Unit, help_text='The academic unit that owns this course.')
     
     class Meta:
         ordering = ['subject', 'number']
@@ -72,14 +73,14 @@ VISIBILITY_CHOICES = [
 
 class SemesterPlan(models.Model):
     semester = models.ForeignKey(Semester)
-    name = models.CharField(max_length=40, help_text="A name to help you remeber which plan this is.")
+    name = models.CharField(max_length=70, help_text="A name to help you remeber which plan this is.")
     visibility = models.CharField(max_length=4, choices=VISIBILITY_CHOICES, default="ADMI", help_text="Who can see this plan?")
     active = models.BooleanField(default = False, help_text="The currently-active plan for this semester.")
     slug = AutoSlugField(populate_from='name', null=False, editable=False, unique_with='semester')
+    unit = models.ForeignKey(Unit, help_text='The academic unit that owns this semester plan')
 
     def get_absolute_url(self):
         return reverse('planning.views.view_semester_plan', kwargs={'semester': self.semester.name})
-
 
     def save(self, *args, **kwargs):
         super(SemesterPlan, self).save(*args, **kwargs)

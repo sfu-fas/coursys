@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load form_display %}
 {% load grade_student %}
 
 
@@ -23,27 +24,11 @@
     </p>
     {% endif %}
 	
-    <form action="{% url planning.views.submit_course %}" method="post">{% csrf_token %}
+    <form action="{% url planning.views.add_course %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Course Info</legend>
-            <ul>
-								
-				Subject:
-				
-				<select name="course_subject">
-				<option value="CMPT">CMPT</option>
-				<option value="MACM">MACM</option>
-				</select>
-
-				</br >
-				Number: <input type="text" name = "course_number" size="30" />
-				Title: <input type="text" name = "course_title" size="30" />
-
-
-                <li>
-                    <input class="submit" type="submit" value="Submit" />
-                </li>
-            </ul>
+            {{form|as_dl}}
+            <div><input class="submit" type="submit" value="Submit" /></div>
         </fieldset>
     </form>
 

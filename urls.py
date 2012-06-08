@@ -22,7 +22,6 @@ urlpatterns += patterns('planning.views',
 	
 	url(r'^planning/$', 'admin_index'),
 	url(r'^planning/new_course$', 'add_course'),
-	url(r'^planning/submit_course', 'submit_course'),
 	url(r'^planning/new_plan$', 'add_plan'),
 	url(r'^planning/copy_plan$', 'copy_plan'),
 	url(r'^planning/' + SEMESTER + '/' + PLAN_SLUG + '/edit$', 'edit_plan'),

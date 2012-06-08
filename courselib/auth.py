@@ -240,7 +240,9 @@ def is_instructor(request, **kwargs):
     """
     Return True if the user is an instructor
     """
-    perms = Role.objects.filter(person__userid=request.user.username, role__in=['FAC','SESS','COOP']).count()
+    roles = Role.objects.filter(person__userid=request.user.username, role__in=['FAC','SESS','COOP'])
+    perms = roles.count()
+    request.units = [r.unit for r in roles]
     return perms>0
 
 def requires_instructor(function=None, login_url=None):

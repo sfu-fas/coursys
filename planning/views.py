@@ -1,7 +1,7 @@
 from planning.models import *
 from planning.forms import *
 from courselib.auth import requires_instructor
-from courselib.auth import requires_global_role as requires_role
+from courselib.auth import requires_role
 from django.db.models import Q
 from coredata.models import Person, Role, Semester, Member, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES 
 from log.models import LogEntry
@@ -30,6 +30,9 @@ def instructor_index(request):
 def edit_capability(request):
     instructor = get_object_or_404(Person, userid = request.user.username)
     capability_list = TeachingCapability.objects.filter(instructor = instructor).order_by('course')
+    unit_choices = request.units
+    possible_courses = [(c.id, unicode(c)) for c in Course.objects.filter(unit__in=unit_choices)]
+
     if request.method == 'POST':
         form = CapabilityForm(request.POST)
         form.instructor_id = instructor.id
@@ -45,6 +48,7 @@ def edit_capability(request):
             return HttpResponseRedirect(reverse('planning.views.edit_capability', kwargs={}))
     else:
         form = CapabilityForm(initial={'instructor':instructor})
+        form.fields['course'].choices = possible_courses
     
     return render_to_response("planning/add_capability.html",{'capability_list': capability_list, 'form':form},context_instance=RequestContext(request))
 
@@ -75,7 +79,6 @@ def edit_intention(request):
 
 @requires_instructor
 def submit_intention(request, userid):
-    
     semester = request.POST['semester']
     course_count = request.POST['course_count']
     
@@ -89,24 +92,21 @@ def submit_intention(request, userid):
     return HttpResponseRedirect(reverse(add_intention, kwargs={'userid':userid}))
 
 
-    
 @requires_role('PLAN')
 def add_course(request):
+    unit_choices = [(u.id, unicode(u)) for u in request.units]
 
-    return render_to_response("planning/add_courses.html",{},context_instance=RequestContext(request))
+    if request.method == 'POST':
+        form = CourseForm(request.POST)
+        if form.is_valid():
+            course = form.save()
+            messages.add_message(request, messages.SUCCESS, 'Course %s %s added.' % (course.subject, course.number))
+            return HttpResponseRedirect(reverse('planning.views.admin_index', kwargs={}))
+    else:
+        form = CourseForm()
+        form.fields['unit'].choices = unit_choices
 
-@requires_role('PLAN')
-def submit_course(request):
-
-    subject = request.POST['course_subject']
-    number = request.POST['course_number']
-    title = request.POST['course_title']
-    
-    added_course = Course(subject = subject, number = number, title = title)
-    added_course.save();
-
-    messages.add_message(request, messages.SUCCESS, 'Course %s %s added.' % (subject, number))
-    return HttpResponseRedirect(reverse('planning.views.admin_index', kwargs={}))
+    return render_to_response("planning/add_courses.html",{'form': form},context_instance=RequestContext(request))
 
 @requires_instructor
 def delete_course_from_capability(request, course_id):
@@ -118,17 +118,19 @@ def delete_course_from_capability(request, course_id):
     return HttpResponseRedirect(reverse(edit_capability, kwargs={}))
 
 #********************************************ADMIN************************************************************
+
 @requires_role('PLAN')
 def admin_index(request):
-
     userid = request.user.username
     #admin = get_object_or_404(Person, userid = request.user.username)
-    plan_list = SemesterPlan.objects.filter().order_by('semester')
+    plan_list = SemesterPlan.objects.filter(unit__in=request.units).order_by('semester')
 
     return render_to_response("planning/admin_index.html",{'userid':userid, 'plan_list':plan_list},context_instance=RequestContext(request))
 
 @requires_role('PLAN')
 def add_plan(request):
+    unit_choices = [(u.id, unicode(u)) for u in request.units]
+
     if request.method == 'POST':
         form = PlanBasicsForm(request.POST)
         if form.is_valid():
@@ -145,12 +147,12 @@ def add_plan(request):
             return HttpResponseRedirect(reverse('planning.views.admin_index', kwargs={}))
     else:
         form = PlanBasicsForm()
+        form.fields['unit'].choices = unit_choices
     
     return render_to_response("planning/add_plan.html",{'form':form},context_instance=RequestContext(request))
 
 @requires_role('PLAN')
 def copy_plan(request):
-    
     if request.method == 'POST':
 	form = CopyPlanForm(request.POST)
         if form.is_valid():
@@ -208,6 +210,8 @@ def edit_plan(request, semester, plan_slug):
 def edit_courses(request, semester, plan_slug):
     plan = get_object_or_404(SemesterPlan, semester__name=semester, slug=plan_slug)
     planned_courses_list = PlannedOffering.objects.filter(plan=plan)
+    courses = [(c.id, unicode(c)) for c in Course.objects.filter(unit=plan.unit)]
+
     if request.method == 'POST':
         form = OfferingBasicsForm(request.POST)
         form2 = form
@@ -218,18 +222,14 @@ def edit_courses(request, semester, plan_slug):
             offering.save()
             form.save_m2m()
 
-            i = 0
             num_of_lab = int(num_of_lab)
             if num_of_lab != 0:
                 for i in range(num_of_lab):
-
-
                     course = form.cleaned_data['course']
                     section = form.cleaned_data['section'][:2] + "%02i" % (i+1)    
                     component = "LAB"    
                     campus = form.cleaned_data['campus']
                     enrl_cap = form.cleaned_data['enrl_cap']
-
 
                     added_lab_section = PlannedOffering(plan = plan, course = course, section = section, component = component, campus = campus, enrl_cap = enrl_cap)
                     added_lab_section.save();
@@ -244,22 +244,21 @@ def edit_courses(request, semester, plan_slug):
                 #return HttpResponseRedirect(reverse('planning.views.admin_index', kwargs={}))
             else:
                 form = OfferingBasicsForm()
+                form.fields['course'].choices = courses
     else:
         form = OfferingBasicsForm()
-    
+        form.fields['course'].choices = courses
     
     return render_to_response("planning/edit_courses.html",{'form':form, 'plan':plan, 'planned_courses_list':planned_courses_list},context_instance=RequestContext(request))
 
     
 @requires_role('PLAN')
 def delete_course_from_plan(request, course_id, plan_id):
-    
     course = PlannedOffering.objects.get(pk = course_id)
     course.delete()
     
     semester_plan = get_object_or_404(SemesterPlan, pk = plan_id)
     semester = semester_plan.semester.name
-
 
     messages.add_message(request, messages.SUCCESS, 'Course Removed Successfully.')
     return HttpResponseRedirect(reverse(edit_courses, kwargs={'semester':semester, 'plan_slug':semester_plan.slug}))
@@ -285,36 +284,32 @@ def assign_instructors(request, semester, plan_slug):
 def submit_assigned_instructors(request, semester, plan_slug, offering_id):
     semester_plan = get_object_or_404(SemesterPlan, semester__name=semester, slug=plan_slug)
     course = get_object_or_404(PlannedOffering, pk=offering_id, plan=semester_plan)
+
+    no_intention_note = "No intention for this semester but still be assigned by Planning Admin"
     
     instructor_id = request.POST['instructor']
     if instructor_id == "None":
         pre_instructor = course.instructor
-	course.instructor = None
-	course.save()
-	
-	offering_section = course.section[0:2] # e.g. "D1"
-	labs = PlannedOffering.objects.filter(plan=semester_plan, course=course.course, component__in=['LAB', 'TUT'], section__startswith=offering_section)
+        course.instructor = None
+        course.save()
+        
+        offering_section = course.section[0:2] # e.g. "D1"
+        labs = PlannedOffering.objects.filter(plan=semester_plan, course=course.course, component__in=['LAB', 'TUT'], section__startswith=offering_section)
         for lab in labs:
             lab.instructor = None
             lab.save()
 
-       
-	pre_intention_count = PlannedOffering.objects.filter(plan = semester_plan, instructor = pre_instructor).count()
-	pre_teaching_intention = TeachingIntention.objects.get(semester = semester_plan.semester, instructor = pre_instructor)
- 
-	if pre_teaching_intention.note == "No intention for this semester but still be assigned by Planning Admin":
-	    pre_teaching_intention.delete()
-	else:	
-	    if pre_intention_count >= pre_teaching_intention.count:
-		pre_teaching_intention.intentionfull = True
-		pre_teaching_intention.save()
-	    else:
-		pre_teaching_intention.intentionfull = False
-		pre_teaching_intention.save()
+        pre_intention_count = PlannedOffering.objects.filter(plan = semester_plan, instructor = pre_instructor).count()
+        pre_teaching_intention = TeachingIntention.objects.get(semester = semester_plan.semester, instructor = pre_instructor)
+     
+        if pre_teaching_intention.note == no_intention_note:
+            pre_teaching_intention.delete()
+        else:   
+            pre_teaching_intention.intentionfull = (pre_intention_count >= pre_teaching_intention.count)
+            pre_teaching_intention.save()
 
-	messages.add_message(request, messages.SUCCESS, 'Instructor Removed Successfully.')
-	return HttpResponseRedirect(reverse(assign_instructors, kwargs={'semester':semester_plan.semester.name, 'plan_slug':semester_plan.slug}))	    
-
+        messages.add_message(request, messages.SUCCESS, 'Instructor Removed Successfully.')
+        return HttpResponseRedirect(reverse(assign_instructors, kwargs={'semester':semester_plan.semester.name, 'plan_slug':semester_plan.slug}))       
 
     #instructor_id is not None
     assigned_instructor = get_object_or_404(Person, userid = instructor_id)
@@ -337,41 +332,31 @@ def submit_assigned_instructors(request, semester, plan_slug, offering_id):
         pre_intention_count = PlannedOffering.objects.filter(plan = semester_plan, instructor = pre_instructor).count()
         pre_teaching_intention = TeachingIntention.objects.get(semester = semester_plan.semester, instructor = pre_instructor)
 
-	if pre_teaching_intention.note == "No intention for this semester but still be assigned by Planning Admin":
-	    pre_teaching_intention.delete()
-	else:
-            if pre_intention_count >= pre_teaching_intention.count:
-                pre_teaching_intention.intentionfull = True
-            	pre_teaching_intention.save()
-            else:
-            	pre_teaching_intention.intentionfull = False
-            	pre_teaching_intention.save()
+        if pre_teaching_intention.note == no_intention_note:
+            pre_teaching_intention.delete()
+        else:
+            pre_teaching_intention.intentionfull = (pre_intention_count >= pre_teaching_intention.count)
+            pre_teaching_intention.save()
     
     intention_count = PlannedOffering.objects.filter(plan = semester_plan, instructor = assigned_instructor).count()    
     if TeachingIntention.objects.filter(semester = semester_plan.semester, instructor = assigned_instructor):
         teaching_intentions = TeachingIntention.objects.filter(semester = semester_plan.semester, instructor = assigned_instructor)
         teaching_intention = teaching_intentions[0]
-	
-	if intention_count >= teaching_intentions.count:
-	    teaching_intention.intentionfull = True
-	    teaching_intention.save()
-	else:
-	    teaching_intention.intentionfull = False
-            teaching_intention.save()
-
+    
+        teaching_intention.intentionfull = (intention_count >= teaching_intentions.count)
+        teaching_intention.save()
 
         messages.add_message(request, messages.SUCCESS, 'Instructor Assinged Successfully.')
         return HttpResponseRedirect(reverse(assign_instructors, kwargs={'semester':semester_plan.semester.name, 'plan_slug':semester_plan.slug}))
 
     else:
-	add_intention = TeachingIntention(instructor = assigned_instructor, semester = semester_plan.semester, count = 1, intentionfull = True, note = "No intention for this semester but still be assigned by Planning Admin")
-	add_intention.save()
-	messages.add_message(request, messages.WARNING, 'There is no intention for this instructor.')
+        add_intention = TeachingIntention(instructor = assigned_instructor, semester = semester_plan.semester, count = 1, intentionfull = True, note = no_intention_note)
+        add_intention.save()
+        messages.add_message(request, messages.WARNING, 'There is no intention for this instructor.')
         return HttpResponseRedirect(reverse(assign_instructors, kwargs={'semester':semester_plan.semester.name, 'plan_slug':semester_plan.slug}))
     
 @requires_role('PLAN')
 def activate_plan(request, plan_id):
-
     semester_plan = get_object_or_404(SemesterPlan, pk = plan_id)
 
     semester_plan.active = True
@@ -388,7 +373,6 @@ def activate_plan(request, plan_id):
     
 @requires_role('PLAN')
 def inactivate_plan(request, plan_id):
-
     semester_plan = get_object_or_404(SemesterPlan, pk = plan_id)
 
     semester_plan.active = False
@@ -417,28 +401,26 @@ def view_instructors(request, semester, plan_slug, course_id):
     semester_plan = get_object_or_404(SemesterPlan, semester__name=semester, slug=plan_slug)
     course_name = get_object_or_404(Course, pk=course_id)
     course_info = PlannedOffering.objects.get(course=course_name, plan=semester_plan, component__in=['LEC', 'SEM', 'SEC', 'CAN'])
-    
-    instructor_list =  TeachingCapability.objects.filter(course=course_name).order_by('instructor')
+
+    all_instructors = [(r.person) for r in Role.objects.filter(role__in=["FAC","SESS","COOP"], unit=semester_plan.unit).select_related('person')]
 
     instructors = []
-    for i in instructor_list:
-        data = {}
-        data['instructor'] = i
-        data['intention'] = TeachingIntention.objects.filter(instructor = i.instructor).order_by('semester')
-        data['teachable'] = TeachingCapability.objects.filter(instructor = i.instructor).order_by('course')
-	data['current_courses'] = PlannedOffering.objects.filter(plan = semester_plan, instructor = i.instructor, component="LEC")
-        instructors.append(data)
+    for i in all_instructors:
+        instructors.append({
+            'instructor' : i,
+            'intention' : TeachingIntention.objects.filter(instructor = i).order_by('semester'),
+            'teachable' : TeachingCapability.objects.filter(instructor = i).order_by('course'),
+            'current_courses' : PlannedOffering.objects.filter(plan = semester_plan, instructor = i, component="LEC")
+        })
 	
-    return render_to_response("planning/view_instructors.html",{'semester_plan': semester_plan, 'course_info':course_info, 'instructor_list':instructor_list, 'instructors':instructors},context_instance=RequestContext(request))
+    return render_to_response("planning/view_instructors.html", {'semester_plan': semester_plan, 'course_info': course_info, 'instructors': instructors},context_instance=RequestContext(request))
 
 #********************************************View Semester Plans************************************************************
 @login_required
 def semester_plan_index(request):
-
     userid = request.user.username
     person = get_object_or_404(Person, userid=userid)
     roles = Role.objects.filter(person=person)
-
 
     admin = 0
     inst = 0
@@ -460,7 +442,6 @@ def semester_plan_index(request):
 
 @login_required
 def view_semester_plan(request, semester):
-
     plan = SemesterPlan.objects.get(semester__name=semester, active=True)
     planned_courses_list = PlannedOffering.objects.filter(plan=plan)
         

@@ -1466,6 +1466,17 @@ table.inst_table {
   border-color: #ccc;
   width: 100%;
 }
+
+table.inst_table th {
+  vertical-align: middle;
+}
+
+table.inst_table ul {
+  list-style: none;
+  margin: 0.2em 0;
+  padding: 0;
+}
+
 div#main table.inst_table p {
   padding: 0;
   margin: 0;

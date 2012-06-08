@@ -23,8 +23,8 @@ table.inst_table .radiocell { text-align: center;}
 
 {% block content %}
 
-<p><b>Semester plan</b>:  {{ semester_plan.name }} in {{ semester_plan.semester.label }} </p>
-<p><b>Currently Assigned Instructor</b>: {{ course_info.instructor }} </p>
+<p><strong>Semester plan</strong>:  {{ semester_plan.name }} in {{ semester_plan.semester.label }} </p>
+<p><strong>Currently Assigned Instructor</strong>: {{ course_info.instructor }} </p>
 
 <div class="datatable_container">
 	
@@ -39,71 +39,91 @@ table.inst_table .radiocell { text-align: center;}
 			<tbody>
 				<tr>
 					<th>Select</th>
-					<th>Capable Instructors</th>
+					<th>Instructor</th>
 					<th>Currently Assigned Courses</th>
 					<th>Capable Courses</th>
-					<th>Teaching Intentions</th>
+					<th width="50%">Teaching Intentions</th>
 
 				</tr>
 				{% for data in instructors %}
 				<tr>
-					<td class="radiocell"><input type="radio" name="instructor" value="{{data.instructor.instructor.userid}}" /></td>
-					<td>
-					{% if data.instructor.instructor = course_info.instructor %}	
-						<b>{{data.instructor.instructor}}</b>
-					{% else %}
-						{{data.instructor.instructor}}
-					{% endif %}
+					<td class="radiocell">
+						<input type="radio" id="id_{{data.instructor.userid}}" name="instructor" value="{{data.instructor.userid}}" />
 					</td>
 					<td>
-					{% if data.current_courses %}
-						{% for i in data.current_courses %}
-							{%  if i.course == course_info.course %}
-								<b>{{i.course.subject}} {{i.course.number}}</b>
-								<br/>
+						<label for="id_{{data.instructor.userid}}">
+						{% if data.instructor = course_info.instructor %}	
+							<strong>{{data.instructor}}</strong>
+						{% else %}
+							{{data.instructor}}
+						{% endif %}
+						</label>
+					</td>
+					<td>
+						{% if data.current_courses %}
+						<ul>
+							{% for i in data.current_courses %}
+								{%  if i.course == course_info.course %}
+									<li>
+										<strong>
+											{{i.course.subject}} {{i.course.number}}
+										</strong>
+									</li>
+								{% else %}
+									<li>
+										{{i.course.subject}} {{i.course.number}}
+									</li>
+								{% endif %}
+							{% endfor %}
+						</ul>
+						{% else %}
+							None
+						{% endif %}
+					</td>
+					<td>
+						{% if data.teachable %}
+							<ul>
+							{% for i in data.teachable %}
+								{%  if i.course == course_info.course %}
+									<li>
+										<strong>
+											{{i.course.subject}} {{i.course.number}}
+											{% if i.note %}
+											(Note: {{i.note}})
+											{% endif %}
+										</strong>
+									</li>
+								{% else %}
+									<li>
+										{{i.course.subject}} {{i.course.number}}
+										{% if i.note %}
+										(Note: {{i.note}})
+										{% endif %}
+									</li>
+								{% endif %}
+							{% endfor %}
+							</ul>
+						{% else %}
+							None
+						{% endif %}
+					</td>
+					<td>
+						{% for i in data.intention %}
+							{% if i.semester == semester_plan.semester %}
+								<strong>{{i.semester}}:
+								{{i.count}}
+								{% if i.note %}
+									<br />(Note: {{i.note}})
+								{% endif %}</strong><br/>
 							{% else %}
-								{{i.course.subject}} {{i.course.number}}
+								{{i.semester}}:
+								{{i.count}}
+								{% if i.note %}
+									<br />(Note: {{i.note}})
+								{% endif %}
 								<br/>
 							{% endif %}
 						{% endfor %}
-					{% else %}
-						None
-					{% endif %}
-					</td>
-					<td>
-					{% for i in data.teachable %}
-						{%  if i.course == course_info.course %}
-							<b>{{i.course.subject}} {{i.course.number}}
-							{% if i.note %}
-							(Note: {{i.note}})
-							{% endif %}
-							</b><br/>						
-						{% else %}
-							{{i.course.subject}} {{i.course.number}}
-							{% if i.note %}
-							(Note: {{i.note}})
-							{% endif %}
-							<br/>
-						{% endif %}
-					{% endfor %}
-					</td>
-					<td>
-					{% for i in data.intention %}
-						{% if i.semester == semester_plan.semester %}
-							<b>{{i.semester}}:
-							{{i.count}}
-							{% if i.note %}
-								(Note: {{i.note}})
-							{% endif %}</b><br/>
-						{% else %}
-							{{i.semester}}:
-							{{i.count}}
-							{% if i.note %}
-								(Note: {{i.note}})
-							{% endif %}
-							<br/>
-						{% endif %}
-					{% endfor %}
 					</td>
 				</tr>
 				{%endfor%}
