@@ -8,22 +8,23 @@ class StaffSemesterField(forms.CharField):
     """
     def __init__(self, *args, **kwargs):
         kwargs['max_length'] = 4
-        kwargs['widget'] = forms.TextInput(attrs={'size': '4'})
+        kwargs['widget'] = forms.TextInput(attrs={'size': '4', 'class': 'staffsemester'})
         super(StaffSemesterField, self).__init__(*args, **kwargs)
     
     def prepare_value(self, semester):
         "Convert to semester name for display in widget"
         if isinstance(semester, basestring):
             return semester
-        if isinstance(semester, int):
-            return "????" #TODO: Fix this. /grad/<xx>/manage_requirements breaks otherwise. 
-        if isinstance(semester, Semester):
+        elif isinstance(semester, int):
+            return Semester.objects.get(id=semester).name
+        elif isinstance(semester, Semester):
             return semester.name
         else:
             return ''
 
     def clean(self, val):
         "Convert semester name to semester object"
+        super(StaffSemesterField, self).clean(val)
         if len(val.strip()) == 0:
             return None
         try:
