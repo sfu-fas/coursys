@@ -339,11 +339,15 @@ VISA_STATUSES = (
         )
 
 class SearchForm(forms.Form):
-    start_semester_start = forms.ModelChoiceField(Semester.objects.all(), required=False)
+    
+    first_name_contains = forms.CharField( required=False )
+    last_name_contains = forms.CharField( required=False )
+
+    start_semester_start = forms.ModelChoiceField(Semester.objects.all(), required=False, label="Start semester after")
     start_semester_end = forms.ModelChoiceField(Semester.objects.all(), required=False,
-            help_text='Semester in which the Grad student has applied to start')
-    end_semester_start = forms.ModelChoiceField(Semester.objects.all(), required=False)
-    end_semester_end = forms.ModelChoiceField(Semester.objects.all(), required=False)
+            help_text='Semester in which the Grad student has applied to start', label="Start semester before")
+    end_semester_start = forms.ModelChoiceField(Semester.objects.all(), required=False, label="End semester after")
+    end_semester_end = forms.ModelChoiceField(Semester.objects.all(), required=False, label="End semester before")
     
     student_status = forms.MultipleChoiceField(gradmodels.STATUS_CHOICES,
             required=False,
@@ -392,6 +396,8 @@ class SearchForm(forms.Form):
             'end_semester_end',]
     
     regular_fields = [
+            'first_name_contains',
+            'last_name_contains',
             'student_status',
             'application_status',
             'program',
@@ -443,6 +449,8 @@ class SearchForm(forms.Form):
                 ('start_semester_end', 'gradstatus__start__lte'),
                 ('end_semester_start', 'gradstatus__end__gte'),
                 ('end_semester_end', 'gradstatus__end__lte'),
+                ('first_name_contains', 'person__first_name__icontains' ),
+                ('last_name_contains', 'person__last_name__icontains' ),
                 ('student_status', 'gradstatus__status__in'),
                 ('application_status',),
                 ('program','program__in'),
