@@ -1,6 +1,8 @@
 from coredata.models import CourseOffering, Member
 from django.db import models
 from jsonfield.fields import JSONField
+from pages.models import ParserFor
+from django.utils.safestring import mark_safe
 import datetime
 
 TOPIC_STATUSES = (
@@ -70,6 +72,23 @@ class DiscussionTopic(models.Model):
         
     def __unicode___(self):
         return self.title
+    
+    def __init__(self, *args, **kwargs):
+        super(DiscussionTopic, self).__init__(*args, **kwargs)
+        self.Creole = None
+    
+    def get_creole(self):
+        "Only build the creole parser on-demand."
+        if not self.Creole:
+            self.Creole = ParserFor(self.offering)
+        return self.Creole
+
+    def html_content(self):
+        "Convert self.content to HTML"
+        creole = self.get_creole()
+        html = creole.text2html(self.content)
+        return mark_safe(html)
+
 
 MESSAGE_STATUSES = (
                   ('VIS', 'Visible'),
@@ -94,3 +113,9 @@ class DiscussionMessage(models.Model):
         if not self.pk:
             self.topic.new_message_update()
         super(DiscussionMessage, self).save(*args, **kwargs)
+
+    def html_content(self):
+        "Convert self.content to HTML"
+        creole = self.topic.get_creole()
+        html = creole.text2html(self.content)
+        return mark_safe(html)

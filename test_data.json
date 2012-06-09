@@ -493,7 +493,7 @@
    "campus": "BRNBY",
    "class_nbr": 6617,
    "component": "LEC",
-   "config": "{\"url\": \"http://www.cs.sfu.ca/CC/165/common/\", \"taemail\": \"cmpt-165-contact@sfu.ca\", \"labtut\": true}",
+   "config": "{\"url\": \"http://www.cs.sfu.ca/CC/165/common/\", \"taemail\": \"cmpt-165-contact@sfu.ca\", \"labtut\": true, \"discussion\": true}",
    "course": 3,
    "crse_id": 11459,
    "enrl_cap": 100,
@@ -19865,7 +19865,7 @@
   "fields": {
    "author": 10,
    "config": "{}",
-   "content": "Here are some guidelines...",
+   "content": "Here are some **guidelines**.\n\nThis is a second paragraph in the posting intro.",
    "last_activity_at": "2012-06-03 19:44:34",
    "message_count": 0,
    "offering": 15,
