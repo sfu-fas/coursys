@@ -743,36 +743,899 @@
  },
  {
   "fields": {
-   "campus": "OFFST",
-   "class_nbr": 3531,
-   "component": "SEC",
+   "campus": "BRNBY",
+   "component": "LEC",
    "config": "{}",
-   "course": 2,
-   "crse_id": 8126,
-   "enrl_cap": 10,
-   "enrl_tot": 3,
-   "graded": true,
-   "number": "295",
-   "owner": 2,
-   "section": "D400",
-   "semester": 4,
-   "slug": "2012su-ensc-295-d4",
-   "subject": "ENSC",
-   "title": "Industrial Internship II",
-   "wait_tot": 0
+   "course": 38,
+   "subject": "CMPT",
+   "number": "102",
+   "title": "Intro. to Sci. Comp. Prog.",
+   "owner": 3,
+   "section": "C100",
+   "semester": 5,
+   "slug": "2012fa-cmnpt-102-c1",
+   "class_nbr": null,
+   "crse_id": null,
+   "wait_tot": 0,
+   "enrl_tot": 10,
+   "enrl_cap": 50
   },
   "model": "coredata.courseoffering",
+  "pk": 100
+ },
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":10,
+    "subject":"CMPT",
+    "number":"110",
+    "title":"Programming in Visual Basic",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-cmpt-110-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":102
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":11,
+    "subject":"CMPT",
+    "number":"120",
+    "title":"Intro Comp. Sci. and Prog.",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-cmpt-120-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":103
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":12,
+    "subject":"CMPT",
+    "number":"125",
+    "title":"Intro Comp. Sci. and Prog. II",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-cmpt-125-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":104
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":13,
+    "subject":"CMPT",
+    "number":"126",
+    "title":"Intro Comp. Sci. and Prog. II",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-cmpt-126-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":105
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":14,
+    "subject":"CMPT",
+    "number":"128",
+    "title":"Intro to Comp. Sci. and Prog.",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-cmpt-128-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":106
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":15,
+    "subject":"CMPT",
+    "number":"150",
+    "title":"Intro to Computer Design",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-cmpt-150-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":107
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":16,
+    "subject":"CMPT",
+    "number":"165",
+    "title":"Intro to Internet and WWW",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-cmpt-165-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":108
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":17,
+    "subject":"MACM",
+    "number":"101",
+    "title":"Discrete Mathematics",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-macm-101-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":109
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":18,
+    "subject":"CMPT",
+    "number":"225",
+    "title":"Data Structures and Prog.",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-cmpt-225-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":110
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":19,
+    "subject":"CMPT",
+    "number":"250",
+    "title":"Intro to Computer Architecture",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-cmpt-250-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":111
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":20,
+    "subject":"CMPT",
+    "number":"275",
+    "title":"Software Engineering I",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-cmpt-275-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":112
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":21,
+    "subject":"CMPT",
+    "number":"300",
+    "title":"Operating Systems I",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-cmpt-300-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":113
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":22,
+    "subject":"CMPT",
+    "number":"307",
+    "title":"Data Strcutures and Algorithms",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-cmpt-307-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":114
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":23,
+    "subject":"CMPT",
+    "number":"308",
+    "title":"Computability and Complexity",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-cmpt-308-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":115
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":24,
+    "subject":"CMPT",
+    "number":"310",
+    "title":"Artificial Intelligence Survey",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-cmpt-310-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":116
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":25,
+    "subject":"CMPT",
+    "number":"354",
+    "title":"Database Systems I",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-cmpt-354-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":117
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":26,
+    "subject":"CMPT",
+    "number":"361",
+    "title":"Intro to Computer Graphics",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-cmpt-361-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":118
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":27,
+    "subject":"CMPT",
+    "number":"363",
+    "title":"User Interface Design",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-cmpt-363-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":119
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":28,
+    "subject":"CMPT",
+    "number":"371",
+    "title":"Data Comm. and Networking",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-cmpt-371-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":120
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":29,
+    "subject":"CMPT",
+    "number":"376",
+    "title":"Tech. Writing / Group Dynamics",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-cmpt-376-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":121
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":30,
+    "subject":"CMPT",
+    "number":"379",
+    "title":"Principles of Compiler Design",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-cmpt-379-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":122
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":31,
+    "subject":"MACM",
+    "number":"300",
+    "title":"Formal Languages and Automata",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-macm-300-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":123
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":32,
+    "subject":"CMPT",
+    "number":"405",
+    "title":"Computing Algorithms",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-cmpt-405-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":124
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":33,
+    "subject":"CMPT",
+    "number":"408",
+    "title":"Theory of Comp. Networks",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-cmpt-408-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":125
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":35,
+    "subject":"CMPT",
+    "number":"411",
+    "title":"Knowledge Representation",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-cmpt-411-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":126
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":36,
+    "subject":"CMPT",
+    "number":"441",
+    "title":"Computational Biology",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-cmpt-441-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":127
+},
+{
+  "fields":{
+    "campus":"BRNBY",
+    "component":"LEC",
+    "config":"{}",
+    "course":37,
+    "subject":"CMPT",
+    "number":"454",
+    "title":"Database Systems II",
+    "owner":3,
+    "section":"C100",
+    "semester":5,
+    "slug":"2012fa-cmpt-454-c1",
+    "class_nbr":null,
+    "crse_id":null,
+    "wait_tot":0,
+    "enrl_tot":10,
+    "enrl_cap":50
+  },
+  "model":"coredata.courseoffering",
+  "pk":128
+},
+ {
+  "fields": {
+   "config": "{}",
+   "number": "102",
+   "subject": "CMPT",
+   "title": "Intro. to Sci. Comp. Prog."
+  },
+  "model": "coredata.course",
+  "pk": 38
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "110",
+   "subject": "CMPT",
+   "title": "Programming in Visual Basic"
+  },
+  "model": "coredata.course",
+  "pk": 10
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "120",
+   "subject": "CMPT",
+   "title": "Intro Comp. Sci. and Prog."
+  },
+  "model": "coredata.course",
+  "pk": 11
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "125",
+   "subject": "CMPT",
+   "title": "Intro Comp. Sci. and Prog. II"
+  },
+  "model": "coredata.course",
+  "pk": 12
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "126",
+   "subject": "CMPT",
+   "title": "Intro Comp. Sci. and Prog. II"
+  },
+  "model": "coredata.course",
   "pk": 13
  },
  {
   "fields": {
    "config": "{}",
-   "number": "383",
+   "number": "128",
    "subject": "CMPT",
-   "title": "Programming Langs."
+   "title": "Intro to Comp. Sci. and Prog."
   },
   "model": "coredata.course",
-  "pk": 3
+  "pk": 14
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "150",
+   "subject": "CMPT",
+   "title": "Intro to Computer Design"
+  },
+  "model": "coredata.course",
+  "pk": 15
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "165",
+   "subject": "CMPT",
+   "title": "Intro to Internet and WWW"
+  },
+  "model": "coredata.course",
+  "pk": 16
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "101",
+   "subject": "MACM",
+   "title": "Discrete Mathematics"
+  },
+  "model": "coredata.course",
+  "pk": 17
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "225",
+   "subject": "CMPT",
+   "title": "Data Structures and Prog."
+  },
+  "model": "coredata.course",
+  "pk": 18
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "250",
+   "subject": "CMPT",
+   "title": "Intro to Computer Architecture"
+  },
+  "model": "coredata.course",
+  "pk": 19
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "275",
+   "subject": "CMPT",
+   "title": "Software Engineering I"
+  },
+  "model": "coredata.course",
+  "pk": 20
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "300",
+   "subject": "CMPT",
+   "title": "Operating Systems I"
+  },
+  "model": "coredata.course",
+  "pk": 21
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "307",
+   "subject": "CMPT",
+   "title": "Data Strcutures and Algorithms"
+  },
+  "model": "coredata.course",
+  "pk": 22
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "308",
+   "subject": "CMPT",
+   "title": "Computability and Complexity"
+  },
+  "model": "coredata.course",
+  "pk": 23
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "310",
+   "subject": "CMPT",
+   "title": "Artificial Intelligence Survey"
+  },
+  "model": "coredata.course",
+  "pk": 24
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "354",
+   "subject": "CMPT",
+   "title": "Database Systems I"
+  },
+  "model": "coredata.course",
+  "pk": 25
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "361",
+   "subject": "CMPT",
+   "title": "Intro to Computer Graphics"
+  },
+  "model": "coredata.course",
+  "pk": 26
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "363",
+   "subject": "CMPT",
+   "title": "User Interface Design"
+  },
+  "model": "coredata.course",
+  "pk": 27
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "371",
+   "subject": "CMPT",
+   "title": "Data Comm. and Networking"
+  },
+  "model": "coredata.course",
+  "pk": 28
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "376",
+   "subject": "CMPT",
+   "title": "Tech. Writing / Group Dynamics"
+  },
+  "model": "coredata.course",
+  "pk": 29
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "379",
+   "subject": "CMPT",
+   "title": "Principles of Compiler Design"
+  },
+  "model": "coredata.course",
+  "pk": 30
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "300",
+   "subject": "MACM",
+   "title": "Formal Languages and Automata"
+  },
+  "model": "coredata.course",
+  "pk": 31
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "405",
+   "subject": "CMPT",
+   "title": "Computing Algorithms"
+  },
+  "model": "coredata.course",
+  "pk": 32
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "408",
+   "subject": "CMPT",
+   "title": "Theory of Comp. Networks"
+  },
+  "model": "coredata.course",
+  "pk": 33
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "411",
+   "subject": "CMPT",
+   "title": "Knowledge Representation"
+  },
+  "model": "coredata.course",
+  "pk": 35
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "441",
+   "subject": "CMPT",
+   "title": "Computational Biology"
+  },
+  "model": "coredata.course",
+  "pk": 36
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "454",
+   "subject": "CMPT",
+   "title": "Database Systems II"
+  },
+  "model": "coredata.course",
+  "pk": 37
  },
  {
   "fields": {
@@ -20025,5 +20888,884 @@
   },
   "model": "discuss.discussiontopic",
   "pk": 12
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "emplid": 202000109,
+   "first_name": "Anthony",
+   "last_name": "Dixon",
+   "middle_name": "",
+   "pref_first_name": "Tony",
+   "title": "Mr",
+   "userid": "dixon"
+  },
+  "model": "coredata.person",
+  "pk": 600
+ },
+ {
+  "fields": {
+   "person": 600,
+   "role": "PLAN",
+   "unit": 3
+  },
+  "model": "coredata.role",
+  "pk": 16
+ },
+ {
+  "fields": {
+    "semester": 5,
+    "name": "Offering Alpha - Burnaby",
+    "visibility": "ADMI",
+    "active": false,
+    "unit": 3
+    },
+    "model": "planning.semesterplan",
+    "pk": 1
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 38,
+   "enrl_cap": 50,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 10,
+   "enrl_cap": 75,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 2
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 11,
+   "enrl_cap": 182,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 3
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 182,
+   "instructor": null,
+   "plan": 1,
+   "section": "D101"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 4
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 182,
+   "instructor": null,
+   "plan": 1,
+   "section": "D102"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 5
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 182,
+   "instructor": null,
+   "plan": 1,
+   "section": "D103"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 6
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 182,
+   "instructor": null,
+   "plan": 1,
+   "section": "D104"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 7
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 182,
+   "instructor": null,
+   "plan": 1,
+   "section": "D105"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 8
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 182,
+   "instructor": null,
+   "plan": 1,
+   "section": "D106"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 9
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 182,
+   "instructor": null,
+   "plan": 1,
+   "section": "D107"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 10
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 11,
+   "enrl_cap": 182,
+   "instructor": null,
+   "plan": 1,
+   "section": "D200"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 11
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 182,
+   "instructor": null,
+   "plan": 1,
+   "section": "D201"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 12
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 182,
+   "instructor": null,
+   "plan": 1,
+   "section": "D202"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 13
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 182,
+   "instructor": null,
+   "plan": 1,
+   "section": "D203"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 14
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 182,
+   "instructor": null,
+   "plan": 1,
+   "section": "D204"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 15
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 182,
+   "instructor": null,
+   "plan": 1,
+   "section": "D205"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 16
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 182,
+   "instructor": null,
+   "plan": 1,
+   "section": "D206"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 17
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 182,
+   "instructor": null,
+   "plan": 1,
+   "section": "D207"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 18
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 12,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 19
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 13,
+   "enrl_cap": 50,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 20
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 15,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 21
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 15,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 1,
+   "section": "D101"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 22
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 15,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 1,
+   "section": "D102"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 23
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 15,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 1,
+   "section": "D103"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 24
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 15,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 1,
+   "section": "D104"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 25
+ },
+ {
+  "fields": {
+   "campus": "OFFST",
+   "component": "LEC",
+   "course": 16,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 1,
+   "section": "C100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 26
+ },
+ {
+  "fields": {
+   "campus": "OFFST",
+   "component": "LEC",
+   "course": 16,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 1,
+   "section": "C200"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 27
+ },
+ {
+  "fields": {
+   "campus": "OFFST",
+   "component": "LEC",
+   "course": 16,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 1,
+   "section": "C300"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 28
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 18,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 38
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 18,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 1,
+   "section": "D101"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 39
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 18,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 1,
+   "section": "D102"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 40
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 18,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 1,
+   "section": "D103"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 41
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 18,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 1,
+   "section": "D104"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 42
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 19,
+   "enrl_cap": 130,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 43
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 19,
+   "enrl_cap": 130,
+   "instructor": null,
+   "plan": 1,
+   "section": "D101"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 44
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 19,
+   "enrl_cap": 130,
+   "instructor": null,
+   "plan": 1,
+   "section": "D102"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 45
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 19,
+   "enrl_cap": 130,
+   "instructor": null,
+   "plan": 1,
+   "section": "D103"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 46
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 19,
+   "enrl_cap": 130,
+   "instructor": null,
+   "plan": 1,
+   "section": "D104"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 47
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 19,
+   "enrl_cap": 130,
+   "instructor": null,
+   "plan": 1,
+   "section": "D105"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 48
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 20,
+   "enrl_cap": 75,
+   "instructor": null,
+   "plan": 1,
+   "section": "E100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 49
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 21,
+   "enrl_cap": 85,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 50
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 22,
+   "enrl_cap": 92,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 51
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 23,
+   "enrl_cap": 50,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 52
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 24,
+   "enrl_cap": 65,
+   "instructor": null,
+   "plan": 1,
+   "section": "E100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 53
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 25,
+   "enrl_cap": 85,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 54
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 26,
+   "enrl_cap": 75,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 55
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 28,
+   "enrl_cap": 85,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 56
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 29,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 57
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 30,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 58
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 32,
+   "enrl_cap": 40,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 60
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 33,
+   "enrl_cap": 30,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 61
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 36,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 62
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 37,
+   "enrl_cap": 50,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 63
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 9,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 64
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 4,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 65
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 17,
+   "enrl_cap": 192,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 29
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 17,
+   "enrl_cap": 192,
+   "instructor": null,
+   "plan": 1,
+   "section": "D101"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 30
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 17,
+   "enrl_cap": 192,
+   "instructor": null,
+   "plan": 1,
+   "section": "D102"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 31
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 17,
+   "enrl_cap": 192,
+   "instructor": null,
+   "plan": 1,
+   "section": "D103"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 32
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 17,
+   "enrl_cap": 192,
+   "instructor": null,
+   "plan": 1,
+   "section": "D104"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 33
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 17,
+   "enrl_cap": 192,
+   "instructor": null,
+   "plan": 1,
+   "section": "D105"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 34
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 17,
+   "enrl_cap": 192,
+   "instructor": null,
+   "plan": 1,
+   "section": "D106"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 35
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 17,
+   "enrl_cap": 192,
+   "instructor": null,
+   "plan": 1,
+   "section": "D107"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 36
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 17,
+   "enrl_cap": 192,
+   "instructor": null,
+   "plan": 1,
+   "section": "D108"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 37
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 31,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 59
  }
 ]
