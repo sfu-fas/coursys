@@ -1,36 +1,37 @@
-from django import forms
 from discuss.models import DiscussionTopic
+from django import forms
 from django.forms.widgets import Textarea, TextInput
-import models
 
 TOPIC_CHOICES_STAFF = (
                       ('OPN', 'Open'),
                       ('CLO', 'Closed'),
                       )
 
-class DiscussionTopicForm(forms.ModelForm):
-    title = forms.CharField(min_length=15, widget=TextInput(attrs={'size': 60}), help_text="What is this topic about?")
-    status = forms.ChoiceField(choices=TOPIC_CHOICES_STAFF, help_text="Can students post on this topic?")
-    pinned = forms.BooleanField(required=False, help_text="Should this topic be pinned to bring attention?")
+def discussion_topic_form_factory(view_type, post_data=None):
+    """
+    Return the current form for a discussion topic based on the view_type (student/staff)
+    """
+    if view_type == 'student':
+        return _DiscussionTopicForm(post_data)
+    elif view_type == 'staff':
+        return _DiscussionTopicFormStaff(post_data)
+    else:
+        raise ValueError()
+
+            
+class _DiscussionTopicForm(forms.ModelForm):
+    title = forms.CharField(min_length=15, widget=TextInput(attrs={'size': 60}), help_text="What is this topic about?") 
     class Meta:
         model = DiscussionTopic
-        exclude = ('offering', 'last_activity_at', 'message_count', 'author', 'config')
+        exclude = ('offering', 'last_activity_at', 'message_count', 'author', 'config', 'status', 'pinned')
         widgets = {
-                   'content': Textarea(attrs={'cols': 80, 'rows': 30})
+                   'content': Textarea(attrs={'cols': 80, 'rows': 30}),
                    }
         
-    def __init__(self, *args, **kwargs):
-        view = None
-        try:
-            view = kwargs['discussion_view']
-            del kwargs['discussion_view']
-        except KeyError:
-            pass
-        super(DiscussionTopicForm, self).__init__(*args, **kwargs)
-        if view is not 'staff':
-            del self.fields['status']
-            del self.fields['pinned']
-            
+class _DiscussionTopicFormStaff(_DiscussionTopicForm):
+    class Meta(_DiscussionTopicForm.Meta):
+        exclude = ('offering', 'last_activity_at', 'message_count', 'author', 'config')
+                   
             
 class DiscussionTopicStatusForm(forms.ModelForm):
     class Meta:

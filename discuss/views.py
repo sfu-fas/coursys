@@ -4,10 +4,11 @@ from discuss.models import DiscussionTopic, DiscussionMessage
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
-from discuss.forms import DiscussionTopicForm, DiscussionTopicStatusForm
 from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
+from discuss.forms import discussion_topic_form_factory,\
+    DiscussionTopicStatusForm
 
 def _get_course_and_view(request, course_slug):
     """
@@ -59,18 +60,16 @@ def create_topic(request, course_slug):
     """
     course, view = _get_course_and_view(request, course_slug)
     if request.method == 'POST':
-        form = DiscussionTopicForm(request.POST, discussion_view=view)
+        form = discussion_topic_form_factory(view, request.POST)
         if form.is_valid():
             topic = form.save(commit=False)
             topic.offering = course
             topic.author = _get_member_as_author(request.user.username, view, course_slug)
-            if view is 'student':
-                topic.status = 'OPN'
             topic.save()
             messages.add_message(request, messages.SUCCESS, 'Discussion topic created successfully.')
             return HttpResponseRedirect(reverse('discuss.views.discussion_index', kwargs={'course_slug': course_slug}))
     else:
-        form = DiscussionTopicForm(discussion_view=view)
+        form = discussion_topic_form_factory(view)
     return render(request, 'discuss/create_topic.html', {'course': course, 'form': form})
 
 @login_required
