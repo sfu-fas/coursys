@@ -9,15 +9,6 @@
 
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li><li>&gt; {{ plan.name }} in {{plan.semester.label}}</li><li>&gt; Courses</li>{% endblock %}
 
-{% block actions %}
-<div id="actions">
-    <h2 class="heading">Actions</h2>
-    <ul>
-		<li><a href="{% url planning.views.add_course %}">Manage Courses</a></li>
-    </ul>
-</div>
-{% endblock %}
-
 {% block headextra %}
 <script type="text/javascript">
 $(document).ready(function() {
@@ -26,8 +17,8 @@ $(document).ready(function() {
     'bInfo': false,
     'bLengthChange': true,
     "bJQueryUI": true,
-	"sPaginationType": "full_numbers",
-	"iDisplayLength" : 10
+    "sPaginationType": "full_numbers",
+    "iDisplayLength" : 10
   } );
 } );
 </script>
@@ -36,32 +27,34 @@ $(document).ready(function() {
 {% block content %}
 
 <div class="datatable_container">
-    <h2>{{ semester_plan.semester.label }} </br> {{ semester_plan.name }}</h2>
+    <h2>{{ plan.semester.label }} &mdash; {{ plan.name }}</h2>
     <table class="display" id="courses">
         <thead>
             <tr>
-                <th scope="col">Course Name</th>
+                <th scope="col">Subject</th>
+                <th scope="col">No.</th>
+                <th scope="col">Title</th>
                 <th scope="col">Section</th>
                 <th scope="col">Campus</th>
                 <th scope="col">Component</th>
                 <th scope="col">Option</th>
-
-
             </tr>
         </thead>
 
         <tbody>
-		{% for planned_course in planned_courses_list %}
+        {% for planned_course in planned_courses_list %}
 
-		<tr>
-			<td>{{ planned_course.course }}</td>
-			<td>{{ planned_course.section }}</td>
-			<td>{{ planned_course.get_campus_display }}</td>
-			<td>{{ planned_course.get_component_display }}</td>
-			<td><a href="{% url planning.views.delete_course_from_plan course_id=planned_course.id plan_id=plan.id %} ">Remove</td>
-		</tr>
-		
-		{%endfor%}
+        <tr>
+            <td>{{ planned_course.course.subject }}</td>
+            <td>{{ planned_course.course.number }}</td>
+            <td>{{ planned_course.course.title }}</td>
+            <td>{{ planned_course.section }}</td>
+            <td>{{ planned_course.get_campus_display }}</td>
+            <td>{{ planned_course.get_component_display }}</td>
+            <td><a href="{% url planning.views.delete_course_from_plan course_id=planned_course.id plan_id=plan.id %} ">Remove</td>
+        </tr>
+        
+        {%endfor%}
 
         </tbody>
     </table>
@@ -78,5 +71,3 @@ $(document).ready(function() {
 
 </div>
 {% endblock%}
-
-

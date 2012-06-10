@@ -10,8 +10,8 @@ $(document).ready(function() {
     'bInfo': false,
     'bLengthChange': true,
     "bJQueryUI": true,
-	"sPaginationType": "full_numbers",
-	"iDisplayLength" : 10
+    "sPaginationType": "full_numbers",
+    "iDisplayLength" : 10
   } );
 } );
 </script>
@@ -26,9 +26,8 @@ $(document).ready(function() {
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    	<li><a href="{% url planning.views.add_plan %}">Create a Course Plan</a></li>
-	<li><a href="{% url planning.views.copy_plan %}">Copy a Course Plan</a></li>
-	<li><a href="{% url planning.views.add_course %}">Manage Courses</a></li>    
+        <li><a href="{% url planning.views.add_plan %}">Create a Course Plan</a></li>
+    <li><a href="{% url planning.views.copy_plan %}">Copy a Course Plan</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -48,28 +47,27 @@ $(document).ready(function() {
                 <th scope="col">Assign Instructors</th>
                 <th scope="col">Visibility</th>
                 <th scope="col">Option</th>
-
             </tr>
         </thead>
 
         <tbody>
-		{% for plan in plan_list %}
+        {% for plan in plan_list %}
 
-		<tr>
-			<td><a href="{% url planning.views.edit_plan semester=plan.semester.name plan_slug=plan.slug %}">{{ plan.name }}</a></td>
-			<td>{{ plan.semester.label }}</td>
-			<td><a href="{% url planning.views.edit_courses semester=plan.semester.name plan_slug=plan.slug %}">Edit Courses</a></td>
-			<td><a href="{% url planning.views.assign_instructors semester=plan.semester.name plan_slug=plan.slug %}">Assign Instructors</a></td>
-			<td>{{ plan.get_visibility_display }}</td>
-			<td>
-				{% if plan.active %}
-					<a href="{% url planning.views.inactivate_plan plan_id=plan.id %}">Inactivate</a>
-				{% else %}
-					<a href="{% url planning.views.activate_plan plan_id=plan.id %}">Activate</a>
-				{% endif %}
-			</td>
-		
-		{%endfor%}
+        <tr>
+            <td><a href="{% url planning.views.edit_plan semester=plan.semester.name plan_slug=plan.slug %}">{{ plan.name }}</a></td>
+            <td>{{ plan.semester.label }}</td>
+            <td><a href="{% url planning.views.edit_courses semester=plan.semester.name plan_slug=plan.slug %}">Edit Courses</a></td>
+            <td><a href="{% url planning.views.assign_instructors semester=plan.semester.name plan_slug=plan.slug %}">Assign Instructors</a></td>
+            <td>{{ plan.get_visibility_display }}</td>
+            <td>
+                {% if plan.active %}
+                    <a href="{% url planning.views.inactivate_plan plan_id=plan.id %}">Inactivate</a>
+                {% else %}
+                    <a href="{% url planning.views.activate_plan plan_id=plan.id %}">Activate</a>
+                {% endif %}
+            </td>
+        
+        {%endfor%}
 
         </tbody>
     </table>

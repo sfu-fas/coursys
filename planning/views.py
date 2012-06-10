@@ -3,7 +3,7 @@ from planning.forms import *
 from courselib.auth import requires_instructor
 from courselib.auth import requires_role
 from django.db.models import Q
-from coredata.models import Person, Role, Semester, Member, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES 
+from coredata.models import Person, Role, Semester, Member, Course, CourseOffering, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES 
 from log.models import LogEntry
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
@@ -31,7 +31,7 @@ def edit_capability(request):
     instructor = get_object_or_404(Person, userid = request.user.username)
     capability_list = TeachingCapability.objects.filter(instructor = instructor).order_by('course')
     unit_choices = request.units
-    possible_courses = [(c.id, unicode(c)) for c in Course.objects.filter(unit__in=unit_choices)]
+    possible_courses = [(c.id, c.get_full_name()) for c in Course.objects.filter(courseoffering__owner__in=unit_choices).distinct()]
 
     if request.method == 'POST':
         form = CapabilityForm(request.POST)
@@ -210,7 +210,7 @@ def edit_plan(request, semester, plan_slug):
 def edit_courses(request, semester, plan_slug):
     plan = get_object_or_404(SemesterPlan, semester__name=semester, slug=plan_slug)
     planned_courses_list = PlannedOffering.objects.filter(plan=plan)
-    courses = [(c.id, unicode(c)) for c in Course.objects.filter(unit=plan.unit)]
+    courses = [(c.id, c.get_full_name()) for c in Course.objects.filter(courseoffering__owner=plan.unit).distinct()]
 
     if request.method == 'POST':
         form = OfferingBasicsForm(request.POST)
@@ -413,7 +413,7 @@ def view_instructors(request, semester, plan_slug, course_id):
             'current_courses' : PlannedOffering.objects.filter(plan = semester_plan, instructor = i, component="LEC")
         })
 	
-    return render_to_response("planning/view_instructors.html", {'semester_plan': semester_plan, 'course_info': course_info, 'instructors': instructors},context_instance=RequestContext(request))
+    return render_to_response("planning/view_instructors.html", {'semester_plan': semester_plan, 'course_info': course_info, 'instructors': instructors}, context_instance=RequestContext(request))
 
 #********************************************View Semester Plans************************************************************
 @login_required
@@ -446,19 +446,3 @@ def view_semester_plan(request, semester):
     planned_courses_list = PlannedOffering.objects.filter(plan=plan)
         
     return render_to_response("planning/view_semester_plan.html",{'plan':plan, 'planned_courses_list':planned_courses_list},context_instance=RequestContext(request))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,37 +1,9 @@
 from django.db import models
-from coredata.models import Person, Role, Semester, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES, Member, Unit
+from coredata.models import Person, Role, Semester, Course, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES, Member, Unit
 from django.forms import ModelForm
 from autoslug import AutoSlugField
 from dashboard.models import *
 from django.core.urlresolvers import reverse
-
-
-class Course(models.Model):
-    """
-    A course, e.g. CMPT 120
-    
-    More generic than a CourseOffering from coredata, which describes something like CMPT 120 D100 in spring 2011.
-    """
-    subject = models.CharField(max_length=4, null=False, db_index=True,
-        help_text='Subject code, like "CMPT" or "FAN".')
-    number = models.CharField(max_length=4, null=False, db_index=True,
-        help_text='Course number, like "120" or "XX1".')
-    title = models.CharField(max_length=80, help_text='The course title.')
-    unit = models.ForeignKey(Unit, help_text='The academic unit that owns this course.')
-    
-    class Meta:
-        ordering = ['subject', 'number']
-        unique_together = (('subject', 'number'),)
-    
-    def __unicode__(self):
-        return "%s %s (%s)" % (self.subject, self.number, self.title)
-    def short_str(self):
-        return "%s %s" % (self.subject, self.number)
-        
-    def __cmp__(self, other):
-        if isinstance(other, Course):
-            return cmp(str(self), str(other))
-        return NotImplemented
 
 
 class TeachingCapability(models.Model):

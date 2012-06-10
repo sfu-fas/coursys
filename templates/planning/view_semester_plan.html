@@ -32,13 +32,13 @@ $(document).ready(function() {
     <table class="display" id="courses">
         <thead>
             <tr>
-                <th scope="col">Course Name</th>
+                <th scope="col">Subject</th>
+                <th scope="col">No.</th>
+                <th scope="col">Title</th>
                 <th scope="col">Section</th>
                 <th scope="col">Campus</th>
                 <th scope="col">Component</th>
                 <th scope="col">Instructor</th>
-
-
             </tr>
         </thead>
 
@@ -46,7 +46,9 @@ $(document).ready(function() {
 		{% for planned_course in planned_courses_list %}
 
 		<tr>
-			<td>{{ planned_course.course }}</td>
+			<td>{{ planned_course.course.subject }}</td>
+            <td>{{ planned_course.course.number }}</td>
+            <td>{{ planned_course.course.title }}</td>
 			<td>{{ planned_course.section }}</td>
 			<td>{{ planned_course.get_campus_display }}</td>
 			<td>{{ planned_course.get_component_display }}</td>
