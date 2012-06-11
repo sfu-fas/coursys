@@ -782,15 +782,19 @@ ROLE_CHOICES = (
         ('NONE', 'none'),
         )
 ROLES = dict(ROLE_CHOICES)
-UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'TAAD', 'GRAD', 'FUND', 'GRPD'] # roles departmental admins ('ADMN') are allowed to assign with their unit
+UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'PLAN', 'TAAD', 'GRAD', 'FUND', 'GRPD', 'FAC', 'SESS', 'COOP'] # roles departmental admins ('ADMN') are allowed to assign with their unit
 ROLE_DESCR = {
-              'ADVS': 'Has access to the advisor notes.',
-              'DISC': 'Can manage academic discipline cases in the unit: should include your Academic Integrity Coordinator.',
-              'DICC': 'Will be copied on all discipline case letters in the unit: include whoever files your discipline cases.',
-              'TAAD': 'Can administer TA job postings and appointments.',
-              'GRAD': 'Can view and update the grad student database.',
-              'GRPD': 'Director of the graduate program: typically the signer of grad-related letters.',
-              'FUND': 'Can work with the grad student funding database.',
+        'ADVS': 'Has access to the advisor notes.',
+        'DISC': 'Can manage academic discipline cases in the unit: should include your Academic Integrity Coordinator.',
+        'DICC': 'Will be copied on all discipline case letters in the unit: include whoever files your discipline cases.',
+        'PLAN': 'Can manage plans for course offerings in future semesters.',
+        'TAAD': 'Can administer TA job postings and appointments.',
+        'GRAD': 'Can view and update the grad student database.',
+        'GRPD': 'Director of the graduate program: typically the signer of grad-related letters.',
+        'FUND': 'Can work with the grad student funding database.',
+        'FAC': 'Faculty Member',
+        'SESS': 'Sessional Instructor',
+        'COOP': 'Co-op Staff Member',
               }
 class Role(models.Model):
     """

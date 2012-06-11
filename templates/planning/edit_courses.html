@@ -69,7 +69,7 @@ $(document).ready(function() {
             <td>{{ planned_offering.section }}</td>
             <td>{{ planned_offering.get_campus_display }}</td>
             <td>{{ planned_offering.get_component_display }}</td>
-            <td><a href="{% url planning.views.delete_course_from_plan course_id=planned_offering.id plan_id=plan.id %} ">Remove</td>
+            <td><a href="{% url planning.views.delete_course_from_plan course_id=planned_offering.id plan_id=plan.id %}">Remove</td>
         </tr>
         
         {%endfor%}
