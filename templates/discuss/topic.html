@@ -2,6 +2,25 @@
 {% block title %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
 {% block headextra %}
 <link rel="stylesheet" href="{{MEDIA_URL}}style/discuss.css" media="all" />
+<script type="text/javascript">
+	$(document).ready(function() {
+		{% if not form.errors %}
+			$("#discussion-topic-reply-form").hide();
+		{% endif %}
+		{% if form.errors %}
+			$("#topic-reply-toggle").hide();
+			$('html, body').animate({scrollTop: $("#discussion-topic-reply-form").offset().top});
+			$("#id_content").focus();
+		{% endif %}
+		$("#topic-reply-toggle").click(function() {
+			
+			$("#topic-reply-toggle").hide();
+			$("#discussion-topic-reply-form").show('slide');
+			$('html, body').animate({scrollTop: $(document).height()});
+			$("#id_content").focus();
+		});
+	});
+</script>
 {% endblock %}
 
 {% block h1 %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
@@ -35,6 +54,12 @@
 
 {% block content %}
 
+{% if topic.status == 'HID' %}
+    <div id="topic-hidden-warning">
+    	This topic is currently hidden
+    </div>
+{% endif %}
+
 <div class="discussion-topic-body">
 	<div class="discussion-topic-header">
 		<span class="discussion-topic-header-title"> 
@@ -47,7 +72,7 @@
 			{{ topic.title }}
 		</span>
 		<div class="discussion-topic-meta">
-			<span class="discussion-topic-author">{{ topic.author.person.name }} ({{topic.author.person.userid}})</span>
+			<span class="discussion-topic-author-content">{{ topic.author.person.name }} ({{topic.author.person.userid}})</span>
 			<span class="discussion-topic-last"><span style="color:#1F6B08">{{ topic.last_activity_at_delta }}</span></span>
 		</div>
 	</div>
@@ -62,19 +87,47 @@
 </div>
 
 <div class="discussion-topic-replies">
-	{% if topic.status == 'CLO' %}
-	    <i>Replies aren't permitted for this topic</i>
+	{% if replies|length_is:0 and topic.status != 'CLO' %} 
+	<div class="discussion-replies-warning">No replies yet...</div>
 	{% endif %}
-	{% if topic.status != 'CLO' %}
-	    {% if replies|length_is:0 %}
-		<i>No replies yet...</i>
-		{% endif %}
-		{% if replies|length > 0 %}
-		{% for reply in replies %}
-		{% endfor %}
-		{% endif %}
+	{% if replies|length > 0 %}
+	{% for reply in replies %}
+		<div class="discussion-topic-reply">
+			<div class="discussion-reply-author">
+				{{ reply.author.person.name }} ({{reply.author.person.userid}}),
+			</div>
+			<div class="discussion-reply-time">
+				{{ reply.create_at_delta }}
+			</div>
+			<div class="discussion-reply-content">
+				{{ reply.html_content }}
+			</div>
+		</div>
+	{% endfor %}
+	{% endif %}
+	{% if topic.status == 'CLO' and view == 'student' %}
+	<div class="discussion-replies-warning">Replies are currently disabled for this topic...</div>
+	{% endif %}
+	{% if topic.status == 'CLO' and view == 'staff' %}
+	<div class="discussion-replies-warning">Topic is closed. Students may not post replies.</div>
 	{% endif %}
 </div>
+
+{% if topic.status != 'CLO' or view == 'staff' %}
+<a href="#" id="topic-reply-toggle">Post a reply</a>
+<div id="discussion-topic-reply-form">
+	<form action="{% url discuss.views.view_topic course_slug=course.slug topic_id=topic.pk %}" method="post">
+		{% csrf_token %}
+		<div class="discussion-topic-reply-errors">
+			{% for error in form.content.errors %}
+			    <span>{{ error }}</span><br />
+			{% endfor %}
+		</div>
+		{{ form.content }}
+		<div><input type="submit" value="Reply" /></div>
+	</form>
+</div>
+{% endif %}
 
 {% endblock %}
 

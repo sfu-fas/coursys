@@ -37,6 +37,11 @@
 	font-style: italic;
 }
 
+.discussion-topic-author-content {
+	font-style: italic;
+	font-weight: bold;
+}
+
 .discussion-topic-last {
 	color: grey;
 	float: right;
@@ -74,15 +79,77 @@
 
 .discussion-topic-replies {
 	width: 600px;
-	padding: .6em;
+	padding-bottom: .5em;
 	border-top: 1px solid #B7B7B7;
 }
 
+.discussion-topic-reply {
+	border-bottom: 1px solid #B7B7B7;
+	padding: .5em 0;
+	padding-left: 1em;
+}
+
+.discussion-reply-author {
+	font-style: italic;
+	font-weight: bold;
+	margin-right: .5em;
+	float: left;
+	margin-bottom: .5em;
+}
+
+.discussion-reply-time {
+	float: left;
+	color:#1F6B08;
+}
+
+.discussion-reply-content {
+	clear: both;
+	padding-left: 1.5em;
+}
+
+
 .discussion-topic-replies-header {
 	padding-left: .6em;
+	padding-bottom: 4px;
 	margin-top: 1em;
-	font-size: 1.1em;
-	color: #004181;
+	font-size: 1.3em;
+	font-weight: bold;
+	color: #B5111B;
+}
+
+#id_content {
+	width: 600px;
+	height: 100px;
+	padding: .6em;
+	border: 1px solid #B7B7B7;
+}
+
+#topic-reply-toggle {
+	padding: .6em;
+	padding-left: 1em;
+	font-size: 1.2em;
+	font-weight: bold;
+	text-decoration: underline;
+}
+
+.discussion-topic-reply-errors {
+	color: red;
+	font-size: 1.2em;
+	font-weight: bold;
+}
+
+.discussion-replies-warning {
+	font-style: italic;
+	font-weight: bold;
+	padding-left: 1em;
+	padding-top: 1em;
+}
+
+#topic-hidden-warning {
+	color: red; 
+	font-size: 2em; 
+	font-weight: bold; 
+	margin: 1em 0;
 }
 
 .pagination {

@@ -8,7 +8,7 @@ from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from discuss.forms import discussion_topic_form_factory,\
-    DiscussionTopicStatusForm
+    DiscussionTopicStatusForm, DiscussionMessageForm
 
 def _get_course_and_view(request, course_slug):
     """
@@ -30,7 +30,7 @@ def discussion_index(request, course_slug):
     Index page to view all discussion topics
     """
     course, view = _get_course_and_view(request, course_slug)
-    topics = DiscussionTopic.objects.filter(offering=course).order_by('-pinned', '-last_activity_at')
+    topics = DiscussionTopic.objects.filter(offering=course).exclude(status='HID').order_by('-pinned', '-last_activity_at')
     paginator = Paginator(topics, 10)
     try:
         page = int(request.GET.get('page', '1'))
@@ -79,8 +79,23 @@ def view_topic(request, course_slug, topic_id):
     """
     course, view = _get_course_and_view(request, course_slug)
     topic = get_object_or_404(DiscussionTopic, pk=topic_id, offering=course)
-    replies = DiscussionMessage.objects.filter(topic=topic).order_by('-created_at')
-    return render(request, 'discuss/topic.html', {'course': course, 'topic': topic, 'replies': replies, 'view': view})
+    if view == 'student' and topic.status == 'HID':
+        raise Http404
+    replies = DiscussionMessage.objects.filter(topic=topic).order_by('created_at')
+    if request.method == 'POST':
+        if topic.status == 'CLO' and view is not 'staff':
+            raise Http404
+        form = DiscussionMessageForm(request.POST)
+        if form.is_valid():
+            message = form.save(commit=False)
+            message.topic = topic
+            message.author = _get_member_as_author(request.user.username, view, course_slug)
+            message.save()
+            messages.add_message(request, messages.SUCCESS, 'Sucessfully replied')
+            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_id': topic.pk}))
+    else:
+        form = DiscussionMessageForm()
+    return render(request, 'discuss/topic.html', {'course': course, 'topic': topic, 'replies': replies, 'view': view, 'form': form})
 
 @login_required
 def change_topic_status(request, course_slug, topic_id):

@@ -1,4 +1,4 @@
-from discuss.models import DiscussionTopic
+from discuss.models import DiscussionTopic, DiscussionMessage
 from django import forms
 from django.forms.widgets import Textarea, TextInput
 
@@ -37,4 +37,9 @@ class DiscussionTopicStatusForm(forms.ModelForm):
     class Meta:
         model = DiscussionTopic
         exclude = ('title', 'content', 'offering', 'last_activity_at', 'message_count', 'author', 'config')
+        
+class DiscussionMessageForm(forms.ModelForm):
+    class Meta:
+        model = DiscussionMessage
+        exclude = ('topic', 'created_at', 'modified_at', 'status', 'author', 'config')
     

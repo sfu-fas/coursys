@@ -31,6 +31,11 @@
 		<li>
 			<a href="{% url discuss.views.create_topic course_slug=course.slug %}">Create New Topic</a>
 		</li>
+		{% if view == 'staff' %}
+		<li>
+			<a href="#">View Hidden Topics</a>
+		</li>
+		{% endif %}
 	</ul>
 </div>
 {% endblock %}

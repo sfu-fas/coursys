@@ -30,7 +30,7 @@ def _time_delta_to_string(time):
             return '%d hours ago' % hours
     elif days is 1:
         return '1 day ago'
-    elif days < 60:
+    elif days < 8:
         return '%d days ago' % days
     else:
         return time.strftime('%b %d, %Y')
@@ -100,7 +100,7 @@ class DiscussionMessage(models.Model):
     A message (post) associated with a Discussion Topic
     """
     topic = models.ForeignKey(DiscussionTopic)
-    content = models.TextField()
+    content = models.TextField(blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=3, choices=MESSAGE_STATUSES, default='VIS')
@@ -119,3 +119,6 @@ class DiscussionMessage(models.Model):
         creole = self.topic.get_creole()
         html = creole.text2html(self.content)
         return mark_safe(html)
+    
+    def create_at_delta(self):
+        return _time_delta_to_string(self.created_at)
