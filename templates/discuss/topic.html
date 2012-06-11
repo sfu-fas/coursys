@@ -36,21 +36,18 @@
 	&gt; View Topic
 </li>
 {% endblock %}
+{% if view == 'staff' %}
 {% block actions %}
 <div id="actions">
 	<h2 class="heading">Actions</h2>
 	<ul>
 		<li>
-			<a href="{% url discuss.views.create_topic course_slug=course.slug %}">Create New Topic</a>
-		</li>
-		{% if view == 'staff' %}
-		<li>
 			<a href="{% url discuss.views.change_topic_status course_slug=course.slug topic_id=topic.pk %}">Manage Topic</a>
 		</li>
-		{% endif %}
 	</ul>
 </div>
 {% endblock %}
+{% endif %}
 
 {% block content %}
 

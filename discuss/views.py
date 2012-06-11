@@ -42,6 +42,17 @@ def discussion_index(request, course_slug):
         topics = paginator.page(paginator.num_pages)
     return render(request, 'discuss/index.html', {'course': course, 'topics': topics, 'view': view})
 
+@login_required()
+def hidden_topics(request, course_slug):
+    """
+    Page to view all hidden discussion topics
+    """
+    course, view = _get_course_and_view(request, course_slug)
+    if not view  == 'staff':
+        return HttpResponseForbidden()
+    topics = DiscussionTopic.objects.filter(offering=course, status='HID').order_by('-last_activity_at')
+    return render(request, 'discuss/hidden_topics.html', {'course': course, 'topics': topics})
+
 def _get_member_as_author(username, discussion_view, course_slug):
     """
     Retrieves the Member object for a discussion topic/message
@@ -83,7 +94,7 @@ def view_topic(request, course_slug, topic_id):
         raise Http404
     replies = DiscussionMessage.objects.filter(topic=topic).order_by('created_at')
     if request.method == 'POST':
-        if topic.status == 'CLO' and view is not 'staff':
+        if topic.status == 'CLO' and not view  == 'staff':
             raise Http404
         form = DiscussionMessageForm(request.POST)
         if form.is_valid():

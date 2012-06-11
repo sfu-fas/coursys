@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load discuss_paginate %}
 {% block title %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
 {% block headextra %}
 <link rel="stylesheet" href="{{MEDIA_URL}}style/discuss.css" media="all" />
@@ -13,40 +12,26 @@
 	}); 
 </script>
 {% endblock %}
-{% block h1 %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
+{% block h1 %}{{ course.subject }} {{ course.number }} Discussion (Hidden Topics){% endblock %}
 
 {% block subbreadcrumbs %}
 <li>
 	&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a>
 </li>
 <li>
-	&gt; Discussion
+	&gt; <a href="{% url discuss.views.discussion_index course_slug=course.slug %}">Discussion</a>
+</li>
+<li>
+	&gt; Hidden Topics
 </li>
 {% endblock %}
 
-{% block actions %}
-<div id="actions">
-	<h2 class="heading">Actions</h2>
-	<ul>
-		<li>
-			<a href="{% url discuss.views.create_topic course_slug=course.slug %}">Create New Topic</a>
-		</li>
-		{% if view == 'staff' %}
-		<li>
-			<a href="{% url discuss.views.hidden_topics course_slug=course.slug %}">View Hidden Topics</a>
-		</li>
-		{% endif %}
-	</ul>
-</div>
-{% endblock %}
-
 {% block content %}
-{% if topics.object_list|length_is:0 %}
-<i>There are currently no topics</i>
+{% if topics|length_is:0 %}
+<i>There are currently no hidden topics</i>
 {% endif %}
-{% if topics.object_list|length > 0 %}
-{{ topics|create_pagination }}
-{% for topic in topics.object_list %}
+{% if topics|length > 0 %}
+{% for topic in topics %}
 <div class="discussion-topic" id="{{ topic.pk }}">
 	<a class="discussion-topic-title" href="{% url discuss.views.view_topic course_slug=course.slug topic_id=topic.pk %}">
 		{% if topic.pinned %}
@@ -71,7 +56,6 @@
 	</div>
 </div>
 {% endfor %}
-{{ topics|create_pagination }}
 {% endif %}
 {% endblock %}
 
