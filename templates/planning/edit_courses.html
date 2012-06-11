@@ -4,10 +4,10 @@
 
 {% load markup %}
 
-{% block title %}Edit Course Offerings{% endblock %}
-{% block h1 %}Edit Course Offerings{% endblock %}
+{% block title %}Edit Course Plan{% endblock %}
+{% block h1 %}Edit Course Plan{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li><li>&gt; {{ plan.name }} in {{plan.semester.label}}</li><li>&gt; Courses</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li><li>&gt; {{ plan.name }} in {{plan.semester.label}}</li>{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
@@ -18,40 +18,58 @@ $(document).ready(function() {
     'bLengthChange': true,
     "bJQueryUI": true,
     "sPaginationType": "full_numbers",
-    "iDisplayLength" : 10
+    "iDisplayLength" : 25
   } );
 } );
 </script>
 {% endblock %}
 
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url planning.views.edit_plan semester=plan.semester.name plan_slug=plan.slug %}">Edit Course Plan Information</a></li>
+    </ul>
+</div>
+{% endblock %}
+
 {% block content %}
 
 <div class="datatable_container">
-    <h2>{{ plan.semester.label }} &mdash; {{ plan.name }}</h2>
+    <h2>{{ plan.name }} in {{plan.semester.label}}</h2>
     <table class="display" id="courses">
         <thead>
             <tr>
-                <th scope="col">Subject</th>
-                <th scope="col">No.</th>
+                <th colspan="3">Course</th>
+                <th rowspan="2" scope="col">Insturctor</th>
+                <th rowspan="2" scope="col">Sec.</th>
+                <th rowspan="2" scope="col">Campus</th>
+                <th rowspan="2" scope="col">Component</th>
+                <th rowspan="2" scope="col">Option</th>
+            </tr>
+            <tr>
+                <th scope="col"><abbr title="Course Subject">Sub.</abbr></th>
+                <th scope="col"><abbr title="Course Number">#</abbr></th>
                 <th scope="col">Title</th>
-                <th scope="col">Section</th>
-                <th scope="col">Campus</th>
-                <th scope="col">Component</th>
-                <th scope="col">Option</th>
             </tr>
         </thead>
 
         <tbody>
-        {% for planned_course in planned_courses_list %}
+        {% for planned_offering in planned_offerings_list %}
 
         <tr>
-            <td>{{ planned_course.course.subject }}</td>
-            <td>{{ planned_course.course.number }}</td>
-            <td>{{ planned_course.course.title }}</td>
-            <td>{{ planned_course.section }}</td>
-            <td>{{ planned_course.get_campus_display }}</td>
-            <td>{{ planned_course.get_component_display }}</td>
-            <td><a href="{% url planning.views.delete_course_from_plan course_id=planned_course.id plan_id=plan.id %} ">Remove</td>
+            <td>{{ planned_offering.course.subject }}</td>
+            <td>{{ planned_offering.course.number }}</td>
+            <td>{{ planned_offering.course.title }}</td>
+            <td>
+                {{ planned_offering.instructor }}
+                [<a href="{% url planning.views.view_instructors semester=plan.semester.name plan_slug=plan.slug planned_offering_slug=planned_offering.slug %}">Edit</a>]
+            </td>
+            <td>{{ planned_offering.section }}</td>
+            <td>{{ planned_offering.get_campus_display }}</td>
+            <td>{{ planned_offering.get_component_display }}</td>
+            <td><a href="{% url planning.views.delete_course_from_plan course_id=planned_offering.id plan_id=plan.id %} ">Remove</td>
         </tr>
         
         {%endfor%}
@@ -61,7 +79,7 @@ $(document).ready(function() {
 </div>
 
 <div id="form_container">
-    <form action="{% url planning.views.edit_courses semester=plan.semester.name plan_slug=plan.slug%}" method="post">{% csrf_token %}
+    <form action="{% url planning.views.edit_courses semester=plan.semester.name plan_slug=plan.slug %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Add Course Offering</legend>
             {{form|as_dl}}

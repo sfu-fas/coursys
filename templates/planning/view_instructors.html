@@ -4,142 +4,48 @@
 
 {% load markup %}
 
-{% block title %}Instructor for {{ course_info.course.subject }} {{ course_info.course.number }} {{ course_info.section }}{% endblock %}
-{% block h1 %}Instructor for {{ course_info.course.subject }} {{ course_info.course.number }} {{ course_info.section }}{% endblock %}
+{% block title %}Instructor for {{ planned_offering.name }}{% endblock %}
+{% block h1 %}Instructor for {{ planned_offering.name }}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li><li>&gt; <a href="{% url planning.views.assign_instructors semester=semester_plan.semester.name plan_slug=semester_plan.slug %}">{{ semester_plan.name }} in {{semester_plan.semester.label}}</a></li><li>&gt; Instructor for {{ course_info.course.subject }} {{ course_info.course.number }} {{ course_info.section }}</li>{% endblock %}
+{% block subbreadcrumbs %}
+    <li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li>
+    <li>&gt; <a href="{% url planning.views.edit_courses semester=semester_plan.semester.name plan_slug=semester_plan.slug %}">{{ semester_plan.name }} in {{semester_plan.semester.label}}</a></li>
+    <li>&gt; Instructor for {{ planned_offering.name }}</li>
+{% endblock %}
 
 {% block actions %}
 {% endblock %}
 
-{% block headextra %}
-<style type="text/css">
-<!--
-table.inst_table .radiocell { text-align: center;}
--->
-</style>
-{% endblock %}
-
-
 {% block content %}
 
-<p><strong>Semester plan</strong>:  {{ semester_plan.name }} in {{ semester_plan.semester.label }} </p>
-<p><strong>Currently Assigned Instructor</strong>: {{ course_info.instructor }} </p>
+<p><strong>Semester Plan</strong>:  {{ semester_plan.name }} in {{ semester_plan.semester.label }} </p>
+<p><strong>Currently Assigned Instructor</strong>: {{ planned_offering.instructor }} </p>
 
 <div class="datatable_container">
-	
-	
+    
+    <div id="form_container">
+        <form action="{% url planning.views.view_instructors semester=semester_plan.semester.name plan_slug=semester_plan.slug planned_offering_slug=planned_offering.slug %}" method="post">{% csrf_token %}
 
-	
-	
-	<div id="form_container">
-	    <form action="{% url planning.views.submit_assigned_instructors semester=semester_plan.semester.name plan_slug=semester_plan.slug offering_id=course_info.id %}" method="post">{% csrf_token %}
+        <h3>Capable Instructors</h3>
 
-		<table class='inst_table'>
-			<tbody>
-				<tr>
-					<th>Select</th>
-					<th>Instructor</th>
-					<th>Currently Assigned Courses</th>
-					<th>Capable Courses</th>
-					<th width="50%">Teaching Intentions</th>
+        {% if capable_instructors_list %}
+            {% include "planning/instructor_table.html" with instructors_list=capable_instructors_list %}
+        {% else %}
+            <p>There are no capable instructors for this course.</p>
+        {% endif %}
 
-				</tr>
-				{% for data in instructors %}
-				<tr>
-					<td class="radiocell">
-						<input type="radio" id="id_{{data.instructor.userid}}" name="instructor" value="{{data.instructor.userid}}" />
-					</td>
-					<td>
-						<label for="id_{{data.instructor.userid}}">
-						{% if data.instructor = course_info.instructor %}	
-							<strong>{{data.instructor}}</strong>
-						{% else %}
-							{{data.instructor}}
-						{% endif %}
-						</label>
-					</td>
-					<td>
-						{% if data.current_courses %}
-						<ul>
-							{% for i in data.current_courses %}
-								{%  if i.course == course_info.course %}
-									<li>
-										<strong>
-											{{i.course.subject}} {{i.course.number}}
-										</strong>
-									</li>
-								{% else %}
-									<li>
-										{{i.course.subject}} {{i.course.number}}
-									</li>
-								{% endif %}
-							{% endfor %}
-						</ul>
-						{% else %}
-							None
-						{% endif %}
-					</td>
-					<td>
-						{% if data.teachable %}
-							<ul>
-							{% for i in data.teachable %}
-								{%  if i.course == course_info.course %}
-									<li>
-										<strong>
-											{{i.course.subject}} {{i.course.number}}
-											{% if i.note %}
-											(Note: {{i.note}})
-											{% endif %}
-										</strong>
-									</li>
-								{% else %}
-									<li>
-										{{i.course.subject}} {{i.course.number}}
-										{% if i.note %}
-										(Note: {{i.note}})
-										{% endif %}
-									</li>
-								{% endif %}
-							{% endfor %}
-							</ul>
-						{% else %}
-							None
-						{% endif %}
-					</td>
-					<td>
-						{% for i in data.intention %}
-							{% if i.semester == semester_plan.semester %}
-								<strong>{{i.semester}}:
-								{{i.count}}
-								{% if i.note %}
-									<br />(Note: {{i.note}})
-								{% endif %}</strong><br/>
-							{% else %}
-								{{i.semester}}:
-								{{i.count}}
-								{% if i.note %}
-									<br />(Note: {{i.note}})
-								{% endif %}
-								<br/>
-							{% endif %}
-						{% endfor %}
-					</td>
-				</tr>
-				{%endfor%}
-				{% if course_info.instructor %}
-				<tr>
-					<td class="radiocell"><input type="radio" name="instructor" value="None" /></td>
-					<td>Clear Assigned Instructor</td>
-				</tr>
-				{% endif %}
-		    </tbody>
-		</table>
+        <h3>All Instructors</h3>
 
-		<div><input class="submit" type="submit" value="Assign" /></div>
-	    </form>
+        {% if all_instructors_list %}
+            {% include "planning/instructor_table.html" with instructors_list=all_instructors_list %}
+        {% else %}
+            <p>There are no instructors.</p>
+        {% endif %}
 
-	</div>
+        <div><input class="submit" type="submit" value="Assign" /></div>
+        </form>
+
+    </div>
 
 </div>
 

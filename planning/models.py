@@ -18,6 +18,7 @@ class TeachingCapability(models.Model):
     def __unicode__(self):
         return "%s - %s" % (self.instructor, self.course)
 
+
 class TeachingIntention(models.Model):
     instructor = models.ForeignKey(Person, null=False)
     semester = models.ForeignKey(Semester, null=False)
@@ -34,13 +35,12 @@ class TeachingIntention(models.Model):
     
     def is_full(self, semester_plan):
         return semester_plan.plannedoffering_set.filter(instructor=self.instructor).count() >= self.count
-         
 
 
 VISIBILITY_CHOICES = [
-    ('ADMI', 'Administrator Only'),
+    ('ADMI', 'Administrators Only'),
     ('INST', 'Instructors'), 
-    ('ALL', 'Everybody')]
+    ('ALL', 'Everyone')]
 
 
 class SemesterPlan(models.Model):
@@ -49,7 +49,7 @@ class SemesterPlan(models.Model):
     visibility = models.CharField(max_length=4, choices=VISIBILITY_CHOICES, default="ADMI", help_text="Who can see this plan?")
     active = models.BooleanField(default = False, help_text="The currently-active plan for this semester.")
     slug = AutoSlugField(populate_from='name', null=False, editable=False, unique_with='semester')
-    unit = models.ForeignKey(Unit, help_text='The academic unit that owns this semester plan')
+    unit = models.ForeignKey(Unit, help_text='The academic unit that owns this course plan')
 
     def get_absolute_url(self):
         return reverse('planning.views.view_semester_plan', kwargs={'semester': self.semester.name})
@@ -71,12 +71,13 @@ class SemesterPlan(models.Model):
 
             mem_set = set([i.person for i in mem_list])
             for m in mem_set:
-                n = NewsItem(user=m, author=None, source_app="planning", title="Semester plan: %s for %s is available" % (self.name, self.semester), content="%s for %s has been released" % (self.name, self.semester), url=self.get_absolute_url())
+                n = NewsItem(user=m, author=None, source_app="planning", title="Course plan: %s for %s is available" % (self.name, self.semester), content="%s for %s has been released" % (self.name, self.semester), url=self.get_absolute_url())
                 n.save()
 
     class Meta:
         ordering = ['semester', 'name']
         unique_together = (('semester', 'name'),)
+
 
 class PlannedOffering(models.Model):
     plan = models.ForeignKey(SemesterPlan)
@@ -88,11 +89,14 @@ class PlannedOffering(models.Model):
     campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES, null=False)
     enrl_cap = models.PositiveSmallIntegerField(null=True, blank=True)
     instructor = models.ForeignKey(Person, null=True, blank=True)
+    slug = AutoSlugField(populate_from='name', null=False, editable=False, unique_with='section')
 
     class Meta:
         ordering = ['plan', 'course', 'campus']
         unique_together = (('plan', 'course', 'section'),)
-    
+    def name(self):
+        return "%s %s %s" % (self.course.subject, self.course.number, self.section)
+
 
 class MeetingTime(models.Model):
     offering = models.ForeignKey(PlannedOffering, null=False)

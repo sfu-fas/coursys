@@ -6,36 +6,34 @@
 {% block title %}Edit Teachable Courses{% endblock %}
 {% block h1 %}Edit Teachable Courses{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url planning.views.instructor_index %}">Teaching Plan</a></li><li>&gt; Courses</li>{% endblock %}
-
-{% block actions %}
-{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url planning.views.instructor_index %}">Teaching Preferences</a></li><li>&gt; Teachable Courses</li>{% endblock %}
 
 {% block content %}
-
 <div id="capability" class="table_container">
-
-	
 	<h2>Teachable Courses</h2>
     
-		<table class = "inst_table">
-			<tbody>
+    	{% if capability_list %}
+		<table id="courses" class="inst_table">
+			<thead>
 				<tr>
 					<th>Course</th>
 					<th>Note</th>
 					<th>Option</th>
-
 				</tr>
+			</thead>
+			<tbody>
 				{% for capability in capability_list %}
 				<tr>
-					<td>{{ capability.course }}</td>
+					<td>{{ capability.course.full_name }}</td>
 					<td>{{ capability.note|linebreaks }}</td>
-					<td><a href="{% url planning.views.delete_course_from_capability course_id=capability.id %} ">Remove</td>
-					
+					<td><a href="{% url planning.views.delete_capability course_id=capability.id %} ">Remove</td>
 				</tr>
 				{%endfor%}
 		    </tbody>
 		</table>
+		{% else %}
+		<p>You haven't selected any teachable courses.</p>
+		{% endif %}
 </div>
 
 <div id="form_container">
@@ -47,12 +45,8 @@
             <div><input class="submit" type="submit" value="Submit" /></div>
         </fieldset>
         
-
     </form>
-
 </div>
-
-
 {% endblock%}
 
 

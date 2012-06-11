@@ -272,6 +272,7 @@ table td, table th {
 }
 table th {
   font-size: 110%;
+  vertical-align: middle;
   /* from jqueryui .ui-state-default */
   border: 1px solid #d3d3d3; background: #e6e6e6 url(../jquery-ui/css/smoothness/images/ui-bg_glass_75_e6e6e6_1x400.png) 50% 50% repeat-x; font-weight: normal; color: #555555; outline: none;
 }
@@ -330,6 +331,11 @@ div.bigdatatable span.more {
     float: right;
     text-align: right;
 }
+
+.dataTables_filter input[type=text] {
+  margin: 2px;
+}
+
 .dataTables_info {
     width: 40%;
     float: left;
@@ -415,13 +421,8 @@ tr.even {
     cursor: pointer;
     * cursor: hand;
 }
-
-.paging_full_numbers {
-    height: 22px;
-    line-height: 22px;
-}
 .fg-toolbar {
-    padding: 1px;
+    padding: 2px 4px;
 }
 .dataTables_info {
     height: 22px;
@@ -829,8 +830,9 @@ fieldset .datetime {
     color: gray;
     font-size: 0.9em;
 }
+fieldset p.helptext,
 dl.dlform .helptext {
-    margin-left: 9em;
+  margin-left: 146px;
 }
 dl.dlform dt{
 	margin-left: 1em;
@@ -1496,6 +1498,10 @@ td.miniaction input {
   padding: 0;
 }
 
+table.inst_table tbody td.radiocell {
+  text-align: center;
+}
+
 /* calendar display*/
 div#calendar table.fc-header, div#calendar table.fc-header td {
   border: none;
@@ -1594,4 +1600,38 @@ td.table-row-label{
 
 #assign_bu{
 	width: 60%;
+}
+
+
+/* Note Tooltip Display */
+.note-container {
+  display: inline-block;
+  position: relative;
+}
+
+.note-container .note-content {
+  background: #F8F8C2;
+  border: 1px solid #B5111B;
+  display: none;
+  float: left;
+  padding: 4px;
+  position: absolute;
+  left: 15px;
+  top: 0;
+  width: 300px;
+  z-index: 10;
+}
+
+.note-container a.note {
+  border-bottom: 1px dotted #333;
+  cursor: pointer;
+}
+
+.note-container a.note:hover {
+  text-decoration: none;
+}
+
+.note-container a.note:focus + .note-content,
+.note-container a.note:hover + .note-content {
+  display: block;
 }

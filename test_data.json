@@ -20914,6 +20914,24 @@
  },
  {
   "fields": {
+   "person": 9,
+   "role": "FAC",
+   "unit": 3
+  },
+  "model": "coredata.role",
+  "pk": 21
+ },
+ {
+  "fields": {
+   "person": 8,
+   "role": "FAC",
+   "unit": 3
+  },
+  "model": "coredata.role",
+  "pk": 22
+ },
+ {
+  "fields": {
     "semester": 5,
     "name": "Offering Alpha - Burnaby",
     "visibility": "ADMI",
@@ -21767,5 +21785,60 @@
   },
   "model": "planning.plannedoffering",
   "pk": 59
+ },
+ {
+  "fields": {
+   "course": 11,
+   "instructor": 8,
+   "note": ""
+  },
+  "model": "planning.teachingcapability",
+  "pk": 3
+ },
+ {
+  "fields": {
+   "course": 16,
+   "instructor": 8,
+   "note": ""
+  },
+  "model": "planning.teachingcapability",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "course": 30,
+   "instructor": 8,
+   "note": ""
+  },
+  "model": "planning.teachingcapability",
+  "pk": 4
+ },
+ {
+  "fields": {
+   "course": 9,
+   "instructor": 8,
+   "note": ""
+  },
+  "model": "planning.teachingcapability",
+  "pk": 2
+ },
+  {
+  "fields": {
+   "course": 20,
+   "instructor": 9,
+   "note": ""
+  },
+  "model": "planning.teachingcapability",
+  "pk": 5
+ },
+ {
+  "fields": {
+   "course": 7,
+   "instructor": 9,
+   "note": ""
+  },
+  "model": "planning.teachingcapability",
+  "pk": 6
  }
+
 ]

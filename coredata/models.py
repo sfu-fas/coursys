@@ -367,7 +367,7 @@ class Course(models.Model):
         return cmp(self.subject, other.subject) or cmp(self.number, other.number)
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
-    def get_full_name(self):
+    def full_name(self):
         return "%s %s - %s" % (self.subject, self.number, self.title)
 
 

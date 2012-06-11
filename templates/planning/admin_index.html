@@ -41,12 +41,10 @@ $(document).ready(function() {
     <table class="display" id="plans">
         <thead>
             <tr>
-                <th scope="col">Plan Name</th>
                 <th scope="col">Semester</th>
-                <th scope="col">Edit Courses</th>
-                <th scope="col">Assign Instructors</th>
+                <th scope="col">Plan Name</th>
                 <th scope="col">Visibility</th>
-                <th scope="col">Option</th>
+                <th scope="col">Activate</th>
             </tr>
         </thead>
 
@@ -54,10 +52,9 @@ $(document).ready(function() {
         {% for plan in plan_list %}
 
         <tr>
-            <td><a href="{% url planning.views.edit_plan semester=plan.semester.name plan_slug=plan.slug %}">{{ plan.name }}</a></td>
             <td>{{ plan.semester.label }}</td>
-            <td><a href="{% url planning.views.edit_courses semester=plan.semester.name plan_slug=plan.slug %}">Edit Courses</a></td>
-            <td><a href="{% url planning.views.assign_instructors semester=plan.semester.name plan_slug=plan.slug %}">Assign Instructors</a></td>
+            <td><a href="{% url planning.views.edit_courses semester=plan.semester.name plan_slug=plan.slug %}">{{ plan.name }}</a></td>
+
             <td>{{ plan.get_visibility_display }}</td>
             <td>
                 {% if plan.active %}
@@ -65,8 +62,7 @@ $(document).ready(function() {
                 {% else %}
                     <a href="{% url planning.views.activate_plan plan_id=plan.id %}">Activate</a>
                 {% endif %}
-            </td>
-        
+            </td>        
         {%endfor%}
 
         </tbody>

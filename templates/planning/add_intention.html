@@ -1,52 +1,48 @@
 {% extends "base.html" %}
 {% load form_display %}
 
-{% block title %}Edit Semester Plan{% endblock %}
-{% block h1 %}Edit Semester Plan{% endblock %}
+{% block title %}Edit Semester Teaching Plan{% endblock %}
+{% block h1 %}Edit Semester Teaching Plan{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url planning.views.instructor_index %}">Teaching Plan</a></li><li>&gt; Semester Plans</li>{% endblock %}
-
-{% block actions %}
-<div id="actions">
-    <h2 class="heading">Actions</h2>
-    <ul>
-    <li><a href="{% url planning.views.instructor_index %}">My Course Plan</a></li>
-
-    </ul>
-</div>
-{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url planning.views.instructor_index %}">Teaching Preferences</a></li><li>&gt; Semester Teaching Plans</li>{% endblock %}
 
 {% block content %}
 
 <div id="intention" class="table_container">
-	<h2>Teaching Intention</h2>
+	<h2>Semester Teaching Plans</h2>
 
-		<table class = "inst_table">
-			<tbody>
-				<tr>
-					<th>Semester</th>
-					<th>Number of Courses</th>
-					<th>Note</th>
-					<th>Detail</th>
-
+	{% if intention_list %}
+	<table class = "inst_table">
+		<thead>
+			<tr>
+				<th>Semester</th>
+				<th>Number of Courses</th>
+				<th>Note</th>
+				<th>Options</th>
+			</tr>
+		</thead>
+		
+		<tbody>
 			{% for intention in intention_list %}
 			<tr>
 				<td>{{ intention.semester.label }}</td>
 				<td>{{ intention.count }}</td>
 				<td>{{ intention.note|linebreaks }}</td>
-				<td><a href="{% url planning.views.view_semester_plan semester=intention.semester.name %}">Course Schedule</a></td>
+				<td><a href="{% url planning.views.delete_intention semester=intention.semester.name %}">Remove</a></td>
+			</tr>
 			{%endfor%}
-				</tr>
-
-		    </tbody>
-		</table>
+	    </tbody>
+	</table>
+	{% else %}
+	<p>You haven't created any semester teaching plans.</p>
+	{% endif %}
 </div>	
 
 
 <div id="form_container">
     <form action="{% url planning.views.edit_intention %}" method="post">{% csrf_token %}
         <fieldset>
-            <legend>Add Semester</legend>
+            <legend>Add Semester Teaching Plan</legend>
 
             {{form|as_dl}}
             <div><input class="submit" type="submit" value="Submit" /></div>
