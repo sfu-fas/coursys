@@ -229,9 +229,4 @@ class CoredataTest(TestCase):
         self.assertEquals(response.status_code, 302)
         
         # make sure the role is now there
-        self.assertEquals( Role.objects.filter(role='FAC').count(), 1)
-
-
-
-
-
+        self.assertEquals( Role.objects.filter(role='FAC').count(), 3)
