@@ -34,7 +34,7 @@ def _time_delta_to_string(time):
         return '%d days ago' % days
     else:
         return time.strftime('%b %d, %Y')
-
+    
 class DiscussionTopic(models.Model):
     """
     A topic (thread) associated with a CourseOffering
@@ -42,6 +42,7 @@ class DiscussionTopic(models.Model):
     offering = models.ForeignKey(CourseOffering, null=False)
     title = models.CharField(max_length=140, help_text="A brief description of the topic")
     content = models.TextField(help_text="The inital message for the topic")
+    created_at = models.DateTimeField(auto_now_add=True)
     last_activity_at = models.DateTimeField(auto_now_add=True)
     message_count = models.IntegerField(default=0)
     status = models.CharField(max_length=3, choices=TOPIC_STATUSES, default='OPN', help_text="The topic status... Closed: No replies, Hidden: Cannot be seen)")
@@ -56,14 +57,6 @@ class DiscussionTopic(models.Model):
         
     def new_message_update(self):
         self.last_activity_at = datetime.datetime.now()
-        self.message_count = self.message_count + 1
-        self.save()
-        
-    def message_hidden_update(self):
-        self.message_count = self.message_count - 1
-        self.save()
-        
-    def message_visible_update(self):
         self.message_count = self.message_count + 1
         self.save()
         
@@ -88,7 +81,19 @@ class DiscussionTopic(models.Model):
         creole = self.get_creole()
         html = creole.text2html(self.content)
         return mark_safe(html)
-
+    
+    def still_editable(self):
+        td = datetime.datetime.now() - self.created_at
+        minutes = divmod(td.days * 86400 + td.seconds, 60)[0]
+        return minutes >= 2
+    
+    def editable_time_left(self):
+        td = datetime.datetime.now() - self.created_at
+        seconds = td.days * 86400 + td.seconds
+        if seconds > 120:
+            return 'none'
+        minutes, seconds = divmod(120 - seconds, 60)
+        return "%dm:%ds" % (minutes, seconds)
 
 MESSAGE_STATUSES = (
                   ('VIS', 'Visible'),

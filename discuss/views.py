@@ -78,7 +78,7 @@ def create_topic(request, course_slug):
             topic.author = _get_member_as_author(request.user.username, view, course_slug)
             topic.save()
             messages.add_message(request, messages.SUCCESS, 'Discussion topic created successfully.')
-            return HttpResponseRedirect(reverse('discuss.views.discussion_index', kwargs={'course_slug': course_slug}))
+            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_id': topic.pk}))
     else:
         form = discussion_topic_form_factory(view)
     return render(request, 'discuss/create_topic.html', {'course': course, 'form': form})
@@ -92,7 +92,7 @@ def view_topic(request, course_slug, topic_id):
     topic = get_object_or_404(DiscussionTopic, pk=topic_id, offering=course)
     if view == 'student' and topic.status == 'HID':
         raise Http404
-    replies = DiscussionMessage.objects.filter(topic=topic).order_by('created_at')
+    replies = DiscussionMessage.objects.filter(topic=topic).exclude(status='HID').order_by('created_at')
     if request.method == 'POST':
         if topic.status == 'CLO' and not view  == 'staff':
             raise Http404
@@ -126,5 +126,22 @@ def change_topic_status(request, course_slug, topic_id):
     else:
         form = DiscussionTopicStatusForm(instance=topic)
     return render(request, 'discuss/change_topic.html', {'course': course, 'topic': topic, 'form': form})
+
+@login_required
+def remove_message(request ,course_slug, topic_id, message_id):
+    """
+    POST to remove a topic message
+    """
+    course, view = _get_course_and_view(request, course_slug)
+    if not view == 'staff':
+        return HttpResponseForbidden()
+    if request.method != 'POST':
+        raise Http404
+    topic = get_object_or_404(DiscussionTopic, pk=topic_id, offering=course)
+    message = get_object_or_404(DiscussionMessage, pk=message_id, topic=topic)
+    message.status = 'HID'
+    message.save()
+    messages.add_message(request, messages.SUCCESS, 'Reply successfully removed.')
+    return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_id': topic_id}))
     
     

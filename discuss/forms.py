@@ -23,14 +23,14 @@ class _DiscussionTopicForm(forms.ModelForm):
     title = forms.CharField(min_length=15, widget=TextInput(attrs={'size': 60}), help_text="What is this topic about?") 
     class Meta:
         model = DiscussionTopic
-        exclude = ('offering', 'last_activity_at', 'message_count', 'author', 'config', 'status', 'pinned')
+        exclude = ('offering', 'last_activity_at', 'created_at', 'message_count', 'author', 'config', 'status', 'pinned')
         widgets = {
                    'content': Textarea(attrs={'cols': 80, 'rows': 30}),
                    }
         
 class _DiscussionTopicFormStaff(_DiscussionTopicForm):
     class Meta(_DiscussionTopicForm.Meta):
-        exclude = ('offering', 'last_activity_at', 'message_count', 'author', 'config')
+        exclude = ('offering', 'last_activity_at', 'created_at', 'message_count', 'author', 'config')
                    
             
 class DiscussionTopicStatusForm(forms.ModelForm):

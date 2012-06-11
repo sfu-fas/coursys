@@ -152,6 +152,18 @@
 	margin: 1em 0;
 }
 
+.remove-discussion-reply {
+	float: right;
+	cursor: pointer;
+	color: red;
+	padding-left: 18px;
+   	background: transparent url('../icons/action_delete.png') no-repeat center left;
+}
+
+.remove-discussion-reply:hover {
+	text-decoration: underline;
+}
+
 .pagination {
 	height: 36px;
 	margin: 14px 0;
