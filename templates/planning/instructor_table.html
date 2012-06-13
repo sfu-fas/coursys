@@ -1,0 +1,109 @@
+<table class='inst_table'>
+    <tbody>
+        <tr>
+            <th>Select</th>
+            <th>Instructor</th>
+            <th>Currently Assigned Courses</th>
+            <th>Capable Courses</th>
+            <th width="50%">Semester Teaching Plans</th>
+        </tr>
+        {% for data in instructors_list %}
+        <tr>
+            <td class="radiocell">
+                <input type="radio" id="id_{{data.instructor.userid}}" name="instructor" value="{{data.instructor.userid}}" />
+            </td>
+            <td>
+                <label for="id_{{data.instructor.userid}}">
+                {% if data.instructor = planned_offering.instructor %}   
+                    <strong>{{data.instructor}}</strong>
+                {% else %}
+                    {{data.instructor}}
+                {% endif %}
+                </label>
+            </td>
+            <td>
+                {% if data.current_courses %}
+                <ul>
+                    {% for i in data.current_courses %}
+                        {% if i.course == planned_offering.course %}
+                            <li>
+                                <strong>
+                                    {{i.course.subject}} {{i.course.number}}
+                                </strong>
+                            </li>
+                        {% else %}
+                            <li>
+                                {{i.course.subject}} {{i.course.number}}
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+                {% else %}
+                    None
+                {% endif %}
+            </td>
+            <td>
+                {% if data.teachable %}
+                    <ul>
+                    {% for i in data.teachable %}
+                        <li>
+                        {%  if i.course == planned_offering.course %}
+                            <strong>
+                                {{i.course.subject}} {{i.course.number}}
+                            </strong>
+                        {% else %}
+                            {{i.course.subject}} {{i.course.number}}
+                        {% endif %}
+
+                        {% if i.note %}
+                        <div class="note-container">
+                            <a href="javascript:void(0)" class="note">[?]</a>
+                            <div class="note-content">
+                                <strong>Note:</strong>
+                                {{i.note}}
+                            </div>
+                        </div>
+                        {% endif %}
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    None
+                {% endif %}
+            </td>
+            <td>
+                <ul>
+                {% for i in data.intention %}
+                    <li>
+                    {% if i.semester == semester_plan.semester %}
+                        <strong>
+                        {{i.semester}}:
+                        {{i.count}}
+                        </strong>
+                    {% else %}
+                        {{i.semester}}:
+                        {{i.count}}
+                    {% endif %}
+                    {% if i.note %}
+                        <div class="note-container">
+                            <a href="javascript:void(0)" class="note">[?]</a>
+                            <div class="note-content">
+                                <strong>Note:</strong>
+                                {{i.note}}
+                            </div>
+                        </div>
+                    {% endif %}
+                    </li>
+                {% endfor %}
+                </ul>
+            </td>
+        </tr>
+        {%endfor%}
+        {% if planned_offering.instructor %}
+        <tr>
+            <td class="radiocell"><input type="radio" name="instructor" value="None" /></td>
+            <td>Clear Assigned Instructor</td>
+        </tr>
+        {% endif %}
+    </tbody>
+</table>
