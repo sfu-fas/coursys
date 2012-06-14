@@ -62,6 +62,9 @@ class DiscussionTopic(models.Model):
         
     def last_activity_at_delta(self):
         return _time_delta_to_string(self.last_activity_at)
+    
+    def created_at_delta(self):
+        return _time_delta_to_string(self.created_at)
         
     def __unicode___(self):
         return self.title
