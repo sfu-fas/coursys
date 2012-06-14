@@ -30,7 +30,7 @@ def discussion_index(request, course_slug):
     Index page to view all discussion topics
     """
     course, view = _get_course_and_view(request, course_slug)
-    topics = DiscussionTopic.objects.filter(offering=course).exclude(status='HID').order_by('-pinned', '-last_activity_at')
+    topics = DiscussionTopic.objects.filter(offering=course).order_by('-pinned', '-last_activity_at')
     paginator = Paginator(topics, 10)
     try:
         page = int(request.GET.get('page', '1'))
@@ -41,17 +41,6 @@ def discussion_index(request, course_slug):
     except (EmptyPage, InvalidPage):
         topics = paginator.page(paginator.num_pages)
     return render(request, 'discuss/index.html', {'course': course, 'topics': topics, 'view': view})
-
-@login_required()
-def hidden_topics(request, course_slug):
-    """
-    Page to view all hidden discussion topics
-    """
-    course, view = _get_course_and_view(request, course_slug)
-    if not view  == 'staff':
-        return HttpResponseForbidden()
-    topics = DiscussionTopic.objects.filter(offering=course, status='HID').order_by('-last_activity_at')
-    return render(request, 'discuss/hidden_topics.html', {'course': course, 'topics': topics})
 
 def _get_member_as_author(username, discussion_view, course_slug):
     """
