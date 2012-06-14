@@ -51,7 +51,7 @@
 	<ul>
 		{% if request.user.username == topic.author.person.userid and not topic.still_editable %}
 		<li>
-		  	<a href="#">Edit Topic ({{ topic.editable_time_left }} left)</a>
+		  	<a href="{% url discuss.views.edit_topic course_slug=course.slug topic_id=topic.pk %}">Edit Topic ({{ topic.editable_time_left }} left)</a>
 		</li>
 		{% endif %}
 		{% if view == 'staff' %}

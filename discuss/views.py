@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from discuss.forms import discussion_topic_form_factory,\
     DiscussionTopicStatusForm, DiscussionMessageForm
+import datetime
 
 def _get_course_and_view(request, course_slug):
     """
@@ -71,6 +72,29 @@ def create_topic(request, course_slug):
     else:
         form = discussion_topic_form_factory(view)
     return render(request, 'discuss/create_topic.html', {'course': course, 'form': form})
+
+@login_required()
+def edit_topic(request, course_slug, topic_id):
+    """
+    Form to edit a recently posted discussion topic (5 min window)
+    """
+    course, view = _get_course_and_view(request, course_slug)
+    topic = get_object_or_404(DiscussionTopic, pk=topic_id, offering=course)
+    if topic.author.person.userid != request.user.username:
+        return HttpResponseForbidden()
+    if (datetime.datetime.now() - topic.created_at) > datetime.timedelta(minutes = 5):
+        return HttpResponseForbidden()
+    
+    if request.method == 'POST':
+        form = discussion_topic_form_factory(view, request.POST, instance=topic)
+        if form.is_valid():
+            form.save()
+            messages.add_message(request, messages.SUCCESS, 'Discussion topic edited successfully.')
+            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_id': topic.pk}))
+    else:
+        form = discussion_topic_form_factory(view, instance=topic)
+    
+    return render(request, 'discuss/edit_topic.html', {'course': course, 'topic': topic, 'form': form})
 
 @login_required
 def view_topic(request, course_slug, topic_id):

@@ -7,20 +7,20 @@ TOPIC_CHOICES_STAFF = (
                       ('CLO', 'Closed'),
                       )
 
-def discussion_topic_form_factory(view_type, post_data=None):
+def discussion_topic_form_factory(view_type, post_data=None, instance=None):
     """
     Return the current form for a discussion topic based on the view_type (student/staff)
     """
     if view_type == 'student':
-        return _DiscussionTopicForm(post_data)
+        return _DiscussionTopicForm(post_data, instance=instance)
     elif view_type == 'staff':
-        return _DiscussionTopicFormStaff(post_data)
+        return _DiscussionTopicFormStaff(post_data, instance=instance)
     else:
         raise ValueError()
 
             
 class _DiscussionTopicForm(forms.ModelForm):
-    title = forms.CharField(min_length=15, widget=TextInput(attrs={'size': 60}), help_text="What is this topic about?") 
+    title = forms.CharField(widget=TextInput(attrs={'size': 60}), help_text="What is this topic about?") 
     class Meta:
         model = DiscussionTopic
         exclude = ('offering', 'last_activity_at', 'created_at', 'message_count', 'author', 'config', 'status', 'pinned')
