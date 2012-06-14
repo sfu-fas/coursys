@@ -105,7 +105,7 @@ def view_topic(request, course_slug, topic_id):
     topic = get_object_or_404(DiscussionTopic, pk=topic_id, offering=course)
     if view == 'student' and topic.status == 'HID':
         raise Http404
-    replies = DiscussionMessage.objects.filter(topic=topic).exclude(status='HID').order_by('created_at')
+    replies = DiscussionMessage.objects.filter(topic=topic).order_by('created_at')
     if request.method == 'POST':
         if topic.status == 'CLO' and not view  == 'staff':
             raise Http404
@@ -146,15 +146,16 @@ def remove_message(request ,course_slug, topic_id, message_id):
     POST to remove a topic message
     """
     course, view = _get_course_and_view(request, course_slug)
-    if not view == 'staff':
-        return HttpResponseForbidden()
     if request.method != 'POST':
         raise Http404
     topic = get_object_or_404(DiscussionTopic, pk=topic_id, offering=course)
     message = get_object_or_404(DiscussionMessage, pk=message_id, topic=topic)
-    message.status = 'HID'
-    message.save()
-    messages.add_message(request, messages.SUCCESS, 'Reply successfully removed.')
-    return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_id': topic_id}))
+    if view == 'staff' or message.author.person.userid == request.user.username:
+        message.status = 'HID'
+        message.save()
+        messages.add_message(request, messages.SUCCESS, 'Reply successfully removed.')
+        return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_id': topic_id}))
+    else:
+        return HttpResponseForbidden()
     
     

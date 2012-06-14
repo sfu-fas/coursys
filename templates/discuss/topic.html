@@ -106,23 +106,29 @@
 	{% if replies|length > 0 %}
 	{% for reply in replies %}
 		<div class="discussion-topic-reply">
-			<div class="discussion-reply-author">
+			<div class="discussion-reply-author {% if reply.status == 'HID' %}fade-out{% endif %}">
 				{{ reply.author.person.name }} ({{reply.author.person.userid}}),
 			</div>
-			<div class="discussion-reply-time">
+			<div class="{% if reply.status != 'HID' %}discussion-reply-time{% endif %}{% if reply.status == 'HID' %}fade-out{% endif %}">
 				{{ reply.create_at_delta }}
 			</div>
-			
+			{% if reply.status != 'HID' %}
 			<div class="discussion-reply-controls">
-			{% if view == 'staff' %}
+			{% if view == 'staff' or request.user.username == reply.author.person.userid %}
 			<form id="remove-reply-{{ reply.pk }}" action = "{% url discuss.views.remove_message course_slug=course.slug topic_id=topic.pk message_id=reply.pk%}" method="post">
 				{% csrf_token %}
 			</form>
 			<span class="remove-discussion-reply" id="{{ reply.pk }}">Remove</span>
 			{% endif %}
 			</div>
-			<div class="discussion-reply-content">
-				{{ reply.html_content }}
+			{% endif %}
+			<div class="discussion-reply-content {% if reply.status == 'HID' %}fade-out{% endif %}">
+				{% if reply.status == 'HID' %}
+				    <i>This reply has been removed...</i>
+				{% endif %}
+				{% if reply.status != 'HID' %}
+				    {{ reply.html_content }}
+				{% endif %}
 			</div>
 		</div>
 	{% endfor %}
