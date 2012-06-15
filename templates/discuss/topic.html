@@ -45,11 +45,11 @@
 {% endblock %}
 {% block actions %}
 
-{% if view == 'staff' or request.user.username == topic.author.person.userid and not topic.still_editable %}
+{% if view == 'staff' or request.user.username == topic.author.person.userid and topic.still_editable %}
 <div id="actions">
 	<h2 class="heading">Actions</h2>
 	<ul>
-		{% if request.user.username == topic.author.person.userid and not topic.still_editable %}
+		{% if request.user.username == topic.author.person.userid and topic.still_editable %}
 		<li>
 		  	<a href="{% url discuss.views.edit_topic course_slug=course.slug topic_id=topic.pk %}">Edit Topic ({{ topic.editable_time_left }} left)</a>
 		</li>
@@ -111,14 +111,20 @@
 			</div>
 			<div class="{% if reply.status != 'HID' %}discussion-reply-time{% endif %}{% if reply.status == 'HID' %}fade-out{% endif %}">
 				{{ reply.create_at_delta }}
+				{% if reply.was_edited %}
+				    *
+				{% endif %}
 			</div>
 			{% if reply.status != 'HID' %}
 			<div class="discussion-reply-controls">
 			{% if view == 'staff' or request.user.username == reply.author.person.userid %}
-			<form id="remove-reply-{{ reply.pk }}" action = "{% url discuss.views.remove_message course_slug=course.slug topic_id=topic.pk message_id=reply.pk%}" method="post">
+			<form id="remove-reply-{{ reply.pk }}" action = "{% url discuss.views.remove_message course_slug=course.slug topic_id=topic.pk message_id=reply.pk %}" method="post">
 				{% csrf_token %}
 			</form>
 			<span class="remove-discussion-reply" id="{{ reply.pk }}">Remove</span>
+			{% endif %}
+			{% if reply.still_editable and request.user.username == reply.author.person.userid %}
+			    <a href="{% url discuss.views.edit_message course_slug=course.slug topic_id=topic.pk message_id=reply.pk %}" class="edit-discussion-reply">Edit ({{ reply.editable_time_left }})</a>
 			{% endif %}
 			</div>
 			{% endif %}

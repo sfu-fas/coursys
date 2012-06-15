@@ -87,8 +87,8 @@ class DiscussionTopic(models.Model):
     
     def still_editable(self):
         td = datetime.datetime.now() - self.created_at
-        minutes = divmod(td.days * 86400 + td.seconds, 60)[0]
-        return minutes >= 2
+        seconds = td.days * 86400 + td.seconds
+        return seconds <= 120
     
     def editable_time_left(self):
         td = datetime.datetime.now() - self.created_at
@@ -130,3 +130,21 @@ class DiscussionMessage(models.Model):
     
     def create_at_delta(self):
         return _time_delta_to_string(self.created_at)
+    
+    def still_editable(self):
+        td = datetime.datetime.now() - self.created_at
+        seconds = td.days * 86400 + td.seconds
+        return seconds <= 120
+    
+    def editable_time_left(self):
+        td = datetime.datetime.now() - self.created_at
+        seconds = td.days * 86400 + td.seconds
+        if seconds > 120:
+            return 'none'
+        minutes, seconds = divmod(120 - seconds, 60)
+        return "%dm:%ds" % (minutes, seconds)
+    
+    def was_edited(self):
+        td = self.modified_at - self.created_at
+        return self.modified_at > self.created_at and td > datetime.timedelta(seconds=3) and self.status != 'HID'
+    

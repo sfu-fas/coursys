@@ -160,8 +160,23 @@
 }
 
 .remove-discussion-reply:hover {
-	text-decoration: underline;
+    text-decoration: underline;
 }
+
+.edit-discussion-reply {
+    float: right;
+    cursor: pointer;
+    color: #D2761A;
+    padding-left: 18px;
+    background: transparent url('../icons/page_white_edit.png') no-repeat center left;
+    margin-right: .6em;
+}
+
+.edit-discussion-reply:hover {
+    text-decoration: underline;
+    color: #D2761A;
+}
+
 
 .fade-out {
 	opacity: 0.4;

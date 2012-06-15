@@ -104,6 +104,7 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_SLUG + '/discussion/topic/(?P<topic_id>\d+)/edit/$', 'discuss.views.edit_topic'),
     url(r'^' + COURSE_SLUG + '/discussion/topic/(?P<topic_id>\d+)/change/$', 'discuss.views.change_topic_status'),
     url(r'^' + COURSE_SLUG + '/discussion/topic/(?P<topic_id>\d+)/remove-reply/(?P<message_id>\d+)/$', 'discuss.views.remove_message'),
+    url(r'^' + COURSE_SLUG + '/discussion/topic/(?P<topic_id>\d+)/edit-reply/(?P<message_id>\d+)/$', 'discuss.views.edit_message'),
     
     # course activities/grades
 
@@ -290,8 +291,11 @@ urlpatterns += patterns('',
     url(r'^admin/signatures/' + USERID_SLUG + '/delete', 'dashboard.views.delete_signature'),
     url(r'^admin/(?P<unit_slug>[\w-]+)/address$', 'coredata.views.unit_address'),
 
-    
-#----- Graduate student database
+)
+
+urlpatterns += patterns('',
+                        
+    #Graduate student database
 
     url(r'^grad/$', 'grad.views.index'),
     url(r'^grad/import$', 'grad.views.import_applic'),
@@ -352,10 +356,6 @@ urlpatterns += patterns('',
     url(r'^ra/' + RA_SLUG + '/edit$', 'ra.views.edit'),
     url(r'^ra/' + RA_SLUG + '/edit_letter$', 'ra.views.edit_letter'),
     url(r'^ra/' + RA_SLUG + '/reappoint$', 'ra.views.reappoint'),
-
-)
-
-urlpatterns += patterns('',
     
     # Advisor Notes
     

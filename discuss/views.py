@@ -83,7 +83,7 @@ def edit_topic(request, course_slug, topic_id):
     if topic.author.person.userid != request.user.username:
         return HttpResponseForbidden()
     if (datetime.datetime.now() - topic.created_at) > datetime.timedelta(minutes = 5):
-        return HttpResponseForbidden()
+        raise Http404
     
     if request.method == 'POST':
         form = discussion_topic_form_factory(view, request.POST, instance=topic)
@@ -139,6 +139,30 @@ def change_topic_status(request, course_slug, topic_id):
     else:
         form = DiscussionTopicStatusForm(instance=topic)
     return render(request, 'discuss/change_topic.html', {'course': course, 'topic': topic, 'form': form})
+
+
+@login_required()
+def edit_message(request, course_slug, topic_id, message_id):
+    """
+    Form to edit a recently posted reply (5 min window)
+    """
+    course, view = _get_course_and_view(request, course_slug)
+    topic = get_object_or_404(DiscussionTopic, pk=topic_id, offering=course)
+    message = get_object_or_404(DiscussionMessage, pk=message_id, topic=topic)
+    if not message.author.person.userid == request.user.username:
+        return HttpResponseForbidden
+    if (datetime.datetime.now() - message.created_at) > datetime.timedelta(minutes = 5):
+        raise Http404
+    
+    if request.method == 'POST':
+        form = DiscussionMessageForm(request.POST, instance=message)
+        if form.is_valid():
+            form.save()
+            messages.add_message(request, messages.SUCCESS, 'Reply successfully edited.')
+            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_id': topic_id}))
+    else:
+        form = DiscussionMessageForm(instance=message)
+    return render(request, 'discuss/edit_reply.html', {'course':course, 'topic': topic, 'message': message, 'form': form})
 
 @login_required
 def remove_message(request ,course_slug, topic_id, message_id):
