@@ -28,12 +28,10 @@ urlpatterns += patterns('planning.views',
 	url(r'^planning/' + SEMESTER + '/' + PLAN_SLUG + '$', 'edit_courses'),
 	url(r'^planning/delete_course_from_plan/(?P<course_id>\w+)/(?P<plan_id>\w+)/$', 'delete_course_from_plan'),
     url(r'^planning/' + SEMESTER + '/' + PLAN_SLUG + '/' + PLANNED_OFFERING_SLUG + '/assign$', 'view_instructors'),
-	url(r'^planning/activate_plan/(?P<plan_id>\w+)/$', 'activate_plan'),
-	url(r'^planning/inactivate_plan/(?P<plan_id>\w+)/$', 'inactivate_plan'),
 	url(r'^planning/' + SEMESTER + '/' + PLAN_SLUG + '/delete$', 'delete_plan'),
 
 	url(r'^semester_plans/$', 'semester_plan_index'),
-	url(r'^semester_plans/' + SEMESTER + '/view$', 'view_semester_plan'),
+	url(r'^semester_plans/' + SEMESTER + '/' + PLAN_SLUG + '$', 'view_semester_plan'),
 )
 
 

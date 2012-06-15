@@ -10,8 +10,7 @@ $(document).ready(function() {
     'bInfo': false,
     'bLengthChange': true,
     "bJQueryUI": true,
-	"sPaginationType": "full_numbers",
-	"iDisplayLength" : 10
+	"sPaginationType": "full_numbers"
   } );
 } );
 </script>
@@ -23,40 +22,30 @@ $(document).ready(function() {
 {% block subbreadcrumbs %}<li>&gt; Semester Plans</li>{% endblock %}
 
 
-
-
 {% block content %}
 
 <div class="datatable_container">
     <h2>Course Plans</h2>
+    {% if plan_list %}
     <table class="display" id="plans">
         <thead>
             <tr>
-                <th scope="col">Plan Name</th>
                 <th scope="col">Semester</th>
-                <th scope="col">Visibility</th>
-
+                <th scope="col">Plan Name</th>
             </tr>
         </thead>
-
         <tbody>
-		{% if plan_list %}
 			{% for plan in plan_list %}
 			<tr>
-				<td><a href="{% url planning.views.view_semester_plan semester=plan.semester.name %}">{{ plan.name }}</a></td>
-				<td>{{ plan.semester.label }}</td>
-				<td>{{ plan.get_visibility_display }}</td>
-
+                <td>{{ plan.semester.label }}</td>
+				<td><a href="{% url planning.views.view_semester_plan semester=plan.semester.name plan_slug=plan.slug %}">{{ plan.name }}</a></td>
 			</tr>		
 			{%endfor%}
-		{% else %}
-			
-			<h5>No Plan Has Been Activated or Permission Required</h5>
-
-		{% endif %}
-
         </tbody>
     </table>
+    {% else %}
+        <p>There are no semester plans at the moment.</p>
+    {% endif %}
 </div>
 
 {% endblock content %}

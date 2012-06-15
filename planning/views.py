@@ -415,28 +415,36 @@ def semester_plan_index(request):
     person = get_object_or_404(Person, userid=userid)
     roles = Role.objects.filter(person=person)
 
-    admin = 0
-    inst = 0
+    user = semester_visibility(roles)
 
-    for role in roles:
-        if role.role == 'PLAN':
-            admin = 1
-        elif role.role == 'FAC' or role.role == 'SESS':
-            inst = 1
+    plan_list = SemesterPlan.objects.filter(visibility__in=user).order_by('semester')
 
-    if admin == 1:
-        plan_list = SemesterPlan.objects.filter(active=True, visibility__in=['ADMI', 'INST', 'ALL']).order_by('semester')
-    elif inst == 1 and admin == 0:
-        plan_list = SemesterPlan.objects.filter(active=True, visibility__in=['INST', 'ALL']).order_by('semester')
-    elif admin == 0 and inst == 0:
-        plan_list = SemesterPlan.objects.filter(active=True, visibility='ALL').order_by('semester')
-
-    return render_to_response("planning/semester_plan_index.html",{'userid':userid, 'plan_list':plan_list},context_instance=RequestContext(request))
+    return render_to_response("planning/semester_plan_index.html", {'userid':userid, 'plan_list':plan_list}, context_instance=RequestContext(request))
 
 
 @login_required
-def view_semester_plan(request, semester):
-    plan = get_object_or_404(SemesterPlan, semester__name=semester, active=True)
-    planned_courses_list = PlannedOffering.objects.filter(plan=plan)
-        
-    return render_to_response("planning/view_semester_plan.html",{'plan':plan, 'planned_courses_list':planned_courses_list},context_instance=RequestContext(request))
+def view_semester_plan(request, semester, plan_slug):
+    userid = request.user.username
+    person = get_object_or_404(Person, userid=userid)
+    roles = Role.objects.filter(person=person)
+
+    user = semester_visibility(roles)
+
+    plan = get_object_or_404(SemesterPlan, slug=plan_slug, visibility__in=user)
+
+    planned_offerings_list = PlannedOffering.objects.filter(plan=plan)
+    
+    return render_to_response("planning/view_semester_plan.html", {'plan':plan, 'planned_offerings_list': planned_offerings_list}, context_instance=RequestContext(request))
+
+
+def semester_visibility(roles):
+    user = ['ALL']
+
+    for role in roles:
+        if role.role == 'PLAN':
+            user = ['ADMI', 'INST', 'ALL']
+            break
+        elif role.role == 'FAC' or role.role == 'SESS' or role.role == 'COOP':
+            user = ['INST', 'ALL']
+
+    return user

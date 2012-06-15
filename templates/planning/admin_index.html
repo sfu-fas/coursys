@@ -44,7 +44,6 @@ $(document).ready(function() {
                 <th scope="col">Semester</th>
                 <th scope="col">Plan Name</th>
                 <th scope="col">Visibility</th>
-                <th scope="col">Activate</th>
             </tr>
         </thead>
 
@@ -55,14 +54,7 @@ $(document).ready(function() {
             <td>{{ plan.semester.label }}</td>
             <td><a href="{% url planning.views.edit_courses semester=plan.semester.name plan_slug=plan.slug %}">{{ plan.name }}</a></td>
 
-            <td>{{ plan.get_visibility_display }}</td>
-            <td>
-                {% if plan.active %}
-                    <a href="{% url planning.views.inactivate_plan plan_id=plan.id %}">Inactivate</a>
-                {% else %}
-                    <a href="{% url planning.views.activate_plan plan_id=plan.id %}">Activate</a>
-                {% endif %}
-            </td>        
+            <td>{{ plan.get_visibility_display }}</td>  
         {%endfor%}
 
         </tbody>
