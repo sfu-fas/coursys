@@ -1,10 +1,23 @@
 from django.db import models
-from coredata.models import Person, Role, Semester, Course, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES, Member, Unit
+from coredata.models import Person, Role, Semester, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES, Member, Unit, Course
 from django.forms import ModelForm
 from autoslug import AutoSlugField
 from dashboard.models import *
 from django.core.urlresolvers import reverse
 
+
+COURSE_STATUS_CHOICES = [
+    ('OPEN', 'Open'),
+    ('HIDE', 'Hidden')]
+
+class PlanningCourse(Course):
+    owner = models.ForeignKey(Unit, null=False)
+    status = models.CharField(max_length=4, choices=COURSE_STATUS_CHOICES, default="OPEN", help_text="Status of this course")
+
+    class Meta:
+        unique_together = ()
+        ordering = ('subject', 'number')
+    
 
 class TeachingCapability(models.Model):
     instructor = models.ForeignKey(Person, null=False)
@@ -24,7 +37,7 @@ class TeachingIntention(models.Model):
     semester = models.ForeignKey(Semester, null=False)
     count = models.PositiveSmallIntegerField(help_text="The number of courses the instructor plans to teach in this semester.")    
     note = models.TextField(null=True, blank=True, default="", help_text="Additional information for those doing the course planning.")
-    intentionfull = models.BooleanField(default = False)
+    intentionfull = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-semester', 'instructor']
@@ -47,7 +60,7 @@ class SemesterPlan(models.Model):
     semester = models.ForeignKey(Semester)
     name = models.CharField(max_length=70, help_text="A name to help you remeber which plan this is.")
     visibility = models.CharField(max_length=4, choices=VISIBILITY_CHOICES, default="ADMI", help_text="Who can see this plan?")
-    active = models.BooleanField(default = False, help_text="The currently-active plan for this semester.")
+    # active = models.BooleanField(default = False, help_text="The currently-active plan for this semester.")
     slug = AutoSlugField(populate_from='name', null=False, editable=False, unique_with='semester')
     unit = models.ForeignKey(Unit, help_text='The academic unit that owns this course plan')
 
@@ -56,23 +69,23 @@ class SemesterPlan(models.Model):
 
     def save(self, *args, **kwargs):
         super(SemesterPlan, self).save(*args, **kwargs)
-        if self.active:
-            other_plans = SemesterPlan.objects.filter(semester=self.semester, active=True).exclude(pk = self.id)
-            for other_plan in other_plans:
-	        other_plan.active = False
-                super(SemesterPlan, other_plan).save(*args, **kwargs)
+        # if self.active:
+        #     other_plans = SemesterPlan.objects.filter(semester=self.semester, active=True).exclude(pk = self.id)
+        #     for other_plan in other_plans:
+	       #  other_plan.active = False
+        #         super(SemesterPlan, other_plan).save(*args, **kwargs)
             
-            if self.visibility == 'ADMI':
-                mem_list = Role.objects.filter(role='PLAN').order_by('person')
-            elif self.visibility == 'INST':
-                mem_list = Role.objects.filter(role__in=['FAC', 'SESS', 'PLAN']).order_by('person')
-            elif self.visibility == 'ALL':
-                mem_list = Member.objects.filter().order_by('person')
+        #     if self.visibility == 'ADMI':
+        #         mem_list = Role.objects.filter(role='PLAN').order_by('person')
+        #     elif self.visibility == 'INST':
+        #         mem_list = Role.objects.filter(role__in=['FAC', 'SESS', 'PLAN']).order_by('person')
+        #     elif self.visibility == 'ALL':
+        #         mem_list = Member.objects.filter().order_by('person')
 
-            mem_set = set([i.person for i in mem_list])
-            for m in mem_set:
-                n = NewsItem(user=m, author=None, source_app="planning", title="Course plan: %s for %s is available" % (self.name, self.semester), content="%s for %s has been released" % (self.name, self.semester), url=self.get_absolute_url())
-                n.save()
+        #     mem_set = set([i.person for i in mem_list])
+        #     for m in mem_set:
+        #         n = NewsItem(user=m, author=None, source_app="planning", title="Course plan: %s for %s is available" % (self.name, self.semester), content="%s for %s has been released" % (self.name, self.semester), url=self.get_absolute_url())
+        #         n.save()
 
     class Meta:
         ordering = ['semester', 'name']
@@ -108,5 +121,3 @@ class MeetingTime(models.Model):
 
     class Meta:
         ordering = ['offering', 'weekday']
-
-

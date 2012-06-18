@@ -4,7 +4,8 @@ from planning.models import *
 import re
 
 section_re = re.compile("^[A-Z]\d\d\d$")
-LAB_SECTION_CHOICES = [(str(i), str(i)) for i in range(16)]
+LAB_SECTION_CHOICES = [(str(i), str(i)) for i in range(20)]
+
 
 class ModelFormWithInstructor(forms.ModelForm):
     def clean(self):
@@ -13,6 +14,7 @@ class ModelFormWithInstructor(forms.ModelForm):
 
         return super(ModelFormWithInstructor, self).clean()
 
+
 class CapabilityForm(ModelFormWithInstructor):
     class Meta:
         model = TeachingCapability
@@ -20,6 +22,7 @@ class CapabilityForm(ModelFormWithInstructor):
             'instructor': forms.HiddenInput(),
             'note': forms.Textarea(attrs={'rows':2, 'cols':40}),
         }
+
 
 class IntentionForm(ModelFormWithInstructor):
     class Meta:
@@ -31,13 +34,18 @@ class IntentionForm(ModelFormWithInstructor):
             'note': forms.Textarea(attrs={'rows':2, 'cols':40}),
         }
 
+
 class CourseForm(forms.ModelForm):
     class Meta:
-        model = Course
+        model = PlanningCourse
+        exclude = ('config', 'status')
+    fields = ('subject', 'number', 'title', 'owner')
+
 
 class PlanBasicsForm(forms.ModelForm):
     class Meta:
         model = SemesterPlan
+
 
 class CopyPlanForm(forms.ModelForm):
     copy_plan_from = forms.ChoiceField()
@@ -47,12 +55,12 @@ class CopyPlanForm(forms.ModelForm):
     
     class Meta:
         model = SemesterPlan
-	fields = ('copy_plan_from','semester', 'name', 'visibility', 'active')
+        fields = ('copy_plan_from','semester', 'name', 'visibility')
 
 
 class OfferingBasicsForm(forms.ModelForm):
-    lab_sections = forms.ChoiceField(choices=LAB_SECTION_CHOICES)
-    lab_enrl_cap = forms.IntegerField(label="Lab enrollment cap", required=False)
+    lab_sections = forms.ChoiceField(choices=LAB_SECTION_CHOICES, label="Additional sections")
+    lab_enrl_cap = forms.IntegerField(label="Additional section cap", required=False)
     enrl_cap = forms.IntegerField(label="Enrollment cap")
 
     def clean_section(self):
@@ -67,23 +75,13 @@ class OfferingBasicsForm(forms.ModelForm):
         if lab_sections > 0 and not isinstance(lab_enrl_cap, int):
             raise forms.ValidationError("Lab enrollment cap is required when adding lab sections")
         return lab_enrl_cap
-        
+
     class Meta:
         model = PlannedOffering
         fields = ('course', 'section', 'component', 'campus', 'enrl_cap')
+
 
 class OfferingInstructorForm(forms.ModelForm):
     class Meta:
         model = PlannedOffering
         fields = ('instructor',)
-
-
-	
-	
-	
-	
-	
-	
-	
-	
-

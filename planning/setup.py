@@ -19,11 +19,11 @@ for o in CourseOffering.objects.filter(graded=True):
         taught[key].add(i.person)
 
 for subj, num in courses:
-    # create Course object
+    # create PlanningCourse object
     title = courses[(subj, num)]
-    cs = Course.objects.filter(subject=subj, number=num)
+    cs = PlanningCourse.objects.filter(subject=subj, number=num)
     if not cs:
-        c = Course(subject=subj, number=num, title=title)
+        c = PlanningCourse(subject=subj, number=num, title=title)
         c.save()
     else:
         c = cs[0]

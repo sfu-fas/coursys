@@ -56,24 +56,21 @@ $(document).ready(function() {
         </thead>
 
         <tbody>
-        {% for planned_offering in planned_offerings_list %}
-
-        <tr>
-            <td>{{ planned_offering.course.subject }}</td>
-            <td>{{ planned_offering.course.number }}</td>
-            <td>{{ planned_offering.course.title }}</td>
-            <td>
-                {{ planned_offering.instructor }}
-                [<a href="{% url planning.views.view_instructors semester=plan.semester.name plan_slug=plan.slug planned_offering_slug=planned_offering.slug %}">Edit</a>]
-            </td>
-            <td>{{ planned_offering.section }}</td>
-            <td>{{ planned_offering.get_campus_display }}</td>
-            <td>{{ planned_offering.get_component_display }}</td>
-            <td><a href="{% url planning.views.delete_course_from_plan course_id=planned_offering.id plan_id=plan.id %}">Remove</td>
-        </tr>
-        
-        {%endfor%}
-
+            {% for planned_offering in planned_offerings_list %}
+            <tr>
+                <td>{{ planned_offering.course.subject }}</td>
+                <td>{{ planned_offering.course.number }}</td>
+                <td>{{ planned_offering.course.title }}</td>
+                <td>
+                    {{ planned_offering.instructor }}
+                    (<a href="{% url planning.views.view_instructors semester=plan.semester.name plan_slug=plan.slug planned_offering_slug=planned_offering.slug %}">Edit</a>)
+                </td>
+                <td>{{ planned_offering.section }}</td>
+                <td>{{ planned_offering.get_campus_display }}</td>
+                <td>{{ planned_offering.get_component_display }}</td>
+                <td><a href="{% url planning.views.delete_course_from_plan course_id=planned_offering.id plan_id=plan.id %}">Remove</td>
+            </tr>
+            {%endfor%}
         </tbody>
     </table>
 </div>
@@ -86,6 +83,5 @@ $(document).ready(function() {
             <div><input class="submit" type="submit" value="Submit" /></div>
         </fieldset>
     </form>
-
 </div>
 {% endblock%}
