@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Semester Teaching Plans{% endblock %}
+{% block h1 %}Semester Teaching Plans{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('table.display').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'bFilter': false
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url planning.views.planner_add_intention %}">Add a Semester Teaching Plan</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li>
+<li>&gt; Semester Teaching Plans</li>
+{% endblock %}
+
+{% block content %}
+<div id="intention" class="table_container">
+	{% for semester, intentions in plans %}
+		<h2>{{ semester.label }}</h2>
+		{% if intentions %}
+			<table class="display">
+				<thead>
+					<tr>
+						<th>Instructor</th>
+						<th>Courses</th>
+						<th>Options</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for i in intentions %}
+						<tr>
+							<td>{{ i.instructor }}</td>
+							<td>
+								{{ i.count }}
+			                    {% if i.note %}
+			                        <div class="note-container">
+			                            <a href="javascript:void(0)" class="note">[?]</a>
+			                            <div class="note-content">
+			                                <strong>Note:</strong>
+			                                {{i.note}}
+			                            </div>
+			                        </div>
+			                    {% endif %}
+							</td>
+							<td>
+								<a href="{% url planning.views.planner_edit_intention semester=semester.name userid=i.instructor.userid %}">Edit</a> |
+								<a href="{% url planning.views.planner_delete_intention semester=semester.name userid=i.instructor.userid %}">Remove</a>
+							</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>		
+		{% else %}
+			<p>There are no semester teaching plans for this semester.</p>
+		{% endif %}
+	{% endfor %}
+</div>	
+{% endblock%}
+
+
+
+

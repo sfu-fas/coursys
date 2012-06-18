@@ -6,6 +6,7 @@ from django.db.models import Q
 from coredata.models import Person, Role, Semester, Member, CourseOffering, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES 
 from log.models import LogEntry
 from django.contrib.auth.decorators import login_required
+from django.forms.models import inlineformset_factory
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect
@@ -126,6 +127,83 @@ def admin_index(request):
     plan_list = SemesterPlan.objects.filter(unit__in=request.units).order_by('semester')
 
     return render_to_response("planning/admin_index.html",{'userid':userid, 'plan_list':plan_list}, context_instance=RequestContext(request))
+
+
+@requires_role('PLAN')
+def view_intentions(request):
+    semesters = Semester.objects.all().order_by('-end')
+    intentions = []
+
+    for s in semesters:
+        intentions.append(TeachingIntention.objects.filter(semester=s))
+
+    plans = zip(semesters, intentions)
+    return render_to_response("planning/view_intentions.html", {'plans': plans}, context_instance=RequestContext(request))
+
+
+@requires_role('PLAN')
+def planner_add_intention(request):
+    instructors = Person.objects.filter(role__role__in=["FAC", "SESS", "COOP"], role__unit__in=request.units)
+    instructor_list = [(i.id, i) for i in instructors]
+    ##instructors = [(i.id, i.name) for i in Person.objects.filter(role__in=['FAC', 'ADV', 'COOP'])]
+
+    if request.method == 'POST':
+        form = PlannerIntentionForm(request.POST)
+
+        if form.is_valid():
+            intention = form.save()
+            
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                      description=("added teaching intention for %s") % (intention.instructor),
+                      related_object=intention)
+            l.save()
+            messages.add_message(request, messages.SUCCESS, 'Added semester plan for %s.' % (intention.instructor.name()))
+
+            return HttpResponseRedirect(reverse('planning.views.view_intentions', kwargs={}))
+    else:
+        form = PlannerIntentionForm()
+        form.fields['instructor'].choices = instructor_list
+    
+    return render_to_response("planning/planner_add_intention.html", {'form': form}, context_instance=RequestContext(request))
+
+
+@requires_role('PLAN')
+def planner_edit_intention(request, semester, userid):
+    instructor = get_object_or_404(Person, userid=userid)
+    semester = get_object_or_404(Semester, name=semester)
+    intention = get_object_or_404(TeachingIntention, semester=semester, instructor__userid=userid)
+
+    if request.method == 'POST':
+        form = IntentionForm(request.POST, instance=intention)
+        form.instructor_id = instructor.id
+        if form.is_valid():
+            intention = form.save()
+            
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                      description=("edited teaching intention for %s") % (intention.instructor),
+                      related_object=intention)
+            l.save()
+            messages.add_message(request, messages.SUCCESS, 'Edited semester plan for %s.' % (intention.instructor))
+
+            return HttpResponseRedirect(reverse('planning.views.view_intentions', kwargs={}))
+    else:
+        form = IntentionForm(initial={'instructor':instructor}, instance=intention)
+    
+    return render_to_response("planning/planner_edit_intention.html", {'semester': semester, 'instructor': instructor, 'form': form}, context_instance=RequestContext(request))
+
+
+@requires_role('PLAN')
+def planner_delete_intention(request, semester, userid):
+    instructor = get_object_or_404(Person, userid=userid)
+    semester = get_object_or_404(Semester, name=semester)
+    intention = get_object_or_404(TeachingIntention, semester=semester, instructor__userid=userid)
+
+    messages.add_message(request, messages.SUCCESS, '%s plan for %s removed.' % (semester, instructor.name()))
+    intention.delete()
+
+    return HttpResponseRedirect(reverse('planning.views.view_intentions', kwargs={}))
 
 
 @requires_role('PLAN')

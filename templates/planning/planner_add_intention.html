@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Add Semester Teaching Plan{% endblock %}
+{% block h1 %}Add Semester Teaching Plan{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li>
+<li>&gt; <a href="{% url planning.views.view_intentions %}">Semester Teaching Plans</a></li>
+<li>&gt; Add Semester Teaching Plan</li>
+{% endblock %}
+
+{% block content %}
+<div id="form_container">
+    <form action="{% url planning.views.planner_add_intention %}" method="post">{% csrf_token %}
+        <fieldset>
+            <legend>Semester Teaching Plan</legend>
+            {{form|as_dl}}
+            <div><input class="submit" type="submit" value="Submit" /></div>
+        </fieldset>
+    </form>
+</div>
+{% endblock%}
+

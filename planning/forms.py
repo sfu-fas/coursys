@@ -24,6 +24,16 @@ class CapabilityForm(ModelFormWithInstructor):
         }
 
 
+class PlannerIntentionForm(forms.ModelForm):
+    class Meta:
+        model = TeachingIntention
+        exclude = ('intentionfull',)
+        widgets = {
+            'count': forms.TextInput(attrs={'size':2}),
+            'note': forms.Textarea(attrs={'rows':2, 'cols':40}),
+        }
+
+
 class IntentionForm(ModelFormWithInstructor):
     class Meta:
         model = TeachingIntention
