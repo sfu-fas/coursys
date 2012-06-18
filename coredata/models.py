@@ -9,6 +9,7 @@ from jsonfield import JSONField
 from courselib.json_fields import getter_setter
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
+import fractions
 
 def repo_name(offering, slug):
     """
@@ -625,7 +626,7 @@ class Member(models.Model):
 
     defaults = {'bu': 0, 'teaching_credit': 1, 'last_discuss': 0}
     bu, set_bu = getter_setter('bu')
-    teaching_credit, set_teaching_credit = getter_setter('teaching_credit')
+    teaching_credit_str, set_teaching_credit_str = getter_setter('teaching_credit')
     last_discuss, set_last_discuss = getter_setter('last_discuss')
     
     def __unicode__(self):
@@ -648,6 +649,12 @@ class Member(models.Model):
 
         if others:
             raise ValidationError('There is another membership with this person, offering, and role.  These must be unique for a membership (unless role is "dropped").')
+
+    def teaching_credit(self):
+        return fractions.Fraction(self.teaching_credit_str())
+    def set_teaching_credit(self, cred):
+        assert isinstance(cred, fractions.Fraction) or isinstance(cred, int)
+        self.set_teaching_credit_str(unicode(cred))
 
     def svn_url(self):
         "SVN URL for this member (assuming offering.uses_svn())"

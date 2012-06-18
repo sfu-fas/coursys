@@ -341,6 +341,11 @@ def import_offering(subject, number, section, strm, crse_id, class_nbr, componen
     c.owner = owner
     c.slug = c.autoslug() # rebuild slug in case section changes for some reason
     c.save()
+    
+    crs = c.course
+    if crs.title != c.title:
+        crs.title = c.title
+        crs.save()
 
     return c
 
