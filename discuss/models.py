@@ -1,4 +1,4 @@
-from coredata.models import CourseOffering, Member
+from coredata.models import Member, CourseOffering
 from django.db import models
 from jsonfield.fields import JSONField
 from pages.models import ParserFor

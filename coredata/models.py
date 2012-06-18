@@ -621,8 +621,9 @@ class Member(models.Model):
         #     default: self.offering (if accessed by m.get_origsection())
         # 'bu': The number of BUs this TA has
 
-    defaults = {'bu': 0}
+    defaults = {'bu': 0, 'last_discuss': 0}
     bu, set_bu = getter_setter('bu')
+    last_discuss, set_last_discuss = getter_setter('last_discuss')
     
     def __unicode__(self):
         return "%s (%s) in %s" % (self.person.userid, self.person.emplid, self.offering,)
@@ -663,6 +664,7 @@ class Member(models.Model):
         ordering = ['offering', 'person']
     def get_absolute_url(self):
         return reverse('grades.views.student_info', kwargs={'course_slug': self.offering.slug, 'userid': self.person.userid})
+        
 
 
 WEEKDAY_CHOICES = (

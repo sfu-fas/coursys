@@ -1,4 +1,4 @@
-from coredata.models import CourseOffering, Person, Member
+from coredata.models import CourseOffering, Member
 from courselib.auth import is_course_student_by_slug, is_course_staff_by_slug
 from discuss.models import DiscussionTopic, DiscussionMessage
 from django.contrib.auth.decorators import login_required
@@ -10,6 +10,7 @@ from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from discuss.forms import discussion_topic_form_factory,\
     DiscussionTopicStatusForm, DiscussionMessageForm
 import datetime
+import activity
 
 def _get_course_and_view(request, course_slug):
     """
@@ -25,6 +26,17 @@ def _get_course_and_view(request, course_slug):
     else:
         return HttpResponseForbidden()
 
+def _get_member(username, discussion_view, course_slug):
+    """
+    Retrieves the Member object for a discussion topic/message
+    """
+    if discussion_view is 'student':
+        return Member.objects.filter(offering__slug=course_slug, person__userid=username, role="STUD", offering__graded=True).exclude(offering__component="CAN")[0]
+    elif discussion_view is 'staff':
+        return Member.objects.filter(offering__slug=course_slug, person__userid=username, role__in=['INST', 'TA', 'APPR'], offering__graded=True).exclude(offering__component="CAN")[0]
+    else:
+        raise ValueError("Discussion view type must be either 'student' or 'staff'")
+
 @login_required
 def discussion_index(request, course_slug):
     """
@@ -32,6 +44,7 @@ def discussion_index(request, course_slug):
     """
     course, view = _get_course_and_view(request, course_slug)
     topics = DiscussionTopic.objects.filter(offering=course).order_by('-pinned', '-last_activity_at')
+    activity.update_last_viewed(_get_member(request.user.username, view, course_slug))
     paginator = Paginator(topics, 10)
     try:
         page = int(request.GET.get('page', '1'))
@@ -42,17 +55,6 @@ def discussion_index(request, course_slug):
     except (EmptyPage, InvalidPage):
         topics = paginator.page(paginator.num_pages)
     return render(request, 'discuss/index.html', {'course': course, 'topics': topics, 'view': view})
-
-def _get_member_as_author(username, discussion_view, course_slug):
-    """
-    Retrieves the Member object for a discussion topic/message
-    """
-    if discussion_view is 'student':
-        return Member.objects.filter(offering__slug=course_slug, person__userid=username, role="STUD", offering__graded=True).exclude(offering__component="CAN")[0]
-    elif discussion_view is 'staff':
-        return Member.objects.filter(offering__slug=course_slug, person__userid=username, role__in=['INST', 'TA', 'APPR'], offering__graded=True).exclude(offering__component="CAN")[0]
-    else:
-        raise ValueError("Discussion view type must be either 'student' or 'staff'")
     
 @login_required
 def create_topic(request, course_slug):
@@ -65,7 +67,7 @@ def create_topic(request, course_slug):
         if form.is_valid():
             topic = form.save(commit=False)
             topic.offering = course
-            topic.author = _get_member_as_author(request.user.username, view, course_slug)
+            topic.author = _get_member(request.user.username, view, course_slug)
             topic.save()
             messages.add_message(request, messages.SUCCESS, 'Discussion topic created successfully.')
             return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_id': topic.pk}))
@@ -113,7 +115,7 @@ def view_topic(request, course_slug, topic_id):
         if form.is_valid():
             message = form.save(commit=False)
             message.topic = topic
-            message.author = _get_member_as_author(request.user.username, view, course_slug)
+            message.author = _get_member(request.user.username, view, course_slug)
             message.save()
             messages.add_message(request, messages.SUCCESS, 'Sucessfully replied')
             return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_id': topic.pk}))

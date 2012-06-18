@@ -111,7 +111,14 @@
 	<li><a href="{% url grades.views.course_config course_slug=course.slug %}">Edit Course Setup</a></li>
         <li><a href="{% url grades.views.activity_choice course_slug=course.slug %}">Add Activity</a></li>
         {% if course.discussion %}
-        <li><a href="{% url discuss.views.discussion_index course_slug=course.slug %}">Course Discussion</a></li>    
+        <li>
+        	<a href="{% url discuss.views.discussion_index course_slug=course.slug %}">
+        		Course Discussion
+        		{% if discussion_activity %}
+                <img src="{{ MEDIA_URL }}/icons/required_star.gif" alt="New Activity" />
+                {% endif %}
+        	</a>
+        </li>    
         {% endif %}
         <li class="newsec"><a href="{% url grades.views.class_list course_slug=course.slug %}">Display Class List</a></li>
         <li><a href="{% url grades.views.all_grades course_slug=course.slug %}">Display All Grades</a></li>

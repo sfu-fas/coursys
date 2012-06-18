@@ -38,6 +38,7 @@ from submission.models import SubmissionComponent, GroupSubmission, StudentSubmi
 
 from log.models import LogEntry
 from pages.models import Page, ACL_ROLES
+from discuss import activity as discuss_activity
 
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
 
@@ -122,8 +123,12 @@ def _course_info_staff(request, course_slug):
     if len(activities) == 0:
         messages.info(request, "Students won't see this course in their menu on the front page. As soon as some activities have been added, they will see a link to the course info page.")
     
+    discussion_activity = False
+    if course.discussion:
+        discussion_activity = discuss_activity.recent_activity(member)
+    
     context = {'course': course, 'member': member, 'activities_info': activities_info, 'from_page': FROMPAGE['course'],
-               'order_type': ORDER_TYPE, 'any_group': any_group, 'total_percent': total_percent}
+               'order_type': ORDER_TYPE, 'any_group': any_group, 'total_percent': total_percent, 'discussion_activity': discussion_activity}
     return render_to_response("grades/course_info_staff.html", context,
                               context_instance=RequestContext(request))
 
@@ -172,7 +177,14 @@ def _course_info_student(request, course_slug):
         data['act'] = activity
         data['grade_display'] = activity.display_grade_student(student.person)
         activity_data.append(data)
-    context = {'course': course, 'member': student, 'activity_data': activity_data, 'any_group': any_group, 'has_index': has_index, 'from_page': FROMPAGE['course']}
+        
+    discussion_activity = False
+    member = Member.objects.get(offering=course, person__userid=request.user.username, role='STUD')    
+    if course.discussion:
+        discussion_activity = discuss_activity.recent_activity(member)
+        
+    context = {'course': course, 'member': student, 'activity_data': activity_data, 'any_group': any_group, 
+               'has_index': has_index, 'from_page': FROMPAGE['course'], 'discussion_activity': discussion_activity}
     
     return render_to_response("grades/course_info_student.html", context,
                               context_instance=RequestContext(request))
