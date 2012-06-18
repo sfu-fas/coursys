@@ -620,10 +620,12 @@ class Member(models.Model):
         #     represented as a CourseOffering.slug
         #     default: self.offering (if accessed by m.get_origsection())
         # 'bu': The number of BUs this TA has
+        # 'teaching_credit': The number of teaching credits instructor receives for this offering. Fractions stored as strings: '1/3'
         # 'last_discuss': Last view of the offering's discussion forum (seconds from epoch)
 
-    defaults = {'bu': 0, 'last_discuss': 0}
+    defaults = {'bu': 0, 'teaching_credit': 1, 'last_discuss': 0}
     bu, set_bu = getter_setter('bu')
+    teaching_credit, set_teaching_credit = getter_setter('teaching_credit')
     last_discuss, set_last_discuss = getter_setter('last_discuss')
     
     def __unicode__(self):
@@ -778,6 +780,7 @@ ROLE_CHOICES = (
         ('DICC', 'Discipline Case Filer (email CC)'),
         ('ADMN', 'Departmental Administrator'),
         ('TAAD', 'TA Administrator'),
+        ('TADM', 'Teaching Administrator'),
         ('GRAD', 'Grad Student Administrator'),
         ('GRPD', 'Graduate Program Director'),
         ('FUND', 'Grad Funding Administrator'),
@@ -785,13 +788,14 @@ ROLE_CHOICES = (
         ('NONE', 'none'),
         )
 ROLES = dict(ROLE_CHOICES)
-UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'PLAN', 'TAAD', 'GRAD', 'FUND', 'GRPD', 'FAC', 'SESS', 'COOP'] # roles departmental admins ('ADMN') are allowed to assign with their unit
+UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'PLAN', 'TAAD', 'TADM', 'GRAD', 'FUND', 'GRPD', 'FAC', 'SESS', 'COOP'] # roles departmental admins ('ADMN') are allowed to assign with their unit
 ROLE_DESCR = {
         'ADVS': 'Has access to the advisor notes.',
         'DISC': 'Can manage academic discipline cases in the unit: should include your Academic Integrity Coordinator.',
         'DICC': 'Will be copied on all discipline case letters in the unit: include whoever files your discipline cases.',
         'PLAN': 'Can manage plans for course offerings in future semesters.',
         'TAAD': 'Can administer TA job postings and appointments.',
+        'TADM': 'Can manage teaching history for faculty members.',
         'GRAD': 'Can view and update the grad student database.',
         'GRPD': 'Director of the graduate program: typically the signer of grad-related letters.',
         'FUND': 'Can work with the grad student funding database.',
