@@ -620,6 +620,7 @@ class Member(models.Model):
         #     represented as a CourseOffering.slug
         #     default: self.offering (if accessed by m.get_origsection())
         # 'bu': The number of BUs this TA has
+        # 'last_discuss': Last view of the offering's discussion forum (seconds from epoch)
 
     defaults = {'bu': 0, 'last_discuss': 0}
     bu, set_bu = getter_setter('bu')
