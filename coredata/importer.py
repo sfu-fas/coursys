@@ -1,5 +1,5 @@
 import sys, os, datetime, time, copy
-import random, MySQLdb
+import MySQLdb
 sys.path.append(".")
 sys.path.append("..")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'

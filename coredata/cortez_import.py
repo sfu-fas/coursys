@@ -19,10 +19,17 @@ CORTEZ_USER = 'ggbaker'
 # in /etc/freetds/freetds.conf: [http://www.freetds.org/userguide/choosingtdsprotocol.htm]
 # [global]
 #    tds version = 7.0
+# or run with
+#   TDSVER=7.0 python coredata/cortez_import.py
+
+# https://bugs.launchpad.net/ubuntu/+source/pymssql/+bug/918896
 
 # needs these ports forwarded to the databases:
 #   ssh -L 1433:cortez.cs.sfu.ca:1433 oak.fas.sfu.ca # cortez DB
 #   ssh -L 4000:localhost:4000 -L 50000:localhost:50000 courses.cs.sfu.ca # AMAINT and SIMS
+
+# ln -s /usr/lib/pyshared/python2.7/pymssql.so ../lib/python2.7/site-packages/
+# ln -s /usr/lib/pyshared/python2.7/_mssql.so ../lib/python2.7/site-packages/
 
 
 # update weird value from test data
@@ -947,7 +954,7 @@ class RAImport(object):
 
 if __name__ == '__main__':
     #Introspection().print_schema()
-    #TAImport().get_tas()
-    #GradImport().get_students()
+    TAImport().get_tas()
+    GradImport().get_students()
     RAImport().get_ras()
 

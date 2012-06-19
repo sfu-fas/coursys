@@ -177,6 +177,10 @@ stty -echo; read -p "Password: " PW; echo; stty echo
 <blockquote><pre>sudo apt-get install python-dev
 python setup.py build
 sudo python setup.py install</pre></blockquote>
+<p>To get DB2 working in the virtualenv, I cheated:</p>
+<blockquote><pre>ln -s /usr/local/lib/python2.7/dist-packages/DB2.py ../lib/python2.7/site-packages/
+ln -s /usr/local/lib/python2.7/dist-packages/_db2.so ../lib/python2.7/site-packages/</pre></blockquote>
+
 </dd>
 <dt>Reporting DB connection</dt>
 <dd>
