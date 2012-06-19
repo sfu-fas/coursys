@@ -6,13 +6,16 @@ import json
 from django.core.urlresolvers import reverse
 from view_all import view_all
 
+def _get_query(term):
+    return get_query(term, ['person__userid', 'person__emplid', 'person__first_name', 'person__last_name',
+                            'person__pref_first_name', 'program__label', 'program__description'])
+
 @requires_role("GRAD")
 def quick_search(request):
     if 'term' in request.GET:
         term = request.GET['term']
         grads = GradStudent.objects.filter(program__unit__in=request.units) \
-                .filter(get_query(term, ['person__userid', 'person__emplid', 'person__first_name', 'person__last_name', 'person__pref_first_name',
-                                         'program__label', 'program__description'])) \
+                .filter(_get_query(term)) \
                 .select_related('person', 'program')[:50]
         data = [{'value': str(g.slug), 'label': "%s, %s" % (g.person.name(), g.program.label)} for g in grads]
         response = HttpResponse(mimetype='application/json')

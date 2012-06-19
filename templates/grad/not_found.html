@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load mobile_tags %}
+{% block headextra %}
+<script type="text/javascript">
+	$(document).ready(function() {
+		$('#grads').dataTable({
+			"bJQueryUI" : true,
+			"aaSorting" : [[0, "asc"]],
+			"bPaginate": false,
+		});
+	});
+
+</script>
+{% endblock %}
+
+{% block title %}Grad Not Found{% endblock %}
+{% block h1 %}Grad Not Found{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
+<li>&gt; Not Found</li>
+{% endblock %}
+
+{% block content %}
+<p>
+The grad student with that identifier couldn't be found. Did you mean one of these?
+</p>
+<div class="datatable_container">
+	<table class="display" id="grads">
+		<thead>
+			<tr>
+				<th scope="col">Last Name</th>
+				<th scope="col">First Name</th>
+				<th scope="col">Program</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for g in grads %}
+			<tr>
+				<td><a href="{% url grad.views.view_all grad_slug=g.slug %}">{{g.person.last_name}}</a></td>
+				<td>{{g.person.first_name}}</td>
+				<td>{{g.program.label}}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endblock %} 
