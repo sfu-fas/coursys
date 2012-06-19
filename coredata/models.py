@@ -417,7 +417,7 @@ class CourseOffering(models.Model):
     owner = models.ForeignKey('Unit', null=True, help_text="Unit that controls this offering")
     # need these to join in the SIMS database: don't care otherwise.
     crse_id = models.PositiveSmallIntegerField(null=True, db_index=True)
-    class_nbr = models.PositiveSmallIntegerField(null=True, db_index=True)
+    class_nbr = models.PositiveIntegerField(null=True, db_index=True)
     
     title = models.CharField(max_length=30, help_text='The course title.')
     #title_long = models.CharField(max_length=80, help_text='The course title (full version).')

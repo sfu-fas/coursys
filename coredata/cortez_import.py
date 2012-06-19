@@ -323,20 +323,17 @@ class GradImport(object):
             for pos, supname in zip(range(1,5), [sup1,sup2,sup3,sup4]):
                 if not supname: continue
                 person, external = self.find_supervisor(supname)
+                is_senior = pos==1 or (pos==2 and cosup)
+                suptype = "SEN" if is_senior else "COM"
                 
-                sups = Supervisor.objects.filter(student=gs, supervisor=person, external=external, position=pos)
+                sups = Supervisor.objects.filter(student=gs, supervisor=person, external=external, supervisor_type=suptype)
                 if sups:
                     sup = sups[0]
                 else:
-                    sup = Supervisor(student=gs, supervisor=person, external=external, position=pos)
+                    sup = Supervisor(student=gs, supervisor=person, external=external, supervisor_type=suptype)
                     sup.created_by = self.IMPORT_USER
-                is_senior = pos==1 or (pos==2 and cosup)
-                sup.supervisor_type = 'SEN' if is_senior else 'COM'
                 sup.modified_by = self.IMPORT_USER
-                try:
-                    sup.save()
-                except IntegrityError:
-                    print "Duplicate supervisor position for %s: can't import" % (gs)
+                sup.save()
                     
             
             # Examining Committee
@@ -352,7 +349,6 @@ class GradImport(object):
                         sup = Supervisor(student=gs, supervisor=person, external=external, supervisor_type='CHA')
                         sup.created_by = self.IMPORT_USER
                     sup.removed = False
-                    sup.position = 0
                     sup.modified_by = self.IMPORT_USER
                     sup.save()
                 
@@ -368,7 +364,6 @@ class GradImport(object):
                         sup.set_email(extemail)
                     
                     sup.removed = False
-                    sup.position = 0
                     sup.modified_by = self.IMPORT_USER
                     sup.save()
                 
@@ -385,7 +380,6 @@ class GradImport(object):
                         sup = Supervisor(student=gs, supervisor=None, external=external, supervisor_type='EXT')
                         sup.created_by = self.IMPORT_USER
                     sup.removed = False
-                    sup.position = 0
                     sup.modified_by = self.IMPORT_USER
                     sup.save()
 
