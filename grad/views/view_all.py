@@ -1,18 +1,12 @@
 from courselib.auth import requires_role
-from django.shortcuts import render
-from django.http import HttpResponseRedirect
-from django.core.urlresolvers import reverse
+from django.shortcuts import get_object_or_404, render
 from grad.models import GradStudent, Supervisor, GradRequirement, \
     CompletedRequirement, GradStatus, Letter
 
 @requires_role("GRAD")
 def view_all(request, grad_slug):
     # will display academic, personal, FIN, status history, supervisor
-    try:
-        grad = GradStudent.objects.get(slug=grad_slug, program__unit__in=request.units)
-    except GradStudent.DoesNotExist:
-        return HttpResponseRedirect(reverse('grad.views.not_found', kwargs={'search': grad_slug}))
-    
+    grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     supervisors = Supervisor.objects.filter(student=grad, removed=False)
     status_history = GradStatus.objects.filter(student=grad, hidden=False)
     letter = Letter.objects.filter(student=grad)

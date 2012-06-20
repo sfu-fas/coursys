@@ -2,7 +2,7 @@ from grad.models import GradStudent
 from django.http import HttpResponseRedirect, HttpResponse
 from courselib.auth import requires_role, ForbiddenResponse
 from courselib.search import get_query
-import json
+import json, urllib
 from django.core.urlresolvers import reverse
 from view_all import view_all
 
@@ -23,6 +23,10 @@ def quick_search(request):
         return response
     elif 'search' in request.GET:
         grad_slug = request.GET['search']
-        return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))
+        try:
+            grad = GradStudent.objects.get(slug=grad_slug, program__unit__in=request.units)
+            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad.slug}))
+        except GradStudent.DoesNotExist:
+            return HttpResponseRedirect(reverse('grad.views.not_found') + "?search=" + urllib.quote_plus(grad_slug))
     else:
         return ForbiddenResponse(request, 'must send term')
