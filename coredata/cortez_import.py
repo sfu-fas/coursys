@@ -4,12 +4,13 @@ sys.path.append("..")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 from django.db import transaction
 from django.db.utils import IntegrityError
-from coredata.queries import DBConn, get_names, get_or_create_semester
+from django.db.models import Max
+from coredata.queries import DBConn, get_names, get_or_create_semester, add_person
 from coredata.models import Person, Semester, Unit, CourseOffering, Course
 from grad.models import GradProgram, GradStudent, GradRequirement, CompletedRequirement, Supervisor, GradStatus
-from ta.models import TAContract, TAApplication, TAPosting, TACourse, CoursePreference
+from ta.models import TAContract, TAApplication, TAPosting, TACourse, CoursePreference, SkillLevel, Skill
 from ra.models import RAAppointment, Account, Project
-from coredata.importer import get_person, get_person_grad, import_one_offering
+from coredata.importer import AMAINTConn, get_person, get_person_grad, import_one_offering, import_instructors
 import datetime, json, time, decimal
 
 import pymssql, MySQLdb
@@ -162,7 +163,7 @@ class GradImport(object):
                       'Rejected': 'REJE',
                       'Canceled': 'REJE', # TODO: is this different from REJE?
                       } 
-       
+    
     def __init__(self):
         self.db = CortezConn()
         self.db.execute("USE [grad]", ())
@@ -486,6 +487,14 @@ class TAImport(object):
                    'course': 'OPL',
                    }
     CATEGORY_INDEX = {'GTA1': 0, 'GTA2': 1, 'UTA': 2, 'ETA': 3}
+    # skill level words -> values
+    SKILL_LEVEL_MAP = {
+                       'None': 'NONE',
+                       None: 'NONE',
+                       '': 'NONE',
+                       'Some': 'SOME',
+                       'Expert': 'EXPR',
+                       }
     
     def __init__(self):
         self.db = CortezConn()
@@ -534,7 +543,11 @@ class TAImport(object):
                         "FROM Offerings o, Resource_Semesters s, Courses c "
                         "WHERE o.Semester_ID=s.Semester_ID AND o.Course_ID=c.Course_ID "
                         "ORDER BY Semester_Description", ())
+        last = None
         for off_id, semname, crsnumber, section, hasLabs, title in self.db:
+            if semname != last:
+                print semname
+                last = semname
             subject, number = crsnumber.split()
             
             # clean up ugliness from cortez
@@ -574,6 +587,10 @@ class TAImport(object):
                     offeringid_map[off_id] = o
                     o.set_labtas(bool(hasLabs))
                     o.save()
+            
+            # get instructors if we can: might as well have better data
+            if o.crse_id and o.class_nbr:
+                import_instructors(o)
         
         self.offeringid_map = offeringid_map
         
@@ -664,19 +681,11 @@ class TAImport(object):
         if bu == 0:
             return
         if not(emplid.isdigit() and len(emplid)==9):
-            # TODO: what about them?
+            # there's only one, from 2004. Ignore.
             return
         if off_id not in self.offeringid_map:
             # TODO: Where did these offerings go? I'm troubled.
             print "missing offering_id:", off_id
-            #self.db.execute("SELECT * FROM Offerings where Offering_id=%s", (off_id,))
-            #print list(self.db)
-            #self.db.execute("SELECT * FROM Offerings o, Resource_Semesters s "
-            #            "WHERE o.Semester_ID=s.Semester_ID and o.Offering_id=%s", (off_id,))
-            #print list(self.db)
-            #self.db.execute("SELECT * FROM Offerings o,  Courses c "
-            #            "WHERE  o.Course_ID=c.Course_ID and o.Offering_id=%s", (off_id,))
-            #print list(self.db)
             return
         offering = self.offeringid_map[off_id]
         p = get_person(emplid, commit=True)
@@ -744,7 +753,6 @@ class TAImport(object):
         for course, rank in self.db:
             if course in ['-', '']:
                 continue
-            #print `course`
             subj, num = course.split()
             courses = Course.objects.filter(subject=subj, number=num)
             if courses.count() > 1:
@@ -752,9 +760,34 @@ class TAImport(object):
             elif courses.count() == 1:
                 crs = courses[0]
                 CoursePreference.objects.get_or_create(app=app, course=crs, rank=rank)
-            #else:
-            #    print ">>>", course
 
+        # skills
+        self.db.execute("SELECT skillType, skillLevel FROM tasearch.dbo.taskills "
+                        "WHERE appId=%s", (appid,))
+        for skillname, level in self.db:
+            if not skillname:
+                continue
+            skills = Skill.objects.filter(posting=posting, name=skillname)
+            if skills:
+                skill = skills[0]
+            else:
+                maxpos = Skill.objects.filter(posting=posting).aggregate(max_pos=Max('position'))['max_pos']
+                if maxpos:
+                    pos = maxpos+1
+                else:
+                    pos = 1
+                skill = Skill(posting=posting, name=skillname, position=pos)
+                skill.save()
+            
+            lvls = SkillLevel.objects.filter(skill=skill, app=app)
+            if lvls:
+                lvl = lvls[0]
+            else:
+                lvl = SkillLevel(skill=skill, app=app)
+            
+            lvl.level = self.SKILL_LEVEL_MAP[level]
+            lvl.save()
+        
         # TODO: do we care about skills from old applications? Probably not?
 
     
@@ -782,9 +815,6 @@ class TAImport(object):
                 time.sleep(0.5)
 
             self.get_ta(*row[:-1])
-
-from coredata.queries import add_person
-from coredata.importer import AMAINTConn
 
 def find_person_by_userid(userid):
     amaint = AMAINTConn()
@@ -949,6 +979,6 @@ class RAImport(object):
 if __name__ == '__main__':
     #Introspection().print_schema()
     TAImport().get_tas()
-    GradImport().get_students()
-    RAImport().get_ras()
+    #GradImport().get_students()
+    #RAImport().get_ras()
 
