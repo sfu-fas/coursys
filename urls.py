@@ -20,6 +20,7 @@ urlpatterns += patterns('planning.views',
 
 	url(r'^teaching/semesters$', 'edit_intention'),
     url(r'^teaching/semester/' + SEMESTER + '/delete$', 'delete_intention'),
+    url(r'^teaching/credits/$', 'view_teaching_credits'),
 	url(r'^planning/teaching_plans$', 'view_intentions'),
 
     url(r'^planning/teaching_plans/add$', 'planner_add_intention'),

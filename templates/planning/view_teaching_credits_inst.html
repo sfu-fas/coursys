@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Teaching Credits{% endblock %}
+{% block h1 %}Teaching Credits{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>
+    &gt; <a href="{% url planning.views.instructor_index %}">Teaching Preferences</a>
+</li>
+<li>
+    &gt; Teaching Credits
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="table_container">
+    {% for sem_key, sem_val in semesters.items %}
+    <h2>{{ sem_key }}</h2>
+    <table class = "inst_table">
+        <thead>
+            <tr>
+                <th>Course</th>
+                <th>Credits</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for course in sem_val.courses %}
+            <tr>
+                <td>{{ course.name }}</td>
+                <td>{{ course.credits }}</td>
+            </tr>
+            {% endfor %}
+            <tr>
+            	<td></td>
+            	<td><i style="font-weight: bold;">.. total</i></td>
+            </tr>
+    </table>
+    {% endfor %}
+</div>
+{% endblock %}
