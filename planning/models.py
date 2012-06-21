@@ -121,3 +121,23 @@ class MeetingTime(models.Model):
 
     class Meta:
         ordering = ['offering', 'weekday']
+        
+EQUIVALENT_STATUS_CHOICES = (
+                             ('CONF', 'Confirmed'),
+                             ('UNCO', 'Unconfirmed')
+                             )
+        
+class TeachingEquivalent(models.Model):
+    """
+    A teaching equivalent for instructors to record teaching credits (supports rationals)
+    """
+    instructor = models.ForeignKey(Person)
+    semester = models.ForeignKey(Semester)
+    credits_numerator = models.IntegerField(help_text='The numerator of a fractional credit')
+    credits_denominator = models.IntegerField(help_text='The denomiator of a fractional credit')
+    summary = models.CharField(max_length='100', help_text='What is this teaching equivalent for?')
+    comment = models.TextField(blank=True, null=True, help_text='Any information that should be included')
+    status = models.CharField(max_length=4, choices=EQUIVALENT_STATUS_CHOICES)
+    
+    
+    
