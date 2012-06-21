@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}TA Offers{% endblock %}
+{% block h1 %}TA Offers{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
+<li>&gt; Contract Descriptions</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+    <li><a href="{% url ta.views.new_description %}">New Description</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<div class="datatable_container">
+<table class="display">
+<thead>
+	<tr>
+		<th scope="col">Unit</th>
+		<th scope="col">Description</th>
+		<th scope="col">Lab/Tutorial</th>
+	</tr>
+</thead>
+<tbody>
+{% for d in descriptions %}
+<tr>
+  <td>{{ d.unit }}</td>
+  <td>{{ d.description }}</td>
+  <td>{{ d.labtut|yesno }}</td>
+</tr>	
+{% endfor %}
+</tbody>
+</table>
+</div>
+
+
+{% endblock %}

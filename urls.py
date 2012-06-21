@@ -236,6 +236,8 @@ urlpatterns += patterns('',
     
     url(r'^ta/$', 'ta.views.view_postings'),
     url(r'^ta/new_posting$', 'ta.views.edit_posting'),
+    url(r'^ta/descriptions/$', 'ta.views.descriptions'),
+    url(r'^ta/descriptions/new$', 'ta.views.new_description'),
     url(r'^ta/' + POST_SLUG + '/$', 'ta.views.new_application'),
     url(r'^ta/' + POST_SLUG + '/_myinfo$', 'ta.views.get_info'),
     url(r'^ta/' + POST_SLUG + '/manual$', 'ta.views.new_application_manual'),

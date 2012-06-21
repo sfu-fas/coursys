@@ -387,6 +387,9 @@ class SkillLevel(models.Model):
     #    return "%s for %s" % (self.skill, self.app)
 
 
+
+
+
 DESC_CHOICES = (
         ('OM','Office;Marking'),
         ('OML','Office;Marking;Lab/Tutorial'),
@@ -477,6 +480,22 @@ class TAContract(models.Model):
         self.pay_per_bu = posting.salary()[index]
         self.scholarship_per_bu = posting.scholarship()[index]
         self.save()
+
+
+
+class CourseDescription(models.Model):
+    """
+    Description of the work for a TA contract
+    """
+    unit = models.ForeignKey(Unit)
+    description = models.CharField(max_length=60, blank=False, null=False)
+    labtut = models.BooleanField(default=False, verbose_name="Lab/Tutorial?", help_text="Does this description get the %s BU bonus?"%(LAB_BONUS))
+    hidden = models.BooleanField(default=False)
+    config = JSONField(null=False, blank=False, default={})
+    
+    class Meta:
+        unique_together = (('unit', 'description'),)
+
 
 class TACourse(models.Model):
     course = models.ForeignKey(CourseOffering, blank=False, null=False)

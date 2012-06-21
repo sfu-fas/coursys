@@ -6,7 +6,8 @@ from django.contrib import messages
 from courselib.auth import requires_course_staff_by_slug, requires_course_instr_by_slug, requires_role, \
     requires_course_staff_or_dept_admn_by_slug, ForbiddenResponse
 from django.contrib.auth.decorators import login_required
-from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, CampusPreference,\
+from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, \
+    CampusPreference, CourseDescription, \
     CAMPUS_CHOICES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS, LAB_BONUS, HOURS_PER_BU
 from ra.models import Account
 from grad.models import GradStudent 
@@ -14,7 +15,8 @@ from dashboard.models import NewsItem
 from coredata.models import Member, Role, CourseOffering, Person, Semester, CAMPUSES
 from grad.models import GradStatus
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, TAAcceptanceForm, CoursePreferenceForm, \
-    TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm, TAContactForm
+    TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm, TAContactForm, \
+    CourseDescriptionForm
 from advisornotes.forms import StudentSearchForm
 from log.models import LogEntry
 from dashboard.letters import ta_form, ta_forms
@@ -1176,3 +1178,34 @@ def ta_offers(request, course_slug):
     contracts = [(ta.contract, ta.bu) for ta in TACourse.objects.filter(course=offering).exclude(contract__status='NEW')]
     context = {'contracts': contracts, 'course': offering}
     return render(request, 'ta/view_tas.html', context)
+
+
+@requires_role("TAAD")
+def descriptions(request):
+    descriptions = CourseDescription.objects.filter(unit__in=request.units, hidden=False).select_related('unit')
+    context = {'descriptions': descriptions, 'LAB_BONUS': LAB_BONUS}
+    return render(request, 'ta/descriptions.html', context)
+
+@requires_role("TAAD")
+def new_description(request):
+    unit_choices = [(u.id, unicode(u)) for u in request.units]
+    if request.method == 'POST':
+        form = CourseDescriptionForm(request.POST)
+        form.fields['unit'].choices = unit_choices
+        if form.is_valid():
+            desc = form.save(commit=False)
+            desc.hidden = False
+            desc.save()
+            
+            messages.success(request, "Created contract description '%s'." % (desc.description))
+            l = LogEntry(userid=request.user.username,
+                  description=u"Created contract description '%s' in %s." % (desc.description, desc.unit.label),
+                  related_object=desc)
+            l.save()
+            return HttpResponseRedirect(reverse('ta.views.descriptions', kwargs={}))
+            
+    else:
+        form = CourseDescriptionForm()
+        form.fields['unit'].choices = unit_choices
+    context = {'form': form}
+    return render(request, 'ta/new_description.html', context)

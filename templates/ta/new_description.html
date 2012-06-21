@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}New Contract Description{% endblock %}
+{% block h1 %}New Contract Description{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
+<li>&gt; <a href="{% url ta.views.descriptions %}">Contract Descriptions</a></li>
+<li>&gt; New</li>
+{% endblock %}
+
+{% block content %}
+
+<div id="form_container">
+<form action="" method="post">{% csrf_token %}
+<fieldset>
+    <legend>New Description</legend>
+   
+    {{ form|as_dl }}
+
+</fieldset>
+<input type="submit" class="submit" value="Create" /></p>
+</fieldset>
+</form>
+</div>
+
+{% endblock %}

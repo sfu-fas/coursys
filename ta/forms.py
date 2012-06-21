@@ -6,7 +6,7 @@ from django.forms.util import ErrorList
 from django.utils.datastructures import SortedDict
 from coredata.models import Member
 from ta.models import TUG, TAApplication,TAContract, CoursePreference, TACourse, TAPosting, Skill, \
-        CATEGORY_CHOICES, STATUS_CHOICES
+        CourseDescription, CATEGORY_CHOICES, STATUS_CHOICES
 from ta.util import table_row__Form
 #from django.core.exceptions import ValidationError
 import itertools, decimal, datetime
@@ -537,4 +537,7 @@ class TAContactForm(forms.Form):
     url = forms.URLField(label="URL", required=False, help_text='Link to include in the message. (optional)')
 
 
-
+class CourseDescriptionForm(forms.ModelForm):
+    class Meta:
+        model = CourseDescription
+        exclude = ('config','hidden') 
