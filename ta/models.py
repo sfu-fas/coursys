@@ -390,12 +390,12 @@ class SkillLevel(models.Model):
 
 
 
-DESC_CHOICES = (
-        ('OM','Office;Marking'),
-        ('OML','Office;Marking;Lab/Tutorial'),
-        ('OPL','Open Lab'),
-    )
-LABTUT_DESC = ['OML'] # descriptions that deserve LAB_BONUS bonus
+#DESC_CHOICES = (
+#        ('OM','Office;Marking'),
+#        ('OML','Office;Marking;Lab/Tutorial'),
+#        ('OPL','Open Lab'),
+#    )
+#LABTUT_DESC = ['OML'] # descriptions that deserve LAB_BONUS bonus
 
 APPOINTMENT_CHOICES = (
         ("INIT","Initial appointment to this position"),
@@ -488,19 +488,19 @@ class CourseDescription(models.Model):
     Description of the work for a TA contract
     """
     unit = models.ForeignKey(Unit)
-    description = models.CharField(max_length=60, blank=False, null=False)
+    description = models.CharField(max_length=60, blank=False, null=False, help_text="Description of the work for a course, as it will appear on the contract. (e.g. 'Office/marking')")
     labtut = models.BooleanField(default=False, verbose_name="Lab/Tutorial?", help_text="Does this description get the %s BU bonus?"%(LAB_BONUS))
     hidden = models.BooleanField(default=False)
     config = JSONField(null=False, blank=False, default={})
     
-    class Meta:
-        unique_together = (('unit', 'description'),)
+    def __unicode__(self):
+        return self.description
 
 
 class TACourse(models.Model):
     course = models.ForeignKey(CourseOffering, blank=False, null=False)
     contract = models.ForeignKey(TAContract, blank=False, null=False)
-    description = models.CharField(max_length=3, choices=DESC_CHOICES, blank=False, null=False)
+    description = models.ForeignKey(CourseDescription, blank=False, null=False)
     bu = models.DecimalField(max_digits=4, decimal_places=2)
     
     class Meta:
@@ -512,7 +512,18 @@ class TACourse(models.Model):
         """
         Does this assignment deserve the LAB_BONUS bonus?
         """
-        return self.description in LABTUT_DESC
+        return self.descr.labtut
+    
+    def default_description(self):
+        """
+        Guess an appropriate CourseDescription object for this contract. Must have self.course filled in first.
+        """
+        labta = self.course.labtas()
+        descs = CourseDescription.objects.filter(unit=self.contract.posting.unit, hidden=False, labtut=labta)
+        if descs:
+            return descs[0]
+        else:
+            raise ValueError, "No appropriate CourseDescription found"
     
     def pay(self):
         contract = self.contract

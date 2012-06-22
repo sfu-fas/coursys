@@ -2,6 +2,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.core.urlresolvers import reverse
 from django.db.models import Q
+from django.db import transaction
 from django.contrib import messages
 from courselib.auth import requires_course_staff_by_slug, requires_course_instr_by_slug, requires_role, \
     requires_course_staff_or_dept_admn_by_slug, ForbiddenResponse
@@ -442,6 +443,7 @@ def assign_tas(request, post_slug):
     return render(request, 'ta/assign_tas.html', context) 
 
 @requires_role("TAAD")
+@transaction.commit_on_success
 def assign_bus(request, post_slug, course_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     offering = get_object_or_404(CourseOffering, slug=course_slug)
@@ -451,6 +453,7 @@ def assign_bus(request, post_slug, course_slug):
     tacourses = TACourse.objects.filter(course=offering)
     
     if request.method == "POST" and request.is_ajax():
+        # update extra BU and lab/tutorial setting for course
         act = 0
         extra = 0
         msg = ''
@@ -468,7 +471,7 @@ def assign_bus(request, post_slug, course_slug):
             except:
                 msg = "Extra BU needs to be a decimal number."
          
-        if request.POST['labtas'] == "yes":
+        if request.POST['labtas'] == "checked":
             if not offering.labtas(): #changed from F to T
                 offering.config['labtas'] = True
                 act = 1
@@ -494,7 +497,7 @@ def assign_bus(request, post_slug, course_slug):
         try:
             campus_preference = CampusPreference.objects.get(app=p.app, campus=offering.campus)
         except CampusPreference.DoesNotExist:
-            # temporary fake object: shouldn't happen, but don't die if it does
+            # temporary fake object: shouldn't happen, but don't die if it does.
             campus_preference = CampusPreference(app=p.app, campus=offering.campus, pref="NOT")
         campus_prefs.append(campus_preference)
         #find BU assigned to this applicant through contract
@@ -512,6 +515,7 @@ def assign_bus(request, post_slug, course_slug):
     if request.method == "POST":
         formset = AssignBUFormSet(request.POST)
         if formset.is_valid():
+            descr_error = False
             for i in range(len(apps)):
                 #update rank
                 apps[i].rank = formset[i]['rank'].value()
@@ -528,7 +532,15 @@ def assign_bus(request, post_slug, course_slug):
                             contract = TAContract(created_by=request.user.username)
                             contract.first_assign(apps[i], posting)
                         bu = formset[i]['bu'].value()
-                        tacourse = TACourse.objects.create(course=offering, description=offering.get_desc(), contract=contract, bu=bu)
+                        tacourse = TACourse(course=offering, contract=contract, bu=bu)
+                        try:
+                            tacourse.description = tacourse.default_description()
+                        except ValueError:
+                            # handle the case where no appropriate default CourseDescription object can be found
+                            descr_error = True
+                            formset[i]._errors['bu'] = formset[i].error_class(["Can't find a contract description to assign to the contract."])
+                        else:
+                            tacourse.save()
                 else: 
                     #update bu for existing TACourse
                     if formset[i]['bu'].value() != '':
@@ -537,7 +549,8 @@ def assign_bus(request, post_slug, course_slug):
                     #unassign bu to this offering for this applicant
                     else:
                         assigned_ta[i].delete()
-            return HttpResponseRedirect(reverse(assign_tas, args=(post_slug,)))
+            if not descr_error:
+                return HttpResponseRedirect(reverse(assign_tas, args=(post_slug,)))
     else:
         formset = AssignBUFormSet(initial=initial)
     

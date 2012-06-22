@@ -74,11 +74,11 @@ $(document).ready(function() {
 </fieldset>
 
 {% csrf_token %}
-{{ courses_formset.management_form }}
 <fieldset>
     <legend>Course Preferences</legend>
     <h3>Select courses in order of most preferred to least preferred</h3>
     <div id="course-forms">
+    	{{ courses_formset.management_form }}
         {% for form in courses_formset %}
             <div id="course-form-{{ forloop.counter0 }}">
             <p id="course-form-{{ forloop.counter0 }}-label">Course {{ forloop.counter }}:</p>
@@ -87,21 +87,22 @@ $(document).ready(function() {
         {% endfor %}
     </div>
     <span id="form_btns">
-        <noscript>Please enable JavaScript to add a new supervisor</noscript>
+        Please enable JavaScript to add a new course
     </span>
 
 </fieldset>
 <script type="text/javascript">
+//<![CDATA[
 	// dynamically append button for no-script compatibility
 	$(function() {
-		$("#form_btns").append('<input id="add_btn" class="submit" type="button" value="Add Another" onclick="add()"/>')
+		$("#form_btns").html('<input id="add_btn" class="submit" type="button" value="Add Another" onclick="add()"/>')
 	});
-</script>
+//]]></script>
 
 
 <fieldset>
     <legend>Campus Preferences</legend>
-    <table id="borderless">
+    <table class="borderless">
     {% for lbl,name,pref in campus_preferences %}
     <tr><td scope="row">{{name}}:</td>
       {% for plbl,pname in campus_pref_choices %}
@@ -115,7 +116,7 @@ $(document).ready(function() {
 {% if skill_values %}
 <fieldset>
     <legend>Skills:</legend>
-    <table id="borderless">
+    <table class="borderless">
     {% for i,name,pref in skill_values %}
     <tr><td scope="row">{{name}}:</td>
         {% for slbl,sname in skill_choices %}
@@ -127,8 +128,7 @@ $(document).ready(function() {
 </fieldset>
 {% endif %}
 
-<input type="submit" class="submit" value="Submit" /></p>
-</fieldset>
+<p><input type="submit" class="submit" value="Submit" /></p>
 </form>
 </div>
 

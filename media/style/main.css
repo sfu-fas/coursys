@@ -1541,7 +1541,7 @@ div.note-box p.hideshow {
   font-size: smaller;
 }
 
-#borderless, #borderless td{
+.borderless, .borderless td{
   border: none;
 }
 

@@ -568,12 +568,6 @@ class CourseOffering(models.Model):
             or cmp(self.section, other.section)
     def search_label_value(self):
         return "%s (%s)" % (self.name(), self.semester.label())
-    
-    def get_desc(self):
-        if self.labtas():
-            return 'OML'
-        else:
-            return 'OM'
         
 
 class Member(models.Model):

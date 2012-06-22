@@ -8,7 +8,7 @@ from django.db.models import Max
 from coredata.queries import DBConn, get_names, get_or_create_semester, add_person
 from coredata.models import Person, Semester, Unit, CourseOffering, Course
 from grad.models import GradProgram, GradStudent, GradRequirement, CompletedRequirement, Supervisor, GradStatus
-from ta.models import TAContract, TAApplication, TAPosting, TACourse, CoursePreference, SkillLevel, Skill
+from ta.models import TAContract, TAApplication, TAPosting, TACourse, CoursePreference, SkillLevel, Skill, CourseDescription
 from ra.models import RAAppointment, Account, Project
 from coredata.importer import AMAINTConn, get_person, get_person_grad, import_one_offering, import_instructors
 import datetime, json, time, decimal
@@ -477,14 +477,14 @@ class TAImport(object):
                    'no': 'REAP',
                    }
     TA_DESC_MAP = {
-                   'Office/Marking': 'OM',
-                   'Office/Marking/Labs': 'OML',
-                   'Development': 'OPL',
-                   'CMPT': 'OPL',
-                   'ARC': 'OPL',
-                   'MTF': 'OPL',
-                   'Course': 'OPL',
-                   'course': 'OPL',
+                   'Office/Marking': 'Office/Marking',
+                   'Office/Marking/Labs': 'Office/Marking/Labs',
+                   'Development': 'Open Lab',
+                   'CMPT': 'Open Lab',
+                   'ARC': 'Open Lab',
+                   'MTF': 'Open Lab',
+                   'Course': 'Open Lab',
+                   'course': 'Open Lab',
                    }
     CATEGORY_INDEX = {'GTA1': 0, 'GTA2': 1, 'UTA': 2, 'ETA': 3}
     # skill level words -> values
@@ -742,7 +742,16 @@ class TAImport(object):
         else:
             crs = TACourse(course=offering, contract=contract)
         
-        crs.description = self.TA_DESC_MAP[description.split()[0]]
+        d = self.TA_DESC_MAP[description.split()[0]]
+        try:
+            desc = CourseDescription.objects.get(unit=self.UNIT, description=d)
+        except CourseDescription.DoesNotExist:
+            desc = CourseDescription(unit=self.UNIT, description=d)
+            if d == 'Office/Marking/Labs':
+                desc.labtut = True
+            desc.save()
+
+        crs.description = desc
         crs.bu = bu
         crs.save()
         
@@ -788,7 +797,7 @@ class TAImport(object):
             lvl.level = self.SKILL_LEVEL_MAP[level]
             lvl.save()
         
-        # TODO: do we care about skills from old applications? Probably not?
+        # TODO: get campus preferences
 
     
     def get_tas(self):  
@@ -978,7 +987,7 @@ class RAImport(object):
 
 if __name__ == '__main__':
     #Introspection().print_schema()
-    TAImport().get_tas()
-    #GradImport().get_students()
+    #TAImport().get_tas()
+    GradImport().get_students()
     #RAImport().get_ras()
 

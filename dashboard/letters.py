@@ -678,7 +678,7 @@ class TAForm(object):
             self.c.setFont("Helvetica", self.CONTENT_SIZE-2)
             if crs:
                 self.c.drawString(25*mm, h + 1*mm, crs.course.subject + ' ' + crs.course.number + ' ' + crs.course.section[:2])
-                self.c.drawString(52*mm, h + 1*mm, crs.get_description_display())
+                self.c.drawString(52*mm, h + 1*mm, crs.description.description)
                 self.c.drawRightString(147*mm, h + 1*mm, "%.2f" % (crs.bu))
                 total_bu += crs.bu
         

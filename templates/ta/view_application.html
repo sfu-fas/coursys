@@ -47,7 +47,6 @@
       <th>Taken</th>
       <th>Experience</th>
     </tr>
-    <tr>
       {% for course in courses %}
         <tr>
           <td>{{ course.course }}</td>
@@ -55,27 +54,23 @@
           <td>{{ course.get_exper_display }}</td>
         </tr>
       {% endfor %}
-    </tr>
    </table>
 
- 
+  {% if campuses %}
+  <h2>Campus Preference:</h2> 
   <table class="info">
-    <h2>Campus Preference:</h2> 
-    <tr>
       {% for campus in campuses %}
         <tr><th>{{ campus.get_campus_display }}</th><td>{{ campus.get_pref_display }}</td></tr>
       {% endfor %}
-    </tr>
-  </table>   
+  </table> 
+  {% endif %}  
  
   {% if skills %}
+  <h2>Skills:</h2>
   <table class="info">
-    <h2>Skills:</h2>
-    <tr>
       {% for skill in skills %}
         <tr><th>{{ skill.skill.name }}</th><td>{{ skill.get_level_display }}</td></tr>
       {% endfor %}
-    </tr>
   </table>
   {% endif %}
 </div>

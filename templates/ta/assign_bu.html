@@ -2,8 +2,7 @@
 {% load form_display ta_display %}
 
 {% block title %}Assign TAs for {{ offering.subject }} {{ offering.number }} {{ offering.section }} at {{ offering.get_campus_display}}{% endblock %}
-{% block h1 %}Assign TAs for {{ offering.subject }} {{ offering.number }} {{ offering.section }} at {{ offering.get_campus_display}}</br>
-{% endblock %}
+{% block h1 %}Assign TAs for {{ offering.subject }} {{ offering.number }} {{ offering.section }} at {{ offering.get_campus_display}}{% endblock %}
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
@@ -16,6 +15,7 @@
 <link type="text/css" href="{{MEDIA_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
 <script type="text/javascript" src="{{MEDIA_URL}}multiselect/js/ui.multiselect.js"></script>
 <script type="text/javascript">
+//<![CDATA[  
   $(function() {
   	table = $('#ta_app').dataTable({
         "bPaginate": false,
@@ -28,11 +28,12 @@
 	$('.bu_inp').change(function(){
 		var max = parseFloat($(this).parent().parent().prev().html())
 		if(!isNaN($(this).val()) && parseFloat($(this).val()) > max){
-			$('#messages ul.warninglist').html('<li class="warning">Assigned BU exceeds the maximum BU</li>')
+			$('#messages div.warninglist').html('<ul><li class="warning">Assigned BU exceeds the maximum BU</li></ul>')
     		$('#messages').show()
     	}
-    	else
+    	else {
     		$('#messages').hide()
+    	}
 	})
 	
   });
@@ -56,7 +57,7 @@
 						change_bu(-{{LAB_BONUS}})
 					
 					if(data.msg != ''){
-						$('#messages ul.warninglist').html('<li class="warning">' + data[1] + '</li>')
+						$('#messages div.warninglist').html('<ul><li class="warning">' + data[1] + '</li></ul>')
     					$('#messages').show()
 					}
 					else
@@ -87,7 +88,7 @@
 	})
   }
   
-</script>
+//]]></script>
 {% endblock %}
 
 {% block content %}
@@ -95,13 +96,13 @@
 <h2>
 Instructor:
 {% for instructor in instructors %}
-    {{ instructor.sortname }}</br>
+    {{ instructor.sortname }}<br/>
 {% endfor %}
 </h2>
 
-<form>
+<form action="">
 	<div class="container">
-		<div id="messages"><ul class="warninglist"></ul></div>
+		<div id="messages"><div class="warninglist"></div></div>
 	</div>
     
     <fieldset id="assign_bu">
@@ -114,26 +115,26 @@ Instructor:
         </li>
         <li>
             <label>TA runs lab/tutorial:&nbsp;</label>
-            <div class="inputfield"><input id="labtas" name="labtas" type="checkbox" {% if offering.labtas %}checked="yes"{% endif %}/></div>
+            <div class="inputfield"><input id="labtas" name="labtas" type="checkbox" {% if offering.labtas %}checked="checked"{% endif %}/></div>
             <div class="helptext">(i.e. TAs get +{{LAB_BONUS}} BU)</div>
         </li>
         </ul>
-        <button type="button" class="submit" type="submit" onclick="update()">Update</button>
+        <button type="button" class="submit" onclick="update()">Update</button>
     </fieldset>
 </form>
 
 <div id= "config">
 <p id="info">
 Required BU: <span id="req_bu">{{ offering|display_bu:posting }}</span>
-(<span id="req_bu">{{ offering|display_bu_cap:posting }}</span> @ enrollment cap),
+(<span id="cap_bu">{{ offering|display_bu_cap:posting }}</span> @ enrollment cap),
 assigned: <span id="a_bu"> {{ offering|display_assigned_bu:posting }}</span>,
 remaining: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span>.
 </p>
 </div>
 
 <form action="{% url ta.views.assign_bus post_slug=posting.slug, course_slug=offering.slug%}" method="post">{% csrf_token %}
-{{ formset.management_form }}
 <div class="form_container">
+{{ formset.management_form }}
 <table class="display" id="ta_app">
 <thead>
     <tr>
@@ -153,20 +154,20 @@ remaining: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span
         <td scope="row"><a href="{% url ta.views.view_application post_slug=posting.slug userid=a.person.userid %}">{{ a.person.last_name }}, {{ a.person.first_name }}</a></td>
         <td>{% for form in formset %}
         {% ifequal forloop.counter forloop.parentloop.counter %}
-          {{ form|as_dl_usefield:'rank' }}
+          {{ form.rank }}
         {% endifequal %}
         {% endfor %}
         </td>
         <td>{% for st in a.statuses %}
             {{st.student.program.label}} ({{st.student.program.unit.label}}, {{st.get_status_display}}) {% if not forloop.last %}<br />{% endif %}
             {% endfor %}</td>
-        <td>{{ a.get_category_display }}</a></td>
+        <td>{{ a.get_category_display }}</td>
         <td>{{ course_preferences|display_course_rank:forloop.counter0 }}</td>
-        <td >{{ campus_preferences|display_campus_preference:forloop.counter0 }}</a></td>
-        <td>{{ a.base_units }}</a></td>
+        <td>{{ campus_preferences|display_campus_preference:forloop.counter0 }}</td>
+        <td>{{ a.base_units }}</td>
         <td>{% for form in formset %}
         {% ifequal forloop.counter forloop.parentloop.counter %}
-          {{ form|as_dl_usefield:'bu' }}
+          {{ form.bu }}
         {% endifequal %}
         {% endfor %}
         </td>
@@ -174,8 +175,8 @@ remaining: <span id="rem_bu"> {{ offering|display_bu_difference:posting }}</span
 {% endfor %}
 </tbody>
 </table>
+<input class="submit" type="submit" value="submit"/>
 </div>
-<input id="submit" class="submit" type="submit" value="submit"/>
 </form>
 
 {% endblock %}

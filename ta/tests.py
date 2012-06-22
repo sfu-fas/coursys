@@ -1,4 +1,5 @@
 from django.test import TestCase
+from courselib.testing import basic_page_tests
 from ta.models import *
 from coredata.models import Role
 from settings import CAS_SERVER_URL
@@ -34,6 +35,10 @@ class ApplicationTest(TestCase):
         p = Person.objects.get(emplid=210012345)
         s = Semester.objects.get(name="1077")
         unit = Unit.objects.get(label="COMP")
+        d = CourseDescription(unit=unit, description="Lab TA", labtut=True)
+        d.save()
+        d = CourseDescription(unit=unit, description="Office Hours", labtut=False)
+        d.save()
 
         #Create posting that closes in a long time so no applications are late
         posting = TAPosting(semester=s, unit=unit,opens=date(2007,9,4), closes=date(2099,9,4))
@@ -64,7 +69,7 @@ class ApplicationTest(TestCase):
 
         #Check that assign_tas page has two courses in it, one with someone who has applied
         url = reverse('ta.views.assign_tas', kwargs={'post_slug': posting.slug,})
-        response = client.get(url) 
+        response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<a href="/ta/%s/%s"' % (posting.slug, self.co1.slug) )
         self.assertContains(response, '<a href="/ta/%s/%s"' % (posting.slug, self.co2.slug) )
@@ -72,14 +77,14 @@ class ApplicationTest(TestCase):
 
         #Check the view application page to make sure it displays properly
         url = reverse('ta.views.view_application', kwargs={'post_slug': posting.slug, 'userid':app.person.userid,})
-        response = client.get(url)
+        response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<a href="mailto:%s@sfu.ca"' % (app.person.userid) )
         self.assertContains(response, '<td>%s</td>' % (c1) )
        
         #Check the assign_bu page to make sure applicant appears
         url = reverse('ta.views.assign_bus', kwargs={'post_slug': posting.slug, 'course_slug':self.co1.slug,})
-        response = client.get(url)
+        response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<a href="/ta/%s/application/%s"' % (posting.slug, app.person.userid) )
        
