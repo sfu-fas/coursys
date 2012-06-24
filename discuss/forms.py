@@ -25,7 +25,7 @@ class _DiscussionTopicForm(forms.ModelForm):
         model = DiscussionTopic
         exclude = ('offering', 'last_activity_at', 'created_at', 'message_count', 'author', 'config', 'status', 'pinned')
         widgets = {
-                   'content': Textarea(attrs={'cols': 80, 'rows': 30}),
+                   'content': Textarea(attrs={'cols': 70, 'rows': 20}),
                    }
         
 class _DiscussionTopicFormStaff(_DiscussionTopicForm):

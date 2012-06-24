@@ -113,7 +113,7 @@ class PageVersion(models.Model):
     """
     page = models.ForeignKey(Page)
     title = models.CharField(max_length=60, help_text="The title for the page")
-    wikitext = models.TextField(help_text="WikiCreole-formatted content of the page")
+    wikitext = models.TextField(help_text='WikiCreole-formatted content of the page')
     diff = models.TextField(null=True, blank=True)
     diff_from = models.ForeignKey('PageVersion', null=True)
     file_attachment = models.FileField(storage=PageFilesStorage, null=False, upload_to=attachment_upload_to, blank=False, max_length=500)

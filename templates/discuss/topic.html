@@ -33,15 +33,9 @@
 {% block h1 %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>
-	&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a>
-</li>
-<li>
-	&gt; <a href="{% url discuss.views.discussion_index course_slug=course.slug %}">Discussion</a>
-</li>
-<li>
-	&gt; View Topic
-</li>
+<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li>
+<li>&gt; <a href="{% url discuss.views.discussion_index course_slug=course.slug %}">Discussion</a></li>
+<li>&gt; {{ topic.title }}</li>
 {% endblock %}
 {% block actions %}
 
@@ -69,7 +63,7 @@
 
 {% if topic.status == 'HID' %}
     <div id="topic-hidden-warning">
-    	This topic is currently hidden
+    	This topic is currently hidden and cannot be seen by students.
     </div>
 {% endif %}
 
@@ -109,7 +103,7 @@
 			<div class="discussion-reply-author {% if reply.status == 'HID' %}fade-out{% endif %}">
 				{{ reply.author.person.name }} ({{reply.author.person.userid}}),
 			</div>
-			<div class="{% if reply.status != 'HID' %}discussion-reply-time{% endif %}{% if reply.status == 'HID' %}fade-out{% endif %}">
+			<div class="discussion-reply-time{% if reply.status == 'HID' %} fade-out{% endif %}">
 				{{ reply.create_at_delta }}
 				{% if reply.was_edited %}
 				    *
@@ -157,7 +151,7 @@
 			    <span>{{ error }}</span><br />
 			{% endfor %}
 		</div>
-		{{ form.content }}
+		{{ form.content }}<p class="helptext">{{form.content.help_text}}</p>
 		<div><input type="submit" value="Reply" /></div>
 	</form>
 </div>

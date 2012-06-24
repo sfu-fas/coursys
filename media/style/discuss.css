@@ -90,6 +90,7 @@
 }
 
 .discussion-reply-author {
+	font-size: smaller;
 	font-style: italic;
 	font-weight: bold;
 	margin-right: .5em;
@@ -98,6 +99,7 @@
 }
 
 .discussion-reply-time {
+	font-size: smaller;
 	float: left;
 	color: #1F6B08;
 }
@@ -146,7 +148,7 @@
 
 #topic-hidden-warning {
 	color: red;
-	font-size: 2em;
+	font-size: 1.5em;
 	font-weight: bold;
 	margin: 1em 0;
 }
