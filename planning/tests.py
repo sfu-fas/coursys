@@ -5,6 +5,7 @@ from django.core.urlresolvers import reverse
 import json
 
 class PlanningTest(TestCase):
+    fixtures = ['test_data']
     
     def test_that_planning_admin_returns_200_ok(self):
         """
