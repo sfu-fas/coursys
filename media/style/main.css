@@ -1635,3 +1635,170 @@ td.table-row-label{
 .note-container a.note:hover + .note-content {
   display: block;
 }
+
+
+/* Course Plan Table */
+table.course-plan {
+  font-size: 11px;
+}
+
+table.course-plan td {
+  border-bottom: 1px solid #CCC;
+  padding: 4px;
+  vertical-align: middle;
+}
+
+table.course-plan .time {
+  font-size: 11px;
+  padding: 3px;
+  white-space: nowrap;
+}
+
+table.course-plan .cap,
+table.course-plan .time,
+table.course-plan .section,
+table.course-plan .option {
+  text-align: center;
+}
+
+table.course-plan thead th {
+  padding: 4px;
+  text-align: center;
+}
+
+table.course-plan thead th .css_right {
+  display: inline-block;
+  float: none;
+  vertical-align: middle;
+}
+
+table.course-plan abbr {
+  border: 0;
+  text-decoration: none;
+}
+
+table.course-plan .meeting-time {
+  margin-top: 4px;
+  text-align: center;
+}
+
+table.course-plan .meeting-time:first-child {
+  margin-top: 0;
+}
+
+/* Creating a course offering */
+.add-course-offering div.course,
+.add-course-offering div.meeting-times {
+  float: left;
+  width: 50%;
+}
+
+#main #form_container.add-course-offering h3 {
+  color: #B5111A;
+  margin: 10px 0 10px 14px;
+}
+
+.add-course-offering dl,
+.add-course-offering dt {
+  clear: both;
+}
+
+.add-course-offering dt label {
+  margin-top: 3px;
+}
+
+.add-course-offering fieldset label {
+  width: 12em;
+}
+
+.add-course-offering fieldset label span {
+  left: 12em;
+}
+
+.add-course-offering fieldset p.helptext, 
+.add-course-offering dl.dlform .helptext {
+  margin-left: 158px;
+}
+
+.add-course-offering .course select {
+  width: 200px;
+}
+
+.add-course-offering .course input {
+  width: 196px;
+}
+
+.add-course-offering .course ul.errorlist {
+  margin: 0;
+  margin-left: 158px;
+}
+
+.add-course-offering .meeting-time {
+  border-collapse: collapse;
+  border: 0;
+  margin: 10px 0;
+  width: 100%;
+}
+
+.add-course-offering th {
+  font-weight: bold;
+  padding: 0;
+}
+
+.add-course-offering th,
+.add-course-offering td {
+  background: transparent none;
+  border: 0;
+}
+
+.add-course-offering td {
+  padding-top: 12px;
+  padding: 12px 0 0 0;
+}
+
+.add-course-offering td + td + td + td {
+  width: 155px;
+}
+
+.add-course-offering .meeting-times tr + tr {
+  display: none;
+}
+
+.add-course-offering .meeting-times tr.errors {
+  display: table-row;
+}
+
+.add-course-offering .meeting-times input[type=text],
+.add-course-offering .meeting-times ul.errorlist {
+  width: 85px;
+}
+
+.add-course-offering .meeting-times ul.errorlist {
+  margin: 0;
+  padding: 0;
+}
+
+.add-course-offering a.add-formset {
+  clear: both;
+  cursor: pointer;
+  display: block;
+  margin: 20px auto 10px;
+  width: 150px;
+  text-align: center;
+}
+
+.add-course-offering a.remove-formset {
+  cursor: pointer;
+  display: inline-block;
+  line-height: 16px;
+  margin-left: 5px;
+}
+
+#main #form_container.add-course-offering .meeting-times h3 {
+  margin-left: 0;
+  margin-bottom: 10px;
+}
+
+.add-course-offering .submit {
+  clear: both;
+}

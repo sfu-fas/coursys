@@ -11,16 +11,46 @@
 
 {% block headextra %}
 <script type="text/javascript">
-$(document).ready(function() {
+
+$(function() {
   $('#courses').dataTable( {
-    'bPaginate': true,
+    'bPaginate': false,
     'bInfo': false,
     'bLengthChange': true,
     "bJQueryUI": true,
     "sPaginationType": "full_numbers",
-    "iDisplayLength" : 25
+    "aoColumns": [
+        null,
+        null,
+        null,
+        { "bSortable" : false },
+        null,
+        null,
+        { "bSortable" : false },
+        { "bSortable" : false },
+        { "bSortable" : false },
+        { "bSortable" : false },
+        { "bSortable" : false },
+        { "bSortable" : false },
+        { "bSortable" : false },
+        { "bSortable" : false }
+    ],
+    "bFilter": true
   } );
+
+  $('.add-formset').click(function() {
+    $('.meeting-time tr:hidden').eq(0).show();
+  });
+
+  $('.remove-formset').click(function() {
+    var meeting = $(this).parents('tr');
+    meeting.find('input').val('');
+    meeting.find('select').val('---------');
+    meeting.hide();
+  })
 } );
+
+
 </script>
 {% endblock %}
 
@@ -36,50 +66,116 @@ $(document).ready(function() {
 
 {% block content %}
 
-<div class="datatable_container">
-    <h2>{{ plan.name }} in {{plan.semester.label}}</h2>
-    <table class="display" id="courses">
-        <thead>
-            <tr>
-                <th colspan="3">Course</th>
-                <th rowspan="2" scope="col">Insturctor</th>
-                <th rowspan="2" scope="col">Sec.</th>
-                <th rowspan="2" scope="col">Campus</th>
-                <th rowspan="2" scope="col">Component</th>
-                <th rowspan="2" scope="col">Option</th>
-            </tr>
-            <tr>
-                <th scope="col"><abbr title="Course Subject">Sub.</abbr></th>
-                <th scope="col"><abbr title="Course Number">#</abbr></th>
-                <th scope="col">Title</th>
-            </tr>
-        </thead>
+<h2>{{ plan.name }} in {{plan.semester.label}}</h2>
 
-        <tbody>
-            {% for planned_offering in planned_offerings_list %}
-            <tr>
-                <td>{{ planned_offering.course.subject }}</td>
-                <td>{{ planned_offering.course.number }}</td>
-                <td>{{ planned_offering.course.title }}</td>
-                <td>
-                    {{ planned_offering.instructor }}
-                    (<a href="{% url planning.views.view_instructors semester=plan.semester.name plan_slug=plan.slug planned_offering_slug=planned_offering.slug %}">Edit</a>)
-                </td>
-                <td>{{ planned_offering.section }}</td>
-                <td>{{ planned_offering.get_campus_display }}</td>
-                <td>{{ planned_offering.get_component_display }}</td>
-                <td><a href="{% url planning.views.delete_course_from_plan course_id=planned_offering.id plan_id=plan.id %}">Remove</td>
-            </tr>
-            {%endfor%}
-        </tbody>
-    </table>
-</div>
+<table class="display course-plan" id="courses">
+    <thead>
+        <tr>
+            <th scope="col">Course</th>
+            <th scope="col">Insturctor</th>
+            <th scope="col">Cap</th>
+            <th scope="col">Sec</th>
+            <th scope="col"><abbr title="Campus">Camp</abbr></th>
+            <th scope="col"><abbr title="Component">Comp</abbr></th>
+            <th scope="col"><abbr title="Monday">Mon</abbr></th>
+            <th scope="col"><abbr title="Tuesday">Tues</abbr></th>
+            <th scope="col"><abbr title="Wednesday">Wed</abbr></th>
+            <th scope="col"><abbr title="Thursday">Thur</abbr></th>
+            <th scope="col"><abbr title="Friday">Fri</abbr></th>
+            <th scope="col"><abbr title="Thursday">Sat</abbr></th>
+            <th scope="col"><abbr title="Friday">Sun</abbr></th>
+            <th scope="col">Options</th>
+        </tr>
+    </thead>
 
-<div id="form_container">
+    <tbody>
+        {% for planned_offering, meeting_time in offerings_list %}
+        <tr>
+            <td><span class="subject">{{ planned_offering.course.subject }}</span> {{ planned_offering.course.number }}</td>
+            <td>
+                {{ planned_offering.instructor }}
+                (<a href="{% url planning.views.view_instructors semester=plan.semester.name plan_slug=plan.slug planned_offering_slug=planned_offering.slug %}">Edit</a>)
+            </td>
+            <td class="cap">{{ planned_offering.enrl_cap }}
+            <td class="section">{{ planned_offering.section }}</td>
+            <td>{{ planned_offering.campus }}</td>
+            <td>{{ planned_offering.get_component_display }}</td>
+            {% for i in range %}
+            <td>
+                {% for time in meeting_time %}
+                    {% if time.weekday == i %}
+                        <div class="meeting-time">
+                            {{ time.start_time|time:"f" }} - {{ time.end_time|time:"f" }}<br />
+                            {{ time.room }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </td>
+            {% endfor %}
+            <td class="option">Edit | <a href="{% url planning.views.delete_course_from_plan course_id=planned_offering.id plan_id=plan.id %}">Remove</a></td>
+        </tr>
+        {%endfor%}
+    </tbody>
+</table>
+
+<div id="form_container" class="add-course-offering">
     <form action="{% url planning.views.edit_courses semester=plan.semester.name plan_slug=plan.slug %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Add Course Offering</legend>
-            {{form|as_dl}}
+
+            <div class="course">
+                <h3>Course Information</h3>
+
+                {% for field in form %}
+                    <dt>
+                        <label for="{{ field.auto_id }}">
+                            {{ field.label }}:
+                            {% if field.field.required %}
+                                <span class="required">*</span>
+                            {% endif %}
+                            <span> 
+                        </label>
+                    </dt>
+                    <dd>
+                        <div class="field">
+                            {{ field }}
+                            {{ field.errors }}
+                        </div>
+                    </dd>
+                {% endfor %}
+            </div>
+
+            <div class="meeting-times">
+                {{ formset.management_form }}
+                <table class="meeting-time">
+                    <thead>
+                        <th>Day</th>
+                        <th>Start</th>
+                        <th>End</th>
+                        <th>Room</th>
+                    </thead>
+                    <tbody>
+                        {% for form in formset %}
+                        <tr class="{% if form.errors %}errors{% endif %}">
+                            <td>
+                                {{ form.weekday }}
+                                {% if form.weekday.errors %}
+                                    {{ form.weekday.errors }}
+                                {% endif %}
+                            </td>
+                            <td><input type="text" placeholder="e.g. 11:30" name="meetingtime_set-{{ forloop.counter0 }}-{{ form.start_time.name }}" id="{{ form.start_time.auto_id }}" /></td>
+                            <td><input type="text" placeholder="e.g. 12:20" name="meetingtime_set-{{ forloop.counter0 }}-{{ form.end_time.name }}" id="{{ form.end_time.auto_id }}" /></td>
+                            <td><input type="text" placeholder="e.g. ASB9896" name="meetingtime_set-{{ forloop.counter0 }}-{{ form.room.name }}" id="{{ form.room.auto_id }}" />
+                            {% if not forloop.first %}
+                                <a class="remove-formset">Remove</a>
+                            {% endif %}
+                        </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <a class="add-formset">Add another meeting time</a>
+            </div>
             <div><input class="submit" type="submit" value="Submit" /></div>
         </fieldset>
     </form>

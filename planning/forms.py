@@ -69,6 +69,7 @@ class CopyPlanForm(forms.ModelForm):
 
 
 class OfferingBasicsForm(forms.ModelForm):
+    ##lab_sections_type = forms.ChoiceField(choices=COMPONENT_CHOICES, label="Additional section component", initial="Lab")
     lab_sections = forms.ChoiceField(choices=LAB_SECTION_CHOICES, label="Additional sections")
     lab_enrl_cap = forms.IntegerField(label="Additional section cap", required=False)
     enrl_cap = forms.IntegerField(label="Enrollment cap")
@@ -80,15 +81,21 @@ class OfferingBasicsForm(forms.ModelForm):
         return section
 
     def clean_lab_enrl_cap(self):
-        lab_sections = self.cleaned_data['lab_sections']
+        lab_sections = int(self.cleaned_data['lab_sections'])
         lab_enrl_cap = self.cleaned_data['lab_enrl_cap']
-        if lab_sections > 0 and not isinstance(lab_enrl_cap, int):
+        if lab_sections > 0 and lab_enrl_cap == None:
             raise forms.ValidationError("Lab enrollment cap is required when adding lab sections")
         return lab_enrl_cap
 
     class Meta:
         model = PlannedOffering
         fields = ('course', 'section', 'component', 'campus', 'enrl_cap')
+
+
+class MeetingTimeForm(forms.ModelForm):
+    class Meta:
+        model = MeetingTime
+        exclude = ('offering')
 
 
 class OfferingInstructorForm(forms.ModelForm):
