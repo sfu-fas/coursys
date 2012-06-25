@@ -22,12 +22,9 @@ from datetime import datetime
 from dashboard.models import *
 
 @requires_role('PLAN')
-def delete_course_from_plan(request, course_id, plan_id):
-    course = PlannedOffering.objects.get(pk=course_id)
+def delete_planned_offering(request, semester, plan_slug, planned_offering_slug):
+    course = PlannedOffering.objects.get(slug=planned_offering_slug)
     course.delete()
     
-    semester_plan = get_object_or_404(SemesterPlan, pk=plan_id)
-    semester = semester_plan.semester.name
-
     messages.add_message(request, messages.SUCCESS, 'Course removed successfully.')
-    return HttpResponseRedirect(reverse(update_plan, kwargs={'semester':semester, 'plan_slug':semester_plan.slug}))
+    return HttpResponseRedirect(reverse(update_plan, kwargs={'semester':semester, 'plan_slug':plan_slug}))

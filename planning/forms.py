@@ -68,10 +68,7 @@ class CopyPlanForm(forms.ModelForm):
         fields = ('copy_plan_from','semester', 'name', 'visibility', 'unit')
 
 
-class OfferingBasicsForm(forms.ModelForm):
-    lab_sections = forms.ChoiceField(choices=LAB_SECTION_CHOICES, label="Additional sections")
-    lab_enrl_cap = forms.IntegerField(label="Additional section cap", required=False)
-    enrl_cap = forms.IntegerField(label="Enrollment cap")
+class BaseOfferingBasicsForm(forms.ModelForm):
 
     def clean_section(self):
         section = self.cleaned_data['section']
@@ -79,16 +76,22 @@ class OfferingBasicsForm(forms.ModelForm):
             raise forms.ValidationError("Invalid section label")
         return section
 
+    class Meta:
+        model = PlannedOffering
+        fields = ('course', 'section', 'component', 'campus', 'enrl_cap')
+
+
+class OfferingBasicsForm(BaseOfferingBasicsForm):
+    lab_sections = forms.ChoiceField(choices=LAB_SECTION_CHOICES, label="Additional sections")
+    lab_enrl_cap = forms.IntegerField(label="Additional section cap", required=False)
+    enrl_cap = forms.IntegerField(label="Enrollment cap")
+
     def clean_lab_enrl_cap(self):
         lab_sections = int(self.cleaned_data['lab_sections'])
         lab_enrl_cap = self.cleaned_data['lab_enrl_cap']
         if lab_sections > 0 and lab_enrl_cap == None:
             raise forms.ValidationError("Lab enrollment cap is required when adding lab sections")
         return lab_enrl_cap
-
-    class Meta:
-        model = PlannedOffering
-        fields = ('course', 'section', 'component', 'campus', 'enrl_cap')
 
 
 class MeetingTimeForm(forms.ModelForm):

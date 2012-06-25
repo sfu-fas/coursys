@@ -36,6 +36,11 @@ def copy_plan(request):
                 added_course = PlannedOffering(plan=plan, course=i.course, section=i.section, component=i.component, campus=i.campus, enrl_cap=i.enrl_cap)                
                 added_course.save()
 
+                meeting_times = MeetingTime.objects.filter(offering=i)
+                for m in meeting_times:
+                    added_meeting_time = MeetingTime(offering=added_course, weekday=m.weekday, start_time=m.start_time, end_time=m.end_time, room=m.room)
+                    added_meeting_time.save()
+
             l = LogEntry(userid=request.user.username,
                       description=("Copied course plan %s in %s") % (plan.name, plan.semester),
                       related_object=plan)

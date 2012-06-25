@@ -22,23 +22,27 @@ from dashboard.models import *
 
 @requires_role('PLAN')
 def edit_course(request, course_slug):
-    course = get_object_or_404(Course, slug=course_slug)
+    course = get_object_or_404(PlanningCourse, slug=course_slug)
 
+    units = [(u.id, unicode(u)) for u in request.units]
     if request.method == 'POST':
-        form = CourseForm(request.POST)
+        form = CourseForm(request.POST, instance=course)
+        form.fields['owner'].choices = units
+
         if form.is_valid():
             course = form.save()
 
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=("added course %s %s") % (course.subject, course.number),
+                  description=("edited course %s %s") % (course.subject, course.number),
                   related_object=course)
             l.save()
                 
-            messages.add_message(request, messages.SUCCESS, 'Added course %s.' % (course))
+            messages.add_message(request, messages.SUCCESS, 'Edited course %s.' % (course))
             
-            return HttpResponseRedirect(reverse('planning.views.update_plan', kwargs={'semester': semester, 'plan_slug': plan_slug}))
+            return HttpResponseRedirect(reverse('planning.views.manage_courses', kwargs={}))
     else:
-        form = CourseForm()
+        form = CourseForm(instance=course)
+        form.fields['owner'].choices = units
 
-    return render_to_response("planning/create_course.html", {'form': form, 'plan': plan, 'planned_offerings_list': planned_offerings_list}, context_instance=RequestContext(request))
+    return render_to_response("planning/edit_course.html", {'form': form, 'course': course}, context_instance=RequestContext(request))

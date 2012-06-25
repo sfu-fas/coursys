@@ -42,7 +42,10 @@
 	            <td>{{ course.subject }}</td>
 	            <td>{{ course.number }}</td>
 	            <td>{{ course.title }}</td> 
-                <td><a href="{% url planning.views.delete_course course_id=course.id %}">Remove</a></td> 
+                <td>
+                    <a href="{% url planning.views.edit_course course_slug=course.slug %}">Edit</a> |
+                    <a href="{% url planning.views.delete_course course_id=course.id %}">Remove</a>
+                </td> 
 	        </tr>
 	        {%endfor%}
         </tbody>

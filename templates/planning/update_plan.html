@@ -38,19 +38,26 @@ $(function() {
     "bFilter": true
   } );
 
-  $('.add-formset').click(function() {
-    $('.meeting-time tr:hidden').eq(0).show();
-  });
+    $('.add-formset').click(function() {
+        var last = $('.meeting-time tr:visible:last');
+        var next = $('.meeting-time tr:hidden').eq(0).show();
 
-  $('.remove-formset').click(function() {
-    var meeting = $(this).parents('tr');
-    meeting.find('input').val('');
-    meeting.find('select').val('---------');
-    meeting.hide();
-  })
+        lastInputs = last.find('select, input[type=text]');
+        nextInputs = next.find('select, input[type=text]');
+
+        nextInputs.each(function(i) {
+            $(this).val(lastInputs.eq(i).val());
+        });
+    });
+
+    $('.remove-formset').click(function() {
+        var meeting = $(this).parents('tr');
+        meeting.find('input').val('');
+        meeting.find('select').val('---------');
+        meeting.hide();
+    });
+
 } );
-
-
 </script>
 {% endblock %}
 
@@ -112,7 +119,10 @@ $(function() {
                 {% endfor %}
             </td>
             {% endfor %}
-            <td class="option">Edit | <a href="{% url planning.views.delete_course_from_plan course_id=planned_offering.id plan_id=plan.id %}">Remove</a></td>
+            <td class="option">
+                <a href="{% url planning.views.edit_planned_offering semester=plan.semester.name plan_slug=plan.slug planned_offering_slug=planned_offering.slug %}">Edit</a> |
+                <a href="{% url planning.views.delete_planned_offering semester=plan.semester.name plan_slug=plan.slug planned_offering_slug=planned_offering.slug %}">Remove</a>
+            </td>
         </tr>
         {%endfor%}
     </tbody>
@@ -152,24 +162,26 @@ $(function() {
                         <th>Day</th>
                         <th>Start</th>
                         <th>End</th>
-                        <th>Room</th>
+                        <th colspan="2">Room</th>
                     </thead>
                     <tbody>
                         {% for form in formset %}
-                        <tr class="{% if form.errors %}errors{% endif %}">
+                        <tr class="{% if form.errors %}errors{% endif %}
+                            {% if form.weekday.value or form.start_time.value or form.end_time.value or form.room.value %}content{% endif %}">
                             <td>
                                 {{ form.weekday }}
                                 {% if form.weekday.errors %}
                                     {{ form.weekday.errors }}
                                 {% endif %}
                             </td>
-                            <td><input type="text" placeholder="e.g. 11:30" name="meetingtime_set-{{ forloop.counter0 }}-{{ form.start_time.name }}" id="{{ form.start_time.auto_id }}" /></td>
-                            <td><input type="text" placeholder="e.g. 12:20" name="meetingtime_set-{{ forloop.counter0 }}-{{ form.end_time.name }}" id="{{ form.end_time.auto_id }}" /></td>
-                            <td><input type="text" placeholder="e.g. ASB9896" name="meetingtime_set-{{ forloop.counter0 }}-{{ form.room.name }}" id="{{ form.room.auto_id }}" />
-                            {% if not forloop.first %}
-                                <a class="remove-formset">Remove</a>
-                            {% endif %}
-                        </td>
+                            <td><input type="text" placeholder="e.g. 11:30" name="meetingtime_set-{{ forloop.counter0 }}-{{ form.start_time.name }}" id="{{ form.start_time.auto_id }}" value="{{ form.start_time.value|time:"f" }}" /></td>
+                            <td><input type="text" placeholder="e.g. 12:20" name="meetingtime_set-{{ forloop.counter0 }}-{{ form.end_time.name }}" id="{{ form.end_time.auto_id }}" value="{{ form.end_time.value|time:"f" }}" /></td>
+                            <td><input type="text" placeholder="e.g. ASB9896" name="meetingtime_set-{{ forloop.counter0 }}-{{ form.room.name }}" id="{{ form.room.auto_id }}" value="{% firstof form.room.value %}" /></td>
+                            <td>
+                                {% if not forloop.first %}
+                                    <a class="remove-formset">Remove</a>
+                                {% endif %}
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>

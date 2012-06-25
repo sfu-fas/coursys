@@ -1756,15 +1756,17 @@ table.course-plan .meeting-time:first-child {
   padding: 12px 0 0 0;
 }
 
-.add-course-offering td + td + td + td {
-  width: 155px;
+.add-course-offering td + td + td + td + td {
+  text-align: center;
 }
 
-.add-course-offering .meeting-times tr + tr {
+.add-course-offering .meeting-times tr {
   display: none;
 }
 
-.add-course-offering .meeting-times tr.errors {
+.add-course-offering .meeting-times tr:first-child,
+.add-course-offering .meeting-times tr.errors,
+.add-course-offering .meeting-times tr.content {
   display: table-row;
 }
 
@@ -1790,8 +1792,7 @@ table.course-plan .meeting-time:first-child {
 .add-course-offering a.remove-formset {
   cursor: pointer;
   display: inline-block;
-  line-height: 16px;
-  margin-left: 5px;
+  line-height: 24px;
 }
 
 #main #form_container.add-course-offering .meeting-times h3 {

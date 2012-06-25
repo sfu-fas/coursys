@@ -13,6 +13,8 @@ COURSE_STATUS_CHOICES = [
 class PlanningCourse(Course):
     owner = models.ForeignKey(Unit, null=False)
     status = models.CharField(max_length=4, choices=COURSE_STATUS_CHOICES, default="OPEN", help_text="Status of this course")
+    slug = AutoSlugField(populate_from=('__unicode__'), null=False, editable=False, unique_with='id')
+    note = models.TextField(null=True, blank=True, default="", help_text="Additional information for cross-listing or other notes")
 
     class Meta:
         unique_together = ()
@@ -84,15 +86,15 @@ class PlannedOffering(models.Model):
     campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES, null=False)
     enrl_cap = models.PositiveSmallIntegerField(null=True, blank=True)
     instructor = models.ForeignKey(Person, null=True, blank=True)
-    slug = AutoSlugField(populate_from='name', null=False, editable=False, unique_with='section')
+    slug = AutoSlugField(populate_from='__unicode__', null=False, editable=False, unique_with='section')
 
     class Meta:
         ordering = ['plan', 'course', 'campus']
         unique_together = ('plan', 'course', 'section')
 
-    def name(self):
+    def __unicode__(self):
         return "%s %s %s" % (self.course.subject, self.course.number, self.section)
-
+        
 
 class MeetingTime(models.Model):
     offering = models.ForeignKey(PlannedOffering, null=False)

@@ -1719,369 +1719,6 @@
  },
  {
   "fields": {
-   "config": "{}",
-   "number": "102",
-   "subject": "CMPT",
-   "title": "Intro. to Sci. Comp. Prog.",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 38
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "110",
-   "subject": "CMPT",
-   "title": "Programming in Visual Basic",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 10
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "120",
-   "subject": "CMPT",
-   "title": "Intro Comp. Sci. and Prog.",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 11
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "125",
-   "subject": "CMPT",
-   "title": "Intro Comp. Sci. and Prog. II",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 12
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "126",
-   "subject": "CMPT",
-   "title": "Intro Comp. Sci. and Prog. II",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 13
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "128",
-   "subject": "CMPT",
-   "title": "Intro to Comp. Sci. and Prog.",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 14
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "150",
-   "subject": "CMPT",
-   "title": "Intro to Computer Design",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 15
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "165",
-   "subject": "CMPT",
-   "title": "Intro to Internet and WWW",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 16
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "101",
-   "subject": "MACM",
-   "title": "Discrete Mathematics",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 17
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "225",
-   "subject": "CMPT",
-   "title": "Data Structures and Prog.",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 18
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "250",
-   "subject": "CMPT",
-   "title": "Intro to Computer Architecture",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 19
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "275",
-   "subject": "CMPT",
-   "title": "Software Engineering I",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 20
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "300",
-   "subject": "CMPT",
-   "title": "Operating Systems I",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 21
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "307",
-   "subject": "CMPT",
-   "title": "Data Strcutures and Algorithms",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 22
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "308",
-   "subject": "CMPT",
-   "title": "Computability and Complexity",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 23
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "310",
-   "subject": "CMPT",
-   "title": "Artificial Intelligence Survey",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 24
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "354",
-   "subject": "CMPT",
-   "title": "Database Systems I",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 25
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "361",
-   "subject": "CMPT",
-   "title": "Intro to Computer Graphics",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 26
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "363",
-   "subject": "CMPT",
-   "title": "User Interface Design",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 27
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "371",
-   "subject": "CMPT",
-   "title": "Data Comm. and Networking",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 28
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "376",
-   "subject": "CMPT",
-   "title": "Tech. Writing / Group Dynamics",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 29
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "379",
-   "subject": "CMPT",
-   "title": "Principles of Compiler Design",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 30
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "300",
-   "subject": "MACM",
-   "title": "Formal Languages and Automata",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 31
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "405",
-   "subject": "CMPT",
-   "title": "Computing Algorithms",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 32
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "408",
-   "subject": "CMPT",
-   "title": "Theory of Comp. Networks",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 33
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "411",
-   "subject": "CMPT",
-   "title": "Knowledge Representation",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 35
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "441",
-   "subject": "CMPT",
-   "title": "Computational Biology",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 36
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "454",
-   "subject": "CMPT",
-   "title": "Database Systems II",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 37
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "470",
-   "subject": "CMPT",
-   "title": "Web-Based Info Syst",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 9
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "471",
-   "subject": "CMPT",
-   "title": "Networking II",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 7
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "475",
-   "subject": "CMPT",
-   "title": "Software Engineering II",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 4
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "477",
-   "subject": "CMPT",
-   "title": "Intro to Formal Verification",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 5
- },
- {
-  "fields": {
-   "config": "{}",
-   "number": "479",
-   "subject": "CMPT",
-   "title": "Spec.Topics/Computing Systems",
-   "owner": 3
-  },
-  "model": "planning.planningcourse",
-  "pk": 6
- },
- {
-  "fields": {
    "end_day": "2013-04-12",
    "end_time": "17:00:00",
    "exam": false,
@@ -21144,860 +20781,302 @@
   "model": "discuss.discussiontopic",
   "pk": 1
  },
- {
+  {
   "fields": {
-    "semester": 5,
-    "name": "Offering Alpha - Burnaby",
-    "visibility": "ADMI",
-    "unit": 3
-    },
-    "model": "planning.semesterplan",
-    "pk": 1
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 38,
-   "enrl_cap": 50,
-   "instructor": null,
-   "plan": 1,
-   "section": "D100"
+   "owner": 3,
+   "slug": "CMPT-102",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
-  "pk": 1
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 10,
-   "enrl_cap": 75,
-   "instructor": null,
-   "plan": 1,
-   "section": "D100"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 2
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 11,
-   "enrl_cap": 182,
-   "instructor": null,
-   "plan": 1,
-   "section": "D100"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 3
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 11,
-   "enrl_cap": 182,
-   "instructor": null,
-   "plan": 1,
-   "section": "D101"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 4
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 11,
-   "enrl_cap": 182,
-   "instructor": null,
-   "plan": 1,
-   "section": "D102"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 5
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 11,
-   "enrl_cap": 182,
-   "instructor": null,
-   "plan": 1,
-   "section": "D103"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 6
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 11,
-   "enrl_cap": 182,
-   "instructor": null,
-   "plan": 1,
-   "section": "D104"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 7
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 11,
-   "enrl_cap": 182,
-   "instructor": null,
-   "plan": 1,
-   "section": "D105"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 8
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 11,
-   "enrl_cap": 182,
-   "instructor": null,
-   "plan": 1,
-   "section": "D106"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 9
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 11,
-   "enrl_cap": 182,
-   "instructor": null,
-   "plan": 1,
-   "section": "D107"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 10
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 11,
-   "enrl_cap": 182,
-   "instructor": null,
-   "plan": 1,
-   "section": "D200"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 11
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 11,
-   "enrl_cap": 182,
-   "instructor": null,
-   "plan": 1,
-   "section": "D201"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 12
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 11,
-   "enrl_cap": 182,
-   "instructor": null,
-   "plan": 1,
-   "section": "D202"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 13
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 11,
-   "enrl_cap": 182,
-   "instructor": null,
-   "plan": 1,
-   "section": "D203"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 14
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 11,
-   "enrl_cap": 182,
-   "instructor": null,
-   "plan": 1,
-   "section": "D204"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 15
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 11,
-   "enrl_cap": 182,
-   "instructor": null,
-   "plan": 1,
-   "section": "D205"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 16
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 11,
-   "enrl_cap": 182,
-   "instructor": null,
-   "plan": 1,
-   "section": "D206"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 17
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 11,
-   "enrl_cap": 182,
-   "instructor": null,
-   "plan": 1,
-   "section": "D207"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 18
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 12,
-   "enrl_cap": 104,
-   "instructor": null,
-   "plan": 1,
-   "section": "D100"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 19
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 13,
-   "enrl_cap": 50,
-   "instructor": null,
-   "plan": 1,
-   "section": "D100"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 20
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 15,
-   "enrl_cap": 104,
-   "instructor": null,
-   "plan": 1,
-   "section": "D100"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 21
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 15,
-   "enrl_cap": 104,
-   "instructor": null,
-   "plan": 1,
-   "section": "D101"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 22
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 15,
-   "enrl_cap": 104,
-   "instructor": null,
-   "plan": 1,
-   "section": "D102"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 23
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 15,
-   "enrl_cap": 104,
-   "instructor": null,
-   "plan": 1,
-   "section": "D103"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 24
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 15,
-   "enrl_cap": 104,
-   "instructor": null,
-   "plan": 1,
-   "section": "D104"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 25
- },
- {
-  "fields": {
-   "campus": "OFFST",
-   "component": "LEC",
-   "course": 16,
-   "enrl_cap": 60,
-   "instructor": null,
-   "plan": 1,
-   "section": "C100"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 26
- },
- {
-  "fields": {
-   "campus": "OFFST",
-   "component": "LEC",
-   "course": 16,
-   "enrl_cap": 60,
-   "instructor": null,
-   "plan": 1,
-   "section": "C200"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 27
- },
- {
-  "fields": {
-   "campus": "OFFST",
-   "component": "LEC",
-   "course": 16,
-   "enrl_cap": 60,
-   "instructor": null,
-   "plan": 1,
-   "section": "C300"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 28
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 18,
-   "enrl_cap": 104,
-   "instructor": null,
-   "plan": 1,
-   "section": "D100"
-  },
-  "model": "planning.plannedoffering",
+  "model": "planning.planningcourse",
   "pk": 38
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 18,
-   "enrl_cap": 104,
-   "instructor": null,
-   "plan": 1,
-   "section": "D101"
+   "owner": 3,
+   "slug": "CMPT-110",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
-  "pk": 39
+  "model": "planning.planningcourse",
+  "pk": 10
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 18,
-   "enrl_cap": 104,
-   "instructor": null,
-   "plan": 1,
-   "section": "D102"
+   "owner": 3,
+   "slug": "CMPT-120",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
-  "pk": 40
+  "model": "planning.planningcourse",
+  "pk": 11
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 18,
-   "enrl_cap": 104,
-   "instructor": null,
-   "plan": 1,
-   "section": "D103"
+   "owner": 3,
+   "slug": "CMPT-125",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
-  "pk": 41
+  "model": "planning.planningcourse",
+  "pk": 12
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 18,
-   "enrl_cap": 104,
-   "instructor": null,
-   "plan": 1,
-   "section": "D104"
+   "owner": 3,
+   "slug": "CMPT-126",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
-  "pk": 42
+  "model": "planning.planningcourse",
+  "pk": 13
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 19,
-   "enrl_cap": 130,
-   "instructor": null,
-   "plan": 1,
-   "section": "D100"
+   "owner": 3,
+   "slug": "CMPT-128",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
-  "pk": 43
+  "model": "planning.planningcourse",
+  "pk": 14
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 19,
-   "enrl_cap": 130,
-   "instructor": null,
-   "plan": 1,
-   "section": "D101"
+   "owner": 3,
+   "slug": "CMPT-150",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
-  "pk": 44
+  "model": "planning.planningcourse",
+  "pk": 15
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 19,
-   "enrl_cap": 130,
-   "instructor": null,
-   "plan": 1,
-   "section": "D102"
+   "owner": 3,
+   "slug": "CMPT-165",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
-  "pk": 45
+  "model": "planning.planningcourse",
+  "pk": 16
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 19,
-   "enrl_cap": 130,
-   "instructor": null,
-   "plan": 1,
-   "section": "D103"
+   "owner": 3,
+   "slug": "CMPT-225",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
-  "pk": 46
+  "model": "planning.planningcourse",
+  "pk": 18
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 19,
-   "enrl_cap": 130,
-   "instructor": null,
-   "plan": 1,
-   "section": "D104"
+   "owner": 3,
+   "slug": "CMPT-250",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
-  "pk": 47
+  "model": "planning.planningcourse",
+  "pk": 19
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 19,
-   "enrl_cap": 130,
-   "instructor": null,
-   "plan": 1,
-   "section": "D105"
+   "owner": 3,
+   "slug": "CMPT-275",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
-  "pk": 48
+  "model": "planning.planningcourse",
+  "pk": 20
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 20,
-   "enrl_cap": 75,
-   "instructor": null,
-   "plan": 1,
-   "section": "E100"
+   "owner": 3,
+   "slug": "CMPT-300",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
-  "pk": 49
+  "model": "planning.planningcourse",
+  "pk": 21
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 21,
-   "enrl_cap": 85,
-   "instructor": null,
-   "plan": 1,
-   "section": "D100"
+   "owner": 3,
+   "slug": "CMPT-307",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
-  "pk": 50
+  "model": "planning.planningcourse",
+  "pk": 22
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 22,
-   "enrl_cap": 92,
-   "instructor": null,
-   "plan": 1,
-   "section": "D100"
+   "owner": 3,
+   "slug": "CMPT-308",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
-  "pk": 51
+  "model": "planning.planningcourse",
+  "pk": 23
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 23,
-   "enrl_cap": 50,
-   "instructor": null,
-   "plan": 1,
-   "section": "D100"
+   "owner": 3,
+   "slug": "CMPT-310",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
-  "pk": 52
+  "model": "planning.planningcourse",
+  "pk": 24
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 24,
-   "enrl_cap": 65,
-   "instructor": null,
-   "plan": 1,
-   "section": "E100"
+   "owner": 3,
+   "slug": "CMPT-354",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
-  "pk": 53
+  "model": "planning.planningcourse",
+  "pk": 25
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 25,
-   "enrl_cap": 85,
-   "instructor": null,
-   "plan": 1,
-   "section": "D100"
+   "owner": 3,
+   "slug": "CMPT-361",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
-  "pk": 54
+  "model": "planning.planningcourse",
+  "pk": 26
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 26,
-   "enrl_cap": 75,
-   "instructor": null,
-   "plan": 1,
-   "section": "D100"
+   "owner": 3,
+   "slug": "CMPT-363",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
-  "pk": 55
+  "model": "planning.planningcourse",
+  "pk": 27
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 28,
-   "enrl_cap": 85,
-   "instructor": null,
-   "plan": 1,
-   "section": "D100"
+   "owner": 3,
+   "slug": "CMPT-371",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
-  "pk": 56
+  "model": "planning.planningcourse",
+  "pk": 28
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 29,
-   "enrl_cap": 60,
-   "instructor": null,
-   "plan": 1,
-   "section": "D100"
+   "owner": 3,
+   "slug": "CMPT-376",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
-  "pk": 57
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 30,
-   "enrl_cap": 60,
-   "instructor": null,
-   "plan": 1,
-   "section": "D100"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 58
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 32,
-   "enrl_cap": 40,
-   "instructor": null,
-   "plan": 1,
-   "section": "D100"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 60
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 33,
-   "enrl_cap": 30,
-   "instructor": null,
-   "plan": 1,
-   "section": "D100"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 61
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 36,
-   "enrl_cap": 60,
-   "instructor": null,
-   "plan": 1,
-   "section": "D100"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 62
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 37,
-   "enrl_cap": 50,
-   "instructor": null,
-   "plan": 1,
-   "section": "D100"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 63
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 9,
-   "enrl_cap": 60,
-   "instructor": null,
-   "plan": 1,
-   "section": "D100"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 64
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 4,
-   "enrl_cap": 60,
-   "instructor": null,
-   "plan": 1,
-   "section": "D100"
-  },
-  "model": "planning.plannedoffering",
-  "pk": 65
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 17,
-   "enrl_cap": 192,
-   "instructor": null,
-   "plan": 1,
-   "section": "D100"
-  },
-  "model": "planning.plannedoffering",
+  "model": "planning.planningcourse",
   "pk": 29
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 17,
-   "enrl_cap": 192,
-   "instructor": null,
-   "plan": 1,
-   "section": "D101"
+   "owner": 3,
+   "slug": "CMPT-379",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
+  "model": "planning.planningcourse",
   "pk": 30
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 17,
-   "enrl_cap": 192,
-   "instructor": null,
-   "plan": 1,
-   "section": "D102"
+   "owner": 3,
+   "slug": "CMPT-405",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
-  "pk": 31
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 17,
-   "enrl_cap": 192,
-   "instructor": null,
-   "plan": 1,
-   "section": "D103"
-  },
-  "model": "planning.plannedoffering",
+  "model": "planning.planningcourse",
   "pk": 32
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 17,
-   "enrl_cap": 192,
-   "instructor": null,
-   "plan": 1,
-   "section": "D104"
+   "owner": 3,
+   "slug": "CMPT-408",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
+  "model": "planning.planningcourse",
   "pk": 33
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 17,
-   "enrl_cap": 192,
-   "instructor": null,
-   "plan": 1,
-   "section": "D105"
+   "owner": 3,
+   "slug": "CMPT-411",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
-  "pk": 34
- },
- {
-  "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 17,
-   "enrl_cap": 192,
-   "instructor": null,
-   "plan": 1,
-   "section": "D106"
-  },
-  "model": "planning.plannedoffering",
+  "model": "planning.planningcourse",
   "pk": 35
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 17,
-   "enrl_cap": 192,
-   "instructor": null,
-   "plan": 1,
-   "section": "D107"
+   "owner": 3,
+   "slug": "CMPT-441",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
+  "model": "planning.planningcourse",
   "pk": 36
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LAB",
-   "course": 17,
-   "enrl_cap": 192,
-   "instructor": null,
-   "plan": 1,
-   "section": "D108"
+   "owner": 3,
+   "slug": "CMPT-454",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
+  "model": "planning.planningcourse",
   "pk": 37
  },
  {
   "fields": {
-   "campus": "BRNBY",
-   "component": "LEC",
-   "course": 31,
-   "enrl_cap": 60,
-   "instructor": null,
-   "plan": 1,
-   "section": "D100"
+   "owner": 3,
+   "slug": "CMPT-470",
+   "status": "OPEN"
   },
-  "model": "planning.plannedoffering",
-  "pk": 59
+  "model": "planning.planningcourse",
+  "pk": 9
+ },
+ {
+  "fields": {
+   "owner": 3,
+   "slug": "CMPT-471",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 7
+ },
+ {
+  "fields": {
+   "owner": 3,
+   "slug": "CMPT-475",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 4
+ },
+ {
+  "fields": {
+   "owner": 3,
+   "slug": "CMPT-477",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 5
+ },
+ {
+  "fields": {
+   "owner": 3,
+   "slug": "CMPT-479",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 6
+ },
+ {
+  "fields": {
+   "owner": 3,
+   "slug": "MACM-101",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 17
+ },
+ {
+  "fields": {
+   "owner": 3,
+   "slug": "MACM-300",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 31
  },
  {
   "fields": {
@@ -22035,7 +21114,7 @@
   "model": "planning.teachingcapability",
   "pk": 2
  },
-  {
+ {
   "fields": {
    "course": 20,
    "instructor": 9,
@@ -22053,6 +21132,4552 @@
   "model": "planning.teachingcapability",
   "pk": 6
  },
+ {
+  "fields": {
+   "count": 1,
+   "instructor": 8,
+   "intentionfull": true,
+   "note": "Added by planned administrator. Instructor posted no previous semester teaching plans.",
+   "semester": 5
+  },
+  "model": "planning.teachingintention",
+  "pk": 2
+ },
+ {
+  "fields": {
+   "count": 1,
+   "instructor": 9,
+   "intentionfull": true,
+   "note": "Added by planned administrator. Instructor posted no previous semester teaching plans.",
+   "semester": 5
+  },
+  "model": "planning.teachingintention",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "name": "Offering Alpha - Burnaby",
+   "semester": 5,
+   "slug": "Offering-Alpha---Burnaby",
+   "unit": 3,
+   "visibility": "ALL"
+  },
+  "model": "planning.semesterplan",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "name": "Offering Bravo  - Burnaby",
+   "semester": 5,
+   "slug": "Offering-Bravo----Burnaby",
+   "unit": 3,
+   "visibility": "INST"
+  },
+  "model": "planning.semesterplan",
+  "pk": 2
+ },
+ {
+  "fields": {
+   "name": "Offering Charlie - Burnaby",
+   "semester": 5,
+   "slug": "Offering-Charlie---Burnaby",
+   "unit": 3,
+   "visibility": "ADMI"
+  },
+  "model": "planning.semesterplan",
+  "pk": 3
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 38,
+   "enrl_cap": 50,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100",
+   "slug": "CMPT-102-D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 10,
+   "enrl_cap": 75,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100",
+   "slug": "CMPT-110-D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 2
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 11,
+   "enrl_cap": 182,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100",
+   "slug": "CMPT-120-D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 3
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 1,
+   "section": "D101",
+   "slug": "CMPT-120-D101"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 4
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 1,
+   "section": "D102",
+   "slug": "CMPT-120-D102"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 5
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 1,
+   "section": "D103",
+   "slug": "CMPT-120-D103"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 6
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 1,
+   "section": "D104",
+   "slug": "CMPT-120-D104"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 7
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 1,
+   "section": "D105",
+   "slug": "CMPT-120-D105"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 8
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 1,
+   "section": "D106",
+   "slug": "CMPT-120-D106"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 9
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 1,
+   "section": "D107",
+   "slug": "CMPT-120-D107"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 10
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 11,
+   "enrl_cap": 182,
+   "instructor": null,
+   "plan": 1,
+   "section": "D200",
+   "slug": "CMPT-120-D200"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 11
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 12,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100",
+   "slug": "CMPT-125-D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 19
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 13,
+   "enrl_cap": 50,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100",
+   "slug": "CMPT-126-D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 20
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 15,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100",
+   "slug": "CMPT-150-D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 21
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 15,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 1,
+   "section": "D101",
+   "slug": "CMPT-150-D101"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 22
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 15,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 1,
+   "section": "D102",
+   "slug": "CMPT-150-D102"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 23
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 15,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 1,
+   "section": "D103",
+   "slug": "CMPT-150-D103"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 24
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 15,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 1,
+   "section": "D104",
+   "slug": "CMPT-150-D104"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 25
+ },
+ {
+  "fields": {
+   "campus": "OFFST",
+   "component": "LEC",
+   "course": 16,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 1,
+   "section": "C100",
+   "slug": "CMPT-165-C100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 26
+ },
+ {
+  "fields": {
+   "campus": "OFFST",
+   "component": "LEC",
+   "course": 16,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 1,
+   "section": "C200",
+   "slug": "CMPT-165-C200"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 27
+ },
+ {
+  "fields": {
+   "campus": "OFFST",
+   "component": "LEC",
+   "course": 16,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 1,
+   "section": "C300",
+   "slug": "CMPT-165-C300"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 28
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 18,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100",
+   "slug": "CMPT-225-D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 38
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 18,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 1,
+   "section": "D101",
+   "slug": "CMPT-225-D101"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 39
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 18,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 1,
+   "section": "D102",
+   "slug": "CMPT-225-D102"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 40
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 18,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 1,
+   "section": "D103",
+   "slug": "CMPT-225-D103"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 41
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 18,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 1,
+   "section": "D104",
+   "slug": "CMPT-225-D104"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 42
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 19,
+   "enrl_cap": 130,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100",
+   "slug": "CMPT-250-D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 43
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 19,
+   "enrl_cap": 130,
+   "instructor": null,
+   "plan": 1,
+   "section": "D101",
+   "slug": "CMPT-250-D101"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 44
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 19,
+   "enrl_cap": 130,
+   "instructor": null,
+   "plan": 1,
+   "section": "D102",
+   "slug": "CMPT-250-D102"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 45
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 19,
+   "enrl_cap": 130,
+   "instructor": null,
+   "plan": 1,
+   "section": "D103",
+   "slug": "CMPT-250-D103"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 46
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 19,
+   "enrl_cap": 130,
+   "instructor": null,
+   "plan": 1,
+   "section": "D104",
+   "slug": "CMPT-250-D104"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 47
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 19,
+   "enrl_cap": 130,
+   "instructor": null,
+   "plan": 1,
+   "section": "D105",
+   "slug": "CMPT-250-D105"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 48
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 20,
+   "enrl_cap": 75,
+   "instructor": null,
+   "plan": 1,
+   "section": "E100",
+   "slug": "CMPT-275-E100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 49
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 21,
+   "enrl_cap": 85,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100",
+   "slug": "CMPT-300-D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 50
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 22,
+   "enrl_cap": 92,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100",
+   "slug": "CMPT-307-D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 51
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 23,
+   "enrl_cap": 50,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100",
+   "slug": "CMPT-308-D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 52
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 24,
+   "enrl_cap": 65,
+   "instructor": null,
+   "plan": 1,
+   "section": "E100",
+   "slug": "CMPT-310-E100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 53
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 25,
+   "enrl_cap": 85,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100",
+   "slug": "CMPT-354-D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 54
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 26,
+   "enrl_cap": 75,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100",
+   "slug": "CMPT-361-D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 55
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 28,
+   "enrl_cap": 85,
+   "instructor": 9,
+   "plan": 1,
+   "section": "D100",
+   "slug": "CMPT-371-D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 56
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 29,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100",
+   "slug": "CMPT-376-D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 57
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 30,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100",
+   "slug": "CMPT-379-D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 58
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 32,
+   "enrl_cap": 40,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100",
+   "slug": "CMPT-405-D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 60
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 33,
+   "enrl_cap": 30,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100",
+   "slug": "CMPT-408-D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 61
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 36,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100",
+   "slug": "CMPT-441-D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 62
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 37,
+   "enrl_cap": 50,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100",
+   "slug": "CMPT-454-D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 63
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 9,
+   "enrl_cap": 60,
+   "instructor": 8,
+   "plan": 1,
+   "section": "D100",
+   "slug": "CMPT-470-D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 64
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 4,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 1,
+   "section": "D100",
+   "slug": "CMPT-475-D100"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 65
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 38,
+   "enrl_cap": 50,
+   "instructor": null,
+   "plan": 2,
+   "section": "D100",
+   "slug": "CMPT-102-D100-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 66
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 10,
+   "enrl_cap": 75,
+   "instructor": null,
+   "plan": 2,
+   "section": "D100",
+   "slug": "CMPT-110-D100-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 67
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 11,
+   "enrl_cap": 182,
+   "instructor": null,
+   "plan": 2,
+   "section": "D100",
+   "slug": "CMPT-120-D100-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 68
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 2,
+   "section": "D101",
+   "slug": "CMPT-120-D101-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 69
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 2,
+   "section": "D102",
+   "slug": "CMPT-120-D102-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 70
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 2,
+   "section": "D103",
+   "slug": "CMPT-120-D103-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 71
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 2,
+   "section": "D104",
+   "slug": "CMPT-120-D104-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 72
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 2,
+   "section": "D105",
+   "slug": "CMPT-120-D105-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 73
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 2,
+   "section": "D106",
+   "slug": "CMPT-120-D106-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 74
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 2,
+   "section": "D107",
+   "slug": "CMPT-120-D107-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 75
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 11,
+   "enrl_cap": 182,
+   "instructor": null,
+   "plan": 2,
+   "section": "D200",
+   "slug": "CMPT-120-D200-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 76
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 12,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 2,
+   "section": "D100",
+   "slug": "CMPT-125-D100-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 77
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 13,
+   "enrl_cap": 50,
+   "instructor": null,
+   "plan": 2,
+   "section": "D100",
+   "slug": "CMPT-126-D100-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 78
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 15,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 2,
+   "section": "D100",
+   "slug": "CMPT-150-D100-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 79
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 15,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 2,
+   "section": "D101",
+   "slug": "CMPT-150-D101-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 80
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 15,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 2,
+   "section": "D102",
+   "slug": "CMPT-150-D102-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 81
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 15,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 2,
+   "section": "D103",
+   "slug": "CMPT-150-D103-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 82
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 15,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 2,
+   "section": "D104",
+   "slug": "CMPT-150-D104-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 83
+ },
+ {
+  "fields": {
+   "campus": "OFFST",
+   "component": "LEC",
+   "course": 16,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 2,
+   "section": "C100",
+   "slug": "CMPT-165-C100-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 84
+ },
+ {
+  "fields": {
+   "campus": "OFFST",
+   "component": "LEC",
+   "course": 16,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 2,
+   "section": "C200",
+   "slug": "CMPT-165-C200-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 85
+ },
+ {
+  "fields": {
+   "campus": "OFFST",
+   "component": "LEC",
+   "course": 16,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 2,
+   "section": "C300",
+   "slug": "CMPT-165-C300-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 86
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 18,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 2,
+   "section": "D100",
+   "slug": "CMPT-225-D100-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 87
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 18,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 2,
+   "section": "D101",
+   "slug": "CMPT-225-D101-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 88
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 18,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 2,
+   "section": "D102",
+   "slug": "CMPT-225-D102-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 89
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 18,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 2,
+   "section": "D103",
+   "slug": "CMPT-225-D103-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 90
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 18,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 2,
+   "section": "D104",
+   "slug": "CMPT-225-D104-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 91
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 19,
+   "enrl_cap": 130,
+   "instructor": null,
+   "plan": 2,
+   "section": "D100",
+   "slug": "CMPT-250-D100-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 92
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 19,
+   "enrl_cap": 130,
+   "instructor": null,
+   "plan": 2,
+   "section": "D101",
+   "slug": "CMPT-250-D101-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 93
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 19,
+   "enrl_cap": 130,
+   "instructor": null,
+   "plan": 2,
+   "section": "D102",
+   "slug": "CMPT-250-D102-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 94
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 19,
+   "enrl_cap": 130,
+   "instructor": null,
+   "plan": 2,
+   "section": "D103",
+   "slug": "CMPT-250-D103-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 95
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 19,
+   "enrl_cap": 130,
+   "instructor": null,
+   "plan": 2,
+   "section": "D104",
+   "slug": "CMPT-250-D104-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 96
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 19,
+   "enrl_cap": 130,
+   "instructor": null,
+   "plan": 2,
+   "section": "D105",
+   "slug": "CMPT-250-D105-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 97
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 20,
+   "enrl_cap": 75,
+   "instructor": null,
+   "plan": 2,
+   "section": "E100",
+   "slug": "CMPT-275-E100-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 98
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 21,
+   "enrl_cap": 85,
+   "instructor": null,
+   "plan": 2,
+   "section": "D100",
+   "slug": "CMPT-300-D100-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 99
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 22,
+   "enrl_cap": 92,
+   "instructor": null,
+   "plan": 2,
+   "section": "D100",
+   "slug": "CMPT-307-D100-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 100
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 23,
+   "enrl_cap": 50,
+   "instructor": null,
+   "plan": 2,
+   "section": "D100",
+   "slug": "CMPT-308-D100-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 101
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 24,
+   "enrl_cap": 65,
+   "instructor": null,
+   "plan": 2,
+   "section": "E100",
+   "slug": "CMPT-310-E100-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 102
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 25,
+   "enrl_cap": 85,
+   "instructor": null,
+   "plan": 2,
+   "section": "D100",
+   "slug": "CMPT-354-D100-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 103
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 26,
+   "enrl_cap": 75,
+   "instructor": null,
+   "plan": 2,
+   "section": "D100",
+   "slug": "CMPT-361-D100-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 104
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 28,
+   "enrl_cap": 85,
+   "instructor": null,
+   "plan": 2,
+   "section": "D100",
+   "slug": "CMPT-371-D100-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 105
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 29,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 2,
+   "section": "D100",
+   "slug": "CMPT-376-D100-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 106
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 30,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 2,
+   "section": "D100",
+   "slug": "CMPT-379-D100-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 107
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 32,
+   "enrl_cap": 40,
+   "instructor": null,
+   "plan": 2,
+   "section": "D100",
+   "slug": "CMPT-405-D100-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 108
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 33,
+   "enrl_cap": 30,
+   "instructor": null,
+   "plan": 2,
+   "section": "D100",
+   "slug": "CMPT-408-D100-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 109
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 36,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 2,
+   "section": "D100",
+   "slug": "CMPT-441-D100-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 110
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 37,
+   "enrl_cap": 50,
+   "instructor": null,
+   "plan": 2,
+   "section": "D100",
+   "slug": "CMPT-454-D100-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 111
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 9,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 2,
+   "section": "D100",
+   "slug": "CMPT-470-D100-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 112
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 4,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 2,
+   "section": "D100",
+   "slug": "CMPT-475-D100-2"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 113
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 38,
+   "enrl_cap": 50,
+   "instructor": null,
+   "plan": 3,
+   "section": "D100",
+   "slug": "CMPT-102-D100-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 114
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 10,
+   "enrl_cap": 75,
+   "instructor": null,
+   "plan": 3,
+   "section": "D100",
+   "slug": "CMPT-110-D100-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 115
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 11,
+   "enrl_cap": 182,
+   "instructor": null,
+   "plan": 3,
+   "section": "D100",
+   "slug": "CMPT-120-D100-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 116
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 3,
+   "section": "D101",
+   "slug": "CMPT-120-D101-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 117
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 3,
+   "section": "D102",
+   "slug": "CMPT-120-D102-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 118
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 3,
+   "section": "D103",
+   "slug": "CMPT-120-D103-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 119
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 3,
+   "section": "D104",
+   "slug": "CMPT-120-D104-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 120
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 3,
+   "section": "D105",
+   "slug": "CMPT-120-D105-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 121
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 3,
+   "section": "D106",
+   "slug": "CMPT-120-D106-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 122
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 11,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 3,
+   "section": "D107",
+   "slug": "CMPT-120-D107-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 123
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 11,
+   "enrl_cap": 182,
+   "instructor": null,
+   "plan": 3,
+   "section": "D200",
+   "slug": "CMPT-120-D200-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 124
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 12,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 3,
+   "section": "D100",
+   "slug": "CMPT-125-D100-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 125
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 13,
+   "enrl_cap": 50,
+   "instructor": null,
+   "plan": 3,
+   "section": "D100",
+   "slug": "CMPT-126-D100-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 126
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 15,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 3,
+   "section": "D100",
+   "slug": "CMPT-150-D100-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 127
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 15,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 3,
+   "section": "D101",
+   "slug": "CMPT-150-D101-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 128
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 15,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 3,
+   "section": "D102",
+   "slug": "CMPT-150-D102-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 129
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 15,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 3,
+   "section": "D103",
+   "slug": "CMPT-150-D103-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 130
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 15,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 3,
+   "section": "D104",
+   "slug": "CMPT-150-D104-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 131
+ },
+ {
+  "fields": {
+   "campus": "OFFST",
+   "component": "LEC",
+   "course": 16,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 3,
+   "section": "C100",
+   "slug": "CMPT-165-C100-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 132
+ },
+ {
+  "fields": {
+   "campus": "OFFST",
+   "component": "LEC",
+   "course": 16,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 3,
+   "section": "C200",
+   "slug": "CMPT-165-C200-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 133
+ },
+ {
+  "fields": {
+   "campus": "OFFST",
+   "component": "LEC",
+   "course": 16,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 3,
+   "section": "C300",
+   "slug": "CMPT-165-C300-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 134
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 18,
+   "enrl_cap": 104,
+   "instructor": null,
+   "plan": 3,
+   "section": "D100",
+   "slug": "CMPT-225-D100-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 135
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 18,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 3,
+   "section": "D101",
+   "slug": "CMPT-225-D101-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 136
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 18,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 3,
+   "section": "D102",
+   "slug": "CMPT-225-D102-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 137
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 18,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 3,
+   "section": "D103",
+   "slug": "CMPT-225-D103-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 138
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 18,
+   "enrl_cap": 26,
+   "instructor": null,
+   "plan": 3,
+   "section": "D104",
+   "slug": "CMPT-225-D104-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 139
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 19,
+   "enrl_cap": 130,
+   "instructor": null,
+   "plan": 3,
+   "section": "D100",
+   "slug": "CMPT-250-D100-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 140
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 19,
+   "enrl_cap": 130,
+   "instructor": null,
+   "plan": 3,
+   "section": "D101",
+   "slug": "CMPT-250-D101-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 141
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 19,
+   "enrl_cap": 130,
+   "instructor": null,
+   "plan": 3,
+   "section": "D102",
+   "slug": "CMPT-250-D102-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 142
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 19,
+   "enrl_cap": 130,
+   "instructor": null,
+   "plan": 3,
+   "section": "D103",
+   "slug": "CMPT-250-D103-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 143
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 19,
+   "enrl_cap": 130,
+   "instructor": null,
+   "plan": 3,
+   "section": "D104",
+   "slug": "CMPT-250-D104-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 144
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LAB",
+   "course": 19,
+   "enrl_cap": 130,
+   "instructor": null,
+   "plan": 3,
+   "section": "D105",
+   "slug": "CMPT-250-D105-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 145
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 20,
+   "enrl_cap": 75,
+   "instructor": null,
+   "plan": 3,
+   "section": "E100",
+   "slug": "CMPT-275-E100-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 146
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 21,
+   "enrl_cap": 85,
+   "instructor": null,
+   "plan": 3,
+   "section": "D100",
+   "slug": "CMPT-300-D100-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 147
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 22,
+   "enrl_cap": 92,
+   "instructor": null,
+   "plan": 3,
+   "section": "D100",
+   "slug": "CMPT-307-D100-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 148
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 23,
+   "enrl_cap": 50,
+   "instructor": null,
+   "plan": 3,
+   "section": "D100",
+   "slug": "CMPT-308-D100-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 149
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 24,
+   "enrl_cap": 65,
+   "instructor": null,
+   "plan": 3,
+   "section": "E100",
+   "slug": "CMPT-310-E100-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 150
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 25,
+   "enrl_cap": 85,
+   "instructor": null,
+   "plan": 3,
+   "section": "D100",
+   "slug": "CMPT-354-D100-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 151
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 26,
+   "enrl_cap": 75,
+   "instructor": null,
+   "plan": 3,
+   "section": "D100",
+   "slug": "CMPT-361-D100-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 152
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 28,
+   "enrl_cap": 85,
+   "instructor": null,
+   "plan": 3,
+   "section": "D100",
+   "slug": "CMPT-371-D100-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 153
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 29,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 3,
+   "section": "D100",
+   "slug": "CMPT-376-D100-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 154
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 30,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 3,
+   "section": "D100",
+   "slug": "CMPT-379-D100-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 155
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 32,
+   "enrl_cap": 40,
+   "instructor": null,
+   "plan": 3,
+   "section": "D100",
+   "slug": "CMPT-405-D100-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 156
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 33,
+   "enrl_cap": 30,
+   "instructor": null,
+   "plan": 3,
+   "section": "D100",
+   "slug": "CMPT-408-D100-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 157
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 36,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 3,
+   "section": "D100",
+   "slug": "CMPT-441-D100-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 158
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 37,
+   "enrl_cap": 50,
+   "instructor": null,
+   "plan": 3,
+   "section": "D100",
+   "slug": "CMPT-454-D100-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 159
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 9,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 3,
+   "section": "D100",
+   "slug": "CMPT-470-D100-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 160
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
+   "component": "LEC",
+   "course": 4,
+   "enrl_cap": 60,
+   "instructor": null,
+   "plan": 3,
+   "section": "D100",
+   "slug": "CMPT-475-D100-3"
+  },
+  "model": "planning.plannedoffering",
+  "pk": 161
+ },
+ {
+  "fields": {
+   "end_time": "04:20:00",
+   "offering": 1,
+   "room": "ASB9838",
+   "start_time": "02:30:00",
+   "weekday": 1
+  },
+  "model": "planning.meetingtime",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "end_time": "04:20:00",
+   "offering": 1,
+   "room": "ASB9838",
+   "start_time": "02:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 2
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 2,
+   "room": "AQ3005",
+   "start_time": "10:30:00",
+   "weekday": 1
+  },
+  "model": "planning.meetingtime",
+  "pk": 3
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 2,
+   "room": "SSC9000",
+   "start_time": "10:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 4
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 3,
+   "room": "SSC9902",
+   "start_time": "10:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 5
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 4,
+   "room": "ASB9838",
+   "start_time": "11:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 8
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 5,
+   "room": "ASB9838",
+   "start_time": "11:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 9
+ },
+ {
+  "fields": {
+   "end_time": "01:20:00",
+   "offering": 6,
+   "room": "ASB9838",
+   "start_time": "12:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 10
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 7,
+   "room": "ASB9838",
+   "start_time": "11:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 11
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 8,
+   "room": "ASB9838",
+   "start_time": "13:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 12
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 9,
+   "room": "ASB9838",
+   "start_time": "13:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 13
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 10,
+   "room": "ASB9838",
+   "start_time": "14:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 14
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 11,
+   "room": "EDB7618",
+   "start_time": "14:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 15
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 3,
+   "room": "SSC9902",
+   "start_time": "10:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 6
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 11,
+   "room": "EDB7618",
+   "start_time": "14:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 16
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 3,
+   "room": "SSC9902",
+   "start_time": "10:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 7
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 11,
+   "room": "EDB7618",
+   "start_time": "14:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 17
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 19,
+   "room": "EDB7618",
+   "start_time": "09:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 18
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 19,
+   "room": "EDB7618",
+   "start_time": "09:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 19
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 19,
+   "room": "EDB7618",
+   "start_time": "09:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 20
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 20,
+   "room": "EDB7618",
+   "start_time": "09:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 21
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 20,
+   "room": "EDB7618",
+   "start_time": "09:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 22
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 20,
+   "room": "EDB7618",
+   "start_time": "09:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 23
+ },
+ {
+  "fields": {
+   "end_time": "16:20:00",
+   "offering": 21,
+   "room": "SWH10041",
+   "start_time": "15:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 24
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 22,
+   "room": "ASB9838",
+   "start_time": "10:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 27
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 23,
+   "room": "ASB9838",
+   "start_time": "11:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 28
+ },
+ {
+  "fields": {
+   "end_time": "01:20:00",
+   "offering": 24,
+   "room": "ASB9838",
+   "start_time": "12:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 29
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 25,
+   "room": "ASB9838",
+   "start_time": "13:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 30
+ },
+ {
+  "fields": {
+   "end_time": "16:20:00",
+   "offering": 21,
+   "room": "SWH10041",
+   "start_time": "15:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 25
+ },
+ {
+  "fields": {
+   "end_time": "16:20:00",
+   "offering": 21,
+   "room": "SWH10041",
+   "start_time": "15:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 26
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 38,
+   "room": "AQ3150",
+   "start_time": "14:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 31
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 38,
+   "room": "AQ3150",
+   "start_time": "14:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 32
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 39,
+   "room": "ASB9838",
+   "start_time": "10:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 34
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 40,
+   "room": "ASB9838",
+   "start_time": "11:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 35
+ },
+ {
+  "fields": {
+   "end_time": "01:20:00",
+   "offering": 41,
+   "room": "ASB9838",
+   "start_time": "12:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 36
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 42,
+   "room": "ASB9838",
+   "start_time": "13:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 37
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 38,
+   "room": "AQ3150",
+   "start_time": "14:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 33
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 43,
+   "room": "WMC3260",
+   "start_time": "11:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 38
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 43,
+   "room": "WMC3260",
+   "start_time": "11:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 39
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 44,
+   "room": "ASB9838",
+   "start_time": "10:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 41
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 45,
+   "room": "ASB9838",
+   "start_time": "11:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 42
+ },
+ {
+  "fields": {
+   "end_time": "13:20:00",
+   "offering": 46,
+   "room": "ASB9838",
+   "start_time": "12:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 43
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 47,
+   "room": "ASB9838",
+   "start_time": "13:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 44
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 48,
+   "room": "ASB9838",
+   "start_time": "14:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 45
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 43,
+   "room": "WMC3260",
+   "start_time": "11:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 40
+ },
+ {
+  "fields": {
+   "end_time": "19:20:00",
+   "offering": 49,
+   "room": "RCB8100",
+   "start_time": "16:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 46
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 50,
+   "room": "AQ3005",
+   "start_time": "13:20:00",
+   "weekday": 1
+  },
+  "model": "planning.meetingtime",
+  "pk": 47
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 50,
+   "room": "AQ3003",
+   "start_time": "12:20:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 48
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 51,
+   "room": "AQ3003",
+   "start_time": "11:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 49
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 51,
+   "room": "SSC9000",
+   "start_time": "10:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 50
+ },
+ {
+  "fields": {
+   "end_time": "16:20:00",
+   "offering": 52,
+   "room": "RCB8100",
+   "start_time": "14:30:00",
+   "weekday": 1
+  },
+  "model": "planning.meetingtime",
+  "pk": 74
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 52,
+   "room": "AQ5018",
+   "start_time": "14:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 75
+ },
+ {
+  "fields": {
+   "end_time": "19:20:00",
+   "offering": 53,
+   "room": "AQ3003",
+   "start_time": "16:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 73
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 54,
+   "room": "AQ3003",
+   "start_time": "10:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 71
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 54,
+   "room": "AQ3003",
+   "start_time": "10:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 72
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 55,
+   "room": "SSC9000",
+   "start_time": "13:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 68
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 55,
+   "room": "SSC9000",
+   "start_time": "13:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 69
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 55,
+   "room": "SSC9000",
+   "start_time": "13:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 70
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 56,
+   "room": "AQ3159",
+   "start_time": "09:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 65
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 56,
+   "room": "AQ3159",
+   "start_time": "09:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 66
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 56,
+   "room": "AQ3159",
+   "start_time": "09:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 67
+ },
+ {
+  "fields": {
+   "end_time": "19:20:00",
+   "offering": 57,
+   "room": "WMC3210",
+   "start_time": "16:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 64
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 58,
+   "room": "AQ5037",
+   "start_time": "09:30:00",
+   "weekday": 1
+  },
+  "model": "planning.meetingtime",
+  "pk": 62
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 58,
+   "room": "AQ5037",
+   "start_time": "09:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 63
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 60,
+   "room": "RCB8100",
+   "start_time": "09:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 59
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 60,
+   "room": "RCB8100",
+   "start_time": "09:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 60
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 60,
+   "room": "RCB8100",
+   "start_time": "09:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 61
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 61,
+   "room": "BLU10921",
+   "start_time": "13:30:00",
+   "weekday": 1
+  },
+  "model": "planning.meetingtime",
+  "pk": 57
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 61,
+   "room": "BLU10011",
+   "start_time": "12:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 58
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 62,
+   "room": "WMC3210",
+   "start_time": "11:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 55
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 62,
+   "room": "WMC3210",
+   "start_time": "10:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 56
+ },
+ {
+  "fields": {
+   "end_time": "04:20:00",
+   "offering": 63,
+   "room": "AQ3005",
+   "start_time": "02:30:00",
+   "weekday": 1
+  },
+  "model": "planning.meetingtime",
+  "pk": 53
+ },
+ {
+  "fields": {
+   "end_time": "04:20:00",
+   "offering": 63,
+   "room": "AQ3005",
+   "start_time": "02:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 54
+ },
+ {
+  "fields": {
+   "end_time": "20:20:00",
+   "offering": 64,
+   "room": "RCB8100",
+   "start_time": "17:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 52
+ },
+ {
+  "fields": {
+   "end_time": "20:20:00",
+   "offering": 65,
+   "room": "WMC3210",
+   "start_time": "17:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 51
+ },
+ {
+  "fields": {
+   "end_time": "04:20:00",
+   "offering": 66,
+   "room": "ASB9838",
+   "start_time": "02:30:00",
+   "weekday": 1
+  },
+  "model": "planning.meetingtime",
+  "pk": 76
+ },
+ {
+  "fields": {
+   "end_time": "04:20:00",
+   "offering": 66,
+   "room": "ASB9838",
+   "start_time": "02:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 77
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 67,
+   "room": "AQ3005",
+   "start_time": "10:30:00",
+   "weekday": 1
+  },
+  "model": "planning.meetingtime",
+  "pk": 78
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 67,
+   "room": "SSC9000",
+   "start_time": "10:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 79
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 68,
+   "room": "SSC9902",
+   "start_time": "10:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 80
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 69,
+   "room": "ASB9838",
+   "start_time": "11:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 83
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 70,
+   "room": "ASB9838",
+   "start_time": "11:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 84
+ },
+ {
+  "fields": {
+   "end_time": "01:20:00",
+   "offering": 71,
+   "room": "ASB9838",
+   "start_time": "12:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 85
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 72,
+   "room": "ASB9838",
+   "start_time": "11:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 86
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 73,
+   "room": "ASB9838",
+   "start_time": "13:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 87
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 74,
+   "room": "ASB9838",
+   "start_time": "13:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 88
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 75,
+   "room": "ASB9838",
+   "start_time": "14:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 89
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 76,
+   "room": "EDB7618",
+   "start_time": "14:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 90
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 68,
+   "room": "SSC9902",
+   "start_time": "10:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 81
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 76,
+   "room": "EDB7618",
+   "start_time": "14:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 91
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 68,
+   "room": "SSC9902",
+   "start_time": "10:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 82
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 76,
+   "room": "EDB7618",
+   "start_time": "14:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 92
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 77,
+   "room": "EDB7618",
+   "start_time": "09:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 93
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 77,
+   "room": "EDB7618",
+   "start_time": "09:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 94
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 77,
+   "room": "EDB7618",
+   "start_time": "09:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 95
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 78,
+   "room": "EDB7618",
+   "start_time": "09:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 96
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 78,
+   "room": "EDB7618",
+   "start_time": "09:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 97
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 78,
+   "room": "EDB7618",
+   "start_time": "09:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 98
+ },
+ {
+  "fields": {
+   "end_time": "16:20:00",
+   "offering": 79,
+   "room": "SWH10041",
+   "start_time": "15:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 99
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 80,
+   "room": "ASB9838",
+   "start_time": "10:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 102
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 81,
+   "room": "ASB9838",
+   "start_time": "11:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 103
+ },
+ {
+  "fields": {
+   "end_time": "01:20:00",
+   "offering": 82,
+   "room": "ASB9838",
+   "start_time": "12:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 104
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 83,
+   "room": "ASB9838",
+   "start_time": "13:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 105
+ },
+ {
+  "fields": {
+   "end_time": "16:20:00",
+   "offering": 79,
+   "room": "SWH10041",
+   "start_time": "15:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 100
+ },
+ {
+  "fields": {
+   "end_time": "16:20:00",
+   "offering": 79,
+   "room": "SWH10041",
+   "start_time": "15:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 101
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 87,
+   "room": "AQ3150",
+   "start_time": "14:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 106
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 87,
+   "room": "AQ3150",
+   "start_time": "14:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 107
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 88,
+   "room": "ASB9838",
+   "start_time": "10:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 109
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 89,
+   "room": "ASB9838",
+   "start_time": "11:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 110
+ },
+ {
+  "fields": {
+   "end_time": "01:20:00",
+   "offering": 90,
+   "room": "ASB9838",
+   "start_time": "12:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 111
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 91,
+   "room": "ASB9838",
+   "start_time": "13:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 112
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 87,
+   "room": "AQ3150",
+   "start_time": "14:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 108
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 92,
+   "room": "WMC3260",
+   "start_time": "11:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 113
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 92,
+   "room": "WMC3260",
+   "start_time": "11:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 114
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 93,
+   "room": "ASB9838",
+   "start_time": "10:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 116
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 94,
+   "room": "ASB9838",
+   "start_time": "11:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 117
+ },
+ {
+  "fields": {
+   "end_time": "13:20:00",
+   "offering": 95,
+   "room": "ASB9838",
+   "start_time": "12:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 118
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 96,
+   "room": "ASB9838",
+   "start_time": "13:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 119
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 97,
+   "room": "ASB9838",
+   "start_time": "14:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 120
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 92,
+   "room": "WMC3260",
+   "start_time": "11:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 115
+ },
+ {
+  "fields": {
+   "end_time": "19:20:00",
+   "offering": 98,
+   "room": "RCB8100",
+   "start_time": "16:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 121
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 99,
+   "room": "AQ3005",
+   "start_time": "13:20:00",
+   "weekday": 1
+  },
+  "model": "planning.meetingtime",
+  "pk": 122
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 99,
+   "room": "AQ3003",
+   "start_time": "12:20:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 123
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 100,
+   "room": "AQ3003",
+   "start_time": "11:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 124
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 100,
+   "room": "SSC9000",
+   "start_time": "10:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 125
+ },
+ {
+  "fields": {
+   "end_time": "16:20:00",
+   "offering": 101,
+   "room": "RCB8100",
+   "start_time": "14:30:00",
+   "weekday": 1
+  },
+  "model": "planning.meetingtime",
+  "pk": 126
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 101,
+   "room": "AQ5018",
+   "start_time": "14:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 127
+ },
+ {
+  "fields": {
+   "end_time": "19:20:00",
+   "offering": 102,
+   "room": "AQ3003",
+   "start_time": "16:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 128
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 103,
+   "room": "AQ3003",
+   "start_time": "10:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 129
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 103,
+   "room": "AQ3003",
+   "start_time": "10:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 130
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 104,
+   "room": "SSC9000",
+   "start_time": "13:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 131
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 104,
+   "room": "SSC9000",
+   "start_time": "13:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 132
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 104,
+   "room": "SSC9000",
+   "start_time": "13:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 133
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 105,
+   "room": "AQ3159",
+   "start_time": "09:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 134
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 105,
+   "room": "AQ3159",
+   "start_time": "09:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 135
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 105,
+   "room": "AQ3159",
+   "start_time": "09:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 136
+ },
+ {
+  "fields": {
+   "end_time": "19:20:00",
+   "offering": 106,
+   "room": "WMC3210",
+   "start_time": "16:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 137
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 107,
+   "room": "AQ5037",
+   "start_time": "09:30:00",
+   "weekday": 1
+  },
+  "model": "planning.meetingtime",
+  "pk": 138
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 107,
+   "room": "AQ5037",
+   "start_time": "09:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 139
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 108,
+   "room": "RCB8100",
+   "start_time": "09:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 140
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 108,
+   "room": "RCB8100",
+   "start_time": "09:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 141
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 108,
+   "room": "RCB8100",
+   "start_time": "09:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 142
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 109,
+   "room": "BLU10921",
+   "start_time": "13:30:00",
+   "weekday": 1
+  },
+  "model": "planning.meetingtime",
+  "pk": 143
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 109,
+   "room": "BLU10011",
+   "start_time": "12:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 144
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 110,
+   "room": "WMC3210",
+   "start_time": "11:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 145
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 110,
+   "room": "WMC3210",
+   "start_time": "10:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 146
+ },
+ {
+  "fields": {
+   "end_time": "04:20:00",
+   "offering": 111,
+   "room": "AQ3005",
+   "start_time": "02:30:00",
+   "weekday": 1
+  },
+  "model": "planning.meetingtime",
+  "pk": 147
+ },
+ {
+  "fields": {
+   "end_time": "04:20:00",
+   "offering": 111,
+   "room": "AQ3005",
+   "start_time": "02:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 148
+ },
+ {
+  "fields": {
+   "end_time": "20:20:00",
+   "offering": 112,
+   "room": "RCB8100",
+   "start_time": "17:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 149
+ },
+ {
+  "fields": {
+   "end_time": "20:20:00",
+   "offering": 113,
+   "room": "WMC3210",
+   "start_time": "17:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 150
+ },
+ {
+  "fields": {
+   "end_time": "04:20:00",
+   "offering": 114,
+   "room": "ASB9838",
+   "start_time": "02:30:00",
+   "weekday": 1
+  },
+  "model": "planning.meetingtime",
+  "pk": 151
+ },
+ {
+  "fields": {
+   "end_time": "04:20:00",
+   "offering": 114,
+   "room": "ASB9838",
+   "start_time": "02:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 152
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 115,
+   "room": "AQ3005",
+   "start_time": "10:30:00",
+   "weekday": 1
+  },
+  "model": "planning.meetingtime",
+  "pk": 153
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 115,
+   "room": "SSC9000",
+   "start_time": "10:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 154
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 116,
+   "room": "SSC9902",
+   "start_time": "10:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 155
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 117,
+   "room": "ASB9838",
+   "start_time": "11:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 158
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 118,
+   "room": "ASB9838",
+   "start_time": "11:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 159
+ },
+ {
+  "fields": {
+   "end_time": "01:20:00",
+   "offering": 119,
+   "room": "ASB9838",
+   "start_time": "12:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 160
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 120,
+   "room": "ASB9838",
+   "start_time": "11:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 161
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 121,
+   "room": "ASB9838",
+   "start_time": "13:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 162
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 122,
+   "room": "ASB9838",
+   "start_time": "13:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 163
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 123,
+   "room": "ASB9838",
+   "start_time": "14:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 164
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 124,
+   "room": "EDB7618",
+   "start_time": "14:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 165
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 116,
+   "room": "SSC9902",
+   "start_time": "10:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 156
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 124,
+   "room": "EDB7618",
+   "start_time": "14:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 166
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 116,
+   "room": "SSC9902",
+   "start_time": "10:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 157
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 124,
+   "room": "EDB7618",
+   "start_time": "14:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 167
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 125,
+   "room": "EDB7618",
+   "start_time": "09:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 168
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 125,
+   "room": "EDB7618",
+   "start_time": "09:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 169
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 125,
+   "room": "EDB7618",
+   "start_time": "09:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 170
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 126,
+   "room": "EDB7618",
+   "start_time": "09:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 171
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 126,
+   "room": "EDB7618",
+   "start_time": "09:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 172
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 126,
+   "room": "EDB7618",
+   "start_time": "09:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 173
+ },
+ {
+  "fields": {
+   "end_time": "16:20:00",
+   "offering": 127,
+   "room": "SWH10041",
+   "start_time": "15:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 174
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 128,
+   "room": "ASB9838",
+   "start_time": "10:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 177
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 129,
+   "room": "ASB9838",
+   "start_time": "11:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 178
+ },
+ {
+  "fields": {
+   "end_time": "01:20:00",
+   "offering": 130,
+   "room": "ASB9838",
+   "start_time": "12:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 179
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 131,
+   "room": "ASB9838",
+   "start_time": "13:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 180
+ },
+ {
+  "fields": {
+   "end_time": "16:20:00",
+   "offering": 127,
+   "room": "SWH10041",
+   "start_time": "15:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 175
+ },
+ {
+  "fields": {
+   "end_time": "16:20:00",
+   "offering": 127,
+   "room": "SWH10041",
+   "start_time": "15:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 176
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 135,
+   "room": "AQ3150",
+   "start_time": "14:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 181
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 135,
+   "room": "AQ3150",
+   "start_time": "14:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 182
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 136,
+   "room": "ASB9838",
+   "start_time": "10:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 184
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 137,
+   "room": "ASB9838",
+   "start_time": "11:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 185
+ },
+ {
+  "fields": {
+   "end_time": "01:20:00",
+   "offering": 138,
+   "room": "ASB9838",
+   "start_time": "12:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 186
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 139,
+   "room": "ASB9838",
+   "start_time": "13:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 187
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 135,
+   "room": "AQ3150",
+   "start_time": "14:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 183
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 140,
+   "room": "WMC3260",
+   "start_time": "11:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 188
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 140,
+   "room": "WMC3260",
+   "start_time": "11:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 189
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 141,
+   "room": "ASB9838",
+   "start_time": "10:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 191
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 142,
+   "room": "ASB9838",
+   "start_time": "11:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 192
+ },
+ {
+  "fields": {
+   "end_time": "13:20:00",
+   "offering": 143,
+   "room": "ASB9838",
+   "start_time": "12:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 193
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 144,
+   "room": "ASB9838",
+   "start_time": "13:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 194
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 145,
+   "room": "ASB9838",
+   "start_time": "14:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 195
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 140,
+   "room": "WMC3260",
+   "start_time": "11:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 190
+ },
+ {
+  "fields": {
+   "end_time": "19:20:00",
+   "offering": 146,
+   "room": "RCB8100",
+   "start_time": "16:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 196
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 147,
+   "room": "AQ3005",
+   "start_time": "13:20:00",
+   "weekday": 1
+  },
+  "model": "planning.meetingtime",
+  "pk": 197
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 147,
+   "room": "AQ3003",
+   "start_time": "12:20:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 198
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 148,
+   "room": "AQ3003",
+   "start_time": "11:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 199
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 148,
+   "room": "SSC9000",
+   "start_time": "10:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 200
+ },
+ {
+  "fields": {
+   "end_time": "16:20:00",
+   "offering": 149,
+   "room": "RCB8100",
+   "start_time": "14:30:00",
+   "weekday": 1
+  },
+  "model": "planning.meetingtime",
+  "pk": 201
+ },
+ {
+  "fields": {
+   "end_time": "15:20:00",
+   "offering": 149,
+   "room": "AQ5018",
+   "start_time": "14:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 202
+ },
+ {
+  "fields": {
+   "end_time": "19:20:00",
+   "offering": 150,
+   "room": "AQ3003",
+   "start_time": "16:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 203
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 151,
+   "room": "AQ3003",
+   "start_time": "10:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 204
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 151,
+   "room": "AQ3003",
+   "start_time": "10:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 205
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 152,
+   "room": "SSC9000",
+   "start_time": "13:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 206
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 152,
+   "room": "SSC9000",
+   "start_time": "13:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 207
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 152,
+   "room": "SSC9000",
+   "start_time": "13:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 208
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 153,
+   "room": "AQ3159",
+   "start_time": "09:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 209
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 153,
+   "room": "AQ3159",
+   "start_time": "09:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 210
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 153,
+   "room": "AQ3159",
+   "start_time": "09:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 211
+ },
+ {
+  "fields": {
+   "end_time": "19:20:00",
+   "offering": 154,
+   "room": "WMC3210",
+   "start_time": "16:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 212
+ },
+ {
+  "fields": {
+   "end_time": "11:20:00",
+   "offering": 155,
+   "room": "AQ5037",
+   "start_time": "09:30:00",
+   "weekday": 1
+  },
+  "model": "planning.meetingtime",
+  "pk": 213
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 155,
+   "room": "AQ5037",
+   "start_time": "09:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 214
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 156,
+   "room": "RCB8100",
+   "start_time": "09:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 215
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 156,
+   "room": "RCB8100",
+   "start_time": "09:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 216
+ },
+ {
+  "fields": {
+   "end_time": "10:20:00",
+   "offering": 156,
+   "room": "RCB8100",
+   "start_time": "09:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 217
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 157,
+   "room": "BLU10921",
+   "start_time": "13:30:00",
+   "weekday": 1
+  },
+  "model": "planning.meetingtime",
+  "pk": 218
+ },
+ {
+  "fields": {
+   "end_time": "14:20:00",
+   "offering": 157,
+   "room": "BLU10011",
+   "start_time": "12:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 219
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 158,
+   "room": "WMC3210",
+   "start_time": "11:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 220
+ },
+ {
+  "fields": {
+   "end_time": "12:20:00",
+   "offering": 158,
+   "room": "WMC3210",
+   "start_time": "10:30:00",
+   "weekday": 4
+  },
+  "model": "planning.meetingtime",
+  "pk": 221
+ },
+ {
+  "fields": {
+   "end_time": "04:20:00",
+   "offering": 159,
+   "room": "AQ3005",
+   "start_time": "02:30:00",
+   "weekday": 1
+  },
+  "model": "planning.meetingtime",
+  "pk": 222
+ },
+ {
+  "fields": {
+   "end_time": "04:20:00",
+   "offering": 159,
+   "room": "AQ3005",
+   "start_time": "02:30:00",
+   "weekday": 3
+  },
+  "model": "planning.meetingtime",
+  "pk": 223
+ },
+ {
+  "fields": {
+   "end_time": "20:20:00",
+   "offering": 160,
+   "room": "RCB8100",
+   "start_time": "17:30:00",
+   "weekday": 0
+  },
+  "model": "planning.meetingtime",
+  "pk": 224
+ },
+ {
+  "fields": {
+   "end_time": "20:20:00",
+   "offering": 161,
+   "room": "WMC3210",
+   "start_time": "17:30:00",
+   "weekday": 2
+  },
+  "model": "planning.meetingtime",
+  "pk": 225
+ },
   {
   "fields": {
    "comment": "This is a comment!",
@@ -22066,5 +25691,4 @@
   "model": "planning.teachingequivalent",
   "pk": 1
  }
-
 ]

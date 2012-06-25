@@ -4,9 +4,9 @@ from admin_index import admin_index
 from copy_plan import copy_plan
 from delete_course import delete_course
 from delete_plan import delete_plan
-from delete_course_from_plan import delete_course_from_plan
+from delete_planned_offering import delete_planned_offering
 from edit_course import edit_course
-from update_plan import update_plan
+from edit_planned_offering import edit_planned_offering
 from edit_plan import edit_plan
 from delete_capability import delete_capability
 from delete_intention import delete_intention
@@ -19,6 +19,7 @@ from planner_create_intention import planner_create_intention
 from planner_delete_intention import planner_delete_intention
 from planner_edit_intention import planner_edit_intention
 from plans_index import plans_index
+from update_plan import update_plan
 from view_instructors import view_instructors
 from view_intentions import view_intentions
 from view_plan import view_plan

@@ -1,5 +1,6 @@
 from planning.models import *
 from planning.forms import *
+from admin_index import admin_index
 from courselib.auth import requires_instructor
 from courselib.auth import requires_role
 from django.db.models import Q

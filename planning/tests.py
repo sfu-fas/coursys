@@ -29,14 +29,25 @@ class PlanningTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
         # Test edit plan view
-        response = client.get(reverse('planning.views.edit_plan', kwargs={'semester': 1127, 'plan_slug': 'Offering-Alpha---Burnaby'}))
+        response = client.get(reverse('planning.views.edit_plan', kwargs={
+                'semester': 1127,
+                'plan_slug': 'Offering-Alpha---Burnaby'
+        }))
         self.assertEqual(response.status_code, 200)
 
         # Test assign instructor view
         response = client.get(reverse('planning.views.view_instructors', kwargs={
             'semester': 1127,
             'plan_slug': 'Offering-Alpha---Burnaby',
-            'planned_offering_slug': 'MACM-101-D100'
+            'planned_offering_slug': 'CMPT-102-D100'
+        }))
+        self.assertEqual(response.status_code, 200)
+
+        # Test edit planned offering view
+        response = client.get(reverse('planning.views.edit_planned_offering', kwargs={
+            'semester': 1127,
+            'plan_slug': 'Offering-Alpha---Burnaby',
+            'planned_offering_slug': 'CMPT-102-D100'
         }))
         self.assertEqual(response.status_code, 200)
 
@@ -44,8 +55,12 @@ class PlanningTest(TestCase):
         response = client.get(reverse('planning.views.manage_courses'))
         self.assertEqual(response.status_code, 200)
 
-        # Test manage courses view
+        # Test create courses view
         response = client.get(reverse('planning.views.create_course'))
+        self.assertEqual(response.status_code, 200)
+
+        # Test edit course view
+        response = client.get(reverse('planning.views.edit_course', kwargs={'course_slug': 'CMPT-102'}))
         self.assertEqual(response.status_code, 200)
 
         # Test semester teaching plan view
