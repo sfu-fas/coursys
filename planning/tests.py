@@ -16,6 +16,47 @@ class PlanningTest(TestCase):
         response = client.get(reverse('planning.views.admin_index'))
         self.assertEqual(response.status_code, 200)
 
+        # Test create plan view
+        response = client.get(reverse('planning.views.create_plan'))
+        self.assertEqual(response.status_code, 200)
+
+        # Test copy plan view
+        response = client.get(reverse('planning.views.copy_plan'))
+        self.assertEqual(response.status_code, 200)
+
+        # Test update plan view
+        response = client.get(reverse('planning.views.update_plan', kwargs={'semester': 1127, 'plan_slug': 'Offering-Alpha---Burnaby'}))
+        self.assertEqual(response.status_code, 200)
+
+        # Test edit plan view
+        response = client.get(reverse('planning.views.edit_plan', kwargs={'semester': 1127, 'plan_slug': 'Offering-Alpha---Burnaby'}))
+        self.assertEqual(response.status_code, 200)
+
+        # Test assign instructor view
+        response = client.get(reverse('planning.views.view_instructors', kwargs={
+            'semester': 1127,
+            'plan_slug': 'Offering-Alpha---Burnaby',
+            'planned_offering_slug': 'MACM-101-D100'
+        }))
+        self.assertEqual(response.status_code, 200)
+
+        # Test manage courses view
+        response = client.get(reverse('planning.views.manage_courses'))
+        self.assertEqual(response.status_code, 200)
+
+        # Test manage courses view
+        response = client.get(reverse('planning.views.create_course'))
+        self.assertEqual(response.status_code, 200)
+
+        # Test semester teaching plan view
+        response = client.get(reverse('planning.views.view_intentions'))
+        self.assertEqual(response.status_code, 200)
+
+        # Test create semester teaching plan view
+        response = client.get(reverse('planning.views.planner_create_intention'))
+        self.assertEqual(response.status_code, 200)
+        
+
     def test_that_planning_admin_returns_403_forbidden(self):
         """
         Tests basic page authentication for instructor
