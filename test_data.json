@@ -22052,6 +22052,19 @@
   },
   "model": "planning.teachingcapability",
   "pk": 6
+ },
+  {
+  "fields": {
+   "comment": "This is a comment!",
+   "credits_denominator": 4,
+   "credits_numerator": 3,
+   "instructor": 8,
+   "semester": 4,
+   "status": "UNCO",
+   "summary": "Student supervision for CMPT 470"
+  },
+  "model": "planning.teachingequivalent",
+  "pk": 1
  }
 
 ]

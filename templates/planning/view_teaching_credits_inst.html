@@ -14,8 +14,8 @@
 
 {% block content %}
 <div class="table_container">
-    {% for sem_key, sem_val in semesters.items %}
-    <h2>{{ sem_key }}</h2>
+    {% for semester in semesters %}
+    <h2>{{ semester.label }}</h2>
     <table class = "inst_table">
         <thead>
             <tr>
@@ -24,15 +24,25 @@
             </tr>
         </thead>
         <tbody>
-            {% for course in sem_val.courses %}
+            {% for course in semester.courses %}
             <tr>
-                <td>{{ course.name }}</td>
+                <td> {% if course.equivalent %}
+                <strong>Teaching Equivalent:</strong> <a href="#">{{ course.name }}</a> {% if course.confirmed %}
+                (Confirmed)
+                {% endif %}
+                {% if not course.confirmed %}
+                (Unconfirmed)
+                {% endif %}
+                {% endif %}
+                {% if not course.equivalent %}
+                {{ course.name }}
+                {% endif %} </td>
                 <td>{{ course.credits }}</td>
             </tr>
             {% endfor %}
             <tr>
-            	<td></td>
-            	<td><i style="font-weight: bold;">.. total</i></td>
+                <td></td>
+                <td><i style="font-weight: bold;">{{ semester.total_credits }} total</i></td>
             </tr>
     </table>
     {% endfor %}
