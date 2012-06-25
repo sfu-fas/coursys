@@ -23,7 +23,7 @@ urlpatterns += patterns('',
     url(r'^teaching/credits/$', 'planning.views.view_teaching_credits'),
 	url(r'^planning/teaching_plans$', 'planning.views.view_intentions'),
 
-    url(r'^planning/teaching_plans/add$', 'planner_create_intention'),
+    url(r'^planning/teaching_plans/add$', 'planning.views.planner_create_intention'),
     url(r'^planning/teaching_plans/' + SEMESTER + '/' + USERID_SLUG + '/edit$', 'planning.views.planner_edit_intention'),
     url(r'^planning/teaching_plans/' + SEMESTER + '/' + USERID_SLUG + '/delete$', 'planning.views.planner_delete_intention'),
 
