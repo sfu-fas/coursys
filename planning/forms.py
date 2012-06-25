@@ -69,7 +69,6 @@ class CopyPlanForm(forms.ModelForm):
 
 
 class BaseOfferingBasicsForm(forms.ModelForm):
-
     def clean_section(self):
         section = self.cleaned_data['section']
         if not section_re.match(section):
@@ -78,7 +77,7 @@ class BaseOfferingBasicsForm(forms.ModelForm):
 
     class Meta:
         model = PlannedOffering
-        fields = ('course', 'section', 'component', 'campus', 'enrl_cap')
+        fields = ('course', 'section', 'component', 'campus', 'enrl_cap', 'notes')
 
 
 class OfferingBasicsForm(BaseOfferingBasicsForm):

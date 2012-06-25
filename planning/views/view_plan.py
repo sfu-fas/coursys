@@ -31,8 +31,10 @@ def view_plan(request, semester, plan_slug):
     plan = get_object_or_404(SemesterPlan, slug=plan_slug, visibility__in=user)
 
     planned_offerings_list = PlannedOffering.objects.filter(plan=plan)
+    meeting_time_list = [(MeetingTime.objects.filter(offering=p)) for p in planned_offerings_list]
+    offerings_list = zip(planned_offerings_list, meeting_time_list)
     
-    return render_to_response("planning/view_plan.html", {'plan':plan, 'planned_offerings_list': planned_offerings_list}, context_instance=RequestContext(request))
+    return render_to_response("planning/view_plan.html", {'plan':plan, 'offerings_list': offerings_list, 'range': range(7)}, context_instance=RequestContext(request))
 
 
 def semester_visibility(roles):

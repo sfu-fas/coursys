@@ -14,7 +14,6 @@ class PlanningCourse(Course):
     owner = models.ForeignKey(Unit, null=False)
     status = models.CharField(max_length=4, choices=COURSE_STATUS_CHOICES, default="OPEN", help_text="Status of this course")
     slug = AutoSlugField(populate_from=('__unicode__'), null=False, editable=False, unique_with='id')
-    note = models.TextField(null=True, blank=True, default="", help_text="Additional information for cross-listing or other notes")
 
     class Meta:
         unique_together = ()
@@ -64,6 +63,7 @@ class SemesterPlan(models.Model):
     visibility = models.CharField(max_length=4, choices=VISIBILITY_CHOICES, default="ADMI", help_text="Who can see this plan?")
     slug = AutoSlugField(populate_from='name', null=False, editable=False, unique_with='semester')
     unit = models.ForeignKey(Unit, help_text='The academic unit that owns this course plan')
+    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
 
     def get_absolute_url(self):
         return reverse('planning.views.view_plan', kwargs={'semester': self.semester.name})
@@ -87,6 +87,8 @@ class PlannedOffering(models.Model):
     enrl_cap = models.PositiveSmallIntegerField(null=True, blank=True)
     instructor = models.ForeignKey(Person, null=True, blank=True)
     slug = AutoSlugField(populate_from='__unicode__', null=False, editable=False, unique_with='section')
+    notes = models.TextField(null=True, blank=True, default="", help_text="Additional information for cross-listing or other notes")
+    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
 
     class Meta:
         ordering = ['plan', 'course', 'campus']
@@ -123,6 +125,3 @@ class TeachingEquivalent(models.Model):
     summary = models.CharField(max_length='100', help_text='What is this teaching equivalent for?')
     comment = models.TextField(blank=True, null=True, help_text='Any information that should be included')
     status = models.CharField(max_length=4, choices=EQUIVALENT_STATUS_CHOICES)
-    
-    
-    

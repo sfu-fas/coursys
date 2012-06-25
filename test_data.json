@@ -21156,6 +21156,7 @@
  },
  {
   "fields": {
+   "config": "{}",
    "name": "Offering Alpha - Burnaby",
    "semester": 5,
    "slug": "Offering-Alpha---Burnaby",
@@ -21167,6 +21168,7 @@
  },
  {
   "fields": {
+   "config": "{}",
    "name": "Offering Bravo  - Burnaby",
    "semester": 5,
    "slug": "Offering-Bravo----Burnaby",
@@ -21178,6 +21180,7 @@
  },
  {
   "fields": {
+   "config": "{}",
    "name": "Offering Charlie - Burnaby",
    "semester": 5,
    "slug": "Offering-Charlie---Burnaby",
@@ -21191,9 +21194,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 38,
    "enrl_cap": 50,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D100",
    "slug": "CMPT-102-D100"
@@ -21205,9 +21210,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 10,
    "enrl_cap": 75,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D100",
    "slug": "CMPT-110-D100"
@@ -21219,9 +21226,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 182,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D100",
    "slug": "CMPT-120-D100"
@@ -21233,9 +21242,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D101",
    "slug": "CMPT-120-D101"
@@ -21247,9 +21258,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D102",
    "slug": "CMPT-120-D102"
@@ -21261,9 +21274,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D103",
    "slug": "CMPT-120-D103"
@@ -21275,9 +21290,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D104",
    "slug": "CMPT-120-D104"
@@ -21289,9 +21306,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D105",
    "slug": "CMPT-120-D105"
@@ -21303,9 +21322,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D106",
    "slug": "CMPT-120-D106"
@@ -21317,9 +21338,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D107",
    "slug": "CMPT-120-D107"
@@ -21331,9 +21354,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 182,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D200",
    "slug": "CMPT-120-D200"
@@ -21345,9 +21370,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 12,
    "enrl_cap": 104,
    "instructor": null,
+   "notes": "Cross-listed with CMPT 126.",
    "plan": 1,
    "section": "D100",
    "slug": "CMPT-125-D100"
@@ -21359,9 +21386,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 13,
    "enrl_cap": 50,
    "instructor": null,
+   "notes": "Cross-listed with CMPT 125.",
    "plan": 1,
    "section": "D100",
    "slug": "CMPT-126-D100"
@@ -21373,9 +21402,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 15,
    "enrl_cap": 104,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D100",
    "slug": "CMPT-150-D100"
@@ -21387,9 +21418,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 15,
    "enrl_cap": 104,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D101",
    "slug": "CMPT-150-D101"
@@ -21401,9 +21434,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 15,
    "enrl_cap": 104,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D102",
    "slug": "CMPT-150-D102"
@@ -21415,9 +21450,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 15,
    "enrl_cap": 104,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D103",
    "slug": "CMPT-150-D103"
@@ -21429,9 +21466,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 15,
    "enrl_cap": 104,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D104",
    "slug": "CMPT-150-D104"
@@ -21443,9 +21482,11 @@
   "fields": {
    "campus": "OFFST",
    "component": "LEC",
+   "config": "{}",
    "course": 16,
    "enrl_cap": 60,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "C100",
    "slug": "CMPT-165-C100"
@@ -21457,9 +21498,11 @@
   "fields": {
    "campus": "OFFST",
    "component": "LEC",
+   "config": "{}",
    "course": 16,
    "enrl_cap": 60,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "C200",
    "slug": "CMPT-165-C200"
@@ -21471,9 +21514,11 @@
   "fields": {
    "campus": "OFFST",
    "component": "LEC",
+   "config": "{}",
    "course": 16,
    "enrl_cap": 60,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "C300",
    "slug": "CMPT-165-C300"
@@ -21485,9 +21530,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 18,
    "enrl_cap": 104,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D100",
    "slug": "CMPT-225-D100"
@@ -21499,9 +21546,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 18,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D101",
    "slug": "CMPT-225-D101"
@@ -21513,9 +21562,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 18,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D102",
    "slug": "CMPT-225-D102"
@@ -21527,9 +21578,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 18,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D103",
    "slug": "CMPT-225-D103"
@@ -21541,9 +21594,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 18,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D104",
    "slug": "CMPT-225-D104"
@@ -21555,9 +21610,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 19,
    "enrl_cap": 130,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D100",
    "slug": "CMPT-250-D100"
@@ -21569,9 +21626,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 19,
    "enrl_cap": 130,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D101",
    "slug": "CMPT-250-D101"
@@ -21583,9 +21642,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 19,
    "enrl_cap": 130,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D102",
    "slug": "CMPT-250-D102"
@@ -21597,9 +21658,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 19,
    "enrl_cap": 130,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D103",
    "slug": "CMPT-250-D103"
@@ -21611,9 +21674,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 19,
    "enrl_cap": 130,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D104",
    "slug": "CMPT-250-D104"
@@ -21625,9 +21690,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 19,
    "enrl_cap": 130,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D105",
    "slug": "CMPT-250-D105"
@@ -21639,9 +21706,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 20,
    "enrl_cap": 75,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "E100",
    "slug": "CMPT-275-E100"
@@ -21653,9 +21722,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 21,
    "enrl_cap": 85,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D100",
    "slug": "CMPT-300-D100"
@@ -21667,9 +21738,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 22,
    "enrl_cap": 92,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D100",
    "slug": "CMPT-307-D100"
@@ -21681,9 +21754,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 23,
    "enrl_cap": 50,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D100",
    "slug": "CMPT-308-D100"
@@ -21695,9 +21770,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 24,
    "enrl_cap": 65,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "E100",
    "slug": "CMPT-310-E100"
@@ -21709,9 +21786,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 25,
    "enrl_cap": 85,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D100",
    "slug": "CMPT-354-D100"
@@ -21723,9 +21802,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 26,
    "enrl_cap": 75,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D100",
    "slug": "CMPT-361-D100"
@@ -21737,9 +21818,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 28,
    "enrl_cap": 85,
    "instructor": 9,
+   "notes": "",
    "plan": 1,
    "section": "D100",
    "slug": "CMPT-371-D100"
@@ -21751,9 +21834,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 29,
    "enrl_cap": 60,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D100",
    "slug": "CMPT-376-D100"
@@ -21765,9 +21850,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 30,
    "enrl_cap": 60,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D100",
    "slug": "CMPT-379-D100"
@@ -21779,9 +21866,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 32,
    "enrl_cap": 40,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D100",
    "slug": "CMPT-405-D100"
@@ -21793,9 +21882,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 33,
    "enrl_cap": 30,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D100",
    "slug": "CMPT-408-D100"
@@ -21807,9 +21898,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 36,
    "enrl_cap": 60,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D100",
    "slug": "CMPT-441-D100"
@@ -21821,9 +21914,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 37,
    "enrl_cap": 50,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D100",
    "slug": "CMPT-454-D100"
@@ -21835,9 +21930,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 9,
    "enrl_cap": 60,
    "instructor": 8,
+   "notes": "",
    "plan": 1,
    "section": "D100",
    "slug": "CMPT-470-D100"
@@ -21849,9 +21946,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 4,
    "enrl_cap": 60,
    "instructor": null,
+   "notes": "",
    "plan": 1,
    "section": "D100",
    "slug": "CMPT-475-D100"
@@ -21863,9 +21962,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 38,
    "enrl_cap": 50,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D100",
    "slug": "CMPT-102-D100-2"
@@ -21877,9 +21978,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 10,
    "enrl_cap": 75,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D100",
    "slug": "CMPT-110-D100-2"
@@ -21891,9 +21994,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 182,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D100",
    "slug": "CMPT-120-D100-2"
@@ -21905,9 +22010,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D101",
    "slug": "CMPT-120-D101-2"
@@ -21919,9 +22026,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D102",
    "slug": "CMPT-120-D102-2"
@@ -21933,9 +22042,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D103",
    "slug": "CMPT-120-D103-2"
@@ -21947,9 +22058,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D104",
    "slug": "CMPT-120-D104-2"
@@ -21961,9 +22074,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D105",
    "slug": "CMPT-120-D105-2"
@@ -21975,9 +22090,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D106",
    "slug": "CMPT-120-D106-2"
@@ -21989,9 +22106,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D107",
    "slug": "CMPT-120-D107-2"
@@ -22003,9 +22122,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 182,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D200",
    "slug": "CMPT-120-D200-2"
@@ -22017,9 +22138,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 12,
    "enrl_cap": 104,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D100",
    "slug": "CMPT-125-D100-2"
@@ -22031,9 +22154,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 13,
    "enrl_cap": 50,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D100",
    "slug": "CMPT-126-D100-2"
@@ -22045,9 +22170,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 15,
    "enrl_cap": 104,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D100",
    "slug": "CMPT-150-D100-2"
@@ -22059,9 +22186,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 15,
    "enrl_cap": 104,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D101",
    "slug": "CMPT-150-D101-2"
@@ -22073,9 +22202,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 15,
    "enrl_cap": 104,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D102",
    "slug": "CMPT-150-D102-2"
@@ -22087,9 +22218,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 15,
    "enrl_cap": 104,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D103",
    "slug": "CMPT-150-D103-2"
@@ -22101,9 +22234,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 15,
    "enrl_cap": 104,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D104",
    "slug": "CMPT-150-D104-2"
@@ -22115,9 +22250,11 @@
   "fields": {
    "campus": "OFFST",
    "component": "LEC",
+   "config": "{}",
    "course": 16,
    "enrl_cap": 60,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "C100",
    "slug": "CMPT-165-C100-2"
@@ -22129,9 +22266,11 @@
   "fields": {
    "campus": "OFFST",
    "component": "LEC",
+   "config": "{}",
    "course": 16,
    "enrl_cap": 60,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "C200",
    "slug": "CMPT-165-C200-2"
@@ -22143,9 +22282,11 @@
   "fields": {
    "campus": "OFFST",
    "component": "LEC",
+   "config": "{}",
    "course": 16,
    "enrl_cap": 60,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "C300",
    "slug": "CMPT-165-C300-2"
@@ -22157,9 +22298,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 18,
    "enrl_cap": 104,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D100",
    "slug": "CMPT-225-D100-2"
@@ -22171,9 +22314,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 18,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D101",
    "slug": "CMPT-225-D101-2"
@@ -22185,9 +22330,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 18,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D102",
    "slug": "CMPT-225-D102-2"
@@ -22199,9 +22346,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 18,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D103",
    "slug": "CMPT-225-D103-2"
@@ -22213,9 +22362,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 18,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D104",
    "slug": "CMPT-225-D104-2"
@@ -22227,9 +22378,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 19,
    "enrl_cap": 130,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D100",
    "slug": "CMPT-250-D100-2"
@@ -22241,9 +22394,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 19,
    "enrl_cap": 130,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D101",
    "slug": "CMPT-250-D101-2"
@@ -22255,9 +22410,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 19,
    "enrl_cap": 130,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D102",
    "slug": "CMPT-250-D102-2"
@@ -22269,9 +22426,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 19,
    "enrl_cap": 130,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D103",
    "slug": "CMPT-250-D103-2"
@@ -22283,9 +22442,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 19,
    "enrl_cap": 130,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D104",
    "slug": "CMPT-250-D104-2"
@@ -22297,9 +22458,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 19,
    "enrl_cap": 130,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D105",
    "slug": "CMPT-250-D105-2"
@@ -22311,9 +22474,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 20,
    "enrl_cap": 75,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "E100",
    "slug": "CMPT-275-E100-2"
@@ -22325,9 +22490,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 21,
    "enrl_cap": 85,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D100",
    "slug": "CMPT-300-D100-2"
@@ -22339,9 +22506,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 22,
    "enrl_cap": 92,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D100",
    "slug": "CMPT-307-D100-2"
@@ -22353,9 +22522,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 23,
    "enrl_cap": 50,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D100",
    "slug": "CMPT-308-D100-2"
@@ -22367,9 +22538,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 24,
    "enrl_cap": 65,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "E100",
    "slug": "CMPT-310-E100-2"
@@ -22381,9 +22554,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 25,
    "enrl_cap": 85,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D100",
    "slug": "CMPT-354-D100-2"
@@ -22395,9 +22570,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 26,
    "enrl_cap": 75,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D100",
    "slug": "CMPT-361-D100-2"
@@ -22409,9 +22586,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 28,
    "enrl_cap": 85,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D100",
    "slug": "CMPT-371-D100-2"
@@ -22423,9 +22602,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 29,
    "enrl_cap": 60,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D100",
    "slug": "CMPT-376-D100-2"
@@ -22437,9 +22618,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 30,
    "enrl_cap": 60,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D100",
    "slug": "CMPT-379-D100-2"
@@ -22451,9 +22634,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 32,
    "enrl_cap": 40,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D100",
    "slug": "CMPT-405-D100-2"
@@ -22465,9 +22650,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 33,
    "enrl_cap": 30,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D100",
    "slug": "CMPT-408-D100-2"
@@ -22479,9 +22666,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 36,
    "enrl_cap": 60,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D100",
    "slug": "CMPT-441-D100-2"
@@ -22493,9 +22682,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 37,
    "enrl_cap": 50,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D100",
    "slug": "CMPT-454-D100-2"
@@ -22507,9 +22698,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 9,
    "enrl_cap": 60,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D100",
    "slug": "CMPT-470-D100-2"
@@ -22521,9 +22714,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 4,
    "enrl_cap": 60,
    "instructor": null,
+   "notes": "",
    "plan": 2,
    "section": "D100",
    "slug": "CMPT-475-D100-2"
@@ -22535,9 +22730,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 38,
    "enrl_cap": 50,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D100",
    "slug": "CMPT-102-D100-3"
@@ -22549,9 +22746,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 10,
    "enrl_cap": 75,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D100",
    "slug": "CMPT-110-D100-3"
@@ -22563,9 +22762,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 182,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D100",
    "slug": "CMPT-120-D100-3"
@@ -22577,9 +22778,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D101",
    "slug": "CMPT-120-D101-3"
@@ -22591,9 +22794,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D102",
    "slug": "CMPT-120-D102-3"
@@ -22605,9 +22810,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D103",
    "slug": "CMPT-120-D103-3"
@@ -22619,9 +22826,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D104",
    "slug": "CMPT-120-D104-3"
@@ -22633,9 +22842,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D105",
    "slug": "CMPT-120-D105-3"
@@ -22647,9 +22858,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D106",
    "slug": "CMPT-120-D106-3"
@@ -22661,9 +22874,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D107",
    "slug": "CMPT-120-D107-3"
@@ -22675,9 +22890,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 11,
    "enrl_cap": 182,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D200",
    "slug": "CMPT-120-D200-3"
@@ -22689,9 +22906,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 12,
    "enrl_cap": 104,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D100",
    "slug": "CMPT-125-D100-3"
@@ -22703,9 +22922,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 13,
    "enrl_cap": 50,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D100",
    "slug": "CMPT-126-D100-3"
@@ -22717,9 +22938,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 15,
    "enrl_cap": 104,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D100",
    "slug": "CMPT-150-D100-3"
@@ -22731,9 +22954,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 15,
    "enrl_cap": 104,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D101",
    "slug": "CMPT-150-D101-3"
@@ -22745,9 +22970,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 15,
    "enrl_cap": 104,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D102",
    "slug": "CMPT-150-D102-3"
@@ -22759,9 +22986,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 15,
    "enrl_cap": 104,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D103",
    "slug": "CMPT-150-D103-3"
@@ -22773,9 +23002,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 15,
    "enrl_cap": 104,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D104",
    "slug": "CMPT-150-D104-3"
@@ -22787,9 +23018,11 @@
   "fields": {
    "campus": "OFFST",
    "component": "LEC",
+   "config": "{}",
    "course": 16,
    "enrl_cap": 60,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "C100",
    "slug": "CMPT-165-C100-3"
@@ -22801,9 +23034,11 @@
   "fields": {
    "campus": "OFFST",
    "component": "LEC",
+   "config": "{}",
    "course": 16,
    "enrl_cap": 60,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "C200",
    "slug": "CMPT-165-C200-3"
@@ -22815,9 +23050,11 @@
   "fields": {
    "campus": "OFFST",
    "component": "LEC",
+   "config": "{}",
    "course": 16,
    "enrl_cap": 60,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "C300",
    "slug": "CMPT-165-C300-3"
@@ -22829,9 +23066,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 18,
    "enrl_cap": 104,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D100",
    "slug": "CMPT-225-D100-3"
@@ -22843,9 +23082,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 18,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D101",
    "slug": "CMPT-225-D101-3"
@@ -22857,9 +23098,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 18,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D102",
    "slug": "CMPT-225-D102-3"
@@ -22871,9 +23114,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 18,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D103",
    "slug": "CMPT-225-D103-3"
@@ -22885,9 +23130,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 18,
    "enrl_cap": 26,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D104",
    "slug": "CMPT-225-D104-3"
@@ -22899,9 +23146,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 19,
    "enrl_cap": 130,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D100",
    "slug": "CMPT-250-D100-3"
@@ -22913,9 +23162,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 19,
    "enrl_cap": 130,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D101",
    "slug": "CMPT-250-D101-3"
@@ -22927,9 +23178,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 19,
    "enrl_cap": 130,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D102",
    "slug": "CMPT-250-D102-3"
@@ -22941,9 +23194,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 19,
    "enrl_cap": 130,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D103",
    "slug": "CMPT-250-D103-3"
@@ -22955,9 +23210,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 19,
    "enrl_cap": 130,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D104",
    "slug": "CMPT-250-D104-3"
@@ -22969,9 +23226,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LAB",
+   "config": "{}",
    "course": 19,
    "enrl_cap": 130,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D105",
    "slug": "CMPT-250-D105-3"
@@ -22983,9 +23242,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 20,
    "enrl_cap": 75,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "E100",
    "slug": "CMPT-275-E100-3"
@@ -22997,9 +23258,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 21,
    "enrl_cap": 85,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D100",
    "slug": "CMPT-300-D100-3"
@@ -23011,9 +23274,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 22,
    "enrl_cap": 92,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D100",
    "slug": "CMPT-307-D100-3"
@@ -23025,9 +23290,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 23,
    "enrl_cap": 50,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D100",
    "slug": "CMPT-308-D100-3"
@@ -23039,9 +23306,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 24,
    "enrl_cap": 65,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "E100",
    "slug": "CMPT-310-E100-3"
@@ -23053,9 +23322,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 25,
    "enrl_cap": 85,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D100",
    "slug": "CMPT-354-D100-3"
@@ -23067,9 +23338,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 26,
    "enrl_cap": 75,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D100",
    "slug": "CMPT-361-D100-3"
@@ -23081,9 +23354,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 28,
    "enrl_cap": 85,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D100",
    "slug": "CMPT-371-D100-3"
@@ -23095,9 +23370,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 29,
    "enrl_cap": 60,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D100",
    "slug": "CMPT-376-D100-3"
@@ -23109,9 +23386,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 30,
    "enrl_cap": 60,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D100",
    "slug": "CMPT-379-D100-3"
@@ -23123,9 +23402,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 32,
    "enrl_cap": 40,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D100",
    "slug": "CMPT-405-D100-3"
@@ -23137,9 +23418,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 33,
    "enrl_cap": 30,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D100",
    "slug": "CMPT-408-D100-3"
@@ -23151,9 +23434,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 36,
    "enrl_cap": 60,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D100",
    "slug": "CMPT-441-D100-3"
@@ -23165,9 +23450,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 37,
    "enrl_cap": 50,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D100",
    "slug": "CMPT-454-D100-3"
@@ -23179,9 +23466,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 9,
    "enrl_cap": 60,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D100",
    "slug": "CMPT-470-D100-3"
@@ -23193,9 +23482,11 @@
   "fields": {
    "campus": "BRNBY",
    "component": "LEC",
+   "config": "{}",
    "course": 4,
    "enrl_cap": 60,
    "instructor": null,
+   "notes": "",
    "plan": 3,
    "section": "D100",
    "slug": "CMPT-475-D100-3"

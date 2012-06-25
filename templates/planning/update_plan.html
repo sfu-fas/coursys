@@ -98,7 +98,18 @@ $(function() {
     <tbody>
         {% for planned_offering, meeting_time in offerings_list %}
         <tr>
-            <td><span class="subject">{{ planned_offering.course.subject }}</span> {{ planned_offering.course.number }}</td>
+            <td>
+                <span class="subject">{{ planned_offering.course.subject }}</span> {{ planned_offering.course.number }}
+                {% if planned_offering.notes %}
+                    <div class="note-container">
+                        <a href="javascript:void(0)" class="note">[?]</a>
+                        <div class="note-content after">
+                            <strong>Note:</strong>
+                            {{ planned_offering.notes }}
+                        </div>
+                    </div>
+                {% endif %}
+            </td>
             <td>
                 {{ planned_offering.instructor }}
                 (<a href="{% url planning.views.view_instructors semester=plan.semester.name plan_slug=plan.slug planned_offering_slug=planned_offering.slug %}">Edit</a>)

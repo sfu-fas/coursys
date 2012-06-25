@@ -4,8 +4,9 @@ sys.path.append('.')
 
 # create "objs" by selecting all objects you want to serialize
 from advisornotes.models import *
+from planning.models import *
 
-objs = itertools.chain(NonStudent.objects.all(), AdvisorNote.objects.all())
+objs = itertools.chain(PlanningCourse.objects.all(), TeachingCapability.objects.all(), TeachingIntention.objects.all(), SemesterPlan.objects.all(), PlannedOffering.objects.all(), MeetingTime.objects.all())
 
 # output the JSON: copy into test_data.json when you're sure it's right.
 from django.core import serializers

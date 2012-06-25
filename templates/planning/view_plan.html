@@ -11,17 +11,32 @@
 
 
 {% block headextra %}
-<script type="text/javascript">
-$(document).ready(function() {
+<script>
+$(function() {
   $('#courses').dataTable( {
     'bPaginate': false,
     'bInfo': false,
     'bLengthChange': true,
     "bJQueryUI": true,
-	"sPaginationType": "full_numbers",
-    "aaSorting": [[1, "asc"], [4, "asc"]]
+    "sPaginationType": "full_numbers",
+    "aoColumns": [
+        null,
+        null,
+        null,
+        { "bSortable" : false },
+        null,
+        null,
+        { "bSortable" : false },
+        { "bSortable" : false },
+        { "bSortable" : false },
+        { "bSortable" : false },
+        { "bSortable" : false },
+        { "bSortable" : false },
+        { "bSortable" : false }
+    ],
+    "bFilter": true
   } );
-} );
+});
 </script>
 {% endblock %}
 
@@ -29,38 +44,59 @@ $(document).ready(function() {
 
 <div class="datatable_container">
     <h2>{{ plan.name }} in {{plan.semester.label}}</h2>
-    <table class="display" id="courses">
+    <table class="display course-plan" id="courses">
         <thead>
             <tr>
-                <th colspan="3">Course</th>
-                <th rowspan="2" scope="col">Insturctor</th>
-                <th rowspan="2" scope="col">Sec.</th>
-                <th rowspan="2" scope="col"><abbr title="Enrollment Cap">Cap</th>
-                <th rowspan="2" scope="col">Campus</th>
-                <th rowspan="2" scope="col">Component</th>
-            </tr>
-            <tr>
-                <th scope="col"><abbr title="Course Subject">Sub.</abbr></th>
-                <th scope="col"><abbr title="Course Number">#</abbr></th>
-                <th scope="col">Title</th>
+                <th scope="col">Course</th>
+                <th scope="col">Insturctor</th>
+                <th scope="col">Cap</th>
+                <th scope="col">Sec</th>
+                <th scope="col"><abbr title="Campus">Campus</abbr></th>
+                <th scope="col"><abbr title="Component">Comp</abbr></th>
+                <th scope="col"><abbr title="Monday">Mon</abbr></th>
+                <th scope="col"><abbr title="Tuesday">Tues</abbr></th>
+                <th scope="col"><abbr title="Wednesday">Wed</abbr></th>
+                <th scope="col"><abbr title="Thursday">Thur</abbr></th>
+                <th scope="col"><abbr title="Friday">Fri</abbr></th>
+                <th scope="col"><abbr title="Thursday">Sat</abbr></th>
+                <th scope="col"><abbr title="Friday">Sun</abbr></th>
             </tr>
         </thead>
 
         <tbody>
-        {% for planned_offering in planned_offerings_list %}
-        <tr>
-            <td>{{ planned_offering.course.subject }}</td>
-            <td>{{ planned_offering.course.number }}</td>
-            <td>{{ planned_offering.course.title }}</td>
-            <td>{{ planned_offering.instructor }}</td>
-            <td>{{ planned_offering.section }}</td>
-            <td>{{ planned_offering.enrl_cap }}</td>
-            <td>{{ planned_offering.get_campus_display }}</td>
-            <td>{{ planned_offering.get_component_display }}</td>
-        </tr>
-        
+        {% for planned_offering, meeting_time in offerings_list %}
+            <tr>
+                <td>
+                    <span class="subject">{{ planned_offering.course.subject }}</span> {{ planned_offering.course.number }}
+                    {% if planned_offering.notes %}
+                        <div class="note-container">
+                            <a href="javascript:void(0)" class="note">[?]</a>
+                            <div class="note-content after">
+                                <strong>Note:</strong>
+                                {{ planned_offering.notes }}
+                            </div>
+                        </div>
+                    {% endif %}
+                </td>
+                <td>{{ planned_offering.instructor }}</td>
+                <td class="cap">{{ planned_offering.enrl_cap }}
+                <td class="section">{{ planned_offering.section }}</td>
+                <td>{{ planned_offering.campus }}</td>
+                <td>{{ planned_offering.get_component_display }}</td>
+                {% for i in range %}
+                <td>
+                    {% for time in meeting_time %}
+                        {% if time.weekday == i %}
+                            <div class="meeting-time">
+                                {{ time.start_time|time:"f" }} - {{ time.end_time|time:"f" }}<br />
+                                {{ time.room }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </td>
+                {% endfor %}
+            </tr>
         {%endfor%}
-
         </tbody>
     </table>
 </div>

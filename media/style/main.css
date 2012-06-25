@@ -1622,6 +1622,11 @@ td.table-row-label{
   z-index: 10;
 }
 
+.note-container .note-content.after {
+  left: 100%;
+  margin-left: 10px;
+}
+
 .note-container a.note {
   border-bottom: 1px dotted #333;
   cursor: pointer;
@@ -1724,7 +1729,8 @@ table.course-plan .meeting-time:first-child {
   width: 200px;
 }
 
-.add-course-offering .course input {
+.add-course-offering .course input,
+.add-course-offering .course textarea {
   width: 196px;
 }
 
