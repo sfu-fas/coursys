@@ -65,11 +65,10 @@ class CopyPlanForm(forms.ModelForm):
     
     class Meta:
         model = SemesterPlan
-        fields = ('copy_plan_from','semester', 'name', 'visibility')
+        fields = ('copy_plan_from','semester', 'name', 'visibility', 'unit')
 
 
 class OfferingBasicsForm(forms.ModelForm):
-    ##lab_sections_type = forms.ChoiceField(choices=COMPONENT_CHOICES, label="Additional section component", initial="Lab")
     lab_sections = forms.ChoiceField(choices=LAB_SECTION_CHOICES, label="Additional sections")
     lab_enrl_cap = forms.IntegerField(label="Additional section cap", required=False)
     enrl_cap = forms.IntegerField(label="Enrollment cap")

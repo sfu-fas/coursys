@@ -12,35 +12,35 @@ handler404 = 'courselib.auth.NotFoundResponse'
 
 urlpatterns = patterns('')
 
-urlpatterns += patterns('planning.views',
+urlpatterns += patterns('',
 	
-	url(r'^teaching/$', 'instructor_index'),
-	url(r'^teaching/courses$', 'edit_capability'),
-    url(r'^teaching/courses/(?P<course_id>\w+)/delete$', 'delete_capability'),
+	url(r'^teaching/$', 'planning.views.instructor_index'),
+	url(r'^teaching/courses$', 'planning.views.edit_capability'),
+    url(r'^teaching/courses/(?P<course_id>\w+)/delete$', 'planning.views.delete_capability'),
 
-	url(r'^teaching/semesters$', 'edit_intention'),
-    url(r'^teaching/semester/' + SEMESTER + '/delete$', 'delete_intention'),
-    url(r'^teaching/credits/$', 'view_teaching_credits'),
-	url(r'^planning/teaching_plans$', 'view_intentions'),
+	url(r'^teaching/semesters$', 'planning.views.edit_intention'),
+    url(r'^teaching/semester/' + SEMESTER + '/delete$', 'planning.views.delete_intention'),
+    url(r'^teaching/credits/$', 'planning.views.view_teaching_credits'),
+	url(r'^planning/teaching_plans$', 'planning.views.view_intentions'),
 
-    url(r'^planning/teaching_plans/add$', 'planner_add_intention'),
-    url(r'^planning/teaching_plans/' + SEMESTER + '/' + USERID_SLUG + '/edit$', 'planner_edit_intention'),
-    url(r'^planning/teaching_plans/' + SEMESTER + '/' + USERID_SLUG + '/delete$', 'planner_delete_intention'),
+    url(r'^planning/teaching_plans/add$', 'planner_create_intention'),
+    url(r'^planning/teaching_plans/' + SEMESTER + '/' + USERID_SLUG + '/edit$', 'planning.views.planner_edit_intention'),
+    url(r'^planning/teaching_plans/' + SEMESTER + '/' + USERID_SLUG + '/delete$', 'planning.views.planner_delete_intention'),
 
-	url(r'^planning/$', 'admin_index'),
-	url(r'^planning/new_plan$', 'add_plan'),
-	url(r'^planning/copy_plan$', 'copy_plan'),
-    url(r'^planning/courses$', 'manage_courses'),
-    url(r'^planning/courses/add$', 'add_course'),
-    url(r'^planning/courses/(?P<course_id>' + SLUG_RE + ')/delete$', 'delete_course'),
-	url(r'^planning/' + SEMESTER + '/' + PLAN_SLUG + '/edit$', 'edit_plan'),
-	url(r'^planning/' + SEMESTER + '/' + PLAN_SLUG + '$', 'edit_courses'),
-	url(r'^planning/delete_course_from_plan/(?P<course_id>\w+)/(?P<plan_id>\w+)/$', 'delete_course_from_plan'),
-    url(r'^planning/' + SEMESTER + '/' + PLAN_SLUG + '/' + PLANNED_OFFERING_SLUG + '/assign$', 'view_instructors'),
-	url(r'^planning/' + SEMESTER + '/' + PLAN_SLUG + '/delete$', 'delete_plan'),
+	url(r'^planning/$', 'planning.views.admin_index'),
+	url(r'^planning/add_plan$', 'planning.views.create_plan'),
+	url(r'^planning/copy_plan$', 'planning.views.copy_plan'),
+    url(r'^planning/courses$', 'planning.views.manage_courses'),
+    url(r'^planning/courses/add$', 'planning.views.create_course'),
+    url(r'^planning/courses/(?P<course_id>' + SLUG_RE + ')/delete$', 'planning.views.delete_course'),
+	url(r'^planning/' + SEMESTER + '/' + PLAN_SLUG + '/edit$', 'planning.views.edit_plan'),
+	url(r'^planning/' + SEMESTER + '/' + PLAN_SLUG + '$', 'planning.views.update_plan'),
+	url(r'^planning/delete_course_from_plan/(?P<course_id>\w+)/(?P<plan_id>\w+)/$', 'planning.views.delete_course_from_plan'),
+    url(r'^planning/' + SEMESTER + '/' + PLAN_SLUG + '/' + PLANNED_OFFERING_SLUG + '/assign$', 'planning.views.view_instructors'),
+	url(r'^planning/' + SEMESTER + '/' + PLAN_SLUG + '/delete$', 'planning.views.delete_plan'),
 
-	url(r'^semester_plans/$', 'semester_plan_index'),
-	url(r'^semester_plans/' + SEMESTER + '/' + PLAN_SLUG + '$', 'view_semester_plan'),
+	url(r'^semester_plans/$', 'planning.views.plans_index'),
+	url(r'^semester_plans/' + SEMESTER + '/' + PLAN_SLUG + '$', 'planning.views.view_plan'),
 )
 
 

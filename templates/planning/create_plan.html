@@ -17,7 +17,7 @@
 
 
 <div id="form_container">
-    <form action="{% url planning.views.add_plan %}" method="post">{% csrf_token %}
+    <form action="{% url planning.views.create_plan %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Plan Info</legend>
             {{form|as_dl}}

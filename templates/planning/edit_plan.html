@@ -9,7 +9,7 @@
 
 {% block subbreadcrumbs %}
     <li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li>
-    <li>&gt; <a href="{% url planning.views.edit_courses semester=plan.semester.name plan_slug=plan.slug %}">{{ plan.name }} in {{ plan.semester.label }}</a></li>
+    <li>&gt; <a href="{% url planning.views.update_plan semester=plan.semester.name plan_slug=plan.slug %}">{{ plan.name }} in {{ plan.semester.label }}</a></li>
     <li>&gt; Edit Course Plan</li>
 {% endblock %}
 

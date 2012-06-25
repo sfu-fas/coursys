@@ -64,7 +64,7 @@ class SemesterPlan(models.Model):
     unit = models.ForeignKey(Unit, help_text='The academic unit that owns this course plan')
 
     def get_absolute_url(self):
-        return reverse('planning.views.view_semester_plan', kwargs={'semester': self.semester.name})
+        return reverse('planning.views.view_plan', kwargs={'semester': self.semester.name})
 
     def save(self, *args, **kwargs):
         super(SemesterPlan, self).save(*args, **kwargs)

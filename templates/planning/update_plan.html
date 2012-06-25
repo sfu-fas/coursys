@@ -119,7 +119,7 @@ $(function() {
 </table>
 
 <div id="form_container" class="add-course-offering">
-    <form action="{% url planning.views.edit_courses semester=plan.semester.name plan_slug=plan.slug %}" method="post">{% csrf_token %}
+    <form action="{% url planning.views.update_plan semester=plan.semester.name plan_slug=plan.slug %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Add Course Offering</legend>
 

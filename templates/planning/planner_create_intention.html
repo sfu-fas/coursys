@@ -12,7 +12,7 @@
 
 {% block content %}
 <div id="form_container">
-    <form action="{% url planning.views.planner_add_intention %}" method="post">{% csrf_token %}
+    <form action="{% url planning.views.planner_create_intention %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Semester Teaching Plan</legend>
             {{form|as_dl}}

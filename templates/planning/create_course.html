@@ -18,7 +18,7 @@
 
 {% block content %}
 <div id="form_container">
-    <form action="{% url planning.views.add_course %}" method="post">{% csrf_token %}
+    <form action="{% url planning.views.create_course %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>New Course</legend>
             {{form|as_dl}}
