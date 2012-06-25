@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.test.client import Client
 from settings import CAS_SERVER_URL
 from django.core.urlresolvers import reverse
+from courselib.testing import basic_page_tests
 import json
 
 class PlanningTest(TestCase):
@@ -13,7 +14,9 @@ class PlanningTest(TestCase):
         """
         client = Client()
         client.login(ticket="dixon", service=CAS_SERVER_URL)
-        response = client.get(reverse('planning.views.admin_index'))
+        #response = client.get(reverse('planning.views.admin_index'))
+        url = reverse('planning.views.admin_index')
+        response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
         # Test create plan view
