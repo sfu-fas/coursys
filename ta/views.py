@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.db import transaction
 from django.contrib import messages
 from courselib.auth import requires_course_staff_by_slug, requires_course_instr_by_slug, requires_role, \
-    requires_course_staff_or_dept_admn_by_slug, ForbiddenResponse
+    requires_course_staff_or_dept_admn_by_slug, ForbiddenResponse, NotFoundResponse, HttpError
 from django.contrib.auth.decorators import login_required
 from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, \
     CampusPreference, CourseDescription, \
@@ -13,7 +13,8 @@ from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContra
 from ra.models import Account
 from grad.models import GradStudent 
 from dashboard.models import NewsItem
-from coredata.models import Member, Role, CourseOffering, Person, Semester, CAMPUSES
+from coredata.models import Member, Role, CourseOffering, Person, Semester, ComputingAccount, CAMPUSES
+from coredata.queries import add_person, more_personal_info, SIMSProblem
 from grad.models import GradStatus
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, TAAcceptanceForm, CoursePreferenceForm, \
     TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm, TAContactForm, \
@@ -202,7 +203,16 @@ def _new_application(request, post_slug, manual=False):
  
     sin = None
     if not manual:
-        person = get_object_or_404(Person, userid=request.user.username)
+        try:
+            person = Person.objects.get(userid=request.user.username)
+        except Person.DoesNotExist:
+            try:
+                acct = ComputingAccount.objects.get(userid=request.user.username)
+                person = add_person(acct.emplid)
+            except ComputingAccount.DoesNotExist:
+                return NotFoundResponse(request, "Unable to find your computing account in the system: this is likely because your account was recently activated, and it should be fixed tomorrow")
+            except SIMSProblem:
+                return HttpError(request, status=503, title="Service Unavailable", error="Currently unable to handle the request.", errormsg="Problem with SIMS connection while trying to find your account info")
         existing_app = TAApplication.objects.filter(person=person, posting=posting)
         if existing_app.count() > 0: 
             messages.success(request, u"You have already applied for the %s %s posting." % (posting.unit, posting.semester))
@@ -357,7 +367,6 @@ def edit_application(request, post_slug, userid):
     return render(request, 'ta/new_application.html', context)
 """
 
-from coredata.queries import more_personal_info, SIMSProblem
 @login_required
 def get_info(request, post_slug):
     """

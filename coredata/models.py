@@ -823,3 +823,13 @@ class Role(models.Model):
         return set((r.role for r in Role.objects.filter(person__userid=userid)))
 
     
+class ComputingAccount(models.Model):
+    """
+    A model to represent userid <-> emplid mappings.
+    
+    Complete table imported from AMAINT so we can lookup online. i.e. if the user
+    has an active computing account, there should be an entry here. (There is no
+    such guarantee for Person.)
+    """
+    emplid = models.PositiveIntegerField(primary_key=True, unique=True, null=False)
+    userid = models.CharField(max_length=8, unique=True, null=False, db_index=True)

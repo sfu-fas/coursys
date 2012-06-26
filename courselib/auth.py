@@ -10,7 +10,7 @@ try:
 except ImportError:
     from django.utils.functional import wraps
 
-# adapted from django_cas.decorators: uses 403.html template, and passes **kwargs to test_func.
+# adapted from django_cas.decorators: returns 403 on failure, and passes **kwargs to test_func.
 def user_passes_test(test_func, login_url=None,
                      redirect_field_name=REDIRECT_FIELD_NAME):
     """Replacement for django.contrib.auth.decorators.user_passes_test that
@@ -27,9 +27,7 @@ def user_passes_test(test_func, login_url=None,
             if test_func(request, **kwargs):
                 return view_func(request, *args, **kwargs)
             elif request.user.is_authenticated():
-                resp = render_to_response('403.html', context_instance=RequestContext(request))
-                resp.status_code = 403
-                return resp
+                return ForbiddenResponse(request)
             else:
                 path = '%s?%s=%s' % (login_url, redirect_field_name,
                                      urlquote(request.get_full_path()))
@@ -38,15 +36,16 @@ def user_passes_test(test_func, login_url=None,
     return decorator
 
 
-def ForbiddenResponse(request, errormsg=None):
-    resp = render_to_response('403.html', {'errormsg': errormsg}, context_instance=RequestContext(request))
-    resp.status_code = 403
+def HttpError(request, status=404, title="Not Found", error="The requested resource cannot be found.", errormsg=None):
+    resp = render_to_response('error.html', {'title': title, 'error': error, 'errormsg': errormsg}, context_instance=RequestContext(request))
+    resp.status_code = status
     return resp
 
+def ForbiddenResponse(request, errormsg=None):
+    return HttpError(request, status=403, title="Forbidden", error="You do not have permission to access this resource.", errormsg=errormsg)
+
 def NotFoundResponse(request, errormsg=None):
-    resp = render_to_response('404.html', {'errormsg': errormsg}, context_instance=RequestContext(request))
-    resp.status_code = 404
-    return resp
+    return HttpError(request, status=404, title="Not Found", error="The requested resource cannot be found.", errormsg=errormsg)
 
 def is_advisor(request, **kwargs):
     """

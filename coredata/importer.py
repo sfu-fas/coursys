@@ -5,7 +5,7 @@ sys.path.append("..")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 
 from coredata.queries import SIMSConn, DBConn, get_names, grad_student_info, GRADFIELDS
-from coredata.models import Person, Semester, SemesterWeek, Unit,CourseOffering, Member, MeetingTime, Role
+from coredata.models import Person, Semester, SemesterWeek, Unit,CourseOffering, Member, MeetingTime, Role, ComputingAccount
 from coredata.models import CAMPUSES, COMPONENTS
 from dashboard.models import NewsItem
 from log.models import LogEntry
@@ -155,7 +155,7 @@ class AMAINTConn(MySQLConn):
     Singleton object representing AMAINT DB connection
     """
     db_user = "ggbaker"
-    db_name = "sims"
+    db_name = "amaint"
 
     def get_connection(self):
         passfile = open(self.dbpass_file)
@@ -249,7 +249,7 @@ def fix_emplid():
     people = Person.objects.filter(emplid__lt=100000)
     for p in people:
         print " ", p.userid
-        amaint.execute('SELECT emplid FROM amaint.idMap WHERE username=%s', (p.userid,))
+        amaint.execute('SELECT emplid FROM idMap WHERE username=%s', (p.userid,))
         for emplid, in amaint:
             p.emplid = emplid
             p.save()
@@ -742,6 +742,20 @@ def give_sysadmin(sysadmin):
             r = Role(person=p, role="SYSA", unit=Unit.objects.get(label="UNIV"))
             r.save()
 
+@transaction.commit_on_success
+def update_amaint_userids():
+    """
+    Refresh the AMAINT translation table
+    """
+    db = AMAINTConn()
+    ComputingAccount.objects.all().delete()
+    db.execute("SELECT username, emplid FROM idMap WHERE emplid!='' ORDER BY username", ())
+    for userid, emplid in db:
+        a = ComputingAccount(emplid=emplid, userid=userid)
+        a.save()
+
+
+
 
 def main():
     global sysadmin
@@ -770,7 +784,10 @@ def main():
 
     print "combining joint offerings"
     combine_sections(get_combined())
-    
+
+    print "getting emplid/userid mapping"
+    update_amaint_userids()
+
     print "giving sysadmin permissions"
     give_sysadmin(sysadmin)
     

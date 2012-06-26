@@ -212,15 +212,16 @@ def add_person(emplid, commit=True, get_userid=True):
     """
     Add a Person object based on the found SIMS data
     """
-    data = find_person(emplid, get_userid=get_userid)
-    if not data:
-        return
-
     with transaction.commit_on_success():
-        ps = Person.objects.filter(emplid=data['emplid'])
+        ps = Person.objects.filter(emplid=emplid)
         if ps:
             # person already there: ignore
             return ps[0]
+
+        data = find_person(emplid, get_userid=get_userid)
+        if not data:
+            return
+
         p = Person(emplid=data['emplid'], last_name=data['last_name'], first_name=data['first_name'],
                    pref_first_name=data['first_name'], middle_name=data['middle_name'], userid=data['userid'])
         p.save()

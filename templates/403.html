@@ -1,9 +1,0 @@
-{% extends "base.html" %}
-
-{% block title %}Forbidden{% endblock %}
-{% block h1 %}Forbidden{% endblock %}
-{% block content %}
-<p class="error">You do not have permission to access this resource.</p>
-{% if errormsg %}<p class="error">Error: {{errormsg}}.</p>{% endif %}
-
-{% endblock %}

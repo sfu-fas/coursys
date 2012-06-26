@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block title %}{{title}}{% endblock %}
+{% block h1 %}{{title}}{% endblock %}
+{% block content %}
+<p class="error">{{error}}</p>
+{% if errormsg %}<p class="error">Error: {{errormsg}}.</p>{% endif %}
+
+{% endblock %}
