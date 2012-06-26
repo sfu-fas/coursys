@@ -55,8 +55,8 @@ $(document).ready(function() {
         <tr>
             <td>{{ plan.semester.label }}</td>
             <td><a href="{% url planning.views.update_plan semester=plan.semester.name plan_slug=plan.slug %}">{{ plan.name }}</a></td>
-
             <td>{{ plan.get_visibility_display }}</td>  
+        </tr>
         {%endfor%}
 
         </tbody>
