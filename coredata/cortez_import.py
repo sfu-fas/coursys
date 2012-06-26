@@ -5,10 +5,10 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
 from django.db import transaction
 from django.db.utils import IntegrityError
 from django.db.models import Max
-from coredata.queries import DBConn, get_names, get_or_create_semester, add_person
+from coredata.queries import DBConn, get_names, get_or_create_semester, add_person, get_person_by_userid
 from coredata.models import Person, Semester, Unit, CourseOffering, Course
 from grad.models import GradProgram, GradStudent, GradRequirement, CompletedRequirement, Supervisor, GradStatus
-from ta.models import TAContract, TAApplication, TAPosting, TACourse, CoursePreference, SkillLevel, Skill, CourseDescription
+from ta.models import TAContract, TAApplication, TAPosting, TACourse, CoursePreference, SkillLevel, Skill, CourseDescription, CampusPreference
 from ra.models import RAAppointment, Account, Project
 from coredata.importer import AMAINTConn, get_person, get_person_grad, import_one_offering, import_instructors
 import datetime, json, time, decimal
@@ -210,9 +210,8 @@ class GradImport(object):
         """
         Find supervisor by userid if possible; return (Person, external).
         """
-        people = Person.objects.filter(userid=supname)
-        if people:
-            person = people[0]
+        person = get_person_by_userid(supname)
+        if person:
             external = None
         elif supname.islower() and len(supname) <= 8:
             # seems to be a userid that we can't find: store as best possible
@@ -232,23 +231,17 @@ class GradImport(object):
         
         Argument list must be in the same order at the query in get_students below.
         """
-        # TODO: should use get_person_grad for production run (but get_or_create is good enough for testing)
-        #p, new_person = Person.objects.get_or_create(emplid=emplid)
-        p = get_person_grad(emplid, commit=True)
-        new_person = False
+        # TODO: should use get_person_grad for production run (but add_person is good enough for testing)
+        #p = get_person_grad(emplid, commit=True)
+        p = add_person(emplid, get_userid=False)
         if p is None:
-            # TODO: what to do with emplid-less grads?    
+            # TODO: what to do with emplid-less grads?
+            print "Can't find Person for grad record"
+            self.db.execute("SELECT SemesterStarted, SemesterFinished "
+                        "FROM AcademicRecord WHERE Identifier=%s", (cortezid,))
+            print list(self.db)
             return
 
-        # get what we can from SIMS
-        if new_person:
-            lname, fname, mname, pfname, title = get_names(emplid)
-            p.first_name = fname
-            p.last_name = lname
-            p.middle_name = mname
-            p.pref_first_name = pfname
-            p.config['title'] = title
-        
         # fill in the Person object with Cortez data
         if email:
             if '@' in email: # seem to have some userids in there too: let those stay in Person.userid
@@ -264,11 +257,11 @@ class GradImport(object):
         self.db.execute("SELECT Program, Degreetype, SemesterStarted, SemesterFinished, "
                         "SupComSelected, BreProApproved, BreReqCompleted, CourseReqCompleted, "
                         "DepExamCompleted, CMPT891Completed, ThProApproved, ThDefended, ReaTopicChosen, "
-                        "Supervisor1, Supervisor2, Supervisor3, Supervisor4, CoSupervisor "
+                        "Supervisor1, Supervisor2, Supervisor3, Supervisor4, CoSupervisor, Sponsor "
                         "FROM AcademicRecord WHERE Identifier=%s", (cortezid,))
 
         for prog, progtype, sem_start, sem_finish, supcom, brepro, brereq, crscom, depexam, \
-                cmpt891, thepro, thedef, reatop, sup1,sup2,sup3,sup4, cosup in self.db:
+                cmpt891, thepro, thedef, reatop, sup1,sup2,sup3,sup4, cosup, sponsor in self.db:
             try: sem_start = get_or_create_semester(sem_start)
             except ValueError: sem_start = None
             try: sem_finish = get_or_create_semester(sem_finish)
@@ -278,6 +271,9 @@ class GradImport(object):
             if prog is None:
                 # no program => don't import
                 # TODO: is that okay?
+                # all seem to start in 2006/2007 and have no end date
+                print "grad with no program"
+                print p, sem_start, sem_finish
                 continue
 
             prog = self.PROGRAM_MAP[(prog, progtype)]
@@ -342,6 +338,8 @@ class GradImport(object):
                             "FROM ExamCommittee WHERE Identifier=%s", (cortezid,))
             for chair, extname, extdep, extinst, extemail, sfuexam in self.db:
                 if chair:
+                    if chair=='mitchell':
+                        chair='dgm'
                     person, external = self.find_supervisor(chair)
                     sups = Supervisor.objects.filter(student=gs, supervisor=person, external=external, supervisor_type='CHA')
                     if sups:
@@ -354,6 +352,8 @@ class GradImport(object):
                     sup.save()
                 
                 if sfuexam:
+                    if sfuexam=='mitchell':
+                        sfuexam='dgm'
                     person, external = self.find_supervisor(sfuexam)
                     sups = Supervisor.objects.filter(student=gs, supervisor=person, external=external, supervisor_type='SFU')
                     if sups:
@@ -369,6 +369,8 @@ class GradImport(object):
                     sup.save()
                 
                 if extname:
+                    if extname=='mitchell':
+                        extname='dgm'
                     external = extname
                     if extdep:
                         external += ", " + extdep
@@ -384,7 +386,23 @@ class GradImport(object):
                     sup.modified_by = self.IMPORT_USER
                     sup.save()
 
-            # TODO: potential supervisor
+
+            # potential supervisor
+            if sponsor and sponsor not in ['-None-', '-Office-']:
+                if sponsor=='mitchell':
+                    sponsor='dgm'
+                person, external = self.find_supervisor(sponsor)
+                
+                sups = Supervisor.objects.filter(student=gs, supervisor=person, external=external, supervisor_type='POT')
+                if sups:
+                    sup = sups[0]
+                else:
+                    sup = Supervisor(student=gs, supervisor=person, external=external, supervisor_type='POT')
+                    sup.created_by = self.IMPORT_USER
+                sup.removed = False
+                sup.modified_by = self.IMPORT_USER
+                sup.save()
+
 
             # Status and application status
             self.db.execute("SELECT Status, Date, AsOfSem "
@@ -494,6 +512,14 @@ class TAImport(object):
                        '': 'NONE',
                        'Some': 'SOME',
                        'Expert': 'EXPR',
+                       }
+    CAMPUS_PREF_MAP = {
+                       'B': ('BRNBY', 'PRF'),
+                       'b': ('BRNBY', 'WIL'),
+                       'S': ('SURRY', 'PRF'),
+                       's': ('SURRY', 'WIL'),
+                       'H': ('VANCR', 'PRF'),
+                       'h': ('VANCR', 'WIL'),
                        }
     
     def __init__(self):
@@ -672,7 +698,8 @@ class TAImport(object):
         return posting
     
     @transaction.commit_on_success
-    def get_ta(self, off_id, bu, salary, schol, description, payst, payen, posnum, initial, cond, tssu, remarks, app_bu, emplid, cat, sin, status, appid):
+    def get_ta(self, off_id, bu, salary, schol, description, payst, payen, posnum, initial, cond,
+               tssu, remarks, app_bu, emplid, cat, sin, status, appid, campuspref):
         """
         Process one TA
         
@@ -797,7 +824,22 @@ class TAImport(object):
             lvl.level = self.SKILL_LEVEL_MAP[level]
             lvl.save()
         
-        # TODO: get campus preferences
+        # campus preferences
+        if campuspref:
+            for c in campuspref:
+                if c in self.CAMPUS_PREF_MAP:
+                    campus, pref = self.CAMPUS_PREF_MAP[c]
+                    cps = CampusPreference.objects.filter(app=app, campus=campus)
+                    if cps:
+                        cp = cps[0]
+                    else:
+                        cp = CampusPreference(app=app, campus=campus)
+                    
+                    if cp.pref != pref:
+                        cp.pref = pref
+                        cp.save()
+                    
+        
 
     
     def get_tas(self):  
@@ -812,7 +854,7 @@ class TAImport(object):
         self.db.execute("SELECT o.Offering_ID, o.bu, o.salary, o.scholarship, o.description, "
                         "o.PayrollStartDate, o.PayrollEndDate, o.PositionNumber, o.initAppointment, "
                         "o.conditional, o.tssu, o.remarks, i.base, "
-                        "i.studNum, i.category, i.socialInsurance, i.status, i.appId, i.appYear "
+                        "i.studNum, i.category, i.socialInsurance, i.status, i.appId, i.campusPref, i.appYear "
                         "FROM TAOffering o, tasearch.dbo.tainfo i "
                         "WHERE o.TA_ID=i.appId ORDER BY i.appYear", ()) # and i.appYear>'109' 
         initial = None

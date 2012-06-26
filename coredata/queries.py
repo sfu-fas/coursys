@@ -1,4 +1,4 @@
-from coredata.models import Person, Semester, SemesterWeek
+from coredata.models import Person, Semester, SemesterWeek, ComputingAccount
 from django.conf import settings
 from django.db import transaction
 from django.core.cache import cache
@@ -227,6 +227,19 @@ def add_person(emplid, commit=True, get_userid=True):
         p.save()
     return p
 
+@cache_by_args
+@SIMS_problem_handler
+def get_person_by_userid(userid):
+    try:
+        p = Person.objects.get(userid=userid)
+    except Person.DoesNotExist:
+        try:
+            ca = ComputingAccount.objects.get(userid=userid)
+            p = add_person(ca.emplid)
+        except ComputingAccount.DoesNotExist:
+            return None
+
+    return p
 
 @cache_by_args
 @SIMS_problem_handler

@@ -287,7 +287,7 @@
    "class_nbr": 13810,
    "component": "LEC",
    "config": "{}",
-   "course": 3,
+   "course": 999,
    "crse_id": 11459,
    "enrl_cap": 65,
    "enrl_tot": 0,
@@ -494,7 +494,7 @@
    "class_nbr": 6617,
    "component": "LEC",
    "config": "{\"url\": \"http://www.cs.sfu.ca/CC/165/common/\", \"taemail\": \"cmpt-165-contact@sfu.ca\", \"labtut\": true, \"discussion\": true}",
-   "course": 3,
+   "course": 999,
    "crse_id": 11459,
    "enrl_cap": 100,
    "enrl_tot": 101,
@@ -1576,6 +1576,16 @@
   },
   "model": "coredata.course",
   "pk": 30
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "383",
+   "subject": "CMPT",
+   "title": "Comparative Programming Languages"
+  },
+  "model": "coredata.course",
+  "pk": 999
  },
  {
   "fields": {

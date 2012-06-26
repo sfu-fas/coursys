@@ -367,6 +367,8 @@ class CampusPreference(models.Model):
     app = models.ForeignKey(TAApplication)
     campus = models.CharField(max_length=4, choices=CAMPUS_CHOICES)
     pref = models.CharField(max_length=3, choices=PREFERENCE_CHOICES)
+    class Meta:
+        unique_together = (('app', 'campus'),)
 
 LEVEL_CHOICES = (
     ('EXPR', 'Expert'),
