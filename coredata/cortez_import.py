@@ -7,7 +7,8 @@ from django.db.utils import IntegrityError
 from django.db.models import Max
 from coredata.queries import DBConn, get_names, get_or_create_semester, add_person, get_person_by_userid
 from coredata.models import Person, Semester, Unit, CourseOffering, Course
-from grad.models import GradProgram, GradStudent, GradRequirement, CompletedRequirement, Supervisor, GradStatus, Letter, LetterTemplate
+from grad.models import GradProgram, GradStudent, GradRequirement, CompletedRequirement, Supervisor, GradStatus, \
+        Letter, LetterTemplate, Promise
 from ta.models import TAContract, TAApplication, TAPosting, TACourse, CoursePreference, SkillLevel, Skill, CourseDescription, CampusPreference
 from ra.models import RAAppointment, Account, Project
 from coredata.importer import AMAINTConn, get_person, get_person_grad, import_one_offering, import_instructors
@@ -242,11 +243,8 @@ class GradImport(object):
         #p = get_person_grad(emplid, commit=True)
         p = add_person(emplid, get_userid=False)
         if p is None:
-            # TODO: what to do with emplid-less grads?
-            print "Can't find Person for grad record"
-            self.db.execute("SELECT SemesterStarted, SemesterFinished "
-                        "FROM AcademicRecord WHERE Identifier=%s", (cortezid,))
-            print list(self.db)
+            # ignore emplid-less grads?
+            # all seem to start in 2006/2007 and have no end date
             return
 
         # fill in the Person object with Cortez data
@@ -277,10 +275,7 @@ class GradImport(object):
             # get/create the GradStudent object
             if prog is None:
                 # no program => don't import
-                # TODO: is that okay?
                 # all seem to start in 2006/2007 and have no end date
-                print "grad with no program"
-                print p, sem_start, sem_finish
                 continue
 
             prog = self.PROGRAM_MAP[(prog, progtype)]
@@ -446,6 +441,7 @@ class GradImport(object):
 
             # letters
             self.db.execute("SELECT LetterType, Modifier, Content, Date from LetterArchive where Identifier=%s", (cortezid,))
+            # TODO: could honour lettertype as template?
             for lettertype, modifier, content, datetime in self.db:
                 content = content.replace('$PAGEBREAK$', '')
                 date = datetime.date()
@@ -462,6 +458,25 @@ class GradImport(object):
                 letter.from_person = None
                 letter.created_at = datetime
                 letter.save()
+            
+            # financial promises
+            self.db.execute("SELECT startsemester, endsemester, amount, comment FROM FSPromises where Identifier=%s", (cortezid,))
+            for startsemester, endsemester, amount, comment in self.db:
+                print gs
+                start = Semester.objects.get(name=startsemester)
+                end = Semester.objects.get(name=endsemester)
+                promises = Promise.objects.filter(student=gs, start_semester=start, end_semester=end)
+                if promises:
+                    p = promises[0]
+                else:
+                    p = Promise(student=gs, start_semester=start, end_semester=end)
+                
+                p.amount = amount
+                p.comment = comment
+                p.save()
+                print p
+            #self.db.execute("SELECT distinct fstype from FSPromises", ())
+            #print list(self.db)
 
         # TODO: Scholarships
         # TODO: FSPromises
