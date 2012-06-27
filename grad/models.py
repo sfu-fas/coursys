@@ -417,7 +417,7 @@ class Promise(models.Model):
     end_semester = models.ForeignKey(Semester, related_name="promise_end")
     comments = models.TextField(blank=True, null=True)
     def __unicode__(self):
-        return u"%s promise for %s" % (self.amount, self.student.person)
+        return u"%s promise for %s %s-%s" % (self.amount, self.student.person, self.start_semester.name, self.end_semester.name)
     def get_fields(self):
         # make a list of field/values.
         k = []
