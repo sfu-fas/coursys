@@ -7,7 +7,7 @@ from django.db.utils import IntegrityError
 from django.db.models import Max
 from coredata.queries import DBConn, get_names, get_or_create_semester, add_person, get_person_by_userid
 from coredata.models import Person, Semester, Unit, CourseOffering, Course
-from grad.models import GradProgram, GradStudent, GradRequirement, CompletedRequirement, Supervisor, GradStatus
+from grad.models import GradProgram, GradStudent, GradRequirement, CompletedRequirement, Supervisor, GradStatus, Letter, LetterTemplate
 from ta.models import TAContract, TAApplication, TAPosting, TACourse, CoursePreference, SkillLevel, Skill, CourseDescription, CampusPreference
 from ra.models import RAAppointment, Account, Project
 from coredata.importer import AMAINTConn, get_person, get_person_grad, import_one_offering, import_instructors
@@ -197,6 +197,13 @@ class GradImport(object):
                    ('Qualifying', 'Thesis'): GradProgram.objects.get(unit__slug='cmpt', slug='qualifying'),
                    ('Qualifying', ''): GradProgram.objects.get(unit__slug='cmpt', slug='qualifying'),
                    }
+        
+        try:
+            self.template = LetterTemplate.objects.get(unit=cmpt, label="Cortez Import")
+        except LetterTemplate.DoesNotExist:
+            self.template = LetterTemplate(unit=cmpt, label="Cortez Import", content='', created_by='csilop')
+            self.template.save()
+        
 
     def get_semester_for_date(self, date):
         # guess relevant semester for given date
@@ -437,10 +444,29 @@ class GradImport(object):
             gs.application_status = app_st
             gs.save()
 
-        # TODO: Letters and LetterArchive
+            # letters
+            self.db.execute("SELECT LetterType, Modifier, Content, Date from LetterArchive where Identifier=%s", (cortezid,))
+            for lettertype, modifier, content, datetime in self.db:
+                content = content.replace('$PAGEBREAK$', '')
+                date = datetime.date()
+                letters = Letter.objects.filter(student=gs, date=date)
+                if letters:
+                    letter = letters[0]
+                else:
+                    letter = Letter(student=gs, date=date)
+                
+                letter.created_by = modifier.lower()
+                letter.content = content
+                letter.template = self.template
+                letter.to_lines = ''
+                letter.from_person = None
+                letter.created_at = datetime
+                letter.save()
+
         # TODO: Scholarships
         # TODO: FSPromises
         # TODO: FinancialSupport
+        
         
         
         
@@ -452,6 +478,7 @@ class GradImport(object):
     
     def get_students(self):
         print "Importing grad students..."
+        
         self.db.execute("SELECT pi.Identifier, pi.SIN, pi.StudentNumber, "
                         "pi.Email, pi.BirthDate, pi.Sex, pi.EnglishFluent, pi.MotherTongue, pi.Canadian, pi.Passport, "
                         "pi.Visa, pi.Status, pi.LastName FROM PersonalInfo pi "

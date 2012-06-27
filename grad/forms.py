@@ -231,7 +231,7 @@ class LetterForm(ModelForm):
                    'student': forms.HiddenInput(),
                    'to_lines': forms.Textarea(attrs={'rows': 4, 'cols': 50}),
                    'from_lines': forms.Textarea(attrs={'rows': 3, 'cols': 30}),
-                   'content': forms.Textarea(attrs={'rows':'25', 'cols': '100'}),
+                   'content': forms.Textarea(attrs={'rows':'25', 'cols': '70'}),
                    }
 
 class PromiseForm(ModelForm):
