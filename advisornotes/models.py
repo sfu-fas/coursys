@@ -45,6 +45,9 @@ class NonStudent(models.Model):
 
     def search_label_value(self):
         return "%s (Prospective)" % (self.name())
+
+    def __hash__(self):
+        return (self.first_name, self.middle_name, self.last_name, self.pref_first_name, self.high_school).__hash__() 
         
 class AdvisorNote(models.Model):
     """
@@ -86,4 +89,7 @@ class AdvisorNote(models.Model):
         """
         _, filename = os.path.split(self.file_attachment.name)
         return filename
+
+    def __hash__(self):
+        return (self.text, self.created_at, self.file_attachment).__hash__()
 

@@ -185,7 +185,7 @@ def userid_from_sims(emplid):
     for _, email_addr, _ in db:
         if email_addr.endswith('@sfu.ca'):
             userid = email_addr[:-7]
-        if len(userid) > 8:
+        if userid and len(userid) > 8:
             userid = None
     return userid
 
