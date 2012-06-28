@@ -330,6 +330,29 @@
  {
   "fields": {
    "campus": "BRNBY",
+   "class_nbr": null,
+   "component": "LEC",
+   "config": "{}",
+   "course": 11,
+   "crse_id": null,
+   "enrl_cap": 70,
+   "enrl_tot": 10,
+   "graded": true,
+   "number": "120",
+   "owner": 3,
+   "section": "E100",
+   "semester": 3,
+   "slug": "2012fa-cmpt-120-e1",
+   "subject": "CMPT",
+   "title": "Intro Comp. Sci. and Prog.",
+   "wait_tot": 0
+  },
+  "model": "coredata.courseoffering",
+  "pk": 28
+ },
+ {
+  "fields": {
+   "campus": "BRNBY",
    "class_nbr": 13820,
    "component": "CAN",
    "config": "{}",
@@ -18421,6 +18444,21 @@
   "model": "coredata.member",
   "pk": 501
  },
+  {
+  "fields": {
+   "added_reason": "AUTO",
+   "career": "NONS",
+   "config": "{}",
+   "credits": 0,
+   "labtut_section": null,
+   "offering": 28,
+   "official_grade": null,
+   "person": 8,
+   "role": "INST"
+  },
+  "model": "coredata.member",
+  "pk": 541
+ },
  {
   "fields": {
    "config": "{\"url\": \"http://www.cs.sfu.ca/CC/165/common/a1\"}",
@@ -25991,5 +26029,18 @@
   },
   "model": "planning.teachingequivalent",
   "pk": 1
+ },
+ {
+  "fields": {
+   "comment": "This is a comment!",
+   "credits_denominator": 4,
+   "credits_numerator": 1,
+   "instructor": 8,
+   "semester": 3,
+   "status": "CONF",
+   "summary": "Supervised students for special research project"
+  },
+  "model": "planning.teachingequivalent",
+  "pk": 2
  }
 ]
