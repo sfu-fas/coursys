@@ -65,7 +65,7 @@ def financials(request, grad_slug):
                 semester_total += other.amount
         
         # scholarships
-        semester_scholarships = scholarships_qs.filter(start_semester__lte=semester, end_semester__gte=semester)
+        semester_scholarships = scholarships_qs.filter(start_semester__name__lte=semester.name, end_semester__name__gte=semester.name)
         semester_eligible_scholarships = semester_scholarships.filter(scholarship_type__eligible=True)
         scholarships = []
         
