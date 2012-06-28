@@ -1,24 +1,10 @@
-from planning.models import *
-from planning.forms import *
-from courselib.auth import requires_instructor
-from courselib.auth import requires_role
-from django.db.models import Q
-from coredata.models import Person, Role, Semester, Member, CourseOffering, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES 
-from log.models import LogEntry
+from planning.models import SemesterPlan, PlannedOffering, MeetingTime
+from coredata.models import Person, Role
 from django.contrib.auth.decorators import login_required
-from django.forms.models import inlineformset_factory
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render_to_response
-from django.http import HttpResponse, HttpResponseRedirect
-from django.contrib import messages
-from django.core.urlresolvers import reverse
 from django.template import RequestContext
-from django.template import Context, loader
-from django.db.models import query
-from django.db.utils import IntegrityError
-from django.core.files.uploadedfile import SimpleUploadedFile
-from datetime import datetime
-from dashboard.models import *
+
 
 @login_required
 def view_plan(request, semester, plan_slug):
@@ -33,8 +19,8 @@ def view_plan(request, semester, plan_slug):
     planned_offerings_list = PlannedOffering.objects.filter(plan=plan)
     meeting_time_list = [(MeetingTime.objects.filter(offering=p)) for p in planned_offerings_list]
     offerings_list = zip(planned_offerings_list, meeting_time_list)
-    
-    return render_to_response("planning/view_plan.html", {'plan':plan, 'offerings_list': offerings_list, 'range': range(7)}, context_instance=RequestContext(request))
+
+    return render_to_response("planning/view_plan.html", {'plan': plan, 'offerings_list': offerings_list, 'range': range(7)}, context_instance=RequestContext(request))
 
 
 def semester_visibility(roles):

@@ -13,99 +13,11 @@
     <li>&gt; Edit Course Offering</li>
 {% endblock %}
 
-{% block headextra %}
-<script type="text/javascript">
-$(function() {
-    $('.add-formset').click(function() {
-        var last = $('.meeting-time tr:visible:last');
-        var next = $('.meeting-time tr:hidden').eq(0).show();
-
-        lastInputs = last.find('select, input[type=text]');
-        nextInputs = next.find('select, input[type=text]');
-
-        nextInputs.each(function(i) {
-            $(this).val(lastInputs.eq(i).val());
-        });
-    });
-
-    $('.remove-formset').click(function() {
-        var meeting = $(this).parents('tr');
-        meeting.find('input[type=text]').val('');
-        meeting.find('input[type=checkbox]').attr('checked', 'checked');
-        meeting.find('select').val('---------');
-        meeting.hide();
-    });
-});
-</script>
-{% endblock %}
 
 {% block content %}
 <div id="form_container" class="add-course-offering">
     <form action="{% url planning.views.edit_planned_offering semester=plan.semester.name plan_slug=plan.slug planned_offering_slug=course.slug %}" method="post">{% csrf_token %}
-        <fieldset>
-            <legend>Course Offering Information</legend>
-
-            <div class="course">
-                <h3>Course Information</h3>
-
-                {% for field in form %}
-                    <dt>
-                        <label for="{{ field.auto_id }}">
-                            {{ field.label }}:
-                            {% if field.field.required %}
-                                <span class="required">*</span>
-                            {% endif %}
-                            <span> 
-                        </label>
-                    </dt>
-                    <dd>
-                        <div class="field">
-                            {{ field }}
-                            {{ field.errors }}
-                        </div>
-                    </dd>
-                {% endfor %}
-            </div>
-
-            <div class="meeting-times">
-                {{ formset.management_form }}
-                <table class="meeting-time">
-                    <thead>
-                        <th>Day</th>
-                        <th>Start</th>
-                        <th>End</th>
-                        <th>Room</th>
-                        <th></th>
-                    </thead>
-                    <tbody>
-                        {% for form in formset %}
-                        
-                        <tr class="{% spaceless %}
-                            {% if form.errors %}errors{% endif %}
-                            {% if form.weekday.value or form.start_time.value or form.end_time.value or form.room.value %}content{% endif %}
-                        {% endspaceless %}">
-                            <td>
-                                {{ form.id }}
-                                {{ form.weekday }}
-                                {% if form.weekday.errors %}
-                                    {{ form.weekday.errors }}
-                                {% endif %}
-                            </td>
-                            <td><input type="text" placeholder="e.g. 11:30" name="meetingtime_set-{{ forloop.counter0 }}-{{ form.start_time.name }}" id="{{ form.start_time.auto_id }}" value="{{ form.start_time.value|time:"f" }}" /></td>
-                            <td><input type="text" placeholder="e.g. 12:20" name="meetingtime_set-{{ forloop.counter0 }}-{{ form.end_time.name }}" id="{{ form.end_time.auto_id }}" value="{{ form.end_time.value|time:"f" }}" /></td>
-                            <td><input type="text" placeholder="e.g. ASB9896" name="meetingtime_set-{{ forloop.counter0 }}-{{ form.room.name }}" id="{{ form.room.auto_id }}" value="{% firstof form.room.value %}" /></td>
-                            <td>
-                                <a class="remove-formset">Remove</a>
-                                <span class="hidden">{{ form.DELETE }}</span>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                <a class="add-formset">Add another meeting time</a>
-            </div>
-            <div><input class="submit" type="submit" value="Submit" /></div>
-        </fieldset>
+        {% include "planning/course_offering_form.html" with offeringform=form timesformset=formset %}
     </form>
 </div>
 {% endblock%}

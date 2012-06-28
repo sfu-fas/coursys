@@ -1,23 +1,12 @@
-from planning.models import *
-from planning.forms import *
+from planning.forms import CourseForm
 from courselib.auth import requires_role
-from django.db.models import Q
-from coredata.models import Person, Role, Semester, Member, CourseOffering, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES 
 from log.models import LogEntry
-from django.contrib.auth.decorators import login_required
-from django.forms.models import inlineformset_factory
-from django.shortcuts import get_object_or_404
 from django.shortcuts import render_to_response
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.template import RequestContext
-from django.template import Context, loader
-from django.db.models import query
-from django.db.utils import IntegrityError
-from django.core.files.uploadedfile import SimpleUploadedFile
-from datetime import datetime
-from dashboard.models import *
+
 
 @requires_role('PLAN')
 def create_course(request):
@@ -33,9 +22,9 @@ def create_course(request):
                   description=("added course %s %s") % (course.subject, course.number),
                   related_object=course)
             l.save()
-                
+
             messages.add_message(request, messages.SUCCESS, 'Added course %s.' % (course))
-            
+
             return HttpResponseRedirect(reverse('planning.views.manage_courses', kwargs={}))
     else:
         form = CourseForm()

@@ -3,77 +3,86 @@ from django.test.client import Client
 from settings import CAS_SERVER_URL
 from django.core.urlresolvers import reverse
 from courselib.testing import basic_page_tests
-import json
+
 
 class PlanningTest(TestCase):
     fixtures = ['test_data']
-    
+
     def test_that_planning_admin_returns_200_ok(self):
         """
         Tests basic page permissions
         """
         client = Client()
         client.login(ticket="dixon", service=CAS_SERVER_URL)
-        #response = client.get(reverse('planning.views.admin_index'))
         url = reverse('planning.views.admin_index')
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
         # Test create plan view
-        response = client.get(reverse('planning.views.create_plan'))
+        url = reverse('planning.views.create_plan')
+        response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
         # Test copy plan view
-        response = client.get(reverse('planning.views.copy_plan'))
+        url = reverse('planning.views.copy_plan')
+        response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
         # Test update plan view
-        response = client.get(reverse('planning.views.update_plan', kwargs={'semester': 1127, 'plan_slug': 'Offering-Alpha---Burnaby'}))
+        url = reverse('planning.views.update_plan', kwargs={'semester': 1127, 'plan_slug': 'Offering-Alpha---Burnaby'})
+        response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
         # Test edit plan view
-        response = client.get(reverse('planning.views.edit_plan', kwargs={
+        url = reverse('planning.views.edit_plan', kwargs={
                 'semester': 1127,
                 'plan_slug': 'Offering-Alpha---Burnaby'
-        }))
+        })
+        response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
         # Test assign instructor view
-        response = client.get(reverse('planning.views.view_instructors', kwargs={
+        url = reverse('planning.views.view_instructors', kwargs={
             'semester': 1127,
             'plan_slug': 'Offering-Alpha---Burnaby',
             'planned_offering_slug': 'CMPT-102-D100'
-        }))
+        })
+        response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
         # Test edit planned offering view
-        response = client.get(reverse('planning.views.edit_planned_offering', kwargs={
+        url = reverse('planning.views.edit_planned_offering', kwargs={
             'semester': 1127,
             'plan_slug': 'Offering-Alpha---Burnaby',
             'planned_offering_slug': 'CMPT-102-D100'
-        }))
+        })
+        response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
         # Test manage courses view
-        response = client.get(reverse('planning.views.manage_courses'))
+        url = reverse('planning.views.manage_courses')
+        response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
         # Test create courses view
-        response = client.get(reverse('planning.views.create_course'))
+        url = reverse('planning.views.create_course')
+        response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
         # Test edit course view
-        response = client.get(reverse('planning.views.edit_course', kwargs={'course_slug': 'CMPT-102'}))
+        url = reverse('planning.views.edit_course', kwargs={'course_slug': 'CMPT-102'})
+        response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
         # Test semester teaching plan view
-        response = client.get(reverse('planning.views.view_intentions'))
+        url = reverse('planning.views.view_intentions')
+        response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
         # Test create semester teaching plan view
-        response = client.get(reverse('planning.views.planner_create_intention'))
+        url = reverse('planning.views.planner_create_intention')
+        response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
-        
 
     def test_that_planning_admin_returns_403_forbidden(self):
         """

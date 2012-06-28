@@ -1,5 +1,4 @@
 from django import forms
-from django.forms.widgets import RadioSelect
 from planning.models import *
 import re
 
@@ -20,7 +19,7 @@ class CapabilityForm(ModelFormWithInstructor):
         model = TeachingCapability
         widgets = {
             'instructor': forms.HiddenInput(),
-            'note': forms.Textarea(attrs={'rows':2, 'cols':40}),
+            'note': forms.Textarea(attrs={'rows': 2, 'cols': 40}),
         }
 
 
@@ -29,8 +28,8 @@ class PlannerIntentionForm(forms.ModelForm):
         model = TeachingIntention
         exclude = ('intentionfull',)
         widgets = {
-            'count': forms.TextInput(attrs={'size':2}),
-            'note': forms.Textarea(attrs={'rows':2, 'cols':40}),
+            'count': forms.TextInput(attrs={'size': 2}),
+            'note': forms.Textarea(attrs={'rows': 2, 'cols': 40}),
         }
 
 
@@ -40,8 +39,8 @@ class IntentionForm(ModelFormWithInstructor):
         exclude = ('intentionfull',)
         widgets = {
             'instructor': forms.HiddenInput(),
-            'count': forms.TextInput(attrs={'size':2}),
-            'note': forms.Textarea(attrs={'rows':2, 'cols':40}),
+            'count': forms.TextInput(attrs={'size': 2}),
+            'note': forms.Textarea(attrs={'rows': 2, 'cols': 40}),
         }
 
 
@@ -55,17 +54,19 @@ class CourseForm(forms.ModelForm):
 class PlanBasicsForm(forms.ModelForm):
     class Meta:
         model = SemesterPlan
+        exclude = ('config',)
 
 
 class CopyPlanForm(forms.ModelForm):
     copy_plan_from = forms.ChoiceField()
+
     def __init__(self, *args, **kwargs):
-	super(CopyPlanForm, self).__init__(*args, **kwargs)
+        super(CopyPlanForm, self).__init__(*args, **kwargs)
         self.fields['copy_plan_from'] = forms.ChoiceField(choices=[(o.name, o.name) for o in SemesterPlan.objects.all()])
-    
+
     class Meta:
         model = SemesterPlan
-        fields = ('copy_plan_from','semester', 'name', 'visibility', 'unit')
+        fields = ('copy_plan_from', 'semester', 'name', 'visibility', 'unit')
 
 
 class BaseOfferingBasicsForm(forms.ModelForm):

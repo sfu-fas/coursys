@@ -1,14 +1,14 @@
 from django.db import models
-from coredata.models import Person, Role, Semester, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES, Member, Unit, Course
-from django.forms import ModelForm
+from coredata.models import Person, Semester, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES, Unit, Course
 from autoslug import AutoSlugField
-from dashboard.models import *
 from django.core.urlresolvers import reverse
+from jsonfield import JSONField
 
 
 COURSE_STATUS_CHOICES = [
     ('OPEN', 'Open'),
     ('HIDE', 'Hidden')]
+
 
 class PlanningCourse(Course):
     owner = models.ForeignKey(Unit, null=False)
@@ -18,7 +18,7 @@ class PlanningCourse(Course):
     class Meta:
         unique_together = ()
         ordering = ('subject', 'number')
-    
+
 
 class TeachingCapability(models.Model):
     instructor = models.ForeignKey(Person, null=False)
@@ -27,8 +27,8 @@ class TeachingCapability(models.Model):
 
     class Meta:
         ordering = ['instructor', 'course']
-        unique_together = (('instructor','course'),)
-        
+        unique_together = (('instructor', 'course'),)
+
     def __unicode__(self):
         return "%s - %s" % (self.instructor, self.course)
 
@@ -36,24 +36,24 @@ class TeachingCapability(models.Model):
 class TeachingIntention(models.Model):
     instructor = models.ForeignKey(Person, null=False)
     semester = models.ForeignKey(Semester, null=False)
-    count = models.PositiveSmallIntegerField(help_text="The number of courses the instructor plans to teach in this semester.")    
+    count = models.PositiveSmallIntegerField(help_text="The number of courses the instructor plans to teach in this semester.")
     note = models.TextField(null=True, blank=True, default="", help_text="Additional information for those doing the course planning.")
     intentionfull = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-semester', 'instructor']
         unique_together = (('instructor', 'semester'),)
-        
+
     def __unicode__(self):
         return "%s: %d (%s)" % (self.instructor, self.count, self.semester.label())
-    
+
     def is_full(self, semester_plan):
         return semester_plan.plannedoffering_set.filter(instructor=self.instructor).count() >= self.count
 
 
 VISIBILITY_CHOICES = [
     ('ADMI', 'Administrators Only'),
-    ('INST', 'Instructors'), 
+    ('INST', 'Instructors'),
     ('ALL', 'Everyone')]
 
 
@@ -63,7 +63,7 @@ class SemesterPlan(models.Model):
     visibility = models.CharField(max_length=4, choices=VISIBILITY_CHOICES, default="ADMI", help_text="Who can see this plan?")
     slug = AutoSlugField(populate_from='name', null=False, editable=False, unique_with='semester')
     unit = models.ForeignKey(Unit, help_text='The academic unit that owns this course plan')
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
+    config = JSONField(null=False, blank=False, default={})
 
     def get_absolute_url(self):
         return reverse('planning.views.view_plan', kwargs={'semester': self.semester.name})
@@ -88,7 +88,7 @@ class PlannedOffering(models.Model):
     instructor = models.ForeignKey(Person, null=True, blank=True)
     slug = AutoSlugField(populate_from='__unicode__', null=False, editable=False, unique_with='section')
     notes = models.TextField(null=True, blank=True, default="", help_text="Additional information for cross-listing or other notes")
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
+    config = JSONField(null=False, blank=False, default={})
 
     class Meta:
         ordering = ['plan', 'course', 'campus']
@@ -96,7 +96,7 @@ class PlannedOffering(models.Model):
 
     def __unicode__(self):
         return "%s %s %s" % (self.course.subject, self.course.number, self.section)
-        
+
 
 class MeetingTime(models.Model):
     offering = models.ForeignKey(PlannedOffering, null=False)
@@ -108,12 +108,13 @@ class MeetingTime(models.Model):
 
     class Meta:
         ordering = ['offering', 'weekday']
-        
+
 EQUIVALENT_STATUS_CHOICES = (
                              ('CONF', 'Confirmed'),
                              ('UNCO', 'Unconfirmed')
                              )
-        
+
+
 class TeachingEquivalent(models.Model):
     """
     A teaching equivalent for instructors to record teaching credits (supports rationals)

@@ -1641,6 +1641,10 @@ td.table-row-label{
   display: block;
 }
 
+/* Instructor Table */
+table.inst_table .teachingplans {
+  width: 50%;
+}
 
 /* Course Plan Table */
 table.course-plan {
@@ -1784,6 +1788,10 @@ table.course-plan .meeting-time:first-child {
 .add-course-offering .meeting-times ul.errorlist {
   margin: 0;
   padding: 0;
+}
+
+.add-course-offering .meeting-time .room {
+  width: 150px;
 }
 
 .add-course-offering a.add-formset {
