@@ -6,9 +6,9 @@ from django.db import transaction
 from django.db.utils import IntegrityError
 from django.db.models import Max
 from coredata.queries import DBConn, get_names, get_or_create_semester, add_person, get_person_by_userid
-from coredata.models import Person, Semester, Unit, CourseOffering, Course
+from coredata.models import Person, Semester, Unit, CourseOffering, Course, SemesterWeek
 from grad.models import GradProgram, GradStudent, GradRequirement, CompletedRequirement, Supervisor, GradStatus, \
-        Letter, LetterTemplate, Promise
+        Letter, LetterTemplate, Promise, Scholarship, ScholarshipType, OtherFunding
 from ta.models import TAContract, TAApplication, TAPosting, TACourse, CoursePreference, SkillLevel, Skill, CourseDescription, CampusPreference
 from ra.models import RAAppointment, Account, Project
 from coredata.importer import AMAINTConn, get_person, get_person_grad, import_one_offering, import_instructors
@@ -169,10 +169,42 @@ class GradImport(object):
         self.db = CortezConn()
         self.db.execute("USE [grad]", ())
         self.cs_setup()
+        self.get_ra_map()
+        self.make_future_semesters()
     
+    def get_ra_map(self):
+        self.ra_map = {}
+        for appt in RAAppointment.objects.filter(unit=self.unit):
+            if 'cortezid' in appt.config:
+                self.ra_map[appt.config['cortezid']] = appt
+    
+    def make_semester(self, name, start, end):
+        s = Semester(name=name, start=start, end=end)
+        s.save()
+        
+        first_monday = start
+        while first_monday.weekday() != 0:
+            first_monday += datetime.timedelta(days=1)    
+        wk = SemesterWeek(semester=s, week=1, monday=first_monday)
+        wk.save()
+
+    def make_future_semesters(self):
+        """
+        There are some scholarships far in the future: must create those Semester objects manually.
+        """
+        try: Semester.objects.get(name='1141')
+        except Semester.DoesNotExist: self.make_semester('1141', datetime.date(2014,1,1), datetime.date(2014,4,30))
+        try: Semester.objects.get(name='1144')
+        except Semester.DoesNotExist: self.make_semester('1144', datetime.date(2014,5,1), datetime.date(2014,8,30))
+        try: Semester.objects.get(name='1147')
+        except Semester.DoesNotExist: self.make_semester('1147', datetime.date(2014,9,1), datetime.date(2014,12,30))
+        
+        
+        
     def cs_setup(self):
         print "Setting up CMPT grad programs..."
         cmpt = Unit.objects.get(slug='cmpt')
+        self.unit = cmpt
         programs = [('MSc Thesis', 'MSc Thesis option'), ('MSc Proj', 'MSc Project option'), ('PhD', 'PhD'),
                     ('Special', 'Special Arrangements'), ('Qualifying', 'Qualifying Student')]
         for lbl, dsc in programs:
@@ -442,7 +474,7 @@ class GradImport(object):
             # letters
             self.db.execute("SELECT LetterType, Modifier, Content, Date from LetterArchive where Identifier=%s", (cortezid,))
             # TODO: could honour lettertype as template?
-            for lettertype, modifier, content, datetime in self.db:
+            for _, modifier, content, datetime in self.db:
                 content = content.replace('$PAGEBREAK$', '')
                 date = datetime.date()
                 letters = Letter.objects.filter(student=gs, date=date)
@@ -462,7 +494,6 @@ class GradImport(object):
             # financial promises
             self.db.execute("SELECT startsemester, endsemester, amount, comment FROM FSPromises where Identifier=%s", (cortezid,))
             for startsemester, endsemester, amount, comment in self.db:
-                print gs
                 start = Semester.objects.get(name=startsemester)
                 end = Semester.objects.get(name=endsemester)
                 promises = Promise.objects.filter(student=gs, start_semester=start, end_semester=end)
@@ -474,14 +505,51 @@ class GradImport(object):
                 p.amount = amount
                 p.comment = comment
                 p.save()
-                print p
-            #self.db.execute("SELECT distinct fstype from FSPromises", ())
-            #print list(self.db)
-
-        # TODO: Scholarships
-        # TODO: FSPromises
-        # TODO: FinancialSupport
-        
+            
+            # scholarships
+            self.db.execute("SELECT Name, Amount, DateRec, DateExp, RAShip_ID, External FROM Scholarships where Identifier=%s", (cortezid,))
+            for name, amount, startsem, endsem, raship, external in self.db:
+                startsem = get_or_create_semester(startsem)
+                endsem = get_or_create_semester(endsem)
+                try:
+                    scholtype = ScholarshipType.objects.get(unit=self.unit, name=name, eligible=(not external))
+                except ScholarshipType.DoesNotExist:
+                    scholtype = ScholarshipType(unit=self.unit, name=name, eligible=(not external))
+                    scholtype.comments = "Imported from Cortez"
+                    scholtype.save()
+                
+                schols = Scholarship.objects.filter(scholarship_type=scholtype, student=gs, start_semester=startsem, end_semester=endsem)
+                if schols:
+                    schol = schols[0]
+                else:
+                    schol = Scholarship(scholarship_type=scholtype, student=gs, start_semester=startsem, end_semester=endsem)
+                
+                amount = amount.replace(',','')
+                schol.amount = decimal.Decimal(amount)
+                schol.save()
+                if raship:
+                    ra = self.ra_map[raship]
+                    ra.scholarship = schol
+                    ra.save()
+            
+            self.db.execute("SELECT Semester, OtherAmount, OtherType, Comments, isTravel FROM FinancialSupport where Identifier=%s and OtherAmount is not null", (cortezid,))
+            for sem, amt, othertype, comments, _ in self.db:
+                if not amt:
+                    continue
+                semester = Semester.objects.get(name=sem)
+                if amt[0] == '$':
+                    amt = amt[1:]
+                amount = decimal.Decimal(amt)
+                ofs = OtherFunding.objects.filter(student=gs, semester=semester, description=othertype)
+                if ofs:
+                    of = ofs[0]
+                else:
+                    of = OtherFunding(student=gs, semester=semester, description=othertype)
+                
+                of.amount = amount
+                of.eligible = True # TODO: does the isTravel bit determine this?
+                of.comments = comments
+                of.save()
         
         
         
@@ -499,8 +567,8 @@ class GradImport(object):
                         "pi.Visa, pi.Status, pi.LastName FROM PersonalInfo pi "
                         "WHERE pi.StudentNumber not in (' ', 'na', 'N/A', 'NO', 'Not App.', 'N.A.', '-no-') "
                         #"AND pi.LastName in ('Baker', 'Bart', 'Cukierman', 'Fraser')" 
-                        #"AND pi.LastName LIKE 'Ji%%'" 
-                        #"AND pi.LastName > 'U'" 
+                        #"AND pi.LastName LIKE 'F%%'" 
+                        #"AND pi.LastName = 'Farahbod'" 
                         "ORDER BY pi.LastName"
                         , ())
         initial = None
@@ -510,7 +578,7 @@ class GradImport(object):
             if i != initial:
                 print "  ", i
                 initial = i
-                time.sleep(1)
+                time.sleep(0.5)
             if not(emplid.isdigit() and len(emplid)==9):
                 # TODO: what about them and the other no-emplid rows?
                 continue
@@ -909,18 +977,6 @@ class TAImport(object):
 
             self.get_ta(*row[:-1])
 
-def find_person_by_userid(userid):
-    amaint = AMAINTConn()
-    amaint.execute('SELECT emplid FROM amaint.idMap WHERE username=%s', (userid,))
-    row = amaint.fetchone()
-    if row is None:
-        raise ValueError, "Unknown userid, "+ userid
-    emplid = row[0]
-    p = add_person(emplid, commit=False, get_userid=False)
-    p.userid = userid
-    p.save()
-    return p
-
 
 class RAImport(object):
     UNIT = Unit.objects.get(slug='cmpt')
@@ -951,22 +1007,29 @@ class RAImport(object):
         self.db.execute("USE [ra]", ())
     
     @transaction.commit_on_success
-    def get_ra(self, fund, project, position, reappt, startdate, enddate, category, faculty, msp, dental, \
+    def get_ra(self, contractnumber, fund, project, position, reappt, startdate, enddate, category, faculty, msp, dental, \
             hourlyrate, biweeklyrate, biweeklyhours, biweeklyamount, lumpsumamount, lumpsumhours, payperiod, \
             totalamount, salarytype, notes, comments, emplid, sin):
         """
         Get one RA record. Argument list must match query in get_ras.
         """
-        if not emplid or emplid in ['new']:
+        if not emplid or emplid in ['new', 'n/a']:
             # TODO: do what with them?
             return
-        p = get_person(emplid, commit=True)
-        #print p
+        p = add_person(emplid, commit=True, get_userid=False)
+        if not p:
+            print "No SIMS record found for RA %s" % (emplid)
+            return
+
         ras = RAAppointment.objects.filter(unit=self.UNIT, person=p, start_date=startdate, end_date=enddate)
         if ras:
             ra = ras[0]
         else:
             ra = RAAppointment(unit=self.UNIT, person=p, start_date=startdate, end_date=enddate)
+        
+        if 'cortezid' in ra.config and ra.config['cortezid'] != contractnumber:
+            raise ValueError, "duplicate RAAppointment? %r %r" % (contractnumber, ra.config['cortezid'])
+        ra.config['cortezid'] = contractnumber
         
         try:
             int(sin)
@@ -992,12 +1055,11 @@ class RAImport(object):
                 ra.hiring_faculty = Person.objects.get(emplid=faculty_userid)
         except Person.DoesNotExist:
             if isinstance(faculty_userid, basestring):
-                ra.hiring_faculty = find_person_by_userid(faculty_userid)
+                ra.hiring_faculty = get_person_by_userid(faculty_userid)
             else:
                 p = add_person(faculty_userid, commit=True, get_userid=False)
                 ra.hiring_faculty = p
 
-        
         try:
             int(project)
             int(fund)
@@ -1038,24 +1100,24 @@ class RAImport(object):
         else:
             raise ValueError, str(salarytype)
 
+        #print ra
         #print ra.__dict__
         #print
         ra.save()
 
     def get_ras(self):
-        #self.create_projects()
-        #self.db.execute("SELECT * from Contract c LEFT JOIN RA r ON c.Identifier=r.Identifier", ())
         print "Importing RAs..."
-        #self.db.execute("select * from expenses.dbo.StaffLU", ())
+        #self.db.execute("select * from Contract c LEFT JOIN RA r ON c.Identifier=r.Identifier where c.ContractNumber='20060718101901'", ())
         #print list(self.db)
         
-        self.db.execute("SELECT c.FundNumber, c.ProjectNumber, c.PositionNumber, c.ReAppointment, c.StartDate, c.EndDate, "
+        self.db.execute("SELECT c.ContractNumber, c.FundNumber, c.ProjectNumber, c.PositionNumber, c.ReAppointment, c.StartDate, c.EndDate, "
                         "c.HiringCategory, c.Faculty, c.MSP, c.DentalPlan, "
                         "c.HourlyEarningRate, c.BiweeklyEarningRate, c.BiweeklyHoursMin, c.BiweeklyAmount, "
                         "c.LumpSumAmount, c.LumpSumHours, c.PayPeriod, c.TotalAmount, c.SalaryType, "
                         "c.Notes, c.Comments, "
                         "r.StudentNumber, r.SIN, r.FamilyName "
                         "FROM Contract c LEFT JOIN RA r ON c.Identifier=r.Identifier "
+                        #"WHERE c.ContractNumber='20060718101901' "
                         "ORDER BY r.FamilyName", ())
         initial = None
         for row in list(self.db):
@@ -1072,6 +1134,6 @@ class RAImport(object):
 if __name__ == '__main__':
     #Introspection().print_schema()
     #TAImport().get_tas()
-    GradImport().get_students()
     #RAImport().get_ras()
+    GradImport().get_students()
 

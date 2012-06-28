@@ -112,7 +112,7 @@ table#financial td.prom {
 {% for semester in semesters %}
 <tr>
 <td class="rec">
-  <h2 id="{{semester.semester.name}}">{{semester.semester.label}}{% if semester.status %}({{ semester.status }}){% endif %}</h2>
+  <h2 id="{{semester.semester.name}}">{{semester.semester.label}}{% if semester.status %} ({{ semester.status }}){% endif %}</h2>
   {% if semester.scholarships %}
     <span class="label">Scholarships:</span> 
     <div style="float: right" id="comments-btn-{{semester.semester.name}}"><a>[View Comments]</a></div>

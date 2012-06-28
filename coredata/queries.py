@@ -436,7 +436,7 @@ def get_or_create_semester(strm):
     db.execute("SELECT strm, term_begin_dt, term_end_dt FROM ps_term_tbl WHERE strm=%s", (strm,))
     row = db.fetchone()
     if row is None:
-        raise ValueError, "Not Found"
+        raise ValueError, "Not Found: %r" % (strm)
     strm, st, en = row
     
     # create Semester object
