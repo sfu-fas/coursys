@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Teaching Equivalent{% endblock %}
+{% block h1 %}Teaching Equivalent{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+    $(document).ready(function() {
+    	$("#remove-equivalent").click(function(){
+    		var confirmRemove = confirm("Are you sure you want to remove this Teaching Equivalent?");
+    		if(confirmRemove){
+    			$("form#remove-equivalent-form").submit();
+    		}
+    	});
+    });
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>
+    &gt; <a href="{% url planning.views.instructor_index %}">Teaching Preferences</a>
+</li>
+<li>
+    &gt; <a href="{% url planning.views.view_teaching_credits_inst %}">Teaching Credits</a>
+</li>
+<li>
+    &gt; Teaching Equivalent
+</li>
+{% endblock %}
+
+{% block actions %}
+{% if equivalent.status == 'UNCO' %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{%  url planning.views.edit_teaching_equivalent_inst equivalent_id=equivalent.pk %}">Edit Teaching Equivalent</a></li>
+        <li><a id="remove-equivalent" href="#">Remove Teaching Equivalent</a></li>
+    </ul>
+</div>
+<form id="remove-equivalent-form" action="{% url planning.views.remove_teaching_equiv_inst equivalent_id=equivalent.pk %}" method="post">
+ {% csrf_token %}
+</form>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="table_container">
+    <table class = "inst_table">
+        <tbody>
+            <tr>
+                <td><strong>Semester</strong></td>
+                <td>{{ equivalent.semester }}</td>
+            </tr>
+            <tr>
+                <td><strong>Summary</strong></td>
+                <td>{{ equivalent.summary }}</td>
+            </tr>
+            <tr>
+                <td><strong>Status</strong></td>
+                <td> {% if equivalent.status == 'CONF' %} <span style="color: green;">Confirmed</span> {% endif %}
+                {% if equivalent.status == 'UNCO' %} <span style="color: red;">Unconfirmed</span> {% endif %} </td>
+            </tr>
+            <tr>
+                <td><strong>Credits</strong></td>
+                <td>{{ equivalent.get_credits }}</td>
+            </tr>
+        </tbody>
+    </table>
+    <h3>Info:</h3>
+    <p>
+        {{ equivalent.comment }}
+    </p>
+</div>
+{% endblock %}

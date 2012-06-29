@@ -3,6 +3,7 @@ from coredata.models import Person, Semester, COMPONENT_CHOICES, CAMPUS_CHOICES,
 from autoslug import AutoSlugField
 from django.core.urlresolvers import reverse
 from jsonfield import JSONField
+from fractions import Fraction
 
 
 COURSE_STATUS_CHOICES = [
@@ -122,7 +123,15 @@ class TeachingEquivalent(models.Model):
     instructor = models.ForeignKey(Person)
     semester = models.ForeignKey(Semester)
     credits_numerator = models.IntegerField(help_text='The numerator of a fractional credit')
-    credits_denominator = models.IntegerField(help_text='The denomiator of a fractional credit')
+    credits_denominator = models.IntegerField(help_text='The denominator of a fractional credit')
     summary = models.CharField(max_length='100', help_text='What is this teaching equivalent for?')
     comment = models.TextField(blank=True, null=True, help_text='Any information that should be included')
     status = models.CharField(max_length=4, choices=EQUIVALENT_STATUS_CHOICES)
+    
+    def get_credits(self):
+        return Fraction("%d/%d" % (self.credits_numerator, self.credits_denominator))
+    
+    def save(self, *args, **kwargs):
+        if not self.status in [status[0] for status in EQUIVALENT_STATUS_CHOICES]:
+            raise ValueError('Invalid status')
+        super(TeachingEquivalent, self).save(*args, **kwargs)

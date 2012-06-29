@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Edit Teaching Equivalent{% endblock %}
+{% block h1 %}Edit Teaching Equivalent{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>
+    &gt; <a href="{% url planning.views.instructor_index %}">Teaching Preferences</a>
+</li>
+<li>
+    &gt; <a href="{% url planning.views.view_teaching_credits_inst %}">Teaching Credits</a>
+</li>
+<li>
+    &gt; Edit Teaching Equivalent
+</li>
+{% endblock %}
+
+{% block content %}
+<div id="form_container">
+    <form action="{% url planning.views.edit_teaching_equivalent_inst equivalent_id=equivalent.id %}" method="post">{% csrf_token %}
+        <fieldset>
+            <legend>Teaching Equivalent</legend>
+            {{ form|as_dl_safe }}
+            <p><input class="submit" type="submit" value="Sumbit" /></p>
+        </fieldset>
+    </form>
+</div>
+{% endblock %}

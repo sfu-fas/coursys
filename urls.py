@@ -20,7 +20,11 @@ urlpatterns += patterns('',
 
 	url(r'^teaching/semesters$', 'planning.views.edit_intention'),
     url(r'^teaching/semester/' + SEMESTER + '/delete$', 'planning.views.delete_intention'),
-    url(r'^teaching/credits/$', 'planning.views.view_teaching_credits'),
+    url(r'^teaching/credits/$', 'planning.views.view_teaching_credits_inst'),
+    url(r'^teaching/equivalent/(?P<equivalent_id>\d+)/$', 'planning.views.view_teaching_equivalent_inst'),
+    url(r'^teaching/equivalent/(?P<equivalent_id>\d+)/edit/$', 'planning.views.edit_teaching_equivalent_inst'),
+    url(r'^teaching/equivalent/(?P<equivalent_id>\d+)/remove/$', 'planning.views.remove_teaching_equiv_inst'),
+    url(r'^teaching/equivalent/new/$', 'planning.views.new_teaching_equivalent_inst'),
 	url(r'^planning/teaching_plans$', 'planning.views.view_intentions'),
 
     url(r'^planning/teaching_plans/add$', 'planning.views.planner_create_intention'),

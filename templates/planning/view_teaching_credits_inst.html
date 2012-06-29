@@ -12,6 +12,15 @@
 </li>
 {% endblock %}
 
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url planning.views.new_teaching_equivalent_inst %}">New Teaching Equivalent</a></li>
+    </ul>
+</div>
+{% endblock %}
+
 {% block content %}
 <div class="table_container">
     {% for semester in semesters %}
@@ -19,19 +28,18 @@
     <table class = "inst_table">
         <thead>
             <tr>
-                <th width="80%">Course</th>
-                <th width="20%">Credits</th>
+                <th style="width: 80%;">Course</th>
+                <th style="width: 20%;">Credits</th>
             </tr>
         </thead>
         <tbody>
             {% for course in semester.courses %}
             <tr>
-                <td> {% if course.equivalent %}
-                <strong>Teaching Equivalent:</strong> <a href="#">{{ course.name }}</a> {% if course.confirmed %}
-                (Confirmed)
-                {% endif %}
+                <td> 
+                {% if course.equivalent %}
+                <strong>Teaching Equivalent:</strong> <a href="{% url planning.views.view_teaching_equivalent_inst equivalent_id=course.equivalent %}">{{ course.name }}</a> 
                 {% if not course.confirmed %}
-                (Unconfirmed)
+                <span style="color: red;">(Unconfirmed)</span>
                 {% endif %}
                 {% endif %}
                 {% if not course.equivalent %}
@@ -42,8 +50,13 @@
             {% endfor %}
             <tr>
                 <td></td>
-                <td><i style="font-weight: bold;">{{ semester.total_credits }} total</i></td>
+                <td><i style="font-weight: bold;">{{ semester.total_credits }} total</i>
+                	{% if not semester.confirmed %}
+                	    <span style="color: red;">**</span>
+                	{% endif %}
+                </td>
             </tr>
+        </tbody>
     </table>
     {% endfor %}
 </div>
