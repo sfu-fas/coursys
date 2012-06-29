@@ -198,6 +198,10 @@ class GradImport(object):
         except Semester.DoesNotExist: self.make_semester('1144', datetime.date(2014,5,1), datetime.date(2014,8,30))
         try: Semester.objects.get(name='1147')
         except Semester.DoesNotExist: self.make_semester('1147', datetime.date(2014,9,1), datetime.date(2014,12,30))
+        try: Semester.objects.get(name='1151')
+        except Semester.DoesNotExist: self.make_semester('1151', datetime.date(2015,1,1), datetime.date(2015,4,30))
+        try: Semester.objects.get(name='1154')
+        except Semester.DoesNotExist: self.make_semester('1154', datetime.date(2015,5,1), datetime.date(2015,8,30))
         
         
         
@@ -567,7 +571,8 @@ class GradImport(object):
                         "pi.Visa, pi.Status, pi.LastName FROM PersonalInfo pi "
                         "WHERE pi.StudentNumber not in (' ', 'na', 'N/A', 'NO', 'Not App.', 'N.A.', '-no-') "
                         #"AND pi.LastName in ('Baker', 'Bart', 'Cukierman', 'Fraser')" 
-                        #"AND pi.LastName LIKE 'F%%'" 
+                        #"AND pi.LastName LIKE 'N%%'" 
+                        #"AND pi.LastName > 'N'" 
                         #"AND pi.LastName = 'Farahbod'" 
                         "ORDER BY pi.LastName"
                         , ())
@@ -582,7 +587,11 @@ class GradImport(object):
             if not(emplid.isdigit() and len(emplid)==9):
                 # TODO: what about them and the other no-emplid rows?
                 continue
+            #try:
             self.process_grad(*(row[:-1]))
+            #except:
+            #    print row
+            #    raise
 
 class TAImport(object):
     IMPORT_USER = 'csilop'
@@ -1021,7 +1030,8 @@ class RAImport(object):
             print "No SIMS record found for RA %s" % (emplid)
             return
 
-        ras = RAAppointment.objects.filter(unit=self.UNIT, person=p, start_date=startdate, end_date=enddate)
+        ras = RAAppointment.objects.filter(unit=self.UNIT, person=p, start_date=startdate, end_date=enddate,
+                                           config__contains=unicode(contractnumber))
         if ras:
             ra = ras[0]
         else:
@@ -1117,7 +1127,8 @@ class RAImport(object):
                         "c.Notes, c.Comments, "
                         "r.StudentNumber, r.SIN, r.FamilyName "
                         "FROM Contract c LEFT JOIN RA r ON c.Identifier=r.Identifier "
-                        #"WHERE c.ContractNumber='20060718101901' "
+                        #"WHERE c.ContractNumber='20080523135631' "
+                        #"WHERE c.ContractNumber='20080523135631' "
                         "ORDER BY r.FamilyName", ())
         initial = None
         for row in list(self.db):
@@ -1133,7 +1144,7 @@ class RAImport(object):
 
 if __name__ == '__main__':
     #Introspection().print_schema()
-    #TAImport().get_tas()
-    #RAImport().get_ras()
+    TAImport().get_tas()
+    RAImport().get_ras()
     GradImport().get_students()
 
