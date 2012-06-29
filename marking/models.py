@@ -41,6 +41,7 @@ class ActivityComponent(models.Model):
         ordering = ['numeric_activity', 'deleted', 'position']
     
     def save(self, *args, **kwargs):
+        self.slug = None # regerate slug so import format stays in sync
         if self.position == 0:
             others = ActivityComponent.objects.filter(numeric_activity=self.numeric_activity).exclude(pk=self.pk)
             maxpos = others.aggregate(models.Max('position'))['position__max']

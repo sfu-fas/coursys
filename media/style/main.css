@@ -13,6 +13,12 @@ div#main h3 {
 dfn, var {
   font-style: italic;
 }
+blockquote {
+	margin: 1em 2.5em;
+}
+pre {
+	font-family: monospace;
+}
 /* remove left-side menu for more screen space */
 ul#main_nav {
   display: none;
