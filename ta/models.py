@@ -552,4 +552,4 @@ class CoursePreference(models.Model):
     rank = models.IntegerField(blank=False)
 
     def __unicode__(self):
-        return "Course: %s  Taken: %s" % (self.course, self.taken)
+        return "%s's pref for %s" % (self.app.person, self.course)

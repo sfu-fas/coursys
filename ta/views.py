@@ -1085,62 +1085,47 @@ def edit_bu(request, post_slug):
 @requires_role("TAAD")
 def generate_csv(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
-    if posting.unit not in request.units:
-        ForbiddenResponse(request, 'You cannot access this page')
     
-    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit)
+    all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit).select_related('course')
     excl = set(posting.excluded())
     offerings = [o for o in all_offerings if o.course_id not in excl]
-  
-    course_prefs = []
-    for o in offerings:
-        cp = CoursePreference.objects.filter(course=o.course)
-        for c in cp:
-            course_prefs.append(c)
     
-    # Collect course prefs from same application and put them
-    # in sub lists that correspond to a csv row
-    app_course_list = []
-    while len(course_prefs) != 0:
-        app = course_prefs[0].app
-        app_course_list.append([p for p in course_prefs if p.app == app])
-        course_prefs = [p for p in course_prefs if p.app != app] 
-
+    # collect all course preferences in a sensible way
+    course_prefs = {}
+    prefs = CoursePreference.objects.filter(app__posting=posting).order_by('app__person').select_related('app', 'course')
+    for cp in prefs:
+        a = cp.app
+        c = cp.course
+        if a not in course_prefs:
+            course_prefs[a] = {}
+        course_prefs[a][c] = cp
+    
+    # generate CSV
     filename = str(posting.slug) + '.csv'
     response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=%s'% filename
+    response['Content-Disposition'] = 'inline; filename=%s'% filename
     csvWriter = csv.writer(response)
     
-    #First csv row, all the course names
+    #First csv row: all the course names
     off = [str(o.course) + ' ' + str(o.section) for o in offerings]
-    off.insert(0,'')
+    off.insert(0,'Name')
     csvWriter.writerow(off)
-
-    #Construct remaining csv rows of applicant name and course rank
-    csv_rows = []
-    csv_row = []
-    for cp in app_course_list:
-        name = cp[0].app.person.last_name + ', ' + cp[0].app.person.first_name
-        csv_row.append(name)
-
-        for o in offerings:
-            found = False
-            for c in cp:
-                if o.course == c.course:
-                    csv_row.append(c.rank)
-                    found = True
-                    cp.remove(c)
-            if not found:
-                csv_row.append('')
-        csv_rows.append(csv_row)
-        csv_row = []
-
-    csv_rows.sort()
-    for row in csv_rows:
+    
+    apps = TAApplication.objects.filter(posting=posting).order_by('person')
+    for app in apps:
+        row = [app.person.sortname()]
+        for off in all_offerings:
+            crs = off.course
+            if crs in course_prefs[app]:
+                pref = course_prefs[app][crs]
+                row.append(pref.rank)
+            else:
+                row.append(None)
+            
         csvWriter.writerow(row)
-
+    
     return response
-
+    
 @requires_role("TAAD")
 def view_financial(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)    
