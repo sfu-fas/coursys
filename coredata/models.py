@@ -159,7 +159,7 @@ class Semester(models.Model):
         ordering = ['name']
     def __cmp__(self, other):
         return cmp(self.name, other.name)
-    def __sem_number(self):
+    def sem_number(self):
         "sumber of semesters since spring 1900 (for subtraction)"
         yr = int(self.name[0:3])
         sm = int(self.name[3])
@@ -173,7 +173,7 @@ class Semester(models.Model):
             raise ValueError, "Unknown semester number"
     def __sub__(self, other):
         "Number of semesters between the two args"
-        return self.__sem_number() - other.__sem_number()
+        return self.sem_number() - other.sem_number()
 
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."

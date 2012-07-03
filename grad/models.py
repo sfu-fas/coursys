@@ -154,6 +154,74 @@ class GradStudent(models.Model):
               }
         return ls
 
+    def financials_from(self, start, end):
+        """
+        Return information about finances from the start to end semester.
+        
+        Returns a data structure:
+        {semester: {
+          'ta': [TACourse],
+          'ra': [RAAppointment],
+          'scholarship: [Scholarship],
+          'other': [OtherFunding]
+          }
+        }
+        Each of the objects in the lists are annotated with
+          object.length: number of semesters this funding thing lasts for
+          object.semvalue: the dollar amount for one semester
+        """
+        from ta.models import TACourse
+        from ra.models import RAAppointment
+        
+        semesters = {}
+        for sem in Semester.objects.filter(name__gte=start.name, name__lte=end.name):
+            semesters[sem] = {'ta': [], 'ra': [], 'scholarship': [], 'other': []}
+        
+        # TAs
+        tas = TACourse.objects.filter(contract__application__person=self.person,
+                                      contract__posting__semester__name__lte=end.name, contract__posting__semester__name__gte=start.name)
+        for tacrs in tas:
+            tacrs.length = 1
+            tacrs.semvalue = tacrs.pay()
+            semesters[tacrs.contract.posting.semester]['ta'].append(tacrs)
+        
+        # RAs
+        ras = RAAppointment.objects.filter(person=self.person)
+        for ra in ras:
+            # RAs are by date, not semester, so have to filter more here...
+            st = ra.start_semester()
+            en = ra.end_semester()
+            ra.length = ra.semester_length()
+            ra.semvalue = ra.lump_sum_pay / ra.length
+            sem = st
+            while sem <= en:
+                if sem in semesters:
+                    semesters[sem]['ra'].append(ra)
+                sem = sem.next_semester()
+        
+        # scholarships
+        scholarships = Scholarship.objects.filter(student=self, start_semester__name__lte=end.name, end_semester__name__gte=start.name)
+        for schol in scholarships:
+            # annotate object with useful fields
+            schol.length = schol.end_semester - schol.start_semester + 1
+            schol.semvalue = schol.amount / schol.length
+            
+            sem = schol.start_semester
+            while sem <= schol.end_semester:
+                semesters[sem]['scholarship'].append(schol)
+                sem = sem.next_semester()
+        
+        # other funding
+        others = OtherFunding.objects.filter(student=self, semester__name__lte=end.name, semester__name__gte=start.name)
+        for other in others:
+            # annotate object with useful fields
+            other.length = 1
+            other.semvalue = other.amount
+            semesters[sem]['other'].append(other)
+            
+        
+        return semesters
+
 # documentation for the fields returned by GradStudent.letter_info
 LETTER_TAGS = {
                'title': '"Mr", "Miss", etc.',
@@ -426,6 +494,13 @@ class Promise(models.Model):
         return k
     def semester_length(self):
         return self.end_semester - self.start_semester + 1
+
+    def contributions_to(self):
+        """
+        Find all funding that contributes to fulfilling this promise.
+        """
+        # TODO: filter out inelligible scholarships/other
+        return self.student.financials_from(start=self.start_semester, end=self.end_semester)
 
 class SavedSearch(models.Model):
     person = models.ForeignKey(Person, null=True)
