@@ -3,7 +3,7 @@ from django.shortcuts import render_to_response, get_object_or_404, render
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib import messages
 from ra.models import RAAppointment, Project, Account
-from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm
+from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm
 from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester
 from courselib.auth import requires_role, ForbiddenResponse
@@ -325,3 +325,58 @@ def search_scholarships_by_student(request, student_id):
     data = [{'value': s.pk, 'display': s.scholarship_type.unit.label + ": " + s.scholarship_type.name + " (" + s.start_semester.name + " to " + s.end_semester.name + ")"}  for s in scholarships]
     json.dump(data, response, indent=1)
     return response
+
+@requires_role("FUND")
+def browse(request):
+    units = request.units
+    hiring_choices = [('all', 'All')] + possible_supervisors(units)
+    project_choices = [('all', 'All')] + [(p.id, unicode(p)) for p in Project.objects.filter(unit__in=units)]
+    account_choices = [('all', 'All')] + [(a.id, unicode(a)) for a in Account.objects.filter(unit__in=units)]
+    if 'data' in request.GET:
+        # AJAX query for data
+        ras = RAAppointment.objects.filter(unit__in=units) \
+                .select_related('person', 'hiring_faculty', 'project', 'account')
+        if 'hiring_faculty' in request.GET and request.GET['hiring_faculty'] != 'all':
+            ras = ras.filter(hiring_faculty__id=request.GET['hiring_faculty'])
+        if 'project' in request.GET and request.GET['project'] != 'all':
+            ras = ras.filter(project__id=request.GET['project'], project__unit__in=units)
+        if 'account' in request.GET and request.GET['account'] != 'all':
+            ras = ras.filter(account__id=request.GET['account'], account__unit__in=units)
+
+        truncated = False
+        if ras.count() > 200:
+            ras = ras[:200]
+            truncated = True
+        data = []
+        for ra in ras:
+            radata = {
+                'slug': ra.slug,
+                'name': ra.person.sortname(),
+                'hiring': ra.hiring_faculty.sortname(),
+                'project': unicode(ra.project),
+                'account': unicode(ra.account),
+                'start': unicode(ra.start_date),
+                'end': unicode(ra.end_date),
+                'amount': '$'+unicode(ra.lump_sum_pay),
+                }
+            data.append(radata)
+        
+        response = HttpResponse(mimetype="application/json")
+        json.dump({'truncated': truncated, 'data': data}, response, indent=1)
+        return response
+
+    else:
+        # request for page
+        form = RABrowseForm()
+        form.fields['hiring_faculty'].choices = hiring_choices
+        form.fields['account'].choices = account_choices
+        form.fields['project'].choices = project_choices
+        context = {
+            'form': form
+            }
+        return render(request, 'ra/browse.html', context)
+
+
+
+
+

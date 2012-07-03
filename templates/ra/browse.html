@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}RA Appointments{% endblock %}
+{% block h1 %}RA Appointments{% endblock %}
+
+{% block headextra %}<script type="text/javascript">
+//<![CDATA[
+var datatable;
+var RAURL = '{% url ra.views.view ra_slug="RASLUG" %}'
+
+function update_table() {
+	console.log()
+	var qs = '?data=yes';
+	qs += '&hiring_faculty=' + encodeURIComponent($('#id_hiring_faculty').val());
+	qs += '&account=' + encodeURIComponent($('#id_account').val());
+	qs += '&project=' + encodeURIComponent($('#id_project').val());
+	$.ajax({
+		url: '{% url ra.views.browse %}' + qs,
+		success: function(data) {
+			datatable.fnClearTable();
+			if(data.truncated) {
+				$("#truncated").show();
+			} else {
+				$("#truncated").hide();
+			}
+			$.each(data.data, function(index, radata) {
+				datatable.fnAddData([
+					'<a href="' + RAURL.replace('RASLUG', radata.slug)+ '">'+radata.name+'</a>',
+					radata.hiring,
+					radata.project,
+					radata.account,
+					radata.start,
+					radata.end,
+					radata.amount
+					]);
+			});
+		},
+	});
+}
+
+
+$(document).ready(function() {
+	$("#truncated").hide();
+    datatable = $('table#ras').dataTable( {
+      'bPaginate': false,
+      'bInfo': false,
+      'bLengthChange': false,
+      "bJQueryUI": true,
+      'aaSorting': [[0, 'asc']],
+    } );
+    $('form#filter').change(update_table);
+    update_table();
+});
+//]]></script>{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url ra.views.search %}">RA Appointments</a></li>
+<li>&gt; Browse</li>{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+<form id="filter">
+<fieldset>
+<legend>Filter</legend>
+{{form|as_dl}}
+</fieldset>
+</form>
+
+<div class="datatable_container">
+<table class="display" id="ras">
+<thead>
+<tr><th scope="col">RA Name</th><th scope="col">Faculty Name</th><th scope="col">Project</th><th scope="col">Account</th>
+<th scope="col">Start Date</th><th scope="col">End Date</th><th scope="col">Amount</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+<p id="truncated" class="error">Too many records returned: not all shown.</p>
+
+{% endblock %}

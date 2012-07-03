@@ -73,6 +73,11 @@ class StudentField(forms.ModelChoiceField):
 class RASearchForm(forms.Form):
     search = StudentField()
 
+class RABrowseForm(forms.Form):
+    hiring_faculty = forms.ChoiceField(choices=[])
+    account = forms.ChoiceField(choices=[])
+    project = forms.ChoiceField(choices=[])
+
 class AccountForm(forms.ModelForm):
     class Meta:
         model = Account
