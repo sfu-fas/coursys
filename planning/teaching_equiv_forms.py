@@ -9,16 +9,22 @@ from fractions import Fraction
 class TeachingEquivCreditsField(forms.Field):
     
     def to_python(self, value):
+        
         if value in validators.EMPTY_VALUES and self.required:
             raise ValidationError(self.error_messages['required'])
         if '.' in value:
             raise ValidationError('Invalid format. Must be a whole number or a proper fraction')
+        
         try:
             value = Fraction(value)
         except ValueError:
             raise ValidationError('Invalid format. Must be a whole number or a proper fraction')
         except ZeroDivisionError:
             raise ValidationError('Denominator of fraction cannot be zero')
+        
+        if value == 0:
+            raise ValidationError('Credits must be greater than zero')
+        
         return value
 
 class TeachingEquivFormInstructor(forms.ModelForm):
