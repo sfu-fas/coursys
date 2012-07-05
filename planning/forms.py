@@ -1,5 +1,5 @@
 from django import forms
-from planning.models import *
+from planning.models import TeachingCapability, TeachingIntention, PlanningCourse, SemesterPlan, PlannedOffering, MeetingTime
 import re
 
 section_re = re.compile("^[A-Z]\d\d\d$")
@@ -12,6 +12,11 @@ class ModelFormWithInstructor(forms.ModelForm):
             raise forms.ValidationError("Incorrect instructor.")
 
         return super(ModelFormWithInstructor, self).clean()
+
+
+class PlannerCapabilityForm(forms.ModelForm):
+    class Meta:
+        model = TeachingCapability
 
 
 class CapabilityForm(ModelFormWithInstructor):

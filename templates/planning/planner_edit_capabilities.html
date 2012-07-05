@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Edit Teaching Capabilities for {{ instructor.name }}{% endblock %}
+{% block h1 %}Edit Teaching Capabilities for {{ instructor.name }}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li>
+<li>&gt; <a href="{% url planning.views.view_capabilities %}">Teaching Capabilities</a></li>
+<li>&gt; Edit Teaching Capabilities for {{ instructor.name }}</li>{% endblock %}
+
+{% block content %}
+<div id="capability" class="table_container">
+    <h2>Teachable Courses</h2>
+    
+        {% if capability_list %}
+        <table id="courses" class="inst_table">
+            <thead>
+                <tr>
+                    <th>Course</th>
+                    <th>Note</th>
+                    <th>Option</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for capability in capability_list %}
+                <tr>
+                    <td>{{ capability.course.full_name }}</td>
+                    <td>{{ capability.note|linebreaks }}</td>
+                    <td><a href="{% url planning.views.planner_delete_capability userid=instructor.userid course_id=capability.id %}">Remove</a></td>
+                </tr>
+                {%endfor%}
+            </tbody>
+        </table>
+        {% else %}
+        <p>You haven't selected any teachable courses.</p>
+        {% endif %}
+</div>
+
+<div id="form_container">
+    <form action="{% url planning.views.planner_edit_capabilities userid=instructor.userid %}" method="post">{% csrf_token %}
+        <fieldset>
+            <legend>Add Course</legend>
+
+            {{form|as_dl}}
+            <div><input class="submit" type="submit" value="Submit" /></div>
+        </fieldset>
+        
+    </form>
+</div>
+{% endblock %}

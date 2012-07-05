@@ -8,7 +8,7 @@ from courselib.testing import basic_page_tests
 class PlanningTest(TestCase):
     fixtures = ['test_data']
 
-    def test_that_planning_admin_returns_200_ok(self):
+    def test_planning_admin_returns_200_ok(self):
         """
         Tests basic page permissions
         """
@@ -84,7 +84,17 @@ class PlanningTest(TestCase):
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
-    def test_that_planning_admin_returns_403_forbidden(self):
+        # Test create semester teaching plan view
+        url = reverse('planning.views.view_capabilities')
+        response = basic_page_tests(self, client, url)
+        self.assertEqual(response.status_code, 200)
+
+        # Test create semester teaching plan view
+        url = reverse('planning.views.planner_edit_capabilities', kwargs={'userid': 'ggbaker'})
+        response = basic_page_tests(self, client, url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_planning_admin_returns_403_forbidden(self):
         """
         Tests basic page authentication for instructor
         """
@@ -92,24 +102,23 @@ class PlanningTest(TestCase):
         client.login(ticket="ggbaker", service=CAS_SERVER_URL)
         response = client.get(reverse('planning.views.admin_index'))
         self.assertEqual(response.status_code, 403)
-        
+
     def test_course_credits_200_ok(self):
         client = Client()
         client.login(ticket="ggbaker", service=CAS_SERVER_URL)
-        
+
         url = reverse('planning.views.view_teaching_credits_inst')
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
-        
+
         url = reverse('planning.views.view_teaching_equivalent_inst', kwargs={'equivalent_id': 1})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
-        
+
         url = reverse('planning.views.new_teaching_equivalent_inst')
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
-        
+
         url = reverse('planning.views.edit_teaching_equivalent_inst', kwargs={'equivalent_id': 1})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
-        

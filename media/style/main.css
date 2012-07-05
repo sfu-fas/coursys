@@ -127,6 +127,12 @@ div#main {
   margin-right: 0.25em;
 }
 
+ul.unstyled {
+  list-style: none;
+  margin: 0;
+  padding-left: 0;
+}
+
 .empty {
   font-style: italic;
 }
@@ -725,6 +731,7 @@ div.collapsible {
 #form_container .errorlist,
 .form_container .errorlist {
     color: red;
+    margin-left: 14px;
 }
 #form_container .requireindicator,
 .form_container .requireindicator {
@@ -1822,4 +1829,14 @@ table.course-plan .meeting-time:first-child {
 
 .add-course-offering .submit {
   clear: both;
+}
+
+/* Teaching Capabilities */
+.capabilities.display td {
+  border-top: 1px solid #CCC;
+  vertical-align: middle;
+}
+
+.capabilities.display tr:first-child td {
+  border-top: 0;
 }

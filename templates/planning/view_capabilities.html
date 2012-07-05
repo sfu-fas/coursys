@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Teaching Capabilities{% endblock %}
+{% block h1 %}Teaching Capabilities{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('table.display').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'bFilter': false
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li>
+<li>&gt; Teaching Capabilities</li>
+{% endblock %}
+
+{% block content %}
+<div id="intention" class="table_container">
+    <h2>Capabilities By Instructor</h2>
+    <table class="display capabilities">
+        <thead>
+            <tr>
+                <th>Instructor</th>
+                <th>Courses</th>
+                <th>Options</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for instructor, capabilities in capabilities_list %}
+                <tr>
+                    <td>{{ instructor }}</td>
+                    <td>
+                        {% if capabilities %}
+                            <ul class="unstyled">
+                                {% for c in capabilities %}
+                                    <li>{{ c.course }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url planning.views.planner_edit_capabilities userid=instructor.userid %}">Edit</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Capabilities By Course</h2>
+    <table class="display capabilities">
+        <thead>
+            <tr>
+                <th>Course</th>
+                <th>Instructors</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for course, instructors in course_capabilities_list %}
+                <tr>
+                    <td>{{ course.full_name }}</td>
+                    <td>
+                        {% if instructors %}
+                            <ul class="unstyled">
+                                {% for i in instructors %}
+                                    <li>{{ i.instructor }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            None
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>     
+</div>  
+{% endblock%}

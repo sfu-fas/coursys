@@ -26,7 +26,7 @@
 				<tr>
 					<td>{{ capability.course.full_name }}</td>
 					<td>{{ capability.note|linebreaks }}</td>
-					<td><a href="{% url planning.views.delete_capability course_id=capability.id %} ">Remove</td>
+					<td><a href="{% url planning.views.delete_capability course_id=capability.id %} ">Remove</a></td>
 				</tr>
 				{%endfor%}
 		    </tbody>

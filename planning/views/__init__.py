@@ -16,10 +16,13 @@ from instructor_index import instructor_index
 from submit_intention import submit_intention
 from manage_courses import manage_courses
 from planner_create_intention import planner_create_intention
+from planner_delete_capability import planner_delete_capability
 from planner_delete_intention import planner_delete_intention
+from planner_edit_capabilities import planner_edit_capabilities
 from planner_edit_intention import planner_edit_intention
 from plans_index import plans_index
 from update_plan import update_plan
+from view_capabilities import view_capabilities
 from view_instructors import view_instructors
 from view_intentions import view_intentions
 from view_plan import view_plan
