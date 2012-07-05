@@ -27,4 +27,5 @@ from view_instructors import view_instructors
 from view_intentions import view_intentions
 from view_plan import view_plan
 
-from teaching_equivalents import *
+from teaching_equivalents_inst import *
+from teaching_equivalents_admin import *

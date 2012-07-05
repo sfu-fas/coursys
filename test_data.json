@@ -10346,6 +10346,20 @@
  },
  {
   "fields": {
+   "config": "{}",
+   "emplid": 202000110,
+   "first_name": "Teaching",
+   "last_name": "Admin",
+   "middle_name": "",
+   "pref_first_name": "Teach",
+   "title": "Mr",
+   "userid": "teachadmin"
+  },
+  "model": "coredata.person",
+  "pk": 601
+ },
+ {
+  "fields": {
    "added_reason": "AUTO",
    "career": "NONS",
    "config": "{}",
@@ -18928,6 +18942,15 @@
   },
   "model": "coredata.role",
   "pk": 9
+ },
+ {
+  "fields": {
+   "person": 601,
+   "role": "TADM",
+   "unit": 3
+  },
+  "model": "coredata.role",
+  "pk": 10
  },
  {
   "fields": {

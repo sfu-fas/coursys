@@ -5,7 +5,7 @@ from fractions import Fraction
 from planning.models import TeachingEquivalent
 from planning.teaching_equiv_forms import TeachingEquivFormInstructor
 from django.contrib import messages
-from django.http import HttpResponseRedirect, HttpResponse, Http404
+from django.http import HttpResponseRedirect, Http404
 from django.core.urlresolvers import reverse
 
 def _fraction_display(f):
