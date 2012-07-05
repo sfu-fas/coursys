@@ -11,6 +11,11 @@ import MySQLdb
 import datetime
 
 class Command(BaseCommand):
+    """ Usage: 
+        python manage.py load_data_from_intraweb --host <host> --port <port> --user <user> --password <password> 
+
+        Remember to change the unit from 'COMP' to 'FAS' before deploying. 
+    """
     args = '--host <hostname> --port <port> --user <user> --password <password>'
     help = 'Loads data from intraweb into local DB'
         
