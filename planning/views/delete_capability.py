@@ -13,7 +13,7 @@ def delete_capability(request, course_id):
     instructor = get_object_or_404(Person, userid=request.user.username)
     teaching_capability = get_object_or_404(TeachingCapability, pk=course_id, instructor=instructor)
     course = get_object_or_404(Course, teachingcapability=teaching_capability)
-    messages.add_message(request, messages.SUCCESS, '%s %s removed from teachable courses.' % (course.subject, course.number))
+    messages.add_message(request, messages.SUCCESS, '%s %s removed from teaching capabilities.' % (course.subject, course.number))
     teaching_capability.delete()
 
     return HttpResponseRedirect(reverse(edit_capability, kwargs={}))

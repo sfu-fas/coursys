@@ -4,6 +4,14 @@
 {% block title %}Edit Teaching Capabilities for {{ instructor.name }}{% endblock %}
 {% block h1 %}Edit Teaching Capabilities for {{ instructor.name }}{% endblock %}
 
+{% block headextra %}
+<script type="text/javascript">
+function confirmDelete() {
+  return confirm("Are you sure you want to remove this course?");
+}
+</script>
+{% endblock %}
+
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li>
 <li>&gt; <a href="{% url planning.views.view_capabilities %}">Teaching Capabilities</a></li>
@@ -11,7 +19,7 @@
 
 {% block content %}
 <div id="capability" class="table_container">
-    <h2>Teachable Courses</h2>
+    <h2>Teaching Capabilities</h2>
     
         {% if capability_list %}
         <table id="courses" class="inst_table">
@@ -27,13 +35,13 @@
                 <tr>
                     <td>{{ capability.course.full_name }}</td>
                     <td>{{ capability.note|linebreaks }}</td>
-                    <td><a href="{% url planning.views.planner_delete_capability userid=instructor.userid course_id=capability.id %}">Remove</a></td>
+                    <td><a onclick="return confirmDelete();" href="{% url planning.views.planner_delete_capability userid=instructor.userid course_id=capability.id %}">Remove</a></td>
                 </tr>
                 {%endfor%}
             </tbody>
         </table>
         {% else %}
-        <p>You haven't selected any teachable courses.</p>
+        <p>There are no teaching capabilities for this instructor.</p>
         {% endif %}
 </div>
 

@@ -7,6 +7,14 @@
 {% block title %}Manage Courses{% endblock %}
 {% block h1 %}Manage Courses{% endblock %}
 
+{% block headextra %}
+<script type="text/javascript">
+function confirmDelete() {
+  return confirm("Are you sure you want to remove this course?");
+}
+</script>
+{% endblock %}
+
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li>
 <li>&gt; Manage Courses</li>
@@ -44,7 +52,7 @@
 	            <td>{{ course.title }}</td> 
                 <td>
                     <a href="{% url planning.views.edit_course course_slug=course.slug %}">Edit</a> |
-                    <a href="{% url planning.views.delete_course course_id=course.id %}">Remove</a>
+                    <a onclick="return confirmDelete();" href="{% url planning.views.delete_course course_id=course.id %}">Remove</a>
                 </td> 
 	        </tr>
 	        {%endfor%}

@@ -39,6 +39,10 @@ $(function() {
   } );
 
 } );
+
+function confirmDelete() {
+  return confirm("Are you sure you want to remove this course offering?");
+}
 </script>
 {% endblock %}
 
@@ -113,7 +117,7 @@ $(function() {
             {% endfor %}
             <td class="option">
                 <a href="{% url planning.views.edit_planned_offering semester=plan.semester.name plan_slug=plan.slug planned_offering_slug=planned_offering.slug %}">Edit</a> |
-                <a href="{% url planning.views.delete_planned_offering semester=plan.semester.name plan_slug=plan.slug planned_offering_slug=planned_offering.slug %}">Remove</a>
+                <a onclick="return confirmDelete();" href="{% url planning.views.delete_planned_offering semester=plan.semester.name plan_slug=plan.slug planned_offering_slug=planned_offering.slug %}">Remove</a>
             </td>
         </tr>
         {%endfor %}

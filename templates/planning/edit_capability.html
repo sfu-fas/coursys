@@ -3,14 +3,22 @@
 
 {% load markup %}
 
-{% block title %}Edit Teachable Courses{% endblock %}
-{% block h1 %}Edit Teachable Courses{% endblock %}
+{% block title %}Edit Teaching Capabilities{% endblock %}
+{% block h1 %}Edit Teaching Capabilities{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url planning.views.instructor_index %}">Teaching Preferences</a></li><li>&gt; Teachable Courses</li>{% endblock %}
+{% block headextra %}
+<script type="text/javascript">
+function confirmDelete() {
+  return confirm("Are you sure you want to remove this course?");
+}
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url planning.views.instructor_index %}">Teaching Preferences</a></li><li>&gt; Teaching Capabilities</li>{% endblock %}
 
 {% block content %}
 <div id="capability" class="table_container">
-	<h2>Teachable Courses</h2>
+	<h2>Teaching Capabilities</h2>
     
     	{% if capability_list %}
 		<table id="courses" class="inst_table">
@@ -26,13 +34,13 @@
 				<tr>
 					<td>{{ capability.course.full_name }}</td>
 					<td>{{ capability.note|linebreaks }}</td>
-					<td><a href="{% url planning.views.delete_capability course_id=capability.id %} ">Remove</a></td>
+					<td><a onclick="return confirmDelete();" href="{% url planning.views.delete_capability course_id=capability.id %} ">Remove</a></td>
 				</tr>
 				{%endfor%}
 		    </tbody>
 		</table>
 		{% else %}
-		<p>You haven't selected any teachable courses.</p>
+		<p>You haven't added any teaching capabilities.</p>
 		{% endif %}
 </div>
 

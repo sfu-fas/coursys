@@ -12,6 +12,9 @@ COURSE_STATUS_CHOICES = [
 
 
 class PlanningCourse(Course):
+    """
+    A course offering that a unit can provide. More generic than coredata.models' Course.
+    """
     owner = models.ForeignKey(Unit, null=False)
     status = models.CharField(max_length=4, choices=COURSE_STATUS_CHOICES, default="OPEN", help_text="Status of this course")
     slug = AutoSlugField(populate_from=('__unicode__'), null=False, editable=False, unique_with='id')
@@ -22,6 +25,9 @@ class PlanningCourse(Course):
 
 
 class TeachingCapability(models.Model):
+    """
+    A teaching capability for instructors to record which courses they have the ability to teach.
+    """
     instructor = models.ForeignKey(Person, null=False)
     course = models.ForeignKey(Course, null=False)
     note = models.TextField(null=True, blank=True, default="", help_text="Additional information for those doing the course planning.")
@@ -35,6 +41,9 @@ class TeachingCapability(models.Model):
 
 
 class TeachingIntention(models.Model):
+    """
+    A teaching intention for instructors to record the number of courses they wish to teach in future semesters
+    """
     instructor = models.ForeignKey(Person, null=False)
     semester = models.ForeignKey(Semester, null=False)
     count = models.PositiveSmallIntegerField(help_text="The number of courses the instructor plans to teach in this semester.")
@@ -59,6 +68,9 @@ VISIBILITY_CHOICES = [
 
 
 class SemesterPlan(models.Model):
+    """
+    A semester plan which holds potential planned offerings.
+    """
     semester = models.ForeignKey(Semester)
     name = models.CharField(max_length=70, help_text="A name to help you remeber which plan this is.")
     visibility = models.CharField(max_length=4, choices=VISIBILITY_CHOICES, default="ADMI", help_text="Who can see this plan?")
@@ -78,6 +90,9 @@ class SemesterPlan(models.Model):
 
 
 class PlannedOffering(models.Model):
+    """
+    A course offering for a future semester. More generic than coredata.model' CourseOffering.
+    """
     plan = models.ForeignKey(SemesterPlan)
     course = models.ForeignKey(Course, null=False)
     section = models.CharField(max_length=4, blank=False, null=False, default='',
@@ -100,6 +115,9 @@ class PlannedOffering(models.Model):
 
 
 class MeetingTime(models.Model):
+    """
+    A meeting day, time and room for a planned offering. More generic than coredata.models' meeting time.
+    """
     offering = models.ForeignKey(PlannedOffering, null=False)
     weekday = models.PositiveSmallIntegerField(null=False, choices=WEEKDAY_CHOICES,
         help_text='Day of week of the meeting')
@@ -127,10 +145,10 @@ class TeachingEquivalent(models.Model):
     summary = models.CharField(max_length='100', help_text='What is this teaching equivalent for?')
     comment = models.TextField(blank=True, null=True, help_text='Any information that should be included')
     status = models.CharField(max_length=4, choices=EQUIVALENT_STATUS_CHOICES)
-    
+
     def get_credits(self):
         return Fraction("%d/%d" % (self.credits_numerator, self.credits_denominator))
-    
+
     def save(self, *args, **kwargs):
         if not self.status in [status[0] for status in EQUIVALENT_STATUS_CHOICES]:
             raise ValueError('Invalid status')

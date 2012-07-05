@@ -11,7 +11,7 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-	    <li><a href="{% url planning.views.edit_capability %}">Manage Teachable Courses</a></li>
+	    <li><a href="{% url planning.views.edit_capability %}">Manage Teaching Capabilities</a></li>
 		<li><a href="{% url planning.views.edit_intention %}">Manage Semester Plans</a></li>
 		<li><a href="{% url planning.views.view_teaching_credits_inst %}">Teaching Credits</a></li>
     </ul>
@@ -24,7 +24,7 @@
 <div id="course_plan" class="table_container">
 
 	
-	<h2>Teachable Courses</h2>
+	<h2>Teaching Capabilities</h2>
 
 	{% if capability_list %}
 	<table class = "inst_table">
@@ -41,7 +41,7 @@
 	    </tbody>
 	</table>
 	{% else %}
-	<p>You haven't selected any teachable courses. <a href="{% url planning.views.edit_capability %}">Add your teachable courses.</a></p>
+	<p>You haven't added any teaching capabilities, <a href="{% url planning.views.edit_capability %}">add some now.</a></p>
 	{% endif %}
 	
 	<h2>Semester Teaching Plans</h2>

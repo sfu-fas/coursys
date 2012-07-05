@@ -6,6 +6,7 @@
 <script type="text/javascript">
 $(document).ready(function() {
   $('#plans').dataTable( {
+    'aaSorting': [[0, 'desc']],
     'bPaginate': true,
     'bInfo': false,
     'bLengthChange': true,
@@ -17,8 +18,8 @@ $(document).ready(function() {
 </script>
 {% endblock %}
 
-{% block title %}Manage Course Plans{% endblock %}
-{% block h1 %}Manage Course Plans{% endblock %}
+{% block title %}Course Planning{% endblock %}
+{% block h1 %}Course Planning{% endblock %}
 
 {% block subbreadcrumbs %}<li>&gt; Course Planning</li>{% endblock %}
 
@@ -29,16 +30,13 @@ $(document).ready(function() {
         <li><a href="{% url planning.views.create_plan %}">Create a Course Plan</a></li>
         <li><a href="{% url planning.views.copy_plan %}">Copy a Course Plan</a></li>
         <li><a href="{% url planning.views.manage_courses %}">Manage Courses</a></li>
-        <li><a href="{% url planning.views.view_intentions %}">Semester Teaching Plans</a></li>
-        <li><a href="{% url planning.views.view_capabilities %}">Teaching Capabilities</a></li>
+        <li><a href="{% url planning.views.view_intentions %}">View Teaching Plans</a></li>
+        <li><a href="{% url planning.views.view_capabilities %}">View Teaching Capabilities</a></li>
     </ul>
 </div>
 {% endblock %}
 
-
-
 {% block content %}
-
 <div class="datatable_container">
     <h2>Course Plans</h2>
     <table class="display" id="plans">
@@ -52,16 +50,13 @@ $(document).ready(function() {
 
         <tbody>
         {% for plan in plan_list %}
-
         <tr>
-            <td>{{ plan.semester.label }}</td>
+            <td>{{ plan.semester.name }} - {{ plan.semester.label }}</td>
             <td><a href="{% url planning.views.update_plan semester=plan.semester.name plan_slug=plan.slug %}">{{ plan.name }}</a></td>
             <td>{{ plan.get_visibility_display }}</td>  
         </tr>
         {%endfor%}
-
         </tbody>
     </table>
 </div>
-
 {% endblock content %}

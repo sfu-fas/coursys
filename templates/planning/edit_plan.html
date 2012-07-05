@@ -7,6 +7,14 @@
 {% block title %}Edit Course Plan - {{ plan.name }}{% endblock %}
 {% block h1 %}Edit Course Plan &mdash; {{ plan.name }}{% endblock %}
 
+{% block headextra %}
+<script type="text/javascript">
+function confirmDelete() {
+  return confirm("Are you sure you want to delete this course plan?");
+}
+</script>
+{% endblock %}
+
 {% block subbreadcrumbs %}
     <li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li>
     <li>&gt; <a href="{% url planning.views.update_plan semester=plan.semester.name plan_slug=plan.slug %}">{{ plan.name }} in {{ plan.semester.label }}</a></li>
@@ -30,7 +38,7 @@
     <form action="{% url planning.views.delete_plan semester=plan.semester.name plan_slug=plan.slug %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Delete Plan</legend>
-            <div><input class="submit" type="submit" value="Delete Plan" /></div>
+            <div><input class="submit" type="submit" value="Delete Plan" onclick="return confirmDelete();" /></div>
         </fieldset>
     </form>
 </div>
