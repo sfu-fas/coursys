@@ -92,6 +92,8 @@ def new_teaching_equivalent_inst(request):
         form = TeachingEquivFormInstructor(request.POST)
         if form.is_valid():
             equivalent = form.save(commit=False)
+            equivalent.credits_numerator = form.cleaned_data['credits_numerator']
+            equivalent.credits_denominator = form.cleaned_data['credits_denominator']
             equivalent.instructor = instructor
             equivalent.status = 'UNCO'
             equivalent.save()
@@ -111,11 +113,15 @@ def edit_teaching_equivalent_inst(request, equivalent_id):
     if request.method == 'POST':
         form = TeachingEquivFormInstructor(request.POST, instance=equivalent)
         if form.is_valid():
-            form.save()
+            equivalent = form.save(commit=False)
+            equivalent.credits_numerator = form.cleaned_data['credits_numerator']
+            equivalent.credits_denominator = form.cleaned_data['credits_denominator']
+            equivalent.save()
             messages.add_message(request, messages.SUCCESS, "Teaching Equivalent successfully edited")
             return HttpResponseRedirect(reverse('planning.views.view_teaching_equivalent_inst', kwargs={'equivalent_id': equivalent.id}))
     else:
-        form = TeachingEquivFormInstructor(instance=equivalent)
+        credits_value = Fraction("%d/%d" % (equivalent.credits_numerator, equivalent.credits_denominator)).__str__()
+        form = TeachingEquivFormInstructor(instance=equivalent, initial={'credits': credits_value})
     return render(request, 'planning/edit_teaching_equiv_inst.html', {'form': form, 'equivalent': equivalent})
 
 @requires_instructor
