@@ -11,7 +11,7 @@ from grad.models import GradProgram, GradStudent, GradRequirement, CompletedRequ
         Letter, LetterTemplate, Promise, Scholarship, ScholarshipType, OtherFunding
 from ta.models import TAContract, TAApplication, TAPosting, TACourse, CoursePreference, SkillLevel, Skill, CourseDescription, CampusPreference
 from ra.models import RAAppointment, Account, Project
-from coredata.importer import AMAINTConn, get_person, get_person_grad, import_one_offering, import_instructors
+from coredata.importer import AMAINTConn, get_person, get_person_grad, import_one_offering, import_instructors, update_amaint_userids
 import datetime, json, time, decimal
 
 import pymssql, MySQLdb
@@ -587,11 +587,11 @@ class GradImport(object):
             if not(emplid.isdigit() and len(emplid)==9):
                 # TODO: what about them and the other no-emplid rows?
                 continue
-            #try:
-            self.process_grad(*(row[:-1]))
-            #except:
-            #    print row
-            #    raise
+            try:
+             self.process_grad(*(row[:-1]))
+            except:
+                print row
+                raise
 
 class TAImport(object):
     IMPORT_USER = 'csilop'
@@ -1144,6 +1144,7 @@ class RAImport(object):
 
 if __name__ == '__main__':
     #Introspection().print_schema()
+    update_amaint_userids()
     TAImport().get_tas()
     RAImport().get_ras()
     GradImport().get_students()

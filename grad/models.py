@@ -156,10 +156,10 @@ class GradStudent(models.Model):
 
     def financials_from(self, start, end):
         """
-        Return information about finances from the start to end semester.
+        Return information about finances from the start to end semester. eligible_only: include only things ineligible for promises?
         
         Returns a data structure:
-        {semester: {
+        {Semester: {
           'ta': [TACourse],
           'ra': [RAAppointment],
           'scholarship: [Scholarship],
@@ -167,8 +167,9 @@ class GradStudent(models.Model):
           }
         }
         Each of the objects in the lists are annotated with
-          object.length: number of semesters this funding thing lasts for
+          object.semlength: number of semesters this funding thing lasts for
           object.semvalue: the dollar amount for one semester
+          object.promiseeligible: is eligible to count towards a promise?
         """
         from ta.models import TACourse
         from ra.models import RAAppointment
@@ -181,8 +182,9 @@ class GradStudent(models.Model):
         tas = TACourse.objects.filter(contract__application__person=self.person,
                                       contract__posting__semester__name__lte=end.name, contract__posting__semester__name__gte=start.name)
         for tacrs in tas:
-            tacrs.length = 1
+            tacrs.semlength = 1
             tacrs.semvalue = tacrs.pay()
+            tacrs.promiseeligible = True
             semesters[tacrs.contract.posting.semester]['ta'].append(tacrs)
         
         # RAs
@@ -191,8 +193,9 @@ class GradStudent(models.Model):
             # RAs are by date, not semester, so have to filter more here...
             st = ra.start_semester()
             en = ra.end_semester()
-            ra.length = ra.semester_length()
-            ra.semvalue = ra.lump_sum_pay / ra.length
+            ra.semlength = ra.semester_length()
+            ra.semvalue = ra.lump_sum_pay / ra.semlength
+            ra.promiseeligible = True
             sem = st
             while sem <= en:
                 if sem in semesters:
@@ -203,8 +206,9 @@ class GradStudent(models.Model):
         scholarships = Scholarship.objects.filter(student=self, start_semester__name__lte=end.name, end_semester__name__gte=start.name)
         for schol in scholarships:
             # annotate object with useful fields
-            schol.length = schol.end_semester - schol.start_semester + 1
-            schol.semvalue = schol.amount / schol.length
+            schol.semlength = schol.end_semester - schol.start_semester + 1
+            schol.semvalue = schol.amount / schol.semlength
+            schol.promiseeligible = schol.scholarship_type.eligible
             
             sem = schol.start_semester
             while sem <= schol.end_semester:
@@ -215,11 +219,11 @@ class GradStudent(models.Model):
         others = OtherFunding.objects.filter(student=self, semester__name__lte=end.name, semester__name__gte=start.name)
         for other in others:
             # annotate object with useful fields
-            other.length = 1
+            other.semlength = 1
             other.semvalue = other.amount
+            other.promiseeligible = other.eligible
             semesters[sem]['other'].append(other)
             
-        
         return semesters
 
 # documentation for the fields returned by GradStudent.letter_info

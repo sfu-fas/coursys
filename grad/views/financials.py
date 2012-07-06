@@ -123,7 +123,16 @@ def financials(request, grad_slug):
 
     promises = []
     for promise in promises_qs:
-        #print promise.contributions_to()
+        #data = promise.contributions_to()
+        #total = 0
+        #for sem in data:
+        #    for key in data[sem]:
+        #        for fund in data[sem][key]:
+        #            if fund.promiseeligible:
+        #                total += fund.semvalue
+        #print total
+        
+        
         received = decimal.Decimal(0)
         for semester in semesters:
             if semester['semester'] < promise.start_semester or semester['semester'] > promise.end_semester:
