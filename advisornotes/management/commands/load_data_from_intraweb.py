@@ -154,7 +154,10 @@ def notes( unit, cursor, non_students_by_imaginary_emplid ):
 
         print student_id, advisor_userid, hide
         student = find_or_generate_student( student_id, non_students_by_imaginary_emplid )
-        advisor = coredata.queries.get_person_by_userid( advisor_userid ) 
+        if advisor_userid == 'margo':
+            advisor = Person.objects.get(emplid=833060718)
+        else:
+            advisor = coredata.queries.get_person_by_userid( advisor_userid ) 
 
         if not student:
             print "Can't find student for this note."
@@ -214,7 +217,10 @@ def advisors( unit, cursor ):
 
     for row in data:
         advisor_userid = row[0]
-        p = coredata.queries.get_person_by_userid( advisor_userid ) 
+        if advisor_userid == 'margo':
+            p = coredata.queries.add_person(833060718)_
+        else:
+            p = coredata.queries.get_person_by_userid( advisor_userid ) 
         if p:
             try:
                 r = Role(person=p, role="ADVS", unit=unit)
