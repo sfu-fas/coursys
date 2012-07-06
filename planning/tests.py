@@ -103,7 +103,7 @@ class PlanningTest(TestCase):
         response = client.get(reverse('planning.views.admin_index'))
         self.assertEqual(response.status_code, 403)
 
-    def test_course_credits_200_ok(self):
+    def test_course_credits_inst_200_ok(self):
         client = Client()
         client.login(ticket="ggbaker", service=CAS_SERVER_URL)
 
@@ -122,3 +122,25 @@ class PlanningTest(TestCase):
         url = reverse('planning.views.edit_teaching_equivalent_inst', kwargs={'equivalent_id': 1})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
+        
+    def test_course_credits_admin_200_ok(self):
+        client = Client()
+        client.login(ticket="teachadmin", service=CAS_SERVER_URL)
+        
+        url = reverse('planning.views.view_insts_in_unit')
+        response = basic_page_tests(self, client, url)
+        self.assertEqual(response.status_code, 200)
+        
+        url = reverse('planning.views.view_teaching_credits_admin', kwargs={'userid': 'ggbaker'})
+        response = basic_page_tests(self, client, url)
+        self.assertEqual(response.status_code, 200)
+        
+        url = reverse('planning.views.view_teaching_equivalent_admin', kwargs={'userid': 'ggbaker', 'equivalent_id': 1})
+        response = basic_page_tests(self, client, url)
+        self.assertEqual(response.status_code, 200)
+        
+        url = reverse('planning.views.new_teaching_equivalent_admin', kwargs={'userid': 'ggbaker'})
+        response = basic_page_tests(self, client, url)
+        self.assertEqual(response.status_code, 200)
+        
+        
