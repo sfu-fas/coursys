@@ -14,9 +14,8 @@ class Command(BaseCommand):
     """ Usage: 
         python manage.py load_data_from_intraweb --host <host> --port <port> --user <user> --password <password> 
 
-        Remember to change the unit from 'COMP' to 'FAS' before deploying. 
     """
-    args = '--host <hostname> --port <port> --user <user> --password <password>'
+    args = '--host <hostname> --port <port> --user <user> --password <password> --unit FAS'
     help = 'Loads data from intraweb into local DB'
         
     option_list = BaseCommand.option_list + (
@@ -24,7 +23,8 @@ class Command(BaseCommand):
             make_option('--port', action='store', type='int', dest='port'),
             make_option('--user', action='store', type='string', dest='user'),
             make_option('--password', action='store', type='string', dest='password'),
-            make_option('--db', action='store', type='string', dest='db')
+            make_option('--db', action='store', type='string', dest='db'),
+            make_option('--unit', action='store', type='string', dest='unit')
         )
 
     def handle(self, *args, **options):
@@ -32,7 +32,7 @@ class Command(BaseCommand):
         print "Loading AMAINT user-ID mappings." 
         coredata.importer.update_amaint_userids()
         
-        unit = Unit.objects.get(label='COMP')
+        unit = Unit.objects.get(label=options['unit'])
         cursor = connect_and_cursor( options )
 
         non_students_by_id = non_student( unit, cursor ) 
