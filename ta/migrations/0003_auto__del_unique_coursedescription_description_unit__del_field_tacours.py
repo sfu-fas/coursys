@@ -11,27 +11,25 @@ class Migration(SchemaMigration):
         # Removing unique constraint on 'CourseDescription', fields ['description', 'unit']
         db.delete_unique('ta_coursedescription', ['description', 'unit_id'])
 
+        # Deleting field 'TACourse.description'
+        db.delete_column('ta_tacourse', 'description')
 
-        # Renaming column for 'TACourse.description' to match new field type.
-        db.rename_column('ta_tacourse', 'description', 'description_id')
-        # Changing field 'TACourse.description'
-        db.alter_column('ta_tacourse', 'description_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['ta.CourseDescription']))
-        # Adding index on 'TACourse', fields ['description']
-        #db.create_index('ta_tacourse', ['description_id'])
+        # Adding unique constraint on 'CampusPreference', fields ['app', 'campus']
+        db.create_unique('ta_campuspreference', ['app_id', 'campus'])
 
 
     def backwards(self, orm):
-        # Removing index on 'TACourse', fields ['description']
-        db.delete_index('ta_tacourse', ['description_id'])
+        # Removing unique constraint on 'CampusPreference', fields ['app', 'campus']
+        db.delete_unique('ta_campuspreference', ['app_id', 'campus'])
 
         # Adding unique constraint on 'CourseDescription', fields ['description', 'unit']
         db.create_unique('ta_coursedescription', ['description', 'unit_id'])
 
+        # Adding field 'TACourse.description'
+        db.add_column('ta_tacourse', 'description',
+                      self.gf('django.db.models.fields.CharField')(default='OM', max_length=3),
+                      keep_default=False)
 
-        # Renaming column for 'TACourse.description' to match new field type.
-        db.rename_column('ta_tacourse', 'description_id', 'description')
-        # Changing field 'TACourse.description'
-        db.alter_column('ta_tacourse', 'description', self.gf('django.db.models.fields.CharField')(max_length=3))
 
     models = {
         'coredata.course': {
@@ -116,7 +114,7 @@ class Migration(SchemaMigration):
             'unit': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Unit']"})
         },
         'ta.campuspreference': {
-            'Meta': {'object_name': 'CampusPreference'},
+            'Meta': {'unique_together': "(('app', 'campus'),)", 'object_name': 'CampusPreference'},
             'app': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ta.TAApplication']"}),
             'campus': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
@@ -197,7 +195,6 @@ class Migration(SchemaMigration):
             'bu': ('django.db.models.fields.DecimalField', [], {'max_digits': '4', 'decimal_places': '2'}),
             'contract': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ta.TAContract']"}),
             'course': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.CourseOffering']"}),
-            'description': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['ta.CourseDescription']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})
         },
         'ta.taposting': {
