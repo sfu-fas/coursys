@@ -1,46 +1,32 @@
 {% extends "base.html" %}
 
-{% block title %}Teaching Equivalent{% endblock %}
-{% block h1 %}Teaching Equivalent{% endblock %}
-
-{% block headextra %}
-<script type="text/javascript">
-    $(document).ready(function() {
-    	$("#remove-equivalent").click(function(){
-    		var confirmRemove = confirm("Are you sure you want to remove this Teaching Equivalent?");
-    		if(confirmRemove){
-    			$("form#remove-equivalent-form").submit();
-    		}
-    	});
-    });
-</script>
-{% endblock %}
+{% block title %}Teaching Equivalent For {{ instructor }}{% endblock %}
+{% block h1 %}Teaching Equivalent For <i>{{ instructor }} ({{ instructor.userid }})</i>{% endblock %}
 
 {% block subbreadcrumbs %}
 <li>
-    &gt; <a href="{% url planning.views.instructor_index %}">Teaching Preferences</a>
+    &gt; <a href="{% url planning.views.view_insts_in_unit %}">Teaching Administration</a>
 </li>
 <li>
-    &gt; <a href="{% url planning.views.view_teaching_credits_inst %}">Teaching Credits</a>
+    &gt; <a href="{% url planning.views.view_teaching_credits_admin userid=instructor.userid %}">Teaching Credits For {{ instructor.userid }}</a>
 </li>
 <li>
-    &gt; Teaching Equivalent
+	&gt; Teaching Equivalent
 </li>
 {% endblock %}
 
 {% block actions %}
-{% if equivalent.status == 'UNCO' %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-        <li><a href="{%  url planning.views.edit_teaching_equivalent_inst equivalent_id=equivalent.pk %}">Edit Teaching Equivalent</a></li>
-        <li><a id="remove-equivalent" href="#">Remove Teaching Equivalent</a></li>
+        <li><a href="#">Edit Teaching Equivalent</a></li>
+        {% if equivalent.status == 'UNCO' %}
+        <li>
+        	<a href="#"> Confirm Teaching Equivalent </a>
+        </li>
+        {% endif %}
     </ul>
 </div>
-<form id="remove-equivalent-form" action="{% url planning.views.remove_teaching_equiv_inst equivalent_id=equivalent.pk %}" method="post">
- {% csrf_token %}
-</form>
-{% endif %}
 {% endblock %}
 
 {% block content %}

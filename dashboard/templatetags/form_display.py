@@ -29,11 +29,11 @@ def as_dl(form, safe=False, excludefields=[], includefields=None):
             reqtext = ' <span class="required">*</span>'
             reqcount += 1
         out.append('<dt><label for="id_%s">%s:%s</label></dt><dd>' % (field.name, escape(field.label), reqtext))
-        out.append(unicode(field.errors))
         if isinstance(field.field.widget, forms.widgets.RadioSelect):
             out.append('<div class="field radio">%s</div>' % (unicode(field)))
         else:
             out.append('<div class="field">%s</div>' % (unicode(field)))
+        out.append(unicode(field.errors))
         if field.help_text:
             if safe:
                 out.append('<div class="helptext">%s</div>' % (field.help_text))

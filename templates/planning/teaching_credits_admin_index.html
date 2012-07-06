@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Teaching Administration{% endblock %}
+{% block h1 %}Teaching Administration{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+	$(document).ready(function() {
+		$('#teach-admin-profs').dataTable({
+			'bPaginate' : false,
+			'bInfo' : false,
+			'bLengthChange' : true,
+			"bJQueryUI" : true
+		});
+	}); 
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>
+    &gt; Teaching Administration
+</li>
+{% endblock %}
+
+{% block content %}
+<h2>Instructors</h2>
+<div class="datatable_container">
+    <table class="display" id="teach-admin-profs">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>User ID</th>
+                <th>ID #</th>
+                <th>Unconfirmed Equivalents</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for instructor in instructors %}
+            <tr>
+                <td><a href="{% url planning.views.view_teaching_credits_admin userid=instructor.userid %}">{{ instructor}}</a></td>
+                <td>{{ instructor.userid }}</td>
+                <td>{{ instructor.emplid }}</td>
+                <td>...</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

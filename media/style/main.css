@@ -731,7 +731,9 @@ div.collapsible {
 #form_container .errorlist,
 .form_container .errorlist {
     color: red;
-    margin-left: 14px;
+    margin-left: 146px;
+    margin-top: .1em;
+    margin-bottom: .2em;
 }
 #form_container .requireindicator,
 .form_container .requireindicator {

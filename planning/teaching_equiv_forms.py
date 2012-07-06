@@ -27,7 +27,7 @@ class TeachingEquivCreditsField(forms.Field):
         
         return value
 
-class TeachingEquivFormInstructor(forms.ModelForm):
+class TeachingEquivForm(forms.ModelForm):
     credits = TeachingEquivCreditsField(help_text='The amount of credits this equivalent is worth')
     class Meta:
         model = TeachingEquivalent
@@ -38,7 +38,7 @@ class TeachingEquivFormInstructor(forms.ModelForm):
                    }
         
     def __init__(self, *args, **kwargs):
-        super(TeachingEquivFormInstructor, self).__init__(*args, **kwargs)
+        super(TeachingEquivForm, self).__init__(*args, **kwargs)
         self.fields.keyOrder = ['semester', 'summary', 'credits', 'comment']
     
     def clean(self):
@@ -49,5 +49,3 @@ class TeachingEquivFormInstructor(forms.ModelForm):
             cleaned_data['credits_denominator'] = credits_value.denominator
             del cleaned_data['credits']
         return cleaned_data
-        
-    
