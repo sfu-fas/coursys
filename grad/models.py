@@ -269,7 +269,7 @@ class Supervisor(models.Model):
     #is_senior = models.BooleanField()
     #is_potential = models.BooleanField()
     supervisor_type = models.CharField(max_length=3, blank=False, null=False, choices=SUPERVISOR_TYPE_CHOICES)
-    removed = models.BooleanField(default=False) # TODO: actually use removed flag instead of deleting
+    removed = models.BooleanField(default=False)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True) 

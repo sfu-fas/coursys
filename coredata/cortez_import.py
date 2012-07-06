@@ -202,6 +202,20 @@ class GradImport(object):
         except Semester.DoesNotExist: self.make_semester('1151', datetime.date(2015,1,1), datetime.date(2015,4,30))
         try: Semester.objects.get(name='1154')
         except Semester.DoesNotExist: self.make_semester('1154', datetime.date(2015,5,1), datetime.date(2015,8,30))
+        try: Semester.objects.get(name='1157')
+        except Semester.DoesNotExist: self.make_semester('1157', datetime.date(2015,9,1), datetime.date(2015,12,30))
+        try: Semester.objects.get(name='1161')
+        except Semester.DoesNotExist: self.make_semester('1161', datetime.date(2016,1,1), datetime.date(2016,4,30))
+        try: Semester.objects.get(name='1164')
+        except Semester.DoesNotExist: self.make_semester('1164', datetime.date(2016,5,1), datetime.date(2016,8,30))
+        try: Semester.objects.get(name='1167')
+        except Semester.DoesNotExist: self.make_semester('1167', datetime.date(2016,9,1), datetime.date(2016,12,30))
+        try: Semester.objects.get(name='1171')
+        except Semester.DoesNotExist: self.make_semester('1171', datetime.date(2017,1,1), datetime.date(2017,4,30))
+        try: Semester.objects.get(name='1174')
+        except Semester.DoesNotExist: self.make_semester('1174', datetime.date(2017,5,1), datetime.date(2017,8,30))
+        try: Semester.objects.get(name='1177')
+        except Semester.DoesNotExist: self.make_semester('1177', datetime.date(2017,9,1), datetime.date(2017,12,30))
         
         
         
@@ -498,8 +512,8 @@ class GradImport(object):
             # financial promises
             self.db.execute("SELECT startsemester, endsemester, amount, comment FROM FSPromises where Identifier=%s", (cortezid,))
             for startsemester, endsemester, amount, comment in self.db:
-                start = Semester.objects.get(name=startsemester)
-                end = Semester.objects.get(name=endsemester)
+                start = get_or_create_semester(startsemester)
+                end = get_or_create_semester(endsemester)
                 promises = Promise.objects.filter(student=gs, start_semester=start, end_semester=end)
                 if promises:
                     p = promises[0]
