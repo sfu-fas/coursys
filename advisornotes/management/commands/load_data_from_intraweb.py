@@ -218,7 +218,7 @@ def advisors( unit, cursor ):
     for row in data:
         advisor_userid = row[0]
         if advisor_userid == 'margo':
-            p = coredata.queries.add_person(833060718)_
+            p = coredata.queries.add_person(833060718)
         else:
             p = coredata.queries.get_person_by_userid( advisor_userid ) 
         if p:
