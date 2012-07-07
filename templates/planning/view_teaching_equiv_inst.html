@@ -67,8 +67,6 @@
         </tbody>
     </table>
     <h3>Info:</h3>
-    <p>
-        {{ equivalent.comment }}
-    </p>
+    {{ equivalent.comment|linebreaks }}
 </div>
 {% endblock %}

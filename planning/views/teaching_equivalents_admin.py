@@ -6,7 +6,8 @@ from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from fractions import Fraction
 from planning.models import TeachingEquivalent
-from planning.teaching_equiv_forms import TeachingEquivForm
+from planning.teaching_equiv_forms import TeachingEquivForm,\
+    CourseOfferingCreditForm
 from planning.views.teaching_equivalents_inst import _get_teaching_credits_by_semester
 
 def _get_administrative_instructors(request):
@@ -121,3 +122,20 @@ def confirm_teaching_equivalent(request, userid, equivalent_id):
     messages.add_message(request, messages.SUCCESS, "Teaching Equivalent successfully %s" % message)
     return HttpResponseRedirect(reverse('planning.views.view_teaching_equivalent_admin', kwargs={'userid': userid, 'equivalent_id': equivalent_id}))
 
+@requires_role('TADM')
+def edit_course_offering_credits(request, userid, course_slug):
+    """
+    Edit the amount of credits a course offering is worth
+    """
+    instructor = _get_instructor_for_units(request, userid)
+    member = get_object_or_404(Member, role='INST', person=instructor, offering__slug=course_slug)
+    if request.method == 'POST':
+        form = CourseOfferingCreditForm(request.POST)
+        if form.is_valid():
+            member.set_teaching_credit_str(form.cleaned_data['credits'].__str__())
+            member.save()
+            messages.add_message(request, messages.SUCCESS, "Course credits successfully updated for %s" % member.offering.name())
+            return HttpResponseRedirect(reverse('planning.views.view_teaching_credits_admin', kwargs={'userid': userid}))
+    else:   
+        form = CourseOfferingCreditForm(initial={'credits': Fraction(member.teaching_credit_str()).__str__()})
+    return render(request, 'planning/edit_offering_credits.html', {'form': form, 'instructor': instructor, 'member': member})

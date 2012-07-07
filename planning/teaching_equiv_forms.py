@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from fractions import Fraction
 
 
-class TeachingEquivCreditsField(forms.Field):
+class TeachingCreditField(forms.Field):
     
     def to_python(self, value):
         
@@ -28,7 +28,7 @@ class TeachingEquivCreditsField(forms.Field):
         return value
 
 class TeachingEquivForm(forms.ModelForm):
-    credits = TeachingEquivCreditsField(help_text='The amount of credits this equivalent is worth')
+    credits = TeachingCreditField(help_text='The amount of credits this equivalent is worth')
     class Meta:
         model = TeachingEquivalent
         exclude = ('status', 'instructor', 'credits_numerator', 'credits_denominator')
@@ -49,3 +49,6 @@ class TeachingEquivForm(forms.ModelForm):
             cleaned_data['credits_denominator'] = credits_value.denominator
             del cleaned_data['credits']
         return cleaned_data
+    
+class CourseOfferingCreditForm(forms.Form):
+    credits = TeachingCreditField()

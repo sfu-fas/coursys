@@ -23,7 +23,7 @@ def _get_teaching_credits_by_semester(instructor):
     semesters = {}
     for member in members:
         offering = member.offering
-        course = {'name': offering.name(), 'credits': member.teaching_credit()}
+        course = {'name': offering.name(), 'credits': member.teaching_credit(), 'slug': offering.slug}
         semester = offering.semester
         
         if not semester.label() in semesters:

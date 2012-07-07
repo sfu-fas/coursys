@@ -43,7 +43,7 @@
                 {% endif %}
                 {% endif %}
                 {% if not course.equivalent %}
-                {{ course.name }}
+                <a href="{% url planning.views.edit_course_offering_credits userid=instructor.userid course_slug=course.slug %}">{{ course.name }}</a>
                 {% endif %} </td>
                 <td>{{ course.credits }}</td>
             </tr>

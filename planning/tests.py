@@ -147,4 +147,8 @@ class PlanningTest(TestCase):
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
         
+        url = reverse('planning.views.edit_course_offering_credits', kwargs={'userid': 'ggbaker', 'course_slug': '2012su-cmpt-383-d1'})
+        response = basic_page_tests(self, client, url)
+        self.assertEqual(response.status_code, 200)
+        
         
