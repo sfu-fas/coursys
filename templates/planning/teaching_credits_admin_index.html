@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load teaching_equiv_unconfirmed %}
 
 {% block title %}Teaching Administration{% endblock %}
 {% block h1 %}Teaching Administration{% endblock %}
@@ -40,7 +41,7 @@
                 <td><a href="{% url planning.views.view_teaching_credits_admin userid=instructor.userid %}">{{ instructor}}</a></td>
                 <td>{{ instructor.userid }}</td>
                 <td>{{ instructor.emplid }}</td>
-                <td>...</td>
+                <td>{{ instructor|unconfirmed_count }}</td>
             </tr>
             {% endfor %}
         </tbody>
