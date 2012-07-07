@@ -143,4 +143,8 @@ class PlanningTest(TestCase):
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
         
+        url = reverse('planning.views.edit_teaching_equivalent_admin', kwargs={'userid': 'ggbaker', 'equivalent_id': 1})
+        response = basic_page_tests(self, client, url)
+        self.assertEqual(response.status_code, 200)
+        
         

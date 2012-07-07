@@ -3,6 +3,25 @@
 {% block title %}Teaching Equivalent For {{ instructor }}{% endblock %}
 {% block h1 %}Teaching Equivalent For <i>{{ instructor }} ({{ instructor.userid }})</i>{% endblock %}
 
+{% block headextra %}
+<script type="text/javascript">
+    $(document).ready(function() {
+        $("#confirm-equivalent").click(function(){
+            var confirmChange = confirm("Are you sure you want to confirm this Teaching Equivalent?");
+            if(confirmChange){
+                $("form#confirm-equivalent-form").submit();
+            }
+        });
+        $("#unconfirm-equivalent").click(function(){
+            var confirmChange = confirm("Are you sure you want to unconfirm this Teaching Equivalent?");
+            if(confirmChange){
+                $("form#confirm-equivalent-form").submit();
+            }
+        });
+    });
+</script>
+{% endblock %}
+
 {% block subbreadcrumbs %}
 <li>
     &gt; <a href="{% url planning.views.view_insts_in_unit %}">Teaching Administration</a>
@@ -19,14 +38,22 @@
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-        <li><a href="#">Edit Teaching Equivalent</a></li>
+        <li><a href="{% url planning.views.edit_teaching_equivalent_admin userid=instructor.userid equivalent_id=equivalent.pk %}">Edit Teaching Equivalent</a></li>
         {% if equivalent.status == 'UNCO' %}
         <li>
-        	<a href="#"> Confirm Teaching Equivalent </a>
+        	<a id='confirm-equivalent' href="#">Confirm Teaching Equivalent</a>
+        </li>
+        {% endif %}
+        {% if equivalent.status == 'CONF' %}
+        <li>
+            <a id='unconfirm-equivalent' href="#">Unconfirm Teaching Equivalent</a>
         </li>
         {% endif %}
     </ul>
 </div>
+<form id="confirm-equivalent-form" action="{% url planning.views.confirm_teaching_equivalent userid=instructor.userid equivalent_id=equivalent.pk %}" method="post">
+    {% csrf_token %}
+</form>
 {% endblock %}
 
 {% block content %}
@@ -53,8 +80,6 @@
         </tbody>
     </table>
     <h3>Info:</h3>
-    <p>
-        {{ equivalent.comment }}
-    </p>
+    {{ equivalent.comment|linebreaks }}
 </div>
 {% endblock %}

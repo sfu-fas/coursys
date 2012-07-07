@@ -1,12 +1,13 @@
 from coredata.models import Role, Member, Person
 from courselib.auth import requires_role
-from django.http import Http404, HttpResponseRedirect
-from django.shortcuts import render, get_object_or_404
-from planning.models import TeachingEquivalent
-from planning.views.teaching_equivalents_inst import _get_teaching_credits_by_semester
-from planning.teaching_equiv_forms import TeachingEquivForm
 from django.contrib import messages
 from django.core.urlresolvers import reverse
+from django.http import Http404, HttpResponseRedirect
+from django.shortcuts import render, get_object_or_404
+from fractions import Fraction
+from planning.models import TeachingEquivalent
+from planning.teaching_equiv_forms import TeachingEquivForm
+from planning.views.teaching_equivalents_inst import _get_teaching_credits_by_semester
 
 def _get_administrative_instructors(request):
     """
@@ -79,3 +80,44 @@ def new_teaching_equivalent_admin(request, userid):
     else:
         form = TeachingEquivForm()
     return render(request, 'planning/new_teaching_equiv_admin.html', {'form': form, 'instructor': instructor})
+
+@requires_role('TADM')
+def edit_teaching_equivalent_admin(request, userid, equivalent_id):
+    """
+    Edit a teaching equivalent for an instructor
+    """
+    instructor = _get_instructor_for_units(request, userid)
+    equivalent = get_object_or_404(TeachingEquivalent, pk=equivalent_id, instructor=instructor)
+    if request.method == 'POST':
+        form = TeachingEquivForm(request.POST, instance=equivalent)
+        if form.is_valid():
+            equivalent = form.save(commit=False)
+            equivalent.credits_numerator = form.cleaned_data['credits_numerator']
+            equivalent.credits_denominator = form.cleaned_data['credits_denominator']
+            equivalent.save()
+            messages.add_message(request, messages.SUCCESS, "Teaching Equivalent successfully edited")
+            return HttpResponseRedirect(reverse('planning.views.view_teaching_equivalent_admin', kwargs={'userid': userid, 'equivalent_id': equivalent.id}))
+    else:
+        credits_value = Fraction("%d/%d" % (equivalent.credits_numerator, equivalent.credits_denominator)).__str__()
+        form = TeachingEquivForm(instance=equivalent, initial={'credits': credits_value})
+    return render(request, 'planning/edit_teaching_equiv_admin.html', {'form': form, 'equivalent': equivalent, 'instructor': instructor})
+
+@requires_role('TADM')
+def confirm_teaching_equivalent(request, userid, equivalent_id):
+    """
+    Confirm/unconfirm a teaching equivalent
+    """
+    instructor = _get_instructor_for_units(request, userid)
+    equivalent = get_object_or_404(TeachingEquivalent, pk=equivalent_id, instructor=instructor)
+    if request.method != 'POST':
+        raise Http404
+    if equivalent.status == 'UNCO':
+        equivalent.status = 'CONF'
+        message = 'confirmed'
+    else:
+        equivalent.status = 'UNCO'
+        message = 'unconfirmed'
+    equivalent.save()
+    messages.add_message(request, messages.SUCCESS, "Teaching Equivalent successfully %s" % message)
+    return HttpResponseRedirect(reverse('planning.views.view_teaching_equivalent_admin', kwargs={'userid': userid, 'equivalent_id': equivalent_id}))
+

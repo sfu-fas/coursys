@@ -29,8 +29,9 @@ urlpatterns += patterns('',
     url(r'^teaching/admin/instructor/' + USERID_SLUG + '/$', 'planning.views.view_teaching_credits_admin'),
     url(r'^teaching/admin/instructor/' + USERID_SLUG + '/new-equivalent/$', 'planning.views.new_teaching_equivalent_admin'),
     url(r'^teaching/admin/instructor/' + USERID_SLUG + '/equivalent/(?P<equivalent_id>\d+)/$', 'planning.views.view_teaching_equivalent_admin'),
+    url(r'^teaching/admin/instructor/' + USERID_SLUG + '/equivalent/(?P<equivalent_id>\d+)/edit/$', 'planning.views.edit_teaching_equivalent_admin'),
+    url(r'^teaching/admin/instructor/' + USERID_SLUG + '/equivalent/(?P<equivalent_id>\d+)/confirm/$', 'planning.views.confirm_teaching_equivalent'),
     
-
     url(r'^planning/teaching_plans$', 'planning.views.view_intentions'),
     url(r'^planning/teaching_plans/add$', 'planning.views.planner_create_intention'),
     url(r'^planning/teaching_plans/' + SEMESTER + '/' + USERID_SLUG + '/edit$', 'planning.views.planner_edit_intention'),
