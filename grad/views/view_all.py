@@ -10,7 +10,7 @@ def view_all(request, grad_slug):
     supervisors = Supervisor.objects.filter(student=grad, removed=False)
     status_history = GradStatus.objects.filter(student=grad, hidden=False)
     letter = Letter.objects.filter(student=grad)
-
+    
     #calculate missing reqs
     completed_req = CompletedRequirement.objects.filter(student=grad)
     req = GradRequirement.objects.filter(program=grad.program)

@@ -65,6 +65,10 @@ class GradStudent(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')
     created_by = models.CharField(max_length=32, null=False, help_text='Grad Student created by.')
     modified_by = models.CharField(max_length=32, null=True, help_text='Grad Student modified by.', verbose_name='Last Modified By')
+    
+    # fields that are essentially caches for advanced search. Updated by self.update_status_fields()
+    start_semester = models.ForeignKey(Semester, null=True, help_text="Semester when the student started the program.")
+    end_semester = models.ForeignKey(Semester, null=True, help_text="Semester when the student finished/left the program.")
 
     config = JSONField(default={}) # addition configuration
         # 'sin': Social Insurance Number
@@ -85,6 +89,22 @@ class GradStudent(models.Model):
         # rebuild slug in case something changes
         self.slug = None
         super(GradStudent, self).save(*args, **kwargs)
+
+    def update_status_fields(self):
+        """
+        Update the self.start_semester and self.end_semester fields.
+        """
+        all_gs = GradStatus.objects.filter(student=self)
+        starts = all_gs.filter(status__in=STATUS_ACTIVE).order_by('start__name')
+        if starts:
+            start_status = starts[0]
+            self.start_semester = start_status.start
+        ends = all_gs.filter(status__in=STATUS_DONE).order_by('-start__name')
+        if ends:
+            end_status = ends[0]
+            self.end_semester = end_status.start
+        
+        self.save()
     
     def start_semester(self):
         """
@@ -364,6 +384,7 @@ STATUS_CHOICES = (
         )
 STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
 STATUS_INACTIVE = ('LEAV', 'WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "not here"
+STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "done"
 
 class GradStatus(models.Model):
     """
@@ -390,12 +411,17 @@ class GradStatus(models.Model):
     def save(self, close_others=True, *args, **kwargs):
         super(GradStatus, self).save(*args, **kwargs)
 
-        # make sure any other statuses are closed
         if close_others:
+            # update gradstudent fields
+            self.student.update_status_fields()
+
+            # make sure any other statuses are closed
             other_gs = GradStatus.objects.filter(student=self.student, end__isnull=True).exclude(id=self.id)
             for gs in other_gs:
                 gs.end = max(self.start, gs.start)
                 gs.save(close_others=False)
+        
+        
         
     def get_fields(self):
         # make a list of field/values.
