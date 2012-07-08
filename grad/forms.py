@@ -343,11 +343,11 @@ class SearchForm(forms.Form):
     first_name_contains = forms.CharField( required=False )
     last_name_contains = forms.CharField( required=False )
 
-    start_semester_start = forms.ModelChoiceField(Semester.objects.all(), required=False, label="Start semester after")
-    start_semester_end = forms.ModelChoiceField(Semester.objects.all(), required=False,
+    start_semester_start = StaffSemesterField(required=False, label="Start semester after")
+    start_semester_end = StaffSemesterField(required=False,
             help_text='Semester in which the Grad student has applied to start', label="Start semester before")
-    end_semester_start = forms.ModelChoiceField(Semester.objects.all(), required=False, label="End semester after")
-    end_semester_end = forms.ModelChoiceField(Semester.objects.all(), required=False, label="End semester before")
+    end_semester_start = StaffSemesterField(required=False, label="End semester after")
+    end_semester_end = StaffSemesterField(required=False, label="End semester before")
     
     student_status = forms.MultipleChoiceField(gradmodels.STATUS_CHOICES,
             required=False,

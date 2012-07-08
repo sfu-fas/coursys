@@ -586,7 +586,7 @@ class GradImport(object):
                         "WHERE pi.StudentNumber not in (' ', 'na', 'N/A', 'NO', 'Not App.', 'N.A.', '-no-') "
                         #"AND pi.LastName in ('Baker', 'Bart', 'Cukierman', 'Fraser')" 
                         #"AND pi.LastName LIKE 'N%%'" 
-                        #"AND pi.LastName > 'N'" 
+                        #"AND pi.LastName > 'G'" 
                         #"AND pi.LastName = 'Farahbod'" 
                         "ORDER BY pi.LastName"
                         , ())
@@ -1039,6 +1039,8 @@ class RAImport(object):
         if not emplid or emplid in ['new', 'n/a']:
             # TODO: do what with them?
             return
+        if emplid=='20010417':
+            emplid = '200110417'
         p = add_person(emplid, commit=True, get_userid=False)
         if not p:
             print "No SIMS record found for RA %s" % (emplid)
@@ -1141,8 +1143,7 @@ class RAImport(object):
                         "c.Notes, c.Comments, "
                         "r.StudentNumber, r.SIN, r.FamilyName "
                         "FROM Contract c LEFT JOIN RA r ON c.Identifier=r.Identifier "
-                        #"WHERE c.ContractNumber='20080523135631' "
-                        #"WHERE c.ContractNumber='20080523135631' "
+                        #"WHERE c.ContractNumber='20040917160432' "
                         "ORDER BY r.FamilyName", ())
         initial = None
         for row in list(self.db):
