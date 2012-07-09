@@ -26211,5 +26211,14 @@
   },
   "model": "planning.teachingequivalent",
   "pk": 2
+ },
+ {
+  "fields": {
+   "user": 8,
+   "key": "advisor-token",
+   "value": "{\"token\": \"30378700c0091f34412ec9a082dca266\"}"
+  },
+  "model": "dashboard.userconfig",
+  "pk": 1
  }
 ]
