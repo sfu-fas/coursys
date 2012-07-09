@@ -444,11 +444,10 @@ class SearchForm(forms.Form):
         if not self.is_valid():
             raise Exception, "The form needs to be valid to get the search query"
         auto_queries = [
-                # Possibly use __range=(start_date, end_date) ?
-                ('start_semester_start', 'gradstatus__start__gte'),
-                ('start_semester_end', 'gradstatus__start__lte'),
-                ('end_semester_start', 'gradstatus__end__gte'),
-                ('end_semester_end', 'gradstatus__end__lte'),
+                #('start_semester_start', 'start_semester__gte'),
+                #('start_semester_end', 'start_semester__lte'),
+                #('end_semester_start', 'end_semester__gte'),
+                #('end_semester_end', 'end_semester__lte'),
                 ('first_name_contains', 'person__first_name__icontains' ),
                 ('last_name_contains', 'person__last_name__icontains' ),
                 ('student_status', 'gradstatus__status__in'),
@@ -460,6 +459,16 @@ class SearchForm(forms.Form):
                 ('scholarship_sem', 'scholarship__start_semester__in'),
                 ]
         manual_queries = []
+        
+        if self.cleaned_data.get('start_semester_start', None) is not None:
+            manual_queries.append( Q(start_semester__name__gte=self.cleaned_data['start_semester_start'].name) )
+        if self.cleaned_data.get('start_semester_end', None) is not None:
+            manual_queries.append( Q(start_semester__name__lte=self.cleaned_data['start_semester_end'].name) )
+        if self.cleaned_data.get('end_semester_start', None) is not None:
+            manual_queries.append( Q(end_semester__name__gte=self.cleaned_data['end_semester_start'].name) )
+        if self.cleaned_data.get('end_semester_end', None) is not None:
+            manual_queries.append( Q(end_semester__name__lte=self.cleaned_data['end_semester_end'].name) )
+        
         if self.cleaned_data.get('financial_support', None) is not None:
             if 'S' in self.cleaned_data['financial_support']:
                 manual_queries.append(Q(scholarship__amount__gt=0))

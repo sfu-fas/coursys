@@ -82,13 +82,6 @@ width: 120px;
             {% endfor %}
                 <td><a href="{% url grad.views.view_all grad_slug=s.slug %}"> View </a></td>
             </tr>
-			{%empty%}
-			<tr>
-				<td>
-				<p class="empty">
-					There are no grad student records that match your search.
-				</p></td>
-			</tr>
 			{% endfor %}
 		</tbody>
 	</table>

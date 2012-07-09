@@ -8,13 +8,21 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        # Adding field 'GradStudent.start_semester'
+        db.add_column('grad_gradstudent', 'start_semester',
+                      self.gf('django.db.models.fields.related.ForeignKey')(related_name='grad_start_sem', null=True, to=orm['coredata.Semester']),
+                      keep_default=False)
+
         # Adding field 'GradStudent.end_semester'
         db.add_column('grad_gradstudent', 'end_semester',
-                      self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Semester'], null=True),
+                      self.gf('django.db.models.fields.related.ForeignKey')(related_name='grad_end_sem', null=True, to=orm['coredata.Semester']),
                       keep_default=False)
 
 
     def backwards(self, orm):
+        # Deleting field 'GradStudent.start_semester'
+        db.delete_column('grad_gradstudent', 'start_semester_id')
+
         # Deleting field 'GradStudent.end_semester'
         db.delete_column('grad_gradstudent', 'end_semester_id')
 
@@ -101,7 +109,7 @@ class Migration(SchemaMigration):
             'config': ('jsonfield.fields.JSONField', [], {'default': '{}'}),
             'created_at': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'created_by': ('django.db.models.fields.CharField', [], {'max_length': '32'}),
-            'end_semester': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Semester']", 'null': 'True'}),
+            'end_semester': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'grad_end_sem'", 'null': 'True', 'to': "orm['coredata.Semester']"}),
             'english_fluency': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_canadian': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
@@ -113,6 +121,7 @@ class Migration(SchemaMigration):
             'research_area': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'slug': ('autoslug.fields.AutoSlugField', [], {'unique': 'True', 'max_length': '50', 'populate_from': 'None', 'unique_with': '()'}),
             'special_arrangements': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
+            'start_semester': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'grad_start_sem'", 'null': 'True', 'to': "orm['coredata.Semester']"}),
             'updated_at': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'})
         },
         'grad.letter': {

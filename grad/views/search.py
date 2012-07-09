@@ -51,6 +51,7 @@ def search(request):
         query = form.get_query()
         grads = GradStudent.objects.filter(program__unit__in=request.units).filter(query).distinct()
         grads = filter(form.secondary_filter(), grads)
+        grads = grads[:500]
         
         if savedsearch is not None:
             saveform = SaveSearchForm(instance=savedsearch)

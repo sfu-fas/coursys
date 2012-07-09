@@ -25,7 +25,7 @@ class StaffSemesterField(forms.CharField):
     def clean(self, val):
         "Convert semester name to semester object"
         super(StaffSemesterField, self).clean(val)
-        if len(val.strip()) == 0:
+        if val is None or len(val.strip()) == 0:
             return None
         try:
             return Semester.objects.get(name=val)

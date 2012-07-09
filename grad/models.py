@@ -67,8 +67,8 @@ class GradStudent(models.Model):
     modified_by = models.CharField(max_length=32, null=True, help_text='Grad Student modified by.', verbose_name='Last Modified By')
     
     # fields that are essentially caches for advanced search. Updated by self.update_status_fields()
-    start_semester = models.ForeignKey(Semester, null=True, help_text="Semester when the student started the program.")
-    end_semester = models.ForeignKey(Semester, null=True, help_text="Semester when the student finished/left the program.")
+    start_semester = models.ForeignKey(Semester, null=True, help_text="Semester when the student started the program.", related_name='grad_start_sem')
+    end_semester = models.ForeignKey(Semester, null=True, help_text="Semester when the student finished/left the program.", related_name='grad_end_sem')
 
     config = JSONField(default={}) # addition configuration
         # 'sin': Social Insurance Number
@@ -96,19 +96,23 @@ class GradStudent(models.Model):
         """
         all_gs = GradStatus.objects.filter(student=self)
         starts = all_gs.filter(status__in=STATUS_ACTIVE).order_by('start__name')
-        if starts:
+        old = (self.start_semester, self.end_semester)
+        self.start_semester = None
+        self.end_semester = None
+        if starts.count() > 0:
             start_status = starts[0]
             self.start_semester = start_status.start
         ends = all_gs.filter(status__in=STATUS_DONE).order_by('-start__name')
-        if ends:
+        if ends.count() > 0:
             end_status = ends[0]
             self.end_semester = end_status.start
         
-        self.save()
+        if old != (self.start_semester, self.end_semester):
+            self.save()
     
-    def start_semester(self):
+    def start_semester_guess(self):
         """
-        Semester this student started
+        Semester this student started, guessing if necessary
         """
         # do we actually know?
         if 'start_semester' in self.config:
@@ -152,7 +156,7 @@ class GradStudent(models.Model):
         else:
             promise = u'$0'
         
-        startsem = self.start_semester()
+        startsem = self.start_semester_guess()
         if startsem:
             startsem = startsem.label()
         else:
