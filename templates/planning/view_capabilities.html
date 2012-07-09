@@ -7,7 +7,23 @@
 {% block headextra %}
 <script type="text/javascript">
 $(document).ready(function() {
-  $('table.display').dataTable( {
+  $('table.display.capabilities').dataTable( {
+    'aoColumns': [
+        null,
+        null,
+        { "bSortable" : false }
+    ],
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'bFilter': false
+  } );
+  $('table.display.course').dataTable( {
+    'aoColumns': [
+        null,
+        null
+    ],
     'bPaginate': false,
     'bInfo': false,
     'bLengthChange': false,
@@ -56,7 +72,7 @@ $(document).ready(function() {
     </table>
 
     <h2>Capabilities By Course</h2>
-    <table class="display capabilities">
+    <table class="display course">
         <thead>
             <tr>
                 <th>Course</th>

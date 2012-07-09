@@ -14,7 +14,7 @@ def planner_delete_intention(request, semester, userid):
     semester = get_object_or_404(Semester, name=semester)
     intention = get_object_or_404(TeachingIntention, semester=semester, instructor__userid=userid)
 
-    messages.add_message(request, messages.SUCCESS, '%s plan for %s removed.' % (semester, instructor.name()))
+    messages.add_message(request, messages.SUCCESS, '%s teaching intention for %s removed.' % (semester, instructor.name()))
     intention.delete()
 
-    return HttpResponseRedirect(reverse('planning.views.view_intentions', kwargs={}))
+    return HttpResponseRedirect(reverse('planning.views.view_semester_intentions', kwargs={'semester': semester.name}))

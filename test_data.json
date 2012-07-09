@@ -20852,8 +20852,13 @@
   "model": "discuss.discussiontopic",
   "pk": 1
  },
-  {
+ 
+ {
   "fields": {
+   "config": "{}",
+   "number": "102",
+   "subject": "CMPT",
+   "title": "Intro. to Sci. Comp. Prog.",
    "owner": 3,
    "slug": "CMPT-102",
    "status": "OPEN"
@@ -20863,6 +20868,10 @@
  },
  {
   "fields": {
+   "config": "{}",
+   "number": "110",
+   "subject": "CMPT",
+   "title": "Programming in Visual Basic",
    "owner": 3,
    "slug": "CMPT-110",
    "status": "OPEN"
@@ -20872,6 +20881,10 @@
  },
  {
   "fields": {
+   "config": "{}",
+   "number": "120",
+   "subject": "CMPT",
+   "title": "Intro Comp. Sci. and Prog.",
    "owner": 3,
    "slug": "CMPT-120",
    "status": "OPEN"
@@ -20881,6 +20894,10 @@
  },
  {
   "fields": {
+   "config": "{}",
+   "number": "125",
+   "subject": "CMPT",
+   "title": "Intro Comp. Sci. and Prog. II",
    "owner": 3,
    "slug": "CMPT-125",
    "status": "OPEN"
@@ -20890,6 +20907,10 @@
  },
  {
   "fields": {
+   "config": "{}",
+   "number": "126",
+   "subject": "CMPT",
+   "title": "Intro Comp. Sci. and Prog. II",
    "owner": 3,
    "slug": "CMPT-126",
    "status": "OPEN"
@@ -20899,6 +20920,10 @@
  },
  {
   "fields": {
+   "config": "{}",
+   "number": "128",
+   "subject": "CMPT",
+   "title": "Intro to Comp. Sci. and Prog.",
    "owner": 3,
    "slug": "CMPT-128",
    "status": "OPEN"
@@ -20908,6 +20933,10 @@
  },
  {
   "fields": {
+   "config": "{}",
+   "number": "150",
+   "subject": "CMPT",
+   "title": "Intro to Computer Design",
    "owner": 3,
    "slug": "CMPT-150",
    "status": "OPEN"
@@ -20917,6 +20946,10 @@
  },
  {
   "fields": {
+   "config": "{}",
+   "number": "165",
+   "subject": "CMPT",
+   "title": "Intro to Internet and WWW",
    "owner": 3,
    "slug": "CMPT-165",
    "status": "OPEN"
@@ -20926,213 +20959,10 @@
  },
  {
   "fields": {
-   "owner": 3,
-   "slug": "CMPT-225",
-   "status": "OPEN"
-  },
-  "model": "planning.planningcourse",
-  "pk": 18
- },
- {
-  "fields": {
-   "owner": 3,
-   "slug": "CMPT-250",
-   "status": "OPEN"
-  },
-  "model": "planning.planningcourse",
-  "pk": 19
- },
- {
-  "fields": {
-   "owner": 3,
-   "slug": "CMPT-275",
-   "status": "OPEN"
-  },
-  "model": "planning.planningcourse",
-  "pk": 20
- },
- {
-  "fields": {
-   "owner": 3,
-   "slug": "CMPT-300",
-   "status": "OPEN"
-  },
-  "model": "planning.planningcourse",
-  "pk": 21
- },
- {
-  "fields": {
-   "owner": 3,
-   "slug": "CMPT-307",
-   "status": "OPEN"
-  },
-  "model": "planning.planningcourse",
-  "pk": 22
- },
- {
-  "fields": {
-   "owner": 3,
-   "slug": "CMPT-308",
-   "status": "OPEN"
-  },
-  "model": "planning.planningcourse",
-  "pk": 23
- },
- {
-  "fields": {
-   "owner": 3,
-   "slug": "CMPT-310",
-   "status": "OPEN"
-  },
-  "model": "planning.planningcourse",
-  "pk": 24
- },
- {
-  "fields": {
-   "owner": 3,
-   "slug": "CMPT-354",
-   "status": "OPEN"
-  },
-  "model": "planning.planningcourse",
-  "pk": 25
- },
- {
-  "fields": {
-   "owner": 3,
-   "slug": "CMPT-361",
-   "status": "OPEN"
-  },
-  "model": "planning.planningcourse",
-  "pk": 26
- },
- {
-  "fields": {
-   "owner": 3,
-   "slug": "CMPT-363",
-   "status": "OPEN"
-  },
-  "model": "planning.planningcourse",
-  "pk": 27
- },
- {
-  "fields": {
-   "owner": 3,
-   "slug": "CMPT-371",
-   "status": "OPEN"
-  },
-  "model": "planning.planningcourse",
-  "pk": 28
- },
- {
-  "fields": {
-   "owner": 3,
-   "slug": "CMPT-376",
-   "status": "OPEN"
-  },
-  "model": "planning.planningcourse",
-  "pk": 29
- },
- {
-  "fields": {
-   "owner": 3,
-   "slug": "CMPT-379",
-   "status": "OPEN"
-  },
-  "model": "planning.planningcourse",
-  "pk": 30
- },
- {
-  "fields": {
-   "owner": 3,
-   "slug": "CMPT-405",
-   "status": "OPEN"
-  },
-  "model": "planning.planningcourse",
-  "pk": 32
- },
- {
-  "fields": {
-   "owner": 3,
-   "slug": "CMPT-408",
-   "status": "OPEN"
-  },
-  "model": "planning.planningcourse",
-  "pk": 33
- },
- {
-  "fields": {
-   "owner": 3,
-   "slug": "CMPT-411",
-   "status": "OPEN"
-  },
-  "model": "planning.planningcourse",
-  "pk": 35
- },
- {
-  "fields": {
-   "owner": 3,
-   "slug": "CMPT-441",
-   "status": "OPEN"
-  },
-  "model": "planning.planningcourse",
-  "pk": 36
- },
- {
-  "fields": {
-   "owner": 3,
-   "slug": "CMPT-454",
-   "status": "OPEN"
-  },
-  "model": "planning.planningcourse",
-  "pk": 37
- },
- {
-  "fields": {
-   "owner": 3,
-   "slug": "CMPT-470",
-   "status": "OPEN"
-  },
-  "model": "planning.planningcourse",
-  "pk": 9
- },
- {
-  "fields": {
-   "owner": 3,
-   "slug": "CMPT-471",
-   "status": "OPEN"
-  },
-  "model": "planning.planningcourse",
-  "pk": 7
- },
- {
-  "fields": {
-   "owner": 3,
-   "slug": "CMPT-475",
-   "status": "OPEN"
-  },
-  "model": "planning.planningcourse",
-  "pk": 4
- },
- {
-  "fields": {
-   "owner": 3,
-   "slug": "CMPT-477",
-   "status": "OPEN"
-  },
-  "model": "planning.planningcourse",
-  "pk": 5
- },
- {
-  "fields": {
-   "owner": 3,
-   "slug": "CMPT-479",
-   "status": "OPEN"
-  },
-  "model": "planning.planningcourse",
-  "pk": 6
- },
- {
-  "fields": {
+   "config": "{}",
+   "number": "101",
+   "subject": "MACM",
+   "title": "Discrete Mathematics",
    "owner": 3,
    "slug": "MACM-101",
    "status": "OPEN"
@@ -21142,12 +20972,328 @@
  },
  {
   "fields": {
+   "config": "{}",
+   "number": "225",
+   "subject": "CMPT",
+   "title": "Data Structures and Prog.",
+   "owner": 3,
+   "slug": "CMPT-225",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 18
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "250",
+   "subject": "CMPT",
+   "title": "Intro to Computer Architecture",
+   "owner": 3,
+   "slug": "CMPT-250",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 19
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "275",
+   "subject": "CMPT",
+   "title": "Software Engineering I",
+   "owner": 3,
+   "slug": "CMPT-275",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 20
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "300",
+   "subject": "CMPT",
+   "title": "Operating Systems I",
+   "owner": 3,
+   "slug": "CMPT-300",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 21
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "307",
+   "subject": "CMPT",
+   "title": "Data Strcutures and Algorithms",
+   "owner": 3,
+   "slug": "CMPT-307",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 22
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "308",
+   "subject": "CMPT",
+   "title": "Computability and Complexity",
+   "owner": 3,
+   "slug": "CMPT-308",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 23
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "310",
+   "subject": "CMPT",
+   "title": "Artificial Intelligence Survey",
+   "owner": 3,
+   "slug": "CMPT-310",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 24
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "354",
+   "subject": "CMPT",
+   "title": "Database Systems I",
+   "owner": 3,
+   "slug": "CMPT-354",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 25
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "361",
+   "subject": "CMPT",
+   "title": "Intro to Computer Graphics",
+   "owner": 3,
+   "slug": "CMPT-361",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 26
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "363",
+   "subject": "CMPT",
+   "title": "User Interface Design",
+   "owner": 3,
+   "slug": "CMPT-363",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 27
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "371",
+   "subject": "CMPT",
+   "title": "Data Comm. and Networking",
+   "owner": 3,
+   "slug": "CMPT-371",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 28
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "376",
+   "subject": "CMPT",
+   "title": "Tech. Writing / Group Dynamics",
+   "owner": 3,
+   "slug": "CMPT-376",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 29
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "379",
+   "subject": "CMPT",
+   "title": "Principles of Compiler Design",
+   "owner": 3,
+   "slug": "CMPT-379",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 30
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "383",
+   "subject": "CMPT",
+   "title": "Comparative Programming Languages",
+   "owner": 3,
+   "slug": "CMPT-383",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 999
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "300",
+   "subject": "MACM",
+   "title": "Formal Languages and Automata",
    "owner": 3,
    "slug": "MACM-300",
    "status": "OPEN"
   },
   "model": "planning.planningcourse",
   "pk": 31
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "405",
+   "subject": "CMPT",
+   "title": "Computing Algorithms",
+   "owner": 3,
+   "slug": "CMPT-405",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 32
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "408",
+   "subject": "CMPT",
+   "title": "Theory of Comp. Networks",
+   "owner": 3,
+   "slug": "CMPT-408",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 33
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "411",
+   "subject": "CMPT",
+   "title": "Knowledge Representation",
+   "owner": 3,
+   "slug": "CMPT-411",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 35
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "441",
+   "subject": "CMPT",
+   "title": "Computational Biology",
+   "owner": 3,
+   "slug": "CMPT-441",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 36
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "454",
+   "subject": "CMPT",
+   "title": "Database Systems II",
+   "owner": 3,
+   "slug": "CMPT-454",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 37
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "470",
+   "subject": "CMPT",
+   "title": "Web-Based Info Syst",
+   "owner": 3,
+   "slug": "CMPT-470",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 9
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "471",
+   "subject": "CMPT",
+   "title": "Networking II",
+   "owner": 3,
+   "slug": "CMPT-471",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 7
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "475",
+   "subject": "CMPT",
+   "title": "Software Engineering II",
+   "owner": 3,
+   "slug": "CMPT-475",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 4
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "477",
+   "subject": "CMPT",
+   "title": "Intro to Formal Verification",
+   "owner": 3,
+   "slug": "CMPT-477",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 5
+ },
+ {
+  "fields": {
+   "config": "{}",
+   "number": "479",
+   "subject": "CMPT",
+   "title": "Spec.Topics/Computing Systems",
+   "owner": 3,
+   "slug": "CMPT-479",
+   "status": "OPEN"
+  },
+  "model": "planning.planningcourse",
+  "pk": 6
  },
  {
   "fields": {
@@ -21208,7 +21354,7 @@
    "count": 1,
    "instructor": 8,
    "intentionfull": true,
-   "note": "Added by planned administrator. Instructor posted no previous semester teaching plans.",
+   "note": "Added by planned administrator. Instructor posted no previous semester teaching intentions.",
    "semester": 5
   },
   "model": "planning.teachingintention",
@@ -21219,7 +21365,7 @@
    "count": 1,
    "instructor": 9,
    "intentionfull": true,
-   "note": "Added by planned administrator. Instructor posted no previous semester teaching plans.",
+   "note": "Added by planned administrator. Instructor posted no previous semester teaching intentions.",
    "semester": 5
   },
   "model": "planning.teachingintention",

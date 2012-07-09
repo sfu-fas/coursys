@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Semester Teaching Intentions for {{ semester }}{% endblock %}
+{% block h1 %}Semester Teaching Intentions for {{ semester }}{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(document).ready(function() {
+  $('table.display').dataTable( {
+    'aoColumns': [
+        null,
+        null,
+        { "bSortable" : false }
+    ],
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': false,
+    "bJQueryUI": true,
+    'bFilter': false
+  } );
+} );
+
+function confirmDelete() {
+  return confirm("Are you sure you want to remove this teaching intention?");
+}
+</script>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url planning.views.planner_create_intention semester=semester.name %}">Add a Teaching Intention</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li>
+<li>&gt; <a href="{% url planning.views.view_intentions %}">Semester Teaching Intentions</a></li>
+<li>&gt; Intentions for {{ semester }}</li>
+{% endblock %}
+
+{% block content %}
+<div id="intention" class="table_container">
+	{% if intentions %}
+		<table class="display">
+			<thead>
+				<tr>
+					<th>Instructor</th>
+					<th>Courses</th>
+					<th>Options</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for i in intentions %}
+					<tr>
+						<td>{{ i.instructor }}</td>
+						<td>
+							{{ i.count }}
+		                    {% if i.note %}
+		                        <div class="note-container">
+		                            <a href="javascript:void(0)" class="note">[?]</a>
+		                            <div class="note-content">
+		                                <strong>Note:</strong>
+		                                {{i.note}}
+		                            </div>
+		                        </div>
+		                    {% endif %}
+						</td>
+						<td>
+							<a href="{% url planning.views.planner_edit_intention semester=semester.name userid=i.instructor.userid %}">Edit</a> |
+							<a onclick="return confirmDelete();" href="{% url planning.views.planner_delete_intention semester=semester.name userid=i.instructor.userid %}">Remove</a>
+						</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>		
+	{% else %}
+		<p>There are no semester teaching intentions for this semester.</p>
+	{% endif %}
+</div>	
+{% endblock%}
+
+
+
+

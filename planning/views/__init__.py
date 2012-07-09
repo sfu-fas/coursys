@@ -26,6 +26,7 @@ from view_capabilities import view_capabilities
 from view_instructors import view_instructors
 from view_intentions import view_intentions
 from view_plan import view_plan
+from view_semester_intentions import view_semester_intentions
 
 from teaching_equivalents_inst import *
 from teaching_equivalents_admin import *

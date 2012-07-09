@@ -28,9 +28,9 @@ def planner_edit_intention(request, semester, userid):
                       description=("edited teaching intention for %s") % (intention.instructor),
                       related_object=intention)
             l.save()
-            messages.add_message(request, messages.SUCCESS, 'Edited semester plan for %s.' % (intention.instructor))
+            messages.add_message(request, messages.SUCCESS, 'Edited semester teaching intention for %s.' % (intention.instructor))
 
-            return HttpResponseRedirect(reverse('planning.views.view_intentions', kwargs={}))
+            return HttpResponseRedirect(reverse('planning.views.view_semester_intentions', kwargs={'semester': semester.name}))
     else:
         form = IntentionForm(initial={'instructor': instructor}, instance=intention)
 

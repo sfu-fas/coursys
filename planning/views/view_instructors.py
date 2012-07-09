@@ -23,7 +23,7 @@ def view_instructors(request, semester, plan_slug, planned_offering_slug):
         semester_plan = get_object_or_404(SemesterPlan, semester__name=semester, slug=plan_slug)
         course = get_object_or_404(PlannedOffering, slug=planned_offering_slug, plan=semester_plan)
 
-        no_intention_note = "Added by planned administrator. Instructor posted no previous semester teaching plans."
+        no_intention_note = "Added by planned administrator. Instructor posted no previous semester teaching intentions."
 
         instructor_id = request.POST['instructor']
         if instructor_id == "None":

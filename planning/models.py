@@ -11,17 +11,35 @@ COURSE_STATUS_CHOICES = [
     ('HIDE', 'Hidden')]
 
 
-class PlanningCourse(Course):
+class PlanningCourse(models.Model):
     """
-    A course offering that a unit can provide. More generic than coredata.models' Course.
+    This does not inherit from coredata.models due to inheritance issues with the
+    unique_together property.
     """
+    subject = models.CharField(max_length=4, null=False, db_index=True,
+        help_text='Subject code, like "CMPT" or "FAN".')
+    number = models.CharField(max_length=4, null=False, db_index=True,
+        help_text='Course number, like "120" or "XX1".')
+    title = models.CharField(max_length=30, help_text='The course title.')
     owner = models.ForeignKey(Unit, null=False)
     status = models.CharField(max_length=4, choices=COURSE_STATUS_CHOICES, default="OPEN", help_text="Status of this course")
     slug = AutoSlugField(populate_from=('__unicode__'), null=False, editable=False, unique_with='id')
+    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff
 
     class Meta:
-        unique_together = ()
         ordering = ('subject', 'number')
+
+    def __unicode__(self):
+        return "%s %s" % (self.subject, self.number)
+
+    def __cmp__(self, other):
+        return cmp(self.subject, other.subject) or cmp(self.number, other.number)
+
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+
+    def full_name(self):
+        return "%s %s - %s" % (self.subject, self.number, self.title)
 
 
 class TeachingCapability(models.Model):

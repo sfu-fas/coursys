@@ -29,7 +29,10 @@ class PlanningTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
         # Test update plan view
-        url = reverse('planning.views.update_plan', kwargs={'semester': 1127, 'plan_slug': 'Offering-Alpha---Burnaby'})
+        url = reverse('planning.views.update_plan', kwargs={
+            'semester': 1127,
+            'plan_slug': 'Offering-Alpha---Burnaby'
+        })
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
@@ -74,22 +77,27 @@ class PlanningTest(TestCase):
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
-        # Test semester teaching plan view
+        # Test semester teaching intentions view
         url = reverse('planning.views.view_intentions')
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
-        # Test create semester teaching plan view
+        # Test semester teaching intentions semester view
+        url = reverse('planning.views.view_semester_intentions', kwargs={'semester': '1127'})
+        response = basic_page_tests(self, client, url)
+        self.assertEqual(response.status_code, 200)
+
+        # Test create semester teaching intentions view
         url = reverse('planning.views.planner_create_intention')
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
-        # Test create semester teaching plan view
+        # Test semester teaching capabilities view
         url = reverse('planning.views.view_capabilities')
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
-        # Test create semester teaching plan view
+        # Test create semester teaching capabilities view
         url = reverse('planning.views.planner_edit_capabilities', kwargs={'userid': 'ggbaker'})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
@@ -122,33 +130,31 @@ class PlanningTest(TestCase):
         url = reverse('planning.views.edit_teaching_equivalent_inst', kwargs={'equivalent_id': 1})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
-        
+
     def test_course_credits_admin_200_ok(self):
         client = Client()
         client.login(ticket="teachadmin", service=CAS_SERVER_URL)
-        
+
         url = reverse('planning.views.view_insts_in_unit')
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
-        
+
         url = reverse('planning.views.view_teaching_credits_admin', kwargs={'userid': 'ggbaker'})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
-        
+
         url = reverse('planning.views.view_teaching_equivalent_admin', kwargs={'userid': 'ggbaker', 'equivalent_id': 1})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
-        
+
         url = reverse('planning.views.new_teaching_equivalent_admin', kwargs={'userid': 'ggbaker'})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
-        
+
         url = reverse('planning.views.edit_teaching_equivalent_admin', kwargs={'userid': 'ggbaker', 'equivalent_id': 1})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
-        
+
         url = reverse('planning.views.edit_course_offering_credits', kwargs={'userid': 'ggbaker', 'course_slug': '2012su-cmpt-383-d1'})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
-        
-        

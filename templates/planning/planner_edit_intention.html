@@ -1,19 +1,19 @@
 {% extends "base.html" %}
 {% load form_display %}
 
-{% block title %}Edit Semester Teaching Plan {{ instructor.name }}{% endblock %}
-{% block h1 %}Edit Semester Teaching Plan for {{ instructor.name }}{% endblock %}
+{% block title %}Edit Semester Teaching Intention {{ instructor.name }}{% endblock %}
+{% block h1 %}Edit Semester Teaching Intention for {{ instructor.name }}{% endblock %}
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url planning.views.admin_index %}">Course Planning</a></li>
-<li>&gt; <a href="{% url planning.views.view_intentions %}">Semester Teaching Plans</a></li>
-<li>&gt; Edit Semester Teaching Plan for {{ instructor.name }}</li>{% endblock %}
+<li>&gt; <a href="{% url planning.views.view_intentions %}">Semester Teaching Intentions</a></li>
+<li>&gt; Edit Semester Teaching Intention for {{ instructor.name }}</li>{% endblock %}
 
 {% block content %}
 <div id="form_container">
     <form action="{% url planning.views.planner_edit_intention semester=semester.name userid=instructor.userid %}" method="post">{% csrf_token %}
         <fieldset>
-            <legend>Semester Teaching Plan</legend>
+            <legend>Semester Teaching Intention</legend>
             {{form|as_dl}}
             <div><input class="submit" type="submit" value="Submit" /></div>
         </fieldset>

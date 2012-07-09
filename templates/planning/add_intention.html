@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% load form_display %}
 
-{% block title %}Edit Semester Teaching Plan{% endblock %}
-{% block h1 %}Edit Semester Teaching Plan{% endblock %}
+{% block title %}Edit Semester Teaching Intention{% endblock %}
+{% block h1 %}Edit Semester Teaching Intention{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url planning.views.instructor_index %}">Teaching Preferences</a></li><li>&gt; Semester Teaching Plans</li>{% endblock %}
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url planning.views.instructor_index %}">Teaching Preferences</a></li><li>&gt; Semester Teaching Intentions</li>{% endblock %}
 
 {% block content %}
 
 <div id="intention" class="table_container">
-	<h2>Semester Teaching Plans</h2>
+	<h2>Semester Teaching Intentions</h2>
 
 	{% if intention_list %}
 	<table class = "inst_table">
@@ -34,7 +34,7 @@
 	    </tbody>
 	</table>
 	{% else %}
-	<p>You haven't created any semester teaching plans.</p>
+	<p>You haven't created any semester teaching intentions.</p>
 	{% endif %}
 </div>	
 
@@ -42,7 +42,7 @@
 <div id="form_container">
     <form action="{% url planning.views.edit_intention %}" method="post">{% csrf_token %}
         <fieldset>
-            <legend>Add Semester Teaching Plan</legend>
+            <legend>Add Semester Teaching Intention</legend>
 
             {{form|as_dl}}
             <div><input class="submit" type="submit" value="Submit" /></div>

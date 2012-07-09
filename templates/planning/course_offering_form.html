@@ -73,10 +73,26 @@ $(function() {
                             {{ form.weekday.errors }}
                         {% endif %}
                     </td>
-                    <td><input type="text" alt="e.g. 11:30" name="meetingtime_set-{{ forloop.counter0 }}-{{ form.start_time.name }}" id="{{ form.start_time.auto_id }}" value="{{ form.start_time.value|time:"f" }}" /></td>
-                    <td><input type="text" alt="e.g. 12:20" name="meetingtime_set-{{ forloop.counter0 }}-{{ form.end_time.name }}" id="{{ form.end_time.auto_id }}" value="{{ form.end_time.value|time:"f" }}" /></td>
-                    <td><input type="text" alt="e.g. ASB9896" name="meetingtime_set-{{ forloop.counter0 }}-{{ form.room.name }}" id="{{ form.room.auto_id }}" value="{% firstof form.room.value %}" /></td>
                     <td>
+                        <input type="text" alt="e.g. 11:30" name="meetingtime_set-{{ forloop.counter0 }}-{{ form.start_time.name }}" id="{{ form.start_time.auto_id }}" value="{{ form.start_time.value|time:"f" }}" />
+                        {% if form.start_time.errors %}
+                            {{ form.start_time.errors }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        <input type="text" alt="e.g. 12:20" name="meetingtime_set-{{ forloop.counter0 }}-{{ form.end_time.name }}" id="{{ form.end_time.auto_id }}" value="{{ form.end_time.value|time:"f" }}" />
+                        {% if form.end_time.errors %}
+                            {{ form.end_time.errors }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        <input type="text" alt="e.g. ASB9896" name="meetingtime_set-{{ forloop.counter0 }}-{{ form.room.name }}" id="{{ form.room.auto_id }}" value="{% firstof form.room.value %}" />
+                        {% if form.room.errors %}
+                            {{ form.room.errors }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: none">{{ form.DELETE }}</div>
                         {% if not forloop.first %}
                             <a class="remove-formset">Remove</a>
                         {% endif %}

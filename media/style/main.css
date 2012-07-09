@@ -735,6 +735,9 @@ div.collapsible {
     margin-top: .1em;
     margin-bottom: .2em;
 }
+#form_container .meeting-times .errorlist {
+  margin-left: 0;
+}
 #form_container .requireindicator,
 .form_container .requireindicator {
     padding: 0 0 0 1em;
