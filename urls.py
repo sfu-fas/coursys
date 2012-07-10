@@ -330,7 +330,7 @@ urlpatterns += patterns('',
     url(r'^grad/search/save$', 'grad.views.save_search'),
     url(r'^grad/search/delete$', 'grad.views.delete_savedsearch'),
     url(r'^grad/qs', 'grad.views.quick_search'),
-    url(r'^grad/search_results$', 'grad.views.search_results'),
+    #url(r'^grad/search_results$', 'grad.views.search_results'),
 
     url(r'^grad/program/new$', 'grad.views.new_program'),
     url(r'^grad/program/$', 'grad.views.programs'),

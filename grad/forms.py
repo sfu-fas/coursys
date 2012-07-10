@@ -311,6 +311,7 @@ class NullBooleanSearchField(forms.NullBooleanField):
     validate = forms.BooleanField.validate
 
 COLUMN_CHOICES = (
+        # first field is interpreted by getattribute template filter (grad/templatetags/getattribute.py)
         ('person.emplid',           'Employee ID'),
         ('person.userid',           'User ID'),
         ('person.first_name',       'First Name'),
@@ -321,6 +322,10 @@ COLUMN_CHOICES = (
         ('program',                 'Program'),
         ('research_area',           'Research Area'),
         ('campus',                  'Campus'),
+        ('start_semester',          'Start Semester'),
+        ('end_semester',            'End Semester'),
+        ('application_status',      'Application Status'),
+        ('current_status',          'Current Status'),
         )
 
 VISA_STATUSES = (
@@ -345,15 +350,16 @@ class SearchForm(forms.Form):
 
     start_semester_start = StaffSemesterField(required=False, label="Start semester after")
     start_semester_end = StaffSemesterField(required=False,
-            help_text='Semester in which the Grad student has applied to start', label="Start semester before")
+            help_text='Semester in which the student started their program', label="Start semester before")
     end_semester_start = StaffSemesterField(required=False, label="End semester after")
-    end_semester_end = StaffSemesterField(required=False, label="End semester before")
+    end_semester_end = StaffSemesterField(required=False, label="End semester before",
+            help_text='Semester in which the student completed/left their program')
     
     student_status = forms.MultipleChoiceField(gradmodels.STATUS_CHOICES,
-            required=False,
+            required=False, help_text="Student's current status"
             )
     application_status = forms.MultipleChoiceField(gradmodels.APPLICATION_STATUS_CHOICES, 
-            required=False,
+            required=False, help_text="Student's current application status"
             )
     
     program = forms.ModelMultipleChoiceField(GradProgram.objects.all(), required=False)
@@ -450,8 +456,8 @@ class SearchForm(forms.Form):
                 #('end_semester_end', 'end_semester__lte'),
                 ('first_name_contains', 'person__first_name__icontains' ),
                 ('last_name_contains', 'person__last_name__icontains' ),
-                ('student_status', 'gradstatus__status__in'),
-                ('application_status',),
+                ('student_status', 'current_status__in'),
+                ('application_status', 'application_status__in'),
                 ('program','program__in'),
 #                ('requirements','completedrequirement__requirement__in'),
                 ('is_canadian',),

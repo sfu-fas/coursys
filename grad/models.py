@@ -39,6 +39,20 @@ APPLICATION_STATUS_CHOICES = (
         ('UNKN', 'Unknown'),
         )
 # order: In-Review, rej/dec? , expired, cancelled, confirmed, unknown
+STATUS_CHOICES = (
+        ('APPL', 'Applicant'),
+        ('ACTI', 'Active'),
+        ('PART', 'Part-Time'),
+        ('LEAV', 'On-Leave'),
+        ('WIDR', 'Withdrawn'),
+        ('GRAD', 'Graduated'),
+        ('NOND', 'Non-degree'),
+        ('GONE', 'Gone'),
+        ('ARSP', 'Completed Special'), # Special Arrangements and GONE
+        )
+STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
+STATUS_INACTIVE = ('LEAV', 'WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "not here"
+STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "done"
 
 class GradStudent(models.Model):
     person = models.ForeignKey(Person, help_text="Type in student ID or number.", null=False, blank=False, unique=False)
@@ -66,9 +80,10 @@ class GradStudent(models.Model):
     created_by = models.CharField(max_length=32, null=False, help_text='Grad Student created by.')
     modified_by = models.CharField(max_length=32, null=True, help_text='Grad Student modified by.', verbose_name='Last Modified By')
     
-    # fields that are essentially caches for advanced search. Updated by self.update_status_fields()
+    # fields that are essentially denormalized caches for advanced search. Updated by self.update_status_fields()
     start_semester = models.ForeignKey(Semester, null=True, help_text="Semester when the student started the program.", related_name='grad_start_sem')
     end_semester = models.ForeignKey(Semester, null=True, help_text="Semester when the student finished/left the program.", related_name='grad_end_sem')
+    current_status = models.CharField(max_length=4, null=True, choices=STATUS_CHOICES, help_text="Current student status")
 
     config = JSONField(default={}) # addition configuration
         # 'sin': Social Insurance Number
@@ -92,22 +107,32 @@ class GradStudent(models.Model):
 
     def update_status_fields(self):
         """
-        Update the self.start_semester and self.end_semester fields.
+        Update the self.start_semester, self.end_semester, self.current_status fields.
         """
         all_gs = GradStatus.objects.filter(student=self)
-        starts = all_gs.filter(status__in=STATUS_ACTIVE).order_by('start__name')
-        old = (self.start_semester, self.end_semester)
+        old = (self.start_semester_id, self.end_semester_id, self.current_status)
         self.start_semester = None
         self.end_semester = None
+        self.current_status = None
+        
+        # current_status
+        last_status = all_gs.order_by('-start__name')
+        if last_status.count() > 0:
+            self.current_status = last_status[0].status
+        
+        # start_semester
+        starts = all_gs.filter(status__in=STATUS_ACTIVE).order_by('start__name')
         if starts.count() > 0:
             start_status = starts[0]
             self.start_semester = start_status.start
+
+        # end_semester
         ends = all_gs.filter(status__in=STATUS_DONE).order_by('-start__name')
         if ends.count() > 0:
             end_status = ends[0]
             self.end_semester = end_status.start
         
-        if old != (self.start_semester, self.end_semester):
+        if old != (self.start_semester_id, self.end_semester_id, self.current_status):
             self.save()
     
     def start_semester_guess(self):
@@ -375,20 +400,6 @@ class CompletedRequirement(models.Model):
     def __unicode__(self):
         return u"%s" % (self.requirement)
 
-STATUS_CHOICES = (
-        ('APPL', 'Applicant'),
-        ('ACTI', 'Active'),
-        ('PART', 'Part-Time'),
-        ('LEAV', 'On-Leave'),
-        ('WIDR', 'Withdrawn'),
-        ('GRAD', 'Graduated'),
-        ('NOND', 'Non-degree'),
-        ('GONE', 'Gone'),
-        ('ARSP', 'Completed Special'), # Special Arrangements and GONE
-        )
-STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
-STATUS_INACTIVE = ('LEAV', 'WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "not here"
-STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "done"
 
 class GradStatus(models.Model):
     """
@@ -416,7 +427,7 @@ class GradStatus(models.Model):
         super(GradStatus, self).save(*args, **kwargs)
 
         if close_others:
-            # update gradstudent fields
+            # update gradstudent status fields
             self.student.update_status_fields()
 
             # make sure any other statuses are closed

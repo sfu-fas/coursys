@@ -9,7 +9,11 @@ register = template.Library()
 # recursive idea from http://mousebender.wordpress.com/2006/11/10/recursive-getattrsetattr/
 def getattribute(value, arg):
     """Gets an attribute of an object dynamically from a string name"""
-    if '.' not in arg:
+    if arg == 'application_status':
+        return value.get_application_status_display()
+    elif arg == 'current_status':
+        return value.get_current_status_display()
+    elif '.' not in arg:
         if hasattr(value, str(arg)):
             return getattr(value, arg)
         elif hasattr(value, 'has_key') and value.has_key(arg):
