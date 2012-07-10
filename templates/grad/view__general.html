@@ -1,0 +1,105 @@
+<p class="manage_link"><a href="{% url grad.views.manage_academics grad_slug=grad.slug  %}">Manage General Info</a></p>
+<div class="datatable_container bigdatatable">
+	<table class="display" id="academics">
+		<tbody id="academics-body">
+			<tr>
+				<td>
+				<dl>
+					<dt>
+						<label>Grad Program :</label>
+					</dt>
+					<dd>
+						{{ grad.program }}
+					</dd>
+				</dl></td>
+				<td>
+				<dl>
+					<dt>
+						<label>Research Area : </label>
+					</dt>
+					<dd>
+						{{grad.research_area}}
+					</dd>
+				</dl></td>
+				<td>
+				<dl>
+					<dt>
+						<label>Main Location :</label>
+					</dt>
+					<dd>
+						{{ grad.get_campus_display }}
+					</dd>
+				</dl></td>
+			</tr>
+			<tr>
+				<td>
+				<dl>
+					<dt>
+						<label>English Fluency :</label>
+					</dt>
+					<dd>
+						{{grad.english_fluency}}
+					</dd>
+				</dl></td>
+				<td>
+				<dl>
+					<dt>
+						<label>Mother Tongue :</label>
+					</dt>
+					<dd>
+						{{ grad.mother_tongue }}
+					</dd>
+				</dl></td>
+				<td>
+				<dl>
+					<dt>
+						<label>Canadian : </label>
+					</dt>
+					<dd>
+						{{grad.is_canadian}}
+					</dd>
+				</dl></td>
+			</tr>
+			<tr>
+				<td>
+				<dl>
+					<dt>
+						<label>Passport Issued By :</label>
+					</dt>
+					<dd>
+						{{ grad.passport_issued_by }}
+					</dd>
+				</dl></td>
+				<td>
+				<dl>
+					<dt>
+						<label>Special Arrangements : </label>
+					</dt>
+					<dd>
+						{{grad.special_arrangements}}
+					</dd>
+				</dl></td>
+				<td>
+				<dl>
+					<dt>
+						<label>Application Status : </label>
+					</dt>
+					<dd>
+						{{grad.get_application_status_display}}
+					</dd>
+				</dl></td>
+			</tr>
+			<tr>
+				<td colspan="3">
+				<dl>
+					<dt>
+						<label>Comments :</label>
+					</dt>
+					<dd>
+						{{ grad.comments }}
+					</dd>
+				</dl></td>
+			</tr>
+		</tbody>
+	</table>
+</div>

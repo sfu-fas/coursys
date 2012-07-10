@@ -1,0 +1,49 @@
+<p class="manage_link"><a href="{% url grad.views.manage_requirements grad_slug=grad.slug  %}">Manage Requirements</a></p>
+<div class="datatable_container bigdatatable">
+	<table class="display" id="grads">
+		<thead>
+			<tr>
+				<th>Requirement</th>
+				<th>Completed In</th>
+				<th>Date</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for s in completed_req %}
+			<tr>
+				<td>{{s.requirement}}</td>
+				<td>{{s.semester}}</td>
+				<td>{{s.date}}</td>
+			</tr>
+			{%empty%}
+			<tr>
+				<td colspan="3">
+				<p class="empty">
+					Student has not completed any requirements.
+				</p></td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	<table class="display" id="missing_req">
+		<thead>
+			<tr>
+				<th>Missing Requirement(s)</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for s in missing_req %}
+			<tr>
+				<td align="center"> {{s.description}}</td>
+			</tr>
+			{%empty%}
+			<tr>
+				<td>
+				<p class="empty">
+					Student has completed all requirements in the program.
+				</p></td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>

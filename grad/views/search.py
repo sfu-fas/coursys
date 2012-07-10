@@ -1,5 +1,5 @@
 from courselib.auth import requires_role
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import render
 from grad.models import GradStudent, SavedSearch
 from django.http import HttpResponseRedirect, HttpResponse
 from grad.forms import SearchForm, SaveSearchForm, COLUMN_CHOICES
@@ -7,7 +7,7 @@ from django.core.urlresolvers import reverse
 from coredata.models import Person
 import unicodecsv as csv
 import copy
-import operator
+from grad.templatetags.getattribute import getattribute
 
 
 def _get_cleaned_get(request):
@@ -74,10 +74,7 @@ def search(request):
             for grad in grads:
                 row = []
                 for column in columns:
-                    # operator.attrgetter allows you to get nested attributes from a class, using a string 
-                    # example:  print operator.attrgetter("person.first_name")(grad) 
-                    # >> "Abdul" 
-                    row.append( operator.attrgetter(column)(grad) )
+                    row.append(getattribute(grad, column))
                 writer.writerow( row ) 
             return response
         

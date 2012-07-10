@@ -1,0 +1,33 @@
+<p class="manage_link"><a href="{% url grad.views.manage_status grad_slug=grad.slug  %}">Manage Status</a></p>
+<div class="datatable_container bigdatatable">
+	<table class="display" id="status">
+		<thead>
+			<tr>
+				<th>Status</th>
+				<th>Start Semester</th>
+				<th>End Semester</th>
+				<th>Notes</th>
+				<th>Updated At</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% if status_history %}
+			{% for s in status_history %}
+			<tr>
+				<td> {{ s.get_status_display }} </td>
+				<td> {{s.start}} </td>
+				<td> {{s.end}} </td>
+				<td> {{s.notes}} </td>
+				<td> {{s.updated_at}} </td>
+			</tr>
+			{% endfor %}
+			{% else %}
+			<tr>
+				<td class="empty"> There are no status history for this grad. Contact an Administrator to check. </td>
+			</tr>
+			{% endif %}
+		</tbody>
+	</table>
+	<br />
+	<hr />
+</div>

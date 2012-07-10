@@ -74,3 +74,79 @@ function processSelections(selectOptions){
 		});
 	});
  }
+
+
+
+
+
+function show_section(id) {
+	var elt = $('#'+id);
+	if (elt.hasClass('displayed')) {
+		return;
+	}
+	elt.removeClass('collapsed');
+	elt.addClass('displayed');
+	$('#'+id+'_content').html('<p><img src="' + loader_url + '" alt="..." /></p>');
+	
+	$.ajax({
+		url: "?section="+id,
+		success: function (data) {
+			$('#'+id+'_content').html(data)
+		},
+	});
+}
+
+function hide_section(id) {
+	var elt = $('#'+id);
+	if (elt.hasClass('collapsed')) {
+		return;
+	}
+	elt.removeClass('displayed');
+	elt.addClass('collapsed');
+	$('#'+id+'_content').html('');
+}
+
+function update_links() {
+	// update all of the collapse/expand links
+	var currenthash = '';
+	var hash;
+	$('.displayed').each(function() {
+		currenthash += ',' + this.id
+	});
+	
+	$('.displayed').each(function() {
+		// set link to collapse
+		hash = currenthash.replace(','+this.id, '').substr(1);
+		$(this).find('a').each(function() {
+			$(this).attr('href', '#' + hash);
+		});
+	});
+	$('.collapsed').each(function() {
+		// set link to display
+		hash = (currenthash + ',' + this.id).substr(1);
+		$(this).find('a').each(function() {
+			$(this).attr('href', '#' + hash);
+		});
+	});
+}
+
+function display_sections() {
+	// show all sections indicated by the query string
+	var fields = $.param.fragment().split(',');
+	var displayed = [];
+	
+	$(fields).each(function (i, id) {
+		if (id.length > 0) {
+			show_section(id);
+		}
+		displayed.push(id);
+	});
+	$('.displayed').each(function() {
+		// hide those not explicitly shown
+		if(displayed.indexOf(this.id) < 0) {
+			hide_section(this.id);
+		}
+	});
+	
+	update_links();
+}

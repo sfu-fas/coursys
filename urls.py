@@ -349,6 +349,7 @@ urlpatterns += patterns('',
     url(r'^grad/letter/' + GRAD_SLUG + '/' + LETTER_TEMPLATE_ID + '/get_letter_text', 'grad.views.get_letter_text'),
 
     url(r'^grad/' + GRAD_SLUG + '/$', 'grad.views.view_all'),
+    url(r'^grad/' + GRAD_SLUG + '/v$', 'grad.views.view'),
     url(r'^grad/' + GRAD_SLUG + '/moreinfo$', 'grad.views.grad_more_info'),
     url(r'^grad/' + GRAD_SLUG + '/manage_academics$', 'grad.views.manage_academics'),
     url(r'^grad/' + GRAD_SLUG + '/manage_supervisors$', 'grad.views.manage_supervisors'),
