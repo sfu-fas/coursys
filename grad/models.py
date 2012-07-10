@@ -354,6 +354,12 @@ class Supervisor(models.Model):
     def __unicode__(self):
         return u"%s (%s) for %s" % (self.supervisor or self.external, self.supervisor_type, self.student.person)
 
+    def sortname(self):
+        if self.supervisor:
+            return self.supervisor.sortname()
+        else:
+            return self.external
+
     def save(self, *args, **kwargs):
         # make sure the data is coherent: should also be in form validation for nice UI
         is_person = bool(self.supervisor)

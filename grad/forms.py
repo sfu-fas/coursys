@@ -326,6 +326,7 @@ COLUMN_CHOICES = (
         ('end_semester',            'End Semester'),
         ('application_status',      'Application Status'),
         ('current_status',          'Current Status'),
+        ('senior_supervisors',      'Senior Supervisor(s)'),
         )
 
 VISA_STATUSES = (
