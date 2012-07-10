@@ -11,6 +11,8 @@ from remove_supervisor import remove_supervisor
 from manage_requirements import manage_requirements
 from manage_academics import manage_academics
 from manage_status import manage_status
+from manage_otherfunding import manage_otherfunding
+from manage_promises import manage_promises
 from new import new
 from new_program import new_program
 from programs import programs

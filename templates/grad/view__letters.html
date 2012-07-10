@@ -1,0 +1,21 @@
+<p class="manage_link"><a href="{% url grad.views.view_all_letters grad_slug=grad.slug  %}">Manage Letters</a></p>
+<div class="datatable_container bigdatatable">
+	<table class="display" id="status">
+		<thead>
+			<tr>
+				<th>Template</th>
+				<th>Date</th>
+				<th>From</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for l in letters %}
+			<tr>
+				<td> {{ l.template.label }} </td>
+				<td> {{ l.date }} </td>
+				<td> {{ l.from }} </td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>

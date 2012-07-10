@@ -1,0 +1,23 @@
+<p class="manage_link"><a href="{% url grad.views.manage_scholarship grad_slug=grad.slug  %}">Manage Scholarships</a></p>
+<div class="datatable_container bigdatatable">
+	<table class="display" id="status">
+		<thead>
+			<tr>
+				<th>Scholarship</th>
+				<th>Amount</th>
+				<th>Start Semester</th>
+				<th>End Semester</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for s in scholarships %}
+			<tr>
+				<td> {{ s.scholarship_type.name }} </td>
+				<td> ${{ s.amount|floatformat:"2" }} </td>
+				<td> {{ s.start_semester }} </td>
+				<td> {{ s.end_semester }} </td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>

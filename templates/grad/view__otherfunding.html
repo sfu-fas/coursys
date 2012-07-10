@@ -1,0 +1,21 @@
+<p class="manage_link"><a href="{% url grad.views.manage_otherfunding grad_slug=grad.slug  %}">Manage Other Funding</a></p>
+<div class="datatable_container bigdatatable">
+	<table class="display" id="status">
+		<thead>
+			<tr>
+				<th>Description</th>
+				<th>Amount</th>
+				<th>Semester</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for f in otherfunding %}
+			<tr>
+				<td> {{ f.description }} </td>
+				<td> ${{ f.amount|floatformat:"2" }} </td>
+				<td> {{ f.semester }} </td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>

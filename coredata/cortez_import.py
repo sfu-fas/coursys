@@ -457,6 +457,7 @@ class GradImport(object):
 
 
             # Status and application status
+            # TODO: make sure to import most recent last, so it stays open (try hyounes1-phd)
             self.db.execute("SELECT Status, Date, AsOfSem "
                         "FROM Status WHERE Identifier=%s "
                         "ORDER BY Date", (cortezid,))

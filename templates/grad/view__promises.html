@@ -1,0 +1,21 @@
+<p class="manage_link"><a href="{% url grad.views.manage_promises grad_slug=grad.slug  %}">Manage Promises</a></p>
+<div class="datatable_container bigdatatable">
+	<table class="display" id="status">
+		<thead>
+			<tr>
+				<th>Start Semester</th>
+				<th>End Semester</th>
+				<th>Amount</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for p in promises %}
+			<tr>
+				<td> {{ p.start_semester }} </td>
+				<td> {{ p.end_semester }} </td>
+				<td> ${{ p.amount|floatformat:"2" }} </td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
