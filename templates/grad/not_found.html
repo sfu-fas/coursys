@@ -38,7 +38,7 @@ The grad student with that identifier couldn't be found. Did you mean one of the
 		<tbody>
 			{% for g in grads %}
 			<tr>
-				<td><a href="{% url grad.views.view_all grad_slug=g.slug %}">{{g.person.last_name}}</a></td>
+				<td><a href="{% url grad.views.view grad_slug=g.slug %}">{{g.person.last_name}}</a></td>
 				<td>{{g.person.first_name}}</td>
 				<td>{{g.program.label}}</td>
 			</tr>

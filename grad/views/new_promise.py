@@ -7,7 +7,6 @@ from grad.forms import PromiseForm
 import datetime
 from django.core.urlresolvers import reverse
 from coredata.models import Semester
-from view_all import view_all
 
 get_semester = Semester.get_semester
 
@@ -22,7 +21,7 @@ def new_promise(request, grad_slug):
             temp.save()
             messages.success(request, "Promise amount %s saved for %s." % (promise_form.cleaned_data['amount'], grad))
             
-            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad.slug}))
+            return HttpResponseRedirect(reverse('grad.views.view', kwargs={'grad_slug':grad.slug}))
     else:
         promise_form = PromiseForm(initial={'start_semester': get_semester().offset(1), 'end_semester': get_semester().offset(3), 'amount':'0.00'})
 

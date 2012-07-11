@@ -1,7 +1,7 @@
 from index import index
 from quick_search import quick_search
 from not_found import not_found
-from view_all import view_all
+#from view_all import view_all
 from view import view
 from grad_more_info import grad_more_info
 from manage_supervisors import manage_supervisors
@@ -13,7 +13,7 @@ from manage_academics import manage_academics
 from manage_status import manage_status
 from manage_otherfunding import manage_otherfunding
 from manage_promises import manage_promises
-from new import new
+#from new import new
 from new_program import new_program
 from programs import programs
 from requirements import requirements
@@ -22,7 +22,7 @@ from import_applic import import_applic
 from letter_templates import letter_templates
 from new_letter_template import new_letter_template
 from manage_letter_template import manage_letter_template
-from letters import letters
+#from letters import letters
 from view_all_letters import view_all_letters
 from new_letter import new_letter
 from get_letter_text import get_letter_text

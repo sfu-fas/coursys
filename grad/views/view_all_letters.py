@@ -8,11 +8,7 @@ def view_all_letters(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
     letters = Letter.objects.filter(student=grad)
 
-    page_title = 'Letters for ' + grad.person.last_name + "," + grad.person.first_name
-    crumb = 'Letters'     
     context = {
-               'page_title' : page_title,
-               'crumb' : crumb,
                'letters': letters,
                'grad' : grad                 
                }

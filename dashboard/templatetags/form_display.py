@@ -3,6 +3,7 @@ from django import forms
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 register = template.Library()
+from django.forms.widgets import RadioSelect
 
 @register.filter
 def as_dl(form, safe=False, excludefields=[], includefields=None):
@@ -28,7 +29,12 @@ def as_dl(form, safe=False, excludefields=[], includefields=None):
         if field.field.required:
             reqtext = ' <span class="required">*</span>'
             reqcount += 1
-        out.append('<dt><label for="id_%s">%s:%s</label></dt><dd>' % (field.name, escape(field.label), reqtext))
+        labelid = field.name
+        if form.prefix:
+            labelid = form.prefix + '-' + labelid
+        if isinstance(field.field.widget, RadioSelect):
+            labelid += '_0'
+        out.append('<dt><label for="id_%s">%s:%s</label></dt><dd>' % (labelid, escape(field.label), reqtext))
         if isinstance(field.field.widget, forms.widgets.RadioSelect):
             out.append('<div class="field radio">%s</div>' % (unicode(field)))
         else:
@@ -107,7 +113,10 @@ def as_dl_2(form, safe=False):
         if field.field.required:
             reqtext = ' <span class="required">*</span>'
             reqcount += 1
-        out.append('<dt><label for="id_%s">%s:%s</label></dt><dd>' % (field.name, escape(field.label), reqtext))
+        labelid = field.name
+        if form.prefix:
+            labelid = form.prefix + '-' + labelid
+        out.append('<dt><label for="id_%s">%s:%s</label></dt><dd>' % (labelid, escape(field.label), reqtext))
         out.append('<div class="field">%s</div>' % (unicode(field)))
         if field.help_text:
             if safe:

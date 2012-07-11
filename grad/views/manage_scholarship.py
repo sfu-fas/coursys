@@ -6,7 +6,6 @@ from django.http import HttpResponseRedirect
 from grad.forms import ScholarshipForm
 from django.core.urlresolvers import reverse
 from coredata.models import Semester
-from view_all import view_all
 
 get_semester = Semester.get_semester
 
@@ -21,15 +20,11 @@ def manage_scholarship(request, grad_slug):
             temp.save()
             messages.success(request, "Scholarship for %s sucessfully saved." % (grad))
             
-            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad.slug}))
+            return HttpResponseRedirect(reverse('grad.views.view', kwargs={'grad_slug':grad.slug}))
     else:
         scholarship_form = ScholarshipForm(initial={'student':grad, 'start_semester':get_semester(), 'end_semester':get_semester(), 'amount':'0.00'})
 
-    page_title = "New Scholarship"
-    crumb = "%s, %s" % (grad.person.last_name, grad.person.first_name)
-
-    context = {'page_title':page_title,
-                'crumb':crumb,
+    context = {
                 'grad':grad,
                 'scholarship_form': scholarship_form
     }

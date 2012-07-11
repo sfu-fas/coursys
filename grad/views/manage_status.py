@@ -8,7 +8,6 @@ from grad.forms import GradStatusForm
 import datetime
 from coredata.models import Semester
 from django.core.urlresolvers import reverse
-from view_all import view_all
 
 @requires_role("GRAD")
 def manage_status(request, grad_slug):
@@ -33,19 +32,15 @@ def manage_status(request, grad_slug):
                     description="Updated Status History for %s." % (grad.person),
                     related_object=new_status_form.instance)
             l.save()                       
-            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))
+            return HttpResponseRedirect(reverse('grad.views.view', kwargs={'grad_slug':grad_slug}))
     else:
         new_status_form = GradStatusForm(initial={'start': Semester.current(), 'start_date': None})
 
     # set frontend defaults
-    page_title = "%s 's Status Record" % (grad.person.first_name)
-    crumb = "%s, %s" % (grad.person.first_name, grad.person.last_name)
     gp = grad.person.get_fields
     context = {
                'new_status' : new_status_form,
                'status_history' : status_history,
-               'page_title' : page_title,
-               'crumb' : crumb,
                'grad' : grad,
                'gp' : gp
                }

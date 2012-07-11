@@ -6,7 +6,6 @@
 	$(document).ready(function() {
 		$('#grads').dataTable({
 			"bJQueryUI" : true,
-			"aaSorting" : [[4, "desc"]],
 			"iDisplayLength" : 50,
 			"sPaginationType" : "full_numbers",
 		});
@@ -36,25 +35,21 @@ width: 120px;
 </ul>
 {% csrf_token %}
 
+<p>
 <input id="submitbutton" class="submit"  type="submit" value="{% if saveform.instance.pk %}Update{% else %}Save{% endif %}" />
 {% if saveform.instance.pk %}
 <input id="deletebutton" class="submit"  type="submit" value="Delete" formaction="{% url grad.views.delete_savedsearch %}" />
 {% endif %}
+</p>
 </form>
 
 </div>
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>
-	&gt; <a href="{% url grad.views.index %}">Grad</a>
-</li>
-<li>
-	&gt; <a href="{% url grad.views.search %}">Search</a>
-</li>
-<li>
-	&gt; Search Results
-</li>
+<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
+<li>&gt; <a href="{% url grad.views.search %}">Search</a></li>
+<li>&gt; Results</li>
 {% endblock %}
 
 {% block content %}
@@ -62,7 +57,7 @@ width: 120px;
 <p>This search is saved as "{{saveform.instance.name}}".</p>
 {% endif %}
 
-<a href='{{ csv_link }}'>CSV Export</a>
+<a href="{{ csv_link }}">CSV Export</a>
 
 <div class="datatable_container">
 	<table class="display" id="grads">
@@ -80,7 +75,7 @@ width: 120px;
             {% for c in columns %}
                 <td>{{s|getattribute:c}}</td>
             {% endfor %}
-                <td><a href="{% url grad.views.view_all grad_slug=s.slug %}"> View </a></td>
+                <td><a href="{% url grad.views.view grad_slug=s.slug %}">View</a></td>
             </tr>
 			{% endfor %}
 		</tbody>

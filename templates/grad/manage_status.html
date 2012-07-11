@@ -13,32 +13,13 @@
 
 </script>
 {% endblock %}
-{% block actions %}
-<div id="actions">
-	<h2>Actions</h2>
-	<ul>
-		<li>
-			<a href="{% url grad.views.view_all grad_slug=grad.slug %}">View All Info</a>
-		</li>
-		<li class="newsec">
-			<a href="{% url grad.views.manage_academics grad_slug=grad.slug %}">Manage Academics</a>
-		</li>
-		<li>
-			<a href="{% url grad.views.manage_requirements grad_slug=grad.slug  %}">Manage Requirements</a>
-		</li>
-		<li>
-			<a href="{% url grad.views.manage_supervisors grad_slug=grad.slug  %}">Manage Committee</a>
-		</li>
-	</ul>
-</div>
-{% endblock %}
 
-{% block title %}{{page_title}}{% endblock %}
-{% block h1 %}{{page_title}}{% endblock %}
+{% block title %}{{grad.person.name}}: Status{% endblock %}
+{% block h1 %}{{grad.person.name}}: Status{% endblock %}
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
-<li>&gt; <a href="{% url grad.views.view_all grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li>&gt; <a href="{% url grad.views.view grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
 <li>&gt; Status</li>
 {% endblock %}
 

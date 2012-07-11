@@ -3,32 +3,12 @@
 {% load mobile_tags %}
 {% load form_display %}
 
-{% block actions %}
-<div id="actions">
-	<h2>Actions</h2>
-	<ul>
-		<li>
-			<a href="{% url grad.views.view_all grad_slug=grad.slug %}">View All Info</a>
-		</li>
-		<li class="newsec">
-			<a href="{% url grad.views.manage_academics grad_slug=grad.slug %}">Manage Academics</a>
-		</li>
-		<li>
-			<a href="{% url grad.views.manage_requirements grad_slug=grad.slug  %}">Manage Requirements</a>
-		</li>
-		<li>
-			<a href="{% url grad.views.manage_status grad_slug=grad.slug  %}">Manage Status</a>
-		</li>
-	</ul>
-</div>
-{% endblock %}
-
 {% block title %}{{grad.person.name}}: Committee Members{% endblock %}
 {% block h1 %}{{grad.person.name}}: Committee Members{% endblock %}
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
-<li>&gt; <a href="{% url grad.views.view_all grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li>&gt; <a href="{% url grad.views.view grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
 <li>&gt; Committee Members</li>
 {% endblock %}
 
@@ -98,7 +78,6 @@
 			</span>
 		</fieldset>
 	</form>
-	<a class="button" href="{% url grad.views.view_all grad_slug=grad.slug %}">Cancel</a>
 </div>
 
 {% endblock %} 

@@ -7,20 +7,10 @@
 {% block h1 %}{{page_title}}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>
-	&gt; <a href="{% url grad.views.index %}">Grad</a>
-</li>
-{% if grad %}
-<li>
-	&gt; <a href="{% url grad.views.view_all grad_slug=grad.slug%}">{{grad.person.last_name}}, {{grad.person.first_name}}</a> 
-</li>
-{% endif %}
-<li>
-	&gt; <a href="{% url grad.views.letters %}">Letters</a>
-</li>
-<li>
-	&gt; {{crumb}}
-</li>
+<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
+<li>&gt; <a href="{% url grad.views.view grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li>&gt; <a href="{% url grad.views.view_all_letters grad_slug=grad.slug%}">Letters</a></li>
+<li>&gt; {{letter.template.label}}, {{letter.date}}</li>
 {% endblock %}
 {% block content %}
 <div id="form_container">
@@ -91,9 +81,6 @@
 			</dl>
 		</div>
 	</fieldset>
-	<div style="float:left;">
-		<a class="button" href="{% url grad.views.view_all_letters grad_slug=grad.slug %}">Back</a>
-	</div>
 	<div style="float:right; padding-right: 10px;">
 		<a class="button" href="{% url grad.views.get_letter letter_slug=letter.slug %}">Get PDF</a>
 		<br />

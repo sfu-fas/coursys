@@ -3,8 +3,8 @@
 {% load mobile_tags %}
 {% load form_display %}
 
-{% block title %}{{page_title}}{% endblock %}
-{% block h1 %}{{page_title}}{% endblock %}
+{% block title %}{{grad.person.name}}: Add Scholarship{% endblock %}
+{% block h1 %}{{grad.person.name}}: Add Scholarship{% endblock %}
 
 {% block actions %}
 {% endblock %}
@@ -12,19 +12,10 @@
 
 
 {% block subbreadcrumbs %}
-<li>
-	&gt; <a href="{% url grad.views.index %}">Grads</a>
-</li>
-<li>
-	&gt; <a href="{% url grad.views.view_all grad_slug=grad.slug%}">{{crumb}}</a>
-</li>
-
-<li>
-	&gt; Manage Scholarship
-</li>
-
+<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
+<li>&gt; <a href="{% url grad.views.view grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li>&gt; Scholarships</li>
 {% endblock %}
-
 
 
 {% block content %}

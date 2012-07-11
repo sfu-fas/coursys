@@ -9,7 +9,6 @@ from log.models import LogEntry
 from django.http import HttpResponseRedirect, HttpResponse
 from courselib.forms import StaffSemesterField
 from django.core.urlresolvers import reverse
-from view_all import view_all
 
 @requires_role("GRAD")
 def manage_requirements(request, grad_slug):
@@ -42,7 +41,7 @@ def manage_requirements(request, grad_slug):
                   description="Updated Grad Requirements for %s." % (req_formset.instance.person),
                   related_object=req_formset.instance)
             l.save()   
-            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad_slug}))
+            return HttpResponseRedirect(reverse('grad.views.view', kwargs={'grad_slug':grad_slug}))
     else:
         req_formset = ReqFormSet(instance=grad, prefix='req')
         for f in req_formset:
@@ -50,13 +49,9 @@ def manage_requirements(request, grad_slug):
             f.fields['semester'] = StaffSemesterField()
 
     # set frontend defaults
-    page_title = "%s's Requirements Record" % (grad.person.first_name)
-    crumb = "%s, %s" % (grad.person.first_name, grad.person.last_name)
-    gp = grad.person.get_fields     
+    gp = grad.person.get_fields
     context = {
                'req_formset': req_formset,
-               'page_title' : page_title,
-               'crumb' : crumb,
                'gp' : gp,
                'grad' : grad,
                'missing_req' : missing_req     

@@ -6,7 +6,6 @@ from django.contrib import messages
 from log.models import LogEntry
 from django.http import HttpResponseRedirect, HttpResponse
 from django.core.urlresolvers import reverse
-from view_all import view_all
 
 @requires_role("GRAD")
 def manage_academics(request, grad_slug):
@@ -27,7 +26,7 @@ def manage_academics(request, grad_slug):
                   description="Updated Grad Academics for %s." % (grad_form.instance.person),
                   related_object=grad_form.instance)
             l.save()    
-            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad.slug}))
+            return HttpResponseRedirect(reverse('grad.views.view', kwargs={'grad_slug':grad.slug}))
     else:
         grad_form = GradAcademicForm(instance=grad, prefix="grad")
         grad_form.fields['program'].choices = program_choices

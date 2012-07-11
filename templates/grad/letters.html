@@ -19,27 +19,19 @@
 	<h2>Actions</h2>
 	<ul>
 		<li>
-			<a href="{% url grad.views.new_letter grad_slug=grad.slug %}"> New Letter </a>
+			<a href="{% url grad.views.new_letter grad_slug=grad.slug %}">New Letter</a>
 		</li>
 	</ul>
 </div>
 {% endblock %}
 
-{% block title %}{{page_title}}{% endblock %}
-{% block h1 %}{{page_title}}{% endblock %}
+{% block title %}{{grad.person.name}}: Letters{% endblock %}
+{% block h1 %}{{grad.person.name}}: Letters{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>
-	&gt; <a href="{% url grad.views.index %}">Grad</a>
-</li>
-{% if grad %}
-<li>
-	&gt; <a href="{% url grad.views.view_all grad_slug=grad.slug%}">{{grad.person.last_name}}, {{grad.person.first_name}}</a>
-</li>
-{% endif %}
-<li>
-	&gt; {{crumb}}
-</li>
+<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
+<li>&gt; <a href="{% url grad.views.view grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li>&gt; Letters</li>
 {% endblock %}
 
 {% block content %}

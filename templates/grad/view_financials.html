@@ -104,7 +104,7 @@ table#financial td.rec {
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
-<li>&gt; <a href="{% url grad.views.view_all grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li>&gt; <a href="{% url grad.views.view grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
 <li>&gt; Financial Summary</li>
 {% endblock %}
 
@@ -118,7 +118,7 @@ table#financial td.rec {
 {% for semester in semesters %}
 <tr>
 <td class="rec">
-  <h2 id="{{semester.semester.name}}">{{semester.semester.label}}{% if semester.status %} ({{ semester.status }}){% endif %}</h2>
+  <h2 id="sem-{{semester.semester.name}}">{{semester.semester.label}}{% if semester.status %} ({{ semester.status }}){% endif %}</h2>
   {% if semester.scholarships %}
     <span class="label">Scholarships:</span> 
     <div style="float: right" id="comments-btn-{{semester.semester.name}}"><a>[View Comments]</a></div>

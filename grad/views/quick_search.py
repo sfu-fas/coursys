@@ -4,7 +4,6 @@ from courselib.auth import requires_role, ForbiddenResponse
 from courselib.search import get_query
 import json, urllib
 from django.core.urlresolvers import reverse
-from view_all import view_all
 
 def _get_query(term):
     return get_query(term, ['person__userid', 'person__emplid', 'person__first_name', 'person__last_name',
@@ -25,7 +24,7 @@ def quick_search(request):
         grad_slug = request.GET['search']
         try:
             grad = GradStudent.objects.get(slug=grad_slug, program__unit__in=request.units)
-            return HttpResponseRedirect(reverse(view_all, kwargs={'grad_slug':grad.slug}))
+            return HttpResponseRedirect(reverse('grad.views.view', kwargs={'grad_slug':grad.slug}))
         except GradStudent.DoesNotExist:
             return HttpResponseRedirect(reverse('grad.views.not_found') + "?search=" + urllib.quote_plus(grad_slug))
     else:

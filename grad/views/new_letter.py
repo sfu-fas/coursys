@@ -41,13 +41,8 @@ def new_letter(request, grad_slug):
         form = LetterForm(initial={'student': grad, 'date': datetime.date.today(), 'from_person': default_from})
         form.fields['from_person'].choices = from_choices
         
-
-    page_title = 'New Letter'  
-    crumb = 'New Letter' 
     context = {
                'form': form,
-               'page_title' : page_title,
-               'crumb' : crumb,
                'grad' : grad,
                'templates' : templates
                }
