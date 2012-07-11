@@ -99,7 +99,7 @@ class GradStudent(models.Model):
                 k.append([capfirst(field.verbose_name), field.value_to_string(self)])
         return k    
     def __unicode__(self):
-        return u"Grad student: %s" % (self.person)
+        return u"%s, %s" % (self.person, self.program.label)
     def save(self, *args, **kwargs):
         # rebuild slug in case something changes
         self.slug = None
@@ -407,6 +407,17 @@ class CompletedRequirement(models.Model):
         return u"%s" % (self.requirement)
 
 
+STATUS_ORDER = {
+        'APPL': 0,
+        'ACTI': 1,
+        'PART': 1,
+        'LEAV': 2,
+        'WIDR': 3,
+        'GRAD': 3,
+        'NOND': 2,
+        'GONE': 3,
+        'ARSP': 3,
+        }
 class GradStatus(models.Model):
     """
     A "status" for a grad student: what were they doing in this range of semesters?
@@ -453,6 +464,10 @@ class GradStatus(models.Model):
     
     def __unicode__(self):
         return u"Grad Status: %s %s" % (self.status, self.student)
+    
+    def status_order(self):
+        "For sorting by status"
+        return STATUS_ORDER[self.status]
 
 """
 Letters

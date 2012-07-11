@@ -92,6 +92,23 @@ function show_section(id) {
 		url: "?section="+id,
 		success: function (data) {
 			$('#'+id+'_content').html(data)
+			$('#'+id+'_content div.datatable_container table.display').each(function(i, elt){
+				var sortcol = 0;
+				elt = $(elt)
+				// look for a sort-n class indicating the sortcol
+				$(elt.attr('class').split(' ')).each(function(i,cls){
+					if (cls.indexOf('sort-') == 0) {
+						sortcol = parseInt(cls.substr(5));
+					}
+				});
+				elt.dataTable({
+    				'bPaginate': false,
+				    'bInfo': false,
+    				'bLengthChange': false,
+				    'bJQueryUI': true,
+				    "aaSorting": [[ sortcol, "asc" ]],
+				});
+			});
 		},
 	});
 }

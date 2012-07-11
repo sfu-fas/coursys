@@ -1,6 +1,6 @@
 <p class="manage_link"><a href="{% url grad.views.manage_scholarship grad_slug=grad.slug  %}">Manage Scholarships</a></p>
-<div class="datatable_container bigdatatable">
-	<table class="display" id="status">
+<div class="datatable_container datatable">
+	<table class="display sort-2" id="status">
 		<thead>
 			<tr>
 				<th>Scholarship</th>
@@ -14,8 +14,8 @@
 			<tr>
 				<td> {{ s.scholarship_type.name }} </td>
 				<td> ${{ s.amount|floatformat:"2" }} </td>
-				<td> {{ s.start_semester }} </td>
-				<td> {{ s.end_semester }} </td>
+				<td> <span class="sort">{{ s.start_semester.name }}</span>{{ s.start_semester }} </td>
+				<td> <span class="sort">{{ s.end_semester.name }}</span>{{ s.end_semester }} </td>
 			</tr>
 			{% endfor %}
 		</tbody>

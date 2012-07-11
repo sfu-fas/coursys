@@ -1,6 +1,6 @@
 <p class="manage_link"><a href="{% url grad.views.manage_supervisors grad_slug=grad.slug  %}">Manage Committee</a></p>
-<div class="datatable_container bigdatatable">
-	<table class="display" id="supervisors">
+<div class="datatable_container datatable">
+	<table class="display sort-1" id="supervisors">
 		<thead>
 			<tr>
 				<th>Member</th>
@@ -11,7 +11,7 @@
 			{% for supervisor in supervisors %}
 			<tr>
 				<td>{% if supervisor.supervisor %}{{ supervisor.supervisor }}{% else %}{{ supervisor.external }}{% endif%}</td>
-				<td>{{ supervisor.get_supervisor_type_display }}</td>
+				<td><span class="sort">{{supervisor.type_order}}</span>{{ supervisor.get_supervisor_type_display }}</td>
 			</tr>
 			{% endfor %}
 		</tbody>

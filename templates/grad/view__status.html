@@ -1,6 +1,6 @@
 <p class="manage_link"><a href="{% url grad.views.manage_status grad_slug=grad.slug  %}">Manage Status</a></p>
-<div class="datatable_container bigdatatable">
-	<table class="display" id="status">
+<div class="datatable_container datatable">
+	<table class="display sort-1" id="status">
 		<thead>
 			<tr>
 				<th>Status</th>
@@ -14,9 +14,9 @@
 			{% if status_history %}
 			{% for s in status_history %}
 			<tr>
-				<td> {{ s.get_status_display }} </td>
-				<td> {{s.start}} </td>
-				<td> {{s.end}} </td>
+				<td> <span class="sort">{{s.status_order}}</span>{{ s.get_status_display }} </td>
+				<td> <span class="sort">{{s.start.name}}</span>{{s.start}} </td>
+				<td> <span class="sort">{{s.end.name}}</span>{{s.end}} </td>
 				<td> {{s.notes}} </td>
 				<td> {{s.updated_at}} </td>
 			</tr>

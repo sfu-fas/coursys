@@ -1,6 +1,6 @@
 <p class="manage_link"><a href="{% url grad.views.manage_requirements grad_slug=grad.slug  %}">Manage Requirements</a></p>
-<div class="datatable_container bigdatatable">
-	<table class="display" id="grads">
+<div class="datatable_container datatable">
+	<table class="display sort-1" id="grads">
 		<thead>
 			<tr>
 				<th>Requirement</th>
@@ -12,7 +12,7 @@
 			{% for s in completed_req %}
 			<tr>
 				<td>{{s.requirement}}</td>
-				<td>{{s.semester}}</td>
+				<td><span class="sort">{{s.semester.name}}</span>{{s.semester}}</td>
 				<td>{{s.date}}</td>
 			</tr>
 			{%empty%}
@@ -25,7 +25,7 @@
 			{% endfor %}
 		</tbody>
 	</table>
-	<table class="display" id="missing_req">
+	<table id="missing_req">
 		<thead>
 			<tr>
 				<th>Missing Requirement(s)</th>

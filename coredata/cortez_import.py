@@ -268,6 +268,8 @@ class GradImport(object):
         """
         Find supervisor by userid if possible; return (Person, external).
         """
+        if supname == 'mitchell':
+            supname = 'dgm'
         person = get_person_by_userid(supname)
         if person:
             external = None
@@ -296,7 +298,7 @@ class GradImport(object):
             # ignore emplid-less grads?
             # all seem to start in 2006/2007 and have no end date
             return
-
+        
         # fill in the Person object with Cortez data
         if email:
             if '@' in email: # seem to have some userids in there too: let those stay in Person.userid
@@ -390,8 +392,6 @@ class GradImport(object):
                             "FROM ExamCommittee WHERE Identifier=%s", (cortezid,))
             for chair, extname, extdep, extinst, extemail, sfuexam in self.db:
                 if chair:
-                    if chair=='mitchell':
-                        chair='dgm'
                     person, external = self.find_supervisor(chair)
                     sups = Supervisor.objects.filter(student=gs, supervisor=person, external=external, supervisor_type='CHA')
                     if sups:
@@ -404,8 +404,6 @@ class GradImport(object):
                     sup.save()
                 
                 if sfuexam:
-                    if sfuexam=='mitchell':
-                        sfuexam='dgm'
                     person, external = self.find_supervisor(sfuexam)
                     sups = Supervisor.objects.filter(student=gs, supervisor=person, external=external, supervisor_type='SFU')
                     if sups:
@@ -441,8 +439,6 @@ class GradImport(object):
 
             # potential supervisor
             if sponsor and sponsor not in ['-None-', '-Office-']:
-                if sponsor=='mitchell':
-                    sponsor='dgm'
                 person, external = self.find_supervisor(sponsor)
                 
                 sups = Supervisor.objects.filter(student=gs, supervisor=person, external=external, supervisor_type='POT')
@@ -457,7 +453,6 @@ class GradImport(object):
 
 
             # Status and application status
-            # TODO: make sure to import most recent last, so it stays open (try hyounes1-phd)
             self.db.execute("SELECT Status, Date, AsOfSem "
                         "FROM Status WHERE Identifier=%s "
                         "ORDER BY Date", (cortezid,))
@@ -486,7 +481,17 @@ class GradImport(object):
                 if date:
                     st.start_date = date.date()
                 st.save(close_others=True)
-                
+            
+            # cleanup statuses, making sure the last is left open
+            statuses = GradStatus.objects.filter(student=gs).select_related('start')
+            if statuses:
+                statuses = list(statuses)
+                statuses.sort(lambda s1,s2: cmp(s1.start.name, s2.start.name) or cmp(s1.status_order(), s2.status_order()))
+                last = statuses[-1]
+                last.end = None
+                last.save()
+            
+            
             gs.application_status = app_st
             gs.save()
 
@@ -586,7 +591,7 @@ class GradImport(object):
                         "pi.Visa, pi.Status, pi.LastName FROM PersonalInfo pi "
                         "WHERE pi.StudentNumber not in (' ', 'na', 'N/A', 'NO', 'Not App.', 'N.A.', '-no-') "
                         #"AND pi.LastName in ('Baker', 'Bart', 'Cukierman', 'Fraser')" 
-                        #"AND pi.LastName LIKE 'N%%'" 
+                        #"AND pi.LastName LIKE 'Younesy%%'" 
                         #"AND pi.LastName > 'G'" 
                         #"AND pi.LastName = 'Farahbod'" 
                         "ORDER BY pi.LastName"
@@ -603,7 +608,7 @@ class GradImport(object):
                 # TODO: what about them and the other no-emplid rows?
                 continue
             try:
-             self.process_grad(*(row[:-1]))
+                self.process_grad(*(row[:-1]))
             except:
                 print row
                 raise
