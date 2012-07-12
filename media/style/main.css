@@ -855,6 +855,9 @@ dl.dlform .helptext {
 dl.dlform dt{
 	margin-left: 1em;
 }
+dl.dlform input, dl.dlform select, dl.dlform textarea {
+	margin-bottom: 0;
+}
 dl.dlform div.field.radio {
     display: inline-block;
 }

@@ -4,7 +4,6 @@ from grad.models import Letter
 from django.http import HttpResponse
 from dashboard.letters import OfficialLetter, LetterContents
 
-from pages.models import _normalize_newlines
 @requires_role("GRAD")
 def get_letter(request, letter_slug):
     letter = get_object_or_404(Letter, slug=letter_slug, student__program__unit__in=request.units)
@@ -18,8 +17,7 @@ def get_letter(request, letter_slug):
                         salutation=letter.salutation,
                         closing=letter.closing, 
                         signer=letter.from_person)
-    content_text = _normalize_newlines(letter.content.rstrip())
-    content_lines = content_text.split("\n\n")
+    content_lines = letter.content.split("\n\n")
     l.add_paragraphs(content_lines)
     doc.add_letter(l)
     doc.write() 

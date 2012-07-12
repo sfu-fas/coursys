@@ -5,6 +5,9 @@ from courselib.slugs import make_slug
 from courselib.json_fields import getter_setter
 from django.template.defaultfilters import capfirst
 from jsonfield import JSONField
+from pages.models import _normalize_newlines
+import re
+many_newlines = re.compile(r'\n{3,}')
 
 class GradProgram(models.Model):
     unit = models.ForeignKey(Unit, null=False, blank=False)
@@ -210,11 +213,6 @@ class GradStudent(models.Model):
                     tacrs.course.subject, tacrs.course.number,
                     tacrs.pay(), tacrs.bu*HOURS_PER_BU)
         
-        if tafunding:
-            tafunding = 'Teaching assistant responsibilities include providing tutorials, office hours and marking assignments. ' \
-                        + '%s %s\'s assignments have been:\n\n' % (title, self.person.last_name) \
-                        + tafunding + '\n'
-        
         # RAing
         rafunding = ''
         ras = list(ras)
@@ -222,11 +220,6 @@ class GradStudent(models.Model):
         for ra in ras:
             rafunding += "||%s-%s|$%.2f|%i hours/week\n" % (
                     ra.start_date.strftime("%b %Y"), ra.end_date.strftime("%b %Y"), ra.lump_sum_pay, ra.hours/2)
-
-        if rafunding:
-            rafunding = 'Research assistants assist/provide research services to faculty. ' \
-                        + '%s %s\'s assignments have been:\n\n' % (title, self.person.last_name) \
-                        + rafunding + '\n'
         
         # Scholarships
         scholarships = ''
@@ -234,10 +227,6 @@ class GradStudent(models.Model):
             scholarships += "||%s (%s)|$%.2f|%s\n" % (
                         s.start_semester.label(), s.start_semester.months(),
                         s.amount, s.scholarship_type.name)
-        if scholarships:
-            scholarships = '%s %s has received the following scholarships:\n\n' % (title, self.person.last_name) \
-                        + scholarships + '\n'
-
 
         # starting info
         startsem = self.start_semester_guess()
@@ -611,6 +600,11 @@ class Letter(models.Model):
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)            
     def __unicode__(self):
         return u"%s letter for %s" % (self.template.label, self.student)
+    def save(self, *args, **kwargs):
+        # normalize letter text so it's easy to work with
+        self.content = _normalize_newlines(self.content.rstrip())
+        self.content = many_newlines.sub('\n\n', self.content)
+        super(Letter, self).save(*args, **kwargs)
 
 """
 Financial
