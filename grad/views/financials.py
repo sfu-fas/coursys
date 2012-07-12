@@ -6,21 +6,15 @@ from coredata.models import Role, Semester
 from ta.models import TAContract, TACourse
 from ra.models import RAAppointment
 import itertools, decimal
-
+from grad.views.view import _can_view_student
 
 get_semester = Semester.get_semester
 
 @login_required
 def financials(request, grad_slug):
-    curr_user = request.user
-    grad = get_object_or_404(GradStudent, slug=grad_slug)
-    is_student = curr_user.username == grad.person.userid    
-    is_supervisor = Supervisor.objects.filter(student=grad, supervisor__userid=curr_user.username,
-                                              supervisor_type='SEN', removed=False).count() > 0
-    is_admin = Role.objects.filter(role='GRAD', unit=grad.program.unit, person__userid=curr_user.username).count()>0
-    
-    if not (is_student or is_supervisor or is_admin):
-        return ForbiddenResponse(request, 'You do not have sufficient permission to access this page') 
+    grad, _ = _can_view_student(request, grad_slug)
+    if grad is None:
+        return ForbiddenResponse(request)
 
     current_status = GradStatus.objects.filter(student=grad, hidden=False).order_by('-start')[0]
     grad_status_qs = GradStatus.objects.filter(student=grad, status__in=STATUS_ACTIVE).select_related('start','end')

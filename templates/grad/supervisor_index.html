@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block headextra %}
+<script type="text/javascript">
+	$(document).ready(function() {
+		$('#grads').dataTable({
+			"bJQueryUI" : true,
+			"aaSorting" : [[2, "asc"], [3, "desc"]],
+			"bPaginate": false,
+		});
+	});
+
+</script>
+{% endblock %}
+
+
+{% block title %}Your Grad Students{% endblock %}
+{% block h1 %}Your Grad Students{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; Grad Students</li>
+{% endblock %}
+
+{% block content %}
+<div class="datatable_container">
+	<table class="display" id="grads">
+		<thead>
+			<tr>
+            <th scope="col">Name</th>
+            <th scope="col">Program</th>
+            <th scope="col">Your Role</th>
+            <th scope="col">Start Semester</th>
+            <th scope="col">Current Status</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for s in supervisors %}
+            <tr>
+            <td scope="row">
+            {% if s.supervisor_type == 'SEN' %}
+            <a href="{% url grad.views.view grad_slug=s.student.slug %}">{{s.student.person.sortname}}</a>
+            {% else %}
+            {{s.student.person.sortname}}
+            {% endif %}
+            </td>
+            <td>{{s.student.program.description}}</td>
+            <td><span class="sort">{{s.type_order}}</span>{{s.get_supervisor_type_display}}</td>
+            <td><span class="sort">{{s.student.start_semester.name}}</span>{{s.student.start_semester}}</td>
+            <td>{{s.student.get_current_status_display}}</td>
+            </tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endblock %} 

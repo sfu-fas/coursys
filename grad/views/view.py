@@ -1,11 +1,42 @@
-from courselib.auth import requires_role, NotFoundResponse
+from courselib.auth import has_role, NotFoundResponse, ForbiddenResponse
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render
 from grad.models import GradStudent, Supervisor, GradStatus, CompletedRequirement, GradRequirement, \
         Scholarship, OtherFunding, Promise, Letter
 
-@requires_role("GRAD")
+def _can_view_student(request, grad_slug):
+    """
+    Return GradStudent object and authorization type if user is either
+    (1) admin for the student's unit,
+    (2) the student him-/herself,
+    (3) a senior supervisor of the student.
+    
+    Return None if neither condition is met
+    """
+    # grad admins can view within their unit
+    if has_role('GRAD', request):
+        grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
+        return grad, 'admin'
+
+    # students can see their own page
+    students = GradStudent.objects.filter(slug=grad_slug, person__userid=request.user.username)
+    if students:
+        return students[0], 'student'
+        
+    # senior supervisors can see their students
+    supervisors = Supervisor.objects.filter(supervisor__userid=request.user.username, student__slug=grad_slug, supervisor_type='SEN').select_related('student')
+    if supervisors:
+        grad = supervisors[0].student
+        return grad, 'supervisor'
+
+    return None, None
+
+@login_required
 def view(request, grad_slug):
-    grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
+    grad, authtype = _can_view_student(request, grad_slug)
+    if grad is None or authtype == 'student':
+        return ForbiddenResponse(request)
+    
     context = {'grad': grad}
     if 'section' in request.GET:
         # page sections fetched by AJAX calls
