@@ -228,14 +228,28 @@ class LetterContents(object):
                                       allowOrphans=0,
                                       alignment=TA_JUSTIFY,
                                       textColor=black)
+        self.table_style = TableStyle([
+                    ('FONT', (0,0), (-1,-1), 'BemboMTPro', 12, self.line_height),
+                    ('TOPPADDING', (0,0), (-1,-1), 0),
+                    ('BOTTOMPADDING', (0,0), (-1,-1), 0),
+                    ])
         
+    def make_flowable(self, text):
+        if text.startswith('||'):
+            # it's our table microformat
+            lines = text.split('\n')
+            cells = [line.split('|')[2:] for line in lines] # [2:] effectively strips the leading '||'
+            return Table(cells, style=self.table_style)
+        else:
+            return Paragraph(text, self.content_style)
+    
     def add_paragraph(self, text):
         "Add a paragraph (represented as a string) to the letter: used by OfficialLetter.add_letter"
-        self.flowables.append(Paragraph(text, self.content_style))
+        self.flowables.append(self.make_flowable(text))
 
     def add_paragraphs(self, paragraphs):
         "Add a list of paragraphs (strings) to the letter"
-        self.flowables.extend([Paragraph(text, self.content_style) for text in paragraphs])
+        self.flowables.extend([self.make_flowable(text) for text in paragraphs])
     
     def _contents(self, letter):
         "Builds of contents that can be added to a letter"

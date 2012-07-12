@@ -164,6 +164,11 @@ class Semester(models.Model):
         '4': 'su',
         '7': 'fa',
         }
+    months_lookup = {
+        '1': 'Jan-Apr',
+        '4': 'May-Aug',
+        '7': 'Sep-Dec',
+        }
     name = models.CharField(max_length=4, null=False, db_index=True, unique=True,
         help_text='Semester name should be in the form "1097".')
     start = models.DateField(help_text='First day of classes.')
@@ -201,6 +206,8 @@ class Semester(models.Model):
         year = 1900 + int(name[0:3])
         semester = self.label_lookup[name[3]]
         return semester + " " + str(year)
+    def months(self):
+        return self.months_lookup[self.name[3]]
     def slugform(self):
         """
         The slug version of the semester, e.g. "2010su".

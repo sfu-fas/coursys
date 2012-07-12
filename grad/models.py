@@ -154,24 +154,27 @@ class GradStudent(models.Model):
         return Semester.current().next_semester()
         
     def letter_info(self):
+        """
+        Context dictionary for building letter text
+        """
+        from ta.models import TAContract, TACourse, HOURS_PER_BU
+        from ra.models import RAAppointment
+
+        # basic personal stuff
         gender = self.person.gender()
-        #addresses = self.person.addresses()
-    
-        #if 'home' in addresses:
-        #    address = addresses['home']
-        #elif 'work' in addresses:
-        #    address = addresses['work']
-        #else:
-        #    address = ''
-    
+        title = self.person.get_title()
+        
         if gender == "M" :
             hisher = "his"
+            heshe = 'he'
         elif gender == "F":
             hisher = "her"
+            heshe = 'she'
         else:
             hisher = "his/her"
-        Hisher = hisher.title()
+            heshe = 'he/she'
         
+        # financial stuff
         promises = Promise.objects.filter(student=self).order_by('-start_semester')
         if promises:
             try:
@@ -180,26 +183,112 @@ class GradStudent(models.Model):
                 promise = '$' + unicode(promises[0].amount)
         else:
             promise = u'$0'
+
+        tas = TAContract.objects.filter(application__person=self.person).order_by('-posting__semester__name')
+        ras = RAAppointment.objects.filter(person=self.person).order_by('-start_date')
+        schols = Scholarship.objects.filter(student=self).order_by('start_semester__name').select_related('start_semester')
+        if tas and ras:
+            if tas[0].application.posting.semester.name > ras[0].start_semester().name:
+                recent_empl = 'teaching assistant'
+            else:
+                recent_empl = 'research assistant'
+        elif tas:
+            recent_empl = 'teaching assistant'
+        elif ras:
+            recent_empl = 'research assistant'
+        else:
+            recent_empl = 'UNKNOWN'
+
+        # TAing
+        tafunding = ''
+        tacourses = TACourse.objects.filter(contract__application__person=self.person) \
+                    .order_by('contract__posting__semester__name') \
+                    .select_related('contract__posting__semester', 'course')
+        for tacrs in tacourses:
+            tafunding += "||%s (%s)|%s %s|$%.2f|%i hours/term\n" % (
+                    tacrs.contract.posting.semester.label(), tacrs.contract.posting.semester.months(),
+                    tacrs.course.subject, tacrs.course.number,
+                    tacrs.pay(), tacrs.bu*HOURS_PER_BU)
         
+        if tafunding:
+            tafunding = 'Teaching assistant responsibilities include providing tutorials, office hours and marking assignments. ' \
+                        + '%s %s\'s assignments have been:\n\n' % (title, self.person.last_name) \
+                        + tafunding + '\n'
+        
+        # RAing
+        rafunding = ''
+        ras = list(ras)
+        ras.reverse()
+        for ra in ras:
+            rafunding += "||%s-%s|$%.2f|%i hours/week\n" % (
+                    ra.start_date.strftime("%b %Y"), ra.end_date.strftime("%b %Y"), ra.lump_sum_pay, ra.hours/2)
+
+        if rafunding:
+            rafunding = 'Research assistants assist/provide research services to faculty. ' \
+                        + '%s %s\'s assignments have been:\n\n' % (title, self.person.last_name) \
+                        + rafunding + '\n'
+        
+        # Scholarships
+        scholarships = ''
+        for s in schols:
+            scholarships += "||%s (%s)|$%.2f|%s\n" % (
+                        s.start_semester.label(), s.start_semester.months(),
+                        s.amount, s.scholarship_type.name)
+        if scholarships:
+            scholarships = '%s %s has received the following scholarships:\n\n' % (title, self.person.last_name) \
+                        + scholarships + '\n'
+
+
+        # starting info
         startsem = self.start_semester_guess()
         if startsem:
+            startyear = unicode(startsem.start.year)
             startsem = startsem.label()
         else:
+            startyear = 'UNKNOWN'
             startsem = 'UNKNOWN'
         
+        potentials = Supervisor.objects.filter(student=self, supervisor_type='POT', removed=False).exclude(supervisor__isnull=True)
+        if potentials:
+            potsup = potentials[0]
+            supervisor_name = potsup.supervisor.name()
+            supervisor_email = potsup.supervisor.email()
+            sgender = potsup.supervisor.gender()
+            if sgender == "M" :
+                supervisor_hisher = "his"
+                supervisor_heshe = "he"
+            elif sgender == "F":
+                supervisor_hisher = "her"
+                supervisor_heshe = "she"
+            else:
+                supervisor_hisher = "his/her"
+                supervisor_heshe = "he/she"
+        else:
+            supervisor_name = 'UNKNOWN'
+            supervisor_email = 'UNKNOWN@sfu.ca'
+            supervisor_hisher = 'his/her'
+            supervisor_heshe = "he/she"
+        
         ls = {
-                'title' : self.person.get_title(),
+                'title' : title,
                 'his_her' : hisher,
-                'His_Her' : Hisher,
+                'His_Her' : hisher.title(),
+                'he_she' : heshe,
+                'He_She' : heshe.title(),
                 'first_name': self.person.first_name,
                 'last_name': self.person.last_name,
-                #'address':  address,
                 'promise': promise,
                 'start_semester': startsem,
-                #'empl_data': "OO type of employment RA, TA OO",
-                #'fund_type': "OO RA / TA / Scholarship]]",
-                #'fund_amount_sem': "OO amount of money paid per semester OO",
+                'start_year': startyear,
                 'program': self.program.description,
+                'supervisor_name': supervisor_name,
+                'supervisor_hisher': supervisor_hisher,
+                'supervisor_heshe': supervisor_heshe,
+                'supervisor_email': supervisor_email,
+                'recent_empl': recent_empl,
+                'tafunding': tafunding,
+                'rafunding': rafunding,
+                'scholarships': scholarships,
               }
         return ls
 
@@ -285,9 +374,19 @@ LETTER_TAGS = {
                #'fund_type': 'RA, TA, Scholarship',
                #'fund_amount_sem': 'amount of money paid per semester',
                'his_her' : '"his" or "her" (or use His_Her for capitalized)',
+               'he_she' : '"he" or "she" (or use He_She for capitalized)',
                'program': 'the program the student is enrolled in',
                'start_semester': 'student\'s first semester (e.g. "Summer 2000")',
-               'promise': 'the amount of the (most recent) funding promise to the student (e.g. "$17,000")',
+               'start_year': 'year of student\'s first semester (e.g. "2000")',
+               'promise': 'the amount of the [most recent] funding promise to the student (e.g. "$17,000")',
+               'supervisor_name': "the name of the student's potential supervisor",
+               'supervisor_hisher': 'pronoun for the potential supervisor ("his" or "her")',
+               'supervisor_heshe': 'pronoun for the potential supervisor ("he" or "she")',
+               'supervisor_email': "potential supervisor's email address",
+               'recent_empl': 'most recent employment ("teaching assistant" or "research assistant")',
+               'tafunding': 'List of funding as a TA',
+               'rafunding': 'List of funding as an RA',
+               'scholarships': 'List of scholarships received',
                }
 
 SUPERVISOR_TYPE_CHOICES = [

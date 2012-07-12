@@ -9,10 +9,10 @@ from django.http import HttpResponse
 def get_letter_text(request, grad_slug, letter_template_id):
     """ Get the text from letter template """
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
-    lt = get_object_or_404(LetterTemplate, id=letter_template_id)
+    lt = get_object_or_404(LetterTemplate, id=letter_template_id, unit__in=request.units)
     temp = Template(lt.content)
     ls = grad.letter_info()
     text = temp.render(Context(ls))
-    print ls
+    #print ls
 
-    return HttpResponse(text)
+    return HttpResponse(text, mimetype='text/plain')
