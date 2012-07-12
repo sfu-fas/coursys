@@ -146,6 +146,7 @@ Column logic:
 		    	<li><a href="{% url marking.views.export_csv course_slug=course.slug, activity_slug=activity.slug%}">Export Grades</a></li> 
                  {% if not activity.is_numeric %}
 		    	<li><a href="{% url marking.views.export_sims course_slug=course.slug, activity_slug=activity.slug%}">Export for SIMS</a></li>
+		    	<li><a href="{% url grades.views.compare_official course_slug=course.slug, activity_slug=activity.slug%}">Compare Official Letter Grades</a></li>
 		 {% endif %}
 
 	 

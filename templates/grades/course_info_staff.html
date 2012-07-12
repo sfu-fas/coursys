@@ -139,15 +139,11 @@
         <tbody>
             <tr>
                 <th scope="row">Course Number</th>
-                <td>{{ course.subject }} {{ course.number }}</td>
-            </tr>
-            <tr>
-                <th scope="row">Section</th>
-                <td>{{ course.section }}</td>
+                <td>{{ course.subject }} {{ course.number }} {{ course.section }}</td>
             </tr>
             <tr>
                 <th scope="row">Semester</th>
-                <td>{{ course.semester.label }}</td>
+                <td>{{ course.semester.label }} ({{ course.semester.name }})</td>
             </tr>
             <tr>
                 <th scope="row">Title</th>
