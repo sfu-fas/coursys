@@ -536,7 +536,7 @@ class SaveSearchForm(ModelForm):
             'person': HiddenInput(),
             'query': HiddenInput(),
         }
-    name = forms.CharField()
+    name = forms.CharField(label="Save Search As:")
     
     def __init__(self, *args, **kwargs):
         super(SaveSearchForm, self).__init__(*args, **kwargs)

@@ -40,19 +40,6 @@
 {% block title %}{{page_title}}{% endblock %}
 {% block h1 %}{{page_title}}{% endblock %}
 
-{% block actions %}
-<div id="actions">
-<h2>Saved Searches</h2>
-<ul>
-{% for s in savedsearches %}
-<li><a href="{% url grad.views.search %}?{{ s.query }}">{{ s.name }}</a></li>
-{% empty %}
-<li>No saved searches are available.</li>
-{% endfor %}
-</ul>
-</div>
-{% endblock %}
-
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
 <li>&gt; Search</li>

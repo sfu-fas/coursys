@@ -26,7 +26,6 @@
 <li><a href="{% url grad.views.letter_templates %}">View Letters Templates</a></li>
 <li><a href="{% url grad.views.manage_scholarshipType %}">New Scholarship</a></li>
 <li class="newsec"><a href="{% url grad.views.search %}">Advanced Search</a></li>
-
 </ul>
 
 </div>
@@ -45,5 +44,14 @@
 {{form.as_p}}
 <p><input class="submit" type="submit" value="Go" /></p>
 </form>
+
+{% if savedsearches %}
+<h2 id="saved" style="clear: right;">Saved Searches</h2>
+<ul>
+{% for s in savedsearches %}
+<li><a href="{% url grad.views.search %}?{{ s.query }}">{{s.name}}</a></li>
+{% endfor %}
+</ul>
+{% endif %}
 
 {% endblock %} 

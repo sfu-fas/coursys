@@ -91,10 +91,10 @@ def search(request):
                    }
         return render(request, 'grad/search_results.html', context)
     else:
-        savedsearches = SavedSearch.objects.filter(person__in=(current_user,None))
+        #savedsearches = SavedSearch.objects.filter(person__in=(current_user,None))
         page_title = 'Graduate Student Advanced Search'
         context = {
-                   'savedsearches' : savedsearches,
+                   #'savedsearches' : savedsearches,
                    'page_title' : page_title,
                    'form':form,
                    'savedsearch' : savedsearch 

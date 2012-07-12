@@ -16,7 +16,7 @@ def manage_requirements(request, grad_slug):
     
     #calculate/find missing reqs
     completed_req = CompletedRequirement.objects.filter(student=grad)
-    req = GradRequirement.objects.filter(program=grad.program)
+    req = GradRequirement.objects.filter(program=grad.program, hidden=False)
     req_choices = [(u'', u'\u2014')] + [(r.id, r.description) for r in req]
     missing_req = req    
     for s in completed_req:
