@@ -204,11 +204,6 @@ class GradRequirementForm(ModelForm):
     class Meta:
         model = GradRequirement
 
-class XXXCompletedRequirementForm(ModelForm):
-    class Meta:
-        model = CompletedRequirement
-        fields = ('requirement', 'semester', 'date', 'notes')
-
 class LetterTemplateForm(ModelForm):
     content = forms.CharField(widget=forms.Textarea(attrs={'rows':'35', 'cols': '70'}))    
     class Meta:
@@ -370,7 +365,7 @@ class SearchForm(forms.Form):
     requirements_st = forms.ChoiceField((
             ('AND',mark_safe(u'Student must have completed <em>all</em> of these requirements')),
             ('OR',mark_safe(u'Student must have completed <em>any</em> of these requirements'))),
-            label='Requirements search type', required=False, 
+            label='Requirements search type', required=False, initial='AND',
             widget=forms.RadioSelect)
     incomplete_requirements = forms.ModelMultipleChoiceField(GradRequirement.objects.all(),
             label='Incomplete requirements', required=False)

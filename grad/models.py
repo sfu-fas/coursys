@@ -383,6 +383,7 @@ class GradRequirement(models.Model):
     description = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')
+    hidden = models.BooleanField(default=False)
     def __unicode__(self):
         return u"%s" % (self.description)    
         
@@ -479,7 +480,8 @@ class LetterTemplate(models.Model):
         # likely choices: visa, international, msc offer, phd offer, special student offer, qualifying student offer
     content = models.TextField(help_text="I.e. 'This is to confirm {{title}} {{last_name}} ... '")
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.CharField(max_length=32, null=False, help_text='Letter template created by.')    
+    created_by = models.CharField(max_length=32, null=False, help_text='Letter template created by.')
+    hidden = models.BooleanField(default=False)
 
     def autoslug(self):
         return make_slug(self.unit.label + "-" + self.label)  
@@ -520,6 +522,7 @@ class ScholarshipType(models.Model):
     name = models.CharField(max_length=256)
     eligible = models.BooleanField(default=True, help_text="Does this scholarship count towards promises of support?")
     comments = models.TextField(blank=True, null=True)
+    hidden = models.BooleanField(default=False)
     class meta:
         unique_together = ("unit", "name")
     def __unicode__(self):

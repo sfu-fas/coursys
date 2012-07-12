@@ -1,6 +1,6 @@
 from courselib.auth import requires_role
 from django.shortcuts import render
-from grad.models import GradStudent, SavedSearch
+from grad.models import GradStudent, SavedSearch, GradRequirement
 from django.http import HttpResponseRedirect, HttpResponse
 from grad.forms import SearchForm, SaveSearchForm, COLUMN_CHOICES
 from django.core.urlresolvers import reverse
@@ -46,6 +46,10 @@ def search(request):
             savedsearch = None
     
     form = SearchForm() if len(request.GET) == 0 else SearchForm(request.GET)
+    requirement_choices = [(r.id, "%s (%s)" % (r.description, r.program.label)) for r in
+            GradRequirement.objects.filter(program__unit__in=request.units, hidden=False).order_by('program__label', 'description')]
+    form.fields['requirements'].choices = requirement_choices
+    form.fields['incomplete_requirements'].choices = requirement_choices
     
     if form.is_valid():
         query = form.get_query()

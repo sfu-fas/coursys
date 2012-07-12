@@ -343,7 +343,6 @@ class GradImport(object):
             for completed, req_name in zip(reqs, self.REQ_LIST):
                 if not completed or completed.lower() in ('not taken',):
                     continue
-                
                 req, _ = GradRequirement.objects.get_or_create(program=prog, description=req_name)
                 try:
                     cr = CompletedRequirement.objects.get(requirement=req, student=gs)
@@ -593,7 +592,7 @@ class GradImport(object):
                         #"AND pi.LastName in ('Baker', 'Bart', 'Cukierman', 'Fraser')" 
                         #"AND pi.LastName LIKE 'Younesy%%'" 
                         #"AND pi.LastName > 'G'" 
-                        #"AND pi.LastName = 'Farahbod'" 
+                        #"AND pi.FirstName = 'Wenping'" 
                         "ORDER BY pi.LastName"
                         , ())
         initial = None

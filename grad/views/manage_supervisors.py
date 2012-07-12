@@ -4,7 +4,7 @@ from grad.models import GradStudent, Supervisor, GradRequirement
 from grad.forms import SupervisorForm, possible_supervisors
 from django.contrib import messages
 from log.models import LogEntry
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 
 @requires_role("GRAD")

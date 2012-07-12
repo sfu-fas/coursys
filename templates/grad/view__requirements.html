@@ -11,7 +11,7 @@
 		<tbody>
 			{% for s in completed_req %}
 			<tr>
-				<td>{{s.requirement}}</td>
+				<td>{{s.requirement.description}} ({{s.requirement.program.label}})</td>
 				<td><span class="sort">{{s.semester.name}}</span>{{s.semester}}</td>
 				<td>{{s.date}}</td>
 			</tr>
