@@ -15,8 +15,16 @@ def getattribute(value, arg):
     elif arg == 'senior_supervisors':
         sups = value.supervisor_set.filter(supervisor_type='SEN', removed=False)
         return '; '.join(s.sortname() for s in sups)
+    elif arg == 'completed_req':
+        print dir(value)
+        reqs = value.completedrequirement_set.all().select_related('requirement')
+        return ', '.join(r.requirement.description for r in reqs)
     elif arg == 'current_status':
         return value.get_current_status_display()
+    elif arg == 'gpa':
+        return value.person.gpa()
+    elif arg == 'visa':
+        return value.person.visa()
 
     elif '.' not in arg:
         if hasattr(value, str(arg)):

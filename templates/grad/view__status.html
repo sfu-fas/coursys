@@ -11,7 +11,6 @@
 			</tr>
 		</thead>
 		<tbody>
-			{% if status_history %}
 			{% for s in status_history %}
 			<tr>
 				<td> <span class="sort">{{s.status_order}}</span>{{ s.get_status_display }} </td>
@@ -21,11 +20,6 @@
 				<td> {{s.updated_at}} </td>
 			</tr>
 			{% endfor %}
-			{% else %}
-			<tr>
-				<td class="empty"> There are no status history for this grad. Contact an Administrator to check. </td>
-			</tr>
-			{% endif %}
 		</tbody>
 	</table>
 </div>

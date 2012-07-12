@@ -54,7 +54,7 @@ def search(request):
     if form.is_valid():
         query = form.get_query()
         #print query
-        grads = GradStudent.objects.filter(program__unit__in=request.units).filter(query).distinct()
+        grads = GradStudent.objects.filter(program__unit__in=request.units).filter(query).select_related('person', 'program').distinct()
         grads = filter(form.secondary_filter(), grads)
         grads = grads[:500]
         

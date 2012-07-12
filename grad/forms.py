@@ -6,7 +6,7 @@ from grad.models import Supervisor, GradProgram, GradStudent, GradStatus,\
     GradRequirement, CompletedRequirement, LetterTemplate, Letter, Promise, Scholarship,\
     ScholarshipType, SavedSearch
 from courselib.forms import StaffSemesterField
-from coredata.models import Person, Member, Semester, CAMPUS_CHOICES
+from coredata.models import Person, Member, Semester, CAMPUS_CHOICES, VISA_STATUSES
 from django.forms.models import BaseModelFormSet
 #from django.core.exceptions import ValidationError
 from django.forms.widgets import NullBooleanSelect, HiddenInput
@@ -203,6 +203,7 @@ class GradStatusForm(ModelForm):
 class GradRequirementForm(ModelForm):
     class Meta:
         model = GradRequirement
+        exclude = ('hidden',)
 
 class LetterTemplateForm(ModelForm):
     content = forms.CharField(widget=forms.Textarea(attrs={'rows':'35', 'cols': '70'}))    
@@ -241,11 +242,12 @@ class ScholarshipForm(ModelForm):
     end_semester = StaffSemesterField()
     class Meta:
         model = Scholarship
-        exclude = ('student')
+        exclude = ('student',)
                 
 class new_scholarshipTypeForm(ModelForm):
     class Meta:
         model = ScholarshipType
+        exclude = ('hidden',)
 
 # creates an 'atom' to represent 'Unknown' (but it's not None) 
 Unknown = type('Unknown', (object,), {'__repr__':lambda self:'Unknown'})()
@@ -322,21 +324,9 @@ COLUMN_CHOICES = (
         ('application_status',      'Application Status'),
         ('current_status',          'Current Status'),
         ('senior_supervisors',      'Senior Supervisor(s)'),
-        )
-
-VISA_STATUSES = (
-        ('Perm Resid', 'Permanent Resident'),
-        ('Student',    'Student Visa'),          # Student Authorization permitting study in Canada
-        ('Diplomat',   'Diplomat'),              # Reciprocal domestic tuition may be extended to dependents of diplomats from certain countries (not all).
-        ('Min Permit', "Minister's Permit"),
-        ('Other',      'Other Visa'),
-        ('Visitor',    "Visitor's Visa"),        # Does not permit long term study in Canada
-        ('Unknown',    'Not Known'),
-        ('New CDN',    "'New' Canadian citizen"),# Naturalized Canadian citizen whose SFU record previously showed another visa/permit status, such as Permanent Resident.
-        ('Conv Refug', 'Convention Refugee'),
-        ('Refugee',    'Refugee'),               # Refugee (status granted)
-        ('Unknown',    'Non-Canadian, Status Unknown'), # Non-Canadian, Status Unknown (incl refugee claimants)
-        ('No Visa St', 'Non-Canadian, No Visa Status'), # Non-Canadian, No Visa Status (student is studying outside Canada)
+        ('completed_req',           'Completed Requirements'),
+        ('gpa',                     'GPA'),
+        ('visa',                    'Visa'),
         )
 
 class SearchForm(forms.Form):

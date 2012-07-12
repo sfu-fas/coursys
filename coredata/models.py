@@ -18,6 +18,21 @@ def repo_name(offering, slug):
     name = offering.subject.upper() + offering.number[0:3] + '-' + offering.semester.name + '-' + slug
     return name
 
+VISA_STATUSES = (
+        ('Perm Resid', 'Permanent Resident'),
+        ('Student',    'Student Visa'),          # Student Authorization permitting study in Canada
+        ('Diplomat',   'Diplomat'),              # Reciprocal domestic tuition may be extended to dependents of diplomats from certain countries (not all).
+        ('Min Permit', "Minister's Permit"),
+        ('Other',      'Other Visa'),
+        ('Visitor',    "Visitor's Visa"),        # Does not permit long term study in Canada
+        ('Unknown',    'Not Known'),
+        ('New CDN',    "'New' Canadian citizen"),# Naturalized Canadian citizen whose SFU record previously showed another visa/permit status, such as Permanent Resident.
+        ('Conv Refug', 'Convention Refugee'),
+        ('Refugee',    'Refugee'),               # Refugee (status granted)
+        ('Unknown',    'Non-Canadian, Status Unknown'), # Non-Canadian, Status Unknown (incl refugee claimants)
+        ('No Visa St', 'Non-Canadian, No Visa Status'), # Non-Canadian, No Visa Status (student is studying outside Canada)
+        )
+
 class Person(models.Model):
     """
     A person in the system (students, instuctors, etc.).
