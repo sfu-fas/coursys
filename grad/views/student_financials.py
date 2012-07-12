@@ -3,7 +3,6 @@ from django.shortcuts import get_object_or_404
 from grad.models import GradStudent
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
-from financials import financials
 
 @login_required
 def student_financials(request):
