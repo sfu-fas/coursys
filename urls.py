@@ -391,6 +391,7 @@ urlpatterns += patterns('',
     # Advisor Notes
 
     url(r'^advising/$', 'advisornotes.views.advising'),
+    url(r'^advising/new_notes/$', 'advisornotes.views.rest_notes'),
     url(r'^advising/note_search$', 'advisornotes.views.note_search'),
     url(r'^advising/sims_search$', 'advisornotes.views.sims_search'),
     url(r'^advising/sims_add$', 'advisornotes.views.sims_add_person'),

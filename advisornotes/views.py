@@ -1,18 +1,21 @@
-from django.core.urlresolvers import reverse
-from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse
-from django.contrib import messages
+from advisornotes.forms import AdvisorNoteForm, StudentSearchForm, \
+    NoteSearchForm, NonStudentForm, MergeStudentForm
 from advisornotes.models import AdvisorNote, NonStudent
-from advisornotes.forms import AdvisorNoteForm, StudentSearchForm, NoteSearchForm,\
-    NonStudentForm, MergeStudentForm
 from coredata.models import Person
-from coredata.queries import find_person, add_person, more_personal_info, SIMSProblem
-from courselib.auth import requires_role, HttpResponseRedirect, ForbiddenResponse
-from courselib.search import get_query
-from courselib.search import find_userid_or_emplid
+from coredata.queries import find_person, add_person, more_personal_info, \
+    SIMSProblem
+from courselib.auth import requires_role, HttpResponseRedirect, \
+    ForbiddenResponse
+from courselib.search import find_userid_or_emplid, get_query
+from django.contrib import messages
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.urlresolvers import reverse
+from django.http import HttpResponse, Http404
+from django.shortcuts import render, get_object_or_404
 from log.models import LogEntry
 import json
-from django.core.exceptions import ObjectDoesNotExist
+import rest
+from django.views.decorators.csrf import csrf_exempt
 
 def _redirect_to_notes(student):
     """
@@ -232,3 +235,17 @@ def merge_nonstudent(request, nonstudent_slug):
     else:  
         form = MergeStudentForm()
     return render(request, 'advisornotes/merge_nonstudent.html', {'form': form, 'nonstudent': nonstudent})
+
+@csrf_exempt
+def rest_notes(request):
+    """
+    View to create new advisor notes via RESTful POST (json)
+    """
+    if request.method != 'POST':
+        raise Http404
+    try:
+        rest.new_advisor_notes(request.raw_post_data)
+    except ValidationError as e:
+        return HttpResponse(content=e.messages[0], status=403)
+    return HttpResponse(status=200)
+    
