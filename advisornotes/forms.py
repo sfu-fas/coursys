@@ -1,4 +1,4 @@
-from advisornotes.models import AdvisorNote, NonStudent
+from advisornotes.models import AdvisorNote, NonStudent, ArtifactNote
 from coredata.models import Person
 from django import forms
 from django.forms.models import ModelForm
@@ -8,6 +8,7 @@ from grades.forms import _required_star
 from django.core import validators
 from django.core.exceptions import ValidationError
 
+
 class AdvisorNoteForm(forms.ModelForm):
     class Meta:
         model = AdvisorNote
@@ -15,6 +16,22 @@ class AdvisorNoteForm(forms.ModelForm):
         widgets = {
                 'text': forms.Textarea(attrs={'cols': 80, 'rows': 25})
                 }
+
+
+class ArtifactNoteForm(forms.ModelForm):
+    class Meta:
+        model = ArtifactNote
+        exclude = ('hidden',)
+        widgets = {
+                'text': forms.Textarea(attrs={'cols': 80, 'rows': 25})
+                }
+
+    def clean(self):
+        cleaned_data = super(ArtifactNoteForm, self).clean()
+        if not cleaned_data['course'] and not cleaned_data['course_offering'] and not cleaned_data['artifact']:
+            raise forms.ValidationError("Artifact note must have either course, course offering or artifact specified.")
+        return cleaned_data
+
 
 class StudentSelect(forms.Select):
     input_type = 'text'
@@ -31,40 +48,45 @@ class StudentSelect(forms.Select):
             final_attrs['value'] = force_unicode(value)
         return mark_safe(u'<input%s />' % forms.widgets.flatatt(final_attrs))
 
+
 class StudentField(forms.ModelChoiceField):
     def __init__(self, *args, **kwargs):
         super(StudentField, self).__init__(*args, queryset=Person.objects.none(), widget=StudentSelect(attrs={'size': 30}), help_text="Type to search for a student.", **kwargs)
-    
+
     def to_python(self, value):
         try:
             st = Person.objects.get(emplid=value)
             return st
         except:
             pass
-        
+
         try:
             st = NonStudent.objects.get(slug=value)
         except (ValueError, NonStudent.DoesNotExist):
             raise forms.ValidationError("Could not find person's record.")
 
         return st
-    
+
+
 class StudentSearchForm(forms.Form):
     search = StudentField()
+
 
 class NoteSearchForm(forms.Form):
     search = forms.CharField()
 
+
 class NonStudentForm(ModelForm):
     first_name = forms.CharField(label=mark_safe('First name ' + _required_star))
     last_name = forms.CharField(label=mark_safe('Last name ' + _required_star))
-    
+
     class Meta:
         model = NonStudent
-        exclude=('config', 'notes')
-        
+        exclude = ('config', 'notes')
+
+
 class MergeStudentField(forms.Field):
-    
+
     def to_python(self, value):
         if value in validators.EMPTY_VALUES:
             raise ValidationError(self.error_messages['required'])
@@ -77,11 +99,8 @@ class MergeStudentField(forms.Field):
         except Person.DoesNotExist:
             raise forms.ValidationError("Could not find student record")
         return student
-    
+
+
 class MergeStudentForm(forms.Form):
-    
+
     student = MergeStudentField(label="Student #")
-    
-    
-    
-    

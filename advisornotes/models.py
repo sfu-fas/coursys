@@ -119,8 +119,8 @@ NOTE_CATEGORIES = (
 class ArtifactNote(models.Model):
     course = models.ForeignKey(Course, help_text='The course that the note is about', null=True, blank=True)
     course_offering = models.ForeignKey(CourseOffering, help_text='The course offering that the note is about', null=True, blank=True)
-    artifact = models.TextField(max_length=140, help_text='The artifact that the note is about', null=True, blank=True)
-    status = models.CharField(max_length=3, choices=NOTE_STATUSES)
+    artifact = models.CharField(max_length=140, help_text='The artifact that the note is about', null=True, blank=True)
+    status = models.CharField(max_length=3, choices=NOTE_STATUSES, null=True, blank=True)
     category = models.CharField(max_length=3, choices=NOTE_CATEGORIES)
     text = models.TextField(blank=False, null=False, verbose_name="Contents",
                             help_text='Note about a student')
@@ -152,6 +152,10 @@ class ArtifactNote(models.Model):
         # make sure one of course, course_offering or artifact is there
         if not self.course and not self.course_offering and not self.artifact:
             raise ValueError, "Artifact note must have either course, course offering or artifact specified."
+
+        # make sure only one course, course_offering or artifact is related
+        if (self.course and self.course_offering) or (self.course and self.artifact) or (self.course_offering and self.artifact):
+            raise ValueError, "Artifact cannot have more than one related course, course offering or artifact."
         super(ArtifactNote, self).save(*args, **kwargs)
 
     def attachment_filename(self):

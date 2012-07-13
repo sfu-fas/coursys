@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
-import datetime
 from south.db import db
 from south.v2 import SchemaMigration
-from django.db import models
 
 
 class Migration(SchemaMigration):
@@ -13,8 +11,8 @@ class Migration(SchemaMigration):
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('course', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Course'], null=True, blank=True)),
             ('course_offering', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.CourseOffering'], null=True, blank=True)),
-            ('artifact', self.gf('django.db.models.fields.TextField')(max_length=140, null=True, blank=True)),
-            ('status', self.gf('django.db.models.fields.CharField')(max_length=3)),
+            ('artifact', self.gf('django.db.models.fields.CharField')(max_length=140, null=True, blank=True)),
+            ('status', self.gf('django.db.models.fields.CharField')(max_length=3, null=True, blank=True)),
             ('category', self.gf('django.db.models.fields.CharField')(max_length=3)),
             ('text', self.gf('django.db.models.fields.TextField')()),
             ('advisor', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['coredata.Person'])),
@@ -27,14 +25,12 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal('advisornotes', ['ArtifactNote'])
 
-
         # Changing field 'NonStudent.config'
         db.alter_column('advisornotes_nonstudent', 'config', self.gf('jsonfield.fields.JSONField')())
 
     def backwards(self, orm):
         # Deleting model 'ArtifactNote'
         db.delete_table('advisornotes_artifactnote')
-
 
         # Changing field 'NonStudent.config'
         db.alter_column('advisornotes_nonstudent', 'config', self.gf('jsonfield.JSONField')())
@@ -56,7 +52,7 @@ class Migration(SchemaMigration):
         'advisornotes.artifactnote': {
             'Meta': {'ordering': "['created_at']", 'object_name': 'ArtifactNote'},
             'advisor': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Person']"}),
-            'artifact': ('django.db.models.fields.TextField', [], {'max_length': '140', 'null': 'True', 'blank': 'True'}),
+            'artifact': ('django.db.models.fields.CharField', [], {'max_length': '140', 'null': 'True', 'blank': 'True'}),
             'best_before': ('django.db.models.fields.DateField', [], {}),
             'category': ('django.db.models.fields.CharField', [], {'max_length': '3'}),
             'course': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Course']", 'null': 'True', 'blank': 'True'}),
@@ -66,7 +62,7 @@ class Migration(SchemaMigration):
             'file_mediatype': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
             'hidden': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'db_index': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'status': ('django.db.models.fields.CharField', [], {'max_length': '3'}),
+            'status': ('django.db.models.fields.CharField', [], {'max_length': '3', 'null': 'True', 'blank': 'True'}),
             'text': ('django.db.models.fields.TextField', [], {}),
             'unit': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['coredata.Unit']"})
         },

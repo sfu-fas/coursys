@@ -1,5 +1,5 @@
 from advisornotes.forms import AdvisorNoteForm, StudentSearchForm, \
-    NoteSearchForm, NonStudentForm, MergeStudentForm
+    NoteSearchForm, NonStudentForm, MergeStudentForm, ArtifactNoteForm
 from advisornotes.models import AdvisorNote, NonStudent
 from coredata.models import Person
 from coredata.queries import find_person, add_person, more_personal_info, \
@@ -17,6 +17,7 @@ import json
 import rest
 from django.views.decorators.csrf import csrf_exempt
 
+
 def _redirect_to_notes(student):
     """
     Not all students have an active computing account: use userid if we can, or emplid if not.
@@ -24,10 +25,11 @@ def _redirect_to_notes(student):
     if type(student) is Person:
         if student.userid:
             return HttpResponseRedirect(reverse('advisornotes.views.student_notes', kwargs={'userid': student.userid}))
-        else:        
+        else:
             return HttpResponseRedirect(reverse('advisornotes.views.student_notes', kwargs={'userid': student.emplid}))
     else:
         return HttpResponseRedirect(reverse('advisornotes.views.student_notes', kwargs={'nonstudent_slug': student.slug}))
+
 
 @requires_role('ADVS')
 def advising(request):
@@ -46,6 +48,7 @@ def advising(request):
     note_form = NoteSearchForm()
     context = {'form': form, 'note_form': note_form}
     return render(request, 'advisornotes/student_search.html', context)
+
 
 @requires_role('ADVS')
 def note_search(request):
@@ -74,13 +77,14 @@ def sims_search(request):
         except ValueError:
             # not an integer, so not an emplid to search for
             data = None
-    
+
     if not data:
         data = {'error': 'could not find person in SIMS database'}
 
     response = HttpResponse(mimetype='application/json')
     json.dump(data, response)
     return response
+
 
 @requires_role('ADVS')
 def sims_add_person(request):
@@ -98,10 +102,10 @@ def sims_add_person(request):
                        description=("added %s (%s) from SIMS") % (p.name(), p.emplid),
                       related_object=p)
                 l.save()
-                messages.add_message(request, messages.SUCCESS, 'Record for %s created.' % (p.name()) )
+                messages.add_message(request, messages.SUCCESS, 'Record for %s created.' % (p.name()))
                 return _redirect_to_notes(p)
-    
-    return HttpResponseRedirect(reverse('advisornotes.views.advising', kwargs={}))        
+
+    return HttpResponseRedirect(reverse('advisornotes.views.advising', kwargs={}))
 
 
 @requires_role('ADVS')
@@ -125,34 +129,74 @@ def new_note(request, userid):
 
             if 'file_attachment' in request.FILES:
                 upfile = request.FILES['file_attachment']
-                note.file_mediatype= upfile.content_type
+                note.file_mediatype = upfile.content_type
                 messages.add_message(request, messages.SUCCESS, 'Created file attachment "%s".' % (upfile.name))
-                
+
             note.save()
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
                   description=("new note for %s by %s") % (form.instance.student, request.user.username),
                   related_object=form.instance)
             l.save()
-            messages.add_message(request, messages.SUCCESS, 'Note created.' )
+            messages.add_message(request, messages.SUCCESS, 'Note created.')
             return _redirect_to_notes(student)
     else:
-        form = AdvisorNoteForm(initial={'student': student })
+        form = AdvisorNoteForm(initial={'student': student})
         form.fields['unit'].choices = unit_choices
-    return render(request, 'advisornotes/new_note.html', {'form': form, 'student':student, 'userid': userid} )
+    return render(request, 'advisornotes/new_note.html', {'form': form, 'student': student, 'userid': userid})
+
+
+@requires_role('ADVS')
+def new_artifact_note(request):
+    unit_choices = [(u.id, unicode(u)) for u in request.units]
+
+    if request.method == 'POST':
+        form = ArtifactNoteForm(request.POST, request.FILES)
+        form.fields['unit'].choices = unit_choices
+        if form.is_valid():
+            note = form.save(commit=False)
+            note.advisor = Person.objects.get(userid=request.user.username)
+
+            if 'file_attachment' in request.FILES:
+                upfile = request.FILES['file_attachment']
+                note.file_mediatype = upfile.content_type
+                messages.add_message(request, messages.SUCCESS, 'Created file attachment "%s".' % (upfile.name))
+
+            note.save()
+
+            if note.course:
+                artifact = note.course
+            elif note.course_offering:
+                artifact = note.course_offering
+            else:
+                artifact = note.artifact
+
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("new note for %s by %s") % (artifact, request.user.username),
+                  related_object=form.instance)
+            l.save()
+            messages.add_message(request, messages.SUCCESS, 'Note created.')
+            return HttpResponseRedirect(reverse('advisornotes.views.advising', kwargs={}))
+    else:
+        form = ArtifactNoteForm(initial={})
+        form.fields['unit'].choices = unit_choices
+
+    return render(request, 'advisornotes/new_artifact_note.html', {'form': form})
+
 
 @requires_role('ADVS')
 def student_notes(request, userid):
-    
+
     try:
         student = Person.objects.get(find_userid_or_emplid(userid))
     except ObjectDoesNotExist:
         student = get_object_or_404(NonStudent, slug=userid)
-    
+
     if request.POST and 'note_id' in request.POST:
         # the "hide note" box was checked: process
         note = get_object_or_404(AdvisorNote, pk=request.POST['note_id'], unit__in=request.units)
-        note.hidden = request.POST['hide']=="yes"
+        note.hidden = request.POST['hide'] == "yes"
         note.save()
 
     if isinstance(student, Person):
@@ -161,8 +205,9 @@ def student_notes(request, userid):
     else:
         notes = AdvisorNote.objects.filter(nonstudent=student, unit__in=request.units).order_by("-created_at")
         nonstudent = True
-        
+
     return render(request, 'advisornotes/student_notes.html', {'notes': notes, 'student' : student, 'userid': userid, 'nonstudent': nonstudent})
+
 
 @requires_role('ADVS')
 def download_file(request, userid, note_id):
@@ -171,6 +216,7 @@ def download_file(request, userid, note_id):
     resp = HttpResponse(note.file_attachment, mimetype=note.file_mediatype)
     resp['Content-Disposition'] = 'inline; filename=' + note.attachment_filename()
     return resp
+
 
 @requires_role('ADVS')
 def student_more_info(request, userid):
@@ -182,10 +228,11 @@ def student_more_info(request, userid):
         data = more_personal_info(student.emplid)
     except SIMSProblem as e:
         data = {'error': e.message}
-    
+
     response = HttpResponse(mimetype='application/json')
     json.dump(data, response)
     return response
+
 
 @requires_role('ADVS')
 def new_nonstudent(request):
@@ -204,13 +251,14 @@ def new_nonstudent(request):
         form.fields['unit'].choices = unit_choices
     return render(request, 'advisornotes/new_nonstudent.html', {'form': form})
 
+
 @requires_role('ADVS')
 def merge_nonstudent(request, nonstudent_slug):
     """
     Merge a nonstudent with an existing student
     """
     nonstudent = get_object_or_404(NonStudent, slug=nonstudent_slug)
-    
+
     if request.method == 'POST':
         form = MergeStudentForm(request.POST)
         if form.is_valid():
@@ -230,11 +278,12 @@ def merge_nonstudent(request, nonstudent_slug):
                   description=("Nonstudent (%s, %s) has been merged with emplid #%s by %s") % (nonstudent.last_name, nonstudent.first_name, student.emplid, request.user),
                   related_object=student)
             l.save()
-            messages.add_message(request, messages.SUCCESS, 'Advisor notes successfully merged.' )
+            messages.add_message(request, messages.SUCCESS, 'Advisor notes successfully merged.')
             return _redirect_to_notes(student)
-    else:  
+    else:
         form = MergeStudentForm()
     return render(request, 'advisornotes/merge_nonstudent.html', {'form': form, 'nonstudent': nonstudent})
+
 
 @csrf_exempt
 def rest_notes(request):
@@ -248,4 +297,3 @@ def rest_notes(request):
     except ValidationError as e:
         return HttpResponse(content=e.messages[0], status=403)
     return HttpResponse(status=200)
-    
