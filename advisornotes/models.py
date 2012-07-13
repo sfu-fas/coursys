@@ -2,23 +2,25 @@ from django.db import models
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from autoslug import AutoSlugField
-from coredata.models import Person, Unit
+from coredata.models import Person, Unit, Course, CourseOffering
 from jsonfield import JSONField
-from courselib.json_fields import getter_setter
 from courselib.slugs import make_slug
-import datetime, os.path
+import datetime
+import os.path
 
 NoteSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
+
 def attachment_upload_to(instance, filename):
     """
-    callback to avoid path in the filename(that we have append folder structure to) being striped 
+    callback to avoid path in the filename(that we have append folder structure to) being striped
     """
     fullpath = os.path.join(
             'advisornotes',
             datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.advisor.userid),
             filename.encode('ascii', 'ignore'))
     return fullpath
+
 
 class NonStudent(models.Model):
     """
@@ -31,15 +33,16 @@ class NonStudent(models.Model):
     high_school = models.CharField(max_length=32, null=True, blank=True)
     notes = models.TextField(help_text="Any general information for the student", blank=True)
     unit = models.ForeignKey(Unit, help_text='The potential academic unit for the student', null=True, blank=True)
+
     def autoslug(self):
         return make_slug(self.first_name + ' ' + self.last_name)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
 
-    config = JSONField(null=False, blank=False, default={}) # addition configuration stuff:
-    
+    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+
     def __unicode__(self):
         return "%s, %s" % (self.last_name, self.first_name)
-    
+
     def name(self):
         return "%s %s" % (self.first_name, self.last_name)
 
@@ -47,11 +50,12 @@ class NonStudent(models.Model):
         return "%s (Prospective)" % (self.name())
 
     def __hash__(self):
-        return (self.first_name, self.middle_name, self.last_name, self.pref_first_name, self.high_school).__hash__() 
-        
+        return (self.first_name, self.middle_name, self.last_name, self.pref_first_name, self.high_school).__hash__()
+
+
 class AdvisorNote(models.Model):
     """
-    An academic advisor's note about a student. 
+    An academic advisor's note about a student.
     """
     text = models.TextField(blank=False, null=False, verbose_name="Contents",
                             help_text='Note about a student')
@@ -64,19 +68,22 @@ class AdvisorNote(models.Model):
                                 help_text='The advisor that created the note',
                                 editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    file_attachment = models.FileField(storage=NoteSystemStorage, null=True, 
+    file_attachment = models.FileField(storage=NoteSystemStorage, null=True,
                       upload_to=attachment_upload_to, blank=True, max_length=500)
-    file_mediatype = models.CharField(null=True, blank=True, max_length=200, editable = False)
+    file_mediatype = models.CharField(null=True, blank=True, max_length=200, editable=False)
     unit = models.ForeignKey(Unit, help_text='The academic unit that owns this note')
     # Set this flag if the note is no longer to be accessible.
     hidden = models.BooleanField(null=False, db_index=True, default=False)
 
-    def __unicode__(self):        
+    def __unicode__(self):
         return unicode(self.student) + "@" + unicode(self.created_at)
+
     def delete(self, *args, **kwargs):
         raise NotImplementedError, "This object cannot be deleted, set the hidden flag instead."
+
     class Meta:
         ordering = ['student', 'created_at']
+
     def save(self, *args, **kwargs):
         # make sure one of student and nonstudent is there
         if not self.student and not self.nonstudent:
@@ -93,3 +100,66 @@ class AdvisorNote(models.Model):
     def __hash__(self):
         return (self.text, self.created_at, self.file_attachment).__hash__()
 
+
+NOTE_STATUSES = (
+    #("HID", "Hidden"),
+    ("IMP", "Important"),
+    ("EXP", "Expired")
+)
+
+NOTE_CATEGORIES = (
+    ("EXC", "Exception"),
+    ("WAI", "Waiver"),
+    ("REQ", "Requirement"),
+    ("TRA", "Transfers"),
+    ("MIS", "Miscellaneous")
+)
+
+
+class ArtifactNote(models.Model):
+    course = models.ForeignKey(Course, help_text='The course that the note is about', null=True, blank=True)
+    course_offering = models.ForeignKey(CourseOffering, help_text='The course offering that the note is about', null=True, blank=True)
+    artifact = models.TextField(max_length=140, help_text='The artifact that the note is about', null=True, blank=True)
+    status = models.CharField(max_length=3, choices=NOTE_STATUSES)
+    category = models.CharField(max_length=3, choices=NOTE_CATEGORIES)
+    text = models.TextField(blank=False, null=False, verbose_name="Contents",
+                            help_text='Note about a student')
+    advisor = models.ForeignKey(Person, help_text='The advisor that created the note', editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    best_before = models.DateField(help_text='The effective date for this note')
+    file_attachment = models.FileField(storage=NoteSystemStorage, null=True,
+                      upload_to=attachment_upload_to, blank=True, max_length=500)
+    file_mediatype = models.CharField(null=True, blank=True, max_length=200, editable=False)
+    unit = models.ForeignKey(Unit, help_text='The academic unit that owns this note')
+    # Set this flag if the note is no longer to be accessible.
+    hidden = models.BooleanField(null=False, db_index=True, default=False)
+
+    def __unicode__(self):
+        if self.course:
+            return unicode(self.course) + "@" + unicode(self.created_at)
+        elif self.course_offering:
+            return unicode(self.course_offering) + "@" + unicode(self.created_at)
+        else:
+            return unicode(self.artifact) + "@" + unicode(self.created_at)
+
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted, set the hidden flag instead."
+
+    class Meta:
+        ordering = ['created_at']
+
+    def save(self, *args, **kwargs):
+        # make sure one of course, course_offering or artifact is there
+        if not self.course and not self.course_offering and not self.artifact:
+            raise ValueError, "Artifact note must have either course, course offering or artifact specified."
+        super(ArtifactNote, self).save(*args, **kwargs)
+
+    def attachment_filename(self):
+        """
+        Return the filename only (no path) for the attachment.
+        """
+        _, filename = os.path.split(self.file_attachment.name)
+        return filename
+
+    def __hash__(self):
+        return (self.text, self.created_at, self.file_attachment).__hash__()
