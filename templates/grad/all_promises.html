@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load floatsortable %}
+
+{% block headextra %}
+<script type="text/javascript">
+	$(document).ready(function() {
+		$('#promises').dataTable({
+			"bJQueryUI" : true,
+			"aaSorting" : [[4, "desc"]],
+			"bPaginate": false,
+		});
+	});
+
+</script>
+{% endblock %}
+
+{% block title %}Promises Ending In {{semester.label}}{% endblock %}
+{% block h1 %}Promises Ending In {{semester.label}}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
+<li>&gt; Promises ending {{semester.label}}</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+<h2 class="heading">Actions</h2>
+<ul>
+{% if semester.previous_semester %}
+<li><a href="{% url grad.views.all_promises semester_name=semester.previous_semester.name %}">Previous Semester</a></li>
+{% endif %}
+{% if semester.next_semester %}
+<li><a href="{% url grad.views.all_promises semester_name=semester.next_semester.name %}">Next Semester</a></li>
+{% endif %}
+</ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="datatable_container">
+	<table class="display" id="promises">
+		<thead>
+			<tr>
+            <th scope="col">Student</th>
+            <th scope="col">Status</th>
+            <th scope="col">Promised</th>
+            <th scope="col">Received</th>
+            <th scope="col">Short</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for p in promises %}
+            <tr>
+            <td scope="row">
+            <a href="{% url grad.views.financials grad_slug=p.student.slug %}">{{p.student.person.sortname}}</a>
+            </td>
+            <td>{{p.student.get_current_status_display}}</td>
+            <td class="num"><span class="sort">{{p.amount|floatsortable}}</span>${{p.amount|floatformat:"2"}}</td>
+            <td class="num"><span class="sort">{{p.received|floatsortable}}</span>${{p.received|floatformat:"2"}}</td>
+            <td class="num"><span class="sort">{{p.short|floatsortable}}</span>${{p.short|floatformat:"2"}}</td>
+            </tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% endblock %} 

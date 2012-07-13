@@ -6,7 +6,7 @@ from courselib.json_fields import getter_setter
 from django.template.defaultfilters import capfirst
 from jsonfield import JSONField
 from pages.models import _normalize_newlines
-import re
+import re, itertools
 many_newlines = re.compile(r'\n{3,}')
 
 class GradProgram(models.Model):
@@ -339,7 +339,8 @@ class GradStudent(models.Model):
             
             sem = schol.start_semester
             while sem <= schol.end_semester:
-                semesters[sem]['scholarship'].append(schol)
+                if sem in semesters:
+                    semesters[sem]['scholarship'].append(schol)
                 sem = sem.next_semester()
         
         # other funding
@@ -659,10 +660,37 @@ class Promise(models.Model):
 
     def contributions_to(self):
         """
-        Find all funding that contributes to fulfilling this promise.
+        Find all funding that contributes to fulfilling this promise (includes ineligible ones)
         """
-        # TODO: filter out inelligible scholarships/other
-        return self.student.financials_from(start=self.start_semester, end=self.end_semester)
+        # cache so we don't recalculate
+        if not hasattr(self, '_contributions_cache'):
+            self._contributions_cache = self.student.financials_from(start=self.start_semester, end=self.end_semester)
+        return self._contributions_cache
+
+    def received(self):
+        """
+        Amount actually received towards this promise
+        """
+        # cache so we don't recalculate
+        if not hasattr(self, '_received_cache'):
+            funding = self.contributions_to()
+            funding_values = itertools.chain(*(
+                        (
+                            f.semvalue for f in itertools.chain(*               # value of each element
+                                (funding[sem][ftype] for ftype in funding[sem]) # all funding elements
+                            ) if f.promiseeligible
+                        )
+                        for sem in funding
+                    ))
+            self._received_cache = sum(funding_values)
+        return self._received_cache
+
+    def short(self):
+        """
+        How much are we short on this promise?
+        """
+        return self.amount - self.received()
+
 
 class SavedSearch(models.Model):
     person = models.ForeignKey(Person, null=True)

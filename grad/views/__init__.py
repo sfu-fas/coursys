@@ -3,6 +3,7 @@ from quick_search import quick_search
 from not_found import not_found
 #from view_all import view_all
 from supervisor_index import supervisor_index
+from all_promises import all_promises
 from view import view
 from grad_more_info import grad_more_info
 from manage_supervisors import manage_supervisors
