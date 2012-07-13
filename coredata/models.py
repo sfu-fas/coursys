@@ -1,5 +1,6 @@
 from django.db import models
 from autoslug import AutoSlugField
+from courselib.slugs import make_slug
 #from timezones.fields import TimeZoneField
 from django.conf import settings
 import datetime, urlparse, decimal

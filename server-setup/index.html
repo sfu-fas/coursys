@@ -32,11 +32,7 @@ code.file {
 <dt>Additional packages installed</dt>
   <dd>Like this:
   <blockquote><pre>dpkg --purge apache2.2-bin apache2.2-common apache2-utils apache2 apache2-mpm-worker apache2.2-common
-apt-get install nginx python-flup subversion python-mysqldb mysql-client-5.1 python-tz memcached python-memcache stunnel4 postfix ntp python-setuptools</pre></blockquote></dd>
-<dt>Django Package</dt>
-  <dd>System requires Django &ge;1.3, so newer package was downloaded separately from <a href="http://packages.ubuntu.com/search?keywords=python-django&amp;searchon=names&amp;suite=all&amp;section=all">Ubuntu package repository</a>.
-  <blockquote><pre>dpkg -i python-django_1.3-2_all.deb</pre></blockquote>
-  </dd>
+apt-get install nginx python-flup subversion python-mysqldb mysql-client-5.1 memcached python-memcache stunnel4 postfix ntp python-setuptools python-dev libxslt1-dev</pre></blockquote></dd>
 <dt>Memcached</dt>
   <dd>In <code class="file">/etc/memcached.conf</code>, change the port to 22122.</dd>
 <dt>Mail Server</dt>
@@ -105,8 +101,13 @@ chmod 0711 ~</pre>
   <p>But somebody following these instructions: <strong>check the Subversion URL</strong>!  Stable tags are created when serious development is going on&mdash;that might be the right one to use.</p>
   <p>The only necessary change to the code is setting the database password in <code class="file">settings.py</code>.</p>
   </dd>
-<dt>VirtualEnv</dt>
-  <dd>Per the <a href="http://ubuntuforums.org/showthread.php?t=1751455">bug here</a>, there's a hack needed to build PIL in the virtualenv:
+<dt>PIP Libraries</dt>
+  <dd>To install the various libraries required by the system:
+  <blockquote><pre>sudo pip install -r build_deps/working_deps.txt
+sudo pip install PIL</pre></blockquote>
+  </dd>
+<dt><del>VirtualEnv</del></dt>
+  <dd><del>Per the <a href="http://ubuntuforums.org/showthread.php?t=1751455">bug here</a>, there's a hack needed to build PIL in the virtualenv:</del> [Not using a VirtualEnv on the server, but preserving this for those using one  for devel.]
   <blockquote><pre>sudo ln -s /usr/lib/x86_64-linux-gnu/libfreetype.so /usr/lib/
 sudo ln -s /usr/lib/x86_64-linux-gnu/libz.so /usr/lib/
 sudo ln -s /usr/lib/x86_64-linux-gnu/libjpeg.so /usr/lib/</pre></blockquote>

@@ -265,7 +265,7 @@ class TAPosting(models.Model):
         """
         BUs already assigned to this course
         """
-        total = 0.00
+        total = decimal.Decimal(0)
         tacourses = TACourse.objects.filter(contract__posting=self, course=offering).exclude(contract__status__in=['REJ', 'CAN'])
         if(tacourses.count() > 0):
             total = tacourses.aggregate(Sum('bu'))['bu__sum']
