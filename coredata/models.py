@@ -380,6 +380,9 @@ class Course(models.Model):
         help_text='Course number, like "120" or "XX1".')
     title = models.CharField(max_length=30, help_text='The course title.')
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
+    def autoslug(self):
+        return make_slug(self.subject + '-' + self.number)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
     
     class Meta:
         unique_together = (('subject', 'number'),)
