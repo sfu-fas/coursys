@@ -12,7 +12,7 @@ from coredata.models import Role
 
 @requires_role("GRAD")
 def new_letter(request, grad_slug):
-    grad = get_object_or_404(GradStudent, slug=grad_slug)
+    grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     templates = LetterTemplate.objects.filter(unit=grad.program.unit)
     from_choices = [('', u'\u2014')] + [(r.person.id, "%s, %s" % (r.person.name(), r.get_role_display()))
                                         for r in Role.objects.filter(unit=grad.program.unit)]

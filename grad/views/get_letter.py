@@ -5,8 +5,8 @@ from django.http import HttpResponse
 from dashboard.letters import OfficialLetter, LetterContents
 
 @requires_role("GRAD")
-def get_letter(request, letter_slug):
-    letter = get_object_or_404(Letter, slug=letter_slug, student__program__unit__in=request.units)
+def get_letter(request, grad_slug, letter_slug):
+    letter = get_object_or_404(Letter, slug=letter_slug, student__slug=grad_slug, student__program__unit__in=request.units)
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename=%s.pdf' % (letter_slug)
 

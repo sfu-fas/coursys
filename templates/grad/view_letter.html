@@ -8,7 +8,7 @@
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
-<li>&gt; <a href="{% url grad.views.view grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li>&gt; <a href="{% url grad.views.view grad_slug=grad.slug %}">{{grad.person.name}}, {{grad.program.label}}</a></li>
 <li>&gt; <a href="{% url grad.views.view_all_letters grad_slug=grad.slug%}">Letters</a></li>
 <li>&gt; {{letter.template.label}}, {{letter.date}}</li>
 {% endblock %}
@@ -82,7 +82,7 @@
 		</div>
 	</fieldset>
 	<div style="float:right; padding-right: 10px;">
-		<a class="button" href="{% url grad.views.get_letter letter_slug=letter.slug %}">Get PDF</a>
+		<a class="button" href="{% url grad.views.get_letter grad_slug=grad.slug letter_slug=letter.slug %}">Get PDF</a>
 		<br />
 	</div>
 </div>

@@ -2,8 +2,8 @@ from django.test import TestCase
 from django.test.client import Client
 from settings import CAS_SERVER_URL
 from django.core.urlresolvers import reverse
-import json
-from grad.models import GradStudent, GradRequirement, GradProgram
+import json, datetime
+from grad.models import GradStudent, GradRequirement, GradProgram, Letter, LetterTemplate
 from courselib.testing import basic_page_tests
 
 
@@ -131,4 +131,28 @@ class GradTest(TestCase):
                 print "with view==" + repr(view)
                 raise
         
-        # TODO: create a letter and view that
+    def test_grad_letters(self):
+        """
+        Check handling of letters for grad students
+        """
+        client = Client()
+        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        gs = GradStudent.objects.get(person__userid='0nnngrad')
+
+        # get template text and make sure substitutions are made
+        lt = LetterTemplate.objects.get(label="Funding")
+        url = reverse('grad.views.get_letter_text', kwargs={'grad_slug': gs.slug, 'letter_template_id': lt.id})
+        response = client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'M Grad is making satisfactory progress')
+        content = unicode(response.content)
+        
+        # create a letter with that content
+        l = Letter(student=gs, date=datetime.date.today(), to_lines="The Student\nSFU", template=lt, created_by='ggbaker', content=content)
+        l.save()
+        url = reverse('grad.views.view_letter', kwargs={'grad_slug': gs.slug, 'letter_slug': l.slug})
+        response = basic_page_tests(self, client, url)
+        self.assertEqual(response.status_code, 200)
+        
+        
+        

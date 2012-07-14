@@ -14,7 +14,7 @@ from courselib.auth import requires_course_staff_by_slug, NotFoundResponse
 from courselib.search import find_userid_or_emplid
 from dashboard.models import NewsItem, UserConfig, Signature, new_feed_token
 from dashboard.forms import MessageForm, FeedSetupForm, NewsConfigForm, SignatureForm
-from grad.models import GradStudent, Supervisor
+from grad.models import GradStudent, Supervisor, STATUS_ACTIVE
 from log.models import LogEntry
 import datetime, json, urlparse
 from courselib.auth import requires_role
@@ -52,7 +52,7 @@ def index(request):
     staff_memberships = [m for m in memberships if m.role in ['INST', 'TA', 'APPR']] # for docs link
     news_list = _get_news_list(userid, 5)
     roles = Role.all_roles(userid)
-    is_grad = GradStudent.objects.filter(person__userid=userid).count()>0
+    is_grad = GradStudent.objects.filter(person__userid=userid, current_status__in=STATUS_ACTIVE).count()>0
     
     context = {'memberships': memberships, 'staff_memberships': staff_memberships, 'news_list': news_list, 'roles': roles, 'is_grad':is_grad}
     return render(request, "dashboard/index.html", context)

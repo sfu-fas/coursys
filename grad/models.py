@@ -602,7 +602,9 @@ class Letter(models.Model):
     def __unicode__(self):
         return u"%s letter for %s" % (self.template.label, self.student)
     def save(self, *args, **kwargs):
-        # normalize letter text so it's easy to work with
+        # normalize text so it's easy to work with
+        self.to_lines = _normalize_newlines(self.to_lines.rstrip())
+        self.from_lines = _normalize_newlines(self.from_lines.rstrip())
         self.content = _normalize_newlines(self.content.rstrip())
         self.content = many_newlines.sub('\n\n', self.content)
         super(Letter, self).save(*args, **kwargs)
