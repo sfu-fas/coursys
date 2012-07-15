@@ -31,6 +31,7 @@ from get_letter_text import get_letter_text
 from get_addresses import get_addresses
 from get_letter import get_letter
 from view_letter import view_letter
+from copy_letter import copy_letter
 from search import search
 #from search_results import search_results
 from save_search import save_search

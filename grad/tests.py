@@ -153,6 +153,10 @@ class GradTest(TestCase):
         url = reverse('grad.views.view_letter', kwargs={'grad_slug': gs.slug, 'letter_slug': l.slug})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
+
+        url = reverse('grad.views.copy_letter', kwargs={'grad_slug': gs.slug, 'letter_slug': l.slug})
+        response = basic_page_tests(self, client, url)
+        self.assertEqual(response.status_code, 200)
         
         
         

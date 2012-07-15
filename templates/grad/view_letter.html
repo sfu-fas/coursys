@@ -12,6 +12,16 @@
 <li>&gt; <a href="{% url grad.views.view_all_letters grad_slug=grad.slug%}">Letters</a></li>
 <li>&gt; {{letter.template.label}}, {{letter.date}}</li>
 {% endblock %}
+
+{% block actions %}
+<div id="actions">
+<h2>Actions</h2>
+<ul>
+<li><a href="{% url grad.views.get_letter grad_slug=grad.slug letter_slug=letter.slug %}">Get PDF</a></li>
+</ul>
+</div>
+{% endblock %}
+
 {% block content %}
 <div id="form_container">
 	<fieldset>
@@ -81,9 +91,5 @@
 			</dl>
 		</div>
 	</fieldset>
-	<div style="float:right; padding-right: 10px;">
-		<a class="button" href="{% url grad.views.get_letter grad_slug=grad.slug letter_slug=letter.slug %}">Get PDF</a>
-		<br />
-	</div>
 </div>
 {% endblock %} 

@@ -3,14 +3,14 @@
 {% load mobile_tags %}
 {% load form_display %}
 
-{% block title %}New Letter for {{grad.person.last_name}}, {{grad.person.first_name}}{% endblock %}
-{% block h1 %}New Letter for {{grad.person.last_name}}, {{grad.person.first_name}}{% endblock %}
+{% block title %}Copy Letter for {{grad.person.name}}{% endblock %}
+{% block h1 %}Copy Letter for {{grad.person.name}}{% endblock %}
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
 <li>&gt; <a href="{% url grad.views.view grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
 <li>&gt; <a href="{% url grad.views.view_all_letters grad_slug=grad.slug%}">Letters</a></li>
-<li>&gt; New</li>
+<li>&gt; Copy</li>
 {% endblock %}
 {% block headextra %}
 <script type="text/javascript" src="{{MEDIA_URL}}js/grad.js"></script>
@@ -23,7 +23,6 @@
 	};
 
 	$(document).ready(function() {
-		$('#id_content').attr("disabled", "disabled");
 		$("#id_date").datepicker({
 			'dateFormat' : 'yy-mm-dd'
 		});
@@ -68,14 +67,10 @@
 				<dd>
 					<div class="field">
 						<select name="template" id="id_template">
-							<option value="0"> --- Pick an existing template --- </option>
-							{% for t in templates%} <option value="{{t.id}}">{{t.label}}</option>
+							{% for t in templates%}<option value="{{t.id}}"{% if letter.template_id == t.id %} selected="selected"{% endif %}>{{t.label}}</option>
 							{% endfor %}
 						</select>
 						{{form.template.errors}}
-						<div style="color: red; font-weight: normal; float: right; margin-right: 200px;" id="content_note">
-						Please select a template.
-					</div>
 					</div>
 
 				</dd>

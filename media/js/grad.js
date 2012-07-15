@@ -167,3 +167,67 @@ function display_sections() {
 	
 	update_links();
 }
+
+
+	function getData(url) {
+		$.ajax({
+			type : "GET",
+			url : url,
+			success : function(data) {
+				$("#id_content").append(data);
+			}
+		})
+	}
+
+	function update_from_lines() {
+        if ($('#id_from_person').val() == '' ) {
+            $("#id_from_lines").val('');
+        } else { 
+            var label = $("#id_from_person option:selected").text();
+            var lines = label.split(", ");
+            var from = lines.join("\r\n");
+            $("#id_from_lines").val(from);
+        }
+	}
+
+	var address_map = {};
+	function update_to_lines() {
+		var label = $("#id_address").val();
+		$("#id_to_lines").val(address_map[label]);
+	}
+
+	function get_addresses(url) {
+		// insert widget into form
+		var prev = $('#id_date').parent().parent();
+		var element = '<dt><label for="id_address">Addresses:</label></dt><dd><div class="field">';
+		element += '<select id="id_address"><option value="none">&mdash;</option></select>';
+		element += '<img src="/media/icons/ajax-loader.gif" alt="..." id="fetchwait" /></div>';
+		element += '<div class="helptext">Known addresses for the student</div></dd>';
+		prev.after(element)
+		var id = $('#id_student').val();
+		$.ajax({
+			type : 'GET',
+			url : url + '?id=' + id,
+			error : function(data) {
+				$("#fetchwait").hide();
+			},
+			success : function(data) {
+				if(data.error !== undefined) {
+					$("#fetchwait").after(' <span class="empty">Error: ' + data.error + '</span>');
+					$("#fetchwait").hide();
+				}
+				if(data.addresses.mail !== undefined) {
+					addr = data.addresses.mail;
+					address_map['mail'] = addr;
+					$("#id_address").append('<option value="mail">Mailing address: ' + addr.split('\n').join(', ') + '</option>')
+				}
+				if(data.addresses.home !== undefined) {
+					addr = data.addresses.home;
+					address_map['home'] = addr;
+					$("#id_address").append('<option value="home">Home address: ' + addr.split('\n').join(', ') + '</option>')
+				}
+				$("#fetchwait").hide();
+				$("#id_address").change(update_to_lines);
+			}
+		});
+	}

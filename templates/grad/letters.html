@@ -56,7 +56,9 @@
 				<td>{{s.template.label}}</td>
 				<td>{{s.created_at}}</td>
 				<td><a href="{% url grad.views.get_letter grad_slug=grad.slug letter_slug=s.slug %}">Get PDF</a>
-					| <a href="{% url grad.views.view_letter grad_slug=grad.slug letter_slug=s.slug %}">View Body</a></td>
+					| <a href="{% url grad.views.view_letter grad_slug=grad.slug letter_slug=s.slug %}">View Body</a>
+					| <a href="{% url grad.views.copy_letter grad_slug=grad.slug letter_slug=s.slug %}">Copy Letter</a>
+				</td>
 			</tr>
 			{% endfor %}
 		</tbody>
