@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}Course Offerings{% endblock %}
+{% block h1 %}Course Offerings{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(function() {
+  $('.display').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': true,
+    "bJQueryUI": true
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li>
+<li>&gt; Courses</li>
+{% endblock %}
+
+{% block content %}
+
+{% if offerings %}
+<table class="display courses">
+    <thead>
+        <tr>
+            <th class="semester"><abbr title="Semester">Sem.</abbr></th>
+            <th class="subject"><abbr title="Course Subject">Sub.</abbr></th>
+            <th class="number"><abbr title="Course Number">#</abbr></th>
+            <th class="section"><abbr title="Section">Sec.</abbr></th>
+            <th class="component"><abbr title="Component">Comp.</abbr></th>
+            <th class="title">Title</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for offering in offerings %}
+        <tr>
+            <td>{{ offering.semester.name }}</td>
+            <td>{{ offering.subject }}</td>
+            <td>{{ offering.number }}</td>
+            <td>{{ offering.section }}</td>
+            <td>{{ offering.get_component_display }}</td>
+            <td>{{ offering.title }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+{% endblock %}

@@ -1,4 +1,4 @@
-from advisornotes.models import AdvisorNote, NonStudent, ArtifactNote
+from advisornotes.models import AdvisorNote, NonStudent, ArtifactNote, Artifact
 from coredata.models import Person
 from django import forms
 from django.forms.models import ModelForm
@@ -83,6 +83,12 @@ class NonStudentForm(ModelForm):
     class Meta:
         model = NonStudent
         exclude = ('config', 'notes')
+
+
+class ArtifactForm(forms.ModelForm):
+    class Meta:
+        model = Artifact
+        exclude = ('config')
 
 
 class MergeStudentField(forms.Field):

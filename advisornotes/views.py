@@ -1,7 +1,8 @@
 from advisornotes.forms import AdvisorNoteForm, StudentSearchForm, \
-    NoteSearchForm, NonStudentForm, MergeStudentForm, ArtifactNoteForm
-from advisornotes.models import AdvisorNote, NonStudent
-from coredata.models import Person
+    NoteSearchForm, NonStudentForm, MergeStudentForm, ArtifactNoteForm, \
+    ArtifactForm
+from advisornotes.models import AdvisorNote, NonStudent, Artifact
+from coredata.models import Person, Course, CourseOffering
 from coredata.queries import find_person, add_person, more_personal_info, \
     SIMSProblem
 from courselib.auth import requires_role, HttpResponseRedirect, \
@@ -206,7 +207,7 @@ def student_notes(request, userid):
         notes = AdvisorNote.objects.filter(nonstudent=student, unit__in=request.units).order_by("-created_at")
         nonstudent = True
 
-    return render(request, 'advisornotes/student_notes.html', {'notes': notes, 'student' : student, 'userid': userid, 'nonstudent': nonstudent})
+    return render(request, 'advisornotes/student_notes.html', {'notes': notes, 'student': student, 'userid': userid, 'nonstudent': nonstudent})
 
 
 @requires_role('ADVS')
@@ -250,6 +251,93 @@ def new_nonstudent(request):
         form = NonStudentForm()
         form.fields['unit'].choices = unit_choices
     return render(request, 'advisornotes/new_nonstudent.html', {'form': form})
+
+
+@requires_role('ADVS')
+def new_artifact(request):
+    """
+    View to create a new artifact
+    """
+    unit_choices = [(u.id, unicode(u)) for u in request.units]
+    if request.POST:
+        form = ArtifactForm(request.POST)
+        form.fields['unit'].choices = unit_choices
+        if form.is_valid():
+            artifact = form.save()
+
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("new artifact %s by %s") % (artifact, request.user.username),
+                  related_object=form.instance)
+            l.save()
+            messages.add_message(request, messages.SUCCESS, 'Artifact "%s" created.' % artifact)
+            return HttpResponseRedirect(reverse('advisornotes.views.view_artifacts', kwargs={}))
+    else:
+        form = ArtifactForm()
+        form.fields['unit'].choices = unit_choices
+    return render(request, 'advisornotes/new_artifact.html', {'form': form})
+
+
+@requires_role('ADVS')
+def edit_artifact(request, artifact_slug):
+    """
+    View to edit a new artifact
+    """
+    artifact = get_object_or_404(Artifact, slug=artifact_slug)
+    unit_choices = [(u.id, unicode(u)) for u in request.units]
+    if request.POST:
+        form = ArtifactForm(request.POST, instance=artifact)
+        form.fields['unit'].choices = unit_choices
+        if form.is_valid():
+            artifact = form.save()
+
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("edited artifact %s by %s") % (artifact, request.user.username),
+                  related_object=form.instance)
+            l.save()
+            messages.add_message(request, messages.SUCCESS, 'Artifact "%s" edited.' % artifact)
+            return HttpResponseRedirect(reverse('advisornotes.views.view_artifacts', kwargs={}))
+    else:
+        form = ArtifactForm(instance=artifact)
+        form.fields['unit'].choices = unit_choices
+    return render(request, 'advisornotes/edit_artifact.html', {'form': form, 'artifact': artifact})
+
+
+@requires_role('ADVS')
+def view_artifacts(request):
+    """
+    View to view all artifacts
+    """
+    artifacts = Artifact.objects.filter(unit__in=request.units)
+    return render(request,
+        'advisornotes/view_artifacts.html',
+        {'artifacts': artifacts}
+    )
+
+
+@requires_role('ADVS')
+def view_courses(request):
+    """
+    View to view all courses
+    """
+    courses = Course.objects.all()
+    return render(request,
+        'advisornotes/view_courses.html',
+        {'courses': courses}
+    )
+
+
+@requires_role('ADVS')
+def view_course_offerings(request):
+    """
+    View to view all courses
+    """
+    offerings = CourseOffering.objects.filter(owner__in=request.units)
+    return render(request,
+        'advisornotes/view_course_offerings.html',
+        {'offerings': offerings}
+    )
 
 
 @requires_role('ADVS')

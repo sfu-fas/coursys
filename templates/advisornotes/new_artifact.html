@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}New Artifact{% endblock %}
+{% block h1 %}New Artifact{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li>
+    <li>&gt; New Artifact</li>
+{% endblock %}
+
+{% block content %}
+<div id="form_container">
+    <form action="{% url advisornotes.views.new_artifact %}" method="post">
+        {% csrf_token %}
+        <fieldset>
+            <legend>Artifact Information</legend>
+            {{ form|as_dl }}
+            <p><input type="submit" class="submit" value="Submit" /></p>
+        </fieldset>
+    </form>
+</div>
+
+{% endblock %}

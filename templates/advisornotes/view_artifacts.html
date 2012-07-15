@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}Artifacts{% endblock %}
+{% block h1 %}Artifacts{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(function() {
+  $('.artifacts').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': true,
+    "bJQueryUI": true
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li>
+<li>&gt; Artifacts</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url advisornotes.views.new_artifact %}">Create new artifact</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+{% if artifacts %}
+<table class="display artifacts">
+    <thead>
+        <tr>
+            <th class="category">Category</th>
+            <th class="name">Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for artifact in artifacts %}
+        <tr>
+            <td>{{ artifact.get_category_display }}</td>
+            <td>{{ artifact.name }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>There are no artifacts. <a href="{% url advisornotes.views.new_artifact %}">Create one now.</a></p>
+{% endif %}
+
+{% endblock %}

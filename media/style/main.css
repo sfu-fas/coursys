@@ -1848,3 +1848,16 @@ table.course-plan .meeting-time:first-child {
 .capabilities.display tr:first-child td {
   border-top: 0;
 }
+
+/* Artifact Notes */
+table.artifacts th.name {
+  width: 85%;
+}
+
+table.courses th.semester,
+table.courses th.section,
+table.courses th.component,
+table.courses th.subject,
+table.courses th.number {
+  width: 8%;
+}

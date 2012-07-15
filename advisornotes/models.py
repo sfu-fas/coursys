@@ -101,6 +101,31 @@ class AdvisorNote(models.Model):
         return (self.text, self.created_at, self.file_attachment).__hash__()
 
 
+ARTIFACT_CATEGORIES = (
+    ("SCH", "School"),
+    ("PRO", "Program"),
+)
+
+
+class Artifact(models.Model):
+    name = models.CharField(max_length=140, help_text='The name of the artifact', null=False, blank=False)
+    category = models.CharField(max_length=3, choices=ARTIFACT_CATEGORIES, null=False, blank=False)
+
+    def autoslug(self):
+        return make_slug(self.unit.label + '-' + self.name)
+
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    unit = models.ForeignKey(Unit, help_text='The academic unit that owns this artifact', null=False, blank=False)
+    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
+
+    class Meta:
+        ordering = ['name']
+        unique_together = [('name', 'unit')]
+
+    def __unicode__(self):
+        return unicode(self.name)
+
+
 NOTE_STATUSES = (
     #("HID", "Hidden"),
     ("IMP", "Important"),
@@ -114,25 +139,6 @@ NOTE_CATEGORIES = (
     ("TRA", "Transfers"),
     ("MIS", "Miscellaneous")
 )
-ARTIFACT_CATEGORIES = (
-    ("SCH", "School"),
-    ("PRO", "Program"),
-)
-
-
-class Artifact(models.Model):
-    name = models.CharField(max_length=140, help_text='The name of the artifact', null=False, blank=False)
-    category = models.CharField(max_length=3, choices=ARTIFACT_CATEGORIES, null=False, blank=False)
-    def autoslug(self):
-        return make_slug(self.unit.label + '-' + self.name)
-    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
-    unit = models.ForeignKey(Unit, help_text='The academic unit that owns this artifact', null=False, blank=False)
-    config = JSONField(null=False, blank=False, default={})  # addition configuration stuff:
-
-    class Meta:
-        ordering = ['name']
-        unique_together = [('name', 'unit')]
-
 
 
 class ArtifactNote(models.Model):

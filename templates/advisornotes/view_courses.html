@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}Courses{% endblock %}
+{% block h1 %}Courses{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(function() {
+  $('.display').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': true,
+    "bJQueryUI": true
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li>
+<li>&gt; Courses</li>
+{% endblock %}
+
+{% block content %}
+
+{% if courses %}
+<table class="display courses">
+    <thead>
+        <tr>
+            <th class="subject"><abbr title="Course Subject">Sub.</abbr></th>
+            <th class="number"><abbr title="Course Number">#</abbr></th>
+            <th class="title">Title</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for course in courses %}
+        <tr>
+            <td>{{ course.subject }}</td>
+            <td>{{ course.number }}</td>
+            <td>{{ course.title }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+{% endblock %}
