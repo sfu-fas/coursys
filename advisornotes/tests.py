@@ -2,8 +2,9 @@ from django.test import TestCase
 from django.test.client import Client
 from django.core.urlresolvers import reverse
 from settings import CAS_SERVER_URL
-from advisornotes.models import NonStudent
+from advisornotes.models import NonStudent, AdvisorNote
 from courselib.testing import basic_page_tests
+from dashboard.models import UserConfig
 
 
 class AdvistorNotestest(TestCase):
@@ -54,3 +55,139 @@ class AdvistorNotestest(TestCase):
             except:
                 print "with view==" + repr(view)
                 raise
+            
+    def test_rest_notes_not_POST(self):
+        client = Client()
+        response = client.get(reverse('advisornotes.views.rest_notes'))
+        self.assertEqual(response.status_code, 404, "Should get a 404 for non POST requests")
+        
+    def test_rest_notes_invalid_JSON(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_bad_json.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, 'Invalid JSON format')
+        
+    def test_rest_notes_missing_credential(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_missing_credential.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, 'Necessary credentials not present')
+        
+    def test_rest_notes_not_advisor(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_not_advisor.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, "User doesn't have the necessary permissions")
+        
+    def test_rest_notes_no_generated_token(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_valid.json')
+        data = f.read()
+        f.close()
+        UserConfig.objects.get(user__userid='dzhao', key='advisor-token').delete()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, "No token has been generated for user")
+        
+    def test_rest_notes_invalid_token(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_invalid_token.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, "Secret token didn't match")
+        
+    def test_rest_notes_no_notes(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_no_notes.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, "No advising notes present")
+        
+    def test_rest_notes_not_list(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_not_list.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, "Notes not in list format")
+        
+    def test_rest_notes_empty_list(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_empty.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, "No advising notes present")
+        
+    def test_rest_notes_emplid_text_missing(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_emplid_missing.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, "Emplid or text not present in note")
+        
+    def test_rest_notes_emplid_not_int(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_emplid_not_int.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, "Note emplid must be an integer")
+        
+    def test_rest_notes_text_not_text(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_text_not_text.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, "Note text must be a string")
+        
+    def test_rest_notes_emplid_doesnt_exist(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_emplid_doesnt_exist.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, "Emplid '321' doesn't exist")
+        
+    def test_rest_notes_all_or_nothing(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_all_or_nothing.json')
+        data = f.read()
+        f.close()
+        before_count = len(AdvisorNote.objects.all())
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        after_count = len(AdvisorNote.objects.all())
+        self.assertEqual(before_count, after_count, "No advisor notes should be created if any are invalid")
+        
+    def test_rest_notes_success(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_valid.json')
+        data = f.read()
+        f.close()
+        before_count = len(AdvisorNote.objects.filter(student__emplid=200000475))
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 200)
+        after_count = len(AdvisorNote.objects.filter(student__emplid=200000475))
+        self.assertEqual(before_count + 2, after_count, "There should be two more notes for the student")

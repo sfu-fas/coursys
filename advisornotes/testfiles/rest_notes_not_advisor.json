@@ -1,0 +1,15 @@
+{
+	"advisor": "ggbaker",
+	"secret": "thisisnotreal",
+	"unit": "COMP",
+	"notes": [
+		{
+			"emplid": 200000475,
+			"text": "some text"
+		},
+		{
+			"emplid": 200000475,
+			"text": "some text"
+		}
+	]
+}

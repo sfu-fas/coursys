@@ -383,5 +383,5 @@ def rest_notes(request):
     try:
         rest.new_advisor_notes(request.raw_post_data)
     except ValidationError as e:
-        return HttpResponse(content=e.messages[0], status=403)
+        return HttpResponse(content=e.messages[0], status=422)
     return HttpResponse(status=200)

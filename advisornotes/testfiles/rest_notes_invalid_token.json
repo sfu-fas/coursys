@@ -1,0 +1,15 @@
+{
+	"advisor": "dzhao",
+	"secret": "thisiswrong",
+	"unit": "COMP",
+	"notes": [
+		{
+			"emplid": 200000475,
+			"text": "some text 1"
+		},
+		{
+			"emplid": 200000475,
+			"text": "some text 2"
+		}
+	]
+}
