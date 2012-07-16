@@ -43,7 +43,7 @@ $(function() {
             <td>{{ offering.number }}</td>
             <td>{{ offering.section }}</td>
             <td>{{ offering.get_component_display }}</td>
-            <td>{{ offering.title }}</td>
+            <td><a href="{% url advisornotes.views.view_offering_notes course_slug=offering.slug %}">{{ offering.title }}</a></td>
         </tr>
         {% endfor %}
     </tbody>

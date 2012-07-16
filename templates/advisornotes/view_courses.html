@@ -37,7 +37,7 @@ $(function() {
         <tr>
             <td>{{ course.subject }}</td>
             <td>{{ course.number }}</td>
-            <td>{{ course.title }}</td>
+            <td><a href="{% url advisornotes.views.view_course_notes unit_course_slug=course.slug %}">{{ course.title }}</a></td>
         </tr>
         {% endfor %}
     </tbody>

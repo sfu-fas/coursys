@@ -55,7 +55,7 @@ class AdvistorNotestest(TestCase):
             except:
                 print "with view==" + repr(view)
                 raise
-            
+
     def test_rest_notes_not_POST(self):
         client = Client()
         response = client.get(reverse('advisornotes.views.rest_notes'))

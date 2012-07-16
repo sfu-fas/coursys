@@ -1,7 +1,7 @@
 from advisornotes.forms import AdvisorNoteForm, StudentSearchForm, \
     NoteSearchForm, NonStudentForm, MergeStudentForm, ArtifactNoteForm, \
     ArtifactForm
-from advisornotes.models import AdvisorNote, NonStudent, Artifact
+from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote
 from coredata.models import Person, Course, CourseOffering
 from coredata.queries import find_person, add_person, more_personal_info, \
     SIMSProblem
@@ -177,7 +177,7 @@ def new_artifact_note(request):
                   description=("new note for %s by %s") % (artifact, request.user.username),
                   related_object=form.instance)
             l.save()
-            messages.add_message(request, messages.SUCCESS, 'Note created.')
+            messages.add_message(request, messages.SUCCESS, 'Note for %s created.' % artifact)
             return HttpResponseRedirect(reverse('advisornotes.views.advising', kwargs={}))
     else:
         form = ArtifactNoteForm(initial={})
@@ -213,6 +213,15 @@ def student_notes(request, userid):
 @requires_role('ADVS')
 def download_file(request, userid, note_id):
     note = AdvisorNote.objects.get(id=note_id, unit__in=request.units)
+    note.file_attachment.open()
+    resp = HttpResponse(note.file_attachment, mimetype=note.file_mediatype)
+    resp['Content-Disposition'] = 'inline; filename=' + note.attachment_filename()
+    return resp
+
+
+@requires_role('ADVS')
+def download_artifact_file(request, note_id):
+    note = ArtifactNote.objects.get(id=note_id, unit__in=request.units)
     note.file_attachment.open()
     resp = HttpResponse(note.file_attachment, mimetype=note.file_mediatype)
     resp['Content-Disposition'] = 'inline; filename=' + note.attachment_filename()
@@ -317,6 +326,21 @@ def view_artifacts(request):
 
 
 @requires_role('ADVS')
+def view_artifact_notes(request, artifact_slug):
+    """
+    View to view all notes for a specific artifact
+    """
+    artifact = get_object_or_404(Artifact, slug=artifact_slug)
+    notes = ArtifactNote.objects.filter(artifact__slug=artifact_slug).order_by('category', 'created_at')
+    important_notes = notes.filter(status="IMP")
+    notes = notes.exclude(status="IMP")
+    return render(request,
+        'advisornotes/view_artifact_notes.html',
+        {'artifact': artifact, 'notes': notes, 'important_notes': important_notes}
+    )
+
+
+@requires_role('ADVS')
 def view_courses(request):
     """
     View to view all courses
@@ -325,6 +349,21 @@ def view_courses(request):
     return render(request,
         'advisornotes/view_courses.html',
         {'courses': courses}
+    )
+
+
+@requires_role('ADVS')
+def view_course_notes(request, unit_course_slug):
+    """
+    View to view all notes for a specific artifact
+    """
+    course = get_object_or_404(Course, slug=unit_course_slug)
+    notes = ArtifactNote.objects.filter(course=course).order_by('category', 'created_at')
+    important_notes = notes.filter(status="IMP")
+    notes = notes.exclude(status="IMP")
+    return render(request,
+        'advisornotes/view_course_notes.html',
+        {'course': course, 'notes': notes, 'important_notes': important_notes}
     )
 
 
@@ -338,6 +377,35 @@ def view_course_offerings(request):
         'advisornotes/view_course_offerings.html',
         {'offerings': offerings}
     )
+
+
+@requires_role('ADVS')
+def view_offering_notes(request, course_slug):
+    """
+    View to view all notes for a specific artifact
+    """
+    offering = get_object_or_404(CourseOffering, slug=course_slug)
+    notes = ArtifactNote.objects.filter(course_offering=offering).order_by('category', 'created_at')
+    important_notes = notes.filter(status="IMP")
+    notes = notes.exclude(status="IMP")
+    return render(request,
+        'advisornotes/view_offering_notes.html',
+        {'offering': offering, 'notes': notes, 'important_notes': important_notes}
+    )
+
+
+@requires_role('ADVS')
+def hide_note(request):
+    """
+    View to hide a note
+    """
+    if request.POST and 'note_id' in request.POST:
+        # the "hide note" box was checked: process
+        note = get_object_or_404(ArtifactNote, pk=request.POST['note_id'], unit__in=request.units)
+        note.hidden = request.POST['hide'] == "yes"
+        note.save()
+        return HttpResponse(status=200)
+    return HttpResponse(status=403)
 
 
 @requires_role('ADVS')

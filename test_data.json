@@ -776,7 +776,7 @@
    "owner": 3,
    "section": "C100",
    "semester": 5,
-   "slug": "2012fa-cmnpt-102-c1",
+   "slug": "2012fa-cmpt-102-c1",
    "class_nbr": null,
    "crse_id": null,
    "wait_tot": 0,
@@ -26242,6 +26242,129 @@
   }, 
   "model": "grad.lettertemplate", 
   "pk": 4
+ },
+ {
+  "fields": {
+   "advisor": 559,
+   "artifact": null,
+   "best_before": "2012-09-01",
+   "category": "MIS",
+   "course": 9,
+   "course_offering": null,
+   "created_at": "2012-07-15 22:24:29",
+   "file_attachment": "",
+   "file_mediatype": null,
+   "hidden": false,
+   "status": "IMP",
+   "text": "This is a project course where the final group project is worth 55% of the student's grade. There is no final exam.",
+   "unit": 3
+  },
+  "model": "advisornotes.artifactnote",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "advisor": 559,
+   "artifact": null,
+   "best_before": "2012-09-01",
+   "category": "WAI",
+   "course": 9,
+   "course_offering": null,
+   "created_at": "2012-07-15 22:26:21",
+   "file_attachment": "",
+   "file_mediatype": null,
+   "hidden": false,
+   "status": null,
+   "text": "This course requires CMPT 354, however students with a passion in web development may enter this course with special permission. When applying for permission, the student should have an online portfolio of previous web development work available for the instructor.",
+   "unit": 3
+  },
+  "model": "advisornotes.artifactnote",
+  "pk": 2
+ },
+ {
+  "fields": {
+   "advisor": 559,
+   "artifact": null,
+   "best_before": "2012-06-01",
+   "category": "MIS",
+   "course": 9,
+   "course_offering": null,
+   "created_at": "2012-07-15 22:28:57",
+   "file_attachment": "",
+   "file_mediatype": null,
+   "hidden": false,
+   "status": null,
+   "text": "Students should have a minimum of 60 credits before taking this course.",
+   "unit": 3
+  },
+  "model": "advisornotes.artifactnote",
+  "pk": 3
+ },
+ {
+  "fields": {
+   "category": "PRO",
+   "config": "{}",
+   "name": "SFU - Geographical Information Systems (GIS)",
+   "slug": "comp-sfu-geographical-information-systems-gis",
+   "unit": 3
+  },
+  "model": "advisornotes.artifact",
+  "pk": 4
+ },
+ {
+  "fields": {
+   "category": "PRO",
+   "config": "{}",
+   "name": "UBC - Geographical Information Systems (GIS)",
+   "slug": "comp-ubc-geographical-information-systems-gis",
+   "unit": 3
+  },
+  "model": "advisornotes.artifact",
+  "pk": 5
+ },
+ {
+  "fields": {
+   "category": "PRO",
+   "config": "{}",
+   "name": "UNBC - Geographical Information Systems (GIS)",
+   "slug": "comp-unbc-geographical-information-systems-gis",
+   "unit": 3
+  },
+  "model": "advisornotes.artifact",
+  "pk": 6
+ },
+ {
+  "fields": {
+   "category": "SCH",
+   "config": "{}",
+   "name": "University of British Columbia",
+   "slug": "comp-university-of-british-columbia",
+   "unit": 3
+  },
+  "model": "advisornotes.artifact",
+  "pk": 1
+ },
+ {
+  "fields": {
+   "category": "SCH",
+   "config": "{}",
+   "name": "University of Victoria",
+   "slug": "comp-university-of-victoria",
+   "unit": 3
+  },
+  "model": "advisornotes.artifact",
+  "pk": 2
+ },
+ {
+  "fields": {
+   "category": "SCH",
+   "config": "{}",
+   "name": "University of Western Washington",
+   "slug": "comp-university-of-western-washington",
+   "unit": 3
+  },
+  "model": "advisornotes.artifact",
+  "pk": 3
  }
 
 ]

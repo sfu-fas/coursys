@@ -1861,3 +1861,74 @@ table.courses th.subject,
 table.courses th.number {
   width: 8%;
 }
+
+.artifact-note {
+  border: 1px solid #CCC;
+  margin-top: 5px;
+  padding: 5px 10px;
+}
+
+.artifact-note.expired {
+  background-color: #F5D6DB;
+}
+
+.artifact-note-header {
+  overflow: hidden;
+}
+
+.artifact-note-header {
+  cursor: pointer;
+  padding-left: 15px;
+  background: url('../images/icon-triangle.png') 0 3px no-repeat;
+}
+
+.artifact-note.collapsed .artifact-note-header {
+  background-position: 0 -87px;
+}
+
+.artifact-note.collapsed .hideshow,
+.artifact-note.collapsed .note-content {
+  display: none;
+}
+
+.artifact-note dl {
+  float: left;
+}
+
+.artifact-note dt,
+.artifact-note dd {
+  margin: 0;
+  display: inline-block;
+}
+
+.artifact-note dt {
+  color: #777;
+  font-size: 92%;
+  margin-right: 2px;
+  text-transform: uppercase;
+}
+
+.artifact-note dd {
+  font-weight: bold;
+  margin-right: 20px;
+}
+
+.artifact-note div.hideshow {
+  float: right;
+}
+
+.artifact-note input {
+  vertical-align: middle;
+}
+
+.artifact-note div.note-content {
+  clear: both;
+}
+
+div#main .artifact-note p {
+  margin: 10px 0 5px;
+}
+
+.artifact-note .attachment-icon {
+  margin-bottom: -3px;
+}

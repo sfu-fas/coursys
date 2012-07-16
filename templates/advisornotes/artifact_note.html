@@ -1,0 +1,38 @@
+{% ifchanged note.category %}<h3>{{ note.get_category_display }}</h3>{% endifchanged %}
+
+<div class="artifact-note{% if note.hidden or note.is_expired %} collapsed{% endif %}{% if note.is_expired %} expired{% endif %}" id="note-box-{{note.id}}">
+    <div class="artifact-note-header">
+        <dl class="note-info">
+            <dt>Created at</dt>
+            <dd>{{note.created_at}}</dd>
+
+            <dt>By<dt>
+            <dd>{{ note.advisor.first_name }} {{ note.advisor.last_name }}</dd>
+
+            <dt>Best before</dt>
+            <dd>{{ note.best_before }} {% if note.is_expired %}(Expired){% endif %}</dd>
+        </dl>
+
+        <div class="hideshow">
+            <label>
+                {% if note.hidden %}
+                    <input type="checkbox" class="hide-show" value="{{note.id}}" checked="checked" />
+                {% else %}
+                    <input type="checkbox" class="hide-show" value="{{note.id}}"/>
+                {% endif %}
+                <span>Hide this note?</span>
+            </label>
+        </div>
+    </div>
+
+    <div class="note-content">
+        <p>{{note.text}}</p>
+        
+        {% if note.file_attachment %}
+            <p><img class="attachment-icon" src="{{MEDIA_URL}}icons/attach.png" alt="download" />
+                <a href="{% url advisornotes.views.download_artifact_file note_id=note.id%}">{{ note.attachment_filename }}</a>
+                ({{ note.file_attachment.size|filesizeformat }})
+            </p> 
+        {% endif %}
+    </div>
+</div>

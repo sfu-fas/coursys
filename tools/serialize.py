@@ -6,7 +6,7 @@ sys.path.append('.')
 from advisornotes.models import *
 from planning.models import *
 
-objs = itertools.chain(PlanningCourse.objects.all(), TeachingCapability.objects.all(), TeachingIntention.objects.all(), SemesterPlan.objects.all(), PlannedOffering.objects.all(), MeetingTime.objects.all())
+objs = itertools.chain(ArtifactNote.objects.all(), Artifact.objects.all())
 
 # output the JSON: copy into test_data.json when you're sure it's right.
 from django.core import serializers

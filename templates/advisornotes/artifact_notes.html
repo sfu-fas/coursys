@@ -31,15 +31,6 @@ $(document).ready(function() {
 //]]></script>
 {% endblock %}
 
-{% block actions %}
-<div id="actions">
-<h2>Actions</h2>
-<ul>
-<li><a href="{% url advisornotes.views.new_artifact_note %}">New Note</a></li>
-</ul>
-</div>
-{% endblock %}
-
 {%block content%}
 
 {%if notes %}

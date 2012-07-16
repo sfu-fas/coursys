@@ -6,6 +6,7 @@ from coredata.models import Person, Unit, Course, CourseOffering
 from jsonfield import JSONField
 from courselib.slugs import make_slug
 import datetime
+from datetime import date
 import os.path
 
 NoteSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
@@ -123,7 +124,7 @@ class Artifact(models.Model):
         unique_together = [('name', 'unit')]
 
     def __unicode__(self):
-        return unicode(self.name)
+        return unicode(self.name) + ' (' + unicode(self.get_category_display()) + ')'
 
 
 NOTE_STATUSES = (
@@ -133,9 +134,9 @@ NOTE_STATUSES = (
 )
 
 NOTE_CATEGORIES = (
-    ("EXC", "Exception"),
-    ("WAI", "Waiver"),
-    ("REQ", "Requirement"),
+    ("EXC", "Exceptions"),
+    ("WAI", "Waivers"),
+    ("REQ", "Requirements"),
     ("TRA", "Transfers"),
     ("MIS", "Miscellaneous")
 )
@@ -192,3 +193,8 @@ class ArtifactNote(models.Model):
 
     def __hash__(self):
         return (self.text, self.created_at, self.file_attachment).__hash__()
+
+    def is_expired(self):
+        if date.today() > self.best_before:
+            return True
+        return False

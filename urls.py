@@ -396,15 +396,22 @@ urlpatterns += patterns('',
 
     url(r'^advising/$', 'advisornotes.views.advising'),
     url(r'^advising/new_notes/$', 'advisornotes.views.rest_notes'),
+    url(r'^advising/hide_note$', 'advisornotes.views.hide_note'),
     url(r'^advising/note_search$', 'advisornotes.views.note_search'),
     url(r'^advising/sims_search$', 'advisornotes.views.sims_search'),
     url(r'^advising/sims_add$', 'advisornotes.views.sims_add_person'),
 
+    url(r'^advising/new_artifact_note$', 'advisornotes.views.new_artifact_note'),
+
     url(r'^advising/courses/$', 'advisornotes.views.view_courses'),
+    url(r'^advising/courses/' + UNIT_COURSE_SLUG + '/$', 'advisornotes.views.view_course_notes'),
     url(r'^advising/offerings/$', 'advisornotes.views.view_course_offerings'),
+    url(r'^advising/offerings/' + COURSE_SLUG + '/$', 'advisornotes.views.view_offering_notes'),
     url(r'^advising/artifacts/$', 'advisornotes.views.view_artifacts'),
+    url(r'^advising/artifacts/' + ARTIFACT_SLUG + '/$', 'advisornotes.views.view_artifact_notes'),
     url(r'^advising/new_artifact$', 'advisornotes.views.new_artifact'),
     url(r'^advising/artifacts/' + ARTIFACT_SLUG + '/edit$', 'advisornotes.views.edit_artifact'),
+    url(r'^advising/artifacts/' + NOTE_ID + '/file', 'advisornotes.views.download_artifact_file'),
 
     url(r'^advising/students/' + USERID_OR_EMPLID + '/new$', 'advisornotes.views.new_note'),
     url(r'^advising/students/' + USERID_OR_EMPLID + '/$', 'advisornotes.views.student_notes'),

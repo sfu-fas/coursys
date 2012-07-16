@@ -44,7 +44,7 @@ $(function() {
         {% for artifact in artifacts %}
         <tr>
             <td>{{ artifact.get_category_display }}</td>
-            <td>{{ artifact.name }}</td>
+            <td><a href="{% url advisornotes.views.view_artifact_notes artifact_slug=artifact.slug %}">{{ artifact.name }}</a></td>
         </tr>
         {% endfor %}
     </tbody>
