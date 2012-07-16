@@ -371,7 +371,7 @@ def calendar_ical(request, token, userid):
         e['uid'] = str(data['id'])
         e.add('summary', data['title'])
         st = utc.normalize(data['start'].astimezone(utc))
-        en = utc.normalize(data['start'].astimezone(utc))
+        en = utc.normalize(data['end'].astimezone(utc))
         e.add('dtstart', st)
         e.add('dtend', en)
         # spec says no TZID on UTC times
