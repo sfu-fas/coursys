@@ -32,14 +32,15 @@ code.file {
 <dt>Additional packages installed</dt>
   <dd>Like this:
   <blockquote><pre>dpkg --purge apache2.2-bin apache2.2-common apache2-utils apache2 apache2-mpm-worker apache2.2-common
-apt-get install nginx python-flup subversion python-mysqldb mysql-client-5.1 memcached python-memcache stunnel4 postfix ntp python-setuptools python-dev libxslt1-dev</pre></blockquote></dd>
+apt-get install nginx subversion mysql-client-5.1 memcached stunnel4 postfix ntp python-setuptools python-dev libxslt1-dev python-mysqldb 
+<del># apt-get install python-flup python-memcache</del> # now handled by PIP, I hope</pre></blockquote></dd>
 <dt>Memcached</dt>
   <dd>In <code class="file">/etc/memcached.conf</code>, change the port to 22122.</dd>
 <dt>Mail Server</dt>
   <dd>Configure Postfix with smarthost mailgate.sfu.ca.  Put a useful email address in <code class="file">/root/.forward</code></dd>
 <dt>Celery Task Queue</dt>
-  <dd>Install the required Python packages:
-  <blockquote><pre>sudo easy_install django-celery-email django-celery django-kombu</pre></blockquote>
+  <dd>[Likely have to do after the <code>pip install</code> set in the application setup.] Install the required Python packages:
+  <blockquote><del><pre># sudo easy_install django-celery-email django-celery django-kombu</pre></del></blockquote>
   <p>Make sure the Celery daemon is running on startup: the <a href="http://docs.celeryproject.org/en/latest/cookbook/daemonizing.html#start-stop-daemon-debian-ubuntu">Celery daemon instructions</a> provided <a href="etc_init.d_celeryd.txt"><code class="file">/etc/init.d/celeryd</code></a> and the <a href="etc_default_celeryd.txt"><code class="file">/etc/default/celeryd</code></a>. Those files need to be put in-place and activated:</p>
   <blockquote><pre>sudo update-rc.d celeryd defaults</pre></blockquote>
   <!--<p>A bug in Django-Kombu crops up on the server.  Had to un-comment the line <code>self.refresh_connection()</code> (line 30, in <code>Channel._get</code>) in <code class="file">/usr/local/lib/python2.6/dist-packages/django_kombu-0.9.4-py2.6.egg/djkombu/transport.py</code>.</p>-->
@@ -104,7 +105,7 @@ chmod 0711 ~</pre>
 <dt>PIP Libraries</dt>
   <dd>To install the various libraries required by the system:
   <blockquote><pre>sudo pip install -r build_deps/working_deps.txt
-sudo pip install PIL</pre></blockquote>
+sudo pip install -r build_deps/deployed_deps.txt</pre></blockquote>
   </dd>
 <dt><del>VirtualEnv</del></dt>
   <dd><del>Per the <a href="http://ubuntuforums.org/showthread.php?t=1751455">bug here</a>, there's a hack needed to build PIL in the virtualenv:</del> [Not using a VirtualEnv on the server, but preserving this for those using one  for devel.]
