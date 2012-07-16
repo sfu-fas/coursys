@@ -347,6 +347,7 @@ def calendar_ical(request, token, userid):
     Return an iCalendar for this user, authenticated by the token in the URL
     """
     local_tz = pytz.timezone(settings.TIME_ZONE)
+    utc = pytz.utc
     user = get_object_or_404(Person, userid=userid)
     
     # make sure the token in the URL (32 hex characters) matches the token stored in the DB
@@ -369,8 +370,13 @@ def calendar_ical(request, token, userid):
         e = Event()
         e['uid'] = str(data['id'])
         e.add('summary', data['title'])
-        e.add('dtstart', data['start'])
-        e.add('dtend', data['end'])
+        st = utc.normalize(data['start'].astimezone(utc))
+        en = utc.normalize(data['start'].astimezone(utc))
+        e.add('dtstart', st)
+        e.add('dtend', en)
+        # spec says no TZID on UTC times
+        del e['dtstart'].params['TZID']
+        del e['dtend'].params['TZID']
         e.add('categories', data['category'])
         if 'url' in data:
             e.add('url', data['url'])

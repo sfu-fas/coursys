@@ -185,7 +185,7 @@ class DashboardTest(TestCase):
         response = client.get(url)
         self.assertEquals(response.status_code, 200)
         self.assertContains(response, "BEGIN:VCALENDAR")
-        self.assertContains(response, "DTSTART;TZID=America/Vancouver;VALUE=DATE-TIME:2")
+        self.assertContains(response, "DTSTART;VALUE=DATE-TIME:20")
         
         # change calendar URL
         url = reverse('dashboard.views.create_calendar_url', kwargs={})
