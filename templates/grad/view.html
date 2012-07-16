@@ -31,6 +31,7 @@
 </style>
 <script type="text/javascript" src="{{MEDIA_URL}}js/advisornotes.js"></script>
 <script type="text/javascript" src="{{MEDIA_URL}}js/jquery.ba-bbq.min.js"></script>
+<script type="text/javascript" src="{{MEDIA_URL}}js/jquery.cookie.js"></script>
 <script type="text/javascript">
 //<![CDATA[
 var loader_url = '{{MEDIA_URL}}icons/ajax-loader.gif';
@@ -40,7 +41,17 @@ var loader_url = '{{MEDIA_URL}}icons/ajax-loader.gif';
 //<![CDATA[
 $(window).bind( 'hashchange', display_sections);
 $(document).ready(function() {
-	display_sections();
+	console.log('loading '+ $.cookie('grad_view_visible') + ' ' + (!$.param.fragment() && $.cookie('grad_view_visible')))
+	if ( !$.param.fragment() && $.cookie('grad_view_visible') ) {
+		// no sections set in fragment: use cookie if we have that.
+		var cookie = $.cookie('grad_view_visible');
+		parent.location.hash = cookie;
+		display_sections(null, cookie);
+		$.cookie('grad_view_visible', cookie, { expires: 365, path: '/' });
+	} else {
+		// display sections requested in fragment
+		display_sections(null, null);
+	}
 });
 //]]></script>
 {% endblock %}

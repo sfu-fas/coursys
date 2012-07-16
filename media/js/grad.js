@@ -88,6 +88,7 @@ function show_section(id) {
 	elt.addClass('displayed');
 	$('#'+id+'_content').html('<p><img src="' + loader_url + '" alt="..." /></p>');
 	
+	$.cookie('grad_view_visible', $.param.fragment(), { expires: 365, path: '/' });
 	$.ajax({
 		url: "?section="+id,
 		success: function (data) {
@@ -121,6 +122,8 @@ function hide_section(id) {
 	elt.removeClass('displayed');
 	elt.addClass('collapsed');
 	$('#'+id+'_content').html('');
+
+	$.cookie('grad_view_visible', $.param.fragment(), { expires: 365, path: '/' });
 }
 
 function update_links() {
@@ -147,9 +150,12 @@ function update_links() {
 	});
 }
 
-function display_sections() {
+function display_sections(evnt, sectionlist) {
 	// show all sections indicated by the query string
-	var fields = $.param.fragment().split(',');
+	if (!sectionlist) {
+		sectionlist = $.param.fragment();
+	}
+	var fields = sectionlist.split(',');
 	var displayed = [];
 	
 	$(fields).each(function (i, id) {
