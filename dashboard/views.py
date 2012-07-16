@@ -367,7 +367,7 @@ def calendar_ical(request, token, userid):
     
     for data in _calendar_event_data(user, start, end, local_tz, dt_string=False):
         e = Event()
-        e['uid'] = data['id']
+        e['uid'] = str(data['id'])
         e.add('summary', data['title'])
         e.add('dtstart', data['start'])
         e.add('dtend', data['end'])
@@ -378,7 +378,7 @@ def calendar_ical(request, token, userid):
             e.add('location', data['location'])
         cal.add_component(e)
     
-    return HttpResponse(cal.as_string(), mimetype="text/calendar")
+    return HttpResponse(cal.to_ical(), mimetype="text/calendar")
 
 
 @login_required
