@@ -1,0 +1,14 @@
+{
+	"advisor": "dzhao",
+	"secret": "30378700c0091f34412ec9a082dca267",
+	"unit": "COMP",
+	"notes": [
+		{
+			"emplid": 200000475,
+			"text": "file upload",
+			"filename": "sample_json.json",
+			"mediatype": "application/json",
+			"data": "ewoJImFkdmlzb3IiOiAiZHpoYW8iLAoJInNlY3JldCI6ICIzMDM3ODcwMGMwMDkxZjM0NDEyZWM5YTA4MmRjYTI2NyIsCgkidW5pdCI6ICJDT01QIiwKCSJub3RlcyI6IFsKCQl7CgkJCSJlbXBsaWQiOiAyMDAwMDA0NzUsCgkJCSJ0ZXh0IjogInNvbWUgdGV4dCAxIgoJCX0sCgkJewoJCQkiZW1wbGlkIjogMjAwMDAwNDc1LAoJCQkidGV4dCI6ICJzb21lIHRleHQgMiIKCQl9CgldCn0="
+		}
+	]
+}

@@ -191,3 +191,41 @@ class AdvistorNotestest(TestCase):
         self.assertEqual(response.status_code, 200)
         after_count = len(AdvisorNote.objects.filter(student__emplid=200000475))
         self.assertEqual(before_count + 2, after_count, "There should be two more notes for the student")
+        
+    def test_rest_notes_filename_not_string(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_filename_not_string.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, "Note filename must be a string")
+        
+    def test_rest_notes_mediatype_not_string(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_mediatype_not_string.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, "Note mediatype must be a string")
+        
+    def test_rest_notes_file_data_not_string(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_file_data_not_string.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, "Note file data must be a string")
+        
+    def test_rest_notes_file_success(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_valid_file.json')
+        data = f.read()
+        f.close()
+        before_count = len(AdvisorNote.objects.filter(student__emplid=200000475))
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        after_count = len(AdvisorNote.objects.filter(student__emplid=200000475))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(before_count + 1, after_count, "Should be one more advisor note for student")
