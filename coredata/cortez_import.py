@@ -933,7 +933,7 @@ class TAImport(object):
                 raise "Multiple Courses found for %r" % (course)
             elif courses.count() == 1:
                 crs = courses[0]
-                CoursePreference.objects.get_or_create(app=app, course=crs, rank=rank)
+                CoursePreference.objects.get_or_create(app=app, course=crs, rank=rank+1)
 
         # skills
         self.db.execute("SELECT skillType, skillLevel FROM tasearch.dbo.taskills "
@@ -985,8 +985,8 @@ class TAImport(object):
         self.get_offering_map()
         print "Importing TAs..."
         
-        #self.db.execute("SELECT * FROM tasearch.dbo.tainfo i "
-        #                "WHERE i.familyName='Baker' or i.studNum='200022802'", ())
+        #self.db.execute("SELECT studNum, appYear, appSemester, count(studNum) FROM tasearch.dbo.tainfo i "
+        #                "group by studNum, appYear, appSemester having count(studNum)>1 order by appYear", ())
         #print list(self.db) 
 
         self.db.execute("SELECT o.Offering_ID, o.bu, o.salary, o.scholarship, o.description, "

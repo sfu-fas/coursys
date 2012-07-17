@@ -119,8 +119,9 @@ class GradStudent(models.Model):
         self.current_status = None
         
         # current_status
-        last_status = all_gs.order_by('-start__name')
-        if last_status.count() > 0:
+        last_status = list(all_gs.filter(end__isnull=True).order_by('-start__name')) \
+                      + list(all_gs.order_by('-start__name', '-end__name'))
+        if len(last_status) > 0:
             self.current_status = last_status[0].status
         
         # start_semester

@@ -28,7 +28,7 @@ def financials(request, grad_slug):
     # initialize earliest starting and latest ending semesters for display. 
     # Falls back on current semester if none 
     all_semesters = itertools.chain( # every semester we have info for
-                      #[get_semester()],
+                      [get_semester()],
                       (s.start for s in grad_status_qs),
                       (s.end for s in grad_status_qs),
                       (p.start_semester for p in promises_qs),

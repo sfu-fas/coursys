@@ -1082,6 +1082,13 @@ def edit_bu(request, post_slug):
     return render(request, 'ta/edit_bu.html',context)
 
 
+def _by_start_semester(gradstudent):
+    "Used to find the grad program with most recent start semester"
+    if gradstudent.start_semester:
+        return gradstudent.start_semester.name
+    else:
+        return 'ZZZZ'
+
 @requires_role("TAAD")
 def generate_csv(request, post_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
@@ -1107,13 +1114,41 @@ def generate_csv(request, post_slug):
     csvWriter = csv.writer(response)
     
     #First csv row: all the course names
-    off = [str(o.course) + ' ' + str(o.section) for o in offerings]
-    off.insert(0,'Name')
+    off = ['Name', 'Categ', 'Program', 'Status', 'Unit', 'Start Sem', 'BU', 'Campus'] + [str(o.course) + ' ' + str(o.section) for o in offerings]
+    csvWriter.writerow(off)
+    
+    # next row: campuses
+    off = ['']*8 + [str(o.campus) for o in offerings]
     csvWriter.writerow(off)
     
     apps = TAApplication.objects.filter(posting=posting).order_by('person')
     for app in apps:
-        row = [app.person.sortname()]
+        # grad program info
+        gradstudents = GradStudent.objects.filter(person=app.person).select_related('program__unit', 'start_semester')
+        if gradstudents:
+            gs = min(gradstudents, key=_by_start_semester)
+            program = gs.program.label
+            status = gs.get_current_status_display()
+            unit = gs.program.unit.label
+            if gs.start_semester:
+                startsem = gs.start_semester.name
+            else:
+                startsem = ''
+        else:
+            program = ''
+            startsem = ''
+            status = ''
+            unit = ''
+        
+        campuspref = ''
+        for cp in CampusPreference.objects.filter(app=app):
+            if cp.pref == 'PRF':
+                campuspref += cp.campus[0].upper()
+            elif cp.pref == 'WIL':
+                campuspref += cp.campus[0].lower()
+        
+        row = [app.person.sortname(), app.category, program, status, unit, startsem, app.base_units, campuspref]
+        
         for off in all_offerings:
             crs = off.course
             if crs in course_prefs[app]:
