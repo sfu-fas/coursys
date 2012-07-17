@@ -3,6 +3,7 @@ from coredata.models import Role, Person, Unit
 from dashboard.models import UserConfig
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
+from django.db import transaction
 import base64
 import json
 
@@ -28,6 +29,7 @@ def _validate_credentials(data):
     unit = Unit.objects.get(label=unit)
     return advisor, unit
 
+@transaction.commit_on_success
 def _create_advising_notes(data, advisor, unit):
     try:
         notes = data['notes']
