@@ -71,7 +71,7 @@ def _create_advising_notes(data, advisor, unit):
             try:
                 file_data = base64.b64decode(file_data)
             except TypeError:
-                raise ValidationError("Invalid base64 format for note file attachment")
+                raise ValidationError("Invalid base64 data for note file attachment")
             
             file_info = {'name': filename, 'mediatype': mediatype, 'data': file_data}
         
@@ -98,7 +98,7 @@ def new_advisor_notes(post_data):
     """
     Parses the JSON post data, validates, and save the advisor notes
     """
-    data = json.loads(post_data) # throws ValueError on bad JSON
+    data = json.loads(post_data) # throws ValueError on bad JSON, UnicodeDecodeError on bad UTF-8
     
     advisor, unit = _validate_credentials(data)
     _create_advising_notes(data, advisor, unit)

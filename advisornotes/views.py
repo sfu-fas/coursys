@@ -451,10 +451,13 @@ def rest_notes(request):
         resp['Allow'] = 'POST'
         return resp
     
-    # TODO: request['content-type'] != 'application/json' => 415 unsupported media type
-    
+    if request.META['CONTENT_TYPE'] != 'application/json' and not request.META['CONTENT_TYPE'].startswith('application/json;'):
+        return HttpResponse(content='Contents must be JSON (application/json)', status=415)
+
     try:
         rest.new_advisor_notes(request.raw_post_data)
+    except UnicodeDecodeError:
+        return HttpResponse(content='Bad UTF-8 encoded text', status=400)
     except ValueError:
         return HttpResponse(content='Bad JSON in request body', status=400)
     except ValidationError as e:

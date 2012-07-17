@@ -70,6 +70,24 @@ class AdvistorNotestest(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.content, 'Bad JSON in request body')
         
+    def test_rest_notes_invalid_UTF8(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_bad_utf8.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.content, 'Bad UTF-8 encoded text')
+        
+    def test_rest_notes_not_JSON(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_valid_file.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'text/plain')
+        self.assertEqual(response.status_code, 415)
+        self.assertEqual(response.content, 'Contents must be JSON (application/json)')
+        
     def test_rest_notes_missing_credential(self):
         client = Client()
         f = open('advisornotes/testfiles/rest_notes_missing_credential.json')
@@ -103,7 +121,7 @@ class AdvistorNotestest(TestCase):
         f = open('advisornotes/testfiles/rest_notes_invalid_token.json')
         data = f.read()
         f.close()
-        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json; charset=utf-8')
         self.assertEqual(response.status_code, 422)
         self.assertEqual(response.content, "Secret token didn't match")
         
@@ -229,3 +247,12 @@ class AdvistorNotestest(TestCase):
         after_count = len(AdvisorNote.objects.filter(student__emplid=200000475))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(before_count + 1, after_count, "Should be one more advisor note for student")
+
+    def test_rest_notes_bad_base64(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_bad_base64.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, "Invalid base64 data for note file attachment")
