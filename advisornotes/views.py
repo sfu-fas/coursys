@@ -447,9 +447,18 @@ def rest_notes(request):
     View to create new advisor notes via RESTful POST (json)
     """
     if request.method != 'POST':
-        raise Http404
+        resp = HttpResponse(content='Only POST requests allowed', status=405)
+        resp['Allow'] = 'POST'
+        return resp
+    
+    # TODO: request['content-type'] != 'application/json' => 415 unsupported media type
+    
     try:
         rest.new_advisor_notes(request.raw_post_data)
+    except ValueError:
+        return HttpResponse(content='Bad JSON in request body', status=400)
     except ValidationError as e:
         return HttpResponse(content=e.messages[0], status=422)
+
     return HttpResponse(status=200)
+

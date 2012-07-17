@@ -105,6 +105,7 @@ class AdvisorNote(models.Model):
 ARTIFACT_CATEGORIES = (
     ("SCH", "School"),
     ("PRO", "Program"),
+    ("OTH", "Other"),
 )
 
 

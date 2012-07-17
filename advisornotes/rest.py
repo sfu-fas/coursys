@@ -98,10 +98,7 @@ def new_advisor_notes(post_data):
     """
     Parses the JSON post data, validates, and save the advisor notes
     """
-    try:
-        data = json.loads(post_data)
-    except ValueError:
-        raise ValidationError("Invalid JSON format")
+    data = json.loads(post_data) # throws ValueError on bad JSON
     
     advisor, unit = _validate_credentials(data)
     _create_advising_notes(data, advisor, unit)

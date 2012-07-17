@@ -59,7 +59,7 @@ class AdvistorNotestest(TestCase):
     def test_rest_notes_not_POST(self):
         client = Client()
         response = client.get(reverse('advisornotes.views.rest_notes'))
-        self.assertEqual(response.status_code, 404, "Should get a 404 for non POST requests")
+        self.assertEqual(response.status_code, 405, "Should get a 405 for non POST requests")
         
     def test_rest_notes_invalid_JSON(self):
         client = Client()
@@ -67,8 +67,8 @@ class AdvistorNotestest(TestCase):
         data = f.read()
         f.close()
         response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
-        self.assertEqual(response.status_code, 422)
-        self.assertEqual(response.content, 'Invalid JSON format')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.content, 'Bad JSON in request body')
         
     def test_rest_notes_missing_credential(self):
         client = Client()
