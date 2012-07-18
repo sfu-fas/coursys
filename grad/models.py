@@ -604,7 +604,9 @@ class Letter(models.Model):
         return u"%s letter for %s" % (self.template.label, self.student)
     def save(self, *args, **kwargs):
         # normalize text so it's easy to work with
-        self.to_lines = _normalize_newlines(self.to_lines.rstrip())
+        if not self.to_lines:
+            self.to_lines = ''
+        _normalize_newlines(self.to_lines.rstrip())
         self.from_lines = _normalize_newlines(self.from_lines.rstrip())
         self.content = _normalize_newlines(self.content.rstrip())
         self.content = many_newlines.sub('\n\n', self.content)

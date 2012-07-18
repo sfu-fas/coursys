@@ -41,11 +41,16 @@ var loader_url = '{{MEDIA_URL}}icons/ajax-loader.gif';
 //<![CDATA[
 $(window).bind( 'hashchange', display_sections);
 $(document).ready(function() {
-	console.log('loading '+ $.cookie('grad_view_visible') + ' ' + (!$.param.fragment() && $.cookie('grad_view_visible')))
+	if (window.location.search.indexOf('_escaped_fragment_') != -1) {
+		$('div.datatable_container table.display').each(function(i, elt){
+			datatable_grad_table(elt);
+		});
+		return;
+	}
 	if ( !$.param.fragment() && $.cookie('grad_view_visible') ) {
 		// no sections set in fragment: use cookie if we have that.
 		var cookie = $.cookie('grad_view_visible');
-		parent.location.hash = cookie;
+		parent.location.hash = '!'+cookie;
 		display_sections(null, cookie);
 		$.cookie('grad_view_visible', cookie, { expires: 365, path: '/' });
 	} else {
@@ -75,29 +80,29 @@ Last updated {{grad.updated_at}} by
 {% if not grad.modified_by %}{{grad.created_by}}{% else %}{{grad.modified_by}}{% endif %}.
 </div>
 
-<h2 id="general" class="collapsed"><a href="#general">General</a></h2>
-<div id="general_content"></div>
+<h2 id="general" class="collapsed"><a href="#!general">General</a></h2>
+<div id="general_content">{{general_content}}</div>
 
-<h2 id="requirements" class="collapsed"><a href="#requirements">Requirements</a></h2>
-<div id="requirements_content"></div>
+<h2 id="requirements" class="collapsed"><a href="#!requirements">Requirements</a></h2>
+<div id="requirements_content">{{requirements_content}}</div>
 
-<h2 id="committee" class="collapsed"><a href="#committee">Committee</a></h2>
-<div id="committee_content"></div>
+<h2 id="committee" class="collapsed"><a href="#!committee">Committee</a></h2>
+<div id="committee_content">{{committee_content}}</div>
 
-<h2 id="status" class="collapsed"><a href="#status">Status</a></h2>
-<div id="status_content"></div>
+<h2 id="status" class="collapsed"><a href="#!status">Status</a></h2>
+<div id="status_content">{{status_content}}</div>
 
-<h2 id="scholarships" class="collapsed"><a href="#scholarships">Scholarships</a></h2>
-<div id="scholarships_content"></div>
+<h2 id="scholarships" class="collapsed"><a href="#!scholarships">Scholarships</a></h2>
+<div id="scholarships_content">{{scholarships_content}}</div>
 
-<h2 id="otherfunding" class="collapsed"><a href="#otherfunding">Other Funding</a></h2>
-<div id="otherfunding_content"></div>
+<h2 id="otherfunding" class="collapsed"><a href="#!otherfunding">Other Funding</a></h2>
+<div id="otherfunding_content">{{otherfunding_content}}</div>
 
-<h2 id="promises" class="collapsed"><a href="#promises">Promises</a></h2>
-<div id="promises_content"></div>
+<h2 id="promises" class="collapsed"><a href="#!promises">Promises</a></h2>
+<div id="promises_content">{{promises_content}}</div>
 
-<h2 id="letters" class="collapsed"><a href="#letters">Letters</a></h2>
-<div id="letters_content"></div>
+<h2 id="letters" class="collapsed"><a href="#!letters">Letters</a></h2>
+<div id="letters_content">{{letters_content}}</div>
 
 
 

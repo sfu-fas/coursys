@@ -77,7 +77,31 @@ function processSelections(selectOptions){
 
 
 
+function set_visible_section_cookie() {
+	var fragment = $.param.fragment();
+	if ( fragment[0] == '!' ) {
+		fragment = fragment.substr(1);
+	}
+	$.cookie('grad_view_visible', fragment, { expires: 365, path: '/' });	
+}
 
+function datatable_grad_table(elt) {
+	var sortcol = 0;
+	elt = $(elt)
+	// look for a sort-n class indicating the sortcol
+	$(elt.attr('class').split(' ')).each(function(i,cls){
+		if (cls.indexOf('sort-') == 0) {
+			sortcol = parseInt(cls.substr(5));
+		}
+	});
+	elt.dataTable({
+		'bPaginate': false,
+	    'bInfo': false,
+		'bLengthChange': false,
+	    'bJQueryUI': true,
+	    "aaSorting": [[ sortcol, "asc" ]],
+	});
+}
 
 function show_section(id) {
 	var elt = $('#'+id);
@@ -88,27 +112,13 @@ function show_section(id) {
 	elt.addClass('displayed');
 	$('#'+id+'_content').html('<p><img src="' + loader_url + '" alt="..." /></p>');
 	
-	$.cookie('grad_view_visible', $.param.fragment(), { expires: 365, path: '/' });
+	set_visible_section_cookie()
 	$.ajax({
 		url: "?section="+id,
 		success: function (data) {
 			$('#'+id+'_content').html(data)
 			$('#'+id+'_content div.datatable_container table.display').each(function(i, elt){
-				var sortcol = 0;
-				elt = $(elt)
-				// look for a sort-n class indicating the sortcol
-				$(elt.attr('class').split(' ')).each(function(i,cls){
-					if (cls.indexOf('sort-') == 0) {
-						sortcol = parseInt(cls.substr(5));
-					}
-				});
-				elt.dataTable({
-    				'bPaginate': false,
-				    'bInfo': false,
-    				'bLengthChange': false,
-				    'bJQueryUI': true,
-				    "aaSorting": [[ sortcol, "asc" ]],
-				});
+				datatable_grad_table(elt);
 			});
 		},
 	});
@@ -123,7 +133,7 @@ function hide_section(id) {
 	elt.addClass('collapsed');
 	$('#'+id+'_content').html('');
 
-	$.cookie('grad_view_visible', $.param.fragment(), { expires: 365, path: '/' });
+	set_visible_section_cookie();
 }
 
 function update_links() {
@@ -138,14 +148,14 @@ function update_links() {
 		// set link to collapse
 		hash = currenthash.replace(','+this.id, '').substr(1);
 		$(this).find('a').each(function() {
-			$(this).attr('href', '#' + hash);
+			$(this).attr('href', '#!' + hash);
 		});
 	});
 	$('.collapsed').each(function() {
 		// set link to display
 		hash = (currenthash + ',' + this.id).substr(1);
 		$(this).find('a').each(function() {
-			$(this).attr('href', '#' + hash);
+			$(this).attr('href', '#!' + hash);
 		});
 	});
 }
@@ -154,6 +164,10 @@ function display_sections(evnt, sectionlist) {
 	// show all sections indicated by the query string
 	if (!sectionlist) {
 		sectionlist = $.param.fragment();
+		if ( sectionlist[0] != '!') {
+			return;
+		}
+		sectionlist = sectionlist.substr(1);
 	}
 	var fields = sectionlist.split(',');
 	var displayed = [];
@@ -173,6 +187,9 @@ function display_sections(evnt, sectionlist) {
 	
 	update_links();
 }
+
+
+
 
 
 	function getData(url) {

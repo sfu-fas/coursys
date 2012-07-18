@@ -3,8 +3,12 @@ from django.test.client import Client
 from settings import CAS_SERVER_URL
 from django.core.urlresolvers import reverse
 import json, datetime
-from grad.models import GradStudent, GradRequirement, GradProgram, Letter, LetterTemplate
+from coredata.models import Person, Semester
+from grad.models import GradStudent, GradRequirement, GradProgram, Letter, LetterTemplate, \
+        Supervisor, GradStatus, CompletedRequirement, ScholarshipType, Scholarship, OtherFunding, \
+        Promise
 from courselib.testing import basic_page_tests
+from grad.views.view import all_sections
 
 
 class GradTest(TestCase):
@@ -93,24 +97,54 @@ class GradTest(TestCase):
         client = Client()
         client.login(ticket="ggbaker", service=CAS_SERVER_URL)
         gs = GradStudent.objects.get(person__userid='0nnngrad')
+        sem = Semester.current()
         
-        GradRequirement(program=gs.program, description="Some Requirement").save()
+        # put some data there so there's something to see in the tests
+        req = GradRequirement(program=gs.program, description="Some Requirement")
+        req.save()
+        st = ScholarshipType(unit=gs.program.unit, name="Some Scholarship")
+        st.save()
+        lt = LetterTemplate(unit=gs.program.unit, label='Template', content="This is the\n\nletter for {{first_name}}.")
+        lt.save()
+        Supervisor(student=gs, supervisor=Person.objects.get(userid='ggbaker'), supervisor_type='SEN').save()
+        GradStatus(student=gs, status='ACTI', start=sem).save()
+        CompletedRequirement(student=gs, requirement=req, semester=sem).save()
+        Scholarship(student=gs, scholarship_type=st, amount=1000, start_semester=sem, end_semester=sem).save()
+        OtherFunding(student=gs, amount=100, semester=sem, description="Some Other Funding").save()
+        Promise(student=gs, amount=10000, start_semester=sem, end_semester=sem.next_semester()).save()
+        
+        url = reverse('grad.views.get_letter_text', kwargs={'grad_slug': gs.slug, 'letter_template_id': lt.id})
+        content = client.get(url).content
+        Letter(student=gs, template=lt, date=datetime.date.today(), content=content).save()
         
         url = reverse('grad.views.view', kwargs={'grad_slug': gs.slug})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
         
-        for section in ['general', 'committee', 'status', 'requirements', 'scholarships', 'otherfunding', 'promises', 'letters']:
+        for section in all_sections:
             # sections of the main gradstudent view that can be loaded
             url = reverse('grad.views.view', kwargs={'grad_slug': gs.slug})
+            # check fragment fetch for AJAX
             try:
-                # don't check validity since they're page fragments. TODO: force them into the page somehow and check that
                 response = client.get(url, {'section': section})
                 self.assertEqual(response.status_code, 200)
             except:
                 print "with section==" + repr(section)
                 raise
+
+            # check section in page
+            try:
+                response = basic_page_tests(self, client, url + '?_escaped_fragment_=' + section)
+                self.assertEqual(response.status_code, 200)
+            except:
+                print "with section==" + repr(section)
+                raise
+        
+        # check all sections together
+        response = basic_page_tests(self, client, url + '?_escaped_fragment_=' + ','.join(all_sections))
+        self.assertEqual(response.status_code, 200)
             
+        # check management pages
         for view in ['financials', 'manage_academics', 'manage_requirements', 'manage_scholarship', 'new_letter']:
             # other pages for that student
             try:

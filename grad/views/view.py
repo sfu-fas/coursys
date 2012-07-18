@@ -1,6 +1,7 @@
 from courselib.auth import has_role, NotFoundResponse, ForbiddenResponse
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render
+from django.utils.safestring import mark_safe
 from grad.models import GradStudent, Supervisor, GradStatus, CompletedRequirement, GradRequirement, \
         Scholarship, OtherFunding, Promise, Letter
 
@@ -31,18 +32,28 @@ def _can_view_student(request, grad_slug):
 
     return None, None
 
+
+all_sections = ['general', 'committee', 'status', 'requirements', 'scholarships', 'otherfunding', 'promises', 'letters']
+
 @login_required
-def view(request, grad_slug):
+def view(request, grad_slug, section=None):
     grad, authtype = _can_view_student(request, grad_slug)
     if grad is None or authtype == 'student':
         return ForbiddenResponse(request)
     
     context = {'grad': grad}
+    for s in all_sections:
+        context[s+'_content'] = ''
+    
     if 'section' in request.GET:
         # page sections fetched by AJAX calls
         section = request.GET['section']
-
-        if section == 'general':
+        
+    if section:
+        if section not in all_sections:
+            return NotFoundResponse(request)
+        
+        elif section == 'general':
             return render(request, 'grad/view__general.html', context)
 
         elif section == 'committee':
@@ -86,7 +97,15 @@ def view(request, grad_slug):
             return render(request, 'grad/view__letters.html', context)
 
         else:
-            return NotFoundResponse(request)
+            raise ValueError, "Not all sections handled by view code: " + repr(section)
+
+    elif '_escaped_fragment_' in request.GET:
+        # Implement google-suggested hash-bang workaround. Not terribly efficient, but probably uncommon.
+        # https://developers.google.com/webmasters/ajax-crawling/docs/getting-started
+        sections = request.GET['_escaped_fragment_'].split(',')
+        for s in sections:
+            resp = view(request, grad_slug, section=s)
+            context[s+'_content'] = mark_safe(resp.content)
 
     return render(request, 'grad/view.html', context)
 
