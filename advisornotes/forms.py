@@ -8,8 +8,7 @@ from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
 import datetime
 
-
-class AdvisorNoteForm(forms.ModelForm):
+class _AdvisorNoteFormNonstudent(forms.ModelForm):
     class Meta:
         model = AdvisorNote
         exclude = ('hidden',)
@@ -17,6 +16,19 @@ class AdvisorNoteForm(forms.ModelForm):
                 'text': forms.Textarea(attrs={'cols': 80, 'rows': 25})
                 }
 
+class _AdvisorNoteFormStudent(_AdvisorNoteFormNonstudent):
+    email_student = forms.BooleanField(required=False, help_text="Should the student be emailed the contents of this note?")
+
+def advisor_note_factory(student, post_data=None, files=None, initial=None, instance=None):
+    """
+    Factory method to return the proper form for a student/nonstudent
+    """
+    if isinstance(student, Person):
+        return _AdvisorNoteFormStudent(post_data, files, initial=initial, instance=instance)
+    elif isinstance(student, NonStudent):
+        return _AdvisorNoteFormNonstudent(post_data, files, initial=initial, instance=instance)
+    else:
+        raise ValueError
 
 class ArtifactNoteForm(forms.ModelForm):
     class Meta:

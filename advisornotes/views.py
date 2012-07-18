@@ -1,6 +1,6 @@
-from advisornotes.forms import AdvisorNoteForm, StudentSearchForm, \
+from advisornotes.forms import StudentSearchForm, \
     NoteSearchForm, NonStudentForm, MergeStudentForm, ArtifactNoteForm, \
-    ArtifactForm
+    ArtifactForm, advisor_note_factory
 from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote
 from coredata.models import Person, Course, CourseOffering
 from coredata.queries import find_person, add_person, more_personal_info, \
@@ -17,6 +17,8 @@ from log.models import LogEntry
 import json
 import rest
 from django.views.decorators.csrf import csrf_exempt
+from django.core.mail import send_mail
+from django.conf import settings
 
 
 def _redirect_to_notes(student):
@@ -109,6 +111,11 @@ def sims_add_person(request):
     return HttpResponseRedirect(reverse('advisornotes.views.advising', kwargs={}))
 
 
+def _email_student_note(email, advisor, note_text):
+    from_email= settings.DEFAULT_FROM_EMAIL
+    message = "A note has been added to your SFU account by %s (%s):\n\n%s" % (advisor.name(), advisor.email(), note_text)
+    send_mail("A note has been added to your SFU account", message, from_email, [email])
+
 @requires_role('ADVS')
 def new_note(request, userid):
     try:
@@ -118,7 +125,7 @@ def new_note(request, userid):
     unit_choices = [(u.id, unicode(u)) for u in request.units]
 
     if request.method == 'POST':
-        form = AdvisorNoteForm(request.POST, request.FILES)
+        form = advisor_note_factory(student, request.POST, request.FILES)
         form.fields['unit'].choices = unit_choices
         if form.is_valid():
             note = form.save(commit=False)
@@ -140,9 +147,11 @@ def new_note(request, userid):
                   related_object=form.instance)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'Note created.')
+            if isinstance(student, Person) and form.cleaned_data['email_student']:
+                _email_student_note(student.email(), note.advisor, note.text)
             return _redirect_to_notes(student)
     else:
-        form = AdvisorNoteForm(initial={'student': student})
+        form = advisor_note_factory(student)
         form.fields['unit'].choices = unit_choices
     return render(request, 'advisornotes/new_note.html', {'form': form, 'student': student, 'userid': userid})
 
