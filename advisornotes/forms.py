@@ -1,12 +1,12 @@
 from advisornotes.models import AdvisorNote, NonStudent, ArtifactNote, Artifact
 from coredata.models import Person
 from django import forms
+from django.core import validators
+from django.core.exceptions import ValidationError
 from django.forms.models import ModelForm
 from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
-from grades.forms import _required_star
-from django.core import validators
-from django.core.exceptions import ValidationError
+import datetime
 
 
 class AdvisorNoteForm(forms.ModelForm):
@@ -74,12 +74,19 @@ class StudentSearchForm(forms.Form):
 
 class NoteSearchForm(forms.Form):
     search = forms.CharField()
-
+    
+class StartYearField(forms.IntegerField):
+    
+    def validate(self, value):
+        if value is not None:
+            super(StartYearField, self).validate(value)
+            current_year = datetime.date.today().year
+            if value < current_year:
+                raise forms.ValidationError("Must be equal to or after %d" % current_year)
+        
 
 class NonStudentForm(ModelForm):
-    first_name = forms.CharField(label=mark_safe('First name ' + _required_star))
-    last_name = forms.CharField(label=mark_safe('Last name ' + _required_star))
-
+    start_year = StartYearField(help_text="The predicted/potential start year", required=False)
     class Meta:
         model = NonStudent
         exclude = ('config', 'notes')

@@ -57,7 +57,7 @@ $(document).ready(function() {
         </tr>
 	    <tr>
             <th class="ui-state-default">Middle Name</th>
-            <td>{{ student.middle_name|default_if_none:"--" }}
+            <td>{{ student.middle_name|default:"--" }}
             </td>
         </tr>
 	    <tr>
@@ -81,8 +81,16 @@ $(document).ready(function() {
         {% if nonstudent %}
         <tr>
 	    	<th class="ui-state-default">High School</th>
-            <td>{{ student.high_school|default_if_none:"--" }}</td>
+            <td>{{ student.high_school|default:"--" }}</td>
 	    </tr>
+	    <tr>
+            <th class="ui-state-default">College</th>
+            <td>{{ student.college|default:"--" }}</td>
+        </tr>
+        <tr>
+            <th class="ui-state-default">Start Year:</th>
+            <td>{{ student.start_year|default_if_none:"--" }}</td>
+        </tr>
 	    {% endif %}
 	    {% if not nonstudent and student.nonstudent_hs %}
 	    <tr>
@@ -90,6 +98,12 @@ $(document).ready(function() {
             <td>{{ student.nonstudent_hs }}</td>
 	    </tr>    
 	    {% endif %}
+	    {% if not nonstudent and student.nonstudent_colg %}
+        <tr>
+            <th class="ui-state-default">College (Pre-admission record)</th>
+            <td>{{ student.nonstudent_colg }}</td>
+        </tr>    
+        {% endif %}
         </tbody>
     </table>
 </div>

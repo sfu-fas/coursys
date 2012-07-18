@@ -1,37 +1,36 @@
 {% extends "base.html" %}
-{% load grade_student %}
+{% load form_display %}
 {% block title %}New Prospective Student{% endblock %}
 {% block h1 %}New Prospective Student{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li><li>&gt; New Prospective Student</li>{% endblock %}
+{% block subbreadcrumbs %}
+<li>
+    &gt; <a href="{% url advisornotes.views.advising %}">Advising</a>
+</li>
+<li>
+    &gt; New Prospective Student
+</li>{% endblock %}
 
 {% block content %}
 <div id="form_container">
-	{% if form.non_field_errors %}
-	    <p class="errorindicator">
-	        <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
-	        {{ form.non_field_errors }}
-	    </p>
+    {% if form.non_field_errors %}
+    <p class="errorindicator">
+        <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
+        {{ form.non_field_errors }}
+    </p>
     {% endif %}
-	<form action="{% url advisornotes.views.new_nonstudent %}" method="post">
-		{% csrf_token %}
-		<fieldset>
-            <legend>Prospective Student Info</legend>
-            <p class="requireindicator"><img src="{{MEDIA_URL}}/icons/required_star.gif" alt="required" />&nbsp;Indicates required field</p>
-            <ul>
-            	{{ form.first_name|activity_field }}
-            	{{ form.pref_first_name|activity_field }}
-            	{{ form.middle_name|activity_field }}
-                {{ form.last_name|activity_field }}
-                {{ form.high_school|activity_field }}
-                {{ form.unit|activity_field }}
-                {{ form.notes|activity_field }}
-                <li>
-                    <input class="submit" type="submit" value="Submit" />
-                </li>
-            </ul>
+    <form action="{% url advisornotes.views.new_nonstudent %}" method="post">
+        {% csrf_token %}
+        <fieldset>
+            <legend>
+                Prospective Student Info
+            </legend>
+            {{ form|as_dl_safe }}
+            <p>
+                <input class="submit" type="submit" value="Submit" />
+            </p>
         </fieldset>
-	</form>
+    </form>
 </div>
 
 {% endblock %}

@@ -426,6 +426,8 @@ def merge_nonstudent(request, nonstudent_slug):
                 note.save()
             if nonstudent.high_school:
                 student.set_nonstudent_hs(nonstudent.high_school)
+            if nonstudent.college:
+                student.set_nonstudent_colg(nonstudent.college)
             if nonstudent.notes:
                 student.set_nonstudent_notes(nonstudent.notes)
             nonstudent.delete()

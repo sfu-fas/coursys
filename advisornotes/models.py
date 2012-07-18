@@ -32,6 +32,8 @@ class NonStudent(models.Model):
     middle_name = models.CharField(max_length=32, null=True, blank=True)
     pref_first_name = models.CharField(max_length=32, null=True, blank=True)
     high_school = models.CharField(max_length=32, null=True, blank=True)
+    college = models.CharField(max_length=32, null=True, blank=True)
+    start_year = models.IntegerField(null=True, blank=True, help_text="The predicted/potential start year")
     notes = models.TextField(help_text="Any general information for the student", blank=True)
     unit = models.ForeignKey(Unit, help_text='The potential academic unit for the student', null=True, blank=True)
 
