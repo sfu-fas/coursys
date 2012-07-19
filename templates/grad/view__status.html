@@ -1,23 +1,23 @@
-<p class="manage_link"><a href="{% url grad.views.manage_status grad_slug=grad.slug  %}">Manage Status</a></p>
+{% if index %}<p class="manage_link"><a href="{% url grad.views.manage_status grad_slug=grad.slug  %}">Manage Status</a></p>{% endif %}
 <div class="datatable_container datatable">
 	<table class="display sort-1">
 		<thead>
 			<tr>
 				<th>Status</th>
 				<th>Start Semester</th>
+				<th>Start Date</th>
 				<th>End Semester</th>
-				<th>Notes</th>
-				<th>Updated At</th>
 			</tr>
 		</thead>
 		<tbody>
-			{% for s in status_history %}
+			{% for s in statuses %}
 			<tr>
-				<td> <span class="sort">{{s.status_order}}</span>{{ s.get_status_display }} </td>
+				<td> <span class="sort">{{s.status_order}}</span>{{ s.get_status_display }}
+				{% if s.notes %} <img src="{{MEDIA_URL}}icons/information.png" alt="[?]" class="collapsiblecomment" /><p class="hiddencomment">{{s.notes}}</p> {% endif %}
+				</td>
 				<td> <span class="sort">{{s.start.name}}</span>{{s.start}} </td>
+				<td> {% if s.start_date %}<span class="sort">{{s.start_date.isoformat}}</span>{{s.start_date}}{% endif %} </td>
 				<td> <span class="sort">{{s.end.name}}</span>{{s.end}} </td>
-				<td> {{s.notes}} </td>
-				<td> {{s.updated_at}} </td>
 			</tr>
 			{% endfor %}
 		</tbody>

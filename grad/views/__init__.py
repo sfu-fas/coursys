@@ -39,5 +39,5 @@ from delete_savedsearch import delete_savedsearch
 from student_financials import student_financials
 from financials import financials
 #from new_promise import new_promise
-from manage_scholarship import manage_scholarship
+from manage_scholarships import manage_scholarships
 from manage_scholarshipType import manage_scholarshipType

@@ -1,4 +1,4 @@
-<p class="manage_link"><a href="{% url grad.views.manage_scholarship grad_slug=grad.slug  %}">Manage Scholarships</a></p>
+{% if index %}<p class="manage_link"><a href="{% url grad.views.manage_scholarships grad_slug=grad.slug  %}">Manage Scholarships</a></p>{% endif %}
 <div class="datatable_container datatable">
 	<table class="display sort-2">
 		<thead>
@@ -12,7 +12,9 @@
 		<tbody>
 			{% for s in scholarships %}
 			<tr>
-				<td> {{ s.scholarship_type.name }} </td>
+				<td> {{ s.scholarship_type.name }}
+				{% if s.comments %}<img src="{{MEDIA_URL}}icons/information.png" alt="[?]" class="collapsiblecomment" /><p class="hiddencomment">{{s.comments}}</p>{% endif %}
+				</td>
 				<td> ${{ s.amount|floatformat:"2" }} </td>
 				<td> <span class="sort">{{ s.start_semester.name }}</span>{{ s.start_semester }} </td>
 				<td> <span class="sort">{{ s.end_semester.name }}</span>{{ s.end_semester }} </td>

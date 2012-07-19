@@ -145,21 +145,12 @@ class GradTest(TestCase):
         self.assertEqual(response.status_code, 200)
             
         # check management pages
-        for view in ['financials', 'manage_academics', 'manage_requirements', 'manage_scholarship', 'new_letter', 'manage_otherfunding', 'manage_promises']:
+        for view in ['financials', 'manage_academics', 'manage_requirements', 'manage_scholarships', 'new_letter',
+                      'manage_otherfunding', 'manage_promises', 'manage_letters', 'manage_status', 'manage_supervisors']:
             # other pages for that student
             try:
                 url = reverse('grad.views.'+view, kwargs={'grad_slug': gs.slug})
                 response = basic_page_tests(self, client, url)
-                self.assertEqual(response.status_code, 200)
-            except:
-                print "with view==" + repr(view)
-                raise
-
-        for view in ['manage_supervisors', 'manage_status', 'manage_letters']:
-            # other pages for that student that aren't yet valid, but should be.
-            try:
-                url = reverse('grad.views.'+view, kwargs={'grad_slug': gs.slug})
-                response = client.get(url)
                 self.assertEqual(response.status_code, 200)
             except:
                 print "with view==" + repr(view)

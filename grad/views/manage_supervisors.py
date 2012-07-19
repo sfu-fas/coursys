@@ -32,11 +32,9 @@ def manage_supervisors(request, grad_slug):
         form = SupervisorForm()
         form.set_supervisor_choices(possible_supervisors([grad.program.unit], extras=supervisor_people, null=True))
 
-    gp = grad.person.get_fields
     context = {
                'form': form,
                'supervisors': supervisors,
                'grad' : grad,
-               'gp' : gp,
                }
     return render(request, 'grad/manage_supervisors.html', context)

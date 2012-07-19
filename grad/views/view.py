@@ -33,7 +33,7 @@ def _can_view_student(request, grad_slug):
     return None, None
 
 
-all_sections = ['general', 'committee', 'status', 'requirements', 'scholarships', 'otherfunding', 'promises', 'letters']
+all_sections = ['general', 'supervisors', 'status', 'requirements', 'scholarships', 'otherfunding', 'promises', 'letters']
 
 @login_required
 def view(request, grad_slug, section=None):
@@ -56,14 +56,14 @@ def view(request, grad_slug, section=None):
         elif section == 'general':
             return render(request, 'grad/view__general.html', context)
 
-        elif section == 'committee':
+        elif section == 'supervisors':
             supervisors = Supervisor.objects.filter(student=grad).select_related('supervisor')
             context['supervisors'] = supervisors
-            return render(request, 'grad/view__committee.html', context)
+            return render(request, 'grad/view__supervisors.html', context)
 
         elif section == 'status':
-            status_history = GradStatus.objects.filter(student=grad, hidden=False).order_by('start__name')
-            context['status_history'] = status_history
+            statuses = GradStatus.objects.filter(student=grad, hidden=False).order_by('start__name')
+            context['statuses'] = statuses
             return render(request, 'grad/view__status.html', context)
 
         elif section == 'requirements':

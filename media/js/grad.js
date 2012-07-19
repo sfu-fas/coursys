@@ -196,6 +196,9 @@ function prep_content() {
 		}
 	});
 	$('.collapsiblecomment').collapsible();
+	$("input#id_start_date").datepicker({
+		'dateFormat' : 'yy-mm-dd'
+	});
 }
 
 

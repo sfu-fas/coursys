@@ -4,6 +4,7 @@ from django.utils.safestring import mark_safe
 from django.utils.html import escape
 register = template.Library()
 from django.forms.widgets import RadioSelect
+from grad.forms import SupervisorWidget
 
 @register.filter
 def as_dl(form, safe=False, excludefields=[], includefields=None):
@@ -32,7 +33,7 @@ def as_dl(form, safe=False, excludefields=[], includefields=None):
         labelid = field.name
         if form.prefix:
             labelid = form.prefix + '-' + labelid
-        if isinstance(field.field.widget, RadioSelect):
+        if isinstance(field.field.widget, (RadioSelect, SupervisorWidget)):
             labelid += '_0'
         out.append('<dt><label for="id_%s">%s:%s</label></dt><dd>' % (labelid, escape(field.label), reqtext))
         if isinstance(field.field.widget, forms.widgets.RadioSelect):

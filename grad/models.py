@@ -643,7 +643,7 @@ class OtherFunding(models.Model):
     semester = models.ForeignKey(Semester, related_name="other_funding")
     description = models.CharField(max_length=100, blank=False)
     amount = models.DecimalField(verbose_name="Funding Amount", max_digits=8, decimal_places=2)
-    eligible = models.BooleanField(help_text="Does this funding count towards promises of support?")
+    eligible = models.BooleanField(default=True, help_text="Does this funding count towards promises of support?")
     comments = models.TextField(blank=True, null=True)
     
 class Promise(models.Model):
