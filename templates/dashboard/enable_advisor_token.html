@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load markup %}
+
+{% block title %}Enable Advisor Notes API{% endblock %}
+{% block h1 %}Enable Advisor Notes API{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>
+    &gt; <a href="{% url dashboard.views.config %}">User Configuration</a>
+</li>
+<li>
+    &gt; Advisor Notes API
+</li>{% endblock %}
+
+{% block content %}
+
+<p>
+    Activating the advisor notes API may cause security concerns. Please note that:
+</p>
+<ul>
+	<li>
+		A secret token will be generated for your account that allows advising notes to be added via an external API that <strong>bypasses normal authentication</strong>. It is your responsibility to keep this token private.
+	</li>
+    <li>
+        The generated token will contain a long string of random characters that would be essentially impossible to guess.
+    </li>
+    <li>
+        Your token can be deactivated or changed any any time.
+    </li>
+</ul>
+
+<form action="{% url dashboard.views.enable_advisor_token %}" method="post">
+    {% csrf_token %}
+    {% for field in form.visible_fields %}
+    <div class="field">
+        {{ field }} I agree to activate the advisor notes API and be responsible for the corresponding token's privacy.
+        {{ field.errors }}
+    </div>
+    {% endfor %}
+    <p>
+        <input type="submit" value="Create API Token" />
+    </p>
+</form>
+
+{% endblock %}

@@ -10,7 +10,8 @@ from django.conf import settings
 from django.contrib import messages
 from coredata.models import Member, CourseOffering, Person, Role, Semester, MeetingTime
 from grades.models import Activity, NumericActivity
-from courselib.auth import requires_course_staff_by_slug, NotFoundResponse
+from courselib.auth import requires_course_staff_by_slug, NotFoundResponse,\
+    has_role
 from courselib.search import find_userid_or_emplid
 from dashboard.models import NewsItem, UserConfig, Signature, new_feed_token
 from dashboard.forms import MessageForm, FeedSetupForm, NewsConfigForm, SignatureForm
@@ -148,7 +149,16 @@ def config(request):
     else:
         newsconfig = configs[0].value
     
-    context={'caltoken': caltoken, 'newstoken': newstoken, 'newsconfig': newsconfig, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL}
+    # advisor note API config
+    advisortoken = None
+    advisor = False
+    if has_role('ADVS', request):
+        advisor = True
+        configs = UserConfig.objects.filter(user=user, key='advisor-token')
+        if not len(configs) is 0:
+            advisortoken = configs[0].value['token']
+    
+    context={'caltoken': caltoken, 'newstoken': newstoken, 'newsconfig': newsconfig, 'advisor': advisor, 'advisortoken': advisortoken, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL}
     return render(request, "dashboard/config.html", context)
 
 
@@ -750,3 +760,53 @@ def courses_json(request, semester):
     crs_data = (c.export_dict() for c in courses)
     json.dump({'courses': list(crs_data)}, resp, indent=1)
     return resp
+
+@requires_role('ADVS')
+def enable_advisor_token(request):
+    user = get_object_or_404(Person, userid=request.user.username)
+    configs = UserConfig.objects.filter(user=user, key="advisor-token")
+    if not len(configs) is 0:
+        raise Http404
+    if request.method == 'POST':
+        form = FeedSetupForm(request.POST)
+        if form.is_valid():
+            config = {'token': new_feed_token()}
+            uc = UserConfig(user=user, key="advisor-token", value=config)
+            uc.save()
+            messages.add_message(request, messages.SUCCESS, 'Advisor notes API enabled')
+            return HttpResponseRedirect(reverse('dashboard.views.config'))
+    else:
+        form = FeedSetupForm()
+    return render(request, "dashboard/enable_advisor_token.html", {"form": form})
+
+@requires_role('ADVS')
+def disable_advisor_token(request):
+    user = get_object_or_404(Person, userid=request.user.username)
+    config = get_object_or_404(UserConfig, user=user, key='advisor-token')
+    if request.method == 'POST':
+        form = FeedSetupForm(request.POST)
+        if form.is_valid():
+            config.delete()
+            messages.add_message(request, messages.SUCCESS, 'Advisor notes API disabled')
+            return HttpResponseRedirect(reverse('dashboard.views.config'))
+    else:
+        form = FeedSetupForm({'agree': True})
+        
+    return render(request, "dashboard/disable_advisor_token.html", {'form': form})
+
+@requires_role('ADVS')
+def change_advisor_token(request):
+    user = get_object_or_404(Person, userid=request.user.username)
+    config = get_object_or_404(UserConfig, user=user, key='advisor-token')
+    if request.method == 'POST':
+        form = FeedSetupForm(request.POST)
+        if form.is_valid():
+            config.value['token'] = new_feed_token()
+            config.save()
+            messages.add_message(request, messages.SUCCESS, 'Advisor notes API token changed')
+            return HttpResponseRedirect(reverse('dashboard.views.config'))
+    else:
+        form = FeedSetupForm({'agree': True})
+        
+    return render(request, "dashboard/change_advisor_token.html", {"form": form})
+    

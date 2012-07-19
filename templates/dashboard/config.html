@@ -23,6 +23,14 @@
 {% else %}
 <li><a href="{% url dashboard.views.create_calendar_url %}">Activate external calendar</a></li>
 {% endif %}
+{% if advisor %}
+    {% if advisortoken %}
+        <li class="newsec"><a href="{% url dashboard.views.disable_advisor_token %}">Disable advisor notes API</a></li>
+        <li><a href="{% url dashboard.views.change_advisor_token %}">Change advisor notes API token</a></li>
+    {% else %}
+        <li class="newsec"><a href="{% url dashboard.views.enable_advisor_token %}">Enable advisor notes API</a></li>
+    {% endif %}
+{% endif %}
 </ul>
 </div>
 {% endblock %}
@@ -60,5 +68,18 @@ The iCalendar file will contain due dates/times for any assignments in your cour
 Select the Calendar tab then Create a new calendar.  Check &ldquo;Synchronise appointments from remote calendar&rdquo; and enter your calendar URL.
 </p>
 <p>In Google Calendar: in the &ldquo;Other Calendars&rdquo; menu, select &ldquo;Add by URL&rdquo;, and enter your calendar URL.</p>
+
+{% if advisor %}
+    <h2>Advisor Notes API</h2>
+    {% if advisortoken %}
+    <p>The advisor notes API is currently <strong>enabled</strong> for your account and your secret token is set to:</p>
+    <blockquote>
+    	<p><i>{{ advisortoken }}</i></p>
+    </blockquote>
+    <p>You may add advising notes via the external API using your username and token to authenticate. Please ensure that this token is kept private.</p>
+    {% else %}
+    <p>You currently do not have the advisor notes API enabled.</p>
+    {% endif %}
+{% endif %}
 
 {% endblock %}
