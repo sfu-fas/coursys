@@ -365,6 +365,7 @@ def calendar_ical(request, token, userid):
     cal = Calendar()
     cal.add('version', '2.0')
     cal.add('prodid', '-//SFU CourSys//courses.cs.sfu.ca//')
+    cal.add('X-PUBLISHED-TTL', 'PT1D')
     
     for data in _calendar_event_data(user, start, end, local_tz, dt_string=False):
         e = Event()
