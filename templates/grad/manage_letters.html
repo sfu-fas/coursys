@@ -1,0 +1,23 @@
+{% extends "grad/base.html" %}
+
+{% block actions %}
+<div id="actions">
+<h2>Actions</h2>
+<ul>
+<li><a href="{% url grad.views.new_letter grad_slug=grad.slug %}">New Letter</a></li>
+</ul>
+</div>
+{% endblock %}
+
+{% block title %}{{grad.person.name}}: Letters{% endblock %}
+{% block h1 %}{{grad.person.name}}: Letters{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
+<li>&gt; <a href="{% url grad.views.view grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li>&gt; Letters</li>
+{% endblock %}
+
+{% block content %}
+{% include "grad/view__letters.html" %}
+{% endblock %} 

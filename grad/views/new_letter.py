@@ -7,7 +7,6 @@ from django.http import HttpResponseRedirect, HttpResponse
 from grad.forms import LetterForm
 import datetime
 from django.core.urlresolvers import reverse
-from view_all_letters import view_all_letters
 from coredata.models import Role
 
 @requires_role("GRAD")
@@ -36,7 +35,7 @@ def new_letter(request, grad_slug):
                   description="Created new %s letter for %s." % (form.instance.template.label, form.instance.student),
                   related_object=form.instance)
             l.save()            
-            return HttpResponseRedirect(reverse(view_all_letters, kwargs={'grad_slug':grad_slug}))
+            return HttpResponseRedirect(reverse('grad.views.manage_letters', kwargs={'grad_slug':grad_slug}))
     else:
         form = LetterForm(initial={'student': grad, 'date': datetime.date.today(), 'from_person': default_from})
         form.fields['from_person'].choices = from_choices

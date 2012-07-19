@@ -145,7 +145,7 @@ class GradTest(TestCase):
         self.assertEqual(response.status_code, 200)
             
         # check management pages
-        for view in ['financials', 'manage_academics', 'manage_requirements', 'manage_scholarship', 'new_letter', 'manage_otherfunding']:
+        for view in ['financials', 'manage_academics', 'manage_requirements', 'manage_scholarship', 'new_letter', 'manage_otherfunding', 'manage_promises']:
             # other pages for that student
             try:
                 url = reverse('grad.views.'+view, kwargs={'grad_slug': gs.slug})
@@ -155,7 +155,7 @@ class GradTest(TestCase):
                 print "with view==" + repr(view)
                 raise
 
-        for view in ['manage_supervisors', 'manage_status', 'view_all_letters']: # , 'manage_promises'
+        for view in ['manage_supervisors', 'manage_status', 'manage_letters']:
             # other pages for that student that aren't yet valid, but should be.
             try:
                 url = reverse('grad.views.'+view, kwargs={'grad_slug': gs.slug})

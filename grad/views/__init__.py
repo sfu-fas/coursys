@@ -25,7 +25,7 @@ from letter_templates import letter_templates
 from new_letter_template import new_letter_template
 from manage_letter_template import manage_letter_template
 #from letters import letters
-from view_all_letters import view_all_letters
+from manage_letters import manage_letters
 from new_letter import new_letter
 from get_letter_text import get_letter_text
 from get_addresses import get_addresses
@@ -38,6 +38,6 @@ from save_search import save_search
 from delete_savedsearch import delete_savedsearch
 from student_financials import student_financials
 from financials import financials
-from new_promise import new_promise
+#from new_promise import new_promise
 from manage_scholarship import manage_scholarship
 from manage_scholarshipType import manage_scholarshipType

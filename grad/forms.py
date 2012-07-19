@@ -235,7 +235,7 @@ class PromiseForm(ModelForm):
     end_semester = StaffSemesterField()
     class Meta:
         model = Promise
-        exclude = ('student','comments')
+        exclude = ('student',)
       
 class ScholarshipForm(ModelForm):
     start_semester = StaffSemesterField()

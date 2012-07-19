@@ -6,6 +6,7 @@ from django.http import HttpResponseRedirect
 from grad.forms import OtherFundingForm
 from django.core.urlresolvers import reverse
 from coredata.models import Semester
+from log.models import LogEntry
 
 @requires_role("GRAD")
 def manage_otherfunding(request, grad_slug):
@@ -15,10 +16,15 @@ def manage_otherfunding(request, grad_slug):
     if request.method == 'POST':
         form = OtherFundingForm(request.POST)
         if form.is_valid():
-            temp = form.save(commit=False)
-            temp.student = grad
-            temp.save()
+            fund = form.save(commit=False)
+            fund.student = grad
+            fund.save()
             messages.success(request, "Other funding for %s sucessfully saved." % (grad))
+            l = LogEntry(userid=request.user.username, 
+              description="added other funding \"%s\" for %s" % (fund.description, grad.slug),
+              related_object=fund )
+            l.save()
+
             
             return HttpResponseRedirect(reverse('grad.views.manage_otherfunding', kwargs={'grad_slug':grad.slug}))
     else:

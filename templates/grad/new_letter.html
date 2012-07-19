@@ -9,7 +9,7 @@
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
 <li>&gt; <a href="{% url grad.views.view grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
-<li>&gt; <a href="{% url grad.views.view_all_letters grad_slug=grad.slug%}">Letters</a></li>
+<li>&gt; <a href="{% url grad.views.manage_letters grad_slug=grad.slug%}">Letters</a></li>
 <li>&gt; New</li>
 {% endblock %}
 {% block headextra %}

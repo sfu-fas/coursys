@@ -1,0 +1,27 @@
+{% extends "grad/base.html" %}
+{% load form_display %}
+
+{% block title %}{{grad.person.name}}: Promises{% endblock %}
+{% block h1 %}{{grad.person.name}}: Promises{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
+<li>&gt; <a href="{% url grad.views.view grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
+<li>&gt; Promises</li>
+{% endblock %}
+
+{% block content %}
+{% include "grad/view__promises.html" %}
+
+<div id="form_container">
+    <form action="" method="post">
+    	{% csrf_token %}
+    	<fieldset>
+    	<legend>Add Promise</legend>
+        {{ form|as_dl }}
+        <p><input  class="submit"  type="submit" value="Add Promise" /></p>
+        </fieldset>
+    </form>
+</div>
+{% endblock %} 
+

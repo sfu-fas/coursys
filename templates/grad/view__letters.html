@@ -1,11 +1,12 @@
-<p class="manage_link"><a href="{% url grad.views.view_all_letters grad_slug=grad.slug  %}">Manage Letters</a></p>
+{% if index %}<p class="manage_link"><a href="{% url grad.views.manage_letters grad_slug=grad.slug  %}">Manage Letters</a></p>{% endif %}
 <div class="datatable_container datatable">
 	<table class="display sort-1">
 		<thead>
 			<tr>
-				<th>Template</th>
-				<th>Date</th>
-				<th>From</th>
+				<th scope="col">Template</th>
+				<th scope="col">Date</th>
+				<th scope="col">From</th>
+				{% if not index %}<th scope="col">Actions</th>{% endif %}
 			</tr>
 		</thead>
 		<tbody>
@@ -13,7 +14,10 @@
 			<tr>
 				<td> {{ l.template.label }} </td>
 				<td> <span class="sort">{{ l.date.isoformat }}</span>{{ l.date }} </td>
-				<td> {{ l.from }} </td>
+				<td> {{ l.from_person }} </td>
+				{% if not index %}<td><a href="{% url grad.views.get_letter grad_slug=grad.slug letter_slug=l.slug %}">Get PDF</a>
+					| <a href="{% url grad.views.view_letter grad_slug=grad.slug letter_slug=l.slug %}">View Body</a>
+					| <a href="{% url grad.views.copy_letter grad_slug=grad.slug letter_slug=l.slug %}">Copy Letter</a></td>{% endif %}
 			</tr>
 			{% endfor %}
 		</tbody>
