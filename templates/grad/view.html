@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "grad/base.html" %}
 
 {% block title %}{{grad.person.name}}, {{grad.program.description}}{% endblock %}
 {% block h1 %}{{grad.person.name}}, {{grad.program.description}}{% endblock %}
@@ -18,27 +18,13 @@
 </div>
 {% endblock %}
 
-{% block headextra %}
-<style type="text/css">
-.collapsed a {
-	background: no-repeat url("{{MEDIA_URL}}icons/fold.png") top left;
-	padding-left: 20px;
-}
-.displayed a {
-	background: no-repeat url("{{MEDIA_URL}}icons/unfold.png") top left;
-	padding-left: 20px;
-}
-</style>
+{% block gradheadextra %}
 <script type="text/javascript" src="{{MEDIA_URL}}js/advisornotes.js"></script>
 <script type="text/javascript" src="{{MEDIA_URL}}js/jquery.ba-bbq.min.js"></script>
 <script type="text/javascript" src="{{MEDIA_URL}}js/jquery.cookie.js"></script>
 <script type="text/javascript">
 //<![CDATA[
 var loader_url = '{{MEDIA_URL}}icons/ajax-loader.gif';
-//]]></script>
-<script type="text/javascript" src="{{MEDIA_URL}}js/grad.js"></script>
-<script type="text/javascript">
-//<![CDATA[
 $(window).bind( 'hashchange', display_sections);
 $(document).ready(function() {
 	if (window.location.search.indexOf('_escaped_fragment_') != -1) {
@@ -57,6 +43,7 @@ $(document).ready(function() {
 		// display sections requested in fragment
 		display_sections(null, null);
 	}
+	$('.collapsiblecomment').collapsible();
 });
 //]]></script>
 {% endblock %}
@@ -103,7 +90,5 @@ Last updated {{grad.updated_at}} by
 
 <h2 id="letters" class="collapsed"><a href="#!letters">Letters</a></h2>
 <div id="letters_content">{{letters_content}}</div>
-
-
 
 {% endblock %} 

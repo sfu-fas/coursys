@@ -1,0 +1,23 @@
+/* Style for the grad admin pages (that aren't shared by anything else) */
+
+p.hiddencomment {
+  margin-top: 0;
+}
+.hiddencomment {
+  display: none;
+  margin-left: 1em;
+  font-style: italic;
+}
+.collapsible-heading {
+  background: none !important;
+}
+
+.collapsed a {
+	background: no-repeat url("/media/icons/fold.png") top left;
+	padding-left: 20px;
+}
+.displayed a {
+	background: no-repeat url("/media/icons/unfold.png") top left;
+	padding-left: 20px;
+}
+

@@ -41,7 +41,7 @@ def view(request, grad_slug, section=None):
     if grad is None or authtype == 'student':
         return ForbiddenResponse(request)
     
-    context = {'grad': grad}
+    context = {'grad': grad, 'index': True}
     for s in all_sections:
         context[s+'_content'] = ''
     

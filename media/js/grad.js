@@ -116,10 +116,8 @@ function show_section(id) {
 	$.ajax({
 		url: "?section="+id,
 		success: function (data) {
-			$('#'+id+'_content').html(data)
-			$('#'+id+'_content div.datatable_container table.display').each(function(i, elt){
-				datatable_grad_table(elt);
-			});
+			$('#'+id+'_content').html(data);
+			prep_content();
 		},
 	});
 }
@@ -189,6 +187,16 @@ function display_sections(evnt, sectionlist) {
 }
 
 
+function prep_content() {
+	$('div.datatable_container table.display').each(function(i, elt){
+		elt = $(elt);
+		if ( !elt.hasClass('dt_init') ) {
+			datatable_grad_table(elt);
+			elt.addClass('dt_init');
+		}
+	});
+	$('.collapsiblecomment').collapsible();
+}
 
 
 

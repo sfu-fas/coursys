@@ -110,7 +110,7 @@ class GradTest(TestCase):
         GradStatus(student=gs, status='ACTI', start=sem).save()
         CompletedRequirement(student=gs, requirement=req, semester=sem).save()
         Scholarship(student=gs, scholarship_type=st, amount=1000, start_semester=sem, end_semester=sem).save()
-        OtherFunding(student=gs, amount=100, semester=sem, description="Some Other Funding").save()
+        OtherFunding(student=gs, amount=100, semester=sem, description="Some Other Funding", comments="Other Funding\n\nComment").save()
         Promise(student=gs, amount=10000, start_semester=sem, end_semester=sem.next_semester()).save()
         
         url = reverse('grad.views.get_letter_text', kwargs={'grad_slug': gs.slug, 'letter_template_id': lt.id})
@@ -145,7 +145,7 @@ class GradTest(TestCase):
         self.assertEqual(response.status_code, 200)
             
         # check management pages
-        for view in ['financials', 'manage_academics', 'manage_requirements', 'manage_scholarship', 'new_letter']:
+        for view in ['financials', 'manage_academics', 'manage_requirements', 'manage_scholarship', 'new_letter', 'manage_otherfunding']:
             # other pages for that student
             try:
                 url = reverse('grad.views.'+view, kwargs={'grad_slug': gs.slug})
@@ -155,7 +155,7 @@ class GradTest(TestCase):
                 print "with view==" + repr(view)
                 raise
 
-        for view in ['manage_supervisors', 'manage_status', 'view_all_letters', ]: # 'manage_otherfunding', 'manage_promises'
+        for view in ['manage_supervisors', 'manage_status', 'view_all_letters']: # , 'manage_promises'
             # other pages for that student that aren't yet valid, but should be.
             try:
                 url = reverse('grad.views.'+view, kwargs={'grad_slug': gs.slug})

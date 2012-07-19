@@ -1,6 +1,6 @@
-<p class="manage_link"><a href="{% url grad.views.manage_otherfunding grad_slug=grad.slug  %}">Manage Other Funding</a></p>
+{% if index %}<p class="manage_link"><a href="{% url grad.views.manage_otherfunding grad_slug=grad.slug  %}">Manage Other Funding</a></p>{% endif %}
 <div class="datatable_container datatable">
-	<table class="display">
+	<table class="display sort-2">
 		<thead>
 			<tr>
 				<th>Description</th>
@@ -11,7 +11,9 @@
 		<tbody>
 			{% for f in otherfunding %}
 			<tr>
-				<td> {{ f.description }} </td>
+				<td> {{ f.description }}
+				{% if f.comments %} <img src="{{MEDIA_URL}}icons/information.png" alt="[?]" class="collapsiblecomment" /><p class="hiddencomment">{{f.comments}}</p> {% endif %}
+				</td>
 				<td> ${{ f.amount|floatformat:"2" }} </td>
 				<td> <span class="sort">{{ f.semester.name }}</span>{{ f.semester }} </td>
 			</tr>
