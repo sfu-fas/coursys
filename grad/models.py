@@ -96,12 +96,6 @@ class GradStudent(models.Model):
     defaults = {'sin': '000000000'}
     sin, set_sin = getter_setter('sin')
 
-    def get_fields(self):
-        # make a list of field/values.
-        k = []
-        for field in GradStudent._meta.fields:     
-                k.append([capfirst(field.verbose_name), field.value_to_string(self)])
-        return k    
     def __unicode__(self):
         return u"%s, %s" % (self.person, self.program.label)
     def save(self, *args, **kwargs):
@@ -424,24 +418,6 @@ class Supervisor(models.Model):
         #unique_together = ("student", "position")
         pass
     
-    def get_fields(self):
-        # make a list of field/values.
-        k = []
-        for field in Supervisor._meta.fields:
-            if field.verbose_name == "ID" or field.name == "external":
-                pass
-            # TO DO: quick workaround to getting actual values displaying instead of ids
-            # There's probably a more elegant way of doing this 
-            elif field.name == "supervisor" or field.name == "student":
-                nameOfPerson = ""
-                #if field.name == "supervisor": 
-                #    nameOfPerson = Person.objects.get(id=field.value_to_string(self))
-                if field.name == "student":
-                    nameOfPerson = GradStudent.objects.get(id=field.value_to_string(self))
-                k.append([capfirst(field.verbose_name), nameOfPerson])
-            else:
-                k.append([capfirst(field.verbose_name), field.value_to_string(self) or None])
-        return k        
     def __unicode__(self):
         return u"%s (%s) for %s" % (self.supervisor or self.external, self.supervisor_type, self.student.person)
 
@@ -544,16 +520,7 @@ class GradStatus(models.Model):
             other_gs = GradStatus.objects.filter(student=self.student, end__isnull=True).exclude(id=self.id)
             for gs in other_gs:
                 gs.end = max(self.start, gs.start)
-                gs.save(close_others=False)
-        
-        
-        
-    def get_fields(self):
-        # make a list of field/values.
-        k = []
-        for field in GradStatus._meta.fields:
-                k.append([capfirst(field.verbose_name), field.value_to_string(self)])
-        return k    
+                gs.save(close_others=False)  
     
     def __unicode__(self):
         return u"Grad Status: %s %s" % (self.status, self.student)
@@ -659,12 +626,7 @@ class Promise(models.Model):
     removed = models.BooleanField(default=False)
     def __unicode__(self):
         return u"%s promise for %s %s-%s" % (self.amount, self.student.person, self.start_semester.name, self.end_semester.name)
-    def get_fields(self):
-        # make a list of field/values.
-        k = []
-        for field in Promise._meta.fields:
-                k.append([capfirst(field.verbose_name), field.value_to_string(self)])
-        return k
+
     def semester_length(self):
         return self.end_semester - self.start_semester + 1
 

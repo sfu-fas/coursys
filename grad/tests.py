@@ -99,7 +99,7 @@ class GradTest(TestCase):
         gs = GradStudent.objects.get(person__userid='0nnngrad')
         sem = Semester.current()
         
-        # put some data there so there's something to see in the tests
+        # put some data there so there's something to see in the tests (also, the empty <tbody>s don't validate)
         req = GradRequirement(program=gs.program, description="Some Requirement")
         req.save()
         st = ScholarshipType(unit=gs.program.unit, name="Some Scholarship")
@@ -121,8 +121,8 @@ class GradTest(TestCase):
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
         
+        # sections of the main gradstudent view that can be loaded
         for section in all_sections:
-            # sections of the main gradstudent view that can be loaded
             url = reverse('grad.views.view', kwargs={'grad_slug': gs.slug})
             # check fragment fetch for AJAX
             try:
@@ -141,13 +141,13 @@ class GradTest(TestCase):
                 raise
         
         # check all sections together
-        response = basic_page_tests(self, client, url + '?_escaped_fragment_=' + ','.join(all_sections))
+        url = url + '?_escaped_fragment_=' + ','.join(all_sections)
+        response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
             
         # check management pages
-        for view in ['financials', 'manage_academics', 'manage_requirements', 'manage_scholarships', 'new_letter',
+        for view in ['financials', 'manage_general', 'manage_requirements', 'manage_scholarships', 'new_letter',
                       'manage_otherfunding', 'manage_promises', 'manage_letters', 'manage_status', 'manage_supervisors']:
-            # other pages for that student
             try:
                 url = reverse('grad.views.'+view, kwargs={'grad_slug': gs.slug})
                 response = basic_page_tests(self, client, url)

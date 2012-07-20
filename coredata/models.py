@@ -139,18 +139,6 @@ class Person(models.Model):
             return "None"
     def search_label_value(self):
         return "%s (%s), %s" % (self.name(), self.userid, self.emplid)
-    def get_fields(self):
-        # make a list of field/values.
-        k = []
-        for field in Person._meta.fields:
-            #hide fields that are for dev only.
-            if field.name == "config":
-                pass
-            elif field.verbose_name == "ID":
-                pass
-            else:
-                k.append([field.verbose_name.title(), field.value_to_string(self)])
-        return k
 
 
 class Semester(models.Model):

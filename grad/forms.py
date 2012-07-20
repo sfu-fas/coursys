@@ -171,6 +171,9 @@ class GradAcademicForm(ModelForm):
     class Meta: 
         model = GradStudent
         fields = ('program', 'research_area', 'campus', 'english_fluency', 'mother_tongue', 'is_canadian', 'passport_issued_by', 'special_arrangements', 'application_status', 'comments')
+        widgets = {
+                   'research_area': forms.Textarea(attrs={'rows': 3, 'cols': 40}),
+                   }
 
 class GradProgramForm(ModelForm):
     class Meta:
