@@ -1,10 +1,11 @@
 from django.db import models
-from coredata.models import Person, Semester, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES, Unit, Course
+from coredata.models import Person, Semester, COMPONENT_CHOICES, CAMPUS_CHOICES, WEEKDAY_CHOICES, \
+        Unit, Course, CourseOffering, Member
 from autoslug import AutoSlugField
 from django.core.urlresolvers import reverse
 from jsonfield import JSONField
 from fractions import Fraction
-
+import datetime
 
 COURSE_STATUS_CHOICES = [
     ('OPEN', 'Open'),
@@ -40,6 +41,22 @@ class PlanningCourse(models.Model):
 
     def full_name(self):
         return "%s %s - %s" % (self.subject, self.number, self.title)
+    
+    @classmethod
+    def create_for_unit(cls, unit):
+        """
+        Populate PlanningCourse objects for this unit, with any Course this unit has offered
+        in the last two years.
+        """
+        old_sem = Semester.get_semester(datetime.date.today()-datetime.timedelta(days=365*2))
+        offerings = CourseOffering.objects.filter(owner=unit, semester__name__gte=old_sem.name)
+        existing = set((pc.subject, pc.number) for pc in PlanningCourse.objects.filter(owner=unit))
+        for crs in set(c.course for c in offerings.select_related('course')):
+            if (crs.subject, crs.number) not in existing:
+                # found a missing PlanningCourse: add it.
+                pc = PlanningCourse(subject=crs.subject, number=crs.number, title=crs.title, owner=unit)
+                pc.save()
+            
 
 
 class TeachingCapability(models.Model):
@@ -56,6 +73,24 @@ class TeachingCapability(models.Model):
 
     def __unicode__(self):
         return "%s - %s" % (self.instructor, self.course)
+    
+    @classmethod
+    def populate_from_history(cls, person, years=2):
+        """
+        Create TeachingCapability objects for any courses this person has
+        taught in recent years.
+        """
+        old_sem = Semester.get_semester(datetime.date.today()-datetime.timedelta(days=365*years))
+        members = Member.objects.filter(person=person, role='INST', offering__semester__name__gte=old_sem.name)
+        courses = set(m.offering.course for m in members.select_related('offering__course'))
+        existing = set(tc.course_id for tc in TeachingCapability.objects.filter(instructor=person))
+        for crs in courses:
+            if crs.id not in existing:
+                # found a course that has been taught but not listed as capable
+                tc = TeachingCapability(instructor=person, course=crs)
+                tc.save()
+        
+        
 
 
 class TeachingIntention(models.Model):

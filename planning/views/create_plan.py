@@ -1,4 +1,5 @@
 from planning.forms import PlanBasicsForm
+from planning.models import PlanningCourse
 from courselib.auth import requires_role
 from log.models import LogEntry
 from django.shortcuts import render_to_response
@@ -16,6 +17,8 @@ def create_plan(request):
         form = PlanBasicsForm(request.POST)
         if form.is_valid():
             plan = form.save()
+            # update PlanningCourse objects for this unit
+            PlanningCourse.create_for_unit(plan.unit)
 
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,

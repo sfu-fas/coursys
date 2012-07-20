@@ -636,7 +636,7 @@ class Member(models.Model):
 
     defaults = {'bu': 0, 'teaching_credit': 1, 'last_discuss': 0}
     bu, set_bu = getter_setter('bu')
-    teaching_credit_str, set_teaching_credit_str = getter_setter('teaching_credit')
+    _, _ = getter_setter('teaching_credit')
     last_discuss, set_last_discuss = getter_setter('last_discuss')
     
     def __unicode__(self):
@@ -661,10 +661,16 @@ class Member(models.Model):
             raise ValidationError('There is another membership with this person, offering, and role.  These must be unique for a membership (unless role is "dropped").')
 
     def teaching_credit(self):
-        return fractions.Fraction(self.teaching_credit_str())
+        if 'teaching_credit' in self.config:
+            s = self.config['teaching_credit']
+        elif self.offering.section.startswith('C'):
+            s = 0
+        else:
+            s = 1
+        return fractions.Fraction(s)
     def set_teaching_credit(self, cred):
         assert isinstance(cred, fractions.Fraction) or isinstance(cred, int)
-        self.set_teaching_credit_str(unicode(cred))
+        self.config['teaching_credit'] = unicode(cred)
 
     def svn_url(self):
         "SVN URL for this member (assuming offering.uses_svn())"

@@ -16,10 +16,12 @@ from datetime import datetime
 def edit_intention(request):
     instructor = get_object_or_404(Person, userid=request.user.username)
     semester_list = Semester.objects.filter(start__gt=datetime.now())
+    semester_choices = [(s.pk, s) for s in semester_list]
     intention_list = TeachingIntention.objects.filter(instructor=instructor).order_by('semester')
 
     if request.method == 'POST':
         form = IntentionForm(request.POST)
+        form.fields['semester'].choices = semester_choices
         form.instructor_id = instructor.id
         if form.is_valid():
             intention = form.save()
@@ -33,6 +35,6 @@ def edit_intention(request):
             return HttpResponseRedirect(reverse('planning.views.edit_intention', kwargs={}))
     else:
         form = IntentionForm(initial={'instructor': instructor})
-        form.fields['semester'].choices = [(s.pk, s) for s in semester_list]
+        form.fields['semester'].choices = semester_choices
 
     return render_to_response("planning/add_intention.html", {'form': form, 'intention_list': intention_list}, context_instance=RequestContext(request))

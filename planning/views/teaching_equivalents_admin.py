@@ -132,10 +132,10 @@ def edit_course_offering_credits(request, userid, course_slug):
     if request.method == 'POST':
         form = CourseOfferingCreditForm(request.POST)
         if form.is_valid():
-            member.set_teaching_credit_str(form.cleaned_data['credits'].__str__())
+            member.set_teaching_credit(form.cleaned_data['credits'])
             member.save()
             messages.add_message(request, messages.SUCCESS, "Course credits successfully updated for %s" % member.offering.name())
             return HttpResponseRedirect(reverse('planning.views.view_teaching_credits_admin', kwargs={'userid': userid}))
     else:   
-        form = CourseOfferingCreditForm(initial={'credits': Fraction(member.teaching_credit_str()).__str__()})
+        form = CourseOfferingCreditForm(initial={'credits': Fraction(member.teaching_credit()).__str__()})
     return render(request, 'planning/edit_offering_credits.html', {'form': form, 'instructor': instructor, 'member': member})
