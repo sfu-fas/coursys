@@ -77,6 +77,7 @@ class AdvisorNote(models.Model):
     unit = models.ForeignKey(Unit, help_text='The academic unit that owns this note')
     # Set this flag if the note is no longer to be accessible.
     hidden = models.BooleanField(null=False, db_index=True, default=False)
+    emailed = models.BooleanField(null=False, default=False)
 
     def __unicode__(self):
         return unicode(self.student) + "@" + unicode(self.created_at)

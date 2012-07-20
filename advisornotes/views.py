@@ -153,8 +153,7 @@ def new_note(request, userid):
             return _redirect_to_notes(student)
     else:
         form = advisor_note_factory(student)
-     
-            #LOG EVENT#   form.fields['unit'].choices = unit_choices
+        form.fields['unit'].choices = unit_choices
     return render(request, 'advisornotes/new_note.html', {'form': form, 'student': student, 'userid': userid})
 
 
