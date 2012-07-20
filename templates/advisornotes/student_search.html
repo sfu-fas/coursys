@@ -1,19 +1,26 @@
 {% extends "base.html" %}
 
-{% block title %}Student Search{% endblock %}
-{% block h1 %}Student Search{% endblock %}
+{% block title %}Advising{% endblock %}
+{% block h1 %}Advising{% endblock %}
 
-{% block headextra %}<script type="text/javascript" src="{{MEDIA_URL}}js/advisornotes.js"></script>
+{% block headextra %}
+<script type="text/javascript" src="{{MEDIA_URL}}js/advisornotes.js"></script>
 <script type="text/javascript">
 //<![CDATA[
-$(document).ready(function() {
-  $("#id_search").focus();
-  student_autocomplete('id_search');
-  {% if simssearch %}
-  search_sims('{% url advisornotes.views.sims_search %}', '{{simssearch}}', '{% url advisornotes.views.sims_add_person %}', '{% filter escapejs %}{% csrf_token %}{% endfilter %}');
-  {% endif %}
+$(function() {
+    $("#id_search").focus();
+    student_autocomplete('id_search');
+    {% if simssearch %}
+    search_sims('{% url advisornotes.views.sims_search %}',
+        '{{simssearch}}',
+        '{% url advisornotes.views.sims_add_person %}',
+        '{% filter escapejs %}{% csrf_token %}{% endfilter %}'
+    );
+    {% endif %}
 });
-//]]></script>{% endblock %}
+//]]>
+</script>
+{% endblock %}
 
 {% block subbreadcrumbs %}<li>&gt; Advising</li>{% endblock %}
 
@@ -21,47 +28,52 @@ $(document).ready(function() {
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-    	<li><a href="{% url advisornotes.views.new_nonstudent %}">Create new prospective student</a></li>
-      <li><a href="{% url advisornotes.views.view_courses %}">View all courses</a></li>
-      <li><a href="{% url advisornotes.views.view_course_offerings %}">View all course offerings</a></li>
-      <li><a href="{% url advisornotes.views.view_artifacts %}">View all artifacts</a></li>
+        <li><a href="{% url advisornotes.views.new_nonstudent %}">Create new prospective student</a></li>
+        <li><a href="{% url advisornotes.views.view_courses %}">View all courses</a></li>
+        <li><a href="{% url advisornotes.views.view_course_offerings %}">View all course offerings</a></li>
+        <li><a href="{% url advisornotes.views.view_artifacts %}">View all artifacts</a></li>
     </ul>
 </div>
 {% endblock %}
 
 {% block content %}
+<h2>Student Search</h2>
 <div id="form_container" style="clear: left;">
-<form action="" method="post">{% csrf_token %}
-<fieldset style="width: 65%">
-{{form.as_p}}
-<p><input class="submit" type="submit" value="Submit" /></p>
-</fieldset>
-</form>
+    <form action="" method="post">{% csrf_token %}
+        <fieldset style="width: 65%">
+            {{form.as_p}}
+            <p><input class="submit" type="submit" value="Submit" /></p>
+        </fieldset>
+    </form>
 
-<div id="simsresult">
-<img src="{{MEDIA_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" style="display:none" />
+    <div id="simsresult">
+        <img src="{{MEDIA_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" style="display:none" />
+    </div>
+
+    {% if simserror %}
+    <p class="empty">Problem when checking SIMS for missing student data: {{simserror}}.</p>
+    {% endif %}
+
+    {% if simsinfo %}
+    <form action="{% url advisornotes.views.sims_add_person %}" method="post">{% csrf_token %}
+        <p>
+            Person found in SIMS: {{ simsinfo.last_name }}, {{ simsinfo.first_name }},
+            {{ simsinfo.emplid }}{% if simsinfo.userid %}, {{ simsinfo.userid }}{% endif %}.
+            <input type="hidden" name="emplid" value="{{ simsinfo.emplid }}" />
+            <input type="submit" value="Add From SIMS"/>
+        </p>
+    </form>
+    {% endif %}
 </div>
 
-{% if simserror %}
-<p class="empty">Problem when checking SIMS for missing student data: {{simserror}}.</p>
-{% endif %}
-{% if simsinfo %}
-<form action="{% url advisornotes.views.sims_add_person %}" method="post">{% csrf_token %}
-<p>Person found in SIMS: {{ simsinfo.last_name }}, {{ simsinfo.first_name }}, {{ simsinfo.emplid }}{% if simsinfo.userid %}, {{ simsinfo.userid }}{% endif %}.
-<input type="hidden" name="emplid" value="{{ simsinfo.emplid }}" />
-<input type="submit" value="Add From SIMS"/></p>
-</form>
-{% endif %}
-</div>
-
-<h2 id="notesearch">Search Content of Notes</h2>
+<h2 id="notesearch">Search Content of Student Notes</h2>
 <div style="margin-right: 1em;">
-<form action="{% url advisornotes.views.note_search %}" method="get">
-<fieldset style="width: 65%; margin-right: 1em;">
-{{note_form.as_p}}
-<p><input class="submit" type="submit" value="Submit" /></p>
-</fieldset>
-</form>
+    <form action="{% url advisornotes.views.note_search %}" method="get">
+        <fieldset style="width: 65%; margin-right: 1em;">
+            {{note_form.as_p}}
+            <p><input class="submit" type="submit" value="Submit" /></p>
+        </fieldset>
+    </form>
 </div>
 {% endblock %}
 
