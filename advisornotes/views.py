@@ -112,9 +112,10 @@ def sims_add_person(request):
 
 
 def _email_student_note(email, advisor, note_text):
-    from_email= settings.DEFAULT_FROM_EMAIL
+    from_email = settings.DEFAULT_FROM_EMAIL
     message = "A note has been added to your SFU account by %s (%s):\n\n%s" % (advisor.name(), advisor.email(), note_text)
     send_mail("A note has been added to your SFU account", message, from_email, [email])
+
 
 @requires_role('ADVS')
 def new_note(request, userid):
@@ -157,8 +158,16 @@ def new_note(request, userid):
 
 
 @requires_role('ADVS')
-def new_artifact_note(request):
+def new_artifact_note(request, unit_course_slug=None, course_slug=None, artifact_slug=None):
     unit_choices = [(u.id, unicode(u)) for u in request.units]
+    related = course = offering = artifact = None
+
+    if unit_course_slug != None:
+        related = course = Course.objects.get(slug=unit_course_slug)
+    elif course_slug != None:
+        related = offering = CourseOffering.objects.get(slug=course_slug)
+    else:
+        related = artifact = Artifact.objects.get(slug=artifact_slug)
 
     if request.method == 'POST':
         form = ArtifactNoteForm(request.POST, request.FILES)
@@ -172,27 +181,34 @@ def new_artifact_note(request):
                 note.file_mediatype = upfile.content_type
                 messages.add_message(request, messages.SUCCESS, 'Created file attachment "%s".' % (upfile.name))
 
-            note.save()
-
-            if note.course:
-                artifact = note.course
-            elif note.course_offering:
-                artifact = note.course_offering
+            if course:
+                note.course = course
+            elif offering:
+                note.course_offering = offering
             else:
-                artifact = note.artifact
+                note.artifact = artifact
+
+            note.save()
 
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
-                  description=("new note for %s by %s") % (artifact, request.user.username),
+                  description=("new note for %s by %s") % (related, request.user.username),
                   related_object=form.instance)
             l.save()
-            messages.add_message(request, messages.SUCCESS, 'Note for %s created.' % artifact)
-            return HttpResponseRedirect(reverse('advisornotes.views.advising', kwargs={}))
+            messages.add_message(request, messages.SUCCESS, 'Note for %s created.' % related)
+
+            if course:
+                return HttpResponseRedirect(reverse('advisornotes.views.view_course_notes', kwargs={'unit_course_offering': course.slug}))
+            elif offering:
+                return HttpResponseRedirect(reverse('advisornotes.views.view_offering_notes', kwargs={'course_slug': offering.slug}))
+            else:
+                return HttpResponseRedirect(reverse('advisornotes.views.view_artifact_notes', kwargs={'artifact_slug': artifact.slug}))
     else:
         form = ArtifactNoteForm(initial={})
         form.fields['unit'].choices = unit_choices
 
-    return render(request, 'advisornotes/new_artifact_note.html', {'form': form})
+    return render(request, 'advisornotes/new_artifact_note.html',
+        {'form': form, 'related': related, 'artifact': artifact, 'course': course, 'offering': offering})
 
 
 @requires_role('ADVS')
@@ -461,7 +477,7 @@ def rest_notes(request):
         resp = HttpResponse(content='Only POST requests allowed', status=405)
         resp['Allow'] = 'POST'
         return resp
-    
+
     if request.META['CONTENT_TYPE'] != 'application/json' and not request.META['CONTENT_TYPE'].startswith('application/json;'):
         return HttpResponse(content='Contents must be JSON (application/json)', status=415)
 
@@ -475,4 +491,3 @@ def rest_notes(request):
         return HttpResponse(content=e.messages[0], status=422)
 
     return HttpResponse(status=200)
-

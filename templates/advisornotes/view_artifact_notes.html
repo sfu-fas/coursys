@@ -41,7 +41,7 @@ $(function() {
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        <li><a href="{% url advisornotes.views.new_artifact_note %}">New Note</a></li>
+        <li><a href="{% url advisornotes.views.new_artifact_note artifact_slug=artifact.slug %}">New Note</a></li>
         <li><a href="{% url advisornotes.views.edit_artifact artifact_slug=artifact.slug %}">Edit Artifact</a></li>
     </ul>
 </div>
@@ -65,7 +65,7 @@ $(function() {
         {% include "advisornotes/artifact_note.html" %}
     {% endfor %}
 {%else%}
-    <p>No notes yet. <a href="{% url advisornotes.views.new_artifact_note %}">Create a new note.</a></p>
+    <p>No notes yet. <a href="{% url advisornotes.views.new_artifact_note artifact_slug=artifact.slug %}">Create a new note.</a></p>
 {%endif%}
 </div>
 

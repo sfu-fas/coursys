@@ -8,6 +8,7 @@ from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
 import datetime
 
+
 class _AdvisorNoteFormNonstudent(forms.ModelForm):
     class Meta:
         model = AdvisorNote
@@ -16,8 +17,10 @@ class _AdvisorNoteFormNonstudent(forms.ModelForm):
                 'text': forms.Textarea(attrs={'cols': 80, 'rows': 25})
                 }
 
+
 class _AdvisorNoteFormStudent(_AdvisorNoteFormNonstudent):
     email_student = forms.BooleanField(required=False, help_text="Should the student be emailed the contents of this note?")
+
 
 def advisor_note_factory(student, post_data=None, files=None, initial=None, instance=None):
     """
@@ -30,19 +33,14 @@ def advisor_note_factory(student, post_data=None, files=None, initial=None, inst
     else:
         raise ValueError
 
+
 class ArtifactNoteForm(forms.ModelForm):
     class Meta:
         model = ArtifactNote
-        exclude = ('hidden',)
+        exclude = ('hidden', 'course', 'course_offering', 'artifact',)
         widgets = {
                 'text': forms.Textarea(attrs={'cols': 80, 'rows': 25})
                 }
-
-    def clean(self):
-        cleaned_data = super(ArtifactNoteForm, self).clean()
-        if not cleaned_data['course'] and not cleaned_data['course_offering'] and not cleaned_data['artifact']:
-            raise forms.ValidationError("Artifact note must have either course, course offering or artifact specified.")
-        return cleaned_data
 
 
 class StudentSelect(forms.Select):
@@ -86,19 +84,21 @@ class StudentSearchForm(forms.Form):
 
 class NoteSearchForm(forms.Form):
     search = forms.CharField()
-    
+
+
 class StartYearField(forms.IntegerField):
-    
+
     def validate(self, value):
         if value is not None:
             super(StartYearField, self).validate(value)
             current_year = datetime.date.today().year
             if value < current_year:
                 raise forms.ValidationError("Must be equal to or after %d" % current_year)
-        
+
 
 class NonStudentForm(ModelForm):
     start_year = StartYearField(help_text="The predicted/potential start year", required=False)
+
     class Meta:
         model = NonStudent
         exclude = ('config', 'notes')

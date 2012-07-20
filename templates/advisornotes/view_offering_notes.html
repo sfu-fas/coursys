@@ -40,12 +40,80 @@ $(function() {
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        <li><a href="{% url advisornotes.views.new_artifact_note %}">New Note</a></li>
+        <li><a href="{% url advisornotes.views.new_artifact_note course_slug=offering.slug %}">New Note</a></li>
     </ul>
 </div>
 {% endblock %}
 
 {%block content%}
+
+<h2>Course Offering Details</h2>
+<table>
+    <tbody>
+        <tr>
+            <th>Title</th>
+            <td>{{ offering.title }}</td>
+        </tr>
+        <tr>
+            <th>Instructors</th>
+            <td>
+                {% for i in offering.instructors %}
+                    {{ i }}<br />
+                {% endfor %}
+            </td>
+        </tr>
+        <tr>
+            <th>TAs</th>
+            <td>
+                {% if offering.tas %}
+                    {% for i in offering.tas %}
+                        {{ i }}<br />
+                    {% endfor %}
+                {% else %}
+                    one
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <th>Component</th>
+            <td>{{ offering.get_component_display }}</td>
+        </tr>
+        <tr>
+            <th>Graded</th>
+            <td>
+                {% if offering.graded %} Yes {% else %} No {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <th>Course ID</th>
+            <td>{{ offering.crse_id }}</td>
+        </tr>
+        <tr>
+            <th>Class Number</th>
+            <td>{{ offering.class_nbr }}</td>
+        </tr>
+        <tr>
+            <th>Campus</th>
+            <td>{{ offering.get_campus_display }}</td>
+        </tr>
+        <tr>
+            <th>Enrollment Cap.</th>
+            <td>{{ offering.enrl_cap }}</td>
+        </tr>
+        <tr>
+            <th>Enrollment Total</th>
+            <td>{{ offering.enrl_tot }}</td>
+        </tr>
+        <tr>
+            <th>Wait Total</th>
+            <td>{{ offering.wait_tot }}</td>
+        </tr>
+        <tr>
+            <th>Homepage URL</th>
+            <td>{{ offering.url }}</td>
+        </tr>
+    </tbody>
+</table>
 
 <div class="artifact-notes">
 {% if important_notes %}
@@ -63,7 +131,7 @@ $(function() {
         {% include "advisornotes/artifact_note.html" %}
     {% endfor %}
 {%else%}
-    <p>No notes yet. <a href="{% url advisornotes.views.new_artifact_note %}">Create a new note.</a></p>
+    <p>No notes yet. <a href="{% url advisornotes.views.new_artifact_note course_slug=offering.slug %}">Create a new note.</a></p>
 {%endif%}
 </div>
 

@@ -1,82 +1,44 @@
 {% extends "base.html" %}
 {% load form_display %}
-{% block title %}New Artifact Note{% endblock %}
-{% block h1 %}New Artifact Note{% endblock %}
+{% block title %}New Artifact Note for {{ related }}{% endblock %}
+{% block h1 %}New Artifact Note for {{ related }}{% endblock %}
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li>
-<li>&gt; New Artifact Note</li>
+<li>&gt; New Artifact Note for {{ related }}</li>
 {% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
 $(function() {
     $("#id_best_before").datepicker({'dateFormat': 'yy-mm-dd'});
-
-    var contentField = $('.course.content, .course_offering.content, .artifact.content').addClass('show');
-    if (contentField.length == 1) {
-        $('#type_' + contentField.next().find('select, input').attr('name')).attr('checked', 'checked');
-    } else {
-        $('.course').addClass('show');
-        $('#type_course').attr('checked', 'checked');
-    } 
-
-    $('.artifactTypes').delegate('input', 'click', function() {
-        $('fieldset .show').removeClass('show');
-        $('.course + dd select, .course_offering + dd select').val('---------');
-        $('.artifact + dd input').val('');
-        $('.' + $(this).val()).addClass('show');
-    });
 });
 </script>
-
-<style>
-fieldset .artifactTypes label {
-    display: inline-block;
-    float: none;
-    margin-right: 20px;
-    width: auto;
-}
-
-fieldset .course,
-fieldset .course + dd,
-fieldset .course_offering,
-fieldset .course_offering + dd,
-fieldset .artifact,
-fieldset .artifact + dd {
-    display: none;
-}
-
-fieldset dt.show,
-fieldset dt.show + dd {
-    display: inherit;
-}
-
-</style>
 {% endblock %}
 
 {% block content %}
 
 <div id="form_container">
-<form action="{% url advisornotes.views.new_artifact_note %}" enctype="multipart/form-data" method="post">{% csrf_token %}
+{% spaceless %}
+<form action="
+{% if course %}
+{% url advisornotes.views.new_artifact_note unit_course_slug=related.slug %}
+{% endif %}
+{% if offering %}
+{% url advisornotes.views.new_artifact_note course_slug=related.slug %}
+{% endif %}
+{% if artifact %}
+{% url advisornotes.views.new_artifact_note artifact_slug=related.slug %}
+{% endif %}
+" enctype="multipart/form-data" method="post">
+{% endspaceless %}
+{% csrf_token %}
 <fieldset>
 <legend>Note</legend>
 {{ form.id }}
 <dl class="dlform">
-    <dt>
-        <label for="id_artifact_type">Artifact Type:*</label>
-    </dt>
-    <dd class="artifactTypes">
-        <input type="radio" id="type_course" value="course" name="artifact_type" />
-        <label for="type_course">Course</label>
-        <input type="radio" id="type_course_offering" value="course_offering" name="artifact_type" />
-        <label for="type_course_offering">Offering</label>
-        <input type="radio" id="type_artifact" value="artifact" name="artifact_type" />
-        <label for="type_artifact">Artifact</label>
-        {{ form.non_field_errors }}
-    </dd>
     {% for field in form %}
-    <dt class="{{ field.html_name }} {% if field.value %}content{% endif %}">
+    <dt class="{{ field.html_name }}">
         <label for="{{ field.auto_id }}">
             {{ field.label }}:
             {% if field.field.required %}
@@ -97,6 +59,5 @@ fieldset dt.show + dd {
 </fieldset>
 </form>
 </div>
-
 
 {% endblock %}
