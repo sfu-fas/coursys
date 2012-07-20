@@ -153,7 +153,8 @@ def new_note(request, userid):
             return _redirect_to_notes(student)
     else:
         form = advisor_note_factory(student)
-        form.fields['unit'].choices = unit_choices
+     
+            #LOG EVENT#   form.fields['unit'].choices = unit_choices
     return render(request, 'advisornotes/new_note.html', {'form': form, 'student': student, 'userid': userid})
 
 
@@ -198,7 +199,7 @@ def new_artifact_note(request, unit_course_slug=None, course_slug=None, artifact
             messages.add_message(request, messages.SUCCESS, 'Note for %s created.' % related)
 
             if course:
-                return HttpResponseRedirect(reverse('advisornotes.views.view_course_notes', kwargs={'unit_course_offering': course.slug}))
+                return HttpResponseRedirect(reverse('advisornotes.views.view_course_notes', kwargs={'unit_course_slug': course.slug}))
             elif offering:
                 return HttpResponseRedirect(reverse('advisornotes.views.view_offering_notes', kwargs={'course_slug': offering.slug}))
             else:
@@ -383,12 +384,13 @@ def view_course_notes(request, unit_course_slug):
     View to view all notes for a specific artifact
     """
     course = get_object_or_404(Course, slug=unit_course_slug)
+    offerings = CourseOffering.objects.filter(course=course)
     notes = ArtifactNote.objects.filter(course=course).order_by('category', 'created_at')
     important_notes = notes.filter(status="IMP")
     notes = notes.exclude(status="IMP")
     return render(request,
         'advisornotes/view_course_notes.html',
-        {'course': course, 'notes': notes, 'important_notes': important_notes}
+        {'course': course, 'offerings': offerings, 'notes': notes, 'important_notes': important_notes}
     )
 
 

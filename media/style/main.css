@@ -1854,14 +1854,6 @@ table.artifacts th.name {
   width: 85%;
 }
 
-table.courses th.semester,
-table.courses th.section,
-table.courses th.component,
-table.courses th.subject,
-table.courses th.number {
-  width: 8%;
-}
-
 .artifact-note {
   border: 1px solid #CCC;
   margin-top: 5px;

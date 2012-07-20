@@ -30,9 +30,9 @@ $(function() {
             <th class="semester"><abbr title="Semester">Sem.</abbr></th>
             <th class="subject"><abbr title="Course Subject">Sub.</abbr></th>
             <th class="number"><abbr title="Course Number">#</abbr></th>
-            <th class="section"><abbr title="Section">Sec.</abbr></th>
-            <th class="component"><abbr title="Component">Comp.</abbr></th>
             <th class="title">Title</th>
+            <th class="component"><abbr title="Component">Comp.</abbr></th>
+            <th class="instructor">Instructor</th>
         </tr>
     </thead>
     <tbody>
@@ -40,10 +40,20 @@ $(function() {
         <tr>
             <td>{{ offering.semester.name }}</td>
             <td>{{ offering.subject }}</td>
-            <td>{{ offering.number }}</td>
-            <td>{{ offering.section }}</td>
-            <td>{{ offering.get_component_display }}</td>
+            <td>{{ offering.number }} {{ offering.section }}</td>
             <td><a href="{% url advisornotes.views.view_offering_notes course_slug=offering.slug %}">{{ offering.title }}</a></td>
+            <td>{{ offering.get_component_display }}</td>
+            {{ spaceless }}
+            <td class="instructor">
+                {% for i in offering.instructors %}
+                    {{ i }}
+                    {% if not forloop.last %}
+                    <br />
+                    {% endif %}
+                {% endfor %}
+            </td>
+            {{ endspaceless }}
+            
         </tr>
         {% endfor %}
     </tbody>
