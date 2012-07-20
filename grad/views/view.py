@@ -67,11 +67,10 @@ def view(request, grad_slug, section=None):
             return render(request, 'grad/view__status.html', context)
 
         elif section == 'requirements':
-            completed_req = CompletedRequirement.objects.filter(student=grad).select_related('requirement').order_by('semester__name')
-            req = GradRequirement.objects.filter(program=grad.program)
-            missing_req = req    
-            for s in completed_req:
-                missing_req = missing_req.exclude(description=s.requirement.description)
+            completed_req = CompletedRequirement.objects.filter(student=grad)
+            completed_gradreq_id = [cr.requirement_id for cr in completed_req if cr.removed==False]
+            req = GradRequirement.objects.filter(program=grad.program, hidden=False)
+            missing_req = req.exclude(id__in=completed_gradreq_id)
             context['completed_req'] = completed_req
             context['missing_req'] = missing_req
             return render(request, 'grad/view__requirements.html', context)

@@ -230,6 +230,13 @@ class LetterForm(ModelForm):
                    'content': forms.Textarea(attrs={'rows':'25', 'cols': '70'}),
                    }
 
+class CompletedRequirementForm(ModelForm):
+    semester = StaffSemesterField()
+    class Meta:
+        model = CompletedRequirement
+        exclude = ('removed', 'student')
+
+
 class PromiseForm(ModelForm):
     start_semester = StaffSemesterField()
     end_semester = StaffSemesterField()

@@ -18,6 +18,7 @@ class GradProgram(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')
     created_by = models.CharField(max_length=32, null=False, help_text='Grad Program created by.')
     modified_by = models.CharField(max_length=32, null=True, help_text='Grad Program modified by.')
+    hidden = models.BooleanField(null=False, default=False)
     def autoslug(self):
         # strip the punctutation entirely
         sluglabel = ''.join((c for c in self.label if c.isalnum()))
@@ -489,11 +490,12 @@ class CompletedRequirement(models.Model):
     date = models.DateField(null=True, blank=True,
             help_text="Date the requirement was completed (optional)")
     notes = models.TextField(null=True, blank=True, help_text="Other notes")
+    removed = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')    
-    class meta:
-        unique_together = (("requirement", "student"),)
+    #class meta:
+    #    unique_together = (("requirement", "student"),)
     def __unicode__(self):
         return u"%s" % (self.requirement)
 
@@ -634,6 +636,7 @@ class Scholarship(models.Model):
     start_semester = models.ForeignKey(Semester, related_name="scholarship_start")
     end_semester = models.ForeignKey(Semester, related_name="scholarship_end")
     comments = models.TextField(blank=True, null=True)
+    removed = models.BooleanField(default=False)
     def __unicode__(self):
         return u"%s (%s)" % (self.scholarship_type, self.amount)
     
@@ -645,6 +648,7 @@ class OtherFunding(models.Model):
     amount = models.DecimalField(verbose_name="Funding Amount", max_digits=8, decimal_places=2)
     eligible = models.BooleanField(default=True, help_text="Does this funding count towards promises of support?")
     comments = models.TextField(blank=True, null=True)
+    removed = models.BooleanField(default=False)
     
 class Promise(models.Model):
     student = models.ForeignKey(GradStudent)
@@ -652,6 +656,7 @@ class Promise(models.Model):
     start_semester = models.ForeignKey(Semester, related_name="promise_start")
     end_semester = models.ForeignKey(Semester, related_name="promise_end")
     comments = models.TextField(blank=True, null=True)
+    removed = models.BooleanField(default=False)
     def __unicode__(self):
         return u"%s promise for %s %s-%s" % (self.amount, self.student.person, self.start_semester.name, self.end_semester.name)
     def get_fields(self):

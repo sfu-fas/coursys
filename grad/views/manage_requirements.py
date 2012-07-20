@@ -1,60 +1,46 @@
 from courselib.auth import requires_role
 from django.shortcuts import get_object_or_404, render
-from grad.models import GradStudent, Supervisor, CompletedRequirement, GradRequirement
-from django.forms.models import inlineformset_factory
-from django import forms
-import datetime
+from coredata.models import Semester
+from grad.models import GradStudent, CompletedRequirement, GradRequirement
+from grad.forms import CompletedRequirementForm
 from django.contrib import messages
 from log.models import LogEntry
-from django.http import HttpResponseRedirect, HttpResponse
-from courselib.forms import StaffSemesterField
+from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 
 @requires_role("GRAD")
 def manage_requirements(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)    
     
-    #calculate/find missing reqs
+    # find completed/missing requirements
     completed_req = CompletedRequirement.objects.filter(student=grad)
+    completed_gradreq_id = [cr.requirement_id for cr in completed_req if cr.removed==False]
     req = GradRequirement.objects.filter(program=grad.program, hidden=False)
-    req_choices = [(u'', u'\u2014')] + [(r.id, r.description) for r in req]
-    missing_req = req    
-    for s in completed_req:
-        missing_req = missing_req.exclude(description=s.requirement.description)
-    num_missing = req.count()
+    missing_req = req.exclude(id__in=completed_gradreq_id)
+    req_choices = [(u'', u'\u2014')] + [(r.id, r.description) for r in missing_req]
     
-    ReqFormSet = inlineformset_factory(GradStudent, CompletedRequirement, max_num=num_missing, can_order=False) 
     if request.method == 'POST':
-        req_formset = ReqFormSet(request.POST, request.FILES, instance=grad, prefix='req')
-        for f in req_formset:
-            f.fields['requirement'].choices = req_choices
-            f.fields['semester'] = StaffSemesterField()
-
-        if req_formset.is_valid():
-            #change gradstudent's last updated info to newest
-            grad.updated_at = datetime.datetime.now()
-            grad.created_by = request.user.username            
-            grad.save()
-            req_formset.save()
-            messages.success(request, "Updated Grad Requirements for %s." % (req_formset.instance.person))
-            l = LogEntry(userid=request.user.username,
-                  description="Updated Grad Requirements for %s." % (req_formset.instance.person),
-                  related_object=req_formset.instance)
-            l.save()   
-            return HttpResponseRedirect(reverse('grad.views.view', kwargs={'grad_slug':grad_slug}))
+        form = CompletedRequirementForm(request.POST)
+        form.fields['requirement'].choices = req_choices
+        if form.is_valid():
+            req = form.save(commit=False)
+            req.student = grad
+            req.save()
+            messages.success(request, "Completed requirement for %s sucessfully saved." % (grad))
+            l = LogEntry(userid=request.user.username, 
+              description="added completed requirement of %s for %s" % (req.requirement.description, grad.slug),
+              related_object=req )
+            l.save()
+            
+            return HttpResponseRedirect(reverse('grad.views.manage_requirements', kwargs={'grad_slug':grad.slug}))
     else:
-        req_formset = ReqFormSet(instance=grad, prefix='req')
-        for f in req_formset:
-            f.fields['requirement'].choices = req_choices
-            f.fields['semester'] = StaffSemesterField()
-
-    # set frontend defaults
-    gp = grad.person.get_fields
+        form = CompletedRequirementForm(initial={'student':grad, 'semester':Semester.get_semester()})
+        form.fields['requirement'].choices = req_choices
+    
     context = {
-               'req_formset': req_formset,
-               'gp' : gp,
-               'grad' : grad,
-               'missing_req' : missing_req     
-               }
+                'grad':grad,
+                'form': form,
+                'completed_req': completed_req,
+                'missing_req': missing_req,
+              }
     return render(request, 'grad/manage_requirements.html', context)
-

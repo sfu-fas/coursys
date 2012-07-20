@@ -1,24 +1,5 @@
-{% extends "base.html" %}
-{% load markup %}
-{% load mobile_tags %}
+{% extends "grad/base.html" %}
 {% load form_display %}
-
-{% block headextra %}
-<script type="text/javascript">
-	$(function() {
-		$("input").each(function(i) {// turn on datepicker for each date input (the hard way)
-			var id = $(this).attr('id');
-			if(id === undefined) {
-			} else if(id.substr(-5) == "-date") {
-				$(this).datepicker({
-					'dateFormat' : 'yy-mm-dd'
-				});
-			}
-		});
-	});
-
-</script>
-{% endblock %}
 
 {% block title %}{{grad.person.name}}: Requirements{% endblock %}
 {% block h1 %}{{grad.person.name}}: Requirements{% endblock %}
@@ -30,71 +11,17 @@
 {% endblock %}
 
 {% block content %}
-<div class="table_container">
-	<table class="info">
-		<tbody>
-			{% for field, value in gp %}
-			<tr>
-				<th><label>{{field}} :</label></th>
-				<td> {{ value }} </td>
-			</tr>
-			{% endfor %}
-		</tbody>
-	</table>
-</div>
-<div class="datatable_container bigdatatable">
-	<table class="display" id="missing_req">
-		<thead>
-			<tr>
-				<th>Missing Requirement(s)</th>
-			</tr>
-		</thead>
-		<tbody>
-			{% for s in missing_req %}
-			<tr>
-				<td align="center"> {{s.description}}</td>
-			</tr>
-			{%empty%}
-			<tr>
-				<td align="center"> Student has completed all requirements in the program.</td>
-			</tr>
-			{% endfor %}
-		</tbody>
-	</table>
-</div>
+{% include "grad/view__requirements.html" %}
+
 <div id="form_container">
-	<form method="post" action="{% url grad.views.manage_requirements grad_slug=grad.slug %}">
-		{% csrf_token %}
-		<div class="datatable_container datatable">
-		{{ req_formset.management_form }}
-			<table class="display" id="grads">
-				<thead>
-					<tr>
-						<th>Requirement</th>
-						<th>Completion Semester</th>
-						<th>Completion Date</th>
-						<th>Notes</th>
-						{% if req_formset.can_delete %}<th>Delete</th>{% endif %}
-					</tr>
-				</thead>
-				<tbody>
-					{% for r in req_formset %}
-					<tr>
-						{% if form.non_field_errors %} <td>{{ form.non_field_errors }}</td>
-						{% endif %} <td>{{ r.id }} {{ r.requirement }} {{ r.requirement.errors }}</td>
-						<td> {{ r.semester }} {{ r.semester.errors }}</td>
-						<td> {{ r.date }} {{ r.date.errors }}</td>
-						<td> {{ r.notes }} {{ r.notes.errors }}</td>
-						{% if req_formset.can_delete %} <td> {{ r.DELETE }}</td>
-						{% endif %}
-					</tr>
-					{% endfor%}
-				</tbody>
-			</table>
-			<p>
-				<input class="submit" type="submit" value="Save" />
-			</p>
-		</div>
-	</form>
+    <form action="" method="post">
+    	{% csrf_token %}
+    	<fieldset>
+    	<legend>Add Completed Requirement</legend>
+        {{ form|as_dl }}
+        <p><input  class="submit"  type="submit" value="Add Requirement" /></p>
+        </fieldset>
+    </form>
 </div>
+
 {% endblock %} 
