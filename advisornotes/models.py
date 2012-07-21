@@ -132,9 +132,7 @@ class Artifact(models.Model):
 
 
 NOTE_STATUSES = (
-    #("HID", "Hidden"),
     ("IMP", "Important"),
-    ("EXP", "Expired")
 )
 
 NOTE_CATEGORIES = (
@@ -150,7 +148,7 @@ class ArtifactNote(models.Model):
     course = models.ForeignKey(Course, help_text='The course that the note is about', null=True, blank=True)
     course_offering = models.ForeignKey(CourseOffering, help_text='The course offering that the note is about', null=True, blank=True)
     artifact = models.ForeignKey(Artifact, help_text='The artifact that the note is about', null=True, blank=True)
-    status = models.CharField(max_length=3, choices=NOTE_STATUSES, null=True, blank=True)
+    important = models.BooleanField()
     category = models.CharField(max_length=3, choices=NOTE_CATEGORIES)
     text = models.TextField(blank=False, null=False, verbose_name="Contents",
                             help_text='Note about a student')
@@ -199,6 +197,4 @@ class ArtifactNote(models.Model):
         return (self.text, self.created_at, self.file_attachment).__hash__()
 
     def is_expired(self):
-        if date.today() > self.best_before:
-            return True
-        return False
+        return date.today() > self.best_before

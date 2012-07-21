@@ -11,7 +11,7 @@ from courselib.search import find_userid_or_emplid, get_query
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from log.models import LogEntry
 import json
@@ -357,8 +357,8 @@ def view_artifact_notes(request, artifact_slug):
     """
     artifact = get_object_or_404(Artifact, slug=artifact_slug)
     notes = ArtifactNote.objects.filter(artifact__slug=artifact_slug).order_by('category', 'created_at')
-    important_notes = notes.filter(status="IMP")
-    notes = notes.exclude(status="IMP")
+    important_notes = notes.filter(important=True)
+    notes = notes.exclude(important=True)
     return render(request,
         'advisornotes/view_artifact_notes.html',
         {'artifact': artifact, 'notes': notes, 'important_notes': important_notes}
@@ -385,8 +385,8 @@ def view_course_notes(request, unit_course_slug):
     course = get_object_or_404(Course, slug=unit_course_slug)
     offerings = CourseOffering.objects.filter(course=course)
     notes = ArtifactNote.objects.filter(course=course).order_by('category', 'created_at')
-    important_notes = notes.filter(status="IMP")
-    notes = notes.exclude(status="IMP")
+    important_notes = notes.filter(important=True)
+    notes = notes.exclude(important=True)
     return render(request,
         'advisornotes/view_course_notes.html',
         {'course': course, 'offerings': offerings, 'notes': notes, 'important_notes': important_notes}
@@ -412,8 +412,8 @@ def view_offering_notes(request, course_slug):
     """
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     notes = ArtifactNote.objects.filter(course_offering=offering).order_by('category', 'created_at')
-    important_notes = notes.filter(status="IMP")
-    notes = notes.exclude(status="IMP")
+    important_notes = notes.filter(important=True)
+    notes = notes.exclude(important=True)
     return render(request,
         'advisornotes/view_offering_notes.html',
         {'offering': offering, 'notes': notes, 'important_notes': important_notes}

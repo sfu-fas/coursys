@@ -26255,7 +26255,7 @@
    "file_attachment": "",
    "file_mediatype": null,
    "hidden": false,
-   "status": "IMP",
+   "important": true,
    "text": "This is a project course where the final group project is worth 55% of the student's grade. There is no final exam.",
    "unit": 3
   },
@@ -26274,7 +26274,7 @@
    "file_attachment": "",
    "file_mediatype": null,
    "hidden": false,
-   "status": null,
+   "important": true,
    "text": "This course requires CMPT 354, however students with a passion in web development may enter this course with special permission. When applying for permission, the student should have an online portfolio of previous web development work available for the instructor.",
    "unit": 3
   },
@@ -26293,7 +26293,7 @@
    "file_attachment": "",
    "file_mediatype": null,
    "hidden": false,
-   "status": null,
+   "important": true,
    "text": "Students should have a minimum of 60 credits before taking this course.",
    "unit": 3
   },
