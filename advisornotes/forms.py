@@ -12,7 +12,7 @@ import datetime
 class _AdvisorNoteFormNonstudent(forms.ModelForm):
     class Meta:
         model = AdvisorNote
-        exclude = ('hidden',)
+        exclude = ('hidden','emailed')
         widgets = {
                 'text': forms.Textarea(attrs={'cols': 80, 'rows': 25})
                 }

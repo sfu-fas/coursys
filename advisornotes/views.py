@@ -1,6 +1,5 @@
-from advisornotes.forms import StudentSearchForm, \
-    NoteSearchForm, NonStudentForm, MergeStudentForm, ArtifactNoteForm, \
-    ArtifactForm, advisor_note_factory
+from advisornotes.forms import StudentSearchForm, NoteSearchForm, NonStudentForm, \
+    MergeStudentForm, ArtifactNoteForm, ArtifactForm, advisor_note_factory
 from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote
 from coredata.models import Person, Course, CourseOffering
 from coredata.queries import find_person, add_person, more_personal_info, \
@@ -10,15 +9,14 @@ from courselib.auth import requires_role, HttpResponseRedirect, \
 from courselib.search import find_userid_or_emplid, get_query
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.mail.message import EmailMessage
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
 from log.models import LogEntry
 import json
 import rest
-from django.views.decorators.csrf import csrf_exempt
-from django.core.mail import send_mail
-from django.conf import settings
 
 
 def _redirect_to_notes(student):
@@ -112,9 +110,11 @@ def sims_add_person(request):
 
 
 def _email_student_note(email, advisor, note_text):
-    from_email = settings.DEFAULT_FROM_EMAIL
-    message = "A note has been added to your SFU account by %s (%s):\n\n%s" % (advisor.name(), advisor.email(), note_text)
-    send_mail("A note has been added to your SFU account", message, from_email, [email])
+    subject = "A note has been added to your SFU account"
+    from_email = advisor.email()
+    message = "This is an automatically generated message. A note has been added to your SFU account by %s (%s):\n\n%s" % (advisor.name(), advisor.email(), note_text)
+    email = EmailMessage(subject, message, from_email, [email], cc=[advisor.email()])
+    email.send()
 
 
 @requires_role('ADVS')
