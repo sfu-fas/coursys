@@ -6,11 +6,20 @@
 {% block headextra %}
 <script type="text/javascript">
 $(function() {
-  $('.display').dataTable( {
+  $('.courses').dataTable( {
     'bPaginate': false,
     'bInfo': false,
     'bLengthChange': true,
     "bJQueryUI": true
+  } );
+
+  $('.semesters').dataTable( {
+    'aaSorting': [[ 0, "desc" ]],
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': true,
+    'bJQueryUI': true,
+    'bFilter': false
   } );
 } );
 </script>
@@ -18,18 +27,26 @@ $(function() {
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li>
-<li>&gt; Courses</li>
+{% if semesters %}
+    <li>&gt; Course Offerings</li>
+{% else %}
+    <li>&gt; <a href="{% url advisornotes.views.view_course_offerings %}">Course Offerings</a></li>
+    <li>&gt; {{ semester }}</li>
+{% endif %}
 {% endblock %}
 
 {% block content %}
 
 {% if offerings %}
+<h2>{{ semester }} ({{ semester.name }})</h2>
+
 <table class="display courses">
     <thead>
         <tr>
             <th class="semester"><abbr title="Semester">Sem.</abbr></th>
             <th class="subject"><abbr title="Course Subject">Sub.</abbr></th>
             <th class="number"><abbr title="Course Number">#</abbr></th>
+            <th class="number"><abbr title="Course Section">Sec.</abbr></th>
             <th class="title">Title</th>
             <th class="component"><abbr title="Component">Comp.</abbr></th>
             <th class="instructor">Instructor</th>
@@ -40,7 +57,8 @@ $(function() {
         <tr>
             <td>{{ offering.semester.name }}</td>
             <td>{{ offering.subject }}</td>
-            <td>{{ offering.number }} {{ offering.section }}</td>
+            <td>{{ offering.number }}</td>
+            <td>{{ offering.section }}</td>
             <td><a href="{% url advisornotes.views.view_offering_notes course_slug=offering.slug %}">{{ offering.title }}</a></td>
             <td>{{ offering.get_component_display }}</td>
             {{ spaceless }}
@@ -53,11 +71,35 @@ $(function() {
                 {% endfor %}
             </td>
             {{ endspaceless }}
-            
         </tr>
         {% endfor %}
     </tbody>
 </table>
+{% else %}
+<p>There are no course offerings for this semester.</p>
+{% endif %}
+
+{% if semesters %}
+<h2>All Semesters</h2>
+
+<div class="semesters-container">
+    <table class="display semesters">
+        <thead>
+            <tr>
+                <th>Sem.</th>
+                <th>Label</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for semester in semesters %}
+            <tr>
+                <td>{{ semester.name }}</td>
+                <td><a href="{% url advisornotes.views.view_course_offerings semester=semester.name %}">{{ semester }}</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endif %}
 
 {% endblock %}

@@ -5,7 +5,7 @@
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li>
 <li>&gt; <a href="{% url advisornotes.views.view_courses %}">Courses</a></li>
-<li>&gt; Notes for {{ course }}</li>
+<li>&gt; {{ course }}</li>
 {% endblock %}
 
 {% block headextra %}
@@ -39,8 +39,8 @@ $(function() {
     'bPaginate': false,
     'bInfo': false,
     'bLengthChange': true,
-    "bJQueryUI": true,
-    "bFilter": false
+    'bJQueryUI': true,
+    'bFilter': false
   } );
 } );
 </script>
@@ -72,7 +72,9 @@ $(function() {
     {% for note in notes %}
         {% include "advisornotes/artifact_note.html" %}
     {% endfor %}
-{%else%}
+{%endif%}
+
+{% if not important_notes and not notes %}
     <p>No notes yet. <a href="{% url advisornotes.views.new_artifact_note unit_course_slug=course.slug %}">Create a new note.</a></p>
 {%endif%}
 
@@ -85,6 +87,7 @@ $(function() {
             <th class="semester"><abbr title="Semester">Sem.</abbr></th>
             <th class="subject"><abbr title="Course Subject">Sub.</abbr></th>
             <th class="number"><abbr title="Course Number">#</abbr></th>
+            <th class="number"><abbr title="Course Section">Sec.</abbr></th>
             <th class="title">Title</th>
             <th class="component"><abbr title="Component">Comp.</abbr></th>
             <th class="instructor">Instructor</th>
@@ -95,7 +98,8 @@ $(function() {
         <tr>
             <td>{{ offering.semester.name }}</td>
             <td>{{ offering.subject }}</td>
-            <td>{{ offering.number }} {{ offering.section }}</td>
+            <td>{{ offering.number }}</td>
+            <td>{{ offering.section }}</td>
             <td><a href="{% url advisornotes.views.view_offering_notes course_slug=offering.slug %}">{{ offering.title }}</a></td>
             <td>{{ offering.get_component_display }}</td>
             {{ spaceless }}
@@ -108,14 +112,10 @@ $(function() {
                 {% endfor %}
             </td>
             {{ endspaceless }}
-            
         </tr>
         {% endfor %}
     </tbody>
 </table>
-
-</ul>
-
 {% endif %}
 </div>
 

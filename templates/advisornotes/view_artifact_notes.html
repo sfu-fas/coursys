@@ -64,7 +64,9 @@ $(function() {
     {% for note in notes %}
         {% include "advisornotes/artifact_note.html" %}
     {% endfor %}
-{%else%}
+{%endif%}
+
+{% if not important_notes and not notes %}
     <p>No notes yet. <a href="{% url advisornotes.views.new_artifact_note artifact_slug=artifact.slug %}">Create a new note.</a></p>
 {%endif%}
 </div>

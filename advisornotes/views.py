@@ -2,7 +2,7 @@ from advisornotes.forms import StudentSearchForm, NoteSearchForm, NonStudentForm
     MergeStudentForm, ArtifactNoteForm, ArtifactForm, advisor_note_factory
 from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote,\
     Problem
-from coredata.models import Person, Course, CourseOffering
+from coredata.models import Person, Course, CourseOffering, Semester
 from coredata.queries import find_person, add_person, more_personal_info, \
     SIMSProblem
 from courselib.auth import requires_role, HttpResponseRedirect, \
@@ -16,6 +16,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from log.models import LogEntry
+import datetime
 import json
 import rest
 from timeit import itertools
@@ -410,14 +411,21 @@ def view_course_notes(request, unit_course_slug):
 
 
 @requires_role('ADVS')
-def view_course_offerings(request):
+def view_course_offerings(request, semester=None):
     """
     View to view all courses
     """
-    offerings = CourseOffering.objects.filter(owner__in=request.units)
+    if semester:
+        semester = get_object_or_404(Semester, name=semester)
+        semesters = None
+    else:
+        semester = Semester.get_semester(date=datetime.date.today() + datetime.timedelta(days=60))
+        semesters = Semester.objects.exclude(name=semester.name).order_by('-end')
+
+    offerings = CourseOffering.objects.filter(owner__in=request.units, semester=semester)
     return render(request,
         'advisornotes/view_course_offerings.html',
-        {'offerings': offerings}
+        {'offerings': offerings, 'semester': semester, 'semesters': semesters}
     )
 
 

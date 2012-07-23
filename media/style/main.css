@@ -1924,3 +1924,8 @@ div#main .artifact-note p {
 .artifact-note .attachment-icon {
   margin-bottom: -3px;
 }
+
+/* View Semesters */
+div.semesters-container {
+  width: 30%;
+}

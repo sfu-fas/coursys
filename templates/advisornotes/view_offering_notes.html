@@ -5,7 +5,7 @@
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li>
 <li>&gt; <a href="{% url advisornotes.views.view_course_offerings %}">Course Offerings</a></li>
-<li>&gt; Notes for {{ offering }}</li>
+<li>&gt; {{ offering }}</li>
 {% endblock %}
 
 {% block headextra %}
@@ -58,6 +58,14 @@ $(function() {
                 <td>{{ offering.title }}</td>
             </tr>
             <tr>
+                <th>Component</th>
+                <td>{{ offering.get_component_display }}</td>
+            </tr>
+            <tr>
+                <th>Campus</th>
+                <td>{{ offering.get_campus_display }}</td>
+            </tr>
+            <tr>
                 <th>Instructors</th>
                 <td>
                     {% for i in offering.instructors %}
@@ -76,28 +84,6 @@ $(function() {
             </tr>
             {% endif %}
             <tr>
-                <th>Component</th>
-                <td>{{ offering.get_component_display }}</td>
-            </tr>
-            <tr>
-                <th>Graded</th>
-                <td>
-                    {% if offering.graded %} Yes {% else %} No {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <th>Course ID</th>
-                <td>{{ offering.crse_id }}</td>
-            </tr>
-            <tr>
-                <th>Class Number</th>
-                <td>{{ offering.class_nbr }}</td>
-            </tr>
-            <tr>
-                <th>Campus</th>
-                <td>{{ offering.get_campus_display }}</td>
-            </tr>
-            <tr>
                 <th>Enrollment Cap.</th>
                 <td>{{ offering.enrl_cap }}</td>
             </tr>
@@ -110,9 +96,15 @@ $(function() {
                 <td>{{ offering.wait_tot }}</td>
             </tr>
             <tr>
-                <th>Homepage URL</th>
-                <td>{{ offering.url }}</td>
+                <th>Class Number</th>
+                <td>{{ offering.class_nbr }}</td>
             </tr>
+            {% if offering.url %}
+            <tr>
+                <th>Homepage URL</th>
+                <td><a href="{{ offering.url }}" title="Homepage for {{ offering }}">{{ offering.url }}</a></td>
+            </tr>
+            {% endif %}
         </tbody>
     </table>
 </div>
