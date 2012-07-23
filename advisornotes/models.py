@@ -200,10 +200,14 @@ class ArtifactNote(models.Model):
         return date.today() > self.best_before
 
 PROBLEM_STATUSES = (
-    ("FLAG", "Flagged"),
+    ("OPEN", "New"),
+    ("PEND", "Pending action"),
     ("RESO", "Resolved"),
-    ("IGNR", "Ignored")
+    ("IGNR", "Ignored"),
+    ("CONT", "Contacted"),
+    ("DUPL", "Duplicate"),
 )
+CLOSED_STATUSES = ["RESO", "IGNR", "CONT", "DUPL"]
 
 class Problem(models.Model):
     """
@@ -213,15 +217,23 @@ class Problem(models.Model):
     code = models.CharField(help_text="The problem code (ex. GPA < 2.4)", max_length=30)
     description = models.CharField(help_text="Short description of the problem", max_length=80)
     comments = models.TextField(help_text="Longer details of problem", null=True, blank=True)
-    status = models.CharField(max_length=4, choices=PROBLEM_STATUSES, null=True, blank=True)
+    status = models.CharField(max_length=4, choices=PROBLEM_STATUSES, null=False, blank=False, default="OPEN")
     created_at = models.DateTimeField(auto_now_add=True)
-    resolution_lasts = models.IntegerField(help_text="Default number of days resolution should last")
+    resolved_at = models.DateTimeField(null=True)
+    resolution_lasts = models.IntegerField(help_text="Default number of days resolution should last, sent by API", null=False)
     resolved_until = models.DateField(null=True, blank=True, help_text="When resolved/ignored, how long should this apply for?")
-    unit = models.ForeignKey(Unit)
+    unit = models.ForeignKey(Unit, null=False)
     
     def save(self, *args, **kwargs):
-        if self.status in ('RESO', 'IGNR') and not self.resolved_until:
+        if self.status in CLOSED_STATUSES and not self.resolved_until:
             period = datetime.timedelta(days=self.resolution_lasts)
-            self.resolved_until = self.created_at.date() + period
+            self.resolved_until = datetime.date.now() + period
         super(Problem, self).save(*args, **kwargs)
-    
+
+# Incoming Problem logic:
+# 1. No matching code/student/unit: add.
+# 2. Matching code/student/unit, resolved_until >= now: drop.
+# 3. Matching code/student/unit, not resolved: update all fields from API (not created_at).
+# 4. Matching code/student/unit, resolved_unil < now: add.
+
+
