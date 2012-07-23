@@ -143,6 +143,10 @@ def new_note(request, userid):
                 note.file_mediatype = upfile.content_type
                 messages.add_message(request, messages.SUCCESS, 'Created file attachment "%s".' % (upfile.name))
 
+            if isinstance(student, Person) and form.cleaned_data['email_student']:
+                _email_student_note(student.email(), note.advisor, note.text)
+                note.emailed = True
+                
             note.save()
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
@@ -150,8 +154,7 @@ def new_note(request, userid):
                   related_object=form.instance)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'Note created.')
-            if isinstance(student, Person) and form.cleaned_data['email_student']:
-                _email_student_note(student.email(), note.advisor, note.text)
+            
             return _redirect_to_notes(student)
     else:
         form = advisor_note_factory(student)
