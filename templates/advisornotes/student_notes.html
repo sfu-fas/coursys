@@ -2,44 +2,57 @@
 {% block title %}Advising Notes for {{ student.first_name}} {{ student.last_name }}{% endblock %}
 {% block h1 %}Advising Notes for {{ student.first_name}} {{ student.last_name }}{% endblock %}
 
-{% block subbreadcrumbs %}<li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li><li>&gt; Notes for {{ student.first_name }} {{ student.last_name }}</li>{% endblock %}
+{% block subbreadcrumbs %}
+<li>
+    &gt; <a href="{% url advisornotes.views.advising %}">Advising</a>
+</li>
+<li>
+    &gt; Notes for {{ student.first_name }} {{ student.last_name }}
+</li>{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
 <script type="text/javascript" src="{{MEDIA_URL}}js/advisornotes.js"></script>
 <script type="text/javascript">
-//<![CDATA[
-$(document).ready(function() {
-  $(".note").collapsible();
-  $(".show").trigger('expand');
-  
-  $('.hide-show').click(function(){
-  	var id = $(this).val();
-  	var ch = "no";
-  	if($(this).attr("checked")){
-  		ch="yes"
-  		$("#note-"+id).trigger('collapse_slow');
-  	}
+    	//<![CDATA[
+    $(document).ready(function() {
+        $(".note").collapsible();
+        $(".show").trigger('expand');
 
-  	$.post("{% url advisornotes.views.student_notes userid=userid%}",
-  		{'csrfmiddlewaretoken': "{{csrf_token}}", 'note_id': id, 'hide': ch});
-   });
-});
-//]]></script>
+        $('.hide-show').click(function(){
+		    var id = $(this).val();
+		    var ch = "no";
+		    if($(this).attr("checked")){
+		    ch="yes"
+		    $("#note-"+id).trigger('collapse_slow');
+		    }
+	
+	        $.post("{% url advisornotes.views.student_notes userid=userid%}",
+			  {'csrfmiddlewaretoken': "{{csrf_token}}", 'note_id': id, 'hide': ch});
+	   });
+	});
+//]]>
+</script>
 {% endblock %}
 
 {% block actions %}
 <div id="actions">
-<h2>Actions</h2>
-<ul>
-<li><a href="{% url advisornotes.views.new_note userid=userid%}">New Note</a></li>
-{% if not nonstudent %}
-<li id="moreinfo"><a href="javascript:get_more_info('{% url advisornotes.views.student_more_info userid=userid %}')">Fetch more info <img src="{{MEDIA_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" style="display:none" /></a></li>
-{% endif %}
-{% if nonstudent %}
-<li><a href="{% url advisornotes.views.merge_nonstudent nonstudent_slug=student.slug %}">Merge with existing student</a></li>
-{% endif %}
-</ul>
+    <h2>Actions</h2>
+    <ul>
+        <li>
+            <a href="{% url advisornotes.views.new_note userid=userid%}">New Note</a>
+        </li>
+        {% if not nonstudent %}
+        <li id="moreinfo">
+            <a href="javascript:get_more_info('{% url advisornotes.views.student_more_info userid=userid %}')">Fetch more info <img src="{{MEDIA_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" style="display:none" /></a>
+        </li>
+        {% endif %}
+        {% if nonstudent %}
+        <li>
+            <a href="{% url advisornotes.views.merge_nonstudent nonstudent_slug=student.slug %}">Merge with existing student</a>
+        </li>
+        {% endif %}
+    </ul>
 </div>
 {% endblock %}
 
@@ -47,92 +60,127 @@ $(document).ready(function() {
 <div class="table_container">
     <table class="info">
         <tbody>
-	    <tr>
-	    	<th class="ui-state-default">Last Name</th>
-            <td>{{ student.last_name }}</td>
-        </tr>
-	    <tr>
-            <th class="ui-state-default">First Name</th>
-            <td>{{ student.first_name }}</td>
-        </tr>
-	    <tr>
-            <th class="ui-state-default">Middle Name</th>
-            <td>{{ student.middle_name|default:"--" }}
-            </td>
-        </tr>
-	    <tr>
-            <th class="ui-state-default">Student Number</th>
-            <td>
-            	{% if nonstudent %}
-            		Not a student (<a href="{% url advisornotes.views.merge_nonstudent nonstudent_slug=student.slug %}">Merge with existing student</a>)
-            	{% endif %}
-            	{% if not nonstudent %}
-            	    {{ student.emplid }}
-               		[<a href="https://sims.sfu.ca/psp/csprd/EMPLOYEE/HRMS/c/SCC_ADMIN_OVRD_STDNT.SSS_STUDENT_CENTER.GBL?EMPLID={{student.emplid }}">SIMS record</a>]
-            	{% endif %}
-			</td>
-        </tr>
-        {% if not nonstudent %}
-	    <tr>
-	    	<th class="ui-state-default">Email Address</th>
-            <td>{{ student.email_mailto }}</td>
-        </tr>
-        {% endif %}
-        {% if nonstudent %}
-        <tr>
-	    	<th class="ui-state-default">High School</th>
-            <td>{{ student.high_school|default:"--" }}</td>
-	    </tr>
-	    <tr>
-            <th class="ui-state-default">College</th>
-            <td>{{ student.college|default:"--" }}</td>
-        </tr>
-        <tr>
-            <th class="ui-state-default">Start Year:</th>
-            <td>{{ student.start_year|default_if_none:"--" }}</td>
-        </tr>
-	    {% endif %}
-	    {% if not nonstudent and student.nonstudent_hs %}
-	    <tr>
-	    	<th class="ui-state-default">High School (Pre-admission record)</th>
-            <td>{{ student.nonstudent_hs }}</td>
-	    </tr>    
-	    {% endif %}
-	    {% if not nonstudent and student.nonstudent_colg %}
-        <tr>
-            <th class="ui-state-default">College (Pre-admission record)</th>
-            <td>{{ student.nonstudent_colg }}</td>
-        </tr>    
-        {% endif %}
+            <tr>
+                <th class="ui-state-default">Last Name</th>
+                <td>{{ student.last_name }}</td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">First Name</th>
+                <td>{{ student.first_name }}</td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Middle Name</th>
+                <td>{{ student.middle_name|default:"--" }} </td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Student Number</th>
+                <td> {% if nonstudent %}
+                Not a student (<a href="{% url advisornotes.views.merge_nonstudent nonstudent_slug=student.slug %}">Merge with existing student</a>)
+                {% endif %}
+                {% if not nonstudent %}
+                {{ student.emplid }}
+                [<a href="https://sims.sfu.ca/psp/csprd/EMPLOYEE/HRMS/c/SCC_ADMIN_OVRD_STDNT.SSS_STUDENT_CENTER.GBL?EMPLID={{student.emplid }}">SIMS record</a>]
+                {% endif %} </td>
+            </tr>
+            {% if not nonstudent %}
+            <tr>
+                <th class="ui-state-default">Email Address</th>
+                <td>{{ student.email_mailto }}</td>
+            </tr>
+            {% endif %}
+            {% if nonstudent %}
+            <tr>
+                <th class="ui-state-default">High School</th>
+                <td>{{ student.high_school|default:"--" }}</td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">College</th>
+                <td>{{ student.college|default:"--" }}</td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Start Year:</th>
+                <td>{{ student.start_year|default_if_none:"--" }}</td>
+            </tr>
+            {% endif %}
+            {% if not nonstudent and student.nonstudent_hs %}
+            <tr>
+                <th class="ui-state-default">High School (Pre-admission record)</th>
+                <td>{{ student.nonstudent_hs }}</td>
+            </tr>
+            {% endif %}
+            {% if not nonstudent and student.nonstudent_colg %}
+            <tr>
+                <th class="ui-state-default">College (Pre-admission record)</th>
+                <td>{{ student.nonstudent_colg }}</td>
+            </tr>
+            {% endif %}
         </tbody>
     </table>
 </div>
 
-{%if notes %}
-  {% for note in notes %}
-    <h2 class="note{% if not note.hidden %} show{% endif %}" id="note-{{note.id}}">{{note.created_at}} by {{note.advisor.first_name}} {{note.advisor.last_name}}</h2>
-    <div class="note-box" id="note-box-{{note.id}}">
-	
-    <p>{{note.text|linebreaks}}</p>
+{%if items %}
+{% for item in items %}
+
+{% if item.note %}
+{% with item.item as note %}
+<h2 class="note{% if not note.hidden %} show{% endif %}" id="note-{{note.id}}">{{note.created_at}} by {{note.advisor.first_name}} {{note.advisor.last_name}}</h2>
+<div class="note-box" id="note-box-{{note.id}}">
+
+    <p>
+        {{note.text|linebreaks}}
+    </p>
     {% if note.file_attachment %}
     <p><img src="{{MEDIA_URL}}icons/attach.png" alt="download" />
-    	<a href="{% url advisornotes.views.download_file userid=userid note_id=note.id%}">{{ note.attachment_filename }}</a>
-    	({{ note.file_attachment.size|filesizeformat }})
-    </p> 
-    {% endif %}
-	
-	<p class="hideshow">
-	{% if note.hidden %}
-    <input type="checkbox" class="hide-show" value="{{note.id}}" checked="checked" />
-    {% else %}
-    <input type="checkbox" class="hide-show" value="{{note.id}}"/>
-    {% endif %}
-    Hide this note?
+        <a href="{% url advisornotes.views.download_file userid=userid note_id=note.id%}">{{ note.attachment_filename }}</a>
+        ({{ note.file_attachment.size|filesizeformat }})
     </p>
-    </div>
-  {% endfor %}
+    {% endif %}
+
+    <p class="hideshow">
+        {% if note.hidden %}
+        <input type="checkbox" class="hide-show" value="{{note.id}}" checked="checked" />
+        {% else %}
+        <input type="checkbox" class="hide-show" value="{{note.id}}"/>
+        {% endif %}
+        Hide this note?
+    </p>
+</div>
+{% endwith %}
+{% else %}
+{% with item.item as problem %}
+<h2 style="padding-left: 15px; line-height: 1.6; color: gray;">
+	{{ problem.created_at }} -
+	
+	{% if problem.status == None %}
+	    <span style="color: #C4772B;">Problem: "{{ problem.code }}"</span>
+	{% endif %}
+	{% if problem.status == 'FLAG' %}
+	    <span style="color: red;">Problem: "{{ problem.code }}" (Flagged)</span>
+	{% endif %}
+	{% if problem.status == 'RESO' %}
+        <span style="color: green;">Problem: "{{ problem.code }}" (Resolved)</span>
+    {% endif %}
+</h2>
+<div class="note-box">
+<p>
+<b>Description:</b> {{ problem.description }}</br>
+<b>Comments:</b></br>
+{% if problem.comments %}
+{{ problem.comments }}
+{% else %}
+<i>No comments</i>
+{% endif %}
+</p>
+</div>
+{% endwith %}
+{% endif %}
+
+
+{% endfor %}
 {%else%}
-	<p>No notes yet</p>
+<p>
+    No notes or problems
+</p>
 {%endif%}
 
 {%endblock content%}

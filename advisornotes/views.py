@@ -1,6 +1,7 @@
 from advisornotes.forms import StudentSearchForm, NoteSearchForm, NonStudentForm, \
     MergeStudentForm, ArtifactNoteForm, ArtifactForm, advisor_note_factory
-from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote
+from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote,\
+    Problem
 from coredata.models import Person, Course, CourseOffering
 from coredata.queries import find_person, add_person, more_personal_info, \
     SIMSProblem
@@ -17,6 +18,7 @@ from django.views.decorators.csrf import csrf_exempt
 from log.models import LogEntry
 import json
 import rest
+from timeit import itertools
 
 
 def _redirect_to_notes(student):
@@ -227,12 +229,23 @@ def student_notes(request, userid):
 
     if isinstance(student, Person):
         notes = AdvisorNote.objects.filter(student=student, unit__in=request.units).order_by("-created_at")
+        problems = Problem.objects.filter(person=student, unit__in=request.units).order_by("-created_at")
+        models = list(itertools.chain(notes, problems))    
+        models.sort(key=lambda x: x.created_at, reverse=True)
+        items = []
+        for model in models:
+            item = {'item': model, 'note': isinstance(model, AdvisorNote)}
+            items.append(item)
         nonstudent = False
     else:
         notes = AdvisorNote.objects.filter(nonstudent=student, unit__in=request.units).order_by("-created_at")
+        items = []
+        for note in notes:
+            item = {'item': note, 'note': True}
+            items.append(item)
         nonstudent = True
 
-    return render(request, 'advisornotes/student_notes.html', {'notes': notes, 'student': student, 'userid': userid, 'nonstudent': nonstudent})
+    return render(request, 'advisornotes/student_notes.html', {'items': items, 'student': student, 'userid': userid, 'nonstudent': nonstudent})
 
 
 @requires_role('ADVS')
