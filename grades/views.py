@@ -38,6 +38,7 @@ from submission.models import SubmissionComponent, GroupSubmission, StudentSubmi
 
 from log.models import LogEntry
 from pages.models import Page, ACL_ROLES
+from dashboard.models import UserConfig
 from discuss import activity as discuss_activity
 
 FROMPAGE = {'course': 'course', 'activityinfo': 'activityinfo', 'activityinfo_group' : 'activityinfo_group'}
@@ -1192,7 +1193,6 @@ def class_list(request, course_slug):
         gs = groups.get(gm.student_id, set())
         groups[gm.student_id] = gs
         gs.add(gm.group)
-    #print groups
     
     rows = []
     for m in members:
@@ -1201,6 +1201,21 @@ def class_list(request, course_slug):
     
     context = {'course': course, 'rows': rows}
     return render_to_response('grades/class_list.html', context, context_instance=RequestContext(request))
+
+
+@requires_course_staff_by_slug
+def photo_list(request, course_slug):
+    user = get_object_or_404(Person, userid=request.user.username)
+    configs = UserConfig.objects.filter(user=user, key='photo-agreement')
+    
+    if not (configs and configs[0].value['agree']):
+        return ForbiddenResponse(request, 'You must confirm the photo usage agreement before seeing student photos.')
+    
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    members = Member.objects.filter(offering=course, role="STUD").select_related('person', 'offering')
+    
+    context = {'course': course, 'members': members}
+    return render_to_response('grades/photo_list.html', context, context_instance=RequestContext(request))
 
 
 @requires_course_staff_by_slug

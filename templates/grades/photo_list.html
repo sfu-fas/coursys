@@ -1,0 +1,59 @@
+{% extends "grades/base.html" %}
+{% load grade_student %}
+
+{% block title %}{{ course.name }} Class List{% endblock %}
+{% block h1 %}{{ course.name }} Class List{% endblock %}
+
+{% block grades_headextra %}
+<script type="text/javascript">
+    $(document).ready(function() {
+	oTable = $('#students').dataTable({
+	    "bJQueryUI": true,
+	    "bPaginate": false,
+	    "aaSorting": [[1, "asc"], [2, "asc"]],
+	    "aoColumns": [
+		    null,
+		    null,
+		    null,
+		    null,
+		    null,
+		]
+	});
+    });
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; Photo List</li>{% endblock %}
+
+{% block actions %}
+{% endblock %}
+
+{% block content %}
+<div class="datatable_container">
+    <table class="display" id="students">
+        <thead>
+            <tr>
+		        <th scope="col">Photo</th>
+                <th scope="col">Last Name</th>
+                <th scope="col">First Name</th>
+		<th scope="col">User ID</th>
+		<th scope="col">Student #</th>
+            </tr>
+	</thead>
+        <tbody>
+        {% for member in members %}
+        <tr>
+            <td><img src="{% url dashboard.views.student_photo emplid=member.person.emplid %}" alt="{{member.person.userid}}'s photo" /></td>
+            <td>{{member.person.last_name}}</td>
+            <td>{{member.person.first_name}}</td>
+            <td>{{member.person.userid}}</td>
+            <td><a href="{{member.get_absolute_url}}">{{member.person.emplid}}</a></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+
+{% endblock %}

@@ -11,7 +11,7 @@ from django.contrib import messages
 from coredata.models import Member, CourseOffering, Person, Role, Semester, MeetingTime
 from grades.models import Activity, NumericActivity
 from courselib.auth import requires_course_staff_by_slug, NotFoundResponse,\
-    has_role
+    has_role, ForbiddenResponse
 from courselib.search import find_userid_or_emplid
 from dashboard.models import NewsItem, UserConfig, Signature, new_feed_token
 from dashboard.forms import MessageForm, FeedSetupForm, NewsConfigForm, SignatureForm, PhotoAgreementForm
@@ -20,7 +20,7 @@ from log.models import LogEntry
 import datetime, json, urlparse
 from courselib.auth import requires_role
 from icalendar import Calendar, Event
-import pytz
+import pytz, os
 
 
 def _display_membership(m, today, student_cutoff):
@@ -842,4 +842,29 @@ def photo_agreement(request):
     context = {"form": form}
     return render(request, "dashboard/photo_agreement.html", context)
 
-    
+@login_required
+def student_photo(request, emplid):
+    # confirm user's photo agreement
+    user = get_object_or_404(Person, userid=request.user.username)
+    configs = UserConfig.objects.filter(user=user, key='photo-agreement')
+    if not (configs and configs[0].value['agree']):
+        return ForbiddenResponse(request, 'You must confirm the photo usage agreement before seeing student photos.')
+
+    # confirm user is an instructor of this student
+    student_members = Member.objects.filter(person__emplid=emplid, role='STUD').select_related('offering')
+    student_offerings = [m.offering for m in student_members]
+    instructor_of = Member.objects.filter(person=user, role__in=['INST', 'TA'], offering__in=student_offerings)
+    if instructor_of.count() == 0:
+        return ForbiddenResponse(request, 'You must be an instructor of this student.')
+
+    # now return the photo
+    imgpath = os.path.join(settings.MEDIA_ROOT, 'images', 'default-photo.png')
+    data = open(imgpath, 'r')
+    response = HttpResponse(data, mimetype='image/png')
+    response['Content-Disposition'] = 'inline; filename=%s.png' % (emplid)
+    # TODO: be a little less heavy-handed with the caching if it can be done safely
+    response['Cache-Control'] = 'no-store'
+    response['Pragma'] = 'no-cache'
+    return response
+
+
