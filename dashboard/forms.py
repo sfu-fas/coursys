@@ -28,4 +28,6 @@ class SignatureForm(forms.Form):
         # TODO: check image type/size/colours
         return sig
     
+class PhotoAgreementForm(forms.Form):
+    agree = forms.BooleanField(required=False, label="Do you agree?", help_text="I agree with the above conditions.")
 

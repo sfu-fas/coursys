@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load markup %}
+
+{% block title %}ID Photo Agreement{% endblock %}
+{% block h1 %}ID Photo Agreement{% endblock %}
+
+{% block subbreadcrumbs %}<li>&gt; <a href="{% url dashboard.views.config %}">User Configuration</a></li>
+<li>&gt; Photo Agreement</li>{% endblock %}
+
+{% block content %}
+
+<p>
+I won't show photos to others.
+</p>
+
+<form action="" method="post">{% csrf_token %}
+    {% for field in form.visible_fields %}
+        <div class="field">
+            {{ field }} 
+            {{ field.help_text }}
+            {{ field.errors }}
+        </div>
+    {% endfor %}
+    <p><input type="submit" value="Update Agreement" /></p>
+</form>
+
+
+{% endblock %}

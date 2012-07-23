@@ -86,6 +86,8 @@ urlpatterns += patterns('',
     url(r'^config/advisor-api/del$', 'dashboard.views.disable_advisor_token'),
     url(r'^config/advisor-api/change$', 'dashboard.views.change_advisor_token'),
     url(r'^config/news$', 'dashboard.views.news_config'),
+    url(r'^config/photos$', 'dashboard.views.photo_agreement'),
+
     url(r'^news/(?P<token>[0-9a-f]{32})/' + USERID_SLUG + '$', 'dashboard.views.atom_feed'),
     url(r'^news/(?P<token>[0-9a-f]{32})/' + USERID_SLUG + '/' + COURSE_SLUG + '$', 'dashboard.views.atom_feed'),
     url(r'^calendar/(?P<token>[0-9a-f]{32})/' + USERID_SLUG + '$', 'dashboard.views.calendar_ical'),

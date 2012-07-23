@@ -14,7 +14,7 @@ from courselib.auth import requires_course_staff_by_slug, NotFoundResponse,\
     has_role
 from courselib.search import find_userid_or_emplid
 from dashboard.models import NewsItem, UserConfig, Signature, new_feed_token
-from dashboard.forms import MessageForm, FeedSetupForm, NewsConfigForm, SignatureForm
+from dashboard.forms import MessageForm, FeedSetupForm, NewsConfigForm, SignatureForm, PhotoAgreementForm
 from grad.models import GradStudent, Supervisor, STATUS_ACTIVE
 from log.models import LogEntry
 import datetime, json, urlparse
@@ -155,12 +155,21 @@ def config(request):
     if has_role('ADVS', request):
         advisor = True
         configs = UserConfig.objects.filter(user=user, key='advisor-token')
-        if not len(configs) is 0:
+        if len(configs) > 0:
             advisortoken = configs[0].value['token']
     
-    context={'caltoken': caltoken, 'newstoken': newstoken, 'newsconfig': newsconfig, 'advisor': advisor, 'advisortoken': advisortoken, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL}
+    # ID photo agreement
+    instructor = False
+    photo_agreement = False
+    if Member.objects.filter(person=user, role__in=['INST', 'TA']).count() > 0:
+        instructor = True
+        configs = UserConfig.objects.filter(user=user, key='photo-agreement')
+        if len(configs) > 0:
+            photo_agreement = configs[0].value['agree']
+    
+    context={'caltoken': caltoken, 'newstoken': newstoken, 'newsconfig': newsconfig, 'advisor': advisor, 'advisortoken': advisortoken, 
+             'instructor': instructor, 'photo_agreement': photo_agreement, 'userid': user.userid, 'server_url': settings.BASE_ABS_URL}
     return render(request, "dashboard/config.html", context)
-
 
 def _get_memberships(userid):
     today = datetime.date.today()
@@ -809,4 +818,28 @@ def change_advisor_token(request):
         form = FeedSetupForm({'agree': True})
         
     return render(request, "dashboard/change_advisor_token.html", {"form": form})
+
+@login_required
+def photo_agreement(request):
+    user = get_object_or_404(Person, userid=request.user.username)
+    configs = UserConfig.objects.filter(user=user, key='photo-agreement')
+    if configs:
+        config = configs[0]
+    else:
+        config = UserConfig(user=user, key='photo-agreement', value={'agree': False})
+
+    if request.method == 'POST':
+        form = PhotoAgreementForm(request.POST)
+        if form.is_valid():
+            config.value['agree'] = form.cleaned_data['agree']
+            config.value['version'] = 1
+            config.save()
+            messages.add_message(request, messages.SUCCESS, 'Updated your photo agreement status.')
+            return HttpResponseRedirect(reverse('dashboard.views.config'))
+    else:
+        form = PhotoAgreementForm({'agree': config.value['agree']})
+        
+    context = {"form": form}
+    return render(request, "dashboard/photo_agreement.html", context)
+
     
