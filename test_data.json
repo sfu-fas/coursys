@@ -26375,7 +26375,7 @@
   "person": 72,
   "resolution_lasts": 90,
   "resolved_until": null,
-  "status": null,
+  "status": "OPEN",
   "unit": 3
  },
  "model": "advisornotes.problem",
