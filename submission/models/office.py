@@ -1,9 +1,9 @@
 from base import *
 import submission.forms
-from django.forms.widgets import Textarea, TextInput, FileInput, SelectMultiple
+from django.forms.widgets import Textarea, FileInput, SelectMultiple
 from django import forms
 from django.http import HttpResponse
-from jsonfield import JSONField
+from jsonfield.fields import JSONField, JSONFormField
 
 OFFICE_TYPES = [ # (label, internal identifier, extensions)
         ('MS Word', 'MS-WORD', ['.doc', '.docx']),
@@ -20,10 +20,26 @@ OFFICE_TYPES = [ # (label, internal identifier, extensions)
 OFFICE_CHOICES = [(ident, label) for label, ident, exts in OFFICE_TYPES]
 OFFICE_LABELS = dict(((ident, label) for label, ident, exts in OFFICE_TYPES))
 
+class JSONFieldFlexible(JSONField):
+    "More flexible JSONField that can accept a list as form input (from a multiselect, as we use it here)"
+    class JSONFormFieldFlexible(JSONFormField):
+        def clean(self, value):
+            if isinstance(value, list):
+                return value
+            return super(self.JSONFormFieldFlexible, self).clean(value)
+
+    def formfield(self, **kwargs):
+
+        if "form_class" not in kwargs:
+            kwargs["form_class"] = self.JSONFormFieldFlexible
+
+        return super(JSONFieldFlexible, self).formfield(**kwargs)
+
+
 class OfficeComponent(SubmissionComponent):
     "An office document submission component"
     max_size = models.PositiveIntegerField(help_text="Maximum size of the Office file, in kB.", null=False, default=10000)
-    allowed = JSONField(max_length=500, null=False, help_text='Accepted file extensions.')
+    allowed = JSONFieldFlexible(max_length=500, null=False, help_text='Accepted file extensions.')
 
     def get_allowed_list(self):
         return self.allowed['types']
