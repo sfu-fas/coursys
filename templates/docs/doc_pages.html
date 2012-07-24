@@ -30,7 +30,28 @@ The pages can be created with simple wiki markup and access can be controlled as
 <h2 id="creole">Wiki Markup</h2>
 <p>Pages are written with <a href="http://www.wikicreole.org/wiki/Elements">Wiki Creole Markup</a> (list of <a href="http://www.wikicreole.org/wiki/AllMarkup">Wiki Creole markup reference</a>).
 Most <a href="http://www.wikicreole.org/wiki/CreoleAdditions">Creole Additions</a> also work.</p>
-<p></p>
+<p>Here are sone Wiki Creole basics. For full details, see the links above.</p>
+<blockquote>
+<dl>
+<dt>Bold</dt>
+  <dd><pre>**bold text**</pre></dd>
+<dt>Italic</dt>
+  <dd><pre>//italic text//</pre></dd>
+<dt>Bulleted list</dt>
+  <dd><pre>* item one
+* item two</pre></dd>
+<dt>Numbered list</dt>
+  <dd><pre># item one
+# item two</pre></dd>
+<dt>Headings</dt>
+  <dd><pre>== Section Heading ==
+=== Subsection Heading ===</pre></dd>
+<dt>Links</dt>
+  <dd><pre>[[AnotherPage]]
+[[AnotherPage|Another page on this site]]
+[[http://www.sfu.ca/|Another page on the web]]</pre></dd>
+</dl>
+</blockquote>
 
 
 <h2 id="extras">Creole Additions</h2>
@@ -44,6 +65,14 @@ Most <a href="http://www.wikicreole.org/wiki/CreoleAdditions">Creole Additions</
 <p>As long as you spell the activity name correctly, the page will display the due date assigned for the activity and will update if you change it.
 If you'd like to include the date and the time, it is done like this:</p>
 <blockquote><pre>Assignment 2 is due at //exactly// &lt;&lt;duedatetime Assignment 2>>.</pre></blockquote>
+
+
+<h3 id="pagelist">Page Lists</h3>
+
+<p>You can insert a list of all pages on your course site like this:</p>
+<blockquote><pre>&lt;&lt;pagelist>></pre></blockquote>
+<p>Or, a list of all pages whose label starts with &ldquo;Assign&rdquo; (e.g. pages &ldquo;Assignment 1&rdquo;, &ldquo;Assignment 2&rdquo;) like this:</p>
+<blockquote><pre>&lt;&lt;pagelist Assign>></pre></blockquote>
 
 
 <h3 id="tex">Formulas</h3>

@@ -16,6 +16,9 @@ dfn, var {
 blockquote {
 	margin: 1em 2.5em;
 }
+dd {
+	margin: 0 2.5em;
+}
 pre {
 	font-family: monospace;
 }
@@ -731,7 +734,7 @@ div.collapsible {
 #form_container .errorlist,
 .form_container .errorlist {
     color: red;
-    margin-left: 146px;
+    margin-left: 9.5em;
     margin-top: .1em;
     margin-bottom: .2em;
 }
@@ -850,7 +853,7 @@ fieldset .datetime {
 }
 fieldset p.helptext,
 dl.dlform .helptext {
-  margin-left: 146px;
+  margin-left: 10.5em;
 }
 dl.dlform dt{
 	margin-left: 1em;

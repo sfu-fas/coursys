@@ -167,7 +167,7 @@ class PageVersion(models.Model):
     
     def get_creole(self):
         if not self.Creole:
-            self.Creole = ParserFor(self.page.offering)
+            self.Creole = ParserFor(self.page.offering, self)
     
     def previous_version(self):
         """
@@ -289,14 +289,20 @@ class PageVersion(models.Model):
                 self.set_syntax(bool(brushes))
 
         super(PageVersion, self).save(*args, **kwargs)
-        # invalidate current version cache
-        cache.delete(self.page.version_cache_key())
-        
         # update the *previous* PageVersion so it's a diff instead of storing full text
         if check_diff and not minor_change:
             prev = self.previous_version()
             if prev:
                 prev.diff_to(self)
+
+        # invalidate cache for all pages in this offering: makes sure current page, and all <<filelist>> are up to date
+        for pv in PageVersion.objects.filter(page__offering=self.page.offering):
+            key = pv.html_cache_key()
+            cache.delete(key)
+        # other cache cleanup
+        cache.delete(self.wikitext_cache_key())
+        cache.delete(self.page.version_cache_key())
+        
 
 
     def __unicode__(self):
@@ -320,7 +326,7 @@ class PageVersion(models.Model):
         else:
             self.get_creole()
             html = self.Creole.text2html(self.get_wikitext())
-            cache.set(key, html, 24*3600) # expired if activities are changed (in signal below)
+            cache.set(key, html, 24*3600) # expired if activities are changed (in signal below), or by saving a PageVersion in this offering
             return mark_safe(html)
         
 
@@ -340,7 +346,7 @@ def clear_offering_cache(instance, **kwargs):
     if not isinstance(instance, Activity):
         return
     if not hasattr(instance, 'offering'):
-        # doesn't even have an offering set: can't be a problem. Right?
+        # doesn't have an offering set yet: can't be a problem. Right?
         return
 
     for pv in PageVersion.objects.filter(page__offering=instance.offering):
@@ -435,24 +441,45 @@ def _duedate(offering, dateformat, macro, environ, *act_name):
 
     return creoleparser.core.bldr.tag.__getattr__('span')(text, **attrs)
 
+def _pagelist(offering, pageversion, macro, environ, prefix=None):
+    # all pages [with the given prefix] for this offering
+    if prefix:
+        pages = Page.objects.filter(offering=offering, label__startswith=prefix)
+    else:
+        pages = Page.objects.filter(offering=offering)
+
+    # ... except this page (if known)
+    if pageversion:
+        pages = pages.exclude(id=pageversion.page_id)
+
+    elements = []
+    for p in pages:
+        link = creoleparser.core.bldr.tag.__getattr__('a')(p.current_version().title or p.label, href=p.label)
+        li = creoleparser.core.bldr.tag.__getattr__('li')(link)
+        elements.append(li)
+    return creoleparser.core.bldr.tag.__getattr__('ul')(elements, **{'class': 'filelist'})
     
 class ParserFor(object):
     """
     Class to hold the creoleparser objects for a particular CourseOffering.
     
-    (Need to be specific to the offering so we can select the right activities in macros.)
+    (Needs to be specific to the offering so we can select the right activities/pages in macros.)
     """
-    def __init__(self, offering):
+    def __init__(self, offering, pageversion=None):
         self.offering = offering
+        self.pageversion = pageversion
         
         def duedate_macro(macro, environ, *act_name):
             return _duedate(self.offering, '%A %B %d %Y', macro, environ, *act_name)
         def duedatetime_macro(macro, environ, *act_name):
             return _duedate(self.offering, '%A %B %d %Y, %H:%M', macro, environ, *act_name)
+        def pagelist_macro(macro, environ, prefix=None):
+            return _pagelist(self.offering, self.pageversion, macro, environ, prefix)
 
         CreoleBase = creoleparser.creole11_base(non_bodied_macros={
                      'duedate': duedate_macro,
                      'duedatetime': duedatetime_macro,
+                     'pagelist': pagelist_macro,
                      })
         class CreoleDialect(CreoleBase):
             codeblock = CodeBlock()
