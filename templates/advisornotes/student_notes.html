@@ -150,16 +150,7 @@
 {% with item.item as problem %}
 <h2 style="padding-left: 15px; line-height: 1.6; color: gray;">
 	{{ problem.created_at }} -
-	
-	{% if problem.status == None %}
-	    <span style="color: #C4772B;">Problem: "{{ problem.code }}"</span>
-	{% endif %}
-	{% if problem.status == 'FLAG' %}
-	    <span style="color: red;">Problem: "{{ problem.code }}" (Flagged)</span>
-	{% endif %}
-	{% if problem.status == 'RESO' %}
-        <span style="color: green;">Problem: "{{ problem.code }}" (Resolved)</span>
-    {% endif %}
+	{% if problem.is_closed %}<span style="color: green;">{% else %}<span style="color: #B5111B;">{% endif %}Problem: "{{ problem.code }}" ({{problem.get_status_display}})</span>
 </h2>
 <div class="note-box">
 <p>

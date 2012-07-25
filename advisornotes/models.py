@@ -207,7 +207,8 @@ PROBLEM_STATUSES = (
     ("CONT", "Contacted"),
     ("DUPL", "Duplicate"),
 )
-CLOSED_STATUSES = ["RESO", "IGNR", "CONT", "DUPL"]
+OPEN_STATUSES = ("OPEN", "PEND")
+CLOSED_STATUSES = ("RESO", "IGNR", "CONT", "DUPL")
 
 class Problem(models.Model):
     """
@@ -224,8 +225,11 @@ class Problem(models.Model):
     resolved_until = models.DateField(null=True, blank=True, help_text="When resolved/ignored, how long should this apply for?")
     unit = models.ForeignKey(Unit, null=False)
     
+    def is_closed(self):
+        return self.status in CLOSED_STATUSES
+    
     def save(self, *args, **kwargs):
-        if self.status in CLOSED_STATUSES and not self.resolved_until:
+        if self.is_closed() and not self.resolved_until:
             period = datetime.timedelta(days=self.resolution_lasts)
             self.resolved_until = datetime.date.now() + period
         super(Problem, self).save(*args, **kwargs)

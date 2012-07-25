@@ -1,7 +1,7 @@
 from advisornotes.forms import StudentSearchForm, NoteSearchForm, NonStudentForm, \
     MergeStudentForm, ArtifactNoteForm, ArtifactForm, advisor_note_factory
 from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote,\
-    Problem
+    Problem, OPEN_STATUSES, CLOSED_STATUSES
 from coredata.models import Person, Course, CourseOffering, Semester
 from coredata.queries import find_person, add_person, more_personal_info, \
     SIMSProblem
@@ -516,3 +516,19 @@ def rest_notes(request):
         return HttpResponse(content=e.messages[0], status=422)
 
     return HttpResponse(status=200)
+
+@requires_role('ADVS')
+def view_problems(request):
+    """
+    View reported problems created via the API
+    """
+    problems = Problem.objects.filter(unit__in=request.units, status__in=OPEN_STATUSES)
+    return render(request, 'advisornotes/view_problems.html', {'problems': problems})
+
+@requires_role('ADVS')
+def view_resolved_problems(request):
+    """
+    View reported problems that have been resolved
+    """
+    problems = Problem.objects.filter(unit__in=request.units, status__in=CLOSED_STATUSES)
+    return render(request, 'advisornotes/view_resolved_problems.html', {'problems': problems})

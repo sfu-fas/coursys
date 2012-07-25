@@ -431,6 +431,8 @@ urlpatterns += patterns('',
     url(r'^advising/students/' + USERID_OR_EMPLID + '/' + NOTE_ID + '/file', 'advisornotes.views.download_file'),
     url(r'^advising/students/' + USERID_OR_EMPLID + '/moreinfo$', 'advisornotes.views.student_more_info'),
     url(r'^advising/new_prospective_student', 'advisornotes.views.new_nonstudent'),
+    url(r'^advising/problems/$', 'advisornotes.views.view_problems'),
+    url(r'^advising/problems/resolved/$', 'advisornotes.views.view_resolved_problems'),
 )
 
 if not settings.DEPLOYED:

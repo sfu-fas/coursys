@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}Reported Problems{% endblock %}
+{% block h1 %}Reported Problems{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(function() {
+  $('.display').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': true,
+    "bJQueryUI": true
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li>
+<li>&gt; Reported Problems</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li>
+            <a href="{% url advisornotes.views.view_resolved_problems %}">View resolved problems</a>
+        </li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+{% if problems %}
+<table class="display">
+    <thead>
+        <tr>
+            <th>Code</th>
+            <th>Student</th>
+            <th>Status</th>
+            <th>Since</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for problem in problems %}
+        <tr>
+            <td><a href="#">{{ problem.code }}</a></td>
+            <td>{{ problem.person.sortname }}</td>
+            <td><span style="color: #B5111B;">{{ problem.get_status_display }}</span></td>
+            <td><abbr title="{{ problem.created_at.date }}">{{ problem.created_at|date:"Y/m/d" }}</abbr></td>
+            <td>{{ problem.description }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>There are currently no unresolved problems</p>
+{% endif %}
+
+{% endblock %}

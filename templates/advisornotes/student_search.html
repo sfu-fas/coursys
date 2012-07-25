@@ -28,10 +28,11 @@ $(function() {
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-        <li><a href="{% url advisornotes.views.new_nonstudent %}">Create new prospective student</a></li>
+        <li><a href="{% url advisornotes.views.new_nonstudent %}">New prospective student</a></li>
         <li><a href="{% url advisornotes.views.view_courses %}">View all courses</a></li>
         <li><a href="{% url advisornotes.views.view_course_offerings %}">View all course offerings</a></li>
         <li><a href="{% url advisornotes.views.view_artifacts %}">View all artifacts</a></li>
+        <li class="newsec"><a href="{% url advisornotes.views.view_problems %}">View reported problems</a></li>
     </ul>
 </div>
 {% endblock %}
