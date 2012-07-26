@@ -32,7 +32,7 @@ def get_query(query_string, search_fields):
         aims to search keywords within a model by testing the given search fields.
     
     '''
-    query = None # Query to search for every search term        
+    query = Q() # Query to search for every search term
     terms = normalize_query(query_string)
     for term in terms:
         or_query = None # Query to search for a given term in each field

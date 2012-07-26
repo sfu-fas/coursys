@@ -5,6 +5,11 @@
 {% block h1 %}{{ course.name }} Class List{% endblock %}
 
 {% block grades_headextra %}
+<style type="text/css">
+.datatable_container #students td {
+  vertical-align: middle;
+}
+</style>
 <script type="text/javascript">
     $(document).ready(function() {
 	oTable = $('#students').dataTable({

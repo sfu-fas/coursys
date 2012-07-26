@@ -14,7 +14,7 @@ class _AdvisorNoteFormNonstudent(forms.ModelForm):
         model = AdvisorNote
         exclude = ('hidden','emailed')
         widgets = {
-                'text': forms.Textarea(attrs={'cols': 80, 'rows': 25})
+                'text': forms.Textarea(attrs={'cols': 70, 'rows': 15})
                 }
 
 
