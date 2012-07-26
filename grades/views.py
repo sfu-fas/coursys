@@ -520,8 +520,25 @@ def compare_official(request, course_slug, activity_slug):
     #print data
     context = {'course': course, 'activity': activity, 'data': data}
     return render_to_response('grades/compare_official.html', context, context_instance=RequestContext(request))
+
+from dashboard.letters import grade_change_form
+@requires_course_staff_by_slug
+def grade_change(request, course_slug, activity_slug, userid):
+    """
+    Produce grade change form
+    """
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    activity = get_object_or_404(LetterActivity, slug=activity_slug, offering=course, deleted=False)
+    member = get_object_or_404(Member, person__userid=userid, offering__slug=course_slug)
+    user = Person.objects.get(userid=request.user.username)
     
+    response = HttpResponse(content_type="application/pdf")
+    response['Content-Disposition'] = 'inline; filename=%s-gradechange.pdf' % (userid)
+    grade_change_form(member, member.official_grade, 'A+', user, response)
+    return response
+
     
+
 
 
 @requires_course_staff_by_slug
@@ -1086,36 +1103,6 @@ def add_letter_activity(request, course_slug):
     activities = course.activity_set.all()
     context = {'course': course, 'form': form, 'form_type': FORMTYPE['add']}
     return render_to_response('grades/letter_activity_form.html', context, context_instance=RequestContext(request))
-
-#@requires_course_staff_by_slug
-#def delete_activity_review(request, course_slug, activity_slug):
-#    course = get_object_or_404(CourseOffering, slug=course_slug)
-#    activities = all_activities_filter(offering=course, slug=activity_slug)
-#    if (len(activities) == 1):
-#        activity = activities[0]
-#        if isinstance(activity, CalNumericActivity):
-#            activity_type = ACTIVITY_TYPE['CNG']
-#        elif isinstance(activity, NumericActivity):
-#            activity_type = ACTIVITY_TYPE['NG']
-#        elif isinstance(activity, LetterActivity):
-#            activity_type = ACTIVITY_TYPE['LG']
-#        context = {'course': course, 'activity_type': activity_type, 'activity': activities[0]}
-#        return render_to_response('grades/delete_activity_review.html', context, context_instance=RequestContext(request))
-#    else:
-#        return NotFoundResponse(request)
-
-#@requires_course_staff_by_slug
-#def delete_activity_confirm(request, course_slug, activity_slug):
-#    course = get_object_or_404(CourseOffering, slug=course_slug)
-#    activity = get_object_or_404(Activity, offering=course, slug=activity_slug)
-#    activity.deleted = True
-#    activity.save()
-#    #LOG EVENT#
-#    l = LogEntry(userid=request.user.username,
-#          description=("deleted %s") % (activity),
-#          related_object=activity)
-#    l.save()
-#    return HttpResponseRedirect(reverse('grades.views.course_info', kwargs={'course_slug': course_slug}))
 
 @requires_course_staff_by_slug
 def all_grades(request, course_slug):

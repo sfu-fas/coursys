@@ -126,7 +126,7 @@
 <h2 class="note{% if not note.hidden %} show{% endif %}" id="note-{{note.id}}">{{note.created_at}} by {{note.advisor.first_name}} {{note.advisor.last_name}}</h2>
 <div class="note-box" id="note-box-{{note.id}}">
 
-    <div class="note">
+    <div class="note-content">
         {{note.text|linebreaks}}
     </div>
     {% if note.file_attachment %}

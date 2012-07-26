@@ -22,13 +22,10 @@ class TeachingCreditField(forms.Field):
         except ZeroDivisionError:
             raise ValidationError('Denominator of fraction cannot be zero')
         
-        if value == 0:
-            raise ValidationError('Credits must be greater than zero')
-        
         return value
 
 class TeachingEquivForm(forms.ModelForm):
-    credits = TeachingCreditField(help_text='The amount of credits this equivalent is worth')
+    credits = TeachingCreditField(help_text='The number of credits this equivalent is worth')
     class Meta:
         model = TeachingEquivalent
         exclude = ('status', 'instructor', 'credits_numerator', 'credits_denominator')

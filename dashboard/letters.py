@@ -138,36 +138,18 @@ class LetterheadTemplate(LetterPageTemplate):
         lines.append(web)
         self._put_lines(doc, c, lines, 6.25*inch, self.pg_h - self.top_margin - 0.75*inch, 1.5*inch, addr_style, 8, 1.5)
         
-
-
-class OfficialLetter(BaseDocTemplate):
-    """
-    Template for a letter on letterhead.
-    
-    Implements "2009" version of letterhead in SFU graphic design specs: http://www.sfu.ca/clf/downloads.html
-    """
-    def __init__(self, filename, unit, pagesize=PAPER_SIZE, *args, **kwargs):
-        self._media_setup()
-        kwargs['pagesize'] = pagesize
-        kwargs['pageTemplates'] = [LetterheadTemplate(pagesize=pagesize, unit=unit), LetterPageTemplate(pagesize=pagesize)]
-        BaseDocTemplate.__init__(self, filename, *args, **kwargs)
-        self.contents = [] # to be a list of Flowables
-    
-    def add_letter(self, letter):
-        "Add the given LetterContents object to this document"
-        self.contents.extend(letter._contents(self))
-    
-    def write(self):
-        "Write the PDF contents out"
-        self.build(self.contents)
-
+class SFUMediaMixin():
     def _media_setup(self):
         "Get all of the media needed for the letterhead"
         # fonts and logo
         ttfFile = os.path.join(media_path, 'BemboMTPro-Regular.ttf')
         pdfmetrics.registerFont(TTFont("BemboMTPro", ttfFile))  
+        ttfFile = os.path.join(media_path, 'BemboMTPro-Bold.ttf')
+        pdfmetrics.registerFont(TTFont("BemboMTPro-Bold", ttfFile))  
         ttfFile = os.path.join(media_path, 'DINPro-Regular.ttf')
         pdfmetrics.registerFont(TTFont("DINPro", ttfFile))  
+        ttfFile = os.path.join(media_path, 'DINPro-Bold.ttf')
+        pdfmetrics.registerFont(TTFont("DINPro-Bold", ttfFile))  
         
         # graphic standards colours
         self.sfu_red = CMYKColor(0, 1, 0.79, 0.2)
@@ -192,6 +174,29 @@ class OfficialLetter(BaseDocTemplate):
                 offset = d+4
             self.sc_trans_bembo[65+d] = unichr(0xE004 + offset)
             self.sc_trans_bembo[97+d] = unichr(0xE004 + offset)
+
+
+class OfficialLetter(BaseDocTemplate, SFUMediaMixin):
+    """
+    Template for a letter on letterhead.
+    
+    Implements "2009" version of letterhead in SFU graphic design specs: http://www.sfu.ca/clf/downloads.html
+    """
+    def __init__(self, filename, unit, pagesize=PAPER_SIZE, *args, **kwargs):
+        self._media_setup()
+        kwargs['pagesize'] = pagesize
+        kwargs['pageTemplates'] = [LetterheadTemplate(pagesize=pagesize, unit=unit), LetterPageTemplate(pagesize=pagesize)]
+        BaseDocTemplate.__init__(self, filename, *args, **kwargs)
+        self.contents = [] # to be a list of Flowables
+    
+    def add_letter(self, letter):
+        "Add the given LetterContents object to this document"
+        self.contents.extend(letter._contents(self))
+    
+    def write(self):
+        "Write the PDF contents out"
+        self.build(self.contents)
+
 
 
 class LetterContents(object):
@@ -849,3 +854,175 @@ def ta_forms(contracts, outfile):
         doc.draw_form(c)
     doc.save()
 
+
+class GradeChangeForm(SFUMediaMixin):
+    def __init__(self, outfile):
+        self._media_setup()
+        self.c = canvas.Canvas(outfile, pagesize=letter)
+    
+    def title_font(self):
+        self.c.setFont("DINPro-Bold", 8.5)
+    def label_font(self):
+        self.c.setFont("BemboMTPro", 8.5)
+    def entry_font(self):
+        self.c.setFont("Helvetica-Bold", 15)
+    def entry_font_small(self):
+        self.c.setFont("Helvetica-Bold", 12)
+    
+    def check_label(self, x, y, label, fill=0):
+        self.label_font()
+        self.c.rect(x, y, 3*mm, 3*mm, fill=fill)
+        self.c.drawString(x+5*mm, y, label)
+
+    def draw_form(self, member, oldgrade, newgrade, user):
+        """
+        Generates form for this contract
+        """
+        self.c.setStrokeColor(black)
+        self.c.setLineWidth(0.6)
+        self.c.translate(16*mm, 25*mm) # origin = lower-left of content
+        main_width = 7.0*inch
+
+        # header
+        self.c.drawImage(logofile, x=0, y=224*mm, width=1*inch, height=0.5*inch)
+        self.c.setFont("BemboMTPro", 12)
+        self.c.drawString(43*mm, 228*mm, u"RECORDS AND REGISTRATION".translate(self.sc_trans_bembo))
+        self.c.drawString(43*mm, 223*mm, u"STUDENT SERVICES".translate(self.sc_trans_bembo))
+        self.title_font()
+        self.c.drawString(121*mm, 228*mm, u"CHANGE OF GRADE NOTIFICATION")
+        self.c.drawString(121*mm, 224*mm, u'AND/OR EXTENSION OF "DE" GRADE')
+        
+        # student info
+        self.title_font()
+        self.c.drawString(0, 210*mm, u"SFU STUDENT NUMBER")
+        self.c.rect(35*mm, 207*mm, 92*mm, 8*mm, fill=0)
+        self.entry_font()
+        self.c.drawString(40*mm, 209*mm, unicode(member.person.emplid))
+
+        self.title_font()
+        self.c.drawString(0, 203*mm, u"STUDENT NAME (PLEASE PRINT CLEARLY)")
+
+        self.label_font()
+        self.c.drawString(0, 195*mm, u"Surname")
+        self.c.line(12*mm, 195*mm, 91*mm, 195*mm)
+        self.c.drawString(93*mm, 195*mm, u"Given Names")
+        self.c.line(112*mm, 195*mm, main_width, 195*mm)
+        self.entry_font()
+        self.c.drawString(15*mm, 196*mm, member.person.last_name)
+        fname = member.person.first_name
+        if member.person.middle_name:
+            fname += ' ' + member.person.middle_name
+        if member.person.pref_first_name:
+            fname += ' (' + member.person.pref_first_name + ')'
+        self.c.drawString(115*mm, 196*mm, fname)
+        
+        # term info
+        name = str(member.offering.semester.name)
+        year = 1900 + int(name[0:3])
+        semester = name[3]
+        self.title_font()
+        self.c.drawString(0, 189*mm, u"TERM")
+        self.label_font()
+        self.c.drawString(0, 183*mm, u"Year")
+        self.c.line(6*mm, 183*mm, 30*mm, 183*mm)
+        self.check_label(36*mm, 183*mm, 'Fall', fill=semester=='7')
+        self.check_label(50*mm, 183*mm, 'Spring', fill=semester=='1')
+        self.check_label(67*mm, 183*mm, 'Summer', fill=semester=='4')
+        self.check_label(86*mm, 183*mm, 'Intersession', fill=0)
+        self.check_label(110*mm, 183*mm, 'Summer Session', fill=0)
+        self.c.rect(140*mm, 183*mm, 40*mm, 8*mm, fill=0)
+        self.c.drawString(148*mm, 178*mm, u"4-digit term number")
+        self.entry_font()
+        self.c.drawString(10*mm, 184*mm, unicode(year))
+        self.c.drawString(148*mm, 185*mm, unicode(name))
+        
+        # course info
+        self.title_font()
+        self.c.drawString(0, 175*mm, u"COURSE")
+        self.label_font()
+        self.c.drawString(0, 169*mm, u"Course subject (e.g. CHEM)")
+        self.c.rect(36*mm, 168*mm, 41*mm, 8*mm, fill=0)
+        self.c.drawString(81*mm, 169*mm, u"Course number")
+        self.c.rect(102*mm, 168*mm, 41*mm, 8*mm, fill=0)
+        self.entry_font()
+        self.c.drawString(40*mm, 170*mm, member.offering.subject)
+        self.c.drawString(110*mm, 170*mm, member.offering.number)
+        self.label_font()
+        self.c.drawString(0, 159*mm, u"Class number/section")
+        self.c.rect(28*mm, 157*mm, 51*mm, 8*mm, fill=0)
+        self.c.drawString(82*mm, 159*mm, u"Course title")
+        self.c.line(97*mm, 159*mm, main_width, 159*mm)
+        self.entry_font()
+        self.c.drawString(35*mm, 159*mm, member.offering.section)
+        self.entry_font_small()
+        self.c.drawString(98*mm, 160*mm, member.offering.title)
+        
+        # grade change
+        self.title_font()
+        self.c.drawString(0, 149*mm, u"IF CHANGE OF GRADE:")
+        self.label_font()
+        self.c.drawString(0, 141*mm, u"Original grade")
+        self.c.rect(20*mm, 139*mm, 21*mm, 8*mm, fill=0)
+        self.c.drawString(45*mm, 141*mm, u"Revised grade")
+        self.c.rect(64*mm, 139*mm, 21*mm, 8*mm, fill=0)
+        self.entry_font()
+        if oldgrade:
+            old = oldgrade
+        else:
+            old = u'' 
+        self.c.drawString(25*mm, 141*mm, old)
+        self.c.drawString(69*mm, 141*mm, newgrade)
+
+        # DE extension
+        self.title_font()
+        self.c.drawString(0, 132*mm, u"IF EXTENSION OF \u201CDE\u201D GRADE:")
+        self.label_font()
+        self.c.drawString(0, 127*mm, u"Extension due date:")
+        self.c.drawString(30*mm, 127*mm, u"Year (YYYY)")
+        self.c.line(47*mm, 127*mm, 67*mm, 127*mm)
+        self.c.drawString(69*mm, 127*mm, u"Month (MM)")
+        self.c.line(86*mm, 127*mm, 103*mm, 127*mm)
+        self.c.drawString(105*mm, 127*mm, u"Day (DD)")
+        self.c.line(118*mm, 127*mm, 136*mm, 127*mm)
+        
+        # reasons
+        self.title_font()
+        self.c.drawString(0, 120*mm, u"REASON FOR CHANGE OF GRADE/EXTENION OF \u201CDE\u201D GRADE")
+        self.c.drawString(0, 116*mm, u"(NOTE: WHEN ASSIGNING A GRADE OF \u201CFD\u201D AN ACADEMIC DISHONESTY REPORT NEEDS TO BE FILED.)")
+        self.c.line(0*mm, 109*mm, main_width, 109*mm)
+        self.c.line(0*mm, 101*mm, main_width, 101*mm)
+        self.c.line(0*mm, 93*mm, main_width, 93*mm)
+
+        self.label_font()
+        self.c.drawString(0, 86*mm, u"Has the student applied to graduate this term?")
+        self.c.drawString(0, 80*mm, u"Is this student's academic standing currently RTW or PW?")
+        self.check_label(76*mm, 86*mm, 'Yes', fill=0)
+        self.check_label(95*mm, 86*mm, 'No', fill=0)
+        self.check_label(76*mm, 80*mm, 'Yes', fill=0)
+        self.check_label(95*mm, 80*mm, 'No', fill=0)
+        
+        # approvals
+        self.title_font()
+        self.c.drawString(0, 72*mm, u"APPROVALS")
+        self.label_font()
+        self.c.drawString(0, 67*mm, u"Instructor signature")
+        self.c.line(25*mm, 67*mm, 108*mm, 67*mm)
+        self.c.drawString(110*mm, 67*mm, u"Date")
+        self.c.line(117*mm, 67*mm, main_width, 67*mm)
+        self.c.drawString(0, 59*mm, u"Instructor name (PLEASE PRINT)")
+        self.c.line(44*mm, 59*mm, main_width, 59*mm)
+        self.entry_font()
+        self.c.drawString(46*mm, 60*mm, user.name())
+        self.c.drawString(120*mm, 68*mm, unicode(datetime.date.today().strftime('%B %d, %Y')))
+
+
+
+
+
+    def save(self):
+        self.c.save()
+
+def grade_change_form(member, oldgrade, newgrade, user, outfile):
+    doc = GradeChangeForm(outfile)
+    doc.draw_form(member, oldgrade, newgrade, user)
+    doc.save()

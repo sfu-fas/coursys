@@ -45,7 +45,9 @@
             <td scope="row"><a href="{% url grades.views.student_info course_slug=course.slug userid=m.person.userid %}">{{m.person.sortname}}</a></td>
             <td>{{g|default_if_none:""}}</td>
             <td>{{m.official_grade|default_if_none:""}}</td>
-            <td>{{d|yesno:"yes,"}}</td>
+            <td>{{d|yesno:"yes,"}}
+              {% if d %}[<a href="{% url grades.views.grade_change course_slug=course.slug activity_slug=activity.slug userid=m.person.userid %}">grade change</a>]{% endif %}	
+            </td>
         </tr>
         {% endfor %}
         </tbody>

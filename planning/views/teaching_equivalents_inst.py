@@ -1,4 +1,4 @@
-from coredata.models import Person, Member
+from coredata.models import Person, Member, Semester
 from courselib.auth import requires_instructor
 from django.shortcuts import get_object_or_404, render
 from fractions import Fraction
@@ -100,7 +100,7 @@ def new_teaching_equivalent_inst(request):
             messages.add_message(request, messages.SUCCESS, "Teaching Equivalent successfully created")
             return HttpResponseRedirect(reverse('planning.views.view_teaching_credits_inst'))
     else:
-        form = TeachingEquivForm()
+        form = TeachingEquivForm(initial={'semester': Semester.current().next_semester()})
     return render(request, 'planning/new_teaching_equiv_inst.html', {'form': form})
 
 @requires_instructor
