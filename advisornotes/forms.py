@@ -1,4 +1,5 @@
-from advisornotes.models import AdvisorNote, NonStudent, ArtifactNote, Artifact
+from advisornotes.models import AdvisorNote, NonStudent, ArtifactNote, Artifact,\
+    Problem
 from coredata.models import Person
 from django import forms
 from django.core import validators
@@ -129,3 +130,8 @@ class MergeStudentField(forms.Field):
 class MergeStudentForm(forms.Form):
 
     student = MergeStudentField(label="Student #")
+    
+class ProblemStatusForm(forms.ModelForm):
+    class Meta:
+        model = Problem
+        fields = ('status', 'resolved_until')

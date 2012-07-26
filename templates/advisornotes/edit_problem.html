@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}Edit Reported Problem{% endblock %}
+{% block h1 %}Edit Reported Problem{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(function() {
+	$(document).ready(function() {
+        $("#id_resolved_until").datepicker({'dateFormat': 'yy-mm-dd'});
+    });
+});
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>
+    &gt; <a href="{% url advisornotes.views.advising %}">Advising</a>
+</li>
+<li>
+    &gt; <a href="{% url advisornotes.views.view_problems %}">Reported Problems</a>
+</li>
+{% if from_resolved %}
+<li>
+    &gt; <a href="{% url advisornotes.views.view_resolved_problems %}">Resolved Problems</a>
+</li>
+{% endif %}
+<li>
+    &gt; Edit Problem
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="table_container">
+    <table class="inst_table">
+        <tbody>
+            <tr>
+                <th>Code:</th>
+                <td>{{ problem.code }}</td>
+            </tr>
+            <tr>
+                <th>Student:</th>
+                <td>{{ problem.person }}</td>
+            </tr>
+            <tr>
+                <th>Status:</th>
+                <td> {% if problem.is_closed %}<span style="color: green;">{% else %}<span style="color: #B5111B;">{% endif %}{{ problem.get_status_display }}</span> </td>
+            </tr>
+            {% if problem.is_closed %}
+            <tr>
+                <th>Resolved Until:</th>
+                <td>{% if problem.has_resolution_expired %}<span style="color: #B5111B;">{% else %}<span style="color: green;">{% endif %}{{ problem.resolved_until }}</span></td>
+            </tr>
+            {% endif %}
+            <tr>
+                <th>Since:</th>
+                <td>{{ problem.created_at }}</td>
+            </tr>
+            <tr>
+                <th>Description:</th>
+                <td>{{ problem.description }}</td>
+            </tr>
+            <tr>
+                <th>Unit:</th>
+                <td>{{ problem.unit }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<h2>Comments:</h2>
+{% if problem.comments %}
+{{ problem.comments|linebreaks }}
+{% else %}
+<i>There are no comments</i>
+{% endif %}
+
+<div id="form_container">
+    <form action="{% url advisornotes.views.edit_problem prob_id=problem.pk %}" method="post">
+        {% csrf_token %}
+        <fieldset>
+            <legend>
+                Edit Problem
+            </legend>
+            {{ form|as_dl }}
+            <p>
+                <input type="submit" class="submit" value="Submit" />
+            </p>
+        </fieldset>
+    </form>
+</div>
+{% endblock %}

@@ -224,16 +224,24 @@ class Problem(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     resolved_at = models.DateTimeField(null=True)
     resolution_lasts = models.IntegerField(help_text="Default number of days resolution should last, sent by API", null=False)
-    resolved_until = models.DateField(null=True, blank=True, help_text="When resolved/ignored, how long should this apply for?")
+    resolved_until = models.DateField(null=True, blank=True, help_text="If resolved, til when should this resolution last?")
     unit = models.ForeignKey(Unit, null=False)
     
     def is_closed(self):
         return self.status in CLOSED_STATUSES
     
+    def has_resolution_expired(self):
+        return datetime.date.today() > self.resolved_until
+    
+    def default_resolved_until(self):
+        period = datetime.timedelta(days=self.resolution_lasts)
+        return datetime.datetime.now() + period
+    
     def save(self, *args, **kwargs):
         if self.is_closed() and not self.resolved_until:
-            period = datetime.timedelta(days=self.resolution_lasts)
-            self.resolved_until = datetime.date.now() + period
+            self.resolved_until = self.default_resolved_until()
+        if self.is_closed() and not self.resolved_at:
+            self.resolved_at = datetime.datetime.now()
         super(Problem, self).save(*args, **kwargs)
 
 # Incoming Problem logic:

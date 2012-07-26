@@ -10,7 +10,8 @@ $(function() {
     'bPaginate': false,
     'bInfo': false,
     'bLengthChange': true,
-    "bJQueryUI": true
+    "bJQueryUI": true,
+    "aaSorting": [[ 3, "desc" ]]
   } );
 } );
 </script>
@@ -48,7 +49,7 @@ $(function() {
     <tbody>
         {% for problem in problems %}
         <tr>
-            <td><a href="#">{{ problem.code }}</a></td>
+            <td><a href="{% url advisornotes.views.edit_problem prob_id=problem.pk %}">{{ problem.code }}</a></td>
             <td>{{ problem.person.sortname }}</td>
             <td><span style="color: #B5111B;">{{ problem.get_status_display }}</span></td>
             <td><abbr title="{{ problem.created_at.date }}">{{ problem.created_at|date:"Y/m/d" }}</abbr></td>

@@ -1,5 +1,6 @@
 from advisornotes.forms import StudentSearchForm, NoteSearchForm, NonStudentForm, \
-    MergeStudentForm, ArtifactNoteForm, ArtifactForm, advisor_note_factory
+    MergeStudentForm, ArtifactNoteForm, ArtifactForm, advisor_note_factory,\
+    ProblemStatusForm
 from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote,\
     Problem, OPEN_STATUSES, CLOSED_STATUSES
 from coredata.models import Person, Course, CourseOffering, Semester
@@ -532,3 +533,28 @@ def view_resolved_problems(request):
     """
     problems = Problem.objects.filter(unit__in=request.units, status__in=CLOSED_STATUSES)
     return render(request, 'advisornotes/view_resolved_problems.html', {'problems': problems})
+
+@requires_role('ADVS')
+def edit_problem(request, prob_id):
+    """
+    View to view and edit a problem's status
+    """
+    problem = get_object_or_404(Problem, pk=prob_id, unit__in=request.units)
+    from_resolved = request.GET.get('from', '') == 'resolved'
+    if request.method == 'POST':
+        form = ProblemStatusForm(request.POST, instance=problem)
+        if form.is_valid():
+            problem = form.save(commit=False)
+            if problem.is_closed():
+                problem.resolved_at = datetime.datetime.now()
+            else:
+                problem.resolved_at = None
+            problem.save()
+            messages.add_message(request, messages.SUCCESS, "Problem status successfully changed.")
+            return HttpResponseRedirect(reverse('advisornotes.views.view_problems'))
+    else:
+        if problem.is_closed():
+            form = ProblemStatusForm(instance=problem)
+        else:
+            form = ProblemStatusForm(instance=problem, initial={'resolved_until': problem.default_resolved_until()})
+    return render(request, 'advisornotes/edit_problem.html', {'problem': problem, 'from_resolved': from_resolved, 'form': form})
