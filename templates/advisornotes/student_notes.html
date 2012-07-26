@@ -150,7 +150,7 @@
 {% with item.item as problem %}
 <h2 style="padding-left: 15px; line-height: 1.6; color: gray;">
 	{{ problem.created_at }} -
-	{% if problem.is_closed %}<span style="color: green;">{% else %}<span style="color: #B5111B;">{% endif %}Problem: "{{ problem.code }}" ({{problem.get_status_display}})</span>
+	<a href="{% url advisornotes.views.edit_problem prob_id=problem.pk %}?from={{ student.userid }}" {% if problem.is_closed %}style="color: green;">{% else %}style="color: #B5111B;">{% endif %}Problem: "{{ problem.code }}" ({{problem.get_status_display}})</a>
 </h2>
 <div class="note-box">
 <p>

@@ -39,7 +39,7 @@ $(function() {
 <table class="display">
     <thead>
         <tr>
-            <th>Code</th>
+            <th>Problem</th>
             <th>Student</th>
             <th>Status</th>
             <th>Since</th>
@@ -50,7 +50,7 @@ $(function() {
         {% for problem in problems %}
         <tr>
             <td><a href="{% url advisornotes.views.edit_problem prob_id=problem.pk %}">{{ problem.code }}</a></td>
-            <td>{{ problem.person.sortname }}</td>
+            <td>{{ problem.person }}</td>
             <td><span style="color: #B5111B;">{{ problem.get_status_display }}</span></td>
             <td><abbr title="{{ problem.created_at.date }}">{{ problem.created_at|date:"Y/m/d" }}</abbr></td>
             <td>{{ problem.description }}</td>

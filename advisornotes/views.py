@@ -540,7 +540,13 @@ def edit_problem(request, prob_id):
     View to view and edit a problem's status
     """
     problem = get_object_or_404(Problem, pk=prob_id, unit__in=request.units)
-    from_resolved = request.GET.get('from', '') == 'resolved'
+    from_page = request.GET.get('from', '')
+    if not from_page in ('resolved', ''):
+        userid = from_page
+        try:
+            from_page = Person.objects.get(userid=userid)
+        except Person.DoesNotExist:
+            from_page = ''
     if request.method == 'POST':
         form = ProblemStatusForm(request.POST, instance=problem)
         if form.is_valid():
@@ -557,4 +563,4 @@ def edit_problem(request, prob_id):
             form = ProblemStatusForm(instance=problem)
         else:
             form = ProblemStatusForm(instance=problem, initial={'resolved_until': problem.default_resolved_until()})
-    return render(request, 'advisornotes/edit_problem.html', {'problem': problem, 'from_resolved': from_resolved, 'form': form})
+    return render(request, 'advisornotes/edit_problem.html', {'problem': problem, 'from_page': from_page, 'form': form})
