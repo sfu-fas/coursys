@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.test.client import Client
 from django.core.urlresolvers import reverse
 from settings import CAS_SERVER_URL
+from coredata.models import Person, Unit
 from advisornotes.models import NonStudent, AdvisorNote
 from courselib.testing import basic_page_tests
 from dashboard.models import UserConfig
@@ -9,6 +10,85 @@ from dashboard.models import UserConfig
 
 class AdvistorNotestest(TestCase):
     fixtures = ['test_data']
+    
+    def test_pages(self):
+        client = Client()
+        client.login(ticket="dzhao", service=CAS_SERVER_URL)
+        adv = Person.objects.get(userid='dzhao')
+        
+        # create some notes to work with
+        unit = Unit.objects.get(slug='comp')
+        ns = NonStudent(first_name="Non", last_name="Student", high_school="North South Burnaby-Surrey",
+                        start_year=2000)
+        ns.save()
+        p1 = Person.objects.get(userid='0aaa6')
+        n1 = AdvisorNote(student=p1, text="He seems like a nice student.", unit=unit, advisor=adv)
+        n1.save()
+        p2 = Person.objects.get(userid='0aaa8')
+        p2.userid = None
+        p2.save()
+        n2 = AdvisorNote(student=p2, text="This guy doesn't have an active computing account.", unit=unit, advisor=adv)
+        n2.save()
+        n3 = AdvisorNote(nonstudent=ns, text="What a horrible person.", unit=unit, advisor=adv)
+        n3.save()
+        
+        # index page
+        url = reverse('advisornotes.views.advising', kwargs={})
+        response = basic_page_tests(self, client, url)
+        self.assertEqual(response.status_code, 200)
+
+        # new nonstudent form
+        url = reverse('advisornotes.views.new_nonstudent', kwargs={})
+        response = basic_page_tests(self, client, url)
+        self.assertEqual(response.status_code, 200)
+        
+        # student with userid
+        url = reverse('advisornotes.views.advising', kwargs={})
+        response = client.post(url, {'search': p1.emplid})
+        self.assertEqual(response.status_code, 302)
+        redir_url = response['location']
+        student_url = reverse('advisornotes.views.student_notes', kwargs={'userid': p1.userid})
+        self.assertIn(student_url, redir_url)
+        response = basic_page_tests(self, client, student_url)
+        self.assertEqual(response.status_code, 200)
+        new_url = reverse('advisornotes.views.new_note', kwargs={'userid': p1.userid})
+        response = basic_page_tests(self, client, new_url)
+        self.assertEqual(response.status_code, 200)
+        
+        # student with no userid
+        response = client.post(url, {'search': p2.emplid})
+        self.assertEqual(response.status_code, 302)
+        redir_url = response['location']
+        student_url = reverse('advisornotes.views.student_notes', kwargs={'userid': p2.emplid})
+        self.assertIn(student_url, redir_url)
+        response = basic_page_tests(self, client, student_url)
+        self.assertEqual(response.status_code, 200)
+        new_url = reverse('advisornotes.views.new_note', kwargs={'userid': p2.emplid})
+        response = basic_page_tests(self, client, new_url)
+        self.assertEqual(response.status_code, 200)
+
+        # non student
+        response = client.post(url, {'search': ns.slug})
+        self.assertEqual(response.status_code, 302)
+        redir_url = response['location']
+        student_url = reverse('advisornotes.views.student_notes', kwargs={'userid': ns.slug})
+        self.assertIn(student_url, redir_url)
+        response = basic_page_tests(self, client, student_url)
+        self.assertEqual(response.status_code, 200)
+        new_url = reverse('advisornotes.views.new_note', kwargs={'userid': ns.slug})
+        response = basic_page_tests(self, client, new_url)
+        self.assertEqual(response.status_code, 200)
+        
+        # note content search
+        url = reverse('advisornotes.views.note_search', kwargs={}) + "?text-search=nice"
+        response = basic_page_tests(self, client, url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['notes']), 1)
+        url = reverse('advisornotes.views.note_search', kwargs={}) + "?text-search="
+        response = basic_page_tests(self, client, url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context['notes']), 3)
+
 
     def test_new_nonstudent_not_advisor(self):
         client = Client()

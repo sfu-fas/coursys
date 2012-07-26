@@ -49,16 +49,16 @@ def advising(request):
         search = form.cleaned_data['search']
         return _redirect_to_notes(search)
     form = StudentSearchForm()
-    note_form = NoteSearchForm()
+    note_form = NoteSearchForm(prefix="text")
     context = {'form': form, 'note_form': note_form}
     return render(request, 'advisornotes/student_search.html', context)
 
 
 @requires_role('ADVS')
 def note_search(request):
-    if 'search' not in request.GET:
+    if 'text-search' not in request.GET:
         return ForbiddenResponse, "must send search query"
-    search = request.GET['search']
+    search = request.GET['text-search']
     query = get_query(search, ('text',))
     notes = AdvisorNote.objects.filter(query, unit__in=request.units) \
             .select_related('student', 'advisor').order_by("-created_at")[:100]
