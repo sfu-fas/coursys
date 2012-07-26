@@ -32,7 +32,13 @@
 <tbody>
 {% for note in notes %}
   <tr>
-  <td><a href="{% url advisornotes.views.student_notes userid=note.student.userid_or_emplid %}">{{note.student.sortname}}</a></td>
+  <td>
+  {% if note.student %}
+    <a href="{% url advisornotes.views.student_notes userid=note.student.userid_or_emplid %}">{{note.student.sortname}}</a>
+  {% else %}
+    <a href="{% url advisornotes.views.student_notes userid=note.nonstudent.slug %}">{{note.nonstudent.sortname}}</a> (prospective)
+  {% endif %}
+  </td>
   <td>{{note.advisor.sortname}}</td>
   <td><span class="sort">{{note.created_at.isoformat}}</span>{{note.created_at}}</td>
   <td>{% if note.file_attachment %}Y{% endif %}</td>
