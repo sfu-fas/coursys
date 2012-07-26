@@ -6,6 +6,7 @@ from coredata.models import Person, Unit, Role
 import coredata.queries
 import coredata.importer
 from advisornotes.models import NonStudent, AdvisorNote
+from django.db import transaction
 
 import MySQLdb
 import datetime
@@ -29,8 +30,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         
-        print "Loading AMAINT user-ID mappings." 
-        coredata.importer.update_amaint_userids()
+        #print "Loading AMAINT user-ID mappings." 
+        #coredata.importer.update_amaint_userids()
         
         unit = Unit.objects.get(label=options['unit'])
         cursor = connect_and_cursor( options )
@@ -200,6 +201,7 @@ def find_or_generate_student( emplid, non_students_by_imaginary_emplid ):
                 print "Fetching " + str(emplid) + " from SIMS" 
                 p = coredata.queries.add_person( emplid )
                 print str(p) + " fetched from SIMS"  
+		return p
             except IntegrityError:
                 print " Integrity error! " + str(emplid) + " 's userid already exists in the system." 
                 return None
@@ -217,14 +219,13 @@ def advisors( unit, cursor ):
 
     for row in data:
         advisor_userid = row[0]
+	print "Importing advisor " + advisor_userid
         if advisor_userid == 'margo':
             p = coredata.queries.add_person(833060718)
         else:
             p = coredata.queries.get_person_by_userid( advisor_userid ) 
         if p:
-            try:
+	    r = Role.objects.filter(person=p,role="ADVS",unit=unit)
+	    if len(r) == 0:
                 r = Role(person=p, role="ADVS", unit=unit)
                 r.save()
-            except IntegrityError:
-                pass
-
