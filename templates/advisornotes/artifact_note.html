@@ -22,6 +22,16 @@
                 {% endif %}
                 <span>Hide this note?</span>
             </label>
+
+            {% if course %}
+            <a href="{% url advisornotes.views.edit_artifact_note note_id=note.id unit_course_slug=course.slug %}">Edit</a>
+            {% endif %}
+            {% if offering %}
+            <a href="{% url advisornotes.views.edit_artifact_note note_id=note.id course_slug=offering.slug %}">Edit</a>
+            {% endif %}
+            {% if artifact %}
+            <a href="{% url advisornotes.views.edit_artifact_note note_id=note.id artifact_slug=artifact.slug %}">Edit</a>
+            {% endif %}
         </div>
     </div>
 

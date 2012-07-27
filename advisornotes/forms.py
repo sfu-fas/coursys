@@ -44,6 +44,14 @@ class ArtifactNoteForm(forms.ModelForm):
                 }
 
 
+class EditArtifactNoteForm(forms.ModelForm):
+    class Meta:
+        model = ArtifactNote
+        exclude = ('hidden', 'course', 'course_offering', 'artifact', 'category', 'text', 'file_attachment', 'unit',)
+        widgets = {
+                'text': forms.Textarea(attrs={'cols': 80, 'rows': 25})
+                }
+
 class StudentSelect(forms.Select):
     input_type = 'text'
 

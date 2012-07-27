@@ -1932,3 +1932,7 @@ div#main .artifact-note p {
 div.semesters-container {
   width: 30%;
 }
+
+div.text.field {
+  line-height: 1.5em;
+}

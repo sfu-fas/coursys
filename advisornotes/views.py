@@ -1,6 +1,6 @@
 from advisornotes.forms import StudentSearchForm, NoteSearchForm, NonStudentForm, \
     MergeStudentForm, ArtifactNoteForm, ArtifactForm, advisor_note_factory,\
-    ProblemStatusForm
+    ProblemStatusForm, EditArtifactNoteForm
 from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote,\
     Problem, OPEN_STATUSES, CLOSED_STATUSES
 from coredata.models import Person, Course, CourseOffering, Semester
@@ -219,6 +219,45 @@ def new_artifact_note(request, unit_course_slug=None, course_slug=None, artifact
 
 
 @requires_role('ADVS')
+def edit_artifact_note(request, note_id, unit_course_slug=None, course_slug=None, artifact_slug=None):
+    note = get_object_or_404(ArtifactNote, id=note_id)
+    related = course = offering = artifact = None
+    
+    form = EditArtifactNoteForm(instance=note)
+    
+    if unit_course_slug != None:
+        related = course = Course.objects.get(slug=unit_course_slug)
+    elif course_slug != None:
+        related = offering = CourseOffering.objects.get(slug=course_slug)
+    else:
+        related = artifact = Artifact.objects.get(slug=artifact_slug)
+    
+    if request.method == 'POST':
+        form = EditArtifactNoteForm(request.POST, request.FILES, instance=note)
+        
+        if form.is_valid():
+            note = form.save(commit=False)
+            note.save()
+
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("edit note for %s by %s") % (related, request.user.username),
+                  related_object=form.instance)
+            l.save()
+            messages.add_message(request, messages.SUCCESS, 'Note for %s edited.' % related)
+
+            if course:
+                return HttpResponseRedirect(reverse('advisornotes.views.view_course_notes', kwargs={'unit_course_slug': course.slug}))
+            elif offering:
+                return HttpResponseRedirect(reverse('advisornotes.views.view_offering_notes', kwargs={'course_slug': offering.slug}))
+            else:
+                return HttpResponseRedirect(reverse('advisornotes.views.view_artifact_notes', kwargs={'artifact_slug': artifact.slug}))
+    
+    return render(request, 'advisornotes/edit_artifact_note.html',
+        {'form': form, 'note': note, 'related': related, 'artifact': artifact, 'course': course, 'offering': offering})
+
+
+@requires_role('ADVS')
 def student_notes(request, userid):
 
     try:
@@ -421,7 +460,7 @@ def view_course_offerings(request, semester=None):
         semesters = None
     else:
         semester = Semester.get_semester(date=datetime.date.today() + datetime.timedelta(days=60))
-        semesters = Semester.objects.exclude(name=semester.name).order_by('-end')
+        semesters = Semester.objects.order_by('-end')
 
     offerings = CourseOffering.objects.filter(owner__in=request.units, semester=semester)
     return render(request,
