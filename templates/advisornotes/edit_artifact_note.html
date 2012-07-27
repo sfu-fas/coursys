@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}Edit Artifact Note for {{ related }}{% endblock %}
+{% block h1 %}Edit Artifact Note for {{ related }}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li>
+<li>&gt; <a href="
+{% if course %}
+{% url advisornotes.views.view_course_notes unit_course_slug=related.slug %}">Courses
+{% endif %}
+{% if offering %}
+{% url advisornotes.views.view_offering_notes course_slug=related.slug %}">Course Offerings
+{% endif %}
+{% if artifact %}
+{% url advisornotes.views.view_artifact_notes artifact_slug=related.slug %}">Artifacts
+{% endif %}
+</a>
+</li>
+<li>&gt; 
+{{ spaceless }}
+<a href="
+{% if course %}
+{% url advisornotes.views.view_course_notes unit_course_slug=related.slug %}
+{% endif %}
+{% if offering %}
+{% url advisornotes.views.view_offering_notes course_slug=related.slug %}
+{% endif %}
+{% if artifact %}
+{% url advisornotes.views.view_artifact_notes artifact_slug=related.slug %}
+{% endif %}
+">{{ related }}
+{{ endspaceless }}
+</a></li>
+<li>&gt; Edit Artifact Note</li>
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(function() {
+    $("#id_best_before").datepicker({'dateFormat': 'yy-mm-dd'});
+});
+</script>
+{% endblock %}
+
+{% block content %}
+
+<div id="form_container">
+{% spaceless %}
+<form action="
+{% if course %}
+{% url advisornotes.views.edit_artifact_note note_id=note.id unit_course_slug=related.slug %}
+{% endif %}
+{% if offering %}
+{% url advisornotes.views.edit_artifact_note note_id=note.id course_slug=related.slug %}
+{% endif %}
+{% if artifact %}
+{% url advisornotes.views.edit_artifact_note note_id=note.id artifact_slug=related.slug %}
+{% endif %}
+" enctype="multipart/form-data" method="post">
+{% endspaceless %}
+{% csrf_token %}
+<fieldset>
+<legend>Note</legend>
+{{ form.id }}
+<dl class="dlform">
+    <dt class="{{ form.important.html_name }}">
+        <label for="{{ form.important.auto_id }}">
+            {{ form.important.label }}:
+            {% if field.field.required %}
+                <span class="required">*</span>
+            {% endif %}
+        </label>
+    </dt>
+    <dd>
+        <div class="field">
+            {{ form.important }}
+            {{ form.important.errors }}
+        </div>
+    </dd>
+    <dt>
+        <label>
+            Category
+        </label>
+    </dt>
+    <dd>
+        <div class="field text">
+            {{ note.get_category_display }}
+        </div>
+    </dd>
+    <dt>
+        <label>
+            Contents
+        </label>
+    </dt>
+    <dd>
+        <div class="field text">
+            {{ note.text }}
+        </div>
+    </dd>
+    <dt class="{{ form.best_before.html_name }}">
+        <label for="{{ form.best_before.auto_id }}">
+            {{ form.best_before.label }}:
+            {% if form.best_before.field.required %}
+                <span class="required">*</span>
+            {% endif %}
+        </label>
+    </dt>
+    <dd>
+        <div class="field">
+            {{ form.best_before }}
+            {{ form.best_before.errors }}
+        </div>
+    </dd>
+    {% if note.file_attachment %}
+    <dt>
+        <label>
+            File Attachment
+        </label>
+    </dt>
+    <dd>
+        <div class="field">
+            <p><img class="attachment-icon" src="{{MEDIA_URL}}icons/attach.png" alt="download" />
+                <a href="{% url advisornotes.views.download_artifact_file note_id=note.id%}">{{ note.attachment_filename }}</a>
+                ({{ note.file_attachment.size|filesizeformat }})
+            </p> 
+        </div>
+    </dd>
+    {% endif %}
+    <dt>
+        <label>
+            Unit
+        </label>
+    </dt>
+    <dd>
+        <div class="field text">
+            {{ note.unit }}
+        </div>
+    </dd>
+</dl>
+
+<p><input type="submit" class="submit" value="Submit" /></p>
+</fieldset>
+</form>
+</div>
+
+{% endblock %}
