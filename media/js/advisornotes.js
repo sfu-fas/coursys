@@ -87,3 +87,34 @@ function get_more_info(url) {
         }
     });
 }
+
+function more_course_info(url) {
+	// fetch more info on this course from SIMS
+	$('#fetchwait').show();
+	$.ajax({
+		url: url,
+		success: function(data){
+			$('table.info').remove();
+			$('div.table_container').html('<table class="info"><tbody></tbody></table>');
+			if (data['error']) {
+				add_to_info('Error', data['error']);
+				$('#fetchwait').hide();
+				return;
+			}
+
+			if (data['longtitle']) {
+				add_to_info('Long Title', data['longtitle']);
+			}
+			if (data['shorttitle']) {
+				add_to_info('Short Title', data['shorttitle']);
+			}
+			if (data['descrlong']) {
+				add_to_info('Calendar Description', data['descrlong']);
+			}
+
+            $('#fetchwait').hide();
+            $('#moreinfo').remove();
+		},
+	});
+}
+        			

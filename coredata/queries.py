@@ -1,4 +1,4 @@
-from coredata.models import Person, Semester, SemesterWeek, ComputingAccount
+from coredata.models import Person, Semester, SemesterWeek, ComputingAccount, CourseOffering
 from django.conf import settings
 from django.db import transaction
 from django.core.cache import cache
@@ -394,12 +394,42 @@ def more_personal_info(emplid, needed=ALLFIELDS, exclude=[]):
     # GPA and credit count
     if (needed == ALLFIELDS or 'gpa' in needed or 'ccredits' in needed) and 'ccredits' not in exclude:
         db.execute('SELECT cum_gpa, tot_cumulative FROM ps_stdnt_car_term WHERE emplid=%s ORDER BY strm DESC FETCH FIRST 1 ROWS ONLY', (str(emplid),))
+        data['gpa'] = 0.0
+        data['ccredits'] = 0
         for gpa, cred in db:
             data['gpa'] = gpa
             data['ccredits'] = cred
     
     return data
 
+
+@cache_by_args
+@SIMS_problem_handler
+def more_course_info(course):
+    """
+    More info about a course (for the advisor portal) 
+    """
+    db = SIMSConn()
+    offerings = CourseOffering.objects.filter(course=course).exclude(crse_id__isnull=True).order_by('-semester__name')
+    if offerings:
+        offering = offerings[0]
+    else:
+        return None
+    
+    data = {}
+    crse_id = "%06i" % (offering.crse_id)
+    db.execute("SELECT descr, ssr_component, course_title_long, descrlong FROM ps_crse_catalog WHERE eff_status='A' AND crse_id=%s ORDER BY effdt DESC FETCH FIRST 1 ROWS ONLY", (crse_id,))
+    for shorttitle, component, longtitle, descrlong in db:
+        data['shorttitle'] = shorttitle
+        data['component'] = component
+        data['longtitle'] = longtitle
+        data['descrlong'] = descrlong
+    
+    if not data:
+        return None
+    
+    return data
+    
 
 @cache_by_args
 @SIMS_problem_handler

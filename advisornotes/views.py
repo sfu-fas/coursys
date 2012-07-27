@@ -4,7 +4,7 @@ from advisornotes.forms import StudentSearchForm, NoteSearchForm, NonStudentForm
 from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote,\
     Problem, OPEN_STATUSES, CLOSED_STATUSES
 from coredata.models import Person, Course, CourseOffering, Semester
-from coredata.queries import find_person, add_person, more_personal_info, \
+from coredata.queries import find_person, add_person, more_personal_info, more_course_info, \
     SIMSProblem
 from courselib.auth import requires_role, HttpResponseRedirect, \
     ForbiddenResponse
@@ -448,6 +448,25 @@ def view_course_notes(request, unit_course_slug):
         'advisornotes/view_course_notes.html',
         {'course': course, 'offerings': offerings, 'notes': notes, 'important_notes': important_notes}
     )
+
+
+@requires_role('ADVS')
+def course_more_info(request, unit_course_slug):
+    """
+    AJAX request for calendar description, etc. (queries SIMS directly)
+    """
+    course = get_object_or_404(Course, slug=unit_course_slug)
+    
+    try:
+        data = more_course_info(course)
+        if not data:
+            data = {'error': 'Could not find course to fetch more info.'}
+    except SIMSProblem as e:
+        data = {'error': e.message}
+    
+    response = HttpResponse(mimetype='application/json')
+    json.dump(data, response)
+    return response
 
 
 @requires_role('ADVS')

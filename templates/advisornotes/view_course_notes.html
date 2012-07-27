@@ -9,6 +9,7 @@
 {% endblock %}
 
 {% block headextra %}
+<script type="text/javascript" src="{{MEDIA_URL}}js/advisornotes.js"></script>
 <script type="text/javascript">
 $(function() {
     $('.artifact-notes').delegate('.artifact-note-header', 'click', function() {
@@ -32,6 +33,9 @@ $(function() {
             'hide': ch
         });
     });
+
+	$('div.table_container').html('<img src="{{MEDIA_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" />');
+    more_course_info('{% url advisornotes.views.course_more_info unit_course_slug=course.slug %}');
 } );
 
 $(function() {
@@ -56,6 +60,9 @@ $(function() {
 {% endblock %}
 
 {%block content%}
+
+<div class="table_container">
+</div>
 
 <div class="artifact-notes">
 {% if important_notes %}
