@@ -871,7 +871,10 @@ class GradeChangeForm(SFUMediaMixin):
     
     def check_label(self, x, y, label, fill=0):
         self.label_font()
-        self.c.rect(x, y, 3*mm, 3*mm, fill=fill)
+        self.c.rect(x, y, 3*mm, 3*mm, fill=0)
+        if fill:
+            self.c.line(x, y, x+3*mm, y+3*mm)
+            self.c.line(x+3*mm, y, x, y+3*mm)
         self.c.drawString(x+5*mm, y, label)
 
     def draw_form(self, member, oldgrade, newgrade, user):
@@ -885,7 +888,7 @@ class GradeChangeForm(SFUMediaMixin):
 
         # header
         self.c.drawImage(logofile, x=0, y=224*mm, width=1*inch, height=0.5*inch)
-        self.c.setFont("BemboMTPro", 12)
+        self.c.setFont("BemboMTPro", 11)
         self.c.drawString(43*mm, 228*mm, u"RECORDS AND REGISTRATION".translate(self.sc_trans_bembo))
         self.c.drawString(43*mm, 223*mm, u"STUDENT SERVICES".translate(self.sc_trans_bembo))
         self.title_font()
@@ -970,8 +973,12 @@ class GradeChangeForm(SFUMediaMixin):
             old = oldgrade
         else:
             old = u'' 
+        if newgrade:
+            new = newgrade
+        else:
+            new = u'' 
         self.c.drawString(25*mm, 141*mm, old)
-        self.c.drawString(69*mm, 141*mm, newgrade)
+        self.c.drawString(69*mm, 141*mm, new)
 
         # DE extension
         self.title_font()
@@ -1015,7 +1022,39 @@ class GradeChangeForm(SFUMediaMixin):
         self.c.drawString(46*mm, 60*mm, user.name())
         self.c.drawString(120*mm, 68*mm, unicode(datetime.date.today().strftime('%B %d, %Y')))
 
+        self.label_font()
+        self.c.drawString(0, 51*mm, u"Chair signature")
+        self.c.line(20*mm, 51*mm, 108*mm, 51*mm)
+        self.c.drawString(110*mm, 51*mm, u"Date")
+        self.c.line(117*mm, 51*mm, main_width, 51*mm)
+        self.c.drawString(0, 43*mm, u"Chair name (PLEASE PRINT)")
+        self.c.line(38*mm, 43*mm, main_width, 43*mm)
+        self.entry_font()
 
+        # FOIPOP
+        self.title_font()
+        self.c.drawString(0, 35*mm, u"FREEDOM OF INFORMATION AND PROTECTION OF PRIVACY")
+        self.label_font()
+        self.c.drawString(0, 31*mm, u"The information on this form is collected under the authority of the University Act (RSBC 1996 c468 s.27[4a]). This information is needed, and")
+        self.c.drawString(0, 27*mm, u"will be used, to update the student's record. If you have any questions about the collection and use of this information contact the Associate Registrar,")
+        self.c.drawString(0, 23*mm, u"Information, Records and Registration, 778.782.3198.")
+
+        self.c.drawString(0, 15*mm, u"Accepted (for the Registrar)")
+        self.c.line(35*mm, 15*mm, 122*mm, 15*mm)
+        self.c.drawString(124*mm, 15*mm, u"Date")
+        self.c.line(131*mm, 15*mm, main_width, 15*mm)
+        
+        # footer
+        self.c.setFont("BemboMTPro", 7.5)
+        self.c.drawString(43*mm, 6*mm, u"Information, Records and Registration, MBC 3200")
+        self.c.drawString(43*mm, 3*mm, u"8888 University Drive, Burnaby BC Canada V5A 1S6")
+        self.c.drawString(43*mm, 0*mm, u"students.sfu.ca/records")
+        self.c.drawString(122*mm, 6*mm, u"FAX: 778.782.4969")
+        self.c.drawString(122*mm, 3*mm, u"urecords@sfu.ca")
+        self.c.drawString(154*mm, 6*mm, u"NOVEMBER".translate(self.sc_trans_bembo) + u" " + u"2009".translate(self.digit_trans))
+        self.c.drawString(154*mm, 3*mm, u"(produced by CourSys")
+        self.c.drawString(154*mm, 0*mm, u"GradeChangeForm)")
+        
 
 
 

@@ -507,7 +507,7 @@ def compare_official(request, course_slug, activity_slug):
     activity = get_object_or_404(LetterActivity, slug=activity_slug, offering=course, deleted=False)
     
     members = Member.objects.filter(offering=course, role='STUD')
-    grades = dict(((g.member, g.letter_grade)for g in LetterGrade.objects.filter(activity=activity)))
+    grades = dict(((g.member, g.letter_grade)for g in LetterGrade.objects.filter(activity=activity).exclude(flag='NOGR')))
     data = []
     
     for m in members:
@@ -531,10 +531,15 @@ def grade_change(request, course_slug, activity_slug, userid):
     activity = get_object_or_404(LetterActivity, slug=activity_slug, offering=course, deleted=False)
     member = get_object_or_404(Member, person__userid=userid, offering__slug=course_slug)
     user = Person.objects.get(userid=request.user.username)
-    
+    grades = LetterGrade.objects.filter(activity=activity, member=member).exclude(flag='NOGR')
+    if grades:
+        grade = grades[0].letter_grade
+    else:
+        grade = None
+     
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename=%s-gradechange.pdf' % (userid)
-    grade_change_form(member, member.official_grade, 'A+', user, response)
+    grade_change_form(member, member.official_grade, grade, user, response)
     return response
 
     

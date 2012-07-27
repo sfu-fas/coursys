@@ -27,7 +27,7 @@
 {% endblock %}
 
 {% block content %}
-<p>Official grades are imported from SIMS nightly: they may be up to a day out of date from the actual SIMS database.</p>
+<p>Official grades are imported from SIMS nightly: they may be up to a day out of date from the actual SIMS database (or more if there was a problem with the import).</p>
 
 <div class="datatable_container">
     <table class="display" id="grades">
@@ -46,7 +46,7 @@
             <td>{{g|default_if_none:""}}</td>
             <td>{{m.official_grade|default_if_none:""}}</td>
             <td>{{d|yesno:"yes,"}}
-              {% if d %}[<a href="{% url grades.views.grade_change course_slug=course.slug activity_slug=activity.slug userid=m.person.userid %}">grade change</a>]{% endif %}	
+              {% if d %}[<a href="{% url grades.views.grade_change course_slug=course.slug activity_slug=activity.slug userid=m.person.userid %}">grade change form</a>]{% endif %}	
             </td>
         </tr>
         {% endfor %}
