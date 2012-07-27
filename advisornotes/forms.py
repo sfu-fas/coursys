@@ -40,7 +40,7 @@ class ArtifactNoteForm(forms.ModelForm):
         model = ArtifactNote
         exclude = ('hidden', 'course', 'course_offering', 'artifact',)
         widgets = {
-                'text': forms.Textarea(attrs={'cols': 80, 'rows': 25})
+                'text': forms.Textarea(attrs={'cols': 70, 'rows': 15})
                 }
 
 
@@ -49,7 +49,7 @@ class EditArtifactNoteForm(forms.ModelForm):
         model = ArtifactNote
         exclude = ('hidden', 'course', 'course_offering', 'artifact', 'category', 'text', 'file_attachment', 'unit',)
         widgets = {
-                'text': forms.Textarea(attrs={'cols': 80, 'rows': 25})
+                'text': forms.Textarea(attrs={'cols': 70, 'rows': 15})
                 }
 
 class StudentSelect(forms.Select):

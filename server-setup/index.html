@@ -102,16 +102,16 @@ chmod 0711 ~</pre>
   <p>But somebody following these instructions: <strong>check the Subversion URL</strong>!  Stable tags are created when serious development is going on&mdash;that might be the right one to use.</p>
   <p>The only necessary change to the code is setting the database password in <code class="file">settings.py</code>.</p>
   </dd>
+<dt>PIL Build</dt>
+  <dd>Per the <a href="http://ubuntuforums.org/showthread.php?t=1751455">bug here</a>, there's a hack needed to build PIL with PIP:
+  <blockquote><pre>sudo ln -s /usr/lib/x86_64-linux-gnu/libfreetype.so /usr/lib/
+sudo ln -s /usr/lib/x86_64-linux-gnu/libz.so /usr/lib/
+sudo ln -s /usr/lib/x86_64-linux-gnu/libjpeg.so /usr/lib/</pre></blockquote>
+  </dd>
 <dt>PIP Libraries</dt>
   <dd>To install the various libraries required by the system:
   <blockquote><pre>sudo pip install -r build_deps/working_deps.txt
 sudo pip install -r build_deps/deployed_deps.txt</pre></blockquote>
-  </dd>
-<dt><del>VirtualEnv</del></dt>
-  <dd><del>Per the <a href="http://ubuntuforums.org/showthread.php?t=1751455">bug here</a>, there's a hack needed to build PIL in the virtualenv:</del> [Not using a VirtualEnv on the server, but preserving this for those using one  for devel.]
-  <blockquote><pre>sudo ln -s /usr/lib/x86_64-linux-gnu/libfreetype.so /usr/lib/
-sudo ln -s /usr/lib/x86_64-linux-gnu/libz.so /usr/lib/
-sudo ln -s /usr/lib/x86_64-linux-gnu/libjpeg.so /usr/lib/</pre></blockquote>
   </dd>
 
 <dt>Database</dt>

@@ -156,7 +156,7 @@ class ArtifactNote(models.Model):
                             help_text='Note about a student')
     advisor = models.ForeignKey(Person, help_text='The advisor that created the note', editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    best_before = models.DateField(help_text='The effective date for this note')
+    best_before = models.DateField(help_text='The effective date for this note', null=True, blank=True)
     file_attachment = models.FileField(storage=NoteSystemStorage, null=True,
                       upload_to=attachment_upload_to, blank=True, max_length=500)
     file_mediatype = models.CharField(null=True, blank=True, max_length=200, editable=False)
