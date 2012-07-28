@@ -1,5 +1,5 @@
 from django import forms
-from coredata.models import Role, Person, Member, CourseOffering, Unit
+from coredata.models import Role, Person, Member, CourseOffering, Unit, Semester, SemesterWeek, Holiday
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
 from django.contrib.localflavor.ca.forms import CAPhoneNumberField
@@ -238,4 +238,68 @@ class UnitAddressForm(forms.Form):
         self._set_or_delete(data, 'deptid', self.unit.config, 'deptid')
         self._set_or_delete(data, 'phone', self.unit.config, 'tel')
         self._set_or_delete(data, 'informal_name', self.unit.config, 'informal_name')
+
+class SemesterForm(forms.ModelForm):
+    def clean_name(self):
+        name = self.cleaned_data['name']
+        if not name.isdigit():
+            raise forms.ValidationError('Must be all digits')
+        return name
+        
+    class Meta:
+        model = Semester
+        exclude = []
+        widgets = {
+                'name': forms.TextInput(attrs={'size': 4, 'max_length': 4})
+                }
+
+
+class SemesterWeekForm(forms.ModelForm):
+    class Meta:
+        model = SemesterWeek
+        exclude = ['semester']
+    def clean_monday(self):
+        date = self.cleaned_data['monday']
+        if date.weekday() != 0:
+            raise forms.ValidationError('Must be a Monday')
+        return date
+
+class BaseSemesterWeekFormset(forms.models.BaseModelFormSet):
+    def __init__(self, *args, **kwargs):
+        super(BaseSemesterWeekFormset, self).__init__(*args, **kwargs)
+    
+    def clean(self):
+        if any(self.errors):
+            return
+
+        weeks = set()
+        for i in range(0, self.total_form_count()):
+            form = self.forms[i]
+            if 'week' not in form.cleaned_data or ('DELETE' in form.cleaned_data and form.cleaned_data['DELETE']):
+                continue
+            week = form.cleaned_data['week']
+            if week in weeks:
+                raise forms.ValidationError('Weeks must be distinct.')
+            weeks.add(week)
+        
+        if 1 not in weeks:
+            raise forms.ValidationError('Must specify Monday of week 1')
+
+SemesterWeekFormset = forms.models.modelformset_factory(SemesterWeek, formset=BaseSemesterWeekFormset, form=SemesterWeekForm,
+                                                        max_num=3, extra=2, can_delete=True)
+
+    
+class HolidayForm(forms.ModelForm):
+    class Meta:
+        model = Holiday
+        exclude = ['semester']
+
+class BaseHolidayFormset(forms.models.BaseModelFormSet):
+    def __init__(self, *args, **kwargs):
+        super(BaseHolidayFormset, self).__init__(*args, **kwargs)
+
+HolidayFormset = forms.models.modelformset_factory(Holiday, formset=BaseHolidayFormset, form=HolidayForm,
+                                                   max_num=8, extra=2, can_delete=True)
+
+
 

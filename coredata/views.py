@@ -2,10 +2,11 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm, \
-        UnitAddressForm, UnitForm
+        UnitAddressForm, UnitForm, SemesterForm, SemesterWeekFormset, HolidayFormset
 from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse
 from courselib.search import get_query
-from coredata.models import Person, Semester, CourseOffering, Member, Role, Unit, UNIT_ROLES, ROLES, ROLE_DESCR
+from coredata.models import Person, Semester, CourseOffering, Member, Role, Unit, SemesterWeek, Holiday, \
+        UNIT_ROLES, ROLES, ROLE_DESCR
 from advisornotes.models import NonStudent
 from log.models import LogEntry
 from django.core.urlresolvers import reverse
@@ -207,7 +208,45 @@ def semester_list(request):
 
 @requires_global_role("SYSA")
 def edit_semester(request, semester_name=None):
-    pass
+    if semester_name:
+        semester = get_object_or_404(Semester, name=semester_name)
+        newsem = False
+    else:
+        semester = Semester()
+        newsem = True
+    
+    if request.method == 'POST':
+        form = SemesterForm(instance=semester, prefix='sem', data=request.POST)
+        week_formset = SemesterWeekFormset(queryset=SemesterWeek.objects.filter(semester=semester), prefix='week', data=request.POST)
+        holiday_formset = HolidayFormset(queryset=Holiday.objects.filter(semester=semester), prefix='holiday', data=request.POST)
+        if form.is_valid() and week_formset.is_valid() and holiday_formset.is_valid():
+            sem = form.save()
+            
+            weeks = week_formset.save(commit=False)
+            for week in weeks:
+                week.semester = sem
+                week.save()
+
+            holidays = holiday_formset.save(commit=False)
+            for holiday in holidays:
+                holiday.semester = sem
+                holiday.save()
+            
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                  description=("edited semester %s") % (sem.name),
+                  related_object=sem)
+            l.save()
+            messages.success(request, 'Edited semester %s.' % (sem.name))
+            return HttpResponseRedirect(reverse('coredata.views.semester_list', kwargs={}))
+    else:
+        form = SemesterForm(instance=semester, prefix='sem')
+        week_formset = SemesterWeekFormset(queryset=SemesterWeek.objects.filter(semester=semester), prefix='week')
+        holiday_formset = HolidayFormset(queryset=Holiday.objects.filter(semester=semester), prefix='holiday')
+
+    context = {'semester': semester, 'form': form, 'newsem': newsem,
+               'week_formset': week_formset, 'holiday_formset': holiday_formset}
+    return render(request, 'coredata/edit_semester.html', context)
 
 
 # views to let instructors manage TAs

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}{% if newsem %}New{% else %}Edit{% endif %} Semester{% endblock %}
+{% block h1 %}{% if newsem %}New{% else %}Edit{% endif %} Semester{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url coredata.views.sysadmin %}">System Admin</a></li>
+<li>&gt; <a href="{% url coredata.views.semester_list %}">Semesters</a></li>
+<li>&gt; {% if newsem %}New{% else %}Edit {{ semester.name }}{% endif %}</li>
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+//<![CDATA[
+  $(document).ready(function() {
+    $("#id_sem-start").datepicker({ changeMonth: true, changeYear: true, dateFormat: 'yy-mm-dd' });
+    $("#id_sem-end").datepicker({ changeMonth: true, changeYear: true, dateFormat: 'yy-mm-dd' });
+
+	$(function() {
+		$("input").each(function(i) {// turn on datepicker for each date input (the hard way)
+			var id = $(this).attr('id');
+			if(id === undefined) {
+			} else if(id.substr(-7) == "-monday" || id.substr(-5) == "-date") {
+				$(this).datepicker({ changeMonth: true, changeYear: true, 'dateFormat' : 'yy-mm-dd' });
+			}
+		});
+	});
+
+
+  });
+//]]></script>
+{% endblock %}
+
+{% block content %}
+<div id="form_container">
+<form action="" method="post">{% csrf_token %}
+<fieldset>
+<legend>Semester Details</legend>
+{{ form|as_dl }}
+</fieldset>
+
+<fieldset>
+<legend>Weeks in Semester</legend>
+<p>Can specify the monday of any week in the semester (to allow representation of reading week). Monday of week 1 must be specified.</p>
+{{ week_formset.management_form }}
+{% comment %}template thingy from http://djangosnippets.org/snippets/1442/{% endcomment %}
+{{ week_formset.non_form_errors.as_ul }}
+<table id="week-formset" class="form">
+{% for form in week_formset.forms %}
+  {% if forloop.first %}
+  <thead><tr>
+    {% for field in form.visible_fields %}
+    <th>{{ field.label|capfirst }}</th>
+    {% endfor %}
+  </tr></thead>
+  {% endif %}
+  <tr class="{% cycle row1,row2 %}">
+  {% for field in form.visible_fields %}
+    <td>
+    {# Include the hidden fields in the form #}
+    {% if forloop.first %}
+      {% for hidden in form.hidden_fields %}
+      {{ hidden }}
+      {% endfor %}
+    {% endif %}
+      {{ field.errors.as_ul }}
+      {{ field }}
+    </td>
+  {% endfor %}
+  </tr>
+{% endfor %}
+</table>
+</fieldset>
+<fieldset>
+<legend>Holidays in Semester</legend>
+{{ holiday_formset.management_form }}
+{% comment %}template thingy from http://djangosnippets.org/snippets/1442/{% endcomment %}
+{{ holiday_formset.non_form_errors.as_ul }}
+<table id="holiday-formset" class="form">
+{% for form in holiday_formset.forms %}
+  {% if forloop.first %}
+  <thead><tr>
+    {% for field in form.visible_fields %}
+    <th>{{ field.label|capfirst }}</th>
+    {% endfor %}
+  </tr></thead>
+  {% endif %}
+  <tr class="{% cycle row1,row2 %}">
+  {% for field in form.visible_fields %}
+    <td>
+    {# Include the hidden fields in the form #}
+    {% if forloop.first %}
+      {% for hidden in form.hidden_fields %}
+      {{ hidden }}
+      {% endfor %}
+    {% endif %}
+      {{ field.errors.as_ul }}
+      {{ field }}
+    </td>
+  {% endfor %}
+  </tr>
+{% endfor %}
+</table>
+</fieldset>
+<p><input type="submit" class="submit" value="Update" /></p>
+</form>
+</div>
+
+{% endblock %}

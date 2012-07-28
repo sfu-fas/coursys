@@ -164,7 +164,6 @@ class Semester(models.Model):
         help_text='Semester name should be in the form "1097".')
     start = models.DateField(help_text='First day of classes.')
     end = models.DateField(help_text='Last day of classes.')
-    # TODO: validate that there is a SemesterWeek for week #1.
 
     class Meta:
         ordering = ['name']
@@ -349,13 +348,33 @@ class SemesterWeek(models.Model):
     semester = models.ForeignKey(Semester, null=False)
     week = models.PositiveSmallIntegerField(null=False, help_text="Week of the semester (typically 1-13)")
     monday = models.DateField(help_text='Monday of this week.')
-    # TODO: validate that monday is really a Monday.
     
     def __unicode__(self):
         return "%s week %i" % (self.semester.name, self.week)
     class Meta:
         ordering = ['semester', 'week']
         unique_together = (('semester', 'week'))
+
+
+HOLIDAY_TYPE_CHOICES = (
+        ('FULL', 'Classes cancelled, offices closed'),
+        ('CLAS', 'Classes cancelled, offices open'),
+        ('OPEN', 'Classes as scheduled'),
+        )
+
+class Holiday(models.Model):
+    """
+    A holiday to display on the calendar (and possibly exclude classes on that day).
+    """
+    date = models.DateField(help_text='Date of the holiday', null=False, blank=False, db_index=True)
+    semester = models.ForeignKey(Semester, null=False)
+    description = models.CharField(max_length=30, null=False, blank=False, help_text='Description of holiday, e.g. "Canada Day"')
+    holiday_type = models.CharField(max_length=4, null=False, choices=HOLIDAY_TYPE_CHOICES,
+        help_text='Type of holiday: how does it affect schedules?')
+    def __unicode__(self):
+        return "%s on %s" % (self.description, self.date)
+    class Meta:
+        ordering = ['date']
 
 
 class Course(models.Model):

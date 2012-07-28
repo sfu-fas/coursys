@@ -9,6 +9,7 @@ $(document).ready(function() {
     'bInfo': false,
     'bLengthChange': false,
     "bJQueryUI": true,
+    'aaSorting': [[0, 'desc']],
   } );
 } );
 </script>
@@ -33,7 +34,9 @@ $(document).ready(function() {
   <thead><tr><th scope="col">Name</th><th scope="col">Start</th><th scope="col">End</th><th scope="col">Actions</th></tr></thead>
   <tbody>
   {% for s in semesters %}
-  <tr><td scope="row">{{s.name}} ({{s.label}})</td><td>{{s.start}}</td><td>{{s.end}}</td>
+  <tr><td scope="row">{{s.name}} ({{s.label}})</td>
+  <td><span class="sort">{{s.start.isoformat}}</span>{{s.start}}</td>
+  <td><span class="sort">{{s.end.isoformat}}</span>{{s.end}}</td>
   <td><a href="{% url coredata.views.edit_semester semester_name=s.name %}">Edit</a></td>
   {% endfor %}
   </tbody>
