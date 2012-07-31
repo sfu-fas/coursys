@@ -1,7 +1,8 @@
 from coredata.models import Member, CourseOffering
 from django.db import models
 from jsonfield.fields import JSONField
-from pages.models import ParserFor
+from courselib.json_fields import getter_setter
+from pages.models import ParserFor, brushes_used
 from django.utils.safestring import mark_safe
 import datetime
 
@@ -49,10 +50,23 @@ class DiscussionTopic(models.Model):
     pinned = models.BooleanField(help_text="Should this topic be pinned to bring attention?")
     author = models.ForeignKey(Member)
     config = JSONField(null=False, blank=False, default={})
+        # p.config['math']: content uses MathJax? (boolean)
+        # p.config['brushes']: used SyntaxHighlighter brushes (list of strings)
+    
+    defaults = {'math': False, 'brushes': []}
+    math, set_math = getter_setter('math')
+    brushes, set_brushes = getter_setter('brushes')
     
     def save(self, *args, **kwargs):
         if self.status not in [status[0] for status in TOPIC_STATUSES]:
             raise ValueError('Invalid topic status')
+
+        # update the metainfo about creole display        
+        self.get_creole()
+        brushes = brushes_used(self.Creole.parser.parse(self.content))
+        self.set_brushes(list(brushes))
+        # TODO: nobody sets config.math to True, but it is honoured if it is set magically. UI for that?
+        
         super(DiscussionTopic, self).save(*args, **kwargs)
         
     def new_message_update(self):
@@ -114,12 +128,24 @@ class DiscussionMessage(models.Model):
     status = models.CharField(max_length=3, choices=MESSAGE_STATUSES, default='VIS')
     author = models.ForeignKey(Member)
     config = JSONField(null=False, blank=False, default={})
+        # p.config['math']: content uses MathJax? (boolean)
+        # p.config['brushes']: used SyntaxHighlighter brushes (list of strings)
     
+    defaults = {'math': False, 'brushes': []}
+    math, set_math = getter_setter('math')
+    brushes, set_brushes = getter_setter('brushes')
+
     def save(self, *args, **kwargs):
         if self.status not in [status[0] for status in MESSAGE_STATUSES]:
             raise ValueError('Invalid topic status')
         if not self.pk:
             self.topic.new_message_update()
+
+        # update the metainfo about creole display        
+        self.topic.get_creole()
+        brushes = brushes_used(self.topic.Creole.parser.parse(self.content))
+        self.set_brushes(list(brushes))
+        
         super(DiscussionMessage, self).save(*args, **kwargs)
 
     def html_content(self):

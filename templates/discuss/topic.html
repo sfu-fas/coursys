@@ -2,6 +2,28 @@
 {% block title %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
 {% block headextra %}
 <link rel="stylesheet" href="{{MEDIA_URL}}style/discuss.css" media="all" />
+{% if brushes %}
+	<script type="text/javascript" src="{{MEDIA_URL}}syntaxhighlighter/scripts/shCore.js"></script>
+	{% for b in brushes %}
+	<script type="text/javascript" src="{{MEDIA_URL}}syntaxhighlighter/scripts/{{b}}"></script>
+	{% endfor %}
+	<link href="{{MEDIA_URL}}syntaxhighlighter/styles/shCore.css" rel="stylesheet" type="text/css" />
+	<link href="{{MEDIA_URL}}syntaxhighlighter/styles/shThemeDefault.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript">
+	SyntaxHighlighter.defaults['light'] = true;
+	SyntaxHighlighter.all()
+	</script>
+{% endif %}
+{% if any_math %}
+	<script type="text/x-mathjax-config">
+	MathJax.Hub.Config({
+	displayAlign: "left",
+	displayIndent: "2em",
+	elements: {{need_mathjax|safe}},
+	});
+	</script>
+	<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+{% endif %}
 <script type="text/javascript">
 	$(document).ready(function() {
 		{% if not form.errors %}
@@ -84,7 +106,7 @@
 		</div>
 	</div>
 
-	<div class="discussion-topic-content">
+	<div class="discussion-topic-content" id="topic-content">
 		{{ topic.html_content }}
 	</div>
 </div>
@@ -122,7 +144,7 @@
 			{% endif %}
 			</div>
 			{% endif %}
-			<div class="discussion-reply-content {% if reply.status == 'HID' %}fade-out{% endif %}">
+			<div class="discussion-reply-content {% if reply.status == 'HID' %}fade-out{% endif %}" id="reply-content-{{reply.id}}">
 				{% if reply.status == 'HID' %}
 				    <i>This reply has been removed...</i>
 				{% endif %}

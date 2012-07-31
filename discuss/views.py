@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from discuss.forms import discussion_topic_form_factory,\
     DiscussionTopicStatusForm, DiscussionMessageForm
-import datetime
+import datetime, itertools, json
 import activity
 
 def _get_course_and_view(request, course_slug):
@@ -108,6 +108,16 @@ def view_topic(request, course_slug, topic_id):
     if view == 'student' and topic.status == 'HID':
         raise Http404
     replies = DiscussionMessage.objects.filter(topic=topic).order_by('created_at')
+
+    # syntaxhighlighter brushes needed
+    brushes = set(itertools.chain(topic.brushes(), *(r.brushes() for r in replies)))
+    # who needs mathjax activated?
+    need_mathjax = ['reply-content-%i' % (r.id) for r in replies if r.math()]
+    if topic.math():
+        need_mathjax.append('topic-content')
+    any_math = bool(need_mathjax)
+    need_mathjax = json.dumps(need_mathjax)
+    
     if request.method == 'POST':
         if topic.status == 'CLO' and not view  == 'staff':
             raise Http404
@@ -121,7 +131,9 @@ def view_topic(request, course_slug, topic_id):
             return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_id': topic.pk}))
     else:
         form = DiscussionMessageForm()
-    return render(request, 'discuss/topic.html', {'course': course, 'topic': topic, 'replies': replies, 'view': view, 'form': form})
+    context = {'course': course, 'topic': topic, 'replies': replies, 'view': view, 'form': form,
+               'brushes': brushes, 'need_mathjax': need_mathjax, 'any_math': any_math}
+    return render(request, 'discuss/topic.html', context)
 
 @login_required
 def change_topic_status(request, course_slug, topic_id):
