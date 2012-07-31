@@ -29,5 +29,5 @@ class SignatureForm(forms.Form):
         return sig
     
 class PhotoAgreementForm(forms.Form):
-    agree = forms.BooleanField(required=False, label="Do you agree?", help_text="I agree with the above conditions.")
+    agree = forms.BooleanField(required=False, label="Do you agree?", help_text="I acknowledge that I have read and will abide by this agreement.")
 
