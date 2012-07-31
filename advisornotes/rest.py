@@ -9,25 +9,30 @@ import json
 
 def _validate_credentials(data):
     try:
-        advisor = data['advisor']
+        person = data['person']
         secret = data['secret']
         unit = data['unit']
     except KeyError:
         raise ValidationError("Necessary credentials not present")
     
     try:
-        Role.objects.get(role='ADVS', unit__label=unit, person__userid=advisor)
-        config = UserConfig.objects.get(user__userid=advisor, key='advisor-token')
-        if not 'token' in config.value or config.value['token'] != secret:
+        config = UserConfig.objects.get(user__userid=person, key='problems-token')
+        if config.value['token'] != secret:
             raise ValidationError("Secret token didn't match")
-    except Role.DoesNotExist:
-        raise ValidationError("User doesn't have the necessary permissions")
     except UserConfig.DoesNotExist:
-        raise ValidationError("No token has been generated for user")
+        try:
+            config = UserConfig.objects.get(user__userid=person, key='advisor-token')
+            Role.objects.get(role='ADVS', unit__label=unit, person__userid=person)
+            if config.value['token'] != secret:
+                raise ValidationError("Secret token didn't match")
+        except UserConfig.DoesNotExist:   
+            raise ValidationError("No token has been generated for user")
+        except Role.DoesNotExist:
+            raise ValidationError("User doesn't have the necessary permissions")
     
-    advisor = Person.objects.get(userid=advisor)
+    person = Person.objects.get(userid=person)
     unit = Unit.objects.get(label=unit)
-    return advisor, unit
+    return person, unit
 
 @transaction.commit_on_success
 def _create_advising_notes(data, advisor, unit):
