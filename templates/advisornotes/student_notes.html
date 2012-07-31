@@ -123,7 +123,14 @@
 
 {% if item.note %}
 {% with item.item as note %}
-<h2 class="note{% if not note.hidden %} show{% endif %}" id="note-{{note.id}}">{{note.created_at}} by {{note.advisor.first_name}} {{note.advisor.last_name}}</h2>
+<h2 class="note{% if not note.hidden %} show{% endif %}" id="note-{{note.id}}">
+	{{note.created_at}} by {{note.advisor.first_name}} {{note.advisor.last_name}}
+	{% with "Student was emailed the contents of this note" as email_note %}
+	{% if note.emailed %}
+	<img src="{{ MEDIA_URL }}icons/email.png" alt="{{ email_note }}" title="{{ email_note }}" />
+	{% endif %}
+	{% endwith %}
+	</h2>
 <div class="note-box" id="note-box-{{note.id}}">
 
     <div class="note-content">
