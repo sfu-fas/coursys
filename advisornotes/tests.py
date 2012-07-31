@@ -6,6 +6,7 @@ from coredata.models import Person, Unit
 from advisornotes.models import NonStudent, AdvisorNote
 from courselib.testing import basic_page_tests
 from dashboard.models import UserConfig
+from django.test.testcases import TransactionTestCase
 
 
 class AdvistorNotestest(TestCase):
@@ -136,6 +137,10 @@ class AdvistorNotestest(TestCase):
                 print "with view==" + repr(view)
                 raise
 
+
+class AdvistorNotesAPITest(TransactionTestCase):
+    fixtures = ['test_data']
+    
     def test_rest_notes_not_POST(self):
         client = Client()
         response = client.get(reverse('advisornotes.views.rest_notes'))

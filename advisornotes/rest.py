@@ -3,7 +3,6 @@ from coredata.models import Role, Person, Unit
 from dashboard.models import UserConfig
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
-from django.db import transaction
 import base64
 import json
 
@@ -32,9 +31,9 @@ def _validate_credentials(data):
     
     person = Person.objects.get(userid=person)
     unit = Unit.objects.get(label=unit)
-    return person, unit
+    return person, unit, config.key
 
-@transaction.commit_on_success
+
 def _create_advising_notes(data, advisor, unit):
     try:
         notes = data['notes']
@@ -45,9 +44,8 @@ def _create_advising_notes(data, advisor, unit):
     except KeyError:
         raise ValidationError("No advising notes present")
     
-    notes_list = []
-    file_list = []
     for note in notes:
+        advisornote = AdvisorNote()
         try:
             emplid = note['emplid']
             text = note['text']
@@ -62,8 +60,12 @@ def _create_advising_notes(data, advisor, unit):
         except Person.DoesNotExist:
             raise ValidationError("Emplid '%d' doesn't exist" % emplid)
         
+        advisornote.student = student
+        advisornote.advisor = advisor
+        advisornote.unit = unit
+        advisornote.text = text
+        
         #Check for fileupload
-        file_info = {}
         if 'filename' in note and 'mediatype' in note and 'data' in note:
             filename = note['filename']
             mediatype = note['mediatype']
@@ -80,25 +82,10 @@ def _create_advising_notes(data, advisor, unit):
             except TypeError:
                 raise ValidationError("Invalid base64 data for note file attachment")
             
-            file_info = {'name': filename, 'mediatype': mediatype, 'data': file_data}
+            advisornote.file_attachment.save(name=filename, content=ContentFile(file_data), save=False)
+            advisornote.file_mediatype = mediatype
         
-        note = AdvisorNote()
-        note.student = student
-        note.advisor = advisor
-        note.unit = unit
-        note.text = text
-        notes_list.append(note)
-        file_list.append(file_info)
-        
-    for index in range(len(notes_list)):
-        note = notes_list[index]
-        file_info = file_list[index]
-        if not 'name' in file_info:
-            note.save()
-        else:
-            note.file_attachment.save(name=file_info['name'], content=ContentFile(file_info['data']), save=False)
-            note.file_mediatype = file_info['mediatype']
-            note.save()
+        advisornote.save()
         
 
 def new_advisor_notes(post_data):
@@ -107,8 +94,9 @@ def new_advisor_notes(post_data):
     """
     data = json.loads(post_data) # throws ValueError on bad JSON, UnicodeDecodeError on bad UTF-8
     
-    advisor, unit = _validate_credentials(data)
-    _create_advising_notes(data, advisor, unit)
+    advisor, unit, key = _validate_credentials(data)
+    if key == "advisor-token":
+        _create_advising_notes(data, advisor, unit)
     
     
   

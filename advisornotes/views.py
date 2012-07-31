@@ -21,6 +21,7 @@ import datetime
 import json
 import rest
 from timeit import itertools
+from django.db import transaction
 
 
 def _redirect_to_notes(student):
@@ -553,6 +554,7 @@ def merge_nonstudent(request, nonstudent_slug):
 
 
 @csrf_exempt
+@transaction.commit_manually
 def rest_notes(request):
     """
     View to create new advisor notes via RESTful POST (json)
@@ -572,8 +574,10 @@ def rest_notes(request):
     except ValueError:
         return HttpResponse(content='Bad JSON in request body', status=400)
     except ValidationError as e:
+        transaction.rollback()
         return HttpResponse(content=e.messages[0], status=422)
-
+    
+    transaction.commit()
     return HttpResponse(status=200)
 
 @requires_role('ADVS')
