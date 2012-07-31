@@ -10360,6 +10360,20 @@
  },
  {
   "fields": {
+   "config": "{}",
+   "emplid": 202000111,
+   "first_name": "Problem",
+   "last_name": "Administrator",
+   "middle_name": "",
+   "pref_first_name": "Prob",
+   "title": "Mr",
+   "userid": "probadmin"
+  },
+  "model": "coredata.person",
+  "pk": 602
+ },
+ {
+  "fields": {
    "added_reason": "AUTO",
    "career": "NONS",
    "config": "{}",
@@ -26229,6 +26243,15 @@
   },
   "model": "dashboard.userconfig",
   "pk": 2
+ },
+ {
+  "fields": {
+   "user": 602,
+   "key": "problems-token",
+   "value": "{\"token\": \"30378700c0091f34412ec9a082dca268\"}"
+  },
+  "model": "dashboard.userconfig",
+  "pk": 3
  },
  {
   "fields": {

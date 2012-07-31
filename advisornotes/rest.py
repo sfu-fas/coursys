@@ -87,16 +87,28 @@ def _create_advising_notes(data, advisor, unit):
         
         advisornote.save()
         
-
+        
+def _create_advising_problems(data, person):
+    try:
+        problems = data['problems']
+        if not isinstance(problems, (list, tuple)):
+            raise ValidationError("Problems not in list format")
+        if len(problems) is 0:
+            raise ValidationError("No problems present")
+    except KeyError:
+        raise ValidationError("No problems present")
+     
+        
 def new_advisor_notes(post_data):
     """
     Parses the JSON post data, validates, and save the advisor notes
     """
     data = json.loads(post_data) # throws ValueError on bad JSON, UnicodeDecodeError on bad UTF-8
     
-    advisor, unit, key = _validate_credentials(data)
+    person, unit, key = _validate_credentials(data)
     if key == "advisor-token":
-        _create_advising_notes(data, advisor, unit)
-    
+        _create_advising_notes(data, person, unit)
+    else:
+        _create_advising_problems(data, person)
     
   
