@@ -78,31 +78,32 @@ class Person(models.Model):
     nonstudent_notes, set_nonstudent_notes = getter_setter('nonstudent_notes')
     
 
-    def __unicode__(self):
-        return "%s, %s" % (self.last_name, self.first_name)
-    def name(self):
-        return "%s %s" % (self.first_name, self.last_name)
-    def sortname(self):
-        return "%s, %s" % (self.last_name, self.first_name)
     @staticmethod
     def emplid_header():
         return "ID Number"
     @staticmethod
     def userid_header():
         return "Userid"
+
+    def __unicode__(self):
+        return "%s, %s" % (self.last_name, self.first_name)
+    def name(self):
+        return "%s %s" % (self.first_name, self.last_name)
+    def sortname(self):
+        return "%s, %s" % (self.last_name, self.first_name)
     def initials(self):
         return "%s%s" % (self.first_name[0], self.last_name[0])
-    def email(self):
-        if 'email' in self.config:
-            return self.config['email']
-        elif self.userid:
-            return "%s@sfu.ca" % (self.userid)
-        elif 'applic_email' in self.config:
-            return self.config['applic_email']
-        else:
-            return None
     def full_email(self):
         return "%s <%s>" % (self.name(), self.email())
+    def first_with_pref(self):
+        name = self.first_name
+        if self.pref_first_name and self.pref_first_name != self.first_name:
+            name += ' (%s)' % (self.pref_first_name)
+        return name
+    def sortname_pref(self):
+        return "%s, %s" % (self.last_name, self.first_with_pref())
+    def name_with_pref(self):
+        return "%s %s" % (self.first_with_pref(), self.last_name)
     def get_title(self):
         if self.title:
             return self.title
@@ -112,11 +113,15 @@ class Person(models.Model):
             return 'Ms'
         else:
             return 'M'
-    def sortname_pref(self):
-        name = "%s, %s" % (self.last_name, self.first_name)
-        if self.pref_first_name and self.pref_first_name != self.first_name:
-            name += ' (%s)' % (self.pref_first_name)
-        return name
+    def email(self):
+        if 'email' in self.config:
+            return self.config['email']
+        elif self.userid:
+            return "%s@sfu.ca" % (self.userid)
+        elif 'applic_email' in self.config:
+            return self.config['applic_email']
+        else:
+            return None
     def userid_or_emplid(self):
         "userid if possible or emplid if not: inverse of find_userid_or_emplid searching"
         return self.userid or self.emplid

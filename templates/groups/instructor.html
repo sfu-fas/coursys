@@ -34,10 +34,10 @@ $(document).ready(function() {
   {% if not activity %}<p>For {% for activity in info.activities %}{{ activity.name }}{% if forloop.last %}{% else %}, {% endif %}{% endfor %}</p>{% endif %}
           <ul>
               {% for m in info.unique_members %}
-              <li><a href="{% url grades.views.student_info course_slug=course.slug userid=m.member.person.userid %}">{{ m.member.person.name }}</a>, {{ m.member.person.userid }} {% if not m.confirmed %}(unconfirmed){% endif %}
+              <li><a href="{% url grades.views.student_info course_slug=course.slug userid=m.member.person.userid %}">{{ m.member.person.name_with_pref }}</a>, {{ m.member.person.userid }} {% if not m.confirmed %}(unconfirmed){% endif %}
               {% if m.missing %}(not for 
               {% for a in m.missing %}
-              {{ a.name }}{% if forloop.last %}){% else %}, {% endif %}
+              {{ a.name_with_pref }}{% if forloop.last %}){% else %}, {% endif %}
               {% endfor %}
               {% endif %}
               </li>
@@ -60,7 +60,7 @@ $(document).ready(function() {
   {% if studentsNotInGroup %}
     <ul>
     {% for student in studentsNotInGroup %}
-      <li><a href="{% url grades.views.student_info course_slug=course.slug userid=student.person.userid %}">{{student.person.name}}</a>, {{student.person.userid}}</li>
+      <li><a href="{% url grades.views.student_info course_slug=course.slug userid=student.person.userid %}">{{student.person.name_with_pref}}</a>, {{student.person.userid}}</li>
       {% endfor %}
     </ul>
   {% else %}

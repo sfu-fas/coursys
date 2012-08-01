@@ -50,7 +50,7 @@
         <tr>
             <td><img src="{% url dashboard.views.student_photo emplid=member.person.emplid %}" alt="{{member.person.userid}}'s photo" /></td>
             <td>{{member.person.last_name}}</td>
-            <td>{{member.person.first_name}}</td>
+            <td>{{member.person.first_with_pref}}</td>
             <td>{{member.person.userid}}</td>
             <td><a href="{{member.get_absolute_url}}">{{member.person.emplid}}</a></td>
         </tr>

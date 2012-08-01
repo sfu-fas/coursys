@@ -299,7 +299,7 @@ Column logic:
 	    {% with grades|hash:userid as grade %}
 	    <tr>
 		<td>{{ member.person.last_name }}</td>
-		<td>{{ member.person.first_name }}</td>
+		<td>{{ member.person.first_with_pref }}</td>
 		<td>{{ member.person.userid }}</td>
 		<td><a href="{% url grades.views.student_info course_slug=course.slug userid=member.person.userid %}" title="student info">{{ member.person.emplid }}</a></td>
 

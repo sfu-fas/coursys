@@ -66,7 +66,7 @@ column is the grade.  Other columns will be ignored.</li>
 	    {% with mark_row.student as student %}
 	    {% with mark_row.member as member %}
 	    <tr>
-		<td>{{ student.sortname }}</td>
+		<td>{{ student.sortname_pref }}</td>
 		{% with mark_row.form as form %}
 		<td>{{ student.emplid }}</td>
 		<td>{{ student.userid }}</td>

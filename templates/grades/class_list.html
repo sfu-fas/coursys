@@ -49,7 +49,7 @@
         {% for data in rows %}
         <tr>
             <td scope="row">{{data.member.person.last_name}}</td>
-            <td scope="row">{{data.member.person.first_name}}</td>
+            <td scope="row">{{data.member.person.first_with_pref}}</td>
             <td>{{data.member.person.userid}}</td>
             <td><a href="{{data.member.get_absolute_url}}">{{data.member.person.emplid}}</a></td>
             {% if course.combined %}<td>{{data.member.config.origsection|slice:"-2:"|upper}}</td>{% endif %}
