@@ -432,16 +432,28 @@ def view_artifact_notes(request, artifact_slug):
         {'artifact': artifact, 'notes': notes, 'important_notes': important_notes}
     )
 
-
 @requires_role('ADVS')
 def view_courses(request):
     """
     View to view all courses
     """
-    courses = Course.objects.all()
+    # all courses where a recent offering was owned by relevant units
+    old_sem = Semester.get_semester(datetime.date.today()-datetime.timedelta(days=365*2))
+    offerings = CourseOffering.objects.filter(owner__in=request.units, semester__name__gte=old_sem.name) \
+                                      .values('course').order_by().distinct()
+
+    # all courses where there are notes from relevant units
+    notes = ArtifactNote.objects.filter(unit__in=request.units).exclude(course__isnull=True) \
+                                .values('course').order_by().distinct()
+
+    with_note_ids = set(n['course'] for n in notes)
+    course_ids = set(o['course'] for o in offerings)
+    course_ids |= with_note_ids
+    courses = Course.objects.filter(id__in=course_ids)
+    
     return render(request,
         'advisornotes/view_courses.html',
-        {'courses': courses}
+        {'courses': courses, 'with_note_ids': with_note_ids}
     )
 
 
