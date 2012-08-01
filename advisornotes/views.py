@@ -15,6 +15,7 @@ from django.core.mail.message import EmailMessage
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
+from django.utils.text import wrap
 from django.views.decorators.csrf import csrf_exempt
 from log.models import LogEntry
 import datetime
@@ -114,11 +115,20 @@ def sims_add_person(request):
     return HttpResponseRedirect(reverse('advisornotes.views.advising', kwargs={}))
 
 
-def _email_student_note(email, advisor, note_text):
-    subject = "A note has been added to your SFU account"
-    from_email = advisor.email()
-    message = "This is an automatically generated message. A note has been added to your SFU account by %s (%s):\n\n%s" % (advisor.name(), advisor.email(), note_text)
-    email = EmailMessage(subject, message, from_email, [email], cc=[advisor.email()])
+def _email_student_note(note):
+    """
+    Email advising note to student.
+    """
+    subject = "SFU Advising Note"
+    from_email = note.advisor.email()
+    email = note.student.email()
+    content = wrap(note.text, 72)
+    attach = []
+    if note.file_attachment:
+        note.file_attachment.open()
+        attach = [(note.attachment_filename(), note.file_attachment.read(), note.file_mediatype)]
+
+    email = EmailMessage(subject, content, from_email, [email], cc=[from_email], attachments=attach)
     email.send()
 
 
@@ -147,7 +157,7 @@ def new_note(request, userid):
                 messages.add_message(request, messages.SUCCESS, 'Created file attachment "%s".' % (upfile.name))
 
             if isinstance(student, Person) and form.cleaned_data['email_student']:
-                _email_student_note(student.email(), note.advisor, note.text)
+                _email_student_note(note)
                 note.emailed = True
                 
             note.save()
