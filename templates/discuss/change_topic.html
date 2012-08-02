@@ -11,7 +11,7 @@
 	&gt; <a href="{% url discuss.views.discussion_index course_slug=course.slug %}">Discussion</a>
 </li>
 <li>
-	&gt; <a href="{% url discuss.views.view_topic course_slug=course.slug topic_id=topic.pk %}">View Topic</a>
+	&gt; <a href="{% url discuss.views.view_topic course_slug=course.slug topic_slug=topic.slug %}">View Topic</a>
 </li>
 	&gt; Manage Topic
 <li>
@@ -21,7 +21,7 @@
 
 {% block content %}
 <div id="form_container">
-	<form action="{% url discuss.views.change_topic_status course_slug=course.slug topic_id=topic.pk %}" method="post">{% csrf_token %}
+	<form action="{% url discuss.views.change_topic_status course_slug=course.slug topic_slug=topic.slug %}" method="post">{% csrf_token %}
 		<fieldset>
 			<legend>Manage Topic</legend>
 			<ul>

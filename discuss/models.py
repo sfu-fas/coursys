@@ -4,6 +4,8 @@ from jsonfield.fields import JSONField
 from courselib.json_fields import getter_setter
 from pages.models import ParserFor, brushes_used
 from django.utils.safestring import mark_safe
+from autoslug import AutoSlugField
+from courselib.slugs import make_slug
 import datetime
 
 TOPIC_STATUSES = (
@@ -49,6 +51,9 @@ class DiscussionTopic(models.Model):
     status = models.CharField(max_length=3, choices=TOPIC_STATUSES, default='OPN', help_text="The topic status: Closed: no replies allowed, Hidden: cannot be seen")
     pinned = models.BooleanField(help_text="Should this topic be pinned to bring attention?")
     author = models.ForeignKey(Member)
+    def autoslug(self):
+        return make_slug(self.title)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with=['offering'])
     config = JSONField(null=False, blank=False, default={})
         # p.config['math']: content uses MathJax? (boolean)
         # p.config['brushes']: used SyntaxHighlighter brushes (list of strings)
@@ -127,6 +132,9 @@ class DiscussionMessage(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=3, choices=MESSAGE_STATUSES, default='VIS')
     author = models.ForeignKey(Member)
+    def autoslug(self):
+        return make_slug(self.author.person.userid)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with=['topic'])
     config = JSONField(null=False, blank=False, default={})
         # p.config['math']: content uses MathJax? (boolean)
         # p.config['brushes']: used SyntaxHighlighter brushes (list of strings)

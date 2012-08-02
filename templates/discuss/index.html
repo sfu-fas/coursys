@@ -39,8 +39,8 @@
 {{ topics|create_pagination }}
 {% for topic in topics.object_list %}
 {% if topic.status != 'HID' or view == 'staff' %}
-<div class="discussion-topic {% if topic.status == 'HID' %}fade-out{% endif %}" id="{{ topic.pk }}">
-	<a class="discussion-topic-title" href="{% url discuss.views.view_topic course_slug=course.slug topic_id=topic.pk %}">
+<div class="discussion-topic{% if topic.status == 'HID' %} fade-out{% endif %}" id="topic-{{ topic.pk }}">
+	<a class="discussion-topic-title" href="{% url discuss.views.view_topic course_slug=course.slug topic_slug=topic.slug %}">
 		{% if topic.pinned %}
 			<span style="color: #B5111B">[Pinned]</span>
 		{% endif %}

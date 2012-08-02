@@ -70,18 +70,18 @@ def create_topic(request, course_slug):
             topic.author = _get_member(request.user.username, view, course_slug)
             topic.save()
             messages.add_message(request, messages.SUCCESS, 'Discussion topic created successfully.')
-            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_id': topic.pk}))
+            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic.slug}))
     else:
         form = discussion_topic_form_factory(view)
     return render(request, 'discuss/create_topic.html', {'course': course, 'form': form})
 
 @login_required()
-def edit_topic(request, course_slug, topic_id):
+def edit_topic(request, course_slug, topic_slug):
     """
     Form to edit a recently posted discussion topic (5 min window)
     """
     course, view = _get_course_and_view(request, course_slug)
-    topic = get_object_or_404(DiscussionTopic, pk=topic_id, offering=course)
+    topic = get_object_or_404(DiscussionTopic, slug=topic_slug, offering=course)
     if topic.author.person.userid != request.user.username:
         return HttpResponseForbidden()
     if (datetime.datetime.now() - topic.created_at) > datetime.timedelta(minutes = 5):
@@ -92,19 +92,19 @@ def edit_topic(request, course_slug, topic_id):
         if form.is_valid():
             form.save()
             messages.add_message(request, messages.SUCCESS, 'Discussion topic edited successfully.')
-            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_id': topic.pk}))
+            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic.slug}))
     else:
         form = discussion_topic_form_factory(view, instance=topic)
     
     return render(request, 'discuss/edit_topic.html', {'course': course, 'topic': topic, 'form': form})
 
 @login_required
-def view_topic(request, course_slug, topic_id):
+def view_topic(request, course_slug, topic_slug):
     """
     Page to view a discussion topic and reply
     """
     course, view = _get_course_and_view(request, course_slug)
-    topic = get_object_or_404(DiscussionTopic, pk=topic_id, offering=course)
+    topic = get_object_or_404(DiscussionTopic, slug=topic_slug, offering=course)
     if view == 'student' and topic.status == 'HID':
         raise Http404
     replies = DiscussionMessage.objects.filter(topic=topic).order_by('created_at')
@@ -128,7 +128,7 @@ def view_topic(request, course_slug, topic_id):
             message.author = _get_member(request.user.username, view, course_slug)
             message.save()
             messages.add_message(request, messages.SUCCESS, 'Sucessfully replied')
-            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_id': topic.pk}))
+            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic.slug}))
     else:
         form = DiscussionMessageForm()
     context = {'course': course, 'topic': topic, 'replies': replies, 'view': view, 'form': form,
@@ -136,12 +136,12 @@ def view_topic(request, course_slug, topic_id):
     return render(request, 'discuss/topic.html', context)
 
 @login_required
-def change_topic_status(request, course_slug, topic_id):
+def change_topic_status(request, course_slug, topic_slug):
     """
     Form to change the status of a topic
     """
     course, view = _get_course_and_view(request, course_slug)
-    topic = get_object_or_404(DiscussionTopic, pk=topic_id, offering=course)
+    topic = get_object_or_404(DiscussionTopic, slug=topic_slug, offering=course)
     if view is not 'staff':
         return HttpResponseForbidden()
     if request.method == 'POST':
@@ -149,20 +149,20 @@ def change_topic_status(request, course_slug, topic_id):
         if form.is_valid():
             form.save()
             messages.add_message(request, messages.SUCCESS, 'Discussion topic has been successfully changed.')
-            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_id': topic_id}))
+            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic.slug}))
     else:
         form = DiscussionTopicStatusForm(instance=topic)
     return render(request, 'discuss/change_topic.html', {'course': course, 'topic': topic, 'form': form})
 
 
 @login_required()
-def edit_message(request, course_slug, topic_id, message_id):
+def edit_message(request, course_slug, topic_slug, message_slug):
     """
     Form to edit a recently posted reply (5 min window)
     """
     course, view = _get_course_and_view(request, course_slug)
-    topic = get_object_or_404(DiscussionTopic, pk=topic_id, offering=course)
-    message = get_object_or_404(DiscussionMessage, pk=message_id, topic=topic)
+    topic = get_object_or_404(DiscussionTopic, slug=topic_slug, offering=course)
+    message = get_object_or_404(DiscussionMessage, slug=message_slug, topic=topic)
     if not message.author.person.userid == request.user.username:
         return HttpResponseForbidden
     if (datetime.datetime.now() - message.created_at) > datetime.timedelta(minutes = 5):
@@ -173,26 +173,26 @@ def edit_message(request, course_slug, topic_id, message_id):
         if form.is_valid():
             form.save()
             messages.add_message(request, messages.SUCCESS, 'Reply successfully edited.')
-            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_id': topic_id}))
+            return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic.slug}))
     else:
         form = DiscussionMessageForm(instance=message)
     return render(request, 'discuss/edit_reply.html', {'course':course, 'topic': topic, 'message': message, 'form': form})
 
 @login_required
-def remove_message(request ,course_slug, topic_id, message_id):
+def remove_message(request ,course_slug, topic_slug, message_slug):
     """
     POST to remove a topic message
     """
     course, view = _get_course_and_view(request, course_slug)
     if request.method != 'POST':
         raise Http404
-    topic = get_object_or_404(DiscussionTopic, pk=topic_id, offering=course)
-    message = get_object_or_404(DiscussionMessage, pk=message_id, topic=topic)
+    topic = get_object_or_404(DiscussionTopic, slug=topic_slug, offering=course)
+    message = get_object_or_404(DiscussionMessage, slug=message_slug, topic=topic)
     if view == 'staff' or message.author.person.userid == request.user.username:
         message.status = 'HID'
         message.save()
         messages.add_message(request, messages.SUCCESS, 'Reply successfully removed.')
-        return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_id': topic_id}))
+        return HttpResponseRedirect(reverse('discuss.views.view_topic', kwargs={'course_slug': course_slug, 'topic_slug': topic_slug}))
     else:
         return HttpResponseForbidden()
     
