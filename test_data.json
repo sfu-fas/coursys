@@ -64,6 +64,42 @@
  },
  {
   "fields": {
+   "end": "2010-04-12",
+   "name": "1101",
+   "start": "2010-01-07"
+  },
+  "model": "coredata.semester",
+  "pk": 8
+ },
+ {
+  "fields": {
+   "end": "2010-08-02",
+   "name": "1104",
+   "start": "2010-05-06"
+  },
+  "model": "coredata.semester",
+  "pk": 9
+ },
+ {
+  "fields": {
+   "end": "2010-09-12",
+   "name": "1107",
+   "start": "2010-12-07"
+  },
+  "model": "coredata.semester",
+  "pk": 10
+ },
+ {
+  "fields": {
+   "end": "2011-04-12",
+   "name": "1111",
+   "start": "2011-01-07"
+  },
+  "model": "coredata.semester",
+  "pk": 11
+ },
+ {
+  "fields": {
    "monday": "2011-05-09",
    "semester": 1,
    "week": 1
@@ -142,6 +178,42 @@
   },
   "model": "coredata.semesterweek",
   "pk": 9
+ },
+ {
+  "fields": {
+   "monday": "2013-05-06",
+   "semester": 8,
+   "week": 1
+  },
+  "model": "coredata.semesterweek",
+  "pk": 10
+ },
+ {
+  "fields": {
+   "monday": "2013-05-06",
+   "semester": 9,
+   "week": 1
+  },
+  "model": "coredata.semesterweek",
+  "pk": 11
+ },
+ {
+  "fields": {
+   "monday": "2013-05-06",
+   "semester": 10,
+   "week": 1
+  },
+  "model": "coredata.semesterweek",
+  "pk": 12
+ },
+ {
+  "fields": {
+   "monday": "2013-05-06",
+   "semester": 11,
+   "week": 1
+  },
+  "model": "coredata.semesterweek",
+  "pk": 13
  },
  {
   "fields": {
@@ -18968,38 +19040,62 @@
  },
  {
   "fields": {
-   "acad_org": "COMP SCI",
-   "config": "{}",
-   "label": "COMP",
-   "name": "School of Computing Science",
-   "parent": null,
+   "acad_org": "COMP SCI", 
+   "config": "{}", 
+   "label": "COMP", 
+   "name": "School of Computing Science", 
+   "parent": 5, 
    "slug": "comp"
-  },
-  "model": "coredata.unit",
+  }, 
+  "model": "coredata.unit", 
   "pk": 3
- },
+ }, 
  {
   "fields": {
-   "acad_org": "ENG SCI",
-   "config": "{}",
-   "label": "ENG",
-   "name": "School of Engineering Science",
-   "parent": null,
+   "acad_org": "ENG SCI", 
+   "config": "{}", 
+   "label": "ENG", 
+   "name": "School of Engineering Science", 
+   "parent": 5, 
    "slug": "eng"
-  },
-  "model": "coredata.unit",
+  }, 
+  "model": "coredata.unit", 
   "pk": 2
- },
+ }, 
  {
   "fields": {
-   "acad_org": null,
-   "config": "{}",
-   "label": "UNIV",
-   "name": "Simon Fraser University",
-   "parent": null,
+   "acad_org": null, 
+   "config": "{}", 
+   "label": "FAS", 
+   "name": "Faculty of Applied Science", 
+   "parent": 1, 
+   "slug": "fas"
+  }, 
+  "model": "coredata.unit", 
+  "pk": 5
+ }, 
+ {
+  "fields": {
+   "acad_org": "MATHEMATIC", 
+   "config": "{}", 
+   "label": "MATH", 
+   "name": "Department of Mathematics", 
+   "parent": null, 
+   "slug": "math"
+  }, 
+  "model": "coredata.unit", 
+  "pk": 4
+ }, 
+ {
+  "fields": {
+   "acad_org": null, 
+   "config": "{}", 
+   "label": "UNIV", 
+   "name": "Simon Fraser University", 
+   "parent": null, 
    "slug": "unit"
-  },
-  "model": "coredata.unit",
+  }, 
+  "model": "coredata.unit", 
   "pk": 1
  },
  {

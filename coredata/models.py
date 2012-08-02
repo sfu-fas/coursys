@@ -6,6 +6,7 @@ from django.conf import settings
 import datetime, urlparse, decimal
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ValidationError
+from django.core.cache import cache
 from jsonfield import JSONField
 from courselib.json_fields import getter_setter
 from django.utils.safestring import mark_safe
@@ -815,6 +816,38 @@ class Unit(models.Model):
             return self.config['informal_name']
         else:
             return self.name
+    
+    @classmethod
+    def __sub_unit_ids(cls, unitids):
+        """
+        Do the actual work for sub_unit_ids
+        """
+        decendants = set()
+        children = unitids
+        while True:
+            children = Unit.objects.filter(parent__in=children).values('id')
+            children = set(u['id'] for u in children)
+            if not children:
+                break
+            decendants |= children
+        return decendants
+
+    @classmethod
+    def sub_unit_ids(cls, units):
+        """
+        Get the Unit.id values for all decendants of the given list of unit.id values.
+        
+        Cached so we can avoid the work when possible.
+        """
+        unitids = sorted(list(set(u.id for u in units)))
+        key = 'subunits-' + str(unitids)
+        res = cache.get(key)
+        if res:
+            return res
+        else:
+            res = Unit.__sub_unit_ids(unitids)
+            cache.set(key, res, 24*3600)
+            return res
 
 
 ROLE_CHOICES = (

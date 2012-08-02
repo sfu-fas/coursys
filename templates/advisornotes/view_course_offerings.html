@@ -43,7 +43,6 @@ $(function() {
 <table class="display courses">
     <thead>
         <tr>
-            <th class="semester"><abbr title="Semester">Sem.</abbr></th>
             <th class="subject"><abbr title="Course Subject">Sub.</abbr></th>
             <th class="number"><abbr title="Course Number">#</abbr></th>
             <th class="number"><abbr title="Course Section">Sec.</abbr></th>
@@ -55,7 +54,6 @@ $(function() {
     <tbody>
         {% for offering in offerings %}
         <tr>
-            <td>{{ offering.semester.name }}</td>
             <td>{{ offering.subject }}</td>
             <td>{{ offering.number }}</td>
             <td>{{ offering.section }}</td>

@@ -3,7 +3,7 @@ from advisornotes.forms import StudentSearchForm, NoteSearchForm, NonStudentForm
     ProblemStatusForm, EditArtifactNoteForm
 from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote,\
     Problem, OPEN_STATUSES, CLOSED_STATUSES
-from coredata.models import Person, Course, CourseOffering, Semester
+from coredata.models import Person, Course, CourseOffering, Semester, Unit
 from coredata.queries import find_person, add_person, more_personal_info, more_course_info, \
     SIMSProblem
 from courselib.auth import requires_role, HttpResponseRedirect, \
@@ -438,8 +438,9 @@ def view_courses(request):
     View to view all courses
     """
     # all courses where a recent offering was owned by relevant units
+    subunits = Unit.sub_unit_ids(request.units)
     old_sem = Semester.get_semester(datetime.date.today()-datetime.timedelta(days=365*2))
-    offerings = CourseOffering.objects.filter(owner__in=request.units, semester__name__gte=old_sem.name) \
+    offerings = CourseOffering.objects.filter(owner__in=subunits, semester__name__gte=old_sem.name) \
                                       .values('course').order_by().distinct()
 
     # all courses where there are notes from relevant units
@@ -504,7 +505,8 @@ def view_course_offerings(request, semester=None):
         semester = Semester.get_semester(date=datetime.date.today() + datetime.timedelta(days=60))
         semesters = Semester.objects.order_by('-end')
 
-    offerings = CourseOffering.objects.filter(owner__in=request.units, semester=semester)
+    subunits = Unit.sub_unit_ids(request.units)
+    offerings = CourseOffering.objects.filter(owner__in=subunits, semester=semester)
     return render(request,
         'advisornotes/view_course_offerings.html',
         {'offerings': offerings, 'semester': semester, 'semesters': semesters}

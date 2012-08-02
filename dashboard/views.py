@@ -832,7 +832,10 @@ def photo_agreement(request):
         form = PhotoAgreementForm(request.POST)
         if form.is_valid():
             config.value['agree'] = form.cleaned_data['agree']
-            config.value['version'] = 1
+            if config.value['agree']:
+                config.value['version'] = 1
+                config.value['at'] = datetime.datetime.now().isoformat()
+                config.value['from'] = request.META['REMOTE_ADDR']
             config.save()
             messages.add_message(request, messages.SUCCESS, 'Updated your photo agreement status.')
             return HttpResponseRedirect(reverse('dashboard.views.config'))
