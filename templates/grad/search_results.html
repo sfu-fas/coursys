@@ -2,6 +2,7 @@
 {% load getattribute %}
 
 {% block headextra %}
+<link rel="stylesheet" href="{{MEDIA_URL}}style/print.css" media="print" />
 <script type="text/javascript">
 	$(document).ready(function() {
 		$('#grads').dataTable({
@@ -43,7 +44,7 @@ width: 120px;
 
 {% block content %}
 
-<form id="searchform" action="{% url grad.views.save_search %}" method="post">{% csrf_token %}
+<form id="searchform" action="{% url grad.views.save_search %}" method="post" class="noprint">{% csrf_token %}
 <p>
 {{ saveform.person }}{{ saveform.query }}{{ saveform.name.label }} {{ saveform.name }}
 
@@ -61,7 +62,7 @@ width: 120px;
             {% for c in human_readable_column_headers %}
                 <th>{{ c }}</th>
             {% endfor %}
-				<th>Manage</th>
+				<th class="noprint">Manage</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -70,7 +71,7 @@ width: 120px;
             {% for c in columns %}
                 <td>{{s|getattribute:c}}</td>
             {% endfor %}
-                <td><a href="{% url grad.views.view grad_slug=s.slug %}">View</a></td>
+                <td class="noprint"><a href="{% url grad.views.view grad_slug=s.slug %}">View</a></td>
             </tr>
 			{% endfor %}
 		</tbody>

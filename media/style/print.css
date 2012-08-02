@@ -1,0 +1,43 @@
+@CHARSET "UTF-8";
+/* hide the SFU/site style */
+
+#header, #sideItems #sysmenu, #sideItems #breadcrumbs, #topLinks, #actions, #footer,
+#tugReview, #banner, #globalNav {
+	display:none;
+}
+div#sideItems {
+	border-left: none;
+	padding: 0;
+}
+
+body {
+	font-family: serif;
+    background: none;
+    border: none;
+}
+
+#absWrapper {
+    width: auto;
+}
+
+#container {
+    width: auto;
+	background-image: none;
+	border-top: none;
+	padding: 0;
+}
+
+div#main {
+	border-left: 0;
+	padding: 0;
+}
+
+/* hide things on page that shouldn't be printed */
+
+.noprint {
+	display: none;
+}
+
+.datatable_container .ui-widget-header, .DataTables_sort_icon {
+	display: none;
+}

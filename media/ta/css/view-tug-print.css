@@ -1,29 +1,14 @@
 @CHARSET "UTF-8";
 /* print style for tug form */
 
-#header, #sideItems, #topLinks, #actions, #footer,
- #tugReview, #banner, #globalNav {
-	display:none;
-}
-
-
-body {
-	font-family: serif;
-    background: none;
-    border: none;
-}
-
-#absWrapper {
-    width: auto;
-}
+@import url("/media/style/print.css");
 
 #container {
-    width: auto;
-	background-image: none;
-	border-top: none;
-/*	padding: none;*/
     padding-left:  0.5in;
     padding-right: 0.5in;
+}
+#sideItems {
+	display: none;
 }
 
 #tugPrintHeader {

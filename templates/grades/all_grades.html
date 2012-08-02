@@ -5,6 +5,7 @@
 {% block h1 %}{{ course.name }} Grades{% endblock %}
 
 {% block grades_headextra %}
+<link rel="stylesheet" href="{{MEDIA_URL}}style/print.css" media="print" />
 <script type="text/javascript">
     $(document).ready(function() {
 	// activate dataTable ui
@@ -48,7 +49,7 @@
 {% endblock %}
 
 {% block content %}
-<p><a class="button" onclick="toggle_more()" id="toggle_more" title="Displays grade statuses and indicates comments.">More info</a></p>
+<p class="noprint"><a class="button" onclick="toggle_more()" id="toggle_more" title="Displays grade statuses and indicates comments.">More info</a></p>
 <div class="datatable_container bigdatatable">
     <table class="display" id="student_grades">
         <thead>
