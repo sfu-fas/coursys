@@ -1,10 +1,12 @@
-from advisornotes.models import AdvisorNote
+from advisornotes.models import AdvisorNote, Problem
 from coredata.models import Role, Person, Unit
 from dashboard.models import UserConfig
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
+from django.db.models import Q
 import base64
 import json
+import datetime
 
 def _validate_credentials(data):
     try:
@@ -97,6 +99,56 @@ def _create_advising_problems(data, person):
             raise ValidationError("No problems present")
     except KeyError:
         raise ValidationError("No problems present")
+    
+    for problem in problems:
+        comments = None
+        try:
+            emplid = problem['emplid']
+            code = problem['code']
+            description = problem['description']
+            unit = problem['unit']
+            resolution_lasts = problem['resolution_lasts']
+            
+            if not isinstance(emplid, int) or not isinstance(resolution_lasts, int):
+                raise ValidationError("Problem emplid & resolution_lasts must be integers")
+            try:
+                student = Person.objects.get(emplid=emplid)
+            except Person.DoesNotExist:
+                raise ValidationError("Emplid '%d' doesn't exist" % emplid)
+            if not resolution_lasts > 0:
+                raise ValidationError("Resolution_lasts must be greater than zero") 
+            
+            if not isinstance(code, basestring) or not isinstance(description, basestring):
+                raise ValidationError("Problem code & description must be strings")
+            if len(code) > 30 or len(description) > 50:
+                raise ValidationError("Problem code & description must be less than or equal to 30 & 50 characters respectively")
+            
+            try:
+                unit = Unit.objects.get(label=unit)
+            except Unit.DoesNotExist:
+                raise ValidationError("Unit '%s' does not exist" % unit)
+            
+            if 'comments' in problem:
+                comments = problem['comments']
+                if not isinstance(comments, basestring):
+                    raise ValidationError("Problem comments must be a string")
+        
+        except KeyError:
+            raise ValidationError("Necessary fields not present in problem")
+        
+        
+        current = Problem.objects.filter(Q(resolved_until__gte=datetime.date.today()) | Q(resolved_until__isnull=True)
+                                         , person=student, code=code, unit=unit)
+        if len(current) is 0:
+            problem = Problem()
+            problem.person = student
+            problem.code = code
+            problem.description = description
+            problem.comments = comments
+            problem.resolution_lasts = resolution_lasts
+            problem.unit = unit
+            problem.save()
+        
      
         
 def new_advisor_notes(post_data):

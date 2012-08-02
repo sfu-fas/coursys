@@ -1,0 +1,22 @@
+{
+	"person": "probadmin",
+	"secret": "30378700c0091f34412ec9a082dca268",
+	"unit": "COMP",
+	"problems": [
+		{
+		"emplid": 200000172,
+		"code": "Deceased",
+		"description": "You get the idea",
+		"unit": "COMP",
+		"resolution_lasts": 90
+		},
+		{
+		"emplid": 200000172,
+		"code": "Annoying",
+		"description": "You get the idea",
+		"unit": "COMP",
+		"resolution_lasts": 90,
+		"comments": "Always bugs people"
+		}
+	]
+}

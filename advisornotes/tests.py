@@ -3,7 +3,7 @@ from django.test.client import Client
 from django.core.urlresolvers import reverse
 from settings import CAS_SERVER_URL
 from coredata.models import Person, Unit
-from advisornotes.models import NonStudent, AdvisorNote
+from advisornotes.models import NonStudent, AdvisorNote, Problem
 from courselib.testing import basic_page_tests
 from dashboard.models import UserConfig
 from django.test.testcases import TransactionTestCase
@@ -341,3 +341,125 @@ class AdvistorNotesAPITest(TransactionTestCase):
         response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
         self.assertEqual(response.status_code, 422)
         self.assertEqual(response.content, "Invalid base64 data for note file attachment")
+        
+    def test_rest_notes_no_problems(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_no_problems.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, "No problems present")
+        
+    def test_rest_notes_problems_not_list(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_problems_not_list.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, "Problems not in list format")
+        
+    def test_rest_notes_problems_empty(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_problems_empty.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, "No problems present")
+        
+    def test_rest_notes_problem_fields_missing(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_problem_fields_missing.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, "Necessary fields not present in problem")
+        
+        
+    def test_rest_notes_problem_emplid_not_int(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_problem_emplid_not_int.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, "Problem emplid & resolution_lasts must be integers")
+    
+    def test_rest_notes_problem_emplid_invalid(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_problem_emplid_invalid.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, "Emplid '123' doesn't exist")
+        
+    def test_rest_notes_problem_resolution_zero(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_problem_resolution_zero.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, "Resolution_lasts must be greater than zero")
+        
+    def test_rest_notes_problem_code_not_string(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_problem_code_not_string.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, "Problem code & description must be strings")
+        
+    def test_rest_notes_problem_description_too_long(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_problem_description_too_long.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, "Problem code & description must be less than or equal to 30 & 50 characters respectively")
+        
+    def test_rest_notes_problem_unit_invalid(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_problem_unit_invalid.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, "Unit 'NOTREAL' does not exist")
+        
+    def test_rest_notes_problem_comments_not_string(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_problem_comments_not_string.json')
+        data = f.read()
+        f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, "Problem comments must be a string")
+        
+    def test_rest_notes_problem_already_exists(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_problem_already_exists.json')
+        data = f.read()
+        f.close()
+        before_count = len(Problem.objects.filter(person__emplid=200000172))
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        after_count = len(Problem.objects.filter(person__emplid=200000172))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(before_count, after_count, "Shouldn't duplicate problem")
+        
+    def test_rest_notes_problems_successful(self):
+        client = Client()
+        f = open('advisornotes/testfiles/rest_notes_problems_successful.json')
+        data = f.read()
+        f.close()
+        before_count = len(Problem.objects.filter(person__emplid=200000172))
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
+        after_count = len(Problem.objects.filter(person__emplid=200000172))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(before_count + 1, after_count, "Only one problem should have been created")
