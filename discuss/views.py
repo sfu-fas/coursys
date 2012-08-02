@@ -179,7 +179,7 @@ def edit_message(request, course_slug, topic_slug, message_slug):
     return render(request, 'discuss/edit_reply.html', {'course':course, 'topic': topic, 'message': message, 'form': form})
 
 @login_required
-def remove_message(request ,course_slug, topic_slug, message_slug):
+def remove_message(request, course_slug, topic_slug, message_slug):
     """
     POST to remove a topic message
     """

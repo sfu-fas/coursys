@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load grade_student %}
+{% load form_display %}
 {% block title %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
 {% block h1 %}{{ course.subject }} {{ course.number }} Discussion{% endblock %}
 
@@ -13,9 +13,8 @@
 <li>
 	&gt; <a href="{% url discuss.views.view_topic course_slug=course.slug topic_slug=topic.slug %}">View Topic</a>
 </li>
-	&gt; Manage Topic
 <li>
-	
+	&gt; Manage Topic	
 </li>
 {% endblock %}
 
@@ -24,13 +23,8 @@
 	<form action="{% url discuss.views.change_topic_status course_slug=course.slug topic_slug=topic.slug %}" method="post">{% csrf_token %}
 		<fieldset>
 			<legend>Manage Topic</legend>
-			<ul>
-				{{ form.status|activity_field }}
-				{{ form.pinned|activity_field }}
-				<li>
-					<input class="submit" type="submit" value="Submit" />
-				</li>
-			</ul>
+			{{ form|as_dl }}
+			<p><input class="submit" type="submit" value="Submit" /></p>
 		</fieldset>
 	</form>
 </div>
