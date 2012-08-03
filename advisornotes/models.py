@@ -72,7 +72,7 @@ class AdvisorNote(models.Model):
     advisor = models.ForeignKey(Person, related_name='advisor',
                                 help_text='The advisor that created the note',
                                 editable=False)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=datetime.datetime.now)
     file_attachment = models.FileField(storage=NoteSystemStorage, null=True,
                       upload_to=attachment_upload_to, blank=True, max_length=500)
     file_mediatype = models.CharField(null=True, blank=True, max_length=200, editable=False)

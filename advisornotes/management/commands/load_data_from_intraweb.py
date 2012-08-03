@@ -30,8 +30,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         
-        #print "Loading AMAINT user-ID mappings." 
-        #coredata.importer.update_amaint_userids()
+        print "Loading AMAINT user-ID mappings." 
+        coredata.importer.update_amaint_userids()
         
         unit = Unit.objects.get(label=options['unit'])
         cursor = connect_and_cursor( options )
@@ -165,6 +165,7 @@ def notes( unit, cursor, non_students_by_imaginary_emplid ):
             continue
 
         if not advisor:
+            print "Advisor " + advisor_userid + " not found. Using dzhao."
             advisor = coredata.queries.get_person_by_userid( 'dzhao' )
 
         a = AdvisorNote(text=unicode(notes, 'latin-1'), advisor=advisor, created_at=timestamp , unit=unit )
@@ -183,6 +184,7 @@ def notes( unit, cursor, non_students_by_imaginary_emplid ):
             a.save()
         else:
             print a, " already exists. "
+            pass
 
 
 def find_or_generate_student( emplid, non_students_by_imaginary_emplid ):
