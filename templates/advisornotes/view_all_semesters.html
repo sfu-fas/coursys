@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}Course Offerings{% endblock %}
+{% block h1 %}Course Offerings{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(function() {
+  $('.semesters').dataTable( {
+    'aaSorting': [[ 0, "desc" ]],
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': true,
+    'bJQueryUI': true,
+    'bFilter': false
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li>
+<li>&gt; <a href="{% url advisornotes.views.view_course_offerings %}">Course Offerings</a></li>
+<li>&gt; All Semesters</li>
+{% endblock %}
+
+{% block content %}
+
+{% if semesters %}
+<h2>All Semesters</h2>
+
+<div class="semesters-container">
+    <table class="display semesters">
+        <thead>
+            <tr>
+                <th>Sem.</th>
+                <th>Label</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for semester in semesters %}
+            <tr>
+                <td>{{ semester.name }}</td>
+                <td><a href="{% url advisornotes.views.view_course_offerings semester=semester.name %}">{{ semester }}</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% endblock %}

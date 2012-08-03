@@ -26454,7 +26454,7 @@
  },
  {
   "fields": {
-   "category": "SCH",
+   "category": "INS",
    "config": "{}",
    "name": "University of British Columbia",
    "slug": "comp-university-of-british-columbia",
@@ -26465,7 +26465,7 @@
  },
  {
   "fields": {
-   "category": "SCH",
+   "category": "INS",
    "config": "{}",
    "name": "University of Victoria",
    "slug": "comp-university-of-victoria",
@@ -26476,7 +26476,7 @@
  },
  {
   "fields": {
-   "category": "SCH",
+   "category": "INS",
    "config": "{}",
    "name": "University of Western Washington",
    "slug": "comp-university-of-western-washington",

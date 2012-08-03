@@ -159,7 +159,7 @@ def new_note(request, userid):
             if isinstance(student, Person) and form.cleaned_data['email_student']:
                 _email_student_note(note)
                 note.emailed = True
-                
+
             note.save()
             #LOG EVENT#
             l = LogEntry(userid=request.user.username,
@@ -167,7 +167,7 @@ def new_note(request, userid):
                   related_object=form.instance)
             l.save()
             messages.add_message(request, messages.SUCCESS, 'Note created.')
-            
+
             return _redirect_to_notes(student)
     else:
         form = advisor_note_factory(student)
@@ -233,19 +233,19 @@ def new_artifact_note(request, unit_course_slug=None, course_slug=None, artifact
 def edit_artifact_note(request, note_id, unit_course_slug=None, course_slug=None, artifact_slug=None):
     note = get_object_or_404(ArtifactNote, id=note_id)
     related = course = offering = artifact = None
-    
+
     form = EditArtifactNoteForm(instance=note)
-    
+
     if unit_course_slug != None:
         related = course = Course.objects.get(slug=unit_course_slug)
     elif course_slug != None:
         related = offering = CourseOffering.objects.get(slug=course_slug)
     else:
         related = artifact = Artifact.objects.get(slug=artifact_slug)
-    
+
     if request.method == 'POST':
         form = EditArtifactNoteForm(request.POST, request.FILES, instance=note)
-        
+
         if form.is_valid():
             note = form.save(commit=False)
             note.save()
@@ -263,7 +263,7 @@ def edit_artifact_note(request, note_id, unit_course_slug=None, course_slug=None
                 return HttpResponseRedirect(reverse('advisornotes.views.view_offering_notes', kwargs={'course_slug': offering.slug}))
             else:
                 return HttpResponseRedirect(reverse('advisornotes.views.view_artifact_notes', kwargs={'artifact_slug': artifact.slug}))
-    
+
     return render(request, 'advisornotes/edit_artifact_note.html',
         {'form': form, 'note': note, 'related': related, 'artifact': artifact, 'course': course, 'offering': offering})
 
@@ -285,7 +285,7 @@ def student_notes(request, userid):
     if isinstance(student, Person):
         notes = AdvisorNote.objects.filter(student=student, unit__in=request.units).order_by("-created_at")
         problems = Problem.objects.filter(person=student, unit__in=request.units).order_by("-created_at")
-        models = list(itertools.chain(notes, problems))    
+        models = list(itertools.chain(notes, problems))
         models.sort(key=lambda x: x.created_at, reverse=True)
         items = []
         for model in models:
@@ -432,6 +432,7 @@ def view_artifact_notes(request, artifact_slug):
         {'artifact': artifact, 'notes': notes, 'important_notes': important_notes}
     )
 
+
 @requires_role('ADVS')
 def view_courses(request):
     """
@@ -439,7 +440,7 @@ def view_courses(request):
     """
     # all courses where a recent offering was owned by relevant units
     subunits = Unit.sub_unit_ids(request.units)
-    old_sem = Semester.get_semester(datetime.date.today()-datetime.timedelta(days=365*2))
+    old_sem = Semester.get_semester(datetime.date.today() - datetime.timedelta(days=365 * 2))
     offerings = CourseOffering.objects.filter(owner__in=subunits, semester__name__gte=old_sem.name) \
                                       .values('course').order_by().distinct()
 
@@ -451,7 +452,7 @@ def view_courses(request):
     course_ids = set(o['course'] for o in offerings)
     course_ids |= with_note_ids
     courses = Course.objects.filter(id__in=course_ids)
-    
+
     return render(request,
         'advisornotes/view_courses.html',
         {'courses': courses, 'with_note_ids': with_note_ids}
@@ -480,14 +481,14 @@ def course_more_info(request, unit_course_slug):
     AJAX request for calendar description, etc. (queries SIMS directly)
     """
     course = get_object_or_404(Course, slug=unit_course_slug)
-    
+
     try:
         data = more_course_info(course)
         if not data:
             data = {'error': 'Could not find course to fetch more info.'}
     except SIMSProblem as e:
         data = {'error': e.message}
-    
+
     response = HttpResponse(mimetype='application/json')
     json.dump(data, response)
     return response
@@ -503,13 +504,25 @@ def view_course_offerings(request, semester=None):
         semesters = None
     else:
         semester = Semester.get_semester(date=datetime.date.today() + datetime.timedelta(days=60))
-        semesters = Semester.objects.order_by('-end')
+        semesters = Semester.objects.filter(start__lte=datetime.date.today() + datetime.timedelta(days=365)).order_by('-end')[:6]
 
     subunits = Unit.sub_unit_ids(request.units)
     offerings = CourseOffering.objects.filter(owner__in=subunits, semester=semester)
     return render(request,
         'advisornotes/view_course_offerings.html',
         {'offerings': offerings, 'semester': semester, 'semesters': semesters}
+    )
+
+
+@requires_role('ADVS')
+def view_all_semesters(request):
+    """
+    View to view all semesters
+    """
+    semesters = Semester.objects.all()
+    return render(request,
+        'advisornotes/view_all_semesters.html',
+        {'semesters': semesters}
     )
 
 
@@ -600,9 +613,10 @@ def rest_notes(request):
     except ValidationError as e:
         transaction.rollback()
         return HttpResponse(content=e.messages[0], status=422)
-    
+
     transaction.commit()
     return HttpResponse(status=200)
+
 
 @requires_role('ADVS')
 def view_problems(request):
@@ -612,6 +626,7 @@ def view_problems(request):
     problems = Problem.objects.filter(unit__in=request.units, status__in=OPEN_STATUSES)
     return render(request, 'advisornotes/view_problems.html', {'problems': problems})
 
+
 @requires_role('ADVS')
 def view_resolved_problems(request):
     """
@@ -619,6 +634,7 @@ def view_resolved_problems(request):
     """
     problems = Problem.objects.filter(unit__in=request.units, status__in=CLOSED_STATUSES)
     return render(request, 'advisornotes/view_resolved_problems.html', {'problems': problems})
+
 
 @requires_role('ADVS')
 def edit_problem(request, prob_id):
