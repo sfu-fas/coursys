@@ -29,22 +29,17 @@ class GradProgram(models.Model):
     def __unicode__ (self):
         return u"%s" % (self.label)
 
-APPLICATION_STATUS_CHOICES = (
-        ('INCO', 'Incomplete'),
-        ('COMP', 'Complete'),
-        ('INRE', 'In-Review'),
-        ('HOLD', 'Hold'),
-        ('OFFO', 'Offer Out'),
-        ('REJE', 'Rejected'),
-        ('DECL', 'Declined Offer'),
-        ('EXPI', 'Expired'),
-        ('CONF', 'Confirmed'),
-        ('CANC', 'Cancelled'),
-        ('UNKN', 'Unknown'),
-        )
-# order: In-Review, rej/dec? , expired, cancelled, confirmed, unknown
 STATUS_CHOICES = (
-        ('APPL', 'Applicant'),
+        ('INCO', 'Incomplete Application'),
+        ('COMP', 'Complete Application'),
+        ('INRE', 'Application In-Review'),
+        ('HOLD', 'Hold Application'),
+        ('OFFO', 'Offer Out'),
+        ('REJE', 'Rejected Application'),
+        ('DECL', 'Declined Offer'),
+        ('EXPI', 'Expired Application'),
+        ('CONF', 'Confirmed Acceptance'),
+        ('CANC', 'Cancelled Acceptance'),
         ('ACTI', 'Active'),
         ('PART', 'Part-Time'),
         ('LEAV', 'On-Leave'),
@@ -54,9 +49,10 @@ STATUS_CHOICES = (
         ('GONE', 'Gone'),
         ('ARSP', 'Completed Special'), # Special Arrangements and GONE
         )
+STATUS_APPLICANT = ('INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'REJE', 'DECL', 'EXPI', 'CONF', 'CANC') # statuses that mean "applicant"
 STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
-STATUS_INACTIVE = ('LEAV', 'WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "not here"
 STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "done"
+STATUS_INACTIVE = ('LEAV',) + STATUS_DONE # statuses that mean "not here"
 
 class GradStudent(models.Model):
     person = models.ForeignKey(Person, help_text="Type in student ID or number.", null=False, blank=False, unique=False)
@@ -77,7 +73,6 @@ class GradStudent(models.Model):
     passport_issued_by = models.CharField(max_length=25, blank=True, help_text="I.e. US, China")
     special_arrangements = models.NullBooleanField(verbose_name='Special Arrgmnts')
     comments = models.TextField(max_length=250, blank=True, help_text="Additional information.")
-    application_status = models.CharField(max_length=4, choices=APPLICATION_STATUS_CHOICES, default='UNKN')
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')

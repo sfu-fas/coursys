@@ -19170,7 +19170,6 @@
  },
  {
   "fields": {
-   "application_status": "CONF",
    "campus": "GNWC",
    "comments": "",
    "config": "{}",
@@ -19193,7 +19192,6 @@
  },
  {
   "fields": {
-   "application_status": "CONF",
    "campus": "SURRY",
    "comments": "",
    "config": "{}",
@@ -19216,7 +19214,6 @@
  },
  {
   "fields": {
-   "application_status": "REJE",
    "campus": "SURRY",
    "comments": "",
    "config": "{}",
@@ -19239,7 +19236,6 @@
  },
  {
   "fields": {
-   "application_status": "CONF",
    "campus": "GNWC",
    "comments": "",
    "config": "{}",
@@ -19262,7 +19258,6 @@
  },
  {
   "fields": {
-   "application_status": "CONF",
    "campus": "BRNBY",
    "comments": "",
    "config": "{}",
@@ -19285,7 +19280,6 @@
  },
  {
   "fields": {
-   "application_status": "CONF",
    "campus": "METRO",
    "comments": "",
    "config": "{}",
@@ -19308,7 +19302,6 @@
  },
  {
   "fields": {
-   "application_status": "CONF",
    "campus": "BRNBY",
    "comments": "",
    "config": "{}",
@@ -19331,7 +19324,6 @@
  },
  {
   "fields": {
-   "application_status": "REJE",
    "campus": "GNWC",
    "comments": "",
    "config": "{}",
@@ -19354,7 +19346,6 @@
  },
  {
   "fields": {
-   "application_status": "CONF",
    "campus": "METRO",
    "comments": "",
    "config": "{}",
@@ -19377,7 +19368,6 @@
  },
  {
   "fields": {
-   "application_status": "CONF",
    "campus": "OFFST",
    "comments": "",
    "config": "{}",
@@ -19400,7 +19390,6 @@
  },
  {
   "fields": {
-   "application_status": "CONF",
    "campus": "OFFST",
    "comments": "",
    "config": "{}",
@@ -19423,7 +19412,6 @@
  },
  {
   "fields": {
-   "application_status": "CONF",
    "campus": "METRO",
    "comments": "",
    "config": "{}",
@@ -19446,7 +19434,6 @@
  },
  {
   "fields": {
-   "application_status": "CONF",
    "campus": "BRNBY",
    "comments": "",
    "config": "{}",
@@ -19469,7 +19456,6 @@
  },
  {
   "fields": {
-   "application_status": "CONF",
    "campus": "METRO",
    "comments": "",
    "config": "{}",
@@ -19492,7 +19478,6 @@
  },
  {
   "fields": {
-   "application_status": "CONF",
    "campus": "SURRY",
    "comments": "",
    "config": "{}",
@@ -19515,7 +19500,6 @@
  },
  {
   "fields": {
-   "application_status": "CONF",
    "campus": "SURRY",
    "comments": "",
    "config": "{}",
@@ -19538,7 +19522,6 @@
  },
  {
   "fields": {
-   "application_status": "DECL",
    "campus": "BRNBY",
    "comments": "",
    "config": "{}",
@@ -19561,7 +19544,6 @@
  },
  {
   "fields": {
-   "application_status": "CONF",
    "campus": "VANCR",
    "comments": "",
    "config": "{}",
@@ -19584,7 +19566,6 @@
  },
  {
   "fields": {
-   "application_status": "CONF",
    "campus": "SURRY",
    "comments": "",
    "config": "{}",
@@ -19607,7 +19588,6 @@
  },
  {
   "fields": {
-   "application_status": "CONF",
    "campus": "GNWC",
    "comments": "",
    "config": "{}",
@@ -19630,7 +19610,6 @@
  },
  {
   "fields": {
-   "application_status": "CONF",
    "campus": "BRNBY",
    "comments": "",
    "config": "{}",
@@ -19653,7 +19632,6 @@
  },
  {
   "fields": {
-   "application_status": "CONF",
    "campus": "OFFST",
    "comments": "",
    "config": "{}",
@@ -19676,7 +19654,6 @@
  },
  {
   "fields": {
-   "application_status": "CONF",
    "campus": "SURRY",
    "comments": "",
    "config": "{}",
@@ -19699,7 +19676,6 @@
  },
  {
   "fields": {
-   "application_status": "CONF",
    "campus": "OFFST",
    "comments": "",
    "config": "{}",
@@ -19722,7 +19698,6 @@
  },
  {
   "fields": {
-   "application_status": "DECL",
    "campus": "METRO",
    "comments": "",
    "config": "{}",
@@ -19745,7 +19720,6 @@
  },
  {
   "fields": {
-   "application_status": "DECL",
    "campus": "BRNBY",
    "comments": "",
    "config": "{}",

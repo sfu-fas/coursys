@@ -170,7 +170,7 @@ class BaseSupervisorsFormSet(BaseModelFormSet):
 class GradAcademicForm(ModelForm):
     class Meta: 
         model = GradStudent
-        fields = ('program', 'research_area', 'campus', 'english_fluency', 'mother_tongue', 'is_canadian', 'passport_issued_by', 'special_arrangements', 'application_status', 'comments')
+        fields = ('program', 'research_area', 'campus', 'english_fluency', 'mother_tongue', 'is_canadian', 'passport_issued_by', 'special_arrangements', 'comments')
         widgets = {
                    'research_area': forms.Textarea(attrs={'rows': 3, 'cols': 40}),
                    }
@@ -178,7 +178,6 @@ class GradAcademicForm(ModelForm):
 class GradProgramForm(ModelForm):
     class Meta:
         model = GradProgram
-        exclude = ('created_by', 'modified_by' )        
         
 class GradStudentForm(ModelForm):
     class Meta:
@@ -338,7 +337,6 @@ COLUMN_CHOICES = (
         ('campus',                  'Campus'),
         ('start_semester',          'Start Semester'),
         ('end_semester',            'End Semester'),
-        ('application_status',      'Application Status'),
         ('current_status',          'Current Status'),
         ('senior_supervisors',      'Senior Supervisor(s)'),
         ('completed_req',           'Completed Requirements'),
@@ -360,9 +358,6 @@ class SearchForm(forms.Form):
     
     student_status = forms.MultipleChoiceField(gradmodels.STATUS_CHOICES,
             required=False, help_text="Student's current status"
-            )
-    application_status = forms.MultipleChoiceField(gradmodels.APPLICATION_STATUS_CHOICES, 
-            required=False, help_text="Student's current application status"
             )
     
     program = forms.ModelMultipleChoiceField(GradProgram.objects.all(), required=False)

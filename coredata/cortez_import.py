@@ -126,20 +126,20 @@ class GradImport(object):
 
     # cortez -> coursys status values
     STATUS_MAP = {
-                  'Incomplete': 'APPL',
-                  'Partial': 'APPL',
-                  'Expired': 'APPL',
-                  'Complete': 'APPL', # TODO: confirm that "Complete" is really about the application
-                  'Received': 'APPL', # TODO: confirm that "Received" is really about the application
-                  'Hold(-)': 'APPL',
-                  'Hold(+)': 'APPL',
-                  'To Be Offered': 'APPL',
-                  'OfferOut': 'APPL',
-                  'Confirmed': 'APPL',
-                  'Refused': 'APPL',
-                  'Canceled': 'APPL',
-                  'DeclinedOffer': 'APPL',
-                  'Rejected': 'APPL',
+                  'Incomplete': 'INCO',
+                  'Partial': 'INCO',
+                  'Expired': 'EXPI',
+                  'Complete': 'COMP',
+                  'Received': 'COMP',
+                  'Hold(-)': 'HOLD',
+                  'Hold(+)': 'HOLD',
+                  'To Be Offered': 'OFFO',
+                  'OfferOut': 'OFFO',
+                  'Confirmed': 'CONF',
+                  'Refused': 'REJE', # TODO: is that reasonable?
+                  'Canceled': 'CANC',
+                  'DeclinedOffer': 'DECL',
+                  'Rejected': 'REJE',
                   'Active': 'ACTI',
                   'PartTime': 'PART',
                   'OnLeave': 'LEAV',
@@ -147,24 +147,7 @@ class GradImport(object):
                   'Withdrawn': 'WIDR',
                   'ArchiveSP': 'ARSP',
                   }
-    # cortez status -> coursys application_status values
-    APP_STATUS_MAP = {
-                      'Incomplete': 'INCO',
-                      'Expired': 'INCO',
-                      'Partial': 'INCO',
-                      'Received': 'INCO',
-                      'Complete': 'COMP',
-                      'Hold(-)': 'HOLD',
-                      'Hold(+)': 'HOLD',
-                      'To Be Offered': 'HOLD',
-                      'OfferOut': 'OFFO',
-                      'Confirmed': 'CONF',
-                      'DeclinedOffer': 'DECL',
-                      'Refused': 'DECL', # TODO: is this different from DECL or REJE?
-                      'Rejected': 'REJE',
-                      'Canceled': 'REJE', # TODO: is this different from REJE?
-                      } 
-    
+
     def __init__(self):
         self.db = CortezConn()
         self.db.execute("USE [grad]", ())
@@ -467,8 +450,8 @@ class GradImport(object):
                     continue
 
                 # grab most-recent applicant status for the GradStudent
-                if status in self.APP_STATUS_MAP:
-                    app_st = self.APP_STATUS_MAP[status]
+                #if status in self.APP_STATUS_MAP:
+                #    app_st = self.APP_STATUS_MAP[status]
 
                 # create/update GradStatus
                 sts = GradStatus.objects.filter(student=gs, status=self.STATUS_MAP[status], start=sem)
