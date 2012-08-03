@@ -244,20 +244,20 @@ class PromiseForm(ModelForm):
     end_semester = StaffSemesterField()
     class Meta:
         model = Promise
-        exclude = ('student',)
+        exclude = ('student','removed')
       
 class ScholarshipForm(ModelForm):
     start_semester = StaffSemesterField()
     end_semester = StaffSemesterField()
     class Meta:
         model = Scholarship
-        exclude = ('student',)
+        exclude = ('student','removed')
 
 class OtherFundingForm(ModelForm):
     semester = StaffSemesterField()
     class Meta:
         model = OtherFunding
-        exclude = ('student',)
+        exclude = ('student', 'removed')
 
                 
 class new_scholarshipTypeForm(ModelForm):

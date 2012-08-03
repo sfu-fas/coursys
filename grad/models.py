@@ -472,15 +472,25 @@ class CompletedRequirement(models.Model):
 
 
 STATUS_ORDER = {
-        'APPL': 0,
-        'ACTI': 1,
-        'PART': 1,
-        'LEAV': 2,
-        'WIDR': 3,
-        'GRAD': 3,
-        'NOND': 2,
-        'GONE': 3,
-        'ARSP': 3,
+        'INCO': 0,
+        'COMP': 0,
+        'INRE': 1,
+        'HOLD': 1,
+        'OFFO': 2,
+        'REJE': 3,
+        'DECL': 3,
+        'EXPI': 3,
+        'CONF': 4,
+        'CANC': 5,
+        'APPL': 5,
+        'ACTI': 6,
+        'PART': 6,
+        'LEAV': 7,
+        'NOND': 7,
+        'WIDR': 8,
+        'GRAD': 8,
+        'GONE': 8,
+        'ARSP': 8,
         }
 class GradStatus(models.Model):
     """

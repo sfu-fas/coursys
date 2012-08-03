@@ -1012,6 +1012,19 @@ class RAImport(object):
                     'Kori Inkpen': 200028805,
                     'Qiang Yang': 555002793,
                     }
+    FIXED_EMPLIDS = {
+                     '20010417': '200110417',
+                     '735605032': '200116277',
+                     '500197419': '301020541',
+                     '30109792': '301097926',
+                     '30108973': '301089730',
+                     '731385563': '913018430',
+                     '30101368': '301013608',
+                     '743394652': '301071447',
+                     '97301125': '973011255',
+                     '500197854': '301040373',
+                     '30112745': '301127458',
+                     }
     
     def __init__(self):
         self.db = CortezConn()
@@ -1027,8 +1040,9 @@ class RAImport(object):
         if not emplid or emplid in ['new', 'n/a']:
             # TODO: do what with them?
             return
-        if emplid=='20010417':
-            emplid = '200110417'
+        if emplid in self.FIXED_EMPLIDS:
+            emplid = self.FIXED_EMPLIDS[emplid]
+        
         p = add_person(emplid, commit=True, get_userid=False)
         if not p:
             print "No SIMS record found for RA %s" % (emplid)
@@ -1110,13 +1124,9 @@ class RAImport(object):
             ra.pay_periods = 1
             ra.hourly_pay = lumpsumamount
             ra.hours = 1
-            #print lumpsumamount
         else:
             raise ValueError, str(salarytype)
 
-        #print ra
-        #print ra.__dict__
-        #print
         ra.save()
 
     def get_ras(self):
@@ -1147,8 +1157,8 @@ class RAImport(object):
 
 if __name__ == '__main__':
     #Introspection().print_schema()
-    update_amaint_userids()
-    TAImport().get_tas()
-    RAImport().get_ras()
+    #update_amaint_userids()
+    #TAImport().get_tas()
+    #RAImport().get_ras()
     GradImport().get_students()
 
