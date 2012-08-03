@@ -1,4 +1,11 @@
-from optparse import make_option
+"""
+This is the script used to load legacy data from Intraweb's advising system 
+into Coursys' advising system.
+
+It requires a working SSH tunnel to Intraweb,
+as well as a working SSH tunnel to CSRPT. 
+
+"""
 
 from django.core.management.base import BaseCommand, CommandError
 from django.db.utils import IntegrityError
@@ -8,8 +15,17 @@ import coredata.importer
 from advisornotes.models import NonStudent, AdvisorNote
 from django.db import transaction
 
-import MySQLdb
 import datetime
+from optparse import make_option
+
+import MySQLdb
+from BeautifulSoup import BeautifulSoup
+
+def strip_html_unicode(note):
+    """ Strip the HTML from a block of text. 
+
+    Also, incidentally, converts it to Unicode. """
+    return ' '.join(BeautifulSoup(note).findAll(text=True))
 
 class Command(BaseCommand):
     """ Usage: 
@@ -168,7 +184,7 @@ def notes( unit, cursor, non_students_by_imaginary_emplid ):
             print "Advisor " + advisor_userid + " not found. Using dzhao."
             advisor = coredata.queries.get_person_by_userid( 'dzhao' )
 
-        a = AdvisorNote(text=unicode(notes, 'latin-1'), advisor=advisor, created_at=timestamp , unit=unit )
+        a = AdvisorNote(text=strip_html_unicode(notes), advisor=advisor, created_at=timestamp , unit=unit )
         
         if type(student) == type( NonStudent() ):
             a.nonstudent = student
