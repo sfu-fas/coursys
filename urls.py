@@ -154,6 +154,8 @@ urlpatterns += patterns('',
     url(r'^' + COURSE_SLUG + '/students/' + USERID_SLUG + '$', 'grades.views.student_info'),
         url(r'^m/' + COURSE_SLUG + '/students/' + USERID_SLUG + '$', 'mobile.views.student_info'),
         url(r'^m/' + COURSE_SLUG + '/search/$', 'mobile.views.student_search'),
+    url(r'^' + COURSE_SLUG + '/export', 'grades.views.export_all'),
+
     url(r'^' + COURSE_ACTIVITY_SLUG + '$', 'grades.views.activity_info'),
         url(r'^m/' + COURSE_ACTIVITY_SLUG + '$', 'mobile.views.activity_info'),
     url(r'^' + COURSE_ACTIVITY_SLUG + '/stat$', 'grades.views.activity_stat'),

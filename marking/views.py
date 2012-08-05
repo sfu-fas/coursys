@@ -1499,19 +1499,9 @@ def _export_mark_dict(m):
     mdict['overall_comment'] = m.overall_comment
     
     return mdict
-    
 
-@requires_course_staff_by_slug
-def export_marks(request, course_slug, activity_slug):
-    """
-    Import JSON marking data
-    """
-    course = get_object_or_404(CourseOffering, slug=course_slug)
-    acts = all_activities_filter(course, slug=activity_slug)
-    if len(acts) != 1:
-        raise Http404('No such Activity.')
-    activity = acts[0]
-    
+
+def _mark_export_data(activity):
     data = []
     found = set()
     marks = StudentActivityMark.objects.filter(numeric_grade__activity=activity).order_by('-created_at')
@@ -1533,6 +1523,20 @@ def export_marks(request, course_slug, activity_slug):
         mdict['group'] = ident
         data.append(mdict)
     
+    return data
+
+@requires_course_staff_by_slug
+def export_marks(request, course_slug, activity_slug):
+    """
+    Export JSON marking data
+    """
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    acts = all_activities_filter(course, slug=activity_slug)
+    if len(acts) != 1:
+        raise Http404('No such Activity.')
+    activity = acts[0]
+    
+    data = _mark_export_data(activity)
     response = HttpResponse(mimetype='application/json')
     response['Content-Disposition'] = 'inline; filename=%s-%s.json' % (course.slug, activity.slug)
     

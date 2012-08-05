@@ -1129,12 +1129,11 @@ def all_grades(request, course_slug):
     context = {'course': course, 'students': students, 'activities': activities, 'grades': grades}
     return render_to_response('grades/all_grades.html', context, context_instance=RequestContext(request))
 
-@requires_course_staff_by_slug
-def all_grades_csv(request, course_slug):
-    course = get_object_or_404(CourseOffering, slug=course_slug)
+
+def _all_grades_output(response, course):
     activities = all_activities_filter(offering=course)
     students = Member.objects.filter(offering=course, role="STUD").select_related('person')
-    
+
     # get grade data into a format we can work with
     grades = {}
     for a in activities:
@@ -1146,9 +1145,7 @@ def all_grades_csv(request, course_slug):
         for g in gs:
             grades[a.slug][g.member.person.userid] = g
     
-    response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=%s.csv' % (course_slug)
-    
+    # output results
     writer = csv.writer(response)
     row = ['Last name', 'First name', Person.userid_header(), Person.emplid_header()]
     for a in activities:
@@ -1171,7 +1168,15 @@ def all_grades_csv(request, course_slug):
                 g = ''
             row.append(g)
         writer.writerow(row)
-        
+
+@requires_course_staff_by_slug
+def all_grades_csv(request, course_slug):
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+    
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=%s.csv' % (course_slug)
+    
+    _all_grades_output(response, course)        
     return response
 
 @requires_course_staff_by_slug
@@ -1291,4 +1296,52 @@ def student_info(request, course_slug, userid):
     context = {'course': course, 'member': member, 'grade_info': grade_info, 'group_memberships': group_memberships}
     return render_to_response('grades/student_info.html', context, context_instance=RequestContext(request))
 
+
+@requires_course_staff_by_slug
+def export_all(request, course_slug):
+    """
+    Export everything we can about this offering
+    """
+    import StringIO, tempfile, zipfile, os, json
+    from django.core.servers.basehttp import FileWrapper
+    from marking.views import _mark_export_data, _DecimalEncoder
+    from submission.models import generate_submission_contents
+
+    course = get_object_or_404(CourseOffering, slug=course_slug)
+
+    handle, filename = tempfile.mkstemp('.zip')
+    os.close(handle)
+    z = zipfile.ZipFile(filename, 'w')
+        
+    # add all grades CSV
+    allgrades = StringIO.StringIO()
+    _all_grades_output(allgrades, course)    
+    z.writestr("grades.csv", allgrades.getvalue())
+    allgrades.close()
+    
+    # add marking data
+    acts = all_activities_filter(course)
+    for a in acts:
+        if ActivityComponent.objects.filter(numeric_activity=a):
+            markingdata = _mark_export_data(a)
+            markout = StringIO.StringIO()
+            json.dump({'marks': markingdata}, markout, cls=_DecimalEncoder, indent=1)
+            z.writestr(a.slug + "-marking.json", markout.getvalue())
+    
+    # add submissions
+    acts = all_activities_filter(course)
+    for a in acts:
+        if SubmissionComponent.objects.filter(activity=a):
+            generate_submission_contents(a, z, prefix=a.slug+'-submissions' + os.sep)
+
+    # return the zip file
+    z.close()
+    zipdata = open(filename, 'rb')
+    response = HttpResponse(FileWrapper(zipdata), mimetype='application/zip')
+    response['Content-Disposition'] = 'attachment; filename=' + course.slug + ".zip"
+    try:
+        os.remove(filename)
+    except OSError:
+        pass
+    return response
 

@@ -197,14 +197,10 @@ def _add_submission_to_zip(zipf, submission, components, prefix=""):
         zipf.writestr(fn, "Submission was made at %s.\n\nThat is %s after the due date of %s.\n" %
             (submission.created_at, submission.created_at - submission.activity.due_date, submission.activity.due_date))
 
-def generate_activity_zip(activity):
+def generate_submission_contents(activity, z, prefix=''):
     """
-    Return a zip file with all (current) submissions for the activity
+    add of of the submissions for this activity to the ZipFile z
     """
-    handle, filename = tempfile.mkstemp('.zip')
-    os.close(handle)
-    z = zipfile.ZipFile(filename, 'w')
-    
     # build dictionary of all most recent submissions by student userid/group slug
     if activity.group:
         submissions = GroupSubmission.objects.filter(activity=activity).order_by('created_at').select_related('activity','group')
@@ -228,7 +224,7 @@ def generate_activity_zip(activity):
         last_sub = max([s.created_at for s in submission])
         sub_time[slug] = last_sub
         submitted_components = get_all_submission_components(submission, activity, component_list=component_list)
-        _add_submission_to_zip(z, submission[-1], submitted_components, prefix=slug)
+        _add_submission_to_zip(z, submission[-1], submitted_components, prefix=prefix+slug)
     
     # produce summary of submission datetimes
     slugs = sub_time.keys()
@@ -238,9 +234,19 @@ def generate_activity_zip(activity):
     summarycsv.writerow([Person.userid_header(), "Last Submission"])
     for s in slugs:
         summarycsv.writerow([s, sub_time[s].strftime("%Y/%m/%d %H:%M:%S")])
-    z.writestr("summary.csv", summarybuffer.getvalue())
+    z.writestr(prefix+"summary.csv", summarybuffer.getvalue())
     summarybuffer.close()
 
+
+def generate_activity_zip(activity, prefix=''):
+    """
+    Return a zip file with all (current) submissions for the activity
+    """
+    handle, filename = tempfile.mkstemp('.zip')
+    os.close(handle)
+    z = zipfile.ZipFile(filename, 'w')
+    
+    generate_submission_contents(activity, z, prefix=prefix)
     z.close()
 
     file = open(filename, 'rb')
