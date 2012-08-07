@@ -1355,6 +1355,8 @@ hr.fieldsep {
   clear: both;
   width: 0;
   margin: 0.5em;
+  color: #fff;
+  border: none;
 }
 div#form_container>form>ul>li {
   list-style-type: none;

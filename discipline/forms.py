@@ -10,6 +10,8 @@ from submission.models import StudentSubmission, GroupSubmission
 import itertools
 import datetime
 
+INPUT_WIDTH = 70
+
 class DisciplineGroupForm(forms.ModelForm):
     students = forms.MultipleChoiceField(choices=[], required=False, widget=forms.SelectMultiple(attrs={'size': 15}))
     
@@ -61,7 +63,7 @@ class TemplateForm(forms.ModelForm):
     class Meta:
         model = DisciplineTemplate
         widgets = {
-            'text': forms.Textarea(attrs={'cols':'80', 'rows':'20'}),
+            'text': forms.Textarea(attrs={'cols':INPUT_WIDTH, 'rows':'20'}),
         }
 
 
@@ -74,8 +76,8 @@ class CaseNotesForm(forms.ModelForm):
         model = DisciplineCaseBase
         fields = ("notes", "notes_public")
         widgets = {
-            'notes': forms.Textarea(attrs={'cols':'80', 'rows':'15'}),
-            'notes_public': forms.Textarea(attrs={'cols':'80', 'rows':'15'}),
+            'notes': forms.Textarea(attrs={'cols':INPUT_WIDTH, 'rows':'15'}),
+            'notes_public': forms.Textarea(attrs={'cols':INPUT_WIDTH, 'rows':'15'}),
         }
 class CaseContactedForm(forms.ModelForm):
     def clean(self):
@@ -98,7 +100,7 @@ class CaseContactedForm(forms.ModelForm):
         fields = ("contacted", "contact_date", "contact_email_text")
         widgets = {
             'contacted': forms.RadioSelect(),
-            'contact_email_text': forms.Textarea(attrs={'cols':'80', 'rows':'15'}),
+            'contact_email_text': forms.Textarea(attrs={'cols':INPUT_WIDTH, 'rows':'15'}),
         }
 class CaseResponseForm(forms.ModelForm):
     class Meta:
@@ -120,15 +122,15 @@ class CaseMeetingForm(forms.ModelForm):
         model = DisciplineCaseBase
         fields = ("meeting_date", "meeting_summary", "meeting_notes")
         widgets = {
-            'meeting_summary': forms.Textarea(attrs={'cols':'80', 'rows':'10'}),
-            'meeting_notes': forms.Textarea(attrs={'cols':'80', 'rows':'10'}),
+            'meeting_summary': forms.Textarea(attrs={'cols':INPUT_WIDTH, 'rows':'10'}),
+            'meeting_notes': forms.Textarea(attrs={'cols':INPUT_WIDTH, 'rows':'10'}),
         }
 class CaseFactsForm(forms.ModelForm):
     class Meta:
         model = DisciplineCaseBase
         fields = ("facts",)
         widgets = {
-            'facts': forms.Textarea(attrs={'cols':'80', 'rows':'20'}),
+            'facts': forms.Textarea(attrs={'cols':INPUT_WIDTH, 'rows':'20'}),
         }
 class CasePenaltyForm(forms.ModelForm):
     class Meta:
@@ -136,7 +138,7 @@ class CasePenaltyForm(forms.ModelForm):
         fields = ("penalty", "refer", "penalty_reason")
         widgets = {
             'penalty': forms.RadioSelect(),
-            'penalty_reason': forms.Textarea(attrs={'cols':'80', 'rows':'10'}),
+            'penalty_reason': forms.Textarea(attrs={'cols':INPUT_WIDTH, 'rows':'10'}),
         }
 class CaseLetterReviewForm(forms.ModelForm):
     def clean_letter_review(self):
@@ -209,7 +211,7 @@ class CaseChairNotesForm(forms.ModelForm):
         model = DisciplineCase
         fields = ("chair_notes",)
         widgets = {
-            'chair_notes': forms.Textarea(attrs={'cols':'80', 'rows':'20'}),
+            'chair_notes': forms.Textarea(attrs={'cols':INPUT_WIDTH, 'rows':'20'}),
         }
 class CaseChairMeetingForm(forms.ModelForm):
     def clean_chair_meeting_date(self):
@@ -222,15 +224,15 @@ class CaseChairMeetingForm(forms.ModelForm):
         model = DisciplineCase
         fields = ("chair_meeting_date", "chair_meeting_summary", "chair_meeting_notes")
         widgets = {
-            'chair_meeting_summary': forms.Textarea(attrs={'cols':'80', 'rows':'10'}),
-            'chair_meeting_notes': forms.Textarea(attrs={'cols':'80', 'rows':'10'}),
+            'chair_meeting_summary': forms.Textarea(attrs={'cols':INPUT_WIDTH, 'rows':'10'}),
+            'chair_meeting_notes': forms.Textarea(attrs={'cols':INPUT_WIDTH, 'rows':'10'}),
         }
 class CaseChairFactsForm(forms.ModelForm):
     class Meta:
         model = DisciplineCase
         fields = ("chair_facts",)
         widgets = {
-            'chair_facts': forms.Textarea(attrs={'cols':'80', 'rows':'20'}),
+            'chair_facts': forms.Textarea(attrs={'cols':INPUT_WIDTH, 'rows':'20'}),
         }
 class CaseChairPenaltyForm(forms.ModelForm):
     class Meta:
@@ -238,7 +240,7 @@ class CaseChairPenaltyForm(forms.ModelForm):
         fields = ("chair_penalty", "refer_ubsd", "chair_penalty_reason")
         widgets = {
             'chair_penalty': forms.RadioSelect(),
-            'chair_penalty_reason': forms.Textarea(attrs={'cols':'80', 'rows':'10'}),
+            'chair_penalty_reason': forms.Textarea(attrs={'cols':INPUT_WIDTH, 'rows':'10'}),
         }
 class CaseChairLetterReviewForm(forms.ModelForm):
     def clean_letter_review(self):
