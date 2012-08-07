@@ -555,6 +555,7 @@ def activity_marks_from_JSON(activity, userid, data):
     activity_marks = []
     activity_component_marks = []
     numeric_grades = []
+    found = set()
     combine = False # are we combining these marks with existing (as opposed to overwriting)?
     if 'combine' in data and bool(data['combine']):
         combine = True
@@ -583,6 +584,11 @@ def activity_marks_from_JSON(activity, userid, data):
             recordid = markdata['userid']
         else:
             raise ValidationError(u'Must specify "userid" or "group" for mark.')
+
+        # check for duplicates in import
+        if recordid in found:
+            raise ValidationError(u'Duplicate marks for "%s".' % (recordid))
+        found.add(recordid)
 
         if combine:
             # if we're being asked to combine with old marks, get the old one (if exists)
