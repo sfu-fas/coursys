@@ -411,7 +411,8 @@ def take_ownership_and_mark(request, course_slug, activity_slug, userid=None, gr
         response = HttpResponseRedirect(reverse(marking_student, args=[course_slug, activity_slug, userid]) + urlencode)
         #if it is taken by someone not me, show a confirm dialog
         if request.GET.get('confirm') == None:
-            if submission and submission.owner and submission.owner.person.userid != request.user.username:
+            # check disabled until such time as it can be fixed
+            if False and submission and submission.owner and submission.owner.person.userid != request.user.username:
                 return _override_ownership_confirm(request, course, activity, userid, None, submission.owner.person, urlencode[1:])
 
         if submission:
