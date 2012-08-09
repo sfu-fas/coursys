@@ -3,10 +3,23 @@
 {% block title %}Dishonesty Case for {{case.student.name}}: Letter{% endblock %}
 {% block h1 %}Dishonesty Case for {{case.student.name}}: Letter{% endblock %}
 
+{% block headextra %}
+<link rel="stylesheet" href="{{MEDIA_URL}}style/print.css" media="print" />
+<style media="print">
+h1, div#messages {
+	display: none;
+}
+div.letter {
+	margin: 0;
+	border: none;
+}
+</style>
+{% endblock %}
+
 {% block subbreadcrumbs %}<li>&gt; <a href="{% url grades.views.course_info course_slug=course.slug %}">{{ course.name }}</a></li><li>&gt; {% if is_student %}Discipline Cases {% else %}<a href="{% url discipline.views.index course_slug=course.slug %}">Discipline Cases</a> {% endif %}</li><li>&gt; {% if is_student %}Case for {{case.student.name}} {% else %}<a href="{% url discipline.views.show course_slug=course.slug case_slug=case.slug %}">Case for {{case.student.name}}</a> {% endif %}</li><li>&gt; Letter</li>{% endblock %}
 
 {% block content %}
-<p>The following letter was sent from the instructor regarding this case:</p>
+<p class="noprint">The following letter was sent from the instructor regarding this case:</p>
 <div class="letter">{{case.letter_text|safe}}</div>
 <h2 id="attach">Attached Files</h2>
     <p>These files were attached to the email sent:</p>

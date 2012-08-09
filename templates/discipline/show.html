@@ -66,10 +66,10 @@ Suggested next step is to <a href="{{case.next_step_url}}">{{case.next_step_text
 <div class="showcase">
 <h2 id="notes">Notes</h2>
 <dl>
-<dt>Case Notes (public)</dt>
-<dd>{{case|edit_link:'notes_public'}}{{case|format_field:'notes_public'}}</dd>
 <dt>Case Notes (private)</dt>
 <dd>{{case|edit_link:'notes'}}{{case|format_field:'notes'}}</dd>
+<dt>Case Notes (public)</dt>
+<dd>{{case|edit_link:'notes_public'}}{{case|format_field:'notes_public'}}</dd>
 <dt>Related Items (private)</dt>
 <dd>{{case|edit_link:'related'}}
 <ul>{% for ro in case.relatedobject_set.all %}
