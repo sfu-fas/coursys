@@ -13,6 +13,9 @@ div#main h3 {
 dfn, var {
   font-style: italic;
 }
+code, tt {
+  font-family: monospace;
+}
 blockquote {
 	margin: 1em 2.5em;
 }
