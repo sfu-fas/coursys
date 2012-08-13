@@ -126,7 +126,9 @@ Column logic:
 	    <a href="{% url marking.views.manage_activity_components course_slug=course.slug,activity_slug=activity.slug%}">Configure Marking</a>
 	    {% endif %}
 	    </li>
+	    {% if sub_comps %}
 	    <li><a href="{% url submission.views.download_activity_files course_slug=course.slug, activity_slug=activity.slug%}">Download Submissions</a></li>
+	    {% endif %}
 	    {% endif %}
 	    
 	    {% if not activity.is_calculated %}

@@ -53,11 +53,11 @@
         	<tbody>
             		<tr>
                 		<th class="ui-state-default">Mean Grade</th>
-                		<td>{{ activity_stat.average }}</td>
+                		<td>{{ activity_stat.average }} / {{activity.max_grade}}</td>
             		</tr>
             		<tr>
            		     	<th class="ui-state-default">Median Grade</th>
-                		<td>{{ activity_stat.median }}</td>
+                		<td>{{ activity_stat.median }} / {{activity.max_grade}}</td>
             		</tr>
             		<tr>
                 		<th class="ui-state-default">Standard Deviation</th>
@@ -65,11 +65,11 @@
             		</tr>
             		<tr>
                 		<th class="ui-state-default">Minimum Grade</th>
-                		<td>{{ activity_stat.min }}</td>
+                		<td>{{ activity_stat.min }} / {{activity.max_grade}}</td>
             		</tr>
             		<tr>
                 		<th class="ui-state-default">Maximum Grade</th>
-                		<td>{{ activity_stat.max }}</td>
+                		<td>{{ activity_stat.max }} / {{activity.max_grade}}</td>
             		</tr>
             		<tr>
                 		<th class="ui-state-default">Grades Received</th>
