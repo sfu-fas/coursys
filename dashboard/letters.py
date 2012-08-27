@@ -8,12 +8,13 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont  
 from reportlab.lib.colors import CMYKColor
 from reportlab.lib.enums import TA_JUSTIFY, TA_LEFT
+from django.conf import settings
 import os, datetime
 from dashboard.models import Signature
 
 PAPER_SIZE = letter
 black = CMYKColor(0, 0, 0, 1)
-media_path = os.path.join('external', 'sfu')
+media_path = os.path.join(settings.PROJECT_DIR, 'external', 'sfu')
 logofile = os.path.join(media_path, 'logo.png')
 
 from reportlab.platypus.doctemplate import PageTemplate, BaseDocTemplate

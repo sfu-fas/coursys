@@ -5,9 +5,11 @@ DEBUG = hostname != 'courses'
 TEMPLATE_DEBUG = DEBUG
 DEPLOYED = hostname == 'courses'
 
+PROJECT_DIR = os.path.normpath(os.path.dirname(__file__))
+
 # add ./external directory to search path so we find modules there
-sys.path.append( os.path.dirname(__file__) )
-sys.path.append( os.path.join(os.path.dirname(__file__), 'external') )
+sys.path.append( PROJECT_DIR )
+sys.path.append( os.path.join(PROJECT_DIR, 'external') )
 
 ADMINS = (
     ('Greg Baker', 'ggbaker@sfu.ca'),
@@ -84,10 +86,8 @@ TEST_RUNNER="courselib.testrunner.AdvancedTestSuiteRunner"
 TEST_EXCLUDE = ('django',)
 
 TEMPLATE_DIRS = (
-    'templates',
+    os.path.join(PROJECT_DIR, 'templates'),
 )
-if DEPLOYED:
-    TEMPLATE_DIRS = TEMPLATE_DIRS + ('/home/ggbaker/courses/templates',)
 
 INSTALLED_APPS = (
     'django.contrib.auth',

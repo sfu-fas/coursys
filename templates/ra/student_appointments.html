@@ -58,6 +58,16 @@
           <th class="ui-state-default">Email Address</th>
           <td>{{ student.email_mailto }}</td>
         </tr>
+        {% if grads %}
+        <tr>
+          <th class="ui-state-default">Financial Summary</th>
+          <td>
+          	{% for gs in grads %}
+            <a href="{% url grad.views.financials grad_slug=gs.slug %}">{{ gs.program.label }}</a>
+            {% endfor %}
+          </td>
+        </tr>        
+        {% endif %}
       </tbody>
     </table>
   </div>

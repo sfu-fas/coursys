@@ -52,10 +52,13 @@ class NonStudent(models.Model):
         return "%s, %s" % (self.last_name, self.first_name)
 
     def search_label_value(self):
-        return "%s (Prospective)" % (self.name())
+        return "%s (Prospective %s)" % (self.name(), self.start_year)
+
+    def unique_tuple(self):
+        return (self.first_name, self.middle_name, self.last_name, self.pref_first_name, self.high_school)
 
     def __hash__(self):
-        return (self.first_name, self.middle_name, self.last_name, self.pref_first_name, self.high_school).__hash__()
+        return self.unique_tuple().__hash__()
 
 
 class AdvisorNote(models.Model):
@@ -102,9 +105,12 @@ class AdvisorNote(models.Model):
         """
         _, filename = os.path.split(self.file_attachment.name)
         return filename
-
+    
+    def unique_tuple(self):
+        return ( make_slug(self.text[0:100]), self.created_at.isoformat() )
+    
     def __hash__(self):
-        return (self.text, self.created_at, self.file_attachment).__hash__()
+        return self.unique_tuple().__hash__()
 
 
 ARTIFACT_CATEGORIES = (

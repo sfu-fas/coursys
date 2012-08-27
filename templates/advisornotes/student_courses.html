@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Current Courses for {{ student.first_name}} {{ student.last_name }}{% endblock %}
+{% block h1 %}Current Courses for {{ student.first_name}} {{ student.last_name }}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li>
+<li>&gt; <a href="{% url advisornotes.views.student_notes userid=userid %}">{{ student.name }}</a></li>
+<li>&gt; Courses</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li class="showtitle"><a href="javascript:show_titles();">Show Course Titles</a></li>
+        <li class="coursetitle"><a href="javascript:hide_titles();">Hide Course Titles</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
+<script type="text/javascript" src="{{MEDIA_URL}}js/advisornotes.js"></script>
+<script type="text/javascript">//<![CDATA[
+	function show_titles() {
+		$('.coursetitle').show();
+		$('.showtitle').hide();
+	}
+	function hide_titles() {
+		$('.coursetitle').hide();
+		$('.showtitle').show();
+	}
+
+	var course_data;
+	function display_data(data) {
+		//console.log(data);
+
+		var elt = $('#coursecontent');
+		if (data['error']) {
+			var res = '<p class="empty">Could not fetch data: ' + data['error'] + '.</p>';
+			elt.html(res);
+			return;
+		}
+		course_data = data;
+		elt.html('');
+		
+		/* transfer credits */
+		var html = '';
+		html += '<h2 id="transfer">Transfer Credits</h2><table class="courses">';
+		
+		$(data.transfers).each(function(i, trns){
+			html += '<tr><td>' + trns.subject + ' ' + trns.catalog_nbr + ' <span class="coursetitle">(' + trns.descr + ')</span></td><td>' + trns.units + '</td>';
+			html += '<td>' + trns.grade + '</td><td>' + trns.repeat + '</td><td>' + trns.src + '</td><td>' + trns.req + '</td></tr>';
+		});
+		html += '</table>';
+		elt.append(html);
+
+		/* semesters and courses */
+		$(data.semesters).each(function(i, sem){
+			html = '';
+			html += '<h2 id="s-' + sem.strm + '">' + sem.semname + ' (' + sem.career;
+			if (sem.standing) {
+				html += ', ' + sem.standing;
+			}
+			html += ')</h2>';
+			html += '<table class="courses">';
+			$(sem.courses).each(function(j, crs) {
+				html += '<tr><td>' + crs.subject + ' ' + crs.number + ' <span class="coursetitle">(' + crs.descr + ')</span></td><td>' + crs.unit_taken + '</td>'
+				html += '<td>' + crs.grade + '</td><td>' + crs.repeat + '</td><td>' + crs.req + '</td></tr>';
+			});
+			html += '</table>';
+			elt.append(html);
+			
+			html = '';
+			html += '<p>Term GPA: ' + sem.tgpa + '; CGPA: ' + sem.cgpa;
+			if (sem.udgpa) {
+				html += '; UDGPA: ' + sem.udgpa;
+			}
+			html += '</p>';
+			elt.append(html);
+		});
+	}
+
+	var data_url = '{% url advisornotes.views.student_courses_data userid=userid %}';
+    $(document).ready(function() {
+    	$.ajax({
+        	url: data_url,
+        	success: display_data,
+	        error: function(jqXHR, textStatus, errorThrown) {
+				res = '<p class="empty">Could not contact server to check for student data.</p>';
+				$('#coursecontent').html(res);
+        	},
+
+   		});
+ 	});
+//]]></script>
+<style type="text/css">
+table.courses, table.courses td, table.courses th {
+	border: none;
+}
+table.courses td {
+	padding-left: 2em;
+}
+.coursetitle {
+	display: none;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="messages"><ul><li class="warning">Many things are wrong here. Do not rely on any of this data until this page is complete.</li></ul></div>
+
+<div id="coursecontent"><img src="{{MEDIA_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" /></div>
+
+
+{% endblock content %}

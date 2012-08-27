@@ -8,11 +8,12 @@ from django.views.decorators.cache import cache_page
 from django.views.decorators.gzip import gzip_page
 from django.conf import settings
 from django.contrib import messages
-from coredata.models import Member, CourseOffering, Person, Role, Semester, MeetingTime
+from coredata.models import Member, CourseOffering, Person, Role, Semester, MeetingTime, Holiday
 from grades.models import Activity, NumericActivity
 from courselib.auth import requires_course_staff_by_slug, NotFoundResponse,\
     has_role, ForbiddenResponse
 from courselib.search import find_userid_or_emplid
+from courselib.slugs import make_slug
 from dashboard.models import NewsItem, UserConfig, Signature, new_feed_token
 from dashboard.forms import MessageForm, FeedSetupForm, NewsConfigForm, SignatureForm, PhotoAgreementForm
 from grad.models import GradStudent, Supervisor, STATUS_ACTIVE
@@ -275,6 +276,8 @@ def _meeting_colour(mt):
         return "#378006"
 def _activity_colour(a):
     return "#800606"
+def _holiday_colour(h):
+    return "#060680"
 
 
 def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
@@ -285,6 +288,32 @@ def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
     memberships = Member.objects.filter(person=user, offering__graded=True).exclude(role="DROP").exclude(role="APPR") \
             .filter(offering__semester__start__lte=end, offering__semester__end__gte=start-datetime.timedelta(days=30))
             # start - 30 days to make sure we catch exam/end of semester events
+
+    # holidays and cancellations
+    cancellations = set() # days when classes cancelled
+    for h in Holiday.objects.filter(date__gte=start, date__lte=end):
+        if h.holiday_type in ['FULL', 'CLAS']:
+            cancellations.add(h.date)
+
+        ident = "holiday-" + str(h.id) + "-" + h.date.strftime("%Y%m%d") + "@courses.cs.sfu.ca"
+        title = "%s (%s)" % (h.description, h.get_holiday_type_display())
+        dt = h.date
+        if dt_string:
+            dt = dt.isoformat()
+        
+        e = {
+            'id': ident,
+            'title': title,
+            'start': dt,
+            'end': dt,
+            'allDay': True,
+            'category': 'HOLIDAY',
+            }
+        
+        if colour:
+            e['color'] = _holiday_colour(h)
+        yield e
+
 
     # map of offering_id -> this student's lab section (so we only output the right one)
     labsecs = dict(((m.offering_id, m.labtut_section) for m in memberships))
@@ -303,8 +332,10 @@ def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
             en = local_tz.localize(datetime.datetime.combine(date, mt.end_time))
             if en < start or st > end:
                 continue
-
-            ident = mt.offering.slug.replace("-","") + "-" + str(mt.id) + "-" + st.strftime("%Y%m%dT%H%M%S") + "@courses.cs.sfu.ca"
+            if st.date() in cancellations:
+                continue
+            
+            ident = mt.offering.slug.replace("-","") + "-" + str(mt.id) + "-" + st.strftime("%Y%m%dT%H%M%S") + "-1@courses.cs.sfu.ca"
             assert ident not in used_ids
             used_ids.add(ident)
             title = mt.offering.name() + " " + mt.get_meeting_type_display()
@@ -337,7 +368,7 @@ def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
             if en < start or st > end:
                 continue
             
-            ident = a.offering.slug.replace("-","") + "-" + str(a.id) + "-" + a.slug.replace("-","") + "-" + a.due_date.strftime("%Y%m%dT%H%M%S") + "@courses.cs.sfu.ca"
+            ident = a.offering.slug.replace("-","") + "-" + str(a.id) + "-" + a.slug.replace("-","") + "-" + a.due_date.strftime("%Y%m%dT%H%M%S") + "-1@courses.cs.sfu.ca"
             assert ident not in used_ids
             used_ids.add(ident)
             title = '%s: %s due' % (a.offering.name(), a.name)
@@ -358,7 +389,13 @@ def _calendar_event_data(user, start, end, local_tz, dt_string, colour=False,
             if colour:
                 e['color'] = _activity_colour(a)
             yield e
+    
 
+def _ical_datetime(utc, dt):
+    if isinstance(dt, datetime.datetime):
+        return utc.normalize(dt.astimezone(utc))
+    else:
+        return dt
 
 #@cache_page(60*60*6)
 def calendar_ical(request, token, userid):
@@ -390,13 +427,18 @@ def calendar_ical(request, token, userid):
         e = Event()
         e['uid'] = str(data['id'])
         e.add('summary', data['title'])
-        st = utc.normalize(data['start'].astimezone(utc))
-        en = utc.normalize(data['end'].astimezone(utc))
-        e.add('dtstart', st)
-        e.add('dtend', en)
+        e.add('dtstart', _ical_datetime(utc, data['start']))
+        e.add('dtend', _ical_datetime(utc, data['end']))
+        if isinstance(data['start'], datetime.date):
+            # holidays shouldn't be "busy" on calendars
+            e.add('transp', 'TRANSPARENT')
+
         # spec says no TZID on UTC times
-        del e['dtstart'].params['TZID']
-        del e['dtend'].params['TZID']
+        if 'TZID' in e['dtstart'].params:
+            del e['dtstart'].params['TZID']
+        if 'TZID' in e['dtend'].params:
+            del e['dtend'].params['TZID']
+        
         e.add('categories', data['category'])
         if 'url' in data:
             e.add('url', data['url'])
@@ -436,7 +478,7 @@ def calendar_data(request):
     resp = HttpResponse(mimetype="application/json")
     events = _calendar_event_data(user, start, end, local_tz, dt_string=True, colour=True,
             due_before=datetime.timedelta(minutes=1), due_after=datetime.timedelta(minutes=30))
-    json.dump(list(events), resp)
+    json.dump(list(events), resp, indent=1)
     return resp
 
 

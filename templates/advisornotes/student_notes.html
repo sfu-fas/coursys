@@ -3,12 +3,9 @@
 {% block h1 %}Advising Notes for {{ student.first_name}} {{ student.last_name }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>
-    &gt; <a href="{% url advisornotes.views.advising %}">Advising</a>
-</li>
-<li>
-    &gt; Notes for {{ student.first_name }} {{ student.last_name }}
-</li>{% endblock %}
+<li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li>
+<li>&gt; {{ student.name }}</li>
+{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
@@ -39,18 +36,15 @@
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        <li>
-            <a href="{% url advisornotes.views.new_note userid=userid%}">New Note</a>
-        </li>
+        <li><a href="{% url advisornotes.views.new_note userid=userid%}">New Note</a></li>
         {% if not nonstudent %}
+        <!--<li><a href="{% url advisornotes.views.student_courses userid=userid%}">View Current Courses</a></li>-->
         <li id="moreinfo">
             <a href="javascript:get_more_info('{% url advisornotes.views.student_more_info userid=userid %}')">Fetch more info <img src="{{MEDIA_URL}}icons/ajax-loader.gif" alt="..." id="fetchwait" style="display:none" /></a>
         </li>
         {% endif %}
         {% if nonstudent %}
-        <li>
-            <a href="{% url advisornotes.views.merge_nonstudent nonstudent_slug=student.slug %}">Merge with existing student</a>
-        </li>
+        <li><a href="{% url advisornotes.views.merge_nonstudent nonstudent_slug=student.slug %}">Merge with existing student</a></li>
         {% endif %}
     </ul>
 </div>
@@ -70,7 +64,7 @@
             </tr>
             <tr>
                 <th class="ui-state-default">Middle Name</th>
-                <td>{{ student.middle_name|default:"--" }} </td>
+                <td>{{ student.middle_name|default:"—" }} </td>
             </tr>
             <tr>
                 <th class="ui-state-default">Student Number</th>

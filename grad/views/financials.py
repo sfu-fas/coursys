@@ -12,7 +12,7 @@ get_semester = Semester.get_semester
 
 @login_required
 def financials(request, grad_slug):
-    grad, _ = _can_view_student(request, grad_slug)
+    grad, _ = _can_view_student(request, grad_slug, funding=True)
     if grad is None:
         return ForbiddenResponse(request)
 

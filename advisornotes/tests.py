@@ -113,7 +113,7 @@ class AdvistorNotestest(TestCase):
     def test_new_nonstudent_post_success(self):
         client = Client()
         client.login(ticket="dzhao", service=CAS_SERVER_URL)
-        response = client.post(reverse('advisornotes.views.new_nonstudent'), {'first_name': 'test123', 'last_name': 'test_new_nonstudent_post'})
+        response = client.post(reverse('advisornotes.views.new_nonstudent'), {'first_name': 'test123', 'last_name': 'test_new_nonstudent_post', 'start_year': 2020})
         self.assertEqual(response.status_code, 302, 'Should have been redirected')
         q = NonStudent.objects.filter(first_name='test123')
         self.assertEqual(len(q), 1, "There should only be one result")

@@ -2,7 +2,7 @@ from coredata.models import Person, Semester, SemesterWeek, ComputingAccount, Co
 from django.conf import settings
 from django.db import transaction
 from django.core.cache import cache
-import re, hashlib, datetime
+import re, hashlib, datetime, operator
 
 multiple_breaks = re.compile(r'\n\n+')
 
@@ -429,7 +429,161 @@ def more_course_info(course):
         return None
     
     return data
+
+@cache_by_args
+def crse_id_info(crse_id):
+    """
+    More info we need about this crse_id. Separate function so it can easily be cached.
+    """
+    db = SIMSConn()
+    offering_query = "SELECT o.subject, o.catalog_nbr, c.descr FROM ps_crse_offer o, ps_crse_catalog c WHERE o.crse_id=c.crse_id AND o.crse_id=%s ORDER BY o.effdt DESC, c.effdt DESC FETCH FIRST 1 ROWS ONLY"
+    db.execute(offering_query, (crse_id,))
+    fields = ['subject', 'catalog_nbr', 'descr']
+    for row in db:
+        cdata = dict(zip(fields, row))
+        cdata['crse_found'] = True
+        return cdata
+    return {'subject': '?', 'catalog_nbr': '?', 'descr': '?', 'crse_found': False}
+
+@cache_by_args
+def ext_org_info(ext_org_id):
+    """
+    More info we need about this external org. Separate function so it can easily be cached.
+    """
+    db = SIMSConn()
+    ext_org_query = "SELECT e.descr FROM ps_ext_org_tbl e WHERE e.eff_status='A' AND e.ext_org_id=%s ORDER BY effdt DESC FETCH FIRST 1 ROWS ONLY"
+    db.execute(ext_org_query, (ext_org_id,))
+    fields = ['ext_org']
+    for row in db:
+        cdata = dict(zip(fields, row))
+        return cdata
+    return {'ext_org': '?'}
+
+
+@cache_by_args
+def get_reqmnt_designtn():
+    """
+    Get and cache requirement designations (to avoid joining yet another table).
+    """
+    db = SIMSConn()
     
+    db.execute("SELECT r.rqmnt_designtn, r.descrshort FROM ps_rqmnt_desig_tbl r", ())
+    return dict(db)
+    
+@cache_by_args
+def get_semester_names():
+    """
+    Get and cache semester names (to avoid joining yet another table).
+    """
+    db = SIMSConn()
+    
+    db.execute("SELECT t.strm, t.descr FROM ps_term_tbl t", ())
+    return dict(db)
+    
+@cache_by_args
+@SIMS_problem_handler
+def course_data(emplid, needed=ALLFIELDS, exclude=[]):
+    """
+    Get course and GPA info for light transcript display
+    """
+    data = {}
+    emplid = str(emplid)
+    req_map = get_reqmnt_designtn()
+    sem_name = get_semester_names()
+    db = SIMSConn()
+    
+    # match trns_crse_sch and trns_crse_dtl by their many keys
+    crse_join = "t.emplid=s.emplid AND t.acad_career=s.acad_career AND t.institution=s.institution AND t.model_nbr=s.model_nbr"
+    
+    # transfers
+    transfer_query = "SELECT t.crse_id, t.crse_grade_off, t.unt_trnsfr, t.repeat_code, t.articulation_term, " \
+                     " t.rqmnt_designtn, s.ext_org_id, s.src_org_name " \
+                     "FROM ps_trns_crse_dtl t, ps_trns_crse_sch s " \
+                     "WHERE " + crse_join + " AND t.emplid=%s"
+    db.execute(transfer_query, (emplid,))
+    transfers = []
+    data['transfers'] = transfers
+    fields = ['crse_id', 'grade', 'units', 'repeat', 'strm', 'reqdes', 'ext_org_id', 'src_org']
+    for row in list(db):
+        rdata = dict(zip(fields, row))
+        crse_id = rdata['crse_id']
+        ext_org_id = rdata['ext_org_id']
+        
+        rdata.update(crse_id_info(crse_id))
+        if not rdata['crse_found']:
+            #print rdata
+            continue
+
+        if rdata['reqdes']:
+            rdata['req'] = req_map[rdata['reqdes']]
+        else:
+            rdata['req'] = ''
+
+        if not rdata['src_org']:
+            rdata.update(ext_org_info(ext_org_id))
+        rdata['src'] = rdata['src_org'] or rdata['ext_org']
+
+        del rdata['src_org']
+        if 'ext_org' in rdata:
+            del rdata['ext_org']
+        del rdata['ext_org_id']
+        del rdata['reqdes']
+        transfers.append(rdata)
+    
+    transfers.sort(key=lambda k: (k['subject'], k['catalog_nbr']))
+
+    # active semesters
+    term_query = "SELECT t.strm, t.acad_career, t.tot_passd_prgrss, t.cur_gpa, t.cum_gpa, s.acad_stndng_actn, g.ls_gpa " \
+                 "FROM ps_stdnt_car_term t " \
+                 " LEFT JOIN ps_acad_stdng_actn s ON t.emplid=s.emplid AND t.strm=s.strm " \
+                 " LEFT JOIN ps_stdnt_spcl_gpa g ON t.emplid=g.emplid AND t.strm=g.strm " \
+                 "WHERE t.emplid=%s AND (g.gpa_type='UGPA' OR g.gpa_type IS NULL) " \
+                 "ORDER BY t.strm, s.effdt DESC, s.effseq DESC"
+    db.execute(term_query, (emplid,))
+    semesters = []
+    semester_lookup = {}
+    found = set()
+    data['semesters'] = semesters
+    fields = ['strm', 'career', 'units_passed', 'tgpa', 'cgpa', 'standing', 'udgpa']
+    for row in db:
+        rdata = dict(zip(fields, row))
+        strm = rdata['strm']
+        if strm in found:
+            # handle multiple rows from ps_acad_stdng_actn
+            continue
+        found.add(strm)
+        rdata['courses'] = []
+        rdata['semname'] = sem_name[strm]
+        semesters.append(rdata)
+        semester_lookup[strm] = rdata
+        
+    
+    # courses
+    enrl_query = "SELECT e.strm, e.class_nbr, e.unt_taken, " \
+                 "e.repeat_code, e.crse_grade_off, e.rqmnt_designtn, " \
+                 "c.subject, c.catalog_nbr, c.descr " \
+                 "FROM ps_stdnt_enrl e, ps_class_tbl c " \
+                 "WHERE e.class_nbr=c.class_nbr AND e.strm=c.strm AND e.emplid=%s " \
+                 "AND c.class_type='E' AND e.stdnt_enrl_status='E' " \
+                 "ORDER BY e.strm, c.subject, c.catalog_nbr"
+    db.execute(enrl_query, (emplid,))
+    fields = ['strm', 'class_nbr', 'unit_taken', 'repeat', 'grade', 'reqdes', 'subject', 'number', 'descr']
+    
+    for row in db:
+        rdata = dict(zip(fields, row))
+        strm = rdata['strm']
+        if rdata['reqdes']:
+            rdata['req'] = req_map[rdata['reqdes']]
+        else:
+            rdata['req'] = ''
+
+        del rdata['reqdes']
+        if strm in semester_lookup:
+            semester_lookup[strm]['courses'].append(rdata)
+    
+    return data
+
+
 
 @cache_by_args
 @SIMS_problem_handler

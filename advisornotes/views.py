@@ -3,8 +3,8 @@ from advisornotes.forms import StudentSearchForm, NoteSearchForm, NonStudentForm
     ProblemStatusForm, EditArtifactNoteForm
 from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote,\
     Problem, OPEN_STATUSES, CLOSED_STATUSES
-from coredata.models import Person, Course, CourseOffering, Semester, Unit
-from coredata.queries import find_person, add_person, more_personal_info, more_course_info, \
+from coredata.models import Person, Course, CourseOffering, Semester, Unit, Member
+from coredata.queries import find_person, add_person, more_personal_info, more_course_info, course_data, \
     SIMSProblem
 from courselib.auth import requires_role, HttpResponseRedirect, \
     ForbiddenResponse
@@ -65,7 +65,7 @@ def note_search(request):
     query = get_query(search, ('text',))
     notes = AdvisorNote.objects.filter(query, unit__in=request.units) \
             .select_related('student', 'advisor').order_by("-created_at")[:100]
-    note_form = NoteSearchForm(initial={'search': search})
+    note_form = NoteSearchForm(prefix="text", initial={'search': search})
     context = {'notes': notes, 'note_form': note_form}
     return render(request, 'advisornotes/note_search.html', context)
 
@@ -128,8 +128,8 @@ def _email_student_note(note):
         note.file_attachment.open()
         attach = [(note.attachment_filename(), note.file_attachment.read(), note.file_mediatype)]
 
-    email = EmailMessage(subject, content, from_email, [email], cc=[from_email], attachments=attach)
-    email.send()
+    mail = EmailMessage(subject, content, from_email, [email], cc=[from_email], attachments=attach)
+    mail.send()
 
 
 @requires_role('ADVS')
@@ -181,11 +181,11 @@ def new_artifact_note(request, unit_course_slug=None, course_slug=None, artifact
     related = course = offering = artifact = None
 
     if unit_course_slug != None:
-        related = course = Course.objects.get(slug=unit_course_slug)
+        related = course = get_object_or_404(Course, slug=unit_course_slug)
     elif course_slug != None:
-        related = offering = CourseOffering.objects.get(slug=course_slug)
+        related = offering = get_object_or_404(CourseOffering, slug=course_slug)
     else:
-        related = artifact = Artifact.objects.get(slug=artifact_slug)
+        related = artifact = get_object_or_404(Artifact, slug=artifact_slug)
 
     if request.method == 'POST':
         form = ArtifactNoteForm(request.POST, request.FILES)
@@ -231,17 +231,17 @@ def new_artifact_note(request, unit_course_slug=None, course_slug=None, artifact
 
 @requires_role('ADVS')
 def edit_artifact_note(request, note_id, unit_course_slug=None, course_slug=None, artifact_slug=None):
-    note = get_object_or_404(ArtifactNote, id=note_id)
+    note = get_object_or_404(ArtifactNote, id=note_id, unit__in=request.units)
     related = course = offering = artifact = None
 
     form = EditArtifactNoteForm(instance=note)
 
     if unit_course_slug != None:
-        related = course = Course.objects.get(slug=unit_course_slug)
+        related = course = get_object_or_404(Course, slug=unit_course_slug)
     elif course_slug != None:
-        related = offering = CourseOffering.objects.get(slug=course_slug)
+        related = offering = get_object_or_404(CourseOffering, slug=course_slug)
     else:
-        related = artifact = Artifact.objects.get(slug=artifact_slug)
+        related = artifact = get_object_or_404(Artifact, slug=artifact_slug)
 
     if request.method == 'POST':
         form = EditArtifactNoteForm(request.POST, request.FILES, instance=note)
@@ -335,6 +335,35 @@ def student_more_info(request, userid):
     response = HttpResponse(mimetype='application/json')
     json.dump(data, response)
     return response
+
+@requires_role('ADVS')
+def student_courses(request, userid):
+    """
+    List of courses now (and in surrounding semesters)
+    """
+    student = get_object_or_404(Person, find_userid_or_emplid(userid))
+    
+    context = {
+               'userid': userid,
+               'student': student,
+               }
+    return render(request, 'advisornotes/student_courses.html', context)
+
+@requires_role('ADVS')
+def student_courses_data(request, userid):
+    """
+    AJAX request for course data, etc. (queries SIMS directly)
+    """
+    student = get_object_or_404(Person, find_userid_or_emplid(userid))
+    try:
+        data = course_data(student.emplid)
+    except SIMSProblem as e:
+        data = {'error': e.message}
+
+    response = HttpResponse(mimetype='application/json;charset=utf-8')
+    json.dump(data, response, encoding='utf-8', indent=1)
+    return response
+
 
 
 @requires_role('ADVS')
@@ -466,7 +495,7 @@ def view_course_notes(request, unit_course_slug):
     """
     course = get_object_or_404(Course, slug=unit_course_slug)
     offerings = CourseOffering.objects.filter(course=course)
-    notes = ArtifactNote.objects.filter(course=course).order_by('category', 'created_at')
+    notes = ArtifactNote.objects.filter(course=course, unit__in=request.units).order_by('category', 'created_at')
     important_notes = notes.filter(important=True)
     notes = notes.exclude(important=True)
     return render(request,
@@ -532,7 +561,7 @@ def view_offering_notes(request, course_slug):
     View to view all notes for a specific artifact
     """
     offering = get_object_or_404(CourseOffering, slug=course_slug)
-    notes = ArtifactNote.objects.filter(course_offering=offering).order_by('category', 'created_at')
+    notes = ArtifactNote.objects.filter(course_offering=offering, unit__in=request.units).order_by('category', 'created_at')
     important_notes = notes.filter(important=True)
     notes = notes.exclude(important=True)
     return render(request,
@@ -560,7 +589,7 @@ def merge_nonstudent(request, nonstudent_slug):
     """
     Merge a nonstudent with an existing student
     """
-    nonstudent = get_object_or_404(NonStudent, slug=nonstudent_slug)
+    nonstudent = get_object_or_404(NonStudent, slug=nonstudent_slug, unit__in=request.units)
 
     if request.method == 'POST':
         form = MergeStudentForm(request.POST)

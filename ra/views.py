@@ -48,10 +48,12 @@ def search(request, student_id=None):
 #This is an index of all RA Appointments belonging to a given person.
 @requires_role("FUND")
 def student_appointments(request, userid):
-    #depts = Role.objects.filter(person__userid=request.user.username, role='FUND').values('unit_id')
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
     appointments = RAAppointment.objects.filter(person=student, unit__in=request.units).order_by("-created_at")
-    return render(request, 'ra/student_appointments.html', {'appointments': appointments, 'student': student}, context_instance=RequestContext(request))
+    grads = GradStudent.objects.filter(person=student, program__unit__in=request.units)
+    context = {'appointments': appointments, 'student': student,
+               'grads': grads}
+    return render(request, 'ra/student_appointments.html', context)
 
 def _appointment_defaults(units, emplid=None):
     hiring_faculty_choices = possible_supervisors(units)

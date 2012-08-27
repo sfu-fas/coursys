@@ -299,7 +299,7 @@ class BaseHolidayFormset(forms.models.BaseModelFormSet):
         super(BaseHolidayFormset, self).__init__(*args, **kwargs)
 
 HolidayFormset = forms.models.modelformset_factory(Holiday, formset=BaseHolidayFormset, form=HolidayForm,
-                                                   max_num=8, extra=2, can_delete=True)
+                                                   max_num=20, extra=5, can_delete=True)
 
 
 

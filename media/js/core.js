@@ -1,3 +1,4 @@
+// hard-coded URL
 var onlineJSON = "/media/sfu/js/online.json"; 
 
 function confirmSubmit(action) {
@@ -214,6 +215,7 @@ function offering_autocomplete(id) {
     
     /* pre-fill label value if it exists */
     if(formElementValue!=""){
+      // hard-coded URL
       jQuery.ajax('/data/offering?id=' + formElementValue)
         .done(function(data) {
           autoCompelteElementJQ.val(data);
@@ -225,12 +227,15 @@ function offering_autocomplete(id) {
 } 
 
 // turn on StudentSearch autocomplete for field with this id.
-function student_autocomplete(id) {
-  //var regexp = /(,.*)/;
-  //var label;
+function student_autocomplete(id, nonstudent) {
+  // hard-coded URL
+  var url = '/data/students';
+  if (nonstudent) {
+  	url += "?nonstudent=yes";
+  }
   $('#' + id).each(function() {
     $(this).autocomplete({
-      source:'/data/students',
+      source: url,
       minLength: 2,
       select: function(event, ui){
         $(this).data("val", ui.item.value);

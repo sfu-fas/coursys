@@ -3,7 +3,6 @@ from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from courselib.json_fields import getter_setter
-from django.template.defaultfilters import capfirst
 from jsonfield import JSONField
 from pages.models import _normalize_newlines
 import re, itertools

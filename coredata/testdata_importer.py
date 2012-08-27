@@ -17,7 +17,7 @@ from grad.models import GradProgram, GradStudent, GradStatus, LetterTemplate
 from discipline.models import DisciplineTemplate
 from ra.models import Account
 
-FULL_TEST_DATA = "2012su-cmpt-383-d1"
+FULL_TEST_DATA = "2012fa-cmpt-165-c1"
 
 def get_combined():
     combined_sections = [
@@ -137,7 +137,7 @@ def create_others():
     r = Role(person=p, role="FUND", unit=Unit.objects.get(slug='comp'))
     r.save()
     #print list(Person.objects.all())
-    r = Role(person=Person.objects.get(userid='ter'), role="GRPD", unit=Unit.objects.get(slug='comp'))
+    r = Role(person=Person.objects.get(userid='popowich'), role="GRPD", unit=Unit.objects.get(slug='comp'))
     r.save()
 
 
@@ -159,8 +159,7 @@ def create_grads():
     for p in Person.objects.filter(userid__endswith='grad'):
         gp = random.choice(programs)
         campus = random.choice(list(CAMPUSES))
-        appst = random.choice(['CONF', 'CONF', 'CONF', 'CONF', 'REJE', 'DECL'])
-        gs = GradStudent(person=p, program=gp, campus=campus, application_status=appst)
+        gs = GradStudent(person=p, program=gp, campus=campus)
         gs.save()
 
         startsem = random.choice(list(Semester.objects.filter(name__lt=Semester.current().name)))
@@ -286,7 +285,7 @@ def main():
     print "importing course offerings"
     # get very few courses here so there isn't excess data hanging around
     offerings = import_offerings(import_semesters=import_semesters, extra_where=
-        "(subject='CMPT' AND (catalog_nbr LIKE '%% 383%%' OR catalog_nbr LIKE '%% 47%%')) "
+        "(subject='CMPT' AND (catalog_nbr LIKE '%% 1%%' OR catalog_nbr LIKE '%% 2%%')) "
         "OR (subject='ENSC' AND (catalog_nbr LIKE '%% 2_5%%')) "
         )
     offerings = list(offerings)

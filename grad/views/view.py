@@ -5,7 +5,7 @@ from django.utils.safestring import mark_safe
 from grad.models import GradStudent, Supervisor, GradStatus, CompletedRequirement, GradRequirement, \
         Scholarship, OtherFunding, Promise, Letter
 
-def _can_view_student(request, grad_slug):
+def _can_view_student(request, grad_slug, funding=False):
     """
     Return GradStudent object and authorization type if user is either
     (1) admin for the student's unit,
@@ -16,6 +16,11 @@ def _can_view_student(request, grad_slug):
     """
     # grad admins can view within their unit
     if has_role('GRAD', request):
+        grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
+        return grad, 'admin'
+
+    # funding admins can view some pages within their unit
+    if funding and has_role('FUND', request):
         grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
         return grad, 'admin'
 

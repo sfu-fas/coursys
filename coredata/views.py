@@ -17,6 +17,7 @@ import json
 def sysadmin(request):
     if 'q' in request.GET:
         userid = request.GET['q']
+        userid = userid.strip()
         return HttpResponseRedirect(reverse(user_summary, kwargs={'userid': userid}))
         
     return render(request, 'coredata/sysadmin.html', {})
@@ -434,8 +435,11 @@ def student_search(request):
     studentQuery = get_query(term, ['userid', 'emplid', 'first_name', 'last_name'])
     students = Person.objects.filter(studentQuery)[:100]
 
-    nonStudentQuery = get_query(term, ['first_name', 'last_name', 'pref_first_name'])
-    nonStudents = NonStudent.objects.filter(nonStudentQuery)[:100]
+    if 'nonstudent' in request.GET and 'ADVS' in roles:
+        nonStudentQuery = get_query(term, ['first_name', 'last_name', 'pref_first_name'])
+        nonStudents = NonStudent.objects.filter(nonStudentQuery)[:100]
+    else:
+        nonStudents = []
 
     data = [{'value': s.emplid, 'label': s.search_label_value()} for s in students]
     data.extend([{'value': n.slug, 'label': n.search_label_value()} for n in nonStudents])

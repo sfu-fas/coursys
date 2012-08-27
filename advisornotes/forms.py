@@ -9,13 +9,14 @@ from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
 import datetime
 
+TEXT_WIDTH = 70
 
 class _AdvisorNoteFormNonstudent(forms.ModelForm):
     class Meta:
         model = AdvisorNote
-        exclude = ('hidden','emailed')
+        exclude = ('hidden', 'emailed', 'created_at')
         widgets = {
-                'text': forms.Textarea(attrs={'cols': 70, 'rows': 15})
+                'text': forms.Textarea(attrs={'cols': TEXT_WIDTH, 'rows': 15})
                 }
 
 
@@ -40,7 +41,7 @@ class ArtifactNoteForm(forms.ModelForm):
         model = ArtifactNote
         exclude = ('hidden', 'course', 'course_offering', 'artifact',)
         widgets = {
-                'text': forms.Textarea(attrs={'cols': 70, 'rows': 15})
+                'text': forms.Textarea(attrs={'cols': TEXT_WIDTH, 'rows': 15})
                 }
 
 
@@ -49,7 +50,7 @@ class EditArtifactNoteForm(forms.ModelForm):
         model = ArtifactNote
         exclude = ('hidden', 'course', 'course_offering', 'artifact', 'category', 'text', 'file_attachment', 'unit',)
         widgets = {
-                'text': forms.Textarea(attrs={'cols': 70, 'rows': 15})
+                'text': forms.Textarea(attrs={'cols': TEXT_WIDTH, 'rows': 15})
                 }
 
 class StudentSelect(forms.Select):
@@ -98,6 +99,7 @@ class NoteSearchForm(forms.Form):
 class StartYearField(forms.IntegerField):
 
     def validate(self, value):
+        super(StartYearField, self).validate(value)
         if value is not None:
             super(StartYearField, self).validate(value)
             current_year = datetime.date.today().year
@@ -106,7 +108,7 @@ class StartYearField(forms.IntegerField):
 
 
 class NonStudentForm(ModelForm):
-    start_year = StartYearField(help_text="The predicted/potential start year", required=False)
+    start_year = StartYearField(help_text="The predicted/potential start year", required=True)
 
     class Meta:
         model = NonStudent

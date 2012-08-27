@@ -587,37 +587,46 @@ PCS_COLUMNS = [ # (key, header)
                ('lastup', 'Last Update'),
                ('resarea', 'Primary Research Area'),
                ('firstlang', 'First Language'),
+               ('complete', 'Confirmation of Completion of Application'),
+               ('decision', 'Decision'),
+               ('notes', 'Notes'),
                ('potsuper', 'S1 name'), # TODO: is that right?
                ]
 
 PCS_COL_LOOKUP = dict(((hdr, key) for key,hdr in PCS_COLUMNS))
 PCS_HDR_LOOKUP = dict(PCS_COLUMNS)
 
+from django.db import transaction
 from coredata.models import Unit
 from coredata.queries import add_person, SIMSProblem, grad_student_info
 from log.models import LogEntry
 import datetime, StringIO
 
+@transaction.commit_on_success
 def process_pcs_row(row, column, rownum, unit, semester, user):
     """
     Process a single row from the PCS import
     """
+    appsemester = semester.previous_semester()
     warnings = []
+    ident = "in row %i" % (rownum)
     appid = row[column['appid']]
     emplid = row[column['emplid']]
-    #program = row[column['program']]
+    program = row[column['program']]
 
     # get Person, from SIMS if necessary
     try:
         p = Person.objects.get(emplid=int(emplid))
     except ValueError:
-        warnings.append("Bad emplid in row %i: not processing that row." % (rownum))
+        warnings.append("Bad emplid %s: not processing that row." % (ident))
         return warnings
     except Person.DoesNotExist:
         try:
             p = add_person(emplid)
         except SIMSProblem as e:
             return e.message
+
+    ident = 'for "%s"' % (p.name())
 
     # update information on the Person
     email = row[column['email']]
@@ -629,7 +638,7 @@ def process_pcs_row(row, column, rownum, unit, semester, user):
             dt = datetime.datetime.strptime(dob, "%Y-%m-%d")
             p.config['birthdate'] = dt.date().isoformat()
         except ValueError:
-            warnings.append("Bad birthdate in row %i." % (rownum))
+            warnings.append("Bad birthdate %s." % (ident))
     
     # get extended SIMS data
     data = grad_student_info(emplid)
@@ -637,7 +646,7 @@ def process_pcs_row(row, column, rownum, unit, semester, user):
     
     p.save()
     
-    print "Importing %s" % (p)
+    #print "Importing %s" % (p)
     
     # get GradStudent, creating if necessary
     
@@ -662,20 +671,53 @@ def process_pcs_row(row, column, rownum, unit, semester, user):
     
     gs.research_area = resarea
     gs.mother_tongue = firstlang
-    # TODO: gs.application_status
     gs.created_by = user.userid
     gs.updated_by = user.userid
     gs.config['start_semester'] = semester.name
     gs.save()
     
-    # TODO: find more sensible status than "APPL" from SIMS?
+    complete = row[column['complete']].strip()
+    decision = row[column['decision']].strip()
+    notes = row[column['notes']].strip()
+    gs.config['decisionnotes'] = notes
+    
     old_st = GradStatus.objects.filter(student=gs, start__name__gte=semester.name)
     if not old_st:
         # if no old status for current semester, create one
-        st = GradStatus(student=gs, status="APPL", start=semester, end=None, notes="PCS import")
-        st.save()
-    
-    
+        
+        # application completion status
+        if complete == 'AppConfirm':
+            st = GradStatus(student=gs, status="COMP", start=appsemester, end=None, notes="PCS import")
+            st.save()
+        elif complete == '':
+            st = GradStatus(student=gs, status="INCO", start=appsemester, end=None, notes="PCS import")
+            st.save()
+        else:
+            warnings.append('Unknown "Confirmation of Completion of Application" value %s.' % (ident))
+        
+        # decision status
+        if decision == 'DECL':
+            st = GradStatus(student=gs, status="DECL", start=appsemester, end=None, notes="PCS import")
+            st.save()
+        elif decision == '':
+            st = GradStatus(student=gs, status="OFFO", start=appsemester, end=None, notes="PCS import")
+            st.save()
+        elif decision == 'R':
+            st = GradStatus(student=gs, status="REJE", start=appsemester, end=None, notes="PCS import")
+            st.save()
+        elif decision == 'HOLD':
+            st = GradStatus(student=gs, status="HOLD", start=appsemester, end=None, notes="PCS import")
+            st.save()
+        elif decision == 'AMScT':
+            # TODO: bump program to MSc thesis
+            st = GradStatus(student=gs, status="CONF", start=appsemester, end=None, notes="PCS import")
+            st.save()
+        elif decision == 'AMScC':
+            # TODO: bump program to MSc course-based
+            st = GradStatus(student=gs, status="CONF", start=appsemester, end=None, notes="PCS import")
+            st.save()
+
+
     # potential supervisor
     potsuper = row[column['potsuper']]
     if potsuper:
@@ -684,7 +726,7 @@ def process_pcs_row(row, column, rownum, unit, semester, user):
         try:
             ps_last, ps_first = potsuper.split(', ')
         except ValueError:
-            warnings.append('Bad potential supervisor name in row %i: will store them as an "external" supervisor.' % (rownum))
+            warnings.append('Bad potential supervisor name %s: will store them as an "external" supervisor.' % (ident))
             external = potsuper
         else:
             potentials = possible_supervisor_people([unit])
@@ -694,7 +736,7 @@ def process_pcs_row(row, column, rownum, unit, semester, user):
             if people.count() == 1:
                 superv = people[0]
             else:
-                warnings.append('Coundn\'t find potential supervisor in row %i: will store them as an "external" supervisor.' % (rownum))
+                warnings.append('Coundn\'t find potential supervisor %s: will store them as an "external" supervisor.' % (ident))
                 external = potsuper
 
         old_s = Supervisor.objects.filter(student=gs, supervisor_type='POT')

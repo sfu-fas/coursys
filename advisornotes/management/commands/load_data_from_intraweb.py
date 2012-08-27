@@ -46,14 +46,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         
-        print "Loading AMAINT user-ID mappings." 
-        coredata.importer.update_amaint_userids()
+        #print "Loading AMAINT user-ID mappings." 
+        #coredata.importer.update_amaint_userids()
         
         unit = Unit.objects.get(label=options['unit'])
         cursor = connect_and_cursor( options )
 
         non_students_by_id = non_student( unit, cursor ) 
-        advisors( unit, cursor )
+        #advisors( unit, cursor )
         notes( unit, cursor, non_students_by_id )
 
     
@@ -125,18 +125,16 @@ def non_student(unit, cursor):
                 unit= unit ) 
 
             if newNonStudent.__hash__() in existing_nonstudent_hashes:
-                print "Student "+newNonStudent.__repr__()+" already exists."
-                non_students_by_imaginary_emplid[ imaginary_emplid ] = \
-                    existing_nonstudents[ existing_nonstudent_hashes.index( newNonStudent.__hash__() ) ]
+		existingNonStudent = existing_nonstudents[ existing_nonstudent_hashes.index( newNonStudent.__hash__() ) ]
+                print "Student "+existingNonStudent.__repr__()+" already exists : " + str(existingNonStudent.id)
+                non_students_by_imaginary_emplid[ imaginary_emplid ] = existingNonStudent
             else:
                 newNonStudent.save()
-                print "Student "+newNonStudent.__repr__()+" added." 
+                print "Student "+newNonStudent.__repr__()+" added : " + str(newNonStudent.id)
                 non_students_by_imaginary_emplid[ imaginary_emplid ] = newNonStudent 
             
         except UnicodeDecodeError:
             print "Not including " + str(row[1]) + " " + str(row[0]) + " - Unicode Decode error."
-        except:
-            print "Not including " + str(row[1]) + " " + str(row[0]) + " - mysterious error."
 
     return non_students_by_imaginary_emplid
 
@@ -207,12 +205,12 @@ def find_or_generate_student( emplid, non_students_by_imaginary_emplid ):
     # return a Person or NonPerson object, either a student who exists in the system:
     try:
         p = Person.objects.get(emplid=emplid)
-        print "Person " + str(p) + " found." 
+        print "Person " + str(p) + " found: " + str(p.id) 
         return p
     except Person.DoesNotExist:
         try: 
             np = non_students_by_imaginary_emplid[emplid]
-            print "NonPerson " + str(np) + " found"
+            print "NonPerson " + str(np) + " found: " + str(np.id) 
             return np
         except KeyError:
             try:

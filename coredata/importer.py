@@ -519,6 +519,9 @@ def import_meeting_times(offering):
         # dates come in as strings from DB2/reporting DB
         start_dt = datetime.datetime.strptime(start_dt, "%Y-%m-%d").date()
         end_dt = datetime.datetime.strptime(end_dt, "%Y-%m-%d").date()
+        if not start or not end:
+            # some meeting times exist with no start/end time
+            continue        
 
         wkdays = [n for n, day in zip(range(7), (mon,tues,wed,thurs,fri,sat,sun)) if day=='Y']
         labtut_section, mtg_type = fix_mtg_info(class_section, stnd_mtg_pat)
@@ -762,6 +765,9 @@ def main():
 
     create_semesters()
 
+    print "getting emplid/userid mapping"
+    update_amaint_userids()
+
     print "fixing any unknown emplids"
     fix_emplid()
     
@@ -784,9 +790,6 @@ def main():
 
     print "combining joint offerings"
     combine_sections(get_combined())
-
-    print "getting emplid/userid mapping"
-    update_amaint_userids()
 
     print "giving sysadmin permissions"
     give_sysadmin(sysadmin)

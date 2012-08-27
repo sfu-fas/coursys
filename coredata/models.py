@@ -533,6 +533,8 @@ class CourseOffering(models.Model):
     
     def instructors(self):
         return (m.person for m in self.member_set.filter(role="INST"))
+    def instructors_str(self):
+        return ', '.join(p.sortname() for p in self.instructors())
     def tas(self):
         return (m.person for m in self.member_set.filter(role="TA"))
     def student_count(self):
@@ -822,8 +824,8 @@ class Unit(models.Model):
         """
         Do the actual work for sub_unit_ids
         """
-        decendants = set()
         children = unitids
+        decendants = set(children)
         while True:
             children = Unit.objects.filter(parent__in=children).values('id')
             children = set(u['id'] for u in children)

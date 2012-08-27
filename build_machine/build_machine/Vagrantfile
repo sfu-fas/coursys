@@ -1,0 +1,67 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant::Config.run do |config|
+  # All Vagrant configuration is done here. The most common configuration
+  # options are documented and commented below. For a complete reference,
+  # please see the online documentation at vagrantup.com.
+
+  # Every Vagrant virtual environment requires a box to build off of.
+  config.vm.box = "precise32"
+
+  # The url from where the 'config.vm.box' box will be fetched if it
+  # doesn't already exist on the user's system.
+  config.vm.box_url = "http://files.vagrantup.com/precise32.box"
+
+  # Boot with a GUI so you can see the screen. (Default is headless)
+  # config.vm.boot_mode = :gui
+
+  # Forward a port from the guest to the host, which allows for outside
+  # computers to access the VM, whereas host only networking does not.
+  config.vm.forward_port 8000, 8000
+  config.vm.forward_port 8080, 8001
+  config.vm.forward_port 80, 8002
+  config.vm.forward_port 9000, 8003
+
+  # Share an additional folder to the guest VM. The first argument is
+  # an identifier, the second is the path on the guest to mount the
+  # folder, and the third is the path on the host to the actual folder.
+  config.vm.share_folder "coursys_root_directory", "/tmp/courses", ".."
+
+  # https://github.com/mitchellh/vagrant/issues/516#issuecomment-3998630
+  config.vm.customize(["modifyvm", :id, "--nictype1", "Am79C973"])
+
+  # Enable provisioning with chef solo, specifying a cookbooks path, roles
+  # path, and data_bags path (all relative to this Vagrantfile), and adding 
+  # some recipes and/or roles.
+  #
+  config.vm.provision :chef_solo do |chef|
+    chef.cookbooks_path = "chef-repo/cookbooks"
+    
+    chef.json = {
+        :sfu_cas => {
+            :proxy_server => "http://asb-9905-01.fas.sfu.ca:8002"
+            },
+        :apache_default_site => "http://asb-9905-01.fas.sfu.ca:8002",
+    }
+
+    chef.add_recipe "apt"
+    chef.add_recipe "build-essential"
+    chef.add_recipe "python"
+    chef.add_recipe "git"
+    chef.add_recipe "vim"
+    chef.add_recipe "apache2"
+    chef.add_recipe "apache2::mod_rewrite"
+    chef.add_recipe "sfu-cas"
+    chef.add_recipe "sfu-git-server"
+    chef.add_recipe "java"
+    chef.add_recipe "jenkins"
+    chef.add_recipe "sfu-jenkins-git"
+     #chef.add_recipe "coursys"
+
+  #   chef.roles_path = "/roles"
+  #   chef.data_bags_path = "/data_bags"
+  # 
+  #   # You may also specify custom JSON attributes:
+  end
+end
