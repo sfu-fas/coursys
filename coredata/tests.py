@@ -217,6 +217,7 @@ class CoredataTest(TestCase):
         self.assertContains(response, 'Lname, Fname</a></td><td>System Administrator</td>')
 
         # add a new role with the front end
+        oldcount = Role.objects.filter(role='FAC').count()
         url = reverse('coredata.views.new_role')
         response = basic_page_tests(self, client, url)
         
@@ -229,4 +230,4 @@ class CoredataTest(TestCase):
         self.assertEquals(response.status_code, 302)
         
         # make sure the role is now there
-        self.assertEquals( Role.objects.filter(role='FAC').count(), 3)
+        self.assertEquals( Role.objects.filter(role='FAC').count(), oldcount+1)

@@ -7,6 +7,7 @@ from django.core import serializers
 from importer import give_sysadmin, create_semesters, import_offerings, import_offering_members, combine_sections, past_cutoff
 from demodata_importer import fake_emplid, fake_emplids, create_classes
 from coredata.models import Member, Person, CourseOffering, Course, Semester, SemesterWeek, MeetingTime, Role, Unit, CAMPUSES
+from dashboard.models import UserConfig
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity
 from submission.models.base import SubmissionComponent
 from submission.models.code import CodeComponent
@@ -16,8 +17,9 @@ from groups.models import Group, GroupMember
 from grad.models import GradProgram, GradStudent, GradStatus, LetterTemplate
 from discipline.models import DisciplineTemplate
 from ra.models import Account
+from courselib.testing import TEST_COURSE_SLUG
 
-FULL_TEST_DATA = "2012fa-cmpt-165-c1"
+FULL_TEST_DATA = TEST_COURSE_SLUG
 
 def get_combined():
     combined_sections = [
@@ -232,6 +234,15 @@ def create_more_data():
     a.save()
     a = Account(account_number=12348, position_number=12348, title='Undergrad TA', unit=cmpt)
     a.save()
+    
+    uc = UserConfig(user=Person.objects.get(userid='dzhao'), key='advisor-token', value={'token': '30378700c0091f34412ec9a082dca267'})
+    uc.save()
+    uc = UserConfig(user=Person.objects.get(userid='ggbaker'), key='advisor-token', value={'token': '082dca26730378700c0091f34412ec9a'})
+    uc.save()
+    p = Person(userid='probadmin', emplid='200002387', first_name='Problem', last_name='Admin')
+    p.save()
+    uc = UserConfig(user=p, key='problems-token', value={'token': '30378700c0091f34412ec9a082dca268'})
+    uc.save()
 
 
 def serialize(filename):
@@ -265,6 +276,7 @@ def serialize(filename):
             DisciplineTemplate.objects.all(),
             LetterTemplate.objects.all(),
             Account.objects.all(),
+            UserConfig.objects.all(),
             )
     
     data = serializers.serialize("json", objs, sort_keys=True, indent=1)
@@ -281,6 +293,14 @@ def import_semesters():
 
 def main():
     create_semesters()
+    s = Semester(name="1111", start=datetime.date(2011, 1, 9), end=datetime.date(2011, 4, 8))
+    s.save()
+    wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2011, 1, 9))
+    wk.save()
+    s = Semester(name="1107", start=datetime.date(2010, 8, 9), end=datetime.date(2011, 12, 8))
+    s.save()
+    wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2010, 9, 9))
+    wk.save()
     
     print "importing course offerings"
     # get very few courses here so there isn't excess data hanging around

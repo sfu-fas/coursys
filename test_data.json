@@ -39,7 +39,7 @@
   "fields": {
    "end": "2012-12-03", 
    "name": "1127", 
-   "start": "2012-09-04"
+   "start": "2012-08-04"
   }, 
   "model": "coredata.semester", 
   "pk": 5

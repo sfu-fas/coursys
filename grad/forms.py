@@ -389,6 +389,8 @@ class SearchForm(forms.Form):
     visa = forms.MultipleChoiceField(VISA_STATUSES, required=False,)
     scholarship_sem = forms.ModelMultipleChoiceField(Semester.objects.all(),
             label='Scholarship Semester Received',required=False)
+    scholarshiptype = forms.ModelMultipleChoiceField(ScholarshipType.objects.all(),
+            label='Received Scholarship', required=False)
 
     columns = forms.MultipleChoiceField(COLUMN_CHOICES, initial=('person.emplid', 'person.userid', 'person.first_name', 'person.last_name'),
             help_text='Columns to display in the search results.')
@@ -413,7 +415,9 @@ class SearchForm(forms.Form):
             'campus',
             'gender',
             'visa',
-            'scholarship_sem',]
+            'scholarship_sem',
+            'scholarshiptype',
+            ]
 #    regular_fields = ','.join(regular_fields)
     number_range_fields = [
             'gpa_min',
@@ -461,6 +465,7 @@ class SearchForm(forms.Form):
                 ('is_canadian',),
                 ('campus','campus__in'),
                 ('scholarship_sem', 'scholarship__start_semester__in'),
+                ('scholarshiptype', 'scholarship__scholarship_type__in'),
                 ]
         manual_queries = []
         

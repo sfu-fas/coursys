@@ -7,7 +7,7 @@ from advisornotes.models import NonStudent, AdvisorNote, Problem
 from courselib.testing import basic_page_tests
 from dashboard.models import UserConfig
 from django.test.testcases import TransactionTestCase
-
+import datetime
 
 class AdvistorNotestest(TestCase):
     fixtures = ['test_data']
@@ -445,6 +445,7 @@ class AdvistorNotesAPITest(TransactionTestCase):
         f = open('advisornotes/testfiles/rest_notes_problem_already_exists.json')
         data = f.read()
         f.close()
+        response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
         before_count = len(Problem.objects.filter(person__emplid=200000172))
         response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
         after_count = len(Problem.objects.filter(person__emplid=200000172))
@@ -456,6 +457,14 @@ class AdvistorNotesAPITest(TransactionTestCase):
         f = open('advisornotes/testfiles/rest_notes_problems_successful.json')
         data = f.read()
         f.close()
+        
+        # check that a duplicate isn't saved
+        p = Problem(person=Person.objects.get(emplid=200000172), code='Deceased', status='RESO',
+                    resolved_at=datetime.datetime.now(), resolution_lasts=10,
+                    resolved_until=datetime.datetime.now()+datetime.timedelta(days=10),
+                    unit=Unit.objects.get(slug='comp'))
+        p.save()
+        
         before_count = len(Problem.objects.filter(person__emplid=200000172))
         response = client.post(reverse('advisornotes.views.rest_notes'), data, 'application/json')
         after_count = len(Problem.objects.filter(person__emplid=200000172))

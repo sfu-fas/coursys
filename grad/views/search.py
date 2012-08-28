@@ -1,6 +1,6 @@
 from courselib.auth import requires_role
 from django.shortcuts import render
-from grad.models import GradStudent, SavedSearch, GradRequirement
+from grad.models import GradStudent, SavedSearch, GradRequirement, ScholarshipType
 from django.http import HttpResponseRedirect, HttpResponse
 from grad.forms import SearchForm, SaveSearchForm, COLUMN_CHOICES
 from django.core.urlresolvers import reverse
@@ -48,8 +48,10 @@ def search(request):
     form = SearchForm() if len(request.GET) == 0 else SearchForm(request.GET)
     requirement_choices = [(r.id, "%s (%s)" % (r.description, r.program.label)) for r in
             GradRequirement.objects.filter(program__unit__in=request.units, hidden=False).order_by('program__label', 'description')]
+    scholarshiptype_choices = [(st.id, st.name) for st in ScholarshipType.objects.filter(unit__in=request.units, hidden=False)]
     form.fields['requirements'].choices = requirement_choices
     form.fields['incomplete_requirements'].choices = requirement_choices
+    form.fields['scholarshiptype'].choices = scholarshiptype_choices
     
     if form.is_valid():
         query = form.get_query()
@@ -66,7 +68,7 @@ def search(request):
         columns = form.cleaned_data['columns']
         # Here, we're using a nested list comprehension to convert column ids into column names - 
         #  for example 'person.first_name' into 'First Name' - using the COLUMN_CHOICES table provided in forms.py
-        human_readable_column_headers = [[v[1] for i,v in enumerate(COLUMN_CHOICES) if v[0] == column][0] for column in columns]
+        human_readable_column_headers = [[v[1] for _,v in enumerate(COLUMN_CHOICES) if v[0] == column][0] for column in columns]
         
         if 'csv' in request.GET:
             response = HttpResponse(mimetype='text/csv')
