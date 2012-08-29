@@ -42,3 +42,6 @@ Thumbs.db
 # other generated/private files #
 tmp-validation.html
 dbpass
+submitted_files
+.project
+.pydevproject
