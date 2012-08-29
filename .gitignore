@@ -37,3 +37,8 @@
 Icon?
 ehthumbs.db
 Thumbs.db
+*~
+
+# other generated/private files #
+tmp-validation.html
+dbpass
