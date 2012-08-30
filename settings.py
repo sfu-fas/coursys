@@ -137,8 +137,7 @@ if DEPLOYED:
     SESSION_COOKIE_SECURE = True
     DB_PASS_FILE = "/home/ggbaker/dbpass"
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # changed below if using Celery
-    SVN_PASS = '???'
-    SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': 'svnuser', 'passwd': SVN_PASS,
+    SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': 'svnuser', 'passwd': '????',
             'db': 'coursesvn', 'port': 4000}
 else:
     #MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('contrib.profiling.ProfileMiddleware',)
