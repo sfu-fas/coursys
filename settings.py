@@ -43,7 +43,7 @@ TIME_ZONE = 'America/Vancouver'
 LANGUAGE_CODE = 'en'
 SITE_ID = 1
 USE_I18N = True
-MEDIA_ROOT = 'media'
+MEDIA_ROOT = os.path.join(PROJECT_DIR, 'media')
 MEDIA_URL = '/media/'
 ADMIN_MEDIA_PREFIX = '/adminmedia/'
 
