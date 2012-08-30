@@ -43,5 +43,7 @@ Thumbs.db
 tmp-validation.html
 dbpass
 submitted_files
+local_settings.py
 .project
 .pydevproject
+connect.sh

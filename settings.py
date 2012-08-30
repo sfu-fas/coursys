@@ -192,3 +192,8 @@ if not DEPLOYED and DEBUG and hostname != 'courses':
 LOGIN_URL = "/login/"
 LOGOUT_URL = "/logout/"
 LOGIN_REDIRECT_URL = "/"
+
+try:
+    from local_settings import *
+except ImportError:
+    pass
