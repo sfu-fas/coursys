@@ -895,10 +895,12 @@ def student_photo(request, emplid):
     if not (configs and configs[0].value['agree']):
         return ForbiddenResponse(request, 'You must confirm the photo usage agreement before seeing student photos.')
 
-    # confirm user is an instructor of this student
-    student_members = Member.objects.filter(person__emplid=emplid, role='STUD').select_related('offering')
+    # confirm user is an instructor of this student (within the last two years)
+    past_semester = Semester.get_semester(datetime.date.today() - datetime.timedelta(days=730))
+    student_members = Member.objects.filter(offering__semester__name__gte=past_semester.name,
+            person__emplid=emplid, role='STUD').select_related('offering')
     student_offerings = [m.offering for m in student_members]
-    instructor_of = Member.objects.filter(person=user, role__in=['INST', 'TA'], offering__in=student_offerings)
+    instructor_of = Member.objects.filter(person=user, role='INST', offering__in=student_offerings)
     if instructor_of.count() == 0:
         return ForbiddenResponse(request, 'You must be an instructor of this student.')
 
