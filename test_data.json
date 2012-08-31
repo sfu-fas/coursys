@@ -8584,7 +8584,7 @@
    "middle_name": null, 
    "pref_first_name": null, 
    "title": null, 
-   "userid": "probadmin"
+   "userid": "probadmn"
   }, 
   "model": "coredata.person", 
   "pk": 581
@@ -8598,7 +8598,7 @@
    "middle_name": null, 
    "pref_first_name": null, 
    "title": null, 
-   "userid": "teachadmin"
+   "userid": "teachadm"
   }, 
   "model": "coredata.person", 
   "pk": 582

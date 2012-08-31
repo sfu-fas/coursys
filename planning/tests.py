@@ -133,7 +133,7 @@ class PlanningTest(TestCase):
 
     def test_course_credits_admin_200_ok(self):
         client = Client()
-        client.login(ticket="teachadmin", service=CAS_SERVER_URL)
+        client.login(ticket="teachadm", service=CAS_SERVER_URL)
 
         url = reverse('planning.views.view_insts_in_unit')
         response = basic_page_tests(self, client, url)
