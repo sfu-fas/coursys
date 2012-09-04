@@ -60,7 +60,7 @@ def advising(request):
 @requires_role('ADVS')
 def note_search(request):
     if 'text-search' not in request.GET:
-        return ForbiddenResponse, "must send search query"
+        return ForbiddenResponse(request, "must send search query")
     search = request.GET['text-search']
     query = get_query(search, ('text',))
     notes = AdvisorNote.objects.filter(query, unit__in=request.units) \
