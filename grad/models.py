@@ -10,7 +10,7 @@ many_newlines = re.compile(r'\n{3,}')
 
 class GradProgram(models.Model):
     unit = models.ForeignKey(Unit, null=False, blank=False)
-    label = models.CharField(max_length=10, null=False)
+    label = models.CharField(max_length=20, null=False)
     description = models.CharField(max_length=100, blank=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
