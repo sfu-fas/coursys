@@ -896,6 +896,7 @@ def student_photo(request, emplid):
         return ForbiddenResponse(request, 'You must confirm the photo usage agreement before seeing student photos.')
 
     # confirm user is an instructor of this student (within the last two years)
+    # TODO: cache past_semester to save the query?
     past_semester = Semester.get_semester(datetime.date.today() - datetime.timedelta(days=730))
     student_members = Member.objects.filter(offering__semester__name__gte=past_semester.name,
             person__emplid=emplid, role='STUD').select_related('offering')

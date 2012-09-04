@@ -24,7 +24,7 @@ def _get_course_and_view(request, course_slug):
     elif is_course_staff_by_slug(request, course_slug):
         return course, 'staff'
     else:
-        return HttpResponseForbidden()
+        return HttpResponseForbidden(), None
 
 def _get_member(username, discussion_view, course_slug):
     """
@@ -43,6 +43,9 @@ def discussion_index(request, course_slug):
     Index page to view all discussion topics
     """
     course, view = _get_course_and_view(request, course_slug)
+    if view is None:
+        # course is an HttpResponse in this case
+        return course
     topics = DiscussionTopic.objects.filter(offering=course).order_by('-pinned', '-last_activity_at')
     activity.update_last_viewed(_get_member(request.user.username, view, course_slug))
     paginator = Paginator(topics, 10)
@@ -62,6 +65,9 @@ def create_topic(request, course_slug):
     Form to create a new discussion topic
     """
     course, view = _get_course_and_view(request, course_slug)
+    if view is None:
+        # course is an HttpResponse in this case
+        return course
     if request.method == 'POST':
         creole = DiscussionTopic(offering=course).get_creole()
         form = discussion_topic_form_factory(view, data=request.POST, creole=creole)
@@ -82,6 +88,9 @@ def edit_topic(request, course_slug, topic_slug):
     Form to edit a recently posted discussion topic (5 min window)
     """
     course, view = _get_course_and_view(request, course_slug)
+    if view is None:
+        # course is an HttpResponse in this case
+        return course
     topic = get_object_or_404(DiscussionTopic, slug=topic_slug, offering=course)
     if topic.author.person.userid != request.user.username:
         return HttpResponseForbidden()
@@ -106,6 +115,9 @@ def view_topic(request, course_slug, topic_slug):
     Page to view a discussion topic and reply
     """
     course, view = _get_course_and_view(request, course_slug)
+    if view is None:
+        # course is an HttpResponse in this case
+        return course
     topic = get_object_or_404(DiscussionTopic, slug=topic_slug, offering=course)
     if view == 'student' and topic.status == 'HID':
         raise Http404
@@ -144,6 +156,9 @@ def change_topic_status(request, course_slug, topic_slug):
     Form to change the status of a topic
     """
     course, view = _get_course_and_view(request, course_slug)
+    if view is None:
+        # course is an HttpResponse in this case
+        return course
     topic = get_object_or_404(DiscussionTopic, slug=topic_slug, offering=course)
     if view is not 'staff':
         return HttpResponseForbidden()
@@ -163,7 +178,10 @@ def edit_message(request, course_slug, topic_slug, message_slug):
     """
     Form to edit a recently posted reply (5 min window)
     """
-    course, _ = _get_course_and_view(request, course_slug)
+    course, view = _get_course_and_view(request, course_slug)
+    if view is None:
+        # course is an HttpResponse in this case
+        return course
     topic = get_object_or_404(DiscussionTopic, slug=topic_slug, offering=course)
     message = get_object_or_404(DiscussionMessage, slug=message_slug, topic=topic)
     if not message.author.person.userid == request.user.username:
@@ -188,6 +206,9 @@ def remove_message(request, course_slug, topic_slug, message_slug):
     POST to remove a topic message
     """
     course, view = _get_course_and_view(request, course_slug)
+    if view is None:
+        # course is an HttpResponse in this case
+        return course
     if request.method != 'POST':
         raise Http404
     topic = get_object_or_404(DiscussionTopic, slug=topic_slug, offering=course)
