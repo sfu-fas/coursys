@@ -47,3 +47,4 @@ local_settings.py
 .project
 .pydevproject
 connect.sh
+db.sqlite-journal
