@@ -344,7 +344,8 @@ def get_person(emplid, commit=True):
         raise ValueError, "Did somebody's userid change? " + `p.userid` + " " +  `userid`
     
     # update person's data
-    p.userid = userid
+    if userid is not None:
+        p.userid = userid
     p.last_name = last_name
     p.first_name = first_name
     p.middle_name = middle_name
