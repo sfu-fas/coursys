@@ -275,6 +275,11 @@ def create_more_data():
     tc = TeachingCapability(instructor=Person.objects.get(userid='ggbaker'), course=Course.objects.get(slug='cmpt-102'), note='foo')
     tc.save()
 
+    p = Person(userid='classam', emplid='200002389', first_name='Curtis', last_name='Lassam')
+    p.save()
+    r = Role(person=p, role="TECH", unit=Unit.objects.get(slug='comp'))
+    r.save()
+
 
 def serialize(filename):
     """

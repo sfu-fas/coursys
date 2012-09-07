@@ -8578,6 +8578,20 @@
  {
   "fields": {
    "config": "{}", 
+   "emplid": 200002389, 
+   "first_name": "Curtis", 
+   "last_name": "Lassam", 
+   "middle_name": null, 
+   "pref_first_name": null, 
+   "title": null, 
+   "userid": "classam"
+  }, 
+  "model": "coredata.person", 
+  "pk": 580
+ }, 
+ {
+  "fields": {
+   "config": "{}", 
    "emplid": 200002387, 
    "first_name": "Problem", 
    "last_name": "Admin", 
@@ -44057,6 +44071,15 @@
   }, 
   "model": "coredata.role", 
   "pk": 14
+ }, 
+ {
+  "fields": {
+   "person": 580, 
+   "role": "TECH", 
+   "unit": 2
+  }, 
+  "model": "coredata.role", 
+  "pk": 13
  }, 
  {
   "fields": {
