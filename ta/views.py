@@ -47,10 +47,6 @@ def _create_news(person, url, from_user, accept_deadline):
                  url=url, author=from_user, content="You have been offered a TA contract. You must log in and accept or reject it by %s."%(accept_deadline))
     n.save()
 
-#@login_required
-#def index_page(request, course_slug):
-#    return HttpResponseRedirect(reverse(all_tugs, args=(course_slug,)))
-
 # helps zip tas and tugs together
 # basically performs a left outer join between tas and tugs
 def _tryget(member):
@@ -461,7 +457,12 @@ def assign_bus(request, post_slug, course_slug):
     #a ta that has been assigned BU to this course might not be on the list
     tacourses = TACourse.objects.filter(course=offering)
     
-    if request.method == "POST" and request.is_ajax():
+    descrs = CourseDescription.objects.filter(unit=posting.unit)
+    if not descrs.filter(labtut=True) or not descrs.filter(labtut=False):
+        messages.error(request, "Must have at least one course description for TAs with and without labs/tutorials before assigning TAs.")
+        return HttpResponseRedirect(reverse('ta.views.descriptions', kwargs={}))
+    
+    if request.method == "POST" and 'bu_update' in request.POST:
         # update extra BU and lab/tutorial setting for course
         act = 0
         extra = 0
@@ -479,8 +480,8 @@ def assign_bus(request, post_slug, course_slug):
                     rem_bu = ta_display.display_bu_difference(offering, posting)
             except:
                 msg = "Extra BU needs to be a decimal number."
-         
-        if request.POST['labtas'] == "checked":
+
+        if 'labtas' in request.POST:
             if not offering.labtas(): #changed from F to T
                 offering.config['labtas'] = True
                 act = 1
@@ -577,11 +578,17 @@ def assign_bus(request, post_slug, course_slug):
     return render(request, 'ta/assign_bu.html', context) 
 
 @requires_role("TAAD")
-def all_contracts(request, post_slug):    
+def all_contracts(request, post_slug):
     #name, appointment category, rank, deadline, status. Total BU, Courses TA-ing , view/edit
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     contracts = TAContract.objects.filter(posting=posting)
     paginator = Paginator(contracts,5)
+
+    descrs = CourseDescription.objects.filter(unit=posting.unit)
+    if not descrs.filter(labtut=True) or not descrs.filter(labtut=False):
+        messages.error(request, "Must have at least one course description for TAs with and without labs/tutorials before assigning TAs.")
+        return HttpResponseRedirect(reverse('ta.views.descriptions', kwargs={}))
+
     
     try:
         p = int(request.GET.get("page",'1'))
