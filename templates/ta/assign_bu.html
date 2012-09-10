@@ -48,7 +48,7 @@
   		labtas = "yes"
   	
   	$.post("{% url ta.views.assign_bus post_slug=posting.slug, course_slug=offering.slug %}",
-  			{'csrfmiddlewaretoken': "{{csrf_token}}", 'extra_bu': bu, 'labtut': labtut, 'labtas': labtas},
+  			{'csrfmiddlewaretoken': "{{csrf_token}}", 'bu_update': 'yes', 'extra_bu': bu, 'labtut': labtut, 'labtas': labtas},
 				function(data){
 					data = JSON.parse(data)
 					if(data.act > 0) //add LAB_BONUS
