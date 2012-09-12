@@ -506,9 +506,15 @@ def view_course_notes(request, unit_course_slug):
     notes = ArtifactNote.objects.filter(course=course, unit__in=request.units).order_by('category', 'created_at')
     important_notes = notes.filter(important=True)
     notes = notes.exclude(important=True)
+
+    # offerings with notes
+    offering_notes = ArtifactNote.objects.filter(unit__in=request.units, course_offering__course=course) \
+                                        .values('course_offering').order_by().distinct()
+    with_note_ids = set(n['course_offering'] for n in offering_notes)
+    
     return render(request,
         'advisornotes/view_course_notes.html',
-        {'course': course, 'offerings': offerings, 'notes': notes, 'important_notes': important_notes}
+        {'course': course, 'offerings': offerings, 'notes': notes, 'important_notes': important_notes, 'with_note_ids': with_note_ids}
     )
 
 
@@ -572,6 +578,7 @@ def view_offering_notes(request, course_slug):
     notes = ArtifactNote.objects.filter(course_offering=offering, unit__in=request.units).order_by('category', 'created_at')
     important_notes = notes.filter(important=True)
     notes = notes.exclude(important=True)
+    
     return render(request,
         'advisornotes/view_offering_notes.html',
         {'offering': offering, 'notes': notes, 'important_notes': important_notes}
