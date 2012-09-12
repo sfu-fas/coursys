@@ -476,10 +476,18 @@ def view_courses(request):
     # all courses where there are notes from relevant units
     notes = ArtifactNote.objects.filter(unit__in=request.units).exclude(course__isnull=True) \
                                 .values('course').order_by().distinct()
-
+    
     with_note_ids = set(n['course'] for n in notes)
     course_ids = set(o['course'] for o in offerings)
     course_ids |= with_note_ids
+
+    # all current CourseOfferings with notes: interested in those Courses too
+    offering_notes = ArtifactNote.objects.filter(unit__in=request.units, course_offering__semester__name__gte=old_sem.name) \
+                                        .values('course_offering__course').order_by().distinct()
+    offering_note_ids = set(n['course_offering__course'] for n in offering_notes)
+    with_note_ids |= offering_note_ids
+    course_ids |= offering_note_ids
+    
     courses = Course.objects.filter(id__in=course_ids)
 
     return render(request,
