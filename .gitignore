@@ -48,3 +48,4 @@ local_settings.py
 .pydevproject
 connect.sh
 db.sqlite-journal
+.settings
