@@ -192,7 +192,7 @@ def _add_submission_to_zip(zipf, submission, components, prefix=""):
             sub.add_to_zip(zipf, prefix=prefix)
 
     # add lateness note
-    if submission.created_at > submission.activity.due_date:
+    if submission.activity.due_date and submission.created_at > submission.activity.due_date:
         fn = os.path.join(prefix, "LATE.txt")
         zipf.writestr(fn, "Submission was made at %s.\n\nThat is %s after the due date of %s.\n" %
             (submission.created_at, submission.created_at - submission.activity.due_date, submission.activity.due_date))
