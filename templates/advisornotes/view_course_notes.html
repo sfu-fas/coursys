@@ -92,13 +92,14 @@ $(function() {
 <table class="display courses">
     <thead>
         <tr>
-            <th class="semester"><abbr title="Semester">Sem.</abbr></th>
-            <th class="subject"><abbr title="Course Subject">Sub.</abbr></th>
-            <th class="number"><abbr title="Course Number">#</abbr></th>
-            <th class="number"><abbr title="Course Section">Sec.</abbr></th>
-            <th class="title">Title</th>
-            <th class="component"><abbr title="Component">Comp.</abbr></th>
-            <th class="instructor">Instructor</th>
+            <th scope="col"><abbr title="Semester">Sem.</abbr></th>
+            <th scope="col"><abbr title="Course Subject">Sub.</abbr></th>
+            <th scope="col"><abbr title="Course Number">#</abbr></th>
+            <th scope="col"><abbr title="Course Section">Sec.</abbr></th>
+            <th scope="col">Title</th>
+            <th scope="col"><abbr title="Component">Comp.</abbr></th>
+            <th scope="col">Instructor</th>
+            <th scope="col">Has Notes</th>
         </tr>
     </thead>
     <tbody>
@@ -120,6 +121,7 @@ $(function() {
                 {% endfor %}
             </td>
             {{ endspaceless }}
+            <td>{% if offering.id in with_note_ids %}<span class="sort">yes</span><img src="{{ MEDIA_URL }}icons/tick.png" alt="yes" />{% endif %}</td>
         </tr>
         {% endfor %}
     </tbody>
