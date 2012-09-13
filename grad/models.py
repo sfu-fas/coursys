@@ -482,6 +482,7 @@ STATUS_ORDER = {
         'EXPI': 3,
         'CONF': 4,
         'CANC': 5,
+        'ARIV': 5,
         'APPL': 5,
         'ACTI': 6,
         'PART': 6,
