@@ -156,7 +156,7 @@
             <tr>
                 <th scope="row">Instructor(s)</th>
                 <td>{% for instructor in course.instructors %}
-                    {{ instructor.name }} &lt;<a href="mailto:{{ instructor.email }}">{{ instructor.email }}</a>&gt;{% if not forloop.last %}, {% endif %}
+                    {{ instructor.name_with_pref }} &lt;<a href="mailto:{{ instructor.email }}">{{ instructor.email }}</a>&gt;{% if not forloop.last %}, {% endif %}
                     {% endfor %}</td>
             </tr>
             <tr>
@@ -164,7 +164,7 @@
                 <td>
                 {% if course.config.taemail %}
                 <a href="mailto:{{ course.config.taemail }}">{{ course.config.taemail }}</a>
-                ({% for ta in course.tas %}{{ ta.name }} &lt;{{ ta.email }}&gt;{% if not forloop.last %}, {% endif %}{% endfor %})
+                ({% for ta in course.tas %}{{ ta.name_with_pref }} &lt;{{ ta.email }}&gt;{% if not forloop.last %}, {% endif %}{% endfor %})
                 {% else %}
                 {% for ta in course.tas %}
                   {{ ta.name }} &lt;<a href="mailto:{{ ta.email }}">{{ ta.email }}</a>&gt;{% if not forloop.last %}, {% endif %}
