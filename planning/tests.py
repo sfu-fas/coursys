@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.test.client import Client
 from settings import CAS_SERVER_URL
 from django.core.urlresolvers import reverse
-from courselib.testing import basic_page_tests
+from courselib.testing import basic_page_tests, TEST_COURSE_SLUG
 
 
 class PlanningTest(TestCase):
@@ -31,7 +31,7 @@ class PlanningTest(TestCase):
         # Test update plan view
         url = reverse('planning.views.update_plan', kwargs={
             'semester': 1127,
-            'plan_slug': 'Offering-Alpha---Burnaby'
+            'plan_slug': 'test-plan'
         })
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
@@ -39,7 +39,7 @@ class PlanningTest(TestCase):
         # Test edit plan view
         url = reverse('planning.views.edit_plan', kwargs={
                 'semester': 1127,
-                'plan_slug': 'Offering-Alpha---Burnaby'
+                'plan_slug': 'test-plan'
         })
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
@@ -47,7 +47,7 @@ class PlanningTest(TestCase):
         # Test assign instructor view
         url = reverse('planning.views.view_instructors', kwargs={
             'semester': 1127,
-            'plan_slug': 'Offering-Alpha---Burnaby',
+            'plan_slug': 'test-plan',
             'planned_offering_slug': 'CMPT-102-D100'
         })
         response = basic_page_tests(self, client, url)
@@ -56,7 +56,7 @@ class PlanningTest(TestCase):
         # Test edit planned offering view
         url = reverse('planning.views.edit_planned_offering', kwargs={
             'semester': 1127,
-            'plan_slug': 'Offering-Alpha---Burnaby',
+            'plan_slug': 'test-plan',
             'planned_offering_slug': 'CMPT-102-D100'
         })
         response = basic_page_tests(self, client, url)
@@ -133,7 +133,7 @@ class PlanningTest(TestCase):
 
     def test_course_credits_admin_200_ok(self):
         client = Client()
-        client.login(ticket="teachadmin", service=CAS_SERVER_URL)
+        client.login(ticket="teachadm", service=CAS_SERVER_URL)
 
         url = reverse('planning.views.view_insts_in_unit')
         response = basic_page_tests(self, client, url)
@@ -155,6 +155,6 @@ class PlanningTest(TestCase):
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)
 
-        url = reverse('planning.views.edit_course_offering_credits', kwargs={'userid': 'ggbaker', 'course_slug': '2012su-cmpt-383-d1'})
+        url = reverse('planning.views.edit_course_offering_credits', kwargs={'userid': 'ggbaker', 'course_slug': TEST_COURSE_SLUG})
         response = basic_page_tests(self, client, url)
         self.assertEqual(response.status_code, 200)

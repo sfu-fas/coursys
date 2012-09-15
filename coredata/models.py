@@ -866,11 +866,12 @@ ROLE_CHOICES = (
         ('GRAD', 'Grad Student Administrator'),
         ('GRPD', 'Graduate Program Director'),
         ('FUND', 'Grad Funding Administrator'),
+        ('TECH', 'Tech Staff'),
         ('SYSA', 'System Administrator'),
         ('NONE', 'none'),
         )
 ROLES = dict(ROLE_CHOICES)
-UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'PLAN', 'TAAD', 'TADM', 'GRAD', 'FUND', 'GRPD', 'FAC', 'SESS', 'COOP'] # roles departmental admins ('ADMN') are allowed to assign with their unit
+UNIT_ROLES = ['ADVS', 'DISC', 'DICC', 'PLAN', 'TAAD', 'TADM', 'GRAD', 'FUND', 'GRPD', 'TECH', 'FAC', 'SESS', 'COOP'] # roles departmental admins ('ADMN') are allowed to assign with their unit
 ROLE_DESCR = {
         'ADVS': 'Has access to the advisor notes.',
         'DISC': 'Can manage academic discipline cases in the unit: should include your Academic Integrity Coordinator.',
@@ -881,6 +882,7 @@ ROLE_DESCR = {
         'GRAD': 'Can view and update the grad student database.',
         'GRPD': 'Director of the graduate program: typically the signer of grad-related letters.',
         'FUND': 'Can work with the grad student funding database.',
+        'TECH': 'Can manage resources required for courses.',
         'FAC': 'Faculty Member',
         'SESS': 'Sessional Instructor',
         'COOP': 'Co-op Staff Member',

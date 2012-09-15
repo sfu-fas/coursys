@@ -37,3 +37,15 @@
 Icon?
 ehthumbs.db
 Thumbs.db
+*~
+
+# other generated/private files #
+tmp-validation.html
+dbpass
+submitted_files
+local_settings.py
+.project
+.pydevproject
+.settings
+connect.sh
+db.sqlite-journal

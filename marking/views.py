@@ -244,7 +244,7 @@ def manage_activity_components(request, course_slug, activity_slug):
                                               formset=BaseActivityComponentFormSet, \
                                               can_delete = False, extra = 25) 
     
-    qset =  ActivityComponent.objects.filter(numeric_activity = activity, deleted=False);
+    qset = ActivityComponent.objects.filter(numeric_activity = activity, deleted=False)
                  
     if request.method == "POST":     
         formset = ComponentsFormSet(activity, request.POST, queryset = qset)

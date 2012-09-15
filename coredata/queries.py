@@ -72,6 +72,7 @@ class SIMSConn(DBConn):
     schema = "dbcsown"
     
     DatabaseError = None
+    DB2Error = None
 
     def get_connection(self):
         passfile = open(self.dbpass_file)
@@ -82,6 +83,7 @@ class SIMSConn(DBConn):
         
         import DB2
         SIMSConn.DatabaseError = DB2.DatabaseError
+        SIMSConn.DB2Error = DB2.Error
         dbconn = DB2.connect(dsn=self.sims_db, uid=self.sims_user, pwd=simspasswd)
         cursor = dbconn.cursor()
         cursor.execute("SET SCHEMA "+self.schema)
@@ -140,6 +142,8 @@ def SIMS_problem_handler(func):
             raise SIMSProblem, "could not connect to reporting database"
         except ImportError:
             raise SIMSProblem, "could not import DB2 module"
+        except SIMSConn.DB2Error:
+            raise SIMSProblem, "problem with reporting database connection"
 
     wrapped.__name__ = func.__name__
     return wrapped

@@ -98,9 +98,9 @@ chmod 0711 ~</pre>
 <dl>
 <dt>Code</dt>
   <dd>Code checked out from Subversion repository:
-  <blockquote><pre>svn co https://cs-svn.cs.sfu.ca/svn/courseman/trunk/courses /home/ggbaker/courses</pre></blockquote>
-  <p>But somebody following these instructions: <strong>check the Subversion URL</strong>!  Stable tags are created when serious development is going on&mdash;that might be the right one to use.</p>
-  <p>The only necessary change to the code is setting the database password in <code class="file">settings.py</code>.</p>
+  <blockquote><pre>git clone ssh://www-data@coffee.fas.sfu.ca/home/git/courses -b deployed /home/ggbaker/courses</pre></blockquote>
+  <p>But somebody following these instructions: <strong>check correct branch</strong>!  Stable branches are created when serious development is going on&mdash;that might be the right one to use.</p>
+  <p>You will need to create a <code class="file">local_settings.py</code> file that correctly sets <code>DATABASES</code> and <code>SVN_DB_CONNECT</code>.</p>
   </dd>
 <dt>PIL Build</dt>
   <dd>Per the <a href="http://ubuntuforums.org/showthread.php?t=1751455">bug here</a>, there's a hack needed to build PIL with PIP:

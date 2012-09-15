@@ -12,9 +12,10 @@ from grades.models import Activity, NumericActivity, LetterActivity, CalNumericA
 from submission.models.base import SubmissionComponent
 from submission.models.code import CodeComponent
 from submission.models.pdf import PDFComponent
+from planning.models import SemesterPlan, PlannedOffering, PlanningCourse, TeachingEquivalent, TeachingCapability, TeachingIntention
 from marking.models import ActivityComponent
 from groups.models import Group, GroupMember
-from grad.models import GradProgram, GradStudent, GradStatus, LetterTemplate
+from grad.models import GradProgram, GradStudent, GradStatus, LetterTemplate, ScholarshipType
 from discipline.models import DisciplineTemplate
 from ra.models import Account
 from courselib.testing import TEST_COURSE_SLUG
@@ -128,6 +129,14 @@ def create_others():
     p.save()
     r = Role(person=p, role="ADVS", unit=Unit.objects.get(slug='comp'))
     r.save()
+    r = Role(person=Person.objects.get(userid='dixon'), role="PLAN", unit=Unit.objects.get(slug='comp'))
+    r.save()
+    r = Role(person=Person.objects.get(userid='ggbaker'), role="FAC", unit=Unit.objects.get(slug='comp'))
+    r.save()
+    r = Role(person=Person.objects.get(userid='dixon'), role="FAC", unit=Unit.objects.get(slug='comp'))
+    r.save()
+    r = Role(person=Person.objects.get(userid='diana'), role="FAC", unit=Unit.objects.get(slug='comp'))
+    r.save()
 
     p = Person.objects.get(userid='ggbaker')
     r = Role(person=p, role="GRAD", unit=Unit.objects.get(slug='comp'))
@@ -138,7 +147,6 @@ def create_others():
     r.save()
     r = Role(person=p, role="FUND", unit=Unit.objects.get(slug='comp'))
     r.save()
-    #print list(Person.objects.all())
     r = Role(person=Person.objects.get(userid='popowich'), role="GRPD", unit=Unit.objects.get(slug='comp'))
     r.save()
 
@@ -157,6 +165,9 @@ def create_grads():
     gp.save()
     gp = GradProgram(unit=Unit.objects.get(slug='eng'), label='PhD', description='PhD')
     gp.save()
+    st = ScholarshipType(unit=Unit.objects.get(slug='comp'), name="Some Scholarship")
+    st.save()
+    
     programs = list(GradProgram.objects.all())
     for p in Person.objects.filter(userid__endswith='grad'):
         gp = random.choice(programs)
@@ -184,6 +195,10 @@ def create_grad_templ():
                  {"unit": Unit.objects.get(slug='comp'),
                   "label": "visa",
                   "content": "This is to confirm that {{title}} {{first_name}} {{last_name}} is currently enrolled as a full time student in the {{program}} in the School of Computing Science at SFU."
+                  },
+                 {"unit": Unit.objects.get(slug='comp'),
+                  "label": "Funding",
+                  "content": "This is to confirm that {{title}} {{first_name}} {{last_name}} is a student in the School of Computing Science's {{program}} program. {{He_She}} has been employed as follows:\r\n\r\n{% if tafunding %}Teaching assistant responsibilities include providing tutorials, office hours and marking assignments. {{title}} {{last_name}}'s assignments have been:\r\n\r\n{{ tafunding }}{% endif %}\r\n{% if rafunding %}Research assistants assist/provide research services to faculty. {{title}} {{last_name}}'s assignments have been:\r\n\r\n{{ rafunding }}{% endif %}\r\n{% if scholarships %}{{title}} {{last_name}} has received the following scholarships:\r\n\r\n{{ scholarships }}{% endif %}\r\n\r\n{{title}} {{last_name}} is making satisfactory progress."
                   },
                  ]
     for data in templates:
@@ -239,10 +254,31 @@ def create_more_data():
     uc.save()
     uc = UserConfig(user=Person.objects.get(userid='ggbaker'), key='advisor-token', value={'token': '082dca26730378700c0091f34412ec9a'})
     uc.save()
-    p = Person(userid='probadmin', emplid='200002387', first_name='Problem', last_name='Admin')
+    p = Person(userid='probadmn', emplid='200002387', first_name='Problem', last_name='Admin')
     p.save()
     uc = UserConfig(user=p, key='problems-token', value={'token': '30378700c0091f34412ec9a082dca268'})
     uc.save()
+    
+    p = Person(userid='teachadm', emplid='200002388', first_name='Teaching', last_name='Admin')
+    p.save()
+    r = Role(person=p, role="TADM", unit=Unit.objects.get(slug='comp'))
+    r.save()
+    sp = SemesterPlan(semester=Semester.objects.get(name='1127'), name='Test Plan', unit=Unit.objects.get(slug='comp'), slug='test-plan')
+    sp.save()
+    o = PlannedOffering(plan=sp, course=Course.objects.get(slug='cmpt-102'), section='D100', campus='BRNBY', enrl_cap=100)
+    o.save()
+    PlanningCourse.create_for_unit(Unit.objects.get(slug='comp'))
+    te = TeachingEquivalent(pk=1, instructor=Person.objects.get(userid='ggbaker'), semester=Semester.objects.get(name='1127'), credits_numerator=1, credits_denominator=1, summary="Foo", status='UNCO')
+    te.save()
+    ti = TeachingIntention(instructor=Person.objects.get(userid='ggbaker'), semester=Semester.objects.get(name='1127'), count=2)
+    ti.save()
+    tc = TeachingCapability(instructor=Person.objects.get(userid='ggbaker'), course=Course.objects.get(slug='cmpt-102'), note='foo')
+    tc.save()
+
+    p = Person(userid='classam', emplid='200002389', first_name='Curtis', last_name='Lassam')
+    p.save()
+    r = Role(person=p, role="TECH", unit=Unit.objects.get(slug='comp'))
+    r.save()
 
 
 def serialize(filename):
@@ -273,10 +309,17 @@ def serialize(filename):
             GradProgram.objects.all(),
             GradStudent.objects.all(),
             GradStatus.objects.all(),
+            ScholarshipType.objects.all(),
             DisciplineTemplate.objects.all(),
             LetterTemplate.objects.all(),
             Account.objects.all(),
             UserConfig.objects.all(),
+            SemesterPlan.objects.all(),
+            PlannedOffering.objects.all(),
+            PlanningCourse.objects.all(),
+            TeachingEquivalent.objects.all(),
+            TeachingIntention.objects.all(),
+            TeachingCapability.objects.all(),
             )
     
     data = serializers.serialize("json", objs, sort_keys=True, indent=1)
@@ -295,11 +338,11 @@ def main():
     create_semesters()
     s = Semester(name="1111", start=datetime.date(2011, 1, 9), end=datetime.date(2011, 4, 8))
     s.save()
-    wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2011, 1, 9))
+    wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2011, 1, 3))
     wk.save()
     s = Semester(name="1107", start=datetime.date(2010, 8, 9), end=datetime.date(2011, 12, 8))
     s.save()
-    wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2010, 9, 9))
+    wk = SemesterWeek(semester=s, week=1, monday=datetime.date(2010, 9, 6))
     wk.save()
     
     print "importing course offerings"

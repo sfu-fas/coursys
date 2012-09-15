@@ -27,10 +27,11 @@ class GradTest(TestCase):
         response = client.get(reverse('grad.views.quick_search')+'?term=grad')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['content-type'], 'application/json')
-        json.loads(response.content)
+        # get this grad's slug from the search
+        autocomplete = json.loads(response.content)
+        grad_slug = [d['value'] for d in autocomplete if d['value'].startswith('0nnngrad')][0]
         
         # search submit with gradstudent slug redirects to page
-        grad_slug = '0nnngrad-mscthesis'
         response = client.get(reverse('grad.views.quick_search')+'?search='+grad_slug)
         self.assertEqual(response.status_code, 302)
         self.assertTrue(response['location'].endswith( reverse('grad.views.view', kwargs={'grad_slug': grad_slug}) ))

@@ -136,10 +136,11 @@ class GradImport(object):
                   'To Be Offered': 'OFFO',
                   'OfferOut': 'OFFO',
                   'Confirmed': 'CONF',
-                  'Refused': 'REJE', # TODO: is that reasonable?
+                  'Refused': 'REJE', # note: not realy used, so collapsed into other category
                   'Canceled': 'CANC',
                   'DeclinedOffer': 'DECL',
                   'Rejected': 'REJE',
+                  'Arrived': 'ARIV',
                   'Active': 'ACTI',
                   'PartTime': 'PART',
                   'OnLeave': 'LEAV',
@@ -275,8 +276,8 @@ class GradImport(object):
         Argument list must be in the same order at the query in get_students below.
         """
         # TODO: should use get_person_grad for production run (but add_person is good enough for testing)
-        #p = get_person_grad(emplid, commit=True)
-        p = add_person(emplid, get_userid=False)
+        p = get_person_grad(emplid, commit=True)
+        #p = add_person(emplid, get_userid=False)
         if p is None:
             # ignore emplid-less grads?
             # all seem to start in 2006/2007 and have no end date
@@ -445,10 +446,6 @@ class GradImport(object):
                 else:
                     sem = self.get_semester_for_date(date)
                 
-                if status == 'Arrived':
-                    # TODO: okay to ignore? Sounds pointless.
-                    continue
-
                 # grab most-recent applicant status for the GradStudent
                 #if status in self.APP_STATUS_MAP:
                 #    app_st = self.APP_STATUS_MAP[status]
@@ -553,7 +550,7 @@ class GradImport(object):
                     of = OtherFunding(student=gs, semester=semester, description=othertype)
                 
                 of.amount = amount
-                of.eligible = True # TODO: does the isTravel bit determine this?
+                of.eligible = True
                 of.comments = comments
                 of.save()
         
@@ -1157,8 +1154,8 @@ class RAImport(object):
 
 if __name__ == '__main__':
     #Introspection().print_schema()
-    #update_amaint_userids()
-    #TAImport().get_tas()
-    #RAImport().get_ras()
+    update_amaint_userids()
+    TAImport().get_tas()
+    RAImport().get_ras()
     GradImport().get_students()
 

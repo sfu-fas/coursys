@@ -27,119 +27,20 @@ sysadmin = ["ggbaker"]
 
 def get_combined():
     combined_sections = [
-        #{
-        #    'subject': 'CMPT', 'number': '125', 'section': 'X100',
-        #    'semester': Semester.objects.get(name="1114"),
-        #    'component': 'LEC', 'graded': True, 
-        #    'crse_id': 32760, 'class_nbr': 32760,
-        #    'title': 'Intro CS/Progr(combined)',
-        #    'campus': 'BRNBY',
-        #    'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
-        #    'config': {},
-        #    'subsections': [
-        #        CourseOffering.objects.get(slug='1114-cmpt-125-d100'),
-        #        CourseOffering.objects.get(slug='1114-cmpt-126-d100')
-        #    ]
-        #},
-        #{
-        #    'subject': 'ENSC', 'number': '100', 'section': 'X100',
-        #    'semester': Semester.objects.get(name="1117"),
-        #    'component': 'LEC', 'graded': True, 
-        #    'crse_id': 32761, 'class_nbr': 32761,
-        #    'title': 'Eng.Technology and Society (combined)',
-        #    'campus': 'BRNBY',
-        #    'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
-        #    'config': {},
-        #    'subsections': [
-        #        CourseOffering.objects.get(slug='2011fa-ensc-100-d1'),
-        #        CourseOffering.objects.get(slug='2011fa-ensc-100w-d1')
-        #    ]
-        #},
-        #{
-        #    'subject': 'CMPT', 'number': '120', 'section': 'X100',
-        #    'semester': Semester.objects.get(name="1117"),
-        #    'component': 'LEC', 'graded': True, 
-        #    'crse_id': 32762, 'class_nbr': 32762,
-        #    'title': 'Intro.Cmpt.Sci/Programming I',
-        #    'campus': 'BRNBY',
-        #    'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
-        #    'config': {},
-        #    'subsections': [
-        #        CourseOffering.objects.get(slug='2011fa-cmpt-120-d1'),
-        #        CourseOffering.objects.get(slug='2011fa-cmpt-120-d2')
-        #    ]
-        #},
-        #{
-        #    'subject': 'CMPT', 'number': '461', 'section': 'X100',
-        #    'semester': Semester.objects.get(name="1117"),
-        #    'component': 'LEC', 'graded': True, 
-        #    'crse_id': 32759, 'class_nbr': 32759,
-        #    'title': 'Image Synthesis (ugrad/grad combined)',
-        #    'campus': 'BRNBY',
-        #    'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
-        #    'config': {},
-        #    'subsections': [
-        #        CourseOffering.objects.get(slug='2011fa-cmpt-461-d1'),
-        #        CourseOffering.objects.get(slug='2011fa-cmpt-761-g1')
-        #    ]
-        #},
-        #{
-        #    'subject': 'CMPT', 'number': '441', 'section': 'X100',
-        #    'semester': Semester.objects.get(name="1117"),
-        #    'component': 'LEC', 'graded': True, 
-        #    'crse_id': 32758, 'class_nbr': 32758,
-        #    'title': 'Bioinformatics Alg (ugrad/grad combined)',
-        #    'campus': 'BRNBY',
-        #    'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
-        #    'config': {},
-        #    'subsections': [
-        #        CourseOffering.objects.get(slug='2011fa-cmpt-441-e1'),
-        #        CourseOffering.objects.get(slug='2011fa-cmpt-711-g1')
-        #    ]
-        #},
-        #{
-        #    'subject': 'CMPT', 'number': '165', 'section': 'C000',
-        #    'semester': Semester.objects.get(name="1121"),
-        #    'component': 'LEC', 'graded': True, 
-        #    'crse_id': 32757, 'class_nbr': 32757,
-        #    'title': 'Intro Internet/WWW (combined)',
-        #    'campus': 'BRNBY',
-        #    'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
-        #    'config': {},
-        #    'subsections': [
-        #        CourseOffering.objects.get(slug='2012sp-cmpt-165-c1'),
-        #        CourseOffering.objects.get(slug='2012sp-cmpt-165-c2'),
-        #        CourseOffering.objects.get(slug='2012sp-cmpt-165-c3')
-        #    ]
-        #},
-        #{
-        #    'subject': 'MACM', 'number': '101', 'section': 'X100',
-        #    'semester': Semester.objects.get(name="1121"),
-        #    'component': 'LEC', 'graded': True, 
-        #    'crse_id': 32756, 'class_nbr': 32756,
-        #    'title': 'Discrete Math I (combined)',
-        #    'campus': 'BRNBY',
-        #    'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
-        #    'config': {},
-        #    'subsections': [
-        #        CourseOffering.objects.get(slug='2012sp-macm-101-d1'),
-        #        CourseOffering.objects.get(slug='2012sp-macm-101-d2')
-        #    ]
-        #},
-        #{
-        #    'subject': 'CMPT', 'number': '471', 'section': 'X100',
-        #    'semester': Semester.objects.get(name="1121"),
-        #    'component': 'LEC', 'graded': True, 
-        #    'crse_id': 32755, 'class_nbr': 32755,
-        #    'title': 'Networking (ugrad/grad combined)',
-        #    'campus': 'SURYY',
-        #    'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
-        #    'config': {},
-        #    'subsections': [
-        #        CourseOffering.objects.get(slug='2012sp-cmpt-471-d1'),
-        #        CourseOffering.objects.get(slug='2012sp-cmpt-771-g1')
-        #    ]
-        #},
+        {
+            'subject': 'CMPT', 'number': '419', 'section': 'X100',
+            'semester': Semester.objects.get(name="1127"),
+            'component': 'LEC', 'graded': True, 
+            'crse_id': 32754, 'class_nbr': 32754,
+            'title': 'Bioinformatics (combined sections)',
+            'campus': 'BRNBY',
+            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+            'config': {},
+            'subsections': [
+                CourseOffering.objects.get(slug='2012fa-cmpt-419-e1'),
+                CourseOffering.objects.get(slug='2012fa-cmpt-829-g1')
+            ]
+        },
         ]
     return combined_sections
 
@@ -443,7 +344,8 @@ def get_person(emplid, commit=True):
         raise ValueError, "Did somebody's userid change? " + `p.userid` + " " +  `userid`
     
     # update person's data
-    p.userid = userid
+    if userid is not None:
+        p.userid = userid
     p.last_name = last_name
     p.first_name = first_name
     p.middle_name = middle_name

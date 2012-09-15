@@ -43,7 +43,7 @@ TIME_ZONE = 'America/Vancouver'
 LANGUAGE_CODE = 'en'
 SITE_ID = 1
 USE_I18N = True
-MEDIA_ROOT = 'media'
+MEDIA_ROOT = os.path.join(PROJECT_DIR, 'media')
 MEDIA_URL = '/media/'
 ADMIN_MEDIA_PREFIX = '/adminmedia/'
 
@@ -113,6 +113,8 @@ INSTALLED_APPS = (
     'ra',
     'advisornotes',
     'discuss',
+    'booking',
+    'techreq',
 )
 if DEBUG:
     #INSTALLED_APPS = INSTALLED_APPS + ('debug_toolbar',)
@@ -137,8 +139,7 @@ if DEPLOYED:
     SESSION_COOKIE_SECURE = True
     DB_PASS_FILE = "/home/ggbaker/dbpass"
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' # changed below if using Celery
-    SVN_PASS = '???'
-    SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': 'svnuser', 'passwd': SVN_PASS,
+    SVN_DB_CONNECT = {'host': '127.0.0.1', 'user': 'svnuser', 'passwd': '????',
             'db': 'coursesvn', 'port': 4000}
 else:
     #MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('contrib.profiling.ProfileMiddleware',)
@@ -192,3 +193,8 @@ if not DEPLOYED and DEBUG and hostname != 'courses':
 LOGIN_URL = "/login/"
 LOGOUT_URL = "/logout/"
 LOGIN_REDIRECT_URL = "/"
+
+try:
+    from local_settings import *
+except ImportError:
+    pass

@@ -488,7 +488,7 @@ class GradesTest(TestCase):
         
         url = reverse('marking.views.change_grade_status', kwargs={'course_slug': c.slug, 'activity_slug': a.slug, 'userid': stud.person.userid})
         response = basic_page_tests(self, client, url)
-        self.assertContains(response, "out of 0<")
+        self.assertContains(response, "out of 0")
 
         response = client.post(url, {'grade-status-value': 3, 'grade-status-flag': 'GRAD', 'grade-status-comment': ''})
         self.assertEquals(response.status_code, 302)
