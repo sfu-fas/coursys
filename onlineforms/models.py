@@ -1,5 +1,6 @@
 from django.db import models
 
+<<<<<<< HEAD
 # choices for Form.initiator field
 INITIATOR_CHOICES = [
         ('LOG', 'Logged-in SFU users'),
@@ -19,3 +20,6 @@ FIELD_TYPE_CHOICES = [
         ('FILE', 'Upload a file'),
         ('URL', 'A web page address (URL)'),
         ]
+=======
+# Create your models here.
+>>>>>>> faa923e... create onlineforms app
