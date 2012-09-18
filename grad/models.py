@@ -146,6 +146,23 @@ class GradStudent(models.Model):
             return applic[0].start.next_semester()
         # next semester
         return Semester.current().next_semester()
+    
+    def flags_and_values(self):
+        """
+        Pairs fo GradFlag objects and GradFlagValue objects for this student
+        """
+        flags = GradFlag.objects.filter(unit=self.program.unit)
+        values = GradFlagValue.objects.filter(student=self, flag__unit=self.program.unit)
+        valuedict = dict(((v.flag, v) for v in values))
+        
+        for f in flags:
+            if f in valuedict:
+                yield (f, valuedict[f])
+            else:
+                v = GradFlagValue(student=self, flag=f)
+                #v.save()
+                yield (f, v)
+        
         
     def letter_info(self):
         """
@@ -668,6 +685,22 @@ class Promise(models.Model):
         How much are we short on this promise?
         """
         return self.amount - self.received()
+
+
+class GradFlag(models.Model):
+    unit = models.ForeignKey(Unit)
+    label = models.CharField(max_length=100, blank=False, null=False)
+    
+    def __unicode__(self):
+        return self.label
+
+class GradFlagValue(models.Model):
+    student = models.ForeignKey(GradStudent)
+    flag = models.ForeignKey(GradFlag)
+    value = models.BooleanField(default=False)
+    
+
+
 
 
 class SavedSearch(models.Model):

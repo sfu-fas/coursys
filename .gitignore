@@ -49,3 +49,4 @@ local_settings.py
 .settings
 connect.sh
 db.sqlite-journal
+offering_map_cache.json

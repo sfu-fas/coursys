@@ -9,7 +9,7 @@
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
 <li>&gt; <a href="{% url grad.views.view grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
-<li>&gt; Academics</li>
+<li>&gt; General Info</li>
 {% endblock %}
 
 {% block content %}
@@ -18,7 +18,17 @@
 		{% csrf_token %}
 		<fieldset>
 			<legend>Academic Info</legend>
+			<dl class="dlform">
+			{% for field,f in flagforms %}
+				<div class="field">
+			 	<dt><label for="id_special_arrangements">{{field.label}}:</label></dt>
+			 	<dd>{{f.value}}</dd>
+				</div>
+			{% endfor %}
+			</dl>
+
 			{{ form|as_dl }}
+			
 			<p><input class="submit" type="submit" value="Update" /></p>
 		</fieldset>
 	</form>

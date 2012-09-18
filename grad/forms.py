@@ -4,7 +4,7 @@ from django.db.models import Q
 import grad.models as gradmodels
 from grad.models import Supervisor, GradProgram, GradStudent, GradStatus,\
     GradRequirement, CompletedRequirement, LetterTemplate, Letter, Promise, Scholarship,\
-    ScholarshipType, SavedSearch, OtherFunding
+    ScholarshipType, SavedSearch, OtherFunding, GradFlagValue
 from courselib.forms import StaffSemesterField
 from coredata.models import Person, Member, Semester, CAMPUS_CHOICES, VISA_STATUSES
 from django.forms.models import BaseModelFormSet
@@ -258,6 +258,11 @@ class OtherFundingForm(ModelForm):
     class Meta:
         model = OtherFunding
         exclude = ('student', 'removed')
+
+class GradFlagValueForm(ModelForm):
+    class Meta:
+        model = GradFlagValue
+        exclude = ('student','flag')
 
                 
 class new_scholarshipTypeForm(ModelForm):
