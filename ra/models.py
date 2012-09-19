@@ -35,6 +35,9 @@ class Project(models.Model):
     def autoslug(self):
         return make_slug(self.unit.label + '-' + unicode(self.project_number))
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    
+    class Meta:
+        ordering = ['project_number']
 
     def __unicode__(self):
         return "%06i (%s)" % (self.project_number, self.fund_number)
@@ -52,6 +55,9 @@ class Account(models.Model):
     def autoslug(self):
         return make_slug(self.unit.label + '-' + unicode(self.account_number) + '-' + unicode(self.title))
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+
+    class Meta:
+        ordering = ['account_number']
 
     def __unicode__(self):
         return "%06i (%s)" % (self.account_number, self.title)
