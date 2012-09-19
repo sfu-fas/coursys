@@ -13,7 +13,7 @@
 			{% for r in completed_req %}
 			<tr>
 				<td>{% if r.removed %}<del>{% endif %}{{r.requirement.description}} ({{r.requirement.program.label}}){% if r.removed %}</del>{% endif %}</td>
-				<td><span class="sort">{{r.semester.name}}</span>{% if r.removed %}<del>{% endif %}{{r.semester}}{% if r.removed %}</del>{% endif %}</td>
+				<td>{% if r.removed %}<del>{% endif %}{{r.semester.name}} ({{r.semester}}){% if r.removed %}</del>{% endif %}</td>
 				<td>{% if r.date %}{% if r.removed %}<del>{% endif %}{{r.date}}{% if r.removed %}</del>{% endif %}{% endif %}</td>
 				{% if not index %}
 				<td class="miniaction">{% if not r.removed %}<form action="{% url grad.views.remove_completedrequirement grad_slug=grad.slug cr_id=r.id %}" method="post">{% csrf_token %}<p class="actionbutton">

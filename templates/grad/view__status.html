@@ -15,9 +15,9 @@
 				<td> <span class="sort">{{s.status_order}}</span>{{ s.get_status_display }}
 				{% if s.notes %} <img src="{{MEDIA_URL}}icons/information.png" alt="[?]" class="collapsiblecomment" /><p class="hiddencomment">{{s.notes}}</p> {% endif %}
 				</td>
-				<td> <span class="sort">{{s.start.name}}</span>{{s.start}} </td>
+				<td> {{s.start.name}} ({{s.start}}) </td>
 				<td> {% if s.start_date %}<span class="sort">{{s.start_date.isoformat}}</span>{{s.start_date}}{% endif %} </td>
-				<td> <span class="sort">{{s.end.name}}</span>{{s.end}} </td>
+				<td> {% if s.end %}{{s.end.name}} ({{s.end}}){% endif %} </td>
 			</tr>
 			{% endfor %}
 		</tbody>

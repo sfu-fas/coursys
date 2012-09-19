@@ -11,8 +11,8 @@
 		<tbody>
 			{% for p in promises %}
 			<tr>
-				<td> <span class="sort">{{ p.start_semester.name }}</span>{{ p.start_semester }} </td>
-				<td> <span class="sort">{{ p.end_semester.name }}</span>{{ p.end_semester }} </td>
+				<td> {{ p.start_semester.name }} ({{ p.start_semester }}) </td>
+				<td> {{ p.end_semester.name }} ({{ p.end_semester }}) </td>
 				<td> ${{ p.amount|floatformat:"2" }}
 				{% if p.comments %} <img src="{{MEDIA_URL}}icons/information.png" alt="[?]" class="collapsiblecomment" /><p class="hiddencomment">{{p.comments}}</p> {% endif %}
 				</td>

@@ -15,7 +15,7 @@
 				{% if f.comments %} <img src="{{MEDIA_URL}}icons/information.png" alt="[?]" class="collapsiblecomment" /><p class="hiddencomment">{{f.comments}}</p> {% endif %}
 				</td>
 				<td> ${{ f.amount|floatformat:"2" }} </td>
-				<td> <span class="sort">{{ f.semester.name }}</span>{{ f.semester }} </td>
+				<td> {{ f.semester.name }} ({{ f.semester }}) </td>
 			</tr>
 			{% endfor %}
 		</tbody>
