@@ -2,7 +2,7 @@ from django import template
 register = template.Library()
 import decimal, locale
 from django.utils.safestring import mark_safe
-locale.setlocale( locale.LC_ALL, '' )
+locale.setlocale( locale.LC_ALL, 'en_CA.UTF-8' )
 
 def _bu_display(offering, posting, count):
     default = posting.default_bu(offering, count=count)
