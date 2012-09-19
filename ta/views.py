@@ -30,7 +30,7 @@ import unicodecsv as csv
 from ta.templatetags import ta_display
 import json
 
-locale.setlocale( locale.LC_ALL, '' ) #fiddle with this if you cant get the following function to work
+locale.setlocale( locale.LC_ALL, 'en_CA.UTF-8' ) #fiddle with this if you cant get the following function to work
 def _format_currency(i):
     """used to properly format money"""
     return locale.currency(float(i), grouping=True)
