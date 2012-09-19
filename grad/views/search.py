@@ -1,6 +1,6 @@
 from courselib.auth import requires_role
 from django.shortcuts import render
-from grad.models import GradStudent, SavedSearch, GradRequirement, ScholarshipType
+from grad.models import GradStudent, SavedSearch, GradRequirement, ScholarshipType, STATUS_ACTIVE
 from django.http import HttpResponseRedirect, HttpResponse
 from grad.forms import SearchForm, SaveSearchForm, COLUMN_CHOICES, COLUMN_WIDTHS
 from django.core.urlresolvers import reverse
@@ -22,13 +22,6 @@ def _get_cleaned_get(request):
 
 @requires_role("GRAD")
 def search(request):
-    # Possible TODOs for search:
-    # TODO: make groups of search fields collapsible
-        # use field lists like SearchForm.semester_range_fields to organize the fields
-        # into groups, like Dates, Student Status, Academics, Financials and Personal Details
-        # and put the groups into separate divs, with headers, and use jquery.collapsible
-        # on each of the groups
-        # also this should allow the user to replace the loaded savedsearch with a new one
     current_user = Person.objects.get(userid=request.user.username)
     query_string = request.META.get('QUERY_STRING','')
     try:
@@ -45,7 +38,7 @@ def search(request):
         except SavedSearch.DoesNotExist:
             savedsearch = None
     
-    form = SearchForm() if len(request.GET) == 0 else SearchForm(request.GET)
+    form = SearchForm(initial={'student_status': STATUS_ACTIVE}) if len(request.GET) == 0 else SearchForm(request.GET)
     requirement_choices = [(r.id, "%s (%s)" % (r.description, r.program.label)) for r in
             GradRequirement.objects.filter(program__unit__in=request.units, hidden=False).order_by('program__label', 'description')]
     scholarshiptype_choices = [(st.id, st.name) for st in ScholarshipType.objects.filter(unit__in=request.units, hidden=False)]

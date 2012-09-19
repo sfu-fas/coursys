@@ -425,29 +425,36 @@ class SearchForm(forms.Form):
             'start_semester_start',
             'start_semester_end',
             'end_semester_start',
-            'end_semester_end',]
-    
-    regular_fields = [
+            'end_semester_end',
+            ]
+    personal_fields = [
             'first_name_contains',
             'last_name_contains',
-            'student_status',
-            'application_status',
+            'is_canadian',
+            'gender',
+            'visa',            
+            'gpa_min',
+            'gpa_max'
+            ]
+    program_fields = [
             'program',
+            'campus',
+            ]
+    requirement_fields = [
             'requirements',
             'requirements_st',
             'incomplete_requirements',
-            'is_canadian',
+            ]
+    
+    status_fields = [
+            'student_status',
+            ]
+                      
+    financial_fields = [
             'financial_support',
-            'campus',
-            'gender',
-            'visa',
             'scholarship_sem',
             'scholarshiptype',
             ]
-#    regular_fields = ','.join(regular_fields)
-    number_range_fields = [
-            'gpa_min',
-            'gpa_max']
 
     col_fields = [
             'columns']

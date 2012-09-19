@@ -1154,8 +1154,8 @@ class RAImport(object):
 
 if __name__ == '__main__':
     #Introspection().print_schema()
-    update_amaint_userids()
+    #update_amaint_userids()
     TAImport().get_tas()
-    RAImport().get_ras()
-    GradImport().get_students()
+    #RAImport().get_ras()
+    #GradImport().get_students()
 

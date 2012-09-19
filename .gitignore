@@ -51,3 +51,4 @@ connect.sh
 db.sqlite-journal
 offering_map_cache.json
 1127import
+schema.txt
