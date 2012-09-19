@@ -335,19 +335,40 @@ COLUMN_CHOICES = (
         ('person.first_name',       'First Name'),
         ('person.middle_name',      'Middle Name'),
         ('person.last_name',        'Last Name'),
-        ('person.pref_first_name',  'Preferred First Name'),
+        ('person.pref_first_name',  'Pref First Name'),
         # TODO Include stuff from config eg. email, phone, address
         ('program',                 'Program'),
         ('research_area',           'Research Area'),
         ('campus',                  'Campus'),
-        ('start_semester',          'Start Semester'),
-        ('end_semester',            'End Semester'),
+        ('start_semester',          'Start Sem'),
+        ('end_semester',            'End Sem'),
         ('current_status',          'Current Status'),
         ('senior_supervisors',      'Senior Supervisor(s)'),
-        ('completed_req',           'Completed Requirements'),
-        ('gpa',                     'GPA'),
+        ('completed_req',           'Completed Req'),
+        ('gpa',                     'CGPA'),
         ('visa',                    'Visa'),
         )
+COLUMN_WIDTHS_DATA = (
+        # first field is interpreted by getattribute template filter (grad/templatetags/getattribute.py)
+        # units seem to be ~1/100 mm
+        ('person.emplid',           3000),
+        ('person.userid',           2800),
+        ('person.first_name',       5000),
+        ('person.middle_name',      5000),
+        ('person.last_name',        6000),
+        ('person.pref_first_name',  4000),
+        ('program',                 3000),
+        ('research_area',           6000),
+        ('campus',                  3000),
+        ('start_semester',          3000),
+        ('end_semester',            3000),
+        ('current_status',          3000),
+        ('senior_supervisors',      6000),
+        ('completed_req',           10000),
+        ('gpa',                     2000),
+        ('visa',                    3000),
+        )
+COLUMN_WIDTHS = dict(COLUMN_WIDTHS_DATA)
 
 class SearchForm(forms.Form):
     

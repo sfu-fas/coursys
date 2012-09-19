@@ -56,7 +56,7 @@ $(document).ready(function() {
 <tr><th>Name</th><td>{{grad.person.sortname_pref}}</td></tr>
 <tr><th>Email</th><td>{{grad.person.email_mailto}}</td></tr>
 <tr><th>Citizenship</th><td>{{ grad.person.citizen|default_if_none:"unknown" }} (visa status: {{ grad.person.visa|default_if_none:"unknown" }})</td></tr>
-<tr><th>GPA</th><td>{{grad.person.gpa}} ({{grad.person.ccredits}} credits)</td></tr>
+<tr><th>CGPA</th><td>{{grad.person.gpa}} ({{grad.person.ccredits}} credits)</td></tr>
 <tr><th>Gender</th><td>{{grad.person.gender}}</td></tr>
 </tbody>
 </table>

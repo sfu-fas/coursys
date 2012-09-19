@@ -18,6 +18,7 @@
 		{% csrf_token %}
 		<fieldset>
 			<legend>Academic Info</legend>
+			{% if flagforms %}
 			<dl class="dlform">
 			{% for field,f in flagforms %}
 				<div class="field">
@@ -26,6 +27,7 @@
 				</div>
 			{% endfor %}
 			</dl>
+			{% endif %}
 
 			{{ form|as_dl }}
 			

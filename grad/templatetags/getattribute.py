@@ -1,6 +1,7 @@
 import re
 from django import template
 from django.conf import settings
+from coredata.models import Semester
 
 numeric_test = re.compile("^\d+$")
 register = template.Library()
@@ -16,28 +17,43 @@ def getattribute(value, arg):
         sups = value.supervisor_set.filter(supervisor_type='SEN', removed=False)
         return '; '.join(s.sortname() for s in sups)
     elif arg == 'completed_req':
-        print dir(value)
         reqs = value.completedrequirement_set.all().select_related('requirement')
         return ', '.join(r.requirement.description for r in reqs)
     elif arg == 'current_status':
         return value.get_current_status_display()
     elif arg == 'gpa':
-        return value.person.gpa()
+        res = value.person.gpa()
+        if res:
+            return res
+        else:
+            return ''
     elif arg == 'visa':
         return value.person.visa()
+    elif arg == 'person.emplid':
+        return unicode(value.person.emplid)
 
     elif '.' not in arg:
         if hasattr(value, str(arg)):
-            return getattr(value, arg)
+            res = getattr(value, arg)
         elif hasattr(value, 'has_key') and value.has_key(arg):
-            return value[arg]
+            res = value[arg]
         elif numeric_test.match(str(arg)) and len(value) > int(arg):
-            return value[int(arg)]
+            res = value[int(arg)]
         else:
-            return settings.TEMPLATE_STRING_IF_INVALID
+            res = settings.TEMPLATE_STRING_IF_INVALID
     else:
         L = arg.split('.')
-        return getattribute(getattr(value, L[0]), '.'.join(L[1:]))
+        res = getattribute(getattr(value, L[0]), '.'.join(L[1:]))
+    
+    # force types to something displayable everywhere
+    if isinstance(res, Semester):
+        res = res.name
+    elif res is None:
+        res = ''
+    elif type(res) not in [int, float, str, unicode]:
+        res = unicode(res)
+    
+    return res
 
 register.filter('getattribute', getattribute)
 

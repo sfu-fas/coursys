@@ -2,11 +2,11 @@ from courselib.auth import requires_role
 from django.shortcuts import render
 from grad.models import GradStudent, SavedSearch, GradRequirement, ScholarshipType
 from django.http import HttpResponseRedirect, HttpResponse
-from grad.forms import SearchForm, SaveSearchForm, COLUMN_CHOICES
+from grad.forms import SearchForm, SaveSearchForm, COLUMN_CHOICES, COLUMN_WIDTHS
 from django.core.urlresolvers import reverse
 from coredata.models import Person
 import unicodecsv as csv
-import copy
+import copy, datetime
 from grad.templatetags.getattribute import getattribute
 
 
@@ -71,17 +71,55 @@ def search(request):
         human_readable_column_headers = [[v[1] for _,v in enumerate(COLUMN_CHOICES) if v[0] == column][0] for column in columns]
         
         if 'csv' in request.GET:
+            # CSV output
             response = HttpResponse(mimetype='text/csv')
-            response['Content-Disposition'] = 'attachment; filename=grad_search.csv'
-            writer = csv.writer( response) 
+            response['Content-Disposition'] = 'inline; filename=grad_search.csv'
+            writer = csv.writer(response) 
             
             writer.writerow( human_readable_column_headers )
             
             for grad in grads:
                 row = []
                 for column in columns:
-                    row.append(getattribute(grad, column))
+                    value = getattribute(grad, column)
+                    row.append(value)
                 writer.writerow( row ) 
+            return response
+        
+        elif 'excel' in request.GET:
+            # Excel output
+            import xlwt
+            response = HttpResponse(mimetype='application/vnd.ms-excel')
+            response['Content-Disposition'] = 'inline; filename=grad_search.xls'
+            
+            book = xlwt.Workbook(encoding='utf-8')
+            sheet = book.add_sheet('Search Results')
+            hdrstyle = xlwt.easyxf('font: bold on; pattern: pattern solid, fore_colour grey25; align: horiz centre')
+            evenstyle = xlwt.easyxf('pattern: back_colour gray40')
+            oddstyle = xlwt.easyxf('pattern: pattern sparse_dots, fore_colour grey25')
+            
+            # header row
+            sheet.write(0, 0, u'Graduate Student Search Results', xlwt.easyxf('font: bold on, height 320'))
+            sheet.row(0).height = 400
+            for i,hdr in enumerate(human_readable_column_headers):
+                sheet.write(1, i, hdr, hdrstyle)
+            
+            # data rows
+            for i,grad in enumerate(grads):
+                style = [oddstyle, evenstyle][i%2]
+                for j,column in enumerate(columns):
+                    sheet.write(i+2, j, getattribute(grad, column), style)
+            
+            # set column widths
+            for i,c in enumerate(columns):
+                wid = COLUMN_WIDTHS[c]
+                sheet.col(i).width = wid
+            
+            count = len(grads)
+            sheet.write(count+4, 0, 'Number of students: %i' % (count))
+            sheet.write(count+5, 0, 'Report generated: %s' % (datetime.datetime.now()))
+            
+            book.save(response)
             return response
         
         context = {
@@ -89,7 +127,8 @@ def search(request):
                    'human_readable_column_headers': human_readable_column_headers,
                    'columns': columns,
                    'saveform' : saveform,
-                   'csv_link' : request.get_full_path() + "&csv=yes_please"
+                   'csv_link' : request.get_full_path() + "&csv=yes",
+                   'xls_link' : request.get_full_path() + "&excel=yes",
                    }
         return render(request, 'grad/search_results.html', context)
     else:
