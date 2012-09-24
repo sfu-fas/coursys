@@ -92,7 +92,7 @@ def new(request):
         raform.fields['account'].choices = account_choices
 
         if raform.is_valid():
-            userid = raform.cleaned_data['person'].userid
+            userid = raform.cleaned_data['person'].userid_or_emplid()
             appointment = raform.save()
             messages.success(request, 'Created RA Appointment for ' + appointment.person.name())
             return HttpResponseRedirect(reverse(student_appointments, kwargs=({'userid': userid})))

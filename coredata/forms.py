@@ -1,5 +1,6 @@
 from django import forms
 from coredata.models import Role, Person, Member, CourseOffering, Unit, Semester, SemesterWeek, Holiday
+from coredata.queries import find_person, add_person, SIMSProblem
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
 from django.contrib.localflavor.ca.forms import CAPhoneNumberField
@@ -104,7 +105,83 @@ class PersonForm(forms.ModelForm):
         if email:
             self.instance.set_email(email)
         return email
+
+class PersonWidget(forms.TextInput):
+    """
+    A widget to allow selecting a person by emplid, where they might not be in the coredata.Person table yet
+    """
+    def __init__(self, *args, **kwargs):
+        self.found_sims = False
+        return super(PersonWidget, self).__init__(*args, **kwargs)
+
+    def render(self, name, value, attrs=None):
+        if self.found_sims:
+            textwidget = super(PersonWidget, self).render(name, value, attrs)
+            confirmwidget = ' Import %s %s (%s) from SIMS: ' % (self.sims_data['first_name'], self.sims_data['last_name'], self.sims_data['emplid'])
+            confirmwidget += '<input type="checkbox" name="%s_confirm" />' % (name)
+            confirmwidget += '<input type="hidden" name="%s_emplid" value="%s" />' % (name, self.sims_data['emplid'])
+            return textwidget + confirmwidget
+        else:
+            return super(PersonWidget, self).render(name, value, attrs)
+
+
+class PersonField(forms.CharField):
+    """
+    A field to allow emplid entry of a Person, but will find new people from SIMS if they aren't
+    already a coredata.Person.
     
+    If using, must override is_valid in your form as:
+    def is_valid(self, *args, **kwargs):
+        PersonField.person_data_prep(self)
+        return super(MyFormClass, self).is_valid(*args, **kwargs)
+    """
+    def __init__(self, *args, **kwargs):
+        widget = PersonWidget()
+        kwargs['widget'] = widget
+        return super(PersonField, self).__init__(*args, **kwargs)
+    
+    #def to_python(self, value):
+    def clean(self, value):
+        if isinstance(value, Person):
+            return value
+        else:
+            try:
+                return Person.objects.get(emplid=value)
+            except (ValueError, Person.DoesNotExist):
+                # try to find the emplid in SIMS if they are missing from our DB
+                if not value or not value.isdigit():
+                    raise forms.ValidationError, "Could not find this emplid."
+                try:
+                    persondata = find_person(value)
+                except SIMSProblem, e:
+                    raise forms.ValidationError, "Problem locating person in SIMS: " + e.message
+                if not persondata:
+                    raise forms.ValidationError, "Could not find this emplid."
+                
+                # we found this emplid in SIMS: raise validation error, but offer to add next time.
+                confirm = self.fieldname+'_confirm'
+                checkemplid = self.fieldname+'_emplid'
+                if confirm in self.formdata and checkemplid in self.formdata and self.formdata[checkemplid] == value:
+                    # new person was presented in the form last time, and they confirmed import
+                    p = add_person(value)
+                    return p
+                else:
+                    self.widget.found_sims = True
+                    self.widget.sims_data = persondata
+                    raise forms.ValidationError, "Person is new to this system: please confirm their import."
+    
+    @classmethod
+    def person_data_prep(cls, form):
+        for name, personfield in [(f, form.fields[f]) for f in form.fields if isinstance(form.fields[f], PersonField)]:
+            personfield.formdata = form.data
+            personfield.fieldname = name
+    
+    def prepare_value(self, value):
+        if isinstance(value, Person):
+            return value.emplid
+        else:
+            return value
+
 
 class InstrRoleForm(forms.Form):
     ROLE_CHOICES = [
