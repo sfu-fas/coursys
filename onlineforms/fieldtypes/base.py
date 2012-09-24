@@ -1,44 +1,56 @@
+import json
 # base models for FieldType classes
 
-class FieldType(object):
-    def edit_form_factory(self):
+class FieldConfigForm( forms.Form ):
+    """ 
+    The base form for field configuration. 
+    
+    'required', 'label', and 'help_text' are implemented on 
+    all field objects. 
+    
+    """
+    required = forms.BooleanField( label="Required")
+    label = forms.CharField( label="Label" )
+    help_text = forms.CharField( label="Help Text" )
+
+class FieldFactory( object ):
+
+    def __init__(self, config):
         """
-        Returns a Django Form/Field instance that can be used to edit this
+        Given a 'config' dictionary, instantiate this object in such
+        a way that it will produce the Field object described by the
+        dictionary. 
+        """
+        self.config = FieldFactory.deserialize_config(config)
+
+    def make_field_config_form(self):
+        """
+        Returns a Django Form instance that can be used to edit this
         field's details.
+
+        The Form's 'cleaned_data' should match this code's 'config'
+        object. 
         
         e.g. user might want to edit the things in the .config field:
         this Form lets them.
         """
         raise NotImplementedError
         
-    def dispay_widget(self, filled=None):
+    def make_field(self, filled):
         """
-        Returns HTML for this field, to be filled in by the user. Should
-        include the value from the filled object as an initial value (if
-        given).
+        Returns a Django Field for this field, to be filled in by the user. 
+        Should include the value from the filled object as an initial value 
+        (if given).
         
-        e.g. an <input /> tag
+        e.g. a CharField field.
         """
         raise NotImplementedError
-
-    def display_value(self, filled):
-        """
-        Returns HTML for this field and filled-in value, to be displaye
-        to the user.
-        
-        e.g. a <p> with the contents.
-        """
-        raise NotImplementedError
-
-    def is_complete(self, filled):
-        """
-        Returns True if the filled-in value is "complete". i.e. if this
-        field is required, is it "done"?
-        """
-        return filled.is_complete()
     
-    def to_json(self, filled):
+    def to_serializable(self, filled):
         """
-        Convert filled field to JSON for storage
+        Convert filled field to a JSON-friendly format. 
+
+        e.g., converting the result of a DateTimeField's 'clean()' method (which is
+        itself a datetime) to an ISO standard serialization format 
         """
-        raise NotImplementedError
+        return str(filled.clean())
