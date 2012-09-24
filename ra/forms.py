@@ -1,17 +1,19 @@
 from django import forms
 from ra.models import RAAppointment, Account, Project
 from coredata.models import Person
+from coredata.forms import PersonField
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
 from grad.models import GradStudent
 
 class RAForm(forms.ModelForm):
-    person = forms.CharField(label='Hire')
+    person = PersonField(label='Hire')
     sin = forms.IntegerField(label='SIN')
     #scholarship = forms.ChoiceField(choices=((None, '---------'),), required=False, help_text='Used only if Hiring Category is "Scholarship".')
 
-    def clean_person(self):
-        return Person.objects.get(emplid=self.cleaned_data['person'])
+    def is_valid(self, *args, **kwargs):
+        PersonField.person_data_prep(self)
+        return super(RAForm, self).is_valid(*args, **kwargs)
 
     def clean_sin(self):
         sin = self.cleaned_data['sin']
