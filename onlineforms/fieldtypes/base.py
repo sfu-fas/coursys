@@ -3,7 +3,7 @@
 class FieldType(object):
     def edit_form_factory(self):
         """
-        Returns a Django Form instance that can be used to edit this
+        Returns a Django Form/Field instance that can be used to edit this
         field's details.
         
         e.g. user might want to edit the things in the .config field:
@@ -36,4 +36,9 @@ class FieldType(object):
         field is required, is it "done"?
         """
         return filled.is_complete()
-        
+    
+    def to_json(self, filled):
+        """
+        Convert filled field to JSON for storage
+        """
+        raise NotImplementedError

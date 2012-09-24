@@ -1,5 +1,5 @@
 from django.db import models
-
+ 
 # choices for Form.initiator field
 INITIATOR_CHOICES = [
         ('LOG', 'Logged-in SFU users'),
@@ -17,7 +17,7 @@ VIEWABLE_CHOICES = [
 # choices for the Field.fieldtype field
 FIELD_TYPE_CHOICES = [
         ('SMTX', 'Small Text (single line)'),
-        ('MDTX', 'Large Text (a few lines)'),
+        ('MDTX', 'Medium Text (a few lines)'),
         ('LGTX', 'Large Text (many lines)'),
         ('EMAI', 'Email address'),
         ('RADI', 'Select with radio buttons'),
@@ -27,6 +27,7 @@ FIELD_TYPE_CHOICES = [
         ('FILE', 'Upload a file'),
         ('URL', 'A web page address (URL)'),
         ('TEXT', 'An explanation block (user enters nothing)'),
+        # more may be added.
         ]
 
 # mapping of field types to FieldType objects that implement their logic
