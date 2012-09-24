@@ -4,6 +4,7 @@ from django.db import models
 INITIATOR_CHOICES = [
         ('LOG', 'Logged-in SFU users'),
         ('ANY', 'Anyone, including non-SFU users'),
+        ('NON', 'Nobody: form cannot be filled out'),  # used to deactivate a form, or during creation/editing.
         # may add others if needed, e.g. instructors, admin staff, majors in a specific program, ...
         ]
 
@@ -25,6 +26,7 @@ FIELD_TYPE_CHOICES = [
         ('LIST', 'Enter a list of short responses'),
         ('FILE', 'Upload a file'),
         ('URL', 'A web page address (URL)'),
+        ('TEXT', 'An explanation block (user enters nothing)'),
         ]
 
 # mapping of field types to FieldType objects that implement their logic
