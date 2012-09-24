@@ -11,8 +11,6 @@ function ra_autocomplete() {
         $('#label_person_name').text(" " + label);
         update_person($(this).data("val"));
       }
-    }).bind('blur', function(){
-      $(this).val($(this).data("val"))
     });
   });
 }
