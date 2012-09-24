@@ -27,6 +27,9 @@ FIELD_TYPE_CHOICES = [
         ('FILE', 'Upload a file'),
         ('URL', 'A web page address (URL)'),
         ('TEXT', 'An explanation block (user enters nothing)'),
+        ('DIVI', 'A divider'),
+        #('DATE', 'A date'),
+        #('SEM', 'Semester'),
         # more may be added.
         ]
 
