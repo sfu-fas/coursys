@@ -36,11 +36,9 @@ class FieldFactory( object ):
         """
         raise NotImplementedError
         
-    def make_field(self, filled):
+    def make_field(self):
         """
         Returns a Django Field for this field, to be filled in by the user. 
-        Should include the value from the filled object as an initial value 
-        (if given).
         
         e.g. a CharField field.
         """
