@@ -207,7 +207,8 @@ class GradImport(object):
         print "Setting up CMPT grad programs..."
         cmpt = Unit.objects.get(slug='cmpt')
         self.unit = cmpt
-        programs = [('MSc Thesis', 'MSc Thesis option'), ('MSc Proj', 'MSc Project option'), ('PhD', 'PhD'),
+        programs = [('MSc Thesis', 'MSc Thesis option'), ('MSc Proj', 'MSc Project option'),
+                    ('MSc Course', 'MSc Course option'), ('PhD', 'PhD'),
                     ('Special', 'Special Arrangements'), ('Qualifying', 'Qualifying Student')]
         for lbl, dsc in programs:
             gp, new_gp = GradProgram.objects.get_or_create(unit=cmpt, label=lbl)
@@ -220,7 +221,7 @@ class GradImport(object):
         self.PROGRAM_MAP = {
                    ('MSc', 'Thesis'): GradProgram.objects.get(unit__slug='cmpt', slug='mscthesis'),
                    ('MSc', 'Project'): GradProgram.objects.get(unit__slug='cmpt', slug='mscproj'),
-                   ('MSc', 'Course'): GradProgram.objects.get(unit__slug='cmpt', slug='mscproj'),
+                   ('MSc', 'Course'): GradProgram.objects.get(unit__slug='cmpt', slug='msccourse'),
                    ('MSc', ''): GradProgram.objects.get(unit__slug='cmpt', slug='mscthesis'), # ???
                    ('MSc', None): GradProgram.objects.get(unit__slug='cmpt', slug='mscthesis'), # ???
                    ('PhD', 'Thesis'): GradProgram.objects.get(unit__slug='cmpt', slug='phd'),
@@ -1153,9 +1154,17 @@ class RAImport(object):
         #print all_types
 
 if __name__ == '__main__':
-    #Introspection().print_schema()
-    #update_amaint_userids()
-    TAImport().get_tas()
-    #RAImport().get_ras()
-    #GradImport().get_students()
+    argv = sys.argv[1:]
+    if '--schema' in argv:
+        Introspection().print_schema()
+        sys.exit(0)
+    
+    if '--userid' in argv:
+        update_amaint_userids()
+    if '--ta' in argv:
+        TAImport().get_tas()
+    if '--ra' in argv:
+        RAImport().get_ras()
+    if '--grad' in argv:
+        GradImport().get_students()
 
