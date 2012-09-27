@@ -36,7 +36,7 @@ class FieldFactory( object ):
         """
         raise NotImplementedError
         
-    def make_field(self):
+    def make_entry_field(self):
         """
         Returns a Django Field for this field, to be filled in by the user. 
         
@@ -51,4 +51,4 @@ class FieldFactory( object ):
         e.g., converting the result of a DateTimeField's 'clean()' method (which is
         itself a datetime) to an ISO standard serialization format 
         """
-        return str(filled.clean())
+        return unicode(filled.clean())

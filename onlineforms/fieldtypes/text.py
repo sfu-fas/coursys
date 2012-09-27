@@ -10,7 +10,7 @@ class SmallTextFieldFactory(FieldFactory):
     def make_field_config_form(self):
         return SmallTextConfigForm(self.config)
 
-    def make_field(self):
+    def make_entry_field(self):
         c = CharField(  required=bool(self.config['required']),
                         label=self.config['label'],
                         help_text=self.config['help_text'] )
