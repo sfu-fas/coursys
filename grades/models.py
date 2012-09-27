@@ -132,7 +132,12 @@ class Activity(models.Model):
                     'title': "%s grade released" % (self.name),
                     'content': 'Grades have been released for %s in %s.'
                       % (self.name, self.offering.name()),
-                    'url': self.get_absolute_url()})
+                    'url': self.get_absolute_url()})\
+        
+        if old and old.group and not self.group:
+            # activity changed group -> individual. Clean out any group memberships
+            from groups.models import GroupMember
+            GroupMember.objects.filter(activity=self).delete()
     
     def safely_delete(self):
         """
@@ -349,8 +354,6 @@ class CalLetterActivity(LetterActivity):
         verbose_name_plural = 'cal letter activities'
     def type_long(self):
         return "Calculated Letter Grade"
-    def is_calculated(self):
-        return True
     
     def get_cutoffs(self):
         """
