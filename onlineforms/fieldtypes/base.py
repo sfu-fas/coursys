@@ -69,9 +69,9 @@ class FieldBase( object ):
         """
         raise NotImplementedError
 
-    def to_html(self, filled):
+    def to_html(self, filled=None):
         """
-        Convert FieldSubmission to HTML for display to the user
+        Convert FieldSubmission to HTML for display to the user.
 
         e.g. return mark_safe('<p>'+escape(filled.data['info'])+'</p>')
         """
