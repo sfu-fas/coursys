@@ -1,13 +1,13 @@
-from onlineforms.fieldtypes.base import FieldType, FieldConfigForm
+from onlineforms.fieldtypes.base import FieldBase, FieldConfigForm
 from django import forms
 
-class SmallTextFieldFactory(FieldFactory):
+class SmallTextField(FieldBase):
 
     class SmallTextConfigForm( FieldConfigForm ):
         min_length = forms.IntegerField( min_value=1, max_value=300 ) 
-        min_length = forms.IntegerField( min_value=1, max_value=300 ) 
+        max_length = forms.IntegerField( min_value=1, max_value=300 ) 
 
-    def make_field_config_form(self):
+    def make_config_form(self):
         return SmallTextConfigForm(self.config)
 
     def make_entry_field(self):
@@ -20,6 +20,8 @@ class SmallTextFieldFactory(FieldFactory):
         if self.config['max_length'] and int(self.config['max_length']) > 0:
             c.max_length = self.config['max_length']
         return c
+       
+    def to_
 
 class MediumTextFieldFactory(FieldType):
     pass
