@@ -1,3 +1,3 @@
-__all__ = ['SmallText', 'MediumText']
+__all__ = ['SmallTextField', 'MediumTextField']
 
-from text import SmallText, MediumText
+from text import SmallTextField, MediumTextField

@@ -36,6 +36,6 @@ FIELD_TYPE_CHOICES = [
 # mapping of field types to FieldType objects that implement their logic
 from onlineforms.fieldtypes import *
 FIELD_TYPE_MODELS = {
-        'SMTX': SmallTextFieldFactory,
-        'MDTX': MediumTextFieldFactory,
+        'SMTX': SmallTextField,
+        'MDTX': MediumTextField,
         }
