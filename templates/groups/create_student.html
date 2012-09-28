@@ -8,7 +8,7 @@
 		<form action="{% url groups.views.submit course_slug=course.slug  %}" method="post">{% csrf_token %}
 		        <div class="group_name">
 				<label for="name">Group Name </label>
-				<input type="text" name="GroupName" id="name" />
+				<input type="text" name="GroupName" id="name" maxlength="30" />
 			</div>
 			<div class = "datatable_container"> 
 			<h2>Activities for this Group</h2>
