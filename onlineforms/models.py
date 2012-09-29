@@ -1,4 +1,5 @@
 from django.db import models
+from coredata.models import Person
  
 # choices for Form.initiator field
 INITIATOR_CHOICES = [
@@ -39,3 +40,77 @@ FIELD_TYPE_MODELS = {
         'SMTX': SmallTextField,
         'MDTX': MediumTextField,
         }
+
+class NonSFUFormFiller(models.Model):
+    """
+    A person without an SFU account that can fill out forms.
+    """
+    last_name = models.CharField(max_length=32)
+    first_name = models.CharField(max_length=32)
+    email_address = models.EmailField(max_length=254)
+
+    def __unicode__(self):
+        return "%s, %s" % (self.last_name, self.first_name)
+    def name(self):
+        return "%s %s" % (self.first_name, self.last_name)
+    def sortname(self):
+        return "%s, %s" % (self.last_name, self.first_name)
+    def initials(self):
+        return "%s%s" % (self.first_name[0], self.last_name[0])
+    def full_email(self):
+        return "%s <%s>" % (self.name(), self.email())
+    def email(self):
+        return self.email_address
+
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+    
+    def email_mailto(self):
+        "A mailto: URL for this person's email address: handles the case where we don't know an email for them."
+        email = self.email()
+        if email:
+            return mark_safe('<a href="mailto:%s">%s</a>' % (escape(email), escape(email)))
+        else:
+            return "None"
+
+class FormFiller(models.Model):
+    """
+    A wrapper class for filling forms. Is either a SFU account(Person) or a nonSFUFormFiller.
+    """
+    sfuFormFiller = models.ForeignKey(Person, null=True)
+    nonSFUFormFiller = models.ForeignKey(NonSFUFormFiller, null=True)
+
+    def getFormFiller(self):
+        if self.sfuFormFiller != None:
+            return self.sfuFormFiller
+        elif self.nonSFUFormFiller != None:
+            return self.nonSFUFormFiller
+        else:
+            raise Exception, "This form filler object is in an invalid state."
+
+    def __unicode__(self):
+        formFiller = self.getFormFiller()
+        return formFiller.__unicode__()
+    def name(self):
+        formFiller = self.getFormFiller()
+        return formFiller.name()
+    def sortname(self):
+        formFiller = self.getFormFiller()
+        return formFiller.sortname()
+    def initials(self):
+        formFiller = self.getFormFiller()
+        return formFiller.initials()
+    def full_email(self):
+        formFiller = self.getFormFiller()
+        return formFiller.full_email()
+    def email(self):
+        formFiller = self.getFormFiller()
+        return formFiller.email()
+
+    def delete(self, *args, **kwargs):
+        formFiller = self.getFormFiller()
+        return formFiller.delete(*args, **kwargs)
+    
+    def email_mailto(self):
+        formFiller = self.getFormFiller()
+        return formFiller.email_mailto()
