@@ -36,7 +36,7 @@
     </div>
 
     <div class="note-content">
-        <p>{{note.text}}</p>
+        <p>{{note.text|linebreaks}}</p>
         
         {% if note.file_attachment %}
             <p><img class="attachment-icon" src="{{MEDIA_URL}}icons/attach.png" alt="download" />
