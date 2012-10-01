@@ -131,6 +131,12 @@ class FormGroup(models.Model):
 
 class Form(models.Model):
     title = models.CharField(max_length=60, null=False, blank=False)
+    owner = models.ForeignKey(FormGroup)
+    unit = models.ForeignKey(Unit)
+    active = models.BooleanField(default=True)
+    original = models.ForeignKey('self', null=True, blank=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+    last_modified = models.DateTimeField(auto_now=True)
 
 class Sheet(models.Model):
     title = models.CharField(max_length=60, null=False, blank=False)
