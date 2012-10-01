@@ -1027,6 +1027,12 @@ class RAImport(object):
     def __init__(self):
         self.db = CortezConn()
         self.db.execute("USE [ra]", ())
+        noaccounts = Account.objects.filter(unit=self.UNIT, account_number=0, position_number=0) 
+        if noaccounts:
+            self.noaccount = noaccounts[0]
+        else:
+            self.noaccount = Account(unit=self.UNIT, account_number=0, position_number=0, title='Unknown')
+            self.noaccount.save()
     
     @transaction.commit_on_success
     def get_ra(self, contractnumber, fund, project, position, reappt, startdate, enddate, category, faculty, msp, dental, \
@@ -1094,7 +1100,6 @@ class RAImport(object):
             return
         proj, _ = Project.objects.get_or_create(unit=self.UNIT, project_number=int(project), fund_number=int(fund))
         ra.project = proj
-        ra.account = Account.objects.filter(unit=self.UNIT)[0] # TODO: no account number in cortex DB?
         #if not ((salarytype == '0' and lumpsumamount == 0) or (salarytype == '2' and lumpsumamount != 0)):
         #    raise ValueError, unicode((lumpsumamount, totalamount, salarytype))
 
@@ -1124,13 +1129,26 @@ class RAImport(object):
             ra.hours = 1
         else:
             raise ValueError, str(salarytype)
-
+        
+        # account/position number
+        if position:
+            accts = Account.objects.filter(unit=self.UNIT, position_number=position)
+            if accts:
+                ra.account = accts[0]
+            else:
+                acct = Account(unit=self.UNIT, position_number=position, account_number=0, title=unicode(position))
+                acct.save()
+                ra.account = acct
+        else:
+            ra.account = self.noaccount
+        
         ra.save()
 
     def get_ras(self):
         print "Importing RAs..."
-        #self.db.execute("select * from Contract c LEFT JOIN RA r ON c.Identifier=r.Identifier where c.ContractNumber='20060718101901'", ())
+        #self.db.execute("select distinct PositionNumber from Contract", ())
         #print list(self.db)
+        #return
         
         self.db.execute("SELECT c.ContractNumber, c.FundNumber, c.ProjectNumber, c.PositionNumber, c.ReAppointment, c.StartDate, c.EndDate, "
                         "c.HiringCategory, c.Faculty, c.MSP, c.DentalPlan, "
