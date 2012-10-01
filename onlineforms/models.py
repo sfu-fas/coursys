@@ -146,7 +146,7 @@ class Sheet(models.Model):
     order = models.PositiveIntegerField(null=True, blank=True)
     # since it seems this is tied to order == 0, we could probably exchance with a method
     is_initial = models.BooleanField(default=False)
-    #I don't quite understand the can_view field
+    can_view = models.CharField(max_length=4, choices=VIEWABLE_CHOICES, default="NON")
     active = models.BooleanField(default=True)
     original = models.ForeignKey('self', null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
