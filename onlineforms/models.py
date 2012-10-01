@@ -128,3 +128,14 @@ class FormGroup(models.Model):
 
     def __unicode__(self):
         return "%s, %s" % (self.name, self.unit.label)
+
+class Form(models.Model):
+    title = models.CharField(max_length=60, null=False, blank=False)
+
+class Sheet(models.Model):
+    title = models.CharField(max_length=60, null=False, blank=False)
+    form = models.ForeignKey(Form)
+
+class Field(models.Model):
+    label = models.CharField(max_length=60, null=False, blank=False)
+    sheet = models.ForeignKey(Sheet)
