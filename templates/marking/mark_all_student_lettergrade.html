@@ -3,8 +3,13 @@
 {% block marking_header_extra %}
 <script type="text/javascript">
 //<![CDATA[
+var oTable;
+function clear_filter() {
+  oTable.fnFilter("");
+  return true;
+}
 $(document).ready(function() {
-	var oTable = $('#all_marks').dataTable({
+	oTable = $('#all_marks').dataTable({
 		"bJQueryUI": true,
 		"bSort": true,
 		"bPaginate": false,	/* turn off the pagination */
@@ -20,7 +25,7 @@ $(document).ready(function() {
 {% block marking_subbreadcrumbs %}<li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Mark All Students</li>{% endblock %}
 
 {% block content %}
-<form id="import_file_form" action="{%url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug%}?import=true" method="post" enctype="multipart/form-data">{% csrf_token %}
+<form id="import_file_form" action="{%url marking.views.mark_all_students course_slug=course.slug activity_slug=activity.slug%}?import=true" method="post" enctype="multipart/form-data" onsubmit="return clear_filter()">{% csrf_token %}
 {% if fileform.file.errors %}
 <div class="errortext"><img src="{{MEDIA_URL}}icons/error.png" alt="error"/>&nbsp;{{fileform.file.errors.0}}</div>
 {% endif %} 
