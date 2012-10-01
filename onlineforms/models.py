@@ -1,5 +1,6 @@
 from django.db import models
 from coredata.models import Person, Unit
+from jsonfield import JSONField
  
 # choices for Form.initiator field
 INITIATOR_CHOICES = [
@@ -158,3 +159,13 @@ class Sheet(models.Model):
 class Field(models.Model):
     label = models.CharField(max_length=60, null=False, blank=False)
     sheet = models.ForeignKey(Sheet)
+    # same question as above
+    order = models.PositiveIntegerField(null=True, blank=True)
+    required = models.BooleanField(default=True)
+    fieldtype = models.CharField(max_length=4, choices=FIELD_TYPE_CHOICES, default="SMTX")
+    config = JSONField(null=False, blank=False, default={}) # configuration as required by the fieldtype
+    active = models.BooleanField(default=True)
+    original = models.ForeignKey('self', null=True, blank=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+    last_modified = models.DateTimeField(auto_now=True)
+
