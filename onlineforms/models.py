@@ -124,7 +124,7 @@ class FormGroup(models.Model):
     members = models.ManyToManyField(Person)
 
     class Meta:
-        unique_together = ("unit", "name")
+        unique_together = (("unit", "name"),)
 
     def __unicode__(self):
         return "%s, %s" % (self.name, self.unit.label)
