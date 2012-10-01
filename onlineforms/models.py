@@ -141,6 +141,19 @@ class Form(models.Model):
 class Sheet(models.Model):
     title = models.CharField(max_length=60, null=False, blank=False)
     form = models.ForeignKey(Form)
+    # not sure if this should be not null, but if it is not null, what do we set as the initial
+    # value since this field should be unique within the form?
+    order = models.PositiveIntegerField(null=True, blank=True)
+    # since it seems this is tied to order == 0, we could probably exchance with a method
+    is_initial = models.BooleanField(default=False)
+    #I don't quite understand the can_view field
+    active = models.BooleanField(default=True)
+    original = models.ForeignKey('self', null=True, blank=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+    last_modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = (('form', 'order'),)
 
 class Field(models.Model):
     label = models.CharField(max_length=60, null=False, blank=False)
