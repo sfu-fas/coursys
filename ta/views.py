@@ -809,7 +809,7 @@ def edit_contract(request, post_slug, userid):
         ForbiddenResponse(request, 'You cannot access this page')
         
     course_choices = [('','---------')] + [(c.id, c.name()) for c in posting.selectable_offerings()]
-    position_choices = [(a.id, u"%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit=posting.unit)]
+    position_choices = [(a.id, u"%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit=posting.unit, hidden=False)]
     
     #number of course form to populate
     num = 3
@@ -939,7 +939,7 @@ def _copy_posting_defaults(source, destination):
 @requires_role("TAAD")
 def edit_posting(request, post_slug=None):
     unit_choices = [(u.id, unicode(u)) for u in request.units]
-    account_choices = [(a.id, u"%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit__in=request.units)]
+    account_choices = [(a.id, u"%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit__in=request.units, hidden=False)]
     contact_choices = [(r.person.id, r.person.name()) for r in Role.objects.filter(unit__in=request.units)]
     contact_choices = list(set(contact_choices))
 

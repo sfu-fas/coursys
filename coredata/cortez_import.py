@@ -1031,7 +1031,7 @@ class RAImport(object):
         if noaccounts:
             self.noaccount = noaccounts[0]
         else:
-            self.noaccount = Account(unit=self.UNIT, account_number=0, position_number=0, title='Unknown')
+            self.noaccount = Account(unit=self.UNIT, account_number=0, position_number=0, title='Unknown', hidden=True)
             self.noaccount.save()
     
     @transaction.commit_on_success

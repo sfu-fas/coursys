@@ -58,8 +58,8 @@ def student_appointments(request, userid):
 def _appointment_defaults(units, emplid=None):
     hiring_faculty_choices = possible_supervisors(units)
     unit_choices = [(u.id, u.name) for u in units]
-    project_choices = [(p.id, unicode(p)) for p in Project.objects.filter(unit__in=units)]
-    account_choices = [(a.id, unicode(a)) for a in Account.objects.filter(unit__in=units)]
+    project_choices = [(p.id, unicode(p)) for p in Project.objects.filter(unit__in=units, hidden=False)]
+    account_choices = [(a.id, unicode(a)) for a in Account.objects.filter(unit__in=units, hidden=False)]
     scholarship_choices = [("", u'\u2014')]
     if emplid:
         for s in Scholarship.objects.filter(student__person__emplid=emplid):
