@@ -133,6 +133,7 @@ class FormGroup(models.Model):
 class Form(models.Model):
     title = models.CharField(max_length=60, null=False, blank=False)
     owner = models.ForeignKey(FormGroup)
+    initiators = models.CharField(max_length=3, choices=INITIATOR_CHOICES, default="ANY")
     unit = models.ForeignKey(Unit)
     active = models.BooleanField(default=True)
     original = models.ForeignKey('self', null=True, blank=True)
