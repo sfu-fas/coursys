@@ -200,7 +200,9 @@ def submit(request,course_slug):
     course = get_object_or_404(CourseOffering, slug = course_slug)
     member = Member.objects.get(person = person, offering = course)
     error_info=None
-    name = request.POST.get('GroupName')[:30]
+    name = request.POST.get('GroupName')
+    if name:
+        name = name[:30]
     #Check if group has a unique name
     if Group.objects.filter(name=name,courseoffering=course):
         error_info="A group named \"%s\" already exists" % (name)

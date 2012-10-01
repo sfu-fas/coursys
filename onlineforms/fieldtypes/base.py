@@ -1,4 +1,5 @@
 import json
+from django import forms
 # base models for FieldType classes
 
 class FieldConfigForm( forms.Form ):
@@ -47,7 +48,7 @@ class FieldBase( object ):
         """
         raise NotImplementedError
         
-    def make_entry_field(self, filled=None):
+    def make_entry_field(self, fieldsubmission=None):
         """
         Returns a Django Field for this field, to be filled in by the
         user. If filled is given, it is a FieldSubmission that must be
@@ -69,7 +70,7 @@ class FieldBase( object ):
         """
         raise NotImplementedError
 
-    def to_html(self, filled=None):
+    def to_html(self, fieldsubmission=None):
         """
         Convert FieldSubmission to HTML for display to the user.
 
