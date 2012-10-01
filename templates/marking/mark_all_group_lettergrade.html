@@ -3,8 +3,13 @@
 {% block marking_header_extra %}
 <script type="text/javascript">
 //<![CDATA[
+var oTable;
+function clear_filter() {
+  oTable.fnFilter("");
+  return true;
+}
 $(document).ready(function() {
-	var oTable = $('#all_marks').dataTable({
+	oTable = $('#all_marks').dataTable({
 		"bJQueryUI": true,
 		"bSort": false,
 		"bPaginate": false	/* turn off the pagination */
@@ -26,11 +31,11 @@ $(document).ready(function() {
 {% endblock %}
 
 {% block title %}Mark All{% endblock %}
-{% block h1 %} Mark All Groups{% endblock %}
+{% block h1 %}Mark All Groups{% endblock %}
 {% block marking_subbreadcrumbs %}<li>&gt; <a href="{{ activity.get_absolute_url }}">{{activity.name}}</a></li><li>&gt; Mark All Groups</li>{% endblock %}
 {% block content %}
 
-<form id="grades_form" action="{% url marking.views.mark_all_groups course_slug=course.slug activity_slug=activity.slug %}" method="post">{% csrf_token %}
+<form id="grades_form" action="{% url marking.views.mark_all_groups course_slug=course.slug activity_slug=activity.slug %}" method="post" onsubmit="return clear_filter()">{% csrf_token %}
 <div class="datatable_container">
      <table class="display" id="all_marks">
         <thead class="form_head">
