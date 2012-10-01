@@ -119,7 +119,7 @@ class FormGroup(models.Model):
     """
     A group that owns forms and form submissions.
     """
-    unit = models.ForeignKey(Unit, null=True)
+    unit = models.ForeignKey(Unit)
     name = models.CharField(max_length=60, null=False, blank=False)
     members = models.ManyToManyField(Person)
 
