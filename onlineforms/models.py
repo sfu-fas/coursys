@@ -1,5 +1,5 @@
 from django.db import models
-from coredata.models import Person
+from coredata.models import Person, Unit
  
 # choices for Form.initiator field
 INITIATOR_CHOICES = [
@@ -114,3 +114,17 @@ class FormFiller(models.Model):
     def email_mailto(self):
         formFiller = self.getFormFiller()
         return formFiller.email_mailto()
+
+class FormGroup(models.Model):
+    """
+    A group that owns forms and form submissions.
+    """
+    unit = models.ForeignKey(Unit, null=True)
+    name = models.CharField(max_length=60, null=False, blank=False)
+    members = models.ManyToManyField(Person)
+
+    class Meta:
+        unique_together = ("unit", "name")
+
+    def __unicode__(self):
+        return "%s, %s" % (self.name, self.unit.label)
