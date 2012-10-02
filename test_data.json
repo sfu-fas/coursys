@@ -46298,5 +46298,17 @@
   }, 
   "model": "planning.teachingcapability", 
   "pk": 1
+ },
+ {
+  "fields": {
+   "members": [
+    2
+   ],
+   "name": "admins",
+   "unit": 2
+  },
+  "model": "onlineforms.formgroup",
+  "pk": 1
  }
+
 ]
