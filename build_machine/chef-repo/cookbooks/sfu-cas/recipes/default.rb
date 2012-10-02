@@ -66,3 +66,6 @@ execute "a2enmod zz_sfu_cas"
 file "/etc/apache2/mods-enabled/auth_basic.load" do
 	action :delete
 end 
+
+# .htaccess files need to _work_ for SFU CAS to work. 
+execute "sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/sites-enabled/000-default"
