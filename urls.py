@@ -440,9 +440,12 @@ urlpatterns += patterns('',
     url(r'^advising/students/' + USERID_OR_EMPLID + '/courses$', 'advisornotes.views.student_courses'),
     url(r'^advising/students/' + USERID_OR_EMPLID + '/courses-data$', 'advisornotes.views.student_courses_data'),
     url(r'^advising/new_prospective_student', 'advisornotes.views.new_nonstudent'),
-    url(r'^advising/problems/$', 'advisornotes.views.view_problems'),
-    url(r'^advising/problems/resolved/$', 'advisornotes.views.view_resolved_problems'),
-    url(r'^advising/problems/(?P<prob_id>\d+)/$', 'advisornotes.views.edit_problem'),
+
+    # Problems 
+
+    # url(r'^advising/problems/$', 'advisornotes.views.view_problems'),
+    # url(r'^advising/problems/resolved/$', 'advisornotes.views.view_resolved_problems'),
+    # url(r'^advising/problems/(?P<prob_id>\d+)/$', 'advisornotes.views.edit_problem'),
 )
 
 if not settings.DEPLOYED:
