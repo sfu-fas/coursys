@@ -64,9 +64,9 @@
     <tr><th>Position Number:</th>
       <td>{{ appointment.account.position_number }}</td></tr>
     <tr><th>Start Date:</th>
-      <td>{{ appointment.start_date }}</td></tr>
+      <td>{{ appointment.start_date|date:GRAD_DATE_FORMAT }}</td></tr>
     <tr><th>End Date:</th>
-      <td>{{ appointment.end_date }}</td></tr>
+      <td>{{ appointment.end_date|date:GRAD_DATE_FORMAT }}</td></tr>
     <tr><th>Re-appointment:</th>
       <td>{{ appointment.reappointment|yesno }}</td></tr>
   </table>

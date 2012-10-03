@@ -78,6 +78,7 @@ TEMPLATE_CONTEXT_PROCESSORS = ("django.core.context_processors.auth",
     "django.core.context_processors.media",
     "django.contrib.messages.context_processors.messages",
     'django.core.context_processors.request',
+    'dashboard.context.media',
     )
 
 ROOT_URLCONF = 'courses.urls'
@@ -188,6 +189,8 @@ DATE_FORMAT = "D N d Y"
 SHORT_DATE_FORMAT = "N d Y"
 DATETIME_FORMAT = "D N d Y, H:i"
 SHORT_DATETIME_FORMAT = "N d Y, H:i"
+GRAD_DATE_FORMAT = "m/d/Y"
+GRAD_DATETIME_FORMAT = "m/d/Y H:i"
 
 if not DEPLOYED and DEBUG and hostname != 'courses':
     CAS_SERVER_URL = "http://lefty.cmpt.sfu.ca/fake-cas/"
