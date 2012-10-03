@@ -178,6 +178,7 @@ class GradAcademicForm(ModelForm):
 class GradProgramForm(ModelForm):
     class Meta:
         model = GradProgram
+        exclude = ('created_by', 'modified_by', 'hidden')
         
 class GradStudentForm(ModelForm):
     class Meta:
