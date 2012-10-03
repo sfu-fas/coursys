@@ -111,5 +111,10 @@ def view(request, grad_slug, section=None):
             resp = view(request, grad_slug, section=s)
             context[s+'_content'] = mark_safe(resp.content)
 
+    other_grad = GradStudent.objects \
+                 .filter(program__unit__in=request.units, person=grad.person) \
+                 .exclude(id=grad.id)
+    context['other_grad'] = other_grad
+
     return render(request, 'grad/view.html', context)
 

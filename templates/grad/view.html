@@ -58,6 +58,7 @@ $(document).ready(function() {
 <tr><th>Citizenship</th><td>{{ grad.person.citizen|default_if_none:"unknown" }} (visa status: {{ grad.person.visa|default_if_none:"unknown" }})</td></tr>
 <tr><th>CGPA</th><td>{{grad.person.gpa}} ({{grad.person.ccredits}} credits)</td></tr>
 <tr><th>Gender</th><td>{{grad.person.gender}}</td></tr>
+{% if other_grad %}<tr><th>Other programs</th><td>{% for g in other_grad %}<a href="{% url grad.views.view grad_slug=g.slug %}">{{g}}</a><br />{% endfor %}</td></tr>{% endif %}
 </tbody>
 </table>
 </div>
