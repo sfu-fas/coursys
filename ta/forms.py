@@ -13,6 +13,20 @@ import itertools, decimal, datetime
 from django.forms.formsets import formset_factory
 from django.forms.models import BaseInlineFormSet
 
+class LabelledHidden(forms.HiddenInput):
+    """
+    A hidden input where the field is displayed, but without any way to edit.
+    
+    Used to make fixed fields on TUG non-editable.
+    """
+    input_type = 'hidden'
+    is_hidden = False
+    def render(self, name, value, attrs=None):
+        res = super(LabelledHidden, self).render(name, value, attrs=attrs) 
+        if value:
+            res += unicode(value)
+        return res
+
 @table_row__Form
 class TUGDutyForm(forms.Form):
     label_editable = False

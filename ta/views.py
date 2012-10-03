@@ -18,7 +18,7 @@ from coredata.queries import add_person, more_personal_info, SIMSProblem
 from grad.models import GradStatus
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, TAAcceptanceForm, CoursePreferenceForm, \
     TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm, TAContactForm, \
-    CourseDescriptionForm
+    CourseDescriptionForm, LabelledHidden
 from advisornotes.forms import StudentSearchForm
 from log.models import LogEntry
 from dashboard.letters import ta_form, ta_forms
@@ -117,6 +117,12 @@ def new_tug(request, course_slug, userid):
         else:
             form = TUGForm(offering=course,userid=userid, initial={'holiday':{'total':bu}, 'base_units': bu})
     
+    if member.bu():
+        # we know BUs from the TA application: don't allow editing
+        form.fields['base_units'].widget = LabelledHidden()
+        form.subforms['holiday'].fields['total'].widget = LabelledHidden()
+        form.subforms['holiday'].fields['weekly'].widget = LabelledHidden()
+    
     context = {'ta':member.person,
                'course':course,
                'form':form,
@@ -157,6 +163,7 @@ def edit_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     member = get_object_or_404(Member, offering=course, person__userid=userid)
     tug = get_object_or_404(TUG, member=member)
+
     if (request.method=="POST"):
         form = TUGForm(request.POST, instance=tug)
         if form.is_valid():
@@ -165,6 +172,12 @@ def edit_tug(request, course_slug, userid):
             return HttpResponseRedirect(reverse(view_tug, args=(course.slug, userid)))
     else:
         form = TUGForm(instance=tug)
+
+    if member.bu():
+        # we know BUs from the TA application: don't allow editing
+        form.fields['base_units'].widget = LabelledHidden()
+        form.subforms['holiday'].fields['total'].widget = LabelledHidden()
+        form.subforms['holiday'].fields['weekly'].widget = LabelledHidden()
 
     context = {'ta':member.person,
                'course':course, 
