@@ -8,7 +8,7 @@ class ModelTests(TestCase):
     #def setUp(self):
 
     def test_FormGroup(self):
-        groupName = "admins"
+        groupName = "admins_test"
         u1 = Unit.objects.get(label="COMP")
         u2 = Unit.objects.get(label="ENG")
         # Test saving one form group
