@@ -42,6 +42,14 @@ FIELD_TYPE_MODELS = {
         'MDTX': MediumTextField,
         }
 
+# mapping of different statuses the forms can be in
+SUBMISSION_STATUS = [
+        ('WAIT', "Waiting for the owner to send it to someone else or change status to \"done\""),
+        ('DONE', "No further action required"),
+        ]
+        
+FORM_SUBMISSION_STATUS = [('PEND', "The document is still being worked on")] + SUBMISSION_STATUS
+
 class NonSFUFormFiller(models.Model):
     """
     A person without an SFU account that can fill out forms.
@@ -169,4 +177,24 @@ class Field(models.Model):
     original = models.ForeignKey('self', null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
-
+	
+class FormSubmission(models.Model):
+    form = models.ForeignKey(Form)
+    initiator = models.ForeignKey(FormFiller)
+    owner = models.ForeignKey(FormGroup)
+    status = models.CharField(max_length=4, choices=FORM_SUBMISSION_STATUS, default="PEND")
+    
+class SheetSubmission(models.Model):
+    form_submission = models.ForeignKey(FormSubmission)
+    sheet = models.ForeignKey(Sheet)
+    filler = models.ForeignKey(FormFiller)
+    status = models.CharField(max_length=4, choices=SUBMISSION_STATUS, default="WAIT")
+    # given_at = 
+    completed_at = models.DateTimeField(null=True)
+    # key = models.CharField()
+    
+class FieldSubmission(models.Model):
+    sheet_submission = models.ForeignKey(SheetSubmission)
+    field = models.ForeignKey(Field)
+    # will have to decide later what the maximum length will be if any
+    data = models.CharField(max_length=100, null=True)
