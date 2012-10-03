@@ -1,4 +1,6 @@
-from django.db import models
+from django.db import models, transaction
+from django.utils.safestring import mark_safe
+from django.utils.html import conditional_escape as escape
 from coredata.models import Person, Unit
 from jsonfield import JSONField
  
@@ -138,7 +140,30 @@ class FormGroup(models.Model):
     def __unicode__(self):
         return "%s, %s" % (self.name, self.unit.label)
 
-class Form(models.Model):
+class _FormCoherenceMixin(object):
+    """
+    Class to mix-in to maintain the .active and .original fields
+    properly when saving form objects.
+    """
+    def cleanup_fields(self):
+        """
+        Called after self.save() to manage the .active and .original fields
+        """
+        # There can be only one [active instance of this Form/Sheet/Field].
+        if self.active and self.original:
+            others = Form.objects.filter(original=self.original) \
+                                 .exclude(id=self.id)
+            others.update(active=False)
+
+        # ensure self.original is populated: should already be set to
+        # oldinstance.original when copying.
+        if not self.original:
+            assert self.id # infinite loop if called before self is saved (and thus gets an id)
+            self.original = self
+            self.save()
+
+
+class Form(models.Model, _FormCoherenceMixin):
     title = models.CharField(max_length=60, null=False, blank=False)
     owner = models.ForeignKey(FormGroup)
     initiators = models.CharField(max_length=3, choices=INITIATOR_CHOICES, default="ANY")
@@ -147,8 +172,14 @@ class Form(models.Model):
     original = models.ForeignKey('self', null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
+    
+    @transaction.commit_on_success
+    def save(self, *args, **kwargs):
+        super(Form, self).save(*args, **kwargs)
+        self.cleanup_fields()
+        
 
-class Sheet(models.Model):
+class Sheet(models.Model, _FormCoherenceMixin):
     title = models.CharField(max_length=60, null=False, blank=False)
     form = models.ForeignKey(Form)
     # not sure if this should be not null, but if it is not null, what do we set as the initial
@@ -165,7 +196,12 @@ class Sheet(models.Model):
     class Meta:
         unique_together = (('form', 'order'),)
 
-class Field(models.Model):
+    @transaction.commit_on_success
+    def save(self, *args, **kwargs):
+        super(Sheet, self).save(*args, **kwargs)
+        self.cleanup_fields()
+
+class Field(models.Model, _FormCoherenceMixin):
     label = models.CharField(max_length=60, null=False, blank=False)
     sheet = models.ForeignKey(Sheet)
     # same question as above
@@ -177,7 +213,12 @@ class Field(models.Model):
     original = models.ForeignKey('self', null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
-	
+
+    @transaction.commit_on_success
+    def save(self, *args, **kwargs):
+        super(Field, self).save(*args, **kwargs)
+        self.cleanup_fields()
+
 class FormSubmission(models.Model):
     form = models.ForeignKey(Form)
     initiator = models.ForeignKey(FormFiller)
@@ -189,7 +230,7 @@ class SheetSubmission(models.Model):
     sheet = models.ForeignKey(Sheet)
     filler = models.ForeignKey(FormFiller)
     status = models.CharField(max_length=4, choices=SUBMISSION_STATUS, default="WAIT")
-    # given_at = 
+    given_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True)
     # key = models.CharField()
     
