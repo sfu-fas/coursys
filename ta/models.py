@@ -384,20 +384,7 @@ class SkillLevel(models.Model):
     skill = models.ForeignKey(Skill)
     app = models.ForeignKey(TAApplication)
     level = models.CharField(max_length=4, choices=LEVEL_CHOICES)
-    
-    #def __unicode__(self):
-    #    return "%s for %s" % (self.skill, self.app)
 
-
-
-
-
-#DESC_CHOICES = (
-#        ('OM','Office;Marking'),
-#        ('OML','Office;Marking;Lab/Tutorial'),
-#        ('OPL','Open Lab'),
-#    )
-#LABTUT_DESC = ['OML'] # descriptions that deserve LAB_BONUS bonus
 
 APPOINTMENT_CHOICES = (
         ("INIT","Initial appointment to this position"),
@@ -445,6 +432,13 @@ class TAContract(models.Model):
 
     def save(self, *args, **kwargs):
         super(TAContract, self).save(*args, **kwargs)
+
+        # set SIN field on any GradStudent objects for this person
+        from grad.models import GradStudent
+        for gs in GradStudent.objects.filter(person=self.application.person):
+            if 'sin' not in gs.config:
+                gs.set_sin(self.sin)
+                gs.save()
 
         # if signed, create the Member objects so they have access to the courses.
         courses = TACourse.objects.filter(contract=self)

@@ -112,13 +112,21 @@ class RAAppointment(models.Model):
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
-    
 
     def __unicode__(self):
         return unicode(self.person) + "@" + unicode(self.created_at)
 
     class Meta:
         ordering = ['person', 'created_at']
+
+    def save(self, *args, **kwargs):
+        # set SIN field on any GradStudent objects for this person
+        from grad.models import GradStudent
+        for gs in GradStudent.objects.filter(person=self.person):
+            if 'sin' not in gs.config:
+                gs.set_sin(self.sin)
+                gs.save()
+        super(RAAppointment, self).save(*args, **kwargs)
     
     def default_letter_text(self):
         """
