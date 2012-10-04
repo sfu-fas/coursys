@@ -18,7 +18,8 @@ class ListField(FieldBase):
         raise NotImplementedError
 
 
-class FileField(FieldBase):
+class FileCustomField(FieldBase):
+    #Can use FileField
     class FileConfigForm(FieldConfigForm):
         pass
 
@@ -35,7 +36,8 @@ class FileField(FieldBase):
         raise NotImplementedError
 
 
-class URLField(FieldBase):
+class URLCustomField(FieldBase):
+    #Can use URLField
     class URLConfigForm(FieldConfigForm):
         pass
 
