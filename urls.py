@@ -443,6 +443,19 @@ urlpatterns += patterns('',
     url(r'^advising/problems/$', 'advisornotes.views.view_problems'),
     url(r'^advising/problems/resolved/$', 'advisornotes.views.view_resolved_problems'),
     url(r'^advising/problems/(?P<prob_id>\d+)/$', 'advisornotes.views.edit_problem'),
+
+    #url(r'forms/$', 'onlineforms.views.list_all'),
+    #url(r'forms/new$', 'onlineforms.views.new_form'),
+    #url(r'forms/' + FORM_SLUG + '/$', 'onlineforms.views.view_form'),
+    #url(r'forms/' + FORM_SLUG + '/edit$', 'onlineforms.views.edit_form'),
+    #url(r'forms/' + FORM_SLUG + '/edit/new$', 'onlineforms.views.new_sheet'),
+    #url(r'forms/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/$', 'onlineforms.views.edit_sheet'),
+    #url(r'forms/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/new$', 'onlineforms.views.new_field'),
+    #url(r'forms/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/' +FIELD_SLUG+ '$', 'onlineforms.views.edit_field'),
+    
+    ##url(r'forms/' + FORM_SLUG + '/' + SHEET_SLUG + '/???????$', 'onlineforms.views.fill_sheet'),
+    
+
 )
 
 if not settings.DEPLOYED:

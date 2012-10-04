@@ -3,6 +3,8 @@ from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape as escape
 from coredata.models import Person, Unit
 from jsonfield import JSONField
+from autoslug import AutoSlugField
+from courselib.slugs import make_slug
  
 # choices for Form.initiator field
 INITIATOR_CHOICES = [
@@ -176,12 +178,15 @@ class _FormCoherenceMixin(object):
 class Form(models.Model, _FormCoherenceMixin):
     title = models.CharField(max_length=60, null=False, blank=False)
     owner = models.ForeignKey(FormGroup)
-    initiators = models.CharField(max_length=3, choices=INITIATOR_CHOICES, default="ANY")
+    initiators = models.CharField(max_length=3, choices=INITIATOR_CHOICES, default="NON")
     unit = models.ForeignKey(Unit)
     active = models.BooleanField(default=True)
     original = models.ForeignKey('self', null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
+    def autoslug(self):
+        return make_slug(self.unit.label + ' ' + self.title)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
     
     @transaction.commit_on_success
     def save(self, *args, **kwargs):
@@ -202,6 +207,9 @@ class Sheet(models.Model, _FormCoherenceMixin):
     original = models.ForeignKey('self', null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
+    def autoslug(self):
+        return make_slug(self.title)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form')
 
     class Meta:
         unique_together = (('form', 'order'),)
@@ -211,6 +219,9 @@ class Sheet(models.Model, _FormCoherenceMixin):
         # figure out self.order
         #maxorder = ...
         #self.order = maxorder+1
+
+        assert (self.is_initial and self.order==0) or (not self.is_initial and self.order>0)
+        
         super(Sheet, self).save(*args, **kwargs)
         self.cleanup_fields()
 
@@ -226,6 +237,9 @@ class Field(models.Model, _FormCoherenceMixin):
     original = models.ForeignKey('self', null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
+    def autoslug(self):
+        return make_slug(self.label)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='sheet')
 
     @transaction.commit_on_success
     def save(self, *args, **kwargs):
