@@ -7,11 +7,21 @@ from courselib.json_fields import getter_setter #, getter_setter_2
 from courselib.slugs import make_slug
 from autoslug import AutoSlugField
 import decimal
+from numbers import Number
 from dashboard.models import NewsItem
 from django.core.urlresolvers import reverse
 
 LAB_BONUS = 0.17
 HOURS_PER_BU = 42 # also in media/js/ta.js
+
+def _round_hours(val):
+    "Round to two decimal places because... come on."
+    if isinstance(val, decimal.Decimal):
+        return val.quantize(decimal.Decimal('.01'))
+    elif isinstance(val, Number):
+        return round(val, 2)
+    else:
+        return val
 
 class TUG(models.Model):
     """
@@ -54,13 +64,10 @@ class TUG(models.Model):
     other2 = property(*getter_setter('other2'))
     
     def iterothers(self):
-#        try:
-            return (other for key, other in self.config.iteritems() 
-                    if key.startswith('other')
-                    and other.get('total',0) > 0)
-#        except:
-#            yield self.other1
-#            yield self.other2
+        return (other for key, other in self.config.iteritems() 
+                if key.startswith('other')
+                and other.get('total',0) > 0)
+
     others = lambda self:list(self.iterothers())
     
     def iterfielditems(self):
@@ -106,6 +113,12 @@ preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (LAB_BONUS, 4
         return "TA: %s  Base Units: %s" % (self.member.person.userid, self.base_units)
     
     def save(self, newsitem=True, newsitem_author=None, *args, **kwargs):
+        for f in self.config:
+            if 'weekly' in self.config[f]:
+                self.config[f]['weekly'] = _round_hours(self.config[f]['weekly'])
+            if 'total' in self.config[f]:
+                self.config[f]['total'] = _round_hours(self.config[f]['total'])
+
         super(TUG, self).save(*args, **kwargs)
         if newsitem:
             n = NewsItem(user=self.member.person, author=newsitem_author, course=self.member.offering,
