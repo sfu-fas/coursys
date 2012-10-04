@@ -251,6 +251,9 @@ class FormSubmission(models.Model):
     initiator = models.ForeignKey(FormFiller)
     owner = models.ForeignKey(FormGroup)
     status = models.CharField(max_length=4, choices=FORM_SUBMISSION_STATUS, default="PEND")
+    def autoslug(self):
+        return make_slug(unicode(self.id)) # we can do better than that, right?
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form')
     
 class SheetSubmission(models.Model):
     form_submission = models.ForeignKey(FormSubmission)
@@ -260,6 +263,9 @@ class SheetSubmission(models.Model):
     given_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True)
     # key = models.CharField()
+    def autoslug(self):
+        return make_slug(self.sheet.slug)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form_submission')
     
 class FieldSubmission(models.Model):
     sheet_submission = models.ForeignKey(SheetSubmission)
