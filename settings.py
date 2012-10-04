@@ -112,6 +112,7 @@ INSTALLED_APPS = (
     'pages',
     'ra',
     'advisornotes',
+    'alerts',
     'discuss',
     'booking',
     'techreq',

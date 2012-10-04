@@ -1,5 +1,6 @@
 from dashboard.models import UserConfig
 from django.core.exceptions import ValidationError
+from coredata.models import Role, Person, Unit
 import json
 import datetime
 
@@ -7,9 +8,9 @@ _token_not_found = """The secret token provided in the JSON request
                         doesn't match the user's secret token; or the 
                         user has not been assigned a secret token.""" 
 
-def _check_token(secret, key):
+def _check_token(person, secret, key):
     try:
-        config = UserConfig.objects.get(user__userid=person, key='problems-token')
+        config = UserConfig.objects.get(user__userid=person, key=key)
         if config.value['token'] == secret:
             return True
         return False
@@ -36,14 +37,14 @@ def validate_credentials(data):
     except KeyError:
         raise ValidationError("The key 'unit' is not present.")
 
-    if  _check_token(secret, 'problems-token'):
+    if  _check_token(person, secret, 'problems-token'):
         person = Person.objects.get(userid=person)
         unit = Unit.objects.get(label=unit)
         return person, unit, 'problems-token'
 
-    if  _check_token(secret, 'advisor-token'):
+    if  _check_token(person, secret, 'advisor-token'):
         person = Person.objects.get(userid=person)
         unit = Unit.objects.get(label=unit)
-        return person, unit, 'problems-token'
+        return person, unit, 'advisor-token'
     
     raise ValidationError(_token_not_found)

@@ -2,7 +2,7 @@ from advisornotes.models import AdvisorNote
 from coredata.models import Role, Person, Unit
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
-import rest
+import coredata.validate_rest
 import base64
 import json
 
@@ -65,7 +65,7 @@ def new_advisor_notes(post_data):
     """
     data = json.loads(post_data) # throws ValueError on bad JSON, UnicodeDecodeError on bad UTF-8
     
-    person, unit, key = rest.validate_credentials(data)
+    person, unit, key = coredata.validate_rest.validate_credentials(data)
     _create_advising_notes(data, person, unit)
     
   

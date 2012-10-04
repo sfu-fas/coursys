@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load form_display %}
-{% block title %}Reported Problems{% endblock %}
-{% block h1 %}Reported Problems{% endblock %}
+{% block title %}Reported Alerts{% endblock %}
+{% block h1 %}Reported Alerts{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
@@ -27,7 +27,11 @@ $(function() {
     <h2>Actions</h2>
     <ul>
         <li>
-            <a href="{% url advisornotes.views.view_resolved_problems %}">View resolved problems</a>
+            {% if resolved %}
+                <a href="{% url alerts.views.view_alerts%}">View unresolved alerts</a>
+            {% else %}
+                <a href="{% url alerts.views.view_resolved_alerts%}">View resolved alerts</a>
+            {% endif %}
         </li>
     </ul>
 </div>
@@ -35,7 +39,7 @@ $(function() {
 
 {% block content %}
 
-{% if problems %}
+{% if alerts %}
 <table class="display">
     <thead>
         <tr>
@@ -47,19 +51,19 @@ $(function() {
         </tr>
     </thead>
     <tbody>
-        {% for problem in problems %}
+        {% for alert in alerts %}
         <tr>
-            <td><a href="{% url advisornotes.views.edit_problem prob_id=problem.pk %}">{{ problem.code }}</a></td>
-            <td>{{ problem.person }}</td>
-            <td><span style="color: #B5111B;">{{ problem.get_status_display }}</span></td>
-            <td><abbr title="{{ problem.created_at.date }}">{{ problem.created_at|date:"Y/m/d" }}</abbr></td>
-            <td>{{ problem.description }}</td>
+            <td><a href="{% url alerts.views.edit_alert alert_id=alert.pk %}">{{ alert.alerttype.code }}</a></td>
+            <td>{{ alert.person }}</td>
+            <td><span style="color: #B5111B;">{{ alert.get_status_display }}</span></td>
+            <td><abbr title="{{ alert.created_at.date }}">{{ alert.created_at|date:"Y/m/d" }}</abbr></td>
+            <td>{{ alert.description }}</td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
 {% else %}
-<p>There are currently no unresolved problems</p>
+<p>There are currently no unresolved Alerts</p>
 {% endif %}
 
 {% endblock %}
