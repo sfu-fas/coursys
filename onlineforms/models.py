@@ -42,6 +42,16 @@ from onlineforms.fieldtypes import *
 FIELD_TYPE_MODELS = {
         'SMTX': SmallTextField,
         'MDTX': MediumTextField,
+        #'LGTX': LargeTextField,
+        #'EMAI': EmailTextField,
+        #'RADI': RadioSelectField,
+        #'SEL1': DropdownSelectFIeld,
+        #'SELN': MultipleSelectField,
+        #'LIST': ListField,
+        #'FILE': FileField,
+        #'URL': URLField,
+        #'TEXT': ExplanationTextField,
+        #'DIVI': DividerField,
         }
 
 # mapping of different statuses the forms can be in
