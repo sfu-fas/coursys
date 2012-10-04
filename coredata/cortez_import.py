@@ -276,6 +276,16 @@ class GradImport(object):
         
         Argument list must be in the same order at the query in get_students below.
         """
+        
+        #self.db.execute("SELECT * "
+        #                "FROM Programs WHERE Identifier=%s", (cortezid,))
+        #db = list(self.db)
+        #if len(db)>1:
+        #    print cortezid, emplid
+        #    for row in db:
+        #        print row
+        #return
+        
         # TODO: should use get_person_grad for production run (but add_person is good enough for testing)
         p = get_person_grad(emplid, commit=True)
         #p = add_person(emplid, get_userid=False)
