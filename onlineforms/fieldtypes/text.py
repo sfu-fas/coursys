@@ -99,6 +99,7 @@ class EmailTextField(FieldBase):
         c = EmailField(required=bool(self.config['required']),
             label=self.config['label'],
             help_text=self.config['help_text'])
+        #c = EmailField(**self.config)
 
         if fieldsubmission:
             c.initial = fieldsubmission.data['email']

@@ -208,6 +208,9 @@ class Sheet(models.Model, _FormCoherenceMixin):
 
     @transaction.commit_on_success
     def save(self, *args, **kwargs):
+        # figure out self.order
+        #maxorder = ...
+        #self.order = maxorder+1
         super(Sheet, self).save(*args, **kwargs)
         self.cleanup_fields()
 
