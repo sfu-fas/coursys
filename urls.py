@@ -444,8 +444,15 @@ urlpatterns += patterns('',
     url(r'^advising/problems/resolved/$', 'advisornotes.views.view_resolved_problems'),
     url(r'^advising/problems/(?P<prob_id>\d+)/$', 'advisornotes.views.edit_problem'),
 
+
     url(r'forms/$', 'onlineforms.views.list_all'),
     url(r'forms/new$', 'onlineforms.views.new_form'),
+    url(r'forms/groups/$', 'onlineforms.views.manage_groups'),
+    url(r'forms/groups/new$', 'onlineforms.views.new_group'),
+    url(r'forms/groups/' + FORMGROUP_SLUG + '/$', 'onlineforms.views.manage_group'),
+    url(r'forms/groups/' + FORMGROUP_SLUG + '/add$', 'onlineforms.views.add_group_member'),
+    url(r'forms/groups/' + FORMGROUP_SLUG + '/remove/' + USERID_OR_EMPLID + '/$', 'onlineforms.views.remove_group_member'),
+
     url(r'forms/' + FORM_SLUG + '/$', 'onlineforms.views.view_form'),
     url(r'forms/' + FORM_SLUG + '/edit$', 'onlineforms.views.edit_form'),
     url(r'forms/' + FORM_SLUG + '/edit/new$', 'onlineforms.views.new_sheet'),

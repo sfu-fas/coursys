@@ -52,4 +52,5 @@ FORM_SLUG = '(?P<form_slug>' + SLUG_RE + ')'
 SHEET_SLUG = '(?P<sheet_slug>' + SLUG_RE + ')'
 FIELD_SLUG = '(?P<field_slug>' + SLUG_RE + ')'
 FORMSUBMIT_SLUG = '(?P<formsubmit_slug>' + SLUG_RE + ')'
+FORMGROUP_SLUG = '(?P<formgroup_slug>' + SLUG_RE + ')'
 

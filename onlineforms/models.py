@@ -145,6 +145,9 @@ class FormGroup(models.Model):
     unit = models.ForeignKey(Unit)
     name = models.CharField(max_length=60, null=False, blank=False)
     members = models.ManyToManyField(Person)
+    def autoslug(self):
+        return make_slug(self.unit.label + ' ' + self.name)
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
 
     class Meta:
         unique_together = (("unit", "name"),)
