@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render
 from django.utils.safestring import mark_safe
 from grad.models import GradStudent, Supervisor, GradStatus, CompletedRequirement, GradRequirement, \
-        Scholarship, OtherFunding, Promise, Letter
+        Scholarship, OtherFunding, Promise, Letter, GradProgramHistory
 
 def _can_view_student(request, grad_slug, funding=False):
     """
@@ -59,6 +59,8 @@ def view(request, grad_slug, section=None):
             return NotFoundResponse(request)
         
         elif section == 'general':
+            programhistory = GradProgramHistory.objects.filter(student=grad, program__unit__in=request.units)
+            context['programhistory'] = programhistory
             return render(request, 'grad/view__general.html', context)
 
         elif section == 'supervisors':

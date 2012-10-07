@@ -6,7 +6,7 @@ import json, datetime
 from coredata.models import Person, Semester
 from grad.models import GradStudent, GradRequirement, GradProgram, Letter, LetterTemplate, \
         Supervisor, GradStatus, CompletedRequirement, ScholarshipType, Scholarship, OtherFunding, \
-        Promise
+        Promise, GradProgramHistory
 from courselib.testing import basic_page_tests
 from grad.views.view import all_sections
 
@@ -113,6 +113,7 @@ class GradTest(TestCase):
         Scholarship(student=gs, scholarship_type=st, amount=1000, start_semester=sem, end_semester=sem).save()
         OtherFunding(student=gs, amount=100, semester=sem, description="Some Other Funding", comments="Other Funding\n\nComment").save()
         Promise(student=gs, amount=10000, start_semester=sem, end_semester=sem.next_semester()).save()
+        GradProgramHistory(student=gs, program=gs.program).save()
         
         url = reverse('grad.views.get_letter_text', kwargs={'grad_slug': gs.slug, 'letter_template_id': lt.id})
         content = client.get(url).content
@@ -148,7 +149,8 @@ class GradTest(TestCase):
             
         # check management pages
         for view in ['financials', 'manage_general', 'manage_requirements', 'manage_scholarships', 'new_letter',
-                      'manage_otherfunding', 'manage_promises', 'manage_letters', 'manage_status', 'manage_supervisors']:
+                      'manage_otherfunding', 'manage_promises', 'manage_letters', 'manage_status', 'manage_supervisors',
+                      'manage_program']:
             try:
                 url = reverse('grad.views.'+view, kwargs={'grad_slug': gs.slug})
                 response = basic_page_tests(self, client, url)

@@ -13,8 +13,9 @@
 {% endblock %}
 
 {% block content %}
+<p><strong>Current program:</strong> {{grad.program.label}} [<a href="{% url grad.views.manage_program grad_slug=grad.slug %}">Change program</a>]</p>
 <div id="form_container">
-	<form  method="post" action="">
+	<form method="post" action="">
 		{% csrf_token %}
 		<fieldset>
 			<legend>Academic Info</legend>

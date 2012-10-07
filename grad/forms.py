@@ -2,14 +2,14 @@ from django.forms.models import ModelForm
 from django import forms
 from django.db.models import Q
 import grad.models as gradmodels
-from grad.models import Supervisor, GradProgram, GradStudent, GradStatus,\
-    GradRequirement, CompletedRequirement, LetterTemplate, Letter, Promise, Scholarship,\
+from grad.models import Supervisor, GradProgram, GradStudent, GradStatus, GradProgramHistory, \
+    GradRequirement, CompletedRequirement, LetterTemplate, Letter, Promise, Scholarship, \
     ScholarshipType, SavedSearch, OtherFunding, GradFlagValue
 from courselib.forms import StaffSemesterField
 from coredata.models import Person, Member, Semester, CAMPUS_CHOICES, VISA_STATUSES
 from django.forms.models import BaseModelFormSet
 #from django.core.exceptions import ValidationError
-from django.forms.widgets import NullBooleanSelect, HiddenInput
+from django.forms.widgets import HiddenInput
 from django.template import Template, TemplateSyntaxError
 from itertools import ifilter, chain
 import unicodecsv as csv
@@ -170,7 +170,16 @@ class BaseSupervisorsFormSet(BaseModelFormSet):
 class GradAcademicForm(ModelForm):
     class Meta: 
         model = GradStudent
-        fields = ('program', 'research_area', 'campus', 'english_fluency', 'mother_tongue', 'is_canadian', 'passport_issued_by', 'special_arrangements', 'comments')
+        fields = ('research_area', 'campus', 'english_fluency', 'mother_tongue', 'is_canadian', 'passport_issued_by', 'special_arrangements', 'comments')
+        widgets = {
+                   'research_area': forms.Textarea(attrs={'rows': 3, 'cols': 40}),
+                   }
+
+class GradProgramHistoryForm(ModelForm):
+    semester = StaffSemesterField()
+    class Meta: 
+        model = GradProgramHistory
+        fields = ('program', 'semester', 'starting')
         widgets = {
                    'research_area': forms.Textarea(attrs={'rows': 3, 'cols': 40}),
                    }

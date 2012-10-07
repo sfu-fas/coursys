@@ -10,6 +10,7 @@ from remove_supervisor import remove_supervisor
 from manage_requirements import manage_requirements
 from remove_completedrequirement import remove_completedrequirement
 from manage_general import manage_general
+from manage_program import manage_program
 from manage_status import manage_status
 from manage_otherfunding import manage_otherfunding
 from manage_promises import manage_promises

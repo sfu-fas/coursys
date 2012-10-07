@@ -5,7 +5,7 @@ from courselib.slugs import make_slug
 from courselib.json_fields import getter_setter
 from jsonfield import JSONField
 from pages.models import _normalize_newlines
-import re, itertools
+import re, itertools, datetime
 many_newlines = re.compile(r'\n{3,}')
 
 class GradProgram(models.Model):
@@ -96,6 +96,13 @@ class GradStudent(models.Model):
     def save(self, *args, **kwargs):
         # rebuild slug in case something changes
         self.slug = None
+        
+        # make sure we have a GradProgramHistory object corresponding to current state
+        oldhist = GradProgramHistory.objects.filter(student=self, program=self.program)
+        if not oldhist:
+            h = GradProgramHistory(student=self, program=self.program)
+            h.save()
+
         super(GradStudent, self).save(*args, **kwargs)
 
     def update_status_fields(self):
@@ -361,6 +368,16 @@ class GradStudent(models.Model):
             semesters[sem]['other'].append(other)
             
         return semesters
+
+
+class GradProgramHistory(models.Model):
+    student = models.ForeignKey(GradStudent, null=False, blank=False)
+    program = models.ForeignKey(GradProgram, null=False, blank=False)
+    start_semester = models.ForeignKey(Semester, null=False, default=Semester.current,
+            help_text="Semester when the student entered the program")
+    starting = models.DateField(default=datetime.date.today)
+
+
 
 # documentation for the fields returned by GradStudent.letter_info
 LETTER_TAGS = {
