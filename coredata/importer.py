@@ -41,6 +41,20 @@ def get_combined():
                 CourseOffering.objects.get(slug='2012fa-cmpt-829-g1')
             ]
         },
+        {
+            'subject': 'CMPT', 'number': '441', 'section': 'X100',
+            'semester': Semester.objects.get(name="1127"),
+            'component': 'LEC', 'graded': True, 
+            'crse_id': 32753, 'class_nbr': 32753,
+            'title': 'Computational Biology',
+            'campus': 'BRNBY',
+            'enrl_cap': 0, 'enrl_tot': 0, 'wait_tot': 0,
+            'config': {},
+            'subsections': [
+                CourseOffering.objects.get(slug='2012fa-cmpt-441-d1'),
+                CourseOffering.objects.get(slug='2012fa-cmpt-711-g1')
+            ]
+        },
         ]
     return combined_sections
 
