@@ -1,5 +1,6 @@
 from datetime import datetime
 from django.contrib import messages
+from django import forms
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
