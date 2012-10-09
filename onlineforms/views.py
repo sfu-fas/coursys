@@ -6,7 +6,7 @@ from django.core.urlresolvers import reverse
 from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role
 
 # FormGroup management views
-from onlineforms.forms import ConfigFieldForm
+from onlineforms.forms import ConfigFieldForm, DynamicForm
 from onlineforms.models import Form, Sheet, Field
 
 def manage_groups(request):
