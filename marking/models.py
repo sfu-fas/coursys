@@ -1,6 +1,7 @@
 import copy
 from django.db import models, IntegrityError, transaction
 from django.core.urlresolvers import reverse
+from django.core.files.base import ContentFile
 from grades.models import Activity, NumericActivity, LetterActivity, CalNumericActivity, CalLetterActivity, NumericGrade,LetterGrade,LETTER_GRADE_CHOICES
 from grades.models import all_activities_filter, neaten_activity_positions
 #from submission.models import SubmissionComponent, COMPONENT_TYPES
@@ -13,7 +14,7 @@ from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
-import os, decimal
+import os, decimal, base64
 
 MarkingSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
@@ -118,7 +119,7 @@ class ActivityMark(models.Model):
         """
         Return the filename only (no path) for the attachment.
         """
-        path, filename = os.path.split(self.file_attachment.name)
+        _, filename = os.path.split(self.file_attachment.name)
         return filename
 
 class StudentActivityMark(ActivityMark):
@@ -609,6 +610,9 @@ def activity_marks_from_JSON(activity, userid, data):
         mark_penalty = decimal.Decimal(0)
         mark_penalty_reason = ""
         overall_comment = ""
+        file_filename = None
+        file_data = None
+        file_mediatype = None
 
         if combine and old_am:
             late_percent = old_am.late_penalty
@@ -638,7 +642,20 @@ def activity_marks_from_JSON(activity, userid, data):
             elif slug=="overall_comment":
                 overall_comment = unicode(markdata[slug])
                 continue
-
+            elif slug=="attach_type":
+                file_mediatype = str(markdata[slug])
+                continue
+            elif slug=="attach_filename":
+                file_filename = unicode(markdata[slug])
+                continue
+            elif slug=="attach_data":
+                try:
+                    file_data = base64.b64decode(markdata[slug])
+                except TypeError:
+                    raise ValidationError('Invalid base64 file data for "%s"' % (recordid))
+                continue
+            
+            # handle MarkComponents
             if slug in components and slug not in found_comp_slugs:
                 comp = components[slug]
                 found_comp_slugs.add(slug)
@@ -680,6 +697,22 @@ def activity_marks_from_JSON(activity, userid, data):
             else:                
                 cm.value = decimal.Decimal(0)
                 cm.comment = ''
+
+        # handle file attachment
+        if file_filename or file_data or file_mediatype:
+            # new attachment
+            if not (file_filename and file_data and file_mediatype):
+                raise ValidationError(u'Must specify all or none of "attach_type", "attach_filename", "attach_data" in record for "%s"' % (recordid))
+            am.file_attachment.save(name=file_filename, content=ContentFile(file_data), save=False)
+            am.file_mediatype = file_mediatype
+        elif combine and old_am:
+            # recycle old
+            am.file_attachment = old_am.file_attachment
+            am.file_mediatype = old_am.file_mediatype
+        else:
+            # none
+            am.file_attachment = None
+            am.file_mediatype = None
         
         am.late_penalty = late_percent
         am.mark_adjustment = mark_penalty

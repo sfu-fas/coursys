@@ -1,0 +1,13 @@
+{
+  "combine": false,
+  "marks": [
+    {
+      "userid": "0aaa7",
+      "part-1": {"mark": 5.00, "comment": "0aaa7 1"},
+      "part-2": {"mark": 2.00, "comment": "0aaa7 2"},
+      "attach_filename": "hello.txt",
+      "attach_type": "text/plain",
+      "attach_data": "SGVsbG8gd29ybGQhCg=="
+    }
+  ]
+}
