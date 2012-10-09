@@ -44,7 +44,7 @@ def view_form(request, form_slug):
     
     fields = Field.objects.all();
     
-    # need to divide up fields based on sheets(DIVI)
+    # need to divide up fields based on sheets (DIVI)
     fieldargs = {}
     for field in fields: 
         display_field = FIELD_TYPE_MODELS[field.fieldtype]()

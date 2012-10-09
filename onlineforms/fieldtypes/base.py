@@ -1,5 +1,6 @@
 import json
 from django import forms
+
 # base models for FieldType classes
 
 class FieldConfigForm( forms.Form ):
@@ -23,7 +24,7 @@ class FieldConfigForm( forms.Form ):
 
 class FieldBase( object ):
     default_config = {'required': False, 'label': '', 'help_text': ''}
-
+    
     def __init__(self, config=None):
         """
         Given a 'config' dictionary, instantiate this object in such
@@ -31,9 +32,7 @@ class FieldBase( object ):
         dictionary. 
         """
         if not config:
-            config = self.default_config
-
-        #self.config = FieldBase.deserialize_config(config)
+            self.config = self.default_config
 
     def make_config_form(self):
         """
