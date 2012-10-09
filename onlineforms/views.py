@@ -96,9 +96,7 @@ def new_field(request, form_slug, sheet_slug):
 
             field = type()
             print field
-            field.
             #form = field.make_config_form()
-            form = field.make_config_form()
             #config_form = field.make_config_form()
 
             #print config_form
