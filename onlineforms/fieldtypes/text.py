@@ -8,12 +8,19 @@ class SmallTextField(FieldBase):
     class SmallTextConfigForm(FieldConfigForm):
         min_length = forms.IntegerField(min_value=1, max_value=300)
         max_length = forms.IntegerField(min_value=1, max_value=300)
-
+    
+    def __init__(self, config=None):
+        super(SmallTextField, self).__init__(config)
+        if not config:
+            self.config['min_length'] = 5;
+            self.config['max_length'] = 30;
+            
+    
     def make_config_form(self):
         return SmallTextConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        c = CharField(required=bool(self.config['required']),
+        c = forms.CharField(required=bool(self.config['required']),
             label=self.config['label'],
             help_text=self.config['help_text'])
 

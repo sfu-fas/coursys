@@ -1,5 +1,6 @@
 from datetime import datetime
 from django.contrib import messages
+from django import forms
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
@@ -8,6 +9,7 @@ from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role
 # FormGroup management views
 from onlineforms.forms import FieldForm
 from onlineforms.fieldtypes import *
+from onlineforms.forms import FieldForm, DynamicForm
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS
 
 def manage_groups(request):
@@ -40,7 +42,19 @@ def new_form(request):
 
 
 def view_form(request, form_slug):
-    pass
+    form = DynamicForm()
+
+    fields = Field.objects.all();
+
+    # need to divide up fields based on sheets (DIVI)
+    fieldargs = {}
+    for field in fields:
+        display_field = FIELD_TYPE_MODELS[field.fieldtype]()
+        fieldargs[field.id] = display_field.make_entry_field()
+    form.setFields(fieldargs)
+
+    context = {'form': form}
+    return render(request, "onlineforms/view_form.html", context)
 
 
 def edit_form(request, form_slug):
@@ -61,17 +75,13 @@ def new_field(request, form_slug, sheet_slug):
     owner_sheet = get_object_or_404(Sheet, slug=sheet_slug)
     section = 'setup'
 
-
-    print owner_sheet
-
     if request.method == 'POST':
         if 'next_section' in request.POST:
             section = request.POST['next_section']
-        #Start with choosing the form in setup, then the forms config after
+            #Start with choosing the form in setup, then the forms config after
         if section == 'setup':
             form = FieldForm(request.POST)
             if form.is_valid():
-
                 custom_config = {}# = json.dump(list(all_events), resp, indent=1)
 
                 #Field.objects.create(label=form.cleaned_data['name'],
@@ -92,26 +102,18 @@ def new_field(request, form_slug, sheet_slug):
             type = request.POST['type']
             type = FIELD_TYPE_MODELS[type]
 
-
-
             field = type()
-            print field
+
+            #global name 'SmallTextConfigForm' is not defined
             #form = field.make_config_form()
-            #config_form = field.make_config_form()
 
-            #print config_form
-
-            #field =
-            #form = type.make_config_form()
-            #print form
             form = FieldForm()
-            print "type: "+str(type)
+            print "type: " + str(type)
 
     else:
         form = FieldForm()
-    print "section" + section
 
-    context = {'form': form, 'slug_form': form_slug, 'slug_sheet': sheet_slug, 'section':section}
+    context = {'form': form, 'slug_form': form_slug, 'slug_sheet': sheet_slug, 'section': section}
     return render(request, 'onlineforms/new_field.html', context)
 
 

@@ -1,19 +1,20 @@
 import json
 from django import forms
+
 # base models for FieldType classes
 
 class FieldConfigForm( forms.Form ):
-    """ 
-    The base form for field configuration. 
-    
-    'required', 'label', and 'help_text' are implemented on 
-    all field objects. 
-    
+    """
+    The base form for field configuration.
+
+    'required', 'label', and 'help_text' are implemented on
+    all field objects.
+
     """
     required = forms.BooleanField( label="Required")
     label = forms.CharField( label="Label" )
     help_text = forms.CharField( label="Help Text" )
-    
+
     def serialize(self):
         """
         Convert entered data into a JSON-friendly object for
@@ -28,12 +29,11 @@ class FieldBase( object ):
         """
         Given a 'config' dictionary, instantiate this object in such
         a way that it will produce the Field object described by the
-        dictionary. 
+        dictionary.
         """
         if not config:
-            config = self.default_config
+            self.config = self.default_config
 
-        #self.config = FieldFactory.deserialize_config(config)
 
     def make_config_form(self):
         """
