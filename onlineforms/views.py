@@ -1,9 +1,13 @@
+from datetime import datetime
+from django.contrib import messages
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role
 
 # FormGroup management views
+from onlineforms.forms import ConfigFieldForm
+from onlineforms.models import Form, Sheet, Field
 
 def manage_groups(request):
     pass
@@ -51,12 +55,40 @@ def edit_sheet(request, form_slug, sheet_slug):
 
 
 def new_field(request, form_slug, sheet_slug):
-    context = {}
+    #Test url: http://localhost:8000/forms/comp-test-form-1/edit/initial-sheet/new
+    owner_form = get_object_or_404(Form, slug=form_slug) #Maybe only owner_sheet is needed
+    owner_sheet = get_object_or_404(Sheet, slug=sheet_slug)
+    print owner_sheet
+
+    if request.method == 'POST':
+        form = ConfigFieldForm(request.POST)
+        if form.is_valid():
+            custom_config = {}
+
+            Field.objects.create(label=form.cleaned_data['name'],
+                sheet=owner_sheet,
+                required=form.cleaned_data['required'],
+                fieldtype=form.cleaned_data['type'],
+                config=custom_config,
+                active=True,
+                original=None,
+                created_date=datetime.now(),
+                last_modified=datetime.now())
+
+            messages.success(request, 'Successfully created the new field \'%s\'' % form.cleaned_data['name'])
+        else:
+            print "Invalid"
+
+    else:
+        form = ConfigFieldForm()
+
+    context = {'form': form, 'slug_form': form_slug, 'slug_sheet': sheet_slug}
     return render(request, 'onlineforms/new_field.html', context)
-    pass
 
 
 def edit_field(request, form_slug, sheet_slug, field_slug):
+    #Test url: http://localhost:8000/forms/comp-test-form-1/edit/initial-sheet/edit
+
     context = {}
     return render(request, 'onlineforms/edit_field.html', context)
     pass
