@@ -39,7 +39,16 @@ def new_form(request):
 
 
 def view_form(request, form_slug):
-    pass
+    form = DynamicForm()
+    
+    fields = {}
+    fields['a_name'] = forms.CharField(label="Name", max_length=25, help_text="name")
+    fields['b_lname'] = forms.CharField(label="Last Name", help_text="lname")
+    fields['c_bday'] = forms.DateField(label="Birthday", help_text="birthday")
+    form.setFields(fields)
+    
+    context =  {'form': form}
+    return render(request, "onlineforms/view_form.html", context)
 
 
 def edit_form(request, form_slug):
