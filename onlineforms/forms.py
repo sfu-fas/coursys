@@ -16,6 +16,7 @@ class ConfigFieldForm(forms.Form):
         label='required',
         choices=RADIO_CHOICES,
         widget=forms.RadioSelect())
+    
     class Meta:
         model = Field
 
@@ -32,18 +33,6 @@ class DynamicForm(forms.Form):
         
         for k in keys:
             self.fields[k] = kwargs[k]
-            
-    def setData(self, kwargs):
-        """
-        Sets given data in the form
-        """
-        keys = kwargs.keys()
-        
-        # Determine order right here
-        keys.sort()
-        
-        for k in keys:
-            self.data[k] = kwargs[k]
             
     def validate(self, post):
         """

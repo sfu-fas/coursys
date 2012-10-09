@@ -33,7 +33,7 @@ class FieldBase( object ):
         if not config:
             config = self.default_config
 
-        self.config = FieldFactory.deserialize_config(config)
+        #self.config = FieldBase.deserialize_config(config)
 
     def make_config_form(self):
         """

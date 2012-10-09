@@ -8,7 +8,7 @@ from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role
 
 # FormGroup management views
 from onlineforms.forms import ConfigFieldForm, DynamicForm
-from onlineforms.models import Form, Sheet, Field
+from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS
 
 def manage_groups(request):
     pass
@@ -42,11 +42,14 @@ def new_form(request):
 def view_form(request, form_slug):
     form = DynamicForm()
     
-    fields = {}
-    fields['a_name'] = forms.CharField(label="Name", max_length=25, help_text="name")
-    fields['b_lname'] = forms.CharField(label="Last Name", help_text="lname")
-    fields['c_bday'] = forms.DateField(label="Birthday", help_text="birthday")
-    form.setFields(fields)
+    fields = Field.objects.all();
+    
+    # need to divide up fields based on sheets(DIVI)
+    fieldargs = {}
+    for field in fields: 
+        display_field = FIELD_TYPE_MODELS[field.fieldtype]()
+        fieldargs[field.id] = display_field.make_entry_field()
+    form.setFields(fieldargs)
     
     context =  {'form': form}
     return render(request, "onlineforms/view_form.html", context)

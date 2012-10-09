@@ -15,12 +15,13 @@
     </p>
     {% endif %}
     <form action="#" method="post">{% csrf_token %}
+        <!-- need separate fieldsets for multiple sheets -->
         <fieldset>
             <legend>Sheet Title</legend>
             <ul>
                 {{form|as_dl}}
                 <li>
-                    <input class="submit" type="submit" value="Submit" />
+                    <!--<input class="submit" type="submit" value="Submit" />-->
                 </li>
             </ul>
         </fieldset>
