@@ -694,3 +694,18 @@ class TestMarkingImport(TestCase):
         self.assertEquals(mc.value, Decimal('2'))
         self.assertEquals(mc.comment, "0aaa8 2")
 
+        # test file attachment encoded in JSON
+        with open('marking/testfiles/marking_import3.json') as file:
+            post_data = {'file':[file]}
+            response = self.client.post(url, post_data)
+        self.assertEquals(response.status_code, 302)
+        
+        marks = StudentActivityMark.objects.filter(activity=self.act, numeric_grade__member__person__userid="0aaa7")
+        self.assertEqual(len(marks), 1)
+        m = marks[0]
+        self.assertEqual(m.file_mediatype, 'text/plain')
+        m.file_attachment.open()
+        data = m.file_attachment.read()
+        self.assertEqual(data, 'Hello world!\n')
+        self.assertEqual(m.attachment_filename(), 'hello.txt')
+
