@@ -74,7 +74,7 @@ def view(request, grad_slug, section=None):
             return render(request, 'grad/view__status.html', context)
 
         elif section == 'requirements':
-            completed_req = CompletedRequirement.objects.filter(student=grad)
+            completed_req = CompletedRequirement.objects.filter(student=grad, removed=False)
             completed_gradreq_id = [cr.requirement_id for cr in completed_req if cr.removed==False]
             req = GradRequirement.objects.filter(program=grad.program, hidden=False)
             missing_req = req.exclude(id__in=completed_gradreq_id)
@@ -83,7 +83,7 @@ def view(request, grad_slug, section=None):
             return render(request, 'grad/view__requirements.html', context)
 
         elif section == 'scholarships':
-            scholarships = Scholarship.objects.filter(student=grad).select_related('scholarship_type').order_by('start_semester__name')
+            scholarships = Scholarship.objects.filter(student=grad, removed=False).select_related('scholarship_type').order_by('start_semester__name')
             context['scholarships'] = scholarships
             return render(request, 'grad/view__scholarships.html', context)
 
@@ -93,7 +93,7 @@ def view(request, grad_slug, section=None):
             return render(request, 'grad/view__otherfunding.html', context)
 
         elif section == 'promises':
-            promises = Promise.objects.filter(student=grad).order_by('start_semester__name')
+            promises = Promise.objects.filter(student=grad, removed=False).order_by('start_semester__name')
             context['promises'] = promises
             return render(request, 'grad/view__promises.html', context)
 

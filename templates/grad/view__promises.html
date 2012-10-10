@@ -44,7 +44,7 @@
                         <form action="{% url grad.views.remove_promise grad_slug=grad.slug p_id=p.id %}" method="post">
                             {% csrf_token %}
                                 <p class="actionbutton">
-                                    <input type="submit" value="remove" onclick="return confirmSubmit('remove this completed promise')" />
+                                    <input type="submit" value="remove" onclick="return confirmSubmit('remove this promise')" />
                                 </p>
                         </form>
                     {% endif %}
