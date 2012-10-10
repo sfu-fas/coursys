@@ -5,6 +5,7 @@ from coredata.models import Person, Unit
 from jsonfield import JSONField
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
+from django.db.models import Max
  
 # choices for Form.initiator field
 INITIATOR_CHOICES = [
@@ -190,6 +191,9 @@ class Form(models.Model, _FormCoherenceMixin):
     def autoslug(self):
         return make_slug(self.unit.label + ' ' + self.title)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+
+    def __unicode__(self):
+        return "%s" % (self.title)
     
     @transaction.commit_on_success
     def save(self, *args, **kwargs):
@@ -199,12 +203,13 @@ class Form(models.Model, _FormCoherenceMixin):
 
 class Sheet(models.Model, _FormCoherenceMixin):
     title = models.CharField(max_length=60, null=False, blank=False)
+    # the form this sheet is a part of
     form = models.ForeignKey(Form)
-    # not sure if this should be not null, but if it is not null, what do we set as the initial
-    # value since this field should be unique within the form?
-    order = models.PositiveIntegerField(null=True, blank=True)
-    # since it seems this is tied to order == 0, we could probably exchance with a method
+    # specifies the order within a form
+    order = models.PositiveIntegerField()
+    # Flag to indicate whether this is the first sheet in the form
     is_initial = models.BooleanField(default=False)
+    # indicates whether a person filling a sheet can see the results from all the previous sheets
     can_view = models.CharField(max_length=4, choices=VIEWABLE_CHOICES, default="NON")
     active = models.BooleanField(default=True)
     original = models.ForeignKey('self', null=True, blank=True)
@@ -217,11 +222,19 @@ class Sheet(models.Model, _FormCoherenceMixin):
     class Meta:
         unique_together = (('form', 'order'),)
 
+    def __unicode__(self):
+        return "%s, %s" % (self.form, self.title)
+
     @transaction.commit_on_success
     def save(self, *args, **kwargs):
-        # figure out self.order
-        #maxorder = ...
-        #self.order = maxorder+1
+        # if this sheet is just being created it needs a order number
+        if(self.order == None):
+            max_aggregate = Sheet.objects.filter(form=self.form).aggregate(Max('order'))
+            if(max_aggregate['order__max'] == None):
+                next_order = 0
+            else:
+                next_order = max_aggregate['order__max'] + 1
+            self.order = next_order
 
         assert (self.is_initial and self.order==0) or (not self.is_initial and self.order>0)
         
@@ -230,9 +243,10 @@ class Sheet(models.Model, _FormCoherenceMixin):
 
 class Field(models.Model, _FormCoherenceMixin):
     label = models.CharField(max_length=60, null=False, blank=False)
+    # the sheet this field is a part of
     sheet = models.ForeignKey(Sheet)
-    # same question as above
-    order = models.PositiveIntegerField(null=True, blank=True)
+    # specifies the order within a sheet
+    order = models.PositiveIntegerField()
     required = models.BooleanField(default=True)
     fieldtype = models.CharField(max_length=4, choices=FIELD_TYPE_CHOICES, default="SMTX")
     config = JSONField(null=False, blank=False, default={}) # configuration as required by the fieldtype
@@ -244,8 +258,20 @@ class Field(models.Model, _FormCoherenceMixin):
         return make_slug(self.label)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='sheet')
 
+    def __unicode__(self):
+        return "%s, %s" % (self.sheet, self.label)
+
     @transaction.commit_on_success
     def save(self, *args, **kwargs):
+        # if this field is just being created it needs a order number
+        if(self.order == None):
+            max_aggregate = Field.objects.filter(sheet=self.sheet).aggregate(Max('order'))
+            if(max_aggregate['order__max'] == None):
+                next_order = 0
+            else:
+                next_order = max_aggregate['order__max'] + 1
+            self.order = next_order
+
         super(Field, self).save(*args, **kwargs)
         self.cleanup_fields()
 

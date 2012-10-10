@@ -33,7 +33,8 @@ class FieldBase( object ):
         """
         if not config:
             self.config = self.default_config
-
+        else:
+            self.config = config
 
     def make_config_form(self):
         """

@@ -42,17 +42,19 @@ def new_form(request):
 
 
 def view_form(request, form_slug):
-    form = DynamicForm()
-
     fields = Field.objects.all();
-
+    if request.method == 'POST':
+        form = DynamicForm(request.POST)
+    else:
+        form = DynamicForm()
+        
     # need to divide up fields based on sheets (DIVI)
     fieldargs = {}
     for field in fields:
-        display_field = FIELD_TYPE_MODELS[field.fieldtype]()
+        display_field = FIELD_TYPE_MODELS[field.fieldtype](field.config)
         fieldargs[field.id] = display_field.make_entry_field()
     form.setFields(fieldargs)
-
+    
     context = {'form': form}
     return render(request, "onlineforms/view_form.html", context)
 
