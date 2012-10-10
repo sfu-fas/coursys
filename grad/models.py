@@ -378,6 +378,9 @@ class GradProgramHistory(models.Model):
     start_semester = models.ForeignKey(Semester, null=False, default=Semester.current,
             help_text="Semester when the student entered the program")
     starting = models.DateField(default=datetime.date.today)
+    
+    def __unicode__(self):
+        return "%s: %s/%s" % (self.student.person, self.program, self.start_semester.name)
 
 
 
