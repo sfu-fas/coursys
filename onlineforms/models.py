@@ -8,6 +8,8 @@ from courselib.slugs import make_slug
 from django.db.models import Max
  
 # choices for Form.initiator field
+from onlineforms.fieldtypes.text import LargeTextField
+
 INITIATOR_CHOICES = [
         ('LOG', 'Logged-in SFU users'),
         ('ANY', 'Anyone, including non-SFU users'),
@@ -45,7 +47,7 @@ from onlineforms.fieldtypes import *
 FIELD_TYPE_MODELS = {
         'SMTX': SmallTextField,
         'MDTX': MediumTextField,
-        #'LGTX': LargeTextField,
+        'LGTX': LargeTextField,
         #'EMAI': EmailTextField,
         #'RADI': RadioSelectField,
         #'SEL1': DropdownSelectFIeld,

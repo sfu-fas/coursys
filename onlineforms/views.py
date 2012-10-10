@@ -75,7 +75,6 @@ def new_field(request, form_slug, sheet_slug):
     #Test url: http://localhost:8000/forms/comp-test-form-1/edit/initial-sheet/new
     #TODO: Add proper security checks.
 
-    owner_form = get_object_or_404(Form, slug=form_slug) #Maybe only owner_sheet is needed
     owner_sheet = get_object_or_404(Sheet, slug=sheet_slug)
     section = 'select'
     type = None
@@ -124,10 +123,6 @@ def new_field(request, form_slug, sheet_slug):
 def _clean_config(config):
     irrelevant_fields = ['csrfmiddlewaretoken', 'next_section', 'type_name']
     return {key: value for (key, value) in config.iteritems() if key not in irrelevant_fields}
-
-
-def save_field(request, form_slug, sheet_slug):
-    pass
 
 
 def edit_field(request, form_slug, sheet_slug, field_slug):
