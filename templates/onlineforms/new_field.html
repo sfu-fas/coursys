@@ -7,19 +7,21 @@
 {% block content %}
     <div id="form_container">
         {% if form.non_field_errors %}
-        <p class="errorindicator">
-            <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
-            {{ form.non_field_errors }}
-        </p>
+            <p class="errorindicator">
+                <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation"/>
+                {{ form.non_field_errors }}
+            </p>
         {% endif %}
-        <form action="{% url onlineforms.views.new_field form_slug=slug_form sheet_slug=slug_sheet %}" method="post">{% csrf_token %}
+        <form action="{% url onlineforms.views.new_field form_slug=slug_form sheet_slug=slug_sheet %}"
+              method="post" name="form">{% csrf_token %}
             <fieldset>
-                <legend> New Field Type </legend>
+                <legend> New Field Type</legend>
                 <ul>
-                    {{form|as_dl}}
+                    {{ form|as_dl }}
                     <li>
-                        <input type="hidden" name="next_section" value="config"/>
-                        <input class="submit" type="submit" value="Next" />
+                        <input type="hidden" name="next_section" value="{{ section }}"/>
+                        <input type="hidden" name="type_name" value="{{ type_name }}"/>
+                        <input class="submit" type="submit" value="Next"/>
                     </li>
                 </ul>
             </fieldset>

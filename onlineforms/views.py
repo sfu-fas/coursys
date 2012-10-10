@@ -73,48 +73,54 @@ def new_field(request, form_slug, sheet_slug):
     #Test url: http://localhost:8000/forms/comp-test-form-1/edit/initial-sheet/new
     owner_form = get_object_or_404(Form, slug=form_slug) #Maybe only owner_sheet is needed
     owner_sheet = get_object_or_404(Sheet, slug=sheet_slug)
-    section = 'setup'
+    section = 'select'
+    type = None
 
     if request.method == 'POST':
+        print "POST DATA"
+        print request.POST
         if 'next_section' in request.POST:
             section = request.POST['next_section']
-            #Start with choosing the form in setup, then the forms config after
-        if section == 'setup':
-            form = FieldForm(request.POST)
-            if form.is_valid():
-                custom_config = {}# = json.dump(list(all_events), resp, indent=1)
+        if section == 'config':
+            if 'type' in request.POST:
+                type = request.POST['type']# from FieldForm
+                type_model = FIELD_TYPE_MODELS[type]
+                field = type_model()
 
-                #Field.objects.create(label=form.cleaned_data['name'],
-                #    sheet=owner_sheet,
-                #    required=form.cleaned_data['required'],
-                #    fieldtype=form.cleaned_data['type'],
-                #    config=custom_config,
-                #    active=True,
-                #    original=None,
-                #    created_date=datetime.now(),
-                #    last_modified=datetime.now())
-
-                messages.success(request, 'Successfully created the new field \'%s\'' % form.cleaned_data['name'])
             else:
-                print "Invalid"
-        else:
-            #forms config section
-            type = request.POST['type']
-            type = FIELD_TYPE_MODELS[type]
+                type = request.POST['type_name']
+                type_model = FIELD_TYPE_MODELS[type]
 
-            field = type()
+                field = type_model(config=request.POST)
 
-            #global name 'SmallTextConfigForm' is not defined
-            #form = field.make_config_form()
+            form = field.make_config_form()
+            if form.is_valid():
+                print "valid?"
+                Field.objects.create(label=form.cleaned_data['label'],
+                    sheet=owner_sheet,
+                    required=form.cleaned_data['required'],
+                    fieldtype=type,
+                    config=request.POST,
+                    active=True,
+                    original=None,
+                    created_date=datetime.now(),
+                    last_modified=datetime.now())
+                messages.success(request, 'Successfully created the new field \'%s\'' % form.cleaned_data['label'])
+                section = 'select'
 
+        if section == 'select':
             form = FieldForm()
-            print "type: " + str(type)
-
+            section = 'config'
     else:
         form = FieldForm()
+        section = 'config'
 
-    context = {'form': form, 'slug_form': form_slug, 'slug_sheet': sheet_slug, 'section': section}
+    context = {'form': form, 'slug_form': form_slug, 'slug_sheet': sheet_slug, 'section': section, 'type_name': type}
     return render(request, 'onlineforms/new_field.html', context)
+
+
+def save_field(request, form_slug, sheet_slug):
+    pass
 
 
 def edit_field(request, form_slug, sheet_slug, field_slug):
