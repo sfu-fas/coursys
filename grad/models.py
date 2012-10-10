@@ -70,7 +70,7 @@ class GradStudent(models.Model):
     campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES, blank=True)
 
     english_fluency = models.CharField(max_length=50, blank=True, help_text="I.e. Read, Write, Speak, All.")
-    mother_tongue = models.CharField(max_length=25, blank=True, help_text="I.e. Scottish, Chinese, French")
+    mother_tongue = models.CharField(max_length=25, blank=True, help_text="I.e. English, Chinese, French")
     is_canadian = models.NullBooleanField()
     passport_issued_by = models.CharField(max_length=25, blank=True, help_text="I.e. US, China")
     special_arrangements = models.NullBooleanField(verbose_name='Special Arrgmnts')
@@ -100,10 +100,10 @@ class GradStudent(models.Model):
         self.slug = None
         
         # make sure we have a GradProgramHistory object corresponding to current state
-        oldhist = GradProgramHistory.objects.filter(student=self, program=self.program)
-        if not oldhist:
-            h = GradProgramHistory(student=self, program=self.program)
-            h.save()
+        #oldhist = GradProgramHistory.objects.filter(student=self, program=self.program)
+        #if not oldhist:
+        #    h = GradProgramHistory(student=self, program=self.program)
+        #    h.save()
 
         super(GradStudent, self).save(*args, **kwargs)
 
@@ -483,7 +483,7 @@ class GradRequirement(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')
     hidden = models.BooleanField(default=False)
     def __unicode__(self):
-        return u"%s" % (self.description)    
+        return u"%s" % (self.description)
         
 
 class CompletedRequirement(models.Model):
