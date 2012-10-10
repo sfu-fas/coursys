@@ -17,6 +17,15 @@
 	&gt; {{crumb}}
 </li>
 {% endblock %}
+
+{% block headextra %}
+<style type="text/css">
+dl dt {
+	margin-top: 0;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div id="form_container">
 	<form action="{% url grad.views.new_letter_template %}" method="post">
@@ -57,11 +66,7 @@
 					</dl>
 				</div>
 				<div style="float: left; width: 25%">
-					<dl>
-						<dt>
-							Available tags:
-						</dt>
-						<dd>
+						<h3>Available tags:</h3>
 							<dl>
 								{%for tag, val in LETTER_TAGS %}
 								<dt>
@@ -72,8 +77,6 @@
 								</dd>
 								{%endfor%}
 							</dl>
-						</dd>
-					</dl>
 				</div>
 				<p>
 					<input  class="submit"  type="submit" value="Submit" />

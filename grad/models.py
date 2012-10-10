@@ -263,19 +263,24 @@ class GradStudent(models.Model):
             if sgender == "M" :
                 supervisor_hisher = "his"
                 supervisor_heshe = "he"
+                supervisor_himher = "him"
             elif sgender == "F":
                 supervisor_hisher = "her"
                 supervisor_heshe = "she"
+                supervisor_himher = "her"
             else:
                 supervisor_hisher = "his/her"
                 supervisor_heshe = "he/she"
+                supervisor_himher = "him/her"
         else:
             supervisor_name = 'UNKNOWN'
             supervisor_email = 'UNKNOWN@sfu.ca'
             supervisor_hisher = 'his/her'
             supervisor_heshe = "he/she"
+            supervisor_himher = "him/her"
         
-        ls = {
+        ls = { # if changing, also update LETTER_TAGS below with docs!
+               # For security reasons, all values must be strings (to avoid presenting dangerous methods in templates)
                 'title' : title,
                 'his_her' : hisher,
                 'His_Her' : hisher.title(),
@@ -290,6 +295,7 @@ class GradStudent(models.Model):
                 'supervisor_name': supervisor_name,
                 'supervisor_hisher': supervisor_hisher,
                 'supervisor_heshe': supervisor_heshe,
+                'supervisor_himher': supervisor_himher,
                 'supervisor_email': supervisor_email,
                 'recent_empl': recent_empl,
                 'tafunding': tafunding,
@@ -389,10 +395,6 @@ LETTER_TAGS = {
                'title': '"Mr", "Miss", etc.',
                'first_name': 'student\'s first name',
                'last_name': 'student\'s last name',
-               #'address': 'includes street, city/province/postal, country',
-               #'empl_data': 'type of employment RA, TA',
-               #'fund_type': 'RA, TA, Scholarship',
-               #'fund_amount_sem': 'amount of money paid per semester',
                'his_her' : '"his" or "her" (or use His_Her for capitalized)',
                'he_she' : '"he" or "she" (or use He_She for capitalized)',
                'program': 'the program the student is enrolled in',
@@ -402,6 +404,7 @@ LETTER_TAGS = {
                'supervisor_name': "the name of the student's potential supervisor",
                'supervisor_hisher': 'pronoun for the potential supervisor ("his" or "her")',
                'supervisor_heshe': 'pronoun for the potential supervisor ("he" or "she")',
+               'supervisor_himher': 'pronoun for the potential supervisor ("him" or "her")',
                'supervisor_email': "potential supervisor's email address",
                'recent_empl': 'most recent employment ("teaching assistant" or "research assistant")',
                'tafunding': 'List of funding as a TA',
@@ -601,7 +604,7 @@ class Letter(models.Model):
     to_lines = models.TextField(help_text='Delivery address for the letter', null=True, blank=True)
     content = models.TextField(help_text="I.e. 'This is to confirm Mr. Baker ... '")
     template = models.ForeignKey(LetterTemplate)
-    salutation = models.CharField(max_length=100, default="To whom it may concern")
+    salutation = models.CharField(max_length=100, default="To whom it may concern", blank=True)
     closing = models.CharField(max_length=100, default="Yours truly")
     from_person = models.ForeignKey(Person, null=True)
     from_lines = models.TextField(help_text='Name (and title) of the signer, e.g. "John Smith, Program Director"')
