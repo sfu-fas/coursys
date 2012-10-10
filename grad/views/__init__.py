@@ -14,6 +14,7 @@ from manage_program import manage_program
 from manage_status import manage_status
 from manage_otherfunding import manage_otherfunding
 from manage_promises import manage_promises
+from remove_promise import remove_promise
 #from new import new
 from new_program import new_program
 from programs import programs
