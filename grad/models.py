@@ -29,6 +29,7 @@ class GradProgram(models.Model):
         return u"%s" % (self.label)
 
 STATUS_CHOICES = (
+        ('APPL', 'Applicant'),
         ('INCO', 'Incomplete Application'),
         ('COMP', 'Complete Application'),
         ('INRE', 'Application In-Review'),
@@ -47,12 +48,13 @@ STATUS_CHOICES = (
         ('GRAD', 'Graduated'),
         ('NOND', 'Non-degree'),
         ('GONE', 'Gone'),
-        ('ARSP', 'Completed Special'), # Special Arrangements and GONE
+        ('ARSP', 'Completed Special'), # Special Arrangements + GONE
         )
 STATUS_APPLICANT = ('INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'REJE', 'DECL', 'EXPI', 'CONF', 'CANC', 'ARIV') # statuses that mean "applicant"
 STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
 STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "done"
 STATUS_INACTIVE = ('LEAV',) + STATUS_DONE # statuses that mean "not here"
+STATUS_OBSOLETE = ('APPL', 'INRE', 'OFFO', 'HOLD', 'CANC') # statuses we don't actually use anymore
 
 class GradStudent(models.Model):
     person = models.ForeignKey(Person, help_text="Type in student ID or number.", null=False, blank=False, unique=False)
