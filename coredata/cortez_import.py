@@ -8,7 +8,7 @@ from django.db.models import Max
 from coredata.queries import DBConn, get_names, get_or_create_semester, add_person, get_person_by_userid
 from coredata.models import Person, Semester, Unit, CourseOffering, Course, SemesterWeek
 from grad.models import GradProgram, GradStudent, GradRequirement, CompletedRequirement, Supervisor, GradStatus, \
-        Letter, LetterTemplate, Promise, Scholarship, ScholarshipType, OtherFunding
+        Letter, LetterTemplate, Promise, Scholarship, ScholarshipType, OtherFunding, GradProgramHistory
 from ta.models import TAContract, TAApplication, TAPosting, TACourse, CoursePreference, SkillLevel, Skill, CourseDescription, CampusPreference
 from ra.models import RAAppointment, Account, Project
 from coredata.importer import AMAINTConn, get_person, get_person_grad, import_one_offering, import_instructors, update_amaint_userids
@@ -270,21 +270,12 @@ class GradImport(object):
 
     @transaction.commit_on_success
     def process_grad(self, cortezid, sin, emplid, email, birthdate, gender,
-                     english, mothertoungue, canadian, passport, visa, status):
+                     english, mothertoungue, canadian, passport, visa, currentstatus, lastmod):
         """
         Process one imported student
         
         Argument list must be in the same order at the query in get_students below.
         """
-        
-        #self.db.execute("SELECT * "
-        #                "FROM Programs WHERE Identifier=%s", (cortezid,))
-        #db = list(self.db)
-        #if len(db)>1:
-        #    print cortezid, emplid
-        #    for row in db:
-        #        print row
-        #return
         
         # TODO: should use get_person_grad for production run (but add_person is good enough for testing)
         p = get_person_grad(emplid, commit=True)
@@ -294,6 +285,7 @@ class GradImport(object):
             # all seem to start in 2006/2007 and have no end date
             return
         
+        #print emplid, p
         # fill in the Person object with Cortez data
         if email:
             if '@' in email: # seem to have some userids in there too: let those stay in Person.userid
@@ -305,7 +297,7 @@ class GradImport(object):
         
         p.save()
         #TODO: (mothertoungue, canadian, passport, visa, status)
-        
+                
         self.db.execute("SELECT Program, Degreetype, SemesterStarted, SemesterFinished, "
                         "SupComSelected, BreProApproved, BreReqCompleted, CourseReqCompleted, "
                         "DepExamCompleted, CMPT891Completed, ThProApproved, ThDefended, ReaTopicChosen, "
@@ -313,7 +305,7 @@ class GradImport(object):
                         "FROM AcademicRecord WHERE Identifier=%s", (cortezid,))
 
         for prog, progtype, sem_start, sem_finish, supcom, brepro, brereq, crscom, depexam, \
-                cmpt891, thepro, thedef, reatop, sup1,sup2,sup3,sup4, cosup, sponsor in self.db:
+                cmpt891, thepro, thedef, reatop, sup1,sup2,sup3,sup4, cosup, sponsor in list(self.db):
             try: sem_start = get_or_create_semester(sem_start)
             except ValueError: sem_start = None
             try: sem_finish = get_or_create_semester(sem_finish)
@@ -326,6 +318,7 @@ class GradImport(object):
                 continue
 
             prog = self.PROGRAM_MAP[(prog, progtype)]
+
             gs, new_gs = GradStudent.objects.get_or_create(person=p, program=prog)
             if new_gs:
                 gs.created_by = self.IMPORT_USER
@@ -456,10 +449,6 @@ class GradImport(object):
                     sem = Semester.objects.get(name=semname)
                 else:
                     sem = self.get_semester_for_date(date)
-                
-                # grab most-recent applicant status for the GradStudent
-                #if status in self.APP_STATUS_MAP:
-                #    app_st = self.APP_STATUS_MAP[status]
 
                 # create/update GradStatus
                 sts = GradStatus.objects.filter(student=gs, status=self.STATUS_MAP[status], start=sem)
@@ -481,9 +470,15 @@ class GradImport(object):
                 last.end = None
                 last.save()
             
-            
             gs.application_status = app_st
             gs.save()
+            
+            # check that the cortez current status is the one we're displaying/using
+            curr_st = self.STATUS_MAP[currentstatus]
+            if gs.current_status != curr_st:
+                # the current status wasn't found: add one last GradStatus to represent it
+                st = GradStatus(student=gs, status=curr_st, start=Semester.get_semester(lastmod), start_date=lastmod)
+                st.save()
 
             # letters
             self.db.execute("SELECT LetterType, Modifier, Content, Date from LetterArchive where Identifier=%s", (cortezid,))
@@ -565,6 +560,30 @@ class GradImport(object):
                 of.comments = comments
                 of.save()
         
+            # program changes
+            self.db.execute("SELECT program, degreetype, date, asofsem "
+                            "FROM Programs WHERE Identifier=%s", (cortezid,))
+            count = 0
+            for program, degreetype, date, semname in self.db:
+                progr = self.PROGRAM_MAP[(program, degreetype)]
+                sem = Semester.objects.get(name=semname)
+                count += 1
+                phs = GradProgramHistory.objects.filter(student=gs, program=progr, start_semester=sem)
+                if phs:
+                    ph = phs[0]
+                else:
+                    ph = GradProgramHistory(student=gs, program=progr, start_semester=sem)
+                ph.starting = date
+                ph.save()
+        
+            if count == 0:
+                # no program history for this student
+                stsem = gs.start_semester
+                if not stsem:
+                    st = GradStatus.objects.filter(student=gs).order_by('-start__name')[0]
+                    stsem = st.start
+                ph = GradProgramHistory(student=gs, program=gs.program, start_semester=stsem)
+                ph.save()
         
         
 
@@ -578,7 +597,7 @@ class GradImport(object):
         
         self.db.execute("SELECT pi.Identifier, pi.SIN, pi.StudentNumber, "
                         "pi.Email, pi.BirthDate, pi.Sex, pi.EnglishFluent, pi.MotherTongue, pi.Canadian, pi.Passport, "
-                        "pi.Visa, pi.Status, pi.LastName FROM PersonalInfo pi "
+                        "pi.Visa, pi.Status, pi.LastModified, pi.LastName FROM PersonalInfo pi "
                         "WHERE pi.StudentNumber not in (' ', 'na', 'N/A', 'NO', 'Not App.', 'N.A.', '-no-') "
                         #"AND pi.LastName in ('Baker', 'Bart', 'Cukierman', 'Fraser')" 
                         #"AND pi.LastName LIKE 'Younesy%%'" 

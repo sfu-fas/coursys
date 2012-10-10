@@ -73,7 +73,10 @@ table#financial td.prom {
 table#financial td.rec {
 	width: 60%;
 }
-
+table#financial td.programchange {
+	border-bottom: 2px solid red;
+	background-color: #fcc;
+}
 </style>
 <script type="text/javascript">
 	$(document).ready(function() {
@@ -201,6 +204,11 @@ table#financial td.rec {
 </td>
 {% endif %}
 </tr>
+{% if semester.program %}
+<tr><td class="programchange">
+Program change to {{ semester.program.program.label }} in {{ semester.program.start_semester.name }}.
+</td></tr>
+{% endif %}
 {% endfor %}
 </tbody>
 

@@ -176,7 +176,7 @@ def create_grads():
         gs.save()
 
         startsem = random.choice(list(Semester.objects.filter(name__lt=Semester.current().name)))
-        st = GradStatus(student=gs, status='APPL', start=startsem)
+        st = GradStatus(student=gs, status='COMP', start=startsem)
         st.save()
         st = GradStatus(student=gs, status=random.choice(['ACTI', 'ACTI', 'LEAV']), start=startsem.next_semester())
         st.save()

@@ -1,6 +1,6 @@
 from courselib.auth import requires_role
 from django.shortcuts import get_object_or_404, render
-from grad.models import GradStudent, GradStatus
+from grad.models import GradStudent, GradStatus, STATUS_CHOICES, STATUS_OBSOLETE
 from django.contrib import messages
 from log.models import LogEntry
 from django.http import HttpResponseRedirect
@@ -13,9 +13,12 @@ from django.core.urlresolvers import reverse
 def manage_status(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     statuses = GradStatus.objects.filter(student=grad, hidden=False)
+    # remove obsolete statuses from the list (but not the model, so legacy data displays properly)
+    status_choices = [(k,v) for k,v in STATUS_CHOICES if k not in STATUS_OBSOLETE]
 
     if request.method == 'POST':
         form = GradStatusForm(request.POST)
+        form.fields['status'].choices = status_choices
         if form.is_valid():
             # Save new status
             status = form.save(commit=False)
@@ -35,6 +38,7 @@ def manage_status(request, grad_slug):
             return HttpResponseRedirect(reverse('grad.views.manage_status', kwargs={'grad_slug':grad_slug}))
     else:
         form = GradStatusForm(initial={'start': Semester.current(), 'start_date': None})
+        form.fields['status'].choices = status_choices
 
     context = {
                'form' : form,

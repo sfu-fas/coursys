@@ -1,8 +1,9 @@
 from django.contrib.auth.decorators import login_required
 from courselib.auth import ForbiddenResponse
-from django.shortcuts import get_object_or_404, render
-from grad.models import GradStudent, Supervisor, Promise, OtherFunding, GradStatus, Scholarship, STATUS_ACTIVE
-from coredata.models import Role, Semester
+from django.shortcuts import render
+from grad.models import Promise, OtherFunding, GradStatus, Scholarship, \
+        GradProgramHistory, STATUS_ACTIVE
+from coredata.models import Semester
 from ta.models import TAContract, TACourse
 from ra.models import RAAppointment
 import itertools, decimal
@@ -17,18 +18,18 @@ def financials(request, grad_slug):
         return ForbiddenResponse(request)
 
     current_status = GradStatus.objects.filter(student=grad, hidden=False).order_by('-start')[0]
-    grad_status_qs = GradStatus.objects.filter(student=grad, status__in=STATUS_ACTIVE).select_related('start','end')
+    grad_status_qs = GradStatus.objects.filter(student=grad, hidden=False, status__in=STATUS_ACTIVE).select_related('start','end')
     scholarships_qs = Scholarship.objects.filter(student=grad, removed=False).select_related('start_semester','end_semester')
     promises_qs = Promise.objects.filter(student=grad, removed=False).select_related('start_semester','end_semester')
-    other_fundings = OtherFunding.objects.filter(student=grad).select_related('semester')
+    other_fundings = OtherFunding.objects.filter(student=grad, removed=False).select_related('semester')
     
     contracts = TAContract.objects.filter(application__person=grad.person, status="SGN").select_related('posting__semester')
     appointments = RAAppointment.objects.filter(person=grad.person)
+    program_history = GradProgramHistory.objects.filter(student=grad).select_related('start_semester', 'program')
     
     # initialize earliest starting and latest ending semesters for display. 
     # Falls back on current semester if none 
     all_semesters = itertools.chain( # every semester we have info for
-                      [get_semester()],
                       (s.start for s in grad_status_qs),
                       (s.end for s in grad_status_qs),
                       (p.start_semester for p in promises_qs),
@@ -39,9 +40,12 @@ def financials(request, grad_slug):
                       (c.posting.semester for c in contracts),
                       (get_semester(a.start_date) for a in appointments),
                       (get_semester(a.end_date) for a in appointments),
+                      (ph.start_semester for ph in program_history),
                     )
     all_semesters = itertools.ifilter(lambda x: isinstance(x, Semester), all_semesters)
     all_semesters = list(all_semesters)
+    if len(all_semesters) == 0:
+        all_semesters = [get_semester()]
     earliest_semester = min(all_semesters)
     latest_semester = max(all_semesters)
 
@@ -79,6 +83,12 @@ def financials(request, grad_slug):
             if s.start <= semester and (s.end == None or semester <= s.end) :
                 status = s.get_status_display()
         
+        # grad program
+        program = None
+        for ph in program_history:
+            if ph.start_semester == semester:
+                program = ph
+        
         # TAs
         amount = 0
         courses = []
@@ -112,7 +122,7 @@ def financials(request, grad_slug):
         
         semester_data = {'semester':semester, 'status':status, 'scholarships': scholarships,
                          'promise': promise, 'semester_total': semester_total,
-                         'ta': ta, 'ra': ra, 'other_funding': other_funding}
+                         'ta': ta, 'ra': ra, 'other_funding': other_funding, 'program': program}
         semesters.append(semester_data)
 
     promises = []

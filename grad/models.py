@@ -29,6 +29,7 @@ class GradProgram(models.Model):
         return u"%s" % (self.label)
 
 STATUS_CHOICES = (
+        ('APPL', 'Applicant'),
         ('INCO', 'Incomplete Application'),
         ('COMP', 'Complete Application'),
         ('INRE', 'Application In-Review'),
@@ -47,12 +48,13 @@ STATUS_CHOICES = (
         ('GRAD', 'Graduated'),
         ('NOND', 'Non-degree'),
         ('GONE', 'Gone'),
-        ('ARSP', 'Completed Special'), # Special Arrangements and GONE
+        ('ARSP', 'Completed Special'), # Special Arrangements + GONE
         )
 STATUS_APPLICANT = ('INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'REJE', 'DECL', 'EXPI', 'CONF', 'CANC', 'ARIV') # statuses that mean "applicant"
 STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
 STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "done"
 STATUS_INACTIVE = ('LEAV',) + STATUS_DONE # statuses that mean "not here"
+STATUS_OBSOLETE = ('APPL', 'INRE', 'OFFO', 'HOLD', 'CANC') # statuses we don't actually use anymore
 
 class GradStudent(models.Model):
     person = models.ForeignKey(Person, help_text="Type in student ID or number.", null=False, blank=False, unique=False)
@@ -68,7 +70,7 @@ class GradStudent(models.Model):
     campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES, blank=True)
 
     english_fluency = models.CharField(max_length=50, blank=True, help_text="I.e. Read, Write, Speak, All.")
-    mother_tongue = models.CharField(max_length=25, blank=True, help_text="I.e. Scottish, Chinese, French")
+    mother_tongue = models.CharField(max_length=25, blank=True, help_text="I.e. English, Chinese, French")
     is_canadian = models.NullBooleanField()
     passport_issued_by = models.CharField(max_length=25, blank=True, help_text="I.e. US, China")
     special_arrangements = models.NullBooleanField(verbose_name='Special Arrgmnts')
@@ -98,10 +100,10 @@ class GradStudent(models.Model):
         self.slug = None
         
         # make sure we have a GradProgramHistory object corresponding to current state
-        oldhist = GradProgramHistory.objects.filter(student=self, program=self.program)
-        if not oldhist:
-            h = GradProgramHistory(student=self, program=self.program)
-            h.save()
+        #oldhist = GradProgramHistory.objects.filter(student=self, program=self.program)
+        #if not oldhist:
+        #    h = GradProgramHistory(student=self, program=self.program)
+        #    h.save()
 
         super(GradStudent, self).save(*args, **kwargs)
 
@@ -376,6 +378,9 @@ class GradProgramHistory(models.Model):
     start_semester = models.ForeignKey(Semester, null=False, default=Semester.current,
             help_text="Semester when the student entered the program")
     starting = models.DateField(default=datetime.date.today)
+    
+    def __unicode__(self):
+        return "%s: %s/%s" % (self.student.person, self.program, self.start_semester.name)
 
 
 
@@ -481,7 +486,7 @@ class GradRequirement(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')
     hidden = models.BooleanField(default=False)
     def __unicode__(self):
-        return u"%s" % (self.description)    
+        return u"%s" % (self.description)
         
 
 class CompletedRequirement(models.Model):
