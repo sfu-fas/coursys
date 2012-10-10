@@ -11,10 +11,7 @@ class FieldConfigForm(forms.Form):
     all field objects.
 
     """
-    RADIO_CHOICES = (
-        ('yes', 'Required'),
-        ('no', 'Not required'),
-        )
+
     required = forms.BooleanField(label="Required", required=False)
     label = forms.CharField(label="Label")
     help_text = forms.CharField(label="Help Text")
