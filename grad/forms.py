@@ -252,6 +252,16 @@ class CompletedRequirementForm(ModelForm):
 class PromiseForm(ModelForm):
     start_semester = StaffSemesterField()
     end_semester = StaffSemesterField()
+    
+    def clean_end_semester(self):
+        en = self.cleaned_data.get('end_semester', None)
+        st = self.cleaned_data.get('start_semester', None)
+        if not en or not st:
+            return None
+        if st > en:
+            raise forms.ValidationError("Promise cannot end before it begins")
+        return en
+
     class Meta:
         model = Promise
         exclude = ('student','removed')
