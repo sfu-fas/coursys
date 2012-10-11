@@ -42,18 +42,23 @@ def new_form(request):
 
 
 def view_form(request, form_slug):
-    fields = Field.objects.all();
+    form = get_object_or_404(Form, slug=form_slug)
+    form_sheets = Sheet.objects.filter(form=form)
+
     if request.method == 'POST':
         form = DynamicForm(request.POST)
     else:
         form = DynamicForm()
 
     # need to divide up fields based on sheets (DIVI)
-    fieldargs = {}
-    for field in fields:
-        display_field = FIELD_TYPE_MODELS[field.fieldtype](field.config)
-        fieldargs[field.id] = display_field.make_entry_field()
-    form.setFields(fieldargs)
+    for sheet in form_sheets:
+        fieldargs = {}
+        fields = Field.objects.filter(sheet=sheet)
+        for field in fields:
+            field.config['required'] = field.required
+            display_field = FIELD_TYPE_MODELS[field.fieldtype](field.config)
+            fieldargs[field.id] = display_field.make_entry_field()
+        form.setFields(fieldargs)
 
     context = {'form': form}
     return render(request, "onlineforms/view_form.html", context)
@@ -68,7 +73,21 @@ def new_sheet(request, form_slug):
 
 
 def edit_sheet(request, form_slug, sheet_slug):
-    pass
+    # http://127.0.0.1:8000/forms/comp-test-form-2/edit/initial-sheet/
+    owner_form = get_object_or_404(Form, slug=form_slug)
+    owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
+    fields = Field.objects.filter(sheet=owner_sheet).order_by('order')
+
+    # construct a form from this sheets fields
+    form = DynamicForm()
+    fieldargs = {}
+    for field in fields:
+        display_field = FIELD_TYPE_MODELS[field.fieldtype](field.config)
+        fieldargs[field.id] = display_field.make_entry_field()
+    form.setFields(fieldargs)
+
+    context = {'owner_form': owner_form, 'owner_sheet': owner_sheet, 'form': form}
+    return render(request, "onlineforms/edit_sheet.html", context)
 
 
 def new_field(request, form_slug, sheet_slug):
@@ -124,7 +143,7 @@ def _clean_config(config):
     irrelevant_fields = ['csrfmiddlewaretoken', 'next_section', 'type_name']
     clean_config = {key: value for (key, value) in config.iteritems() if key not in irrelevant_fields}
     if 'required' not in clean_config:
-        clean_config['required'] = 'False'
+        clean_config['required'] = False
         
     return clean_config
 

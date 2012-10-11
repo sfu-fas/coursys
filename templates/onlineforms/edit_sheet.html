@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}{{ owner_sheet.title }}{% endblock %}
+{% block h1 %}Edit {{ owner_sheet.title }}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url onlineforms.views.list_all %}">Forms</a></li>
+<li>&gt; <a href="{% url onlineforms.views.edit_form form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
+<li>&gt; {{ owner_sheet.title }}</li>
+{% endblock %}
+
+{% block content %}
+<div id="form_container">
+    {% if form.non_field_errors %}
+    <p class="errorindicator">
+        <img src="{{MEDIA_URL}}/icons/exclamation.png" alt="exclamation" />
+        {{ form.non_field_errors }}
+    </p>
+    {% endif %}
+    <form action="#" method="post">{% csrf_token %}
+        <!-- need separate fieldsets for multiple sheets -->
+        <fieldset>
+            <legend>{{ owner_sheet.title }}</legend>
+            <ul>
+                {{form|as_dl}}
+                <li>
+                    <!--<input class="submit" type="submit" value="Submit" />-->
+                </li>
+                <li><a href="{% url onlineforms.views.new_field form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}">Add Field</a></li>
+            </ul>
+        </fieldset>
+    </form>
+</div>
+{% endblock %}
