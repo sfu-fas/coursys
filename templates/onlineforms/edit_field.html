@@ -1,9 +1,8 @@
 {% extends "base.html" %}
 {% load form_display %}
 
-{% block title %} New Field Type {% endblock %}
-{% block h1 %} New Field Type {% endblock %}
-
+{% block title %} Edit Field Type {% endblock %}
+{% block h1 %} Edit Field Type {% endblock %}
 
 {% block content %}
     <div id="form_container">
@@ -13,10 +12,10 @@
                 {{ form.non_field_errors }}
             </p>
         {% endif %}
-        <form action=""
+        <form action="{% url onlineforms.views.edit_field form_slug=slug_form sheet_slug=slug_sheet field_slug=slug_field %}"
               method="post" name="form">{% csrf_token %}
             <fieldset>
-                <legend> New Field Type</legend>
+                <legend> Edit Field Type</legend>
                 <ul>
                     {{ form|as_dl }}
                     <li>

@@ -162,34 +162,43 @@ def _clean_config(config):
     clean_config = {key: value for (key, value) in config.iteritems() if key not in irrelevant_fields}
     if 'required' not in clean_config:
         clean_config['required'] = False
-        
+
     return clean_config
 
 
 def edit_field(request, form_slug, sheet_slug, field_slug):
-    #Test url: http://localhost:8000/forms/comp-test-form-1/edit/initial-sheet/edit
+    #Test url: http://localhost:8000/forms/comp-test-form-1/edit/initial-sheet/*label of a field*
 
     owner_sheet = get_object_or_404(Sheet, slug=sheet_slug)
     field = get_object_or_404(Field, slug=field_slug)
 
-    form = FIELD_TYPE_MODELS[field.fieldtype](config=field.config).make_config_form()
-
     if request.POST:
+        clean_config = _clean_config(request.POST)
+        form = FIELD_TYPE_MODELS[field.fieldtype](config=clean_config).make_config_form()
+
         if form.is_valid():
-            #Update old version of the field
-            #Then create the new field, pointing to the old field as owner.
-            pass
-        
+            field.active = False
+
+            new_field = Field.objects.create(label=form.cleaned_data['label'],
+                sheet=owner_sheet,
+                required=form.cleaned_data['required'],
+                fieldtype=field.fieldtype,
+                config=clean_config,
+                active=True,
+                original=field,
+                created_date=field.created_date,
+                last_modified=datetime.now())
+            messages.success(request, 'Successfully updated the new field \'%s\'' % form.cleaned_data['label'])
+
+            field.save()
+            field_slug = new_field.slug
+
+
     else:
-        #Don't think anything is needed here
-        pass
+        form = FIELD_TYPE_MODELS[field.fieldtype](config=field.config).make_config_form()
 
-
-    print field
-    context = {'form': form}
-    #context = {'form': form, 'slug_form': form_slug, 'slug_sheet': sheet_slug, 'slug_field': field_slug}
+    context = {'form': form, 'slug_form': form_slug, 'slug_sheet': sheet_slug, 'slug_field': field_slug}
     return render(request, 'onlineforms/edit_field.html', context)
-    pass
 
 # Form-filling views
 
