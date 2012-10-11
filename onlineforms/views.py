@@ -76,7 +76,7 @@ def edit_sheet(request, form_slug, sheet_slug):
     # http://127.0.0.1:8000/forms/comp-test-form-2/edit/initial-sheet/
     owner_form = get_object_or_404(Form, slug=form_slug)
     owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
-    fields = Field.objects.filter(sheet=owner_sheet).order_by('order')
+    fields = Field.objects.filter(sheet=owner_sheet, active=True).order_by('order')
 
     # check if they are deleting a field from the sheet
     if request.method == 'POST' and 'action' in request.POST and request.POST['action']=='del':
@@ -85,14 +85,9 @@ def edit_sheet(request, form_slug, sheet_slug):
         # TODO handle the condition where we cant find the field
         if fields:
             field = fields[0]
-            field_label = field.label
-            field.delete()
-            #LOG EVENT#
-            l = LogEntry(userid=request.user.username,
-                description=("Field removed by tech staff member: %s") % (request.user.username),
-                related_object=field)
-            l.save()
-            messages.success(request, 'Removed the field %s.' % (field_label))
+            field.active = False
+            field.save()
+            messages.success(request, 'Removed the field %s.' % (field.label))
         return HttpResponseRedirect(reverse(edit_sheet, kwargs={'form_slug': owner_form.slug, 'sheet_slug': owner_sheet.slug}))
 
     # construct a form from this sheets fields
