@@ -36,23 +36,6 @@ class OfferingField(forms.ModelChoiceField):
         return co
 
 
-class RoleForm(forms.ModelForm):
-    person = forms.CharField(min_length=1, max_length=8, label='SFU Userid')
-    
-    def clean_person(self):
-        userid = self.cleaned_data['person']
-        person = Person.objects.filter(userid=userid)
-        if person:
-            return person[0]
-        else:
-            raise forms.ValidationError, "Userid '%s' is unknown."%(userid)
-    
-    class Meta:
-        model = Role
-
-class UnitRoleForm(RoleForm):
-    role = forms.ChoiceField(widget=forms.RadioSelect())
-
 class UnitForm(forms.ModelForm):
     class Meta:
         model = Unit
@@ -134,6 +117,17 @@ class PersonField(forms.CharField):
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)
         return super(MyFormClass, self).is_valid(*args, **kwargs)
+    
+    You might also want to autocomplete for people in the system: 
+    $('#id_person').each(function() {
+      $(this).autocomplete({
+        source: '/data/students',
+        minLength: 2,
+        select: function(event, ui){
+          $(this).data("val", ui.item.value);
+        }
+      });
+    });  
     """
     def __init__(self, *args, **kwargs):
         widget = PersonWidget()
@@ -181,6 +175,18 @@ class PersonField(forms.CharField):
             return value.emplid
         else:
             return value
+
+
+class RoleForm(forms.ModelForm):
+    person = PersonField(label="Emplid")
+    class Meta:
+        model = Role
+    def is_valid(self, *args, **kwargs):
+        PersonField.person_data_prep(self)
+        return super(RoleForm, self).is_valid(*args, **kwargs)
+
+class UnitRoleForm(RoleForm):
+    role = forms.ChoiceField(widget=forms.RadioSelect())
 
 
 class InstrRoleForm(forms.Form):
