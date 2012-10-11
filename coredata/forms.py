@@ -178,7 +178,7 @@ class PersonField(forms.CharField):
 
 
 class RoleForm(forms.ModelForm):
-    person = PersonField(label="Emplid")
+    person = PersonField(label="Emplid", help_text="or type to search")
     class Meta:
         model = Role
     def is_valid(self, *args, **kwargs):

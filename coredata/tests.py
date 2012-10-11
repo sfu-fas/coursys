@@ -234,12 +234,12 @@ class CoredataTest(TestCase):
         url = reverse('coredata.views.new_role')
         response = basic_page_tests(self, client, url)
         
-        response = client.post(url, {'person':'asdfasdf', 'role':'FAC'})
+        response = client.post(url, {'person':'33333333', 'role':'FAC'})
         self.assertEquals(response.status_code, 200)
         validate_content(self, response.content, url)
-        self.assertContains(response, "Userid &#39;asdfasdf&#39; is unknown")
+        self.assertContains(response, "Could not find this emplid.")
 
-        response = client.post(url, {'person':p1.userid, 'role':'FAC', 'unit':unit.id})
+        response = client.post(url, {'person':p1.emplid, 'role':'FAC', 'unit':unit.id})
         self.assertEquals(response.status_code, 302)
         
         # make sure the role is now there
