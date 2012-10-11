@@ -12,6 +12,8 @@ from onlineforms.fieldtypes import *
 from onlineforms.forms import FieldForm, DynamicForm
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS
 
+from log.models import LogEntry
+
 def manage_groups(request):
     pass
 
@@ -76,15 +78,33 @@ def edit_sheet(request, form_slug, sheet_slug):
     owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
     fields = Field.objects.filter(sheet=owner_sheet).order_by('order')
 
+    # check if they are deleting a field from the sheet
+    if request.method == 'POST' and 'action' in request.POST and request.POST['action']=='del':
+        field_id = request.POST['field_id']
+        fields = Field.objects.filter(id=field_id, sheet=owner_sheet)
+        # TODO handle the condition where we cant find the field
+        if fields:
+            field = fields[0]
+            field_label = field.label
+            field.delete()
+            #LOG EVENT#
+            l = LogEntry(userid=request.user.username,
+                description=("Field removed by tech staff member: %s") % (request.user.username),
+                related_object=field)
+            l.save()
+            messages.success(request, 'Removed the field %s.' % (field_label))
+        return HttpResponseRedirect(reverse(edit_sheet, kwargs={'form_slug': owner_form.slug, 'sheet_slug': owner_sheet.slug}))
+
     # construct a form from this sheets fields
-    form = DynamicForm()
+    form = DynamicForm(owner_sheet.title)
     fieldargs = {}
     for field in fields:
+        field.config['required'] = field.required
         display_field = FIELD_TYPE_MODELS[field.fieldtype](field.config)
         fieldargs[field.id] = display_field.make_entry_field()
     form.setFields(fieldargs)
 
-    context = {'owner_form': owner_form, 'owner_sheet': owner_sheet, 'form': form}
+    context = {'owner_form': owner_form, 'owner_sheet': owner_sheet, 'form': form, 'fields': fields}
     return render(request, "onlineforms/edit_sheet.html", context)
 
 
