@@ -12,12 +12,9 @@ class SmallTextField(FieldBase):
     def __init__(self, config=None):
         super(SmallTextField, self).__init__(config=config)
 
-        self.config = {}
         if not config:
             self.config['min_length'] = 5
             self.config['max_length'] = 30
-        else:
-            self.config = config
 
 
     def make_config_form(self):

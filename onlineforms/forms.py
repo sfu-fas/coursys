@@ -11,6 +11,11 @@ class FieldForm(forms.Form):
 
 
 class DynamicForm(forms.Form):
+
+    def __init__(self, title, *args, **kwargs):
+        self.title = title
+        super(DynamicForm, self).__init__(*args, **kwargs)
+        
     def setFields(self, kwargs):
         """
         Sets the fields in a form

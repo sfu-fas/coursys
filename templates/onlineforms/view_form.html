@@ -14,17 +14,21 @@
         {{ form.non_field_errors }}
     </p>
     {% endif %}
+	{% for form in forms%}
     <form action="#" method="post">{% csrf_token %}
         <!-- need separate fieldsets for multiple sheets -->
         <fieldset>
-            <legend>Sheet Title</legend>
+            <legend>{{form.title}}</legend>
             <ul>
                 {{form|as_dl}}
                 <li>
-                    <!--<input class="submit" type="submit" value="Submit" />-->
+                    <input class="submit" type="submit" value="Submit" />
                 </li>
             </ul>
         </fieldset>
     </form>
+	{% empty %}
+		There are no sheets in this form!
+	{% endfor %}
 </div>
 {% endblock %}
