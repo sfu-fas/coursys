@@ -132,7 +132,25 @@ def _clean_config(config):
 def edit_field(request, form_slug, sheet_slug, field_slug):
     #Test url: http://localhost:8000/forms/comp-test-form-1/edit/initial-sheet/edit
 
-    context = {}
+    owner_sheet = get_object_or_404(Sheet, slug=sheet_slug)
+    field = get_object_or_404(Field, slug=field_slug)
+
+    form = FIELD_TYPE_MODELS[field.fieldtype](config=field.config).make_config_form()
+
+    if request.POST:
+        if form.is_valid():
+            #Update old version of the field
+            #Then create the new field, pointing to the old field as owner.
+            pass
+        
+    else:
+        #Don't think anything is needed here
+        pass
+
+
+    print field
+    context = {'form': form}
+    #context = {'form': form, 'slug_form': form_slug, 'slug_sheet': sheet_slug, 'slug_field': field_slug}
     return render(request, 'onlineforms/edit_field.html', context)
     pass
 
