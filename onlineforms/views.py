@@ -54,7 +54,7 @@ def view_form(request, form_slug):
         fieldargs = {}
         fields = Field.objects.filter(sheet=sheet)
         for field in fields:
-            field.config['required'] = field.required
+            #field.config['required'] = field.required
             display_field = FIELD_TYPE_MODELS[field.fieldtype](field.config)
             fieldargs[field.id] = display_field.make_entry_field()
         form.setFields(fieldargs)
@@ -94,7 +94,7 @@ def edit_sheet(request, form_slug, sheet_slug):
     form = DynamicForm(owner_sheet.title)
     fieldargs = {}
     for field in fields:
-        field.config['required'] = field.required
+        #field.config['required'] = field.required
         display_field = FIELD_TYPE_MODELS[field.fieldtype](field.config)
         fieldargs[field.id] = display_field.make_entry_field()
     form.setFields(fieldargs)
@@ -131,7 +131,7 @@ def new_field(request, form_slug, sheet_slug):
             if form.is_valid():
                 Field.objects.create(label=form.cleaned_data['label'],
                     sheet=owner_sheet,
-                    required=form.cleaned_data['required'],
+                    #required=form.cleaned_data['required'],
                     fieldtype=type,
                     config=custom_config,
                     active=True,
@@ -155,8 +155,7 @@ def new_field(request, form_slug, sheet_slug):
 def _clean_config(config):
     irrelevant_fields = ['csrfmiddlewaretoken', 'next_section', 'type_name']
     clean_config = {key: value for (key, value) in config.iteritems() if key not in irrelevant_fields}
-    if 'required' not in clean_config:
-        clean_config['required'] = False
+    clean_config['required'] = 'required' in clean_config
 
     return clean_config
 
@@ -176,7 +175,7 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
 
             new_field = Field.objects.create(label=form.cleaned_data['label'],
                 sheet=owner_sheet,
-                required=form.cleaned_data['required'],
+                #required=form.cleaned_data['required'],
                 fieldtype=field.fieldtype,
                 config=clean_config,
                 active=True,
