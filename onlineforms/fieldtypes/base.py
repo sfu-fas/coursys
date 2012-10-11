@@ -1,4 +1,3 @@
-import json
 from django import forms
 
 # base models for FieldType classes

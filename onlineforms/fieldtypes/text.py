@@ -2,7 +2,8 @@ from django.db.models.fields import TextField
 from django.forms.fields import EmailField
 from onlineforms.fieldtypes.base import FieldBase, FieldConfigForm
 from django import forms
-
+from django.utils.safestring import mark_safe
+from django.utils.html import conditional_escape as escape
 
 class SmallTextField(FieldBase):
     class SmallTextConfigForm(FieldConfigForm):
@@ -21,6 +22,9 @@ class SmallTextField(FieldBase):
 
     def make_entry_field(self, fieldsubmission=None):
         c = forms.CharField(required=bool(self.config['required']),
+            widget=forms.TextInput(attrs=
+                    {'size': min(60, int(self.config['max_length'])),
+                     'maxlength': int(self.config['max_length'])}),
             label=self.config['label'],
             help_text=self.config['help_text'])
 
@@ -56,6 +60,7 @@ class MediumTextField(FieldBase):
 
     def make_entry_field(self, fieldsubmission=None):
         c = forms.CharField(required=bool(self.config['required']),
+            widget=forms.Textarea(attrs={'cols': '60', 'rows': '3'}),
             label=self.config['label'],
             help_text=self.config['help_text'])
 
@@ -91,6 +96,7 @@ class LargeTextField(FieldBase):
 
     def make_entry_field(self, fieldsubmission=None):
         c = forms.CharField(required=bool(self.config['required']),
+            widget=forms.Textarea(attrs={'cols': '60', 'rows': '15'}),
             label=self.config['label'],
             help_text=self.config['help_text'])
 
@@ -114,7 +120,7 @@ class EmailTextField(FieldBase):
         pass
 
     def make_config_form(self):
-        return EmailTextConfigForm(self.config)
+        return self.EmailTextConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
         c = EmailField(required=bool(self.config['required']),
@@ -139,7 +145,7 @@ class ExplanationTextField(FieldBase):
         text_explanation = forms.CharField(required=True, max_length=500)
 
     def make_config_form(self):
-        return ExplanationTextConfigForm(self.config)
+        return self.ExplanationTextConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
         c = TextField(required=True,
