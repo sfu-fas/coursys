@@ -88,7 +88,7 @@ def view(request, grad_slug, section=None):
             return render(request, 'grad/view__scholarships.html', context)
 
         elif section == 'otherfunding':
-            otherfunding = OtherFunding.objects.filter(student=grad).order_by('semester__name')
+            otherfunding = OtherFunding.objects.filter(student=grad, removed=False).order_by('semester__name')
             context['otherfunding'] = otherfunding
             return render(request, 'grad/view__otherfunding.html', context)
 
