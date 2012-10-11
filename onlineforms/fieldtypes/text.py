@@ -16,7 +16,6 @@ class SmallTextField(FieldBase):
             self.config['min_length'] = 5
             self.config['max_length'] = 30
 
-
     def make_config_form(self):
         return self.SmallTextConfigForm(self.config)
 
@@ -48,12 +47,9 @@ class MediumTextField(FieldBase):
     def __init__(self, config=None):
         super(MediumTextField, self).__init__(config=config)
 
-        self.config = {}
         if not config:
             self.config['min_length'] = 5
             self.config['max_length'] = 200
-        else:
-            self.config = config
 
     def make_config_form(self):
         return self.MediumTextConfigForm(self.config)
@@ -86,12 +82,9 @@ class LargeTextField(FieldBase):
     def __init__(self, config=None):
         super(LargeTextField, self).__init__(config=config)
 
-        self.config = {}
         if not config:
             self.config['min_length'] = 5
             self.config['max_length'] = 400
-        else:
-            self.config = config
 
     def make_config_form(self):
         return self.LargeTextConfigForm(self.config)
@@ -127,7 +120,6 @@ class EmailTextField(FieldBase):
         c = EmailField(required=bool(self.config['required']),
             label=self.config['label'],
             help_text=self.config['help_text'])
-        #c = EmailField(**self.config)
 
         if fieldsubmission:
             c.initial = fieldsubmission.data['email']
@@ -159,7 +151,6 @@ class ExplanationTextField(FieldBase):
             c.initial = self.config['text_explanation']
 
         return c
-
 
     def serialize_field(self, field):
         return {'text_explanation': unicode(field.clean())}
