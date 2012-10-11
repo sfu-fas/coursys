@@ -9,11 +9,22 @@ class SmallTextField(FieldBase):
         min_length = forms.IntegerField(min_value=1, max_value=300)
         max_length = forms.IntegerField(min_value=1, max_value=300)
 
+    def __init__(self, config=None):
+        super(SmallTextField, self).__init__(config=config)
+
+        self.config = {}
+        if not config:
+            self.config['min_length'] = 5
+            self.config['max_length'] = 30
+        else:
+            self.config = config
+
+
     def make_config_form(self):
-        return SmallTextConfigForm(self.config)
+        return self.SmallTextConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        c = CharField(required=bool(self.config['required']),
+        c = forms.CharField(required=bool(self.config['required']),
             label=self.config['label'],
             help_text=self.config['help_text'])
 
@@ -37,8 +48,18 @@ class MediumTextField(FieldBase):
         min_length = forms.IntegerField(min_value=1, max_value=400)
         max_length = forms.IntegerField(min_value=1, max_value=400)
 
+    def __init__(self, config=None):
+        super(MediumTextField, self).__init__(config=config)
+
+        self.config = {}
+        if not config:
+            self.config['min_length'] = 5
+            self.config['max_length'] = 200
+        else:
+            self.config = config
+
     def make_config_form(self):
-        return MediumTextConfigForm(self.config)
+        return self.MediumTextConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
         c = CharField(required=bool(self.config['required']),
@@ -65,8 +86,18 @@ class LargeTextField(FieldBase):
         min_length = forms.IntegerField(min_value=1, max_value=500)
         max_length = forms.IntegerField(min_value=1, max_value=500)
 
+    def __init__(self, config=None):
+        super(LargeTextField, self).__init__(config=config)
+
+        self.config = {}
+        if not config:
+            self.config['min_length'] = 5
+            self.config['max_length'] = 400
+        else:
+            self.config = config
+
     def make_config_form(self):
-        return LargeTextConfigForm(self.config)
+        return self.LargeTextConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
         c = CharField(required=bool(self.config['required']),

@@ -59,7 +59,7 @@ rsync -aPq --exclude .svn --delete ${CONFIG} ${CONFIGR} 2>/dev/null \
 
 # update code
 echo "rsync code"
-rsync -aPq --exclude .svn --exclude "*.pyc" --delete ${CODE} ${CODER} 2>/dev/null \
+rsync -aPq --exclude .git --exclude .svn --exclude "*.pyc" --delete ${CODE} ${CODER} 2>/dev/null \
   || true  # ignore rsync errors and continue
 
 echo "chmod"
