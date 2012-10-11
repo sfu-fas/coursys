@@ -21,7 +21,7 @@ class SmallTextField(FieldBase):
         return self.SmallTextConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        c = forms.CharField(required=bool(self.config['required']),
+        c = forms.CharField(required=self.config['required'],
             widget=forms.TextInput(attrs=
                     {'size': min(60, int(self.config['max_length'])),
                      'maxlength': int(self.config['max_length'])}),
@@ -59,7 +59,7 @@ class MediumTextField(FieldBase):
         return self.MediumTextConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        c = forms.CharField(required=bool(self.config['required']),
+        c = forms.CharField(required=self.config['required'],
             widget=forms.Textarea(attrs={'cols': '60', 'rows': '3'}),
             label=self.config['label'],
             help_text=self.config['help_text'])
@@ -95,7 +95,7 @@ class LargeTextField(FieldBase):
         return self.LargeTextConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        c = forms.CharField(required=bool(self.config['required']),
+        c = forms.CharField(required=self.config['required'],
             widget=forms.Textarea(attrs={'cols': '60', 'rows': '15'}),
             label=self.config['label'],
             help_text=self.config['help_text'])
@@ -123,7 +123,7 @@ class EmailTextField(FieldBase):
         return self.EmailTextConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        c = EmailField(required=bool(self.config['required']),
+        c = EmailField(required=self.config['required'],
             label=self.config['label'],
             help_text=self.config['help_text'])
 

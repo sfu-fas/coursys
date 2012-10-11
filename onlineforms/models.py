@@ -249,7 +249,6 @@ class Field(models.Model, _FormCoherenceMixin):
     sheet = models.ForeignKey(Sheet)
     # specifies the order within a sheet
     order = models.PositiveIntegerField()
-    #required = models.BooleanField(default=True)
     fieldtype = models.CharField(max_length=4, choices=FIELD_TYPE_CHOICES, default="SMTX")
     config = JSONField(null=False, blank=False, default={}) # configuration as required by the fieldtype. Must include 'required'
     active = models.BooleanField(default=True)

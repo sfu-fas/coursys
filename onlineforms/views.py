@@ -54,7 +54,6 @@ def view_form(request, form_slug):
         fieldargs = {}
         fields = Field.objects.filter(sheet=sheet)
         for field in fields:
-            #field.config['required'] = field.required
             display_field = FIELD_TYPE_MODELS[field.fieldtype](field.config)
             fieldargs[field.id] = display_field.make_entry_field()
         form.setFields(fieldargs)
@@ -94,7 +93,6 @@ def edit_sheet(request, form_slug, sheet_slug):
     form = DynamicForm(owner_sheet.title)
     fieldargs = {}
     for field in fields:
-        #field.config['required'] = field.required
         display_field = FIELD_TYPE_MODELS[field.fieldtype](field.config)
         fieldargs[field.id] = display_field.make_entry_field()
     form.setFields(fieldargs)
@@ -131,7 +129,6 @@ def new_field(request, form_slug, sheet_slug):
             if form.is_valid():
                 Field.objects.create(label=form.cleaned_data['label'],
                     sheet=owner_sheet,
-                    #required=form.cleaned_data['required'],
                     fieldtype=type,
                     config=custom_config,
                     active=True,
@@ -173,7 +170,6 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
         if form.is_valid():
             new_field = Field.objects.create(label=form.cleaned_data['label'],
                 sheet=owner_sheet,
-                #required=form.cleaned_data['required'],
                 fieldtype=field.fieldtype,
                 config=clean_config,
                 active=True,
@@ -197,4 +193,3 @@ def view_submission(request, form_slug, formsubmit_slug):
 
 def sheet_submission(request, form_slug, sheet_slug):
     pass
-
