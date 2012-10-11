@@ -80,6 +80,8 @@ def new_field(request, form_slug, sheet_slug):
     type = None
 
     if request.method == 'POST':
+        print "request"
+        print request.POST
         if 'next_section' in request.POST:
             section = request.POST['next_section']
         if section == 'config':
@@ -93,6 +95,8 @@ def new_field(request, form_slug, sheet_slug):
                 type = request.POST['type_name']
                 type_model = FIELD_TYPE_MODELS[type]
                 custom_config = _clean_config(request.POST)
+                print "CUstom conf"
+                print custom_config
                 field = type_model(config=custom_config)
 
             form = field.make_config_form()
@@ -122,7 +126,11 @@ def new_field(request, form_slug, sheet_slug):
 
 def _clean_config(config):
     irrelevant_fields = ['csrfmiddlewaretoken', 'next_section', 'type_name']
-    return {key: value for (key, value) in config.iteritems() if key not in irrelevant_fields}
+    clean_config = {key: value for (key, value) in config.iteritems() if key not in irrelevant_fields}
+    if 'required' not in clean_config:
+        clean_config['required'] = 'False'
+        
+    return clean_config
 
 
 def edit_field(request, form_slug, sheet_slug, field_slug):
