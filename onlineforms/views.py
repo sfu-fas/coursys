@@ -80,8 +80,6 @@ def new_field(request, form_slug, sheet_slug):
     type = None
 
     if request.method == 'POST':
-        print "request"
-        print request.POST
         if 'next_section' in request.POST:
             section = request.POST['next_section']
         if section == 'config':
@@ -95,8 +93,6 @@ def new_field(request, form_slug, sheet_slug):
                 type = request.POST['type_name']
                 type_model = FIELD_TYPE_MODELS[type]
                 custom_config = _clean_config(request.POST)
-                print "CUstom conf"
-                print custom_config
                 field = type_model(config=custom_config)
 
             form = field.make_config_form()
