@@ -66,7 +66,7 @@ def view(request, grad_slug, section=None):
             return render(request, 'grad/view__general.html', context)
 
         elif section == 'supervisors':
-            supervisors = Supervisor.objects.filter(student=grad).select_related('supervisor')
+            supervisors = Supervisor.objects.filter(student=grad, removed=False).select_related('supervisor')
             context['supervisors'] = supervisors
             return render(request, 'grad/view__supervisors.html', context)
 
