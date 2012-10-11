@@ -72,14 +72,10 @@
 					</dd>
 				</dl></td>
 				<td>
-				<dl>
-					<dt>
-						<label>Special Arrangements : </label>
-					</dt>
-					<dd>
-						{{grad.special_arrangements}}
-					</dd>
-				</dl></td>
+				{% for gf, gfv in flag_values %}
+				<strong class="label">{{gf.label}}</strong>: {{gfv.value|yesno}}<br />
+				{% endfor %}
+				</td>
 			</tr>
 			<tr>
 				<td colspan="3">

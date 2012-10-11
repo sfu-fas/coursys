@@ -170,7 +170,7 @@ class BaseSupervisorsFormSet(BaseModelFormSet):
 class GradAcademicForm(ModelForm):
     class Meta: 
         model = GradStudent
-        fields = ('research_area', 'campus', 'english_fluency', 'mother_tongue', 'is_canadian', 'passport_issued_by', 'special_arrangements', 'comments')
+        fields = ('research_area', 'campus', 'english_fluency', 'mother_tongue', 'is_canadian', 'passport_issued_by', 'comments')
         widgets = {
                    'research_area': forms.Textarea(attrs={'rows': 3, 'cols': 40}),
                    }

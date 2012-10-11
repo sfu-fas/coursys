@@ -73,7 +73,6 @@ class GradStudent(models.Model):
     mother_tongue = models.CharField(max_length=25, blank=True, help_text="I.e. English, Chinese, French")
     is_canadian = models.NullBooleanField()
     passport_issued_by = models.CharField(max_length=25, blank=True, help_text="I.e. US, China")
-    special_arrangements = models.NullBooleanField(verbose_name='Special Arrgmnts')
     comments = models.TextField(max_length=250, blank=True, help_text="Additional information.")
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -723,6 +722,9 @@ class GradFlagValue(models.Model):
     student = models.ForeignKey(GradStudent)
     flag = models.ForeignKey(GradFlag)
     value = models.BooleanField(default=False)
+
+    def __unicode__(self):
+        return "%s: %s" % (self.flag.label, self.value)
     
 
 

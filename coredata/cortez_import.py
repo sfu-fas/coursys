@@ -8,7 +8,7 @@ from django.db.models import Max
 from coredata.queries import DBConn, get_names, get_or_create_semester, add_person, get_person_by_userid
 from coredata.models import Person, Semester, Unit, CourseOffering, Course, SemesterWeek
 from grad.models import GradProgram, GradStudent, GradRequirement, CompletedRequirement, Supervisor, GradStatus, \
-        Letter, LetterTemplate, Promise, Scholarship, ScholarshipType, OtherFunding, GradProgramHistory
+        Letter, LetterTemplate, Promise, Scholarship, ScholarshipType, OtherFunding, GradProgramHistory, GradFlag
 from ta.models import TAContract, TAApplication, TAPosting, TACourse, CoursePreference, SkillLevel, Skill, CourseDescription, CampusPreference
 from ra.models import RAAppointment, Account, Project
 from coredata.importer import AMAINTConn, get_person, get_person_grad, import_one_offering, import_instructors, update_amaint_userids
@@ -158,6 +158,7 @@ class GradImport(object):
             ("International letter", "This is to advise you that {{ title }} {{ first_name }} {{ last_name }}, a {{ program }} Student in the School of Computing Science, has been employed as follows.\r\n\r\n{% if tafunding %}Teaching assistant responsibilities include providing tutorials, office hours and marking assignments. {{title}} {{last_name}}'s assignments have been:\r\n\r\n{{ tafunding }}{% endif %}\r\n{% if rafunding %}Research assistants assist/provide research services to faculty. {{title}} {{last_name}}'s assignments have been:\r\n\r\n{{ rafunding }}{% endif %}\r\n{% if scholarships %}{{title}} {{last_name}} has received the following scholarships:\r\n\r\n{{ scholarships }}{% endif %}\r\n\r\n{{ title }} {{ last_name }} is making satisfactory progress toward the completion of {{ his_her }} degree and is expected to complete {{ his_her }} studies by MONTH YEAR.\r\n", False),
             ("Cortez Import", '', True),
             ]
+    GRAD_FLAGS = ['GDDP', 'Co-op']
 
     def __init__(self):
         self.db = CortezConn()
@@ -254,6 +255,13 @@ class GradImport(object):
             if hidden:
                 # the hidden one is the default for imports
                 self.template = template  
+        
+        for label in self.GRAD_FLAGS:
+            try:
+                GradFlag.objects.get(unit=cmpt, label=label)
+            except GradFlag.DoesNotExist:
+                GradFlag(unit=cmpt, label=label).save()
+        
 
     def get_semester_for_date(self, date):
         # guess relevant semester for given date

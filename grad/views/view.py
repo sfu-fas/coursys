@@ -61,6 +61,8 @@ def view(request, grad_slug, section=None):
         elif section == 'general':
             programhistory = GradProgramHistory.objects.filter(student=grad, program__unit__in=request.units)
             context['programhistory'] = programhistory
+            flag_values = grad.flags_and_values()
+            context['flag_values'] = flag_values
             return render(request, 'grad/view__general.html', context)
 
         elif section == 'supervisors':
