@@ -42,8 +42,10 @@ def list_all(request):
 def new_form(request):
     pass
 
-
 def view_form(request, form_slug):
+    pass
+
+def preview_form(request, form_slug):
     form = get_object_or_404(Form, slug=form_slug)
     form_sheets = Sheet.objects.filter(form=form)
 
@@ -60,7 +62,7 @@ def view_form(request, form_slug):
         forms.append(form)
 
     context = {'forms': forms}
-    return render(request, "onlineforms/view_form.html", context)
+    return render(request, "onlineforms/preview_form.html", context)
 
 
 def edit_form(request, form_slug):
