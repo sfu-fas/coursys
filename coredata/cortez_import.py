@@ -123,6 +123,7 @@ class GradImport(object):
     # names of the requirements, in the same order they appear in the query in process_grad
     REQ_LIST = ('Supervisory Committee', 'Breadth Program Approved', 'Breadth Requirements', 'Courses Completed',
                 'Depth Exam', 'CMPT 891', 'Thesis Proposal', 'Thesis Defence', 'Research Topic')
+    REQ_OBSOLETE = ('CMPT 891',) # can be hidden
 
     # cortez -> coursys status values
     STATUS_MAP = {
@@ -353,7 +354,8 @@ class GradImport(object):
             for completed, req_name in zip(reqs, self.REQ_LIST):
                 if not completed or completed.lower() in ('not taken',):
                     continue
-                req, _ = GradRequirement.objects.get_or_create(program=prog, description=req_name)
+                hiddenreq = req_name in self.REQ_OBSOLETE
+                req, _ = GradRequirement.objects.get_or_create(program=prog, description=req_name, hidden=hiddenreq)
                 try:
                     cr = CompletedRequirement.objects.get(requirement=req, student=gs)
                     new_cr = False
