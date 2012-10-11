@@ -137,7 +137,7 @@ class GradStudent(models.Model):
         
         if old != (self.start_semester_id, self.end_semester_id, self.current_status):
             self.save()
-    
+
     def start_semester_guess(self):
         """
         Semester this student started, guessing if necessary
