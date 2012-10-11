@@ -68,7 +68,21 @@ def new_sheet(request, form_slug):
 
 
 def edit_sheet(request, form_slug, sheet_slug):
-    pass
+    # http://127.0.0.1:8000/forms/comp-test-form-2/edit/initial-sheet/
+    owner_form = get_object_or_404(Form, slug=form_slug)
+    owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
+    fields = Field.objects.filter(sheet=owner_sheet).order_by('order')
+
+    # construct a form from this sheets fields
+    form = DynamicForm()
+    fieldargs = {}
+    for field in fields:
+        display_field = FIELD_TYPE_MODELS[field.fieldtype](field.config)
+        fieldargs[field.id] = display_field.make_entry_field()
+    form.setFields(fieldargs)
+
+    context = {'owner_form': owner_form, 'owner_sheet': owner_sheet, 'form': form}
+    return render(request, "onlineforms/edit_sheet.html", context)
 
 
 def new_field(request, form_slug, sheet_slug):

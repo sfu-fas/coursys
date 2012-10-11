@@ -62,7 +62,7 @@ class MediumTextField(FieldBase):
         return self.MediumTextConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        c = CharField(required=bool(self.config['required']),
+        c = forms.CharField(required=bool(self.config['required']),
             label=self.config['label'],
             help_text=self.config['help_text'])
 
@@ -100,7 +100,7 @@ class LargeTextField(FieldBase):
         return self.LargeTextConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        c = CharField(required=bool(self.config['required']),
+        c = forms.CharField(required=bool(self.config['required']),
             label=self.config['label'],
             help_text=self.config['help_text'])
 
