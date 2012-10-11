@@ -171,20 +171,15 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
         form = FIELD_TYPE_MODELS[field.fieldtype](config=clean_config).make_config_form()
 
         if form.is_valid():
-            field.active = False
-
             new_field = Field.objects.create(label=form.cleaned_data['label'],
                 sheet=owner_sheet,
                 #required=form.cleaned_data['required'],
                 fieldtype=field.fieldtype,
                 config=clean_config,
                 active=True,
-                original=field,
-                created_date=field.created_date,
-                last_modified=datetime.now())
+                original=field.original)
             messages.success(request, 'Successfully updated the new field \'%s\'' % form.cleaned_data['label'])
 
-            field.save()
             field_slug = new_field.slug
 
 
