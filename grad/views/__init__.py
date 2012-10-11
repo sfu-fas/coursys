@@ -12,6 +12,7 @@ from remove_completedrequirement import remove_completedrequirement
 from manage_general import manage_general
 from manage_program import manage_program
 from manage_status import manage_status
+from remove_status import remove_status
 from manage_otherfunding import manage_otherfunding
 from remove_otherfunding import remove_otherfunding
 from manage_promises import manage_promises

@@ -12,7 +12,7 @@ from django.core.urlresolvers import reverse
 @requires_role("GRAD")
 def manage_status(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
-    statuses = GradStatus.objects.filter(student=grad, hidden=False)
+    statuses = GradStatus.objects.filter(student=grad)
     # remove obsolete statuses from the list (but not the model, so legacy data displays properly)
     status_choices = [(k,v) for k,v in STATUS_CHOICES if k not in STATUS_OBSOLETE]
 

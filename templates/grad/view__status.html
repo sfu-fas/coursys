@@ -7,17 +7,60 @@
 				<th>Start Semester</th>
 				<th>Start Date</th>
 				<th>End Semester</th>
+				{% if not index %}
+                    <th>Actions</th>
+                {% endif %}
 			</tr>
 		</thead>
 		<tbody>
 			{% for s in statuses %}
 			<tr>
-				<td> <span class="sort">{{s.status_order}}</span>{{ s.get_status_display }}
-				{% if s.notes %} <img src="{{MEDIA_URL}}icons/information.png" alt="[?]" class="collapsiblecomment" /><p class="hiddencomment">{{s.notes}}</p> {% endif %}
+				<td> 
+                    <span class="sort">{{s.status_order}}</span>
+                    {% if s.hidden %}<del>{% endif %}
+                        {{ s.get_status_display }}
+                    {% if s.hidden %}</del>{% endif %}
+				    {% if s.notes %} 
+                        <img src="{{MEDIA_URL}}icons/information.png" alt="[?]" class="collapsiblecomment" />
+                        <p class="hiddencomment">
+                            {{s.notes}}
+                        </p> 
+                    {% endif %}
 				</td>
-				<td> {{s.start.name}} ({{s.start}}) </td>
-				<td> {% if s.start_date %}<span class="sort">{{s.start_date.isoformat}}</span>{{s.start_date|date:GRAD_DATE_FORMAT}}{% endif %} </td>
-				<td> {% if s.end %}{{s.end.name}} ({{s.end}}){% endif %} </td>
+				<td> 
+                    {% if s.hidden %}<del>{% endif %}
+                        {{s.start.name}} ({{s.start}}) 
+                    {% if s.hidden %}</del>{% endif %}
+                </td>
+				<td> 
+                    {% if s.start_date %}
+                        <span class="sort">{{s.start_date.isoformat}}</span>
+                        {% if s.hidden %}<del>{% endif %}
+                        {{s.start_date|date:GRAD_DATE_FORMAT}}
+                        {% if s.hidden %}</del>{% endif %}
+                    {% endif %} 
+                </td>
+				<td> 
+                    {% if s.end %}
+                        {% if s.hidden %}<del>{% endif %}
+                        {{s.end.name}} ({{s.end}})
+                        {% if s.hidden %}</del>{% endif %}
+                    {% endif %}
+                </td>
+
+				{% if not index %}
+                <td class='miniaction'>
+                    {% if not s.hidden %}
+                        <form action="{% url grad.views.remove_status grad_slug=grad.slug s_id=s.id %}" method="post">
+                            {% csrf_token %}
+                                <p class="actionbutton">
+                                    <input type="submit" value="remove" onclick="return confirmSubmit('remove this status')" />
+                                </p>
+                        </form>
+                    {% endif %}
+                </td>
+                {% endif %}
+
 			</tr>
 			{% endfor %}
 		</tbody>
