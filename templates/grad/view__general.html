@@ -63,15 +63,6 @@
 			</tr>
 			<tr>
 				<td>
-				<dl>
-					<dt>
-						<label>Passport Issued By :</label>
-					</dt>
-					<dd>
-						{{ grad.passport_issued_by }}
-					</dd>
-				</dl></td>
-				<td>
 				{% for gf, gfv in flag_values %}
 				<strong class="label">{{gf.label}}</strong>: {{gfv.value|yesno}}<br />
 				{% endfor %}
