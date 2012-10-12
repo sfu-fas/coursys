@@ -167,6 +167,13 @@ class GradImport(object):
             'OFR_QUALIFYING': 'Special Student invite',
             'OFR_SPECIAL': 'Special Student invite',
             }
+    COMMENT_TYPE_MAP = {
+            'Schol': 'SCO',
+            'Other': 'OTH',
+            'None': 'OTH',
+            'RA': 'RA',
+            'TA': 'TA',
+            }
 
     def __init__(self):
         self.db = CortezConn()
@@ -624,7 +631,12 @@ class GradImport(object):
                 ph = GradProgramHistory(student=gs, program=gs.program, start_semester=stsem)
                 ph.save()
         
-        
+            self.db.execute("SELECT * "
+                            "FROM FinancialComments WHERE Identifier=%s", (cortezid,))
+            print gs
+            
+            for row in self.db:
+                print row 
 
 
 

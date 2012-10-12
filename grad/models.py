@@ -711,6 +711,22 @@ class Promise(models.Model):
         return self.amount - self.received()
 
 
+COMMENT_TYPE_CHOICES = [
+        ('SCO', 'Scholarship'),
+        ('TA', 'TA'),
+        ('RA', 'RA'),
+        ('OTH', 'Other'),
+        ]
+class FinancialComment(models.Model):
+    student = models.ForeignKey(GradStudent)
+    semester = models.ForeignKey(Semester, related_name="+")
+    comment_type = models.CharField(max_length=3, choices=COMMENT_TYPE_CHOICES, blank=False, null=False)
+    comment = models.TextField(blank=False, null=False)
+    created_by = models.CharField(max_length=32, null=False, help_text='Entered by (userid)')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+
 class GradFlag(models.Model):
     unit = models.ForeignKey(Unit)
     label = models.CharField(max_length=100, blank=False, null=False)
