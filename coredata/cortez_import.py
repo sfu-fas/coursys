@@ -283,7 +283,7 @@ class GradImport(object):
         # guess relevant semester for given date
         s = Semester.objects.filter(start__lte=date+datetime.timedelta(days=10)).order_by('-start')[0]
         diff = date.date()-s.start
-        if diff > datetime.timedelta(days=120):
+        if diff > datetime.timedelta(days=140):
             raise ValueError, "Couldn't find semester for %s." % (date)
         return s
             

@@ -6,6 +6,7 @@ from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from grad.models import Scholarship
 from pages.models import _normalize_newlines
+import datetime
 
 HIRING_CATEGORY_CHOICES = (
     ('U', 'Undergrad'),
@@ -147,12 +148,27 @@ class RAAppointment(models.Model):
         text = _normalize_newlines(text)
         return text.split("\n\n") 
     
+    @classmethod
+    def semester_guess(cls, date):
+        """
+        Guess the semester for a date, in the way that financial people do (without regard to class start/end dates)
+        """
+        mo = date.month
+        if mo <= 4:
+            se = 1
+        elif mo <= 8:
+            se = 4
+        else:
+            se = 7
+        semname = str((date.year-1900)*10 + se)
+        return Semester.objects.get(name=semname)
+        
     def start_semester(self):
         "Guess the starting semester of this appointment"
-        return Semester.get_semester(self.start_date)
+        return RAAppointment.semester_guess(self.start_date)
     def end_semester(self):
         "Guess the ending semester of this appointment"
-        return Semester.get_semester(self.end_date)
+        return RAAppointment.semester_guess(self.end_date)
     def semester_length(self):
         "The number of semesters this contracts lasts for"
         return self.end_semester() - self.start_semester() + 1
