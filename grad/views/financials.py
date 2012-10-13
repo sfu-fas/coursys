@@ -118,7 +118,8 @@ def financials(request, grad_slug):
             if app_start_sem <= semester and app_end_sem >= semester:
                 sem_pay = appointment.lump_sum_pay/length
                 amount += sem_pay
-                appt.append({'desc':"RA for %s - %s" % (appointment.hiring_faculty.name(), appointment.project), 'amount':sem_pay })
+                appt.append({'desc':"RA for %s - %s" % (appointment.hiring_faculty.name(), appointment.project),
+                             'amount':sem_pay, 'semesters': appointment.semester_length() })
         ra = {'appt':appt, 'amount':amount}        
         semester_total += amount
 

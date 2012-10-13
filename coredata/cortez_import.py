@@ -490,7 +490,6 @@ class GradImport(object):
             self.db.execute("SELECT Status, Date, AsOfSem "
                         "FROM Status WHERE Identifier=%s "
                         "ORDER BY Date", (cortezid,))
-            app_st = 'UNKN'
             for status, date, semname in self.db:
                 if semname:
                     sem = Semester.objects.get(name=semname)
@@ -508,16 +507,6 @@ class GradImport(object):
                     st.start_date = date.date()
                 st.save(close_others=True)
             
-            # cleanup statuses, making sure the last is left open
-            statuses = GradStatus.objects.filter(student=gs).select_related('start')
-            if statuses:
-                statuses = list(statuses)
-                statuses.sort(lambda s1,s2: cmp(s1.start.name, s2.start.name) or cmp(s1.status_order(), s2.status_order()))
-                last = statuses[-1]
-                last.end = None
-                last.save()
-            
-            gs.application_status = app_st
             gs.save()
             
             # check that the cortez current status is the one we're displaying/using
@@ -525,6 +514,12 @@ class GradImport(object):
             if gs.current_status != curr_st:
                 # the current status wasn't found: add one last GradStatus to represent it
                 st = GradStatus(student=gs, status=curr_st, start=Semester.get_semester(lastmod), start_date=lastmod)
+                st.save()
+            
+            # make sure final status is left open
+            st = GradStatus.objects.filter(student=gs, status=curr_st).order_by('-start')[0]
+            if st.end:
+                st.end = None
                 st.save()
 
             # letters
@@ -636,8 +631,6 @@ class GradImport(object):
             # financial comments
             self.db.execute("SELECT semester, category, id, lastmodified, comment "
                             "FROM FinancialComments WHERE Identifier=%s", (cortezid,))
-            print gs
-            
             for semname, category, userid, lastmod, comment in self.db:
                 sem = Semester.objects.get(name=semname)
                 cat = self.COMMENT_TYPE_MAP[category]
@@ -652,8 +645,6 @@ class GradImport(object):
                 
                 fc.comment=comment
                 fc.save()
-                print (semname, category, userid, lastmod, comment), fcs, fc
-
 
 
                 
@@ -666,6 +657,7 @@ class GradImport(object):
                         "pi.Email, pi.BirthDate, pi.Sex, pi.EnglishFluent, pi.MotherTongue, pi.Canadian, pi.Passport, "
                         "pi.Visa, pi.Status, pi.LastModified, pi.LastName FROM PersonalInfo pi "
                         "WHERE pi.StudentNumber not in (' ', 'na', 'N/A', 'NO', 'Not App.', 'N.A.', '-no-') " 
+                        #"AND LastName='Vinnik' "
                         "ORDER BY pi.LastName"
                         , ())
         initial = None
@@ -1242,7 +1234,7 @@ class RAImport(object):
                         "c.Notes, c.Comments, "
                         "r.StudentNumber, r.SIN, r.FamilyName "
                         "FROM Contract c LEFT JOIN RA r ON c.Identifier=r.Identifier "
-                        #"WHERE c.ContractNumber='20040917160432' "
+                        #"WHERE r.FamilyName='Vinnik' "
                         "ORDER BY r.FamilyName", ())
         initial = None
         for row in list(self.db):

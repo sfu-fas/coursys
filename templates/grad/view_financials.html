@@ -164,7 +164,9 @@ table#financial td.programchange {
       <span class="label">RA Details:</span>
       <ul class="leaders">
       {% for appt in semester.ra.appt %}
-        <li><span>{{ appt.desc }}</span> <span>${{ appt.amount|floatformat:2 }}</span></li>
+        <li><span>{{ appt.desc }}
+        	{% if appt.semesters > 1 %}[1 of {{appt.semesters}} semesters]{% endif %}</span>
+        	<span>${{ appt.amount|floatformat:2 }}</span></li>
       {% endfor %}
       </ul>
     {% endif %}
