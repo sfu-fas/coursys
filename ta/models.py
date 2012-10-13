@@ -348,6 +348,8 @@ class TAApplication(models.Model):
     base_units = models.DecimalField(max_digits=4, decimal_places=2, default=5,
             help_text='Maximum number of base units you\'re interested in taking (5 is a "full" TA-ship)')
     sin = models.CharField(blank=True, max_length=30, verbose_name="SIN", help_text="Social insurance number (required for receiving payments)")
+    current_program = models.CharField(max_length=100, blank=True, null=True, verbose_name="Current Program",
+        help_text='What program are you currently enrolled in at SFU (if applicable)?')
     experience =  models.TextField(blank=True, null=True,
         verbose_name="Experience",
         help_text='Describe any other experience that you think may be relevant to these courses.')

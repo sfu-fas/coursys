@@ -176,7 +176,13 @@ class TAApplicationForm(forms.ModelForm):
     class Meta:
         model = TAApplication
         exclude = ('posting','person','skills','campus_preferences','rank','late','admin_created')
-        widgets = {'base_units': forms.TextInput(attrs={'size': 5}),}
+        widgets = {'base_units': forms.TextInput(attrs={'size': 5}),
+                   'current_program': forms.TextInput(attrs={'size': 30}),
+                   'experience': forms.Textarea(attrs={'cols': 50, 'rows': 3}),
+                   'course_load': forms.Textarea(attrs={'cols': 50, 'rows': 3}),
+                   'other_support': forms.Textarea(attrs={'cols': 50, 'rows': 3}),
+                   'comments': forms.Textarea(attrs={'cols': 50, 'rows': 3}),
+                   }
 
     def __init__(self, *args, **kwargs):
         super(TAApplicationForm, self).__init__(*args, **kwargs)
