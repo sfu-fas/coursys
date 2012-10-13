@@ -14,7 +14,8 @@ from django.core.cache import cache
 from django.utils.safestring import mark_safe
 from creoleparser import text2html
 
-LAB_BONUS = 0.17
+LAB_BONUS_DECIMAL = decimal.Decimal('0.17')
+LAB_BONUS = float(LAB_BONUS_DECIMAL)
 HOURS_PER_BU = 42 # also in media/js/ta.js
 
 def _round_hours(val):
@@ -552,7 +553,7 @@ class TACourse(models.Model):
         """
         Does this assignment deserve the LAB_BONUS bonus?
         """
-        return self.descr.labtut
+        return self.description.labtut
     
     def default_description(self):
         """

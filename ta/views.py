@@ -9,7 +9,7 @@ from courselib.auth import requires_course_staff_by_slug, requires_course_instr_
 from django.contrib.auth.decorators import login_required
 from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, \
     CampusPreference, CourseDescription, \
-    CAMPUS_CHOICES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS, LAB_BONUS, HOURS_PER_BU
+    CAMPUS_CHOICES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS, LAB_BONUS, LAB_BONUS_DECIMAL, HOURS_PER_BU
 from ra.models import Account
 from grad.models import GradStudent 
 from dashboard.models import NewsItem
@@ -669,7 +669,7 @@ def contracts_csv(request, post_slug):
         for crs in courses:
             total_bu += crs.bu
             if crs.has_labtut():
-                prep_units += LAB_BONUS
+                prep_units += LAB_BONUS_DECIMAL
         
         signed = 'Y' if c.status=='SGN' else 'N'
         benefits = 'Y'
