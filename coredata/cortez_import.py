@@ -124,6 +124,7 @@ class GradImport(object):
     REQ_LIST = ('Supervisory Committee', 'Breadth Program Approved', 'Breadth Requirements', 'Courses Completed',
                 'Depth Exam', 'CMPT 891', 'Thesis Proposal', 'Thesis Defence', 'Research Topic')
     REQ_OBSOLETE = ('CMPT 891',) # can be hidden
+    BOOL_LOOKUP = {'yes': True, 'no': False}
 
     # cortez -> coursys status values
     STATUS_MAP = {
@@ -160,6 +161,19 @@ class GradImport(object):
             ("Cortez Import", '', True),
             ]
     GRAD_FLAGS = ['GDDP', 'Co-op']
+    LETTER_TYPE_MAP = {
+            'OFR_PHD': "PhD Invite",
+            'OFR_MSC': "MSc Invite",
+            'OFR_QUALIFYING': 'Special Student invite',
+            'OFR_SPECIAL': 'Special Student invite',
+            }
+    COMMENT_TYPE_MAP = {
+            'Schol': 'SCO',
+            'Other': 'OTH',
+            'None': 'OTH',
+            'RA': 'RA',
+            'TA': 'TA',
+            }
 
     def __init__(self):
         self.db = CortezConn()
@@ -319,16 +333,15 @@ class GradImport(object):
         p.config['cortezid'] = cortezid
         
         p.save()
-        #TODO: (mothertoungue, canadian, passport, visa, status)
-                
+                        
         self.db.execute("SELECT Program, Degreetype, SemesterStarted, SemesterFinished, "
                         "SupComSelected, BreProApproved, BreReqCompleted, CourseReqCompleted, "
                         "DepExamCompleted, CMPT891Completed, ThProApproved, ThDefended, ReaTopicChosen, "
-                        "Supervisor1, Supervisor2, Supervisor3, Supervisor4, CoSupervisor, Sponsor "
+                        "Supervisor1, Supervisor2, Supervisor3, Supervisor4, CoSupervisor, Sponsor, ResearchArea "
                         "FROM AcademicRecord WHERE Identifier=%s", (cortezid,))
 
         for prog, progtype, sem_start, sem_finish, supcom, brepro, brereq, crscom, depexam, \
-                cmpt891, thepro, thedef, reatop, sup1,sup2,sup3,sup4, cosup, sponsor in list(self.db):
+                cmpt891, thepro, thedef, reatop, sup1,sup2,sup3,sup4, cosup, sponsor, research in list(self.db):
             try: sem_start = get_or_create_semester(sem_start)
             except ValueError: sem_start = None
             try: sem_finish = get_or_create_semester(sem_finish)
@@ -347,6 +360,15 @@ class GradImport(object):
                 gs.created_by = self.IMPORT_USER
             gs.modified_by = self.IMPORT_USER
             gs.save()
+
+            # basic info
+            gs.mother_tongue = mothertoungue
+            gs.is_canadian = self.BOOL_LOOKUP[canadian.lower()]
+            gs.passport_issued_by = passport
+            if sin:
+                gs.config['sin'] = sin
+            if research:
+                gs.research_area = research
             
             # fill in their completed requirements
             # order of reqs must match self.REQ_LIST
@@ -506,8 +528,8 @@ class GradImport(object):
 
             # letters
             self.db.execute("SELECT LetterType, Modifier, Content, Date from LetterArchive where Identifier=%s", (cortezid,))
-            # TODO: could honour lettertype as template?
-            for _, modifier, content, datetime in self.db:
+            for lt, modifier, content, datetime in self.db:
+                template = LetterTemplate.objects.filter(unit=self.unit, label=self.LETTER_TYPE_MAP[lt])[0]
                 content = content.replace('$PAGEBREAK$', '')
                 date = datetime.date()
                 letters = Letter.objects.filter(student=gs, date=date)
@@ -518,7 +540,7 @@ class GradImport(object):
                 
                 letter.created_by = modifier.lower()
                 letter.content = content
-                letter.template = self.template
+                letter.template = template
                 letter.to_lines = ''
                 letter.from_person = None
                 letter.created_at = datetime
@@ -609,7 +631,12 @@ class GradImport(object):
                 ph = GradProgramHistory(student=gs, program=gs.program, start_semester=stsem)
                 ph.save()
         
-        
+            self.db.execute("SELECT * "
+                            "FROM FinancialComments WHERE Identifier=%s", (cortezid,))
+            print gs
+            
+            for row in self.db:
+                print row 
 
 
 
@@ -622,11 +649,7 @@ class GradImport(object):
         self.db.execute("SELECT pi.Identifier, pi.SIN, pi.StudentNumber, "
                         "pi.Email, pi.BirthDate, pi.Sex, pi.EnglishFluent, pi.MotherTongue, pi.Canadian, pi.Passport, "
                         "pi.Visa, pi.Status, pi.LastModified, pi.LastName FROM PersonalInfo pi "
-                        "WHERE pi.StudentNumber not in (' ', 'na', 'N/A', 'NO', 'Not App.', 'N.A.', '-no-') "
-                        #"AND pi.LastName in ('Baker', 'Bart', 'Cukierman', 'Fraser')" 
-                        #"AND pi.LastName LIKE 'Younesy%%'" 
-                        #"AND pi.LastName > 'G'" 
-                        #"AND pi.FirstName = 'Wenping'" 
+                        "WHERE pi.StudentNumber not in (' ', 'na', 'N/A', 'NO', 'Not App.', 'N.A.', '-no-') " 
                         "ORDER BY pi.LastName"
                         , ())
         initial = None
@@ -883,7 +906,7 @@ class TAImport(object):
             # there's only one, from 2004. Ignore.
             return
         if off_id not in self.offeringid_map:
-            # TODO: Where did these offerings go? I'm troubled.
+            # Where did these offerings go? I'm troubled.
             print "missing offering_id:", off_id
             return
         offering = self.offeringid_map[off_id]
@@ -1153,10 +1176,7 @@ class RAImport(object):
             return
         proj, _ = Project.objects.get_or_create(unit=self.UNIT, project_number=int(project), fund_number=int(fund))
         ra.project = proj
-        #if not ((salarytype == '0' and lumpsumamount == 0) or (salarytype == '2' and lumpsumamount != 0)):
-        #    raise ValueError, unicode((lumpsumamount, totalamount, salarytype))
 
-        #print (totalamount, biweeklyamount, payperiod, hourlyrate, biweeklyhours, lumpsumamount)
         if biweeklyhours == '0.8.8':
             biweeklyhours = '8.8'
         elif biweeklyhours == '38.5.5.':
@@ -1199,10 +1219,6 @@ class RAImport(object):
 
     def get_ras(self):
         print "Importing RAs..."
-        #self.db.execute("select distinct PositionNumber from Contract", ())
-        #print list(self.db)
-        #return
-        
         self.db.execute("SELECT c.ContractNumber, c.FundNumber, c.ProjectNumber, c.PositionNumber, c.ReAppointment, c.StartDate, c.EndDate, "
                         "c.HiringCategory, c.Faculty, c.MSP, c.DentalPlan, "
                         "c.HourlyEarningRate, c.BiweeklyEarningRate, c.BiweeklyHoursMin, c.BiweeklyAmount, "
