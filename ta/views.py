@@ -947,6 +947,7 @@ def _copy_posting_defaults(source, destination):
     destination.set_bu_defaults(source.bu_defaults())
     destination.set_payperiods(source.payperiods())
     destination.set_contact(source.contact().id)
+    destination.set_offer_text(source.offer_text())
     # TODO: also copy Skill values
 
 @requires_role("TAAD")
