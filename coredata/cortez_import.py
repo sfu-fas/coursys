@@ -1125,6 +1125,8 @@ class RAImport(object):
         """
         Get one RA record. Argument list must match query in get_ras.
         """
+        startdate = startdate.date()
+        enddate = enddate.date()
         if not emplid or emplid in ['new', 'n/a']:
             # TODO: do what with them?
             return
