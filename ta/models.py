@@ -10,6 +10,9 @@ import decimal
 from numbers import Number
 from dashboard.models import NewsItem
 from django.core.urlresolvers import reverse
+from django.core.cache import cache
+from django.utils.safestring import mark_safe
+from creoleparser import text2html
 
 LAB_BONUS = 0.17
 HOURS_PER_BU = 42 # also in media/js/ta.js
@@ -170,6 +173,7 @@ class TAPosting(models.Model):
         # 'contact': contact person for offer questions (Person.id value)
         # 'max_courses': Maximum number of courses an applicant can select
         # 'min_courses': Minimum number of courses an applicant can select
+        # 'offer_text': Text to be displayed when students accept/reject the offer (creole markup)
 
     defaults = {
             'salary': ['0.00']*len(CATEGORY_CHOICES),
@@ -184,6 +188,7 @@ class TAPosting(models.Model):
             'max_courses': 10,
             'min_courses': 5,
             'contact': None,
+            'offer_text': '',
             }
     salary, set_salary = getter_setter('salary')
     scholarship, set_scholarship = getter_setter('scholarship')
@@ -196,12 +201,19 @@ class TAPosting(models.Model):
     payperiods_str, set_payperiods = getter_setter('payperiods')
     max_courses, set_max_courses = getter_setter('max_courses')
     min_courses, set_min_courses = getter_setter('min_courses')
+    offer_text, set_offer_text = getter_setter('offer_text')
     _, set_contact = getter_setter('contact')
     
     class Meta:
         unique_together = (('unit', 'semester'),)
     def __unicode__(self): 
         return "%s, %s" % (self.unit.name, self.semester)
+    def save(self, *args, **kwargs):
+        super(TAPosting, self).save(*args, **kwargs)
+        key = self.html_cache_key()
+        cache.delete(key)
+
+    
     def short_str(self):
         return "%s %s" % (self.unit.label, self.semester)
     def delete(self, *args, **kwargs):
@@ -320,7 +332,24 @@ class TAPosting(models.Model):
             pay += course.pay()
             bus += course.bu
         return (bus, pay, tac)
+    
+    def html_cache_key(self):
+        return "taposting-offertext-html-" + str(self.id)
+    def html_offer_text(self):
+        """
+        Return the HTML version of this offer's offer_text
         
+        Cached to save frequent conversion.
+        """
+        key = self.html_cache_key()
+        html = cache.get(key)
+        if html:
+            return mark_safe(html)
+        else:
+            html = text2html(self.offer_text())
+            cache.set(key, html, 24*3600) # expires on self.save() above
+            return mark_safe(html)
+    
         
 class Skill(models.Model):
     """

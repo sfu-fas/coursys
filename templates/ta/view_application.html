@@ -34,10 +34,11 @@
     <tr><th>Semester</th><td>{{ application.posting.semester }}</td></tr>
     <tr><th>Category</th><td>{{ application.get_category_display }}</td></tr>
     <tr><th>Base Units</th><td>{{ application.base_units }}</td></tr>
-    <tr><th>Experience</th><td>{{ application.experience }}</td></tr>
-    <tr><th>Course Load</th><td>{{ application.course_load }}</td></tr>
-    <tr><th>Other Support</th><td>{{ application.other_support }}</td></tr>
-    <tr><th>Comments</th><td>{{ application.comments }}</td></tr>
+    <tr><th>Current Program</th><td>{{ application.current_program|linebreaksbr }}</td></tr>
+    <tr><th>Experience</th><td>{{ application.experience|linebreaksbr }}</td></tr>
+    <tr><th>Course Load</th><td>{{ application.course_load|linebreaksbr }}</td></tr>
+    <tr><th>Other Support</th><td>{{ application.other_support|linebreaksbr }}</td></tr>
+    <tr><th>Comments</th><td>{{ application.comments|linebreaksbr }}</td></tr>
   </table>
   
   <h2>Courses Applied for:</h2>

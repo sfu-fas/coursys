@@ -12,6 +12,7 @@ from ta.util import table_row__Form
 import itertools, decimal, datetime
 from django.forms.formsets import formset_factory
 from django.forms.models import BaseInlineFormSet
+from pages.forms import WikiField
 
 class LabelledHidden(forms.HiddenInput):
     """
@@ -382,7 +383,6 @@ class AccountsField(forms.MultiValueField):
     def compress(self, values):
         return values
 
-
 class TAPostingForm(forms.ModelForm):
     deadline = forms.DateField(label="Acceptance Deadline", help_text='Default deadline for apointees to accept/decline contracts')
     start = forms.DateField(label="Contract Start", help_text='Default start date for contracts')
@@ -399,6 +399,7 @@ class TAPostingForm(forms.ModelForm):
             choices=[], required=False, widget=forms.SelectMultiple(attrs={'size': 15}))
     skills = forms.CharField(label="Skills", help_text='Skills to ask applicants about: one per line', required=False,
                           widget=forms.Textarea())
+    offer_text = WikiField(label="Offer Text", required=False, help_text='Presented as "More Information About This Offer"; formatted in <a href="/docs/pages">WikiCreole markup</a>.')
 
     # TODO: sanity-check the dates against semester start/end
     
@@ -420,6 +421,7 @@ class TAPostingForm(forms.ModelForm):
         self.initial['min_courses'] = self.instance.min_courses()
         self.initial['payperiods'] = decimal.Decimal(self.instance.payperiods())
         self.initial['contact'] = self.instance.contact().id
+        self.initial['offer_text'] = self.instance.offer_text()
         skills = Skill.objects.filter(posting=self.instance)
         self.initial['skills'] = '\n'.join((s.name for s in skills))
     
@@ -461,7 +463,7 @@ class TAPostingForm(forms.ModelForm):
 
     def clean_closes(self):
         closes = self.cleaned_data['closes']
-        today = datetime.date.today()
+        #today = datetime.date.today()
         #if closes <= today:
         #    raise forms.ValidationError("Postings must close after today")
         if 'opens' in self.cleaned_data:
@@ -513,6 +515,11 @@ class TAPostingForm(forms.ModelForm):
         excluded = [int(e) for e in excluded]
         self.instance.config['excluded'] = excluded
         return excluded
+
+    def clean_offer_text(self):
+        offer_text = self.cleaned_data['offer_text']
+        self.instance.config['offer_text'] = offer_text
+        return offer_text
     
     def clean_skills(self):
         skills = self.cleaned_data['skills']
