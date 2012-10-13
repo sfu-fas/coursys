@@ -122,6 +122,14 @@ table#financial td.programchange {
 <tr>
 <td class="rec">
   <h2 id="sem-{{semester.semester.name}}">{{semester.semester.name}} ({{semester.semester.label}}{% if semester.status %}, {{ semester.status }}{% endif %})</h2>
+  {% if semester.comments %}
+  <span class="label">Financial Comments:</span>
+  <ul>
+    {% for c in semester.comments %}
+     {{ c.comment|linebreaksbr }} [{{ c.created_by}}, {{ c.created_at|date:GRAD_DATE_FORMAT }}] <br/>
+    {% endfor %}
+  </ul>
+  {% endif %}
   {% if semester.scholarships %}
     <span class="label">Scholarships:</span> 
     <div style="float: right" id="comments-btn-{{semester.semester.name}}"><a>[View Comments]</a></div>

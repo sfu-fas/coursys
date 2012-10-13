@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from courselib.auth import ForbiddenResponse
 from django.shortcuts import render
 from grad.models import Promise, OtherFunding, GradStatus, Scholarship, \
-        GradProgramHistory, STATUS_ACTIVE
+        GradProgramHistory, FinancialComment, STATUS_ACTIVE
 from coredata.models import Semester
 from ta.models import TAContract, TACourse
 from ra.models import RAAppointment
@@ -26,6 +26,7 @@ def financials(request, grad_slug):
     contracts = TAContract.objects.filter(application__person=grad.person, status="SGN").select_related('posting__semester')
     appointments = RAAppointment.objects.filter(person=grad.person)
     program_history = GradProgramHistory.objects.filter(student=grad).select_related('start_semester', 'program')
+    financial_comments = FinancialComment.objects.filter(student=grad, removed=False).select_related('semester')
     
     # initialize earliest starting and latest ending semesters for display. 
     # Falls back on current semester if none 
@@ -38,6 +39,7 @@ def financials(request, grad_slug):
                       (s.end_semester for s in scholarships_qs),
                       (o.semester for o in other_fundings),
                       (c.posting.semester for c in contracts),
+                      (c.semester for c in financial_comments),
                       (get_semester(a.start_date) for a in appointments),
                       (get_semester(a.end_date) for a in appointments),
                       (ph.start_semester for ph in program_history),
@@ -89,6 +91,12 @@ def financials(request, grad_slug):
             if ph.start_semester == semester:
                 program = ph
         
+        # financial comments
+        comments = []
+        for c in financial_comments:
+            if c.semester == semester:
+                comments.append(c)
+        
         # TAs
         amount = 0
         courses = []
@@ -121,7 +129,7 @@ def financials(request, grad_slug):
             promise = None
         
         semester_data = {'semester':semester, 'status':status, 'scholarships': scholarships,
-                         'promise': promise, 'semester_total': semester_total,
+                         'promise': promise, 'semester_total': semester_total, 'comments': comments,
                          'ta': ta, 'ra': ra, 'other_funding': other_funding, 'program': program}
         semesters.append(semester_data)
 

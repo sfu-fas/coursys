@@ -8,7 +8,8 @@ from django.db.models import Max
 from coredata.queries import DBConn, get_names, get_or_create_semester, add_person, get_person_by_userid
 from coredata.models import Person, Semester, Unit, CourseOffering, Course, SemesterWeek
 from grad.models import GradProgram, GradStudent, GradRequirement, CompletedRequirement, Supervisor, GradStatus, \
-        Letter, LetterTemplate, Promise, Scholarship, ScholarshipType, OtherFunding, GradProgramHistory, GradFlag
+        Letter, LetterTemplate, Promise, Scholarship, ScholarshipType, OtherFunding, GradProgramHistory, GradFlag, \
+        FinancialComment
 from ta.models import TAContract, TAApplication, TAPosting, TACourse, CoursePreference, SkillLevel, Skill, CourseDescription, CampusPreference
 from ra.models import RAAppointment, Account, Project
 from coredata.importer import AMAINTConn, get_person, get_person_grad, import_one_offering, import_instructors, update_amaint_userids
@@ -587,6 +588,7 @@ class GradImport(object):
                     ra.scholarship = schol
                     ra.save()
             
+            # other funding
             self.db.execute("SELECT Semester, OtherAmount, OtherType, Comments, isTravel FROM FinancialSupport where Identifier=%s and OtherAmount is not null", (cortezid,))
             for sem, amt, othertype, comments, _ in self.db:
                 if not amt:
@@ -631,12 +633,26 @@ class GradImport(object):
                 ph = GradProgramHistory(student=gs, program=gs.program, start_semester=stsem)
                 ph.save()
         
-            self.db.execute("SELECT * "
+            # financial comments
+            self.db.execute("SELECT semester, category, id, lastmodified, comment "
                             "FROM FinancialComments WHERE Identifier=%s", (cortezid,))
             print gs
             
-            for row in self.db:
-                print row 
+            for semname, category, userid, lastmod, comment in self.db:
+                sem = Semester.objects.get(name=semname)
+                cat = self.COMMENT_TYPE_MAP[category]
+                lastmod = lastmod.replace(second=0, microsecond=0)
+                userid = userid.lower()
+                
+                fcs = FinancialComment.objects.filter(student=gs, semester=sem, comment_type=cat, created_by=userid, created_at=lastmod)
+                if not fcs:
+                    fc = FinancialComment(student=gs, semester=sem, comment_type=cat, created_by=userid, created_at=lastmod)
+                else:
+                    fc = fcs[0]
+                
+                fc.comment=comment
+                fc.save()
+                print (semname, category, userid, lastmod, comment), fcs, fc
 
 
 

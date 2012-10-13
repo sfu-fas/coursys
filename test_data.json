@@ -44210,7 +44210,6 @@
    "program": 1, 
    "research_area": "", 
    "slug": "0wwwgrad-mscproject", 
-   "special_arrangements": null, 
    "start_semester": null, 
    "updated_at": "2012-08-29 09:29:46"
   }, 
@@ -44235,7 +44234,6 @@
    "program": 5, 
    "research_area": "", 
    "slug": "0bbbgrad-phd", 
-   "special_arrangements": null, 
    "start_semester": null, 
    "updated_at": "2012-08-29 09:29:47"
   }, 
@@ -44260,7 +44258,6 @@
    "program": 5, 
    "research_area": "", 
    "slug": "0dddgrad-phd", 
-   "special_arrangements": null, 
    "start_semester": null, 
    "updated_at": "2012-08-29 09:29:48"
   }, 
@@ -44285,7 +44282,6 @@
    "program": 5, 
    "research_area": "", 
    "slug": "0aaagrad-phd", 
-   "special_arrangements": null, 
    "start_semester": 4, 
    "updated_at": "2012-08-29 09:29:49"
   }, 
@@ -44310,7 +44306,6 @@
    "program": 3, 
    "research_area": "", 
    "slug": "0yyygrad-phd", 
-   "special_arrangements": null, 
    "start_semester": null, 
    "updated_at": "2012-08-29 09:29:51"
   }, 
@@ -44335,7 +44330,6 @@
    "program": 2, 
    "research_area": "", 
    "slug": "0fffgrad-mscthesis", 
-   "special_arrangements": null, 
    "start_semester": 3, 
    "updated_at": "2012-08-29 09:29:52"
   }, 
@@ -44360,7 +44354,6 @@
    "program": 5, 
    "research_area": "", 
    "slug": "0eeegrad-phd", 
-   "special_arrangements": null, 
    "start_semester": 4, 
    "updated_at": "2012-08-29 09:29:55"
   }, 
@@ -44385,7 +44378,6 @@
    "program": 4, 
    "research_area": "", 
    "slug": "0kkkgrad-meng", 
-   "special_arrangements": null, 
    "start_semester": null, 
    "updated_at": "2012-08-29 09:29:56"
   }, 
@@ -44410,7 +44402,6 @@
    "program": 3, 
    "research_area": "", 
    "slug": "0sssgrad-phd", 
-   "special_arrangements": null, 
    "start_semester": 8, 
    "updated_at": "2012-08-29 09:29:57"
   }, 
@@ -44435,7 +44426,6 @@
    "program": 3, 
    "research_area": "", 
    "slug": "0uuugrad-phd", 
-   "special_arrangements": null, 
    "start_semester": 2, 
    "updated_at": "2012-08-29 09:29:59"
   }, 
@@ -44460,7 +44450,6 @@
    "program": 1, 
    "research_area": "", 
    "slug": "0vvvgrad-mscproject", 
-   "special_arrangements": null, 
    "start_semester": 1, 
    "updated_at": "2012-08-29 09:30:01"
   }, 
@@ -44485,7 +44474,6 @@
    "program": 1, 
    "research_area": "", 
    "slug": "0zzzgrad-mscproject", 
-   "special_arrangements": null, 
    "start_semester": 3, 
    "updated_at": "2012-08-29 09:30:02"
   }, 
@@ -44510,7 +44498,6 @@
    "program": 3, 
    "research_area": "", 
    "slug": "0nnngrad-phd", 
-   "special_arrangements": null, 
    "start_semester": 1, 
    "updated_at": "2012-08-29 09:30:03"
   }, 
@@ -44535,7 +44522,6 @@
    "program": 4, 
    "research_area": "", 
    "slug": "0xxxgrad-meng", 
-   "special_arrangements": null, 
    "start_semester": null, 
    "updated_at": "2012-08-29 09:30:04"
   }, 
@@ -44560,7 +44546,6 @@
    "program": 5, 
    "research_area": "", 
    "slug": "0mmmgrad-phd", 
-   "special_arrangements": null, 
    "start_semester": 8, 
    "updated_at": "2012-08-29 09:30:06"
   }, 
@@ -44585,7 +44570,6 @@
    "program": 5, 
    "research_area": "", 
    "slug": "0pppgrad-phd", 
-   "special_arrangements": null, 
    "start_semester": 4, 
    "updated_at": "2012-08-29 09:30:08"
   }, 
@@ -44610,7 +44594,6 @@
    "program": 2, 
    "research_area": "", 
    "slug": "0hhhgrad-mscthesis", 
-   "special_arrangements": null, 
    "start_semester": null, 
    "updated_at": "2012-08-29 09:30:09"
   }, 
@@ -44635,7 +44618,6 @@
    "program": 2, 
    "research_area": "", 
    "slug": "0qqqgrad-mscthesis", 
-   "special_arrangements": null, 
    "start_semester": 8, 
    "updated_at": "2012-08-29 09:30:10"
   }, 
@@ -44660,7 +44642,6 @@
    "program": 4, 
    "research_area": "", 
    "slug": "0ggggrad-meng", 
-   "special_arrangements": null, 
    "start_semester": null, 
    "updated_at": "2012-08-29 09:30:12"
   }, 
@@ -44685,7 +44666,6 @@
    "program": 4, 
    "research_area": "", 
    "slug": "0lllgrad-meng", 
-   "special_arrangements": null, 
    "start_semester": null, 
    "updated_at": "2012-08-29 09:30:13"
   }, 
@@ -44710,7 +44690,6 @@
    "program": 4, 
    "research_area": "", 
    "slug": "0iiigrad-meng", 
-   "special_arrangements": null, 
    "start_semester": 2, 
    "updated_at": "2012-08-29 09:30:14"
   }, 
@@ -44735,7 +44714,6 @@
    "program": 3, 
    "research_area": "", 
    "slug": "0ooograd-phd", 
-   "special_arrangements": null, 
    "start_semester": 2, 
    "updated_at": "2012-08-29 09:30:15"
   }, 
@@ -44760,7 +44738,6 @@
    "program": 3, 
    "research_area": "", 
    "slug": "0jjjgrad-phd", 
-   "special_arrangements": null, 
    "start_semester": null, 
    "updated_at": "2012-08-29 09:30:16"
   }, 
@@ -44785,7 +44762,6 @@
    "program": 1, 
    "research_area": "", 
    "slug": "0cccgrad-mscproject", 
-   "special_arrangements": null, 
    "start_semester": 3, 
    "updated_at": "2012-08-29 09:30:18"
   }, 
@@ -44810,7 +44786,6 @@
    "program": 5, 
    "research_area": "", 
    "slug": "0tttgrad-phd", 
-   "special_arrangements": null, 
    "start_semester": null, 
    "updated_at": "2012-08-29 09:30:20"
   }, 
@@ -44835,7 +44810,6 @@
    "program": 3, 
    "research_area": "", 
    "slug": "0rrrgrad-phd", 
-   "special_arrangements": null, 
    "start_semester": 2, 
    "updated_at": "2012-08-29 09:30:21"
   }, 

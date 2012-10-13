@@ -723,7 +723,11 @@ class FinancialComment(models.Model):
     comment_type = models.CharField(max_length=3, choices=COMMENT_TYPE_CHOICES, blank=False, null=False)
     comment = models.TextField(blank=False, null=False)
     created_by = models.CharField(max_length=32, null=False, help_text='Entered by (userid)')
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=datetime.datetime.now)
+    removed = models.BooleanField(default=False)
+    
+    def __unicode__(self):
+        return "Comment for %s by %s" % (self.student.person.emplid, self.created_by)
 
 
 
