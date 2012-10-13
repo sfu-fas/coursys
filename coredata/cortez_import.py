@@ -657,7 +657,7 @@ class GradImport(object):
                         "pi.Email, pi.BirthDate, pi.Sex, pi.EnglishFluent, pi.MotherTongue, pi.Canadian, pi.Passport, "
                         "pi.Visa, pi.Status, pi.LastModified, pi.LastName FROM PersonalInfo pi "
                         "WHERE pi.StudentNumber not in (' ', 'na', 'N/A', 'NO', 'Not App.', 'N.A.', '-no-') " 
-                        #"AND LastName='Vinnik' "
+                        #"AND LastName>'M' "
                         "ORDER BY pi.LastName"
                         , ())
         initial = None

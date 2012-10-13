@@ -14,6 +14,9 @@ from django.db.utils import IntegrityError
 from django.contrib.sessions.models import Session
 from django.conf import settings
 from courselib.svn import update_offering_repositories
+from grad.models import GradStudent, STATUS_ACTIVE, STATUS_APPLICANT
+import itertools
+
 today = datetime.date.today()
 past_cutoff = today - datetime.timedelta(days=30)
 future_cutoff = today + datetime.timedelta(days=60)
@@ -149,7 +152,7 @@ def fix_emplid():
     amaint = AMAINTConn()
     people = Person.objects.filter(emplid__lt=100000)
     for p in people:
-        print " ", p.userid
+        #print " ", p.userid
         amaint.execute('SELECT emplid FROM idMap WHERE username=%s', (p.userid,))
         for emplid, in amaint:
             p.emplid = emplid
@@ -659,19 +662,29 @@ def update_amaint_userids():
         a = ComputingAccount(emplid=emplid, userid=userid)
         a.save()
 
+def update_grads():
+    """
+    Update any currently-relevant grad students
+    """
+    active = GradStudent.objects.filter(current_status__in=STATUS_ACTIVE).select_related('person')
+    applicants = GradStudent.objects.filter(current_status__in=STATUS_APPLICANT,
+                 updated_at__gt=datetime.datetime.now()-datetime.timedelta(days=60)).select_related('person')
+    for gs in itertools.chain(active, applicants):
+        get_person_grad(gs.person.emplid)
 
 
 
 def main():
     global sysadmin
 
-    create_semesters()
-
     print "getting emplid/userid mapping"
     update_amaint_userids()
 
     print "fixing any unknown emplids"
     fix_emplid()
+    
+    print "updating active grad students"
+    update_grads()
     
     print "importing course offering list"
     #offerings = import_offerings(extra_where="subject IN ('GEOG', 'EDUC') and strm='1124' and catalog_nbr LIKE '%%9%%'")
