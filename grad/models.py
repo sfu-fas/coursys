@@ -54,7 +54,7 @@ STATUS_APPLICANT = ('INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'REJE', 'DECL', 'EXP
 STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
 STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "done"
 STATUS_INACTIVE = ('LEAV',) + STATUS_DONE # statuses that mean "not here"
-STATUS_OBSOLETE = ('APPL', 'INRE', 'OFFO', 'HOLD', 'CANC') # statuses we don't actually use anymore
+STATUS_OBSOLETE = ('APPL', 'INCO', 'REFU', 'INRE', 'OFFO', 'HOLD', 'CANC') # statuses we don't actually use anymore
 
 class GradStudent(models.Model):
     person = models.ForeignKey(Person, help_text="Type in student ID or number.", null=False, blank=False, unique=False)
