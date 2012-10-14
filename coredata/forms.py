@@ -1,9 +1,5 @@
 from django import forms
-<<<<<<< HEAD
 from coredata.models import Role, Person, Member, CourseOffering, Unit, Semester, SemesterWeek, Holiday, ComputingAccount
-=======
-from coredata.models import Role, Person, Member, CourseOffering, Unit, Semester, SemesterWeek, Holiday
->>>>>>> gradfinal
 from coredata.queries import find_person, add_person, SIMSProblem
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
