@@ -883,7 +883,7 @@ class TAImport(object):
             posting.config['deadline'] = accept
             posting.config['contact'] = self.TA_CONTACT.id
             posting.config['accounts'] = positions
-            posting.config['payperiods'] = "%.1f" % ((end-start).total_seconds()/3600/24/14,) # close enough for the import
+            posting.config['payperiods'] = "%.1f" % (self.total_seconds(end-start)/3600/24/14,) # close enough for the import
             posting.save()
     
     def create_fake_posting(self, sem):
@@ -896,9 +896,16 @@ class TAImport(object):
         posting.config['end'] = sem.end
         posting.config['deadline'] = sem.start
         posting.config['contact'] = self.TA_CONTACT.id
-        posting.config['payperiods'] = "%.1f" % ((sem.end-sem.start).total_seconds()/3600/24/14,) # close enough for the import
+        posting.config['payperiods'] = "%.1f" % (self.total_seconds(sem.end-sem.start)/3600/24/14,) # close enough for the import
         posting.save()
         return posting
+    
+    def total_seconds(self, td):
+        """
+        Compensate for timedelta.total_seconds not existing in Python 2.6
+        """
+        tsec = (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6)/10**6
+        return tsec
     
     @transaction.commit_on_success
     def get_ta(self, off_id, bu, salary, schol, description, payst, payen, posnum, initial, cond,
