@@ -199,18 +199,38 @@ def new_application_manual(request, post_slug):
 def new_application(request, post_slug):
     return _new_application(request, post_slug, manual=False)
 
-def _new_application(request, post_slug, manual=False):
+@login_required
+def edit_application(request, post_slug, userid):
+    return _new_application(request, post_slug, manual=False, userid=userid)
+
+@transaction.commit_on_success
+def _new_application(request, post_slug, manual=False, userid=None):
     posting = get_object_or_404(TAPosting, slug=post_slug)
+    editing = bool(userid)
+    
+    if editing and userid != request.user.username:
+        return ForbiddenResponse(request)
+
     course_choices = [(c.id, unicode(c) + " (" + c.title + ")") for c in posting.selectable_courses()]
     used_campuses = set((vals['campus'] for vals in posting.selectable_offerings().order_by('campus').values('campus').distinct()))
-    skills = Skill.objects.filter(posting=posting)
-    
+    skills = Skill.objects.filter(posting=posting)    
     max_courses = posting.max_courses()
     min_courses = posting.min_courses()
-
-    CoursesFormSet = formset_factory(CoursePreferenceForm, extra=min_courses, max_num=max_courses)
  
     sin = None
+    # build basic objects, whether new or editing application
+    if editing:
+        if not posting.is_open():
+            return ForbiddenResponse(request, "Cannot edit application after posting has closed.")
+
+        person = Person.objects.get(userid=userid)
+        application = get_object_or_404(TAApplication, posting=posting, person__userid=userid)
+        old_coursepref = CoursePreference.objects.filter(app=application).exclude(rank=0)
+        CoursesFormSet = formset_factory(CoursePreferenceForm, extra=max(0, min_courses-old_coursepref.count()), max_num=max_courses)
+    else:
+        CoursesFormSet = formset_factory(CoursePreferenceForm, extra=min_courses, max_num=max_courses)
+        application = None
+    
     if not manual:
         try:
             person = Person.objects.get(userid=request.user.username)
@@ -223,7 +243,7 @@ def _new_application(request, post_slug, manual=False):
             except SIMSProblem:
                 return HttpError(request, status=503, title="Service Unavailable", error="Currently unable to handle the request.", errormsg="Problem with SIMS connection while trying to find your account info")
         existing_app = TAApplication.objects.filter(person=person, posting=posting)
-        if existing_app.count() > 0: 
+        if not userid and existing_app.count() > 0: 
             messages.success(request, u"You have already applied for the %s %s posting." % (posting.unit, posting.semester))
             return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'post_slug': existing_app[0].posting.slug, 'userid': existing_app[0].person.userid}))
 
@@ -248,8 +268,10 @@ def _new_application(request, post_slug, manual=False):
                 messages.success(request, u"%s has already applied for the %s %s posting." % (person, posting.unit, posting.semester))
                 return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'post_slug': existing_app[0].posting.slug, 'userid': existing_app[0].person.userid}))
         
- 
-        ta_form = TAApplicationForm(request.POST, prefix='ta')
+        if editing:
+            ta_form = TAApplicationForm(request.POST, prefix='ta', instance=application)
+        else:
+            ta_form = TAApplicationForm(request.POST, prefix='ta')
         courses_formset = CoursesFormSet(request.POST)
         for f in courses_formset:
             f.fields['course'].choices = course_choices
@@ -278,6 +300,7 @@ def _new_application(request, post_slug, manual=False):
             ta_form.save_m2m()
             
             # extract campus and skill values; create objects
+            CampusPreference.objects.filter(app=app).delete()
             for c in used_campuses:
                 val = request.POST.get('campus-'+c, None)
                 if val not in PREFERENCES:
@@ -285,6 +308,7 @@ def _new_application(request, post_slug, manual=False):
                 cp = CampusPreference(app=app, campus=c, pref=val)
                 cp.save()
             
+            SkillLevel.objects.filter(app=app).delete()
             for s in skills:
                 val = request.POST.get('skill-'+str(s.position), None)
                 if val not in LEVELS:
@@ -292,12 +316,27 @@ def _new_application(request, post_slug, manual=False):
                 sl = SkillLevel(skill=s, app=app, level=val)
                 sl.save()
             
-            # save course preferences
+            # save course preferences: update existing or create new, as needed
+            old_pref = set(CoursePreference.objects.filter(app=app))
+            used_pref = set()
             for (rank,form) in enumerate(courses_formset):
-                course = form.save(commit=False)
+                existing_crs = CoursePreference.objects.filter(app=app, course=form.cleaned_data['course'])
+                if existing_crs:
+                    course = existing_crs[0]
+                    course.exper = form.cleaned_data['exper']
+                    course.taken = form.cleaned_data['taken']
+                else:
+                    course = form.save(commit=False)
                 course.app = app
                 course.rank = rank+1
                 course.save()
+                used_pref.add(course)
+            
+            # any removed courses: set to rank=0, but don't delete (since we assume one exists if it has been assigned already)
+            for course in old_pref - used_pref:
+                course.rank = 0
+                course.save()
+            
             return HttpResponseRedirect(reverse('ta.views.view_application', kwargs={'post_slug': app.posting.slug, 'userid': app.person.userid}))
         
         # redisplaying form: build values for template with entered values
@@ -316,8 +355,40 @@ def _new_application(request, post_slug, manual=False):
 
     elif request.is_ajax():
         # TO DO: Update formset to correct number of forms displayed
+        raise NotImplemented, "This is dead code, right?"
         return HttpResponse("AJAX Completed") #return updated form.
+    
+    elif editing:
+        # editing: build initial form from existing values
+        
+        ta_form = TAApplicationForm(prefix='ta', instance=application)
+        cp_init = [{'course': cp.course, 'taken': cp.taken, 'exper':cp.exper} for cp in old_coursepref]
+        search_form = None
+        courses_formset = CoursesFormSet(initial=cp_init)
+        for f in courses_formset:
+            f.fields['course'].choices = course_choices
+
+        # build values for template with entered values
+        campus_preferences = []
+        for c in used_campuses:
+            try:
+                val = CampusPreference.objects.get(app=application, campus=c).pref
+            except CampusPreference.DoesNotExist:
+                val = 'WIL'
+            if val not in PREFERENCES:
+                val = 'WIL'
+            campus_preferences.append((c, CAMPUSES[c], val))
+        skill_values = []
+        for s in skills:
+            try:
+                val = SkillLevel.objects.get(app=application, skill=s).level
+            except SkillLevel.DoesNotExist:
+                val = 'WIL'
+            if val not in LEVELS:
+                val = 'NONE'
+            skill_values.append((s.position, s.name, val))
     else:
+        # new application
         search_form = StudentSearchForm()
         courses_formset = CoursesFormSet()
         for f in courses_formset:
@@ -332,6 +403,7 @@ def _new_application(request, post_slug, manual=False):
     context = {
                     'posting':posting,
                     'manual':manual,
+                    'editing': editing,
                     'ta_form':ta_form,
                     'search_form':search_form,
                     'courses_formset':courses_formset,
@@ -342,39 +414,6 @@ def _new_application(request, post_slug, manual=False):
                   }
     return render(request, 'ta/new_application.html', context)
 
-"""
-@login_required
-def edit_application(request, post_slug, userid):
-    posting = get_object_or_404(TAPosting, slug=post_slug)
-    if userid != request.user.username:
-        return ForbiddenResponse(request)
-    application = get_object_or_404(TAApplication, posting=posting, person__userid=userid)
-
-    course_choices = [(c.id, unicode(c) + " (" + c.title + ")") for c in posting.selectable_courses()]
-    used_campuses = set((vals['campus'] for vals in posting.selectable_offerings().order_by('campus').values('campus').distinct()))
-    skills = Skill.objects.filter(posting=posting)
-    
-    max_courses = posting.max_courses()
-    min_courses = posting.min_courses()
-
-    if request.method == "POST":
-        pass
-    else:
-        pass
-
-    context = {
-                    'posting':posting,
-                    #'manual':manual,
-                    'ta_form':ta_form,
-                    #'search_form':search_form,
-                    'courses_formset':courses_formset,
-                    'campus_preferences':campus_preferences,
-                    'campus_pref_choices':PREFERENCE_CHOICES,
-                    'skill_values': skill_values,
-                    'skill_choices': LEVEL_CHOICES,
-                  }
-    return render(request, 'ta/new_application.html', context)
-"""
 
 @login_required
 def get_info(request, post_slug):
@@ -410,7 +449,7 @@ def view_application(request, post_slug, userid):
         elif application.posting.unit not in units:
             return ForbiddenResponse(request, 'You cannot access this application')
    
-    courses = CoursePreference.objects.filter(app=application)
+    courses = CoursePreference.objects.filter(app=application).exclude(rank=0)
     skills = SkillLevel.objects.filter(app=application).select_related('skill')
     campuses = CampusPreference.objects.filter(app=application).select_related('campus')
     context = {
@@ -466,7 +505,7 @@ def assign_bus(request, post_slug, course_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     instructors = offering.instructors()
-    course_prefs = CoursePreference.objects.filter(app__posting =posting, course=offering.course, app__late=False) 
+    course_prefs = CoursePreference.objects.filter(app__posting=posting, course=offering.course, app__late=False) 
     #a ta that has been assigned BU to this course might not be on the list
     tacourses = TACourse.objects.filter(course=offering)
     
@@ -1120,7 +1159,7 @@ def generate_csv(request, post_slug):
     
     # collect all course preferences in a sensible way
     course_prefs = {}
-    prefs = CoursePreference.objects.filter(app__posting=posting).order_by('app__person').select_related('app', 'course')
+    prefs = CoursePreference.objects.filter(app__posting=posting).exclude(rank=0).order_by('app__person').select_related('app', 'course')
     for cp in prefs:
         a = cp.app
         c = cp.course
