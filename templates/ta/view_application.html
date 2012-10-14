@@ -10,16 +10,16 @@
 <li>&gt; {{ application.person.userid }}</li> 
 {% endblock %}
 
-{% comment %}
 {% block actions %}
+{% if application.posting.is_open %}
 <div id="actions">
 <h2 class="heading">Actions</h2>
 <ul>
 <li><a href="{% url ta.views.edit_application post_slug=application.posting.slug userid=application.person.userid %}">Edit Application</a></li>
 </ul>
 </div>
+{% endif %}
 {% endblock %}
-{% endcomment %}
 
 {% block content %}
 

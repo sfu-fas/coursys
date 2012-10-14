@@ -6,7 +6,7 @@ from jsonfield import JSONField
 from courselib.json_fields import getter_setter #, getter_setter_2
 from courselib.slugs import make_slug
 from autoslug import AutoSlugField
-import decimal
+import decimal, datetime
 from numbers import Number
 from dashboard.models import NewsItem
 from django.core.urlresolvers import reverse
@@ -246,7 +246,11 @@ class TAPosting(models.Model):
         excl = set(self.excluded())
         offerings = CourseOffering.objects.filter(semester=self.semester, owner=self.unit).exclude(course__id__in=excl)
         return offerings
-        
+    
+    def is_open(self):
+        today = datetime.date.today()
+        return self.opens <= today <= self.closes
+    
     def cat_index(self, val):
         indexer = dict((v[0],k) for k,v in enumerate(CATEGORY_CHOICES))
         return indexer.get(val)
@@ -301,7 +305,7 @@ class TAPosting(models.Model):
         """
         Number of people who have applied to TA this offering
         """
-        prefs = CoursePreference.objects.filter(app__posting__semester=self.semester,app__late=False, app__posting__unit=self.unit, course=offering.course)
+        prefs = CoursePreference.objects.filter(app__posting=self, app__late=False, course=offering.course).exclude(rank=0)
         return prefs.count()
     
     def ta_count(self, offering):
@@ -429,6 +433,8 @@ class SkillLevel(models.Model):
     skill = models.ForeignKey(Skill)
     app = models.ForeignKey(TAApplication)
     level = models.CharField(max_length=4, choices=LEVEL_CHOICES)
+    class Meta:
+        unique_together = (('app', 'skill'),)
 
 
 APPOINTMENT_CHOICES = (
@@ -589,6 +595,11 @@ class CoursePreference(models.Model):
     taken = models.CharField(max_length=3, choices=TAKEN_CHOICES, blank=False, null=False)
     exper = models.CharField(max_length=3, choices=EXPER_CHOICES, blank=False, null=False)
     rank = models.IntegerField(blank=False)
+    class Meta:
+        unique_together = (('app', 'course'),)
 
     def __unicode__(self):
-        return "%s's pref for %s" % (self.app.person, self.course)
+        if self.app_id and self.course_id:
+            return "%s's pref for %s" % (self.app.person, self.course)
+        else:
+            return "new CoursePreference"
