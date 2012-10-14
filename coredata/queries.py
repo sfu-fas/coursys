@@ -8,7 +8,7 @@ multiple_breaks = re.compile(r'\n\n+')
 
 class DBConn(object):
     """
-    Singleton object representing DB connection. Implementes a big enough subset of PEP 249 for me.
+    Singleton object representing DB connection. Implements a big enough subset of PEP 249 for me.
     
     singleton pattern implementation from: http://stackoverflow.com/questions/42558/python-and-the-singleton-pattern
     
@@ -18,9 +18,9 @@ class DBConn(object):
     """
     dbpass_file = settings.DB_PASS_FILE
     _instance = None
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls):
         if not cls._instance:
-            cls._instance = super(DBConn, cls).__new__(cls, *args, **kwargs)
+            cls._instance = super(DBConn, cls).__new__(cls)
         return cls._instance
 
     def __init__(self, verbose=False):
