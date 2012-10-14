@@ -16,8 +16,8 @@
 			<tr>
 				<td>{% if s.removed %}<del>{% endif %}{% if s.supervisor %}{{s.supervisor}}{% else %}{{s.external}}{% endif %}{% if s.removed %}</del>{% endif %}</td>
 				<td>{% if s.removed %}<del><span class="sort">{{s.type_order}}</span>{% else %}<span class="sort">{{s.type_order|add:"9"}}</span>{% endif %}{{s.get_supervisor_type_display}}{% if s.removed %}</del>{% endif %}</td>
-				<td><span class="sort">{{s.created_at.isoformat}}</span>{{s.created_at|date}}
-					{% if s.removed %}&ndash; {{s.updated_at|date}}{% endif %}</td>
+				<td><span class="sort">{{s.created_at.isoformat}}</span>{{s.created_at|date:GRAD_DATE_FORMAT}}
+					{% if s.removed %}&ndash; {{s.updated_at|date:GRAD_DATE_FORMAT}}{% endif %}</td>
 				{% if not index %}
 				<td class="miniaction">{% if not s.removed %}<form action="{% url grad.views.remove_supervisor grad_slug=grad.slug sup_id=s.id %}" method="post">{% csrf_token %}<p class="actionbutton">
                 <input type="submit" value="remove" onclick="return confirmSubmit('remove this committee member')" />

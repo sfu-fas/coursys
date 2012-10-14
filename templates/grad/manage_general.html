@@ -9,16 +9,29 @@
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
 <li>&gt; <a href="{% url grad.views.view grad_slug=grad.slug%}">{{grad.person.name}}, {{grad.program.label}}</a></li>
-<li>&gt; Academics</li>
+<li>&gt; General Info</li>
 {% endblock %}
 
 {% block content %}
+<p><strong>Current program:</strong> {{grad.program.label}} [<a href="{% url grad.views.manage_program grad_slug=grad.slug %}">Change program</a>]</p>
 <div id="form_container">
-	<form  method="post" action="">
+	<form method="post" action="">
 		{% csrf_token %}
 		<fieldset>
 			<legend>Academic Info</legend>
+			{% if flagforms %}
+			<dl class="dlform">
+			{% for field,f in flagforms %}
+				<div class="field">
+			 	<dt><label for="id_special_arrangements">{{field.label}}:</label></dt>
+			 	<dd>{{f.value}}</dd>
+				</div>
+			{% endfor %}
+			</dl>
+			{% endif %}
+
 			{{ form|as_dl }}
+			
 			<p><input class="submit" type="submit" value="Update" /></p>
 		</fieldset>
 	</form>

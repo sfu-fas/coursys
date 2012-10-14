@@ -5,7 +5,6 @@ from grad.forms import SaveSearchForm
 from django.contrib import messages
 from coredata.models import Person
 from django.core.urlresolvers import reverse
-from search import search
 
 @requires_role("GRAD")
 def save_search(request):
@@ -19,7 +18,7 @@ def save_search(request):
         saveform.instance = SavedSearch(person=current_user)
     if saveform.is_valid():
         saveform.save()
-        return HttpResponseRedirect(reverse(search))
+        return HttpResponseRedirect(reverse('grad.views.index'))
     else:
         messages.add_message(request, messages.ERROR, saveform.errors.as_text())
-        return HttpResponseRedirect(reverse(search) + u'?' + saveform.data['query'])
+        return HttpResponseRedirect(reverse('grad.views.search') + u'?' + saveform.data['query'])

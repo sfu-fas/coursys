@@ -202,6 +202,9 @@ function prep_content() {
 	$("input#id_date").datepicker({
 		'dateFormat' : 'yy-mm-dd'
 	});
+	$("input#id_starting").datepicker({
+		'dateFormat' : 'yy-mm-dd'
+	});
 }
 
 

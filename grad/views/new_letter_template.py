@@ -3,7 +3,7 @@ from django.shortcuts import render
 from grad.models import LETTER_TAGS
 from django.contrib import messages
 from log.models import LogEntry
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect
 from grad.forms import LetterTemplateForm
 from django.core.urlresolvers import reverse
 from letter_templates import letter_templates

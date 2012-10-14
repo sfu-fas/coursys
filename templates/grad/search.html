@@ -6,6 +6,7 @@
 {% block headextra %}
 <link type="text/css" href="{{MEDIA_URL}}multiselect/css/ui.multiselect.css" rel="stylesheet" />
 <script type="text/javascript" src="{{MEDIA_URL}}multiselect/js/ui.multiselect.js"></script>
+<script type="text/javascript" src="{{MEDIA_URL}}collapsible/js/jQuery.collapsible.js"></script>
 <script type="text/javascript">
   $(function() {
     $("#id_student_status").css("min-height", "180px").multiselect();
@@ -19,20 +20,18 @@
     $("#id_campus").css("min-height", "160px").multiselect();
     $("#id_visa").css("min-height", "120px").multiselect();
     $("#id_columns").css("min-height", "180px").multiselect();
+    
+    $(".formheader").collapsible();
+    $(".formheaderopen").collapsible().trigger('expand');
+    $('a.collapsible-heading-toggle').attr('href', 'javascript:');
+
   });
 </script>
-{% comment %}<style type="text/css">
-<!--
-.ui-multiselect { min-width: 421px; max-width: 421px;}
-
-.ui-multiselect div.selected { max-width:210px; min-width:210px;}
-
-.ui-multiselect div.available { max-width:210px; min-width:210px;}
-
-.ui-multiselect .ui-state-default { max-width:210px;}
-.ui-multiselect .ui-widget-header { max-width:210px;}
--->
-</style>{% endcomment %}
+<style type="text/css">
+.collapsible-heading-status {
+	display: none;
+}
+</style>
 <style type="text/css">
 #deleteinvalidsearchbutton {float: none;}
 </style>
@@ -57,20 +56,28 @@
 <input id="deleteinvalidsearchbutton" class="submit" type="submit" value="Delete this saved search">
 </form>
 {% endif %}
-
+<p>If you don't make a selection in a category, that category is ignored. Unless specified, all multiple select searches will search for any of the conditions.</p>
 <div id="form_container">
     <form id="searchform" action="{% url grad.views.search %}" method="get">
         <fieldset>
-            {#<legend>Advanced Search</legend>#}
-            <div id="messages"><ul><li class="info">
-            If you don't make a selection in a category, that category is ignored.
-            </li>
-            <li class="info">
-            Unless specified, all multiple select searches will search for any of the conditions.
-            </li></ul></div>
-            {{ form|as_dl_includefields:form.semester_range_fields }}
-            {{ form|as_dl_includefields:form.regular_fields }}
-            {{ form|as_dl_includefields:form.number_range_fields }}
+            <h2 class="formheaderopen">Status</h2>
+            <div class="formsection">{{ form|as_dl_includefields:form.status_fields }}</div>
+
+            <h2 class="formheader">Personal Info</h2>
+            <div class="formsection">{{ form|as_dl_includefields:form.personal_fields }}</div>
+
+            <h2 class="formheader">Start/End Semesters</h2>
+            <div class="formsection">{{ form|as_dl_includefields:form.semester_range_fields }}</div>
+
+            <h2 class="formheader">Program</h2>
+            <div class="formsection">{{ form|as_dl_includefields:form.program_fields }}</div>
+
+            <h2 class="formheader">Requirements</h2>
+            <div class="formsection">{{ form|as_dl_includefields:form.requirement_fields }}</div>
+
+            <h2 class="formheader">Financial</h2>
+            <div class="formsection">{{ form|as_dl_includefields:form.financial_fields }}</div>
+
         </fieldset>
         <fieldset>
         	<legend>Column Selection</legend>

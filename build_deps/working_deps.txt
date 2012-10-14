@@ -19,3 +19,4 @@ wsgiref==0.1.2
 lxml>=2.3.4
 reportlab==2.5
 icalendar==3.0.1b2
+xlwt==0.7.4

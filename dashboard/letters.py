@@ -270,8 +270,9 @@ class LetterContents(object):
         for line in self.to_addr_lines:
             contents.append(Paragraph(line, style))
         contents.append(Spacer(1, 2*space_height))
-        contents.append(Paragraph(self.salutation+",", style))
-        contents.append(Spacer(1, space_height))
+        if self.salutation:
+            contents.append(Paragraph(self.salutation+",", style))
+            contents.append(Spacer(1, space_height))
         
         for f in self.flowables[:-1]:
             # last paragraph is put in the KeepTogether below, to prevent bad page break

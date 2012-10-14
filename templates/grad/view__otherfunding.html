@@ -1,4 +1,9 @@
-{% if index %}<p class="manage_link"><a href="{% url grad.views.manage_otherfunding grad_slug=grad.slug  %}">Manage Other Funding</a></p>{% endif %}
+{% if index %}
+    <p class="manage_link">
+        <a href="{% url grad.views.manage_otherfunding grad_slug=grad.slug  %}">Manage Other Funding</a>
+    </p>
+{% endif %}
+
 <div class="datatable_container datatable">
 	<table class="display sort-2">
 		<thead>
@@ -6,16 +11,45 @@
 				<th>Description</th>
 				<th>Amount</th>
 				<th>Semester</th>
+				{% if not index %}
+                    <th>Actions</th>
+                {% endif %}
 			</tr>
 		</thead>
 		<tbody>
 			{% for f in otherfunding %}
 			<tr>
-				<td> {{ f.description }}
-				{% if f.comments %} <img src="{{MEDIA_URL}}icons/information.png" alt="[?]" class="collapsiblecomment" /><p class="hiddencomment">{{f.comments}}</p> {% endif %}
+				<td>
+                    {% if f.removed %}<del>{% endif %}
+                        {{ f.description }}
+                    {% if f.removed %}</del>{% endif %}
+                    {% if f.comments %} 
+                        <img src="{{MEDIA_URL}}icons/information.png" alt="[?]" class="collapsiblecomment" />
+                        <p class="hiddencomment">{{f.comments}}</p> 
+                    {% endif %}
 				</td>
-				<td> ${{ f.amount|floatformat:"2" }} </td>
-				<td> <span class="sort">{{ f.semester.name }}</span>{{ f.semester }} </td>
+				<td>
+                    {% if f.removed %}<del>{% endif %}
+                        ${{ f.amount|floatformat:"2" }} 
+                    {% if f.removed %}</del>{% endif %}
+                </td>
+				<td> 
+                    {% if f.removed %}<del>{% endif %}
+                        {{ f.semester.name }} ({{ f.semester }})
+                    {% if f.removed %}</del>{% endif %}
+                </td>
+				{% if not index %}
+                <td class='miniaction'>
+                    {% if not p.removed %}
+                        <form action="{% url grad.views.remove_otherfunding grad_slug=grad.slug o_id=f.id %}" method="post">
+                            {% csrf_token %}
+                                <p class="actionbutton">
+                                    <input type="submit" value="remove" onclick="return confirmSubmit('remove this funding')" />
+                                </p>
+                        </form>
+                    {% endif %}
+                </td>
+                {% endif %}
 			</tr>
 			{% endfor %}
 		</tbody>

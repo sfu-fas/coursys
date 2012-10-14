@@ -73,7 +73,10 @@ table#financial td.prom {
 table#financial td.rec {
 	width: 60%;
 }
-
+table#financial td.programchange {
+	border-bottom: 2px solid red;
+	background-color: #fcc;
+}
 </style>
 <script type="text/javascript">
 	$(document).ready(function() {
@@ -118,7 +121,15 @@ table#financial td.rec {
 {% for semester in semesters %}
 <tr>
 <td class="rec">
-  <h2 id="sem-{{semester.semester.name}}">{{semester.semester.label}}{% if semester.status %} ({{ semester.status }}){% endif %}</h2>
+  <h2 id="sem-{{semester.semester.name}}">{{semester.semester.name}} ({{semester.semester.label}}{% if semester.status %}, {{ semester.status }}{% endif %})</h2>
+  {% if semester.comments %}
+  <span class="label">Financial Comments:</span>
+  <ul>
+    {% for c in semester.comments %}
+     {{ c.comment|linebreaksbr }} [{{ c.created_by}}, {{ c.created_at|date:GRAD_DATE_FORMAT }}] <br/>
+    {% endfor %}
+  </ul>
+  {% endif %}
   {% if semester.scholarships %}
     <span class="label">Scholarships:</span> 
     <div style="float: right" id="comments-btn-{{semester.semester.name}}"><a>[View Comments]</a></div>
@@ -153,7 +164,9 @@ table#financial td.rec {
       <span class="label">RA Details:</span>
       <ul class="leaders">
       {% for appt in semester.ra.appt %}
-        <li><span>{{ appt.desc }}</span> <span>${{ appt.amount|floatformat:2 }}</span></li>
+        <li><span>{{ appt.desc }}
+        	{% if appt.semesters > 1 %}[1 of {{appt.semesters}} semesters]{% endif %}</span>
+        	<span>${{ appt.amount|floatformat:2 }}</span></li>
       {% endfor %}
       </ul>
     {% endif %}
@@ -201,6 +214,11 @@ table#financial td.rec {
 </td>
 {% endif %}
 </tr>
+{% if semester.program %}
+<tr><td class="programchange">
+Program change to {{ semester.program.program.label }} in {{ semester.program.start_semester.name }}.
+</td></tr>
+{% endif %}
 {% endfor %}
 </tbody>
 

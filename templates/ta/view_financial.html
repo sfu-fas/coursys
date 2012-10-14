@@ -17,9 +17,8 @@
 	$(function() {
 		$('#offerings').dataTable({
 			"bJQueryUI": true,
-			"iDisplayLength": 25,
+			"bPaginate": false,
 			"aaSorting": [[3, "desc"]],
-			"sPaginationType": "full_numbers",
 			"fnPreDrawCallback": function() {total=0; rows=0;},
 			"fnRowCallback": function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
 				var pay = parseFloat(aData[4].slice(1));

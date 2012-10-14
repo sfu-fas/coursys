@@ -7,17 +7,47 @@
 				<th>Amount</th>
 				<th>Start Semester</th>
 				<th>End Semester</th>
+				{% if not index %}
+                    <th>Actions</th>
+                {% endif %}
 			</tr>
 		</thead>
 		<tbody>
 			{% for s in scholarships %}
 			<tr>
-				<td> {{ s.scholarship_type.name }}
-				{% if s.comments %}<img src="{{MEDIA_URL}}icons/information.png" alt="[?]" class="collapsiblecomment" /><p class="hiddencomment">{{s.comments}}</p>{% endif %}
+				<td>
+                    {% if s.removed %}<del>{% endif %}
+                        {{ s.scholarship_type.name }}
+                    {% if s.removed %}</del>{% endif %}
+                    {% if s.comments %}<img src="{{MEDIA_URL}}icons/information.png" alt="[?]" class="collapsiblecomment" /><p class="hiddencomment">{{s.comments}}</p>{% endif %}
 				</td>
-				<td> ${{ s.amount|floatformat:"2" }} </td>
-				<td> <span class="sort">{{ s.start_semester.name }}</span>{{ s.start_semester }} </td>
-				<td> <span class="sort">{{ s.end_semester.name }}</span>{{ s.end_semester }} </td>
+				<td>
+                    {% if s.removed %}<del>{% endif %}
+                        ${{ s.amount|floatformat:"2" }} 
+                    {% if s.removed %}</del>{% endif %}
+                </td>
+				<td> 
+                    {% if s.removed %}<del>{% endif %}
+                        {{ s.start_semester.name }} ({{ s.start_semester }}) 
+                    {% if s.removed %}</del>{% endif %}
+                </td>
+				<td> 
+                    {% if s.removed %}<del>{% endif %}
+                        {{ s.end_semester.name }} ({{ s.end_semester }}) 
+                    {% if s.removed %}</del>{% endif %}
+                </td>
+				{% if not index %}
+                <td class='miniaction'>
+                    {% if not s.removed %}
+                        <form action="{% url grad.views.remove_scholarship grad_slug=grad.slug s_id=s.id %}" method="post">
+                            {% csrf_token %}
+                                <p class="actionbutton">
+                                    <input type="submit" value="remove" onclick="return confirmSubmit('remove this scholarship')" />
+                                </p>
+                        </form>
+                    {% endif %}
+                </td>
+                {% endif %}
 			</tr>
 			{% endfor %}
 		</tbody>

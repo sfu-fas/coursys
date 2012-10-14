@@ -1,0 +1,20 @@
+<div class="datatable_container datatable">
+	<table class="display sort-2">
+		<thead>
+			<tr>
+				<th>Program</th>
+				<th>Start Semester</th>
+				<th>Starting</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for ph in programhistory %}
+			<tr>
+				<td> {{ ph.program.label }}	</td>
+				<td> {{ ph.start_semester.name }} </td>
+				<td> <span class="sort">{{ph.starting.isoformat}}</span>{{ ph.starting|date:GRAD_DATE_FORMAT }} </td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>

@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render
 from django.utils.safestring import mark_safe
 from grad.models import GradStudent, Supervisor, GradStatus, CompletedRequirement, GradRequirement, \
-        Scholarship, OtherFunding, Promise, Letter
+        Scholarship, OtherFunding, Promise, Letter, GradProgramHistory
 
 def _can_view_student(request, grad_slug, funding=False):
     """
@@ -59,10 +59,14 @@ def view(request, grad_slug, section=None):
             return NotFoundResponse(request)
         
         elif section == 'general':
+            programhistory = GradProgramHistory.objects.filter(student=grad, program__unit__in=request.units)
+            context['programhistory'] = programhistory
+            flag_values = grad.flags_and_values()
+            context['flag_values'] = flag_values
             return render(request, 'grad/view__general.html', context)
 
         elif section == 'supervisors':
-            supervisors = Supervisor.objects.filter(student=grad).select_related('supervisor')
+            supervisors = Supervisor.objects.filter(student=grad, removed=False).select_related('supervisor')
             context['supervisors'] = supervisors
             return render(request, 'grad/view__supervisors.html', context)
 
@@ -72,7 +76,7 @@ def view(request, grad_slug, section=None):
             return render(request, 'grad/view__status.html', context)
 
         elif section == 'requirements':
-            completed_req = CompletedRequirement.objects.filter(student=grad)
+            completed_req = CompletedRequirement.objects.filter(student=grad, removed=False)
             completed_gradreq_id = [cr.requirement_id for cr in completed_req if cr.removed==False]
             req = GradRequirement.objects.filter(program=grad.program, hidden=False)
             missing_req = req.exclude(id__in=completed_gradreq_id)
@@ -81,17 +85,17 @@ def view(request, grad_slug, section=None):
             return render(request, 'grad/view__requirements.html', context)
 
         elif section == 'scholarships':
-            scholarships = Scholarship.objects.filter(student=grad).select_related('scholarship_type').order_by('start_semester__name')
+            scholarships = Scholarship.objects.filter(student=grad, removed=False).select_related('scholarship_type').order_by('start_semester__name')
             context['scholarships'] = scholarships
             return render(request, 'grad/view__scholarships.html', context)
 
         elif section == 'otherfunding':
-            otherfunding = OtherFunding.objects.filter(student=grad).order_by('semester__name')
+            otherfunding = OtherFunding.objects.filter(student=grad, removed=False).order_by('semester__name')
             context['otherfunding'] = otherfunding
             return render(request, 'grad/view__otherfunding.html', context)
 
         elif section == 'promises':
-            promises = Promise.objects.filter(student=grad).order_by('start_semester__name')
+            promises = Promise.objects.filter(student=grad, removed=False).order_by('start_semester__name')
             context['promises'] = promises
             return render(request, 'grad/view__promises.html', context)
 
@@ -110,6 +114,11 @@ def view(request, grad_slug, section=None):
         for s in sections:
             resp = view(request, grad_slug, section=s)
             context[s+'_content'] = mark_safe(resp.content)
+
+    other_grad = GradStudent.objects \
+                 .filter(program__unit__in=request.units, person=grad.person) \
+                 .exclude(id=grad.id)
+    context['other_grad'] = other_grad
 
     return render(request, 'grad/view.html', context)
 
