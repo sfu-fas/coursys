@@ -56,8 +56,8 @@
 				<td scope="row">{{s.program.unit}}</td>
 				<td scope="row">{{s.program}}</td>
 				<td scope="row">{{s.description}}</td>
-				<td>{{s.created_at}}</td>
-				<td>{{s.updated_at}}</td>
+				<td>{{s.created_at|date:GRAD_DATETIME_FORMAT}}</td>
+				<td>{{s.updated_at|date:GRAD_DATETIME_FORMAT}}</td>
 			</tr>
 			{% endfor %}
 		</tbody>

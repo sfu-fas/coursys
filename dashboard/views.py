@@ -901,7 +901,7 @@ def student_photo(request, emplid):
     student_members = Member.objects.filter(offering__semester__name__gte=past_semester.name,
             person__emplid=emplid, role='STUD').select_related('offering')
     student_offerings = [m.offering for m in student_members]
-    instructor_of = Member.objects.filter(person=user, role__in=['INST', 'TA'], offering__in=student_offerings)
+    instructor_of = Member.objects.filter(person=user, role='INST', offering__in=student_offerings)
     if instructor_of.count() == 0:
         return ForbiddenResponse(request, 'You must be an instructor of this student.')
 

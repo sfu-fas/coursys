@@ -7,11 +7,25 @@ from courselib.json_fields import getter_setter #, getter_setter_2
 from courselib.slugs import make_slug
 from autoslug import AutoSlugField
 import decimal
+from numbers import Number
 from dashboard.models import NewsItem
 from django.core.urlresolvers import reverse
+from django.core.cache import cache
+from django.utils.safestring import mark_safe
+from creoleparser import text2html
 
-LAB_BONUS = 0.17
+LAB_BONUS_DECIMAL = decimal.Decimal('0.17')
+LAB_BONUS = float(LAB_BONUS_DECIMAL)
 HOURS_PER_BU = 42 # also in media/js/ta.js
+
+def _round_hours(val):
+    "Round to two decimal places because... come on."
+    if isinstance(val, decimal.Decimal):
+        return val.quantize(decimal.Decimal('.01'))
+    elif isinstance(val, Number):
+        return round(val, 2)
+    else:
+        return val
 
 class TUG(models.Model):
     """
@@ -54,13 +68,10 @@ class TUG(models.Model):
     other2 = property(*getter_setter('other2'))
     
     def iterothers(self):
-#        try:
-            return (other for key, other in self.config.iteritems() 
-                    if key.startswith('other')
-                    and other.get('total',0) > 0)
-#        except:
-#            yield self.other1
-#            yield self.other2
+        return (other for key, other in self.config.iteritems() 
+                if key.startswith('other')
+                and other.get('total',0) > 0)
+
     others = lambda self:list(self.iterothers())
     
     def iterfielditems(self):
@@ -106,6 +117,12 @@ preparation, e.g. %s hours reduction for %s B.U. appointment.''' % (LAB_BONUS, 4
         return "TA: %s  Base Units: %s" % (self.member.person.userid, self.base_units)
     
     def save(self, newsitem=True, newsitem_author=None, *args, **kwargs):
+        for f in self.config:
+            if 'weekly' in self.config[f]:
+                self.config[f]['weekly'] = _round_hours(self.config[f]['weekly'])
+            if 'total' in self.config[f]:
+                self.config[f]['total'] = _round_hours(self.config[f]['total'])
+
         super(TUG, self).save(*args, **kwargs)
         if newsitem:
             n = NewsItem(user=self.member.person, author=newsitem_author, course=self.member.offering,
@@ -157,6 +174,7 @@ class TAPosting(models.Model):
         # 'contact': contact person for offer questions (Person.id value)
         # 'max_courses': Maximum number of courses an applicant can select
         # 'min_courses': Minimum number of courses an applicant can select
+        # 'offer_text': Text to be displayed when students accept/reject the offer (creole markup)
 
     defaults = {
             'salary': ['0.00']*len(CATEGORY_CHOICES),
@@ -171,6 +189,7 @@ class TAPosting(models.Model):
             'max_courses': 10,
             'min_courses': 5,
             'contact': None,
+            'offer_text': '',
             }
     salary, set_salary = getter_setter('salary')
     scholarship, set_scholarship = getter_setter('scholarship')
@@ -183,12 +202,19 @@ class TAPosting(models.Model):
     payperiods_str, set_payperiods = getter_setter('payperiods')
     max_courses, set_max_courses = getter_setter('max_courses')
     min_courses, set_min_courses = getter_setter('min_courses')
+    offer_text, set_offer_text = getter_setter('offer_text')
     _, set_contact = getter_setter('contact')
     
     class Meta:
         unique_together = (('unit', 'semester'),)
     def __unicode__(self): 
         return "%s, %s" % (self.unit.name, self.semester)
+    def save(self, *args, **kwargs):
+        super(TAPosting, self).save(*args, **kwargs)
+        key = self.html_cache_key()
+        cache.delete(key)
+
+    
     def short_str(self):
         return "%s %s" % (self.unit.label, self.semester)
     def delete(self, *args, **kwargs):
@@ -307,7 +333,24 @@ class TAPosting(models.Model):
             pay += course.pay()
             bus += course.bu
         return (bus, pay, tac)
+    
+    def html_cache_key(self):
+        return "taposting-offertext-html-" + str(self.id)
+    def html_offer_text(self):
+        """
+        Return the HTML version of this offer's offer_text
         
+        Cached to save frequent conversion.
+        """
+        key = self.html_cache_key()
+        html = cache.get(key)
+        if html:
+            return mark_safe(html)
+        else:
+            html = text2html(self.offer_text())
+            cache.set(key, html, 24*3600) # expires on self.save() above
+            return mark_safe(html)
+    
         
 class Skill(models.Model):
     """
@@ -335,6 +378,8 @@ class TAApplication(models.Model):
     base_units = models.DecimalField(max_digits=4, decimal_places=2, default=5,
             help_text='Maximum number of base units you\'re interested in taking (5 is a "full" TA-ship)')
     sin = models.CharField(blank=True, max_length=30, verbose_name="SIN", help_text="Social insurance number (required for receiving payments)")
+    current_program = models.CharField(max_length=100, blank=True, null=True, verbose_name="Current Program",
+        help_text='What program are you currently enrolled in at SFU (if applicable)?')
     experience =  models.TextField(blank=True, null=True,
         verbose_name="Experience",
         help_text='Describe any other experience that you think may be relevant to these courses.')
@@ -384,20 +429,7 @@ class SkillLevel(models.Model):
     skill = models.ForeignKey(Skill)
     app = models.ForeignKey(TAApplication)
     level = models.CharField(max_length=4, choices=LEVEL_CHOICES)
-    
-    #def __unicode__(self):
-    #    return "%s for %s" % (self.skill, self.app)
 
-
-
-
-
-#DESC_CHOICES = (
-#        ('OM','Office;Marking'),
-#        ('OML','Office;Marking;Lab/Tutorial'),
-#        ('OPL','Open Lab'),
-#    )
-#LABTUT_DESC = ['OML'] # descriptions that deserve LAB_BONUS bonus
 
 APPOINTMENT_CHOICES = (
         ("INIT","Initial appointment to this position"),
@@ -445,6 +477,13 @@ class TAContract(models.Model):
 
     def save(self, *args, **kwargs):
         super(TAContract, self).save(*args, **kwargs)
+
+        # set SIN field on any GradStudent objects for this person
+        from grad.models import GradStudent
+        for gs in GradStudent.objects.filter(person=self.application.person):
+            if 'sin' not in gs.config:
+                gs.set_sin(self.sin)
+                gs.save()
 
         # if signed, create the Member objects so they have access to the courses.
         courses = TACourse.objects.filter(contract=self)
@@ -514,7 +553,7 @@ class TACourse(models.Model):
         """
         Does this assignment deserve the LAB_BONUS bonus?
         """
-        return self.descr.labtut
+        return self.description.labtut
     
     def default_description(self):
         """

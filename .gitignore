@@ -46,6 +46,10 @@ submitted_files
 local_settings.py
 .project
 .pydevproject
+.settings
 connect.sh
 db.sqlite-journal
-.settings
+offering_map_cache.json
+1127import
+schema.txt
+

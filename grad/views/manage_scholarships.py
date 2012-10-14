@@ -13,7 +13,7 @@ get_semester = Semester.get_semester
 @requires_role("GRAD")
 def manage_scholarships(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug = grad_slug)
-    scholarship_type_choices = [(st.id, unicode(st)) for st in ScholarshipType.objects.filter(unit__in=request.units, hidden=False).order_by('unit__slug', 'name')]
+    scholarship_type_choices = [(st.id, st.name) for st in ScholarshipType.objects.filter(unit__in=request.units, hidden=False).order_by('unit__slug', 'name')]
     scholarships = Scholarship.objects.filter(student=grad).select_related('scholarship_type').order_by('start_semester__name')
     
     if request.method == 'POST':

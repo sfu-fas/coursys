@@ -6,6 +6,7 @@ from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from grad.models import Scholarship
 from pages.models import _normalize_newlines
+import datetime
 
 HIRING_CATEGORY_CHOICES = (
     ('U', 'Undergrad'),
@@ -35,6 +36,10 @@ class Project(models.Model):
     def autoslug(self):
         return make_slug(self.unit.label + '-' + unicode(self.project_number))
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    hidden = models.BooleanField(null=False, default=False)
+    
+    class Meta:
+        ordering = ['project_number']
 
     def __unicode__(self):
         return "%06i (%s)" % (self.project_number, self.fund_number)
@@ -52,6 +57,10 @@ class Account(models.Model):
     def autoslug(self):
         return make_slug(self.unit.label + '-' + unicode(self.account_number) + '-' + unicode(self.title))
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+    hidden = models.BooleanField(null=False, default=False)
+
+    class Meta:
+        ordering = ['account_number']
 
     def __unicode__(self):
         return "%06i (%s)" % (self.account_number, self.title)
@@ -104,13 +113,21 @@ class RAAppointment(models.Model):
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
-    
 
     def __unicode__(self):
         return unicode(self.person) + "@" + unicode(self.created_at)
 
     class Meta:
         ordering = ['person', 'created_at']
+
+    def save(self, *args, **kwargs):
+        # set SIN field on any GradStudent objects for this person
+        from grad.models import GradStudent
+        for gs in GradStudent.objects.filter(person=self.person):
+            if 'sin' not in gs.config:
+                gs.set_sin(self.sin)
+                gs.save()
+        super(RAAppointment, self).save(*args, **kwargs)
     
     def default_letter_text(self):
         """
@@ -131,12 +148,27 @@ class RAAppointment(models.Model):
         text = _normalize_newlines(text)
         return text.split("\n\n") 
     
+    @classmethod
+    def semester_guess(cls, date):
+        """
+        Guess the semester for a date, in the way that financial people do (without regard to class start/end dates)
+        """
+        mo = date.month
+        if mo <= 4:
+            se = 1
+        elif mo <= 8:
+            se = 4
+        else:
+            se = 7
+        semname = str((date.year-1900)*10 + se)
+        return Semester.objects.get(name=semname)
+        
     def start_semester(self):
         "Guess the starting semester of this appointment"
-        return Semester.get_semester(self.start_date)
+        return RAAppointment.semester_guess(self.start_date)
     def end_semester(self):
         "Guess the ending semester of this appointment"
-        return Semester.get_semester(self.end_date)
+        return RAAppointment.semester_guess(self.end_date)
     def semester_length(self):
         "The number of semesters this contracts lasts for"
         return self.end_semester() - self.start_semester() + 1

@@ -176,7 +176,7 @@ def create_grads():
         gs.save()
 
         startsem = random.choice(list(Semester.objects.filter(name__lt=Semester.current().name)))
-        st = GradStatus(student=gs, status='APPL', start=startsem)
+        st = GradStatus(student=gs, status='COMP', start=startsem)
         st.save()
         st = GradStatus(student=gs, status=random.choice(['ACTI', 'ACTI', 'LEAV']), start=startsem.next_semester())
         st.save()
@@ -254,12 +254,12 @@ def create_more_data():
     uc.save()
     uc = UserConfig(user=Person.objects.get(userid='ggbaker'), key='advisor-token', value={'token': '082dca26730378700c0091f34412ec9a'})
     uc.save()
-    p = Person(userid='probadmin', emplid='200002387', first_name='Problem', last_name='Admin')
+    p = Person(userid='probadmn', emplid='200002387', first_name='Problem', last_name='Admin')
     p.save()
     uc = UserConfig(user=p, key='problems-token', value={'token': '30378700c0091f34412ec9a082dca268'})
     uc.save()
     
-    p = Person(userid='teachadmin', emplid='200002388', first_name='Teaching', last_name='Admin')
+    p = Person(userid='teachadm', emplid='200002388', first_name='Teaching', last_name='Admin')
     p.save()
     r = Role(person=p, role="TADM", unit=Unit.objects.get(slug='comp'))
     r.save()
@@ -274,6 +274,11 @@ def create_more_data():
     ti.save()
     tc = TeachingCapability(instructor=Person.objects.get(userid='ggbaker'), course=Course.objects.get(slug='cmpt-102'), note='foo')
     tc.save()
+
+    p = Person(userid='classam', emplid='200002389', first_name='Curtis', last_name='Lassam')
+    p.save()
+    r = Role(person=p, role="TECH", unit=Unit.objects.get(slug='comp'))
+    r.save()
 
 
 def serialize(filename):

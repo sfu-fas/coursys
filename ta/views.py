@@ -9,7 +9,7 @@ from courselib.auth import requires_course_staff_by_slug, requires_course_instr_
 from django.contrib.auth.decorators import login_required
 from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, \
     CampusPreference, CourseDescription, \
-    CAMPUS_CHOICES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS, LAB_BONUS, HOURS_PER_BU
+    CAMPUS_CHOICES, PREFERENCE_CHOICES, LEVEL_CHOICES, PREFERENCES, LEVELS, LAB_BONUS, LAB_BONUS_DECIMAL, HOURS_PER_BU
 from ra.models import Account
 from grad.models import GradStudent 
 from dashboard.models import NewsItem
@@ -18,7 +18,7 @@ from coredata.queries import add_person, more_personal_info, SIMSProblem
 from grad.models import GradStatus
 from ta.forms import TUGForm, TAApplicationForm, TAContractForm, TAAcceptanceForm, CoursePreferenceForm, \
     TAPostingForm, TAPostingBUForm, BUFormSet, TACourseForm, BaseTACourseFormSet, AssignBUForm, TAContactForm, \
-    CourseDescriptionForm
+    CourseDescriptionForm, LabelledHidden
 from advisornotes.forms import StudentSearchForm
 from log.models import LogEntry
 from dashboard.letters import ta_form, ta_forms
@@ -117,6 +117,12 @@ def new_tug(request, course_slug, userid):
         else:
             form = TUGForm(offering=course,userid=userid, initial={'holiday':{'total':bu}, 'base_units': bu})
     
+    if member.bu():
+        # we know BUs from the TA application: don't allow editing
+        form.fields['base_units'].widget = LabelledHidden()
+        form.subforms['holiday'].fields['total'].widget = LabelledHidden()
+        form.subforms['holiday'].fields['weekly'].widget = LabelledHidden()
+    
     context = {'ta':member.person,
                'course':course,
                'form':form,
@@ -157,6 +163,7 @@ def edit_tug(request, course_slug, userid):
     course = get_object_or_404(CourseOffering, slug=course_slug)
     member = get_object_or_404(Member, offering=course, person__userid=userid)
     tug = get_object_or_404(TUG, member=member)
+
     if (request.method=="POST"):
         form = TUGForm(request.POST, instance=tug)
         if form.is_valid():
@@ -165,6 +172,12 @@ def edit_tug(request, course_slug, userid):
             return HttpResponseRedirect(reverse(view_tug, args=(course.slug, userid)))
     else:
         form = TUGForm(instance=tug)
+
+    if member.bu():
+        # we know BUs from the TA application: don't allow editing
+        form.fields['base_units'].widget = LabelledHidden()
+        form.subforms['holiday'].fields['total'].widget = LabelledHidden()
+        form.subforms['holiday'].fields['weekly'].widget = LabelledHidden()
 
     context = {'ta':member.person,
                'course':course, 
@@ -656,7 +669,7 @@ def contracts_csv(request, post_slug):
         for crs in courses:
             total_bu += crs.bu
             if crs.has_labtut():
-                prep_units += LAB_BONUS
+                prep_units += LAB_BONUS_DECIMAL
         
         signed = 'Y' if c.status=='SGN' else 'N'
         benefits = 'Y'
@@ -809,7 +822,7 @@ def edit_contract(request, post_slug, userid):
         ForbiddenResponse(request, 'You cannot access this page')
         
     course_choices = [('','---------')] + [(c.id, c.name()) for c in posting.selectable_offerings()]
-    position_choices = [(a.id, u"%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit=posting.unit)]
+    position_choices = [(a.id, u"%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit=posting.unit, hidden=False)]
     
     #number of course form to populate
     num = 3
@@ -934,12 +947,13 @@ def _copy_posting_defaults(source, destination):
     destination.set_bu_defaults(source.bu_defaults())
     destination.set_payperiods(source.payperiods())
     destination.set_contact(source.contact().id)
+    destination.set_offer_text(source.offer_text())
     # TODO: also copy Skill values
 
 @requires_role("TAAD")
 def edit_posting(request, post_slug=None):
     unit_choices = [(u.id, unicode(u)) for u in request.units]
-    account_choices = [(a.id, u"%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit__in=request.units)]
+    account_choices = [(a.id, u"%s (%s)" % (a.position_number, a.title)) for a in Account.objects.filter(unit__in=request.units, hidden=False).order_by('title')]
     contact_choices = [(r.person.id, r.person.name()) for r in Role.objects.filter(unit__in=request.units)]
     contact_choices = list(set(contact_choices))
 

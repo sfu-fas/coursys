@@ -1,4 +1,5 @@
 <p class="manage_link"><a href="{% url grad.views.manage_general grad_slug=grad.slug  %}">Manage General Info</a></p>
+{% include "grad/view__program.html" %}
 <div class="datatable">
 	<table class="display" id="academics">
 		<tbody id="academics-body">
@@ -6,7 +7,7 @@
 				<td>
 				<dl>
 					<dt>
-						<label>Grad Program :</label>
+						<label>Current Program :</label>
 					</dt>
 					<dd>
 						{{ grad.program }}
@@ -62,23 +63,10 @@
 			</tr>
 			<tr>
 				<td>
-				<dl>
-					<dt>
-						<label>Passport Issued By :</label>
-					</dt>
-					<dd>
-						{{ grad.passport_issued_by }}
-					</dd>
-				</dl></td>
-				<td>
-				<dl>
-					<dt>
-						<label>Special Arrangements : </label>
-					</dt>
-					<dd>
-						{{grad.special_arrangements}}
-					</dd>
-				</dl></td>
+				{% for gf, gfv in flag_values %}
+				<strong class="label">{{gf.label}}</strong>: {{gfv.value|yesno}}<br />
+				{% endfor %}
+				</td>
 			</tr>
 			<tr>
 				<td colspan="3">

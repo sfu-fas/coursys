@@ -2,14 +2,14 @@ from django.forms.models import ModelForm
 from django import forms
 from django.db.models import Q
 import grad.models as gradmodels
-from grad.models import Supervisor, GradProgram, GradStudent, GradStatus,\
-    GradRequirement, CompletedRequirement, LetterTemplate, Letter, Promise, Scholarship,\
-    ScholarshipType, SavedSearch, OtherFunding
+from grad.models import Supervisor, GradProgram, GradStudent, GradStatus, GradProgramHistory, \
+    GradRequirement, CompletedRequirement, LetterTemplate, Letter, Promise, Scholarship, \
+    ScholarshipType, SavedSearch, OtherFunding, GradFlagValue
 from courselib.forms import StaffSemesterField
 from coredata.models import Person, Member, Semester, CAMPUS_CHOICES, VISA_STATUSES
 from django.forms.models import BaseModelFormSet
 #from django.core.exceptions import ValidationError
-from django.forms.widgets import NullBooleanSelect, HiddenInput
+from django.forms.widgets import HiddenInput
 from django.template import Template, TemplateSyntaxError
 from itertools import ifilter, chain
 import unicodecsv as csv
@@ -170,7 +170,16 @@ class BaseSupervisorsFormSet(BaseModelFormSet):
 class GradAcademicForm(ModelForm):
     class Meta: 
         model = GradStudent
-        fields = ('program', 'research_area', 'campus', 'english_fluency', 'mother_tongue', 'is_canadian', 'passport_issued_by', 'special_arrangements', 'comments')
+        fields = ('research_area', 'campus', 'english_fluency', 'mother_tongue', 'is_canadian', 'comments')
+        widgets = {
+                   'research_area': forms.Textarea(attrs={'rows': 3, 'cols': 40}),
+                   }
+
+class GradProgramHistoryForm(ModelForm):
+    semester = StaffSemesterField()
+    class Meta: 
+        model = GradProgramHistory
+        fields = ('program', 'semester', 'starting')
         widgets = {
                    'research_area': forms.Textarea(attrs={'rows': 3, 'cols': 40}),
                    }
@@ -178,6 +187,7 @@ class GradAcademicForm(ModelForm):
 class GradProgramForm(ModelForm):
     class Meta:
         model = GradProgram
+        exclude = ('created_by', 'modified_by', 'hidden')
         
 class GradStudentForm(ModelForm):
     class Meta:
@@ -208,7 +218,7 @@ class GradRequirementForm(ModelForm):
         exclude = ('hidden',)
 
 class LetterTemplateForm(ModelForm):
-    content = forms.CharField(widget=forms.Textarea(attrs={'rows':'35', 'cols': '70'}))    
+    content = forms.CharField(widget=forms.Textarea(attrs={'rows':'35', 'cols': '60'}))    
     class Meta:
         model = LetterTemplate
         exclude = ('created_by')
@@ -242,6 +252,16 @@ class CompletedRequirementForm(ModelForm):
 class PromiseForm(ModelForm):
     start_semester = StaffSemesterField()
     end_semester = StaffSemesterField()
+    
+    def clean_end_semester(self):
+        en = self.cleaned_data.get('end_semester', None)
+        st = self.cleaned_data.get('start_semester', None)
+        if not en or not st:
+            return None
+        if st > en:
+            raise forms.ValidationError("Promise cannot end before it begins")
+        return en
+
     class Meta:
         model = Promise
         exclude = ('student','removed')
@@ -258,6 +278,11 @@ class OtherFundingForm(ModelForm):
     class Meta:
         model = OtherFunding
         exclude = ('student', 'removed')
+
+class GradFlagValueForm(ModelForm):
+    class Meta:
+        model = GradFlagValue
+        exclude = ('student','flag')
 
                 
 class new_scholarshipTypeForm(ModelForm):
@@ -330,19 +355,40 @@ COLUMN_CHOICES = (
         ('person.first_name',       'First Name'),
         ('person.middle_name',      'Middle Name'),
         ('person.last_name',        'Last Name'),
-        ('person.pref_first_name',  'Preferred First Name'),
+        ('person.pref_first_name',  'Pref First Name'),
         # TODO Include stuff from config eg. email, phone, address
         ('program',                 'Program'),
         ('research_area',           'Research Area'),
         ('campus',                  'Campus'),
-        ('start_semester',          'Start Semester'),
-        ('end_semester',            'End Semester'),
+        ('start_semester',          'Start Sem'),
+        ('end_semester',            'End Sem'),
         ('current_status',          'Current Status'),
         ('senior_supervisors',      'Senior Supervisor(s)'),
-        ('completed_req',           'Completed Requirements'),
-        ('gpa',                     'GPA'),
+        ('completed_req',           'Completed Req'),
+        ('gpa',                     'CGPA'),
         ('visa',                    'Visa'),
         )
+COLUMN_WIDTHS_DATA = (
+        # first field is interpreted by getattribute template filter (grad/templatetags/getattribute.py)
+        # units seem to be ~1/100 mm
+        ('person.emplid',           3000),
+        ('person.userid',           2800),
+        ('person.first_name',       5000),
+        ('person.middle_name',      5000),
+        ('person.last_name',        6000),
+        ('person.pref_first_name',  4000),
+        ('program',                 3000),
+        ('research_area',           6000),
+        ('campus',                  3000),
+        ('start_semester',          3000),
+        ('end_semester',            3000),
+        ('current_status',          3000),
+        ('senior_supervisors',      6000),
+        ('completed_req',           10000),
+        ('gpa',                     2000),
+        ('visa',                    3000),
+        )
+COLUMN_WIDTHS = dict(COLUMN_WIDTHS_DATA)
 
 class SearchForm(forms.Form):
     
@@ -399,29 +445,36 @@ class SearchForm(forms.Form):
             'start_semester_start',
             'start_semester_end',
             'end_semester_start',
-            'end_semester_end',]
-    
-    regular_fields = [
+            'end_semester_end',
+            ]
+    personal_fields = [
             'first_name_contains',
             'last_name_contains',
-            'student_status',
-            'application_status',
+            'is_canadian',
+            'gender',
+            'visa',            
+            'gpa_min',
+            'gpa_max'
+            ]
+    program_fields = [
             'program',
+            'campus',
+            ]
+    requirement_fields = [
             'requirements',
             'requirements_st',
             'incomplete_requirements',
-            'is_canadian',
+            ]
+    
+    status_fields = [
+            'student_status',
+            ]
+                      
+    financial_fields = [
             'financial_support',
-            'campus',
-            'gender',
-            'visa',
             'scholarship_sem',
             'scholarshiptype',
             ]
-#    regular_fields = ','.join(regular_fields)
-    number_range_fields = [
-            'gpa_min',
-            'gpa_max']
 
     col_fields = [
             'columns']

@@ -4,7 +4,7 @@ from grad.models import LetterTemplate
 
 @requires_role("GRAD")
 def letter_templates(request):
-    templates = LetterTemplate.objects.filter(unit__in=request.units)
+    templates = LetterTemplate.objects.filter(unit__in=request.units, hidden=False)
 
     page_title = 'Letter Templates'
     crumb = 'Letter Templates'     

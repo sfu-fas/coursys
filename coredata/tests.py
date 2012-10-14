@@ -71,6 +71,11 @@ class CoredataTest(TestCase):
         # uniqueness checking for emplid and userid
         px = Person(emplid=210012345, userid="test4")
         self.assertRaises(IntegrityError, px.save)
+
+    def test_person_2(self):
+        p1 = Person(emplid=210012345, userid="test1",
+                last_name="Lname", first_name="Fname", pref_first_name="Fn", middle_name="M")
+        p1.save()
         px = Person(emplid=210012348, userid="test1")
         self.assertRaises(IntegrityError, px.save)
     
@@ -99,10 +104,27 @@ class CoredataTest(TestCase):
         
         self.assertEquals(s.label(), "Fall 2007")
         self.assertEquals(str(wk), "1077 week 5")
+
+        # test semester arithmetic
+        s = Semester.objects.get(name='1121')
+        self.assertEqual(s.previous_semester().name, '1117')
+        self.assertEqual(s.offset(1).name, '1124')
+        self.assertEqual(s.offset(-1).name, '1117')
+        self.assertEqual(s.offset(2).name, '1127')
+        self.assertEqual(s.offset(-2).name, '1114')
+        self.assertEqual(s - s.offset(-2), 2)
+        self.assertEqual(s.offset(-2) - s, -2)
         
         s2 = Semester(name="1077", start=date(2007,9,4), end=date(2007,12,3))
         self.assertRaises(IntegrityError, s2.save)
         
+    def test_semester_2(self):
+        s = create_semester()
+        wk = SemesterWeek(semester=s, week=1, monday=date(2007,9,3))
+        wk.save()
+        wk = SemesterWeek(semester=s, week=5, monday=date(2007,10,8)) # pretend there is a Oct 1-5 break
+        wk.save()
+
         # test due date calculations: convert date to week-of-semester and weekday (and back)
         tz = pytz.timezone('America/Vancouver')
         
@@ -129,15 +151,6 @@ class CoredataTest(TestCase):
         self.assertRaises(ValueError, s.week_weekday, date(2007, 9, 2))
         
         
-        # test semester arithmetic
-        s = Semester.objects.get(name='1121')
-        self.assertEqual(s.previous_semester().name, '1117')
-        self.assertEqual(s.offset(1).name, '1124')
-        self.assertEqual(s.offset(-1).name, '1117')
-        self.assertEqual(s.offset(2).name, '1127')
-        self.assertEqual(s.offset(-2).name, '1114')
-        self.assertEqual(s - s.offset(-2), 2)
-        self.assertEqual(s.offset(-2) - s, -2)
         
 
     def test_course_offering(self):

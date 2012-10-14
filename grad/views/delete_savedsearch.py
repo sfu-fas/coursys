@@ -4,7 +4,6 @@ from grad.models import SavedSearch
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
-from search import search
 
 @requires_role("GRAD")
 def delete_savedsearch(request):
@@ -21,4 +20,4 @@ def delete_savedsearch(request):
         return ForbiddenResponse(request, u"You cannot delete this Saved Search.")
     savedsearch.delete()
     messages.add_message(request, messages.SUCCESS, u"Saved Search '%s' was successfully deleted." % savedsearch.name())
-    return HttpResponseRedirect(reverse(search))
+    return HttpResponseRedirect(reverse('grad.views.index'))

@@ -90,9 +90,9 @@
         <tr>
           <td scope="row">
               <span class="sort">{{ appointment.start_date.isoformat }}</span>
-              {{ appointment.start_date }}</td>
+              {{ appointment.start_date|date:GRAD_DATE_FORMAT }}</td>
           <td><span class="sort">{{ appointment.end_date.isoformat }}</span>
-          	  {{ appointment.end_date }}</td>
+          	  {{ appointment.end_date|date:GRAD_DATE_FORMAT }}</td>
           <td>{{ appointment.account.title }}</td>
           <td>{{ appointment.get_pay_frequency_display }}</td>
           <td>{{ appointment.hiring_faculty.last_name}}, 

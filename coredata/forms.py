@@ -1,5 +1,9 @@
 from django import forms
+<<<<<<< HEAD
 from coredata.models import Role, Person, Member, CourseOffering, Unit, Semester, SemesterWeek, Holiday, ComputingAccount
+=======
+from coredata.models import Role, Person, Member, CourseOffering, Unit, Semester, SemesterWeek, Holiday
+>>>>>>> gradfinal
 from coredata.queries import find_person, add_person, SIMSProblem
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
@@ -112,7 +116,7 @@ class PersonField(forms.CharField):
     """
     A field to allow emplid entry of a Person, but will find new people from SIMS if they aren't
     already a coredata.Person.
-    
+
     If using, must override is_valid in your form as:
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)

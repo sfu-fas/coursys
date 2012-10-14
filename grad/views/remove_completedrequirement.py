@@ -15,7 +15,7 @@ def remove_completedrequirement(request, grad_slug, cr_id):
         cr.save()
         messages.success(request, "Removed completed requirement %s." % (cr.requirement.description))
         l = LogEntry(userid=request.user.username,
-              description="Removed committee member %s for %s." % (cr.requirement.description, grad.person.userid),
+              description="Removed completed requirement %s for %s." % (cr.requirement.description, grad.person.userid),
               related_object=cr)
         l.save()              
     

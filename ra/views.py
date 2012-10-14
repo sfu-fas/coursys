@@ -1,14 +1,15 @@
 from django.core.urlresolvers import reverse
-from django.shortcuts import render_to_response, get_object_or_404, render
+from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib import messages
+from django.template.defaultfilters import date as datefilter
+from django.conf import settings
 from ra.models import RAAppointment, Project, Account
 from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm
 from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester
 from courselib.auth import requires_role, ForbiddenResponse
 from courselib.search import find_userid_or_emplid
-from django.template import RequestContext
 from grad.models import GradStudent, Scholarship
 from dashboard.letters import ra_form, OfficialLetter, LetterContents
 from django import forms
@@ -27,7 +28,7 @@ def search(request, student_id=None):
         if not form.is_valid():
             messages.add_message(request, messages.ERROR, 'Invalid search')
             context = {'form': form}
-            return render_to_response('ra/search.html', context, context_instance=RequestContext(request))
+            return render(request, 'ra/search.html', context)
         search = form.cleaned_data['search']
         # deal with people without active computing accounts
         if search.userid:
@@ -40,7 +41,7 @@ def search(request, student_id=None):
     else:
         form = RASearchForm()
     context = {'form': form}
-    return render_to_response('ra/search.html', context, context_instance=RequestContext(request))
+    return render(request, 'ra/search.html', context)
 
 
 
@@ -58,8 +59,8 @@ def student_appointments(request, userid):
 def _appointment_defaults(units, emplid=None):
     hiring_faculty_choices = possible_supervisors(units)
     unit_choices = [(u.id, u.name) for u in units]
-    project_choices = [(p.id, unicode(p)) for p in Project.objects.filter(unit__in=units)]
-    account_choices = [(a.id, unicode(a)) for a in Account.objects.filter(unit__in=units)]
+    project_choices = [(p.id, unicode(p)) for p in Project.objects.filter(unit__in=units, hidden=False)]
+    account_choices = [(a.id, unicode(a)) for a in Account.objects.filter(unit__in=units, hidden=False)]
     scholarship_choices = [("", u'\u2014')]
     if emplid:
         for s in Scholarship.objects.filter(student__person__emplid=emplid):
@@ -205,7 +206,7 @@ def edit_letter(request, ra_slug):
 def view(request, ra_slug):
     appointment = get_object_or_404(RAAppointment, slug=ra_slug)
     student = appointment.person
-    return render(request, 'ra/view.html', {'appointment': appointment, 'student': student}, context_instance=RequestContext(request))
+    return render(request, 'ra/view.html', {'appointment': appointment, 'student': student})
 
 #View RA Appointment Form (PDF)
 @requires_role("FUND")
@@ -252,7 +253,7 @@ def new_account(request):
 def accounts_index(request):
     depts = Role.objects.filter(person__userid=request.user.username, role='FUND').values('unit_id')
     accounts = Account.objects.filter(unit__id__in=depts).order_by("account_number")
-    return render(request, 'ra/accounts_index.html', {'accounts': accounts}, context_instance=RequestContext(request))
+    return render(request, 'ra/accounts_index.html', {'accounts': accounts})
 
 #@requires_role("FUND")
 #def delete_account(request, account_slug):
@@ -273,7 +274,7 @@ def edit_account(request, account_slug):
     else:
         accountform = AccountForm(instance=account)
         accountform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
-    return render(request, 'ra/edit_account.html', {'accountform': accountform, 'account': account}, context_instance=RequestContext(request))
+    return render(request, 'ra/edit_account.html', {'accountform': accountform, 'account': account})
 
 #Project methods. Also straight forward.
 @requires_role("FUND")
@@ -292,7 +293,7 @@ def new_project(request):
 def projects_index(request):
     depts = Role.objects.filter(person__userid=request.user.username, role='FUND').values('unit_id')
     projects = Project.objects.filter(unit__id__in=depts).order_by("project_number")
-    return render(request, 'ra/projects_index.html', {'projects': projects}, context_instance=RequestContext(request))
+    return render(request, 'ra/projects_index.html', {'projects': projects})
 
 #@requires_role("FUND")
 #def delete_project(request, project_slug):
@@ -313,7 +314,7 @@ def edit_project(request, project_slug):
     else:
         projectform = ProjectForm(instance=project)
         projectform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
-    return render(request, 'ra/edit_project.html', {'projectform': projectform, 'project': project}, context_instance=RequestContext(request))
+    return render(request, 'ra/edit_project.html', {'projectform': projectform, 'project': project})
 
 @requires_role("FUND")
 def search_scholarships_by_student(request, student_id):
@@ -357,8 +358,8 @@ def browse(request):
                 'hiring': ra.hiring_faculty.sortname(),
                 'project': unicode(ra.project),
                 'account': unicode(ra.account),
-                'start': unicode(ra.start_date),
-                'end': unicode(ra.end_date),
+                'start': datefilter(ra.start_date, settings.GRAD_DATE_FORMAT),
+                'end': datefilter(ra.end_date, settings.GRAD_DATE_FORMAT),
                 'amount': '$'+unicode(ra.lump_sum_pay),
                 }
             data.append(radata)

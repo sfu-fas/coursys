@@ -91,8 +91,18 @@
 <p><strong>Social Insurance Number:</strong> {{ form.sin }}
 <span class="helptext">Please make sure that is correct, otherwise you don't get paid.</span></p>
 
-<p><input id="submit" name="reject" type="submit" class="submit" value="Reject" /><input id="submit" name="accept" type="submit" class="submit" value="Accept" /></p>
 <p>Please contact {{ contract.posting.contact.name }} &lt;{{ contract.posting.contact.email_mailto }}&gt; if you have questions about this contract.</p>
+
+{% if contract.posting.offer_text %}
+<h2 id="offer-info">More Information About This Offer</h2>
+<div id="offer-text">
+	{{contract.posting.html_offer_text}}
+</div>
+{% endif %}
+
+<p><input id="submit" name="reject" type="submit" class="submit" value="Reject" /><input id="submit" name="accept" type="submit" class="submit" value="Accept" /></p>
+
+
 </form>
 </div>
 {%endif%}

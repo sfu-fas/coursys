@@ -6,16 +6,50 @@
 				<th>Start Semester</th>
 				<th>End Semester</th>
 				<th>Amount</th>
+
+				{% if not index %}
+                    <th>Actions</th>
+                {% endif %}
 			</tr>
 		</thead>
 		<tbody>
 			{% for p in promises %}
 			<tr>
-				<td> <span class="sort">{{ p.start_semester.name }}</span>{{ p.start_semester }} </td>
-				<td> <span class="sort">{{ p.end_semester.name }}</span>{{ p.end_semester }} </td>
-				<td> ${{ p.amount|floatformat:"2" }}
-				{% if p.comments %} <img src="{{MEDIA_URL}}icons/information.png" alt="[?]" class="collapsiblecomment" /><p class="hiddencomment">{{p.comments}}</p> {% endif %}
+				<td> 
+                    {% if p.removed %}<del>{% endif %}
+                        {{ p.start_semester.name }} ({{ p.start_semester }})
+                    {% if p.removed %}</del>{% endif %}
+                </td>
+				<td> 
+                    {% if p.removed %}<del>{% endif %}
+                        {{ p.end_semester.name }} ({{ p.end_semester }})
+                    {% if p.removed %}</del>{% endif %}
+                </td>
+				<td> 
+                    {% if p.removed %}<del>{% endif %}
+                       ${{ p.amount|floatformat:"2" }}
+                    {% if p.removed %}</del>{% endif %}
+
+				    {% if p.comments %} 
+                        <img src="{{MEDIA_URL}}icons/information.png" alt="[?]" class="collapsiblecomment" />
+                        <p class="hiddencomment">
+                            {{p.comments}}
+                        </p> 
+                    {% endif %}
 				</td>
+
+				{% if not index %}
+                <td class='miniaction'>
+                    {% if not p.removed %}
+                        <form action="{% url grad.views.remove_promise grad_slug=grad.slug p_id=p.id %}" method="post">
+                            {% csrf_token %}
+                                <p class="actionbutton">
+                                    <input type="submit" value="remove" onclick="return confirmSubmit('remove this promise')" />
+                                </p>
+                        </form>
+                    {% endif %}
+                </td>
+                {% endif %}
 			</tr>
 			{% endfor %}
 		</tbody>

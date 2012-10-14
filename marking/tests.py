@@ -44,9 +44,9 @@ class BasicTest(TestCase):
                             due_date = datetime.now(), max_grade = 100, position = 0)
         a.save()
       
-        co1 = ActivityComponent(numeric_activity = a, title = 'part1', max_mark = 20, position = 0)
-        co2 = ActivityComponent(numeric_activity = a, title = 'part2', max_mark = 30, position = 1)
-        co3 = ActivityComponent(numeric_activity = a, title = 'part3', max_mark = 50, position = 2)
+        co1 = ActivityComponent(numeric_activity = a, title = 'part1', max_mark = 20, position = 1)
+        co2 = ActivityComponent(numeric_activity = a, title = 'part2', max_mark = 30, position = 2)
+        co3 = ActivityComponent(numeric_activity = a, title = 'part3', max_mark = 50, position = 3)
         
         co1.save()
         co2.save()
@@ -65,10 +65,10 @@ class BasicTest(TestCase):
         c = CourseOffering.objects.get(slug = self.c_slug)
         a = NumericActivity(offering = c, name = 'test_assignment_1', \
                             short_name = 'ta1', status = 'RLS', \
-                            due_date = datetime.now(), max_grade = 100, position = 0)
+                            due_date = datetime.now(), max_grade = 100, position = 1)
         a.save()        
-        co1 = ActivityComponent(numeric_activity = a, title = 'part1', max_mark = 50, position = 0)
-        co2 = ActivityComponent(numeric_activity = a, title = 'part2', max_mark = 50, position = 1) 
+        co1 = ActivityComponent(numeric_activity = a, title = 'part1', max_mark = 50, position = 1)
+        co2 = ActivityComponent(numeric_activity = a, title = 'part2', max_mark = 50, position = 2) 
         co1.save()
         co2.save()
         
@@ -305,8 +305,8 @@ class BasicTest(TestCase):
         
         # make sure we get old data for "mark based on"
         response = basic_page_tests(self, client, url + "?base_activity_mark="+str(sam.id))
-        self.assertContains(response, 'name="cmp-1-value" value="{0}"'.format(CMP_1_VALUE))
-        self.assertContains(response, 'name="late_penalty" value="{0}"'.format(PENALTY))
+        self.assertContains(response, 'name="cmp-1-value" value="{0}'.format(CMP_1_VALUE))
+        self.assertContains(response, 'name="late_penalty" value="{0}'.format(PENALTY))
 
         # look at the "view details" page
         url = reverse('marking.views.mark_summary_student', kwargs={'course_slug':c.slug, 'activity_slug':a2.slug, 'userid':stud1.person.userid})

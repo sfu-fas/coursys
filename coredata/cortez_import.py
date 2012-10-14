@@ -8,7 +8,8 @@ from django.db.models import Max
 from coredata.queries import DBConn, get_names, get_or_create_semester, add_person, get_person_by_userid
 from coredata.models import Person, Semester, Unit, CourseOffering, Course, SemesterWeek
 from grad.models import GradProgram, GradStudent, GradRequirement, CompletedRequirement, Supervisor, GradStatus, \
-        Letter, LetterTemplate, Promise, Scholarship, ScholarshipType, OtherFunding
+        Letter, LetterTemplate, Promise, Scholarship, ScholarshipType, OtherFunding, GradProgramHistory, GradFlag, \
+        FinancialComment
 from ta.models import TAContract, TAApplication, TAPosting, TACourse, CoursePreference, SkillLevel, Skill, CourseDescription, CampusPreference
 from ra.models import RAAppointment, Account, Project
 from coredata.importer import AMAINTConn, get_person, get_person_grad, import_one_offering, import_instructors, update_amaint_userids
@@ -123,6 +124,8 @@ class GradImport(object):
     # names of the requirements, in the same order they appear in the query in process_grad
     REQ_LIST = ('Supervisory Committee', 'Breadth Program Approved', 'Breadth Requirements', 'Courses Completed',
                 'Depth Exam', 'CMPT 891', 'Thesis Proposal', 'Thesis Defence', 'Research Topic')
+    REQ_OBSOLETE = ('CMPT 891',) # can be hidden
+    BOOL_LOOKUP = {'yes': True, 'no': False}
 
     # cortez -> coursys status values
     STATUS_MAP = {
@@ -139,6 +142,7 @@ class GradImport(object):
                   'Refused': 'REJE', # note: not realy used, so collapsed into other category
                   'Canceled': 'CANC',
                   'DeclinedOffer': 'DECL',
+                  'expired': 'DECL',
                   'Rejected': 'REJE',
                   'Arrived': 'ARIV',
                   'Active': 'ACTI',
@@ -148,6 +152,29 @@ class GradImport(object):
                   'Withdrawn': 'WIDR',
                   'ArchiveSP': 'ARSP',
                   }
+
+    LETTER_TEMPLATES = [
+            ("MSc Invite", "Dear {{ title }} {{ last_name }},\r\n\r\nOn behalf of the School of Computing Science I am pleased to inform you that you have been admitted to the {{ program }} starting in {{ start_semester }}.\r\n\r\nWe are able to provide you with financial support in the amount of $XXXX per year for YYY year(s) in the program, given you make satisfactory progress, from a variety of sources including: research and teaching assistant appointments, graduate fellowships, scholarships, etc. Should you receive an external award (i.e. NSERC) to support your studies, financial support from SFU will instead consist of a minimum $6,000 \"top up\" per annum while you hold the external award, again from a variety of sources. You can expect continued funding for subsequent years, again subject to satisfactory progress and performance in course work and research towards the completion of your degree, and the continued availability of funding.\r\n\r\nSFU has 3 semesters per year. The typical time to complete the MSc program is 6 to 8 semesters and 12 to 15 semesters for the PhD program.\r\n\r\nIf you are an International Student you are required to obtain a study permit from Immigration Canada before you can begin your program. You will need to provide Immigration officials with an official letter of admission and a letter of acceptance which are both issued by the Dean of Graduate Studies offices. Please contact the nearest Canadian Embassy or High Commission for information on obtaining a study permit.\r\n\r\nPlease note that the financial support that we offer does not include tuition fees. The current tuition fees for Simon Fraser University graduate students are $1,661.60 per semester (or $4,984.80 per year), although it is possible there may be an increase in the Fall {{ start_year }}.\r\n\r\nDr. {{ supervisor_name }} has been assigned to be your potential supervisor and we ask that you please contact  {{ supervisor_himher }}  prior to your arrival at SFU. Dr. {{ supervisor_name }} may remain your permanent supervisor, but if this is not the case, {{ supervisor_heshe }} and I will work with you to choose a different supervisor who is more suited to your interests and needs.\r\n\r\nPlease reply as soon as possible whether you intend to register in the Spring 2013 semester and accept the financial support offered. This offer is valid until October 18th, 2012. If you have any questions or require clarification, please feel free to contact Dr. {{ supervisor_name }} ({{ supervisor_email }}) or our Graduate Program Assistant, Val Galat (csgrada@sfu.ca).\r\n\r\nWe are looking forward to your arrival and if you require assistance, please do not hesitate to contact us.", False),
+            ("PhD Invite", "Dear {{ title }} {{ last_name }},\r\n\r\nOn behalf of the School of Computing Science I am pleased to inform you that you have been admitted to the {{ program }} starting in {{ start_semester }}.\r\n\r\nWe are able to provide you with financial support in the amount of {{ promise }} per year for YYY year(s) in the program, given you make satisfactory progress, from a variety of sources including: research and teaching assistant appointments, graduate fellowships, scholarships, etc. Should you receive an external award (i.e. NSERC) to support your studies, financial support from SFU will instead consist of a minimum $6,000 \"top up\" per annum while you hold the external award, again from a variety of sources. You can expect continued funding for subsequent years, again subject to satisfactory progress and performance in course work and research towards the completion of your degree, and the continued availability of funding.\r\n\r\nSFU has 3 semesters per year. The typical time to complete the MSc program is 6 to 8 semesters and 12 to 15 semesters for the PhD program.\r\n\r\nIf you are an International Student you are required to obtain a study permit from Immigration Canada before you can begin your program. You will need to provide Immigration officials with an official letter of admission and a letter of acceptance which are both issued by the Dean of Graduate Studies offices. Please contact the nearest Canadian Embassy or High Commission for information on obtaining a study permit.\r\n\r\nPlease note that the financial support that we offer does not include tuition fees. The current tuition fees for Simon Fraser University graduate students are $1,661.60 per semester (or $4,984.80 per year), although it is possible there may be an increase in the Fall {{ start_year }}.\r\n\r\nDr. {{ supervisor_name }} has been assigned to be your potential supervisor and we ask that you please contact {{ supervisor_himher }} prior to your arrival at SFU. Dr. {{ supervisor_name }} may remain your permanent supervisor, but if this is not the case, {{ supervisor_heshe }} and I will work with you to choose a different supervisor who is more suited to your interests and needs.\r\n\r\nPlease reply as soon as possible whether you intend to register in the Spring 2013 semester and accept the financial support offered. This offer is valid until October 18th, 2012. If you have any questions or require clarification, please feel free to contact Dr. {{ supervisor_name }} ({{ supervisor_email }}) or our Graduate Program Assistant, Val Galat (csgrada@sfu.ca).\r\n\r\nWe are looking forward to your arrival and if you require assistance, please do not hesitate to contact us.", False),
+            ("Special Student invite", "Dear {{ title }} {{ last_name }},\r\n\r\nOn behalf of the School of Computing Science, I am pleased to inform you that we have recommended to the University's Senate Graduate Studies Committee that you be admitted as a SPECIAL student in the {{ start_semester }} semester, to complete the following course:\r\n\r\nCMPT XXX\r\n\r\nAs a Special Student you are not taking courses toward a degree, diploma or certificate at this institution but merely taking courses for your professional development. This admission is for the {{ start_semester }} semester only. You must reapply for each semester you want to study. Please do so in a timely manner.\r\n\r\nYour application has been forwarded to the Senate Graduate Studies Committee for final approval. Upon approval of admission from them kindly confirm as soon as possible if you intend to be registered for the {{ start_semester }} semester. On arrival, make arrangements with the Graduate Program assistant to register you in your classes.\r\n", False),
+            ("Visa letter", "This is to confirm that {{ title }} {{ first_name }} {{ last_name }} is currently a full-time graduate student in the School of Computing Science at Simon Fraser University in a program of studies leading to the {{ program }} degree.\r\n\r\n{{ title }} {{ last_name }} is currently employed in the School of Computing Science, as a {{ recent_empl }}. This employment is an integral part of {{ his_her }} course studies towards the {{ program }} degree. Simon Fraser University operates on a trimester system, so that students are supported for three semesters each year, providing a yearly support level of {{ promise }}. The tuition fee at Simon Fraser University at graduate school is $4,984.80 per year.\r\n\r\n{{ title }} {{ last_name }} is making satisfactory progress towards the completion of {{ his_her }} degree and can expect to receive income at this rate in the future until the degree program has been completed. {{ title }} {{ last_name }} is expected to complete {{ his_her }} studies by MONTH_AND_YEAR.", False),
+            ("International letter", "This is to advise you that {{ title }} {{ first_name }} {{ last_name }}, a {{ program }} Student in the School of Computing Science, has been employed as follows.\r\n\r\n{% if tafunding %}Teaching assistant responsibilities include providing tutorials, office hours and marking assignments. {{title}} {{last_name}}'s assignments have been:\r\n\r\n{{ tafunding }}{% endif %}\r\n{% if rafunding %}Research assistants assist/provide research services to faculty. {{title}} {{last_name}}'s assignments have been:\r\n\r\n{{ rafunding }}{% endif %}\r\n{% if scholarships %}{{title}} {{last_name}} has received the following scholarships:\r\n\r\n{{ scholarships }}{% endif %}\r\n\r\n{{ title }} {{ last_name }} is making satisfactory progress toward the completion of {{ his_her }} degree and is expected to complete {{ his_her }} studies by MONTH YEAR.\r\n", False),
+            ("Cortez Import", '', True),
+            ]
+    GRAD_FLAGS = ['GDDP', 'Co-op']
+    LETTER_TYPE_MAP = {
+            'OFR_PHD': "PhD Invite",
+            'OFR_MSC': "MSc Invite",
+            'OFR_QUALIFYING': 'Special Student invite',
+            'OFR_SPECIAL': 'Special Student invite',
+            }
+    COMMENT_TYPE_MAP = {
+            'Schol': 'SCO',
+            'Other': 'OTH',
+            'None': 'OTH',
+            'RA': 'RA',
+            'TA': 'TA',
+            }
 
     def __init__(self):
         self.db = CortezConn()
@@ -207,7 +234,8 @@ class GradImport(object):
         print "Setting up CMPT grad programs..."
         cmpt = Unit.objects.get(slug='cmpt')
         self.unit = cmpt
-        programs = [('MSc Thesis', 'MSc Thesis option'), ('MSc Proj', 'MSc Project option'), ('PhD', 'PhD'),
+        programs = [('MSc Thesis', 'MSc Thesis option'), ('MSc Proj', 'MSc Project option'),
+                    ('MSc Course', 'MSc Course option'), ('PhD', 'PhD'),
                     ('Special', 'Special Arrangements'), ('Qualifying', 'Qualifying Student')]
         for lbl, dsc in programs:
             gp, new_gp = GradProgram.objects.get_or_create(unit=cmpt, label=lbl)
@@ -220,7 +248,7 @@ class GradImport(object):
         self.PROGRAM_MAP = {
                    ('MSc', 'Thesis'): GradProgram.objects.get(unit__slug='cmpt', slug='mscthesis'),
                    ('MSc', 'Project'): GradProgram.objects.get(unit__slug='cmpt', slug='mscproj'),
-                   ('MSc', 'Course'): GradProgram.objects.get(unit__slug='cmpt', slug='mscproj'),
+                   ('MSc', 'Course'): GradProgram.objects.get(unit__slug='cmpt', slug='msccourse'),
                    ('MSc', ''): GradProgram.objects.get(unit__slug='cmpt', slug='mscthesis'), # ???
                    ('MSc', None): GradProgram.objects.get(unit__slug='cmpt', slug='mscthesis'), # ???
                    ('PhD', 'Thesis'): GradProgram.objects.get(unit__slug='cmpt', slug='phd'),
@@ -233,18 +261,29 @@ class GradImport(object):
                    ('Qualifying', ''): GradProgram.objects.get(unit__slug='cmpt', slug='qualifying'),
                    }
         
-        try:
-            self.template = LetterTemplate.objects.get(unit=cmpt, label="Cortez Import")
-        except LetterTemplate.DoesNotExist:
-            self.template = LetterTemplate(unit=cmpt, label="Cortez Import", content='', created_by='csilop')
-            self.template.save()
+        for label, content, hidden in self.LETTER_TEMPLATES:
+            try:
+                template = LetterTemplate.objects.get(unit=cmpt, label=label)
+            except LetterTemplate.DoesNotExist:
+                template = LetterTemplate(unit=cmpt, label=label, content=content, created_by='csilop', hidden=hidden)
+                template.save()
+            
+            if hidden:
+                # the hidden one is the default for imports
+                self.template = template  
+        
+        for label in self.GRAD_FLAGS:
+            try:
+                GradFlag.objects.get(unit=cmpt, label=label)
+            except GradFlag.DoesNotExist:
+                GradFlag(unit=cmpt, label=label).save()
         
 
     def get_semester_for_date(self, date):
         # guess relevant semester for given date
         s = Semester.objects.filter(start__lte=date+datetime.timedelta(days=10)).order_by('-start')[0]
         diff = date.date()-s.start
-        if diff > datetime.timedelta(days=120):
+        if diff > datetime.timedelta(days=140):
             raise ValueError, "Couldn't find semester for %s." % (date)
         return s
             
@@ -269,12 +308,13 @@ class GradImport(object):
 
     @transaction.commit_on_success
     def process_grad(self, cortezid, sin, emplid, email, birthdate, gender,
-                     english, mothertoungue, canadian, passport, visa, status):
+                     english, mothertoungue, canadian, passport, visa, currentstatus, lastmod):
         """
         Process one imported student
         
         Argument list must be in the same order at the query in get_students below.
         """
+        
         # TODO: should use get_person_grad for production run (but add_person is good enough for testing)
         p = get_person_grad(emplid, commit=True)
         #p = add_person(emplid, get_userid=False)
@@ -283,6 +323,7 @@ class GradImport(object):
             # all seem to start in 2006/2007 and have no end date
             return
         
+        #print emplid, p
         # fill in the Person object with Cortez data
         if email:
             if '@' in email: # seem to have some userids in there too: let those stay in Person.userid
@@ -293,16 +334,15 @@ class GradImport(object):
         p.config['cortezid'] = cortezid
         
         p.save()
-        #TODO: (mothertoungue, canadian, passport, visa, status)
-        
+                        
         self.db.execute("SELECT Program, Degreetype, SemesterStarted, SemesterFinished, "
                         "SupComSelected, BreProApproved, BreReqCompleted, CourseReqCompleted, "
                         "DepExamCompleted, CMPT891Completed, ThProApproved, ThDefended, ReaTopicChosen, "
-                        "Supervisor1, Supervisor2, Supervisor3, Supervisor4, CoSupervisor, Sponsor "
+                        "Supervisor1, Supervisor2, Supervisor3, Supervisor4, CoSupervisor, Sponsor, ResearchArea "
                         "FROM AcademicRecord WHERE Identifier=%s", (cortezid,))
 
         for prog, progtype, sem_start, sem_finish, supcom, brepro, brereq, crscom, depexam, \
-                cmpt891, thepro, thedef, reatop, sup1,sup2,sup3,sup4, cosup, sponsor in self.db:
+                cmpt891, thepro, thedef, reatop, sup1,sup2,sup3,sup4, cosup, sponsor, research in list(self.db):
             try: sem_start = get_or_create_semester(sem_start)
             except ValueError: sem_start = None
             try: sem_finish = get_or_create_semester(sem_finish)
@@ -315,11 +355,21 @@ class GradImport(object):
                 continue
 
             prog = self.PROGRAM_MAP[(prog, progtype)]
+
             gs, new_gs = GradStudent.objects.get_or_create(person=p, program=prog)
             if new_gs:
                 gs.created_by = self.IMPORT_USER
             gs.modified_by = self.IMPORT_USER
             gs.save()
+
+            # basic info
+            gs.mother_tongue = mothertoungue
+            gs.is_canadian = self.BOOL_LOOKUP[canadian.lower()]
+            gs.passport_issued_by = passport
+            if sin:
+                gs.config['sin'] = sin
+            if research:
+                gs.research_area = research
             
             # fill in their completed requirements
             # order of reqs must match self.REQ_LIST
@@ -327,7 +377,8 @@ class GradImport(object):
             for completed, req_name in zip(reqs, self.REQ_LIST):
                 if not completed or completed.lower() in ('not taken',):
                     continue
-                req, _ = GradRequirement.objects.get_or_create(program=prog, description=req_name)
+                hiddenreq = req_name in self.REQ_OBSOLETE
+                req, _ = GradRequirement.objects.get_or_create(program=prog, description=req_name, hidden=hiddenreq)
                 try:
                     cr = CompletedRequirement.objects.get(requirement=req, student=gs)
                     new_cr = False
@@ -439,16 +490,11 @@ class GradImport(object):
             self.db.execute("SELECT Status, Date, AsOfSem "
                         "FROM Status WHERE Identifier=%s "
                         "ORDER BY Date", (cortezid,))
-            app_st = 'UNKN'
             for status, date, semname in self.db:
                 if semname:
                     sem = Semester.objects.get(name=semname)
                 else:
                     sem = self.get_semester_for_date(date)
-                
-                # grab most-recent applicant status for the GradStudent
-                #if status in self.APP_STATUS_MAP:
-                #    app_st = self.APP_STATUS_MAP[status]
 
                 # create/update GradStatus
                 sts = GradStatus.objects.filter(student=gs, status=self.STATUS_MAP[status], start=sem)
@@ -461,23 +507,25 @@ class GradImport(object):
                     st.start_date = date.date()
                 st.save(close_others=True)
             
-            # cleanup statuses, making sure the last is left open
-            statuses = GradStatus.objects.filter(student=gs).select_related('start')
-            if statuses:
-                statuses = list(statuses)
-                statuses.sort(lambda s1,s2: cmp(s1.start.name, s2.start.name) or cmp(s1.status_order(), s2.status_order()))
-                last = statuses[-1]
-                last.end = None
-                last.save()
-            
-            
-            gs.application_status = app_st
             gs.save()
+            
+            # check that the cortez current status is the one we're displaying/using
+            curr_st = self.STATUS_MAP[currentstatus]
+            if gs.current_status != curr_st:
+                # the current status wasn't found: add one last GradStatus to represent it
+                st = GradStatus(student=gs, status=curr_st, start=Semester.get_semester(lastmod), start_date=lastmod)
+                st.save()
+            
+            # make sure final status is left open
+            st = GradStatus.objects.filter(student=gs, status=curr_st).order_by('-start')[0]
+            if st.end:
+                st.end = None
+                st.save()
 
             # letters
             self.db.execute("SELECT LetterType, Modifier, Content, Date from LetterArchive where Identifier=%s", (cortezid,))
-            # TODO: could honour lettertype as template?
-            for _, modifier, content, datetime in self.db:
+            for lt, modifier, content, datetime in self.db:
+                template = LetterTemplate.objects.filter(unit=self.unit, label=self.LETTER_TYPE_MAP[lt])[0]
                 content = content.replace('$PAGEBREAK$', '')
                 date = datetime.date()
                 letters = Letter.objects.filter(student=gs, date=date)
@@ -488,7 +536,7 @@ class GradImport(object):
                 
                 letter.created_by = modifier.lower()
                 letter.content = content
-                letter.template = self.template
+                letter.template = template
                 letter.to_lines = ''
                 letter.from_person = None
                 letter.created_at = datetime
@@ -535,6 +583,7 @@ class GradImport(object):
                     ra.scholarship = schol
                     ra.save()
             
+            # other funding
             self.db.execute("SELECT Semester, OtherAmount, OtherType, Comments, isTravel FROM FinancialSupport where Identifier=%s and OtherAmount is not null", (cortezid,))
             for sem, amt, othertype, comments, _ in self.db:
                 if not amt:
@@ -554,9 +603,48 @@ class GradImport(object):
                 of.comments = comments
                 of.save()
         
+            # program changes
+            self.db.execute("SELECT program, degreetype, date, asofsem "
+                            "FROM Programs WHERE Identifier=%s", (cortezid,))
+            count = 0
+            for program, degreetype, date, semname in self.db:
+                progr = self.PROGRAM_MAP[(program, degreetype)]
+                sem = Semester.objects.get(name=semname)
+                count += 1
+                phs = GradProgramHistory.objects.filter(student=gs, program=progr, start_semester=sem)
+                if phs:
+                    ph = phs[0]
+                else:
+                    ph = GradProgramHistory(student=gs, program=progr, start_semester=sem)
+                ph.starting = date
+                ph.save()
         
+            if count == 0:
+                # no program history for this student
+                stsem = gs.start_semester
+                if not stsem:
+                    st = GradStatus.objects.filter(student=gs).order_by('-start__name')[0]
+                    stsem = st.start
+                ph = GradProgramHistory(student=gs, program=gs.program, start_semester=stsem)
+                ph.save()
         
-
+            # financial comments
+            self.db.execute("SELECT semester, category, id, lastmodified, comment "
+                            "FROM FinancialComments WHERE Identifier=%s", (cortezid,))
+            for semname, category, userid, lastmod, comment in self.db:
+                sem = Semester.objects.get(name=semname)
+                cat = self.COMMENT_TYPE_MAP[category]
+                lastmod = lastmod.replace(second=0, microsecond=0)
+                userid = userid.lower()
+                
+                fcs = FinancialComment.objects.filter(student=gs, semester=sem, comment_type=cat, created_by=userid, created_at=lastmod)
+                if not fcs:
+                    fc = FinancialComment(student=gs, semester=sem, comment_type=cat, created_by=userid, created_at=lastmod)
+                else:
+                    fc = fcs[0]
+                
+                fc.comment=comment
+                fc.save()
 
 
                 
@@ -567,12 +655,9 @@ class GradImport(object):
         
         self.db.execute("SELECT pi.Identifier, pi.SIN, pi.StudentNumber, "
                         "pi.Email, pi.BirthDate, pi.Sex, pi.EnglishFluent, pi.MotherTongue, pi.Canadian, pi.Passport, "
-                        "pi.Visa, pi.Status, pi.LastName FROM PersonalInfo pi "
-                        "WHERE pi.StudentNumber not in (' ', 'na', 'N/A', 'NO', 'Not App.', 'N.A.', '-no-') "
-                        #"AND pi.LastName in ('Baker', 'Bart', 'Cukierman', 'Fraser')" 
-                        #"AND pi.LastName LIKE 'Younesy%%'" 
-                        #"AND pi.LastName > 'G'" 
-                        #"AND pi.FirstName = 'Wenping'" 
+                        "pi.Visa, pi.Status, pi.LastModified, pi.LastName FROM PersonalInfo pi "
+                        "WHERE pi.StudentNumber not in (' ', 'na', 'N/A', 'NO', 'Not App.', 'N.A.', '-no-') " 
+                        #"AND LastName>'M' "
                         "ORDER BY pi.LastName"
                         , ())
         initial = None
@@ -829,7 +914,7 @@ class TAImport(object):
             # there's only one, from 2004. Ignore.
             return
         if off_id not in self.offeringid_map:
-            # TODO: Where did these offerings go? I'm troubled.
+            # Where did these offerings go? I'm troubled.
             print "missing offering_id:", off_id
             return
         offering = self.offeringid_map[off_id]
@@ -1026,6 +1111,12 @@ class RAImport(object):
     def __init__(self):
         self.db = CortezConn()
         self.db.execute("USE [ra]", ())
+        noaccounts = Account.objects.filter(unit=self.UNIT, account_number=0, position_number=0) 
+        if noaccounts:
+            self.noaccount = noaccounts[0]
+        else:
+            self.noaccount = Account(unit=self.UNIT, account_number=0, position_number=0, title='Unknown', hidden=True)
+            self.noaccount.save()
     
     @transaction.commit_on_success
     def get_ra(self, contractnumber, fund, project, position, reappt, startdate, enddate, category, faculty, msp, dental, \
@@ -1034,6 +1125,8 @@ class RAImport(object):
         """
         Get one RA record. Argument list must match query in get_ras.
         """
+        startdate = startdate.date()
+        enddate = enddate.date()
         if not emplid or emplid in ['new', 'n/a']:
             # TODO: do what with them?
             return
@@ -1093,11 +1186,7 @@ class RAImport(object):
             return
         proj, _ = Project.objects.get_or_create(unit=self.UNIT, project_number=int(project), fund_number=int(fund))
         ra.project = proj
-        ra.account = Account.objects.filter(unit=self.UNIT)[0] # TODO: no account number in cortex DB?
-        #if not ((salarytype == '0' and lumpsumamount == 0) or (salarytype == '2' and lumpsumamount != 0)):
-        #    raise ValueError, unicode((lumpsumamount, totalamount, salarytype))
 
-        #print (totalamount, biweeklyamount, payperiod, hourlyrate, biweeklyhours, lumpsumamount)
         if biweeklyhours == '0.8.8':
             biweeklyhours = '8.8'
         elif biweeklyhours == '38.5.5.':
@@ -1123,14 +1212,23 @@ class RAImport(object):
             ra.hours = 1
         else:
             raise ValueError, str(salarytype)
-
+        
+        # account/position number
+        if position:
+            accts = Account.objects.filter(unit=self.UNIT, position_number=position)
+            if accts:
+                ra.account = accts[0]
+            else:
+                acct = Account(unit=self.UNIT, position_number=position, account_number=0, title=unicode(position))
+                acct.save()
+                ra.account = acct
+        else:
+            ra.account = self.noaccount
+        
         ra.save()
 
     def get_ras(self):
         print "Importing RAs..."
-        #self.db.execute("select * from Contract c LEFT JOIN RA r ON c.Identifier=r.Identifier where c.ContractNumber='20060718101901'", ())
-        #print list(self.db)
-        
         self.db.execute("SELECT c.ContractNumber, c.FundNumber, c.ProjectNumber, c.PositionNumber, c.ReAppointment, c.StartDate, c.EndDate, "
                         "c.HiringCategory, c.Faculty, c.MSP, c.DentalPlan, "
                         "c.HourlyEarningRate, c.BiweeklyEarningRate, c.BiweeklyHoursMin, c.BiweeklyAmount, "
@@ -1138,7 +1236,7 @@ class RAImport(object):
                         "c.Notes, c.Comments, "
                         "r.StudentNumber, r.SIN, r.FamilyName "
                         "FROM Contract c LEFT JOIN RA r ON c.Identifier=r.Identifier "
-                        #"WHERE c.ContractNumber='20040917160432' "
+                        #"WHERE r.FamilyName='Vinnik' "
                         "ORDER BY r.FamilyName", ())
         initial = None
         for row in list(self.db):
@@ -1153,9 +1251,17 @@ class RAImport(object):
         #print all_types
 
 if __name__ == '__main__':
-    #Introspection().print_schema()
-    update_amaint_userids()
-    TAImport().get_tas()
-    RAImport().get_ras()
-    GradImport().get_students()
+    argv = sys.argv[1:]
+    if '--schema' in argv:
+        Introspection().print_schema()
+        sys.exit(0)
+    
+    if '--userid' in argv:
+        update_amaint_userids()
+    if '--ta' in argv:
+        TAImport().get_tas()
+    if '--ra' in argv:
+        RAImport().get_ras()
+    if '--grad' in argv:
+        GradImport().get_students()
 
