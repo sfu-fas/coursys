@@ -433,8 +433,8 @@ class SkillLevel(models.Model):
     skill = models.ForeignKey(Skill)
     app = models.ForeignKey(TAApplication)
     level = models.CharField(max_length=4, choices=LEVEL_CHOICES)
-    class Meta:
-        unique_together = (('app', 'skill'),)
+    #class Meta:
+    #    unique_together = (('app', 'skill'),)
 
 
 APPOINTMENT_CHOICES = (
@@ -595,8 +595,8 @@ class CoursePreference(models.Model):
     taken = models.CharField(max_length=3, choices=TAKEN_CHOICES, blank=False, null=False)
     exper = models.CharField(max_length=3, choices=EXPER_CHOICES, blank=False, null=False)
     rank = models.IntegerField(blank=False)
-    class Meta:
-        unique_together = (('app', 'course'),)
+    #class Meta:
+    #    unique_together = (('app', 'course'),)
 
     def __unicode__(self):
         if self.app_id and self.course_id:
