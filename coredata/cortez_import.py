@@ -794,7 +794,7 @@ class TAImport(object):
                 # was offered as CMPT 118 then
                 number = '118'
             
-            offerings = CourseOffering.objects.filter(subject=subject, number__startswith=number, semester__name=semname, section__startswith=section)
+            offerings = CourseOffering.objects.filter(subject=subject, number__startswith=number, semester__name=semname, section__startswith=section, section__endswith='00')
             if offerings.count() > 1:
                 raise ValueError, "multiple offerings found: " + str(offerings)
             elif offerings:
@@ -818,8 +818,8 @@ class TAImport(object):
                     o.save()
             
             # get instructors if we can: might as well have better data
-            if o.crse_id and o.class_nbr:
-                import_instructors(o)
+            #if o.crse_id and o.class_nbr:
+            #    import_instructors(o)
         
         self.offeringid_map = offeringid_map
         
@@ -868,6 +868,7 @@ class TAImport(object):
                 accept = start
 
             semester = get_or_create_semester(strm)
+            semester.save()
             postings = TAPosting.objects.filter(unit=self.UNIT, semester=semester)
             if postings:
                 posting = postings[0]
