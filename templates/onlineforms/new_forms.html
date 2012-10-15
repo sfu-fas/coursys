@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block h1 %} Add New Forms {% endblock %}
+{% block title %} Manage Forms {% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url onlineforms.views.new_form %}">Add new forms</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="form_container">
+    <form action="{% url onlineforms.views.new_form %}" enctype="multipart/form-data" method="post"> {% csrf_token %}
+        <fieldset>
+            <legend>Add New Form</legend>
+                {{ form.as_p }}
+            
+            <input type="hidden" name="action" value="add" />
+            <input class="submit" type="submit" value="Add New Form" />
+        </fieldset>
+    </form>
+</div>
+{% endblock %}
