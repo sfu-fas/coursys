@@ -167,22 +167,26 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
         clean_config = _clean_config(request.POST)
         form = FIELD_TYPE_MODELS[field.fieldtype](config=clean_config).make_config_form()
 
-        if form.is_valid():
+        if field.config == clean_config:
+            messages.info(request, "Nothing modified")
+
+        elif form.is_valid():
             new_field = Field.objects.create(label=form.cleaned_data['label'],
                 sheet=owner_sheet,
                 fieldtype=field.fieldtype,
                 config=clean_config,
                 active=True,
                 original=field.original)
-            messages.success(request, 'Successfully updated the new field \'%s\'' % form.cleaned_data['label'])
+            messages.success(request, 'Successfully updated the field \'%s\'' % form.cleaned_data['label'])
 
-            field_slug = new_field.slug
-
+            return HttpResponseRedirect(
+                reverse('onlineforms.views.edit_field', args=(form_slug, sheet_slug, new_field.slug)))
 
     else:
         form = FIELD_TYPE_MODELS[field.fieldtype](config=field.config).make_config_form()
 
     context = {'form': form, 'slug_form': form_slug, 'slug_sheet': sheet_slug, 'slug_field': field_slug}
+
     return render(request, 'onlineforms/edit_field.html', context)
 
 # Form-filling views
