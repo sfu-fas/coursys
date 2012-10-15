@@ -10,13 +10,6 @@ class SmallTextField(FieldBase):
         min_length = forms.IntegerField(min_value=1, max_value=300)
         max_length = forms.IntegerField(min_value=1, max_value=300)
 
-    def __init__(self, config=None):
-        super(SmallTextField, self).__init__(config=config)
-
-        if not config:
-            self.config['min_length'] = 5
-            self.config['max_length'] = 30
-
     def make_config_form(self):
         return self.SmallTextConfigForm(self.config)
 
@@ -48,13 +41,6 @@ class MediumTextField(FieldBase):
         min_length = forms.IntegerField(min_value=1, max_value=400)
         max_length = forms.IntegerField(min_value=1, max_value=400)
 
-    def __init__(self, config=None):
-        super(MediumTextField, self).__init__(config=config)
-
-        if not config:
-            self.config['min_length'] = 5
-            self.config['max_length'] = 200
-
     def make_config_form(self):
         return self.MediumTextConfigForm(self.config)
 
@@ -83,13 +69,6 @@ class LargeTextField(FieldBase):
     class LargeTextConfigForm(FieldConfigForm):
         min_length = forms.IntegerField(min_value=1, max_value=500)
         max_length = forms.IntegerField(min_value=1, max_value=500)
-
-    def __init__(self, config=None):
-        super(LargeTextField, self).__init__(config=config)
-
-        if not config:
-            self.config['min_length'] = 5
-            self.config['max_length'] = 400
 
     def make_config_form(self):
         return self.LargeTextConfigForm(self.config)

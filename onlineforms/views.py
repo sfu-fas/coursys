@@ -42,8 +42,10 @@ def list_all(request):
 def new_form(request):
     pass
 
+
 def view_form(request, form_slug):
     pass
+
 
 def preview_form(request, form_slug):
     form = get_object_or_404(Form, slug=form_slug)
@@ -80,7 +82,7 @@ def edit_sheet(request, form_slug, sheet_slug):
     fields = Field.objects.filter(sheet=owner_sheet, active=True).order_by('order')
 
     # check if they are deleting a field from the sheet
-    if request.method == 'POST' and 'action' in request.POST and request.POST['action']=='del':
+    if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'del':
         field_id = request.POST['field_id']
         fields = Field.objects.filter(id=field_id, sheet=owner_sheet)
         # TODO handle the condition where we cant find the field
@@ -89,7 +91,8 @@ def edit_sheet(request, form_slug, sheet_slug):
             field.active = False
             field.save()
             messages.success(request, 'Removed the field %s.' % (field.label))
-        return HttpResponseRedirect(reverse(edit_sheet, kwargs={'form_slug': owner_form.slug, 'sheet_slug': owner_sheet.slug}))
+        return HttpResponseRedirect(
+            reverse(edit_sheet, kwargs={'form_slug': owner_form.slug, 'sheet_slug': owner_sheet.slug}))
 
     # construct a form from this sheets fields
     form = DynamicForm(owner_sheet.title)
@@ -134,16 +137,11 @@ def new_field(request, form_slug, sheet_slug):
                     fieldtype=type,
                     config=custom_config,
                     active=True,
-                    original=None,
-                    created_date=datetime.now(),
-                    last_modified=datetime.now())
+                    original=None, )
                 messages.success(request, 'Successfully created the new field \'%s\'' % form.cleaned_data['label'])
                 section = 'select'
 
-        if section == 'select':
-            form = FieldForm()
-            section = 'config'
-    else:
+    if section == 'select':
         form = FieldForm()
         section = 'config'
 

@@ -8,7 +8,8 @@ from courselib.slugs import make_slug
 from django.db.models import Max
  
 # choices for Form.initiator field
-from onlineforms.fieldtypes.text import LargeTextField
+from onlineforms.fieldtypes.other import DividerField
+from onlineforms.fieldtypes.text import LargeTextField, ExplanationTextField, EmailTextField
 
 INITIATOR_CHOICES = [
         ('LOG', 'Logged-in SFU users'),
@@ -49,15 +50,15 @@ FIELD_TYPE_MODELS = {
         'SMTX': SmallTextField,
         'MDTX': MediumTextField,
         'LGTX': LargeTextField,
-        #'EMAI': EmailTextField,
+        'EMAI': EmailTextField,
         #'RADI': RadioSelectField,
         #'SEL1': DropdownSelectFIeld,
         #'SELN': MultipleSelectField,
         #'LIST': ListField,
         #'FILE': FileField,
         #'URL': URLField,
-        #'TEXT': ExplanationTextField,
-        #'DIVI': DividerField,
+        'TEXT': ExplanationTextField,
+        'DIVI': DividerField,
         }
 
 # mapping of different statuses the forms can be in
