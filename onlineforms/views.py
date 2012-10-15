@@ -9,7 +9,7 @@ from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role
 # FormGroup management views
 from onlineforms.forms import FieldForm
 from onlineforms.fieldtypes import *
-from onlineforms.forms import FieldForm, DynamicForm
+from onlineforms.forms import FieldForm, DynamicForm#, DividerField
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS
 
 from log.models import LogEntry

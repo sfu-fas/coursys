@@ -1,6 +1,7 @@
 from onlineforms.fieldtypes.base import FieldBase, FieldConfigForm
 from django import forms
 
+
 class ListField(FieldBase):
     class ListConfigForm(FieldConfigForm):
         pass
@@ -53,19 +54,20 @@ class URLCustomField(FieldBase):
     def to_html(self, fieldsubmission=None):
         raise NotImplementedError
 
-
+        
 class DividerField(FieldBase):
     class DividerConfigForm(FieldConfigForm):
         pass
 
     def make_config_form(self):
-        raise NotImplementedError
+        return self.DividerConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        raise NotImplementedError
+        #return DividerField('hellothere')
+        pass
 
     def serialize_field(self, field):
-        raise NotImplementedError
+        return {'info': unicode(field.clean())}
 
     def to_html(self, fieldsubmission=None):
-        raise NotImplementedError
+        return mark_safe('<hr />')
