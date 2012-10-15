@@ -14,18 +14,15 @@
 </script>
 {% endblock %}
 
-{% block title %}Grad Not Found{% endblock %}
-{% block h1 %}Grad Not Found{% endblock %}
+{% block title %}Grad Quick Search{% endblock %}
+{% block h1 %}Grad Quick Search{% endblock %}
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url grad.views.index %}">Grad</a></li>
-<li>&gt; Not Found</li>
+<li>&gt; Quick Search</li>
 {% endblock %}
 
 {% block content %}
-<p>
-The grad student with that identifier couldn't be found. Did you mean one of these?
-</p>
 <div class="datatable_container">
 	<table class="display" id="grads">
 		<thead>
