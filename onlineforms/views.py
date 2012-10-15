@@ -239,6 +239,7 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
                 fieldtype=field.fieldtype,
                 config=clean_config,
                 active=True,
+                order=field.order,
                 original=field.original)
             messages.success(request, 'Successfully updated the field \'%s\'' % form.cleaned_data['label'])
 
