@@ -6,16 +6,12 @@ from onlineforms.models import Field, FIELD_TYPE_CHOICES
 class FieldForm(forms.Form):
     type = forms.ChoiceField(required=True, choices=FIELD_TYPE_CHOICES, label='Type')
 
-    class Meta:
-        model = Field
-
 
 class DynamicForm(forms.Form):
-
     def __init__(self, title, *args, **kwargs):
         self.title = title
         super(DynamicForm, self).__init__(*args, **kwargs)
-        
+
     def setFields(self, kwargs):
         """
         Sets the fields in a form
