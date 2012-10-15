@@ -1,5 +1,5 @@
 from django import forms
-from coredata.models import Role, Person, Member, CourseOffering, Unit, Semester, SemesterWeek, Holiday, ComputingAccount
+from coredata.models import Role, Person, Member, Course, CourseOffering, Unit, Semester, SemesterWeek, Holiday, ComputingAccount
 from coredata.queries import find_person, add_person, SIMSProblem
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
@@ -32,6 +32,21 @@ class OfferingField(forms.ModelChoiceField):
         try:
             co = CourseOffering.objects.exclude(component="CAN").get(pk=value, graded=True)
         except (ValueError, CourseOffering.DoesNotExist):
+            raise forms.ValidationError("Unknown course offering selectted")
+        return co
+
+class CourseField(forms.ModelChoiceField):
+    """
+    Override ModelChoiceField so we don't have to build Course.objects.all()
+    unnecessarily, and can set other parameters appropriately.
+    """
+    def __init__(self, *args, **kwargs):
+        super(CourseField, self).__init__(*args, queryset=Course.objects.none(), widget=OfferingSelect(attrs={'size': 30}), help_text="Type to search for course offerings.", **kwargs)
+        
+    def to_python(self, value):
+        try:
+            co = Course.objects.get(pk=value)
+        except (ValueError, Course.DoesNotExist):
             raise forms.ValidationError("Unknown course offering selectted")
         return co
 

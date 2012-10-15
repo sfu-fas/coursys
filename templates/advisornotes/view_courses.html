@@ -12,6 +12,8 @@ $(function() {
     'bLengthChange': true,
     "bJQueryUI": true,
   } );
+  
+  offering_autocomplete('id_course', true);
 } );
 </script>
 {% endblock %}
@@ -44,4 +46,10 @@ $(function() {
 </table>
 {% endif %}
 
+<h2 id="offering-search">Search for Other Courses</h2>
+<form action="" method="get">
+{{form}}
+<input type="hidden" name="coursesearch" value="yes" />
+<input type="submit" class="submit" value="See Notes" />
+</form>
 {% endblock %}
