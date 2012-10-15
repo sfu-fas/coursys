@@ -278,6 +278,16 @@ class Field(models.Model, _FormCoherenceMixin):
         super(Field, self).save(*args, **kwargs)
         self.cleanup_fields()
 
+def neaten_field_positions(sheet):
+    """
+    update all positions to consecutive integers: seems possible to get identical positions in some cases
+    """
+    count = 1
+    for f in Field.objects.filter(sheet=sheet, active=True).order_by('order'):
+        f.position = count
+        f.save()
+        count += 1
+
 class FormSubmission(models.Model):
     form = models.ForeignKey(Form)
     initiator = models.ForeignKey(FormFiller)

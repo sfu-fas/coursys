@@ -1,6 +1,6 @@
 from django import forms
 from django.forms.models import ModelForm
-from onlineforms.models import Field, FIELD_TYPE_CHOICES
+from onlineforms.models import Field, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS
 
 
 class FieldForm(forms.Form):
@@ -23,6 +23,18 @@ class DynamicForm(forms.Form):
 
         for k in keys:
             self.fields[k] = kwargs[k]
+
+    def fromFields(self, fields):
+        """
+        Sets the fields from a list of field model objects
+        preserving the order they are given in
+        """
+        fieldargs = {}
+        for (counter, field) in enumerate(fields):
+            display_field = FIELD_TYPE_MODELS[field.fieldtype](field.config)
+            fieldargs[counter] = display_field.make_entry_field()
+        self.setFields(fieldargs)
+
 
     def validate(self, post):
         """
