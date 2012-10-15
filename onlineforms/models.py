@@ -45,6 +45,7 @@ FIELD_TYPE_CHOICES = [
 
 # mapping of field types to FieldType objects that implement their logic
 from onlineforms.fieldtypes import *
+#from onlineforms.fieldtypes.other import DividerField
 FIELD_TYPE_MODELS = {
         'SMTX': SmallTextField,
         'MDTX': MediumTextField,
