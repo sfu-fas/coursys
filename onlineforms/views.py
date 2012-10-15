@@ -6,10 +6,17 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.core.urlresolvers import reverse
 from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role
 
+from django.db import models
+from django.forms import ModelForm
+from django.forms.models import modelformset_factory
+from django.forms.models import BaseModelFormSet
+from django.shortcuts import render_to_response
+from django.template import RequestContext
+
 # FormGroup management views
 from onlineforms.forms import FieldForm
 from onlineforms.fieldtypes import *
-from onlineforms.forms import FieldForm, DynamicForm#, DividerField
+from onlineforms.forms import FieldForm, DynamicForm, FormForm#, DividerField
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions
 
 from log.models import LogEntry
@@ -42,8 +49,25 @@ def list_all(request):
 
 
 def new_form(request):
-    pass
-
+  #  pass
+  # Creating Form using Forms Model 
+#
+ #   FormFormSet = modelformset_factory(Form)
+    if request.method == 'POST':
+        post = request.POST
+        title = post['title']
+        f = FormForm(request.POST)
+        fform.save()
+    else:
+        fform = FormForm()
+    return render_to_response('onlineforms/new_forms.html',
+                                {'form': fform},
+                                context_instance=RequestContext(request))
+   
+class BaseFormFormSet(BaseModelFormSet):
+    def __init__(self, *args, **kwargs):
+        super(BaseAuthorFormSet, self).__init__(*args, **kwargs)
+        self.queryset = Form.objects.filter(name__startswith='O')   
 
 def view_form(request, form_slug):
     pass
@@ -67,7 +91,7 @@ def preview_form(request, form_slug):
 
     context = {'forms': forms}
     return render(request, "onlineforms/preview_form.html", context)
-
+   
 
 def edit_form(request, form_slug):
     pass
