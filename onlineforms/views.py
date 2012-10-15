@@ -54,14 +54,12 @@ def new_form(request):
 #
  #   FormFormSet = modelformset_factory(Form)
     if request.method == 'POST':
-        post = request.POST
-        title = post['title']
         f = FormForm(request.POST)
-        fform.save()
+        f.save()
     else:
-        fform = FormForm()
+        f = FormForm()
     return render_to_response('onlineforms/new_forms.html',
-                                {'form': fform},
+                                {'form': f},
                                 context_instance=RequestContext(request))
    
 class BaseFormFormSet(BaseModelFormSet):
