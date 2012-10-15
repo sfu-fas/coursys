@@ -1,7 +1,12 @@
 from django import forms
 from django.forms.models import ModelForm
 from onlineforms.models import Field, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS
+from onlineforms.models import Form
 
+
+class FormForm(ModelForm):
+    class Meta:
+        model = Form
 
 class FieldForm(forms.Form):
     type = forms.ChoiceField(required=True, choices=FIELD_TYPE_CHOICES, label='Type')
