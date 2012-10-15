@@ -107,10 +107,12 @@ def edit_sheet(request, form_slug, sheet_slug):
 
 
 def new_field(request, form_slug, sheet_slug):
-    #Test url: http://localhost:8000/forms/comp-test-form-1/edit/initial-sheet/new
+    #Test url: http://localhost:8000/forms/comp-test-form-2/edit/initial-sheet/new
     #TODO: Add proper security checks.
 
-    owner_sheet = get_object_or_404(Sheet, slug=sheet_slug)
+    owner_form = get_object_or_404(Form, slug=form_slug)
+    owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
+
     section = 'select'
     type = None
 
@@ -123,7 +125,6 @@ def new_field(request, form_slug, sheet_slug):
                 type = request.POST['type']
                 type_model = FIELD_TYPE_MODELS[type]
                 field = type_model()
-
             else:
                 type = request.POST['type_name']
                 type_model = FIELD_TYPE_MODELS[type]
@@ -158,10 +159,11 @@ def _clean_config(config):
 
 
 def edit_field(request, form_slug, sheet_slug, field_slug):
-    #Test url: http://localhost:8000/forms/comp-test-form-1/edit/initial-sheet/*label of a field*
+    #Test url: http://localhost:8000/forms/comp-test-form-2/edit/initial-sheet/*label of a field*
 
-    owner_sheet = get_object_or_404(Sheet, slug=sheet_slug)
-    field = get_object_or_404(Field, slug=field_slug)
+    owner_form = get_object_or_404(Form, slug=form_slug)
+    owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
+    field = get_object_or_404(Field, sheet=owner_sheet, slug=field_slug)
 
     if request.POST:
         clean_config = _clean_config(request.POST)
