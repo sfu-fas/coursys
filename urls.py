@@ -384,7 +384,7 @@ urlpatterns += patterns('',
     url(r'^grad/scholarship_types$', 'grad.views.manage_scholarshipType'),
     url(r'^grad/financial_summary$', 'grad.views.student_financials'),
     #url(r'^grad/new', 'grad.views.new'),
-    url(r'^grad/notfound$', 'grad.views.not_found'),
+    url(r'^grad/found', 'grad.views.not_found'),
 
     # RA database
 
