@@ -171,7 +171,7 @@ class _FormCoherenceMixin(object):
         """
         # There can be only one [active instance of this Form/Sheet/Field].
         if self.active and self.original:
-            others = Form.objects.filter(original=self.original) \
+            others = type(self).objects.filter(original=self.original) \
                                  .exclude(id=self.id)
             others.update(active=False)
 
