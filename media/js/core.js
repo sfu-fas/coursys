@@ -186,7 +186,7 @@ jQuery.fn.dataTableExt.oSort['by-marklink-desc'] = function(x,y) { return mark_m
 // turn on CourseOffering autocomplete for field with this id.
 // adapted from http://www.petefreitag.com/item/756.cfm
 // and http://forum.jquery.com/topic/autocomplete-force-selection
-function offering_autocomplete(id) {
+function offering_autocomplete(id, courses) {
   $('#' + id).each(function() {
     var autoCompelteElement = this;
     var autoCompelteElementJQ = $(this);
@@ -198,7 +198,11 @@ function offering_autocomplete(id) {
     /* create new hidden input with name of orig input */
     $(this).after("<input type=\"hidden\" name=\"" + formElementName + "\" id=\"" + hiddenElementID + "\" value = \"" + formElementValue + "\" />");
 
-    ac = $(this).autocomplete({source:'/data/offerings',
+	var source = '/data/offerings'; // hard-coded URL
+	if (courses) {
+		source = '/data/courses';
+	}
+    ac = $(this).autocomplete({source:source,
       minLength: 2,
       select: function(event, ui) {
         var selectedObj = ui.item;

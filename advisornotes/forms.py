@@ -1,6 +1,7 @@
 from advisornotes.models import AdvisorNote, NonStudent, ArtifactNote, Artifact,\
     Problem
 from coredata.models import Person
+from coredata.forms import OfferingField, CourseField
 from django import forms
 from django.core import validators
 from django.core.exceptions import ValidationError
@@ -95,6 +96,10 @@ class StudentSearchForm(forms.Form):
 class NoteSearchForm(forms.Form):
     search = forms.CharField()
 
+class OfferingSearchForm(forms.Form):
+    offering = OfferingField()
+class CourseSearchForm(forms.Form):
+    course = CourseField()
 
 class StartYearField(forms.IntegerField):
 
