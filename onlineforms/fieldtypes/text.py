@@ -121,16 +121,17 @@ class EmailTextField(FieldBase):
 class ExplanationTextField(FieldBase):
     class ExplanationTextConfigForm(FieldConfigForm):
         max_length = forms.IntegerField(min_value=1, max_value=300)
-        text_explanation = forms.CharField(required=True, max_length=500)
+        text_explanation = forms.CharField(required=True, max_length=500, 
+            widget=forms.Textarea(attrs={'cols': '60', 'rows': '15'}))
 
     def make_config_form(self):
         return self.ExplanationTextConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        c = forms.CharField(required=True,
+        c = forms.CharField(required=False,
             label=self.config['label'],
             help_text=self.config['help_text'],
-            widget=forms.TextInput(attrs={'class':'disabled', 'readonly':'readonly'}))
+            widget=forms.TextInput(attrs={'class': 'disabled', 'readonly': 'readonly'}))
 
         if 'text_explanation' in self.config:
             c.initial = self.config['text_explanation']
