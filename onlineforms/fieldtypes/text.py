@@ -102,7 +102,7 @@ class EmailTextField(FieldBase):
         return self.EmailTextConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        c = EmailField(required=self.config['required'],
+        c = forms.EmailField(required=self.config['required'],
             label=self.config['label'],
             help_text=self.config['help_text'])
 
