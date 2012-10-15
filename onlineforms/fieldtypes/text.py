@@ -1,5 +1,5 @@
 from django.db.models.fields import TextField
-from django.forms.fields import EmailField
+from django.forms.fields import EmailField, CharField
 from onlineforms.fieldtypes.base import FieldBase, FieldConfigForm
 from django import forms
 from django.utils.safestring import mark_safe
@@ -16,8 +16,8 @@ class SmallTextField(FieldBase):
     def make_entry_field(self, fieldsubmission=None):
         c = forms.CharField(required=self.config['required'],
             widget=forms.TextInput(attrs=
-                    {'size': min(60, int(self.config['max_length'])),
-                     'maxlength': int(self.config['max_length'])}),
+                {'size': min(60, int(self.config['max_length'])),
+                 'maxlength': int(self.config['max_length'])}),
             label=self.config['label'],
             help_text=self.config['help_text'])
 
@@ -127,12 +127,12 @@ class ExplanationTextField(FieldBase):
         return self.ExplanationTextConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        c = TextField(required=True,
-            editable=False,
+        c = forms.CharField(required=True,
             label=self.config['label'],
-            help_text=self.config['help_text'])
+            help_text=self.config['help_text'],
+            widget=forms.TextInput(attrs={'class':'disabled', 'readonly':'readonly'}))
 
-        if self.config['text_explanation']:
+        if 'text_explanation' in self.config:
             c.initial = self.config['text_explanation']
 
         return c
