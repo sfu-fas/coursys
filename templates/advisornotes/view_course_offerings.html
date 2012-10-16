@@ -21,6 +21,8 @@ $(function() {
     'bJQueryUI': true,
     'bFilter': false
   } );
+  
+  offering_autocomplete('id_offering');
 } );
 </script>
 {% endblock %}
@@ -89,8 +91,15 @@ $(function() {
 <p>There are no course offerings for this semester.</p>
 {% endif %}
 
+<h2 id="offering-search">Search for Other Offerings</h2>
+<form action="" method="get">
+{{form}}
+<input type="hidden" name="offeringsearch" value="yes" />
+<input type="submit" class="submit" value="See Notes" />
+</form>
+
 {% if semesters %}
-<h2>Recent Semesters</h2>
+<h2 id="recent-sem">Recent Semesters</h2>
 
 <div class="semesters-container">
     <table class="display semesters">

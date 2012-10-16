@@ -5,7 +5,7 @@ from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm,
         UnitAddressForm, UnitForm, SemesterForm, SemesterWeekFormset, HolidayFormset
 from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse
 from courselib.search import get_query
-from coredata.models import Person, Semester, CourseOffering, Member, Role, Unit, SemesterWeek, Holiday, \
+from coredata.models import Person, Semester, CourseOffering, Course, Member, Role, Unit, SemesterWeek, Holiday, \
         UNIT_ROLES, ROLES, ROLE_DESCR
 from advisornotes.models import NonStudent
 from log.models import LogEntry
@@ -413,6 +413,22 @@ def offerings_search(request):
     for o in offerings:
         label = o.search_label_value()
         d = {'value': o.id, 'label': label}
+        data.append(d)
+    json.dump(data, response, indent=1)
+    return response
+
+# AJAX/JSON for course selector autocomplete
+def course_search(request):
+    if 'term' not in request.GET:
+        return ForbiddenResponse(request, "Must provide 'term' query.")
+    term = request.GET['term']
+    response = HttpResponse(mimetype='application/json')
+    data = []
+    query = get_query(term, ['subject', 'number', 'title'])
+    courses = Course.objects.filter(query)
+    for c in courses:
+        label = "%s %s" % (c.subject, c.number)
+        d = {'value': c.id, 'label': label}
         data.append(d)
     json.dump(data, response, indent=1)
     return response

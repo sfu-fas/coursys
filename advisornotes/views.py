@@ -1,6 +1,6 @@
 from advisornotes.forms import StudentSearchForm, NoteSearchForm, NonStudentForm, \
     MergeStudentForm, ArtifactNoteForm, ArtifactForm, advisor_note_factory,\
-    ProblemStatusForm, EditArtifactNoteForm
+    ProblemStatusForm, EditArtifactNoteForm, OfferingSearchForm, CourseSearchForm
 from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote,\
     Problem, OPEN_STATUSES, CLOSED_STATUSES
 from coredata.models import Person, Course, CourseOffering, Semester, Unit, Member
@@ -467,6 +467,11 @@ def view_courses(request):
     """
     View to view all courses
     """
+    if 'coursesearch' in request.GET:
+        # handle the search for other courses
+        offering = get_object_or_404(Course, id=request.GET['course'])
+        return HttpResponseRedirect(reverse('advisornotes.views.view_course_notes', kwargs={'unit_course_slug': offering.slug}))
+
     # all courses where a recent offering was owned by relevant units
     subunits = Unit.sub_unit_ids(request.units)
     old_sem = Semester.get_semester(datetime.date.today() - datetime.timedelta(days=365 * 2))
@@ -489,10 +494,11 @@ def view_courses(request):
     course_ids |= offering_note_ids
     
     courses = Course.objects.filter(id__in=course_ids)
+    form = CourseSearchForm()
 
     return render(request,
         'advisornotes/view_courses.html',
-        {'courses': courses, 'with_note_ids': with_note_ids}
+        {'courses': courses, 'with_note_ids': with_note_ids, 'form': form}
     )
 
 
@@ -548,12 +554,18 @@ def view_course_offerings(request, semester=None):
     else:
         semester = Semester.get_semester(date=datetime.date.today() + datetime.timedelta(days=60))
         semesters = Semester.objects.filter(start__lte=datetime.date.today() + datetime.timedelta(days=365)).order_by('-end')[:6]
+    
+    if 'offeringsearch' in request.GET:
+        # handle the search for other offerings
+        offering = get_object_or_404(CourseOffering, id=request.GET['offering'])
+        return HttpResponseRedirect(reverse('advisornotes.views.view_offering_notes', kwargs={'course_slug': offering.slug}))
 
     subunits = Unit.sub_unit_ids(request.units)
     offerings = CourseOffering.objects.filter(owner__in=subunits, semester=semester)
+    form = OfferingSearchForm()
     return render(request,
         'advisornotes/view_course_offerings.html',
-        {'offerings': offerings, 'semester': semester, 'semesters': semesters}
+        {'offerings': offerings, 'semester': semester, 'semesters': semesters, 'form': form}
     )
 
 

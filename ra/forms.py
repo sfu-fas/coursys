@@ -17,14 +17,11 @@ class RAForm(forms.ModelForm):
 
     def clean_sin(self):
         sin = self.cleaned_data['sin']
-        try:
-            emplid = int(self['person'].value())
-            gradstudent = GradStudent.objects.get(person__emplid=emplid)
-            #print "setting " + person_object.first_name + " sin to " + str(sin)
+        emplid = int(self['person'].value())
+        gradstudents = GradStudent.objects.filter(person__emplid=emplid)
+        for gradstudent in gradstudents:
             gradstudent.set_sin(sin)
             gradstudent.save()
-        except (GradStudent.DoesNotExist, ValueError):
-            pass
         return sin
 
     def clean_hours(self):
