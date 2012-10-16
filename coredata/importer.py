@@ -273,7 +273,7 @@ def import_one_offering(strm, subject, number, section):
     """
     Find a single offering by its details (used by Cortez data importer).
     """
-    db = SIMSConn(verbose=False)
+    db = SIMSConn()
     db.execute("SELECT "+CLASS_TBL_FIELDS+" FROM ps_class_tbl WHERE "
                "strm=%s and subject=%s and catalog_nbr LIKE %s and class_section=%s",
                (strm, subject, '%'+number+'%', section))

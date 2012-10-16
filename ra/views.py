@@ -115,11 +115,11 @@ def new_student(request, userid):
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
     initial = {'person': student.emplid, 'start_date': semester.start, 'end_date': semester.end, 'hours': 70 }
     scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices =_appointment_defaults(request.units, emplid=student.emplid)
-    try:
-        gradstudent = GradStudent.objects.get(person=student)
+    gss = GradStudent.objects.filter(person=student)
+    if gss:
+        gradstudent = gss[0]
         initial['sin'] = gradstudent.sin()
-    except GradStudent.DoesNotExist:
-        pass    
+    
     raform = RAForm(initial=initial)
     raform.fields['person'] = forms.CharField(widget=forms.HiddenInput())
     raform.fields['scholarship'].choices = scholarship_choices
