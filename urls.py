@@ -384,7 +384,7 @@ urlpatterns += patterns('',
     url(r'^grad/scholarship_types$', 'grad.views.manage_scholarshipType'),
     url(r'^grad/financial_summary$', 'grad.views.student_financials'),
     #url(r'^grad/new', 'grad.views.new'),
-    url(r'^grad/notfound$', 'grad.views.not_found'),
+    url(r'^grad/found', 'grad.views.not_found'),
 
     # RA database
 
@@ -460,7 +460,7 @@ urlpatterns += patterns('',
 
     url(r'forms/' + FORM_SLUG + '/$', 'onlineforms.views.view_form'),
     url(r'forms/' + FORM_SLUG + '/edit$', 'onlineforms.views.edit_form'),
-    url(r'forms/' + FORM_SLUG + '/edit/new$', 'onlineforms.views.new_sheet'),
+    url(r'forms/' + FORM_SLUG + '/new$', 'onlineforms.views.new_sheet'),
     url(r'forms/' + FORM_SLUG + '/preview$', 'onlineforms.views.preview_form'),
     url(r'forms/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/$', 'onlineforms.views.edit_sheet'),
     url(r'forms/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/reorder$', 'onlineforms.views.reorder_field'),

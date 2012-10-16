@@ -14,21 +14,37 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 
 # FormGroup management views
-from onlineforms.forms import FieldForm
 from onlineforms.fieldtypes import *
-from onlineforms.forms import FieldForm, DynamicForm, FormForm#, DividerField
-from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions
+from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm
+from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup
+from onlineforms.utils import reorder_sheet_fields
 
 from log.models import LogEntry
 
-from onlineforms.utils import reorder_sheet_fields
-
 def manage_groups(request):
-    pass
+    # for now only display groups the user has created...
+    user = request.user.username
+    groups = FormGroup.objects.filter(members__userid__startswith=user)
+    context = {'groups': groups}
+    return render(request, 'onlineforms/manage_groups.html', context)
 
 
 def new_group(request):
-    pass
+    print "in new group"
+    if request.method == 'POST':
+        form = GroupForm(request.POST)
+        if form.is_valid():
+            print "form is valid"
+            # unit, name, members
+            # FormGroup.objects.create(unit=form.cleaned_data['unit'], name=form.cleaned_data['name'], members=form.cleaned_data['members'])
+            form.save()
+            print "form created"
+            return HttpResponseRedirect(reverse('onlineforms.views.manage_groups'))
+    else:
+        print "in else"
+        form = GroupForm()
+    context = {'form': form}
+    return render(request, 'onlineforms/new_group.html', context)
 
 
 def manage_group(request, formgroup_slug):
@@ -92,7 +108,14 @@ def edit_form(request, form_slug):
 
 
 def new_sheet(request, form_slug):
-    pass
+    form = SheetForm(request.POST or None)
+    if form.is_valid():
+        owner_form = get_object_or_404(Form, slug=form_slug)
+        Sheet.objects.create(title=form.cleaned_data['title'], form=owner_form)
+        messages.success(request, 'Successfully created the new sheet \'%s\'' % form.cleaned_data['title'])
+
+    context = {'form': form, 'form_slug': form_slug}
+    return render(request, "onlineforms/new_sheet.html", context)
 
 
 def edit_sheet(request, form_slug, sheet_slug):
@@ -158,7 +181,6 @@ def reorder_field(request, form_slug, sheet_slug):
 
         return HttpResponse("Order updated!")
     return ForbiddenResponse(request)
-
 
 
 def new_field(request, form_slug, sheet_slug):
