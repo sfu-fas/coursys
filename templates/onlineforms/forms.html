@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block h1 %} ALL FORMS {% endblock %}
+{% block title %} Manage Forms {% endblock %}
+
+{% block headextra %}<script type="text/javascript">
+//<![CDATA[
+    $(document).ready(function() {
+    $('#form_table').dataTable({
+                "bPaginate": false,
+                "bJQueryUI": true,
+                "aaSorting": [[0, "asc"]],
+                "aoColumns": [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+        ]
+    });
+
+    });
+
+//]]></script>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url onlineforms.views.list_all %}">ALL forms</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="datatable_container">
+    {% if forms %}
+        <table class="display" id="form_table">
+            <thead>
+                <tr>
+                    <th scope="col">Title</th>
+                    <th scope="col">Owner</th>
+                    <th scope="col">Initiators</th>
+                    <th scope="col">Unit</th>
+                    <th scope="col">Active</th>
+                    <th scope="col">Original</th>
+                </tr>
+            </thead>
+            {% for form in forms %}
+                <tr>
+                    <td>{{ form.title }}</td>
+                    <td>{{ form.owner|default:"" }}</td>
+                    <td>{{ form.initiators|default:"" }}</td>
+                    <td>{{ form.unit|default:"" }}</td>
+                    <td>{{ form.active }}</td>
+                    <td>{{ form.original|default:"" }}</td>
+                    <td class="miniaction">
+                                  
+                        </form>
+                    </td>
+                </tr>
+              {% endfor %}
+        </table>
+    {% else %}
+            <p>There are currently no forms.</p>
+    {% endif %}
+</div>
+
+{% endblock %}

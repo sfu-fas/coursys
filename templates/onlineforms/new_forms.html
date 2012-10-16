@@ -4,9 +4,6 @@
 {% block title %} Manage Forms {% endblock %}
 
 
-
-
-
 {% block headextra %}<script type="text/javascript">
 //<![CDATA[
     $(document).ready(function() {
@@ -31,11 +28,6 @@
 {% endblock %}
 
 
-
-
-
-
-
 {% block actions %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
@@ -47,56 +39,12 @@
 
 {% block content %}
 
-
-<div class="datatable_container">
-    {% if form %}
-        <table class="display" id="form_table">
-            <thead>
-                <tr>
-                    <th scope="col">Title</th>
-                    <th scope="col">Owner</th>
-                    <th scope="col">Initiators</th>
-                    <th scope="col">Unit</th>
-                    <th scope="col">Active</th>
-                    <th scope="col">Original</th>
-                </tr>
-            </thead>
-            {% for form in forms %}
-                <tr>
-                    <td>{{ form.title }}</td>
-                    <td>{{ form.owner }}</td>
-                    <td>{{ form.initiators }}</td>
-                    <td>{{ form.unit }}</td>
-                    <td>{{ form.active }}</td>
-                    <td>{{ form.original }}</td>
-                    <td class="miniaction">
-                       
-                     <form action="{% url onlineform.views.new_forms %}" method="post">{% csrf_token %}
-                      
-                     <input type="hidden" name="action" value="del" />
-                        <p>      
-
-                                <input type="hidden" name="form_id" value="{{form.id}}" />
-                                <input type="submit" value="Remove" onclick="return confirmSubmit('remove this Form')" />
-                           
-                            
-                            </p>
-                        </form>
-                    </td>
-                </tr>
-              {% endfor %}
-        </table>
-    {% else %}
-            <p>There are currently no forms.</p>
-    {% endif %}
-</div>
-
 <div id="form_container">
-    <form action="{% url onlineforms.views.new_form %}" enctype="multipart/form-data" method="post"> {% csrf_token %}
+  
+    <form action="{% url onlineforms.views.new_form %}"  method="post"> {% csrf_token %}
         <fieldset>
             <legend>Add New Form</legend>
-                {{ form.as_p }}
-            
+                {{form|as_dl}}           
             <input type="hidden" name="action" value="add" />
             <input class="submit" type="submit" value="Add New Form" />
         </fieldset>

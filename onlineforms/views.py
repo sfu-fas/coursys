@@ -45,27 +45,23 @@ def remove_group_member(request, formgroup_slug, userid):
 # Form admin views
 
 def list_all(request):
-    pass
-
+    form = FormForm()   
+    forms = Form.objects.all()
+    context = {'form': form, 'forms':forms}
+    return render_to_response('onlineforms/forms.html', context, context_instance=RequestContext(request))
 
 def new_form(request):
-  #  pass
-  # Creating Form using Forms Model 
-#
- #   FormFormSet = modelformset_factory(Form)
-    if request.method == 'POST':
-        f = FormForm(request.POST)
-        f.save()
-    else:
-        f = FormForm()
-    return render_to_response('onlineforms/new_forms.html',
-                                {'form': f},
+   if request.method == 'POST' and 'action' in request.POST and request.POST['action']=='add':
+        form = FormForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect('forms')            
+   else:
+        form = FormForm()
+   return render_to_response('onlineforms/new_forms.html',
+                                {'form': form},
                                 context_instance=RequestContext(request))
-   
-class BaseFormFormSet(BaseModelFormSet):
-    def __init__(self, *args, **kwargs):
-        super(BaseAuthorFormSet, self).__init__(*args, **kwargs)
-        self.queryset = Form.objects.filter(name__startswith='O')   
+
 
 def view_form(request, form_slug):
     pass
