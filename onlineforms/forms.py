@@ -6,15 +6,16 @@ from django.utils.safestring import mark_safe
 class DividerFieldWidget(forms.TextInput):
   def render(self, name, value, attrs=None):
     return mark_safe('<hr />')
-	
-	
+
 class FormForm(ModelForm):
     class Meta:
         model = Form
+        
+class SheetForm(forms.Form):
+    title = forms.CharField(required=True, max_length=30, label=mark_safe('Title'), help_text='Name of the sheet')
 
 class FieldForm(forms.Form):
     type = forms.ChoiceField(required=True, choices=FIELD_TYPE_CHOICES, label='Type')
-
 
 class DynamicForm(forms.Form):
     def __init__(self, title, *args, **kwargs):

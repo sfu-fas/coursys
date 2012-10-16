@@ -14,14 +14,12 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 
 # FormGroup management views
-from onlineforms.forms import FieldForm
 from onlineforms.fieldtypes import *
-from onlineforms.forms import FieldForm, DynamicForm, FormForm#, DividerField
+from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions
+from onlineforms.utils import reorder_sheet_fields
 
 from log.models import LogEntry
-
-from onlineforms.utils import reorder_sheet_fields
 
 def manage_groups(request):
     pass
@@ -96,7 +94,14 @@ def edit_form(request, form_slug):
 
 
 def new_sheet(request, form_slug):
-    pass
+    form = SheetForm(request.POST or None)
+    if form.is_valid():
+        owner_form = get_object_or_404(Form, slug=form_slug)
+        Sheet.objects.create(title=form.cleaned_data['title'], form=owner_form)
+        messages.success(request, 'Successfully created the new sheet \'%s\'' % form.cleaned_data['title'])
+
+    context = {'form': form, 'form_slug': form_slug}
+    return render(request, "onlineforms/new_sheet.html", context)
 
 
 def edit_sheet(request, form_slug, sheet_slug):
@@ -162,7 +167,6 @@ def reorder_field(request, form_slug, sheet_slug):
 
         return HttpResponse("Order updated!")
     return ForbiddenResponse(request)
-
 
 
 def new_field(request, form_slug, sheet_slug):
