@@ -1,7 +1,5 @@
 from onlineforms.fieldtypes.base import FieldBase, FieldConfigForm
 from django import forms
-from django.utils.safestring import mark_safe
-
 
 class ListField(FieldBase):
     class ListConfigForm(FieldConfigForm):
@@ -55,18 +53,20 @@ class URLCustomField(FieldBase):
     def to_html(self, fieldsubmission=None):
         raise NotImplementedError
 
-class DividerFieldWidget(forms.TextInput):
-  def render(self, name, value, attrs=None):
-    return mark_safe('<hr />')
-        
+  
 class DividerField(FieldBase):
     class DividerConfigForm(FieldConfigForm):
-       pass
-
+        pass
+        """def __init__(self, config=None, *args, **kwargs):
+            self.required = None
+            self.label = None
+            self.help_text = None"""
+            
     def make_config_form(self):
         return self.DividerConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
+        from onlineforms.forms import DividerFieldWidget
         return forms.CharField(required=False,
             widget=DividerFieldWidget(),
             label='',

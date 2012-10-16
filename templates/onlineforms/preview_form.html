@@ -1,10 +1,8 @@
 {% extends "base.html" %}
 {% load form_display %}
 
-{% block title %}View Form{% endblock %}
-{% block h1 %}View Form{% endblock %}
-
-<!--{% block subbreadcrumbs %}<li>&gt; View Form</li>{% endblock %}-->
+{% block title %}Preview Form{% endblock %}
+{% block h1 %}Preview Form{% endblock %}
 
 {% block content %}
 <div id="form_container">
@@ -16,12 +14,9 @@
     {% endif %}
 	{% for form in forms%}
     <form action="#" method="post">{% csrf_token %}
-        <!-- need separate fieldsets for multiple sheets -->
         <fieldset>
             <legend>{{form.title}}</legend>
-            <ul>
-                {{form|as_dl}}
-            </ul>
+            {{form|as_dl}}
         </fieldset>
     </form>
 	{% empty %}

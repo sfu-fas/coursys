@@ -171,7 +171,7 @@ class _FormCoherenceMixin(object):
         """
         # There can be only one [active instance of this Form/Sheet/Field].
         if self.active and self.original:
-            others = Form.objects.filter(original=self.original) \
+            others = type(self).objects.filter(original=self.original) \
                                  .exclude(id=self.id)
             others.update(active=False)
 
@@ -219,6 +219,7 @@ class Sheet(models.Model, _FormCoherenceMixin):
     original = models.ForeignKey('self', null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
+    
     def autoslug(self):
         return make_slug(self.title)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form')
@@ -240,7 +241,7 @@ class Sheet(models.Model, _FormCoherenceMixin):
                 next_order = max_aggregate['order__max'] + 1
             self.order = next_order
 
-        assert (self.is_initial and self.order==0) or (not self.is_initial and self.order>0)
+        #assert (self.is_initial and self.order==0) or (not self.is_initial and self.order>0)
         
         super(Sheet, self).save(*args, **kwargs)
         self.cleanup_fields()
@@ -277,6 +278,16 @@ class Field(models.Model, _FormCoherenceMixin):
 
         super(Field, self).save(*args, **kwargs)
         self.cleanup_fields()
+
+def neaten_field_positions(sheet):
+    """
+    update all positions to consecutive integers: seems possible to get identical positions in some cases
+    """
+    count = 1
+    for f in Field.objects.filter(sheet=sheet, active=True).order_by('order'):
+        f.position = count
+        f.save()
+        count += 1
 
 class FormSubmission(models.Model):
     form = models.ForeignKey(Form)

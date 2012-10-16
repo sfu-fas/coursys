@@ -2,15 +2,22 @@ from datetime import datetime
 from django.contrib import messages
 from django import forms
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.core.urlresolvers import reverse
 from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role
 
+from django.db import models
+from django.forms import ModelForm
+from django.forms.models import modelformset_factory
+from django.forms.models import BaseModelFormSet
+from django.shortcuts import render_to_response
+from django.template import RequestContext
+
 # FormGroup management views
-from onlineforms.forms import FieldForm
 from onlineforms.fieldtypes import *
-from onlineforms.forms import FieldForm, DynamicForm#, DividerField
-from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS
+from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm
+from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions
+from onlineforms.utils import reorder_sheet_fields
 
 from log.models import LogEntry
 
@@ -40,8 +47,23 @@ def list_all(request):
 
 
 def new_form(request):
-    pass
-
+  #  pass
+  # Creating Form using Forms Model 
+#
+ #   FormFormSet = modelformset_factory(Form)
+    if request.method == 'POST':
+        f = FormForm(request.POST)
+        f.save()
+    else:
+        f = FormForm()
+    return render_to_response('onlineforms/new_forms.html',
+                                {'form': f},
+                                context_instance=RequestContext(request))
+   
+class BaseFormFormSet(BaseModelFormSet):
+    def __init__(self, *args, **kwargs):
+        super(BaseAuthorFormSet, self).__init__(*args, **kwargs)
+        self.queryset = Form.objects.filter(name__startswith='O')   
 
 def view_form(request, form_slug):
     pass
@@ -65,14 +87,21 @@ def preview_form(request, form_slug):
 
     context = {'forms': forms}
     return render(request, "onlineforms/preview_form.html", context)
-
+   
 
 def edit_form(request, form_slug):
     pass
 
 
 def new_sheet(request, form_slug):
-    pass
+    form = SheetForm(request.POST or None)
+    if form.is_valid():
+        owner_form = get_object_or_404(Form, slug=form_slug)
+        Sheet.objects.create(title=form.cleaned_data['title'], form=owner_form)
+        messages.success(request, 'Successfully created the new sheet \'%s\'' % form.cleaned_data['title'])
+
+    context = {'form': form, 'form_slug': form_slug}
+    return render(request, "onlineforms/new_sheet.html", context)
 
 
 def edit_sheet(request, form_slug, sheet_slug):
@@ -80,6 +109,17 @@ def edit_sheet(request, form_slug, sheet_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
     owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
     fields = Field.objects.filter(sheet=owner_sheet, active=True).order_by('order')
+
+     # Non Ajax way to reorder activity, please also see reorder_activity view function for ajax way to reorder
+    order = None  
+    field_slug = None  
+    if request.GET.has_key('order'):  
+        order = request.GET['order']  
+    if request.GET.has_key('field_slug'):  
+        field_slug = request.GET['field_slug']  
+    if order and field_slug:  
+        reorder_sheet_fields(fields, field_slug, order)  
+        return HttpResponseRedirect(reverse('onlineforms.views.edit_sheet', kwargs={'form_slug': form_slug, 'sheet_slug':sheet_slug}))  
 
     # check if they are deleting a field from the sheet
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'del':
@@ -96,14 +136,37 @@ def edit_sheet(request, form_slug, sheet_slug):
 
     # construct a form from this sheets fields
     form = DynamicForm(owner_sheet.title)
-    fieldargs = {}
-    for field in fields:
-        display_field = FIELD_TYPE_MODELS[field.fieldtype](field.config)
-        fieldargs[field.id] = display_field.make_entry_field()
-    form.setFields(fieldargs)
+    form.fromFields(fields)
 
     context = {'owner_form': owner_form, 'owner_sheet': owner_sheet, 'form': form, 'fields': fields}
     return render(request, "onlineforms/edit_sheet.html", context)
+
+def reorder_field(request, form_slug, sheet_slug):
+    """
+    Ajax way to reorder activity.
+    This ajax view function is called in the edit_sheet page.
+    """
+    form = get_object_or_404(Form, slug=form_slug)
+    sheet = get_object_or_404(Sheet, slug=sheet_slug)
+    if request.method == 'POST':
+        neaten_field_positions(sheet)
+        # find the fields in question
+        id_up = request.POST.get('id_up') 
+        id_down = request.POST.get('id_down')
+        if id_up == None or id_down == None:                      
+            return ForbiddenResponse(request)
+        # swap the order of the two fields
+        field_up = get_object_or_404(Field, id=id_up, sheet=sheet)
+        field_down = get_object_or_404(Field, id=id_down, sheet=sheet)
+
+        temp = field_up.order
+        field_up.order = field_down.order
+        field_down.order = temp
+        field_up.save()
+        field_down.save()
+
+        return HttpResponse("Order updated!")
+    return ForbiddenResponse(request)
 
 
 def new_field(request, form_slug, sheet_slug):
@@ -178,6 +241,7 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
                 fieldtype=field.fieldtype,
                 config=clean_config,
                 active=True,
+                order=field.order,
                 original=field.original)
             messages.success(request, 'Successfully updated the field \'%s\'' % form.cleaned_data['label'])
 
