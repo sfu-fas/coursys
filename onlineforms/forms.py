@@ -1,11 +1,15 @@
 from django import forms
 from django.forms.models import ModelForm
-from onlineforms.models import Form, Field, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS
+from onlineforms.models import Form, Field, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup
 from django.utils.safestring import mark_safe
 
 class DividerFieldWidget(forms.TextInput):
   def render(self, name, value, attrs=None):
     return mark_safe('<hr />')
+
+class GroupForm(ModelForm):
+    class Meta:
+        model = FormGroup
 
 class FormForm(ModelForm):
     class Meta:

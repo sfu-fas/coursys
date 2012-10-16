@@ -15,18 +15,36 @@ from django.template import RequestContext
 
 # FormGroup management views
 from onlineforms.fieldtypes import *
-from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm
-from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions
+from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm
+from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup
 from onlineforms.utils import reorder_sheet_fields
 
 from log.models import LogEntry
 
 def manage_groups(request):
-    pass
+    # for now only display groups the user has created...
+    user = request.user.username
+    groups = FormGroup.objects.filter(members__userid__startswith=user)
+    context = {'groups': groups}
+    return render(request, 'onlineforms/manage_groups.html', context)
 
 
 def new_group(request):
-    pass
+    print "in new group"
+    if request.method == 'POST':
+        form = GroupForm(request.POST)
+        if form.is_valid():
+            print "form is valid"
+            # unit, name, members
+            # FormGroup.objects.create(unit=form.cleaned_data['unit'], name=form.cleaned_data['name'], members=form.cleaned_data['members'])
+            form.save()
+            print "form created"
+            return HttpResponseRedirect(reverse('onlineforms.views.manage_groups'))
+    else:
+        print "in else"
+        form = GroupForm()
+    context = {'form': form}
+    return render(request, 'onlineforms/new_group.html', context)
 
 
 def manage_group(request, formgroup_slug):
