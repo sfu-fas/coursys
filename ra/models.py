@@ -69,14 +69,16 @@ class Account(models.Model):
 
 
 DEFAULT_LETTER = [
-        """This is to confirm remuneration of work performed as a Research Assistant from %(start_date)s to %(end_date)s, will be a Lump Sum payment of $%(lump_sum_pay)s.""",
         """Termination of this appointment may be initiated by either party giving one (1) week notice, except in the case of termination for cause.""",
         """This contract of employment exists solely between myself as recipient of research grant funds and your self. In no manner of form does this employment relationship extend to or affect Simon Fraser University in any way.""",
         """The primary purpose of this appointment is to assist you in furthering your education and the pursuit of your degree through the performance of research activities in your field of study. As such, payment for these activities will be classified as scholarship income for taxation purposes. Accordingly, there will be no income tax, CPP or EI deductions from income. You should set aside funds to cover your eventual income tax obligation; note that the first $3K total annual income from scholarship sources is not taxable.""",
         """Basic Benefits: further details are in SFU Policies and Procedures R 50.02, which can be found on the SFU website.""",
         """If you accept the terms of this appointment, please sign and return the enclosed copy of this letter, retaining the original for your records.""",
     ]
-
+DEFAULT_LETTER_LUMPSUM = ["""This is to confirm remuneration of work performed as a Research Assistant from %(start_date)s to %(end_date)s, will be a Lump Sum payment of $%(lump_sum_pay)s."""] \
+                         + DEFAULT_LETTER
+DEFAULT_LETTER_BIWEEKLY = ["""This is to confirm remuneration of work performed as a Research Assistant from %(start_date)s to %(end_date)s. The remuneration will be a biweekly payment of $%(biweekly_pay)s for a total amount of $%(lump_sum_pay)s inclusive of 4%% vacation."""] \
+                         + DEFAULT_LETTER
 
 class RAAppointment(models.Model):
     """
@@ -137,8 +139,13 @@ class RAAppointment(models.Model):
             'start_date': self.start_date.strftime("%B %d, %Y"),
             'end_date': self.end_date.strftime("%B %d, %Y"),
             'lump_sum_pay': self.lump_sum_pay,
+            'biweekly_pay': self.biweekly_pay,
             }
-        return '\n\n'.join(DEFAULT_LETTER) % substitutions
+        if self.pay_frequency == 'B':
+            text = DEFAULT_LETTER_BIWEEKLY
+        else:
+            text = DEFAULT_LETTER_LUMPSUM
+        return '\n\n'.join(text) % substitutions
     
     def letter_paragraphs(self):
         """
