@@ -178,16 +178,17 @@ class TAApplicationForm(forms.ModelForm):
         model = TAApplication
         exclude = ('posting','person','skills','campus_preferences','rank','late','admin_created')
         widgets = {'base_units': forms.TextInput(attrs={'size': 5}),
-                   'current_program': forms.TextInput(attrs={'size': 30}),
+                   'current_program': forms.TextInput(attrs={'size': 10}),
                    'experience': forms.Textarea(attrs={'cols': 50, 'rows': 3}),
-                   'course_load': forms.Textarea(attrs={'cols': 50, 'rows': 3}),
-                   'other_support': forms.Textarea(attrs={'cols': 50, 'rows': 3}),
+                   'course_load': forms.Textarea(attrs={'cols': 50, 'rows': 2}),
+                   'other_support': forms.Textarea(attrs={'cols': 50, 'rows': 2}),
                    'comments': forms.Textarea(attrs={'cols': 50, 'rows': 3}),
                    }
 
     def __init__(self, *args, **kwargs):
         super(TAApplicationForm, self).__init__(*args, **kwargs)
-        self.fields['sin'].help_text = "Social insurance number (required for receiving payments: if you don't hae a SIN now, you will need it before accepting the contract.)"
+        self.fields['sin'].help_text = 'Social insurance number (required for receiving payments: if you don\'t have a SIN yet, please enter "000000000".)'
+        self.fields['sin'].required = True
 
     def clean_sin(self):
         sin = self.cleaned_data['sin']
