@@ -23,7 +23,7 @@ CORTEZ_USER = 'ggbaker'
 # [global]
 #    tds version = 7.0
 # or run with
-#   TDSVER=7.0 python coredata/cortez_import.py
+#   TDSVER=7.0 python coredata/cortez_fix.py
 
 # https://bugs.launchpad.net/ubuntu/+source/pymssql/+bug/918896
 
@@ -302,6 +302,7 @@ class GradImport(object):
                 gs.config['cortezid'] = cortezid
                 old_gs = GradStudent.objects.exclude(config__contains='dup_with').get(person=p, program=prog)
                 gs.config['dup_with'] = old_gs.id
+                gs.save()
             
             # basic info
             gs.mother_tongue = mothertoungue
@@ -343,7 +344,7 @@ class GradImport(object):
                     
                     cr.semester = sem
                     cr.notes = notes
-                    ##cr.save()
+                    cr.save()
             
             # Supervisors
             for pos, supname in zip(range(1,5), [sup1,sup2,sup3,sup4]):
@@ -359,7 +360,7 @@ class GradImport(object):
                     sup = Supervisor(student=gs, supervisor=person, external=external, supervisor_type=suptype)
                     sup.created_by = self.IMPORT_USER
                 sup.modified_by = self.IMPORT_USER
-                ##sup.save()                    
+                sup.save()                    
 
             # Examining Committee
             self.db.execute("SELECT Chair, ExtName, ExtDep, ExtInst, ExtEmail, SFUExaminer "
@@ -375,7 +376,7 @@ class GradImport(object):
                         sup.created_by = self.IMPORT_USER
                     sup.removed = False
                     sup.modified_by = self.IMPORT_USER
-                    ##sup.save()
+                    sup.save()
                 
                 if sfuexam:
                     person, external = self.find_supervisor(sfuexam)
@@ -390,7 +391,7 @@ class GradImport(object):
                     
                     sup.removed = False
                     sup.modified_by = self.IMPORT_USER
-                    ##sup.save()
+                    sup.save()
                 
                 if extname:
                     if extname=='mitchell':
@@ -408,7 +409,7 @@ class GradImport(object):
                         sup.created_by = self.IMPORT_USER
                     sup.removed = False
                     sup.modified_by = self.IMPORT_USER
-                    ##sup.save()
+                    sup.save()
 
         
             # potential supervisor
@@ -423,15 +424,14 @@ class GradImport(object):
                     sup.created_by = self.IMPORT_USER
                 sup.removed = False
                 sup.modified_by = self.IMPORT_USER
-                ##sup.save()
-                # TODO: remove from old_gs
+                sup.save()
 
         
             # Status and application status
             self.db.execute("SELECT Status, Date, AsOfSem "
                         "FROM Status WHERE Identifier=%s "
                         "ORDER BY Date", (cortezid,))
-            for status, date, semname in self.db:
+            for status, date, semname in list(self.db):
                 if semname:
                     sem = Semester.objects.get(name=semname)
                 else:
@@ -446,30 +446,25 @@ class GradImport(object):
                 
                 if date:
                     st.start_date = date.date()
-                ##st.save(close_others=True)
-                # TODO: remove from old_gs
+                st.save(close_others=True)
+                # TODO: cleanup all statuses on old_gs
+
             
-            ##gs.save()
+            gs.save()
             
             # check that the cortez current status is the one we're displaying/using
             curr_st = self.STATUS_MAP[currentstatus]
             if gs.current_status != curr_st:
                 # the current status wasn't found: add one last GradStatus to represent it
                 st = GradStatus(student=gs, status=curr_st, start=Semester.get_semester(lastmod), start_date=lastmod)
-                ##st.save()
+                st.save()
             
-            # make sure final status is left open
-            ##st = GradStatus.objects.filter(student=gs, status=curr_st).order_by('-start')[0]
-            ##if st.end:
-            ##    st.end = None
-            ##    st.save()
-
             # letters
             self.db.execute("SELECT LetterType, Modifier, Content, Date from LetterArchive where Identifier=%s", (cortezid,))
-            for lt, modifier, content, datetime in self.db:
+            for lt, modifier, content, dttm in self.db:
                 template = LetterTemplate.objects.filter(unit=self.unit, label=self.LETTER_TYPE_MAP[lt])[0]
                 content = content.replace('$PAGEBREAK$', '')
-                date = datetime.date()
+                date = dttm.date()
                 letters = Letter.objects.filter(student=gs, date=date)
                 if letters:
                     letter = letters[0]
@@ -481,9 +476,8 @@ class GradImport(object):
                 letter.template = template
                 letter.to_lines = ''
                 letter.from_person = None
-                letter.created_at = datetime
-                ##letter.save()
-                # TODO: clean from old_gs
+                letter.created_at = dttm
+                letter.save()
             
             # financial promises
             self.db.execute("SELECT startsemester, endsemester, amount, comment FROM FSPromises where Identifier=%s", (cortezid,))
@@ -498,7 +492,7 @@ class GradImport(object):
                 
                 p.amount = amount
                 p.comment = comment
-                ##p.save()
+                p.save()
 
             # scholarships
             self.db.execute("SELECT Name, Amount, DateRec, DateExp, RAShip_ID, External FROM Scholarships where Identifier=%s", (cortezid,))
@@ -520,11 +514,12 @@ class GradImport(object):
                 
                 amount = amount.replace(',','')
                 schol.amount = decimal.Decimal(amount)
-                ##schol.save()
+                schol.save()
                 if raship:
+                    raise
                     ra = self.ra_map[raship]
                     ra.scholarship = schol
-                    ##ra.save()
+                    ra.save()
             
             
             # other funding
@@ -545,7 +540,7 @@ class GradImport(object):
                 of.amount = amount
                 of.eligible = True
                 of.comments = comments
-                ##of.save()
+                of.save()
             
         
             # program changes
@@ -562,17 +557,21 @@ class GradImport(object):
                 else:
                     ph = GradProgramHistory(student=gs, program=progr, start_semester=sem)
                 ph.starting = date
-                #ph.save()
-                # TODO: clean from old_gs
+                ph.save()
+
+                # clean from old_gs
+                old_history = GradProgramHistory.objects.filter(student=old_gs, program=progr, start_semester=sem)
+                if old_history:
+                    old_history[0].delete()
         
-            ##if count == 0:
-            ##    # no program history for this student
-            ##    stsem = gs.start_semester
-            ##    if not stsem:
-            ##        st = GradStatus.objects.filter(student=gs).order_by('-start__name')[0]
-            ##        stsem = st.start
-            ##    ph = GradProgramHistory(student=gs, program=gs.program, start_semester=stsem)
-            ##    ##ph.save()
+            if count == 0:
+                # no program history for this student
+                stsem = gs.start_semester
+                if not stsem:
+                    st = GradStatus.objects.filter(student=gs).order_by('-start__name')[0]
+                    stsem = st.start
+                ph = GradProgramHistory(student=gs, program=gs.program, start_semester=stsem)
+                ph.save()
         
             # financial comments
             self.db.execute("SELECT semester, category, id, lastmodified, comment "
@@ -590,8 +589,7 @@ class GradImport(object):
                     fc = fcs[0]
                 
                 fc.comment=comment
-                if old_gs: print gs, fc
-                ##fc.save()
+                fc.save()
 
 
                 
