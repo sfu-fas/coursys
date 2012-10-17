@@ -127,7 +127,7 @@ class PersonField(forms.CharField):
     """
     A field to allow emplid entry of a Person, but will find new people from SIMS if they aren't
     already a coredata.Person.
-    
+
     If using, must override is_valid in your form as:
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)

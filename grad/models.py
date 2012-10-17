@@ -605,7 +605,7 @@ class Letter(models.Model):
     content = models.TextField(help_text="I.e. 'This is to confirm Mr. Baker ... '")
     template = models.ForeignKey(LetterTemplate)
     salutation = models.CharField(max_length=100, default="To whom it may concern", blank=True)
-    closing = models.CharField(max_length=100, default="Yours truly")
+    closing = models.CharField(max_length=100, default="Sincerely")
     from_person = models.ForeignKey(Person, null=True)
     from_lines = models.TextField(help_text='Name (and title) of the signer, e.g. "John Smith, Program Director"')
     
@@ -613,6 +613,11 @@ class Letter(models.Model):
     created_by = models.CharField(max_length=32, null=False, help_text='Letter generation requseted by.')
     config = JSONField(default={}) # addition configuration for within the letter
         # data returned by grad.letter_info() is stored here.
+        # 'use_sig': use the from_person's signature if it exists? (Users set False when a real legal signature is required.)
+    
+    defaults = {'use_sig': True}
+    use_sig, set_use_sig = getter_setter('use_sig')
+        
 
     def autoslug(self):
         return make_slug(self.student.slug + "-" + self.template.label)     

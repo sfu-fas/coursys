@@ -237,8 +237,6 @@ class CoredataTest(TestCase):
         response = client.post(url, {'person':'33333333', 'role':'FAC'})
         self.assertEquals(response.status_code, 200)
         validate_content(self, response.content, url)
-        #self.assertContains(response, "Could not find this emplid.")
-        #self.assertContains(response, "could not connect to reporting database")
         self.assertTrue("could not connect to reporting database" in response.content or "Could not find this emplid." in response.content)
 
         response = client.post(url, {'person':p1.emplid, 'role':'FAC', 'unit':unit.id})

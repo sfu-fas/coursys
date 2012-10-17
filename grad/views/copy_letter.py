@@ -16,7 +16,8 @@ def copy_letter(request, grad_slug, letter_slug):
     letter = Letter(student=grad, to_lines=old_letter.to_lines, content=old_letter.content, template=old_letter.template,
                     salutation=old_letter.salutation, closing=old_letter.closing, from_person=old_letter.from_person,
                     from_lines=old_letter.from_lines)
-    
+    letter.set_use_sig(old_letter.use_sig())
+
     templates = LetterTemplate.objects.filter(unit=grad.program.unit)
     from_choices = [('', u'\u2014')] + [(r.person.id, "%s, %s" % (r.person.name(), r.get_role_display()))
                                         for r in Role.objects.filter(unit=grad.program.unit)]
