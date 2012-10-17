@@ -15,7 +15,11 @@ def getattribute(value, arg):
         return value.get_application_status_display()
     elif arg == 'senior_supervisors':
         sups = value.supervisor_set.filter(supervisor_type='SEN', removed=False)
-        return '; '.join(s.sortname() for s in sups)
+        names = [s.sortname() for s in sups]
+        if not sups:
+            pot_sups = value.supervisor_set.filter(supervisor_type='POT', removed=False)
+            names = [s.sortname()+"*" for s in pot_sups]
+        return '; '.join(names)
     elif arg == 'completed_req':
         reqs = value.completedrequirement_set.all().select_related('requirement')
         return ', '.join(r.requirement.description for r in reqs)
