@@ -48,8 +48,8 @@ $(function() {
 
 <h2 id="offering-search">Search for Other Courses</h2>
 <form action="" method="get">
-{{form}}
-<input type="hidden" name="coursesearch" value="yes" />
-<input type="submit" class="submit" value="See Notes" />
+{{form.as_p}}
+<p><input type="hidden" name="coursesearch" value="yes" />
+<input type="submit" class="submit" value="See Notes" /></p>
 </form>
 {% endblock %}
