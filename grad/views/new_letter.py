@@ -28,7 +28,7 @@ def new_letter(request, grad_slug):
         if form.is_valid():
             f = form.save(commit=False)
             f.created_by = request.user.username
-            f.config = ls
+            f.config.update(ls)
             f.save()
             messages.success(request, "Created new %s letter for %s." % (form.instance.template.label, form.instance.student))
             l = LogEntry(userid=request.user.username,

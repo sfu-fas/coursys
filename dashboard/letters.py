@@ -212,7 +212,7 @@ class LetterContents(object):
     signer: person signing the letter, if knows (a coredata.models.Person)
     """
     def __init__(self, to_addr_lines, from_name_lines, date=None, salutation="To whom it may concern",
-                 closing="Yours truly", signer=None, paragraphs=None, cosigner_lines=None):
+                 closing="Yours truly", signer=None, paragraphs=None, cosigner_lines=None, use_sig=True):
         self.date = date or datetime.date.today()
         self.salutation = salutation
         self.closing = closing
@@ -221,6 +221,7 @@ class LetterContents(object):
         self.from_name_lines = from_name_lines
         self.cosigner_lines = cosigner_lines
         self.signer = signer
+        self.use_sig = use_sig
         if paragraphs:
             self.add_paragraphs(paragraphs)
         
@@ -286,7 +287,7 @@ class LetterContents(object):
         # signature
         signature = [Paragraph(self.closing+",", style)]
         img = None
-        if self.signer:
+        if self.signer and self.use_sig:
             import PIL
             try:
                 sig = Signature.objects.get(user=self.signer)

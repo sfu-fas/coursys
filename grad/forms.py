@@ -218,7 +218,7 @@ class GradRequirementForm(ModelForm):
         exclude = ('hidden',)
 
 class LetterTemplateForm(ModelForm):
-    content = forms.CharField(widget=forms.Textarea(attrs={'rows':'35', 'cols': '60'}))    
+    content = forms.CharField(widget=forms.Textarea(attrs={'rows':'35', 'cols': '60'}))
     class Meta:
         model = LetterTemplate
         exclude = ('created_by')
@@ -232,6 +232,8 @@ class LetterTemplateForm(ModelForm):
         return content
 
 class LetterForm(ModelForm):
+    use_sig = forms.BooleanField(initial=True, required=False, label="Use signature",
+                                 help_text='Use the "From" person\'s signature, if on file?')    
     class Meta: 
         model = Letter
         exclude = ('created_by', 'config')
@@ -241,6 +243,16 @@ class LetterForm(ModelForm):
                    'from_lines': forms.Textarea(attrs={'rows': 3, 'cols': 30}),
                    'content': forms.Textarea(attrs={'rows':'25', 'cols': '70'}),
                    }
+    
+    def __init__(self, *args, **kwargs):
+        super(LetterForm, self).__init__(*args, **kwargs)
+        if 'instance' in kwargs:
+            self.initial['use_sig'] = kwargs['instance'].use_sig()
+    
+    def clean_use_sig(self):
+        use_sig = self.cleaned_data['use_sig']
+        self.instance.config['use_sig'] = use_sig
+        return use_sig
 
 class CompletedRequirementForm(ModelForm):
     semester = StaffSemesterField()

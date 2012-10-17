@@ -16,7 +16,8 @@ def get_letter(request, grad_slug, letter_slug):
                         date=letter.date, 
                         salutation=letter.salutation,
                         closing=letter.closing, 
-                        signer=letter.from_person)
+                        signer=letter.from_person,
+                        use_sig=letter.use_sig())
     content_lines = letter.content.split("\n\n")
     l.add_paragraphs(content_lines)
     doc.add_letter(l)
