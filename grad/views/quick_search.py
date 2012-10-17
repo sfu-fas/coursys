@@ -33,7 +33,7 @@ def quick_search(request):
         grads_sort.sort()
         grads_sort = grads_sort[:50]
         
-        data = [{'value': str(g.slug), 'label': "%s, %s" % (g.person.name(), g.program.label)} for _,g in grads_sort]
+        data = [{'value': str(g.slug), 'label': "%s, %s, %s" % (g.person.name(), g.program.label, g.get_current_status_display())} for _,g in grads_sort]
         response = HttpResponse(mimetype='application/json')
         json.dump(data, response, indent=1)
         return response
