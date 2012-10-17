@@ -151,8 +151,13 @@ def edit_sheet(request, form_slug, sheet_slug):
     # construct a form from this sheets fields
     form = DynamicForm(owner_sheet.title)
     form.fromFields(fields)
+    
+    # a list of dictionaries containing the field model object(for editing) and the field form object(for display)
+    modelFormFields = []
+    for (counter, field) in enumerate(form):
+        modelFormFields.append({'modelField':fields[counter], 'formField':field})
 
-    context = {'owner_form': owner_form, 'owner_sheet': owner_sheet, 'form': form, 'fields': fields}
+    context = {'owner_form': owner_form, 'owner_sheet': owner_sheet, 'form': form, 'fields': modelFormFields}
     return render(request, "onlineforms/edit_sheet.html", context)
 
 def reorder_field(request, form_slug, sheet_slug):
