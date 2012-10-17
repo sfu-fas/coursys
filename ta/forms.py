@@ -189,6 +189,7 @@ class TAApplicationForm(forms.ModelForm):
         super(TAApplicationForm, self).__init__(*args, **kwargs)
         self.fields['sin'].help_text = 'Social insurance number (required for receiving payments: if you don\'t have a SIN yet, please enter "000000000".)'
         self.fields['sin'].required = True
+        self.fields['current_program'].required = True
 
     def clean_sin(self):
         sin = self.cleaned_data['sin']
