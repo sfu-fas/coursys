@@ -89,7 +89,7 @@
 <div id="form_container">
 <form action="" method="post">{% csrf_token %}
 <p><strong>Social Insurance Number:</strong> {{ form.sin }}
-<span class="helptext">Please make sure that is correct, otherwise you don't get paid.</span></p>
+<span class="helptext">Social insurance number (required for receiving payments: if you don't have a SIN yet, please enter "000000000".)</span></p>
 
 <p>Please contact {{ contract.posting.contact.name }} &lt;{{ contract.posting.contact.email_mailto }}&gt; if you have questions about this contract.</p>
 
