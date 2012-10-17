@@ -4,7 +4,8 @@
 		<thead>
 			<tr>
 				<th scope="col">Template</th>
-				<th scope="col">Date</th>
+				<th scope="col">Send Date</th>
+                <th scope="col">Creation Date</th>
 				<th scope="col">From</th>
 				{% if not index %}<th scope="col">Actions</th>{% endif %}
 			</tr>
@@ -14,6 +15,7 @@
 			<tr>
 				<td> {{ l.template.label }} </td>
 				<td> <span class="sort">{{ l.date.isoformat }}</span>{{ l.date|date:GRAD_DATE_FORMAT }} </td>
+				<td> <span class="sort">{{ l.created_at.isoformat }}</span>{{ l.created_at|date:GRAD_DATETIME_FORMAT }} </td>
 				<td> {{ l.from_person }} </td>
 				{% if not index %}<td><a href="{% url grad.views.get_letter grad_slug=grad.slug letter_slug=l.slug %}">Get PDF</a>
 					| <a href="{% url grad.views.view_letter grad_slug=grad.slug letter_slug=l.slug %}">View Body</a>
