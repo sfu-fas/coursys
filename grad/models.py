@@ -131,13 +131,46 @@ class GradStudent(models.Model):
         self.start_semester = first_program.start_semester
 
         # end_semester
-        ends = all_gs.filter(status__in=STATUS_DONE).order_by('-start__name')
-        if ends.count() > 0:
-            end_status = ends[0]
-            self.end_semester = end_status.start
+        if self.current_status in STATUS_DONE:
+            ends = all_gs.filter(status__in=STATUS_DONE).order_by('-start__name')
+            if ends.count() > 0:
+                end_status = ends[0]
+                self.end_semester = end_status.start
+        else:
+            self.end_semester = None
         
         if old != (self.start_semester_id, self.end_semester_id, self.current_status):
             self.save()
+
+    def active_semesters(self):
+        """
+        Number of active and total semesters
+        """
+        next_sem = Semester.current().offset(1)
+        start = self.start_semester
+        end = self.end_semester or next_sem
+        total = end - start
+        away = set()
+        # some leave/withdrawn statuses overlap, so this seems to be the easiest way
+        # to do this: actually enumerate away semesters.
+        for gs in GradStatus.objects.filter(student=self, status__in=STATUS_INACTIVE):
+            if end and not gs.end:
+                # completed program, but this status is open
+                st_en = end
+            else:
+                st_en = gs.end or next_sem
+            
+            if start.name > gs.start.name:
+                sem = start
+            else:
+                sem = gs.start
+
+            while sem.name < st_en.name:
+                away.add(sem)
+                sem = sem.next_semester()
+        
+        away = len(away)
+        return total-away, total
 
     def start_semester_guess(self):
         """

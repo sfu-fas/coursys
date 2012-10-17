@@ -384,6 +384,7 @@ COLUMN_CHOICES = (
         ('start_semester',          'Start Sem'),
         ('end_semester',            'End Sem'),
         ('current_status',          'Current Status'),
+        #('active_semesters',        'Active Semesters'),
         ('senior_supervisors',      'Supervisor(s)'),
         ('completed_req',           'Completed Req'),
         ('gpa',                     'CGPA'),
@@ -391,7 +392,7 @@ COLUMN_CHOICES = (
         ('gender',                  'Gender')
         )
 COLUMN_WIDTHS_DATA = (
-        # first field is interpreted by getattribute template filter (grad/templatetags/getattribute.py)
+        # column widths for Excel export
         # units seem to be ~1/100 mm
         ('person.emplid',           3000),
         ('person.userid',           2800),
