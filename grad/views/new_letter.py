@@ -13,8 +13,10 @@ from coredata.models import Role
 def new_letter(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     templates = LetterTemplate.objects.filter(unit=grad.program.unit, hidden=False)
-    from_choices = [('', u'\u2014')] + [(r.person.id, "%s, %s" % (r.person.name(), r.get_role_display()))
-                                        for r in Role.objects.filter(unit=grad.program.unit)]
+    from_choices = [('', u'\u2014')] \
+                    + [(r.person.id, "%s. %s, %s" %
+                            (r.person.get_title(), r.person.letter_name(), r.get_role_display()))
+                        for r in Role.objects.filter(unit=grad.program.unit)]
     directors = Role.objects.filter(unit=grad.program.unit, role='GRPD').order_by('-id')
     if directors:
         default_from = directors[0].person.id

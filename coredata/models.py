@@ -105,8 +105,15 @@ class Person(models.Model):
         return "%s, %s" % (self.last_name, self.first_with_pref())
     def name_with_pref(self):
         return "%s %s" % (self.first_with_pref(), self.last_name)
+    def letter_name(self):
+        if 'letter_name' in self.config:
+            return self.config['letter_name']
+        else:
+            return self.name()
     def get_title(self):
-        if self.title:
+        if 'title' in self.config:
+            return self.config['title']
+        elif self.title:
             return self.title
         elif 'gender' in self.config and self.config['gender'] == 'M':
             return 'Mr'

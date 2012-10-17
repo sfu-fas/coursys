@@ -19,8 +19,10 @@ def copy_letter(request, grad_slug, letter_slug):
     letter.set_use_sig(old_letter.use_sig())
 
     templates = LetterTemplate.objects.filter(unit=grad.program.unit)
-    from_choices = [('', u'\u2014')] + [(r.person.id, "%s, %s" % (r.person.name(), r.get_role_display()))
-                                        for r in Role.objects.filter(unit=grad.program.unit)]
+    from_choices = [('', u'\u2014')] \
+                    + [(r.person.id, "%s. %s, %s" %
+                            (r.person.get_title(), r.person.letter_name(), r.get_role_display()))
+                        for r in Role.objects.filter(unit=grad.program.unit)]
     
     if request.method == 'POST':
         form = LetterForm(request.POST, instance=letter)
