@@ -38,6 +38,47 @@ CORTEZ_USER = 'ggbaker'
 # update weird value from test data
 Unit.objects.filter(slug='comp').update(label='CMPT', slug='cmpt')
 
+
+NEW_STATUSES = [
+   {
+   "end": None, 
+   "hidden": False, 
+   "notes": "", 
+   "start_id": 20, 
+   "start_date": None, 
+   "status": "CONF", 
+   "student_id": 3682, 
+   },
+   {
+   "end": None, 
+   "hidden": False, 
+   "notes": "", 
+   "start_id": 20, 
+   "start_date": None, 
+   "status": "CONF", 
+   "student_id": 3537, 
+   },
+   {
+   "end": None, 
+   "hidden": False, 
+   "notes": "", 
+   "start_id": 20, 
+   "start_date": None, 
+   "status": "CONF", 
+   "student_id": 1772
+   },
+   {
+   "end": None, 
+   "hidden": False, 
+   "notes": "", 
+   "start_id": 20, 
+   "start_date": None, 
+   "status": "CONF", 
+   "student_id": 851
+   }
+]
+
+
 class CortezConn(DBConn):
     db_host = '127.0.0.1'
     db_user = "fas.sfu.ca\\" + CORTEZ_USER
@@ -288,145 +329,10 @@ class GradImport(object):
 
             prog = self.PROGRAM_MAP[(prog, progtype)]
 
-            gss = GradStudent.objects.filter(person=p, program=prog)
-            #print gss
-            gs = None
-            for g in gss:
-                if 'cortezid' in g.config and g.config['cortezid'] == cortezid:
-                    # already taken care of
-                    return
+            gs = GradStudent.objects.get(person=p, program=prog, config__contains='"cortezid": "%s"' % (cortezid))
+            #print gs
+            GradStatus.objects.filter(student=gs).delete()
             
-            if not gs:
-                print "not found", p, p.emplid, sem_start
-                gs = GradStudent(person=p, program=prog)
-                gs.config['cortezid'] = cortezid
-                old_gs = GradStudent.objects.exclude(config__contains='dup_with').get(person=p, program=prog)
-                gs.config['dup_with'] = old_gs.id
-                gs.save()
-            
-            # basic info
-            gs.mother_tongue = mothertoungue
-            gs.is_canadian = self.BOOL_LOOKUP[canadian.lower()]
-            gs.passport_issued_by = passport
-            if sin:
-                gs.config['sin'] = sin
-            if research:
-                gs.research_area = research
-            
-            # fill in their completed requirements
-            # order of reqs must match self.REQ_LIST
-            reqs = (supcom, brepro, brereq, crscom, depexam, cmpt891, thepro, thedef, reatop)
-            for completed, req_name in zip(reqs, self.REQ_LIST):
-                if not completed or completed.lower() in ('not taken',):
-                    continue
-                hiddenreq = req_name in self.REQ_OBSOLETE
-                req, _ = GradRequirement.objects.get_or_create(program=prog, description=req_name, hidden=hiddenreq)
-                try:
-                    cr = CompletedRequirement.objects.get(requirement=req, student=gs)
-                    new_cr = False
-                except CompletedRequirement.DoesNotExist:
-                    cr = CompletedRequirement(requirement=req, student=gs)
-                    new_cr = True
-
-                if new_cr: # if it was already there, don't bother fiddling with it
-                    if completed.lower() == 'passed':
-                        sem = sem_finish or sem_start
-                        notes = 'No semester on cortez: used finishing semester.'
-                    elif completed.lower() == 'waived':
-                        sem = sem_finish or sem_start
-                        notes = 'Waived'                        
-                    else:
-                        notes = None
-                        try:
-                            sem = get_or_create_semester(completed)
-                        except ValueError:
-                            sem = get_or_create_semester('0'+completed)
-                    
-                    cr.semester = sem
-                    cr.notes = notes
-                    cr.save()
-            
-            # Supervisors
-            for pos, supname in zip(range(1,5), [sup1,sup2,sup3,sup4]):
-                if not supname: continue
-                person, external = self.find_supervisor(supname)
-                is_senior = pos==1 or (pos==2 and cosup)
-                suptype = "SEN" if is_senior else "COM"
-                
-                sups = Supervisor.objects.filter(student=gs, supervisor=person, external=external, supervisor_type=suptype)
-                if sups:
-                    sup = sups[0]
-                else:
-                    sup = Supervisor(student=gs, supervisor=person, external=external, supervisor_type=suptype)
-                    sup.created_by = self.IMPORT_USER
-                sup.modified_by = self.IMPORT_USER
-                sup.save()                    
-
-            # Examining Committee
-            self.db.execute("SELECT Chair, ExtName, ExtDep, ExtInst, ExtEmail, SFUExaminer "
-                            "FROM ExamCommittee WHERE Identifier=%s", (cortezid,))
-            for chair, extname, extdep, extinst, extemail, sfuexam in self.db:
-                if chair:
-                    person, external = self.find_supervisor(chair)
-                    sups = Supervisor.objects.filter(student=gs, supervisor=person, external=external, supervisor_type='CHA')
-                    if sups:
-                        sup = sups[0]
-                    else:
-                        sup = Supervisor(student=gs, supervisor=person, external=external, supervisor_type='CHA')
-                        sup.created_by = self.IMPORT_USER
-                    sup.removed = False
-                    sup.modified_by = self.IMPORT_USER
-                    sup.save()
-                
-                if sfuexam:
-                    person, external = self.find_supervisor(sfuexam)
-                    sups = Supervisor.objects.filter(student=gs, supervisor=person, external=external, supervisor_type='SFU')
-                    if sups:
-                        sup = sups[0]
-                    else:
-                        sup = Supervisor(student=gs, supervisor=person, external=external, supervisor_type='SFU')
-                        sup.created_by = self.IMPORT_USER
-                    if extemail:
-                        sup.set_email(extemail)
-                    
-                    sup.removed = False
-                    sup.modified_by = self.IMPORT_USER
-                    sup.save()
-                
-                if extname:
-                    if extname=='mitchell':
-                        extname='dgm'
-                    external = extname
-                    if extdep:
-                        external += ", " + extdep
-                    if extinst:
-                        external += ", " + extinst
-                    sups = Supervisor.objects.filter(student=gs, supervisor=None, external=external, supervisor_type='EXT')
-                    if sups:
-                        sup = sups[0]
-                    else:
-                        sup = Supervisor(student=gs, supervisor=None, external=external, supervisor_type='EXT')
-                        sup.created_by = self.IMPORT_USER
-                    sup.removed = False
-                    sup.modified_by = self.IMPORT_USER
-                    sup.save()
-
-        
-            # potential supervisor
-            if sponsor and sponsor not in ['-None-', '-Office-']:
-                person, external = self.find_supervisor(sponsor)
-                
-                sups = Supervisor.objects.filter(student=gs, supervisor=person, external=external, supervisor_type='POT')
-                if sups:
-                    sup = sups[0]
-                else:
-                    sup = Supervisor(student=gs, supervisor=person, external=external, supervisor_type='POT')
-                    sup.created_by = self.IMPORT_USER
-                sup.removed = False
-                sup.modified_by = self.IMPORT_USER
-                sup.save()
-
-        
             # Status and application status
             self.db.execute("SELECT Status, Date, AsOfSem "
                         "FROM Status WHERE Identifier=%s "
@@ -447,186 +353,19 @@ class GradImport(object):
                 if date:
                     st.start_date = date.date()
                 st.save(close_others=True)
-                # TODO: cleanup all statuses on old_gs
 
-            
-            gs.save()
-            
+
             # check that the cortez current status is the one we're displaying/using
             curr_st = self.STATUS_MAP[currentstatus]
-            if gs.current_status != curr_st:
-                # the current status wasn't found: add one last GradStatus to represent it
-                st = GradStatus(student=gs, status=curr_st, start=Semester.get_semester(lastmod), start_date=lastmod)
-                st.save()
-            
-            # letters
-            self.db.execute("SELECT LetterType, Modifier, Content, Date from LetterArchive where Identifier=%s", (cortezid,))
-            for lt, modifier, content, dttm in self.db:
-                template = LetterTemplate.objects.filter(unit=self.unit, label=self.LETTER_TYPE_MAP[lt])[0]
-                content = content.replace('$PAGEBREAK$', '')
-                date = dttm.date()
-                letters = Letter.objects.filter(student=gs, date=date)
-                if letters:
-                    letter = letters[0]
-                else:
-                    letter = Letter(student=gs, date=date)
-                
-                letter.created_by = modifier.lower()
-                letter.content = content
-                letter.template = template
-                letter.to_lines = ''
-                letter.from_person = None
-                letter.created_at = dttm
-                letter.save()
-            
-            # financial promises
-            self.db.execute("SELECT startsemester, endsemester, amount, comment FROM FSPromises where Identifier=%s", (cortezid,))
-            for startsemester, endsemester, amount, comment in self.db:
-                start = get_or_create_semester(startsemester)
-                end = get_or_create_semester(endsemester)
-                promises = Promise.objects.filter(student=gs, start_semester=start, end_semester=end)
-                if promises:
-                    p = promises[0]
-                else:
-                    p = Promise(student=gs, start_semester=start, end_semester=end)
-                
-                p.amount = amount
-                p.comment = comment
-                p.save()
-
-            # scholarships
-            self.db.execute("SELECT Name, Amount, DateRec, DateExp, RAShip_ID, External FROM Scholarships where Identifier=%s", (cortezid,))
-            for name, amount, startsem, endsem, raship, external in self.db:
-                startsem = get_or_create_semester(startsem)
-                endsem = get_or_create_semester(endsem)
-                try:
-                    scholtype = ScholarshipType.objects.get(unit=self.unit, name=name, eligible=(not external))
-                except ScholarshipType.DoesNotExist:
-                    scholtype = ScholarshipType(unit=self.unit, name=name, eligible=(not external))
-                    scholtype.comments = "Imported from Cortez"
-                    scholtype.save()
-                
-                schols = Scholarship.objects.filter(scholarship_type=scholtype, student=gs, start_semester=startsem, end_semester=endsem)
-                if schols:
-                    schol = schols[0]
-                else:
-                    schol = Scholarship(scholarship_type=scholtype, student=gs, start_semester=startsem, end_semester=endsem)
-                
-                amount = amount.replace(',','')
-                schol.amount = decimal.Decimal(amount)
-                schol.save()
-                if raship:
-                    raise
-                    ra = self.ra_map[raship]
-                    ra.scholarship = schol
-                    ra.save()
-            
-            
-            # other funding
-            self.db.execute("SELECT Semester, OtherAmount, OtherType, Comments, isTravel FROM FinancialSupport where Identifier=%s and OtherAmount is not null", (cortezid,))
-            for sem, amt, othertype, comments, _ in self.db:
-                if not amt:
-                    continue
-                semester = Semester.objects.get(name=sem)
-                if amt[0] == '$':
-                    amt = amt[1:]
-                amount = decimal.Decimal(amt)
-                ofs = OtherFunding.objects.filter(student=gs, semester=semester, description=othertype)
-                if ofs:
-                    of = ofs[0]
-                else:
-                    of = OtherFunding(student=gs, semester=semester, description=othertype)
-                
-                of.amount = amount
-                of.eligible = True
-                of.comments = comments
-                of.save()
-            
-        
-            # program changes
-            self.db.execute("SELECT program, degreetype, date, asofsem "
-                            "FROM Programs WHERE Identifier=%s", (cortezid,))
-            count = 0
-            for program, degreetype, date, semname in self.db:
-                progr = self.PROGRAM_MAP[(program, degreetype)]
-                sem = Semester.objects.get(name=semname)
-                count += 1
-                phs = GradProgramHistory.objects.filter(student=gs, program=progr, start_semester=sem)
-                if phs:
-                    ph = phs[0]
-                else:
-                    ph = GradProgramHistory(student=gs, program=progr, start_semester=sem)
-                ph.starting = date
-                ph.save()
-
-                # clean from old_gs
-                old_history = GradProgramHistory.objects.filter(student=old_gs, program=progr, start_semester=sem)
-                if old_history:
-                    old_history[0].delete()
-        
-            if count == 0:
-                # no program history for this student
-                stsem = gs.start_semester
-                if not stsem:
-                    st = GradStatus.objects.filter(student=gs).order_by('-start__name')[0]
-                    stsem = st.start
-                ph = GradProgramHistory(student=gs, program=gs.program, start_semester=stsem)
-                ph.save()
-        
-            # financial comments
-            self.db.execute("SELECT semester, category, id, lastmodified, comment "
-                            "FROM FinancialComments WHERE Identifier=%s", (cortezid,))
-            for semname, category, userid, lastmod, comment in self.db:
-                sem = Semester.objects.get(name=semname)
-                cat = self.COMMENT_TYPE_MAP[category]
-                lastmod = lastmod.replace(second=0, microsecond=0)
-                userid = userid.lower()
-                
-                fcs = FinancialComment.objects.filter(student=gs, semester=sem, comment_type=cat, created_by=userid, created_at=lastmod)
-                if not fcs:
-                    fc = FinancialComment(student=gs, semester=sem, comment_type=cat, created_by=userid, created_at=lastmod)
-                else:
-                    fc = fcs[0]
-                
-                fc.comment=comment
-                fc.save()
-
-
-                
-    def set_cortezids(self):
-        self.db.execute("SELECT pi.Identifier, pi.StudentNumber FROM PersonalInfo pi "
-                        "WHERE pi.StudentNumber not in (' ', 'na', 'N/A', 'NO', 'Not App.', 'N.A.', '-no-') "
-                        #"AND LastName in ('Nosrati','Artner','Ishida','Danesh') " 
-                        "ORDER BY pi.LastModified"
-                        , ())
-        print "Setting cortezids..."
-        for cortezid, emplid in list(self.db):
-            try:
-                p = Person.objects.get(emplid=emplid)
-            except (ValueError, Person.DoesNotExist):
-                continue
-            
-            self.db.execute("SELECT Program, Degreetype "
-                        "FROM AcademicRecord WHERE Identifier=%s ORDER BY SemesterStarted ASC", (cortezid,))
-
-            for prog, progtype in list(self.db):
-                if prog is None:
-                    continue
-                prog = self.PROGRAM_MAP[(prog, progtype)]
-                gss = GradStudent.objects.filter(person=p, program=prog)
-                
-                if gss.count() != 1:
-                    raise ValueError
-                
-                # keep the most recent cortez ID in the existing GradStudent
-                gs = gss[0]
-                if cortezid in ['00403698', '20040621200444']:
-                    # ignore the false-most-recent ones
-                    continue
-                gs.config['cortezid'] = cortezid
-                gs.save()
-
-            
+            sts = GradStatus.objects.filter(student=gs, status=curr_st).order_by('-start__name')
+            if sts:
+                st = sts[0]
+            else:
+                st = GradStatus(student=gs, status=curr_st, start=Semester.get_semester(lastmod))
+            st.end = None
+            st.save()
+            gs.update_status_fields()
+            assert curr_st == gs.current_status
 
     
     def get_students(self):
@@ -642,6 +381,7 @@ class GradImport(object):
                         #"AND LastName in ('Nosrati','Artner') " 
                         "ORDER BY pi.LastName"
                         , ())
+        
         initial = None
         for row in list(self.db):
             i = row[-1][0].upper()
@@ -655,9 +395,14 @@ class GradImport(object):
                 print row
                 raise
 
+    @transaction.commit_on_success
+    def restore_new(self):
+        for data in NEW_STATUSES:
+            st = GradStatus(**data)
+            print st
 
 if __name__ == '__main__':
     gi=GradImport()
-    gi.set_cortezids()
     gi.get_students()
+    gi.restore_new()
 

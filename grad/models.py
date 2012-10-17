@@ -560,14 +560,15 @@ class GradStatus(models.Model):
         super(GradStatus, self).save(*args, **kwargs)
 
         if close_others:
-            # update gradstudent status fields
-            self.student.update_status_fields()
-
             # make sure any other statuses are closed
             other_gs = GradStatus.objects.filter(student=self.student, end__isnull=True).exclude(id=self.id)
             for gs in other_gs:
                 gs.end = max(self.start, gs.start)
                 gs.save(close_others=False)  
+
+            # update gradstudent status fields
+            self.student.update_status_fields()
+
     
     def __unicode__(self):
         return u"Grad Status: %s %s" % (self.status, self.student)
