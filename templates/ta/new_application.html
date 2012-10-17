@@ -36,7 +36,7 @@ function get_more_info() {
            	        html += '<li>' + key + ': ' + value + '</li>';
                	});
 				html += '</ul><p>Please make sure they are up to date so we can contact you regarding this application if necessary. <a href="http://students.sfu.ca/advising-support/help-videos/contact.html?keepThis=true">Instructions on updating this info</a> are available.</p></div>';
-				$('dl.dlform').before(html);
+				$('dl.dlform').first().before(html);
 	        }
 		},
 	})
@@ -67,9 +67,7 @@ $(document).ready(function() {
         </div>
     {% endif %}
 
-	
-
-    {{ ta_form|as_dl }}
+    {{ ta_form|as_dl_excludefields:"experience,course_load,other_support,comments" }}
 
 </fieldset>
 
@@ -98,6 +96,13 @@ $(document).ready(function() {
 		$("#form_btns").html('<input id="add_btn" type="button" value="Add Another" onclick="add()"/>')
 	});
 //]]></script>
+
+<fieldset>
+    <legend>Additional Info</legend>
+
+    {{ ta_form|as_dl_includefields:"experience,course_load,other_support,comments" }}
+
+</fieldset>
 
 
 <fieldset>
