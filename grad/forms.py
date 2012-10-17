@@ -363,7 +363,7 @@ COLUMN_CHOICES = (
         ('start_semester',          'Start Sem'),
         ('end_semester',            'End Sem'),
         ('current_status',          'Current Status'),
-        ('senior_supervisors',      'Senior Supervisor(s)'),
+        ('senior_supervisors',      'Supervisor(s)'),
         ('completed_req',           'Completed Req'),
         ('gpa',                     'CGPA'),
         ('visa',                    'Visa'),
