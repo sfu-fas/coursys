@@ -24,19 +24,21 @@ def _get_cleaned_get(request):
 def search(request):
     current_user = Person.objects.get(userid=request.user.username)
     query_string = request.META.get('QUERY_STRING','')
-    try:
-        savedsearch = SavedSearch.objects.get(person=current_user, query=query_string)
-    except SavedSearch.DoesNotExist:
+    savedsearches = SavedSearch.objects.filter(person=current_user, query=query_string)
+    if savedsearches:
+        savedsearch = savedsearches[0]
+    else:
         savedsearch = None
-    if savedsearch is None:
-        if len(request.GET) > 0:
-            cleaned_get = _get_cleaned_get(request)
-            if len(cleaned_get) < len(request.GET):
-                return HttpResponseRedirect(reverse(search) + u'?' + cleaned_get.urlencode())
-        try:
-            savedsearch = SavedSearch.objects.get(person=current_user, query=query_string)
-        except SavedSearch.DoesNotExist:
-            savedsearch = None
+
+    #if savedsearch is None:
+    #    if len(request.GET) > 0:
+    #        cleaned_get = _get_cleaned_get(request)
+    #        if len(cleaned_get) < len(request.GET):
+    #            return HttpResponseRedirect(reverse(search) + u'?' + cleaned_get.urlencode())
+    #    try:
+    #        savedsearch = SavedSearch.objects.get(person=current_user, query=query_string)
+    #    except SavedSearch.DoesNotExist:
+    #        savedsearch = None
     
     form = SearchForm(initial={'student_status': STATUS_ACTIVE}) if len(request.GET) == 0 else SearchForm(request.GET)
     requirement_choices = [(r.id, "%s (%s)" % (r.description, r.program.label)) for r in

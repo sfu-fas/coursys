@@ -624,11 +624,11 @@ class SaveSearchForm(ModelForm):
         super(SaveSearchForm, self).__init__(*args, **kwargs)
         self.initial['name'] = self.instance.name()
     
-    def clean(self):
-        super(SaveSearchForm, self).clean()
-        if self.cleaned_data['person'] != self.instance.person:
-            raise ValidationError('Person for saved search must be current user')
-        return self.cleaned_data
+    #def clean(self):
+    #    super(SaveSearchForm, self).clean()
+    #    if self.cleaned_data['person'] != self.instance.person:
+    #        raise ValidationError('Person for saved search must be current user')
+    #    return self.cleaned_data
     
     def save(self, *args, **kwargs):
         self.instance.set_name(self.cleaned_data['name'])
