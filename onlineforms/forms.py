@@ -1,6 +1,6 @@
 from django import forms
 from django.forms.models import ModelForm
-from onlineforms.models import Form, Field, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup
+from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 
@@ -22,6 +22,10 @@ class FormForm(ModelForm):
         
 class SheetForm(forms.Form):
     title = forms.CharField(required=True, max_length=30, label=mark_safe('Title'), help_text='Name of the sheet')
+
+class EditSheetForm(ModelForm):
+    class Meta:
+        model = Sheet
 
 class FieldForm(forms.Form):
     type = forms.ChoiceField(required=True, choices=FIELD_TYPE_CHOICES, label='Type')

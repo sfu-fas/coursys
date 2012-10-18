@@ -15,7 +15,7 @@ from django.template import RequestContext
 
 # FormGroup management views
 from onlineforms.fieldtypes import *
-from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm
+from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup
 from onlineforms.utils import reorder_sheet_fields
 
@@ -206,6 +206,21 @@ def reorder_field(request, form_slug, sheet_slug):
 
         return HttpResponse("Order updated!")
     return ForbiddenResponse(request)
+
+def edit_sheet_info(request, form_slug, sheet_slug):
+    owner_form = get_object_or_404(Form, slug=form_slug)
+    owner_sheet = get_object_or_404(Sheet, slug=sheet_slug)
+
+    if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'edit':
+        form = EditSheetForm(request.POST, instance=owner_sheet)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('onlineforms.views.edit_sheet', kwargs={'form_slug': owner_form.slug, 'sheet_slug': owner_sheet.slug}))
+    else:
+        form = EditSheetForm(instance=owner_sheet)
+
+    context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet}
+    return render(request, 'onlineforms/edit_sheet_info.html', context)
 
 
 def new_field(request, form_slug, sheet_slug):
