@@ -7,5 +7,39 @@
 {% block subbreadcrumbs %}{% endblock %}
 
 {% block content %}
+<div class="datatable_container">
+    <table class="display" id="groups">
+        <thead>
+            <tr>
+				<th scope="col">Faculty</th>
+                <th scope="col">Name of Group</th>
+                <th scope="col">Tag Name</th>
+                <th scope="col">Edit Group</th>
+                <th scope="col">Delete</th>
+			</tr>
+		</thead>
+		<tbody>
+		{% for grp in groups %}
+			<tr>
+				<td>{{grp.unit}}</td>
+				<td>{{grp.name}}</td>
+				<td>{{grp.slug}}</td>
+				<td class="miniaction">
+					<form action="{% url onlineforms.views.manage_group formgroup_slug=grp.slug %}">{% csrf_token %}
+						<input type="hidden" name="group_id" value="{{grp.id}}" />
+						<input type="submit" value="Edit">
+					</form>
+				<td class="miniaction"> 
+                    <form action="" method="post">{% csrf_token %}
+                        <input type="hidden" name="group_id" value="{{grp.id}}"/>
+                        <input type="hidden" name="action" value="delete"/>
+                        <input type="submit" value="Remove"/>
+				    </form>
+                </td>
+			</tr>
+		{% endfor %}
+		</tbody>
+    </table>
+</div>
 
 {% endblock %}
