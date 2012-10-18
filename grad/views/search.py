@@ -48,9 +48,8 @@ def search(request):
     form.fields['scholarshiptype'].choices = scholarshiptype_choices
     form.fields['program'].choices = program_choices
     
-    if form.is_valid():
+    if 'edit_search' not in request.GET and form.is_valid():
         query = form.get_query()
-        #print query
         grads = GradStudent.objects.filter(program__unit__in=request.units).filter(query).select_related('person', 'program').distinct()
         grads = filter(form.secondary_filter(), grads)
         grads = grads[:1000]
@@ -126,6 +125,7 @@ def search(request):
                    'saveform' : saveform,
                    'csv_link' : request.get_full_path() + "&csv=yes",
                    'xls_link' : request.get_full_path() + "&excel=yes",
+                   'query_string': query_string,
                    }
         resp = render(request, 'grad/search_results.html', context)
         resp['Cache-control'] = 'private'
