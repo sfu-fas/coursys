@@ -10,9 +10,12 @@
     <script type="text/javascript">
         $(document).ready(function () {
 
+            var choice_count = 0;
+
             var new_choice_field = function () {
-                return '<dt><label for="choice_num">Choice: </label></dt><dd>\ ' +
-                        '<div class="field"><input type="text" name="choice" id="choice_num" /></div>\ ' +
+                choice_count++
+                return '<dt><label for="choice_'+choice_count+'">Choice: </label></dt><dd>\ ' +
+                        '<div class="field"><input type="text" name="choice_'+choice_count+' " id="choice_'+choice_count+'" /></div>\ ' +
                         '</dd>'
             }
 
