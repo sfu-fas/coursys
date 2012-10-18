@@ -2,10 +2,15 @@ from django import forms
 from django.forms.models import ModelForm
 from onlineforms.models import Form, Field, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup
 from django.utils.safestring import mark_safe
+from django.utils.html import escape
 
 class DividerFieldWidget(forms.TextInput):
   def render(self, name, value, attrs=None):
     return mark_safe('<hr />')
+
+class ExplanationFieldWidget(forms.Textarea):
+  def render(self, name, value, attrs=None):
+    return mark_safe('<div>%s</div>' % escape(value))
 
 class GroupForm(ModelForm):
     class Meta:

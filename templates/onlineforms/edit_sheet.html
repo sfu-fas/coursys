@@ -6,8 +6,17 @@
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url onlineforms.views.list_all %}">Forms</a></li>
-<li>&gt; <a href="{% url onlineforms.views.edit_form form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
+<li>&gt; <a href="{% url onlineforms.views.view_form form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
 <li>&gt; {{ owner_sheet.title }}</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url onlineforms.views.new_field form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}">Add Field</a></li>
+    </ul>
+</div>
 {% endblock %}
 
 {% block headextra %}
@@ -111,51 +120,52 @@
     <form action="" method="post">
         <fieldset>
             <legend>{{ owner_sheet.title }}</legend>
-            <table class="display" id="fields_table">
-                <thead>
-                    <th>Order</th>
-                    <th>Field</th>
-                    <th>Edit</th>
-                    <th>Remove</th>
-                </thead>
-                {% for field in fields %}
-                <tr>
-                    <td id = "arrow{{forloop.counter}}">
-                        {% if not forloop.first %}
-                        <a class="arrow_up" href="{% url onlineforms.views.edit_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}?order=up&amp;field_slug={{ field.modelField.slug }}">  
-                            <span class="arrow_up position_button ui-state-default ui-icon ui-icon-arrowthick-1-n">&uarr;</span>  
-                        </a>
-                        {% else %}
-                           <span class="position_placeholder"></span>
-                        {% endif %}
-                        {% if not forloop.last %}
-                        <a class="arrow_down" href="{% url onlineforms.views.edit_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}?order=down&amp;field_slug={{ field.modelField.slug }}">
-                            <span class="arrow_down position_button ui-state-default ui-icon ui-icon-arrowthick-1-s">&darr;</span>
-                        </a>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {{ field.formField.label_tag }}{% if field.formField.field.required %}<span class="required">*</span>{% endif %}: {{ field.formField }}
-                        {{ field.formField.help_text }}
-                    </td>
-                    <td>
-                        <a href="{% url onlineforms.views.edit_field form_slug=owner_form.slug sheet_slug=owner_sheet.slug field_slug=field.modelField.slug %}">Edit</a>
-                    </td>
-                    <td>
-                        <form action="{% url onlineforms.views.edit_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}" method="post">{% csrf_token %}
-                        <p> 
-                            <input type="hidden" name="field_id" value="{{field.modelField.id}}" />
-                            <input type="hidden" name="action" value="del" />
-                            <input type="submit" value="Remove" onclick="return confirmSubmit('remove this field')" />
-                        </p>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </table>
-            <div>
-                <a href="{% url onlineforms.views.new_field form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}">Add Field</a>
-            </div>
+            {% if fields %}
+                <table class="display" id="fields_table">
+                    <thead>
+                        <th>Order</th>
+                        <th>Field</th>
+                        <th>Edit</th>
+                        <th>Remove</th>
+                    </thead>
+                    {% for field in fields %}
+                    <tr>
+                        <td id = "arrow{{forloop.counter}}">
+                            {% if not forloop.first %}
+                            <a class="arrow_up" href="{% url onlineforms.views.edit_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}?order=up&amp;field_slug={{ field.modelField.slug }}">  
+                                <span class="arrow_up position_button ui-state-default ui-icon ui-icon-arrowthick-1-n">&uarr;</span>  
+                            </a>
+                            {% else %}
+                               <span class="position_placeholder"></span>
+                            {% endif %}
+                            {% if not forloop.last %}
+                            <a class="arrow_down" href="{% url onlineforms.views.edit_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}?order=down&amp;field_slug={{ field.modelField.slug }}">
+                                <span class="arrow_down position_button ui-state-default ui-icon ui-icon-arrowthick-1-s">&darr;</span>
+                            </a>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ field.formField.label_tag }}{% if field.formField.field.required %}<span class="required">*</span>{% endif %}: {{ field.formField }}
+                            {{ field.formField.help_text }}
+                        </td>
+                        <td>
+                            <a href="{% url onlineforms.views.edit_field form_slug=owner_form.slug sheet_slug=owner_sheet.slug field_slug=field.modelField.slug %}">Edit</a>
+                        </td>
+                        <td>
+                            <form action="{% url onlineforms.views.edit_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}" method="post">{% csrf_token %}
+                            <p> 
+                                <input type="hidden" name="field_id" value="{{field.modelField.id}}" />
+                                <input type="hidden" name="action" value="del" />
+                                <input type="submit" value="Remove" onclick="return confirmSubmit('remove this field')" />
+                            </p>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            {% else %}
+                <div>There are currently no fields.</div>
+            {% endif %}
         </fieldset>
     </form>
 </div>

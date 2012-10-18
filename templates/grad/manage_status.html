@@ -11,16 +11,18 @@
 {% endblock %}
 
 {% block content %}
-{% include "grad/view__status.html" %}
-
 <div id="form_container">
     <form action="" method="post">
     	{% csrf_token %}
     	<fieldset>
-    	<legend>New Status</legend>
+    	<legend>Update Status</legend>
         {{ form|as_dl }}
-        <p><input  class="submit"  type="submit" value="New Status" /></p>
+        <p><input  class="submit"  type="submit" value="Update Status" /></p>
         </fieldset>
     </form>
 </div>
+
+<h2 id="history">Status History</h2>
+{% include "grad/view__status.html" %}
+
 {% endblock %} 

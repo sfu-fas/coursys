@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load form_display %}
-{% block h1 %} ALL FORMS {% endblock %}
+{% block h1 %} Manage Forms {% endblock %}
 {% block title %} Manage Forms {% endblock %}
 
 {% block headextra %}<script type="text/javascript">
@@ -26,11 +26,15 @@
 //]]></script>
 {% endblock %}
 
+{% block subbreadcrumbs %}
+<li>&gt; Forms</li>
+{% endblock %}
+
 {% block actions %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-        <li><a href="{% url onlineforms.views.list_all %}">ALL forms</a></li>
+        <li><a href="{% url onlineforms.views.new_form %}">New Form</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -51,15 +55,13 @@
             </thead>
             {% for form in forms %}
                 <tr>
-                    <td>{{ form.title }}</td>
+                    <td><a href="{% url onlineforms.views.view_form form_slug=form.slug %}">{{ form.title }}</a></td>
                     <td>{{ form.owner|default:"" }}</td>
                     <td>{{ form.initiators|default:"" }}</td>
                     <td>{{ form.unit|default:"" }}</td>
                     <td>{{ form.active }}</td>
                     <td>{{ form.original|default:"" }}</td>
                     <td class="miniaction">
-                                  
-                        </form>
                     </td>
                 </tr>
               {% endfor %}

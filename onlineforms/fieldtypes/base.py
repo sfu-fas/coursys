@@ -80,3 +80,5 @@ class FieldBase(object):
         """
         raise NotImplementedError
         
+    def require_choices(self):
+        return False
