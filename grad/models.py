@@ -171,6 +171,9 @@ class GradStudent(models.Model):
                 #v.save()
                 yield (f, v)
         
+    def status_order(self):
+        "For sorting by status"
+        return STATUS_ORDER[self.current_status]
         
     def letter_info(self):
         """
