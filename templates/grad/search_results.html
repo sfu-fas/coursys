@@ -49,7 +49,7 @@ width: 120px;
 <p>
 {{ saveform.person }}{{ saveform.query }}{{ saveform.name.label }} {{ saveform.name }}
 
-<input id="submitbutton" type="submit" value="{% if saveform.instance.pk %}Rename{% else %}Save{% endif %}" />
+<input id="submitbutton" type="submit" value="{% if saveform.instance.pk %}Save As{% else %}Save{% endif %}" />
 {% if saveform.instance.pk %}
 <input id="deletebutton" type="submit" value="Delete" formaction="{% url grad.views.delete_savedsearch %}" />
 {% endif %}
