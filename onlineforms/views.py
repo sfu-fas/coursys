@@ -213,7 +213,12 @@ def new_field(request, form_slug, sheet_slug):
     section = 'select'
     type = None
 
+    need_choices = False
+
     if request.method == 'POST':
+        print "Request"
+        print request.POST
+
         if 'next_section' in request.POST:
             section = request.POST['next_section']
         if section == 'config':
@@ -229,6 +234,8 @@ def new_field(request, form_slug, sheet_slug):
                 field = type_model(config=custom_config)
 
             form = field.make_config_form()
+            need_choices = field.require_choices()
+
             if form.is_valid():
                 Field.objects.create(label=form.cleaned_data['label'],
                     sheet=owner_sheet,
@@ -243,7 +250,7 @@ def new_field(request, form_slug, sheet_slug):
         form = FieldForm()
         section = 'config'
 
-    context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet, 'section': section, 'type_name': type}
+    context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet, 'section': section, 'type_name': type, 'choices': need_choices}
     return render(request, 'onlineforms/new_field.html', context)
 
 

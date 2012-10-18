@@ -23,7 +23,7 @@ class DropdownSelectField(FieldBase):
         pass
 
     def make_config_form(self):
-        raise NotImplementedError
+        return self.DropdownSelectConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
         raise NotImplementedError
@@ -33,6 +33,9 @@ class DropdownSelectField(FieldBase):
 
     def to_html(self, fieldsubmission=None):
         raise NotImplementedError
+
+    def require_choices(self):
+        return True
 
 
 class MultipleSelectField(FieldBase):
