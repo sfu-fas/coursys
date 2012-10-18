@@ -171,6 +171,9 @@ class GradStudent(models.Model):
                 #v.save()
                 yield (f, v)
         
+    def status_order(self):
+        "For sorting by status"
+        return STATUS_ORDER[self.current_status]
         
     def letter_info(self):
         """
@@ -540,10 +543,10 @@ class GradStatus(models.Model):
     """
     student = models.ForeignKey(GradStudent)
     status = models.CharField(max_length=4, choices=STATUS_CHOICES, blank=False)
-    start = models.ForeignKey(Semester, null=False, related_name="start_semester",
-            help_text="First semester of this status")
-    start_date = models.DateField(null=True, blank=True,
-            help_text="Date the status began (optional)")
+    start = models.ForeignKey(Semester, null=False, related_name="start_semester", verbose_name="Effective Semester",
+            help_text="Semester when this status is effective")
+    start_date = models.DateField(null=True, blank=True, verbose_name="Effective Date",
+            help_text="Date this status is effective (optional)")
     end = models.ForeignKey(Semester, null=True, blank=True, related_name="end_semester",
             help_text="Final semester of this status: blank for ongoing")
     notes = models.TextField(blank=True, help_text="Other notes")

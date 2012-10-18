@@ -10,14 +10,18 @@ from django.core.urlresolvers import reverse
 def save_search(request):
     current_user = Person.objects.get(userid=request.user.username)
     saveform = SaveSearchForm(request.POST)
-    try:
-        saveform.instance = SavedSearch.objects.get(
-                person=saveform.data['person'], 
-                query=saveform.data['query'])
-    except SavedSearch.DoesNotExist:
-        saveform.instance = SavedSearch(person=current_user)
+    
     if saveform.is_valid():
-        saveform.save()
+        name = saveform.cleaned_data['name']
+        existing_ss = SavedSearch.objects.filter(person=saveform.data['person'])
+        existing_ss = [ss for ss in existing_ss if ss.name()==name]
+        for ss in existing_ss:
+            ss.delete()
+        
+        ss = saveform.save(commit=False)
+        ss.person = current_user
+        ss.save()
+        messages.add_message(request, messages.SUCCESS, 'Search Saved as "%s".' % (name))
         return HttpResponseRedirect(reverse('grad.views.index'))
     else:
         messages.add_message(request, messages.ERROR, saveform.errors.as_text())
