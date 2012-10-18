@@ -108,7 +108,18 @@ def preview_form(request, form_slug):
    
 
 def edit_form(request, form_slug):
-    pass
+    owner_form = get_object_or_404(Form, slug=form_slug)
+
+    if request.method == 'POST' and 'action' in request.POST and request.POST['action']=='edit':
+        form = FormForm(request.POST, instance=owner_form)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('onlineforms.views.view_form', kwargs={'form_slug': owner_form.slug}))           
+    else:
+        form = FormForm(instance=owner_form)
+
+    context = {'form': form, 'owner_form': owner_form}
+    return render(request, 'onlineforms/edit_form.html', context)
 
 
 def new_sheet(request, form_slug):
