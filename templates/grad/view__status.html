@@ -4,9 +4,7 @@
 		<thead>
 			<tr>
 				<th>Status</th>
-				<th>Start Semester</th>
-				<th>Start Date</th>
-				<th>End Semester</th>
+				<th>As Of</th>
 				{% if not index %}
                     <th>Actions</th>
                 {% endif %}
@@ -29,23 +27,9 @@
 				</td>
 				<td> 
                     {% if s.hidden %}<del>{% endif %}
-                        {{s.start.name}} ({{s.start}}) 
+                    	<span class="sort">{{s.start.name}} {% if s.start_date %}{{s.start_date.isoformat}}{% endif %}</span>
+                        {{s.start.name}} ({{s.start}}{% if s.start_date %}, {{s.start_date|date:GRAD_DATE_FORMAT}}{% endif %})
                     {% if s.hidden %}</del>{% endif %}
-                </td>
-				<td> 
-                    {% if s.start_date %}
-                        <span class="sort">{{s.start_date.isoformat}}</span>
-                        {% if s.hidden %}<del>{% endif %}
-                        {{s.start_date|date:GRAD_DATE_FORMAT}}
-                        {% if s.hidden %}</del>{% endif %}
-                    {% endif %} 
-                </td>
-				<td> 
-                    {% if s.end %}
-                        {% if s.hidden %}<del>{% endif %}
-                        {{s.end.name}} ({{s.end}})
-                        {% if s.hidden %}</del>{% endif %}
-                    {% endif %}
                 </td>
 
 				{% if not index %}
