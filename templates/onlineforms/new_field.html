@@ -4,6 +4,13 @@
 {% block title %} New Field Type {% endblock %}
 {% block h1 %} New Field Type {% endblock %}
 
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url onlineforms.views.list_all %}">Forms</a></li>
+<li>&gt; <a href="{% url onlineforms.views.edit_form form_slug=slug_form %}">{{slug_form}}</a></li>
+<li>&gt; <a href="{% url onlineforms.views.edit_sheet form_slug=slug_form sheet_slug=slug_sheet%}">{{slug_sheet}}</a></li>
+<li>&gt; New Field Type</li>
+{% endblock %}
+
 {% block content %}
     <div id="form_container">
         {% if form.non_field_errors %}
