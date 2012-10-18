@@ -5,32 +5,38 @@
 {% block h1 %} New Field Type {% endblock %}
 
 {% block headextra %}
-    <!-- Check if it requires it, if so make JS -->
+    <!-- Check if it requires it -->
+    {% if choices %}
     <script type="text/javascript">
-        $(document).ready(function() {
-            $('dd').last().after('<dt><label for="choice_num">Choice: </label></dt><dd>\ '+
-                    '<div class="field"><input type="text" name="choice" id="choice_num" /></div>\ '+
-            '</dd>');
+        $(document).ready(function () {
+
+            var new_choice_field = function () {
+                return '<dt><label for="choice_num">Choice: </label></dt><dd>\ ' +
+                        '<div class="field"><input type="text" name="choice" id="choice_num" /></div>\ ' +
+                        '</dd>'
+            }
+
+            $('dd').last().after(new_choice_field());
 
             $("dd").last().after('<dt id="add_dt"><label for="add_button">Add</label></dt><dd>\ ' +
-                    '<div class="field"><input type="button" name="Add" id="add_button" /></div>\ '+
-                '</dd></div>');
+                    '<div class="field"><input type="button" name="Add" id="add_button" /></div>\ ' +
+                    '</dd></div>');
 
-            $("#add_button").click(function ()
-            {
-                $('#add_dt').before('<dt><label for="choice_num">Choice: </label></dt><dd>\ '+
-                        '<div class="field"><input type="text" name="choice" id="choice_num" /></div>\ '+
-                        '</dd>');
+            $("#add_button").click(function () {
+                $('#add_dt').before(new_choice_field());
             });
         });
     </script>
+    {% endif%}
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url onlineforms.views.list_all %}">Forms</a></li>
-<li>&gt; <a href="{% url onlineforms.views.edit_form form_slug=owner_form.slug %}">{{owner_form.title}}</a></li>
-<li>&gt; <a href="{% url onlineforms.views.edit_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug%}">{{owner_sheet.title}}</a></li>
-<li>&gt; New Field Type</li>
+    <li>&gt; <a href="{% url onlineforms.views.list_all %}">Forms</a></li>
+    <li>&gt; <a href="{% url onlineforms.views.edit_form form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
+    <li>&gt; <a
+            href="{% url onlineforms.views.edit_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug%}">{{ owner_sheet.title }}</a>
+    </li>
+    <li>&gt; New Field Type</li>
 {% endblock %}
 
 {% block content %}
