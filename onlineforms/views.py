@@ -88,22 +88,22 @@ def view_form(request, form_slug):
 
 
 def preview_form(request, form_slug):
-    form = get_object_or_404(Form, slug=form_slug)
-    form_sheets = Sheet.objects.filter(form=form)
+    owner_form = get_object_or_404(Form, slug=form_slug)
+    form_sheets = Sheet.objects.filter(form=owner_form, active=True).order_by('order')
 
     # need to divide up fields based on sheets (DIVI)
     forms = []
     for sheet in form_sheets:
         form = DynamicForm(sheet.title)
         fieldargs = {}
-        fields = Field.objects.filter(sheet=sheet)
+        fields = Field.objects.filter(sheet=sheet, active=True).order_by('order')
         for field in fields:
             display_field = FIELD_TYPE_MODELS[field.fieldtype](field.config)
             fieldargs[field.id] = display_field.make_entry_field()
         form.setFields(fieldargs)
         forms.append(form)
 
-    context = {'forms': forms}
+    context = {'forms': forms, 'owner_form':owner_form}
     return render(request, "onlineforms/preview_form.html", context)
    
 

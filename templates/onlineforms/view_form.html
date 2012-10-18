@@ -33,6 +33,7 @@
     <h2 class="heading">Actions</h2>
     <ul>
         <li><a href="{% url onlineforms.views.edit_form form_slug=form.slug %}">Edit Form Info</a></li>
+        <li><a href="{% url onlineforms.views.preview_form form_slug=form.slug %}">Preview</a></li>
         <li><a href="{% url onlineforms.views.new_sheet form_slug=form.slug %}">New Sheet</a></li>
     </ul>
 </div>
