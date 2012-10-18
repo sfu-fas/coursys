@@ -61,29 +61,30 @@ def remove_group_member(request, formgroup_slug, userid):
 # Form admin views
 
 def list_all(request):
-    form = FormForm()   
+    form = FormForm()
     forms = Form.objects.all()
-    context = {'form': form, 'forms':forms}
+    context = {'form': form, 'forms': forms}
     return render_to_response('onlineforms/forms.html', context, context_instance=RequestContext(request))
 
+
 def new_form(request):
-   if request.method == 'POST' and 'action' in request.POST and request.POST['action']=='add':
+    if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'add':
         form = FormForm(request.POST)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect('forms')            
-   else:
+            return HttpResponseRedirect('forms')
+    else:
         form = FormForm()
-   return render_to_response('onlineforms/new_form.html',
-                                {'form': form},
-                                context_instance=RequestContext(request))
+    return render_to_response('onlineforms/new_form.html',
+            {'form': form},
+        context_instance=RequestContext(request))
 
 
 def view_form(request, form_slug):
     form = get_object_or_404(Form, slug=form_slug)
     sheets = Sheet.objects.filter(form=form, active=True).order_by('order')
 
-    context = {'form': form, 'sheets':sheets}
+    context = {'form': form, 'sheets': sheets}
     return render(request, "onlineforms/view_form.html", context)
 
 
@@ -103,18 +104,18 @@ def preview_form(request, form_slug):
         form.setFields(fieldargs)
         forms.append(form)
 
-    context = {'forms': forms, 'owner_form':owner_form}
+    context = {'forms': forms, 'owner_form': owner_form}
     return render(request, "onlineforms/preview_form.html", context)
-   
+
 
 def edit_form(request, form_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
 
-    if request.method == 'POST' and 'action' in request.POST and request.POST['action']=='edit':
+    if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'edit':
         form = FormForm(request.POST, instance=owner_form)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect(reverse('onlineforms.views.view_form', kwargs={'form_slug': owner_form.slug}))           
+            return HttpResponseRedirect(reverse('onlineforms.views.view_form', kwargs={'form_slug': owner_form.slug}))
     else:
         form = FormForm(instance=owner_form)
 
@@ -139,18 +140,19 @@ def edit_sheet(request, form_slug, sheet_slug):
     owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
     fields = Field.objects.filter(sheet=owner_sheet, active=True).order_by('order')
 
-     # Non Ajax way to reorder activity, please also see reorder_activity view function for ajax way to reorder
-    order = None  
-    field_slug = None  
-    if request.GET.has_key('order'):  
-        order = request.GET['order']  
-    if request.GET.has_key('field_slug'):  
-        field_slug = request.GET['field_slug']  
-    if order and field_slug:  
-        reorder_sheet_fields(fields, field_slug, order)  
-        return HttpResponseRedirect(reverse('onlineforms.views.edit_sheet', kwargs={'form_slug': form_slug, 'sheet_slug':sheet_slug}))  
+    # Non Ajax way to reorder activity, please also see reorder_activity view function for ajax way to reorder
+    order = None
+    field_slug = None
+    if request.GET.has_key('order'):
+        order = request.GET['order']
+    if request.GET.has_key('field_slug'):
+        field_slug = request.GET['field_slug']
+    if order and field_slug:
+        reorder_sheet_fields(fields, field_slug, order)
+        return HttpResponseRedirect(
+            reverse('onlineforms.views.edit_sheet', kwargs={'form_slug': form_slug, 'sheet_slug': sheet_slug}))
 
-    # check if they are deleting a field from the sheet
+        # check if they are deleting a field from the sheet
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'del':
         field_id = request.POST['field_id']
         fields = Field.objects.filter(id=field_id, sheet=owner_sheet)
@@ -166,14 +168,15 @@ def edit_sheet(request, form_slug, sheet_slug):
     # construct a form from this sheets fields
     form = DynamicForm(owner_sheet.title)
     form.fromFields(fields)
-    
+
     # a list of dictionaries containing the field model object(for editing) and the field form object(for display)
     modelFormFields = []
     for (counter, field) in enumerate(form):
-        modelFormFields.append({'modelField':fields[counter], 'formField':field})
+        modelFormFields.append({'modelField': fields[counter], 'formField': field})
 
     context = {'owner_form': owner_form, 'owner_sheet': owner_sheet, 'form': form, 'fields': modelFormFields}
     return render(request, "onlineforms/edit_sheet.html", context)
+
 
 def reorder_field(request, form_slug, sheet_slug):
     """
@@ -185,11 +188,11 @@ def reorder_field(request, form_slug, sheet_slug):
     if request.method == 'POST':
         neaten_field_positions(sheet)
         # find the fields in question
-        id_up = request.POST.get('id_up') 
+        id_up = request.POST.get('id_up')
         id_down = request.POST.get('id_down')
-        if id_up == None or id_down == None:                      
+        if id_up == None or id_down == None:
             return ForbiddenResponse(request)
-        # swap the order of the two fields
+            # swap the order of the two fields
         field_up = get_object_or_404(Field, id=id_up, sheet=sheet)
         field_down = get_object_or_404(Field, id=id_down, sheet=sheet)
 
@@ -216,9 +219,6 @@ def new_field(request, form_slug, sheet_slug):
     need_choices = False
 
     if request.method == 'POST':
-        print "Request"
-        print request.POST
-
         if 'next_section' in request.POST:
             section = request.POST['next_section']
         if section == 'config':
@@ -245,12 +245,14 @@ def new_field(request, form_slug, sheet_slug):
                     original=None, )
                 messages.success(request, 'Successfully created the new field \'%s\'' % form.cleaned_data['label'])
                 section = 'select'
+                need_choices = False
 
     if section == 'select':
         form = FieldForm()
         section = 'config'
 
-    context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet, 'section': section, 'type_name': type, 'choices': need_choices}
+    context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet, 'section': section, 'type_name': type
+        , 'choices': need_choices}
     return render(request, 'onlineforms/new_field.html', context)
 
 

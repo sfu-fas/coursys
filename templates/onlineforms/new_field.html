@@ -7,30 +7,34 @@
 {% block headextra %}
     <!-- Check if it requires it -->
     {% if choices %}
-    <script type="text/javascript">
-        $(document).ready(function () {
+        <script type="text/javascript">
+            $(document).ready(function () {
 
-            var choice_count = 0;
+                var choice_count = 0;
+                var choices = []
 
-            var new_choice_field = function () {
-                choice_count++
-                return '<dt><label for="choice_'+choice_count+'">Choice: </label></dt><dd>\ ' +
-                        '<div class="field"><input type="text" name="choice_'+choice_count+' " id="choice_'+choice_count+'" /></div>\ ' +
-                        '</dd>'
-            }
+                var new_choice_field = function () {
+                    choice_count++
+                    if ($("#choice_" + choice_count).length) {
+                        return new_choice_field()
+                    }
+                    new_choice = '<dt><label for="choice_' + choice_count + '">Choice: </label></dt><dd>\ ' +
+                            '<div class="field"><input type="text" name="choice_' + choice_count + ' " id="choice_' + choice_count + '" /></div>\ ' +
+                            '</dd>'
+                    return new_choice
+                }
 
-            $('dd').last().after(new_choice_field());
 
-            $("dd").last().after('<dt id="add_dt"><label for="add_button">Add</label></dt><dd>\ ' +
-                    '<div class="field"><input type="button" name="Add" id="add_button" /></div>\ ' +
-                    '</dd></div>');
+                $("dd").last().after('<dt id="add_dt"><label for="add_button">Add</label></dt><dd>\ ' +
+                        '<div class="field"><input type="button" name="Add Choice" id="add_button" /></div>\ ' +
+                        '</dd></div>');
 
-            $("#add_button").click(function () {
-                $('#add_dt').before(new_choice_field());
+                $("#add_button").click(function () {
+                    $('#add_dt').before(new_choice_field());
+                });
             });
-        });
-    </script>
-    {% endif%}
+        </script>
+    {% endif %}
 {% endblock %}
 
 {% block subbreadcrumbs %}
