@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}Alert Types{% endblock %}
+{% block h1 %}Alerts{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(function() {
+  $('.display').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': true,
+    "bJQueryUI": true,
+    "aaSorting": [[ 3, "desc" ]]
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; Alerts</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li>
+            <a href='#'>New Alert Type</a>
+        </li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+{% if alert_types %}
+<table class="display">
+    <thead>
+        <tr>
+            <th>Type</th>
+            <th>Alerts</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for type in alert_types %}
+        <tr>
+            <td><a href="{% url alerts.views.view_alerts alert_type=type.slug %}">{{ type.code }}</a></td>
+            <td>{{ type.num_alerts }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>There are currently no Alert Types available in the system</p>
+{% endif %}
+
+{% endblock %}

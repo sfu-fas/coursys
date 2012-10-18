@@ -1,17 +1,25 @@
 from django.db import models
 from coredata.models import Role, Person, Unit
 from jsonfield import JSONField
+from autoslug import AutoSlugField
+from courselib.slugs import make_slug
+import hashlib
+import datetime
 
-ALERT_STATUSES = (
-    ("OPEN", "New"),
-    ("PEND", "Pending action"),
+UPDATE_TYPES = (
+    ("OPEN", "Created"),
+    ("UPDT", "Updated"),
+    ("EMAI", "Emailed a Student"),
+    ("CONT", "Contacted a Student"),
+    ("COMM", "Comment"),
     ("RESO", "Resolved"),
-    ("IGNR", "Ignored"),
-    ("CONT", "Contacted"),
-    ("DUPL", "Duplicate"),
+    ("REOP", "Re-opened")
 )
-OPEN_STATUSES = ("OPEN", "PEND")
-CLOSED_STATUSES = ("RESO", "IGNR", "CONT", "DUPL")
+
+UPDATES = ["UPDT"]
+ACTIONS = ["EMAI", "CONT"]
+COMMENTS = ["COMM"]
+RESOLUTIONS = ["RESO"]
 
 class AlertType(models.Model):
     """
@@ -24,6 +32,10 @@ class AlertType(models.Model):
     resolution_lasts = models.IntegerField(help_text="Default number of days resolution should last, defaults to 10 years.", null=False, default=3650)
     unit = models.ForeignKey(Unit, null=False)
 
+    def autoslug(self):
+        return make_slug( self.code )
+    slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
+
 class Alert(models.Model):
     """
     An Alert code associated with a student.
@@ -32,34 +44,93 @@ class Alert(models.Model):
     alerttype = models.ForeignKey(AlertType)
     description = models.TextField(help_text="Specific details of alert", null=True, blank=True)
     details = JSONField(null=False, blank=False, default={})  #details specific to the alert
-    status = models.CharField(max_length=4, choices=ALERT_STATUSES, null=False, blank=False, default="OPEN")
+    hidden = models.BooleanField(null=False, default=False)
+    
+    # generated fields
+    details_hash = models.CharField(max_length=100, null=False, blank=False)
+    resolved = models.BooleanField(null=False, default=False)
+    updates = models.IntegerField(null=False, default=0)
+    actions = models.IntegerField(null=False, default=0)
+    comments = models.IntegerField(null=False, default=0)
+    created = models.DateTimeField(auto_now_add=True)
+    last_updated = models.DateTimeField()
+   
+    def last_update(self):
+        return AlertUpdate.objects.latest(created) 
 
-    created_at = models.DateTimeField(auto_now_add=True)
-    resolved_at = models.DateTimeField(null=True)
-    #if resolved_until is nil, use the default from the 'resolution_lasts' for this alerttype
-    resolved_until = models.DateField(null=True, blank=True, help_text="If resolved, til when should this resolution last?")
-    
-    def is_closed(self):
-        return self.status in CLOSED_STATUSES
-    
-    def has_resolution_expired(self):
-        return datetime.date.today() > self.resolved_until
-    
-    def default_resolved_until(self):
-        period = datetime.timedelta(days=self.alerttype.resolution_lasts)
-        return datetime.datetime.now() + period
+    def last_resolution(self):
+        return AlertUpdate.objects.filter(update_type="RESO").latest(created)
+
+    def collision(self, collidee):
+        """ 
+        What to do if we try to save an object that already exists:
+
+        Instead, create a new AlertUpdate.  
+        """
+        if self.resolved and datetime.datetime.now() > self.last_resolution():
+            update_status="REOP"
+            update_comments = self.description + """
+                -------
+            This Alert has been re-opened. """
+        else:
+            update_status="UPDT"
+            update_comments = self.description
+
+        update = AlertUpdate( alert=collidee, update_type=update_status, comments=update_comments ) 
+        update.save()
+
+    def safe_create(self):
+        """
+        Save the Alert, but check to make sure that this same alert doesn't already exist, first.
+        """
+        # set hash
+        self.details_hash = hashlib.md5(str(self.details)).hexdigest()
+        # does this already exist? 
+        objects_like_this = Alert.objects.filter( person = self.person, 
+                                                  alerttype = self.alerttype, 
+                                                  details_hash = self.details_hash ) 
+
+        if len(objects_like_this) > 0:
+            self.collision( objects_like_this[0])
+        else:
+            self.save()
+            update = AlertUpdate( alert=self, update_type="OPEN", comments=self.description ) 
+            update.save()
     
     def save(self, *args, **kwargs):
-        if self.is_closed() and not self.resolved_until:
-            self.resolved_until = self.default_resolved_until()
-        if self.is_closed() and not self.resolved_at:
-            self.resolved_at = datetime.datetime.now()
+        # set hash
+        self.details_hash = hashlib.md5(str(self.details)).hexdigest()
+        self.last_updated = datetime.datetime.now()
         super(Alert, self).save(*args, **kwargs)
 
-# Incoming Problem logic:
-# 1. No matching code/student/unit: add.
-# 2. Matching code/student/unit, resolved_until >= now: drop.
-# 3. Matching code/student/unit, not resolved: update all fields from API (not created_at).
-# 4. Matching code/student/unit, resolved_unil < now: add.
+class AlertUpdate(models.Model):
+    """
+    An update to an Alert
+    """
+    alert = models.ForeignKey(Alert)
+    update_type = models.CharField(max_length=4, choices=UPDATE_TYPES, null=False, blank=False, default="OPEN")
+    comments = models.TextField(null=True, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
 
+    # Only meaningful if update_type is "RESO"/"Resolved" 
+    resolved_until = models.DateTimeField(null=True)
+    
+    def save(self, *args, **kwargs):
+        # Update the actual Alert object.
+        if self.update_type in ACTIONS:
+            self.alert.actions += 1
+        if self.update_type in UPDATES:
+            self.alert.updates += 1
+        if self.update_type in COMMENTS:
+            self.alert.comments += 1
+        if self.update_type in RESOLUTIONS:
+            self.alert.resolved = True
+            if self.resolved_until == null:
+                self.resolved_until = datetime.datetime.now() + datetime.timedelta(days=self.alert.alerttype.resolution_lasts)
 
+        if self.update_type == "REOP":
+            self.alert.resolved = False
+        self.alert.last_updated = datetime.datetime.now()
+        self.alert.save()
+
+        super(AlertUpdate, self).save(*args, **kwargs)

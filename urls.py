@@ -444,8 +444,10 @@ urlpatterns += patterns('',
     # Alerts
 
     url(r'^alerts/new_alerts/$', 'alerts.views.rest_alerts'),
-    url(r'^alerts/$', 'alerts.views.view_alerts'),
-    url(r'^alerts/resolved/$', 'alerts.views.view_resolved_alerts'),
+    url(r'^alerts/$', 'alerts.views.view_alert_types'),
+    url(r'^alerts/' + ALERT_TYPE_SLUG + '/$', 'alerts.views.view_alerts'),
+    url(r'^alerts/' + ALERT_TYPE_SLUG + '/(?P<alert_id>\d+)/', 'alerts.views.view_alert'),
+    url(r'^alerts/' + ALERT_TYPE_SLUG + '/resolved/$', 'alerts.views.view_resolved_alerts'),
     url(r'^alerts/(?P<alert_id>\d+)/$', 'alerts.views.edit_alert'),
 )
 

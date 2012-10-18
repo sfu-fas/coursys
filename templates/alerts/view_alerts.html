@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load form_display %}
-{% block title %}Reported Alerts{% endblock %}
-{% block h1 %}Reported Alerts{% endblock %}
+{% block title %}Alerts: {{alert_type.code}} {% endblock %}
+{% block h1 %}Alerts: {{alert_type.code}}{% endblock %}
 
 {% block headextra %}
 <script type="text/javascript">
@@ -18,8 +18,8 @@ $(function() {
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url advisornotes.views.advising %}">Advising</a></li>
-<li>&gt; Reported Problems</li>
+<li>&gt; <a href="{% url alerts.views.view_alert_types %}">Alerts</a></li>
+<li>&gt; {{alert_type.code}}</li>
 {% endblock %}
 
 {% block actions %}
@@ -28,9 +28,9 @@ $(function() {
     <ul>
         <li>
             {% if resolved %}
-                <a href="{% url alerts.views.view_alerts%}">View unresolved alerts</a>
+                <a href="{% url alerts.views.view_alerts alert_type=alert_type.slug %}">View unresolved alerts</a>
             {% else %}
-                <a href="{% url alerts.views.view_resolved_alerts%}">View resolved alerts</a>
+                <a href="{% url alerts.views.view_resolved_alerts alert_type=alert_type.slug %}">View resolved alerts</a>
             {% endif %}
         </li>
     </ul>
@@ -39,25 +39,48 @@ $(function() {
 
 {% block content %}
 
+<div id="form_container">
+    <form action="#" enctype="multipart/form-data" method="post">{% csrf_token %}
+        <fieldset>
+        <legend>Bulk Email</legend>
+        {{ form|as_dl }}
+        </fieldset>
+
+        <p><input type="submit" class="submit" value="Send To Selected Students" /></p>
+    </form>
+</div>
+
 {% if alerts %}
 <table class="display">
     <thead>
         <tr>
-            <th>Problem</th>
             <th>Student</th>
-            <th>Status</th>
-            <th>Since</th>
+            <th>Advising</th>
+            <th>Updates</th>
+            <th>Actions</th>
+            <th>Comments</th>
+            <th>Created</th>
+            <th>Last Update</th>
             <th>Description</th>
+            <th>Select</th>
         </tr>
     </thead>
     <tbody>
         {% for alert in alerts %}
         <tr>
-            <td><a href="{% url alerts.views.edit_alert alert_id=alert.pk %}">{{ alert.alerttype.code }}</a></td>
-            <td>{{ alert.person }}</td>
-            <td><span style="color: #B5111B;">{{ alert.get_status_display }}</span></td>
-            <td><abbr title="{{ alert.created_at.date }}">{{ alert.created_at|date:"Y/m/d" }}</abbr></td>
+            <td>
+                <a href='{% url alerts.views.view_alert alert_type=alert.alerttype.slug alert_id=alert.id%}'>{{alert.person}}</a> 
+            </td>
+            <td>
+                <a href='{% url advisornotes.views.student_notes userid=alert.person.userid %}'>Advising</a>
+            </td>
+            <td>{{alert.updates}}</td>
+            <td>{{alert.actions}}</td>
+            <td>{{alert.comments}}</td>
+            <td><abbr title="{{ alert.created.date }}">{{ alert.created|date:"Y/m/d" }}</abbr></td>
+            <td><abbr title="{{ alert.last_updated.date }}">{{ alert.last_updated|date:"Y/m/d" }}</abbr></td>
             <td>{{ alert.description }}</td>
+            <td><input type='checkbox' checked='checked'> </input></td>
         </tr>
         {% endfor %}
     </tbody>

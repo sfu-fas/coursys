@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from models import Alert, AlertType, OPEN_STATUSES, CLOSED_STATUSES 
+from models import Alert, AlertType 
 from coredata.models import Role, Person, Unit
 import coredata.validate_rest
 import json
@@ -40,6 +40,11 @@ def _create_alerts(data, person, unit):
                 raise ValidationError("Alert code & description must be strings")
             if len(code) >= 30:
                 raise ValidationError("Alert code must be less than or equal to 30 characters")
+
+            try: 
+                details = alert['details']
+            except KeyError:
+                details = {}
             
             try:
                 alertType = AlertType.objects.get(code=code)
@@ -50,17 +55,16 @@ def _create_alerts(data, person, unit):
                 alertType = AlertType()
                 alertType.code = code
                 alertType.unit = unit
+                alertType.description = "Not set."
                 alertType.save() 
-        
-            #current = Alert.objects.filter(Q(resolved_until__gte=datetime.date.today()) | Q(resolved_until__isnull=True)
-            #                                 , person=student, code=code, unit=unit)
             
             alert = Alert()
             alert.person = student
             alert.alerttype = alertType
             alert.description = description
+            alert.details = details
 
-            alert.save()
+            alert.safe_create()
 
         except ValidationError as e:
             print e

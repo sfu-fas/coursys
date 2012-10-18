@@ -1,10 +1,10 @@
 
-# alerts-views
-
-from models import Alert, AlertType, OPEN_STATUSES, CLOSED_STATUSES 
+from models import Alert, AlertType, AlertUpdate
+from forms import BulkEmailForm 
 from django.views.decorators.csrf import csrf_exempt
 from courselib.auth import requires_role, HttpResponseRedirect, \
     ForbiddenResponse
+from django.db.models import Count
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.db import transaction
@@ -39,25 +39,56 @@ def rest_alerts(request):
     return HttpResponse(status=200)
 
 @requires_role('ADVS')
-def view_alerts(request, resolved=False):
+def view_alert_types(request):
     """
     View reported alerts created via the API
     """
     types = AlertType.objects.filter(unit__in=request.units)
-    if( resolved ):
-        alerts = Alert.objects.filter(alerttype__in=types, status__in=CLOSED_STATUSES)
-    else:
-        alerts = Alert.objects.filter(alerttype__in=types, status__in=OPEN_STATUSES)
-    return render(request, 'alerts/view_alerts.html', {'alerts': alerts, 'resolved':resolved})
+    for alert_type in types:
+        alert_type.num_alerts = Alert.objects.filter(alerttype=alert_type, resolved=False).count() 
+
+    return render(request, 'alerts/view_alert_types.html', {'alert_types': types })
 
 
 @requires_role('ADVS')
-def view_resolved_alerts(request):
+def view_alerts(request, alert_type, resolved=False):
+    """
+    View reported alerts created via the API
+    """
+    form = BulkEmailForm()
+    alert_type = AlertType.objects.get(unit__in=request.units, slug=alert_type)
+    if( resolved ):
+        alerts = Alert.objects.filter(alerttype=alert_type, resolved=True)
+    else:
+        alerts = Alert.objects.filter(alerttype=alert_type, resolved=False)
+    return render(request, 'alerts/view_alerts.html', {'alerts': alerts, 
+                                                        'resolved':resolved, 
+                                                        'form':form,
+                                                        'alert_type':alert_type})
+
+@requires_role('ADVS')
+def view_resolved_alerts(request, alert_type):
     """
     View reported problems that have been resolved
     """
-    return view_alerts(request, True) 
+    return view_alerts(request, alert_type, True) 
 
+@requires_role('ADVS')
+def view_alert( request, alert_type, alert_id ):
+    """
+    View an alert
+    """
+    alert = get_object_or_404(Alert, pk=alert_id, alerttype__unit__in=request.units)
+    alert_updates = AlertUpdate.objects.filter(alert=alert).order_by('-created')
+
+    return render(request, 'alerts/view_alert.html', {'alert': alert, 'alert_updates': alert_updates })
+
+
+
+
+#
+#   NOT USED YET 
+#
 
 @requires_role('ADVS')
 def edit_alert(request, alert_id):
