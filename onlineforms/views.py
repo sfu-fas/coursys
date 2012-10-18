@@ -63,11 +63,19 @@ def remove_group_member(request, formgroup_slug, userid):
 # Form admin views
 
 def list_all(request):
-    form = FormForm()
-    forms = Form.objects.all()
-    context = {'form': form, 'forms': forms}
-    return render_to_response('onlineforms/forms.html', context, context_instance=RequestContext(request))
-
+    if request.method == 'POST' and 'action' in request.POST and request.POST['action']=='del':
+        form_id = request.POST['form_id']   
+        forms = Form.objects.filter(id=form_id)
+        if forms:  
+            form = forms[0]
+            form.delete()    
+            messages.success(request, 'Removed the Form ')
+        return HttpResponseRedirect(reverse(list_all))    
+     else:     
+        form = FormForm()   
+        forms = Form.objects.all()
+        context = {'form': form, 'forms':forms}
+     return render_to_response('onlineforms/forms.html', context, context_instance=RequestContext(request))
 
 def new_form(request):
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'add':
