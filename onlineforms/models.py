@@ -201,9 +201,17 @@ class Form(models.Model, _FormCoherenceMixin):
         return "%s" % (self.title)
     
     @transaction.commit_on_success
-    def save(self, *args, **kwargs):
-        super(Form, self).save(*args, **kwargs)
+    def save(self, *args, duplicate_and_save=False, **kwargs):
+        if duplicate_and_save:
+            # duplicate self.instance and save that, and return it.
+            pass
+        else:
+            instance = super(Form, self).save(*args, **kwargs)
         self.cleanup_fields()
+        return instance
+
+    def duplicate(self):
+        
         
 
 class Sheet(models.Model, _FormCoherenceMixin):

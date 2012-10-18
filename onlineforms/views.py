@@ -116,7 +116,7 @@ def edit_form(request, form_slug):
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'edit':
         form = FormForm(request.POST, instance=owner_form)
         if form.is_valid():
-            form.save()
+            owner_form = form.save(duplicate_and_save=True)
             return HttpResponseRedirect(reverse('onlineforms.views.view_form', kwargs={'form_slug': owner_form.slug}))
     else:
         form = FormForm(instance=owner_form)
