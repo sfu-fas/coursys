@@ -195,9 +195,9 @@ class GradStudentForm(ModelForm):
         exclude = ('created_by', 'modified_by' )
 
 class GradStatusForm(ModelForm):
-    start = StaffSemesterField()
-    end = StaffSemesterField(required=False)
-        
+    start = StaffSemesterField(label="Effective Semester",
+            help_text="Semester when this status is effective")
+    
     def clean_end(self):
         en = self.cleaned_data.get('end', None)
         st = self.cleaned_data.get('start', None)
@@ -209,8 +209,11 @@ class GradStatusForm(ModelForm):
         
     class Meta:
         model = GradStatus
-        exclude = ('student', 'created_by', 'hidden')
+        exclude = ('student', 'created_by', 'hidden', 'end')
         hidden = ('id')
+        widgets = {
+                   'notes': forms.Textarea(attrs={'rows': 2, 'cols': 40}),
+                   }
 
 class GradRequirementForm(ModelForm):
     class Meta:
