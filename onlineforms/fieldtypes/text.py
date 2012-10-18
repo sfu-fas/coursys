@@ -128,10 +128,11 @@ class ExplanationTextField(FieldBase):
         return self.ExplanationTextConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
+        from onlineforms.forms import ExplanationFieldWidget
         c = forms.CharField(required=False,
             label=self.config['label'],
             help_text=self.config['help_text'],
-            widget=forms.TextInput(attrs={'class': 'disabled', 'readonly': 'readonly'}))
+            widget=ExplanationFieldWidget(attrs={'class': 'disabled', 'readonly': 'readonly'}))
 
         if 'text_explanation' in self.config:
             c.initial = self.config['text_explanation']
