@@ -48,6 +48,8 @@ def new_group(request):
 
 
 def manage_group(request, formgroup_slug):
+    # print "in manage group"
+    # editting existing form...
     pass
 
 
