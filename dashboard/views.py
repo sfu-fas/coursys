@@ -59,6 +59,19 @@ def index(request):
     context = {'memberships': memberships, 'staff_memberships': staff_memberships, 'news_list': news_list, 'roles': roles, 'is_grad':is_grad}
     return render(request, "dashboard/index.html", context)
 
+@login_required
+def index_full(request):
+    userid = request.user.username
+    memberships = Member.objects.exclude(role="DROP").exclude(offering__component="CAN") \
+            .filter(offering__graded=True, person__userid=userid) \
+            .annotate(num_activities=Count('offering__activity')) \
+            .select_related('offering','offering__semester')
+    #memberships = [m for m in memberships if m.role in ['TA', 'INST', 'APPR'] or m.num_activities>0]
+    staff_memberships = [m for m in memberships if m.role in ['INST', 'TA', 'APPR']] # for docs link
+    
+    context = {'memberships': memberships, 'staff_memberships': staff_memberships}
+    return render(request, "dashboard/index_full.html", context)
+
 
 def fake_login(request):
     """
