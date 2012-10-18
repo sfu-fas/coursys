@@ -74,7 +74,7 @@ def new_form(request):
             return HttpResponseRedirect('forms')            
    else:
         form = FormForm()
-   return render_to_response('onlineforms/new_forms.html',
+   return render_to_response('onlineforms/new_form.html',
                                 {'form': form},
                                 context_instance=RequestContext(request))
 
