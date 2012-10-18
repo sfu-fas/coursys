@@ -26,6 +26,10 @@
 //]]></script>
 {% endblock %}
 
+{% block subbreadcrumbs %}
+<li>&gt; Forms</li>
+{% endblock %}
+
 {% block actions %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
@@ -51,7 +55,7 @@
             </thead>
             {% for form in forms %}
                 <tr>
-                    <td>{{ form.title }}</td>
+                    <td><a href="{% url onlineforms.views.view_form form_slug=form.slug %}">{{ form.title }}</a></td>
                     <td>{{ form.owner|default:"" }}</td>
                     <td>{{ form.initiators|default:"" }}</td>
                     <td>{{ form.unit|default:"" }}</td>

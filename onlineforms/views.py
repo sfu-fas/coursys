@@ -80,31 +80,46 @@ def new_form(request):
 
 
 def view_form(request, form_slug):
-    pass
+    form = get_object_or_404(Form, slug=form_slug)
+    sheets = Sheet.objects.filter(form=form, active=True).order_by('order')
+
+    context = {'form': form, 'sheets':sheets}
+    return render(request, "onlineforms/view_form.html", context)
 
 
 def preview_form(request, form_slug):
-    form = get_object_or_404(Form, slug=form_slug)
-    form_sheets = Sheet.objects.filter(form=form)
+    owner_form = get_object_or_404(Form, slug=form_slug)
+    form_sheets = Sheet.objects.filter(form=owner_form, active=True).order_by('order')
 
     # need to divide up fields based on sheets (DIVI)
     forms = []
     for sheet in form_sheets:
         form = DynamicForm(sheet.title)
         fieldargs = {}
-        fields = Field.objects.filter(sheet=sheet)
+        fields = Field.objects.filter(sheet=sheet, active=True).order_by('order')
         for field in fields:
             display_field = FIELD_TYPE_MODELS[field.fieldtype](field.config)
             fieldargs[field.id] = display_field.make_entry_field()
         form.setFields(fieldargs)
         forms.append(form)
 
-    context = {'forms': forms}
+    context = {'forms': forms, 'owner_form':owner_form}
     return render(request, "onlineforms/preview_form.html", context)
    
 
 def edit_form(request, form_slug):
-    pass
+    owner_form = get_object_or_404(Form, slug=form_slug)
+
+    if request.method == 'POST' and 'action' in request.POST and request.POST['action']=='edit':
+        form = FormForm(request.POST, instance=owner_form)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('onlineforms.views.view_form', kwargs={'form_slug': owner_form.slug}))           
+    else:
+        form = FormForm(instance=owner_form)
+
+    context = {'form': form, 'owner_form': owner_form}
+    return render(request, 'onlineforms/edit_form.html', context)
 
 
 def new_sheet(request, form_slug):
@@ -198,7 +213,12 @@ def new_field(request, form_slug, sheet_slug):
     section = 'select'
     type = None
 
+    need_choices = False
+
     if request.method == 'POST':
+        print "Request"
+        print request.POST
+
         if 'next_section' in request.POST:
             section = request.POST['next_section']
         if section == 'config':
@@ -214,6 +234,8 @@ def new_field(request, form_slug, sheet_slug):
                 field = type_model(config=custom_config)
 
             form = field.make_config_form()
+            need_choices = field.require_choices()
+
             if form.is_valid():
                 Field.objects.create(label=form.cleaned_data['label'],
                     sheet=owner_sheet,
@@ -228,7 +250,7 @@ def new_field(request, form_slug, sheet_slug):
         form = FieldForm()
         section = 'config'
 
-    context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet, 'section': section, 'type_name': type}
+    context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet, 'section': section, 'type_name': type, 'choices': need_choices}
     return render(request, 'onlineforms/new_field.html', context)
 
 

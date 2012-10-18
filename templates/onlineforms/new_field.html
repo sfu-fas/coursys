@@ -4,11 +4,42 @@
 {% block title %} New Field Type {% endblock %}
 {% block h1 %} New Field Type {% endblock %}
 
+{% block headextra %}
+    <!-- Check if it requires it -->
+    {% if choices %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            var choice_count = 0;
+
+            var new_choice_field = function () {
+                choice_count++
+                return '<dt><label for="choice_'+choice_count+'">Choice: </label></dt><dd>\ ' +
+                        '<div class="field"><input type="text" name="choice_'+choice_count+' " id="choice_'+choice_count+'" /></div>\ ' +
+                        '</dd>'
+            }
+
+            $('dd').last().after(new_choice_field());
+
+            $("dd").last().after('<dt id="add_dt"><label for="add_button">Add</label></dt><dd>\ ' +
+                    '<div class="field"><input type="button" name="Add" id="add_button" /></div>\ ' +
+                    '</dd></div>');
+
+            $("#add_button").click(function () {
+                $('#add_dt').before(new_choice_field());
+            });
+        });
+    </script>
+    {% endif%}
+{% endblock %}
+
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url onlineforms.views.list_all %}">Forms</a></li>
-<li>&gt; <a href="{% url onlineforms.views.edit_form form_slug=owner_form.slug %}">{{owner_form.title}}</a></li>
-<li>&gt; <a href="{% url onlineforms.views.edit_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug%}">{{owner_sheet.title}}</a></li>
-<li>&gt; New Field Type</li>
+    <li>&gt; <a href="{% url onlineforms.views.list_all %}">Forms</a></li>
+    <li>&gt; <a href="{% url onlineforms.views.edit_form form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
+    <li>&gt; <a
+            href="{% url onlineforms.views.edit_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug%}">{{ owner_sheet.title }}</a>
+    </li>
+    <li>&gt; New Field Type</li>
 {% endblock %}
 
 {% block content %}
@@ -25,7 +56,7 @@
                 <legend> New Field Type</legend>
                 <ul>
                     {{ form|as_dl }}
-                    <li>
+                    <li id="form_section">
                         <input type="hidden" name="next_section" value="{{ section }}"/>
                         <input type="hidden" name="type_name" value="{{ type_name }}"/>
                         <input class="submit" type="submit" value="Next"/>
