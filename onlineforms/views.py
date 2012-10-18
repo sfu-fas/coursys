@@ -199,6 +199,9 @@ def new_field(request, form_slug, sheet_slug):
     type = None
 
     if request.method == 'POST':
+        print "Request"
+        print request.POST
+
         if 'next_section' in request.POST:
             section = request.POST['next_section']
         if section == 'config':

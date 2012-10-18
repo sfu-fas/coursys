@@ -4,6 +4,28 @@
 {% block title %} New Field Type {% endblock %}
 {% block h1 %} New Field Type {% endblock %}
 
+{% block headextra %}
+    <!-- Check if it requires it, if so make JS -->
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('dd').last().after('<dt><label for="choice_num">Choice: </label></dt><dd>\ '+
+                    '<div class="field"><input type="text" name="choice" id="choice_num" /></div>\ '+
+            '</dd>');
+
+            $("dd").last().after('<dt id="add_dt"><label for="add_button">Add</label></dt><dd>\ ' +
+                    '<div class="field"><input type="button" name="Add" id="add_button" /></div>\ '+
+                '</dd></div>');
+
+            $("#add_button").click(function ()
+            {
+                $('#add_dt').before('<dt><label for="choice_num">Choice: </label></dt><dd>\ '+
+                        '<div class="field"><input type="text" name="choice" id="choice_num" /></div>\ '+
+                        '</dd>');
+            });
+        });
+    </script>
+{% endblock %}
+
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url onlineforms.views.list_all %}">Forms</a></li>
 <li>&gt; <a href="{% url onlineforms.views.edit_form form_slug=owner_form.slug %}">{{owner_form.title}}</a></li>
@@ -25,7 +47,7 @@
                 <legend> New Field Type</legend>
                 <ul>
                     {{ form|as_dl }}
-                    <li>
+                    <li id="form_section">
                         <input type="hidden" name="next_section" value="{{ section }}"/>
                         <input type="hidden" name="type_name" value="{{ type_name }}"/>
                         <input class="submit" type="submit" value="Next"/>
