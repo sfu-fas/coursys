@@ -6,7 +6,7 @@
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url onlineforms.views.list_all %}">Forms</a></li>
-<li>&gt; <a href="{% url onlineforms.views.edit_form form_slug=form_slug %}">{{form_slug}}</a></li>
+<li>&gt; <a href="{% url onlineforms.views.edit_form form_slug=owner_form.slug %}">{{owner_form.title}}</a></li>
 <li>&gt; New Sheet</li>
 {% endblock %}
 
@@ -18,7 +18,7 @@
             {{ form.non_field_errors }}
         </p>
     {% endif %}
-    <form action="{% url onlineforms.views.new_sheet form_slug=form_slug %}" method="post">{% csrf_token %}
+    <form action="{% url onlineforms.views.new_sheet form_slug=owner_form.slug %}" method="post">{% csrf_token %}
         <fieldset>
             <legend>Sheet Information</legend>
             <ul>

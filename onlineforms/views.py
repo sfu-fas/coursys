@@ -108,13 +108,13 @@ def edit_form(request, form_slug):
 
 
 def new_sheet(request, form_slug):
+    owner_form = get_object_or_404(Form, slug=form_slug)
     form = SheetForm(request.POST or None)
     if form.is_valid():
-        owner_form = get_object_or_404(Form, slug=form_slug)
         Sheet.objects.create(title=form.cleaned_data['title'], form=owner_form)
         messages.success(request, 'Successfully created the new sheet \'%s\'' % form.cleaned_data['title'])
 
-    context = {'form': form, 'form_slug': form_slug}
+    context = {'form': form, 'owner_form': owner_form}
     return render(request, "onlineforms/new_sheet.html", context)
 
 
@@ -228,7 +228,7 @@ def new_field(request, form_slug, sheet_slug):
         form = FieldForm()
         section = 'config'
 
-    context = {'form': form, 'slug_form': form_slug, 'slug_sheet': sheet_slug, 'section': section, 'type_name': type}
+    context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet, 'section': section, 'type_name': type}
     return render(request, 'onlineforms/new_field.html', context)
 
 
