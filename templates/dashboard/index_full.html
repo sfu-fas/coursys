@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load markup %}
+
+{% block headextra %}
+{% endblock %}
+
+{% block title %}CourSys: Course History{% endblock %}
+{% block h1 %}CourSys: Course History{% endblock %} 
+
+{% block subbreadcrumbs %}<li>&gt; Course History</li>{% endblock %}
+
+{% block content %}
+
+{% regroup memberships by offering.semester as by_semester %}
+{% for semester in by_semester %}
+  <h2 class="semester timely" id="semester-{{semester.grouper.name}}">{{semester.grouper.label}}</h2>
+  <ul>
+  {% for membership in semester.list %}
+    <li><a href="{{membership.offering.get_absolute_url}}">{{membership.offering.name}}</a></li>
+  {% endfor %}
+  </ul>
+{% endfor %}
+
+{% endblock %}
