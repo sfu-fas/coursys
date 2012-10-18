@@ -80,7 +80,11 @@ def new_form(request):
 
 
 def view_form(request, form_slug):
-    pass
+    form = get_object_or_404(Form, slug=form_slug)
+    sheets = Sheet.objects.filter(form=form, active=True).order_by('order')
+
+    context = {'form': form, 'sheets':sheets}
+    return render(request, "onlineforms/view_form.html", context)
 
 
 def preview_form(request, form_slug):
