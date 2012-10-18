@@ -1,6 +1,7 @@
 from courselib.auth import requires_role
 from django.shortcuts import render
-from grad.models import GradStudent, GradProgram, SavedSearch, GradRequirement, ScholarshipType, STATUS_ACTIVE
+from grad.models import GradStudent, GradProgram, SavedSearch, GradRequirement, ScholarshipType, \
+    STATUS_ACTIVE, STATUS_OBSOLETE, STATUS_CHOICES
 from django.http import HttpResponseRedirect, HttpResponse
 from grad.forms import SearchForm, SaveSearchForm, COLUMN_CHOICES, COLUMN_WIDTHS
 from django.core.urlresolvers import reverse
@@ -45,10 +46,12 @@ def search(request):
             GradRequirement.objects.filter(program__unit__in=request.units, hidden=False).order_by('program__label', 'description')]
     scholarshiptype_choices = [(st.id, st.name) for st in ScholarshipType.objects.filter(unit__in=request.units, hidden=False)]
     program_choices = [(gp.id, gp.label) for gp in GradProgram.objects.filter(unit__in=request.units, hidden=False)]
+    status_choices = [(st,desc) for st,desc in STATUS_CHOICES if st not in STATUS_OBSOLETE]
     form.fields['requirements'].choices = requirement_choices
     form.fields['incomplete_requirements'].choices = requirement_choices
     form.fields['scholarshiptype'].choices = scholarshiptype_choices
     form.fields['program'].choices = program_choices
+    form.fields['student_status'].choices = status_choices
     
     if 'edit_search' not in request.GET and form.is_valid():
         query = form.get_query()
