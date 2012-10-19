@@ -252,7 +252,7 @@ def new_account(request):
 @requires_role("FUND")
 def accounts_index(request):
     depts = Role.objects.filter(person__userid=request.user.username, role='FUND').values('unit_id')
-    accounts = Account.objects.filter(unit__id__in=depts).order_by("account_number")
+    accounts = Account.objects.filter(unit__id__in=depts, hidden=False).order_by("account_number")
     return render(request, 'ra/accounts_index.html', {'accounts': accounts})
 
 #@requires_role("FUND")
@@ -292,7 +292,7 @@ def new_project(request):
 @requires_role("FUND")
 def projects_index(request):
     depts = Role.objects.filter(person__userid=request.user.username, role='FUND').values('unit_id')
-    projects = Project.objects.filter(unit__id__in=depts).order_by("project_number")
+    projects = Project.objects.filter(unit__id__in=depts, hidden=False).order_by("project_number")
     return render(request, 'ra/projects_index.html', {'projects': projects})
 
 #@requires_role("FUND")
@@ -333,8 +333,8 @@ def search_scholarships_by_student(request, student_id):
 def browse(request):
     units = request.units
     hiring_choices = [('all', 'All')] + possible_supervisors(units)
-    project_choices = [('all', 'All')] + [(p.id, unicode(p)) for p in Project.objects.filter(unit__in=units)]
-    account_choices = [('all', 'All')] + [(a.id, unicode(a)) for a in Account.objects.filter(unit__in=units)]
+    project_choices = [('all', 'All')] + [(p.id, unicode(p)) for p in Project.objects.filter(unit__in=units, hidden=False)]
+    account_choices = [('all', 'All')] + [(a.id, unicode(a)) for a in Account.objects.filter(unit__in=units, hidden=False)]
     if 'data' in request.GET:
         # AJAX query for data
         ras = RAAppointment.objects.filter(unit__in=units) \
