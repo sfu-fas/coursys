@@ -382,6 +382,7 @@ COLUMN_CHOICES = (
         ('completed_req',           'Completed Req'),
         ('gpa',                     'CGPA'),
         ('visa',                    'Visa'),
+        ('gender',                  'Gender')
         )
 COLUMN_WIDTHS_DATA = (
         # first field is interpreted by getattribute template filter (grad/templatetags/getattribute.py)

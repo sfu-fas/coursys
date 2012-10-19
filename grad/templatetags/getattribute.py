@@ -31,6 +31,8 @@ def getattribute(value, arg):
             return res
         else:
             return ''
+    elif arg == 'gender':
+        return value.person.gender()
     elif arg == 'visa':
         return value.person.visa()
     elif arg == 'person.emplid':
