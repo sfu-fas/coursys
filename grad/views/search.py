@@ -3,6 +3,7 @@ from django.shortcuts import render
 from grad.models import GradStudent, GradProgram, SavedSearch, GradRequirement, ScholarshipType, \
     STATUS_ACTIVE, STATUS_OBSOLETE, STATUS_CHOICES
 from django.http import HttpResponseRedirect, HttpResponse
+from django.contrib import messages
 from grad.forms import SearchForm, SaveSearchForm, COLUMN_CHOICES, COLUMN_WIDTHS
 from django.core.urlresolvers import reverse
 from coredata.models import Person
@@ -10,6 +11,7 @@ import unicodecsv as csv
 import copy, datetime
 from grad.templatetags.getattribute import getattribute
 
+MAX_RESULTS = 1000
 
 def _get_cleaned_get(request):
     """
@@ -57,7 +59,11 @@ def search(request):
         query = form.get_query()
         grads = GradStudent.objects.filter(program__unit__in=request.units).filter(query).select_related('person', 'program').distinct()
         grads = filter(form.secondary_filter(), grads)
-        grads = grads[:1000]
+        
+        overflow = False
+        if len(grads) > MAX_RESULTS:
+            grads = grads[:MAX_RESULTS]
+            overflow = True
         
         if savedsearch is not None:
             saveform = SaveSearchForm(instance=savedsearch)
@@ -123,6 +129,8 @@ def search(request):
             response['Cache-control'] = 'private'
             return response
         
+        if overflow:
+            messages.warning(request, "Too many result found: limited to %i." % (MAX_RESULTS))
         context = {
                    'grads': grads,
                    'human_readable_column_headers': human_readable_column_headers,

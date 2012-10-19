@@ -46,7 +46,13 @@ def view(request, grad_slug, section=None):
     if grad is None or authtype == 'student':
         return ForbiddenResponse(request)
     
-    context = {'grad': grad, 'index': True}
+    active_semester_count, total_semester_count = _active_and_total_semester_count(grad)
+    context = {
+        'grad': grad, 
+        'index': True, 
+        'active_semester_count':active_semester_count,
+        'total_semester_count':total_semester_count}
+
     for s in all_sections:
         context[s+'_content'] = ''
     

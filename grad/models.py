@@ -123,10 +123,12 @@ class GradStudent(models.Model):
             self.current_status = last_status[0].status
         
         # start_semester
-        starts = all_gs.filter(status__in=STATUS_ACTIVE).order_by('start__name')
-        if starts.count() > 0:
-            start_status = starts[0]
-            self.start_semester = start_status.start
+        #starts = all_gs.filter(status__in=STATUS_ACTIVE).order_by('start__name')
+        #if starts.count() > 0:
+        #    start_status = starts[0]
+        #    self.start_semester = start_status.start
+        first_program = GradProgramHistory.objects.filter(student=self).order_by('start_semester__name')[0]
+        self.start_semester = first_program.start_semester
 
         # end_semester
         ends = all_gs.filter(status__in=STATUS_DONE).order_by('-start__name')
@@ -154,6 +156,37 @@ class GradStudent(models.Model):
             return applic[0].start.next_semester()
         # next semester
         return Semester.current().next_semester()
+
+    def active_semesters(self):
+        """
+        Number of active and total semesters
+        """
+        next_sem = Semester.current().offset(1)
+        start = self.start_semester
+        end = self.end_semester or next_sem
+        total = end - start
+        away = set()
+        # some leave/withdrawn statuses overlap, so this seems to be the easiest way
+        # to do this: actually enumerate away semesters.
+        for gs in GradStatus.objects.filter(student=self, status__in=STATUS_INACTIVE):
+            if end and not gs.end:
+                # completed program, but this status is open
+                st_en = end
+            else:
+                st_en = gs.end or next_sem
+            
+            if start.name > gs.start.name:
+                sem = start
+            else:
+                sem = gs.start
+
+            while sem.name < st_en.name:
+                away.add(sem)
+                sem = sem.next_semester()
+        
+        away = len(away)
+        return total-away, total
+
     
     def flags_and_values(self):
         """
@@ -248,7 +281,7 @@ class GradStudent(models.Model):
                         s.amount, s.scholarship_type.name)
 
         # starting info
-        startsem = self.start_semester_guess()
+        startsem = self.start_semester
         if startsem:
             startyear = unicode(startsem.start.year)
             startsem = startsem.label()
@@ -387,6 +420,10 @@ class GradProgramHistory(models.Model):
             help_text="Semester when the student entered the program")
     starting = models.DateField(default=datetime.date.today)
     
+    def save(self, *args, **kwargs):
+        super(GradProgramHistory, self).save(*args, **kwargs)
+        self.student.update_status_fields()
+
     def __unicode__(self):
         return "%s: %s/%s" % (self.student.person, self.program, self.start_semester.name)
 
