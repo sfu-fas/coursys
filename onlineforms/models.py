@@ -201,7 +201,7 @@ class Form(models.Model, _FormCoherenceMixin):
         return "%s" % (self.title)
     
     @transaction.commit_on_success
-    def save(self, *args, duplicate_and_save=False, **kwargs):
+    def save(self, duplicate_and_save=False, *args, **kwargs):
         if duplicate_and_save:
             # duplicate self.instance and save that, and return it.
             pass
@@ -210,9 +210,6 @@ class Form(models.Model, _FormCoherenceMixin):
         self.cleanup_fields()
         return instance
 
-    def duplicate(self):
-        
-        
 
 class Sheet(models.Model, _FormCoherenceMixin):
     title = models.CharField(max_length=60, null=False, blank=False)

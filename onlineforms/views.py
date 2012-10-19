@@ -71,11 +71,11 @@ def list_all(request):
             form.delete()    
             messages.success(request, 'Removed the Form ')
         return HttpResponseRedirect(reverse(list_all))    
-     else:     
+    else:
         form = FormForm()   
         forms = Form.objects.all()
         context = {'form': form, 'forms':forms}
-     return render_to_response('onlineforms/forms.html', context, context_instance=RequestContext(request))
+    return render_to_response('onlineforms/forms.html', context, context_instance=RequestContext(request))
 
 def new_form(request):
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'add':

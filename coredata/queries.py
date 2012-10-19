@@ -75,11 +75,14 @@ class SIMSConn(DBConn):
     DB2Error = None
 
     def get_connection(self):
-        passfile = open(self.dbpass_file)
-        _ = passfile.next()
-        _ = passfile.next()
-        _ = passfile.next()
-        simspasswd = passfile.next().strip()
+        try:
+            passfile = open(self.dbpass_file)
+            _ = passfile.next()
+            _ = passfile.next()
+            _ = passfile.next()
+            simspasswd = passfile.next().strip()
+        except IOError:
+            simspasswd = ''
         
         import DB2
         SIMSConn.DatabaseError = DB2.DatabaseError
