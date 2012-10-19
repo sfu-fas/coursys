@@ -108,12 +108,12 @@ class GradTest(TestCase):
         lt = LetterTemplate(unit=gs.program.unit, label='Template', content="This is the\n\nletter for {{first_name}}.")
         lt.save()
         Supervisor(student=gs, supervisor=Person.objects.get(userid='ggbaker'), supervisor_type='SEN').save()
+        GradProgramHistory(student=gs, program=gs.program).save()
         GradStatus(student=gs, status='ACTI', start=sem).save()
         CompletedRequirement(student=gs, requirement=req, semester=sem).save()
         Scholarship(student=gs, scholarship_type=st, amount=1000, start_semester=sem, end_semester=sem).save()
         OtherFunding(student=gs, amount=100, semester=sem, description="Some Other Funding", comments="Other Funding\n\nComment").save()
         Promise(student=gs, amount=10000, start_semester=sem, end_semester=sem.next_semester()).save()
-        GradProgramHistory(student=gs, program=gs.program).save()
         
         url = reverse('grad.views.get_letter_text', kwargs={'grad_slug': gs.slug, 'letter_template_id': lt.id})
         content = client.get(url).content
