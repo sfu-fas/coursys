@@ -58,21 +58,13 @@ function update_pay_frequency() {
 function update_pay_periods() {
 	var start_text = $("#id_start_date").val();
 	var end_text = $("#id_end_date").val();
-  var start_list = start_text.split("-");
-  var end_list = end_text.split("-");
-  var st = new Date(start_list[0], start_list[1], start_list[2]);
-  var en = new Date(end_list[0], end_list[1], end_list[2]);
-	var day = 1000*3600*24; // # of milliseconds in a day
-	var count = 0;
-	
-	// count non-weekend days from st to en (there's a better way, but my JS isn't up to it.)
-	while ( st <= en ) {
-		st = new Date(st.getTime() + day);
-		if ( st.getDay() >= 1 && st.getDay() <= 5 ) {
-			count += 1;
-		}
-	}
-	$("#id_pay_periods").val(count/10);
+	var url = payperiods_url + "?start=" + start_text + "&end=" + end_text;
+	$.ajax({
+		url: url,
+		success: function(data) {
+			$("#id_pay_periods").val(data);
+		},
+	});
 }
 
 

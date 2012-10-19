@@ -55,15 +55,10 @@ class URLCustomField(FieldBase):
 
   
 class DividerField(FieldBase):
-    class DividerConfigForm(FieldConfigForm):
-        pass
-        """def __init__(self, config=None, *args, **kwargs):
-            self.required = None
-            self.label = None
-            self.help_text = None"""
+    configurable = False
             
     def make_config_form(self):
-        return self.DividerConfigForm(self.config)
+        raise NotImplementedError
 
     def make_entry_field(self, fieldsubmission=None):
         from onlineforms.forms import DividerFieldWidget

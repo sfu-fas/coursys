@@ -19,7 +19,7 @@ import itertools
 
 today = datetime.date.today()
 past_cutoff = today - datetime.timedelta(days=30)
-future_cutoff = today + datetime.timedelta(days=60)
+future_cutoff = today + datetime.timedelta(days=90)
 
 # these users will be given sysadmin role (for bootstrapping)
 #sysadmin = ["ggbaker", "sumo"]
@@ -682,7 +682,7 @@ def update_grads():
     """
     active = GradStudent.objects.filter(current_status__in=STATUS_ACTIVE).select_related('person')
     applicants = GradStudent.objects.filter(current_status__in=STATUS_APPLICANT,
-                 updated_at__gt=datetime.datetime.now()-datetime.timedelta(days=60)).select_related('person')
+                 updated_at__gt=datetime.datetime.now()-datetime.timedelta(days=7)).select_related('person')
     for gs in itertools.chain(active, applicants):
         get_person_grad(gs.person.emplid)
 

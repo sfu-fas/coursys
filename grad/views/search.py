@@ -1,6 +1,7 @@
 from courselib.auth import requires_role
 from django.shortcuts import render
-from grad.models import GradStudent, GradProgram, SavedSearch, GradRequirement, ScholarshipType, STATUS_ACTIVE
+from grad.models import GradStudent, GradProgram, SavedSearch, GradRequirement, ScholarshipType, \
+    STATUS_ACTIVE, STATUS_OBSOLETE, STATUS_CHOICES
 from django.http import HttpResponseRedirect, HttpResponse
 from grad.forms import SearchForm, SaveSearchForm, COLUMN_CHOICES, COLUMN_WIDTHS
 from django.core.urlresolvers import reverse
@@ -45,10 +46,12 @@ def search(request):
             GradRequirement.objects.filter(program__unit__in=request.units, hidden=False).order_by('program__label', 'description')]
     scholarshiptype_choices = [(st.id, st.name) for st in ScholarshipType.objects.filter(unit__in=request.units, hidden=False)]
     program_choices = [(gp.id, gp.label) for gp in GradProgram.objects.filter(unit__in=request.units, hidden=False)]
+    status_choices = [(st,desc) for st,desc in STATUS_CHOICES if st not in STATUS_OBSOLETE]
     form.fields['requirements'].choices = requirement_choices
     form.fields['incomplete_requirements'].choices = requirement_choices
     form.fields['scholarshiptype'].choices = scholarshiptype_choices
     form.fields['program'].choices = program_choices
+    form.fields['student_status'].choices = status_choices
     
     if 'edit_search' not in request.GET and form.is_valid():
         query = form.get_query()
@@ -79,7 +82,8 @@ def search(request):
                 for column in columns:
                     value = getattribute(grad, column)
                     row.append(value)
-                writer.writerow( row ) 
+                writer.writerow( row )
+            response['Cache-control'] = 'private' 
             return response
         
         elif 'excel' in request.GET:
@@ -116,6 +120,7 @@ def search(request):
             sheet.write(count+5, 0, 'Report generated: %s' % (datetime.datetime.now()))
             
             book.save(response)
+            response['Cache-control'] = 'private'
             return response
         
         context = {
@@ -127,7 +132,9 @@ def search(request):
                    'xls_link' : request.get_full_path() + "&excel=yes",
                    'query_string': query_string,
                    }
-        return render(request, 'grad/search_results.html', context)
+        resp = render(request, 'grad/search_results.html', context)
+        resp['Cache-control'] = 'private'
+        return resp
     else:
         #savedsearches = SavedSearch.objects.filter(person__in=(current_user,None))
         page_title = 'Graduate Student Advanced Search'
@@ -139,4 +146,6 @@ def search(request):
                    # a non-None savedsearch here means that somehow, an invalid search got saved
                    # the template gives the user the option to delete it
                    }
-        return render(request, 'grad/search.html', context)
+        resp = render(request, 'grad/search.html', context)
+        resp['Cache-control'] = 'private'
+        return resp

@@ -2,6 +2,9 @@
 {% load form_display %}
 
 {% block headextra %}
+<script type="text/javascript">
+var payperiods_url = "{% url ra.views.pay_periods %}"; 
+</script>
 <script type="text/javascript" src="/media/js/ra.js"></script>
 <link rel="stylesheet" type="text/css" href="/media/ra/ra.css" />
 {% endblock %}

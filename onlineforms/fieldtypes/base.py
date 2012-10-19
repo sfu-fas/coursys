@@ -25,6 +25,7 @@ class FieldConfigForm(forms.Form):
 
 class FieldBase(object):
     default_config = {'required': False, 'label': '', 'help_text': ''}
+    configurable = True
 
     def __init__(self, config=None):
         """

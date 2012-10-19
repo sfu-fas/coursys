@@ -15,7 +15,7 @@ from django.template import RequestContext
 
 # FormGroup management views
 from onlineforms.fieldtypes import *
-from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm
+from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup
 from onlineforms.utils import reorder_sheet_fields
 
@@ -63,11 +63,19 @@ def remove_group_member(request, formgroup_slug, userid):
 # Form admin views
 
 def list_all(request):
-    form = FormForm()
-    forms = Form.objects.all()
-    context = {'form': form, 'forms': forms}
+    if request.method == 'POST' and 'action' in request.POST and request.POST['action']=='del':
+        form_id = request.POST['form_id']   
+        forms = Form.objects.filter(id=form_id)
+        if forms:  
+            form = forms[0]
+            form.delete()    
+            messages.success(request, 'Removed the Form ')
+        return HttpResponseRedirect(reverse(list_all))    
+    else:
+        form = FormForm()   
+        forms = Form.objects.all()
+        context = {'form': form, 'forms':forms}
     return render_to_response('onlineforms/forms.html', context, context_instance=RequestContext(request))
-
 
 def new_form(request):
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'add':
@@ -116,7 +124,7 @@ def edit_form(request, form_slug):
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'edit':
         form = FormForm(request.POST, instance=owner_form)
         if form.is_valid():
-            form.save()
+            owner_form = form.save(duplicate_and_save=True)
             return HttpResponseRedirect(reverse('onlineforms.views.view_form', kwargs={'form_slug': owner_form.slug}))
     else:
         form = FormForm(instance=owner_form)
@@ -206,6 +214,21 @@ def reorder_field(request, form_slug, sheet_slug):
 
         return HttpResponse("Order updated!")
     return ForbiddenResponse(request)
+
+def edit_sheet_info(request, form_slug, sheet_slug):
+    owner_form = get_object_or_404(Form, slug=form_slug)
+    owner_sheet = get_object_or_404(Sheet, slug=sheet_slug)
+
+    if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'edit':
+        form = EditSheetForm(request.POST, instance=owner_sheet)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('onlineforms.views.edit_sheet', kwargs={'form_slug': owner_form.slug, 'sheet_slug': owner_sheet.slug}))
+    else:
+        form = EditSheetForm(instance=owner_sheet)
+
+    context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet}
+    return render(request, 'onlineforms/edit_sheet_info.html', context)
 
 
 def new_field(request, form_slug, sheet_slug):
