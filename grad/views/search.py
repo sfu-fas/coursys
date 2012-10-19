@@ -82,7 +82,8 @@ def search(request):
                 for column in columns:
                     value = getattribute(grad, column)
                     row.append(value)
-                writer.writerow( row ) 
+                writer.writerow( row )
+            response['Cache-control'] = 'private' 
             return response
         
         elif 'excel' in request.GET:
@@ -119,6 +120,7 @@ def search(request):
             sheet.write(count+5, 0, 'Report generated: %s' % (datetime.datetime.now()))
             
             book.save(response)
+            response['Cache-control'] = 'private'
             return response
         
         context = {
@@ -130,7 +132,9 @@ def search(request):
                    'xls_link' : request.get_full_path() + "&excel=yes",
                    'query_string': query_string,
                    }
-        return render(request, 'grad/search_results.html', context)
+        resp = render(request, 'grad/search_results.html', context)
+        resp['Cache-control'] = 'private'
+        return resp
     else:
         #savedsearches = SavedSearch.objects.filter(person__in=(current_user,None))
         page_title = 'Graduate Student Advanced Search'
@@ -142,4 +146,6 @@ def search(request):
                    # a non-None savedsearch here means that somehow, an invalid search got saved
                    # the template gives the user the option to delete it
                    }
-        return render(request, 'grad/search.html', context)
+        resp = render(request, 'grad/search.html', context)
+        resp['Cache-control'] = 'private'
+        return resp
