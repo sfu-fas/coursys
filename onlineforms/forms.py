@@ -19,6 +19,7 @@ class GroupForm(ModelForm):
 class FormForm(ModelForm):
     class Meta:
         model = Form
+	exclude = ('active', 'original',) 
         
 class SheetForm(forms.Form):
     title = forms.CharField(required=True, max_length=30, label=mark_safe('Title'), help_text='Name of the sheet')
