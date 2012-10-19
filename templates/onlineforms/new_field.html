@@ -11,27 +11,40 @@
             $(document).ready(function () {
 
                 var choice_count = 0;
-                var choices = []
+                var r_button = '<input type="button" name="remove_choice" value="Remove"/>';
+
+                $('input[name^="choice_"]').after(r_button)
+                $('input[name^="remove_choice"]').click(function(){
+                    alert("TEST")
+                })
 
                 var new_choice_field = function () {
-                    choice_count++
-                    if ($("#choice_" + choice_count).length) {
-                        return new_choice_field()
-                    }
-                    new_choice = '<dt><label for="choice_' + choice_count + '">Choice: </label></dt><dd>\ ' +
-                            '<div class="field"><input type="text" name="choice_' + choice_count + ' " id="choice_' + choice_count + '" /></div>\ ' +
+
+                    new_choice = '<dt class="all_choice_'+choice_count+'"><label for="choice_' + choice_count + '">Choice: </label></dt><dd class="all_choice_'+choice_count+'">\ ' +
+                            '<div class="field"><input type="text" name="choice_' + choice_count + '" id="id_choice_' + choice_count + '" />'+r_button+'</div>\ ' +
                             '</dd>'
+
                     return new_choice
                 }
 
-
                 $("dd").last().after('<dt id="add_dt"><label for="add_button">Add</label></dt><dd>\ ' +
-                        '<div class="field"><input type="button" name="Add Choice" id="add_button" /></div>\ ' +
+                        '<div class="field"><input type="button" name="Add Choice" value="Add Choice" id="add_button" /></div>\ ' +
                         '</dd></div>');
 
                 $("#add_button").click(function () {
+                    choice_count++
+                    while($("#id_choice_"+choice_count).length){
+                        choice_count++
+                    }
                     $('#add_dt').before(new_choice_field());
+
+                    $('input[name^="remove_choice"]').unbind('click');
+                    $('input[name^="remove_choice"]').click(function(){
+                        alert("TEST2")
+                    })
                 });
+
+
             });
         </script>
     {% endif %}

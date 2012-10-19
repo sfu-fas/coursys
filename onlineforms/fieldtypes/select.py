@@ -20,8 +20,6 @@ class RadioSelectField(FieldBase):
 
 class DropdownSelectField(FieldBase):
 
-    default_config = {'required': False, 'label': '', 'help_text': ''}
-
     class DropdownSelectConfigForm(FieldConfigForm):
 
         def __init__(self, config=None):
