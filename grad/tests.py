@@ -1,13 +1,12 @@
 from django.test import TestCase
 from django.test.client import Client
-from settings import CAS_SERVER_URL
 from django.core.urlresolvers import reverse
 import json, datetime
 from coredata.models import Person, Semester
 from grad.models import GradStudent, GradRequirement, GradProgram, Letter, LetterTemplate, \
         Supervisor, GradStatus, CompletedRequirement, ScholarshipType, Scholarship, OtherFunding, \
         Promise, GradProgramHistory
-from courselib.testing import basic_page_tests
+from courselib.testing import basic_page_tests, test_auth
 from grad.views.view import all_sections
 
 
@@ -19,7 +18,7 @@ class GradTest(TestCase):
         Tests grad quicksearch (index page) functionality
         """
         client = Client()
-        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        test_auth(client, 'ggbaker')
         response = client.get(reverse('grad.views.index'))
         self.assertEqual(response.status_code, 200)
         
@@ -51,13 +50,13 @@ class GradTest(TestCase):
         Tests that /grad/search is available.
         """
         client = Client()
-        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        test_auth(client, 'ggbaker')
         response = client.get(reverse('grad.views.search'))
         self.assertEqual(response.status_code, 200)
     
     def test_that_grad_search_with_csv_option_returns_csv(self):
         client = Client()
-        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        test_auth(client, 'ggbaker')
         response = client.get(reverse('grad.views.search'), {'columns':'person.first_name', 'csv':'sure'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'text/csv')
@@ -67,7 +66,7 @@ class GradTest(TestCase):
         Check overall pages for the grad module and make sure they all load
         """
         client = Client()
-        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        test_auth(client, 'ggbaker')
         
         prog = GradProgram.objects.all()[0]
         GradRequirement(program=prog, description="Some Requirement").save()
@@ -96,7 +95,7 @@ class GradTest(TestCase):
         Check the pages for a grad student and make sure they all load
         """
         client = Client()
-        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        test_auth(client, 'ggbaker')
         gs = GradStudent.objects.get(person__userid='0nnngrad')
         sem = Semester.current()
         
@@ -164,7 +163,7 @@ class GradTest(TestCase):
         Check handling of letters for grad students
         """
         client = Client()
-        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        test_auth(client, 'ggbaker')
         gs = GradStudent.objects.get(person__userid='0nnngrad')
 
         # get template text and make sure substitutions are made
