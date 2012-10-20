@@ -29,13 +29,10 @@ class DropdownSelectField(FieldBase):
 
             self.config = config
 
-            keys = self.find_keys("choice_")
+            keys = [c for c in self.config if c.startswith("choice_") and self.config[c]]
 
             for k in keys:
                 self.fields[k] = forms.CharField(required=False, label="Choice")
-
-        def find_keys(self, start):
-            return [c for c in self.config if c.startswith(start) and self.config[c]]
 
 
     def make_config_form(self):
@@ -43,10 +40,18 @@ class DropdownSelectField(FieldBase):
         return config
 
     def make_entry_field(self, fieldsubmission=None):
-        raise NotImplementedError
+
+        the_choices = [(k,v) for k,v in self.config.iteritems() if k.startswith("choice_") and self.config[k]]
+
+        c = forms.ChoiceField(required=self.config['required'],
+            label=self.config['label'],
+            help_text=self.config['help_text'],
+            choices = the_choices)
+
+        return c
 
     def serialize_field(self, field):
-        raise NotImplementedError
+        return {'choice': unicode(field.clean())}
 
     def to_html(self, fieldsubmission=None):
         raise NotImplementedError
