@@ -67,7 +67,7 @@ class GradStudent(models.Model):
         return make_slug(userid + "-" + self.program.slug)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
     research_area = models.TextField('Research Area', blank=True)
-    campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES, blank=True)
+    campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES, blank=True, db_index=True)
 
     english_fluency = models.CharField(max_length=50, blank=True, help_text="I.e. Read, Write, Speak, All.")
     mother_tongue = models.CharField(max_length=25, blank=True, help_text="I.e. English, Chinese, French")
@@ -83,7 +83,7 @@ class GradStudent(models.Model):
     # fields that are essentially denormalized caches for advanced search. Updated by self.update_status_fields()
     start_semester = models.ForeignKey(Semester, null=True, help_text="Semester when the student started the program.", related_name='grad_start_sem')
     end_semester = models.ForeignKey(Semester, null=True, help_text="Semester when the student finished/left the program.", related_name='grad_end_sem')
-    current_status = models.CharField(max_length=4, null=True, choices=STATUS_CHOICES, help_text="Current student status")
+    current_status = models.CharField(max_length=4, null=True, choices=STATUS_CHOICES, help_text="Current student status", db_index=True)
 
     config = JSONField(default={}) # addition configuration
         # 'sin': Social Insurance Number
@@ -529,6 +529,8 @@ class GradRequirement(models.Model):
     hidden = models.BooleanField(default=False)
     def __unicode__(self):
         return u"%s" % (self.description)
+    class Meta:
+        unique_together = (('program', 'description'),)
         
 
 class CompletedRequirement(models.Model):
@@ -685,7 +687,7 @@ class ScholarshipType(models.Model):
     comments = models.TextField(blank=True, null=True)
     hidden = models.BooleanField(default=False)
     class meta:
-        unique_together = ("unit", "name")
+        unique_together = (("unit", "name"),)
     def __unicode__(self):
         return u"%s - %s" % (self.unit.label, self.name)
 
@@ -783,6 +785,8 @@ class GradFlag(models.Model):
     
     def __unicode__(self):
         return self.label
+    class Meta:
+        unique_together = (('unit', 'label'),)
 
 class GradFlagValue(models.Model):
     student = models.ForeignKey(GradStudent)
