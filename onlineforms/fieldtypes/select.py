@@ -20,6 +20,8 @@ class RadioSelectField(FieldBase):
 
 class DropdownSelectField(FieldBase):
 
+    choices = True
+
     class DropdownSelectConfigForm(FieldConfigForm):
 
         def __init__(self, config=None):
@@ -32,9 +34,8 @@ class DropdownSelectField(FieldBase):
             for k in keys:
                 self.fields[k] = forms.CharField(required=False, label="Choice")
 
-
         def find_keys(self, start):
-            return [c for c in self.config if c.startswith(start)]
+            return [c for c in self.config if c.startswith(start) and self.config[c]]
 
 
     def make_config_form(self):
@@ -50,8 +51,6 @@ class DropdownSelectField(FieldBase):
     def to_html(self, fieldsubmission=None):
         raise NotImplementedError
 
-    def require_choices(self):
-        return True
 
 
 class MultipleSelectField(FieldBase):

@@ -5,7 +5,7 @@
 {% block h1 %} New Field Type {% endblock %}
 
 {% block headextra %}
-    <!-- Check if it requires it -->
+    <!-- Changes must also be applied to edit_field.html -->
     {% if choices %}
         <script type="text/javascript">
             $(document).ready(function () {
@@ -20,9 +20,9 @@
 
                 var new_choice_field = function () {
 
-                    new_choice = '<dt class="all_choice_'+choice_count+'"><label for="choice_' + choice_count + '">Choice: </label></dt><dd class="all_choice_'+choice_count+'">\ ' +
+                    new_choice = '<div class="choice"><dt><label for="choice_' + choice_count + '">Choice: </label></dt><dd>\ ' +
                             '<div class="field"><input type="text" name="choice_' + choice_count + '" id="id_choice_' + choice_count + '" />'+r_button+'</div>\ ' +
-                            '</dd>'
+                            '</dd></div>'
 
                     return new_choice
                 }
@@ -40,11 +40,9 @@
 
                     $('input[name^="remove_choice"]').unbind('click');
                     $('input[name^="remove_choice"]').click(function(){
-                        alert("TEST2")
+                        $(this).parents('.choice').remove()
                     })
                 });
-
-
             });
         </script>
     {% endif %}

@@ -4,6 +4,50 @@
 {% block title %} Edit Field Type {% endblock %}
 {% block h1 %} Edit Field Type {% endblock %}
 
+{% block headextra %}
+    <!-- Changes must also be applied to new_field.html -->
+    {% if choices %}
+        <script type="text/javascript">
+            $(document).ready(function () {
+
+                var choice_count = 0;
+                var r_button = '<input type="button" name="remove_choice" value="Remove"/>';
+
+                $('input[name^="choice_"]').after(r_button)
+                $('input[name^="remove_choice"]').click(function(){
+                    alert("TEST")
+                })
+
+                var new_choice_field = function () {
+
+                    new_choice = '<div class="choice"><dt><label for="choice_' + choice_count + '">Choice: </label></dt><dd>\ ' +
+                            '<div class="field"><input type="text" name="choice_' + choice_count + '" id="id_choice_' + choice_count + '" />'+r_button+'</div>\ ' +
+                            '</dd></div>'
+
+                    return new_choice
+                }
+
+                $("dd").last().after('<dt id="add_dt"><label for="add_button">Add</label></dt><dd>\ ' +
+                        '<div class="field"><input type="button" name="Add Choice" value="Add Choice" id="add_button" /></div>\ ' +
+                        '</dd></div>');
+
+                $("#add_button").click(function () {
+                    choice_count++
+                    while($("#id_choice_"+choice_count).length){
+                        choice_count++
+                    }
+                    $('#add_dt').before(new_choice_field());
+
+                    $('input[name^="remove_choice"]').unbind('click');
+                    $('input[name^="remove_choice"]').click(function(){
+                        $(this).parents('.choice').remove()
+                    })
+                });
+            });
+        </script>
+    {% endif %}
+{% endblock %}
+
 {% block content %}
     <div id="form_container">
         {% if form.non_field_errors %}

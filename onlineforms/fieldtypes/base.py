@@ -26,6 +26,7 @@ class FieldConfigForm(forms.Form):
 class FieldBase(object):
     default_config = {'required': False, 'label': '', 'help_text': ''}
     configurable = True
+    choices = False
 
     def __init__(self, config=None):
         """
@@ -80,6 +81,3 @@ class FieldBase(object):
         e.g. return mark_safe('<p>'+escape(filled.data['info'])+'</p>')
         """
         raise NotImplementedError
-        
-    def require_choices(self):
-        return False
