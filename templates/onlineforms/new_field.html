@@ -50,7 +50,7 @@
 
 {% block subbreadcrumbs %}
     <li>&gt; <a href="{% url onlineforms.views.list_all %}">Forms</a></li>
-    <li>&gt; <a href="{% url onlineforms.views.edit_form form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
+    <li>&gt; <a href="{% url onlineforms.views.view_form form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
     <li>&gt; <a
             href="{% url onlineforms.views.edit_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug%}">{{ owner_sheet.title }}</a>
     </li>
@@ -68,7 +68,7 @@
         <form action="{% url onlineforms.views.new_field form_slug=owner_form.slug sheet_slug=owner_sheet.slug %}"
               method="post" name="form">{% csrf_token %}
             <fieldset>
-                <legend> New Field Type</legend>
+                <legend>Field Information</legend>
                 <ul>
                     {{ form|as_dl }}
                     <li id="form_section">
