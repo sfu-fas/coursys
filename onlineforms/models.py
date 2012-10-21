@@ -8,7 +8,7 @@ from courselib.slugs import make_slug
 from django.db.models import Max
  
 # choices for Form.initiator field
-from onlineforms.fieldtypes.other import DividerField
+from onlineforms.fieldtypes.other import FileCustomField, DividerField
 from onlineforms.fieldtypes.select import DropdownSelectField
 from onlineforms.fieldtypes.text import LargeTextField, ExplanationTextField, EmailTextField
 
@@ -56,7 +56,7 @@ FIELD_TYPE_MODELS = {
         'SEL1': DropdownSelectField,
         #'SELN': MultipleSelectField,
         #'LIST': ListField,
-        #'FILE': FileField,
+        'FILE': FileCustomField,
         #'URL': URLField,
         'TEXT': ExplanationTextField,
         'DIVI': DividerField,

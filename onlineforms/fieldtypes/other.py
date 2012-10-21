@@ -19,21 +19,23 @@ class ListField(FieldBase):
 
 
 class FileCustomField(FieldBase):
-    #Can use FileField
     class FileConfigForm(FieldConfigForm):
-        pass
+        max_length = forms.IntegerField(min_value=1, max_value=500)
 
     def make_config_form(self):
-        raise NotImplementedError
+        return self.FileConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        raise NotImplementedError
+        return forms.FileField(required=self.config['required'],
+                label=self.config['label'],
+                help_text=self.config['help_text'],
+                max_length=int(self.config['max_length']))
 
     def serialize_field(self, field):
-        raise NotImplementedError
+        return {'info': unicode(field.clean())}
 
     def to_html(self, fieldsubmission=None):
-        raise NotImplementedError
+        return mark_safe('<p>' + "File title?" + '</p>')
 
 
 class URLCustomField(FieldBase):
