@@ -30,7 +30,7 @@ def as_dl(form, safe=False, excludefields=[], includefields=None):
         if field.field.required:
             reqtext = ' <span class="required">*</span>'
             reqcount += 1
-        labelid = field.name
+        labelid = str(field.name)
         if form.prefix:
             labelid = form.prefix + '-' + labelid
         if isinstance(field.field.widget, (RadioSelect, SupervisorWidget)):

@@ -9,7 +9,7 @@ from django.db.models import Max
  
 # choices for Form.initiator field
 from onlineforms.fieldtypes.other import FileCustomField, DividerField
-from onlineforms.fieldtypes.select import DropdownSelectField
+from onlineforms.fieldtypes.select import DropdownSelectField, RadioSelectField, MultipleSelectField
 from onlineforms.fieldtypes.text import LargeTextField, ExplanationTextField, EmailTextField
 
 INITIATOR_CHOICES = [
@@ -52,9 +52,9 @@ FIELD_TYPE_MODELS = {
         'MDTX': MediumTextField,
         'LGTX': LargeTextField,
         'EMAI': EmailTextField,
-        #'RADI': RadioSelectField,
+        'RADI': RadioSelectField,
         'SEL1': DropdownSelectField,
-        #'SELN': MultipleSelectField,
+        'SELN': MultipleSelectField,
         #'LIST': ListField,
         'FILE': FileCustomField,
         #'URL': URLField,
