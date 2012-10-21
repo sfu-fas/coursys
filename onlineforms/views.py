@@ -138,7 +138,7 @@ def new_sheet(request, form_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
     form = SheetForm(request.POST or None)
     if form.is_valid():
-        Sheet.objects.create(title=form.cleaned_data['title'], form=owner_form)
+        Sheet.objects.create(title=form.cleaned_data['title'], form=owner_form, can_view=form.cleaned_data['can_view'])
         messages.success(request, 'Successfully created the new sheet \'%s\'' % form.cleaned_data['title'])
 
     context = {'form': form, 'owner_form': owner_form}
