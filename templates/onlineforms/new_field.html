@@ -15,14 +15,15 @@
 
                 $('input[name^="choice_"]').after(r_button)
                 $('input[name^="remove_choice"]').click(function(){
-                    alert("TEST")
+                    $(this).parents('dd').prev().remove()
+                    $(this).parents('dd').remove()
                 })
 
                 var new_choice_field = function () {
 
-                    new_choice = '<div class="choice"><dt><label for="choice_' + choice_count + '">Choice: </label></dt><dd>\ ' +
+                    new_choice = '<dt><label for="choice_' + choice_count + '">Choice: </label></dt><dd>\ ' +
                             '<div class="field"><input type="text" name="choice_' + choice_count + '" id="id_choice_' + choice_count + '" />'+r_button+'</div>\ ' +
-                            '</dd></div>'
+                            '</dd>'
 
                     return new_choice
                 }
@@ -40,7 +41,8 @@
 
                     $('input[name^="remove_choice"]').unbind('click');
                     $('input[name^="remove_choice"]').click(function(){
-                        $(this).parents('.choice').remove()
+                        $(this).parents('dd').prev().remove()
+                        $(this).parents('dd').remove()
                     })
                 });
             });
