@@ -1,6 +1,6 @@
 from django import forms
 from django.forms.models import ModelForm
-from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES
+from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 
@@ -28,6 +28,10 @@ class SheetForm(forms.Form):
 class EditSheetForm(ModelForm):
     class Meta:
         model = Sheet
+
+class NonSFUFormFillerForm(ModelForm):
+    class Meta:
+        model = NonSFUFormFiller
 
 class FieldForm(forms.Form):
     type = forms.ChoiceField(required=True, choices=FIELD_TYPE_CHOICES, label='Type')

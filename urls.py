@@ -461,6 +461,9 @@ urlpatterns += patterns('',
     url(r'forms/groups/' + FORMGROUP_SLUG + '/add$', 'onlineforms.views.add_group_member'),
     url(r'forms/groups/' + FORMGROUP_SLUG + '/remove/' + USERID_OR_EMPLID + '/$', 'onlineforms.views.remove_group_member'),
 
+    url(r'forms/submission/$', 'onlineforms.views.submissions_list_all_forms'),
+    url(r'forms/submission/' + FORM_SLUG + '/$', 'onlineforms.views.form_initial_submission'),
+
     url(r'forms/' + FORM_SLUG + '/$', 'onlineforms.views.view_form'),
     url(r'forms/' + FORM_SLUG + '/edit$', 'onlineforms.views.edit_form'),
     url(r'forms/' + FORM_SLUG + '/new$', 'onlineforms.views.new_sheet'),
@@ -472,6 +475,8 @@ urlpatterns += patterns('',
     url(r'forms/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/' + FIELD_SLUG + '$', 'onlineforms.views.edit_field'),
     url(r'forms/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/$', 'onlineforms.views.view_submission'),
     url(r'forms/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/' + SHEET_SLUG + '$', 'onlineforms.views.sheet_submission'),
+
+
 
 )
 

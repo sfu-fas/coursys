@@ -15,7 +15,7 @@ from django.template import RequestContext
 
 # FormGroup management views
 from onlineforms.fieldtypes import *
-from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm
+from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup
 from onlineforms.utils import reorder_sheet_fields
 
@@ -331,6 +331,29 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
     return render(request, 'onlineforms/edit_field.html', context)
 
 # Form-filling views
+
+def submissions_list_all_forms(request):
+    forms = Form.objects.filter(active=True)
+    context = {'forms': forms}
+    return render_to_response('onlineforms/submissions/forms.html', context, context_instance=RequestContext(request))
+
+def form_initial_submission(request, form_slug):
+    owner_form = get_object_or_404(Form, slug=form_slug)
+    # if they are not logged in we need them to create a non sfu form filler
+    if not(request.user.is_authenticated()):
+        form = NonSFUFormFillerForm()
+        context = {'owner_form': owner_form, 'form': form}
+        return render_to_response('onlineforms/submissions/non_sfu_form_filler.html', context, context_instance=RequestContext(request))
+
+    sheet = get_object_or_404(Sheet, form=owner_form, is_initial=True)
+    fields = Field.objects.filter(sheet=sheet, active=True).order_by('order')
+
+    form = DynamicForm(sheet.title)
+    form.fromFields(fields)
+
+    context = {'owner_form': owner_form, 'sheet': sheet, 'form': form}
+    return render_to_response('onlineforms/submissions/initial_sheet.html', context, context_instance=RequestContext(request))
+
 
 def view_submission(request, form_slug, formsubmit_slug):
     pass

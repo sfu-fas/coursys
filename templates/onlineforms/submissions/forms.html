@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block h1 %} Forms {% endblock %}
+{% block title %} Forms {% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; Forms</li>
+{% endblock %}
+
+{% block content %}
+{% if forms %}
+        <h2>Select a form to fill out:</h2>
+        <ul>
+        {% for form in forms %}
+            <li><a href="{% url onlineforms.views.form_initial_submission form_slug=form.slug %}">{{ form.title }}</a></li>
+        {% endfor %}
+        </ul>
+{% else %}
+        <p>There are currently no forms.</p>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block h1 %} {{ owner_form.title }} submission{% endblock %}
+{% block title %} {{ owner_form.title }} submission {% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url onlineforms.views.submissions_list_all_forms %}">Forms</a></li>
+<li>&gt; {{ owner_form.title }} submission</li>
+{% endblock %}
+
+{% block content %}
+
+<form action="" method="post">
+<fieldset>
+        <legend>Enter Your Contact Information</legend>
+        {{ form|as_dl }}
+        <p>If you have a SFU account, please <a href="/login/">login</a>.</p>
+        <input type="submit" value="submit" class="submit" />
+</fieldset>
+</form>
+
+{% endblock %}
