@@ -453,31 +453,30 @@ urlpatterns += patterns('',
     url(r'^advising/problems/(?P<prob_id>\d+)/$', 'advisornotes.views.edit_problem'),
 
 
-    url(r'forms/$', 'onlineforms.views.list_all'),
-    url(r'forms/new$', 'onlineforms.views.new_form'),
+    
     url(r'forms/groups/$', 'onlineforms.views.manage_groups'),
     url(r'forms/groups/new$', 'onlineforms.views.new_group'),
     url(r'forms/groups/' + FORMGROUP_SLUG + '/$', 'onlineforms.views.manage_group'),
     url(r'forms/groups/' + FORMGROUP_SLUG + '/add$', 'onlineforms.views.add_group_member'),
     url(r'forms/groups/' + FORMGROUP_SLUG + '/remove/' + USERID_OR_EMPLID + '/$', 'onlineforms.views.remove_group_member'),
 
-    url(r'forms/submission/$', 'onlineforms.views.submissions_list_all_forms'),
-    url(r'forms/submission/' + FORM_SLUG + '/$', 'onlineforms.views.form_initial_submission'),
+    url(r'forms/manage/$', 'onlineforms.views.list_all'),
+    url(r'forms/manage/new$', 'onlineforms.views.new_form'),
+    url(r'forms/manage/' + FORM_SLUG + '/$', 'onlineforms.views.view_form'),
+    url(r'forms/manage/' + FORM_SLUG + '/edit$', 'onlineforms.views.edit_form'),
+    url(r'forms/manage/' + FORM_SLUG + '/new$', 'onlineforms.views.new_sheet'),
+    url(r'forms/manage/' + FORM_SLUG + '/preview$', 'onlineforms.views.preview_form'),
+    url(r'forms/manage/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/$', 'onlineforms.views.edit_sheet'),
+    url(r'forms/manage/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/edit$', 'onlineforms.views.edit_sheet_info'),
+    url(r'forms/manage/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/reorder$', 'onlineforms.views.reorder_field'),
+    url(r'forms/manage/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/new$', 'onlineforms.views.new_field'),
+    url(r'forms/manage/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/' + FIELD_SLUG + '$', 'onlineforms.views.edit_field'),
 
-    url(r'forms/' + FORM_SLUG + '/$', 'onlineforms.views.view_form'),
-    url(r'forms/' + FORM_SLUG + '/edit$', 'onlineforms.views.edit_form'),
-    url(r'forms/' + FORM_SLUG + '/new$', 'onlineforms.views.new_sheet'),
-    url(r'forms/' + FORM_SLUG + '/preview$', 'onlineforms.views.preview_form'),
-    url(r'forms/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/$', 'onlineforms.views.edit_sheet'),
-    url(r'forms/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/edit$', 'onlineforms.views.edit_sheet_info'),
-    url(r'forms/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/reorder$', 'onlineforms.views.reorder_field'),
-    url(r'forms/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/new$', 'onlineforms.views.new_field'),
-    url(r'forms/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/' + FIELD_SLUG + '$', 'onlineforms.views.edit_field'),
+    url(r'forms/$', 'onlineforms.views.submissions_list_all_forms'),
+    url(r'forms/' + FORM_SLUG + '/$', 'onlineforms.views.form_initial_submission'),
     url(r'forms/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/$', 'onlineforms.views.view_submission'),
     url(r'forms/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/' + SHEET_SLUG + '$', 'onlineforms.views.sheet_submission'),
-
-
-
+    
 )
 
 if not settings.DEPLOYED:
