@@ -524,7 +524,11 @@ class GradRequirement(models.Model):
     """
     program = models.ForeignKey(GradProgram, null=False, blank=False)
     description = models.CharField(max_length=100)
-    series = models.PositiveIntegerField(null=False, db_index=True, help_text='The category of requirement for searching by requirement, across programs') # automatically maintained in self.save
+    series = models.PositiveIntegerField(null=False, db_index=True, help_text='The category of requirement for searching by requirement, across programs')
+    # .series is used to allow searching by type/series/category of requirement (e.g. "Completed Courses"),
+    # instead of requiring selection of a specifi GradRequirement in the search (which is too specific to a
+    # program).
+    # Values of .series are automatically maintained in self.save
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')
     hidden = models.BooleanField(default=False)
@@ -535,12 +539,11 @@ class GradRequirement(models.Model):
 
     @transaction.commit_on_success
     def save(self, *args, **kwargs):
-        # maintain self.series as identifying the category of requirements across programs
+        # maintain self.series as identifying the category of requirements across programs in this unit    
         if not self.series:
             others = GradRequirement.objects \
                     .filter(description=self.description,
-                            program__unit=self.program.unit) \
-                    .exclude(series=None)
+                            program__unit=self.program.unit)
             if others:
                 # use the series from an identically-named requirement
                 ser = others[0].series
