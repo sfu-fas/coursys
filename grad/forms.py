@@ -365,13 +365,13 @@ class NullBooleanSearchField(forms.NullBooleanField):
 
 COLUMN_CHOICES = (
         # first field is interpreted by getattribute template filter (grad/templatetags/getattribute.py)
+        ('person.last_name',        'Last Name'),
+        ('person.first_name',       'First Name'),
+        ('person.pref_first_name',  'Pref First Name'),
+        ('person.middle_name',      'Middle Name'),
+        # TODO Include stuff from config eg. email, phone, address
         ('person.emplid',           'Employee ID'),
         ('person.userid',           'User ID'),
-        ('person.first_name',       'First Name'),
-        ('person.middle_name',      'Middle Name'),
-        ('person.last_name',        'Last Name'),
-        ('person.pref_first_name',  'Pref First Name'),
-        # TODO Include stuff from config eg. email, phone, address
         ('program',                 'Program'),
         ('research_area',           'Research Area'),
         ('campus',                  'Campus'),
@@ -453,7 +453,7 @@ class SearchForm(forms.Form):
     scholarshiptype = forms.ModelMultipleChoiceField(ScholarshipType.objects.all(),
             label='Received Scholarship', required=False)
 
-    columns = forms.MultipleChoiceField(COLUMN_CHOICES, initial=('person.emplid', 'person.userid', 'person.first_name', 'person.last_name'),
+    columns = forms.MultipleChoiceField(COLUMN_CHOICES, initial=('person.last_name', 'person.first_name', 'person.emplid', 'person.userid', 'program', 'current_status', ),
             help_text='Columns to display in the search results.')
     
     semester_range_fields = [

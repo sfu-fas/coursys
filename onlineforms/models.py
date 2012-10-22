@@ -8,8 +8,8 @@ from courselib.slugs import make_slug
 from django.db.models import Max
  
 # choices for Form.initiator field
-from onlineforms.fieldtypes.other import DividerField
-from onlineforms.fieldtypes.select import DropdownSelectField
+from onlineforms.fieldtypes.other import FileCustomField, DividerField
+from onlineforms.fieldtypes.select import DropdownSelectField, RadioSelectField, MultipleSelectField
 from onlineforms.fieldtypes.text import LargeTextField, ExplanationTextField, EmailTextField
 
 INITIATOR_CHOICES = [
@@ -52,11 +52,11 @@ FIELD_TYPE_MODELS = {
         'MDTX': MediumTextField,
         'LGTX': LargeTextField,
         'EMAI': EmailTextField,
-        #'RADI': RadioSelectField,
+        'RADI': RadioSelectField,
         'SEL1': DropdownSelectField,
-        #'SELN': MultipleSelectField,
+        'SELN': MultipleSelectField,
         #'LIST': ListField,
-        #'FILE': FileField,
+        'FILE': FileCustomField,
         #'URL': URLField,
         'TEXT': ExplanationTextField,
         'DIVI': DividerField,
@@ -201,10 +201,15 @@ class Form(models.Model, _FormCoherenceMixin):
         return "%s" % (self.title)
     
     @transaction.commit_on_success
-    def save(self, *args, **kwargs):
-        super(Form, self).save(*args, **kwargs)
+    def save(self, duplicate_and_save=False, *args, **kwargs):
+        if duplicate_and_save:
+            # duplicate self.instance and save that, and return it.
+            pass
+        else:
+            instance = super(Form, self).save(*args, **kwargs)
         self.cleanup_fields()
-        
+        return instance
+
 
 class Sheet(models.Model, _FormCoherenceMixin):
     title = models.CharField(max_length=60, null=False, blank=False)

@@ -19,21 +19,23 @@ class ListField(FieldBase):
 
 
 class FileCustomField(FieldBase):
-    #Can use FileField
     class FileConfigForm(FieldConfigForm):
-        pass
+        max_length = forms.IntegerField(min_value=1, max_value=500)
 
     def make_config_form(self):
-        raise NotImplementedError
+        return self.FileConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        raise NotImplementedError
+        return forms.FileField(required=self.config['required'],
+                label=self.config['label'],
+                help_text=self.config['help_text'],
+                max_length=int(self.config['max_length']))
 
     def serialize_field(self, field):
-        raise NotImplementedError
+        return {'info': unicode(field.clean())}
 
     def to_html(self, fieldsubmission=None):
-        raise NotImplementedError
+        return mark_safe('<p>' + "File title?" + '</p>')
 
 
 class URLCustomField(FieldBase):
@@ -55,15 +57,10 @@ class URLCustomField(FieldBase):
 
   
 class DividerField(FieldBase):
-    class DividerConfigForm(FieldConfigForm):
-        pass
-        """def __init__(self, config=None, *args, **kwargs):
-            self.required = None
-            self.label = None
-            self.help_text = None"""
+    configurable = False
             
     def make_config_form(self):
-        return self.DividerConfigForm(self.config)
+        return self.configurable
 
     def make_entry_field(self, fieldsubmission=None):
         from onlineforms.forms import DividerFieldWidget

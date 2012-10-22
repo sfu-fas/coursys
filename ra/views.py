@@ -14,7 +14,7 @@ from grad.models import GradStudent, Scholarship
 from dashboard.letters import ra_form, OfficialLetter, LetterContents
 from django import forms
 
-import json
+import json, datetime
 
 #This is the search function that that returns a list of RA Appointments related to the query.
 @requires_role("FUND")
@@ -252,7 +252,7 @@ def new_account(request):
 @requires_role("FUND")
 def accounts_index(request):
     depts = Role.objects.filter(person__userid=request.user.username, role='FUND').values('unit_id')
-    accounts = Account.objects.filter(unit__id__in=depts).order_by("account_number")
+    accounts = Account.objects.filter(unit__id__in=depts, hidden=False).order_by("account_number")
     return render(request, 'ra/accounts_index.html', {'accounts': accounts})
 
 #@requires_role("FUND")
@@ -292,7 +292,7 @@ def new_project(request):
 @requires_role("FUND")
 def projects_index(request):
     depts = Role.objects.filter(person__userid=request.user.username, role='FUND').values('unit_id')
-    projects = Project.objects.filter(unit__id__in=depts).order_by("project_number")
+    projects = Project.objects.filter(unit__id__in=depts, hidden=False).order_by("project_number")
     return render(request, 'ra/projects_index.html', {'projects': projects})
 
 #@requires_role("FUND")
@@ -333,8 +333,8 @@ def search_scholarships_by_student(request, student_id):
 def browse(request):
     units = request.units
     hiring_choices = [('all', 'All')] + possible_supervisors(units)
-    project_choices = [('all', 'All')] + [(p.id, unicode(p)) for p in Project.objects.filter(unit__in=units)]
-    account_choices = [('all', 'All')] + [(a.id, unicode(a)) for a in Account.objects.filter(unit__in=units)]
+    project_choices = [('all', 'All')] + [(p.id, unicode(p)) for p in Project.objects.filter(unit__in=units, hidden=False)]
+    account_choices = [('all', 'All')] + [(a.id, unicode(a)) for a in Account.objects.filter(unit__in=units, hidden=False)]
     if 'data' in request.GET:
         # AJAX query for data
         ras = RAAppointment.objects.filter(unit__in=units) \
@@ -379,7 +379,51 @@ def browse(request):
             }
         return render(request, 'ra/browse.html', context)
 
+def pay_periods(request):
+    """
+    Calculate number of pay periods between contract start and end dates.
+    i.e. number of work days in period / 10
+    
+    I swear this was easier that doing it in JS, okay?
+    """
+    day = datetime.timedelta(days=1)
+    week = datetime.timedelta(days=7)
+    if 'start' not in request.GET or 'end' not in request.GET:
+        result = ''
+    else:
+        st = request.GET['start']
+        en = request.GET['end']
+        try:
+            st = datetime.datetime.strptime(st, "%Y-%m-%d").date()
+            en = datetime.datetime.strptime(en, "%Y-%m-%d").date()
+        except ValueError:
+            result = ''
+        else:
+            # move start/end into Mon-Fri work week
+            if st.weekday() == 5:
+                en += 2*day
+            elif st.weekday() == 6:
+                en += day
+            if en.weekday() == 5:
+                en -= day
+            elif en.weekday() == 6:
+                en -= 2*day
 
+            # number of full weeks (until sameday: last same weekday before end date)
+            weeks = ((en-st)/7).days
+            sameday = st + weeks*week
+            assert sameday <= en < sameday + week
+            
+            # number of days remaining
+            days = (en - sameday).days
+            if sameday.weekday() > en.weekday():
+                # don't count weekend days in between
+                days -= 2
+            
+            days += 1 # count both start and end days
+            result = "%.1f" % ((weeks*5 + days)/10.0)
+    
+    return HttpResponse(result, mimetype='text/plain;charset=utf-8')
 
 
 

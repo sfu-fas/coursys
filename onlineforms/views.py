@@ -63,9 +63,18 @@ def remove_group_member(request, formgroup_slug, userid):
 # Form admin views
 
 def list_all(request):
-    form = FormForm()
-    forms = Form.objects.all()
-    context = {'form': form, 'forms': forms}
+    if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'del':
+        form_id = request.POST['form_id']
+        forms = Form.objects.filter(id=form_id)
+        if forms:
+            form = forms[0]
+            form.delete()
+            messages.success(request, 'Removed the Form ')
+        return HttpResponseRedirect(reverse(list_all))
+    else:
+        form = FormForm()
+        forms = Form.objects.all()
+        context = {'form': form, 'forms': forms}
     return render_to_response('onlineforms/forms.html', context, context_instance=RequestContext(request))
 
 
@@ -116,7 +125,7 @@ def edit_form(request, form_slug):
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'edit':
         form = FormForm(request.POST, instance=owner_form)
         if form.is_valid():
-            form.save()
+            owner_form = form.save(duplicate_and_save=True)
             return HttpResponseRedirect(reverse('onlineforms.views.view_form', kwargs={'form_slug': owner_form.slug}))
     else:
         form = FormForm(instance=owner_form)
@@ -129,7 +138,7 @@ def new_sheet(request, form_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
     form = SheetForm(request.POST or None)
     if form.is_valid():
-        Sheet.objects.create(title=form.cleaned_data['title'], form=owner_form)
+        Sheet.objects.create(title=form.cleaned_data['title'], form=owner_form, can_view=form.cleaned_data['can_view'])
         messages.success(request, 'Successfully created the new sheet \'%s\'' % form.cleaned_data['title'])
 
     context = {'form': form, 'owner_form': owner_form}
@@ -207,6 +216,7 @@ def reorder_field(request, form_slug, sheet_slug):
         return HttpResponse("Order updated!")
     return ForbiddenResponse(request)
 
+
 def edit_sheet_info(request, form_slug, sheet_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
     owner_sheet = get_object_or_404(Sheet, slug=sheet_slug)
@@ -215,7 +225,8 @@ def edit_sheet_info(request, form_slug, sheet_slug):
         form = EditSheetForm(request.POST, instance=owner_sheet)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect(reverse('onlineforms.views.edit_sheet', kwargs={'form_slug': owner_form.slug, 'sheet_slug': owner_sheet.slug}))
+            return HttpResponseRedirect(reverse('onlineforms.views.edit_sheet',
+                kwargs={'form_slug': owner_form.slug, 'sheet_slug': owner_sheet.slug}))
     else:
         form = EditSheetForm(instance=owner_sheet)
 
@@ -251,7 +262,7 @@ def new_field(request, form_slug, sheet_slug):
                 field = type_model(config=custom_config)
 
             form = field.make_config_form()
-            need_choices = field.require_choices()
+            need_choices = field.choices
 
             if form.is_valid():
                 Field.objects.create(label=form.cleaned_data['label'],
@@ -288,9 +299,12 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
     owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
     field = get_object_or_404(Field, sheet=owner_sheet, slug=field_slug)
 
+    type = FIELD_TYPE_MODELS[field.fieldtype]
+    need_choices = type().choices
+
     if request.POST:
         clean_config = _clean_config(request.POST)
-        form = FIELD_TYPE_MODELS[field.fieldtype](config=clean_config).make_config_form()
+        form = type(config=clean_config).make_config_form()
 
         if field.config == clean_config:
             messages.info(request, "Nothing modified")
@@ -311,7 +325,8 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
     else:
         form = FIELD_TYPE_MODELS[field.fieldtype](config=field.config).make_config_form()
 
-    context = {'form': form, 'slug_form': form_slug, 'slug_sheet': sheet_slug, 'slug_field': field_slug}
+    context = {'form': form, 'slug_form': form_slug, 'slug_sheet': sheet_slug, 'slug_field': field_slug,
+               'choices': need_choices}
 
     return render(request, 'onlineforms/edit_field.html', context)
 

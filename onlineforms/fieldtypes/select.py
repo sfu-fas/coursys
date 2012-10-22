@@ -2,41 +2,53 @@ from onlineforms.fieldtypes.base import FieldBase, FieldConfigForm
 from django import forms
 
 class RadioSelectField(FieldBase):
+    choices = True
+
     class RadioSelectConfigForm(FieldConfigForm):
-        pass
+        def __init__(self, config=None):
+            super(self.__class__, self).__init__(config)
+
+            self.config = config
+
+            keys = [c for c in self.config if c.startswith("choice_") and self.config[c]]
+
+            for k in keys:
+                self.fields[k] = forms.CharField(required=False, label="Choice")
 
     def make_config_form(self):
-        raise NotImplementedError
+        return self.RadioSelectConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        raise NotImplementedError
+        the_choices = [(k, v) for k, v in self.config.iteritems() if k.startswith("choice_") and self.config[k]]
+
+        c = forms.ChoiceField(required=self.config['required'],
+            label=self.config['label'],
+            help_text=self.config['help_text'],
+            choices=the_choices,
+            widget=forms.RadioSelect())
+
+        return c
 
     def serialize_field(self, field):
-        raise NotImplementedError
+        return {'choice': unicode(field.clean())}
 
     def to_html(self, fieldsubmission=None):
         raise NotImplementedError
 
 
 class DropdownSelectField(FieldBase):
-
-    default_config = {'required': False, 'label': '', 'help_text': ''}
+    choices = True
 
     class DropdownSelectConfigForm(FieldConfigForm):
-
         def __init__(self, config=None):
             super(self.__class__, self).__init__(config)
 
             self.config = config
 
-            keys = self.find_keys("choice_")
+            keys = [c for c in self.config if c.startswith("choice_") and self.config[c]]
 
             for k in keys:
                 self.fields[k] = forms.CharField(required=False, label="Choice")
-
-
-        def find_keys(self, start):
-            return [c for c in self.config if c.startswith(start)]
 
 
     def make_config_form(self):
@@ -44,30 +56,56 @@ class DropdownSelectField(FieldBase):
         return config
 
     def make_entry_field(self, fieldsubmission=None):
-        raise NotImplementedError
+        the_choices = [(k, v) for k, v in self.config.iteritems() if k.startswith("choice_") and self.config[k]]
+
+        c = forms.ChoiceField(required=self.config['required'],
+            label=self.config['label'],
+            help_text=self.config['help_text'],
+            choices=the_choices)
+
+        if not self.config['required']:
+            c.choices.insert(0, ('', '----------'))
+
+        return c
 
     def serialize_field(self, field):
-        raise NotImplementedError
+        return {'choice': unicode(field.clean())}
 
     def to_html(self, fieldsubmission=None):
         raise NotImplementedError
 
-    def require_choices(self):
-        return True
-
 
 class MultipleSelectField(FieldBase):
+
+    choices = True
+
     class MultipleSelectConfigForm(FieldConfigForm):
-        pass
+        def __init__(self, config=None):
+            super(self.__class__, self).__init__(config)
+
+            self.config = config
+
+            keys = [c for c in self.config if c.startswith("choice_") and self.config[c]]
+
+            for k in keys:
+                self.fields[k] = forms.CharField(required=False, label="Choice")
 
     def make_config_form(self):
-        raise NotImplementedError
+        return self.MultipleSelectConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        raise NotImplementedError
+        the_choices = [(k, v) for k, v in self.config.iteritems() if k.startswith("choice_") and self.config[k]]
+
+        c = forms.MultipleChoiceField(required=self.config['required'],
+            label=self.config['label'],
+            help_text=self.config['help_text'],
+            choices=the_choices,
+            widget=forms.CheckboxSelectMultiple())
+
+        return c
 
     def serialize_field(self, field):
-        raise NotImplementedError
+        return {'choice': unicode(field.clean())}
 
     def to_html(self, fieldsubmission=None):
         raise NotImplementedError

@@ -34,6 +34,7 @@
     <ul>
         <li><a href="{% url onlineforms.views.edit_form form_slug=form.slug %}">Edit Form Info</a></li>
         <li><a href="{% url onlineforms.views.preview_form form_slug=form.slug %}">Preview</a></li>
+        <li class="newsec"></li>
         <li><a href="{% url onlineforms.views.new_sheet form_slug=form.slug %}">New Sheet</a></li>
     </ul>
 </div>
@@ -41,24 +42,26 @@
 
 {% block content %}
 <h2>Form Info</h2>
-<table>
-    <tr>
-        <td>Title</td>
-        <td>{{ form.title }}</td>
-    </tr>
-    <tr>
-        <td>Owner</td>
-        <td>{{ form.owner }}</td>
-    </tr>
-    <tr>
-        <td>Initiators</td>
-        <td>{{ form.initiators }}</td>
-    </tr>
-    <tr>
-        <td>Unit</td>
-        <td>{{ form.unit }}</td>
-    </tr>
-</table>
+<div class="table_container">
+    <table class="info">
+        <tr>
+            <th scope="row">Title</th>
+            <td>{{ form.title }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Owner</th>
+            <td>{{ form.owner }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Initiators</th>
+            <td>{{ form.initiators }}</td>
+        </tr>
+        <tr>
+            <th scope="row">Unit</th>
+            <td>{{ form.unit }}</td>
+        </tr>
+    </table>
+</div>
 <h2>Sheets</h2>
 <div class="datatable_container">
     {% if sheets %}
