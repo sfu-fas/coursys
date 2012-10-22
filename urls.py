@@ -409,6 +409,7 @@ urlpatterns += patterns('',
     url(r'^ra/' + RA_SLUG + '/edit$', 'ra.views.edit'),
     url(r'^ra/' + RA_SLUG + '/edit_letter$', 'ra.views.edit_letter'),
     url(r'^ra/' + RA_SLUG + '/reappoint$', 'ra.views.reappoint'),
+    url(r'^ra/' + RA_SLUG + '/delete$', 'ra.views.delete_ra'),
 
     # Advisor Notes
 

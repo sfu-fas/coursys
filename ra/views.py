@@ -11,6 +11,7 @@ from coredata.models import Person, Role, Semester
 from courselib.auth import requires_role, ForbiddenResponse
 from courselib.search import find_userid_or_emplid
 from grad.models import GradStudent, Scholarship
+from log.models import LogEntry
 from dashboard.letters import ra_form, OfficialLetter, LetterContents
 from django import forms
 
@@ -234,6 +235,22 @@ def letter(request, ra_slug):
     letter.add_letter(contents)
     letter.write()
     return response
+
+@requires_role("FUND")
+def delete_ra(request, ra_slug):
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug)
+    if request.method == 'POST':
+        appointment.deleted = True
+        appointment.save()
+        messages.success(request, "Deleted RA appointment." )
+        l = LogEntry(userid=request.user.username,
+              description="Deleted RA appointment %s." % (str(appointment),),
+              related_object=appointment)
+        l.save()              
+    
+    return HttpResponseRedirect(reverse('ra.views.student_appointments', kwargs={'userid': appointment.person.emplid}))
+
+
 
 
 #Methods relating to Account creation. These are all straight forward.
