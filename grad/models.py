@@ -240,7 +240,7 @@ class GradStudent(models.Model):
             promise = u'$0'
 
         tas = TAContract.objects.filter(application__person=self.person).order_by('-posting__semester__name')
-        ras = RAAppointment.objects.filter(person=self.person).order_by('-start_date')
+        ras = RAAppointment.objects.filter(person=self.person, deleted=False).order_by('-start_date')
         schols = Scholarship.objects.filter(student=self).order_by('start_semester__name').select_related('start_semester')
         if tas and ras:
             if tas[0].application.posting.semester.name > ras[0].start_semester().name:
@@ -373,7 +373,7 @@ class GradStudent(models.Model):
             semesters[tacrs.contract.posting.semester]['ta'].append(tacrs)
         
         # RAs
-        ras = RAAppointment.objects.filter(person=self.person)
+        ras = RAAppointment.objects.filter(person=self.person, deleted=False)
         for ra in ras:
             # RAs are by date, not semester, so have to filter more here...
             st = ra.start_semester()

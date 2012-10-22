@@ -8,7 +8,7 @@ from grad.models import GradStudent
 
 class RAForm(forms.ModelForm):
     person = PersonField(label='Hire')
-    sin = forms.IntegerField(label='SIN')
+    sin = forms.IntegerField(label='SIN', required=False)
     #scholarship = forms.ChoiceField(choices=((None, '---------'),), required=False, help_text='Used only if Hiring Category is "Scholarship".')
 
     def is_valid(self, *args, **kwargs):
@@ -36,7 +36,7 @@ class RAForm(forms.ModelForm):
         
     class Meta:
         model = RAAppointment
-        exclude = ('config','offer_letter_text')
+        exclude = ('config','offer_letter_text','deleted')
 
 class RALetterForm(forms.ModelForm):
     class Meta:
@@ -80,7 +80,9 @@ class RABrowseForm(forms.Form):
 class AccountForm(forms.ModelForm):
     class Meta:
         model = Account
+        exclude = ('hidden',)
 
 class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
+        exclude = ('hidden',)

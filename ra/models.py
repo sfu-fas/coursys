@@ -85,7 +85,7 @@ class RAAppointment(models.Model):
     This stores information about a (Research Assistant)s application and pay.
     """
     person = models.ForeignKey(Person, help_text='The RA who is being appointed.', null=False, blank=False, related_name='ra_person')
-    sin = models.PositiveIntegerField()
+    sin = models.PositiveIntegerField(null=True, blank=True)
     hiring_faculty = models.ForeignKey(Person, help_text='The manager who is hiring the RA.', related_name='ra_hiring_faculty')
     unit = models.ForeignKey(Unit, help_text='The unit that owns the appointment', null=False, blank=False)
     hiring_category = models.CharField(max_length=60, choices=HIRING_CATEGORY_CHOICES, default='S')
@@ -114,6 +114,7 @@ class RAAppointment(models.Model):
         return make_slug(self.unit.label + '-' + unicode(self.start_date.year) + '-' + ident)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    deleted = models.BooleanField(null=False, default=False)
     config = JSONField(null=False, blank=False, default={}) # addition configuration stuff
 
     def __unicode__(self):

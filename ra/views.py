@@ -50,7 +50,7 @@ def search(request, student_id=None):
 @requires_role("FUND")
 def student_appointments(request, userid):
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
-    appointments = RAAppointment.objects.filter(person=student, unit__in=request.units).order_by("-created_at")
+    appointments = RAAppointment.objects.filter(person=student, unit__in=request.units, deleted=False).order_by("-created_at")
     grads = GradStudent.objects.filter(person=student, program__unit__in=request.units)
     context = {'appointments': appointments, 'student': student,
                'grads': grads}
@@ -132,7 +132,7 @@ def new_student(request, userid):
 #Edit RA Appointment
 @requires_role("FUND")
 def edit(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug)    
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)    
     scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices = _appointment_defaults(request.units, emplid=appointment.person.emplid)
     if request.method == 'POST':
         data = request.POST.copy()
@@ -169,7 +169,7 @@ def edit(request, ra_slug):
 #Since all reappointments will be new appointments, no post method is present, rather the new appointment template is rendered with the existing data which will call the new method above when posting.
 @requires_role("FUND")
 def reappoint(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug)    
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
     semester = Semester.first_relevant()
     raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid, 'reappointment': True, 'start_date': semester.start, 'end_date': semester.end, 'hours': 70 })
     raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
@@ -184,7 +184,7 @@ def reappoint(request, ra_slug):
 
 @requires_role("FUND")
 def edit_letter(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug)  
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
 
     if request.method == 'POST':
         form = RALetterForm(request.POST, instance=appointment)
@@ -204,14 +204,14 @@ def edit_letter(request, ra_slug):
 #View RA Appointment
 @requires_role("FUND")
 def view(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug)
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
     student = appointment.person
     return render(request, 'ra/view.html', {'appointment': appointment, 'student': student})
 
 #View RA Appointment Form (PDF)
 @requires_role("FUND")
 def form(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug)
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename=%s.pdf' % (appointment.slug)
     ra_form(appointment, response)
@@ -219,7 +219,7 @@ def form(request, ra_slug):
 
 @requires_role("FUND")
 def letter(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug)
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename=%s-letter.pdf' % (appointment.slug)
     letter = OfficialLetter(response, unit=appointment.unit)
@@ -337,7 +337,7 @@ def browse(request):
     account_choices = [('all', 'All')] + [(a.id, unicode(a)) for a in Account.objects.filter(unit__in=units, hidden=False)]
     if 'data' in request.GET:
         # AJAX query for data
-        ras = RAAppointment.objects.filter(unit__in=units) \
+        ras = RAAppointment.objects.filter(unit__in=units, deleted=False) \
                 .select_related('person', 'hiring_faculty', 'project', 'account')
         if 'hiring_faculty' in request.GET and request.GET['hiring_faculty'] != 'all':
             ras = ras.filter(hiring_faculty__id=request.GET['hiring_faculty'])
