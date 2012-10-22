@@ -46,8 +46,6 @@
 				<th scope="col">Department</th>
 				<th scope="col">Program</th>
 				<th scope="col">Description</th>
-				<th>Created At</th>
-				<th>Updated At</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -56,8 +54,6 @@
 				<td scope="row">{{s.program.unit}}</td>
 				<td scope="row">{{s.program}}</td>
 				<td scope="row">{{s.description}}</td>
-				<td>{{s.created_at|date:GRAD_DATETIME_FORMAT}}</td>
-				<td>{{s.updated_at|date:GRAD_DATETIME_FORMAT}}</td>
 			</tr>
 			{% endfor %}
 		</tbody>

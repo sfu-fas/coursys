@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
@@ -524,6 +524,7 @@ class GradRequirement(models.Model):
     """
     program = models.ForeignKey(GradProgram, null=False, blank=False)
     description = models.CharField(max_length=100)
+    series = models.PositiveIntegerField(null=False, db_index=True, help_text='The category of requirement for searching by requirement, across programs') # automatically maintained in self.save
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')
     hidden = models.BooleanField(default=False)
@@ -531,6 +532,29 @@ class GradRequirement(models.Model):
         return u"%s" % (self.description)
     class Meta:
         unique_together = (('program', 'description'),)
+
+    @transaction.commit_on_success
+    def save(self, *args, **kwargs):
+        # maintain self.series as identifying the category of requirements across programs
+        if not self.series:
+            others = GradRequirement.objects \
+                    .filter(description=self.description,
+                            program__unit=self.program.unit) \
+                    .exclude(series=None)
+            if others:
+                # use the series from an identically-named requirement
+                ser = others[0].series
+            else:
+                # need a new series id
+                used = set(r.series for r in GradRequirement.objects.all())
+                try:
+                    ser = max(used) + 1
+                except ValueError:
+                    ser = 1
+            
+            self.series = ser
+        
+        super(GradRequirement, self).save(*args, **kwargs)
         
 
 class CompletedRequirement(models.Model):

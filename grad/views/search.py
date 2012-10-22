@@ -44,8 +44,9 @@ def search(request):
     #        savedsearch = None
     
     form = SearchForm(initial={'student_status': STATUS_ACTIVE}) if len(request.GET) == 0 else SearchForm(request.GET)
-    requirement_choices = [(r.id, "%s (%s)" % (r.description, r.program.label)) for r in
-            GradRequirement.objects.filter(program__unit__in=request.units, hidden=False).order_by('program__label', 'description')]
+    requirement_choices = [(r['series'], r['description']) for r in
+            GradRequirement.objects.filter(program__unit__in=request.units, hidden=False)
+            .order_by('description').values('series', 'description').distinct()]
     scholarshiptype_choices = [(st.id, st.name) for st in ScholarshipType.objects.filter(unit__in=request.units, hidden=False)]
     program_choices = [(gp.id, gp.label) for gp in GradProgram.objects.filter(unit__in=request.units, hidden=False)]
     status_choices = [(st,desc) for st,desc in STATUS_CHOICES if st not in STATUS_OBSOLETE]
@@ -57,6 +58,7 @@ def search(request):
     
     if 'edit_search' not in request.GET and form.is_valid():
         query = form.get_query()
+        #print query
         grads = GradStudent.objects.filter(program__unit__in=request.units).filter(query).select_related('person', 'program').distinct()
         grads = filter(form.secondary_filter(), grads)
         

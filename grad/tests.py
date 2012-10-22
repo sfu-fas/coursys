@@ -89,13 +89,7 @@ class GradTest(TestCase):
                 raise
 
 
-
-    def test_grad_student_pages(self):
-        """
-        Check the pages for a grad student and make sure they all load
-        """
-        client = Client()
-        test_auth(client, 'ggbaker')
+    def __make_test_grad(self):
         gs = GradStudent.objects.get(person__userid='0nnngrad')
         sem = Semester.current()
         
@@ -104,8 +98,6 @@ class GradTest(TestCase):
         req.save()
         st = ScholarshipType(unit=gs.program.unit, name="Some Scholarship")
         st.save()
-        lt = LetterTemplate(unit=gs.program.unit, label='Template', content="This is the\n\nletter for {{first_name}}.")
-        lt.save()
         Supervisor(student=gs, supervisor=Person.objects.get(userid='ggbaker'), supervisor_type='SEN').save()
         GradProgramHistory(student=gs, program=gs.program).save()
         GradStatus(student=gs, status='ACTI', start=sem).save()
@@ -114,6 +106,18 @@ class GradTest(TestCase):
         OtherFunding(student=gs, amount=100, semester=sem, description="Some Other Funding", comments="Other Funding\n\nComment").save()
         Promise(student=gs, amount=10000, start_semester=sem, end_semester=sem.next_semester()).save()
         
+        return gs
+
+    def test_grad_student_pages(self):
+        """
+        Check the pages for a grad student and make sure they all load
+        """
+        client = Client()
+        test_auth(client, 'ggbaker')
+        gs = self.__make_test_grad()
+
+        lt = LetterTemplate(unit=gs.program.unit, label='Template', content="This is the\n\nletter for {{first_name}}.")
+        lt.save()
         url = reverse('grad.views.get_letter_text', kwargs={'grad_slug': gs.slug, 'letter_template_id': lt.id})
         content = client.get(url).content
         Letter(student=gs, template=lt, date=datetime.date.today(), content=content).save()
@@ -186,4 +190,21 @@ class GradTest(TestCase):
         self.assertEqual(response.status_code, 200)
         
         
+    def test_advanced_search(self):
+        """
+        Basics of the advanced search toolkit
+        """
+        from grad.forms import COLUMN_CHOICES, COLUMN_WIDTHS_DATA
+        from grad.templatetags.getattribute import getattribute
         
+        cols = set(k for k,v in COLUMN_CHOICES)
+        widths = set(k for k,v in COLUMN_WIDTHS_DATA)
+        self.assertEquals(cols, widths)
+        
+        gs = self.__make_test_grad()
+        for key in cols:
+            # make sure each column returns *something* without error
+            getattribute(gs, key)
+
+
+

@@ -218,7 +218,7 @@ class GradStatusForm(ModelForm):
 class GradRequirementForm(ModelForm):
     class Meta:
         model = GradRequirement
-        exclude = ('hidden',)
+        exclude = ('hidden','series')
 
 class LetterTemplateForm(ModelForm):
     content = forms.CharField(widget=forms.Textarea(attrs={'rows':'35', 'cols': '60'}))
@@ -403,6 +403,7 @@ COLUMN_WIDTHS_DATA = (
         ('completed_req',           10000),
         ('gpa',                     2000),
         ('visa',                    3000),
+        ('gender',                  2000),
         )
 COLUMN_WIDTHS = dict(COLUMN_WIDTHS_DATA)
 
@@ -424,14 +425,14 @@ class SearchForm(forms.Form):
     
     program = forms.ModelMultipleChoiceField(GradProgram.objects.all(), required=False)
     
-    requirements = forms.ModelMultipleChoiceField(GradRequirement.objects.all(),
+    requirements = forms.MultipleChoiceField(choices=[],
             label='Completed requirements', required=False)
     requirements_st = forms.ChoiceField((
             ('AND',mark_safe(u'Student must have completed <em>all</em> of these requirements')),
             ('OR',mark_safe(u'Student must have completed <em>any</em> of these requirements'))),
             label='Requirements search type', required=False, initial='AND',
             widget=forms.RadioSelect)
-    incomplete_requirements = forms.ModelMultipleChoiceField(GradRequirement.objects.all(),
+    incomplete_requirements = forms.MultipleChoiceField([],
             label='Incomplete requirements', required=False)
 
     is_canadian = NullBooleanSearchField(required=False)
@@ -561,19 +562,24 @@ class SearchForm(forms.Form):
                         ~Q(pk__in=gradmodels.Promise.objects.all().values('student')))
 
         if self.cleaned_data.get('incomplete_requirements', False):
-            # If a student has ANY of the incomplete requirements he will be included.
-            all_completed_requirement_query_list = [Q(pk__in=requirement.completedrequirement_set.all().values('student_id')) 
-                        for requirement in self.cleaned_data['incomplete_requirements']]
-            all_completed_requirement_query = reduce( Q.__and__, all_completed_requirement_query_list, Q() )
-            any_not_completed_requirement_query = ~all_completed_requirement_query
-            manual_queries.append( any_not_completed_requirement_query )
-        
+            # If a student has ANY of these requirements he will be included.
+            inc_req = self.cleaned_data['incomplete_requirements']
+            completed_req = CompletedRequirement.objects.filter(requirement__series__in=inc_req)
+            completed_req_students = set(cr['student_id'] for cr in completed_req.values('student_id'))
+            manual_queries.append(~Q(pk__in=completed_req_students))
+                    
         if self.cleaned_data.get('requirements', False):
             if self.cleaned_data['requirements_st'] == 'OR':
-                auto_queries.append(('requirements', 'completedrequirement__requirement__in'))
+                # completed OR
+                auto_queries.append(('requirements', 'completedrequirement__requirement__series__in'))
             else:
-                manual_queries += [Q(pk__in=requirement.completedrequirement_set.all().values('student_id')) 
-                        for requirement in self.cleaned_data['requirements']]
+                # completed AND
+                for series in self.cleaned_data['requirements']:
+                    manual_queries.append(
+                            Q(pk__in=
+                              CompletedRequirement.objects.filter(requirement__series=series).values('student_id')
+                              )
+                            )
             
         # passes all of the tuples in auto_queries to _make_query as arguments
         # (which returns a single Q object) and then reduces the auto_queries
