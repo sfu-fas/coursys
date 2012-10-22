@@ -127,7 +127,7 @@ class RAAppointment(models.Model):
         # set SIN field on any GradStudent objects for this person
         from grad.models import GradStudent
         for gs in GradStudent.objects.filter(person=self.person):
-            if 'sin' not in gs.config:
+            if  self.sin and 'sin' not in gs.config:
                 gs.set_sin(self.sin)
                 gs.save()
         super(RAAppointment, self).save(*args, **kwargs)
