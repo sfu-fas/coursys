@@ -339,11 +339,20 @@ def submissions_list_all_forms(request):
 
 def form_initial_submission(request, form_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
-    # if they are not logged in we need them to create a non sfu form filler
-    if not(request.user.is_authenticated()):
-        form = NonSFUFormFillerForm()
-        context = {'owner_form': owner_form, 'form': form}
-        return render_to_response('onlineforms/submissions/non_sfu_form_filler.html', context, context_instance=RequestContext(request))
+
+    # nobody can fill out this form
+    if owner_form.initiators == "NON":
+        context = {'owner_form': owner_form, 'error_msg': "No one can fill out this form."}
+        return render_to_response('onlineforms/submissions/initial_sheet.html', context, context_instance=RequestContext(request))
+    elif not(request.user.is_authenticated()):
+        if owner_form.initiators == "ANY":
+            form = NonSFUFormFillerForm()
+            context = {'owner_form': owner_form, 'form': form}
+            return render_to_response('onlineforms/submissions/non_sfu_form_filler.html', context, context_instance=RequestContext(request))
+        else:
+            context = {'owner_form': owner_form, 'error_msg': "You must be logged in to fill out this form."}
+            return render_to_response('onlineforms/submissions/initial_sheet.html', context, context_instance=RequestContext(request))
+
 
     sheet = get_object_or_404(Sheet, form=owner_form, is_initial=True)
     fields = Field.objects.filter(sheet=sheet, active=True).order_by('order')

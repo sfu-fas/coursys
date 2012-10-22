@@ -10,12 +10,17 @@
 
 {% block content %}
 
-<form action="" method="post">
-<fieldset>
-        <legend>{{ sheet.title }}</legend>
-        {{ form|as_dl }}
-        <input type="submit" value="submit" class="submit" />
-</fieldset>
-</form>
+{% if error_msg %}
+    <p>{{ error_msg }}</p>
+    <p>If you have a SFU account, you can <a href="/login/">login here</a>.</p>
+{% else %}
+    <form action="" method="post">
+    <fieldset>
+            <legend>{{ sheet.title }}</legend>
+            {{ form|as_dl }}
+            <input type="submit" value="submit" class="submit" />
+    </fieldset>
+    </form>
+{% endif %}
 
 {% endblock %}
