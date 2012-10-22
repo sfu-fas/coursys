@@ -26,11 +26,15 @@
 //]]></script>
 {% endblock %}
 
+{% block subbreadcrumbs %}
+<li>&gt; Forms</li>
+{% endblock %}
+
 {% block actions %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
-        <li><a href="{% url onlineforms.views.list_all %}">ALL forms</a></li>
+        <li><a href="{% url onlineforms.views.new_form %}">New Form</a></li>
     </ul>
 </div>
 {% endblock %}
@@ -47,11 +51,12 @@
                     <th scope="col">Unit</th>
                     <th scope="col">Active</th>
                     <th scope="col">Original</th>
+                    <th scope="col">Actions</th>
                 </tr>
             </thead>
             {% for form in forms %}
                 <tr>
-                    <td>{{ form.title }}</td>
+                    <td><a href="{% url onlineforms.views.view_form form_slug=form.slug %}">{{ form.title }}</a></td>
                     <td>{{ form.owner|default:"" }}</td>
                     <td>{{ form.initiators|default:"" }}</td>
                     <td>{{ form.unit|default:"" }}</td>
@@ -59,24 +64,16 @@
                     <td>{{ form.original|default:"" }}</td>
                                 
                     
-<td class="miniaction">
-                      
-                     <form action="{% url onlineforms.views.list_all  %}" method="post">{% csrf_token %}
-                      <a href="{% url onlineforms.views.edit_form  form_slug=form.slug %}">Edit</a>  
-                     <input type="hidden" name="action" value="del" />
-                        <p>      
-
+                    <td class="miniaction">
+                        <form action="{% url onlineforms.views.list_all  %}" method="post">{% csrf_token %}
+                            <a href="{% url onlineforms.views.edit_form  form_slug=form.slug %}">Edit</a>  
+                            <input type="hidden" name="action" value="del" />
+                            <p>    
                                 <input type="hidden" name="form_id" value="{{form.id}}" />
                                 <input type="submit" value="Remove" onclick="return confirmSubmit('remove this Form')" />
-                           
-                            
                             </p>
                         </form>
                     </td>
-
-
-
-
                 </tr>
               {% endfor %}
         </table>
