@@ -118,26 +118,6 @@
 
 {% block content %}
 <h2>Sheet Info</h2>
-<<<<<<< HEAD
-<table>
-    <tr>
-        <td>Title</td>
-        <td>{{ owner_sheet.title }}</td>
-    </tr>
-    <tr>
-        <td>Form</td>
-        <td><a href="{% url onlineforms.views.view_form form_slug=owner_form.slug %}">{{ owner_sheet.form.title }}</a></td>
-    </tr>
-    <tr>
-        <td>Is Initial</td>
-        <td>{{ owner_sheet.get_is_initial_display }}</td>
-    </tr>
-    <tr>
-        <td>Can View</td>
-        <td>{{ owner_sheet.get_can_view_display }}</td>
-    </tr>
-</table>
-=======
 <div class="table_container">
     <table class="info">
         <tr>
@@ -150,15 +130,14 @@
         </tr>
         <tr>
             <th scope="row">Is Initial</th>
-            <td>{{ owner_sheet.is_initial }}</th>
+            <td>{{ owner_sheet.get_is_initial_display }}</th>
         </tr>
         <tr>
             <th scope="row">Can View</th>
-            <td>{{ owner_sheet.can_view }}</td>
+            <td>{{ owner_sheet.get_can_view_display }}</td>
         </tr>
     </table>
 </div>
->>>>>>> 40025d38ece116555d4ecb38f97b315c8f26c943
 <div id="form_container">
     {# This form will never be submitted so we don't need to worry about errors or anything #}
     <form action="" method="post">
