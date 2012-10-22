@@ -1941,3 +1941,10 @@ div.semesters-container {
 div.text.field {
   line-height: 1.5em;
 }
+
+fieldset hr {
+    margin: 0;
+    padding: 5px;
+    border: none;
+    border-bottom: 1px solid #BFBAB0;
+}

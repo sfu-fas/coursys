@@ -60,7 +60,7 @@ class DividerField(FieldBase):
     configurable = False
             
     def make_config_form(self):
-        raise NotImplementedError
+        return self.configurable
 
     def make_entry_field(self, fieldsubmission=None):
         from onlineforms.forms import DividerFieldWidget
