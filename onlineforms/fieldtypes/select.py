@@ -20,6 +20,7 @@ class RadioSelectField(FieldBase):
 
     def make_entry_field(self, fieldsubmission=None):
         the_choices = [(k, v) for k, v in self.config.iteritems() if k.startswith("choice_") and self.config[k]]
+        the_choices = sorted(the_choices, key=lambda choice: choice[1])
 
         c = forms.ChoiceField(required=self.config['required'],
             label=self.config['label'],
@@ -57,6 +58,7 @@ class DropdownSelectField(FieldBase):
 
     def make_entry_field(self, fieldsubmission=None):
         the_choices = [(k, v) for k, v in self.config.iteritems() if k.startswith("choice_") and self.config[k]]
+        the_choices = sorted(the_choices, key=lambda choice: choice[1])
 
         c = forms.ChoiceField(required=self.config['required'],
             label=self.config['label'],
@@ -95,6 +97,7 @@ class MultipleSelectField(FieldBase):
 
     def make_entry_field(self, fieldsubmission=None):
         the_choices = [(k, v) for k, v in self.config.iteritems() if k.startswith("choice_") and self.config[k]]
+        the_choices = sorted(the_choices, key=lambda choice: choice[1])
 
         c = forms.MultipleChoiceField(required=self.config['required'],
             label=self.config['label'],
