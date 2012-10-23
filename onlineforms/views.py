@@ -237,8 +237,6 @@ def edit_sheet_info(request, form_slug, sheet_slug):
 
 
 def new_field(request, form_slug, sheet_slug):
-    #Test url: http://localhost:8000/forms/comp-test-form-2/edit/initial-sheet/new
-    #TODO: Add proper security checks.
 
     owner_form = get_object_or_404(Form, slug=form_slug)
     owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
@@ -274,9 +272,10 @@ def new_field(request, form_slug, sheet_slug):
                     active=True,
                     original=None, )
                 messages.success(request, 'Successfully created the new field \'%s\'' % form.cleaned_data['label'])
-                section = 'select'
-                need_choices = False
 
+                return HttpResponseRedirect(
+                    reverse('onlineforms.views.edit_sheet', args=(form_slug, sheet_slug)))
+                
     if section == 'select':
         form = FieldForm()
         section = 'config'
@@ -295,9 +294,7 @@ def _clean_config(config):
 
 
 def edit_field(request, form_slug, sheet_slug, field_slug):
-    #Test url: http://localhost:8000/forms/comp-test-form-2/edit/initial-sheet/*label of a field*
 
-    print form_slug
     owner_form = get_object_or_404(Form, slug=form_slug)
     owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
     field = get_object_or_404(Field, sheet=owner_sheet, slug=field_slug)
@@ -323,7 +320,7 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
             messages.success(request, 'Successfully updated the field \'%s\'' % form.cleaned_data['label'])
 
             return HttpResponseRedirect(
-                reverse('onlineforms.views.edit_field', args=(form_slug, sheet_slug, new_field.slug)))
+                reverse('onlineforms.views.edit_sheet', args=(form_slug, sheet_slug)))
 
     else:
         form = FIELD_TYPE_MODELS[field.fieldtype](config=field.config).make_config_form()
