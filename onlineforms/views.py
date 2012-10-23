@@ -23,9 +23,19 @@ from log.models import LogEntry
 
 def manage_groups(request):
     # for now only display groups the user has created...
+
+
+    if request.method == 'POST':
+        if 'action' in request.POST:
+            if request.POST['action'] == 'delete':
+                print "if request.post['action'] == delete "
+                if 'group_id' in request.POST: 
+                    selected_group = FormGroup.objects.filter(pk=request.POST['group_id'])
+                    selected_group.delete()
+ 
     user = request.user.username
-    groups = FormGroup.objects.filter(members__userid__startswith=user)
-    context = {'groups': groups}
+    groups = FormGroup.objects.filter(members__userid__startswith=user)    
+    context = {'groups': groups}       
     return render(request, 'onlineforms/manage_groups.html', context)
 
 
@@ -50,7 +60,8 @@ def new_group(request):
 def manage_group(request, formgroup_slug):
     # print "in manage group"
     # editting existing form...
-    pass
+    context = {}
+    return render(request, 'onlineforms/manage_group.html', context)
 
 
 def add_group_member(request, formgroup_slug):
