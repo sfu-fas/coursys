@@ -7,4 +7,20 @@
 {% block subbreadcrumbs %}{% endblock %}
 
 {% block content %}
+<!-- Manage group info:
+<p>Group name is: {{ group.name }} -->
+<div id="form-container">
+	<form action="{% url onlineforms.views.manage_group formgroup_slug=group.slug %}" method="POST">
+		{% csrf_token %}
+		 <fieldset>
+            <legend>New Group Information</legend>
+            <ul>
+                {{form|as_dl}}
+                <li>
+                    <input class="submit" type="submit" value="Submit" />
+                </li>
+            </ul>
+        </fieldset>
+	</form>
+</div>
 {% endblock %}
