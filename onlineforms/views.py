@@ -297,6 +297,7 @@ def _clean_config(config):
 def edit_field(request, form_slug, sheet_slug, field_slug):
     #Test url: http://localhost:8000/forms/comp-test-form-2/edit/initial-sheet/*label of a field*
 
+    print form_slug
     owner_form = get_object_or_404(Form, slug=form_slug)
     owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
     field = get_object_or_404(Field, sheet=owner_sheet, slug=field_slug)
@@ -327,7 +328,7 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
     else:
         form = FIELD_TYPE_MODELS[field.fieldtype](config=field.config).make_config_form()
 
-    context = {'form': form, 'slug_form': form_slug, 'slug_sheet': sheet_slug, 'slug_field': field_slug,
+    context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet, 'field': field,
                'choices': need_choices}
 
     return render(request, 'onlineforms/edit_field.html', context)
