@@ -142,6 +142,8 @@ def new_sheet(request, form_slug):
     if form.is_valid():
         Sheet.objects.create(title=form.cleaned_data['title'], form=owner_form, can_view=form.cleaned_data['can_view'])
         messages.success(request, 'Successfully created the new sheet \'%s\'' % form.cleaned_data['title'])
+        return HttpResponseRedirect(
+            reverse('onlineforms.views.view_form', args=(form_slug,)))
 
     context = {'form': form, 'owner_form': owner_form}
     return render(request, "onlineforms/new_sheet.html", context)
