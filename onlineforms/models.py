@@ -6,7 +6,7 @@ from jsonfield import JSONField
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from django.db.models import Max
- 
+
 # choices for Form.initiator field
 from onlineforms.fieldtypes.other import FileCustomField, DividerField
 from onlineforms.fieldtypes.select import DropdownSelectField, RadioSelectField, MultipleSelectField
@@ -204,12 +204,17 @@ class Form(models.Model, _FormCoherenceMixin):
     def save(self, duplicate_and_save=False, *args, **kwargs):
         if duplicate_and_save:
             # duplicate self.instance and save that, and return it.
+	        # duplicate(self.obj)
+            #self = self.title
+            #self.pk = None
+
+            #self.save()
+            #return self
             pass
         else:
             instance = super(Form, self).save(*args, **kwargs)
         self.cleanup_fields()
         return instance
-
 
 class Sheet(models.Model, _FormCoherenceMixin):
     title = models.CharField(max_length=60, null=False, blank=False)
