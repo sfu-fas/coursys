@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load form_display %}
 
-{% block title %}Manage Group{% endblock %}
-{% block h1 %}Manage Group {% endblock %}
+{% block title %}Manage Groups{% endblock %}
+{% block h1 %}Manage Groups{% endblock %}
 
 {% block subbreadcrumbs %}{% endblock %}
 
@@ -25,15 +25,15 @@
 				<td>{{grp.name}}</td>
 				<td>{{grp.slug}}</td>
 				<td class="miniaction">
-					<form action="{% url onlineforms.views.manage_group formgroup_slug=grp.slug %}">{% csrf_token %}
+					<form action="{% url onlineforms.views.manage_group formgroup_slug=grp.slug %}" method="post">{% csrf_token %}
 						<input type="hidden" name="group_id" value="{{grp.id}}" />
 						<input type="submit" value="Edit">
 					</form>
 				<td class="miniaction"> 
-                    <form action="" method="post">{% csrf_token %}
+                    <form action="{% url onlineforms.views.manage_groups %}" method="post">{% csrf_token %}
                         <input type="hidden" name="group_id" value="{{grp.id}}"/>
                         <input type="hidden" name="action" value="delete"/>
-                        <input type="submit" value="Remove"/>
+                        <input type="submit" value="Delete"/>
 				    </form>
                 </td>
 			</tr>

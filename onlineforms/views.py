@@ -23,9 +23,19 @@ from log.models import LogEntry
 
 def manage_groups(request):
     # for now only display groups the user has created...
+
+
+    if request.method == 'POST':
+        if 'action' in request.POST:
+            if request.POST['action'] == 'delete':
+                print "if request.post['action'] == delete "
+                if 'group_id' in request.POST: 
+                    selected_group = FormGroup.objects.filter(pk=request.POST['group_id'])
+                    selected_group.delete()
+ 
     user = request.user.username
-    groups = FormGroup.objects.filter(members__userid__startswith=user)
-    context = {'groups': groups}
+    groups = FormGroup.objects.filter(members__userid__startswith=user)    
+    context = {'groups': groups}       
     return render(request, 'onlineforms/manage_groups.html', context)
 
 
@@ -48,9 +58,14 @@ def new_group(request):
 
 
 def manage_group(request, formgroup_slug):
-    # print "in manage group"
+"""    print "in manage group"
     # editting existing form...
-    pass
+    group = FormGroup.objects.get(slug=formgroup_slug)
+    print group
+    form = GroupForm(instance=group)
+    context = {'group': group}
+"""
+    return render(request, 'onlineforms/manage_group.html', context)
 
 
 def add_group_member(request, formgroup_slug):
@@ -142,6 +157,8 @@ def new_sheet(request, form_slug):
     if form.is_valid():
         Sheet.objects.create(title=form.cleaned_data['title'], form=owner_form, can_view=form.cleaned_data['can_view'])
         messages.success(request, 'Successfully created the new sheet \'%s\'' % form.cleaned_data['title'])
+        return HttpResponseRedirect(
+            reverse('onlineforms.views.view_form', args=(form_slug,)))
 
     context = {'form': form, 'owner_form': owner_form}
     return render(request, "onlineforms/new_sheet.html", context)
@@ -237,8 +254,6 @@ def edit_sheet_info(request, form_slug, sheet_slug):
 
 
 def new_field(request, form_slug, sheet_slug):
-    #Test url: http://localhost:8000/forms/comp-test-form-2/edit/initial-sheet/new
-    #TODO: Add proper security checks.
 
     owner_form = get_object_or_404(Form, slug=form_slug)
     owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
@@ -274,9 +289,10 @@ def new_field(request, form_slug, sheet_slug):
                     active=True,
                     original=None, )
                 messages.success(request, 'Successfully created the new field \'%s\'' % form.cleaned_data['label'])
-                section = 'select'
-                need_choices = False
 
+                return HttpResponseRedirect(
+                    reverse('onlineforms.views.edit_sheet', args=(form_slug, sheet_slug)))
+                
     if section == 'select':
         form = FieldForm()
         section = 'config'
@@ -295,9 +311,7 @@ def _clean_config(config):
 
 
 def edit_field(request, form_slug, sheet_slug, field_slug):
-    #Test url: http://localhost:8000/forms/comp-test-form-2/edit/initial-sheet/*label of a field*
 
-    print form_slug
     owner_form = get_object_or_404(Form, slug=form_slug)
     owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
     field = get_object_or_404(Field, sheet=owner_sheet, slug=field_slug)
@@ -323,7 +337,7 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
             messages.success(request, 'Successfully updated the field \'%s\'' % form.cleaned_data['label'])
 
             return HttpResponseRedirect(
-                reverse('onlineforms.views.edit_field', args=(form_slug, sheet_slug, new_field.slug)))
+                reverse('onlineforms.views.edit_sheet', args=(form_slug, sheet_slug)))
 
     else:
         form = FIELD_TYPE_MODELS[field.fieldtype](config=field.config).make_config_form()
