@@ -8,6 +8,7 @@ from ra.models import RAAppointment, Project, Account
 from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm
 from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester
+from coredata.queries import more_personal_info, SIMSProblem
 from courselib.auth import requires_role, ForbiddenResponse
 from courselib.search import find_userid_or_emplid
 from grad.models import GradStudent, Scholarship
@@ -453,6 +454,8 @@ def person_info(request):
         pass
     else:
         programs = []
+        
+        # GradPrograms
         emplid = request.GET['emplid']
         for gs in GradStudent.objects.filter(person__emplid=emplid, program__unit__in=request.units):
             pdata = {
@@ -463,5 +466,12 @@ def person_info(request):
             programs.append(pdata)
 
         result['programs'] = programs
+        
+        # other SIMS info
+        try:
+            otherinfo = more_personal_info(emplid, needed=['citizen', 'visa'])
+            result.update(otherinfo)
+        except SIMSProblem, e:
+            result['error'] = e.message
 
     return HttpResponse(json.dumps(result), mimetype='application/json;charset=utf-8')

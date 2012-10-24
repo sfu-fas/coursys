@@ -89,17 +89,26 @@ function get_person_info(emplid) {
 	$.ajax({
 		url: personinfo_url + '?emplid=' + emplid,
 		success: function(data, textStatus, jqXHR) {
-			if (data['programs']) {
-				var html = '';
-				html += '<h3>Program(s)</h3><ul>';
+			var html = '';
+			html += '<h3>Program(s)</h3><ul>';
+			if ( data['programs'].length == 0) {
+				html += '<li class="empty">No grad program in system</li>';
+			} else {
 				$(data['programs']).each(function(e,prog) {
 					html += '<li>';
 					html += prog['program'] + ', ' + prog['unit'] + ' (' + prog['status'] + ')';
 					html += '</li>';
 				});
-				html += '</ul>';
-				$('div#programs').html(html);
+			}
+			html += '</ul>';
+
+	        if (data['citizen']) {
+	        	html += '<p>Citizenship: ' + data['citizen'] + '</p>'
+	        } else {
+	        	html += '<p>Citizenship: unknown</p>'	        	
 	        }
+
+			$('div#programs').html(html);
 		},
 	})
 }
