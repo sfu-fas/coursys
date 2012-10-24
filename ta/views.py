@@ -239,7 +239,7 @@ def _new_application(request, post_slug, manual=False, userid=None):
                 acct = ComputingAccount.objects.get(userid=request.user.username)
                 person = add_person(acct.emplid)
             except ComputingAccount.DoesNotExist:
-                return NotFoundResponse(request, "Unable to find your computing account in the system: this is likely because your account was recently activated, and it should be fixed tomorrow")
+                return NotFoundResponse(request, "Unable to find your computing account in the system: this is likely because your account was recently activated, and it should be fixed tomorrow. If not, email helpdesk@cs.sfu.ca.")
             except SIMSProblem:
                 return HttpError(request, status=503, title="Service Unavailable", error="Currently unable to handle the request.", errormsg="Problem with SIMS connection while trying to find your account info")
         existing_app = TAApplication.objects.filter(person=person, posting=posting)

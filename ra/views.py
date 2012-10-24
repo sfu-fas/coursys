@@ -443,4 +443,25 @@ def pay_periods(request):
     return HttpResponse(result, mimetype='text/plain;charset=utf-8')
 
 
+@requires_role("FUND")
+def person_info(request):
+    """
+    Get more info about this person, for AJAX updates on new RA form
+    """
+    result = {}
+    if 'emplid' not in request.GET:
+        pass
+    else:
+        programs = []
+        emplid = request.GET['emplid']
+        for gs in GradStudent.objects.filter(person__emplid=emplid, program__unit__in=request.units):
+            pdata = {
+                     'program': gs.program.label,
+                     'unit': gs.program.unit.name,
+                     'status': gs.get_current_status_display(),
+                     }
+            programs.append(pdata)
 
+        result['programs'] = programs
+
+    return HttpResponse(json.dumps(result), mimetype='application/json;charset=utf-8')
