@@ -14,6 +14,6 @@ def not_found(request):
     search = request.GET['search']
     grads = GradStudent.objects.filter(program__unit__in=request.units) \
                 .filter(_get_query(search)) \
-                .select_related('person', 'program')[:50]
+                .select_related('person', 'program')[:500]
     context = {'grads': grads}
     return render(request, 'grad/not_found.html', context)
