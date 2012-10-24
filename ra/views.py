@@ -10,13 +10,13 @@ from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester
 from coredata.queries import more_personal_info, SIMSProblem
 from courselib.auth import requires_role, ForbiddenResponse
-from courselib.search import find_userid_or_emplid
+from courselib.search import find_userid_or_emplid, get_query
 from grad.models import GradStudent, Scholarship
 from log.models import LogEntry
 from dashboard.letters import ra_form, OfficialLetter, LetterContents
 from django import forms
 
-import json, datetime
+import json, datetime, urllib
 
 #This is the search function that that returns a list of RA Appointments related to the query.
 @requires_role("FUND")
@@ -28,9 +28,7 @@ def search(request, student_id=None):
     if request.method == 'POST':
         form = RASearchForm(request.POST)
         if not form.is_valid():
-            messages.add_message(request, messages.ERROR, 'Invalid search')
-            context = {'form': form}
-            return render(request, 'ra/search.html', context)
+            return HttpResponseRedirect(reverse('ra.views.found') + "?search=" + urllib.quote_plus(form.data['search']))
         search = form.cleaned_data['search']
         # deal with people without active computing accounts
         if search.userid:
@@ -46,6 +44,22 @@ def search(request, student_id=None):
     return render(request, 'ra/search.html', context)
 
 
+@requires_role("FUND")
+def found(request):
+    """
+    View to handle the enter-search/press-enter behaviour in the autocomplete box
+    """
+    if 'search' not in request.GET:
+        return ForbiddenResponse(request, 'must give search in query')
+    search = request.GET['search']
+    studentQuery = get_query(search, ['userid', 'emplid', 'first_name', 'last_name'])
+    people = Person.objects.filter(studentQuery)[:200]
+    for p in people:
+        # decorate with RAAppointment count
+        p.ras = RAAppointment.objects.filter(person=p, deleted=False).count()
+
+    context = {'people': people}
+    return render(request, 'ra/found.html', context)
 
 
 #This is an index of all RA Appointments belonging to a given person.
