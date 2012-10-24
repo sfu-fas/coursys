@@ -19,6 +19,7 @@ from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, Group
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup
 from onlineforms.utils import reorder_sheet_fields
 
+from coredata.models import Person
 from log.models import LogEntry
 
 def manage_groups(request):
@@ -363,19 +364,6 @@ def form_initial_submission(request, form_slug):
 
     sheet = owner_form.initial_sheet
 
-    if request.method == 'POST':
-        form = DynamicForm(sheet.title)
-        form.fromFields(sheet.fields)
-        form.validate(request.POST)
-
-        nonSFUFormFiller = None
-        if 'add-nonsfu' in request.POST:
-            nonSFUFormFillerForm = NonSFUFormFillerForm(request.POST)
-
-        print "success"
-
-    # for if they are not logged in and nonSFU students are allowed to fill out the form
-    
     # if the user is not logged in and this is an any form, show the no sfu form filler, otherwise reject them
     if not(request.user.is_authenticated()):
         if owner_form.initiators == "ANY":
@@ -385,7 +373,31 @@ def form_initial_submission(request, form_slug):
             return render_to_response('onlineforms/submissions/initial_sheet.html', context, context_instance=RequestContext(request))
     else:
         nonSFUFormFillerForm = None
+        loggedin_user = get_object_or_404(Person, userid=request.user.username)
 
+    if request.method == 'POST':
+        # validate the sheet
+        form = DynamicForm(sheet.title)
+        form.fromFields(sheet.fields)
+        form.validate(request.POST)
+
+        # sheet is valid, lets get a form filler
+        if 'add-nonsfu' in request.POST:
+            nonSFUFormFillerForm = NonSFUFormFillerForm(request.POST)
+            if nonSFUFormFillerForm.is_valid():
+                nonSFUFormFiller = nonSFUFormFillerForm.save()
+                formFiller = formFiller(nonSFUFormFiller=nonSFUFormFiller)
+                formFiller.save()
+                # TODO: LOGGING
+        elif loggedin_user:
+            formFiller = formFiller(sfuFormFiller=loggedin_user)
+            formFiller.save()
+            # TODO: LOGGING
+        else:
+            # they didn't provide nonsfu info and they are not logged in
+            context = {'owner_form': owner_form, 'error_msg': "You must have a SFU account and be logged in to fill out this form."}
+            return render_to_response('onlineforms/submissions/initial_sheet.html', context, context_instance=RequestContext(request))
+            
 
     form = DynamicForm(sheet.title)
     form.fromFields(sheet.fields)
