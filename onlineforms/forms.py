@@ -71,6 +71,6 @@ class DynamicForm(forms.Form):
         """
         for name, field in self.fields.items():
             try:
-                field.clean(post[name])
-            except ValidationError, e:
-                elf.errors[name] = e.messages
+                field.clean(post[str(name)])
+            except Exception, e:
+                self.errors[name] = e.message

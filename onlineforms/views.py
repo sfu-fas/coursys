@@ -342,28 +342,41 @@ def submissions_list_all_forms(request):
 
 def form_initial_submission(request, form_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
-
-    # nobody can fill out this form
+    # if no one can fill out this form, stop right now
     if owner_form.initiators == "NON":
         context = {'owner_form': owner_form, 'error_msg': "No one can fill out this form."}
         return render_to_response('onlineforms/submissions/initial_sheet.html', context, context_instance=RequestContext(request))
-    elif not(request.user.is_authenticated()):
+
+    sheet = owner_form.initial_sheet
+
+    if request.method == 'POST':
+        form = DynamicForm(sheet.title)
+        form.fromFields(sheet.fields)
+        form.validate(request.POST)
+
+        nonSFUFormFiller = None
+        if 'add-nonsfu' in request.POST:
+            nonSFUFormFillerForm = NonSFUFormFillerForm(request.POST)
+
+        print "success"
+
+    # for if they are not logged in and nonSFU students are allowed to fill out the form
+    
+    # if the user is not logged in and this is an any form, show the no sfu form filler, otherwise reject them
+    if not(request.user.is_authenticated()):
         if owner_form.initiators == "ANY":
-            form = NonSFUFormFillerForm()
-            context = {'owner_form': owner_form, 'form': form}
-            return render_to_response('onlineforms/submissions/non_sfu_form_filler.html', context, context_instance=RequestContext(request))
+            nonSFUFormFillerForm = NonSFUFormFillerForm()
         else:
-            context = {'owner_form': owner_form, 'error_msg': "You must be logged in to fill out this form."}
+            context = {'owner_form': owner_form, 'error_msg': "You must have a SFU account and be logged in to fill out this form."}
             return render_to_response('onlineforms/submissions/initial_sheet.html', context, context_instance=RequestContext(request))
+    else:
+        nonSFUFormFillerForm = None
 
-
-    sheet = get_object_or_404(Sheet, form=owner_form, is_initial=True)
-    fields = Field.objects.filter(sheet=sheet, active=True).order_by('order')
 
     form = DynamicForm(sheet.title)
-    form.fromFields(fields)
+    form.fromFields(sheet.fields)
 
-    context = {'owner_form': owner_form, 'sheet': sheet, 'form': form}
+    context = {'owner_form': owner_form, 'sheet': sheet, 'form': form, 'nonSFUFormFillerForm': nonSFUFormFillerForm}
     return render_to_response('onlineforms/submissions/initial_sheet.html', context, context_instance=RequestContext(request))
 
 
