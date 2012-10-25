@@ -224,9 +224,12 @@ class Form(models.Model, _FormCoherenceMixin):
         else:
             return None
 
+    cached_sheets = None
     @property
-    def sheets(self):
-        return Sheet.objects.filter(form=self, active=True).order_by('order')
+    def sheets(self, refetch=False):
+        if refetch or not(self.cached_sheets):
+            self.cached_sheets = Sheet.objects.filter(form=self, active=True).order_by('order')
+        return self.cached_sheets
 
 class Sheet(models.Model, _FormCoherenceMixin):
     title = models.CharField(max_length=60, null=False, blank=False)
@@ -269,9 +272,12 @@ class Sheet(models.Model, _FormCoherenceMixin):
         super(Sheet, self).save(*args, **kwargs)
         self.cleanup_fields()
 
+    cached_fields = None
     @property
-    def fields(self):
-        return Field.objects.filter(sheet=self, active=True).order_by('order')
+    def fields(self, refetch=False):
+        if refetch or not(self.cached_fields):
+            self.cached_fields = Field.objects.filter(sheet=self, active=True).order_by('order')
+        return self.cached_fields
 
 class Field(models.Model, _FormCoherenceMixin):
     label = models.CharField(max_length=60, null=False, blank=False)
