@@ -84,7 +84,7 @@ def list_all(request):
         form = FormForm()
         forms = Form.objects.all()
         context = {'form': form, 'forms': forms}
-    return render_to_response('onlineforms/forms.html', context, context_instance=RequestContext(request))
+    return render_to_response('onlineforms/manage_forms.html', context, context_instance=RequestContext(request))
 
 
 def new_form(request):
