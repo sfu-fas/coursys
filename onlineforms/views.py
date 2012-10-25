@@ -19,7 +19,7 @@ from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, Group
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup
 from onlineforms.utils import reorder_sheet_fields
 
-from coredata.models import Person
+from coredata.models import Person, Role
 from log.models import LogEntry
 
 def manage_groups(request):
@@ -343,12 +343,15 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
 # Form-filling views
 
 def submissions_list_all_forms(request):
+    roles = []
     if(request.user.is_authenticated()):
         forms = Form.objects.filter(active=True).exclude(initiators='NON')
+        userid = request.user.username
+        roles = Role.all_roles(userid)
     else:
         forms = Form.objects.filter(active=True, initiators='ANY')
     
-    context = {'forms': forms}
+    context = {'forms': forms, 'roles': roles}
     return render_to_response('onlineforms/submissions/forms.html', context, context_instance=RequestContext(request))
 
 def form_initial_submission(request, form_slug):
