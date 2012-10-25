@@ -299,7 +299,7 @@ def new_field(request, form_slug, sheet_slug):
 
 def _clean_config(config):
     irrelevant_fields = ['csrfmiddlewaretoken', 'next_section', 'type_name']
-    clean_config = {key: value for (key, value) in config.iteritems() if key not in irrelevant_fields}
+    clean_config = dict((key, value) for (key, value) in config.iteritems() if key not in irrelevant_fields)
     clean_config['required'] = 'required' in clean_config
 
     return clean_config
