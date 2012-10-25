@@ -174,6 +174,10 @@ class _FormCoherenceMixin(object):
         if self.active and self.original:
             others = type(self).objects.filter(original=self.original) \
                                  .exclude(id=self.id)
+            if isinstance(Sheet, self):
+                others.filter(form=self.form)
+            elif isinstance(Field, self):
+                others.filter(sheet=self.sheet)
             others.update(active=False)
 
         # ensure self.original is populated: should already be set to
@@ -331,6 +335,11 @@ class FormSubmission(models.Model):
         return make_slug(unicode(self.id)) # we can do better than that, right?
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form')
     
+    def update_status(self):
+        pass
+        # if 'WAIT' in all SheetSubmission.statuses => 'WAIT'
+        # unless old status was 'DONE'
+    
 class SheetSubmission(models.Model):
     form_submission = models.ForeignKey(FormSubmission)
     sheet = models.ForeignKey(Sheet)
@@ -342,9 +351,16 @@ class SheetSubmission(models.Model):
     def autoslug(self):
         return make_slug(self.sheet.slug)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form_submission')
+
+    @transaction.commit_on_success
+    def save(self, *args, **kwargs):
+        super(SheetSubmission, self).save(*args, **kwargs)
+        #self.form_submission.update_status()
+
+
     
 class FieldSubmission(models.Model):
     sheet_submission = models.ForeignKey(SheetSubmission)
     field = models.ForeignKey(Field)
     # will have to decide later what the maximum length will be if any
-    data = models.CharField(max_length=100, null=True)
+    data = JSONField(null=False, blank=False, default={})
