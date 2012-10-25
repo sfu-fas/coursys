@@ -21,7 +21,7 @@ from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import NonSFUFormFiller, FormFiller
 from onlineforms.utils import reorder_sheet_fields
 
-from coredata.models import Person
+from coredata.models import Person, Role
 from log.models import LogEntry
 
 def manage_groups(request):
@@ -61,6 +61,7 @@ def new_group(request):
 
 
 def manage_group(request, formgroup_slug):
+<<<<<<< HEAD
     """    print "in manage group"
         # editting existing form...
         group = FormGroup.objects.get(slug=formgroup_slug)
@@ -68,6 +69,8 @@ def manage_group(request, formgroup_slug):
         form = GroupForm(instance=group)
         context = {'group': group}
     """
+=======
+>>>>>>> da00a318f371be847b27a0213b998122389e7d5e
     return render(request, 'onlineforms/manage_group.html', context)
 
 
@@ -93,7 +96,7 @@ def list_all(request):
         form = FormForm()
         forms = Form.objects.all()
         context = {'form': form, 'forms': forms}
-    return render_to_response('onlineforms/forms.html', context, context_instance=RequestContext(request))
+    return render_to_response('onlineforms/manage_forms.html', context, context_instance=RequestContext(request))
 
 
 def new_form(request):
@@ -101,13 +104,12 @@ def new_form(request):
         form = FormForm(request.POST)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect('forms')
+            return HttpResponseRedirect(reverse('onlineforms.views.list_all'))
     else:
         form = FormForm()
     return render_to_response('onlineforms/new_form.html',
             {'form': form},
         context_instance=RequestContext(request))
-
 
 def view_form(request, form_slug):
     form = get_object_or_404(Form, slug=form_slug)
@@ -353,8 +355,15 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
 # Form-filling views
 
 def submissions_list_all_forms(request):
-    forms = Form.objects.filter(active=True)
-    context = {'forms': forms}
+    roles = []
+    if(request.user.is_authenticated()):
+        forms = Form.objects.filter(active=True).exclude(initiators='NON')
+        userid = request.user.username
+        roles = Role.all_roles(userid)
+    else:
+        forms = Form.objects.filter(active=True, initiators='ANY')
+    
+    context = {'forms': forms, 'roles': roles}
     return render_to_response('onlineforms/submissions/forms.html', context, context_instance=RequestContext(request))
 
 def form_initial_submission(request, form_slug):

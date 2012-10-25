@@ -7,16 +7,52 @@
 <li>&gt; Forms</li>
 {% endblock %}
 
-{% block content %}
-{% if forms %}
-        <h2>Select a form to fill out:</h2>
-        <ul>
-        {% for form in forms %}
-            <li><a href="{% url onlineforms.views.form_initial_submission form_slug=form.slug %}">{{ form.title }}</a></li>
-        {% endfor %}
-        </ul>
-{% else %}
-        <p>There are currently no forms.</p>
-{% endif %}
+{% block headextra %}
+<script type="text/javascript">
+    $(document).ready(function() {
+    $('#form_table').dataTable({
+                "bPaginate": false,
+                "bJQueryUI": true,
+                "aaSorting": [[0, "asc"]],
+    });
 
+    });
+</script>
+{% endblock %}
+
+{% block actions %}
+{% if 'ADMN' in roles %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url onlineforms.views.list_all %}">Manage Forms</a></li>
+    </ul>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<h2>Available forms</h2>
+<div class="datatable_container">
+    {% if forms %}
+        <table class="display" id="form_table">
+            <thead>
+                <tr>
+                    <th scope="col">Title</th>
+                    <th scope="col">Unit</th>
+                    <th scope="col">Description</th>
+                </tr>
+            </thead>
+            {% for form in forms %}
+                <tr>
+                    <td><a href="{% url onlineforms.views.form_initial_submission form_slug=form.slug %}">{{ form.title }}</a></a></td>
+                    <td>{{ form.unit|default:"" }}</td>
+                    <td>?????</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+            <p>There are currently no forms.</p>
+    {% endif %}
+</div>
 {% endblock %}
