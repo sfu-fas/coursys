@@ -9,12 +9,10 @@
 
 {% block content %}
 {% if forms %}
-        <h2>Select a form to fill out:</h2>
-        <ul>
+        <h2>Availiable forms</h2>
         {% for form in forms %}
-            <li><a href="{% url onlineforms.views.form_initial_submission form_slug=form.slug %}">{{ form.title }}</a></li>
+            <a href="{% url onlineforms.views.form_initial_submission form_slug=form.slug %}">{{ form.title }}</a>
         {% endfor %}
-        </ul>
 {% else %}
         <p>There are currently no forms.</p>
 {% endif %}

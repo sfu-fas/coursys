@@ -92,13 +92,12 @@ def new_form(request):
         form = FormForm(request.POST)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect('forms')
+            return HttpResponseRedirect(reverse('onlineforms.views.list_all'))
     else:
         form = FormForm()
     return render_to_response('onlineforms/new_form.html',
             {'form': form},
         context_instance=RequestContext(request))
-
 
 def view_form(request, form_slug):
     form = get_object_or_404(Form, slug=form_slug)
@@ -344,7 +343,11 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
 # Form-filling views
 
 def submissions_list_all_forms(request):
-    forms = Form.objects.filter(active=True)
+    if(request.user.is_authenticated()):
+        forms = Form.objects.filter(active=True).exclude(initiators='NON')
+    else:
+        forms = Form.objects.filter(active=True, initiators='ANY')
+    
     context = {'forms': forms}
     return render_to_response('onlineforms/submissions/forms.html', context, context_instance=RequestContext(request))
 
