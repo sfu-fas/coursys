@@ -4,14 +4,19 @@
 {% block headextra %}
 <link rel="stylesheet" href="{{MEDIA_URL}}style/print.css" media="print" />
 <script type="text/javascript">
+	var table;
+	{% if sort %}
+	var sort = {{sort}};
+	{% else %}
+	var sort = [[0, 'asc'], [1, 'asc']];
+	{% endif %}
 	$(document).ready(function() {
-		$('#grads').dataTable({
-			"bJQueryUI" : true,
-			"iDisplayLength" : 50,
-			"sPaginationType" : "full_numbers",
+		table = $('#grads').dataTable({
+			"bJQueryUI": true,
+			"bPaginate": false,
+			"aaSorting": sort,
 		});
 	});
-
 </script>
 <style type="text/css">
 #actions li label {

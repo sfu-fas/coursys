@@ -3,12 +3,13 @@ from django.shortcuts import render
 from grad.models import GradStudent, GradProgram, SavedSearch, GradRequirement, ScholarshipType, \
     STATUS_ACTIVE, STATUS_OBSOLETE, STATUS_CHOICES
 from django.http import HttpResponseRedirect, HttpResponse
+from django.utils.safestring import mark_safe
 from django.contrib import messages
 from grad.forms import SearchForm, SaveSearchForm, COLUMN_CHOICES, COLUMN_WIDTHS
 from django.core.urlresolvers import reverse
 from coredata.models import Person
 import unicodecsv as csv
-import copy, datetime
+import copy, datetime, json
 from grad.templatetags.getattribute import getattribute
 
 MAX_RESULTS = 1000
@@ -22,6 +23,24 @@ def _get_cleaned_get(request):
         if len(filter(lambda x:len(x) > 0, parameter_values)) == 0:
             del cleaned_get[parameter]
     return cleaned_get
+
+def _parse_sort(sortstr):
+    res = []
+    for col in sortstr.split(','):
+        num = col[:-1]
+        order = col[-1]
+        try:
+            num = int(num)
+        except ValueError:
+            return None
+        if order == 'd':
+            order = 'desc'
+        elif order == 'a':
+            order = 'asc'
+        else:
+            return None
+        res.append([num, order])
+    return mark_safe(json.dumps(res))
 
 @requires_role("GRAD")
 def search(request):
@@ -55,6 +74,11 @@ def search(request):
     form.fields['scholarshiptype'].choices = scholarshiptype_choices
     form.fields['program'].choices = program_choices
     form.fields['student_status'].choices = status_choices
+    
+    if 'sort' in request.GET:
+        sort = _parse_sort(request.GET['sort'])
+    else:
+        sort = None;
     
     if 'edit_search' not in request.GET and form.is_valid():
         query = form.get_query()
@@ -91,7 +115,6 @@ def search(request):
                     value = getattribute(grad, column)
                     row.append(value)
                 writer.writerow( row )
-            response['Cache-control'] = 'private' 
             return response
         
         elif 'excel' in request.GET:
@@ -128,7 +151,6 @@ def search(request):
             sheet.write(count+5, 0, 'Report generated: %s' % (datetime.datetime.now()))
             
             book.save(response)
-            response['Cache-control'] = 'private'
             return response
         
         if overflow:
@@ -141,9 +163,9 @@ def search(request):
                    'csv_link' : request.get_full_path() + "&csv=yes",
                    'xls_link' : request.get_full_path() + "&excel=yes",
                    'query_string': query_string,
+                   'sort': sort,
                    }
         resp = render(request, 'grad/search_results.html', context)
-        resp['Cache-control'] = 'private'
         return resp
     else:
         #savedsearches = SavedSearch.objects.filter(person__in=(current_user,None))
@@ -152,10 +174,9 @@ def search(request):
                    #'savedsearches' : savedsearches,
                    'page_title' : page_title,
                    'form':form,
-                   'savedsearch' : savedsearch 
+                   'savedsearch' : savedsearch,
                    # a non-None savedsearch here means that somehow, an invalid search got saved
                    # the template gives the user the option to delete it
                    }
         resp = render(request, 'grad/search.html', context)
-        resp['Cache-control'] = 'private'
         return resp
