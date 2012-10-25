@@ -1,33 +1,23 @@
 {% extends "base.html" %}
 {% load form_display %}
-{% block h1 %} ALL FORMS {% endblock %}
+{% block h1 %} Manage Forms {% endblock %}
 {% block title %} Manage Forms {% endblock %}
 
-{% block headextra %}<script type="text/javascript">
-//<![CDATA[
+{% block headextra %}
+<script type="text/javascript">
     $(document).ready(function() {
     $('#form_table').dataTable({
                 "bPaginate": false,
                 "bJQueryUI": true,
                 "aaSorting": [[0, "asc"]],
-                "aoColumns": [
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-        ]
     });
 
     });
-
-//]]></script>
+</script>
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; Forms</li>
+<li>&gt; Manage Forms</li>
 {% endblock %}
 
 {% block actions %}
@@ -61,8 +51,7 @@
                     <td>{{ form.initiators|default:"" }}</td>
                     <td>{{ form.unit|default:"" }}</td>
                     <td>{{ form.active }}</td>
-                    <td>{{ form.original|default:"" }}</td>
-                                
+                    <td>{{ form.original|default:"" }}</td>  
                     
                     <td class="miniaction">
                         <form action="{% url onlineforms.views.list_all  %}" method="post">{% csrf_token %}
@@ -81,5 +70,4 @@
             <p>There are currently no forms.</p>
     {% endif %}
 </div>
-
 {% endblock %}
