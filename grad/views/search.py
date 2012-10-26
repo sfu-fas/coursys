@@ -25,8 +25,15 @@ def _get_cleaned_get(request):
     return cleaned_get
 
 def _parse_sort(sortstr):
+    """
+    Decode the microformat for search order in URL.
+    
+    The format is "2a,15d" maps to datables aaSorting value [[2,'asc'], [15,'desc']]
+    """
     res = []
     for col in sortstr.split(','):
+        if not col:
+            return None
         num = col[:-1]
         order = col[-1]
         try:
@@ -160,8 +167,6 @@ def search(request):
                    'human_readable_column_headers': human_readable_column_headers,
                    'columns': columns,
                    'saveform' : saveform,
-                   'csv_link' : request.get_full_path() + "&csv=yes",
-                   'xls_link' : request.get_full_path() + "&excel=yes",
                    'query_string': query_string,
                    'sort': sort,
                    }

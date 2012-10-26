@@ -16,6 +16,9 @@ def as_dl(form, safe=False, excludefields=[], includefields=None):
     if form.hidden_fields():
         out.append('<div style="display:none">')
         for field in form.hidden_fields():
+            if field.name in excludefields or (
+                    includefields is not None and field.name not in includefields) :
+                continue
             out.append(unicode(field))
         out.append('</div>')
         

@@ -271,3 +271,32 @@ function prep_content() {
 			}
 		});
 	}
+
+function full_querystring() {
+	// rebuild query string with current datatable sort
+	var sort_query = $.deparam.querystring(query_string);
+	var coln, dir;
+	var sort='';
+	
+	$(table.fnSettings().aaSorting).each(function(i, col) {
+		coln = col[0];
+		dir = col[1][0];
+		sort += ',' + coln + dir;
+		
+	});
+    sort_query.sort = sort.substr(1);
+	return $.param(sort_query, true);
+}
+
+function update_links() {
+	// update links on this page with current datatable sort
+	if ( table === undefined ) {
+		return;
+	}
+	var qs = full_querystring();
+	var new_url = self_url + '?' + qs;
+	$('#csvlink').attr('href', new_url+"&csv=yes");
+	$('#excellink').attr('href', new_url+"&excel=yes");
+	$('#editlink').attr('href', new_url+"&edit_search=yes");
+	$('#id_query').val(qs);
+}

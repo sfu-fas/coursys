@@ -457,6 +457,8 @@ class SearchForm(forms.Form):
 
     columns = forms.MultipleChoiceField(COLUMN_CHOICES, initial=('person.last_name', 'person.first_name', 'person.emplid', 'person.userid', 'program', 'current_status', ),
             help_text='Columns to display in the search results.')
+
+    sort = forms.CharField(required=False, widget=forms.HiddenInput()) # used to persist table sorting across "modify search" workflow
     
     semester_range_fields = [
             'start_semester_start',
@@ -494,7 +496,7 @@ class SearchForm(forms.Form):
             ]
 
     col_fields = [
-            'columns']
+            'columns', 'sort']
     
     def clean_requirements_st(self):
         value = self.cleaned_data['requirements_st']

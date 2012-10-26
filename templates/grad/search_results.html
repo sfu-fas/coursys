@@ -3,20 +3,27 @@
 
 {% block headextra %}
 <link rel="stylesheet" href="{{MEDIA_URL}}style/print.css" media="print" />
+<script type="text/javascript" src="{{MEDIA_URL}}js/grad.js"></script>
+<script type="text/javascript" src="{{MEDIA_URL}}js/jquery.ba-bbq.min.js"></script>
 <script type="text/javascript">
-	var table;
-	{% if sort %}
-	var sort = {{sort}};
-	{% else %}
-	var sort = [[0, 'asc'], [1, 'asc']];
-	{% endif %}
-	$(document).ready(function() {
-		table = $('#grads').dataTable({
-			"bJQueryUI": true,
-			"bPaginate": false,
-			"aaSorting": sort,
-		});
+var self_url = "{% filter escapejs %}{% url grad.views.search %}{% endfilter %}";
+var query_string = "{{query_string|escapejs}}";
+var table;
+{% if sort %}
+var sort = {{sort}};
+{% else %}
+var sort = [[0, 'asc'], [1, 'asc']];
+{% endif %}
+
+$(document).ready(function() {
+	table = $('#grads').dataTable({
+		"bJQueryUI": true,
+		"bPaginate": false,
+		"aaSorting": sort,
+		"bStateSave": true,
+		"fnStateSave": update_links,
 	});
+});
 </script>
 <style type="text/css">
 #actions li label {
@@ -42,8 +49,8 @@ width: 120px;
 <div id="actions">
 	<h2>Actions</h2>
 	<ul>
-	<li><a href="{{ csv_link }}">Export as CSV</a></li>
-	<li><a href="{{ xls_link }}">Export as Excel</a></li>
+	<li><a href="{% url grad.views.search %}?{{query_string}}&amp;csv=yes" id="csvlink">Export as CSV</a></li>
+	<li><a href="{% url grad.views.search %}?{{query_string}}&amp;excel=yes" id="excellink">Export as Excel</a></li>
 	</ul>
 </div>
 {% endblock %}
@@ -60,7 +67,7 @@ width: 120px;
 {% endif %}
 </p>
 </form>
-<p><a href="{% url grad.views.search %}?{{query_string}}&amp;edit_search=yes" class="redbutton">Modify this search</a></p>
+<p><a href="{% url grad.views.search %}?{{query_string}}&amp;edit_search=yes" class="redbutton" id="editlink">Modify this search</a></p>
 
 <div class="datatable_container">
 	<table class="display" id="grads">
