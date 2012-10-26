@@ -44,7 +44,8 @@ class Project(models.Model):
     def __unicode__(self):
         return "%06i (%s)" % (self.project_number, self.fund_number)
     def delete(self, *args, **kwargs):
-        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+        self.hidden = True
+        self.save()
 
 class Account(models.Model):
     """
@@ -65,7 +66,8 @@ class Account(models.Model):
     def __unicode__(self):
         return "%06i (%s)" % (self.account_number, self.title)
     def delete(self, *args, **kwargs):
-        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
+        self.hidden = True
+        self.save()
 
 
 DEFAULT_LETTER = [

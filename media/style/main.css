@@ -197,6 +197,10 @@ div#messages .info {
     font-weight: bold;
 }
 
+span.warning {
+    color: #e06121;
+}
+
 /* staff action box */
 #actions {
   border: 1px solid #AAAAAA;

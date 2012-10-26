@@ -281,18 +281,12 @@ def new_account(request):
             return HttpResponseRedirect(reverse('ra.views.accounts_index'))
     return render(request, 'ra/new_account.html', {'accountform': accountform})
 
+
 @requires_role("FUND")
 def accounts_index(request):
     depts = Role.objects.filter(person__userid=request.user.username, role='FUND').values('unit_id')
     accounts = Account.objects.filter(unit__id__in=depts, hidden=False).order_by("account_number")
     return render(request, 'ra/accounts_index.html', {'accounts': accounts})
-
-#@requires_role("FUND")
-#def delete_account(request, account_slug):
-#    account = get_object_or_404(Account, slug=account_slug)
-#    messages.success(request, 'Deleted account ' + str(account.account_number))
-#    account.delete()
-#    return HttpResponseRedirect(reverse(accounts_index))
 
 @requires_role("FUND")
 def edit_account(request, account_slug):
@@ -307,6 +301,18 @@ def edit_account(request, account_slug):
         accountform = AccountForm(instance=account)
         accountform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
     return render(request, 'ra/edit_account.html', {'accountform': accountform, 'account': account})
+
+@requires_role("FUND")
+def remove_account(request, account_slug):
+    account = get_object_or_404(Account, slug=account_slug)
+    account.delete()
+    messages.success(request, "Removed account %s." % str(account.account_number))
+    l = LogEntry(userid=request.user.username,
+          description="Removed account %s" % (str(account.account_number)),
+          related_object=account)
+    l.save()              
+    
+    return HttpResponseRedirect(reverse('ra.views.accounts_index'))
 
 #Project methods. Also straight forward.
 @requires_role("FUND")
@@ -327,13 +333,6 @@ def projects_index(request):
     projects = Project.objects.filter(unit__id__in=depts, hidden=False).order_by("project_number")
     return render(request, 'ra/projects_index.html', {'projects': projects})
 
-#@requires_role("FUND")
-#def delete_project(request, project_slug):
-#    project = get_object_or_404(Project, slug=project_slug)
-#    messages.success(request, 'Deleted project ' + str(project.project_number))
-#    project.delete()
-#    return HttpResponseRedirect(reverse(projects_index))
-
 @requires_role("FUND")
 def edit_project(request, project_slug):
     project = get_object_or_404(Project, slug=project_slug)
@@ -347,6 +346,18 @@ def edit_project(request, project_slug):
         projectform = ProjectForm(instance=project)
         projectform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
     return render(request, 'ra/edit_project.html', {'projectform': projectform, 'project': project})
+
+@requires_role("FUND")
+def remove_project(request, project_slug):
+    project = get_object_or_404(Project, slug=project_slug)
+    project.delete()
+    messages.success(request, "Removed project %s." % str(project.project_number))
+    l = LogEntry(userid=request.user.username,
+          description="Removed project %s" % (str(project.project_number)),
+          related_object=project)
+    l.save()              
+    
+    return HttpResponseRedirect(reverse('ra.views.projects_index'))
 
 @requires_role("FUND")
 def search_scholarships_by_student(request, student_id):
@@ -389,7 +400,9 @@ def browse(request):
                 'name': ra.person.sortname(),
                 'hiring': ra.hiring_faculty.sortname(),
                 'project': unicode(ra.project),
+                'project_hidden': ra.project.hidden,
                 'account': unicode(ra.account),
+                'account_hidden': ra.account.hidden,
                 'start': datefilter(ra.start_date, settings.GRAD_DATE_FORMAT),
                 'end': datefilter(ra.end_date, settings.GRAD_DATE_FORMAT),
                 'amount': '$'+unicode(ra.lump_sum_pay),

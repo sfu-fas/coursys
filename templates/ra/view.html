@@ -57,10 +57,18 @@
     <tr><th>Fund Number:</th>
       <td>{{ appointment.project.fund_number }}</td></tr>
     <tr><th>Project Number:</th>
-      <td>{{ appointment.project.project_number }}</td></tr>
+      <td>{{ appointment.project.project_number }}
+          {% if appointment.project.hidden %}
+            : <span class='warning'>Warning! This project has been deleted! </span>
+          {% endif %} 
+      </td></tr>
     <tr><th>Account Number:</th>
       <td>{{ appointment.account.account_number }} - 
-          {{ appointment.account.title }}</td></tr>
+          {{ appointment.account.title }}
+          {% if appointment.account.hidden %}
+            : <span class='warning'>Warning! This account has been deleted! </span> 
+          {% endif %} 
+      </td></tr>
     <tr><th>Position Number:</th>
       <td>{{ appointment.account.position_number }}</td></tr>
     <tr><th>Start Date:</th>
