@@ -17,7 +17,10 @@ class RAForm(forms.ModelForm):
 
     def clean_sin(self):
         sin = self.cleaned_data['sin']
-        emplid = int(self['person'].value())
+        try:
+            emplid = int(self['person'].value())
+        except ValueError:
+            raise forms.ValidationError("The correct format for a SIN is XXXXXXXXX, all numbers, no spaces or dashes.")
         gradstudents = GradStudent.objects.filter(person__emplid=emplid)
         for gradstudent in gradstudents:
             gradstudent.set_sin(sin)
