@@ -1,11 +1,12 @@
 from django.test import TestCase
 from django.db.utils import IntegrityError
-from models import FormGroup
+from onlineforms.models import FormGroup, Form, Sheet, Field
 from coredata.models import Person, Unit
 
 class ModelTests(TestCase):
     fixtures = ['test_data']
-    #def setUp(self):
+    def setUp(self):
+        self.unit = Unit.objects.get(label="COMP")
 
     def test_FormGroup(self):
         groupName = "admins_test"
@@ -31,3 +32,53 @@ class ModelTests(TestCase):
         fg.members.add(p2)
         self.assertEqual(len(fg.members.all()), 2)
 
+    def test_coherence_mixin(self):
+        """
+        Make sure .active and .original are getting manipulated correctly.
+        """
+        # create new form
+        form = Form(title="Test Form", unit=self.unit, owner=FormGroup.objects.all()[0])
+        form.save()
+        orig_form_id = form.id
+        self.assertEqual(form.active, True)
+        self.assertEqual(form.original_id, orig_form_id)
+        
+        # make a clone and save
+        form = form.clone()
+        form.save()
+
+        # check the state of the forms
+        self.assertEqual(form.active, True)
+        self.assertEqual(form.original_id, orig_form_id)
+        self.assertNotEqual(form.id, orig_form_id)
+        orig_form = Form.objects.get(id=orig_form_id)
+        self.assertEqual(orig_form.original_id, orig_form_id)
+        self.assertEqual(orig_form.active, False)
+
+        
+        # create a sheet
+        sheet = Sheet(form=form, title="Test Sheet", is_initial=True)
+        sheet.save()
+        orig_sheet_id = sheet.id
+        self.assertEqual(sheet.active, True)
+        self.assertEqual(sheet.original_id, orig_sheet_id)
+        # fake a same-original sheet on another version of the form
+        sheetX = Sheet(form=orig_form, title="Test Sheet", is_initial=True, original=sheet.original)
+        sheetX.save()
+        
+        # make a clone and save
+        sheet = sheet.clone()
+        sheet.save()
+        
+        # check the state of the forms
+        self.assertEqual(sheet.active, True)
+        self.assertEqual(sheet.original_id, orig_sheet_id)
+        self.assertNotEqual(sheet.id, orig_sheet_id)
+        orig_sheet = Sheet.objects.get(id=orig_sheet_id)
+        self.assertEqual(orig_sheet.original_id, orig_sheet_id)
+        self.assertEqual(orig_sheet.active, False)
+        self.assertEqual(sheetX.active, True) # cousin shouldn't be deactivated, since it's on a different version of the form
+        
+        
+        
+        

@@ -166,6 +166,15 @@ class _FormCoherenceMixin(object):
     Class to mix-in to maintain the .active and .original fields
     properly when saving form objects.
     """
+    def clone(self):
+        """
+        Return a cloned copy of self, which has *not* been saved.
+        """
+        # from http://stackoverflow.com/a/4733702
+        new_kwargs = dict([(fld.name, getattr(self, fld.name)) 
+                           for fld in self._meta.fields if fld.name != self._meta.pk.name])
+        return self.__class__(**new_kwargs)
+
     def cleanup_fields(self):
         """
         Called after self.save() to manage the .active and .original fields
@@ -174,10 +183,14 @@ class _FormCoherenceMixin(object):
         if self.active and self.original:
             others = type(self).objects.filter(original=self.original) \
                                  .exclude(id=self.id)
-            if isinstance(Sheet, self):
+            
+            # only de-activate siblings, not cousins.
+            # i.e. other related sheets/fields in *other* versions of the form should still be active
+            if isinstance(self, Sheet):
                 others.filter(form=self.form)
-            elif isinstance(Field, self):
+            elif isinstance(self, Field):
                 others.filter(sheet=self.sheet)
+            
             others.update(active=False)
 
         # ensure self.original is populated: should already be set to
@@ -208,7 +221,7 @@ class Form(models.Model, _FormCoherenceMixin):
     def save(self, duplicate_and_save=False, *args, **kwargs):
         if duplicate_and_save:
             # duplicate self.instance and save that, and return it.
-	        # duplicate(self.obj)
+            # duplicate(self.obj)
             #self = self.title
             #self.pk = None
 
@@ -219,7 +232,7 @@ class Form(models.Model, _FormCoherenceMixin):
             instance = super(Form, self).save(*args, **kwargs)
         self.cleanup_fields()
         return instance
-
+    
     @property
     def initial_sheet(self):
         sheets = Sheet.objects.filter(form=self, active=True)
@@ -254,8 +267,8 @@ class Sheet(models.Model, _FormCoherenceMixin):
         return make_slug(self.title)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form')
 
-    class Meta:
-        unique_together = (('form', 'order'),)
+    #class Meta:
+    #    unique_together = (('form', 'order'),)
 
     def __unicode__(self):
         return "%s, %s" % (self.form, self.title)
