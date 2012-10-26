@@ -1,4 +1,4 @@
-from grad.models import GradStudent
+from grad.models import GradStudent,Supervisor
 from courselib.auth import requires_role
 from django.shortcuts import render
 from quick_search import _get_query
@@ -15,5 +15,13 @@ def not_found(request):
     grads = GradStudent.objects.filter(program__unit__in=request.units) \
                 .filter(_get_query(search)) \
                 .select_related('person', 'program')[:500]
+    for grad in grads:
+        grad.supervisor_list = grad.supervisor_set.filter(supervisor_type='SEN', removed=False)
+        grad.supervisor_names = [s.supervisor.userid for s in grad.supervisor_list]
+
+        if not grad.supervisor_list:
+             grad.supervisor_list = grad.supervisor_set.filter(supervisor_type='POT', removed=False)
+             grad.supervisor_names = [s.supervisor.userid+"*" for s in grad.supervisor_list]
+
     context = {'grads': grads}
     return render(request, 'grad/not_found.html', context)
