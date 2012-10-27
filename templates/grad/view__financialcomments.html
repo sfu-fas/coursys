@@ -1,0 +1,54 @@
+{% if index %}
+    <p class="manage_link">
+        <a href="{% url grad.views.manage_financialcomments grad_slug=grad.slug  %}">Manage Financial Comments</a>
+    </p>
+{% endif %}
+
+<div class="datatable_container datatable">
+	<table class="display sort-2">
+		<thead>
+			<tr>
+				<th>Semester</th>
+                <th>Type</th>
+				<th>Created</th>
+                <th>Comment</th>
+				{% if not index %}
+                    <th>Actions</th>
+                {% endif %}
+			</tr>
+		</thead>
+		<tbody>
+			{% for f in financial_comments %}
+			<tr>
+				<td style='min-width:120px'>
+                    {{ f.semester.name }} ({{ f.semester }})
+				</td>
+
+                <td>
+                    {{ f.get_comment_type_display }}
+                </td>
+
+				<td> 
+                    <span class="sort">{{ f.created_at.isoformat }}</span>
+                    {{ f.created_at|date:GRAD_DATE_FORMAT }} 
+                </td>
+
+                <td>
+                    ( {{ f.created_by }} ) : {{ f.comment|linebreaks }} 
+                </td>
+
+				{% if not index %}
+                <td class='miniaction'>
+                    <form action="{% url grad.views.remove_financialcomment grad_slug=grad.slug f_id=f.id %}" method="post">
+                        {% csrf_token %}
+                            <p class="actionbutton">
+                                <input type="submit" value="remove" onclick="return confirmSubmit('remove this financial comment')" />
+                            </p>
+                    </form>
+                </td>
+                {% endif %}
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+</div>

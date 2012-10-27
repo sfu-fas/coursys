@@ -52,4 +52,15 @@
 			{% endfor %}
 		</tbody>
 	</table>
+
+{% if scholarship_comments %}
+<h3><a href='{% url grad.views.manage_financialcomments grad_slug=grad.slug %}'>Financial Comments:</a></h3>
+    {% for f in scholarship_comments %}
+    <div class='note-box' style='margin-top:5px'>
+        <h3> {{ f.created_by }} - {{ f.semester.name }}: </h3> 
+        <p> {{ f.comment|linebreaks }} </p>
+    </div>
+    {% endfor %}
+{% endif %}
+
 </div>

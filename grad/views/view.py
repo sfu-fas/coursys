@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render
 from django.utils.safestring import mark_safe
 from grad.models import GradStudent, Supervisor, GradStatus, CompletedRequirement, GradRequirement, \
-        Scholarship, OtherFunding, Promise, Letter, GradProgramHistory
+        Scholarship, OtherFunding, Promise, Letter, GradProgramHistory, FinancialComment
 
 def _can_view_student(request, grad_slug, funding=False):
     """
@@ -38,7 +38,8 @@ def _can_view_student(request, grad_slug, funding=False):
     return None, None
 
 
-all_sections = ['general', 'supervisors', 'status', 'requirements', 'scholarships', 'otherfunding', 'promises', 'letters']
+all_sections = ['general', 'supervisors', 'status', 'requirements', 
+                'scholarships', 'otherfunding', 'promises', 'financialcomments', 'letters']
 
 @login_required
 def view(request, grad_slug, section=None):
@@ -50,8 +51,8 @@ def view(request, grad_slug, section=None):
     context = {
         'grad': grad, 
         'index': True, 
-        #'active_semester_count':active_semester_count,
-        #'total_semester_count':total_semester_count
+        'active_semester_count':active_semester_count,
+        'total_semester_count':total_semester_count
         }
 
     for s in all_sections:
@@ -93,7 +94,9 @@ def view(request, grad_slug, section=None):
 
         elif section == 'scholarships':
             scholarships = Scholarship.objects.filter(student=grad, removed=False).select_related('scholarship_type').order_by('start_semester__name')
+            comments = FinancialComment.objects.filter(student=grad, comment_type='SCO', removed=False).order_by('created_at')
             context['scholarships'] = scholarships
+            context['scholarship_comments'] = comments
             return render(request, 'grad/view__scholarships.html', context)
 
         elif section == 'otherfunding':
@@ -105,7 +108,12 @@ def view(request, grad_slug, section=None):
             promises = Promise.objects.filter(student=grad, removed=False).order_by('start_semester__name')
             context['promises'] = promises
             return render(request, 'grad/view__promises.html', context)
-
+        
+        elif section == 'financialcomments':
+            comments = FinancialComment.objects.filter(student=grad, removed=False).order_by('created_at')
+            context['financial_comments'] = comments
+            return render(request, 'grad/view__financialcomments.html', context)
+        
         elif section == 'letters':
             letters = Letter.objects.filter(student=grad).select_related('template').order_by('date')
             context['letters'] = letters
