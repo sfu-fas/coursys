@@ -149,12 +149,12 @@ def edit_form(request, form_slug):
 #            owner_sheet = owner_form.sheets
 
  #           owner_form.pk = None
-            owner_form = form.save(duplicate_and_save=True)
-
+           # owner_form = form.save(duplicate_and_save=True)
+           # owner_form = form.save()
             owner_form = form.save()
 
-            for sheet in owner_form.sheets.all():
-                owner_form.sheets.add(owner_sheet)
+           # for sheet in owner_form.sheets.all():
+            #    owner_form.sheets.add(owner_sheet)
 
             owner_form.save()    
            # owner_form.sheets = owner_sheet
