@@ -97,6 +97,7 @@ function datatable_grad_table(elt) {
 	elt.dataTable({
 		'bPaginate': false,
 	    'bInfo': false,
+        'bFilter': false,
 		'bLengthChange': false,
 	    'bJQueryUI': true,
 	    "aaSorting": [[ sortcol, "asc" ]],
