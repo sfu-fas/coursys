@@ -1,7 +1,7 @@
 from datetime import datetime
 from django.contrib import messages
 from django import forms
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, get_list_or_404
 from django.http import HttpResponseRedirect, HttpResponse
 from django.core.urlresolvers import reverse
 from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role
@@ -58,13 +58,13 @@ def new_group(request):
 
 
 def manage_group(request, formgroup_slug):
-"""    print "in manage group"
+    """    print "in manage group"
     # editting existing form...
     group = FormGroup.objects.get(slug=formgroup_slug)
     print group
     form = GroupForm(instance=group)
     context = {'group': group}
-"""
+    """
     return render(request, 'onlineforms/manage_group.html', context)
 
 
@@ -136,13 +136,26 @@ def preview_form(request, form_slug):
 
 def edit_form(request, form_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
+   # owner_sheet = owner_form.sheets
+    #ownersheets = owner_form.sheets
 
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'edit':
         form = FormForm(request.POST, instance=owner_form)
+        #osheet = form.sheets
         if form.is_valid():
-            owner_form.pk = None
-            #owner_form = form.save(duplicate_and_save=True)
+            # define the method to save instance of sheets-- cant attach sheets to form since its an object
+#            owner_sheet = owner_form.sheets
+
+ #           owner_form.pk = None
+            owner_form = form.save(duplicate_and_save=True)
+
             owner_form = form.save()
+
+            for sheet in owner_form.sheets.all():
+                owner_form.sheets.add(owner_sheet)
+
+            owner_form.save()    
+           # owner_form.sheets = owner_sheet
             return HttpResponseRedirect(reverse('onlineforms.views.view_form', kwargs={'form_slug': owner_form.slug}))
     else:
         form = FormForm(instance=owner_form)
