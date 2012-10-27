@@ -61,7 +61,6 @@ def new_group(request):
 
 
 def manage_group(request, formgroup_slug):
-<<<<<<< HEAD
     """    print "in manage group"
     # editting existing form...
     group = FormGroup.objects.get(slug=formgroup_slug)
@@ -69,8 +68,6 @@ def manage_group(request, formgroup_slug):
     form = GroupForm(instance=group)
     context = {'group': group}
     """
-=======
->>>>>>> 7c93e91d626e9c7817f2fb89988642c889d1778a
     return render(request, 'onlineforms/manage_group.html', context)
 
 

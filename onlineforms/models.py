@@ -221,15 +221,13 @@ class Form(models.Model, _FormCoherenceMixin):
     def save(self, duplicate_and_save=False, *args, **kwargs):
         if duplicate_and_save:
             # duplicate self.instance and save that, and return it.
-<<<<<<< HEAD
 	        # duplicate(self.obj)
             self = self.title
             self.pk = None
             self.save()
-	    self.cleanup_fields() 	
+	        #self.cleanup_fields() 	
             return self
             #pass
-=======
             # duplicate(self.obj)
             #self = self.title
             #self.pk = None
@@ -237,11 +235,10 @@ class Form(models.Model, _FormCoherenceMixin):
             #self.save()
             #return self
             pass
->>>>>>> 7c93e91d626e9c7817f2fb89988642c889d1778a
         else:
             instance = super(Form, self).save(*args, **kwargs)
-        self.cleanup_fields()
-        return instance
+            self.cleanup_fields()
+            return instance
     
     @property
     def initial_sheet(self):
@@ -299,11 +296,6 @@ class Sheet(models.Model, _FormCoherenceMixin):
         super(Sheet, self).save(*args, **kwargs)
         self.cleanup_fields()
 
-<<<<<<< HEAD
-
-=======
-    cached_fields = None
->>>>>>> 7c93e91d626e9c7817f2fb89988642c889d1778a
     @property
     def fields(self, refetch=False):
         if refetch or not(self.cached_fields):
