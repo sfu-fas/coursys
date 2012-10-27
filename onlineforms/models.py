@@ -166,6 +166,15 @@ class _FormCoherenceMixin(object):
     Class to mix-in to maintain the .active and .original fields
     properly when saving form objects.
     """
+    def clone(self):
+        """
+        Return a cloned copy of self, which has *not* been saved.
+        """
+        # from http://stackoverflow.com/a/4733702
+        new_kwargs = dict([(fld.name, getattr(self, fld.name)) 
+                           for fld in self._meta.fields if fld.name != self._meta.pk.name])
+        return self.__class__(**new_kwargs)
+
     def cleanup_fields(self):
         """
         Called after self.save() to manage the .active and .original fields
@@ -174,6 +183,14 @@ class _FormCoherenceMixin(object):
         if self.active and self.original:
             others = type(self).objects.filter(original=self.original) \
                                  .exclude(id=self.id)
+            
+            # only de-activate siblings, not cousins.
+            # i.e. other related sheets/fields in *other* versions of the form should still be active
+            if isinstance(self, Sheet):
+                others.filter(form=self.form)
+            elif isinstance(self, Field):
+                others.filter(sheet=self.sheet)
+            
             others.update(active=False)
 
         # ensure self.original is populated: should already be set to
@@ -204,6 +221,7 @@ class Form(models.Model, _FormCoherenceMixin):
     def save(self, duplicate_and_save=False, *args, **kwargs):
         if duplicate_and_save:
             # duplicate self.instance and save that, and return it.
+<<<<<<< HEAD
 	        # duplicate(self.obj)
             self = self.title
             self.pk = None
@@ -211,11 +229,20 @@ class Form(models.Model, _FormCoherenceMixin):
 	    self.cleanup_fields() 	
             return self
             #pass
+=======
+            # duplicate(self.obj)
+            #self = self.title
+            #self.pk = None
+
+            #self.save()
+            #return self
+            pass
+>>>>>>> 7c93e91d626e9c7817f2fb89988642c889d1778a
         else:
             instance = super(Form, self).save(*args, **kwargs)
         self.cleanup_fields()
         return instance
-
+    
     @property
     def initial_sheet(self):
         sheets = Sheet.objects.filter(form=self, active=True)
@@ -224,9 +251,12 @@ class Form(models.Model, _FormCoherenceMixin):
         else:
             return None
 
+    cached_sheets = None
     @property
-    def sheets(self):
-        return Sheet.objects.filter(form=self, active=True).order_by('order')
+    def sheets(self, refetch=False):
+        if refetch or not(self.cached_sheets):
+            self.cached_sheets = Sheet.objects.filter(form=self, active=True).order_by('order')
+        return self.cached_sheets
 
 class Sheet(models.Model, _FormCoherenceMixin):
     title = models.CharField(max_length=60, null=False, blank=False)
@@ -247,8 +277,8 @@ class Sheet(models.Model, _FormCoherenceMixin):
         return make_slug(self.title)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form')
 
-    class Meta:
-        unique_together = (('form', 'order'),)
+    #class Meta:
+    #    unique_together = (('form', 'order'),)
 
     def __unicode__(self):
         return "%s, %s" % (self.form, self.title)
@@ -269,10 +299,16 @@ class Sheet(models.Model, _FormCoherenceMixin):
         super(Sheet, self).save(*args, **kwargs)
         self.cleanup_fields()
 
+<<<<<<< HEAD
 
+=======
+    cached_fields = None
+>>>>>>> 7c93e91d626e9c7817f2fb89988642c889d1778a
     @property
-    def fields(self):
-        return Field.objects.filter(sheet=self, active=True).order_by('order')
+    def fields(self, refetch=False):
+        if refetch or not(self.cached_fields):
+            self.cached_fields = Field.objects.filter(sheet=self, active=True).order_by('order')
+        return self.cached_fields
 
 class Field(models.Model, _FormCoherenceMixin):
     label = models.CharField(max_length=60, null=False, blank=False)
@@ -326,6 +362,11 @@ class FormSubmission(models.Model):
         return make_slug(unicode(self.id)) # we can do better than that, right?
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form')
     
+    def update_status(self):
+        pass
+        # if 'WAIT' in all SheetSubmission.statuses => 'WAIT'
+        # unless old status was 'DONE'
+    
 class SheetSubmission(models.Model):
     form_submission = models.ForeignKey(FormSubmission)
     sheet = models.ForeignKey(Sheet)
@@ -337,9 +378,16 @@ class SheetSubmission(models.Model):
     def autoslug(self):
         return make_slug(self.sheet.slug)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form_submission')
+
+    @transaction.commit_on_success
+    def save(self, *args, **kwargs):
+        super(SheetSubmission, self).save(*args, **kwargs)
+        #self.form_submission.update_status()
+
+
     
 class FieldSubmission(models.Model):
     sheet_submission = models.ForeignKey(SheetSubmission)
     field = models.ForeignKey(Field)
     # will have to decide later what the maximum length will be if any
-    data = models.CharField(max_length=100, null=True)
+    data = JSONField(null=False, blank=False, default={})

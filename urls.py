@@ -452,7 +452,7 @@ urlpatterns += patterns('',
     url(r'^advising/problems/resolved/$', 'advisornotes.views.view_resolved_problems'),
     url(r'^advising/problems/(?P<prob_id>\d+)/$', 'advisornotes.views.edit_problem'),
 
-
+    # Online Forms
     
     url(r'forms/groups/$', 'onlineforms.views.manage_groups'),
     url(r'forms/groups/new$', 'onlineforms.views.new_group'),

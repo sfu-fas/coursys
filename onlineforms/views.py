@@ -17,8 +17,11 @@ from django.template import RequestContext
 from onlineforms.fieldtypes import *
 from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup
+from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
+from onlineforms.models import NonSFUFormFiller, FormFiller
 from onlineforms.utils import reorder_sheet_fields
 
+from coredata.models import Person, Role
 from log.models import LogEntry
 
 def manage_groups(request):
@@ -58,6 +61,7 @@ def new_group(request):
 
 
 def manage_group(request, formgroup_slug):
+<<<<<<< HEAD
     """    print "in manage group"
     # editting existing form...
     group = FormGroup.objects.get(slug=formgroup_slug)
@@ -65,6 +69,8 @@ def manage_group(request, formgroup_slug):
     form = GroupForm(instance=group)
     context = {'group': group}
     """
+=======
+>>>>>>> 7c93e91d626e9c7817f2fb89988642c889d1778a
     return render(request, 'onlineforms/manage_group.html', context)
 
 
@@ -90,7 +96,7 @@ def list_all(request):
         form = FormForm()
         forms = Form.objects.all()
         context = {'form': form, 'forms': forms}
-    return render_to_response('onlineforms/forms.html', context, context_instance=RequestContext(request))
+    return render_to_response('onlineforms/manage_forms.html', context, context_instance=RequestContext(request))
 
 
 def new_form(request):
@@ -98,13 +104,12 @@ def new_form(request):
         form = FormForm(request.POST)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect('forms')
+            return HttpResponseRedirect(reverse('onlineforms.views.list_all'))
     else:
         form = FormForm()
     return render_to_response('onlineforms/new_form.html',
             {'form': form},
         context_instance=RequestContext(request))
-
 
 def view_form(request, form_slug):
     form = get_object_or_404(Form, slug=form_slug)
@@ -317,7 +322,7 @@ def new_field(request, form_slug, sheet_slug):
 
 def _clean_config(config):
     irrelevant_fields = ['csrfmiddlewaretoken', 'next_section', 'type_name']
-    clean_config = {key: value for (key, value) in config.iteritems() if key not in irrelevant_fields}
+    clean_config = dict((key, value) for (key, value) in config.iteritems() if key not in irrelevant_fields)
     clean_config['required'] = 'required' in clean_config
 
     return clean_config
@@ -363,8 +368,15 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
 # Form-filling views
 
 def submissions_list_all_forms(request):
-    forms = Form.objects.filter(active=True)
-    context = {'forms': forms}
+    roles = []
+    if(request.user.is_authenticated()):
+        forms = Form.objects.filter(active=True).exclude(initiators='NON')
+        userid = request.user.username
+        roles = Role.all_roles(userid)
+    else:
+        forms = Form.objects.filter(active=True, initiators='ANY')
+    
+    context = {'forms': forms, 'roles': roles}
     return render_to_response('onlineforms/submissions/forms.html', context, context_instance=RequestContext(request))
 
 def form_initial_submission(request, form_slug):
@@ -376,21 +388,58 @@ def form_initial_submission(request, form_slug):
 
     sheet = owner_form.initial_sheet
 
+    if(request.user.is_authenticated()):
+        loggedin_user = get_object_or_404(Person, userid=request.user.username)
+    else:
+        loggedin_user = None
+
     if request.method == 'POST':
+        # validate the sheet
         form = DynamicForm(sheet.title)
         form.fromFields(sheet.fields)
         form.validate(request.POST)
+        # TODO: actually check that this info was valid
 
-        nonSFUFormFiller = None
-        if 'add-nonsfu' in request.POST:
+        # sheet is valid, lets get a form filler
+        if 'add-nonsfu' in request.POST and owner_form.initiators == "ANY":
             nonSFUFormFillerForm = NonSFUFormFillerForm(request.POST)
+            if nonSFUFormFillerForm.is_valid():
+                nonSFUFormFiller = nonSFUFormFillerForm.save()
+                formFiller = FormFiller(nonSFUFormFiller=nonSFUFormFiller)
+                formFiller.save()
+                # TODO: LOGGING
+        elif loggedin_user:
+            formFiller = FormFiller(sfuFormFiller=loggedin_user)
+            formFiller.save()
+            # TODO: LOGGING
+        else:
+            # they didn't provide nonsfu info and they are not logged in
+            context = {'owner_form': owner_form, 'error_msg': "You must have a SFU account and be logged in to fill out this form."}
+            return render_to_response('onlineforms/submissions/initial_sheet.html', context, context_instance=RequestContext(request))
 
-        print "success"
+        # create the form submission
+        formSubmission = FormSubmission(form=owner_form, initiator=formFiller, owner=owner_form.owner)
+        formSubmission.save()
+        # TODO:logging
 
-    # for if they are not logged in and nonSFU students are allowed to fill out the form
-    
+        # create the sheet submission
+        sheetSubmission = SheetSubmission(sheet=sheet, form_submission=formSubmission, filler=formFiller)
+        sheetSubmission.save()
+        # TODO:logging
+
+        for name, field in form.fields.items():
+            cleaned_data = field.clean(request.POST[str(name)])
+            # name is just a number, we can use it as the index
+            fieldSubmission = FieldSubmission(field=sheet.fields[name], sheet_submission=sheetSubmission, data=cleaned_data)
+            fieldSubmission.save()
+            # TODO:logging
+
+        messages.success(request, 'You have succesfully submitted %s.' % (owner_form.title))
+        return HttpResponseRedirect(reverse(submissions_list_all_forms))
+
+
     # if the user is not logged in and this is an any form, show the no sfu form filler, otherwise reject them
-    if not(request.user.is_authenticated()):
+    if not(loggedin_user):
         if owner_form.initiators == "ANY":
             nonSFUFormFillerForm = NonSFUFormFillerForm()
         else:
@@ -398,7 +447,6 @@ def form_initial_submission(request, form_slug):
             return render_to_response('onlineforms/submissions/initial_sheet.html', context, context_instance=RequestContext(request))
     else:
         nonSFUFormFillerForm = None
-
 
     form = DynamicForm(sheet.title)
     form.fromFields(sheet.fields)
