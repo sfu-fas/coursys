@@ -205,12 +205,12 @@ class Form(models.Model, _FormCoherenceMixin):
         if duplicate_and_save:
             # duplicate self.instance and save that, and return it.
 	        # duplicate(self.obj)
-            #self = self.title
-            #self.pk = None
-
-            #self.save()
-            #return self
-            pass
+            self = self.title
+            self.pk = None
+            self.save()
+	    self.cleanup_fields() 	
+            return self
+            #pass
         else:
             instance = super(Form, self).save(*args, **kwargs)
         self.cleanup_fields()
@@ -268,6 +268,7 @@ class Sheet(models.Model, _FormCoherenceMixin):
         
         super(Sheet, self).save(*args, **kwargs)
         self.cleanup_fields()
+
 
     @property
     def fields(self):
