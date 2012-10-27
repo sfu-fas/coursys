@@ -7,5 +7,6 @@ from grad.models import SavedSearch
 def index(request):
     form = QuickSearchForm()
     savedsearches = SavedSearch.objects.filter(person__userid=(request.user.username))
-    context = {'units': request.units, 'form': form, 'savedsearches': savedsearches}
+    other_savedsearches = SavedSearch.objects.exclude(person__userid=(request.user.username))
+    context = {'units': request.units, 'form': form, 'savedsearches': savedsearches, 'other_savedsearches':other_savedsearches}
     return render(request, 'grad/index.html', context)

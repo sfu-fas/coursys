@@ -47,12 +47,23 @@
 </form>
 
 {% if savedsearches %}
-<h2 id="saved" style="clear: right;">Saved Searches</h2>
+<h2 id="saved" style="clear: right;">My Saved Searches</h2>
 <ul>
 {% for s in savedsearches %}
 <li><a href="{% url grad.views.search %}?{{ s.query }}">{{s.name}}</a></li>
 {% endfor %}
 </ul>
 {% endif %}
+
+{% if other_savedsearches %}
+<h2 id="saved" style="clear: right;">All Saved Searches</h2>
+<ul>
+{% for s in other_savedsearches %}
+<li><a href="{% url grad.views.search %}?{{ s.query }}">{{s.name}}</a></li>
+{% endfor %}
+</ul>
+{% endif %}
+
+
 
 {% endblock %} 
