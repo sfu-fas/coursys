@@ -32,13 +32,13 @@ def manage_groups(request):
         if 'action' in request.POST:
             if request.POST['action'] == 'delete':
                 print "if request.post['action'] == delete "
-                if 'group_id' in request.POST: 
+                if 'group_id' in request.POST:
                     selected_group = FormGroup.objects.filter(pk=request.POST['group_id'])
                     selected_group.delete()
- 
+
     user = request.user.username
-    groups = FormGroup.objects.filter(members__userid__startswith=user)    
-    context = {'groups': groups}       
+    groups = FormGroup.objects.filter(members__userid__startswith=user)
+    context = {'groups': groups}
     return render(request, 'onlineforms/manage_groups.html', context)
 
 
@@ -108,6 +108,7 @@ def new_form(request):
             {'form': form},
         context_instance=RequestContext(request))
 
+
 def view_form(request, form_slug):
     form = get_object_or_404(Form, slug=form_slug)
     sheets = Sheet.objects.filter(form=form, active=True).order_by('order')
@@ -138,26 +139,26 @@ def preview_form(request, form_slug):
 
 def edit_form(request, form_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
-   # owner_sheet = owner_form.sheets
+    # owner_sheet = owner_form.sheets
     #ownersheets = owner_form.sheets
 
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'edit':
         form = FormForm(request.POST, instance=owner_form)
         #osheet = form.sheets
         if form.is_valid():
-            # define the method to save instance of sheets-- cant attach sheets to form since its an object
-#            owner_sheet = owner_form.sheets
+        # define the method to save instance of sheets-- cant attach sheets to form since its an object
+        #            owner_sheet = owner_form.sheets
 
- #           owner_form.pk = None
-           # owner_form = form.save(duplicate_and_save=True)
-           # owner_form = form.save()
+        #           owner_form.pk = None
+        # owner_form = form.save(duplicate_and_save=True)
+        # owner_form = form.save()
             owner_form = form.save()
 
-           # for sheet in owner_form.sheets.all():
+            # for sheet in owner_form.sheets.all():
             #    owner_form.sheets.add(owner_sheet)
 
-            owner_form.save()    
-           # owner_form.sheets = owner_sheet
+            owner_form.save()
+            # owner_form.sheets = owner_sheet
             return HttpResponseRedirect(reverse('onlineforms.views.view_form', kwargs={'form_slug': owner_form.slug}))
     else:
         form = FormForm(instance=owner_form)
@@ -267,8 +268,8 @@ def edit_sheet_info(request, form_slug, sheet_slug):
     context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet}
     return render(request, 'onlineforms/edit_sheet_info.html', context)
 
-def new_field(request, form_slug, sheet_slug):
 
+def new_field(request, form_slug, sheet_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
     owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
 
@@ -322,7 +323,7 @@ def new_field(request, form_slug, sheet_slug):
 
                 return HttpResponseRedirect(
                     reverse('onlineforms.views.edit_sheet', args=(form_slug, sheet_slug)))
-                
+
     if section == 'select':
         form = FieldForm()
         section = 'config'
@@ -341,7 +342,6 @@ def _clean_config(config):
 
 
 def edit_field(request, form_slug, sheet_slug, field_slug):
-
     owner_form = get_object_or_404(Form, slug=form_slug)
     owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
     field = get_object_or_404(Field, sheet=owner_sheet, slug=field_slug)
@@ -370,6 +370,9 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
                 reverse('onlineforms.views.edit_sheet', args=(form_slug, sheet_slug)))
 
     else:
+        if not type.configurable:
+            return HttpResponseRedirect(
+                reverse('onlineforms.views.edit_sheet', args=(form_slug, sheet_slug)))
         form = FIELD_TYPE_MODELS[field.fieldtype](config=field.config).make_config_form()
 
     context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet, 'field': field,
@@ -387,16 +390,18 @@ def submissions_list_all_forms(request):
         roles = Role.all_roles(userid)
     else:
         forms = Form.objects.filter(active=True, initiators='ANY')
-    
+
     context = {'forms': forms, 'roles': roles}
     return render_to_response('onlineforms/submissions/forms.html', context, context_instance=RequestContext(request))
+
 
 def form_initial_submission(request, form_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
     # if no one can fill out this form, stop right now
     if owner_form.initiators == "NON":
         context = {'owner_form': owner_form, 'error_msg': "No one can fill out this form."}
-        return render_to_response('onlineforms/submissions/initial_sheet.html', context, context_instance=RequestContext(request))
+        return render_to_response('onlineforms/submissions/initial_sheet.html', context,
+            context_instance=RequestContext(request))
 
     sheet = owner_form.initial_sheet
 
@@ -426,8 +431,10 @@ def form_initial_submission(request, form_slug):
             # TODO: LOGGING
         else:
             # they didn't provide nonsfu info and they are not logged in
-            context = {'owner_form': owner_form, 'error_msg': "You must have a SFU account and be logged in to fill out this form."}
-            return render_to_response('onlineforms/submissions/initial_sheet.html', context, context_instance=RequestContext(request))
+            context = {'owner_form': owner_form,
+                       'error_msg': "You must have a SFU account and be logged in to fill out this form."}
+            return render_to_response('onlineforms/submissions/initial_sheet.html', context,
+                context_instance=RequestContext(request))
 
         # create the form submission
         formSubmission = FormSubmission(form=owner_form, initiator=formFiller, owner=owner_form.owner)
@@ -442,7 +449,8 @@ def form_initial_submission(request, form_slug):
         for name, field in form.fields.items():
             cleaned_data = field.clean(request.POST[str(name)])
             # name is just a number, we can use it as the index
-            fieldSubmission = FieldSubmission(field=sheet.fields[name], sheet_submission=sheetSubmission, data=cleaned_data)
+            fieldSubmission = FieldSubmission(field=sheet.fields[name], sheet_submission=sheetSubmission,
+                data=cleaned_data)
             fieldSubmission.save()
             # TODO:logging
 
@@ -455,8 +463,10 @@ def form_initial_submission(request, form_slug):
         if owner_form.initiators == "ANY":
             nonSFUFormFillerForm = NonSFUFormFillerForm()
         else:
-            context = {'owner_form': owner_form, 'error_msg': "You must have a SFU account and be logged in to fill out this form."}
-            return render_to_response('onlineforms/submissions/initial_sheet.html', context, context_instance=RequestContext(request))
+            context = {'owner_form': owner_form,
+                       'error_msg': "You must have a SFU account and be logged in to fill out this form."}
+            return render_to_response('onlineforms/submissions/initial_sheet.html', context,
+                context_instance=RequestContext(request))
     else:
         nonSFUFormFillerForm = None
 
@@ -464,7 +474,8 @@ def form_initial_submission(request, form_slug):
     form.fromFields(sheet.fields)
 
     context = {'owner_form': owner_form, 'sheet': sheet, 'form': form, 'nonSFUFormFillerForm': nonSFUFormFillerForm}
-    return render_to_response('onlineforms/submissions/initial_sheet.html', context, context_instance=RequestContext(request))
+    return render_to_response('onlineforms/submissions/initial_sheet.html', context,
+        context_instance=RequestContext(request))
 
 
 def view_submission(request, form_slug, formsubmit_slug):
