@@ -267,7 +267,6 @@ def edit_sheet_info(request, form_slug, sheet_slug):
     context = {'form': form, 'owner_form': owner_form, 'owner_sheet': owner_sheet}
     return render(request, 'onlineforms/edit_sheet_info.html', context)
 
-
 def new_field(request, form_slug, sheet_slug):
 
     owner_form = get_object_or_404(Form, slug=form_slug)
@@ -294,8 +293,24 @@ def new_field(request, form_slug, sheet_slug):
                 field = type_model(config=custom_config)
 
             form = field.make_config_form()
+
+            #If the form is not configurable (such as a divider) there's no second form.
+            configurable = field.configurable
+            if not configurable:
+                Field.objects.create(label='',
+                    sheet=owner_sheet,
+                    fieldtype=type,
+                    config=None,
+                    active=True,
+                    original=None, )
+                messages.success(request, 'Successfully created a new divider field')
+
+                return HttpResponseRedirect(
+                    reverse('onlineforms.views.edit_sheet', args=(form_slug, sheet_slug)))
+
             need_choices = field.choices
 
+            #If the form is configurable it must be validated
             if form.is_valid():
                 Field.objects.create(label=form.cleaned_data['label'],
                     sheet=owner_sheet,
