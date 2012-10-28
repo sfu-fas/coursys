@@ -503,6 +503,12 @@ class Supervisor(models.Model):
         else:
             return self.external
 
+    def shortname(self):
+        if self.supervisor:
+            return self.supervisor.last_name
+        else:
+            return self.external
+
     def save(self, *args, **kwargs):
         # make sure the data is coherent: should also be in form validation for nice UI
         is_person = bool(self.supervisor)
