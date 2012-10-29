@@ -58,12 +58,17 @@ def new_group(request):
 
 
 def manage_group(request, formgroup_slug):
-    print "in manage group"
-    # editting existing form...
     group = FormGroup.objects.get(slug=formgroup_slug)
-    print group
     form = GroupForm(instance=group)
     context = {'form': form, 'group': group}
+
+    if request.method == 'POST':
+        print "post request"
+        if form.is_valid():
+            print "form is valid"
+            form.save()
+            print "form saved"
+            return HttpResponseRedirect(reverse('onlineforms.views.manage_groups'))
 
     return render(request, 'onlineforms/manage_group.html', context)
 
