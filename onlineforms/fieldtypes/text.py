@@ -29,8 +29,8 @@ class SmallTextField(FieldBase):
             c.max_length = self.config['max_length']
         return c
 
-    def serialize_field(self, field):
-        return {'info': unicode(field.clean())}
+    def serialize_field(self, cleaned_data):
+        return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
         return mark_safe('<p>' + escape(fieldsubmission.data['info']) + '</p>')
@@ -58,8 +58,8 @@ class MediumTextField(FieldBase):
             c.max_length = self.config['max_length']
         return c
 
-    def serialize_field(self, field):
-        return {'info': unicode(field.clean())}
+    def serialize_field(self, cleaned_data):
+        return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
         return mark_safe('<p>' + escape(fieldsubmission.data['info']) + '</p>')
@@ -87,8 +87,8 @@ class LargeTextField(FieldBase):
             c.max_length = self.config['max_length']
         return c
 
-    def serialize_field(self, field):
-        return {'info': unicode(field.clean())}
+    def serialize_field(self, cleaned_data):
+        return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
         return mark_safe('<p>' + escape(fieldsubmission.data['info']) + '</p>')
@@ -111,8 +111,8 @@ class EmailTextField(FieldBase):
 
         return c
 
-    def serialize_field(self, field):
-        return {'email': unicode(field.clean())}
+    def serialize_field(self, cleaned_data):
+        return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
         return mark_safe('<p>' + escape(fieldsubmission.data['email']) + '</p>')
@@ -139,8 +139,8 @@ class ExplanationTextField(FieldBase):
 
         return c
 
-    def serialize_field(self, field):
-        return {'text_explanation': unicode(field.clean())}
+    def serialize_field(self, cleaned_data):
+        return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
         return mark_safe('<p>' + escape(self.config['text_explanation']) + '</p>')

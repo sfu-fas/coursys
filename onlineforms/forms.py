@@ -66,10 +66,14 @@ class DynamicForm(forms.Form):
         preserving the order they are given in
         """
         fieldargs = {}
+        # keep a dictionary of the configured display fields, so we can serialize them with data later
+        self.display_fields = {}
         for (counter, field) in enumerate(fields):
             display_field = FIELD_TYPE_MODELS[field.fieldtype](field.config)
-            fieldargs[counter] = display_field.make_entry_field()
-        self.setFields(fieldargs)
+            self.fields[counter] = display_field.make_entry_field()
+            # keep the display field for later
+            self.display_fields[self.fields[counter] ] = display_field
+
 
     def fromPostData(self, post_data):
         self.cleaned_data = {}

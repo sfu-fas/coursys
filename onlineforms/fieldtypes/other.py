@@ -31,8 +31,8 @@ class FileCustomField(FieldBase):
                 help_text=self.config['help_text'],
                 max_length=int(self.config['max_length']))
 
-    def serialize_field(self, field):
-        return {'info': unicode(field.clean())}
+    def serialize_field(self, cleaned_data):
+        return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
         return mark_safe('<p>' + "File title?" + '</p>')
@@ -73,8 +73,8 @@ class DividerField(FieldBase):
             label='',
             help_text='')
 
-    def serialize_field(self, field):
-        return {'info': unicode(field.clean())}
+    def serialize_field(self, cleaned_data):
+        return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
         return mark_safe('<hr />')

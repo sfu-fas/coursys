@@ -32,8 +32,8 @@ class RadioSelectField(FieldBase):
 
         return c
 
-    def serialize_field(self, field):
-        return {'choice': unicode(field.clean())}
+    def serialize_field(self, cleaned_data):
+        return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
         raise NotImplementedError
@@ -73,8 +73,8 @@ class DropdownSelectField(FieldBase):
 
         return c
 
-    def serialize_field(self, field):
-        return {'choice': unicode(field.clean())}
+    def serialize_field(self, cleaned_data):
+        return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
         raise NotImplementedError
@@ -111,8 +111,8 @@ class MultipleSelectField(FieldBase):
 
         return c
 
-    def serialize_field(self, field):
-        return {'choice': unicode(field.clean())}
+    def serialize_field(self, cleaned_data):
+        return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
         raise NotImplementedError

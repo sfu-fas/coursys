@@ -492,11 +492,7 @@ def form_initial_submission(request, form_slug):
             # TODO:logging
 
             for name, field in form.fields.items():
-                # cleaned_data = field.clean(request.POST[str(name)])
-
-                # this should use serialize_field?
-                # foo.data = Something.serialize_field(form.fields[str(name)])
-                cleaned_data = {'info': unicode(form.cleaned_data[str(name)])}
+                cleaned_data = form.display_fields[field].serialize_field(form.cleaned_data[str(name)])
                 # name is just a number, we can use it as the index
                 fieldSubmission = FieldSubmission(field=sheet.fields[name], sheet_submission=sheetSubmission, data=cleaned_data)
                 fieldSubmission.save()
