@@ -37,7 +37,11 @@ class FieldForm(forms.Form):
     type = forms.ChoiceField(required=True, choices=FIELD_TYPE_CHOICES, label='Type')
 
 class AdminAssignForm(forms.Form): 
-    test = forms.CharField(required=True, max_length=30, label=mark_safe('Test'), help_text='Test field')
+    send_to = forms.ChoiceField(required=True, choices=form_group.objects.all(), label='Send to')
+    
+    def __init__(self, form_group, *args, **kwargs):
+        self.form_group = form_group
+        super(DynamicForm, self).__init__(*args, **kwargs)
     
 class DynamicForm(forms.Form):
     def __init__(self, title, *args, **kwargs):

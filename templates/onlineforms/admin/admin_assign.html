@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load form_display %}
 
-{% block title %} Assign Form {% endblock %}
-{% block h1 %} Assign Form {% endblock %}
+{% block title %} Assign {{ form_submission.form.title }} {% endblock %}
+{% block h1 %} Assign {{ form_submission.form.title }} {% endblock %}
 
 {% block subbreadcrumbs %}
     <li>&gt; <a href="{% url onlineforms.views.submissions_list_all_forms %}">Forms</a></li>
@@ -25,7 +25,7 @@
                 <ul>
                     {{ form|as_dl }}
                     <li>
-                        <input class="submit" type="submit" value="Next"/>
+                        <input class="submit" type="submit" value="Submit"/>
                     </li>
                 </ul>
             </fieldset>

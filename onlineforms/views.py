@@ -92,9 +92,9 @@ def admin_list_all(request):
 
 def admin_assign(request, form_sumbission_slug):
     form_submission = get_object_or_404(FormSubmission, slug=form_sumbission_slug)
-    
-    form = AdminAssignForm(request.POST or None)
+    form = AdminAssignForm(request.POST or None, form_submission.owner)
     if form.is_valid():
+        # make new sheet submission for next sheet in form
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
     
     context = {'form': form, 'form_submission': form_submission}
