@@ -10,7 +10,17 @@
         <script type="text/javascript">
             $(document).ready(function () {
 
-                var choice_count = 0;
+
+                var choice_count
+                var last_choice = $('input[name^="choice_"]').last()
+                alert(last_choice)
+
+                if(last_choice.length === 0){
+                    choice_count = 0
+                }else{
+                    choice_count = /\d+/.exec(last_choice[0].name)
+                }
+
                 var r_button = '<input type="button" name="remove_choice" value="Remove"/>';
 
                 $('input[name^="choice_"]').after(r_button)

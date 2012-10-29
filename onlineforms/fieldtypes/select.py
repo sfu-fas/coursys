@@ -1,5 +1,6 @@
 from onlineforms.fieldtypes.base import FieldBase, FieldConfigForm
 from django import forms
+import re
 
 class RadioSelectField(FieldBase):
     choices = True
@@ -48,6 +49,8 @@ class DropdownSelectField(FieldBase):
 
             keys = [c for c in self.config if c.startswith("choice_") and self.config[c]]
 
+            keys = sorted(keys, key=lambda choice: (int) (re.findall(r'\d+', choice)[0]))
+
             for k in keys:
                 self.fields[k] = forms.CharField(required=False, label="Choice")
 
@@ -58,7 +61,8 @@ class DropdownSelectField(FieldBase):
 
     def make_entry_field(self, fieldsubmission=None):
         the_choices = [(k, v) for k, v in self.config.iteritems() if k.startswith("choice_") and self.config[k]]
-        the_choices = sorted(the_choices, key=lambda choice: choice[1])
+        the_choices = sorted(the_choices, key=lambda choice: choice[0])
+        the_choices = sorted(the_choices, key=lambda choice: (int) (re.findall(r'\d+', choice[0])[0]))
 
         c = forms.ChoiceField(required=self.config['required'],
             label=self.config['label'],
