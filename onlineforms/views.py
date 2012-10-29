@@ -95,6 +95,9 @@ def admin_assign(request, form_sumbission_slug):
     form = AdminAssignForm(request.POST or None, form_submission.owner)
     if form.is_valid():
         # make new sheet submission for next sheet in form
+        sheet_order = SheetSubmission.objects.filter(form_submission=form_submission).count()
+        sheet = Sheet.objects.get(order=sheet_order, form=form_submission.form)
+        SheetSubmission.objects.create(sheet=sheet, form_submission=formSubmission, filler=form.cleaned_data['send_to'])
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
     
     context = {'form': form, 'form_submission': form_submission}
