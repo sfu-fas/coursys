@@ -71,6 +71,20 @@ class DynamicForm(forms.Form):
             fieldargs[counter] = display_field.make_entry_field()
         self.setFields(fieldargs)
 
+    def fromPostData(self, post_data):
+        self.cleaned_data = {}
+        for name, field in self.fields.items():
+            try:
+                if str(name) in post_data:
+                    self.cleaned_data[str(name)] = field.clean(post_data[str(name)])
+                else:
+                    self.cleaned_data[str(name)] = field.clean("")
+            except Exception, e:
+                self.errors[name] = ", ".join(e.messages)
+
+    def is_valid(self):
+        # override because I'm not sure how to bind this form to data (i.e. form.is_bound)
+        return not bool(self.errors)
 
     def validate(self, post):
         """
