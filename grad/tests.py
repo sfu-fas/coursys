@@ -5,7 +5,7 @@ import json, datetime
 from coredata.models import Person, Semester
 from grad.models import GradStudent, GradRequirement, GradProgram, Letter, LetterTemplate, \
         Supervisor, GradStatus, CompletedRequirement, ScholarshipType, Scholarship, OtherFunding, \
-        Promise, GradProgramHistory
+        Promise, GradProgramHistory, FinancialComment
 from courselib.testing import basic_page_tests, test_auth
 from grad.views.view import all_sections
 
@@ -105,6 +105,7 @@ class GradTest(TestCase):
         Scholarship(student=gs, scholarship_type=st, amount=1000, start_semester=sem, end_semester=sem).save()
         OtherFunding(student=gs, amount=100, semester=sem, description="Some Other Funding", comments="Other Funding\n\nComment").save()
         Promise(student=gs, amount=10000, start_semester=sem, end_semester=sem.next_semester()).save()
+        FinancialComment(student=gs, semester=sem, comment_type='SCO', comment='Some comment.\nMore.', created_by='ggbaker').save()
         
         return gs
 
@@ -153,7 +154,7 @@ class GradTest(TestCase):
         # check management pages
         for view in ['financials', 'manage_general', 'manage_requirements', 'manage_scholarships', 'new_letter',
                       'manage_otherfunding', 'manage_promises', 'manage_letters', 'manage_status', 'manage_supervisors',
-                      'manage_program']:
+                      'manage_program', 'manage_financialcomments']:
             try:
                 url = reverse('grad.views.'+view, kwargs={'grad_slug': gs.slug})
                 response = basic_page_tests(self, client, url)

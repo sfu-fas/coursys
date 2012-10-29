@@ -11,6 +11,7 @@
 				<th>Semester</th>
                 <th>Type</th>
 				<th>Created</th>
+                <th>By</th>
                 <th>Comment</th>
 				{% if not index %}
                     <th>Actions</th>
@@ -34,7 +35,11 @@
                 </td>
 
                 <td>
-                    ( {{ f.created_by }} ) : {{ f.comment|linebreaks }} 
+                    {{ f.created_by }}
+                </td>
+
+                <td>
+                    {{ f.comment|linebreaksbr }} 
                 </td>
 
 				{% if not index %}

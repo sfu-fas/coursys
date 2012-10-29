@@ -795,7 +795,7 @@ COMMENT_TYPE_CHOICES = [
 class FinancialComment(models.Model):
     student = models.ForeignKey(GradStudent)
     semester = models.ForeignKey(Semester, related_name="+")
-    comment_type = models.CharField(max_length=3, choices=COMMENT_TYPE_CHOICES, blank=False, null=False)
+    comment_type = models.CharField(max_length=3, choices=COMMENT_TYPE_CHOICES, default='OTH', blank=False, null=False)
     comment = models.TextField(blank=False, null=False)
     created_by = models.CharField(max_length=32, null=False, help_text='Entered by (userid)')
     created_at = models.DateTimeField(default=datetime.datetime.now)

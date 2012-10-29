@@ -58,7 +58,7 @@
     {% for f in scholarship_comments %}
     <div class='note-box' style='margin-top:5px'>
         <h3> {{ f.created_by }} - {{ f.semester.name }}: </h3> 
-        <p> {{ f.comment|linebreaks }} </p>
+        <p> {{ f.comment|linebreaksbr }} </p>
     </div>
     {% endfor %}
 {% endif %}
