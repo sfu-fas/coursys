@@ -398,3 +398,28 @@ class FieldSubmission(models.Model):
     field = models.ForeignKey(Field)
     # will have to decide later what the maximum length will be if any
     data = JSONField(null=False, blank=False, default={})
+
+
+
+
+FormSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
+
+def attachment_upload_to(instance, filename):
+    """
+    callback to avoid path in the filename(that we have append folder structure to) being striped
+    """
+    fullpath = os.path.join(
+            'forms',
+            datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.advisor.userid),
+            filename.encode('ascii', 'ignore'))
+    return fullpath
+
+    
+class FieldSubmissionFile(models.Model):
+    field_submission = models.ForeignKey(FieldSubmission)
+    created_at = models.DateTimeField(default=datetime.datetime.now)
+    file_attachment = models.FileField(storage=FormSystemStorage, null=True,
+                      upload_to=attachment_upload_to, blank=True, max_length=500)
+    file_mediatype = models.CharField(null=True, blank=True, max_length=200, editable=False)
+    
+
