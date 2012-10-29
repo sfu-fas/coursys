@@ -44,10 +44,14 @@ class URLCustomField(FieldBase):
         pass
 
     def make_config_form(self):
-        raise NotImplementedError
+      return self.URLConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        raise NotImplementedError
+        c = forms.URLField(required=self.config['required'],
+            label=self.config['label'],
+            help_text=self.config['help_text'])
+
+        return c
 
     def serialize_field(self, field):
         raise NotImplementedError
