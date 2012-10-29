@@ -5,7 +5,7 @@ from django import forms
 from django.shortcuts import render, get_object_or_404, get_list_or_404
 from django.http import HttpResponseRedirect, HttpResponse
 from django.core.urlresolvers import reverse
-from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role
+from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, requires_form_admin_by_slug
 
 from django.db import models
 from django.forms import ModelForm
@@ -104,6 +104,7 @@ def admin_assign(request, form_sumbission_slug):
     context = {'form': form, 'form_submission': form_submission}
     return render(request, "onlineforms/admin/admin_assign.html", context)
 
+@login_required
 def list_all(request):
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'del':
         form_id = request.POST['form_id']
@@ -132,7 +133,7 @@ def new_form(request):
             {'form': form},
         context_instance=RequestContext(request))
 
-
+@requires_form_admin_by_slug()
 def view_form(request, form_slug):
     form = get_object_or_404(Form, slug=form_slug)
     sheets = Sheet.objects.filter(form=form, active=True).order_by('order')
@@ -141,6 +142,7 @@ def view_form(request, form_slug):
     return render(request, "onlineforms/view_form.html", context)
 
 
+@requires_form_admin_by_slug()
 def preview_form(request, form_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
     form_sheets = Sheet.objects.filter(form=owner_form, active=True).order_by('order')
@@ -161,6 +163,7 @@ def preview_form(request, form_slug):
     return render(request, "onlineforms/preview_form.html", context)
 
 
+@requires_form_admin_by_slug()
 def edit_form(request, form_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
     # owner_sheet = owner_form.sheets
@@ -191,6 +194,7 @@ def edit_form(request, form_slug):
     return render(request, 'onlineforms/edit_form.html', context)
 
 
+@requires_form_admin_by_slug()
 def new_sheet(request, form_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
     form = SheetForm(request.POST or None)
@@ -204,6 +208,7 @@ def new_sheet(request, form_slug):
     return render(request, "onlineforms/new_sheet.html", context)
 
 
+@requires_form_admin_by_slug()
 def edit_sheet(request, form_slug, sheet_slug):
     # http://127.0.0.1:8000/forms/comp-test-form-2/edit/initial-sheet/
     owner_form = get_object_or_404(Form, slug=form_slug)
@@ -248,6 +253,7 @@ def edit_sheet(request, form_slug, sheet_slug):
     return render(request, "onlineforms/edit_sheet.html", context)
 
 
+@requires_form_admin_by_slug()
 def reorder_field(request, form_slug, sheet_slug):
     """
     Ajax way to reorder activity.
@@ -276,6 +282,7 @@ def reorder_field(request, form_slug, sheet_slug):
     return ForbiddenResponse(request)
 
 
+@requires_form_admin_by_slug()
 def edit_sheet_info(request, form_slug, sheet_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
     owner_sheet = get_object_or_404(Sheet, slug=sheet_slug)
@@ -293,6 +300,7 @@ def edit_sheet_info(request, form_slug, sheet_slug):
     return render(request, 'onlineforms/edit_sheet_info.html', context)
 
 
+@requires_form_admin_by_slug()
 def new_field(request, form_slug, sheet_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
     owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
@@ -365,6 +373,7 @@ def _clean_config(config):
     return clean_config
 
 
+@requires_form_admin_by_slug()
 def edit_field(request, form_slug, sheet_slug, field_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
     owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)

@@ -4,6 +4,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils.http import urlquote
 from coredata.models import Role, CourseOffering, Member
+from onlineforms.models import FormGroup, Form
 
 try:
     from functools import wraps
@@ -171,6 +172,24 @@ def requires_course_instr_by_slug(function=None, login_url=None):
     Allows access if user is a staff member (instructor, TA, approver) from course indicated by 'course_slug'.
     """
     actual_decorator = user_passes_test(is_course_instr_by_slug, login_url=login_url)
+    if function:
+        return actual_decorator(function)
+    else:
+        return actual_decorator
+
+def is_form_admin_by_slug(request, form_slug, **kwargs):
+    """
+    Return True if user is a staff member (instructor, TA, approver) from course indicated by 'course_slug' keyword.
+    """
+    owner_ids = [f['owner'] for f in Form.objects.filter(slug=form_slug).values('owner')]
+    groups = FormGroup.objects.filter(members__userid=request.user.username, id__in=owner_ids)
+    return groups.count() > 0
+
+def requires_form_admin_by_slug(function=None, login_url=None):
+    """
+    Allows access if user is an admin of the form indicated by the 'form_slug' keyword.
+    """
+    actual_decorator = user_passes_test(is_form_admin_by_slug, login_url=login_url)
     if function:
         return actual_decorator(function)
     else:
