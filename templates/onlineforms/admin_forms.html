@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block h1 %} Administrate Forms {% endblock %}
+{% block title %} Administrate Forms {% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+    $(document).ready(function() {
+    $('#form_table').dataTable({
+                "bPaginate": false,
+                "bJQueryUI": true,
+                "aaSorting": [[0, "asc"]],
+    });
+
+    });
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li>&gt; <a href="{% url onlineforms.views.submissions_list_all_forms %}">Forms</a></li>
+    <li>&gt; Admin Forms</li>
+{% endblock %}
+
+{% block content %}
+admin forms
+{% endblock %}

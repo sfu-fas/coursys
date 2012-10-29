@@ -21,14 +21,14 @@
 {% endblock %}
 
 {% block actions %}
-{% if 'ADMN' in roles %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
         <li><a href="{% url onlineforms.views.list_all %}">Manage Forms</a></li>
+         <li class="newsec"></li>
+        <li><a href="{% url onlineforms.views.admin_list_all %}">Administrate Forms</a></li>
     </ul>
 </div>
-{% endif %}
 {% endblock %}
 
 {% block content %}

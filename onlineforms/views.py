@@ -80,6 +80,11 @@ def remove_group_member(request, formgroup_slug, userid):
 
 # Form admin views
 
+def admin_list_all(request):    
+    context = {}
+    return render(request, "onlineforms/admin_forms.html", context)
+
+
 def list_all(request):
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'del':
         form_id = request.POST['form_id']
