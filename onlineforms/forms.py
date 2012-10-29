@@ -36,7 +36,7 @@ class NonSFUFormFillerForm(ModelForm):
 class FieldForm(forms.Form):
     type = forms.ChoiceField(required=True, choices=FIELD_TYPE_CHOICES, label='Type')
 
-class AdminAssignForm(forms.Form): 
+class AdminAssignForm(forms.Form):
     send_to = forms.ChoiceField(required=True, choices=form_group.objects.all(), label='Send to')
     
     def __init__(self, form_group, *args, **kwargs):
