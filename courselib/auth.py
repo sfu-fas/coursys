@@ -182,8 +182,9 @@ def is_form_admin_by_slug(request, form_slug, **kwargs):
     Return True if user is a staff member (instructor, TA, approver) from course indicated by 'course_slug' keyword.
     """
     owner_ids = [f['owner'] for f in Form.objects.filter(slug=form_slug).values('owner')]
-    groups = FormGroup.objects.filter(members__userid=request.user.username, id__in=owner_ids)
-    return groups.count() > 0
+    groups = FormGroup.objects.filter(members__userid=request.user.username)
+    request.formgroups = groups
+    return groups.filter(id__in=owner_ids).count() > 0
 
 def requires_form_admin_by_slug(function=None, login_url=None):
     """
@@ -194,6 +195,21 @@ def requires_form_admin_by_slug(function=None, login_url=None):
         return actual_decorator(function)
     else:
         return actual_decorator
+
+def has_formgroup(request, **kwargs):
+    """
+    Return True is the given user is in any FormGroup
+    """
+    groups = FormGroup.objects.filter(members__userid=request.user.username)
+    request.formgroups = groups
+    return groups.count() > 0
+
+def requires_formgroup(login_url=None):
+    """
+    Allows access if user has the given role in ANY FormGroup
+    """
+    actual_decorator = user_passes_test(has_formgroup, login_url=login_url)
+    return actual_decorator
 
 def is_dept_admn_by_slug(request, course_slug, **kwargs):
     offering = CourseOffering.objects.get(slug=course_slug)

@@ -160,6 +160,8 @@ class FormGroup(models.Model):
 
     def __unicode__(self):
         return "%s, %s" % (self.name, self.unit.label)
+    def delete(self, *args, **kwargs):
+        raise NotImplementedError, "This object cannot be deleted because it is used as a foreign key."
 
 class _FormCoherenceMixin(object):
     """
@@ -217,6 +219,10 @@ class Form(models.Model, _FormCoherenceMixin):
     def __unicode__(self):
         return "%s" % (self.title)
     
+    def delete(self, *args, **kwargs):
+        self.active = False
+        self.save()
+
     @transaction.commit_on_success
     def save(self, duplicate_and_save=False, *args, **kwargs):
         if duplicate_and_save:
@@ -280,6 +286,10 @@ class Sheet(models.Model, _FormCoherenceMixin):
     def __unicode__(self):
         return "%s, %s" % (self.form, self.title)
 
+    def delete(self, *args, **kwargs):
+        self.active = False
+        self.save()
+
     @transaction.commit_on_success
     def save(self, *args, **kwargs):
         # if this sheet is just being created it needs a order number
@@ -321,6 +331,10 @@ class Field(models.Model, _FormCoherenceMixin):
 
     def __unicode__(self):
         return "%s, %s" % (self.sheet, self.label)
+
+    def delete(self, *args, **kwargs):
+        self.active = False
+        self.save()
 
     @transaction.commit_on_success
     def save(self, *args, **kwargs):

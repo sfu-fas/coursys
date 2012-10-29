@@ -5,13 +5,13 @@ from django import forms
 from django.shortcuts import render, get_object_or_404, get_list_or_404
 from django.http import HttpResponseRedirect, HttpResponse
 from django.core.urlresolvers import reverse
-from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, requires_form_admin_by_slug
+from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, requires_form_admin_by_slug, \
+        requires_formgroup
 
 from django.db import models
 from django.forms import ModelForm
 from django.forms.models import modelformset_factory
 from django.forms.models import BaseModelFormSet
-from django.shortcuts import render_to_response
 from django.template import RequestContext
 
 # FormGroup management views
@@ -27,16 +27,13 @@ from log.models import LogEntry
 
 @requires_role('ADMN')
 def manage_groups(request):
-    # for now only display groups the user has created...
-
-
-    if request.method == 'POST':
-        if 'action' in request.POST:
-            if request.POST['action'] == 'delete':
-                print "if request.post['action'] == delete "
-                if 'group_id' in request.POST:
-                    selected_group = FormGroup.objects.filter(pk=request.POST['group_id'])
-                    selected_group.delete()
+    #if request.method == 'POST':
+    #    if 'action' in request.POST:
+    #        if request.POST['action'] == 'delete':
+    #            print "if request.post['action'] == delete "
+    #            if 'group_id' in request.POST:
+    #                selected_group = FormGroup.objects.filter(pk=request.POST['group_id'])
+    #                selected_group.delete()
 
     groups = FormGroup.objects.filter(unit__in=request.units)
     context = {'groups': groups}
@@ -45,8 +42,10 @@ def manage_groups(request):
 
 @requires_role('ADMN')
 def new_group(request):
+    unit_choices = [(u.id, unicode(u)) for u in request.units]
     if request.method == 'POST':
         form = GroupForm(request.POST)
+        form.fields['unit'].choices = unit_choices
         if form.is_valid():
             # unit, name, members
             # FormGroup.objects.create(unit=form.cleaned_data['unit'], name=form.cleaned_data['name'], members=form.cleaned_data['members'])
@@ -54,6 +53,7 @@ def new_group(request):
             return HttpResponseRedirect(reverse('onlineforms.views.manage_groups'))
     else:
         form = GroupForm()
+        form.fields['unit'].choices = unit_choices
     context = {'form': form}
     return render(request, 'onlineforms/new_group.html', context)
 
@@ -61,27 +61,39 @@ def new_group(request):
 @requires_role('ADMN')
 def manage_group(request, formgroup_slug):
     group = FormGroup.objects.get(slug=formgroup_slug)
-    form = GroupForm(instance=group)
-    context = {'form': form, 'group': group}
+    if group.unit not in request.units:
+        return ForbiddenResponse(request)
+    unit_choices = [(u.id, unicode(u)) for u in request.units]
 
     if request.method == 'POST':
-        print "post request"
+        form = GroupForm(request.POST, instance=group)
+        form.fields['unit'].choices = unit_choices
         if form.is_valid():
-            print "form is valid"
             form.save()
-            print "form saved"
             return HttpResponseRedirect(reverse('onlineforms.views.manage_groups'))
+    else:
+        form = GroupForm(instance=group)
+        form.fields['unit'].choices = unit_choices
 
+    context = {'form': form, 'group': group}
     return render(request, 'onlineforms/manage_group.html', context)
 
 
 @requires_role('ADMN')
 def add_group_member(request, formgroup_slug):
+    group = FormGroup.objects.get(slug=formgroup_slug)
+    if group.unit not in request.units:
+        return ForbiddenResponse(request)
+
     pass
 
 
 @requires_role('ADMN')
 def remove_group_member(request, formgroup_slug, userid):
+    group = FormGroup.objects.get(slug=formgroup_slug)
+    if group.unit not in request.units:
+        return ForbiddenResponse(request)
+
     pass
 
 # Form admin views
@@ -108,11 +120,12 @@ def admin_assign(request, form_sumbission_slug):
     context = {'form': form, 'form_submission': form_submission}
     return render(request, "onlineforms/admin/admin_assign.html", context)
 
-@login_required
+@requires_formgroup()
 def list_all(request):
+    forms = Form.objects.filter(owner__in=request.formgroups, active=True)
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'del':
         form_id = request.POST['form_id']
-        forms = Form.objects.filter(id=form_id)
+        forms = forms.filter(id=form_id)
         if forms:
             form = forms[0]
             form.delete()
@@ -120,22 +133,25 @@ def list_all(request):
         return HttpResponseRedirect(reverse(list_all))
     else:
         form = FormForm()
-        forms = Form.objects.all()
         context = {'form': form, 'forms': forms}
-    return render_to_response('onlineforms/manage_forms.html', context, context_instance=RequestContext(request))
+    return render('onlineforms/manage_forms.html', context)
 
-
+@requires_formgroup()
 def new_form(request):
+    group_choices = [(fg.id, unicode(fg)) for fg in request.formgroups]
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'add':
         form = FormForm(request.POST)
+        form.fields['owner'].choices = group_choices
         if form.is_valid():
-            form.save()
+            f = form.save(commit=False)
+            # use FormGroup's unit as the Form's unit
+            f.unit = f.owner.unit
+            f.save()
             return HttpResponseRedirect(reverse('onlineforms.views.list_all'))
     else:
         form = FormForm()
-    return render_to_response('onlineforms/new_form.html',
-            {'form': form},
-        context_instance=RequestContext(request))
+        form.fields['owner'].choices = group_choices
+    return render('onlineforms/new_form.html', {'form': form})
 
 @requires_form_admin_by_slug()
 def view_form(request, form_slug):
@@ -170,29 +186,20 @@ def preview_form(request, form_slug):
 @requires_form_admin_by_slug()
 def edit_form(request, form_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
-    # owner_sheet = owner_form.sheets
-    #ownersheets = owner_form.sheets
+    group_choices = [(fg.id, unicode(fg)) for fg in request.formgroups]
 
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'edit':
         form = FormForm(request.POST, instance=owner_form)
-        #osheet = form.sheets
+        form.fields['owner'].choices = group_choices
         if form.is_valid():
-        # define the method to save instance of sheets-- cant attach sheets to form since its an object
-        #            owner_sheet = owner_form.sheets
-
-        #           owner_form.pk = None
-        # owner_form = form.save(duplicate_and_save=True)
-        # owner_form = form.save()
-            owner_form = form.save()
-
-            # for sheet in owner_form.sheets.all():
-            #    owner_form.sheets.add(owner_sheet)
-
-            owner_form.save()
-            # owner_form.sheets = owner_sheet
+            f = form.save(commit=False)
+            # use FormGroup's unit as the Form's unit
+            f.unit = f.owner.unit
+            f.save()
             return HttpResponseRedirect(reverse('onlineforms.views.view_form', kwargs={'form_slug': owner_form.slug}))
     else:
         form = FormForm(instance=owner_form)
+        form.fields['owner'].choices = group_choices
 
     context = {'form': form, 'owner_form': owner_form}
     return render(request, 'onlineforms/edit_form.html', context)
@@ -264,7 +271,7 @@ def reorder_field(request, form_slug, sheet_slug):
     This ajax view function is called in the edit_sheet page.
     """
     form = get_object_or_404(Form, slug=form_slug)
-    sheet = get_object_or_404(Sheet, slug=sheet_slug)
+    sheet = get_object_or_404(Sheet, form=form, slug=sheet_slug)
     if request.method == 'POST':
         neaten_field_positions(sheet)
         # find the fields in question
@@ -432,7 +439,7 @@ def submissions_list_all_forms(request):
     dept_admin = Role.objects.filter(role='ADMN', person__userid=request.user.username).count() > 0
 
     context = {'forms': forms, 'form_groups': form_groups, 'dept_admin': dept_admin}
-    return render_to_response('onlineforms/submissions/forms.html', context, context_instance=RequestContext(request))
+    return render(request, 'onlineforms/submissions/forms.html', context)
 
 
 def form_initial_submission(request, form_slug):
@@ -440,8 +447,7 @@ def form_initial_submission(request, form_slug):
     # if no one can fill out this form, stop right now
     if owner_form.initiators == "NON":
         context = {'owner_form': owner_form, 'error_msg': "No one can fill out this form."}
-        return render_to_response('onlineforms/submissions/initial_sheet.html', context,
-            context_instance=RequestContext(request))
+        return render(request, 'onlineforms/submissions/initial_sheet.html', context)
 
     sheet = owner_form.initial_sheet
 
@@ -473,8 +479,7 @@ def form_initial_submission(request, form_slug):
                 # they didn't provide nonsfu info and they are not logged in
                 context = {'owner_form': owner_form,
                            'error_msg': "You must have a SFU account and be logged in to fill out this form."}
-                return render_to_response('onlineforms/submissions/initial_sheet.html', context,
-                    context_instance=RequestContext(request))
+                return render(request, 'onlineforms/submissions/initial_sheet.html', context)
 
             # create the form submission
             formSubmission = FormSubmission(form=owner_form, initiator=formFiller, owner=owner_form.owner)
@@ -515,14 +520,12 @@ def form_initial_submission(request, form_slug):
         else:
             context = {'owner_form': owner_form,
                        'error_msg': "You must have a SFU account and be logged in to fill out this form."}
-            return render_to_response('onlineforms/submissions/initial_sheet.html', context,
-                context_instance=RequestContext(request))
+            return render(request, 'onlineforms/submissions/initial_sheet.html', context)
     else:
         nonSFUFormFillerForm = None
 
     context = {'owner_form': owner_form, 'sheet': sheet, 'form': form, 'nonSFUFormFillerForm': nonSFUFormFillerForm}
-    return render_to_response('onlineforms/submissions/initial_sheet.html', context,
-        context_instance=RequestContext(request))
+    return render(request, 'onlineforms/submissions/initial_sheet.html', context)
 
 
 def view_submission(request, form_slug, formsubmit_slug):
