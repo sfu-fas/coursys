@@ -64,7 +64,7 @@ class FieldBase(object):
 
     def serialize_field(self, field):
         """
-        Convert filled field (as returned by make_entry_field)
+        Convert filled field (a django.forms.Field, as returned by make_entry_field)
         to a JSON-friendly format. 
 
         e.g., converting the result of a DateTimeField's 'clean()' method (which is

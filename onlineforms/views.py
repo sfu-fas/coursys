@@ -134,7 +134,7 @@ def list_all(request):
     else:
         form = FormForm()
         context = {'form': form, 'forms': forms}
-    return render('onlineforms/manage_forms.html', context)
+    return render(request, 'onlineforms/manage_forms.html', context)
 
 @requires_formgroup()
 def new_form(request):
@@ -495,6 +495,7 @@ def form_initial_submission(request, form_slug):
                 # cleaned_data = field.clean(request.POST[str(name)])
 
                 # this should use serialize_field?
+                # foo.data = Something.serialize_field(form.fields[str(name)])
                 cleaned_data = {'info': unicode(form.cleaned_data[str(name)])}
                 # name is just a number, we can use it as the index
                 fieldSubmission = FieldSubmission(field=sheet.fields[name], sheet_submission=sheetSubmission, data=cleaned_data)

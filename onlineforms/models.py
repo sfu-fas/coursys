@@ -6,6 +6,9 @@ from jsonfield import JSONField
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
 from django.db.models import Max
+from django.core.files.storage import FileSystemStorage
+from django.conf import settings
+import datetime
 
 # choices for Form.initiator field
 from onlineforms.fieldtypes.other import FileCustomField, DividerField, URLCustomField
