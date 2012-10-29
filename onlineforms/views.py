@@ -1,5 +1,6 @@
 from datetime import datetime
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django import forms
 from django.shortcuts import render, get_object_or_404, get_list_or_404
 from django.http import HttpResponseRedirect, HttpResponse
@@ -79,11 +80,25 @@ def remove_group_member(request, formgroup_slug, userid):
     pass
 
 # Form admin views
+@login_required
+def admin_list_all(request):
+    admin = get_object_or_404(Person, userid=request.user.username)
+    form_group = FormGroup.objects.get(members=admin)
+    if form_group:
+        form_submissions = FormSubmission.objects.filter(owner=form_group, status='WAIT')
+    
+    context = {'form_submissions': form_submissions}
+    return render(request, "onlineforms/admin/admin_forms.html", context)
 
-def admin_list_all(request):    
-    context = {}
-    return render(request, "onlineforms/admin_forms.html", context)
-
+def admin_assign(request, form_sumbission_slug):
+    form_submission = get_object_or_404(FormSubmission, slug=form_sumbission_slug)
+    
+    form = AdminAssignForm(request.POST or None)
+    if form.is_valid():
+        return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
+    
+    context = {'form': form, 'form_submission': form_submission}
+    return render(request, "onlineforms/admin/admin_assign.html", context)
 
 def list_all(request):
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'del':

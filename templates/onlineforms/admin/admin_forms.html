@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block h1 %} Administrate Forms {% endblock %}
+{% block title %} Administrate Forms {% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+    $(document).ready(function() {
+    $('#form_table').dataTable({
+                "bPaginate": false,
+                "bJQueryUI": true,
+                "aaSorting": [[0, "asc"]],
+    });
+
+    });
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li>&gt; <a href="{% url onlineforms.views.submissions_list_all_forms %}">Forms</a></li>
+    <li>&gt; Admin Forms</li>
+{% endblock %}
+
+{% block content %}
+<div class="datatable_container">
+    {% if form_submissions %}
+        <table class="display" id="sheet_table">
+            <thead>
+                <tr>
+                    <th scope="col">Title</th>
+                    <th scope="col">Initiator</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            {% for form_sub in form_submissions %}
+                <tr>
+                    <td><a href="{% url onlineforms.views.edit_sheet form_slug=form.slug sheet_slug=sheet.slug %}">{{ sheet.title }}</a></td>
+                    <td>{{ form_sub.form.title }}</td>
+                    <td>{{ form_sub.initiator }}</td>
+                    <td>{{ form_sub.status }}</td>
+                    <td>
+                        <a href="{% url onlineforms.views.view_form form_slug=form_sub.form.slug %}">View Form</a>
+                        <a href="{% url onlineforms.views.admin_assign_next form_sumbission_slug=form_sub.slug %}">Assign Next</a>
+                    </td>
+                </tr>
+              {% endfor %}
+        </table>
+    {% else %}
+            <p>There are currently no forms that need any action.</p>
+    {% endif %}
+</div>
+{% endblock %}

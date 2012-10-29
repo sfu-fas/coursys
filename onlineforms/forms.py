@@ -36,6 +36,9 @@ class NonSFUFormFillerForm(ModelForm):
 class FieldForm(forms.Form):
     type = forms.ChoiceField(required=True, choices=FIELD_TYPE_CHOICES, label='Type')
 
+class AdminAssignForm(forms.Form): 
+    test = forms.CharField(required=True, max_length=30, label=mark_safe('Test'), help_text='Test field')
+    
 class DynamicForm(forms.Form):
     def __init__(self, title, *args, **kwargs):
         self.title = title
