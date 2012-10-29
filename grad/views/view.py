@@ -51,8 +51,8 @@ def view(request, grad_slug, section=None):
     context = {
         'grad': grad, 
         'index': True, 
-        'active_semester_count':active_semester_count,
-        'total_semester_count':total_semester_count
+        #'active_semester_count':active_semester_count,
+        #'total_semester_count':total_semester_count
         }
 
     for s in all_sections:
