@@ -21,12 +21,17 @@
 {% endblock %}
 
 {% block actions %}
-{% if form_groups %}
+{% if form_groups or dept_admin %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
     <ul>
+    	{% if form_groups %}
         <li><a href="{% url onlineforms.views.list_all %}">Manage Forms</a></li>
         <li><a href="{% url onlineforms.views.admin_list_all %}">Administrate Forms</a></li>
+        {% endif %}
+    	{% if dept_admin %}
+        <li><a href="{% url onlineforms.views.manage_groups %}">Manage Form Groups</a></li>
+        {% endif %}
     </ul>
 </div>
 {% endif %}

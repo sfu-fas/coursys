@@ -25,6 +25,7 @@ from onlineforms.utils import reorder_sheet_fields
 from coredata.models import Person, Role
 from log.models import LogEntry
 
+@requires_role('ADMN')
 def manage_groups(request):
     # for now only display groups the user has created...
 
@@ -37,12 +38,12 @@ def manage_groups(request):
                     selected_group = FormGroup.objects.filter(pk=request.POST['group_id'])
                     selected_group.delete()
 
-    user = request.user.username
-    groups = FormGroup.objects.filter(members__userid__startswith=user)
+    groups = FormGroup.objects.filter(unit__in=request.units)
     context = {'groups': groups}
     return render(request, 'onlineforms/manage_groups.html', context)
 
 
+@requires_role('ADMN')
 def new_group(request):
     if request.method == 'POST':
         form = GroupForm(request.POST)
@@ -57,6 +58,7 @@ def new_group(request):
     return render(request, 'onlineforms/new_group.html', context)
 
 
+@requires_role('ADMN')
 def manage_group(request, formgroup_slug):
     group = FormGroup.objects.get(slug=formgroup_slug)
     form = GroupForm(instance=group)
@@ -73,10 +75,12 @@ def manage_group(request, formgroup_slug):
     return render(request, 'onlineforms/manage_group.html', context)
 
 
+@requires_role('ADMN')
 def add_group_member(request, formgroup_slug):
     pass
 
 
+@requires_role('ADMN')
 def remove_group_member(request, formgroup_slug, userid):
     pass
 
@@ -424,8 +428,10 @@ def submissions_list_all_forms(request):
         form_groups = FormGroup.objects.filter(members=loggedin_user)
     else:
         forms = Form.objects.filter(active=True, initiators='ANY')
+    
+    dept_admin = Role.objects.filter(role='ADMN', person__userid=request.user.username).count() > 0
 
-    context = {'forms': forms, 'form_groups': form_groups}
+    context = {'forms': forms, 'form_groups': form_groups, 'dept_admin': dept_admin}
     return render_to_response('onlineforms/submissions/forms.html', context, context_instance=RequestContext(request))
 
 
