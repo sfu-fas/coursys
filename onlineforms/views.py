@@ -403,15 +403,16 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
 # Form-filling views
 
 def submissions_list_all_forms(request):
-    roles = []
+    form_groups = None
     if(request.user.is_authenticated()):
+        loggedin_user = get_object_or_404(Person, userid=request.user.username)
         forms = Form.objects.filter(active=True).exclude(initiators='NON')
-        userid = request.user.username
-        roles = Role.all_roles(userid)
+        # get all the form groups the logged in user is a part of
+        form_groups = FormGroup.objects.filter(members=loggedin_user)
     else:
         forms = Form.objects.filter(active=True, initiators='ANY')
 
-    context = {'forms': forms, 'roles': roles}
+    context = {'forms': forms, 'form_groups': form_groups}
     return render_to_response('onlineforms/submissions/forms.html', context, context_instance=RequestContext(request))
 
 
