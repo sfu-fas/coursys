@@ -296,6 +296,7 @@ class Sheet(models.Model, _FormCoherenceMixin):
         super(Sheet, self).save(*args, **kwargs)
         self.cleanup_fields()
 
+    cached_fields = None
     @property
     def fields(self, refetch=False):
         if refetch or not(self.cached_fields):
