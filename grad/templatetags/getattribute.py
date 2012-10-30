@@ -20,6 +20,10 @@ def getattribute(value, arg):
             pot_sups = value.supervisor_set.filter(supervisor_type='POT', removed=False)
             names = [s.sortname()+"*" for s in pot_sups]
         return '; '.join(names)
+    elif arg == 'supervisors':
+        sups = value.supervisor_set.filter(supervisor_type__in=['SEN','COM'], removed=False)
+        names = [s.sortname() for s in sups]
+        return '; '.join(names)
     elif arg == 'completed_req':
         reqs = value.completedrequirement_set.all().select_related('requirement')
         return ', '.join(r.requirement.description for r in reqs)
