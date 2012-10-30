@@ -1,5 +1,6 @@
 
 from django.db import models, transaction
+from django.core.cache import cache
 from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
@@ -143,7 +144,7 @@ class GradStudent(models.Model):
         if old != (self.start_semester_id, self.end_semester_id, self.current_status):
             self.save()
 
-    def active_semesters(self):
+    def _active_semesters(self):
         """
         Number of active and total semesters
         """
@@ -172,6 +173,20 @@ class GradStudent(models.Model):
         
         away = len(away)
         return total-away, total
+
+    def active_semesters(self):
+        """
+        Number of active and total semesters (caches self._active_semesters).
+        """
+        key = 'grad-activesem-%i' % (self.id)
+        res = cache.get(key)
+        if res:
+            return res
+        else:
+            res = self._active_semesters()
+            cache.set(key, res, 24*3600)
+            return res
+
 
     def active_semesters_display(self):
         """

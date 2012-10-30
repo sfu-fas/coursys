@@ -26,11 +26,7 @@ def getattribute(value, arg):
     elif arg == 'current_status':
         return value.get_current_status_display()
     elif arg == 'active_semesters':
-        active, total = value.active_semesters()
-        if active == total:
-            return unicode(active)
-        else:
-            return "%i/%i" % (active, total)
+        return value.active_semesters_display()
     elif arg == 'gpa':
         res = value.person.gpa()
         if res:
