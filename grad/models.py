@@ -172,54 +172,12 @@ class GradStudent(models.Model):
         away = len(away)
         return total-away, total
 
-    def start_semester_guess(self):
+    def active_semesters_display(self):
         """
-        Semester this student started, guessing if necessary
+        Format self.active_semesters_display for display
         """
-        # do we actually know?
-        if 'start_semester' in self.config:
-            return Semester.objects.get(name=self.config['start_semester'])
-        # first active semester
-        active = GradStatus.objects.filter(student=self, status__in=STATUS_ACTIVE).order_by('start')
-        if active:
-            return active[0].start
-        # semester after application
-        applic = GradStatus.objects.filter(student=self, status='APPL').order_by('start')
-        if applic:
-            return applic[0].start.next_semester()
-        # next semester
-        return Semester.current().next_semester()
-
-    def active_semesters(self):
-        """
-        Number of active and total semesters
-        """
-        next_sem = Semester.current().offset(1)
-        start = self.start_semester
-        end = self.end_semester or next_sem
-        total = end - start
-        away = set()
-        # some leave/withdrawn statuses overlap, so this seems to be the easiest way
-        # to do this: actually enumerate away semesters.
-        for gs in GradStatus.objects.filter(student=self, status__in=STATUS_INACTIVE):
-            if end and not gs.end:
-                # completed program, but this status is open
-                st_en = end
-            else:
-                st_en = gs.end or next_sem
-            
-            if start.name > gs.start.name:
-                sem = start
-            else:
-                sem = gs.start
-
-            while sem.name < st_en.name:
-                away.add(sem)
-                sem = sem.next_semester()
-        
-        away = len(away)
-        return total-away, total
-
+        active, total = self.active_semesters()
+        return u"%i/%i" % (active, total)
     
     def flags_and_values(self):
         """
