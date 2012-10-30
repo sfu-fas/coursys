@@ -1,3 +1,4 @@
+
 from django.db import models, transaction
 from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES
 from autoslug import AutoSlugField
