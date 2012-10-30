@@ -227,27 +227,16 @@ class Form(models.Model, _FormCoherenceMixin):
         self.save()
 
     @transaction.commit_on_success
-    def save(self, duplicate_and_save=False, *args, **kwargs):
-        if duplicate_and_save:
-            # duplicate self.instance and save that, and return it.
-	        # duplicate(self.obj)
-            self = self.title
-            self.pk = None
-            self.save()
-	        #self.cleanup_fields() 	
-            return self
-            #pass
-            # duplicate(self.obj)
-            #self = self.title
-            #self.pk = None
+    def save(self, clone = False, *args, **kwargs):
 
-            #self.save()
-            #return self
-            pass
+        if clone == True:      
+            self = self.clone()
+            self = self.save()
+            return self
         else:
-            instance = super(Form, self).save(*args, **kwargs)
-            self.cleanup_fields()
-            return instance
+         instance = super(Form, self).save(*args, **kwargs)
+         self.cleanup_fields()
+         return instance
     
     @property
     def initial_sheet(self):
@@ -294,7 +283,7 @@ class Sheet(models.Model, _FormCoherenceMixin):
         self.save()
 
     @transaction.commit_on_success
-    def save(self, *args, **kwargs):
+    def save(self, clone = False, *args, **kwargs):
         # if this sheet is just being created it needs a order number
         if(self.order == None):
             max_aggregate = Sheet.objects.filter(form=self.form).aggregate(Max('order'))
@@ -306,8 +295,16 @@ class Sheet(models.Model, _FormCoherenceMixin):
 
         #assert (self.is_initial and self.order==0) or (not self.is_initial and self.order>0)
         
+
+        
         super(Sheet, self).save(*args, **kwargs)
         self.cleanup_fields()
+
+        # if clone == True:      
+        #     self = self.clone()
+        #     self = self.save()
+        #     return self
+
 
     cached_fields = None
     @property

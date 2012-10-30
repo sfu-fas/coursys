@@ -195,7 +195,7 @@ def edit_form(request, form_slug):
             f = form.save(commit=False)
             # use FormGroup's unit as the Form's unit
             f.unit = f.owner.unit
-            f.save()
+            f.save(clone = True)
             return HttpResponseRedirect(reverse('onlineforms.views.view_form', kwargs={'form_slug': owner_form.slug}))
     else:
         form = FormForm(instance=owner_form)
@@ -301,6 +301,14 @@ def edit_sheet_info(request, form_slug, sheet_slug):
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'edit':
         form = EditSheetForm(request.POST, instance=owner_sheet)
         if form.is_valid():
+            #Duplicating Sheet through View first then implemnt in Models
+            original_form = owner_sheet.form
+            original_order = owner_sheet.order
+            owner_sheet.pk  = None
+            owner_sheet.form = original_form
+            owner_sheet.order = original_order + 1
+            owner_sheet = form.save()
+            owner_sheet.save()
             form.save()
             return HttpResponseRedirect(reverse('onlineforms.views.edit_sheet',
                 kwargs={'form_slug': owner_form.slug, 'sheet_slug': owner_sheet.slug}))
