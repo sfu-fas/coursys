@@ -275,6 +275,9 @@ function prep_content() {
 
 function full_querystring() {
 	// rebuild query string with current datatable sort
+	if ( typeof query_string == 'undefined' ) {
+		return;
+	}
 	var sort_query = $.deparam.querystring(query_string);
 	var coln, dir;
 	var sort='';
@@ -289,9 +292,9 @@ function full_querystring() {
 	return $.param(sort_query, true);
 }
 
-function update_links() {
+function update_search_links() {
 	// update links on this page with current datatable sort
-	if ( table === undefined ) {
+	if ( typeof table == 'undefined' ) {
 		return;
 	}
 	var qs = full_querystring();
