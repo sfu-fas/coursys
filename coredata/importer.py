@@ -163,13 +163,12 @@ def fix_emplid():
     """
     Any manually-entered people will have emplid 0000?????.  Update them with the real emplid from the database.
     """
-    amaint = AMAINTConn()
     people = Person.objects.filter(emplid__lt=100000)
     for p in people:
         #print " ", p.userid
-        amaint.execute('SELECT emplid FROM idMap WHERE username=%s', (p.userid,))
-        for emplid, in amaint:
-            p.emplid = emplid
+        cas = ComputingAccount.objects.filter(userid=p.userid)
+        for ca in cas:
+            p.emplid = ca.emplid
             p.save()
 
 
@@ -345,7 +344,7 @@ def get_person(emplid, commit=True, force=False):
 
     # only import if data is older than IMPORT_THRESHOLD (unless forced)
     # Randomly occasionally import anyway, so new students don't stay bunched-up.
-    if random.random() < 0.05 and not force and 'lastimport' in p.config \
+    if random.random() < 0.95 and not force and 'lastimport' in p.config \
             and time.time() - p.config['lastimport'] < IMPORT_THRESHOLD:
         return p
     
@@ -357,12 +356,11 @@ def get_person(emplid, commit=True, force=False):
         p.save()
         return p
     
-    # get userid from AMAINT
-    amaintdb = AMAINTConn()
-    amaintdb.execute('SELECT username FROM amaint.idMap WHERE emplid=%s', (emplid,))
+    # get userid
     try:
-        userid = amaintdb.fetchone()[0]
-    except TypeError:
+        ca = ComputingAccount.objects.get(emplid=p.emplid)
+        userid = ca.userid
+    except ComputingAccount.DoesNotExist:
         userid = None
     
     if p.userid and p.userid != userid and userid is not None:
@@ -399,7 +397,7 @@ def get_person_grad(emplid, commit=True, force=False):
 
     # only import if data is older than IMPORT_THRESHOLD (unless forced)
     # Randomly occasionally import anyway, so new students don't stay bunched-up.
-    if random.random() < 0.05 and not force and 'lastimportgrad' in p.config \
+    if random.random() < 0.95 and not force and 'lastimportgrad' in p.config \
             and time.time() - p.config['lastimportgrad'] < IMPORT_THRESHOLD:
         return p
     
