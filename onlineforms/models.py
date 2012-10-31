@@ -392,15 +392,10 @@ class SheetSubmission(models.Model):
         super(SheetSubmission, self).save(*args, **kwargs)
         #self.form_submission.update_status()
 
-
-    
 class FieldSubmission(models.Model):
     sheet_submission = models.ForeignKey(SheetSubmission)
     field = models.ForeignKey(Field)
-    # will have to decide later what the maximum length will be if any
     data = JSONField(null=False, blank=False, default={})
-
-
 
 
 FormSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)

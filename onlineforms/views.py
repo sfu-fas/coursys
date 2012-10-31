@@ -16,7 +16,7 @@ from django.template import RequestContext
 
 # FormGroup management views
 from onlineforms.fieldtypes import *
-from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm
+from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import NonSFUFormFiller, FormFiller
@@ -100,19 +100,16 @@ def admin_list_all(request):
     admin = get_object_or_404(Person, userid=request.user.username)
     form_group = FormGroup.objects.get(members=admin)
     if form_group:
-        form_submissions = FormSubmission.objects.filter(owner=form_group, status='WAIT')
+        form_submissions = FormSubmission.objects.filter(owner=form_group, status='PEND')
     
     context = {'form_submissions': form_submissions}
     return render(request, "onlineforms/admin/admin_forms.html", context)
 
-def admin_assign(request, form_sumbission_slug):
-    form_submission = get_object_or_404(FormSubmission, slug=form_sumbission_slug)
-    form = AdminAssignForm(request.POST or None, form_submission.owner)
+def admin_assign(request, formsubmit_slug):
+    form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
+    form = AdminAssignForm(request.POST or None)
     if form.is_valid():
         # make new sheet submission for next sheet in form
-        sheet_order = SheetSubmission.objects.filter(form_submission=form_submission).count()
-        sheet = Sheet.objects.get(order=sheet_order, form=form_submission.form)
-        SheetSubmission.objects.create(sheet=sheet, form_submission=formSubmission, filler=form.cleaned_data['send_to'])
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
     
     context = {'form': form, 'form_submission': form_submission}

@@ -6,12 +6,11 @@
 {% block headextra %}
 <script type="text/javascript">
     $(document).ready(function() {
-    $('#form_table').dataTable({
-                "bPaginate": false,
-                "bJQueryUI": true,
-                "aaSorting": [[0, "asc"]],
-    });
-
+        $('#form_table').dataTable({
+                    "bPaginate": false,
+                    "bJQueryUI": true,
+                    "aaSorting": [[0, "asc"]],
+        });
     });
 </script>
 {% endblock %}
@@ -52,10 +51,9 @@
                     <td>{{ form.unit|default:"" }}</td>
                     <td>{{ form.active }}</td>
                     <td>{{ form.original|default:"" }}</td>  
-                    
                     <td class="miniaction">
-                        <form action="{% url onlineforms.views.list_all  %}" method="post">{% csrf_token %}
-                            <a href="{% url onlineforms.views.edit_form  form_slug=form.slug %}">Edit</a>  
+                        <form action="{% url onlineforms.views.list_all %}" method="post">{% csrf_token %}
+                            <a href="{% url onlineforms.views.edit_form form_slug=form.slug %}">Edit</a>  
                             <input type="hidden" name="action" value="del" />
                             <p>    
                                 <input type="hidden" name="form_id" value="{{form.id}}" />
