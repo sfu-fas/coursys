@@ -401,7 +401,7 @@ class FormSubmission(models.Model):
     owner = models.ForeignKey(FormGroup)
     status = models.CharField(max_length=4, choices=FORM_SUBMISSION_STATUS, default="PEND")
     def autoslug(self):
-        return make_slug(unicode(self.id)) # we can do better than that, right?
+        return make_slug(self.form.slug)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form')
     
     def update_status(self):
