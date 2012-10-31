@@ -10,7 +10,7 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
 
         # Changing field 'GradRequirement.series'
-        db.alter_column('grad_gradrequirement', 'series', self.gf('django.db.models.fields.PositiveIntegerField')(default=-1))
+        db.alter_column('grad_gradrequirement', 'series', self.gf('django.db.models.fields.PositiveIntegerField')(default=9999))
         # Adding index on 'GradRequirement', fields ['series']
         db.create_index('grad_gradrequirement', ['series'])
 
