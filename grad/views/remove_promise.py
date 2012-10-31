@@ -6,7 +6,7 @@ from courselib.auth import requires_role
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 
-@requires_role("GRAD")
+@requires_role("GRAD", get_only=["GRPD"])
 def remove_promise(request, grad_slug, p_id):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     promise = get_object_or_404(Promise, student=grad, id=p_id)

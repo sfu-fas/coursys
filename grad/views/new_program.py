@@ -9,7 +9,7 @@ import datetime
 from django.core.urlresolvers import reverse
 from programs import programs
 
-@requires_role("GRAD")
+@requires_role("GRAD", get_only=["GRPD"])
 def new_program(request):
     unit_choices = [(u.id, u.name) for u in request.units]
     if request.method == 'POST':

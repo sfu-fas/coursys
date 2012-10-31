@@ -6,7 +6,7 @@ from courselib.auth import requires_role
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 
-@requires_role("GRAD")
+@requires_role("GRAD", get_only=["GRPD"])
 def remove_financialcomment(request, grad_slug, f_id):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     fin = get_object_or_404(FinancialComment, student=grad, id=f_id)

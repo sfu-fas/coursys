@@ -38,7 +38,7 @@ $(document).ready(function() {
     <li><a href="{% url dashboard.views.student_info %}">Student Search</a></li>
     {% endif %}
     {% if 'ADVS' in roles %}<li><a href="{% url advisornotes.views.advising %}">Advisor Notes</a></li>{% endif %}
-    {% if 'GRAD' in roles %}<li class="newsec"><a href="{% url grad.views.index %}">Grad Students</a></li>{% endif %}
+    {% if 'GRAD' in roles or 'GRPD' in roles %}<li class="newsec"><a href="{% url grad.views.index %}">Grad Students</a></li>{% endif %}
     {% if 'FUND' in roles %}<li class="newsec"><a href="{% url ra.views.search %}">Research Associates</a></li>{% endif %}
     {% if 'ADMN' in roles %}<li><a href="{% url ta.views.all_tugs_admin %}">Time Use Guidelines</a></li>{% endif %}
     {% if 'TAAD' in roles %}<li  class='newsec'><a href="{% url ta.views.view_postings %}">TA Job Postings</a></li>{% endif %}

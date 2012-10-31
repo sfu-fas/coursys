@@ -10,7 +10,7 @@ from log.models import LogEntry
 
 get_semester = Semester.get_semester
 
-@requires_role("GRAD")
+@requires_role("GRAD", get_only=["GRPD"])
 def manage_scholarships(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug = grad_slug)
     scholarship_type_choices = [(st.id, st.name) for st in ScholarshipType.objects.filter(unit__in=request.units, hidden=False).order_by('unit__slug', 'name')]

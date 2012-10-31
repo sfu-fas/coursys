@@ -49,7 +49,7 @@ def _parse_sort(sortstr):
         res.append([num, order])
     return mark_safe(json.dumps(res))
 
-@requires_role("GRAD")
+@requires_role("GRAD", get_only=["GRPD"])
 def search(request):
     current_user = Person.objects.get(userid=request.user.username)
     query_string = request.META.get('QUERY_STRING','')

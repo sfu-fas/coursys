@@ -19,6 +19,11 @@ def _can_view_student(request, grad_slug, funding=False):
         grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
         return grad, 'admin'
 
+    # grad directors can ONLY view within their unit
+    if request.method=='GET' and has_role('GRPD', request):
+        grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
+        return grad, 'admin'
+
     # funding admins can view some pages within their unit
     if funding and has_role('FUND', request):
         grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
@@ -26,12 +31,12 @@ def _can_view_student(request, grad_slug, funding=False):
 
     # students can see their own page
     students = GradStudent.objects.filter(slug=grad_slug, person__userid=request.user.username)
-    if students:
+    if request.method=='GET' and students:
         return students[0], 'student'
         
     # senior supervisors can see their students
     supervisors = Supervisor.objects.filter(supervisor__userid=request.user.username, student__slug=grad_slug, supervisor_type='SEN').select_related('student')
-    if supervisors:
+    if request.method=='GET' and supervisors:
         grad = supervisors[0].student
         return grad, 'supervisor'
 

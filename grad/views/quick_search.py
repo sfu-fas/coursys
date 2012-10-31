@@ -20,7 +20,7 @@ for st,_ in STATUS_CHOICES:
     else:
         ACTIVE_STATUS_ORDER[st] = 3
 
-@requires_role("GRAD")
+@requires_role("GRAD", get_only=["GRPD"])
 def quick_search(request):
     if 'term' in request.GET:
         term = request.GET['term']

@@ -3,7 +3,7 @@ from django.shortcuts import render, get_object_or_404
 from coredata.models import Semester
 from grad.models import Promise
 
-@requires_role("GRAD")
+@requires_role("GRAD", get_only=["GRPD"])
 def all_promises(request, semester_name=None):
     if semester_name is None:
         semester = Semester.next_starting()

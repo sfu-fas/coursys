@@ -4,7 +4,7 @@ from django.shortcuts import render
 from grad.forms import QuickSearchForm
 from grad.models import SavedSearch
 
-@requires_role("GRAD")
+@requires_role("GRAD", get_only=["GRPD"])
 def index(request):
     form = QuickSearchForm()
     savedsearches = SavedSearch.objects.filter(person__userid=(request.user.username))

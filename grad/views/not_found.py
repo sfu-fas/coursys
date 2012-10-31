@@ -4,7 +4,7 @@ from django.shortcuts import render
 from quick_search import _get_query
 from courselib.auth import ForbiddenResponse
 
-@requires_role("GRAD")
+@requires_role("GRAD", get_only=["GRPD"])
 def not_found(request):
     """
     View to handle the enter-search/press-enter behaviour in the autocomplete box

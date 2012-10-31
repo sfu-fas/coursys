@@ -6,7 +6,7 @@ from grad.forms import new_scholarshipTypeForm
 from django.core.urlresolvers import reverse
 from index import index
 
-@requires_role("GRAD")
+@requires_role("GRAD", get_only=["GRPD"])
 def manage_scholarshipType(request):
     unit_choices = [(u.id, u.name) for u in request.units]
     if request.method == 'POST':
