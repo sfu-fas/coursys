@@ -1,14 +1,34 @@
 {% extends "base.html" %}
 {% load form_display %}
 
-{% block title %}Manage This Group{% endblock %}
-{% block h1 %}Manage This Group {% endblock %}
+{% block title %}Edit This Group{% endblock %}
+{% block h1 %}Edit This Group {% endblock %}
 
-{% block subbreadcrumbs %}{% endblock %}
+{% block subbreadcrumbs %}
+<li>
+    &gt; <a href="{% url onlineforms.views.submissions_list_all_forms %}">Forms</a>
+</li>
+<li>
+    &gt; <a href="{% url onlineforms.views.manage_groups %}">Groups</a>
+</li>
+<li>
+    &gt; Edit Group
+</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url onlineforms.views.manage_groups %}">Manage Groups</a></li>
+    </ul>
+    <ul>
+        <li><a href="{% url onlineforms.views.new_group %}">New Group</a></li>
+    </ul>
+</div>
+{% endblock %}
 
 {% block content %}
-<!-- Manage group info:
-<p>Group name is: {{ group.name }} -->
 <div id="form-container">
 	<form action="{% url onlineforms.views.manage_group formgroup_slug=group.slug %}" method="POST">
 		{% csrf_token %}

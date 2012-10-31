@@ -47,8 +47,6 @@ def new_group(request):
         form = GroupForm(request.POST)
         form.fields['unit'].choices = unit_choices
         if form.is_valid():
-            # unit, name, members
-            # FormGroup.objects.create(unit=form.cleaned_data['unit'], name=form.cleaned_data['name'], members=form.cleaned_data['members'])
             form.save()
             return HttpResponseRedirect(reverse('onlineforms.views.manage_groups'))
     else:
