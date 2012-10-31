@@ -464,8 +464,10 @@ def form_initial_submission(request, form_slug):
 
     if(request.user.is_authenticated()):
         loggedin_user = get_object_or_404(Person, userid=request.user.username)
+        logentry_userid = loggedin_user.userid
     else:
         loggedin_user = None
+        logentry_userid = ""
 
     if request.method == 'POST':
         # validate the sheet
@@ -479,28 +481,45 @@ def form_initial_submission(request, form_slug):
                 nonSFUFormFillerForm = NonSFUFormFillerForm(request.POST)
                 if nonSFUFormFillerForm.is_valid():
                     nonSFUFormFiller = nonSFUFormFillerForm.save()
+                    #LOG EVENT#
+                    l = LogEntry(userid=logentry_userid, 
+                        description=("Non SFU Form Filler created with email %s to submit form %s") % (nonSFUFormFiller.email_address, owner_form.title),
+                        related_object=nonSFUFormFiller)
+                    l.save()
                     formFiller = FormFiller(nonSFUFormFiller=nonSFUFormFiller)
                     formFiller.save()
-                    # TODO: LOGGING
             elif loggedin_user:
                 formFiller = FormFiller(sfuFormFiller=loggedin_user)
                 formFiller.save()
-                # TODO: LOGGING
             else:
                 # they didn't provide nonsfu info and they are not logged in
                 context = {'owner_form': owner_form,
                            'error_msg': "You must have a SFU account and be logged in to fill out this form."}
                 return render(request, 'onlineforms/submissions/initial_sheet.html', context)
+            #LOG EVENT#
+            l = LogEntry(userid=logentry_userid, 
+                description=("Form filler %s created to submit form %s") % (formFiller.email(), owner_form.title),
+                related_object=formFiller)
+            l.save()
+
 
             # create the form submission
             formSubmission = FormSubmission(form=owner_form, initiator=formFiller, owner=owner_form.owner)
             formSubmission.save()
-            # TODO:logging
+            #LOG EVENT#
+            l = LogEntry(userid=logentry_userid, 
+                description=("Form submission created for form %s by %s") % (owner_form.title, formFiller.email()),
+                related_object=formSubmission)
+            l.save()
 
             # create the sheet submission
             sheetSubmission = SheetSubmission(sheet=sheet, form_submission=formSubmission, filler=formFiller)
             sheetSubmission.save()
-            # TODO:logging
+            #LOG EVENT#
+            l = LogEntry(userid=logentry_userid, 
+                description=("Sheet submission created for sheet %s of form %s by %s") % (sheet.title, owner_form.title, formFiller.email()),
+                related_object=sheetSubmission)
+            l.save()
 
             for name, field in form.fields.items():
                 if isinstance(field, FileField):
@@ -513,10 +532,13 @@ def form_initial_submission(request, form_slug):
                 print cleaned_data
 
                 # name is just a number, we can use it as the index
-                fieldSubmission = FieldSubmission(field=sheet.fields[name], sheet_submission=sheetSubmission,
-                    data=cleaned_data)
+                fieldSubmission = FieldSubmission(field=sheet.fields[name], sheet_submission=sheetSubmission, data=cleaned_data)
                 fieldSubmission.save()
-                # TODO:logging
+                #LOG EVENT#
+                l = LogEntry(userid=logentry_userid, 
+                    description=("Field submission created for field %s of sheet %s of form %s by %s") % (sheet.fields[name].label, sheet.title, owner_form.title, formFiller.email()),
+                    related_object=fieldSubmission)
+                l.save()
 
             messages.success(request, 'You have succesfully submitted %s.' % (owner_form.title))
             return HttpResponseRedirect(reverse(submissions_list_all_forms))
