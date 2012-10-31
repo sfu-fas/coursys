@@ -1,3 +1,4 @@
+import os
 from django.db import models, transaction
 from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape as escape
@@ -410,7 +411,7 @@ def attachment_upload_to(instance, filename):
     """
     fullpath = os.path.join(
             'forms',
-            datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.advisor.userid),
+            datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.created_at),
             filename.encode('ascii', 'ignore'))
     return fullpath
 

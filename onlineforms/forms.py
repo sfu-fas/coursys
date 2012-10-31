@@ -42,7 +42,7 @@ class AdminAssignForm(forms.Form):
     def __init__(self, form_group, *args, **kwargs):
         self.form_group = form_group
         super(DynamicForm, self).__init__(*args, **kwargs)
-    
+
 class DynamicForm(forms.Form):
     def __init__(self, title, *args, **kwargs):
         self.title = title
