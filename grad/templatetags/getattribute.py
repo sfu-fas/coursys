@@ -8,7 +8,7 @@ register = template.Library()
 
 # getattribute from http://snipt.net/Fotinakis/django-template-tag-for-dynamic-attribute-lookups/
 # recursive idea from http://mousebender.wordpress.com/2006/11/10/recursive-getattrsetattr/
-def getattribute(value, arg):
+def getattribute(value, arg, html=True):
     """Gets an attribute of an object dynamically from a string name"""
     # special cases
     if arg == 'application_status':
@@ -43,7 +43,11 @@ def getattribute(value, arg):
         return value.person.visa()
     elif arg == 'person.emplid':
         return unicode(value.person.emplid)
-
+    elif arg == 'email':
+        if html:
+            return value.person.email_mailto()
+        else:
+            return value.person.email()
     elif '.' not in arg:
         if hasattr(value, str(arg)):
             res = getattr(value, arg)

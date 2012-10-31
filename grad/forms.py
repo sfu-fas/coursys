@@ -378,6 +378,7 @@ COLUMN_CHOICES = (
         # TODO Include stuff from config eg. email, phone, address
         ('person.emplid',           'Employee ID'),
         ('person.userid',           'User ID'),
+        ('email',                   'Email Address'),
         ('program',                 'Program'),
         ('research_area',           'Research Area'),
         ('campus',                  'Campus'),
@@ -401,6 +402,7 @@ COLUMN_WIDTHS_DATA = (
         ('person.middle_name',      5000),
         ('person.last_name',        6000),
         ('person.pref_first_name',  4000),
+        ('email',                   5000),
         ('program',                 3000),
         ('research_area',           6000),
         ('campus',                  3000),

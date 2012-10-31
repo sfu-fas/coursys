@@ -119,7 +119,7 @@ def search(request):
             for grad in grads:
                 row = []
                 for column in columns:
-                    value = getattribute(grad, column)
+                    value = getattribute(grad, column, html=False)
                     row.append(value)
                 writer.writerow( row )
             return response
@@ -146,7 +146,7 @@ def search(request):
             for i,grad in enumerate(grads):
                 style = [oddstyle, evenstyle][i%2]
                 for j,column in enumerate(columns):
-                    sheet.write(i+2, j, getattribute(grad, column), style)
+                    sheet.write(i+2, j, getattribute(grad, column, html=False), style)
             
             # set column widths
             for i,c in enumerate(columns):
