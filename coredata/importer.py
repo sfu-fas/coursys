@@ -15,7 +15,7 @@ from django.contrib.sessions.models import Session
 from django.conf import settings
 from courselib.svn import update_offering_repositories
 from grad.models import GradStudent, STATUS_ACTIVE, STATUS_APPLICANT
-import itertools
+import itertools, random
 
 today = datetime.date.today()
 past_cutoff = today - datetime.timedelta(days=30)
@@ -323,7 +323,8 @@ def _person_save(p):
         p.save()
 
 imported_people = {}
-def get_person(emplid, commit=True):
+IMPORT_THRESHOLD = 3600*24*7 # import personal info only once a week
+def get_person(emplid, commit=True, force=False):
     """
     Get/update personal info for this emplid and return (updated & saved) Person object.
     """
@@ -340,6 +341,13 @@ def get_person(emplid, commit=True):
         p = p_old[0]
     else:
         p = Person(emplid=emplid)
+    imported_people[emplid] = p
+
+    # only import if data is older than IMPORT_THRESHOLD (unless forced)
+    # Randomly occasionally import anyway, so new students don't stay bunched-up.
+    if random.random() < 0.05 and not force and 'lastimport' in p.config \
+            and time.time() - p.config['lastimport'] < IMPORT_THRESHOLD:
+        return p
     
     # get their names
     last_name, first_name, middle_name, pref_first_name, title = get_names(emplid)
@@ -368,16 +376,15 @@ def get_person(emplid, commit=True):
     p.middle_name = middle_name
     p.pref_first_name = pref_first_name
     p.title = title
+    p.config['lastimport'] = int(time.time())
     if commit:
-        p.config['lastimport'] = time.time()
         _person_save(p)
 
-    imported_people[emplid] = p
     return p
     
 
 imported_people_full = {}
-def get_person_grad(emplid, commit=True):
+def get_person_grad(emplid, commit=True, force=False):
     """
     Get/update personal info: does get_person() plus additional info we need for grad students
     """
@@ -388,6 +395,14 @@ def get_person_grad(emplid, commit=True):
     
     p = get_person(emplid, commit=False)
     
+    imported_people_full[emplid] = p
+
+    # only import if data is older than IMPORT_THRESHOLD (unless forced)
+    # Randomly occasionally import anyway, so new students don't stay bunched-up.
+    if random.random() < 0.05 and not force and 'lastimportgrad' in p.config \
+            and time.time() - p.config['lastimportgrad'] < IMPORT_THRESHOLD:
+        return p
+    
     data = grad_student_info(emplid)
     p.config.update(data)
 
@@ -396,10 +411,10 @@ def get_person_grad(emplid, commit=True):
         if f not in data and f in p.config:
             del p.config[f]
     
+    p.config['lastimportgrad'] = int(time.time())
     if commit:
-        p.config['lastimport'] = time.time()
         _person_save(p)
-    imported_people_full[emplid] = p
+    
     return p
 
 
