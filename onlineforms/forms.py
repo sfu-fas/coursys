@@ -19,6 +19,9 @@ class GroupForm(ModelForm):
 class FormForm(ModelForm):
     class Meta:
         model = Form
+        widgets = {
+            'description': forms.Textarea(attrs={'cols': 80, 'rows': 20}),
+        }
 	exclude = ('active', 'original', 'unit') 
         
 class SheetForm(forms.Form):

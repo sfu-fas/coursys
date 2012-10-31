@@ -149,7 +149,7 @@ def new_form(request):
     else:
         form = FormForm()
         form.fields['owner'].choices = group_choices
-    return render('onlineforms/new_form.html', {'form': form})
+    return render(request, 'onlineforms/new_form.html', {'form': form})
 
 @requires_form_admin_by_slug()
 def view_form(request, form_slug):

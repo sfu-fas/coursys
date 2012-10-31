@@ -209,6 +209,7 @@ class _FormCoherenceMixin(object):
 class Form(models.Model, _FormCoherenceMixin):
     title = models.CharField(max_length=60, null=False, blank=False)
     owner = models.ForeignKey(FormGroup)
+    description = models.CharField(max_length=500, null=False, blank=False)
     initiators = models.CharField(max_length=3, choices=INITIATOR_CHOICES, default="NON")
     unit = models.ForeignKey(Unit)
     active = models.BooleanField(default=True)

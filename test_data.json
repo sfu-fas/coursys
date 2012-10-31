@@ -46288,6 +46288,7 @@
   "fields": {
    "active": true,
    "created_date": "2012-10-04 14:06:46",
+   "description": "Test form 1 description",
    "initiators": "ANY",
    "last_modified": "2012-10-04 14:06:46",
    "original": 1,
@@ -46302,6 +46303,7 @@
   "fields": {
    "active": true,
    "created_date": "2012-10-04 14:06:51",
+   "description": "Test form 2 description",
    "initiators": "ANY",
    "last_modified": "2012-10-04 14:06:51",
    "original": 2,
