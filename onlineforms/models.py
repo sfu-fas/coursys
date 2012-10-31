@@ -193,9 +193,9 @@ class _FormCoherenceMixin(object):
             # only de-activate siblings, not cousins.
             # i.e. other related sheets/fields in *other* versions of the form should still be active
             if isinstance(self, Sheet):
-                others.filter(form=self.form)
+                others = others.filter(form=self.form)
             elif isinstance(self, Field):
-                others.filter(sheet=self.sheet)
+                others = others.filter(sheet=self.sheet)
             
             others.update(active=False)
 
@@ -222,7 +222,7 @@ class Form(models.Model, _FormCoherenceMixin):
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
 
     def __unicode__(self):
-        return "%s" % (self.title)
+        return "%s [%s]" % (self.title, self.id)
     
     def delete(self, *args, **kwargs):
         self.active = False
@@ -278,14 +278,30 @@ class Sheet(models.Model, _FormCoherenceMixin):
     #    unique_together = (('form', 'order'),)
 
     def __unicode__(self):
-        return "%s, %s" % (self.form, self.title)
+        return "%s, %s [%i]" % (self.form, self.title, self.id)
 
     def delete(self, *args, **kwargs):
         self.active = False
         self.save()
 
     @transaction.commit_on_success
-    def save(self, clone = False, *args, **kwargs):
+    def safe_save(self):
+        """
+        Save a copy of this sheet, and return the copy: does not modify self.
+        """
+        # clone the sheet
+        sheet2 = self.clone()
+        sheet2.save()
+        # copy the fields
+        for field1 in Field.objects.filter(sheet=self, active=True):
+            field2 = field1.clone()
+            field2.sheet = sheet2
+            field2.save()
+
+        return sheet2
+
+    @transaction.commit_on_success
+    def save(self, *args, **kwargs):
         # if this sheet is just being created it needs a order number
         if(self.order == None):
             max_aggregate = Sheet.objects.filter(form=self.form).aggregate(Max('order'))
@@ -337,6 +353,23 @@ class Field(models.Model, _FormCoherenceMixin):
     def delete(self, *args, **kwargs):
         self.active = False
         self.save()
+
+    @transaction.commit_on_success
+    def safe_save(self):
+        """
+        Save a copy of this field, and return the copy: does not modify self.
+        """
+        # copy the sheet
+        sheet2 = self.sheet.safe_save()
+        active = self.active
+        # delete the copy of self
+        Field.objects.filter(sheet=sheet2, original=self.original).delete()
+        # clone and update self
+        field2 = self.clone()
+        field2.sheet = sheet2
+        field2.active = active
+        field2.save()
+        return field2
 
     @transaction.commit_on_success
     def save(self, *args, **kwargs):
