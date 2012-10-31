@@ -125,10 +125,6 @@ class GradStudent(models.Model):
             self.current_status = last_status[0].status
         
         # start_semester
-        #starts = all_gs.filter(status__in=STATUS_ACTIVE).order_by('start__name')
-        #if starts.count() > 0:
-        #    start_status = starts[0]
-        #    self.start_semester = start_status.start
         first_program = GradProgramHistory.objects.filter(student=self).order_by('start_semester__name')[0]
         self.start_semester = first_program.start_semester
 
@@ -142,41 +138,43 @@ class GradStudent(models.Model):
             self.end_semester = None
         
         if old != (self.start_semester_id, self.end_semester_id, self.current_status):
+            key = 'grad-activesem-%i' % (self.id)
+            cache.delete(key)
             self.save()
 
     def _active_semesters(self):
         """
         Number of active and total semesters
         """
+        # actually flips through every relevant semester and checks to see
+        # their (final) status in that semester. The data is messy enough
+        # that I don't see any better way.
         next_sem = Semester.current().offset(1)
         start = self.start_semester
         end = self.end_semester or next_sem
-        total = end - start
-        away = set()
-        # some leave/withdrawn statuses overlap, so this seems to be the easiest way
-        # to do this: actually enumerate away semesters.
-        for gs in GradStatus.objects.filter(student=self, status__in=STATUS_INACTIVE):
-            if end and not gs.end:
-                # completed program, but this status is open
-                st_en = end
-            else:
-                st_en = gs.end or next_sem
-            
-            if start.name > gs.start.name:
-                sem = start
-            else:
-                sem = gs.start
-
-            while sem.name < st_en.name:
-                away.add(sem)
-                sem = sem.next_semester()
         
-        away = len(away)
-        return total-away, total
+        statuses = GradStatus.objects.filter(student=self, hidden=False) \
+                   .order_by('start__name', 'start_date', 'created_at') \
+                   .select_related('start')
+        statuses = list(statuses)
+        sem = start
+        active = 0
+        total = 0
+        while sem.name < end.name:
+            this_status = [st for st in statuses if st.start.name <= sem.name][-1]
+            total += 1
+            if this_status.status in STATUS_ACTIVE:
+                active += 1
+            sem = sem.next_semester()
+        
+        return active, total
+
 
     def active_semesters(self):
         """
         Number of active and total semesters (caches self._active_semesters).
+        
+        Invalidated by self.update_status_fields.
         """
         key = 'grad-activesem-%i' % (self.id)
         res = cache.get(key)
