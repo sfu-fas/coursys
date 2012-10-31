@@ -19,7 +19,7 @@ class GroupForm(ModelForm):
 class FormForm(ModelForm):
     class Meta:
         model = Form
-	exclude = ('active', 'original', 'unit') 
+	exclude = ('active', 'original', 'unit')
         
 class SheetForm(forms.Form):
     title = forms.CharField(required=True, max_length=30, label=mark_safe('Title'), help_text='Name of the sheet')
@@ -38,7 +38,7 @@ class FieldForm(forms.Form):
 
 class AdminAssignForm(forms.Form):
     send_to = forms.ChoiceField(required=True, choices=FormGroup.objects.all(), label='Send to')
-    
+
     def __init__(self, form_group, *args, **kwargs):
         self.form_group = form_group
         super(DynamicForm, self).__init__(*args, **kwargs)

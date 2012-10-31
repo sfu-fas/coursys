@@ -210,6 +210,7 @@ class _FormCoherenceMixin(object):
 class Form(models.Model, _FormCoherenceMixin):
     title = models.CharField(max_length=60, null=False, blank=False)
     owner = models.ForeignKey(FormGroup)
+    description = models.CharField(max_length=500, null=False, blank=False)
     initiators = models.CharField(max_length=3, choices=INITIATOR_CHOICES, default="NON")
     unit = models.ForeignKey(Unit)
     active = models.BooleanField(default=True)
@@ -392,15 +393,10 @@ class SheetSubmission(models.Model):
         super(SheetSubmission, self).save(*args, **kwargs)
         #self.form_submission.update_status()
 
-
-    
 class FieldSubmission(models.Model):
     sheet_submission = models.ForeignKey(SheetSubmission)
     field = models.ForeignKey(Field)
-    # will have to decide later what the maximum length will be if any
     data = JSONField(null=False, blank=False, default={})
-
-
 
 
 FormSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)

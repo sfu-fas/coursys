@@ -17,8 +17,8 @@ from django.template import RequestContext
 
 # FormGroup management views
 from onlineforms.fieldtypes import *
+from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm
 from onlineforms.fieldtypes.other import FileCustomField
-from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup, FieldSubmissionFile
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import NonSFUFormFiller, FormFiller
@@ -49,8 +49,6 @@ def new_group(request):
         form = GroupForm(request.POST)
         form.fields['unit'].choices = unit_choices
         if form.is_valid():
-            # unit, name, members
-            # FormGroup.objects.create(unit=form.cleaned_data['unit'], name=form.cleaned_data['name'], members=form.cleaned_data['members'])
             form.save()
             return HttpResponseRedirect(reverse('onlineforms.views.manage_groups'))
     else:
@@ -104,20 +102,16 @@ def admin_list_all(request):
     admin = get_object_or_404(Person, userid=request.user.username)
     form_group = FormGroup.objects.get(members=admin)
     if form_group:
-        form_submissions = FormSubmission.objects.filter(owner=form_group, status='WAIT')
+        form_submissions = FormSubmission.objects.filter(owner=form_group, status='PEND')
 
     context = {'form_submissions': form_submissions}
     return render(request, "onlineforms/admin/admin_forms.html", context)
 
-
-def admin_assign(request, form_sumbission_slug):
-    form_submission = get_object_or_404(FormSubmission, slug=form_sumbission_slug)
-    form = AdminAssignForm(request.POST or None, form_submission.owner)
+def admin_assign(request, formsubmit_slug):
+    form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
+    form = AdminAssignForm(request.POST or None)
     if form.is_valid():
         # make new sheet submission for next sheet in form
-        sheet_order = SheetSubmission.objects.filter(form_submission=form_submission).count()
-        sheet = Sheet.objects.get(order=sheet_order, form=form_submission.form)
-        SheetSubmission.objects.create(sheet=sheet, form_submission=formSubmission, filler=form.cleaned_data['send_to'])
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
     context = {'form': form, 'form_submission': form_submission}
@@ -156,7 +150,7 @@ def new_form(request):
     else:
         form = FormForm()
         form.fields['owner'].choices = group_choices
-    return render('onlineforms/new_form.html', {'form': form})
+    return render(request, 'onlineforms/new_form.html', {'form': form})
 
 
 @requires_form_admin_by_slug()
