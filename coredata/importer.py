@@ -369,6 +369,7 @@ def get_person(emplid, commit=True):
     p.pref_first_name = pref_first_name
     p.title = title
     if commit:
+        p.config['lastimport'] = time.time()
         _person_save(p)
 
     imported_people[emplid] = p
@@ -396,6 +397,7 @@ def get_person_grad(emplid, commit=True):
             del p.config[f]
     
     if commit:
+        p.config['lastimport'] = time.time()
         _person_save(p)
     imported_people_full[emplid] = p
     return p
