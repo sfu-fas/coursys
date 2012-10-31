@@ -37,11 +37,7 @@ class FieldForm(forms.Form):
     type = forms.ChoiceField(required=True, choices=FIELD_TYPE_CHOICES, label='Type')
 
 class AdminAssignForm(forms.Form):
-    send_to = forms.ChoiceField(required=True, choices=FormGroup.objects.all(), label='Send to')
-
-    def __init__(self, form_group, *args, **kwargs):
-        self.form_group = form_group
-        super(DynamicForm, self).__init__(*args, **kwargs)
+    pass
 
 class DynamicForm(forms.Form):
     def __init__(self, title, *args, **kwargs):
