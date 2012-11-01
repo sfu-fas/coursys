@@ -313,10 +313,11 @@ class Sheet(models.Model, _FormCoherenceMixin):
             self.order = next_order
 
         #assert (self.is_initial and self.order==0) or (not self.is_initial and self.order>0)
-        if clone == True:      
-            self = self.clone()
-            self = self.save()
-            return self
+        #if clone == True:      
+         #   self = self.clone()
+          #  self = self.save()
+           
+           # return self
         
         
         super(Sheet, self).save(*args, **kwargs)
