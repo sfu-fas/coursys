@@ -79,11 +79,7 @@
         </thead>
         {% for sheet_sub in sheet_submissions %}
             <tr>
-                <td><a href="{% url onlineforms.views.sheet_submission 
-                            form_slug=sheet_sub.form_submission.form.slug 
-                            formsubmit_slug = sheet_sub.form_submission.slug
-                            sheet_slug = sheet_sub.sheet.slug
-                            sheetsubmit_slug = sheet_sub.slug %}">{{ sheet_sub.sheet.title }}</a></td>
+                <td><a href="{% url onlineforms.views.sheet_submission form_slug=sheet_sub.form_submission.form.slug formsubmit_slug=sheet_sub.form_submission.slug sheet_slug=sheet_sub.sheet.slug sheetsubmit_slug=sheet_sub.slug %}">{{ sheet_sub.sheet.title }}</a></td>
                 <td>{{ sheet_sub.status }}</td>
                 <td>{{ sheet_sub.form_submission.form.title }}</td>
             </tr>
