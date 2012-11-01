@@ -97,7 +97,7 @@ def remove_group_member(request, formgroup_slug, userid):
     pass
 
 # Form admin views
-@login_required
+@requires_formgroup()
 def admin_list_all(request):
     admin = get_object_or_404(Person, userid=request.user.username)
     form_group = FormGroup.objects.get(members=admin)
@@ -107,16 +107,16 @@ def admin_list_all(request):
     context = {'form_submissions': form_submissions}
     return render(request, "onlineforms/admin/admin_forms.html", context)
 
+@requires_formgroup()
 def admin_assign(request, formsubmit_slug):
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
     form = AdminAssignForm(data=request.POST or None, form=form_submission.form)
     if form.is_valid():
         # make new sheet submission for next sheet in form
         assignee = form.cleaned_data['assignee']
-        form_filler = userToFormFiller(assignee)
-        SheetSubmission.create(form_submission=form_submission,
+        SheetSubmission.objects.create(form_submission=form_submission,
             sheet=form.cleaned_data['sheet'],
-            filler=form_filler)
+            filler=userToFormFiller(assignee))
             
         # change form submission status back to wait status
         form_submission.status = 'WAIT'
@@ -127,9 +127,9 @@ def admin_assign(request, formsubmit_slug):
     return render(request, "onlineforms/admin/admin_assign.html", context)
 
 def userToFormFiller(user):
-    form_filler = FormFiller.objects.filter(sfuFormFiller=user)
+    form_filler = FormFiller.objects.get(sfuFormFiller=user)
     if not form_filler:
-        form_filler = FormFiller.create(sfuFormFiller=user)
+        form_filler = FormFiller.objects.create(sfuFormFiller=user)
     return form_filler
 
 @requires_formgroup()
