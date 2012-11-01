@@ -541,18 +541,18 @@ def form_initial_submission(request, form_slug):
             l.save()
 
             for name, field in form.fields.items():
-                if isinstance(field, FileField):
-                    print "FILE FIELD"
-                    new_file = request.FILES[str(name)]
-                    print new_file
-                    new_file_thing = FieldSubmissionFile(file_attachment=new_file, file_mediatype=None)
-                    #new_file_thing.save()  #Causes OSError 71 when it tries to save
+                
                 cleaned_data = form.display_fields[field].serialize_field(form.cleaned_data[str(name)])
-                print cleaned_data
 
                 # name is just a number, we can use it as the index
                 fieldSubmission = FieldSubmission(field=sheet.fields[name], sheet_submission=sheetSubmission, data=cleaned_data)
                 fieldSubmission.save()
+
+                if isinstance(field, FileField):
+                    new_file = request.FILES[str(name)]
+                    new_file_submission = FieldSubmissionFile(field_submission=fieldSubmission, file_attachment=new_file, file_mediatype=new_file.content_type)
+                    new_file_submission.save()  #Works on Ubuntu computer, Causes OSError 71 when running on Vagrant.
+
                 #LOG EVENT#
                 l = LogEntry(userid=logentry_userid, 
                     description=("Field submission created for field %s of sheet %s of form %s by %s") % (sheet.fields[name].label, sheet.title, owner_form.title, formFiller.email()),
