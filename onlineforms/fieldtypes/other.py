@@ -3,10 +3,10 @@ from django import forms
 
 class ListField(FieldBase):
     class ListConfigForm(FieldConfigForm):
-        pass
+        field_length = forms.IntegerField(min_value=1, max_value=500)
 
     def make_config_form(self):
-        raise NotImplementedError
+        return self.ListConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
         raise NotImplementedError
