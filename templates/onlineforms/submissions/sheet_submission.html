@@ -10,11 +10,13 @@
 {% endblock %}
 
 {% block content %}
+    <form action="" method="post">
+    {% csrf_token %}
     <fieldset>
         <legend>{{ sheet.title }}</legend>
         {{ form|as_dl }}
-        <input type="submit" value="save" class="save"/>
-        <input type="submit" value="submit" class="submit"/>
+        <input type="submit" value="Submit" class="submit"/>
+        <input type="submit" value="Save" class="submit"/>
     </fieldset>
     </form>
 
