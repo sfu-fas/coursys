@@ -12,7 +12,7 @@ from django.conf import settings
 import datetime
 
 # choices for Form.initiator field
-from onlineforms.fieldtypes.other import FileCustomField, DividerField, URLCustomField
+from onlineforms.fieldtypes.other import FileCustomField, DividerField, URLCustomField, ListField
 from onlineforms.fieldtypes.select import DropdownSelectField, RadioSelectField, MultipleSelectField
 from onlineforms.fieldtypes.text import LargeTextField, ExplanationTextField, EmailTextField
 
@@ -59,7 +59,7 @@ FIELD_TYPE_MODELS = {
         'RADI': RadioSelectField,
         'SEL1': DropdownSelectField,
         'SELN': MultipleSelectField,
-        #'LIST': ListField,
+        'LIST': ListField,
         'FILE': FileCustomField,
         'URL': URLCustomField,
         'TEXT': ExplanationTextField,

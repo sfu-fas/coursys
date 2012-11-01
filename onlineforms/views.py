@@ -560,7 +560,7 @@ def form_initial_submission(request, form_slug):
                 if isinstance(field, FileField):
                     new_file = request.FILES[str(name)]
                     new_file_submission = FieldSubmissionFile(field_submission=fieldSubmission, file_attachment=new_file, file_mediatype=new_file.content_type)
-                    new_file_submission.save()  #Works on Ubuntu computer, Causes OSError 71 when running on Vagrant.
+                    new_file_submission.save()
 
                 #LOG EVENT#
                 l = LogEntry(userid=logentry_userid, 
