@@ -297,6 +297,7 @@ def reorder_field(request, form_slug, sheet_slug):
 def edit_sheet_info(request, form_slug, sheet_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
     owner_sheet = get_object_or_404(Sheet, slug=sheet_slug)
+    #owner_field = get_object_or_404(Field, slug=field_slug)
 
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'edit':
         form = EditSheetForm(request.POST, instance=owner_sheet)
@@ -304,11 +305,21 @@ def edit_sheet_info(request, form_slug, sheet_slug):
             #Duplicating Sheet through View first then implemnt in Models
             original_form = owner_sheet.form
             original_order = owner_sheet.order
-            owner_sheet.pk  = None
+           # original_field = owner_sheet.fields
+
+            #owner_sheet.pk  = None
+            #for fields in owner_sheet.fields:
+             #       fields = original_field
+                    #fields.save()        
+            #owner_sheet.field = original_field    
+
             owner_sheet.form = original_form
             owner_sheet.order = original_order + 1
+            
+            #owner_sheet.field = original_field    
             owner_sheet = form.save()
-            owner_sheet.save()
+            owner_sheet.self_save()
+           # owner_sheet.fields.save()
             form.save()
             return HttpResponseRedirect(reverse('onlineforms.views.edit_sheet',
                 kwargs={'form_slug': owner_form.slug, 'sheet_slug': owner_sheet.slug}))
