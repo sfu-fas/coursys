@@ -127,7 +127,7 @@ def admin_assign(request, formsubmit_slug):
     return render(request, "onlineforms/admin/admin_assign.html", context)
 
 def userToFormFiller(user):
-    form_filler = FormFiller.objects.filer(sfuFormFiller=user)
+    form_filler = FormFiller.objects.filter(sfuFormFiller=user)
     if not form_filler:
         form_filler = FormFiller.create(sfuFormFiller=user)
     return form_filler
@@ -464,9 +464,11 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
 
 def submissions_list_all_forms(request):
     form_groups = None
+    sheet_submissions = None
     if(request.user.is_authenticated()):
         loggedin_user = get_object_or_404(Person, userid=request.user.username)
         forms = Form.objects.filter(active=True).exclude(initiators='NON')
+        sheet_submissions = SheetSubmission.objects.filter(filler=userToFormFiller(loggedin_user))
         # get all the form groups the logged in user is a part of
         form_groups = FormGroup.objects.filter(members=loggedin_user)
     else:
@@ -474,7 +476,7 @@ def submissions_list_all_forms(request):
 
     dept_admin = Role.objects.filter(role='ADMN', person__userid=request.user.username).count() > 0
 
-    context = {'forms': forms, 'form_groups': form_groups, 'dept_admin': dept_admin}
+    context = {'forms': forms, 'sheet_submissions': sheet_submissions, 'form_groups': form_groups, 'dept_admin': dept_admin}
     return render(request, 'onlineforms/submissions/forms.html', context)
 
 
