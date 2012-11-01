@@ -229,14 +229,14 @@ class Form(models.Model, _FormCoherenceMixin):
         self.save()
 
     @transaction.commit_on_success
-    def save(self, clone = False, *args, **kwargs):
-
-        if clone == True:      
-            self = self.clone()
-            self = self.save()
+#    def save(self, clone = False, *args, **kwargs):
+    def save(self, *args, **kwargs):
+        #if clone == True:      
+         #   self = self.clone()
+          #  self = self.save()
             
-            return self
-        else:
+           # return self
+        #else:
          instance = super(Form, self).save(*args, **kwargs)
          self.cleanup_fields()
          return instance
@@ -313,13 +313,7 @@ class Sheet(models.Model, _FormCoherenceMixin):
             self.order = next_order
 
         #assert (self.is_initial and self.order==0) or (not self.is_initial and self.order>0)
-        #if clone == True:      
-         #   self = self.clone()
-          #  self = self.save()
-           
-           # return self
-        
-        
+  
         super(Sheet, self).save(*args, **kwargs)
         self.cleanup_fields()
 
