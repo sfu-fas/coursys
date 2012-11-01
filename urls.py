@@ -479,7 +479,6 @@ urlpatterns += patterns('',
     url(r'forms/' + FORM_SLUG + '/$', 'onlineforms.views.form_initial_submission'),
     url(r'forms/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/$', 'onlineforms.views.view_submission'),
     url(r'forms/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/' + SHEET_SLUG + '/' + SHEETSUBMIT_SLUG + '$', 'onlineforms.views.sheet_submission'),
-    
 )
 
 if not settings.DEPLOYED:

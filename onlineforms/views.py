@@ -117,6 +117,8 @@ def admin_assign(request, formsubmit_slug):
         SheetSubmission.create(form_submission=form_submission,
             sheet=form.cleaned_data['sheet'],
             filler=form_filler)
+            
+        # change form submission status back to wait status
         form_submission.status = 'WAIT'
         form_submission.save()
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))

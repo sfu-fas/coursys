@@ -43,7 +43,7 @@ class AdminAssignForm(forms.Form):
     def __init__(self, form, *args, **kwargs):
         super(AdminAssignForm, self).__init__(*args, **kwargs)
         self.fields['sheet'] = forms.ChoiceField(required=True, 
-            choices=((sheet.id, sheet.title) for sheet in Sheet.objects.filter(form=form, active=True)), 
+            choices=((sheet.order, sheet.title) for sheet in Sheet.objects.filter(form=form, active=True)), 
             label='Sheet')
 
     def is_valid(self, *args, **kwargs):
