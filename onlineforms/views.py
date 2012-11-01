@@ -14,6 +14,7 @@ from django.forms import ModelForm
 from django.forms.models import modelformset_factory
 from django.forms.models import BaseModelFormSet
 from django.template import RequestContext
+from django.core.exceptions import ObjectDoesNotExist
 
 # FormGroup management views
 from onlineforms.fieldtypes import *
@@ -127,8 +128,9 @@ def admin_assign(request, formsubmit_slug):
     return render(request, "onlineforms/admin/admin_assign.html", context)
 
 def userToFormFiller(user):
-    form_filler = FormFiller.objects.get(sfuFormFiller=user)
-    if not form_filler:
+    try:
+        form_filler = FormFiller.objects.get(sfuFormFiller=user)
+    except ObjectDoesNotExist:
         form_filler = FormFiller.objects.create(sfuFormFiller=user)
     return form_filler
 
@@ -516,8 +518,7 @@ def form_initial_submission(request, form_slug):
                     formFiller = FormFiller(nonSFUFormFiller=nonSFUFormFiller)
                     formFiller.save()
             elif loggedin_user:
-                formFiller = FormFiller(sfuFormFiller=loggedin_user)
-                formFiller.save()
+                formFiller = userToFormFiller(loggedin_user)
             else:
                 # they didn't provide nonsfu info and they are not logged in
                 context = {'owner_form': owner_form,
@@ -566,6 +567,13 @@ def form_initial_submission(request, form_slug):
                     description=("Field submission created for field %s of sheet %s of form %s by %s") % (sheet.fields[name].label, sheet.title, owner_form.title, formFiller.email()),
                     related_object=fieldSubmission)
                 l.save()
+
+            sheetSubmission.status = 'DONE'
+            sheetSubmission.save()
+            l = LogEntry(userid=logentry_userid, 
+                description=("Sheet submission %s completed by %s") % (sheetSubmission.slug, formFiller.email()),
+                related_object=sheetSubmission)
+            l.save()
 
             messages.success(request, 'You have succesfully submitted %s.' % (owner_form.title))
             return HttpResponseRedirect(reverse(submissions_list_all_forms))
