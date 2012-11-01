@@ -113,18 +113,22 @@ def admin_assign(request, formsubmit_slug):
     if form.is_valid():
         # make new sheet submission for next sheet in form
         assignee = form.cleaned_data['assignee']
-        form_filler = FormFiller.objects.filer(sfuFormFiller=assignee)
-        if not form_filler:
-            form_filler = FormFiller.create(sfuFormFiller=assignee)
-
+        form_filler = userToFormFiller(assignee)
         SheetSubmission.create(form_submission=form_submission,
             sheet=form.cleaned_data['sheet'],
             filler=form_filler)
+        form_submission.status = 'WAIT'
+        form_submission.save()
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
     context = {'form': form, 'form_submission': form_submission}
     return render(request, "onlineforms/admin/admin_assign.html", context)
 
+def userToFormFiller(user):
+    form_filler = FormFiller.objects.filer(sfuFormFiller=user)
+    if not form_filler:
+        form_filler = FormFiller.create(sfuFormFiller=user)
+    return form_filler
 
 @requires_formgroup()
 def list_all(request):
