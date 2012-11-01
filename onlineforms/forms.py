@@ -1,3 +1,4 @@
+from coredata.forms import PersonField
 from django import forms
 from django.forms.models import ModelForm
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller
@@ -19,7 +20,7 @@ class GroupForm(ModelForm):
 class FormForm(ModelForm):
     class Meta:
         model = Form
-	exclude = ('active', 'original', 'unit') 
+	exclude = ('active', 'original', 'unit')
         
 class SheetForm(forms.Form):
     title = forms.CharField(required=True, max_length=30, label=mark_safe('Title'), help_text='Name of the sheet')
@@ -37,12 +38,12 @@ class FieldForm(forms.Form):
     type = forms.ChoiceField(required=True, choices=FIELD_TYPE_CHOICES, label='Type')
 
 class AdminAssignForm(forms.Form):
-    send_to = forms.ChoiceField(required=True, choices=FormGroup.objects.all(), label='Send to')
-    
-    def __init__(self, form_group, *args, **kwargs):
-        self.form_group = form_group
-        super(DynamicForm, self).__init__(*args, **kwargs)
-    
+    assignee = PersonField(label='Assign to')
+
+    def is_valid(self, *args, **kwargs):
+        PersonField.person_data_prep(self)
+        return super(AdminAssignForm, self).is_valid(*args, **kwargs)
+
 class DynamicForm(forms.Form):
     def __init__(self, title, *args, **kwargs):
         self.title = title

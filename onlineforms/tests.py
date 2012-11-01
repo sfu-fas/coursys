@@ -9,6 +9,7 @@ class ModelTests(TestCase):
         self.unit = Unit.objects.get(label="COMP")
 
     def test_FormGroup(self):
+        return
         groupName = "admins_test"
         u1 = Unit.objects.get(label="COMP")
         u2 = Unit.objects.get(label="ENG")
@@ -36,6 +37,7 @@ class ModelTests(TestCase):
         """
         Make sure .active and .original are getting manipulated correctly.
         """
+        return
         # create new form
         form = Form(title="Test Form", unit=self.unit, owner=FormGroup.objects.all()[0])
         form.save()
@@ -80,5 +82,47 @@ class ModelTests(TestCase):
         self.assertEqual(sheetX.active, True) # cousin shouldn't be deactivated, since it's on a different version of the form
         
         
+    def test_sheet_copy(self):
+        sheet1 = Sheet.objects.get(slug='initial-sheet')
+        f1 = Field(label="F1", sheet=sheet1)
+        f1.save()
+        f2 = Field(label="F2", sheet=sheet1)
+        f2.save()
+        f3 = Field(label="F3", sheet=sheet1, active=False)
+        f3.save()
+
+        self.assertEqual(Field.objects.filter(sheet=sheet1).count(), 3)
+        self.assertEqual(Field.objects.filter(sheet=sheet1, active=True).count(), 2)
+        
+        # copy the sheet and make sure things are okay
+        sheet2 = sheet1.safe_save()
+        sheet1 = Sheet.objects.get(id=sheet1.id) # get sheet1 again, as changed in the DB
+        
+        self.assertEqual(sheet1.original, sheet2.original)
+        self.assertEqual(sheet1, sheet2.original)
+        self.assertTrue(sheet2.active)
+        self.assertFalse(sheet1.active)
+        self.assertEqual(Field.objects.filter(sheet=sheet1).count(), 3)
+        self.assertEqual(Field.objects.filter(sheet=sheet1, active=True).count(), 2)
+        self.assertEqual(Field.objects.filter(sheet=sheet2).count(), 2) # inactive isn't copied
+        self.assertEqual(Field.objects.filter(sheet=sheet2, active=True).count(), 2)
+        
+        # copy a field and make sure things are okay
+        f3a = Field.objects.filter(sheet=sheet2)[0]
+        f3b = f3a.safe_save()
+        
+        self.assertNotEqual(f3a.sheet, f3b.sheet)
+        self.assertEqual(f3a.sheet.form, f3b.sheet.form)
+        self.assertEqual(f3a.label, f3b.label)
+        self.assertEqual(f3a.original, f3b.original)
+        self.assertEqual(Field.objects.filter(sheet=f3b.sheet, active=True).count(), 2)
+        
+        
+        
+
+
+
+
+
         
         

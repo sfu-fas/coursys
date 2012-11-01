@@ -6,12 +6,11 @@
 {% block headextra %}
 <script type="text/javascript">
     $(document).ready(function() {
-    $('#form_table').dataTable({
-                "bPaginate": false,
-                "bJQueryUI": true,
-                "aaSorting": [[0, "asc"]],
-    });
-
+        $('#form_table').dataTable({
+                    "bPaginate": false,
+                    "bJQueryUI": true,
+                    "aaSorting": [[0, "asc"]],
+        }); 
     });
 </script>
 {% endblock %}
@@ -24,7 +23,7 @@
 {% block content %}
 <div class="datatable_container">
     {% if form_submissions %}
-        <table class="display" id="sheet_table">
+        <table class="display" id="form_table">
             <thead>
                 <tr>
                     <th scope="col">Title</th>
@@ -35,13 +34,11 @@
             </thead>
             {% for form_sub in form_submissions %}
                 <tr>
-                    <td><a href="{% url onlineforms.views.edit_sheet form_slug=form.slug sheet_slug=sheet.slug %}">{{ sheet.title }}</a></td>
                     <td>{{ form_sub.form.title }}</td>
                     <td>{{ form_sub.initiator }}</td>
                     <td>{{ form_sub.status }}</td>
                     <td>
-                        <a href="{% url onlineforms.views.view_form form_slug=form_sub.form.slug %}">View Form</a>
-                        <a href="{% url onlineforms.views.admin_assign_next form_sumbission_slug=form_sub.slug %}">Assign Next</a>
+                        <a href="{% url onlineforms.views.admin_assign formsubmit_slug=form_sub.slug %}">Assign to Person</a>
                     </td>
                 </tr>
               {% endfor %}

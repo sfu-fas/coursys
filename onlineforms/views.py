@@ -2,11 +2,12 @@ from datetime import datetime
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django import forms
+from django.forms.fields import FileField
 from django.shortcuts import render, get_object_or_404, get_list_or_404
 from django.http import HttpResponseRedirect, HttpResponse
 from django.core.urlresolvers import reverse
-from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, requires_form_admin_by_slug, \
-        requires_formgroup
+from courselib.auth import NotFoundResponse, ForbiddenResponse, requires_role, requires_form_admin_by_slug,\
+    requires_formgroup
 
 from django.db import models
 from django.forms import ModelForm
@@ -16,8 +17,9 @@ from django.template import RequestContext
 
 # FormGroup management views
 from onlineforms.fieldtypes import *
-from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm
-from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup
+from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm
+from onlineforms.fieldtypes.other import FileCustomField
+from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup, FieldSubmissionFile
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
 from onlineforms.models import NonSFUFormFiller, FormFiller
 from onlineforms.utils import reorder_sheet_fields
@@ -47,8 +49,6 @@ def new_group(request):
         form = GroupForm(request.POST)
         form.fields['unit'].choices = unit_choices
         if form.is_valid():
-            # unit, name, members
-            # FormGroup.objects.create(unit=form.cleaned_data['unit'], name=form.cleaned_data['name'], members=form.cleaned_data['members'])
             form.save()
             return HttpResponseRedirect(reverse('onlineforms.views.manage_groups'))
     else:
@@ -102,23 +102,21 @@ def admin_list_all(request):
     admin = get_object_or_404(Person, userid=request.user.username)
     form_group = FormGroup.objects.get(members=admin)
     if form_group:
-        form_submissions = FormSubmission.objects.filter(owner=form_group, status='WAIT')
-    
+        form_submissions = FormSubmission.objects.filter(owner=form_group, status='PEND')
+
     context = {'form_submissions': form_submissions}
     return render(request, "onlineforms/admin/admin_forms.html", context)
 
-def admin_assign(request, form_sumbission_slug):
-    form_submission = get_object_or_404(FormSubmission, slug=form_sumbission_slug)
-    form = AdminAssignForm(request.POST or None, form_submission.owner)
+def admin_assign(request, formsubmit_slug):
+    form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
+    form = AdminAssignForm(request.POST or None)
     if form.is_valid():
         # make new sheet submission for next sheet in form
-        sheet_order = SheetSubmission.objects.filter(form_submission=form_submission).count()
-        sheet = Sheet.objects.get(order=sheet_order, form=form_submission.form)
-        SheetSubmission.objects.create(sheet=sheet, form_submission=formSubmission, filler=form.cleaned_data['send_to'])
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
-    
+
     context = {'form': form, 'form_submission': form_submission}
     return render(request, "onlineforms/admin/admin_assign.html", context)
+
 
 @requires_formgroup()
 def list_all(request):
@@ -136,6 +134,7 @@ def list_all(request):
         context = {'form': form, 'forms': forms}
     return render(request, 'onlineforms/manage_forms.html', context)
 
+
 @requires_formgroup()
 def new_form(request):
     group_choices = [(fg.id, unicode(fg)) for fg in request.formgroups]
@@ -151,7 +150,8 @@ def new_form(request):
     else:
         form = FormForm()
         form.fields['owner'].choices = group_choices
-    return render('onlineforms/new_form.html', {'form': form})
+    return render(request, 'onlineforms/new_form.html', {'form': form})
+
 
 @requires_form_admin_by_slug()
 def view_form(request, form_slug):
@@ -195,7 +195,7 @@ def edit_form(request, form_slug):
             f = form.save(commit=False)
             # use FormGroup's unit as the Form's unit
             f.unit = f.owner.unit
-            f.save(clone = True)
+            f.save()
             return HttpResponseRedirect(reverse('onlineforms.views.view_form', kwargs={'form_slug': owner_form.slug}))
     else:
         form = FormForm(instance=owner_form)
@@ -312,13 +312,13 @@ def edit_sheet_info(request, form_slug, sheet_slug):
              #       fields = original_field
                     #fields.save()        
             #owner_sheet.field = original_field    
-
+            #owner_sheet.pk = None
             owner_sheet.form = original_form
             owner_sheet.order = original_order + 1
             
             #owner_sheet.field = original_field    
             owner_sheet = form.save()
-            owner_sheet.self_save()
+            owner_sheet.safe_save()
            # owner_sheet.fields.save()
             form.save()
             return HttpResponseRedirect(reverse('onlineforms.views.edit_sheet',
@@ -339,6 +339,7 @@ def new_field(request, form_slug, sheet_slug):
     type = None
 
     need_choices = False
+    configurable = False
 
     if request.method == 'POST':
         if 'next_section' in request.POST:
@@ -359,6 +360,8 @@ def new_field(request, form_slug, sheet_slug):
 
             #If the form is not configurable (such as a divider) there's no second form.
             configurable = field.configurable
+            need_choices = field.choices
+
             if not configurable:
                 Field.objects.create(label='',
                     sheet=owner_sheet,
@@ -371,7 +374,7 @@ def new_field(request, form_slug, sheet_slug):
                 return HttpResponseRedirect(
                     reverse('onlineforms.views.edit_sheet', args=(form_slug, sheet_slug)))
 
-            need_choices = field.choices
+
 
             #If the form is configurable it must be validated
             if form.is_valid():
@@ -454,7 +457,7 @@ def submissions_list_all_forms(request):
         form_groups = FormGroup.objects.filter(members=loggedin_user)
     else:
         forms = Form.objects.filter(active=True, initiators='ANY')
-    
+
     dept_admin = Role.objects.filter(role='ADMN', person__userid=request.user.username).count() > 0
 
     context = {'forms': forms, 'form_groups': form_groups, 'dept_admin': dept_admin}
@@ -472,8 +475,10 @@ def form_initial_submission(request, form_slug):
 
     if(request.user.is_authenticated()):
         loggedin_user = get_object_or_404(Person, userid=request.user.username)
+        logentry_userid = loggedin_user.userid
     else:
         loggedin_user = None
+        logentry_userid = ""
 
     if request.method == 'POST':
         # validate the sheet
@@ -487,39 +492,68 @@ def form_initial_submission(request, form_slug):
                 nonSFUFormFillerForm = NonSFUFormFillerForm(request.POST)
                 if nonSFUFormFillerForm.is_valid():
                     nonSFUFormFiller = nonSFUFormFillerForm.save()
+                    #LOG EVENT#
+                    l = LogEntry(userid=logentry_userid, 
+                        description=("Non SFU Form Filler created with email %s to submit form %s") % (nonSFUFormFiller.email_address, owner_form.title),
+                        related_object=nonSFUFormFiller)
+                    l.save()
                     formFiller = FormFiller(nonSFUFormFiller=nonSFUFormFiller)
                     formFiller.save()
-                    # TODO: LOGGING
             elif loggedin_user:
                 formFiller = FormFiller(sfuFormFiller=loggedin_user)
                 formFiller.save()
-                # TODO: LOGGING
             else:
                 # they didn't provide nonsfu info and they are not logged in
                 context = {'owner_form': owner_form,
                            'error_msg': "You must have a SFU account and be logged in to fill out this form."}
                 return render(request, 'onlineforms/submissions/initial_sheet.html', context)
+            #LOG EVENT#
+            l = LogEntry(userid=logentry_userid, 
+                description=("Form filler %s created to submit form %s") % (formFiller.email(), owner_form.title),
+                related_object=formFiller)
+            l.save()
+
 
             # create the form submission
             formSubmission = FormSubmission(form=owner_form, initiator=formFiller, owner=owner_form.owner)
             formSubmission.save()
-            # TODO:logging
+            #LOG EVENT#
+            l = LogEntry(userid=logentry_userid, 
+                description=("Form submission created for form %s by %s") % (owner_form.title, formFiller.email()),
+                related_object=formSubmission)
+            l.save()
 
             # create the sheet submission
             sheetSubmission = SheetSubmission(sheet=sheet, form_submission=formSubmission, filler=formFiller)
             sheetSubmission.save()
-            # TODO:logging
+            #LOG EVENT#
+            l = LogEntry(userid=logentry_userid, 
+                description=("Sheet submission created for sheet %s of form %s by %s") % (sheet.title, owner_form.title, formFiller.email()),
+                related_object=sheetSubmission)
+            l.save()
 
             for name, field in form.fields.items():
+                if isinstance(field, FileField):
+                    print "FILE FIELD"
+                    new_file = request.FILES[str(name)]
+                    print new_file
+                    new_file_thing = FieldSubmissionFile(file_attachment=new_file, file_mediatype=None)
+                    #new_file_thing.save()  #Causes OSError 71 when it tries to save
                 cleaned_data = form.display_fields[field].serialize_field(form.cleaned_data[str(name)])
+                print cleaned_data
+
                 # name is just a number, we can use it as the index
                 fieldSubmission = FieldSubmission(field=sheet.fields[name], sheet_submission=sheetSubmission, data=cleaned_data)
                 fieldSubmission.save()
-                # TODO:logging
+                #LOG EVENT#
+                l = LogEntry(userid=logentry_userid, 
+                    description=("Field submission created for field %s of sheet %s of form %s by %s") % (sheet.fields[name].label, sheet.title, owner_form.title, formFiller.email()),
+                    related_object=fieldSubmission)
+                l.save()
 
             messages.success(request, 'You have succesfully submitted %s.' % (owner_form.title))
             return HttpResponseRedirect(reverse(submissions_list_all_forms))
-    else:      
+    else:
         form = DynamicForm(sheet.title)
         form.fromFields(sheet.fields)
 

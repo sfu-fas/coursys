@@ -4,42 +4,67 @@
 {% block title %}Manage Groups{% endblock %}
 {% block h1 %}Manage Groups{% endblock %}
 
-{% block subbreadcrumbs %}{% endblock %}
+{% block headextra %}
+<script type="text/javascript">
+    $(document).ready(function() {
+    $('#groups_table').dataTable({
+                "bPaginate": false,
+                "bJQueryUI": true,
+                "aaSorting": [[0, "asc"]],
+    });
+
+    });
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>
+    &gt; <a href="{% url onlineforms.views.submissions_list_all_forms %}">Forms</a>
+</li>
+<li>
+	&gt; Groups
+</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url onlineforms.views.new_group %}">New Group</a></li>
+    </ul>
+</div>
+{% endblock %}
 
 {% block content %}
 <div class="datatable_container">
-    <table class="display" id="groups">
-        <thead>
-            <tr>
-				<th scope="col">Faculty</th>
-                <th scope="col">Name of Group</th>
-                <th scope="col">Tag Name</th>
-                <th scope="col">Edit Group</th>
-                <th scope="col">Delete</th>
-			</tr>
-		</thead>
-		<tbody>
-		{% for grp in groups %}
-			<tr>
-				<td>{{grp.unit}}</td>
-				<td>{{grp.name}}</td>
-				<td>{{grp.slug}}</td>
-				<td class="miniaction">
-					<form action="{% url onlineforms.views.manage_group formgroup_slug=grp.slug %}" method="post">{% csrf_token %}
-						<input type="hidden" name="group_id" value="{{grp.id}}" />
-						<input type="submit" value="Edit">
-					</form>
-				<td class="miniaction"> 
-                    <form action="{% url onlineforms.views.manage_groups %}" method="post">{% csrf_token %}
-                        <input type="hidden" name="group_id" value="{{grp.id}}"/>
-                        <input type="hidden" name="action" value="delete"/>
-                        <input type="submit" value="Delete"/>
-				    </form>
-                </td>
-			</tr>
-		{% endfor %}
-		</tbody>
-    </table>
+	{% if groups %}
+	    <table class="display" id="groups_table">
+	        <thead>
+	            <tr>
+					<th scope="col">Faculty</th>
+	                <th scope="col">Group Name</th>
+	                <th scope="col">Tag Name</th>
+	                <th scope="col">Edit Group</th>
+				</tr>
+			</thead>
+			<tbody>
+			{% for group in groups %}
+				<tr>
+					<td>{{group.unit}}</td>
+					<td>{{group.name}}</td>
+					<td>{{group.slug}}</td>
+					<td class="miniaction">
+						<form action="{% url onlineforms.views.manage_group formgroup_slug=group.slug %}" method="post">{% csrf_token %}
+							<input type="hidden" name="group_id" value="{{group.id}}" />
+							<input type="submit" value="Edit">
+						</form>
+				</tr>
+			{% endfor %}
+			</tbody>
+	    </table>
+    {% else %}
+    	<p>There are no groups available.</p>
+	{% endif %}
 </div>
 
 {% endblock %}

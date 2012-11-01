@@ -1,3 +1,4 @@
+import os
 from django.db import models, transaction
 from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape as escape
@@ -192,9 +193,9 @@ class _FormCoherenceMixin(object):
             # only de-activate siblings, not cousins.
             # i.e. other related sheets/fields in *other* versions of the form should still be active
             if isinstance(self, Sheet):
-                others.filter(form=self.form)
+                others = others.filter(form=self.form)
             elif isinstance(self, Field):
-                others.filter(sheet=self.sheet)
+                others = others.filter(sheet=self.sheet)
             
             others.update(active=False)
 
@@ -209,6 +210,7 @@ class _FormCoherenceMixin(object):
 class Form(models.Model, _FormCoherenceMixin):
     title = models.CharField(max_length=60, null=False, blank=False)
     owner = models.ForeignKey(FormGroup)
+    description = models.CharField(max_length=500, null=False, blank=False)
     initiators = models.CharField(max_length=3, choices=INITIATOR_CHOICES, default="NON")
     unit = models.ForeignKey(Unit)
     active = models.BooleanField(default=True)
@@ -220,7 +222,7 @@ class Form(models.Model, _FormCoherenceMixin):
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
 
     def __unicode__(self):
-        return "%s" % (self.title)
+        return "%s [%s]" % (self.title, self.id)
     
     def delete(self, *args, **kwargs):
         self.active = False
@@ -277,14 +279,30 @@ class Sheet(models.Model, _FormCoherenceMixin):
     #    unique_together = (('form', 'order'),)
 
     def __unicode__(self):
-        return "%s, %s" % (self.form, self.title)
+        return "%s, %s [%i]" % (self.form, self.title, self.id)
 
     def delete(self, *args, **kwargs):
         self.active = False
         self.save()
 
     @transaction.commit_on_success
-    def save(self, clone = False, *args, **kwargs):
+    def safe_save(self):
+        """
+        Save a copy of this sheet, and return the copy: does not modify self.
+        """
+        # clone the sheet
+        sheet2 = self.clone()
+        sheet2.save()
+        # copy the fields
+        for field1 in Field.objects.filter(sheet=self, active=True):
+            field2 = field1.clone()
+            field2.sheet = sheet2
+            field2.save()
+
+        return sheet2
+
+    @transaction.commit_on_success
+    def save(self, *args, **kwargs):
         # if this sheet is just being created it needs a order number
         if(self.order == None):
             max_aggregate = Sheet.objects.filter(form=self.form).aggregate(Max('order'))
@@ -337,6 +355,23 @@ class Field(models.Model, _FormCoherenceMixin):
         self.save()
 
     @transaction.commit_on_success
+    def safe_save(self):
+        """
+        Save a copy of this field, and return the copy: does not modify self.
+        """
+        # copy the sheet
+        sheet2 = self.sheet.safe_save()
+        active = self.active
+        # delete the copy of self
+        Field.objects.filter(sheet=sheet2, original=self.original).delete()
+        # clone and update self
+        field2 = self.clone()
+        field2.sheet = sheet2
+        field2.active = active
+        field2.save()
+        return field2
+
+    @transaction.commit_on_success
     def save(self, *args, **kwargs):
         # if this field is just being created it needs a order number
         if(self.order == None):
@@ -366,7 +401,7 @@ class FormSubmission(models.Model):
     owner = models.ForeignKey(FormGroup)
     status = models.CharField(max_length=4, choices=FORM_SUBMISSION_STATUS, default="PEND")
     def autoslug(self):
-        return make_slug(unicode(self.id)) # we can do better than that, right?
+        return make_slug(self.form.slug)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form')
     
     def update_status(self):
@@ -391,15 +426,10 @@ class SheetSubmission(models.Model):
         super(SheetSubmission, self).save(*args, **kwargs)
         #self.form_submission.update_status()
 
-
-    
 class FieldSubmission(models.Model):
     sheet_submission = models.ForeignKey(SheetSubmission)
     field = models.ForeignKey(Field)
-    # will have to decide later what the maximum length will be if any
     data = JSONField(null=False, blank=False, default={})
-
-
 
 
 FormSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
@@ -410,7 +440,7 @@ def attachment_upload_to(instance, filename):
     """
     fullpath = os.path.join(
             'forms',
-            datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.advisor.userid),
+            datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.created_at),
             filename.encode('ascii', 'ignore'))
     return fullpath
 
