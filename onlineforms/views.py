@@ -582,5 +582,16 @@ def view_submission(request, form_slug, formsubmit_slug):
     pass
 
 
-def sheet_submission(request, form_slug, sheet_slug):
-    pass
+def sheet_submission(request, form_slug, formsubmit_slug, sheet_slug, sheetsubmit_slug):
+    owner_form = get_object_or_404(Form, slug=form_slug)
+    form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
+    # assert form_submission.form == owner_form
+    sheet = get_object_or_404(Sheet, slug=sheet_slug)
+    sheet_submission = get_object_or_404(SheetSubmission, slug=sheetsubmit_slug)
+    # assert sheet_submission == sheet
+
+    form = DynamicForm(sheet.title)
+    form.fromFields(sheet.fields)
+
+    context = {'owner_form': owner_form, 'form_submission': form_submission, 'sheet': sheet, 'form': form}
+    return render(request, 'onlineforms/submissions/sheet_submission.html', context)
