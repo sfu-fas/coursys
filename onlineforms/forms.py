@@ -1,7 +1,7 @@
 from coredata.forms import PersonField
 from django import forms
 from django.forms.models import ModelForm
-from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller
+from onlineforms.models import Form, Sheet, Field, FormSubmission, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 
@@ -39,6 +39,12 @@ class FieldForm(forms.Form):
 
 class AdminAssignForm(forms.Form):
     assignee = PersonField(label='Assign to')
+
+    def __init__(self, form, *args, **kwargs):
+        self.fields['sheet'] = forms.ModelChoiceField(required=True, 
+            queryset=Sheet.objects.filter(form=form, active=True), 
+            label='Sheets')
+        super(AdminAssignForm, self).__init__(*args, **kwargs)
 
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)

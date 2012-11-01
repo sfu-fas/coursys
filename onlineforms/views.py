@@ -109,9 +109,17 @@ def admin_list_all(request):
 
 def admin_assign(request, formsubmit_slug):
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
-    form = AdminAssignForm(request.POST or None)
+    form = AdminAssignForm(request.POST or None, form_submission.form)
     if form.is_valid():
         # make new sheet submission for next sheet in form
+        assignee = form.cleaned_data['assignee']
+        form_filler = FormFiller.objects.filer(sfuFormFiller=assignee)
+        if not form_filler:
+            form_filler = FormFiller.create(sfuFormFiller=assignee)
+
+        SheetSubmission.create(form_submission=form_submission,
+            sheet=form.cleaned_data['sheet'],
+            filler=form_filler)
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
     context = {'form': form, 'form_submission': form_submission}
