@@ -1,3 +1,4 @@
+from coredata.forms import PersonField
 from django import forms
 from django.forms.models import ModelForm
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_CHOICES, FIELD_TYPE_MODELS, FormGroup, VIEWABLE_CHOICES, NonSFUFormFiller
@@ -37,7 +38,11 @@ class FieldForm(forms.Form):
     type = forms.ChoiceField(required=True, choices=FIELD_TYPE_CHOICES, label='Type')
 
 class AdminAssignForm(forms.Form):
-    pass
+    assignee = PersonField(label='Assign to')
+
+    def is_valid(self, *args, **kwargs):
+        PersonField.person_data_prep(self)
+        return super(AdminAssignForm, self).is_valid(*args, **kwargs)
 
 class DynamicForm(forms.Form):
     def __init__(self, title, *args, **kwargs):
