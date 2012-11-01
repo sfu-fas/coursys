@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block h1 %} {{ owner_form.title }} submission{% endblock %}
+{% block title %} {{ owner_form.title }} submission {% endblock %}
+
+{% block subbreadcrumbs %}
+    <li>&gt; <a href="{% url onlineforms.views.submissions_list_all_forms %}">Forms</a></li>
+    <li>&gt; <a href="{% url onlineforms.views.view_submission form_slug=owner_form.slug formsubmit_slug=form_submission.slug %}">{{ owner_form.title }} submission</a></li>
+    <li>&gt; {{ sheet.title }} submission</li>
+{% endblock %}
+
+{% block content %}
+    <form action="" method="post">
+    {% csrf_token %}
+    <fieldset>
+        <legend>{{ sheet.title }}</legend>
+        {{ form|as_dl }}
+        <input type="submit" value="Submit" class="submit"/>
+        <input type="submit" value="Save" class="submit"/>
+    </fieldset>
+    </form>
+
+{% endblock %}

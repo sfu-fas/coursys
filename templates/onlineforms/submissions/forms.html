@@ -10,12 +10,16 @@
 {% block headextra %}
 <script type="text/javascript">
     $(document).ready(function() {
-    $('#form_table').dataTable({
-                "bPaginate": false,
-                "bJQueryUI": true,
-                "aaSorting": [[0, "asc"]],
-    });
-
+        $('#form_table').dataTable({
+                    "bPaginate": false,
+                    "bJQueryUI": true,
+                    "aaSorting": [[0, "asc"]],
+        });
+        $('#sheet_table').dataTable({
+                        "bPaginate": false,
+                        "bJQueryUI": true,
+                        "aaSorting": [[0, "asc"]],
+        }); 
     });
 </script>
 {% endblock %}
@@ -61,4 +65,26 @@
             <p>There are currently no forms.</p>
     {% endif %}
 </div>
+
+{% if sheet_submissions %}
+<h2>Assigned Forms</h2>
+<div class="datatable_container">
+    <table class="display" id="sheet_table">
+        <thead>
+            <tr>
+                <th scope="col">Title</th>
+                <th scope="col">Status</th>
+                <th scope="col">Form</th>
+            </tr>
+        </thead>
+        {% for sheet_sub in sheet_submissions %}
+            <tr>
+                <td><a href="{% url onlineforms.views.sheet_submission form_slug=sheet_sub.form_submission.form.slug formsubmit_slug=sheet_sub.form_submission.slug sheet_slug=sheet_sub.sheet.slug sheetsubmit_slug=sheet_sub.slug %}">{{ sheet_sub.sheet.title }}</a></td>
+                <td>{{ sheet_sub.status }}</td>
+                <td>{{ sheet_sub.form_submission.form.title }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endif %}
 {% endblock %}

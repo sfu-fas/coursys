@@ -14,6 +14,7 @@ from django.forms import ModelForm
 from django.forms.models import modelformset_factory
 from django.forms.models import BaseModelFormSet
 from django.template import RequestContext
+from django.core.exceptions import ObjectDoesNotExist
 
 # FormGroup management views
 from onlineforms.fieldtypes import *
@@ -97,7 +98,7 @@ def remove_group_member(request, formgroup_slug, userid):
     pass
 
 # Form admin views
-@login_required
+@requires_formgroup()
 def admin_list_all(request):
     admin = get_object_or_404(Person, userid=request.user.username)
     form_group = FormGroup.objects.get(members=admin)
@@ -107,24 +108,31 @@ def admin_list_all(request):
     context = {'form_submissions': form_submissions}
     return render(request, "onlineforms/admin/admin_forms.html", context)
 
+@requires_formgroup()
 def admin_assign(request, formsubmit_slug):
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
-    form = AdminAssignForm(request.POST or None, form_submission.form)
+    form = AdminAssignForm(data=request.POST or None, form=form_submission.form)
     if form.is_valid():
         # make new sheet submission for next sheet in form
         assignee = form.cleaned_data['assignee']
-        form_filler = FormFiller.objects.filer(sfuFormFiller=assignee)
-        if not form_filler:
-            form_filler = FormFiller.create(sfuFormFiller=assignee)
-
-        SheetSubmission.create(form_submission=form_submission,
+        SheetSubmission.objects.create(form_submission=form_submission,
             sheet=form.cleaned_data['sheet'],
-            filler=form_filler)
+            filler=userToFormFiller(assignee))
+            
+        # change form submission status back to wait status
+        form_submission.status = 'WAIT'
+        form_submission.save()
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
     context = {'form': form, 'form_submission': form_submission}
     return render(request, "onlineforms/admin/admin_assign.html", context)
 
+def userToFormFiller(user):
+    try:
+        form_filler = FormFiller.objects.get(sfuFormFiller=user)
+    except ObjectDoesNotExist:
+        form_filler = FormFiller.objects.create(sfuFormFiller=user)
+    return form_filler
 
 @requires_formgroup()
 def list_all(request):
@@ -458,9 +466,11 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
 
 def submissions_list_all_forms(request):
     form_groups = None
+    sheet_submissions = None
     if(request.user.is_authenticated()):
         loggedin_user = get_object_or_404(Person, userid=request.user.username)
         forms = Form.objects.filter(active=True).exclude(initiators='NON')
+        sheet_submissions = SheetSubmission.objects.filter(filler=userToFormFiller(loggedin_user))
         # get all the form groups the logged in user is a part of
         form_groups = FormGroup.objects.filter(members=loggedin_user)
     else:
@@ -468,7 +478,7 @@ def submissions_list_all_forms(request):
 
     dept_admin = Role.objects.filter(role='ADMN', person__userid=request.user.username).count() > 0
 
-    context = {'forms': forms, 'form_groups': form_groups, 'dept_admin': dept_admin}
+    context = {'forms': forms, 'sheet_submissions': sheet_submissions, 'form_groups': form_groups, 'dept_admin': dept_admin}
     return render(request, 'onlineforms/submissions/forms.html', context)
 
 
@@ -508,8 +518,7 @@ def form_initial_submission(request, form_slug):
                     formFiller = FormFiller(nonSFUFormFiller=nonSFUFormFiller)
                     formFiller.save()
             elif loggedin_user:
-                formFiller = FormFiller(sfuFormFiller=loggedin_user)
-                formFiller.save()
+                formFiller = userToFormFiller(loggedin_user)
             else:
                 # they didn't provide nonsfu info and they are not logged in
                 context = {'owner_form': owner_form,
@@ -541,23 +550,30 @@ def form_initial_submission(request, form_slug):
             l.save()
 
             for name, field in form.fields.items():
-                if isinstance(field, FileField):
-                    print "FILE FIELD"
-                    new_file = request.FILES[str(name)]
-                    print new_file
-                    new_file_thing = FieldSubmissionFile(file_attachment=new_file, file_mediatype=None)
-                    #new_file_thing.save()  #Causes OSError 71 when it tries to save
+                
                 cleaned_data = form.display_fields[field].serialize_field(form.cleaned_data[str(name)])
-                print cleaned_data
 
                 # name is just a number, we can use it as the index
                 fieldSubmission = FieldSubmission(field=sheet.fields[name], sheet_submission=sheetSubmission, data=cleaned_data)
                 fieldSubmission.save()
+
+                if isinstance(field, FileField):
+                    new_file = request.FILES[str(name)]
+                    new_file_submission = FieldSubmissionFile(field_submission=fieldSubmission, file_attachment=new_file, file_mediatype=new_file.content_type)
+                    new_file_submission.save()  #Works on Ubuntu computer, Causes OSError 71 when running on Vagrant.
+
                 #LOG EVENT#
                 l = LogEntry(userid=logentry_userid, 
                     description=("Field submission created for field %s of sheet %s of form %s by %s") % (sheet.fields[name].label, sheet.title, owner_form.title, formFiller.email()),
                     related_object=fieldSubmission)
                 l.save()
+
+            sheetSubmission.status = 'DONE'
+            sheetSubmission.save()
+            l = LogEntry(userid=logentry_userid, 
+                description=("Sheet submission %s completed by %s") % (sheetSubmission.slug, formFiller.email()),
+                related_object=sheetSubmission)
+            l.save()
 
             messages.success(request, 'You have succesfully submitted %s.' % (owner_form.title))
             return HttpResponseRedirect(reverse(submissions_list_all_forms))
@@ -590,5 +606,16 @@ def view_submission(request, form_slug, formsubmit_slug):
     pass
 
 
-def sheet_submission(request, form_slug, sheet_slug):
-    pass
+def sheet_submission(request, form_slug, formsubmit_slug, sheet_slug, sheetsubmit_slug):
+    owner_form = get_object_or_404(Form, slug=form_slug)
+    form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
+    # assert form_submission.form == owner_form
+    sheet = get_object_or_404(Sheet, slug=sheet_slug)
+    sheet_submission = get_object_or_404(SheetSubmission, slug=sheetsubmit_slug)
+    # assert sheet_submission == sheet
+
+    form = DynamicForm(sheet.title)
+    form.fromFields(sheet.fields)
+
+    context = {'owner_form': owner_form, 'form_submission': form_submission, 'sheet': sheet, 'form': form}
+    return render(request, 'onlineforms/submissions/sheet_submission.html', context)

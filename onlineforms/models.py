@@ -439,9 +439,10 @@ def attachment_upload_to(instance, filename):
     """
     callback to avoid path in the filename(that we have append folder structure to) being striped
     """
+
     fullpath = os.path.join(
             'forms',
-            datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.created_at),
+            datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.field_submission_id),
             filename.encode('ascii', 'ignore'))
     return fullpath
 

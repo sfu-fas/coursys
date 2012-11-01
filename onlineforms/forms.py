@@ -39,12 +39,12 @@ class FieldForm(forms.Form):
 
 class AdminAssignForm(forms.Form):
     assignee = PersonField(label='Assign to')
-
+    
     def __init__(self, form, *args, **kwargs):
+        super(AdminAssignForm, self).__init__(*args, **kwargs)
         self.fields['sheet'] = forms.ModelChoiceField(required=True, 
             queryset=Sheet.objects.filter(form=form, active=True), 
-            label='Sheets')
-        super(AdminAssignForm, self).__init__(*args, **kwargs)
+            label='Sheet')
 
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)
