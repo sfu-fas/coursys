@@ -18,7 +18,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 # FormGroup management views
 from onlineforms.fieldtypes import *
-from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm
+from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm
 from onlineforms.fieldtypes.other import FileCustomField
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup, FieldSubmissionFile
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
@@ -67,14 +67,14 @@ def manage_group(request, formgroup_slug):
     unit_choices = [(u.id, unicode(u)) for u in request.units]
 
     if request.method == 'POST':
-        form = GroupForm(request.POST, instance=group)
-        form.fields['unit'].choices = unit_choices
+        form = EditGroupForm(request.POST, instance=group)
         if form.is_valid():
             form.save()
             return HttpResponseRedirect(reverse('onlineforms.views.manage_groups'))
     else:
-        form = GroupForm(instance=group)
-        form.fields['unit'].choices = unit_choices
+
+        form = EditGroupForm(instance=group)
+    #form.fields['unit'].choices = unit_choices
 
     context = {'form': form, 'group': group}
     return render(request, 'onlineforms/manage_group.html', context)

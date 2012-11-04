@@ -17,6 +17,11 @@ class GroupForm(ModelForm):
     class Meta:
         model = FormGroup
 
+class EditGroupForm(ModelForm):
+    class Meta:
+        model = FormGroup
+        fields = ('name',)
+
 class FormForm(ModelForm):
     class Meta:
         model = Form

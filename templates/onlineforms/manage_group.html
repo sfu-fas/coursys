@@ -28,6 +28,7 @@
 </div>
 {% endblock %}
 
+
 {% block content %}
 <div id="form-container">
 	<form action="{% url onlineforms.views.manage_group formgroup_slug=group.slug %}" method="POST">
@@ -42,5 +43,12 @@
             </ul>
         </fieldset>
 	</form>
+</div>
+
+<div id="form-container">
+    <h2 class="heading">Manage Members</h2>
+
+
+    </form>
 </div>
 {% endblock %}
