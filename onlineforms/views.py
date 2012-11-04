@@ -127,6 +127,13 @@ def admin_assign(request, formsubmit_slug):
     context = {'form': form, 'form_submission': form_submission}
     return render(request, "onlineforms/admin/admin_assign.html", context)
 
+@requires_formgroup()
+def admin_done(request, formsubmit_slug):
+    form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
+    form_submission.status = 'DONE'
+    form_submission.save()
+    return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
+  
 def userToFormFiller(user):
     try:
         form_filler = FormFiller.objects.get(sfuFormFiller=user)
@@ -603,7 +610,8 @@ def form_initial_submission(request, form_slug):
 
 
 def view_submission(request, form_slug, formsubmit_slug):
-    pass
+    context = {}
+    return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
 
 def sheet_submission(request, form_slug, formsubmit_slug, sheet_slug, sheetsubmit_slug):

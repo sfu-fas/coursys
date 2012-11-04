@@ -29,7 +29,9 @@
                     <th scope="col">Title</th>
                     <th scope="col">Initiator</th>
                     <th scope="col">Status</th>
-                    <th scope="col">Actions</th>
+                    <th scope="col">Assign</th>
+                    <th scope="col">Done</th>
+                    <th scope="col">View Form</th>
                 </tr>
             </thead>
             {% for form_sub in form_submissions %}
@@ -39,6 +41,14 @@
                     <td>{{ form_sub.status }}</td>
                     <td>
                         <a href="{% url onlineforms.views.admin_assign formsubmit_slug=form_sub.slug %}">Assign to Person</a>
+                    </td>
+                    <td class="miniaction">
+                        <form action="{% url onlineforms.views.admin_done formsubmit_slug=form_sub.slug %}" method="post">{% csrf_token %}
+                            <input type="submit" onclick="return confirmSubmit('Set this Form to 'Done'?)" value="Done" />
+                        </form>
+                    </td>
+                    <td>
+                        <a href="{% url onlineforms.views.view_submission form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">View Form</a>
                     </td>
                 </tr>
               {% endfor %}
