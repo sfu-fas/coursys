@@ -24,7 +24,8 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url onlineforms.views.list_all %}">Forms</a></li>
+<li>&gt; <a href="{% url onlineforms.views.submissions_list_all_forms %}">Forms</a></li>
+<li>&gt; <a href="{% url onlineforms.views.list_all %}">Manage Forms</a></li>
 <li>&gt; {{ form.title }}</li>
 {% endblock %}
 

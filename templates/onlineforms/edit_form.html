@@ -4,7 +4,8 @@
 {% block title %}Edit {{ owner_form.title }}{% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url onlineforms.views.list_all %}">Forms</a></li>
+<li>&gt; <a href="{% url onlineforms.views.submissions_list_all_forms %}">Forms</a></li>
+<li>&gt; <a href="{% url onlineforms.views.list_all %}">Manage Forms</a></li>
 <li>&gt; <a href="{% url onlineforms.views.view_form form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
 <li>&gt; Edit {{ owner_form.title }}</li>
 {% endblock %}
