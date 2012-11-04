@@ -42,12 +42,16 @@ class NonSFUFormFillerForm(ModelForm):
 class FieldForm(forms.Form):
     type = forms.ChoiceField(required=True, choices=FIELD_TYPE_CHOICES, label='Type')
 
+class SheetModelChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return obj.title    
+    
 class AdminAssignForm(forms.Form):
     assignee = PersonField(label='Assign to')
     
     def __init__(self, form, *args, **kwargs):
         super(AdminAssignForm, self).__init__(*args, **kwargs)
-        self.fields['sheet'] = forms.ModelChoiceField(required=True, 
+        self.fields['sheet'] = SheetModelChoiceField(required=True, 
             queryset=Sheet.objects.filter(form=form, active=True), 
             label='Sheet')
 
