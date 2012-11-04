@@ -470,7 +470,7 @@ def submissions_list_all_forms(request):
     if(request.user.is_authenticated()):
         loggedin_user = get_object_or_404(Person, userid=request.user.username)
         forms = Form.objects.filter(active=True).exclude(initiators='NON')
-        sheet_submissions = SheetSubmission.objects.filter(filler=userToFormFiller(loggedin_user))
+        sheet_submissions = SheetSubmission.objects.filter(filler=userToFormFiller(loggedin_user)).exclude(status='DONE')
         # get all the form groups the logged in user is a part of
         form_groups = FormGroup.objects.filter(members=loggedin_user)
     else:

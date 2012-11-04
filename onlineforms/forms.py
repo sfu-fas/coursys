@@ -13,6 +13,7 @@ class ExplanationFieldWidget(forms.Textarea):
   def render(self, name, value, attrs=None):
     return mark_safe('<div>%s</div>' % escape(value))
 
+# Manage groups
 class GroupForm(ModelForm):
     class Meta:
         model = FormGroup
@@ -22,6 +23,7 @@ class EditGroupForm(ModelForm):
         model = FormGroup
         fields = ('name',)
 
+# Manage forms
 class FormForm(ModelForm):
     class Meta:
         model = Form
@@ -42,6 +44,7 @@ class NonSFUFormFillerForm(ModelForm):
 class FieldForm(forms.Form):
     type = forms.ChoiceField(required=True, choices=FIELD_TYPE_CHOICES, label='Type')
 
+# Administrate forms
 class SheetModelChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
         return obj.title    
