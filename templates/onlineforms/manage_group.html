@@ -47,8 +47,11 @@
 
 <div id="form-container">
     <h2 class="heading">Manage Members</h2>
-
-
+    {% for g in grouplist %}
+        {% for member in g.members.all %}
+        <br />{{ member.first_name }} {{ member.last_name }}
+        {% endfor %}
+    {% endfor %}
     </form>
 </div>
 {% endblock %}

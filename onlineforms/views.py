@@ -67,16 +67,16 @@ def manage_group(request, formgroup_slug):
     unit_choices = [(u.id, unicode(u)) for u in request.units]
 
     if request.method == 'POST':
-        form = EditGroupForm(request.POST, instance=group)
+        form = EditGroupForm(instance=group)
         if form.is_valid():
             form.save()
             return HttpResponseRedirect(reverse('onlineforms.views.manage_groups'))
     else:
-
         form = EditGroupForm(instance=group)
     #form.fields['unit'].choices = unit_choices
 
-    context = {'form': form, 'group': group}
+    grouplist = FormGroup.objects.filter(slug__exact=formgroup_slug)
+    context = {'form': form, 'group': group, 'grouplist': grouplist}
     return render(request, 'onlineforms/manage_group.html', context)
 
 
