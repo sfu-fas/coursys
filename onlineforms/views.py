@@ -584,6 +584,10 @@ def form_initial_submission(request, form_slug):
 
             messages.success(request, 'You have succesfully submitted %s.' % (owner_form.title))
             return HttpResponseRedirect(reverse(submissions_list_all_forms))
+
+        else:
+            messages.error(request, "The form could not be submitted because of errors in the supplied data, please correct them and try again.")
+
     else:
         form = DynamicForm(sheet.title)
         form.fromFields(sheet.fields)
@@ -665,6 +669,11 @@ def sheet_submission(request, form_slug, formsubmit_slug, sheet_slug, sheetsubmi
             # don't redirect, show the form with errors but notify them that info was saved
             messages.success(request, 'All fields without errors were saved.')
         elif request.POST["submit-mode"] == "Submit":
+            # get the data from post
+            form.fromPostData(request.POST)
+
+
+
             messages.success(request, 'Submit.')
         else:
             messages.error(request, 'Invalid post data.')

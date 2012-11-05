@@ -107,22 +107,24 @@ class DynamicForm(forms.Form):
 
 
     def fromPostData(self, post_data, ignore_required=False):
-        print post_data
         self.cleaned_data = {}
         for name, field in self.fields.items():
             try:
                 if str(name) in post_data:
                     if ignore_required and post_data[str(name)] == "":
-                        self.cleaned_data[str(name)] = ""
+                        cleaned_data = ""
                     else:
-                        self.cleaned_data[str(name)] = field.clean(post_data[str(name)])
+                        cleaned_data = field.clean(post_data[str(name)])
                 else:
                     if ignore_required:
-                        self.cleaned_data[str(name)] = ""
+                        cleaned_data = ""
                     else:
-                        self.cleaned_data[str(name)] = field.clean("")
+                        cleaned_data = field.clean("")
+                self.cleaned_data[str(name)] = cleaned_data
+                field.initial = cleaned_data
             except Exception, e:
                 self.errors[name] = ", ".join(e.messages)
+                field.initial = post_data[str(name)]
 
     def is_valid(self):
         # override because I'm not sure how to bind this form to data (i.e. form.is_bound)
