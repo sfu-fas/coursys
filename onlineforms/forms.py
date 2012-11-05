@@ -82,7 +82,7 @@ class DynamicForm(forms.Form):
         for k in keys:
             self.fields[k] = kwargs[k]
 
-    def fromFields(self, fields, field_submissions=None):
+    def fromFields(self, fields, field_submissions=[]):
         """
         Sets the fields from a list of field model objects
         preserving the order they are given in
