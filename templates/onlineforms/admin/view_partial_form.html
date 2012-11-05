@@ -22,4 +22,17 @@
 {% endblock %}
 
 {% block content %}
+<div id="form_container">
+    {% for sheet_sub_title, sheet_sub_html in sheet_submissions.items %}
+        <form action="">
+            <fieldset>
+                <legend>{{ sheet_sub_title }}</legend>
+                {{ sheet_sub_html|safe }}
+            </fieldset>
+        </form>
+    {% empty %}
+        <p>No sheets have been filled out.</p>
+    {% endfor %}
+
+</div>
 {% endblock %}

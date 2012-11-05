@@ -113,7 +113,7 @@ def admin_assign(request, formsubmit_slug):
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
     form = AdminAssignForm(data=request.POST or None, form=form_submission.form)
     if form.is_valid():
-        # make new sheet submission for next sheet in form
+        # make new sheet submission for next sheet choosen
         assignee = form.cleaned_data['assignee']
         SheetSubmission.objects.create(form_submission=form_submission,
             sheet=form.cleaned_data['sheet'],
@@ -180,7 +180,6 @@ def new_form(request):
 def view_form(request, form_slug):
     form = get_object_or_404(Form, slug=form_slug)
     sheets = Sheet.objects.filter(form=form, active=True).order_by('order')
-
     context = {'form': form, 'sheets': sheets}
     return render(request, "onlineforms/view_form.html", context)
 
@@ -610,7 +609,21 @@ def form_initial_submission(request, form_slug):
 
 
 def view_submission(request, form_slug, formsubmit_slug):
-    context = {}
+    form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
+    form = get_object_or_404(Form, slug=form_slug)
+    
+    sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission)
+    sheet_sub_html = {}
+    for sheet_sub in sheet_submissions:
+        # get html from feild submissions
+        field_submissions = FieldSubmission.objects.filter(sheet_submission=sheet_sub)
+        html = ''
+        for field_sub in field_submissions:
+            display_field = FIELD_TYPE_MODELS[field_sub.field.fieldtype](field_sub.field.config)
+            html += display_field.to_html(field_sub)
+        sheet_sub_html[sheet_sub.sheet.title] = html
+    
+    context = {'sheet_submissions': sheet_sub_html}
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
 

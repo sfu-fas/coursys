@@ -50,13 +50,16 @@ class SheetModelChoiceField(forms.ModelChoiceField):
         return obj.title    
     
 class AdminAssignForm(forms.Form):
-    assignee = PersonField(label='Assign to')
+    assignee = PersonField(label='Assign to', required=False)
+    email = forms.EmailField(required=False,
+                label='Assign to e-mail',
+                help_text='Assign this form to an external email address.')
     
     def __init__(self, form, *args, **kwargs):
         super(AdminAssignForm, self).__init__(*args, **kwargs)
-        self.fields['sheet'] = SheetModelChoiceField(required=True, 
+        self.fields.insert(0, 'sheet', SheetModelChoiceField(required=True, 
             queryset=Sheet.objects.filter(form=form, active=True), 
-            label='Sheet')
+            label='Sheet'))
 
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)
