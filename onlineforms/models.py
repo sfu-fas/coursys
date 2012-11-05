@@ -250,11 +250,11 @@ class Form(models.Model, _FormCoherenceMixin):
             return None
 
     cached_sheets = None
-    @property
-    def sheets(self, refetch=False):
+    def get_sheets(self, refetch=False):
         if refetch or not(self.cached_sheets):
             self.cached_sheets = Sheet.objects.filter(form=self, active=True).order_by('order')
         return self.cached_sheets
+    sheets = property(get_sheets)
 
 class Sheet(models.Model, _FormCoherenceMixin):
     title = models.CharField(max_length=60, null=False, blank=False)
@@ -320,11 +320,11 @@ class Sheet(models.Model, _FormCoherenceMixin):
      
 
     cached_fields = None
-    @property
-    def fields(self, refetch=False):
+    def get_fields(self, refetch=False):
         if refetch or not(self.cached_fields):
             self.cached_fields = Field.objects.filter(sheet=self, active=True).order_by('order')
         return self.cached_fields
+    fields = property(get_fields)
 
 class Field(models.Model, _FormCoherenceMixin):
     label = models.CharField(max_length=60, null=False, blank=False)
@@ -420,6 +420,13 @@ class SheetSubmission(models.Model):
     def save(self, *args, **kwargs):
         super(SheetSubmission, self).save(*args, **kwargs)
         #self.form_submission.update_status()
+
+    cached_fields = None
+    def get_field_submissions(self, refetch=False):
+        if refetch or not(self.cached_fields):
+            self.cached_fields = FieldSubmission.objects.filter(sheet_submission=self)
+        return self.cached_fields
+    field_submissions = property(get_field_submissions)
 
 class FieldSubmission(models.Model):
     sheet_submission = models.ForeignKey(SheetSubmission)

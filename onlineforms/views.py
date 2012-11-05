@@ -623,7 +623,37 @@ def sheet_submission(request, form_slug, formsubmit_slug, sheet_slug, sheetsubmi
     # assert sheet_submission == sheet
 
     form = DynamicForm(sheet.title)
-    form.fromFields(sheet.fields)
+    form.fromFields(sheet.fields, sheet_submission.field_submissions)
+
+    # create a field -> fieldSubmission lookup
+    field_submission_dict = {}
+    for field_submission in sheet_submission.field_submissions:
+        field_submission_dict[field_submission.field] = field_submission
+
+    if request.method == 'POST' and 'submit-mode' in request.POST:
+        if request.POST["submit-mode"] == "Save":
+            # get the data from post
+            form.fromPostData(request.POST, ignore_required=True)
+            # save whatever is in the cleaned_data, and display errors
+            for name, field in form.fields.items():
+                if str(name) in form.cleaned_data:
+                    cleaned_data = form.display_fields[field].serialize_field(form.cleaned_data[str(name)])
+                    # if we already have a field submission, edit it. Otherwise create a new one
+                    if sheet.fields[name] in field_submission_dict:
+                        fieldSubmission = field_submission_dict[sheet.fields[name]]
+                        fieldSubmission.data = cleaned_data
+                    else:
+                        fieldSubmission = FieldSubmission(field=sheet.fields[name], sheet_submission=sheet_submission, data=cleaned_data)
+                    fieldSubmission.save()
+            # refill the form with the new data
+            form.fromFields(sheet.fields, sheet_submission.get_field_submissions(refetch=True))
+
+            # don't redirect, show the form with errors but notify them that info was saved
+            messages.success(request, 'All fields without errors were saved.')
+        elif request.POST["submit-mode"] == "Submit":
+            messages.success(request, 'Submit.')
+        else:
+            messages.error(request, 'Invalid post data.')
 
     context = {'owner_form': owner_form, 'form_submission': form_submission, 'sheet': sheet, 'form': form}
     return render(request, 'onlineforms/submissions/sheet_submission.html', context)

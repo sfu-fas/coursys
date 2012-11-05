@@ -79,29 +79,45 @@ class DynamicForm(forms.Form):
         for k in keys:
             self.fields[k] = kwargs[k]
 
-    def fromFields(self, fields):
+    def fromFields(self, fields, field_submissions=None):
         """
         Sets the fields from a list of field model objects
         preserving the order they are given in
         """
+        # create a dictionary so you can find a fieldsubmission based on a field
+        field_submission_dict = {}
+        for field_submission in field_submissions:
+            field_submission_dict[field_submission.field] = field_submission
         fieldargs = {}
         # keep a dictionary of the configured display fields, so we can serialize them with data later
         self.display_fields = {}
         for (counter, field) in enumerate(fields):
+            # get the field
             display_field = FIELD_TYPE_MODELS[field.fieldtype](field.config)
-            self.fields[counter] = display_field.make_entry_field()
+            # make the form field, using the form submission data if it exists
+            if field in field_submission_dict:
+                self.fields[counter] = display_field.make_entry_field(field_submission_dict[field])
+            else:
+                self.fields[counter] = display_field.make_entry_field()
             # keep the display field for later
             self.display_fields[self.fields[counter] ] = display_field
 
 
-    def fromPostData(self, post_data):
+    def fromPostData(self, post_data, ignore_required=False):
+        print post_data
         self.cleaned_data = {}
         for name, field in self.fields.items():
             try:
                 if str(name) in post_data:
-                    self.cleaned_data[str(name)] = field.clean(post_data[str(name)])
+                    if ignore_required and post_data[str(name)] == "":
+                        self.cleaned_data[str(name)] = ""
+                    else:
+                        self.cleaned_data[str(name)] = field.clean(post_data[str(name)])
                 else:
-                    self.cleaned_data[str(name)] = field.clean("")
+                    if ignore_required:
+                        self.cleaned_data[str(name)] = ""
+                    else:
+                        self.cleaned_data[str(name)] = field.clean("")
             except Exception, e:
                 self.errors[name] = ", ".join(e.messages)
 
