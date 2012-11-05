@@ -225,7 +225,7 @@ def _new_application(request, post_slug, manual=False, userid=None):
 
         person = Person.objects.get(userid=userid)
         application = get_object_or_404(TAApplication, posting=posting, person__userid=userid)
-        old_coursepref = CoursePreference.objects.filter(app=application).exclude(rank=0)
+        old_coursepref = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
         CoursesFormSet = formset_factory(CoursePreferenceForm, extra=max(0, min_courses-old_coursepref.count()), max_num=max_courses)
     else:
         CoursesFormSet = formset_factory(CoursePreferenceForm, extra=min_courses, max_num=max_courses)
@@ -449,7 +449,7 @@ def view_application(request, post_slug, userid):
         elif application.posting.unit not in units:
             return ForbiddenResponse(request, 'You cannot access this application')
    
-    courses = CoursePreference.objects.filter(app=application).exclude(rank=0)
+    courses = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
     skills = SkillLevel.objects.filter(app=application).select_related('skill')
     campuses = CampusPreference.objects.filter(app=application).select_related('campus')
     context = {
