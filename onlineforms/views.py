@@ -634,15 +634,14 @@ def view_submission(request, form_slug, formsubmit_slug):
 
 def sheet_submission(request, form_slug, formsubmit_slug, sheet_slug, sheetsubmit_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
-    form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
-    # assert form_submission.form == owner_form
-    sheet = get_object_or_404(Sheet, slug=sheet_slug)
-    sheet_submission = get_object_or_404(SheetSubmission, slug=sheetsubmit_slug)
-    # assert sheet_submission == sheet
+    form_submission = get_object_or_404(FormSubmission, form=owner_form, slug=formsubmit_slug)
+
+    sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
+    sheet_submission = get_object_or_404(SheetSubmission, sheet=sheet, form_submission=form_submission, slug=sheetsubmit_slug)
 
     # if this sheet has already been completed, just redirect them to the form page
     if sheet_submission.status == "DONE":
-        return HttpResponseRedirect(reverse(submissions_list_all_forms))
+        return NotFoundResponse(request)
 
     form = DynamicForm(sheet.title)
     form.fromFields(sheet.fields, sheet_submission.field_submissions)
