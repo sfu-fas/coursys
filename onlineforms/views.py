@@ -118,7 +118,7 @@ def admin_assign(request, formsubmit_slug):
         SheetSubmission.objects.create(form_submission=form_submission,
             sheet=form.cleaned_data['sheet'],
             filler=userToFormFiller(assignee))
-            
+
         # change form submission status back to wait status
         form_submission.status = 'WAIT'
         form_submission.save()
@@ -133,7 +133,7 @@ def admin_done(request, formsubmit_slug):
     form_submission.status = 'DONE'
     form_submission.save()
     return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
-  
+
 def userToFormFiller(user):
     try:
         form_filler = FormFiller.objects.get(sfuFormFiller=user)
@@ -332,12 +332,12 @@ def edit_sheet_info(request, form_slug, sheet_slug):
             #owner_sheet.pk  = None
             #for fields in owner_sheet.fields:
              #       fields = original_field
-                    #fields.save()        
+                    #fields.save()
             #owner_sheet.field = original_field    
             #owner_sheet.pk = None
             owner_sheet.form = original_form
             owner_sheet.order = original_order + 1
-            
+
             #owner_sheet.field = original_field    
             owner_sheet = form.save()
             owner_sheet.safe_save()
@@ -517,7 +517,7 @@ def form_initial_submission(request, form_slug):
                 if nonSFUFormFillerForm.is_valid():
                     nonSFUFormFiller = nonSFUFormFillerForm.save()
                     #LOG EVENT#
-                    l = LogEntry(userid=logentry_userid, 
+                    l = LogEntry(userid=logentry_userid,
                         description=("Non SFU Form Filler created with email %s to submit form %s") % (nonSFUFormFiller.email_address, owner_form.title),
                         related_object=nonSFUFormFiller)
                     l.save()
@@ -531,7 +531,7 @@ def form_initial_submission(request, form_slug):
                            'error_msg': "You must have a SFU account and be logged in to fill out this form."}
                 return render(request, 'onlineforms/submissions/initial_sheet.html', context)
             #LOG EVENT#
-            l = LogEntry(userid=logentry_userid, 
+            l = LogEntry(userid=logentry_userid,
                 description=("Form filler %s created to submit form %s") % (formFiller.email(), owner_form.title),
                 related_object=formFiller)
             l.save()
@@ -541,7 +541,7 @@ def form_initial_submission(request, form_slug):
             formSubmission = FormSubmission(form=owner_form, initiator=formFiller, owner=owner_form.owner)
             formSubmission.save()
             #LOG EVENT#
-            l = LogEntry(userid=logentry_userid, 
+            l = LogEntry(userid=logentry_userid,
                 description=("Form submission created for form %s by %s") % (owner_form.title, formFiller.email()),
                 related_object=formSubmission)
             l.save()
@@ -550,13 +550,13 @@ def form_initial_submission(request, form_slug):
             sheetSubmission = SheetSubmission(sheet=sheet, form_submission=formSubmission, filler=formFiller)
             sheetSubmission.save()
             #LOG EVENT#
-            l = LogEntry(userid=logentry_userid, 
+            l = LogEntry(userid=logentry_userid,
                 description=("Sheet submission created for sheet %s of form %s by %s") % (sheet.title, owner_form.title, formFiller.email()),
                 related_object=sheetSubmission)
             l.save()
 
             for name, field in form.fields.items():
-                
+
                 cleaned_data = form.display_fields[field].serialize_field(form.cleaned_data[str(name)])
 
                 # name is just a number, we can use it as the index
@@ -564,19 +564,20 @@ def form_initial_submission(request, form_slug):
                 fieldSubmission.save()
 
                 if isinstance(field, FileField):
-                    new_file = request.FILES[str(name)]
-                    new_file_submission = FieldSubmissionFile(field_submission=fieldSubmission, file_attachment=new_file, file_mediatype=new_file.content_type)
-                    new_file_submission.save()
+                    if str(name) in request.FILES:
+                        new_file = request.FILES[str(name)]
+                        new_file_submission = FieldSubmissionFile(field_submission=fieldSubmission, file_attachment=new_file, file_mediatype=new_file.content_type)
+                        new_file_submission.save()
 
                 #LOG EVENT#
-                l = LogEntry(userid=logentry_userid, 
+                l = LogEntry(userid=logentry_userid,
                     description=("Field submission created for field %s of sheet %s of form %s by %s") % (sheet.fields[name].label, sheet.title, owner_form.title, formFiller.email()),
                     related_object=fieldSubmission)
                 l.save()
 
             sheetSubmission.status = 'DONE'
             sheetSubmission.save()
-            l = LogEntry(userid=logentry_userid, 
+            l = LogEntry(userid=logentry_userid,
                 description=("Sheet submission %s completed by %s") % (sheetSubmission.slug, formFiller.email()),
                 related_object=sheetSubmission)
             l.save()
@@ -611,7 +612,7 @@ def form_initial_submission(request, form_slug):
 def view_submission(request, form_slug, formsubmit_slug):
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
     form = get_object_or_404(Form, slug=form_slug)
-    
+
     sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission)
     sheet_sub_html = {}
     for sheet_sub in sheet_submissions:
@@ -622,7 +623,7 @@ def view_submission(request, form_slug, formsubmit_slug):
             display_field = FIELD_TYPE_MODELS[field_sub.field.fieldtype](field_sub.field.config)
             html += display_field.to_html(field_sub)
         sheet_sub_html[sheet_sub.sheet.title] = html
-    
+
     context = {'sheet_submissions': sheet_sub_html}
     return render(request, 'onlineforms/admin/view_partial_form.html', context)
 
