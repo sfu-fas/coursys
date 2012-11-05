@@ -1,7 +1,31 @@
 from django.utils.safestring import mark_safe
 from onlineforms.fieldtypes.base import FieldBase, FieldConfigForm
 from django import forms
+from django.forms import fields
 from onlineforms.fieldtypes.widgets import CustomMultipleInputWidget
+
+
+"""class CustomMultipleInputField(forms.MultiValueField):
+    widget = CustomMultipleInputWidget()
+    default_config = {'required': False, 'label': '', 'help_text': '', 'max_responses': 3}
+
+    def __init__(self, attrs=None, *args, **kwargs):
+        if not attrs:
+            self.attrs = self.default_config
+        else:
+            self.attrs = attrs
+
+        self.num_inputs = self.attrs['max_responses']
+        field_set = [fields.CharField()] * int(self.num_inputs)
+        self.widget=CustomMultipleInputWidget(attrs=self.attrs)
+        super(CustomMultipleInputField, self).__init__(field_set, *args, **kwargs)
+
+    def compress(self, value_list):
+        print "compress still not called"
+        if value_list:
+            return "|".join(value_list)
+        return None
+"""
 
 class ListField(FieldBase, forms.MultiValueField):
     class ListConfigForm(FieldConfigForm):
@@ -12,6 +36,7 @@ class ListField(FieldBase, forms.MultiValueField):
         return self.ListConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
+        #return CustomMultipleInputField(self.config)
 
         return forms.MultiValueField(required=self.config['required'],
             label=self.config['label'],
@@ -26,6 +51,7 @@ class ListField(FieldBase, forms.MultiValueField):
 
     def compress(self, value):
         "Compress each field into a single string"
+        print "Compress, never gets called"
         if value:
             return "|".join(value)
         return None
@@ -40,9 +66,9 @@ class FileCustomField(FieldBase):
 
     def make_entry_field(self, fieldsubmission=None):
         return forms.FileField(required=self.config['required'],
-                label=self.config['label'],
-                help_text=self.config['help_text'],
-                max_length=int(self.config['max_length']))
+            label=self.config['label'],
+            help_text=self.config['help_text'],
+            max_length=int(self.config['max_length']))
 
     def serialize_field(self, cleaned_data):
         return {'info': cleaned_data}
@@ -57,7 +83,7 @@ class URLCustomField(FieldBase):
         pass
 
     def make_config_form(self):
-      return self.URLConfigForm(self.config)
+        return self.URLConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
         c = forms.URLField(required=self.config['required'],
@@ -81,6 +107,7 @@ class DividerField(FieldBase):
 
     def make_entry_field(self, fieldsubmission=None):
         from onlineforms.forms import DividerFieldWidget
+
         return forms.CharField(required=False,
             widget=DividerFieldWidget(),
             label='',
