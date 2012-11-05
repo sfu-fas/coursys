@@ -18,27 +18,31 @@
             {{ errors }}
         {% endif %}
 
-        {% if  form.is_multipart %}
-            <form enctype="multipart/form-data" action="" method="post">
-        {% else %}
-            <form action="" method="post">
-        {% endif %}
-    {% csrf_token %}
-    {% if nonSFUFormFillerForm %}
-        <fieldset>
-            <legend>Enter Your Contact Information</legend>
-            {{ nonSFUFormFillerForm|as_dl }}
-            <input type="hidden" name="add-nonsfu" value="True"/>
+        {% if sheet %}
+            {% if  form.is_multipart %}
+                <form enctype="multipart/form-data" action="" method="post">
+            {% else %}
+                <form action="" method="post">
+            {% endif %}
+            {% csrf_token %}
+            {% if nonSFUFormFillerForm %}
+                <fieldset>
+                    <legend>Enter Your Contact Information</legend>
+                    {{ nonSFUFormFillerForm|as_dl }}
+                    <input type="hidden" name="add-nonsfu" value="True"/>
 
-            <p>If you have a SFU account, please <a href="/login/">login</a>.</p>
-        </fieldset>
-    {% endif %}
-    <fieldset>
-        <legend>{{ sheet.title }}</legend>
-        {{ form|as_dl }}
-        <input type="submit" value="submit" class="submit"/>
-    </fieldset>
-    </form>
+                    <p>If you have a SFU account, please <a href="/login/">login</a>.</p>
+                </fieldset>
+            {% endif %}
+            <fieldset>
+                <legend>{{ sheet.title }}</legend>
+                {{ form|as_dl }}
+                <input type="submit" value="submit" class="submit"/>
+            </fieldset>
+            </form>
+        {% else %}
+            <p>This form is empty.</p>
+        {% endif %}
     {% endif %}
 
 {% endblock %}

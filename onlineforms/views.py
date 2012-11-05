@@ -504,7 +504,7 @@ def form_initial_submission(request, form_slug):
         loggedin_user = None
         logentry_userid = ""
 
-    if request.method == 'POST':
+    if sheet and request.method == 'POST':
         # validate the sheet
         form = DynamicForm(sheet.title)
         form.fromFields(sheet.fields)
@@ -588,9 +588,11 @@ def form_initial_submission(request, form_slug):
         else:
             messages.error(request, "The form could not be submitted because of errors in the supplied data, please correct them and try again.")
 
-    else:
+    elif sheet:
         form = DynamicForm(sheet.title)
         form.fromFields(sheet.fields)
+    else:
+        form = None
 
 
     # if the user is not logged in and this is an any form, show the no sfu form filler, otherwise reject them
