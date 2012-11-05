@@ -318,7 +318,7 @@ def reorder_field(request, form_slug, sheet_slug):
 @requires_form_admin_by_slug()
 def edit_sheet_info(request, form_slug, sheet_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
-    owner_sheet = get_object_or_404(Sheet, slug=sheet_slug)
+    owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
     #owner_field = get_object_or_404(Field, slug=field_slug)
 
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'edit':
