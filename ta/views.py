@@ -511,7 +511,7 @@ def assign_bus(request, post_slug, course_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     instructors = offering.instructors()
-    course_prefs = CoursePreference.objects.filter(app__posting=posting, course=offering.course, app__late=False) 
+    course_prefs = CoursePreference.objects.filter(app__posting=posting, course=offering.course, app__late=False)
     #a ta that has been assigned BU to this course might not be on the list
     tacourses = TACourse.objects.filter(course=offering)
     

@@ -75,7 +75,8 @@
   <td>{{o.get_campus_display}}</td>
   <td>
   	{% for tacrs in o.assigned %}
-  	{{tacrs.contract.application.person.sortname}} ({{tacrs.bu}})<br/>
+  	<a href="mailto:{{tacrs.contract.application.person.email}}">{{tacrs.contract.application.person.sortname}}</a>
+  	({{tacrs.bu}}){% if not forloop.last %}, {% endif %}
   	{% endfor %}
   </td>
   <td class="num">{{ o|display_applicant_count:posting }}</td>
