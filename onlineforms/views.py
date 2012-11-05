@@ -640,6 +640,10 @@ def sheet_submission(request, form_slug, formsubmit_slug, sheet_slug, sheetsubmi
     sheet_submission = get_object_or_404(SheetSubmission, slug=sheetsubmit_slug)
     # assert sheet_submission == sheet
 
+    # if this sheet has already been completed, just redirect them to the form page
+    if sheet_submission.status == "DONE":
+        return HttpResponseRedirect(reverse(submissions_list_all_forms))
+
     form = DynamicForm(sheet.title)
     form.fromFields(sheet.fields, sheet_submission.field_submissions)
 
@@ -672,9 +676,25 @@ def sheet_submission(request, form_slug, formsubmit_slug, sheet_slug, sheetsubmi
             # get the data from post
             form.fromPostData(request.POST)
 
+            if form.is_valid():
+                for name, field in form.fields.items():
+                    cleaned_data = form.display_fields[field].serialize_field(form.cleaned_data[str(name)])
+                    # if we already have a field submission, edit it. Otherwise create a new one
+                    if sheet.fields[name] in field_submission_dict:
+                        fieldSubmission = field_submission_dict[sheet.fields[name]]
+                        fieldSubmission.data = cleaned_data
+                    else:
+                        fieldSubmission = FieldSubmission(field=sheet.fields[name], sheet_submission=sheet_submission, data=cleaned_data)
+                    fieldSubmission.save()
 
+                # all the fields have been submitted, this sheet is done
+                sheet_submission.status = 'DONE'
+                sheet_submission.save()
 
-            messages.success(request, 'Submit.')
+                messages.success(request, 'You have succesfully completed sheet %s of form %s.' % (sheet.title, owner_form.title))
+                return HttpResponseRedirect(reverse(submissions_list_all_forms))
+            else:
+                messages.error(request, "The form could not be submitted because of errors in the supplied data, please correct them and try again.")
         else:
             messages.error(request, 'Invalid post data.')
 
