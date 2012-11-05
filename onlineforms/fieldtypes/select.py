@@ -1,3 +1,4 @@
+from django.forms import widgets
 from onlineforms.fieldtypes.base import FieldBase, FieldConfigForm
 from django import forms
 import re
