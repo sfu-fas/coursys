@@ -491,6 +491,12 @@ def assign_tas(request, post_slug):
         ForbiddenResponse(request, 'You cannot access this page')
     
     all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit)
+
+    # decorate offerings with currently-assigned TAs
+    all_assignments = TACourse.objects.filter(contract__posting=posting).select_related('course', 'contract__application__person')
+    for o in all_offerings:
+        o.assigned = [crs for crs in all_assignments if crs.course==o]
+    
     # ignore excluded courses
     excl = set(posting.excluded())
     offerings = [o for o in all_offerings if o.course_id not in excl]

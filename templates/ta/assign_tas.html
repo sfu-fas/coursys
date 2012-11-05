@@ -25,6 +25,7 @@
             { "sType": "by-mark" },
             null,
             null,
+            null,
             { "sType": "by-result" },
             null,
             { "sType": "by-notagnum" },
@@ -57,7 +58,9 @@
 {% block content %}
 <div class="datatable_container">
 <table class="display" id="offerings">
-<thead><tr><th scope="col">Offering</th><th scope="col">Instructor</th><th scope="col">Enrol</th><th scope="col">Campus</th><th scope="col">Applicants</th>
+<thead><tr><th scope="col">Offering</th><th scope="col">Instructor</th><th scope="col">Enrol</th><th scope="col">Campus</th>
+	<th scope="col">Assigned</th>
+	<th scope="col">Applicants</th>
 	<th scope="col">Required BU</th><th scope="col">Assigned BU</th><th scope="col">Diff</th><th scope="col">Required @Cap</th></tr></thead>
 <tbody>
 {% for o in offerings %}
@@ -70,6 +73,11 @@
   <td>{% for instructor in o.instructors %}<a href="mailto:{{ instructor.email }}">{{ instructor.sortname }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</td>
   <td class="num">{{o.enrl_tot}}/{{o.enrl_cap}}</td>
   <td>{{o.get_campus_display}}</td>
+  <td>
+  	{% for tacrs in o.assigned %}
+  	{{tacrs.contract.application.person.sortname}} ({{tacrs.bu}})<br/>
+  	{% endfor %}
+  </td>
   <td class="num">{{ o|display_applicant_count:posting }}</td>
   <td class="num">{{ o|display_bu:posting }}</td>
   <td class="num">{{ o|display_assigned_bu:posting }}</td>
