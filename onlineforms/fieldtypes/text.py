@@ -14,19 +14,26 @@ class SmallTextField(FieldBase):
         return self.SmallTextConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
+        self.min_length = 0
+        self.max_length = 0
+
+        if self.config['min_length'] and int(self.config['min_length']) > 0:
+            self.min_length = int(self.config['min_length'])
+        if self.config['max_length'] and int(self.config['max_length']) > 0:
+            self.max_length = int(self.config['max_length'])
+
         c = forms.CharField(required=self.config['required'],
             widget=forms.TextInput(attrs=
                 {'size': min(60, int(self.config['max_length'])),
                  'maxlength': int(self.config['max_length'])}),
             label=self.config['label'],
-            help_text=self.config['help_text'])
+            help_text=self.config['help_text'],
+            min_length=self.min_length,
+            max_length=self.max_length)
 
         if fieldsubmission:
             c.initial = fieldsubmission.data['info']
-        if self.config['min_length'] and int(self.config['min_length']) > 0:
-            c.min_length = self.config['min_length']
-        if self.config['max_length'] and int(self.config['max_length']) > 0:
-            c.max_length = self.config['max_length']
+
         return c
 
     def serialize_field(self, cleaned_data):
@@ -77,7 +84,7 @@ class LargeTextField(FieldBase):
         c = forms.CharField(required=self.config['required'],
             widget=forms.Textarea(attrs={'cols': '60', 'rows': '15'}),
             label=self.config['label'],
-            help_text=self.config['help_text'])
+            help_text=self.config['help_text'],)
 
         if fieldsubmission:
             c.initial = fieldsubmission.data['info']
