@@ -16,6 +16,19 @@
 </li>
 {% endblock %}
 
+{% block headextra %}
+<script type="text/javascript">
+    $(document).ready(function() {
+    $('#formgroupmembers').dataTable({
+                "bPaginate": false,
+                "bJQueryUI": true,
+                "aaSorting": [[0, "asc"]],
+    });
+
+    });
+</script>
+{% endblock %}
+
 {% block actions %}
 <div id="actions">
     <h2 class="heading">Actions</h2>
@@ -47,11 +60,42 @@
 
 <div id="form-container">
     <h2 class="heading">Manage Members</h2>
-    {% for g in grouplist %}
-        {% for member in g.members.all %}
-        <br />{{ member.first_name }} {{ member.last_name }}
-        {% endfor %}
-    {% endfor %}
-    </form>
+
+    <div id="table-container">
+        <table class="display" id="formgroupmembers">
+        <thead>
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Remove</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for g in grouplist %}
+                {% for member in g.members.all %}
+            <tr>
+                <td>
+                    {{ member.first_name }} {{ member.last_name }}
+                </td>
+                <td class="miniaction"> 
+                    <form action="" method="post">{% csrf_token %}
+                        <input type="hidden" name="action" value="Remove Member"/>
+                        <input type="submit" value="Remove"/>
+                    </form>
+                </td>                
+            </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+
+            <!-- 
+            <h2 class="heading">Manage Members</h2>
+            {% for g in grouplist %}
+                {% for member in g.members.all %}
+                <br />{{ member.first_name }} {{ member.last_name }}
+                {% endfor %}
+            {% endfor %}
+            -->        
+    </div>
 </div>
 {% endblock %}
