@@ -1,22 +1,22 @@
 from django import forms
 
 class CustomMultipleInputWidget(forms.MultiWidget):
-    NUM = 3 # get from attrs
 
     def __init__(self, attrs=None ):
         if attrs is not None:
-            print "attrs!"
+            self.num_inputs = attrs['max_responses']
         else:
-            print "no attrs :("
+            self.num_inputs = 3
 
-        widgets = [forms.TextInput(attrs=attrs)] * self.NUM
+        widgets = [forms.TextInput(attrs=attrs)] * int(self.num_inputs)
 
         super(CustomMultipleInputWidget, self).__init__(widgets, attrs)
 
     def decompress(self, value):
+        #Take the single string and seperate them for each field.
         if value:
-            return '%s' % value
-        return [None] * self.NUM
+            return value.split("|")
+        return [None] * int(self.num_inputs)
 
     def format_output(self, rendered_widgets):
         return u'</br>'.join(rendered_widgets)
