@@ -113,7 +113,7 @@ def admin_assign(request, formsubmit_slug):
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
     form = AdminAssignForm(data=request.POST or None, form=form_submission.form)
     if form.is_valid():
-        # make new sheet submission for next sheet in form
+        # make new sheet submission for next sheet choosen
         assignee = form.cleaned_data['assignee']
         SheetSubmission.objects.create(form_submission=form_submission,
             sheet=form.cleaned_data['sheet'],
