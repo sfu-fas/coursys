@@ -1,21 +1,34 @@
+from django.utils.safestring import mark_safe
 from onlineforms.fieldtypes.base import FieldBase, FieldConfigForm
 from django import forms
+from onlineforms.fieldtypes.widgets import CustomMultipleInputWidget
 
-class ListField(FieldBase):
+class ListField(FieldBase, forms.MultiValueField):
     class ListConfigForm(FieldConfigForm):
         field_length = forms.IntegerField(min_value=1, max_value=500)
+        max_responses = forms.IntegerField(min_value=1, max_value=20)
 
     def make_config_form(self):
         return self.ListConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        raise NotImplementedError
 
-    def serialize_field(self, field):
-        raise NotImplementedError
+        return forms.MultiValueField(required=self.config['required'],
+            label=self.config['label'],
+            help_text=self.config['help_text'],
+            widget=CustomMultipleInputWidget(attrs=self.config))
+
+    def serialize_field(self, cleaned_data):
+        return{'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
         raise NotImplementedError
+
+    def compress(self, value):
+        "Compress each field into a single string"
+        if value:
+            return "|".join(value)
+        return None
 
 
 class FileCustomField(FieldBase):
@@ -59,10 +72,10 @@ class URLCustomField(FieldBase):
     def to_html(self, fieldsubmission=None):
         raise NotImplementedError
 
-  
+
 class DividerField(FieldBase):
     configurable = False
-            
+
     def make_config_form(self):
         return self.configurable
 
