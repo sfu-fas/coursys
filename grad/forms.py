@@ -18,7 +18,12 @@ from django.utils.safestring import mark_safe
 from django.core.validators import EMPTY_VALUES
 from advisornotes.forms import StudentSearchForm
 
-QuickSearchForm = StudentSearchForm
+class QuickSearchForm(StudentSearchForm):
+    pass
+#    incl_active = forms.BooleanField(initial=True)
+#    incl_appl = forms.BooleanField(initial=True)
+#    incl_grad = forms.BooleanField(initial=False)
+#   incl_oldappl = forms.BooleanField(initial=False)
 
 class LabelTextInput(forms.TextInput):
     "TextInput with a bonus label"

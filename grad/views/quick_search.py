@@ -7,7 +7,8 @@ from django.core.urlresolvers import reverse
 
 def _get_query(term):
     return get_query(term, ['person__userid', 'person__emplid', 'person__first_name', 'person__last_name',
-                            'person__pref_first_name', 'program__label', 'program__description'])
+                            'person__pref_first_name', 'program__label', 'program__description'],
+                     startonly=True)
 
 ACTIVE_STATUS_ORDER = {} # for sorting with active first
 for st,_ in STATUS_CHOICES:

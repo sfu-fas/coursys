@@ -12,7 +12,7 @@ def find_userid_or_emplid(userid):
     except ValueError:
         return Q(userid=userid)
 
-# from http://julienphalip.com/post/2825034077/adding-search-to-a-django-site-in-a-snap
+# adapted from http://julienphalip.com/post/2825034077/adding-search-to-a-django-site-in-a-snap
 
 def normalize_query(query_string,
                     findterms=re.compile(r'"([^"]+)"|(\S+)').findall,
@@ -27,17 +27,22 @@ def normalize_query(query_string,
     '''
     return [normspace(' ', (t[0] or t[1]).strip()) for t in findterms(query_string)] 
 
-def get_query(query_string, search_fields):
+def get_query(query_string, search_fields, startonly=False):
     ''' Returns a query, that is a combination of Q objects. That combination
         aims to search keywords within a model by testing the given search fields.
     
+    startonly=True searches only at start of field/word.
     '''
     query = Q() # Query to search for every search term
     terms = normalize_query(query_string)
     for term in terms:
         or_query = None # Query to search for a given term in each field
         for field_name in search_fields:
-            q = Q(**{"%s__icontains" % field_name: term})
+            if startonly:
+                q = Q(**{"%s__startswith" % field_name: term}) \
+                    | Q(**{"%s__icontains" % field_name: ' '+term}) 
+            else:
+                q = Q(**{"%s__icontains" % field_name: term})
             if or_query is None:
                 or_query = q
             else:
