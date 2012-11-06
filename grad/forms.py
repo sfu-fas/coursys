@@ -96,7 +96,7 @@ class SupervisorForm(ModelForm):
             if not data['external']:
                 pass
                 #print "No supervisor data has been passed. Treat form as empty"
-                #raise forms.ValidationError("Please have at least one of Supervisor or an External supervisor.")
+                raise forms.ValidationError("Please have at least one of Supervisor or an External supervisor.")
         return data
     
     def has_changed(self):
