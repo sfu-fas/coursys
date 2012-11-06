@@ -1,4 +1,4 @@
-from grad.models import GradStudent, STATUS_CHOICES, STATUS_ACTIVE, STATUS_APPLICANT, STATUS_INACTIVE
+from grad.models import GradStudent, STATUS_CHOICES, STATUS_ACTIVE, STATUS_APPLICANT, STATUS_INACTIVE, STATUS_CURRENTAPPLICANT
 from django.http import HttpResponseRedirect, HttpResponse
 from courselib.auth import requires_role, ForbiddenResponse
 from courselib.search import get_query
@@ -13,12 +13,14 @@ ACTIVE_STATUS_ORDER = {} # for sorting with active first
 for st,_ in STATUS_CHOICES:
     if st in STATUS_ACTIVE:
         ACTIVE_STATUS_ORDER[st] = 0
-    elif st in STATUS_APPLICANT:
+    elif st in STATUS_CURRENTAPPLICANT:
         ACTIVE_STATUS_ORDER[st] = 1
     elif st in STATUS_INACTIVE:
         ACTIVE_STATUS_ORDER[st] = 2
-    else:
+    elif st in STATUS_APPLICANT:
         ACTIVE_STATUS_ORDER[st] = 3
+    else:
+        ACTIVE_STATUS_ORDER[st] = 4
 
 @requires_role("GRAD", get_only=["GRPD"])
 def quick_search(request):
