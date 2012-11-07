@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}TA Applications for {{ posting }}{% endblock %}
+{% block h1 %}TA Applications for {{ posting }}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url ta.views.view_postings %}">TA Postings</a></li>
+<li>&gt; <a href="{% url ta.views.posting_admin post_slug=posting.slug %}">{{ posting.short_str }}</a></li>
+<li>&gt; Applications</li>
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+    $(function() {
+    	$('#apps').dataTable({
+			"bJQueryUI" : true,
+			"bPaginate" : false,
+			"aaSorting" : [[0, "asc"]],
+		});
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="datatable_container">
+<table class="display" id="apps">
+  <thead>
+  	<tr>
+	<th scope="col">Person</th>
+	<th scope="col">Category</th>
+	<th scope="col">Assigned BUs</th>
+	<th scope="col">Max BUs</th>
+	<th scope="col">Ranked</th>
+	<th scope="col">Assigned</th>
+  	</tr>
+  </thead>
+  <tbody>
+  {% for app in applications %}
+  <tr>
+  	<td><a href="{% url ta.views.view_application post_slug=posting.slug userid=app.person.userid %}">{{ app.person.sortname }}</a></td>
+  	<td>{{ app.get_category_display }}</td>
+  	<td>{{ app.base_units_assigned }}</td>
+  	<td>{{ app.base_units }}</td>
+  	<td>{{ app.course_pref_display }}</td>
+  	<td>{{ app.course_assigned_display }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

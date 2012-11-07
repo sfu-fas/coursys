@@ -51,11 +51,10 @@ def view(request, grad_slug, section=None):
     if grad is None or authtype == 'student':
         return ForbiddenResponse(request)
     
-    context = {
-        'grad': grad, 
-        'index': True, 
-        }
-
+    context = {'grad': grad, 'index': True, 'can_edit': True, 'authtype': authtype}
+    if authtype in ['supervisor', 'graddir']:
+        context['can_edit'] = False
+    
     for s in all_sections:
         context[s+'_content'] = ''
     

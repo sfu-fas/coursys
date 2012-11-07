@@ -435,6 +435,15 @@ def update_application(request, post_slug, userid):
     messages.success(request, "Removed late status from the application.")
     return HttpResponseRedirect(reverse(view_application, kwargs={'post_slug': application.posting.slug, 'userid': application.person.userid}))
     
+@requires_role("TAAD")
+def view_all_applications(request,post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    applications = TAApplication.objects.filter(posting=posting)
+    context = {
+            'applications': applications,
+            'posting': posting,
+            }
+    return render(request, 'ta/view_all_applications.html', context)
 
 @login_required
 def view_application(request, post_slug, userid):
@@ -452,11 +461,18 @@ def view_application(request, post_slug, userid):
     courses = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
     skills = SkillLevel.objects.filter(app=application).select_related('skill')
     campuses = CampusPreference.objects.filter(app=application).select_related('campus')
+    contracts = TAContract.objects.filter(application=application)
+    if roles and contracts:
+        contract = contracts[0]
+    else:
+        contract = None
+
     context = {
             'application':application,
             'courses':courses,
             'skills': skills,
             'campuses': campuses,
+            'contract': contract,
             }
     return render(request, 'ta/view_application.html', context)
 
