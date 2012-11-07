@@ -39,7 +39,7 @@ def get_query(query_string, search_fields, startonly=False):
         or_query = None # Query to search for a given term in each field
         for field_name in search_fields:
             if startonly:
-                q = Q(**{"%s__startswith" % field_name: term}) \
+                q = Q(**{"%s__istartswith" % field_name: term}) \
                     | Q(**{"%s__icontains" % field_name: ' '+term}) 
             else:
                 q = Q(**{"%s__icontains" % field_name: term})
