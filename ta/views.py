@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.db import transaction
 from django.contrib import messages
-from courselib.auth import requires_course_staff_by_slug, requires_course_instr_by_slug, requires_role, \
+from courselib.auth import requires_course_staff_by_slug, requires_course_instr_by_slug, requires_role, has_role, \
     requires_course_staff_or_dept_admn_by_slug, ForbiddenResponse, NotFoundResponse, HttpError
 from django.contrib.auth.decorators import login_required
 from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, \
@@ -208,8 +208,15 @@ def _new_application(request, post_slug, manual=False, userid=None):
     posting = get_object_or_404(TAPosting, slug=post_slug)
     editing = bool(userid)
     
-    if editing and userid != request.user.username:
-        return ForbiddenResponse(request)
+    if editing:
+        if userid == request.user.username and posting.is_open():
+            # can edit own application until closes
+            pass
+        elif has_role('TAAD', request) and posting.unit in request.units:
+            # admin can always edit
+            pass
+        else:
+            return ForbiddenResponse(request)
 
     course_choices = [(c.id, unicode(c) + " (" + c.title + ")") for c in posting.selectable_courses()]
     used_campuses = set((vals['campus'] for vals in posting.selectable_offerings().order_by('campus').values('campus').distinct()))
@@ -220,9 +227,6 @@ def _new_application(request, post_slug, manual=False, userid=None):
     sin = None
     # build basic objects, whether new or editing application
     if editing:
-        if not posting.is_open():
-            return ForbiddenResponse(request, "Cannot edit application after posting has closed.")
-
         person = Person.objects.get(userid=userid)
         application = get_object_or_404(TAApplication, posting=posting, person__userid=userid)
         old_coursepref = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
