@@ -10,16 +10,10 @@ UPDATE_TYPES = (
     ("OPEN", "Created"),
     ("UPDT", "Updated"),
     ("EMAI", "Emailed a Student"),
-    ("CONT", "Contacted a Student"),
+    ("RESO", "Manually Resolved"),
     ("COMM", "Comment"),
-    ("RESO", "Resolved"),
     ("REOP", "Re-opened")
 )
-
-UPDATES = ["UPDT"]
-ACTIONS = ["EMAI", "CONT"]
-COMMENTS = ["COMM"]
-RESOLUTIONS = ["RESO"]
 
 class AlertType(models.Model):
     """
@@ -29,8 +23,8 @@ class AlertType(models.Model):
     """
     code = models.CharField(help_text="The alert's code", max_length=30)
     description = models.TextField(help_text="Description of the alert.", null=True, blank=True)
-    resolution_lasts = models.IntegerField(help_text="Default number of days resolution should last, defaults to 10 years.", null=False, default=3650)
     unit = models.ForeignKey(Unit, null=False)
+    hidden = models.BooleanField(null=False, default=False)
 
     def autoslug(self):
         return make_slug( self.code )
@@ -43,23 +37,47 @@ class Alert(models.Model):
     person = models.ForeignKey(Person)
     alerttype = models.ForeignKey(AlertType)
     description = models.TextField(help_text="Specific details of alert", null=True, blank=True)
-    details = JSONField(null=False, blank=False, default={})  #details specific to the alert
+    details = JSONField(null=False, blank=False, default={})
     hidden = models.BooleanField(null=False, default=False)
     
     # generated fields
-    details_hash = models.CharField(max_length=100, null=False, blank=False)
+    unique_hash = models.CharField(max_length=100, null=False, blank=False)
     resolved = models.BooleanField(null=False, default=False)
-    updates = models.IntegerField(null=False, default=0)
-    actions = models.IntegerField(null=False, default=0)
-    comments = models.IntegerField(null=False, default=0)
-    created = models.DateTimeField(auto_now_add=True)
-    last_updated = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
    
+    def updates(self):
+        return self.alertupdate_set.filter( update_type = 'UPDT' )
+
+    def n_updates(self):
+        return self.updates().count()
+    
+    def emails(self):
+        return self.alertupdate_set.filter( update_type = 'EMAI' )
+
+    def n_emails(self):
+        return self.emails().count()
+
+    def comments(self):
+        return self.alertupdate_set.filter( update_type = 'COMM' )
+
+    def n_comments(self):
+        return self.comments().count()
+
     def last_update(self):
-        return AlertUpdate.objects.latest(created) 
+        return self.alertupdate_set.latest('created_at')
+
+    def last_updated(self):
+        return self.last_update().created_at
 
     def last_resolution(self):
-        return AlertUpdate.objects.filter(update_type="RESO").latest(created)
+        return self.alertupdate_set.filter(update_type="RESO").latest('created_at')
+
+    def resolved_until(self):
+        resolution = self.last_resolution()
+        if resolution:
+            return resolution.resolved_until
+        else:
+            return False
 
     def collision(self, collidee):
         """ 
@@ -67,7 +85,7 @@ class Alert(models.Model):
 
         Instead, create a new AlertUpdate.  
         """
-        if self.resolved and datetime.datetime.now() > self.last_resolution():
+        if self.resolved and self.resolved_until() and datetime.datetime.now() > self.resolved_until():
             update_status="REOP"
             update_comments = self.description + """
                 -------
@@ -79,16 +97,16 @@ class Alert(models.Model):
         update = AlertUpdate( alert=collidee, update_type=update_status, comments=update_comments ) 
         update.save()
 
-    def safe_create(self):
+    def safe_create(self, unique_id):
         """
         Save the Alert, but check to make sure that this same alert doesn't already exist, first.
         """
         # set hash
-        self.details_hash = hashlib.md5(str(self.details)).hexdigest()
+        self.unique_hash = hashlib.md5(str(unique_id)).hexdigest()
         # does this already exist? 
         objects_like_this = Alert.objects.filter( person = self.person, 
                                                   alerttype = self.alerttype, 
-                                                  details_hash = self.details_hash ) 
+                                                  unique_hash = self.unique_hash ) 
 
         if len(objects_like_this) > 0:
             self.collision( objects_like_this[0])
@@ -110,27 +128,35 @@ class AlertUpdate(models.Model):
     alert = models.ForeignKey(Alert)
     update_type = models.CharField(max_length=4, choices=UPDATE_TYPES, null=False, blank=False, default="OPEN")
     comments = models.TextField(null=True, blank=True)
-    created = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    hidden = models.BooleanField(default=False) # not used
 
     # Only meaningful if update_type is "RESO"/"Resolved" 
     resolved_until = models.DateTimeField(null=True)
     
     def save(self, *args, **kwargs):
         # Update the actual Alert object.
-        if self.update_type in ACTIONS:
-            self.alert.actions += 1
-        if self.update_type in UPDATES:
-            self.alert.updates += 1
-        if self.update_type in COMMENTS:
-            self.alert.comments += 1
-        if self.update_type in RESOLUTIONS:
+        if self.update_type in ["EMAI", "RESO"]:
             self.alert.resolved = True
             if self.resolved_until == null:
-                self.resolved_until = datetime.datetime.now() + datetime.timedelta(days=self.alert.alerttype.resolution_lasts)
-
+                self.resolved_until = datetime.datetime.now() + datetime.timedelta(days=0.5)
         if self.update_type == "REOP":
             self.alert.resolved = False
+
         self.alert.last_updated = datetime.datetime.now()
+
         self.alert.save()
 
         super(AlertUpdate, self).save(*args, **kwargs)
+
+class AlertEmailTemplate(models.Model):
+    """
+    An automatic e-mail to send. 
+    """
+    alerttype = models.ForeignKey(AlertType, null=False)
+    threshold = models.IntegerField(default=0, null=False)
+    #subject = models.CharField(max_length=50, null=False) 
+    content = models.TextField(help_text="I.e. 'This is to confirm {{title}} {{last_name}} ... '")
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.CharField(max_length=32, null=False, help_text='Email template created by.')
+    hidden = models.BooleanField(default=False)

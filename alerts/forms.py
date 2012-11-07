@@ -1,20 +1,17 @@
 from django import forms
+from django.forms.models import ModelForm
+from models import Alert, AlertType, AlertUpdate, AlertEmailTemplate
+from django.template import Template, TemplateSyntaxError
 
-sample_email = """
-Hello, student {{student}}. 
+class EmailForm(ModelForm):
+    class Meta:
+        model = AlertEmailTemplate
+        exclude = ('alerttype', 'created_at', 'created_by', 'hidden')
 
-Your GPA, {{gpa}} is bad, and you should feel bad. Here's a picture of a bear: {{bear_picture}}. 
-
-Sincerely: 
-Mr. Advisor Man
-
-"""
-
-class BulkEmailForm(forms.Form):
-    #avoidspam = forms.BooleanField( required=True, 
-    #                                initial=True, 
-    #                                label="Do not e-mail students who have already received this e-mail today.")
-    email = forms.CharField( required=True, 
-                             label="Content", 
-                             initial=sample_email, 
-                             widget=forms.Textarea)
+    def clean_content(self):
+        content = self.cleaned_data['content']
+        try:
+            Template(content)
+        except TemplateSyntaxError as e:
+            raise forms.ValidationError('Syntax error in template: ' + unicode(e))
+        return content

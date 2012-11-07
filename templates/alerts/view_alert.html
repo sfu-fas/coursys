@@ -12,9 +12,11 @@
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        <li>Resolve Alert</li>
-        <li>Reopen Alert</li>
-        <li>Other Things</li>
+        {% if alert.resolved %}
+            <li>Reopen Alert</li>
+        {% else %}
+            <li><a href='{% url alerts.views.resolve_alert alert_id=alert.pk %}'>Resolve Alert</a></li>
+        {% endif %}
     </ul>
 </div>
 {% endblock %}
@@ -48,15 +50,15 @@
             </tr>
             <tr>
                 <th class="ui-state-default">Updates</th>
-                <td>{{alert.updates}}</td>
+                <td>{{alert.n_updates}}</td>
             </tr>
             <tr>
                 <th class="ui-state-default">Actions</th>
-                <td>{{alert.actions}}</td>
+                <td>{{alert.n_emails}}</td>
             </tr>
             <tr>
                 <th class="ui-state-default">Comments</th>
-                <td>{{alert.comments}}</td>
+                <td>{{alert.n_comments}}</td>
             </tr>
             <tr>
                 <th class="ui-state-default">Last Updated</th>
@@ -64,7 +66,7 @@
             </tr>
             <tr>
                 <th class="ui-state-default">Created</th>
-                <td><abbr title="{{ alert.created.date }}">{{ alert.created|date:"Y/m/d" }}</abbr></td>
+                <td><abbr title="{{ alert.created_at.date }}">{{ alert.created_at|date:"Y/m/d" }}</abbr></td>
             </tr>
             <tr>
                 <th class="ui-state-default">Description</th>
@@ -77,7 +79,7 @@
 {%if alert_updates %}
     {% for update in alert_updates %}
 
-    <h2>{{update.update_type}} - {{update.created|date:"Y/m/d"}}</h2>
+    <h2>{{update.get_update_type_display}} - {{update.created_at|date:"Y/m/d"}}</h2>
     <div class="note-box" id="alert-box-{{update.id}}">
         <div class="note-content">
             {{update.comments}}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load markup %}
+{% load mobile_tags %}
+{% load form_display %}
+
+{% block title %}New Automation{% endblock %}
+{% block h1 %}New Automation{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url alerts.views.view_alert_types %}">Alerts</a></li>
+<li>&gt; <a href="{% url alerts.views.view_alerts alert_type=alert_type.slug %}">{{alert_type.code}}</a></li>
+<li>&gt; <a href="{% url alerts.views.view_automation alert_type=alert_type.slug %}">Automation</a></li> 
+<li>&gt; New </li>
+{% endblock %}
+
+{% block content %}
+<div id="form_container">
+	<form action="{% url alerts.views.new_automation alert_type=alert_type.slug %}" method="post">
+		{% csrf_token %}
+		<fieldset>
+			<legend>
+                Automated Email
+			</legend>
+			{% if form.non_field_errors %}
+			{{ form.non_field_errors }}
+			{% endif %}
+			<div style="float: left; width: 40%;">
+				<dl class="dlform">
+					<dt>
+						Threshold:
+					</dt>
+					<dd>
+						{{form.threshold}}{{form.threshold.errors}}
+					</dd>
+				</dl>
+			</div>
+			<div style="float:left; width: 100%">
+				<div style="float: left; width: 60%;">
+					<dl class="dlform">
+						<dt>
+							Contents:*
+						</dt>
+						<dd>
+							{{form.content}}{{form.content.errors}}
+						</dd>
+					</dl>
+				</div>
+				<div style="float: left; width: 35%">
+					<dl>
+						<dt>
+							Available tags:
+						</dt>
+						<dd>
+							<dl>
+								{%for tag, val in email_tags %}
+								<dt>
+									{%templatetag openvariable%} {{tag}} {%templatetag closevariable%}
+								</dt>
+								<dd>
+									{{val}}
+								</dd>
+								{%endfor%}
+							</dl>
+						</dd>
+					</dl>
+				</div>
+			</div>
+			<p>
+				<input  class="submit"  type="submit" value="Create E-Mail Automation Rule" />
+			</p>
+		</fieldset>
+	</form>
+	<a class="button" href="{% url alerts.views.view_automation alert_type=alert_type.slug %}">Back</a>
+</div>
+{% endblock %} 

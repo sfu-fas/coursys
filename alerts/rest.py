@@ -5,6 +5,50 @@ import coredata.validate_rest
 import json
 import datetime
 
+# 
+#   Here's an example of a valid JSON request: 
+#
+#    {
+#        "person": "classam", 
+#        "unit": "FAS"
+#        "secret": "23456...",  
+#        "alerts": [
+#            {
+#                "code": "IMMEDIATE RETAKE", 
+#                "emplid": 200000561, 
+#                "description": "Immediate retake detected: CMPT 125", 
+#                "unique_id": "CMPT:125", 
+#                "details": {
+#                    "COURSE_DESCRIPTION": "Something something CMPT", 
+#                    "COURSE_NAME": "CMPT", 
+#                    "COURSE_NUMBER": "125"
+#                }
+#            }, 
+#            {
+#                "code": "IMMEDIATE RETAKE", 
+#                "emplid": 200000251, 
+#                "description": "Immediate retake detected: MACM 101", 
+#                "unique_id": "MACM:101", 
+#                "details": {
+#                    "COURSE_DESCRIPTION": "Blah blah MACM", 
+#                    "COURSE_NAME": "MACM", 
+#                    "COURSE_NUMBER": "101"
+#                }
+#            }, 
+#            {
+#                "code": "IMMEDIATE RETAKE", 
+#                "emplid": 200000181, 
+#                "description": "Immediate retake detected: CMPT 300", 
+#                "unique_id": "CMPT:300", 
+#                "details": {
+#                    "COURSE_DESCRIPTION": "Hurf durf more CMPT", 
+#                    "COURSE_NAME": "CMPT", 
+#                    "COURSE_NUMBER": "300"
+#                }
+#            }
+#        ] 
+#    }
+
 def _create_alerts(data, person, unit):
     print "Creating alerts!"
     try:
@@ -25,6 +69,7 @@ def _create_alerts(data, person, unit):
             emplid = alert['emplid']
             code = alert['code']
             description = alert['description']
+            unique_id = alert['unique_id']
         except KeyError:
             raise ValidationError("Necessary fields not present in alert: " + str(alert) )
             
@@ -64,7 +109,7 @@ def _create_alerts(data, person, unit):
             alert.description = description
             alert.details = details
 
-            alert.safe_create()
+            alert.safe_create(unique_id)
 
         except ValidationError as e:
             print e

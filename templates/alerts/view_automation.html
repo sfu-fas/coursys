@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}Alerts: {{alert_type.code}} Automation{% endblock %}
+{% block h1 %}Alerts: {{alert_type.code}} Automation{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(function() {
+  $('.display').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': true,
+    "bJQueryUI": true,
+    "aaSorting": [[ 3, "desc" ]]
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url alerts.views.view_alert_types %}">Alerts</a></li>
+<li>&gt; <a href="{% url alerts.views.view_alerts alert_type=alert_type.slug %}">{{alert_type.code}}</a></li>
+<li>&gt; Automation </li> 
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        <li><a href="{% url alerts.views.new_automation alert_type=alert_type.slug %}">New Automated Email</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+{% if alert_automations %}
+    {% for title, email, alerts in alert_automations %}
+        <h2> {{title}} </h2>
+        <p> <a href="{% url alerts.views.delete_automation alert_type=alert_type.slug automation_id=email.id %}">Delete</a> </p> 
+        <p>{{email.content|linebreaksbr}}</p>
+        <h3>The following students will receive this e-mail at <a href='#'>8:00 PM</a> </h3>
+        <table class="display">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <!--<th>Advising</th>-->
+                    <th>Emails</th>
+                    <th>Comments</th>
+                    <!--<th>Created</th>-->
+                    <th>Last Update</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for alert in alerts %}
+                <tr>
+                    <td>
+                        <a href='{% url advisornotes.views.student_notes userid=alert.person.userid %}'>{{alert.person}}</a> 
+                    </td>
+                    <!--  
+                    <td>
+                        <a href='{% url alerts.views.view_alert alert_type=alert.alerttype.slug alert_id=alert.id%}'>{{alert.person}}</a> 
+                    </td>
+                    -->
+                    <td>{{alert.n_emails}}</td>
+                    <td>{{alert.n_comments}}</td>
+                    <!--<td><abbr title="{{ alert.created_at.date }}">{{ alert.created_at|date:"Y/m/d" }}</abbr></td>-->
+                    <td><abbr title="{{ alert.last_updated.date }}">{{ alert.last_updated|date:"Y/m/d" }}</abbr></td>
+                    <td>{{ alert.description }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endfor %} 
+{% else %}
+<p> No automated e-mails have been set up for this Alert Type. </p>
+{% endif %}
+
+{% endblock %}

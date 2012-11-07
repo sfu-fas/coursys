@@ -448,7 +448,9 @@ urlpatterns += patterns('',
     url(r'^alerts/' + ALERT_TYPE_SLUG + '/$', 'alerts.views.view_alerts'),
     url(r'^alerts/' + ALERT_TYPE_SLUG + '/(?P<alert_id>\d+)/', 'alerts.views.view_alert'),
     url(r'^alerts/' + ALERT_TYPE_SLUG + '/resolved/$', 'alerts.views.view_resolved_alerts'),
-    url(r'^alerts/(?P<alert_id>\d+)/$', 'alerts.views.edit_alert'),
+    url(r'^alerts/' + ALERT_TYPE_SLUG + '/automation/$', 'alerts.views.view_automation'),
+    url(r'^alerts/' + ALERT_TYPE_SLUG + '/automation/new/$', 'alerts.views.new_automation'),
+    url(r'^alerts/' + ALERT_TYPE_SLUG + '/automation/(?P<automation_id>\d+)/delete/$', 'alerts.views.delete_automation' ),    
 )
 
 if not settings.DEPLOYED:
