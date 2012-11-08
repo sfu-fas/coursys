@@ -35,7 +35,10 @@ class FieldBase(object):
         dictionary.
         """
         if not config:
-            self.config = self.default_config
+            config = self.default_config.copy()
+            if hasattr(self, 'more_default_config'):
+                config.update(self.more_default_config)
+            self.config = config
         else:
             self.config = config
 

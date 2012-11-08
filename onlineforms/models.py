@@ -230,9 +230,9 @@ class Form(models.Model, _FormCoherenceMixin):
 
     @transaction.commit_on_success
     def save(self, *args, **kwargs):
-         instance = super(Form, self).save(*args, **kwargs)
-         self.cleanup_fields()
-         return instance
+        instance = super(Form, self).save(*args, **kwargs)
+        self.cleanup_fields()
+        return instance
     
     @property
     def initial_sheet(self):

@@ -6,9 +6,11 @@ from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape as escape
 
 class SmallTextField(FieldBase):
+    more_default_config = {'min_length': 1, 'max_length': 100}
+    
     class SmallTextConfigForm(FieldConfigForm):
-        min_length = forms.IntegerField(min_value=1, max_value=300)
-        max_length = forms.IntegerField(min_value=1, max_value=300)
+        min_length = forms.IntegerField(min_value=1, max_value=300, initial=1, widget=forms.TextInput(attrs={'size': 3}))
+        max_length = forms.IntegerField(min_value=1, max_value=300, widget=forms.TextInput(attrs={'size': 3}))
 
     def make_config_form(self):
         return self.SmallTextConfigForm(self.config)
