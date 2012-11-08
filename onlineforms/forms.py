@@ -15,6 +15,7 @@ class ExplanationFieldWidget(forms.Textarea):
 class GroupForm(ModelForm):
     class Meta:
         model = FormGroup
+        exclude = ('members',)
 
 class FormForm(ModelForm):
     class Meta:
