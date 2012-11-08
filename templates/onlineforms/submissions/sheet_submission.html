@@ -5,19 +5,45 @@
 
 {% block subbreadcrumbs %}
     <li>&gt; <a href="{% url onlineforms.views.submissions_list_all_forms %}">Forms</a></li>
-    <li>&gt; <a href="{% url onlineforms.views.view_submission form_slug=owner_form.slug formsubmit_slug=form_submission.slug %}">{{ owner_form.title }} submission</a></li>
     <li>&gt; {{ sheet.title }} submission</li>
 {% endblock %}
 
 {% block content %}
-    <form action="" method="post">
-    {% csrf_token %}
-    <fieldset>
-        <legend>{{ sheet.title }}</legend>
-        {{ form|as_dl }}
-        <input type="submit" name="submit-mode" value="Submit" class="submit"/>
-        <input type="submit" name="submit-mode" value="Save" class="submit"/>
-    </fieldset>
-    </form>
+
+    {% if error_msg %}
+        <p>{{ error_msg }}</p>
+        <p>If you have a SFU account, you can <a href="/login/">login here</a>.</p>
+    {% else %}
+        {% if errors %}
+            {{ errors }}
+        {% endif %}
+
+        {% if sheet %}
+            {% if  form.is_multipart %}
+                <form enctype="multipart/form-data" action="" method="post">
+            {% else %}
+                <form action="" method="post">
+            {% endif %}
+            {% csrf_token %}
+            {% if nonSFUFormFillerForm %}
+                <fieldset>
+                    <legend>Enter Your Contact Information</legend>
+                    {{ nonSFUFormFillerForm|as_dl }}
+                    <input type="hidden" name="add-nonsfu" value="True"/>
+
+                    <p>If you have a SFU account, please <a href="/login/">login</a>.</p>
+                </fieldset>
+            {% endif %}
+            <fieldset>
+                <legend>{{ sheet.title }}</legend>
+                {{ form|as_dl }}
+                <input type="submit" name="submit-mode" value="Submit" class="submit"/>
+                <input type="submit" name="submit-mode" value="Save" class="submit"/>
+            </fieldset>
+            </form>
+        {% else %}
+            <p>This form is empty.</p>
+        {% endif %}
+    {% endif %}
 
 {% endblock %}

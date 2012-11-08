@@ -392,7 +392,7 @@ class FormSubmission(models.Model):
     owner = models.ForeignKey(FormGroup)
     status = models.CharField(max_length=4, choices=FORM_SUBMISSION_STATUS, default="PEND")
     def autoslug(self):
-        return make_slug(self.form.slug)
+        return make_slug('submission-' + self.form.slug)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form')
     
     def update_status(self):
@@ -409,7 +409,7 @@ class SheetSubmission(models.Model):
     completed_at = models.DateTimeField(null=True)
     # key = models.CharField()
     def autoslug(self):
-        return make_slug(self.sheet.slug)
+        return make_slug('submission-' + self.sheet.slug)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form_submission')
 
     @transaction.commit_on_success
@@ -428,7 +428,6 @@ class FieldSubmission(models.Model):
     sheet_submission = models.ForeignKey(SheetSubmission)
     field = models.ForeignKey(Field)
     data = JSONField(null=False, blank=False, default={})
-
 
 FormSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
