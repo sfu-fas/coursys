@@ -77,9 +77,9 @@
                     {{ member.first_name }} {{ member.last_name }}
                 </td>
                 <td class="miniaction"> 
-                    <form action="" method="post">{% csrf_token %}
-                        <input type="hidden" name="action" value="Remove Member"/>
-                        <input type="submit" value="Remove"/>
+                    <form action="{% url onlineforms.views.remove_group_member formgroup_slug=group.slug userid=member.emplid %}" method="POST">{% csrf_token %}
+                        <input type="hidden" name="action" value="remove"/>
+                        <input type="submit" value="Remove Member"/>
                     </form>
                 </td>                
             </tr>

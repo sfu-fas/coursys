@@ -89,14 +89,25 @@ def add_group_member(request, formgroup_slug):
 
     pass
 
-
 @requires_role('ADMN')
 def remove_group_member(request, formgroup_slug, userid):
     group = FormGroup.objects.get(slug=formgroup_slug)
+    member = Person.objects.get(emplid=userid)
+    slug = formgroup_slug
+
     if group.unit not in request.units:
         return ForbiddenResponse(request)
 
-    pass
+    # remove m2m relationship
+    if request.method == 'POST':
+        if 'action' in request.POST:
+            if request.POST['action'] == 'remove':
+                print "in request.post action == remove"
+                group.members.remove(member)
+                print "member is removed"
+                return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': slug}))
+
+
 
 # Form admin views
 @requires_formgroup()
