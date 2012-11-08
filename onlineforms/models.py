@@ -275,6 +275,8 @@ class Sheet(models.Model, _FormCoherenceMixin):
         return "%s, %s [%i]" % (self.form, self.title, self.id)
 
     def delete(self, *args, **kwargs):
+        if self.is_initial:
+            raise NotImplementedError
         self.active = False
         self.save()
 
@@ -341,6 +343,7 @@ class Field(models.Model, _FormCoherenceMixin):
     def delete(self, *args, **kwargs):
         self.active = False
         self.save()
+
 
     @transaction.commit_on_success
     def safe_save(self):

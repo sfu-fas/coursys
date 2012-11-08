@@ -72,6 +72,7 @@
                     <th scope="col">Is Initial</th>
                     <th scope="col">Can View</th>
                     <th scope="col">Original</th>
+                    <th scope="col"> Actions </th>
                 </tr>
             </thead>
             {% for sheet in sheets %}
@@ -80,6 +81,15 @@
                     <td>{{ sheet.is_initial|default:"" }}</td>
                     <td>{{ sheet.get_can_view_display }}</td>
                     <td>{{ sheet.original }}</td>
+                     <td>
+                        <form action="{% url onlineforms.views.view_form form_slug=form.slug %}" method="post">{% csrf_token %}
+                        <p> 
+                            <input type="hidden" name="sheet_id" value="{{sheet.id}}" />
+                            <input type="hidden" name="action" value="del" />
+                            <input type="submit" value="Remove" onclick="return confirmSubmit('remove this sheet')" />
+                        </p>
+                        </form>
+                    </td>
                 </tr>
               {% endfor %}
         </table>
@@ -109,6 +119,7 @@
                     <td>{{ sheet.get_can_view_display }}</td>
                     <td>{{ sheet.original }}</td>
                     <td>{{ sheet.active }}</td>
+                      
                 </tr>
               {% endfor %}
         </table>

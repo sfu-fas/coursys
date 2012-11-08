@@ -181,9 +181,25 @@ def view_form(request, form_slug):
     form = get_object_or_404(Form, slug=form_slug)
     sheets = Sheet.objects.filter(form=form, active=True).order_by('order')
      # just for testing active and nonactive sheets
-    nonactive_sheets = Sheet.objects.filter(form=form, active=False).order_by('order')    
+    nonactive_sheets = Sheet.objects.filter(form=form, active=False).order_by('order') 
+    if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'del':
+        sheet_id = request.POST['sheet_id']
+        sheets = Sheet.objects.filter(id=sheet_id, form=form)
+        # TODO handle the condition where we cant find the field
+        if sheets :       
+                sheet = sheets[0]
+                if sheet.is_initial == True:
+                    raise NotImplementedError('Cannot delete '); 
+                sheet.active = False
+                sheet.save()
+                messages.success(request, 'Removed the sheet %s.' % (sheet.title))
+           
+        return HttpResponseRedirect(
+            reverse(view_form, kwargs={'form_slug':form.slug }))
+
+    
     context = {'form': form, 'sheets': sheets, 'nonactive_sheets': nonactive_sheets}
-    return render(request, "onlineforms/view_form.html", context)
+    return render(request, "onlineforms/view_form.html", context)       
 
 
 @requires_form_admin_by_slug()
