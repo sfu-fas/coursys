@@ -510,7 +510,7 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
     # if no one can fill out this form, stop right now
     if owner_form.initiators == "NON":
         context = {'owner_form': owner_form, 'error_msg': "No one can fill out this form."}
-        return render(request, 'onlineforms/submissions/initial_sheet.html', context)
+        return render(request, 'onlineforms/submissions/sheet_submission.html', context)
 
     #get the sheet
     if sheet_slug:
@@ -588,7 +588,7 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
                     # they didn't provide nonsfu info and they are not logged in
                     context = {'owner_form': owner_form,
                                'error_msg': "You must have a SFU account and be logged in to fill out this form."}
-                    return render(request, 'onlineforms/submissions/initial_sheet.html', context)
+                    return render(request, 'onlineforms/submissions/sheet_submission.html', context)
 
                 if formFiller:
                     # we have a form filler, the data is valid, create the formsubmission and sheetsubmission objects if necessary
@@ -661,4 +661,4 @@ def sheet_submission(request, form_slug, formsubmit_slug=None, sheet_slug=None, 
                 'sheet': sheet, 
                 'form': form,
                 'nonSFUFormFillerForm': nonSFUFormFillerForm}
-    return render(request, 'onlineforms/submissions/initial_sheet.html', context)
+    return render(request, 'onlineforms/submissions/sheet_submission.html', context)
