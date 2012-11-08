@@ -141,7 +141,7 @@ class DynamicForm(forms.Form):
                         cleaned_data = field.clean("")
                 self.cleaned_data[str(name)] = cleaned_data
                 field.initial = cleaned_data
-            except NotImplementedError, e:
+            except forms.ValidationError, e:
                 self.errors[name] = ", ".join(e.messages)
                 field.initial = post_data[str(name)]
 
