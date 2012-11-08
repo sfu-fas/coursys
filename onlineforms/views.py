@@ -27,6 +27,7 @@ from onlineforms.utils import reorder_sheet_fields
 
 from coredata.models import Person, Role
 from log.models import LogEntry
+from datetime import datetime
 
 @requires_role('ADMN')
 def manage_groups(request):
@@ -103,9 +104,13 @@ def admin_list_all(request):
     admin = get_object_or_404(Person, userid=request.user.username)
     form_group = FormGroup.objects.get(members=admin)
     if form_group:
-        form_submissions = FormSubmission.objects.filter(owner=form_group, status='PEND')
+        pend_submissions = FormSubmission.objects.filter(owner=form_group, status='PEND')
+        wait_submissions = FormSubmission.objects.filter(owner=form_group, status='WAIT')
+        for wait_sub in wait_submissions:
+            last_sheet_assigned = SheetSubmission.objects.filter(form_submission=wait_sub).latest('given_at')
+            wait_sub.assigned_to = last_sheet_assigned
 
-    context = {'form_submissions': form_submissions}
+    context = {'pend_submissions': pend_submissions, 'wait_submissions': wait_submissions}
     return render(request, "onlineforms/admin/admin_forms.html", context)
 
 @requires_formgroup()
@@ -180,7 +185,9 @@ def new_form(request):
 def view_form(request, form_slug):
     form = get_object_or_404(Form, slug=form_slug)
     sheets = Sheet.objects.filter(form=form, active=True).order_by('order')
-    context = {'form': form, 'sheets': sheets}
+     # just for testing active and nonactive sheets
+    nonactive_sheets = Sheet.objects.filter(form=form, active=False).order_by('order')    
+    context = {'form': form, 'sheets': sheets, 'nonactive_sheets': nonactive_sheets}
     return render(request, "onlineforms/view_form.html", context)
 
 
@@ -324,25 +331,7 @@ def edit_sheet_info(request, form_slug, sheet_slug):
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'edit':
         form = EditSheetForm(request.POST, instance=owner_sheet)
         if form.is_valid():
-            #Duplicating Sheet through View first then implemnt in Models
-            original_form = owner_sheet.form
-            original_order = owner_sheet.order
-           # original_field = owner_sheet.fields
-
-            #owner_sheet.pk  = None
-            #for fields in owner_sheet.fields:
-             #       fields = original_field
-                    #fields.save()
-            #owner_sheet.field = original_field    
-            #owner_sheet.pk = None
-            owner_sheet.form = original_form
-            owner_sheet.order = original_order + 1
-
-            #owner_sheet.field = original_field    
-            owner_sheet = form.save()
             owner_sheet.safe_save()
-           # owner_sheet.fields.save()
-            form.save()
             return HttpResponseRedirect(reverse('onlineforms.views.edit_sheet',
                 kwargs={'form_slug': owner_form.slug, 'sheet_slug': owner_sheet.slug}))
     else:
@@ -487,9 +476,11 @@ def submissions_list_all_forms(request):
     context = {'forms': forms, 'sheet_submissions': sheet_submissions, 'form_groups': form_groups, 'dept_admin': dept_admin}
     return render(request, 'onlineforms/submissions/forms.html', context)
 
-def view_submission(request, form_slug, formsubmit_slug):
+
+@requires_formgroup()
+def view_submission(request, formsubmit_slug):
+    print formsubmit_slug
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
-    form = get_object_or_404(Form, slug=form_slug)
 
     sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission)
     sheet_sub_html = {}

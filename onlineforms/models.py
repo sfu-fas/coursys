@@ -229,14 +229,7 @@ class Form(models.Model, _FormCoherenceMixin):
         self.save()
 
     @transaction.commit_on_success
-#    def save(self, clone = False, *args, **kwargs):
     def save(self, *args, **kwargs):
-        #if clone == True:      
-         #   self = self.clone()
-          #  self = self.save()
-            
-           # return self
-        #else:
          instance = super(Form, self).save(*args, **kwargs)
          self.cleanup_fields()
          return instance
@@ -293,12 +286,12 @@ class Sheet(models.Model, _FormCoherenceMixin):
         # clone the sheet
         sheet2 = self.clone()
         sheet2.save()
+        sheet2.cleanup_fields()
         # copy the fields
         for field1 in Field.objects.filter(sheet=self, active=True):
             field2 = field1.clone()
             field2.sheet = sheet2
             field2.save()
-
         return sheet2
 
     @transaction.commit_on_success
@@ -396,7 +389,7 @@ class FormSubmission(models.Model):
     owner = models.ForeignKey(FormGroup)
     status = models.CharField(max_length=4, choices=FORM_SUBMISSION_STATUS, default="PEND")
     def autoslug(self):
-        return make_slug(self.form.slug)
+        return make_slug('submission-' + self.form.slug)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form')
     
     def update_status(self):
@@ -413,7 +406,7 @@ class SheetSubmission(models.Model):
     completed_at = models.DateTimeField(null=True)
     # key = models.CharField()
     def autoslug(self):
-        return make_slug(self.sheet.slug)
+        return make_slug('submission-' + self.sheet.slug)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form_submission')
 
     @transaction.commit_on_success
@@ -432,7 +425,6 @@ class FieldSubmission(models.Model):
     sheet_submission = models.ForeignKey(SheetSubmission)
     field = models.ForeignKey(Field)
     data = JSONField(null=False, blank=False, default={})
-
 
 FormSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 

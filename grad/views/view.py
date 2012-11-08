@@ -30,7 +30,7 @@ def _can_view_student(request, grad_slug, funding=False):
         return students[0], 'student'
         
     # senior supervisors can see their students
-    supervisors = Supervisor.objects.filter(supervisor__userid=request.user.username, student__slug=grad_slug, supervisor_type='SEN').select_related('student')
+    supervisors = Supervisor.objects.filter(supervisor__userid=request.user.username, student__slug=grad_slug, supervisor_type='SEN', removed=False).select_related('student')
     if supervisors:
         grad = supervisors[0].student
         return grad, 'supervisor'
@@ -46,7 +46,10 @@ def view(request, grad_slug, section=None):
     if grad is None or authtype == 'student':
         return ForbiddenResponse(request)
     
-    context = {'grad': grad, 'index': True}
+    context = {'grad': grad, 'index': True, 'can_edit': True}
+    if authtype == 'supervisor':
+        context['can_edit'] = False
+    
     for s in all_sections:
         context[s+'_content'] = ''
     
