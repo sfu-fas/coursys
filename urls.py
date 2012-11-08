@@ -461,6 +461,8 @@ urlpatterns += patterns('',
     url(r'forms/groups/' + FORMGROUP_SLUG + '/remove/' + USERID_OR_EMPLID + '/$', 'onlineforms.views.remove_group_member'),
 
     url(r'forms/admin/$', 'onlineforms.views.admin_list_all'),
+    url(r'forms/admin/' + FORMSUBMIT_SLUG + '/assign$', 'onlineforms.views.admin_assign'),
+    url(r'forms/admin/' + FORMSUBMIT_SLUG + '/assign_done$', 'onlineforms.views.admin_done'),
     
     url(r'forms/manage/$', 'onlineforms.views.list_all'),
     url(r'forms/manage/new$', 'onlineforms.views.new_form'),
@@ -475,10 +477,10 @@ urlpatterns += patterns('',
     url(r'forms/manage/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/' + FIELD_SLUG + '$', 'onlineforms.views.edit_field'),
 
     url(r'forms/$', 'onlineforms.views.submissions_list_all_forms'),
-    url(r'forms/' + FORM_SLUG + '/$', 'onlineforms.views.form_initial_submission'),
-    url(r'forms/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/$', 'onlineforms.views.view_submission'),
-    url(r'forms/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/' + SHEET_SLUG + '$', 'onlineforms.views.sheet_submission'),
-    
+    url(r'forms/view/' + FORMSUBMIT_SLUG + '/$', 'onlineforms.views.view_submission'),
+    url(r'forms/' + FORM_SLUG + '/$', 'onlineforms.views.sheet_submission'),
+    url(r'forms/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/' + SHEET_SLUG + '/' + SHEETSUBMIT_SLUG + '$', 'onlineforms.views.sheet_submission'),
+
 )
 
 if not settings.DEPLOYED:

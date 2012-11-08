@@ -1,15 +1,59 @@
 {% extends "base.html" %}
 {% load form_display %}
 
-{% block title %}Manage This Group{% endblock %}
-{% block h1 %}Manage This Group {% endblock %}
+{% block title %}Edit This Group{% endblock %}
+{% block h1 %}Edit This Group {% endblock %}
 
-{% block subbreadcrumbs %}{% endblock %}
+{% block subbreadcrumbs %}
+<li>
+    &gt; <a href="{% url onlineforms.views.submissions_list_all_forms %}">Forms</a>
+</li>
+<li>
+    &gt; <a href="{% url onlineforms.views.manage_groups %}">Groups</a>
+</li>
+<li>
+    &gt; Edit Group
+</li>
+{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+    $(document).ready(function() {
+    $('#formgroupmembers').dataTable({
+                "bPaginate": false,
+                "bJQueryUI": true,
+                "aaSorting": [[0, "asc"]],
+    });
+
+    });
+
+    $('#id_person').each(function() {
+      $(this).autocomplete({
+        source: '/data/students',
+        minLength: 2,
+        select: function(event, ui){
+          $(this).data("val", ui.item.value);
+        }
+      });
+    }); 
+</script>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url onlineforms.views.manage_groups %}">Manage Groups</a></li>
+    </ul>
+    <ul>
+        <li><a href="{% url onlineforms.views.new_group %}">New Group</a></li>
+    </ul>
+</div>
+{% endblock %}
+
 
 {% block content %}
-<!-- Manage group info:
-<p>Group name is: {{ group.name }} -->
-<div id="form-container">
+<div id="form-container" style="clear: left;">
 	<form action="{% url onlineforms.views.manage_group formgroup_slug=group.slug %}" method="POST">
 		{% csrf_token %}
 		 <fieldset>
@@ -22,5 +66,49 @@
             </ul>
         </fieldset>
 	</form>
+</div>
+
+<div id="form-container">
+    <h2 class="heading">Manage Members</h2>
+
+    <div id="table-container">
+        <table class="display" id="formgroupmembers">
+        <thead>
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Remove</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for g in grouplist %}
+                {% for member in g.members.all %}
+            <tr>
+                <td>
+                    {{ member.first_name }} {{ member.last_name }}
+                </td>
+                <td class="miniaction"> 
+                    <form action="{% url onlineforms.views.remove_group_member formgroup_slug=group.slug userid=member.emplid %}" method="POST">{% csrf_token %}
+                        <input type="hidden" name="action" value="remove"/>
+                        <input type="submit" value="Remove Member"/>
+                    </form>
+                </td>                
+            </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+
+<div id="form-container">
+    <fieldset>
+        <legend>Add Member</legend>
+        <form action="" method="POST">
+            <ul>
+                {{ search.as_p }}
+                <li><input class="submit" type="submit" value="Add" /></li>
+            </ul>
+        </form>
+    </fieldset>
 </div>
 {% endblock %}

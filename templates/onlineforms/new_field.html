@@ -12,7 +12,6 @@
 
                 var choice_count
                 var last_choice = $('input[name^="choice_"]').last()
-                alert(last_choice)
 
                 if(last_choice.length === 0){
                     choice_count = 0
@@ -59,7 +58,8 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-    <li>&gt; <a href="{% url onlineforms.views.list_all %}">Forms</a></li>
+<li>&gt; <a href="{% url onlineforms.views.submissions_list_all_forms %}">Forms</a></li>
+    <li>&gt; <a href="{% url onlineforms.views.list_all %}">Manage Forms</a></li>
     <li>&gt; <a href="{% url onlineforms.views.view_form form_slug=owner_form.slug %}">{{ owner_form.title }}</a></li>
     <li>&gt; <a
             href="{% url onlineforms.views.edit_sheet form_slug=owner_form.slug sheet_slug=owner_sheet.slug%}">{{ owner_sheet.title }}</a>
@@ -84,6 +84,7 @@
                     <li id="form_section">
                         <input type="hidden" name="next_section" value="{{ section }}"/>
                         <input type="hidden" name="type_name" value="{{ type_name }}"/>
+                        <input type="hidden" name="submitting_config" value="yes"/>
                         <input class="submit" type="submit" value="Next"/>
                     </li>
                 </ul>

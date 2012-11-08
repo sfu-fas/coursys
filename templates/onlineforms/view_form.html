@@ -24,7 +24,8 @@
 {% endblock %}
 
 {% block subbreadcrumbs %}
-<li>&gt; <a href="{% url onlineforms.views.list_all %}">Forms</a></li>
+<li>&gt; <a href="{% url onlineforms.views.submissions_list_all_forms %}">Forms</a></li>
+<li>&gt; <a href="{% url onlineforms.views.list_all %}">Manage Forms</a></li>
 <li>&gt; {{ form.title }}</li>
 {% endblock %}
 
@@ -71,6 +72,7 @@
                     <th scope="col">Is Initial</th>
                     <th scope="col">Can View</th>
                     <th scope="col">Original</th>
+                    <th scope="col"> Actions </th>
                 </tr>
             </thead>
             {% for sheet in sheets %}
@@ -79,6 +81,45 @@
                     <td>{{ sheet.is_initial|default:"" }}</td>
                     <td>{{ sheet.get_can_view_display }}</td>
                     <td>{{ sheet.original }}</td>
+                     <td>
+                        <form action="{% url onlineforms.views.view_form form_slug=form.slug %}" method="post">{% csrf_token %}
+                        <p> 
+                            <input type="hidden" name="sheet_id" value="{{sheet.id}}" />
+                            <input type="hidden" name="action" value="del" />
+                            <input type="submit" value="Remove" onclick="return confirmSubmit('remove this sheet')" />
+                        </p>
+                        </form>
+                    </td>
+                </tr>
+              {% endfor %}
+        </table>
+    {% else %}
+            <p>There are currently no sheets.</p>
+    {% endif %}
+</div>
+
+<h2>Non-active Sheets</h2>
+<div class="datatable_container">
+    {% if nonactive_sheets %}
+        <table class="display" id="sheet_table">
+            <thead>
+                <tr>
+                    <th scope="col">Title</th>
+                    <th scope="col">Is Initial</th>
+                    <th scope="col">Can View</th>
+                    <th scope="col">Original</th>
+                    <th scope="col">Active</th>
+
+                </tr>
+            </thead>
+            {% for sheet in nonactive_sheets %}
+                <tr>
+                    <td><a href="{% url onlineforms.views.edit_sheet form_slug=form.slug sheet_slug=sheet.slug %}">{{ sheet.title }}</a></td>
+                    <td>{{ sheet.is_initial|default:"" }}</td>
+                    <td>{{ sheet.get_can_view_display }}</td>
+                    <td>{{ sheet.original }}</td>
+                    <td>{{ sheet.active }}</td>
+                      
                 </tr>
               {% endfor %}
         </table>

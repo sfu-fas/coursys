@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load form_display %}
+
+{% block title %}Manage Groups{% endblock %}
+{% block h1 %}Manage Groups{% endblock %}
+
+
+{% block subbreadcrumbs %}
+<li>
+    &gt; <a href="{% url onlineforms.views.submissions_list_all_forms %}">Forms</a>
+</li>
+<li>
+	&gt; Groups
+</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url onlineforms.views.manage_groups %}">Manage Groups</a></li>
+    </ul>
+    <ul>
+        <li><a href="{% url onlineforms.views.new_group %}">New Group</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+{% endblock %}

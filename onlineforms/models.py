@@ -1,3 +1,4 @@
+import os
 from django.db import models, transaction
 from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape as escape
@@ -11,7 +12,7 @@ from django.conf import settings
 import datetime
 
 # choices for Form.initiator field
-from onlineforms.fieldtypes.other import FileCustomField, DividerField, URLCustomField
+from onlineforms.fieldtypes.other import FileCustomField, DividerField, URLCustomField, ListField
 from onlineforms.fieldtypes.select import DropdownSelectField, RadioSelectField, MultipleSelectField
 from onlineforms.fieldtypes.text import LargeTextField, ExplanationTextField, EmailTextField
 
@@ -58,7 +59,7 @@ FIELD_TYPE_MODELS = {
         'RADI': RadioSelectField,
         'SEL1': DropdownSelectField,
         'SELN': MultipleSelectField,
-        #'LIST': ListField,
+        'LIST': ListField,
         'FILE': FileCustomField,
         'URL': URLCustomField,
         'TEXT': ExplanationTextField,
@@ -192,9 +193,9 @@ class _FormCoherenceMixin(object):
             # only de-activate siblings, not cousins.
             # i.e. other related sheets/fields in *other* versions of the form should still be active
             if isinstance(self, Sheet):
-                others.filter(form=self.form)
+                others = others.filter(form=self.form)
             elif isinstance(self, Field):
-                others.filter(sheet=self.sheet)
+                others = others.filter(sheet=self.sheet)
             
             others.update(active=False)
 
@@ -209,6 +210,7 @@ class _FormCoherenceMixin(object):
 class Form(models.Model, _FormCoherenceMixin):
     title = models.CharField(max_length=60, null=False, blank=False)
     owner = models.ForeignKey(FormGroup)
+    description = models.CharField(max_length=500, null=False, blank=False)
     initiators = models.CharField(max_length=3, choices=INITIATOR_CHOICES, default="NON")
     unit = models.ForeignKey(Unit)
     active = models.BooleanField(default=True)
@@ -220,34 +222,17 @@ class Form(models.Model, _FormCoherenceMixin):
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
 
     def __unicode__(self):
-        return "%s" % (self.title)
+        return "%s [%s]" % (self.title, self.id)
     
     def delete(self, *args, **kwargs):
         self.active = False
         self.save()
 
     @transaction.commit_on_success
-    def save(self, duplicate_and_save=False, *args, **kwargs):
-        if duplicate_and_save:
-            # duplicate self.instance and save that, and return it.
-	        # duplicate(self.obj)
-            self = self.title
-            self.pk = None
-            self.save()
-	        #self.cleanup_fields() 	
-            return self
-            #pass
-            # duplicate(self.obj)
-            #self = self.title
-            #self.pk = None
-
-            #self.save()
-            #return self
-            pass
-        else:
-            instance = super(Form, self).save(*args, **kwargs)
-            self.cleanup_fields()
-            return instance
+    def save(self, *args, **kwargs):
+        instance = super(Form, self).save(*args, **kwargs)
+        self.cleanup_fields()
+        return instance
     
     @property
     def initial_sheet(self):
@@ -258,11 +243,11 @@ class Form(models.Model, _FormCoherenceMixin):
             return None
 
     cached_sheets = None
-    @property
-    def sheets(self, refetch=False):
+    def get_sheets(self, refetch=False):
         if refetch or not(self.cached_sheets):
             self.cached_sheets = Sheet.objects.filter(form=self, active=True).order_by('order')
         return self.cached_sheets
+    sheets = property(get_sheets)
 
 class Sheet(models.Model, _FormCoherenceMixin):
     title = models.CharField(max_length=60, null=False, blank=False)
@@ -287,11 +272,29 @@ class Sheet(models.Model, _FormCoherenceMixin):
     #    unique_together = (('form', 'order'),)
 
     def __unicode__(self):
-        return "%s, %s" % (self.form, self.title)
+        return "%s, %s [%i]" % (self.form, self.title, self.id)
 
     def delete(self, *args, **kwargs):
+        if self.is_initial:
+            raise NotImplementedError
         self.active = False
         self.save()
+
+    @transaction.commit_on_success
+    def safe_save(self):
+        """
+        Save a copy of this sheet, and return the copy: does not modify self.
+        """
+        # clone the sheet
+        sheet2 = self.clone()
+        sheet2.save()
+        sheet2.cleanup_fields()
+        # copy the fields
+        for field1 in Field.objects.filter(sheet=self, active=True):
+            field2 = field1.clone()
+            field2.sheet = sheet2
+            field2.save()
+        return sheet2
 
     @transaction.commit_on_success
     def save(self, *args, **kwargs):
@@ -305,16 +308,18 @@ class Sheet(models.Model, _FormCoherenceMixin):
             self.order = next_order
 
         #assert (self.is_initial and self.order==0) or (not self.is_initial and self.order>0)
-        
+  
         super(Sheet, self).save(*args, **kwargs)
         self.cleanup_fields()
 
+     
+
     cached_fields = None
-    @property
-    def fields(self, refetch=False):
+    def get_fields(self, refetch=False):
         if refetch or not(self.cached_fields):
             self.cached_fields = Field.objects.filter(sheet=self, active=True).order_by('order')
         return self.cached_fields
+    fields = property(get_fields)
 
 class Field(models.Model, _FormCoherenceMixin):
     label = models.CharField(max_length=60, null=False, blank=False)
@@ -338,6 +343,24 @@ class Field(models.Model, _FormCoherenceMixin):
     def delete(self, *args, **kwargs):
         self.active = False
         self.save()
+
+
+    @transaction.commit_on_success
+    def safe_save(self):
+        """
+        Save a copy of this field, and return the copy: does not modify self.
+        """
+        # copy the sheet
+        sheet2 = self.sheet.safe_save()
+        active = self.active
+        # delete the copy of self
+        Field.objects.filter(sheet=sheet2, original=self.original).delete()
+        # clone and update self
+        field2 = self.clone()
+        field2.sheet = sheet2
+        field2.active = active
+        field2.save()
+        return field2
 
     @transaction.commit_on_success
     def save(self, *args, **kwargs):
@@ -369,7 +392,7 @@ class FormSubmission(models.Model):
     owner = models.ForeignKey(FormGroup)
     status = models.CharField(max_length=4, choices=FORM_SUBMISSION_STATUS, default="PEND")
     def autoslug(self):
-        return make_slug(unicode(self.id)) # we can do better than that, right?
+        return make_slug('submission-' + self.form.slug)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form')
     
     def update_status(self):
@@ -386,7 +409,7 @@ class SheetSubmission(models.Model):
     completed_at = models.DateTimeField(null=True)
     # key = models.CharField()
     def autoslug(self):
-        return make_slug(self.sheet.slug)
+        return make_slug('submission-' + self.sheet.slug)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique_with='form_submission')
 
     @transaction.commit_on_success
@@ -394,16 +417,17 @@ class SheetSubmission(models.Model):
         super(SheetSubmission, self).save(*args, **kwargs)
         #self.form_submission.update_status()
 
+    cached_fields = None
+    def get_field_submissions(self, refetch=False):
+        if refetch or not(self.cached_fields):
+            self.cached_fields = FieldSubmission.objects.filter(sheet_submission=self)
+        return self.cached_fields
+    field_submissions = property(get_field_submissions)
 
-    
 class FieldSubmission(models.Model):
     sheet_submission = models.ForeignKey(SheetSubmission)
     field = models.ForeignKey(Field)
-    # will have to decide later what the maximum length will be if any
     data = JSONField(null=False, blank=False, default={})
-
-
-
 
 FormSystemStorage = FileSystemStorage(location=settings.SUBMISSION_PATH, base_url=None)
 
@@ -411,9 +435,10 @@ def attachment_upload_to(instance, filename):
     """
     callback to avoid path in the filename(that we have append folder structure to) being striped
     """
+
     fullpath = os.path.join(
             'forms',
-            datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.advisor.userid),
+            datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + "_" + str(instance.field_submission_id),
             filename.encode('ascii', 'ignore'))
     return fullpath
 

@@ -6,31 +6,40 @@ from django.utils.safestring import mark_safe
 from django.utils.html import conditional_escape as escape
 
 class SmallTextField(FieldBase):
+    more_default_config = {'min_length': 1, 'max_length': 100}
+    
     class SmallTextConfigForm(FieldConfigForm):
-        min_length = forms.IntegerField(min_value=1, max_value=300)
-        max_length = forms.IntegerField(min_value=1, max_value=300)
+        min_length = forms.IntegerField(min_value=1, max_value=300, initial=1, widget=forms.TextInput(attrs={'size': 3}))
+        max_length = forms.IntegerField(min_value=1, max_value=300, widget=forms.TextInput(attrs={'size': 3}))
 
     def make_config_form(self):
         return self.SmallTextConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
+        self.min_length = 0
+        self.max_length = 0
+
+        if self.config['min_length'] and int(self.config['min_length']) > 0:
+            self.min_length = int(self.config['min_length'])
+        if self.config['max_length'] and int(self.config['max_length']) > 0:
+            self.max_length = int(self.config['max_length'])
+
         c = forms.CharField(required=self.config['required'],
             widget=forms.TextInput(attrs=
                 {'size': min(60, int(self.config['max_length'])),
                  'maxlength': int(self.config['max_length'])}),
             label=self.config['label'],
-            help_text=self.config['help_text'])
+            help_text=self.config['help_text'],
+            min_length=self.min_length,
+            max_length=self.max_length)
 
         if fieldsubmission:
             c.initial = fieldsubmission.data['info']
-        if self.config['min_length'] and int(self.config['min_length']) > 0:
-            c.min_length = self.config['min_length']
-        if self.config['max_length'] and int(self.config['max_length']) > 0:
-            c.max_length = self.config['max_length']
+
         return c
 
-    def serialize_field(self, field):
-        return {'info': unicode(field.clean())}
+    def serialize_field(self, cleaned_data):
+        return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
         return mark_safe('<p>' + escape(fieldsubmission.data['info']) + '</p>')
@@ -45,21 +54,28 @@ class MediumTextField(FieldBase):
         return self.MediumTextConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
+        self.min_length = 0
+        self.max_length = 0
+
+        if self.config['min_length'] and int(self.config['min_length']) > 0:
+            self.min_length = int(self.config['min_length'])
+        if self.config['max_length'] and int(self.config['max_length']) > 0:
+            self.max_length = int(self.config['max_length'])
+
         c = forms.CharField(required=self.config['required'],
             widget=forms.Textarea(attrs={'cols': '60', 'rows': '3'}),
             label=self.config['label'],
-            help_text=self.config['help_text'])
+            help_text=self.config['help_text'],
+            min_length=self.min_length,
+            max_length=self.max_length)
 
         if fieldsubmission:
             c.initial = fieldsubmission.data['info']
-        if self.config['min_length'] and int(self.config['min_length']) > 0:
-            c.min_length = self.config['min_length']
-        if self.config['max_length'] and int(self.config['max_length']) > 0:
-            c.max_length = self.config['max_length']
+
         return c
 
-    def serialize_field(self, field):
-        return {'info': unicode(field.clean())}
+    def serialize_field(self, cleaned_data):
+        return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
         return mark_safe('<p>' + escape(fieldsubmission.data['info']) + '</p>')
@@ -74,21 +90,29 @@ class LargeTextField(FieldBase):
         return self.LargeTextConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
+
+        self.min_length = 0
+        self.max_length = 0
+
+        if self.config['min_length'] and int(self.config['min_length']) > 0:
+            self.min_length = int(self.config['min_length'])
+        if self.config['max_length'] and int(self.config['max_length']) > 0:
+            self.max_length = int(self.config['max_length'])
+
         c = forms.CharField(required=self.config['required'],
             widget=forms.Textarea(attrs={'cols': '60', 'rows': '15'}),
             label=self.config['label'],
-            help_text=self.config['help_text'])
+            help_text=self.config['help_text'],
+            min_length=self.min_length,
+            max_length=self.max_length)
 
         if fieldsubmission:
             c.initial = fieldsubmission.data['info']
-        if self.config['min_length'] and int(self.config['min_length']) > 0:
-            c.min_length = self.config['min_length']
-        if self.config['max_length'] and int(self.config['max_length']) > 0:
-            c.max_length = self.config['max_length']
+
         return c
 
-    def serialize_field(self, field):
-        return {'info': unicode(field.clean())}
+    def serialize_field(self, cleaned_data):
+        return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
         return mark_safe('<p>' + escape(fieldsubmission.data['info']) + '</p>')
@@ -111,8 +135,8 @@ class EmailTextField(FieldBase):
 
         return c
 
-    def serialize_field(self, field):
-        return {'email': unicode(field.clean())}
+    def serialize_field(self, cleaned_data):
+        return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
         return mark_safe('<p>' + escape(fieldsubmission.data['email']) + '</p>')
@@ -121,7 +145,7 @@ class EmailTextField(FieldBase):
 class ExplanationTextField(FieldBase):
     class ExplanationTextConfigForm(FieldConfigForm):
         max_length = forms.IntegerField(min_value=1, max_value=300)
-        text_explanation = forms.CharField(required=True, max_length=500, 
+        text_explanation = forms.CharField(required=True, max_length=500,
             widget=forms.Textarea(attrs={'cols': '60', 'rows': '15'}))
 
     def make_config_form(self):
@@ -129,6 +153,7 @@ class ExplanationTextField(FieldBase):
 
     def make_entry_field(self, fieldsubmission=None):
         from onlineforms.forms import ExplanationFieldWidget
+
         c = forms.CharField(required=False,
             label=self.config['label'],
             help_text=self.config['help_text'],
@@ -139,8 +164,8 @@ class ExplanationTextField(FieldBase):
 
         return c
 
-    def serialize_field(self, field):
-        return {'text_explanation': unicode(field.clean())}
+    def serialize_field(self, cleaned_data):
+        return {'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
         return mark_safe('<p>' + escape(self.config['text_explanation']) + '</p>')

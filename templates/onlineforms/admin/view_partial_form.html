@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block h1 %} View Form {% endblock %}
+{% block title %} View Form {% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('#form_table').dataTable({
+                    "bPaginate": false,
+                    "bJQueryUI": true,
+                    "aaSorting": [[0, "asc"]],
+        }); 
+    });
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+    <li>&gt; <a href="{% url onlineforms.views.submissions_list_all_forms %}">Forms</a></li>
+    <li>&gt; <a href="{% url onlineforms.views.admin_list_all %}">Admin Forms</a></li>
+    <li>&gt; View Form</li>
+{% endblock %}
+
+{% block content %}
+<div id="form_container">
+    {% for sheet_sub_title, sheet_sub_html in sheet_submissions.items %}
+        <form action="">
+            <fieldset>
+                <legend>{{ sheet_sub_title }}</legend>
+                {{ sheet_sub_html|safe }}
+            </fieldset>
+        </form>
+    {% empty %}
+        <p>No sheets have been filled out.</p>
+    {% endfor %}
+
+</div>
+{% endblock %}
