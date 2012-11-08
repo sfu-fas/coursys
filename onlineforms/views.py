@@ -180,7 +180,9 @@ def new_form(request):
 def view_form(request, form_slug):
     form = get_object_or_404(Form, slug=form_slug)
     sheets = Sheet.objects.filter(form=form, active=True).order_by('order')
-    context = {'form': form, 'sheets': sheets}
+     # just for testing active and nonactive sheets
+    nonactive_sheets = Sheet.objects.filter(form=form, active=False).order_by('order')    
+    context = {'form': form, 'sheets': sheets, 'nonactive_sheets': nonactive_sheets}
     return render(request, "onlineforms/view_form.html", context)
 
 
@@ -324,25 +326,7 @@ def edit_sheet_info(request, form_slug, sheet_slug):
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'edit':
         form = EditSheetForm(request.POST, instance=owner_sheet)
         if form.is_valid():
-            #Duplicating Sheet through View first then implemnt in Models
-            original_form = owner_sheet.form
-            original_order = owner_sheet.order
-           # original_field = owner_sheet.fields
-
-            #owner_sheet.pk  = None
-            #for fields in owner_sheet.fields:
-             #       fields = original_field
-                    #fields.save()
-            #owner_sheet.field = original_field    
-            #owner_sheet.pk = None
-            owner_sheet.form = original_form
-            owner_sheet.order = original_order + 1
-
-            #owner_sheet.field = original_field    
-            owner_sheet = form.save()
             owner_sheet.safe_save()
-           # owner_sheet.fields.save()
-            form.save()
             return HttpResponseRedirect(reverse('onlineforms.views.edit_sheet',
                 kwargs={'form_slug': owner_form.slug, 'sheet_slug': owner_sheet.slug}))
     else:
