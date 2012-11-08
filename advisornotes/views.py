@@ -468,7 +468,7 @@ def view_courses(request):
     """
     View to view all courses
     """
-    if 'coursesearch' in request.GET:
+    if 'coursesearch' in request.GET and request.GET['course'] and request.GET['course'].isdigit():
         # handle the search for other courses
         offering = get_object_or_404(Course, id=request.GET['course'])
         return HttpResponseRedirect(reverse('advisornotes.views.view_course_notes', kwargs={'unit_course_slug': offering.slug}))
