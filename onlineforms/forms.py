@@ -118,7 +118,18 @@ class DynamicForm(forms.Form):
         self.cleaned_data = {}
         for name, field in self.fields.items():
             try:
-                if str(name) in post_data:
+                if isinstance(field, forms.MultiValueField):
+                    # handle {name}_{i} names from POST data
+                    i = 0
+                    cleaned_data = []
+                    while True:
+                        n = str(name) + '_' + str(i)
+                        if n not in post_data:
+                            break
+                        if post_data[n]:
+                            cleaned_data.append(post_data[n])
+                        i += 1
+                elif str(name) in post_data:
                     if ignore_required and post_data[str(name)] == "":
                         cleaned_data = ""
                     else:
@@ -130,7 +141,7 @@ class DynamicForm(forms.Form):
                         cleaned_data = field.clean("")
                 self.cleaned_data[str(name)] = cleaned_data
                 field.initial = cleaned_data
-            except Exception, e:
+            except NotImplementedError, e:
                 self.errors[name] = ", ".join(e.messages)
                 field.initial = post_data[str(name)]
 
