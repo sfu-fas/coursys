@@ -34,7 +34,6 @@
                 <tr>
                     <th scope="col">Title</th>
                     <th scope="col">Initiator</th>
-                    <th scope="col">Status</th>
                     <th scope="col">Assign</th>
                     <th scope="col">Done</th>
                     <th scope="col">View Form</th>
@@ -44,7 +43,6 @@
                 <tr>
                     <td>{{ form_sub.form.title }}</td>
                     <td>{{ form_sub.initiator }}</td>
-                    <td>{{ form_sub.status }}</td>
                     <td>
                         <a href="{% url onlineforms.views.admin_assign formsubmit_slug=form_sub.slug %}">Assign to Person</a>
                     </td>
@@ -54,7 +52,7 @@
                         </form>
                     </td>
                     <td>
-                        <a href="{% url onlineforms.views.view_submission form_slug=form_sub.form.slug formsubmit_slug=form_sub.slug %}">View Form</a>
+                        <a href="{% url onlineforms.views.view_submission formsubmit_slug=form_sub.slug %}">View Form</a>
                     </td>
                 </tr>
               {% endfor %}
@@ -71,18 +69,22 @@
                 <tr>
                     <th scope="col">Title</th>
                     <th scope="col">Initiator</th>
-                    <th scope="col">Status</th>
+                    <th scope="col">Sheet</th>
                     <th scope="col">Assigned to</th>
                     <th scope="col">Elasped Time</th>
+                    <th scope="col">View Form</th>    
                 </tr>
             </thead>
             {% for form_sub in wait_submissions %}
                 <tr>
                     <td>{{ form_sub.form.title }}</td>
                     <td>{{ form_sub.initiator }}</td>
-                    <td>{{ form_sub.status }}</td>
+                    <td>{{ form_sub.assigned_to.sheet.title }}</td>
                     <td>{{ form_sub.assigned_to.filler }}</td>
                     <td>{{ form_sub.assigned_to.given_at|timesince }}</td>
+                    <td>
+                        <a href="{% url onlineforms.views.view_submission formsubmit_slug=form_sub.slug %}">View Form</a>
+                    </td>
                 </tr>
               {% endfor %}
         </table>

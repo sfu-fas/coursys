@@ -603,10 +603,10 @@ def form_initial_submission(request, form_slug):
     context = {'owner_form': owner_form, 'sheet': sheet, 'form': form, 'nonSFUFormFillerForm': nonSFUFormFillerForm}
     return render(request, 'onlineforms/submissions/initial_sheet.html', context)
 
-
-def view_submission(request, form_slug, formsubmit_slug):
+@requires_formgroup()
+def view_submission(request, formsubmit_slug):
+    print formsubmit_slug
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
-    form = get_object_or_404(Form, slug=form_slug)
 
     sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission)
     sheet_sub_html = {}
