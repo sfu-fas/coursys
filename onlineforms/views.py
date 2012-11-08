@@ -27,6 +27,7 @@ from onlineforms.utils import reorder_sheet_fields
 
 from coredata.models import Person, Role
 from log.models import LogEntry
+from datetime import datetime
 
 @requires_role('ADMN')
 def manage_groups(request):
@@ -103,9 +104,14 @@ def admin_list_all(request):
     admin = get_object_or_404(Person, userid=request.user.username)
     form_group = FormGroup.objects.get(members=admin)
     if form_group:
-        form_submissions = FormSubmission.objects.filter(owner=form_group, status='PEND')
+        pend_submissions = FormSubmission.objects.filter(owner=form_group, status='PEND')
+        wait_submissions = FormSubmission.objects.filter(owner=form_group, status='WAIT')
+        for wait_sub in wait_submissions:
+            last_sheet_assigned = SheetSubmission.objects.filter(form_submission=wait_sub).latest('given_at')
+            wait_sub.assigned_to = last_sheet_assigned
+            wait_sub.duration = datetime.now() - last_sheet_assigned.given_at
 
-    context = {'form_submissions': form_submissions}
+    context = {'pend_submissions': pend_submissions, 'wait_submissions': wait_submissions}
     return render(request, "onlineforms/admin/admin_forms.html", context)
 
 @requires_formgroup()

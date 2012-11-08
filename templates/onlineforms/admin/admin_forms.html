@@ -6,7 +6,12 @@
 {% block headextra %}
 <script type="text/javascript">
     $(document).ready(function() {
-        $('#form_table').dataTable({
+        $('#pend_table').dataTable({
+                    "bPaginate": false,
+                    "bJQueryUI": true,
+                    "aaSorting": [[0, "asc"]],
+        });
+        $('#wait_table').dataTable({
                     "bPaginate": false,
                     "bJQueryUI": true,
                     "aaSorting": [[0, "asc"]],
@@ -21,9 +26,10 @@
 {% endblock %}
 
 {% block content %}
+<h2>Pending Forms</h2>
 <div class="datatable_container">
-    {% if form_submissions %}
-        <table class="display" id="form_table">
+    {% if pend_submissions %}
+        <table class="display" id="pend_table">
             <thead>
                 <tr>
                     <th scope="col">Title</th>
@@ -34,7 +40,7 @@
                     <th scope="col">View Form</th>
                 </tr>
             </thead>
-            {% for form_sub in form_submissions %}
+            {% for form_sub in pend_submissions %}
                 <tr>
                     <td>{{ form_sub.form.title }}</td>
                     <td>{{ form_sub.initiator }}</td>
@@ -54,7 +60,34 @@
               {% endfor %}
         </table>
     {% else %}
-            <p>There are currently no forms that need any action.</p>
+            <p>There are currently no pending forms that need any action.</p>
+    {% endif %}
+</div>
+<h2>Waiting Forms</h2>
+<div class="datatable_container">
+    {% if wait_submissions %}
+        <table class="display" id="wait_table">
+            <thead>
+                <tr>
+                    <th scope="col">Title</th>
+                    <th scope="col">Initiator</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Assigned to</th>
+                    <th scope="col">Duration</th>
+                </tr>
+            </thead>
+            {% for form_sub in wait_submissions %}
+                <tr>
+                    <td>{{ form_sub.form.title }}</td>
+                    <td>{{ form_sub.initiator }}</td>
+                    <td>{{ form_sub.status }}</td>
+                    <td>{{ form_sub.assigned_to.filler }}</td>
+                    <td>{{ form_sub.duration }}</td>
+                </tr>
+              {% endfor %}
+        </table>
+    {% else %}
+            <p>There are currently no forms being worked on.</p>
     {% endif %}
 </div>
 {% endblock %}
