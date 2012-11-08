@@ -316,6 +316,37 @@ class new_scholarshipTypeForm(ModelForm):
         model = ScholarshipType
         exclude = ('hidden',)
 
+class GradDefenceForm(forms.Form):
+    thesis_type = forms.ChoiceField(choices=[('T','Thesis'), ('P','Project'), ('E','Extended Essay')],
+                                    required=True, label='Work type')
+    work_title = forms.CharField(help_text='Title of the Thesis/Project/Extended Essay', max_length=300,
+                                 widget=forms.TextInput(attrs={'size': 70}))
+    exam_date = forms.DateField(required=False)
+    
+    chair = SupervisorField(required=False, label="Defence chair")
+    internal = SupervisorField(required=False, label="SFU examiner")
+    external = forms.CharField(max_length=200, required=False, label="External examiner",
+                               help_text='Name of the external examiner')
+    external_email = forms.EmailField(required=False, label="External email",
+                                      help_text='Email address of the external examiner')
+    external_contact = forms.CharField(required=False, label="External contact",
+                                       help_text='Contact information for the external examiner',
+                                       widget=forms.Textarea(attrs={'rows': 4, 'cols': 40}))
+    external_attend = forms.ChoiceField(choices=[('','Unknown'), ('P','In-person'), ('A','in abstentia'), ('T','By teleconference')],
+                                    required=False, label='External Attending')
+        
+    def set_supervisor_choices(self, choices):
+        """
+        Set choices for the supervisor
+        """
+        self.fields['chair'].fields[0].choices = [("","Other")] + choices
+        self.fields['chair'].widget.widgets[0].choices = [("","Other")] + choices
+        self.fields['internal'].fields[0].choices = [("","Other")] + choices
+        self.fields['internal'].widget.widgets[0].choices = [("","Other")] + choices
+
+        
+
+
 # creates an 'atom' to represent 'Unknown' (but it's not None) 
 Unknown = type('Unknown', (object,), {'__repr__':lambda self:'Unknown'})()
 

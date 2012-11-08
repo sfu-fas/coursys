@@ -154,7 +154,7 @@ class GradTest(TestCase):
         # check management pages
         for view in ['financials', 'manage_general', 'manage_requirements', 'manage_scholarships', 'new_letter',
                       'manage_otherfunding', 'manage_promises', 'manage_letters', 'manage_status', 'manage_supervisors',
-                      'manage_program', 'manage_financialcomments']:
+                      'manage_program', 'manage_financialcomments', 'manage_defence']:
             try:
                 url = reverse('grad.views.'+view, kwargs={'grad_slug': gs.slug})
                 response = basic_page_tests(self, client, url)

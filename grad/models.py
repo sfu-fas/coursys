@@ -92,6 +92,8 @@ class GradStudent(models.Model):
         # 'sin': Social Insurance Number
         # 'app_id': unique identifier for the PCS application import (so we can detect duplicate imports)
         # 'start_semester': first semester of project (if known from PCS import), as a semester.name (e.g. '1127')
+        # 'thesis_type': 'T'/'P'/'E' for Thesis/Project/Extended Essay
+        # 'work_title': title of the Thesis/Project/Extended Essay
     defaults = {'sin': '000000000'}
     sin, set_sin = getter_setter('sin')
 
@@ -493,6 +495,8 @@ class Supervisor(models.Model):
     modified_by = models.CharField(max_length=32, null=True, help_text='Committee member modified by.', verbose_name='Last Modified By')
     config = JSONField(default={}) # addition configuration
         # 'email': Email address (for external)
+        # 'contact': Address etc (for external)
+        # 'attend': 'P'/'A'/'T' for attending in person/in abstentia/by teleconference (probably only for external)
     defaults = {'email': None}
     email, set_email = getter_setter('email')
           

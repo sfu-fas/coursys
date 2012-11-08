@@ -12,13 +12,24 @@
 <li>&gt; General Info</li>
 {% endblock %}
 
+{% block actions %}
+<div id="actions">
+	<h2>Actions</h2>
+	<ul>
+	<li><a href="{% url grad.views.manage_program grad_slug=grad.slug %}">Change Program</a></li>
+	<li><a href="{% url grad.views.manage_defence grad_slug=grad.slug %}">Edit Defence Info</a></li>
+	</ul>
+</div>
+{% endblock %}
+
+
 {% block content %}
-<p><strong>Current program:</strong> {{grad.program.label}} [<a href="{% url grad.views.manage_program grad_slug=grad.slug %}">Change program</a>]</p>
+<p><strong>Current program:</strong> {{grad.program.label}}</p>
 <div id="form_container">
 	<form method="post" action="">
 		{% csrf_token %}
 		<fieldset>
-			<legend>Academic Info</legend>
+			<legend>General Info</legend>
 			{% if flagforms %}
 			<dl class="dlform">
 			{% for field,f in flagforms %}
