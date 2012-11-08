@@ -477,8 +477,8 @@ urlpatterns += patterns('',
     url(r'forms/manage/' + FORM_SLUG + '/edit/' + SHEET_SLUG + '/' + FIELD_SLUG + '$', 'onlineforms.views.edit_field'),
 
     url(r'forms/$', 'onlineforms.views.submissions_list_all_forms'),
-    url(r'forms/' + FORM_SLUG + '/$', 'onlineforms.views.form_initial_submission'),
     url(r'forms/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/$', 'onlineforms.views.view_submission'),
+    url(r'forms/' + FORM_SLUG + '/$', 'onlineforms.views.sheet_submission'),
     url(r'forms/' + FORM_SLUG + '/' + FORMSUBMIT_SLUG + '/' + SHEET_SLUG + '/' + SHEETSUBMIT_SLUG + '$', 'onlineforms.views.sheet_submission'),
 )
 

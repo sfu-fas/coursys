@@ -5,7 +5,7 @@
 
 {% block subbreadcrumbs %}
     <li>&gt; <a href="{% url onlineforms.views.submissions_list_all_forms %}">Forms</a></li>
-    <li>&gt; {{ owner_form.title }} submission</li>
+    <li>&gt; {{ sheet.title }} submission</li>
 {% endblock %}
 
 {% block content %}
@@ -37,7 +37,8 @@
             <fieldset>
                 <legend>{{ sheet.title }}</legend>
                 {{ form|as_dl }}
-                <input type="submit" value="submit" class="submit"/>
+                <input type="submit" name="submit-mode" value="Submit" class="submit"/>
+                <input type="submit" name="submit-mode" value="Save" class="submit"/>
             </fieldset>
             </form>
         {% else %}
