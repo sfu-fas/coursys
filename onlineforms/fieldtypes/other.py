@@ -5,19 +5,22 @@ from django.forms import fields
 from onlineforms.fieldtypes.widgets import CustomMultipleInputWidget
 
 
-class CustomMultipleInputField(forms.MultiValueField):
-
+class CustomMultipleInputField(fields.MultiValueField):
+    #widget = CustomMultipleInputWidget
 
     def __init__(self, max=5, *args, **kwargs):
         self.widget = CustomMultipleInputWidget( max=max)
-        field_set = [fields.CharField()] * int(max)
-        field_set = tuple(field_set)
-        super(CustomMultipleInputField, self).__init__(field_set, *args, **kwargs)
 
-    def compress(self, value_list):
+        field_set = []
+        [field_set.append(fields.CharField()) for _ in xrange(int(max))]
+
+        super(CustomMultipleInputField, self).__init__(fields=field_set, *args, **kwargs)
+
+    def compress(self, data_list):
         print "COMPRESS"
-        if value_list:
-            return "|".join(value_list)
+        print data_list
+        if data_list:
+            return "|".join(data_list)
         return None
 
 
