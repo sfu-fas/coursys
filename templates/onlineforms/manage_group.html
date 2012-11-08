@@ -18,16 +18,14 @@
 
 {% block headextra %}
 <script type="text/javascript">
-    $(document).ready(function() {
+$(document).ready(function() {
     $('#formgroupmembers').dataTable({
                 "bPaginate": false,
                 "bJQueryUI": true,
                 "aaSorting": [[0, "asc"]],
     });
 
-    });
-
-    $('#id_person').each(function() {
+    $('#id_search').each(function() {
       $(this).autocomplete({
         source: '/data/students',
         minLength: 2,
@@ -36,6 +34,8 @@
         }
       });
     }); 
+});
+
 </script>
 {% endblock %}
 
