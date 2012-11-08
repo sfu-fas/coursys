@@ -1,6 +1,6 @@
 
 from models import Alert, AlertType, AlertUpdate, AlertEmailTemplate
-from forms import EmailForm 
+from forms import EmailForm, ResolutionForm, AlertUpdateForm
 from django.views.decorators.csrf import csrf_exempt
 from courselib.auth import requires_role, HttpResponseRedirect, \
     ForbiddenResponse
@@ -13,7 +13,10 @@ from django.core.exceptions import ValidationError
 from django.contrib import messages
 from log.models import LogEntry
 from django.forms.util import ErrorList
+from django.template import Template, Context
 import rest
+import datetime
+import json
 
 @csrf_exempt
 #@transaction.commit_manually
@@ -29,15 +32,16 @@ def rest_alerts(request):
     if request.META['CONTENT_TYPE'] != 'application/json' and not request.META['CONTENT_TYPE'].startswith('application/json;'):
         return HttpResponse(content='Contents must be JSON (application/json)', status=415)
 
+    errors = []
     try:
-        rest.new_alerts(request.raw_post_data)
+        errors = rest.new_alerts(request.raw_post_data)
     except UnicodeDecodeError:
         return HttpResponse(content='Bad UTF-8 encoded text', status=400)
     except ValueError:
         return HttpResponse(content='Bad JSON in request body', status=400)
-    except ValidationError as e:
-        #transaction.rollback()
-        return HttpResponse(content=e.messages[0], status=422)
+
+    if errors:
+        return HttpResponse(content=json.dumps(errors, indent=4), status=422)
 
     #transaction.commit()
     return HttpResponse(status=200)
@@ -54,7 +58,7 @@ def view_alert_types(request):
     return render(request, 'alerts/view_alert_types.html', {'alert_types': types })
 
 @requires_role('ADVS')
-def view_alerts(request, alert_type, resolved=False):
+def view_alerts(request, alert_type, option="UNRESOLVED"):
     """
     View reported alerts created via the API
     """
@@ -62,9 +66,13 @@ def view_alerts(request, alert_type, resolved=False):
     
     all_alerts = Alert.objects.filter( alerttype=alert_type, hidden=False )
 
-    if resolved:
+    resolved_flag = option == "RESOLVED"
+    unresolved_flag = option == "UNRESOLVED"
+    all_flag = option == "ALL"
+
+    if resolved_flag:
         alerts = all_alerts.filter( resolved=True) 
-    else:
+    elif unresolved_flag:
         # only show Alerts that are unresolved and won't be automatically resolved. 
         unresolved_alerts = all_alerts.filter( resolved=False)
         
@@ -83,10 +91,23 @@ def view_alerts(request, alert_type, resolved=False):
                     break
             if not alert_will_be_automatically_handled:
                 alerts.append( alert ) 
+    else:
+        alerts = all_alerts
 
     return render(request, 'alerts/view_alerts.html', { 'alerts': alerts,
-                                                        'resolved': resolved,
+                                                        'resolved': resolved_flag,
+                                                        'unresolved': unresolved_flag,
+                                                        'all': all_flag,
                                                         'alert_type':alert_type})
+
+@requires_role('ADVS')
+def view_all_alerts(request, alert_type):
+    return view_alerts(request, alert_type, "ALL") 
+
+
+@requires_role('ADVS')
+def view_resolved_alerts(request, alert_type):
+    return view_alerts(request, alert_type, "RESOLVED") 
 
 @requires_role('ADVS')
 def view_automation(request, alert_type):
@@ -159,6 +180,12 @@ def new_automation(request, alert_type):
 
     email_tags = [
         ("person.name","The name of the student that has triggered the alert"),
+        ("person.first_name", "The first name of the student."),
+        ("person.last_name", "The last name of the student."),
+        ("person.middle_name", "The middle name of the student."),
+        ("person.emplid", "The student's emplid."),
+        ("person.email", "The student's email."),
+        ("person.title", "The student's title."),
         ("description","The description of the alert.")
     ]
     
@@ -181,11 +208,36 @@ def delete_automation( request, alert_type, automation_id ):
     return HttpResponseRedirect(reverse('alerts.views.view_automation', kwargs={'alert_type': alert_type}))
 
 @requires_role('ADVS')
-def view_resolved_alerts(request, alert_type):
-    """
-    View reported problems that have been resolved
-    """
-    return view_alerts(request, alert_type, True) 
+def view_email_preview(request, alert_type, alert_id, automation_id):
+    alert_email = get_object_or_404(AlertEmailTemplate, id=automation_id)
+    alert_type = get_object_or_404(AlertType, slug=alert_type, unit__in=request.units)
+    alert = get_object_or_404(Alert, pk=alert_id, alerttype__unit__in=request.units)
+
+    t = Template( alert_email.content )
+
+    email_context = {
+        'person':{
+        'name':alert.person.name(),
+        'first_name':alert.person.first_name,
+        'middle_name':alert.person.middle_name,
+        'last_name':alert.person.last_name,
+        'emplid':alert.person.emplid,
+        'email':alert.person.email(),
+        'title':alert.person.title,
+        },
+        'description':alert.description
+    }
+    
+    email_context['details'] = {}
+    for k, v in alert.details.iteritems():
+        email_context['details'][k] = str(v)
+
+    rendered_text = t.render( Context(email_context) ) 
+    
+    return render(request, 'alerts/view_email_preview.html', { 'alert_type':alert_type, 
+                                                                'alert':alert, 
+                                                                'alert_email':alert_email, 
+                                                                'rendered_text':rendered_text })
 
 @requires_role('ADVS')
 def view_alert( request, alert_type, alert_id ):
@@ -196,3 +248,70 @@ def view_alert( request, alert_type, alert_id ):
     alert_updates = AlertUpdate.objects.filter(alert=alert).order_by('-created_at')
 
     return render(request, 'alerts/view_alert.html', {'alert': alert, 'alert_updates': alert_updates })
+
+@requires_role('ADVS')
+def resolve_alert( request, alert_type, alert_id ):
+    """
+    Resolve an alert
+    """
+    alert = get_object_or_404(Alert, id=alert_id, alerttype__unit__in=request.units)
+    
+    if request.method == 'POST':
+        form = ResolutionForm(request.POST)
+        if form.is_valid():
+            f = form.save(commit=False)
+            f.alert = alert
+            f.update_type = "RESO"
+            f.save()
+            messages.success(request, "Resolved alert %s." % str(alert) )
+            l = LogEntry(userid=request.user.username,
+                  description="Resolved alert %s." % str(alert),
+                  related_object=form.instance)
+            l.save()            
+            return HttpResponseRedirect(reverse('alerts.views.view_alert', kwargs={'alert_type':alert_type, 'alert_id':alert_id}))
+    else:
+        form = ResolutionForm(initial={'resolved_until': datetime.date.today()})
+    
+    return render(request, 'alerts/resolve_alert.html', { 'alert_type':alert.alerttype, 
+                                                          'alert':alert,
+                                                          'form': form, 
+                                                          'resolve_reopen_or_comment_on': 'Resolve'})
+
+@requires_role('ADVS')
+def reopen_or_comment_alert( request, alert_type, alert_id, update_code, wording):
+    alert = get_object_or_404(Alert, id=alert_id, alerttype__unit__in=request.units)
+    
+    if request.method == 'POST':
+        form = AlertUpdateForm(request.POST)
+        if form.is_valid():
+            f = form.save(commit=False)
+            f.alert = alert
+            f.update_type = update_code
+            f.save()
+            messages.success(request, "Updated alert %s." % str(alert) )
+            l = LogEntry(userid=request.user.username,
+                  description="Updated alert %s." % str(alert),
+                  related_object=form.instance)
+            l.save()            
+            return HttpResponseRedirect(reverse('alerts.views.view_alert', kwargs={'alert_type':alert_type, 'alert_id':alert_id}))
+    else:
+        form = AlertUpdateForm()
+    
+    return render(request, 'alerts/resolve_alert.html', { 'alert_type':alert.alerttype, 
+                                                          'alert':alert,
+                                                          'form': form,
+                                                          'resolve_reopen_or_comment_on': wording})
+
+@requires_role('ADVS')
+def reopen_alert( request, alert_type, alert_id ):
+    """
+    Reopen an alert
+    """
+    return reopen_or_comment_alert( request, alert_type, alert_id, "REOP", "Reopen" )
+
+@requires_role('ADVS')
+def comment_alert( request, alert_type, alert_id ):
+    """
+    Comment on an alert
+    """
+    return reopen_or_comment_alert( request, alert_type, alert_id, "COMM", "Comment on" )

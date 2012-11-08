@@ -156,19 +156,20 @@
         Automated Alert: "{{ alert.alerttype.code }}"</a>
 </h2>
     <div class="note-box" id="alert-box-{{update.id}}">
-    {% if alert.last_update %}
-    <h3> Last Update: </h3>
-            <h4>{{alert.last_update.get_update_type_display}} - {{alert.last_update.created_at|date:"Y/m/d"}}</h3>
-            <div class="note-content">
-                {{alert.last_update.comments}}
-            </div>
-    {% endif %}
     {% if alert.last_resolution %}
-    <h3> Last Update: </h3>
+    <h3> Resolution: </h3>
             <h4>{{alert.last_resolution.get_update_type_display}} - {{alert.last_resolution.created_at|date:"Y/m/d"}}</h3>
             <div class="note-content">
                 {{alert.last_resolution.comments}}
             </div>
+    {% else %}
+        {% if alert.last_update %}
+        <h3> Last Update: </h3>
+                <h4>{{alert.last_update.get_update_type_display}} - {{alert.last_update.created_at|date:"Y/m/d"}}</h3>
+                <div class="note-content">
+                    {{alert.last_update.comments}}
+                </div>
+        {% endif %}
     {% endif %}
     </div>
 {% endwith %}

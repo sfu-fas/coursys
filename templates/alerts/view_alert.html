@@ -13,10 +13,11 @@
     <h2>Actions</h2>
     <ul>
         {% if alert.resolved %}
-            <li>Reopen Alert</li>
+            <li><a href='{% url alerts.views.reopen_alert alert_type=alert.alerttype.slug alert_id=alert.pk %}'>Reopen Alert</a></li>
         {% else %}
-            <li><a href='{% url alerts.views.resolve_alert alert_id=alert.pk %}'>Resolve Alert</a></li>
+            <li><a href='{% url alerts.views.resolve_alert alert_type=alert.alerttype.slug alert_id=alert.pk %}'>Resolve Alert</a></li>
         {% endif %}
+        <li><a href='{% url alerts.views.comment_alert alert_type=alert.alerttype.slug alert_id=alert.pk %}'>Comment</a></li>
     </ul>
 </div>
 {% endblock %}

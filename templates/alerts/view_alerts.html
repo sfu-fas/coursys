@@ -26,10 +26,14 @@ $(function() {
 <div id="actions">
     <h2>Actions</h2>
     <ul>
-        {% if resolved %}
+        {% if not unresolved %}
         <li><a href="{% url alerts.views.view_alerts alert_type=alert_type.slug %}">View Unresolved Alerts</a></li>
-        {% else %}
+        {% endif  %}
+        {% if not resolved %}
         <li><a href="{% url alerts.views.view_resolved_alerts alert_type=alert_type.slug %}">View Resolved Alerts</a></li>
+        {% endif %}
+        {% if not all %}
+        <li><a href="{% url alerts.views.view_all_alerts alert_type=alert_type.slug %}">View All Alerts</a></li>
         {% endif %}
         <li><a href="{% url alerts.views.view_automation alert_type=alert_type.slug %}">Automation Settings</a></li>
         
@@ -41,9 +45,14 @@ $(function() {
 
 {% if resolved %}
 <h2> Resolved Alerts </h2>
-{% else %}
+{% endif %}
+{% if all %}
+<h2> All Alerts </h2>
+{% endif %}
+{% if unresolved %}
 <h2> Manual Intervention </h2> 
 {% endif %}
+
 {% if alerts %}
 <table class="display">
     <thead>
@@ -51,9 +60,11 @@ $(function() {
             <th>Student</th>
             <th>Emails</th>
             <th>Comments</th>
-            <!--<th>Created</th>-->
             <th>Last Update</th>
-            <th>Description</th>
+            <!--<th>Description</th>-->
+            {% for key, value in alerts.0.details.items %}
+                <th>{{key|lower|capfirst}}</th>
+            {% endfor %}
         </tr>
     </thead>
     <tbody>
@@ -64,9 +75,11 @@ $(function() {
             </td>
             <td>{{alert.n_emails}}</td>
             <td>{{alert.n_comments}}</td>
-            <!--<td><abbr title="{{ alert.created_at.date }}">{{ alert.created_at|date:"Y/m/d" }}</abbr></td>-->
-            <td><abbr title="{{ alert.last_updated.date }}">{{ alert.last_updated|date:"Y/m/d" }}</abbr></td>
-            <td>{{ alert.description }}</td>
+            <td><a href='{% url alerts.views.view_alert alert_type=alert_type.slug alert_id=alert.id %}' title="{{ alert.last_updated.date }}">{{ alert.last_updated|date:"Y/m/d" }}</abbr></a></td>
+            <!--<td>{{ alert.description }}</td>-->
+            {% for key, value in alert.details.items %}
+                <td>{{value}}</td>
+            {% endfor %}
         </tr>
         {% endfor %}
     </tbody>

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %} {{resolve_reopen_or_comment_on}} Alert {% endblock %}
+{% block h1 %} {{resolve_reopen_or_comment_on}} Alert {% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+//<![CDATA[
+
+$(document).ready(function() {
+  $("#id_resolved_until").datepicker({'dateFormat': 'yy-mm-dd'});
+});
+
+//]]>
+</script>
+{% endblock %}
+
+
+
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url alerts.views.view_alert_types %}">Alerts</a></li>
+<li>&gt; <a href="{% url alerts.views.view_alerts alert_type=alert.alerttype.slug %}">{{alert.alerttype.code}}</a></li>
+<li>&gt; <a href="{% url alerts.views.view_alert alert_type=alert.alerttype.slug alert_id=alert.id %}">{{alert.person}}</a></li>
+<li>&gt; {{resolve_reopen_or_comment_on}} Alert </li>
+{% endblock %}
+
+{% block content %}
+
+<div id="form_container">
+<form action=
+{% if resolve_reopen_or_comment_on == "Resolve" %}
+    "{% url alerts.views.resolve_alert alert_type=alert.alerttype.slug alert_id=alert.id %}"
+{% else %}
+    {% if resolve_reopen_or_comment_on == "Reopen" %}
+        "{% url alerts.views.reopen_alert alert_type=alert.alerttype.slug alert_id=alert.id %}"
+    {% else %}
+        "{% url alerts.views.comment_alert alert_type=alert.alerttype.slug alert_id=alert.id %}"
+    {% endif %}
+{% endif %}
+    enctype="multipart/form-data" method="post">{% csrf_token %}
+<fieldset>
+{{ form|as_dl }}
+<p><input type="submit" class="submit" value="Submit" /></p>
+</fieldset>
+</form>
+</div>
+
+{% endblock %}

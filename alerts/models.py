@@ -8,8 +8,8 @@ import datetime
 
 UPDATE_TYPES = (
     ("OPEN", "Created"),
-    ("UPDT", "Updated"),
-    ("EMAI", "Emailed a Student"),
+    ("UPDT", "Automatically Updated"),
+    ("EMAI", "Emailed Student"),
     ("RESO", "Manually Resolved"),
     ("COMM", "Comment"),
     ("REOP", "Re-opened")
@@ -25,6 +25,7 @@ class AlertType(models.Model):
     description = models.TextField(help_text="Description of the alert.", null=True, blank=True)
     unit = models.ForeignKey(Unit, null=False)
     hidden = models.BooleanField(null=False, default=False)
+    config = JSONField(null=False, blank=False, default={})
 
     def autoslug(self):
         return make_slug( self.code )
@@ -44,6 +45,12 @@ class Alert(models.Model):
     unique_hash = models.CharField(max_length=100, null=False, blank=False)
     resolved = models.BooleanField(null=False, default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        return self.alerttype.code + ": " + str(self.person)
    
     def updates(self):
         return self.alertupdate_set.filter( update_type = 'UPDT' )
@@ -85,7 +92,7 @@ class Alert(models.Model):
 
         Instead, create a new AlertUpdate.  
         """
-        if self.resolved and self.resolved_until() and datetime.datetime.now() > self.resolved_until():
+        if self.resolved and self.resolved_until() and datetime.date.today() > self.resolved_until():
             update_status="REOP"
             update_comments = self.description + """
                 -------
@@ -132,18 +139,16 @@ class AlertUpdate(models.Model):
     hidden = models.BooleanField(default=False) # not used
 
     # Only meaningful if update_type is "RESO"/"Resolved" 
-    resolved_until = models.DateTimeField(null=True)
+    resolved_until = models.DateField(null=True)
     
     def save(self, *args, **kwargs):
         # Update the actual Alert object.
         if self.update_type in ["EMAI", "RESO"]:
             self.alert.resolved = True
-            if self.resolved_until == null:
-                self.resolved_until = datetime.datetime.now() + datetime.timedelta(days=0.5)
+            if not self.resolved_until:
+                self.resolved_until = datetime.date.today()
         if self.update_type == "REOP":
             self.alert.resolved = False
-
-        self.alert.last_updated = datetime.datetime.now()
 
         self.alert.save()
 
@@ -155,8 +160,9 @@ class AlertEmailTemplate(models.Model):
     """
     alerttype = models.ForeignKey(AlertType, null=False)
     threshold = models.IntegerField(default=0, null=False)
-    #subject = models.CharField(max_length=50, null=False) 
+    subject = models.CharField(max_length=50, null=False) 
     content = models.TextField(help_text="I.e. 'This is to confirm {{title}} {{last_name}} ... '")
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.CharField(max_length=32, null=False, help_text='Email template created by.')
     hidden = models.BooleanField(default=False)
+    config = JSONField(null=False, blank=False, default={})

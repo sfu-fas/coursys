@@ -24,10 +24,20 @@
 			{% if form.non_field_errors %}
 			{{ form.non_field_errors }}
 			{% endif %}
+			<div style="float: left; width: 100%;">
+				<dl class="dlform">
+					<dt>
+						Subject:
+					</dt>
+					<dd>
+						{{form.subject}}{{form.subject.errors}}
+					</dd>
+				</dl>
+			</div>
 			<div style="float: left; width: 40%;">
 				<dl class="dlform">
 					<dt>
-						Threshold:
+						First N Emails:
 					</dt>
 					<dd>
 						{{form.threshold}}{{form.threshold.errors}}

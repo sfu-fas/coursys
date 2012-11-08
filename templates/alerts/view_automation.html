@@ -39,15 +39,15 @@ $(function() {
         <h2> {{title}} </h2>
         <p> <a href="{% url alerts.views.delete_automation alert_type=alert_type.slug automation_id=email.id %}">Delete</a> </p> 
         <p>{{email.content|linebreaksbr}}</p>
-        <h3>The following students will receive this e-mail at <a href='#'>8:00 PM</a> </h3>
+        <h3><del>The following students will receive this e-mail at <a href='#'>8:00 PM</a></del></h3>
+        <h3>The system is currently running in 'safe' mode, and no automatic emails will be sent.</h3> 
         <table class="display">
             <thead>
                 <tr>
                     <th>Student</th>
-                    <!--<th>Advising</th>-->
+                    <th>Preview Email</th>
                     <th>Emails</th>
                     <th>Comments</th>
-                    <!--<th>Created</th>-->
                     <th>Last Update</th>
                     <th>Description</th>
                 </tr>
@@ -58,15 +58,10 @@ $(function() {
                     <td>
                         <a href='{% url advisornotes.views.student_notes userid=alert.person.userid %}'>{{alert.person}}</a> 
                     </td>
-                    <!--  
-                    <td>
-                        <a href='{% url alerts.views.view_alert alert_type=alert.alerttype.slug alert_id=alert.id%}'>{{alert.person}}</a> 
-                    </td>
-                    -->
+                    <td><a href='{% url alerts.views.view_email_preview alert_type=alert_type.slug automation_id=email.id alert_id=alert.id %}'>Preview</a></td>
                     <td>{{alert.n_emails}}</td>
                     <td>{{alert.n_comments}}</td>
-                    <!--<td><abbr title="{{ alert.created_at.date }}">{{ alert.created_at|date:"Y/m/d" }}</abbr></td>-->
-                    <td><abbr title="{{ alert.last_updated.date }}">{{ alert.last_updated|date:"Y/m/d" }}</abbr></td>
+                    <td><a href='{% url alerts.views.view_alert alert_type=alert_type.slug alert_id=alert.id %}' title="{{ alert.last_updated.date }}">{{ alert.last_updated|date:"Y/m/d" }}</abbr></a></td>
                     <td>{{ alert.description }}</td>
                 </tr>
             {% endfor %}

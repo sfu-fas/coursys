@@ -1,6 +1,8 @@
 from django.core.exceptions import ValidationError
 from models import Alert, AlertType 
 from coredata.models import Role, Person, Unit
+import coredata.queries
+from coredata.queries import SIMSProblem
 import coredata.validate_rest
 import json
 import datetime
@@ -79,7 +81,12 @@ def _create_alerts(data, person, unit):
             try:
                 student = Person.objects.get(emplid=emplid)
             except Person.DoesNotExist:
-                raise ValidationError("Emplid '%d' doesn't exist" % emplid)
+                try:
+                    p = coredata.queries.add_person( emplid )
+                except SIMSProblem:
+                    raise ValidationError("Person %s could not be found; SIMS not working." % str(emplid) )
+                except IOError:
+                    raise ValidationError("Person %s could not be found; SIMS not working." % str(emplid) )
             
             if not isinstance(code, basestring) or not isinstance(description, basestring):
                 raise ValidationError("Alert code & description must be strings")
@@ -114,6 +121,7 @@ def _create_alerts(data, person, unit):
         except ValidationError as e:
             print e
             errors.append(str(e))
+    return errors
 
 def new_alerts(post_data):
     """
@@ -122,5 +130,6 @@ def new_alerts(post_data):
     data = json.loads(post_data) # throws ValueError on bad JSON, UnicodeDecodeError on bad UTF-8
     
     person, unit, key = coredata.validate_rest.validate_credentials(data)
-    _create_alerts(data, person, unit)
+    errors = _create_alerts(data, person, unit)
+    return errors
     

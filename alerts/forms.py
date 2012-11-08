@@ -15,3 +15,14 @@ class EmailForm(ModelForm):
         except TemplateSyntaxError as e:
             raise forms.ValidationError('Syntax error in template: ' + unicode(e))
         return content
+
+class ResolutionForm(ModelForm):
+    class Meta:
+        model = AlertUpdate 
+        exclude = ('alert', 'update_type', 'created_at', 'hidden')
+
+class AlertUpdateForm(ModelForm):
+    class Meta:
+        model = AlertUpdate
+        exclude = ('alert', 'update_type', 'created_at', 'hidden', 'resolved_until' )
+
