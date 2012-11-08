@@ -26,6 +26,16 @@
     });
 
     });
+
+    $('#id_person').each(function() {
+      $(this).autocomplete({
+        source: '/data/students',
+        minLength: 2,
+        select: function(event, ui){
+          $(this).data("val", ui.item.value);
+        }
+      });
+    }); 
 </script>
 {% endblock %}
 
@@ -43,7 +53,7 @@
 
 
 {% block content %}
-<div id="form-container">
+<div id="form-container" style="clear: left;">
 	<form action="{% url onlineforms.views.manage_group formgroup_slug=group.slug %}" method="POST">
 		{% csrf_token %}
 		 <fieldset>
@@ -87,15 +97,18 @@
             {% endfor %}
         </tbody>
     </table>
-
-            <!-- 
-            <h2 class="heading">Manage Members</h2>
-            {% for g in grouplist %}
-                {% for member in g.members.all %}
-                <br />{{ member.first_name }} {{ member.last_name }}
-                {% endfor %}
-            {% endfor %}
-            -->        
     </div>
+</div>
+
+<div id="form-container">
+    <fieldset>
+        <legend>Add Member</legend>
+        <form action="" method="POST">
+            <ul>
+                {{ search.as_p }}
+                <li><input class="submit" type="submit" value="Add" /></li>
+            </ul>
+        </form>
+    </fieldset>
 </div>
 {% endblock %}

@@ -23,6 +23,13 @@ class EditGroupForm(ModelForm):
         model = FormGroup
         fields = ('name',)
 
+class EmployeeSearchForm(forms.Form):
+    search = PersonField()
+
+    def is_valid(self, *args, **kwargs):
+        PersonField.person_data_prep(self)
+        return super(EmployeeSearchForm, self).is_valid(*args, **kwargs)
+
 # Manage forms
 class FormForm(ModelForm):
     class Meta:

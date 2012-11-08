@@ -18,7 +18,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 # FormGroup management views
 from onlineforms.fieldtypes import *
-from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm
+from onlineforms.forms import FormForm, SheetForm, FieldForm, DynamicForm, GroupForm, EditSheetForm, NonSFUFormFillerForm, AdminAssignForm, EditGroupForm, EmployeeSearchForm
 from onlineforms.fieldtypes.other import FileCustomField
 from onlineforms.models import Form, Sheet, Field, FIELD_TYPE_MODELS, neaten_field_positions, FormGroup, FieldSubmissionFile
 from onlineforms.models import FormSubmission, SheetSubmission, FieldSubmission
@@ -76,8 +76,10 @@ def manage_group(request, formgroup_slug):
         form = EditGroupForm(instance=group)
     #form.fields['unit'].choices = unit_choices
 
+    search_form = EmployeeSearchForm()
+
     grouplist = FormGroup.objects.filter(slug__exact=formgroup_slug)
-    context = {'form': form, 'group': group, 'grouplist': grouplist}
+    context = {'form': form, 'group': group, 'grouplist': grouplist, 'search': search_form }
     return render(request, 'onlineforms/manage_group.html', context)
 
 
@@ -87,13 +89,15 @@ def add_group_member(request, formgroup_slug):
     if group.unit not in request.units:
         return ForbiddenResponse(request)
 
+    form = EmployeeSearchForm()
     pass
+
 
 @requires_role('ADMN')
 def remove_group_member(request, formgroup_slug, userid):
     group = FormGroup.objects.get(slug=formgroup_slug)
     member = Person.objects.get(emplid=userid)
-    slug = formgroup_slug
+    formgroup_slug
 
     if group.unit not in request.units:
         return ForbiddenResponse(request)
@@ -105,7 +109,7 @@ def remove_group_member(request, formgroup_slug, userid):
                 print "in request.post action == remove"
                 group.members.remove(member)
                 print "member is removed"
-                return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': slug}))
+                return HttpResponseRedirect(reverse('onlineforms.views.manage_group', kwargs={'formgroup_slug': formgroup_slug}))
 
 
 
