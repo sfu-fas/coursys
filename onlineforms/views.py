@@ -109,7 +109,6 @@ def admin_list_all(request):
         for wait_sub in wait_submissions:
             last_sheet_assigned = SheetSubmission.objects.filter(form_submission=wait_sub).latest('given_at')
             wait_sub.assigned_to = last_sheet_assigned
-            wait_sub.duration = datetime.now() - last_sheet_assigned.given_at
 
     context = {'pend_submissions': pend_submissions, 'wait_submissions': wait_submissions}
     return render(request, "onlineforms/admin/admin_forms.html", context)
@@ -604,10 +603,10 @@ def form_initial_submission(request, form_slug):
     context = {'owner_form': owner_form, 'sheet': sheet, 'form': form, 'nonSFUFormFillerForm': nonSFUFormFillerForm}
     return render(request, 'onlineforms/submissions/initial_sheet.html', context)
 
-
-def view_submission(request, form_slug, formsubmit_slug):
+@requires_formgroup()
+def view_submission(request, formsubmit_slug):
+    print formsubmit_slug
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
-    form = get_object_or_404(Form, slug=form_slug)
 
     sheet_submissions = SheetSubmission.objects.filter(form_submission=form_submission)
     sheet_sub_html = {}
