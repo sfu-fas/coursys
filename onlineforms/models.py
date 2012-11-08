@@ -236,7 +236,7 @@ class Form(models.Model, _FormCoherenceMixin):
     
     @property
     def initial_sheet(self):
-        sheets = Sheet.objects.filter(form=self, active=True)
+        sheets = Sheet.objects.filter(form=self, active=True, is_initial=True)
         if len(sheets) > 0:
             return sheets[0]
         else:

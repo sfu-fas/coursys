@@ -8,9 +8,8 @@ from onlineforms.fieldtypes.widgets import CustomMultipleInputWidget
 class CustomMultipleInputField(fields.MultiValueField):
 
     def __init__(self, max=5, *args, **kwargs):
-        self.widget = CustomMultipleInputWidget( max=max)
-        field_set = []
-        [field_set.append(fields.CharField()) for _ in xrange(int(max))]
+        kwargs['widget'] = CustomMultipleInputWidget( max=max)
+        field_set = [fields.CharField() for _ in xrange(int(max))]
 
         super(CustomMultipleInputField, self).__init__(fields=field_set, *args, **kwargs)
 
