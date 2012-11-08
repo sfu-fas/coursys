@@ -73,7 +73,7 @@
                     <th scope="col">Initiator</th>
                     <th scope="col">Status</th>
                     <th scope="col">Assigned to</th>
-                    <th scope="col">Duration</th>
+                    <th scope="col">Elasped Time</th>
                 </tr>
             </thead>
             {% for form_sub in wait_submissions %}
@@ -82,7 +82,7 @@
                     <td>{{ form_sub.initiator }}</td>
                     <td>{{ form_sub.status }}</td>
                     <td>{{ form_sub.assigned_to.filler }}</td>
-                    <td>{{ form_sub.duration }}</td>
+                    <td>{{ form_sub.assigned_to.given_at|timesince }}</td>
                 </tr>
               {% endfor %}
         </table>
