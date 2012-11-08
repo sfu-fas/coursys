@@ -117,10 +117,10 @@ def remove_group_member(request, formgroup_slug, userid):
 @requires_formgroup()
 def admin_list_all(request):
     admin = get_object_or_404(Person, userid=request.user.username)
-    form_group = FormGroup.objects.get(members=admin)
-    if form_group:
-        pend_submissions = FormSubmission.objects.filter(owner=form_group, status='PEND')
-        wait_submissions = FormSubmission.objects.filter(owner=form_group, status='WAIT')
+    form_groups = FormGroup.objects.filter(members=admin)
+    if form_groups:
+        pend_submissions = FormSubmission.objects.filter(owner__in=form_groups, status='PEND')
+        wait_submissions = FormSubmission.objects.filter(owner__in=form_groups, status='WAIT')
         for wait_sub in wait_submissions:
             last_sheet_assigned = SheetSubmission.objects.filter(form_submission=wait_sub).latest('given_at')
             wait_sub.assigned_to = last_sheet_assigned
@@ -362,9 +362,9 @@ def edit_sheet_info(request, form_slug, sheet_slug):
     if request.method == 'POST' and 'action' in request.POST and request.POST['action'] == 'edit':
         form = EditSheetForm(request.POST, instance=owner_sheet)
         if form.is_valid():
-            owner_sheet.safe_save()
+            new_sheet = owner_sheet.safe_save()
             return HttpResponseRedirect(reverse('onlineforms.views.edit_sheet',
-                kwargs={'form_slug': owner_form.slug, 'sheet_slug': owner_sheet.slug}))
+                kwargs={'form_slug': owner_form.slug, 'sheet_slug': new_sheet.slug}))
     else:
         form = EditSheetForm(instance=owner_sheet)
 
