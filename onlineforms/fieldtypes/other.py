@@ -6,11 +6,9 @@ from onlineforms.fieldtypes.widgets import CustomMultipleInputWidget
 
 
 class CustomMultipleInputField(fields.MultiValueField):
-    #widget = CustomMultipleInputWidget
 
     def __init__(self, max=5, *args, **kwargs):
         self.widget = CustomMultipleInputWidget( max=max)
-
         field_set = []
         [field_set.append(fields.CharField()) for _ in xrange(int(max))]
 
@@ -33,13 +31,11 @@ class ListField(FieldBase):
         return self.ListConfigForm(self.config)
 
     def make_entry_field(self, fieldsubmission=None):
-        #return CustomMultipleInputField(self.config)
 
         return CustomMultipleInputField(required=self.config['required'],
             label=self.config['label'],
             help_text=self.config['help_text'],
             max=self.config['max_responses'])
-        #widget=CustomMultipleInputWidget(attrs=self.config))
 
     def serialize_field(self, cleaned_data):
         return{'info': cleaned_data}
