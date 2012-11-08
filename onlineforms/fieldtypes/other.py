@@ -5,29 +5,23 @@ from django.forms import fields
 from onlineforms.fieldtypes.widgets import CustomMultipleInputWidget
 
 
-"""class CustomMultipleInputField(forms.MultiValueField):
-    widget = CustomMultipleInputWidget()
-    default_config = {'required': False, 'label': '', 'help_text': '', 'max_responses': 3}
+class CustomMultipleInputField(forms.MultiValueField):
 
-    def __init__(self, attrs=None, *args, **kwargs):
-        if not attrs:
-            self.attrs = self.default_config
-        else:
-            self.attrs = attrs
 
-        self.num_inputs = self.attrs['max_responses']
-        field_set = [fields.CharField()] * int(self.num_inputs)
-        self.widget=CustomMultipleInputWidget(attrs=self.attrs)
+    def __init__(self, max=5, *args, **kwargs):
+        self.widget = CustomMultipleInputWidget( max=max)
+        field_set = [fields.CharField()] * int(max)
+        field_set = tuple(field_set)
         super(CustomMultipleInputField, self).__init__(field_set, *args, **kwargs)
 
     def compress(self, value_list):
-        print "compress still not called"
+        print "COMPRESS"
         if value_list:
             return "|".join(value_list)
         return None
-"""
 
-class ListField(FieldBase, forms.MultiValueField):
+
+class ListField(FieldBase):
     class ListConfigForm(FieldConfigForm):
         field_length = forms.IntegerField(min_value=1, max_value=500)
         max_responses = forms.IntegerField(min_value=1, max_value=20)
@@ -38,23 +32,17 @@ class ListField(FieldBase, forms.MultiValueField):
     def make_entry_field(self, fieldsubmission=None):
         #return CustomMultipleInputField(self.config)
 
-        return forms.MultiValueField(required=self.config['required'],
+        return CustomMultipleInputField(required=self.config['required'],
             label=self.config['label'],
             help_text=self.config['help_text'],
-            widget=CustomMultipleInputWidget(attrs=self.config))
+            max=self.config['max_responses'])
+        #widget=CustomMultipleInputWidget(attrs=self.config))
 
     def serialize_field(self, cleaned_data):
         return{'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
         raise NotImplementedError
-
-    def compress(self, value):
-        "Compress each field into a single string"
-        print "Compress, never gets called"
-        if value:
-            return "|".join(value)
-        return None
 
 
 class FileCustomField(FieldBase):
