@@ -51,9 +51,9 @@ class SheetModelChoiceField(forms.ModelChoiceField):
     
 class AdminAssignForm(forms.Form):
     assignee = PersonField(label='Assign to', required=False)
-    email = forms.EmailField(required=False,
+    """email = forms.EmailField(required=False,
                 label='Assign to e-mail',
-                help_text='Assign this form to an external email address.')
+                help_text='Assign this form to an external email address.')"""
     
     def __init__(self, form, *args, **kwargs):
         super(AdminAssignForm, self).__init__(*args, **kwargs)

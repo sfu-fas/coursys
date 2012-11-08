@@ -3,7 +3,8 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from coredata.forms import RoleForm, UnitRoleForm, InstrRoleFormSet, MemberForm, PersonForm, TAForm, \
         UnitAddressForm, UnitForm, SemesterForm, SemesterWeekFormset, HolidayFormset
-from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse
+from courselib.auth import requires_global_role, requires_role, requires_course_staff_by_slug, ForbiddenResponse, \
+        has_formgroup
 from courselib.search import get_query
 from coredata.models import Person, Semester, CourseOffering, Course, Member, Role, Unit, SemesterWeek, Holiday, \
         UNIT_ROLES, ROLES, ROLE_DESCR
@@ -439,9 +440,12 @@ def student_search(request):
     # check permissions
     roles = Role.all_roles(request.user.username)
     allowed = set(['ADVS', 'ADMN', 'GRAD', 'FUND'])
+    print has_formgroup(request)
+    print not(roles & allowed)
     if not(roles & allowed):
         # doesn't have any allowed roles
-        return ForbiddenResponse(request, "Not permitted to do student search.")
+        if not has_formgroup(request):
+            return ForbiddenResponse(request, "Not permitted to do student search.")
     
     if 'term' not in request.GET:
         return ForbiddenResponse(request, "Must provide 'term' query.")
