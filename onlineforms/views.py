@@ -208,10 +208,7 @@ def view_form(request, form_slug):
         # TODO handle the condition where we cant find the field
         if sheets :       
                 sheet = sheets[0]
-                if sheet.is_initial == True:
-                    raise NotImplementedError('Cannot delete '); 
-                sheet.active = False
-                sheet.save()
+                sheet.delete()
                 messages.success(request, 'Removed the sheet %s.' % (sheet.title))
            
         return HttpResponseRedirect(
