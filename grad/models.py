@@ -164,10 +164,12 @@ class GradStudent(models.Model):
         active = 0
         total = 0
         while sem.name < end.name:
-            this_status = [st for st in statuses if st.start.name <= sem.name][-1]
+            prev_statuses = [st for st in statuses if st.start.name <= sem.name]
+            if prev_statuses:
+                this_status = prev_statuses[-1]
+                if this_status.status in STATUS_ACTIVE:
+                    active += 1
             total += 1
-            if this_status.status in STATUS_ACTIVE:
-                active += 1
             sem = sem.next_semester()
         
         return active, total

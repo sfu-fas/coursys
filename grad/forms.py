@@ -472,6 +472,8 @@ class SearchForm(forms.Form):
             )
     
     program = forms.ModelMultipleChoiceField(GradProgram.objects.all(), required=False)
+    campus = forms.MultipleChoiceField(CAMPUS_CHOICES, required=False)
+    supervisor = forms.MultipleChoiceField([], required=False, label='Senior Supervisor')
     
     requirements = forms.MultipleChoiceField(choices=[],
             label='Completed requirements', required=False)
@@ -492,7 +494,6 @@ class SearchForm(forms.Form):
             ('P','Promise')
             ),required=False)
     
-    campus = forms.MultipleChoiceField(CAMPUS_CHOICES, required=False)
     gpa_min = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False)
     gpa_max = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False)
     gender = forms.ChoiceField((('','---------'), ('M','Male'), ('F','Female'), ('U','Unknown')),
@@ -526,6 +527,7 @@ class SearchForm(forms.Form):
     program_fields = [
             'program',
             'campus',
+            'supervisor',
             ]
     requirement_fields = [
             'requirements',
@@ -597,6 +599,12 @@ class SearchForm(forms.Form):
             manual_queries.append( Q(end_semester__name__gte=self.cleaned_data['end_semester_start'].name) )
         if self.cleaned_data.get('end_semester_end', None) is not None:
             manual_queries.append( Q(end_semester__name__lte=self.cleaned_data['end_semester_end'].name) )
+
+        if self.cleaned_data.get('supervisor', None) is not None:
+            person_ids = self.cleaned_data['supervisor']
+            supervisors = Supervisor.objects.filter(supervisor__in=person_ids, supervisor_type='SEN', removed=False)
+            student_ids = [s.student_id for s in supervisors]
+            manual_queries.append( Q(id__in=student_ids) )
         
         if self.cleaned_data.get('financial_support', None) is not None:
             if 'S' in self.cleaned_data['financial_support']:
