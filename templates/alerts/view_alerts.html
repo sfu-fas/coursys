@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %}Alerts: {{alert_type.code}} {% endblock %}
+{% block h1 %}Alerts: {{alert_type.code}}{% endblock %}
+
+{% block headextra %}
+<script type="text/javascript">
+$(function() {
+  $('.display').dataTable( {
+    'bPaginate': false,
+    'bInfo': false,
+    'bLengthChange': true,
+    "bJQueryUI": true,
+    "aaSorting": [[ 3, "desc" ]]
+  } );
+} );
+</script>
+{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url alerts.views.view_alert_types %}">Alerts</a></li>
+<li>&gt; {{alert_type.code}}</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        {% if not unresolved %}
+        <li><a href="{% url alerts.views.view_alerts alert_type=alert_type.slug %}">View Unresolved Alerts</a></li>
+        {% endif  %}
+        {% if not resolved %}
+        <li><a href="{% url alerts.views.view_resolved_alerts alert_type=alert_type.slug %}">View Resolved Alerts</a></li>
+        {% endif %}
+        {% if not all %}
+        <li><a href="{% url alerts.views.view_all_alerts alert_type=alert_type.slug %}">View All Alerts</a></li>
+        {% endif %}
+        <li><a href="{% url alerts.views.view_automation alert_type=alert_type.slug %}">Automation Settings</a></li>
+        
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+{% if resolved %}
+<h2> Resolved Alerts </h2>
+{% endif %}
+{% if all %}
+<h2> All Alerts </h2>
+{% endif %}
+{% if unresolved %}
+<h2> Manual Intervention </h2> 
+{% endif %}
+
+{% if alerts %}
+<table class="display">
+    <thead>
+        <tr>
+            <th>Student</th>
+            <th>Emails</th>
+            <th>Comments</th>
+            <th>Last Update</th>
+            <!--<th>Description</th>-->
+            {% for key, value in alerts.0.details.items %}
+                <th>{{key|lower|capfirst}}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for alert in alerts %}
+        <tr>
+            <td>
+                <a href='{% url advisornotes.views.student_notes userid=alert.person.userid %}'>{{alert.person}}</a> 
+            </td>
+            <td>{{alert.n_emails}}</td>
+            <td>{{alert.n_comments}}</td>
+            <td><a href='{% url alerts.views.view_alert alert_type=alert_type.slug alert_id=alert.id %}' title="{{ alert.last_updated.date }}">{{ alert.last_updated|date:"Y/m/d" }}</abbr></a></td>
+            <!--<td>{{ alert.description }}</td>-->
+            {% for key, value in alert.details.items %}
+                <td>{{value}}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+{% if resolved %}
+<p>There are currently no Alerts that have been resolved.</p>
+{% else %}
+<p>There are currently no Alerts that require manual intervention.</p>
+{% endif %}
+{% endif %}
+
+
+{% endblock %}

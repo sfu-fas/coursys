@@ -1,8 +1,8 @@
 from advisornotes.forms import StudentSearchForm, NoteSearchForm, NonStudentForm, \
     MergeStudentForm, ArtifactNoteForm, ArtifactForm, advisor_note_factory,\
-    ProblemStatusForm, EditArtifactNoteForm
-from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote,\
-    Problem, OPEN_STATUSES, CLOSED_STATUSES
+    EditArtifactNoteForm
+from advisornotes.models import AdvisorNote, NonStudent, Artifact, ArtifactNote
+from alerts.models import Alert
 from coredata.models import Person, Course, CourseOffering, Semester, Unit, Member
 from coredata.queries import find_person, add_person, more_personal_info, more_course_info, course_data, \
     SIMSProblem
@@ -284,8 +284,9 @@ def student_notes(request, userid):
 
     if isinstance(student, Person):
         notes = AdvisorNote.objects.filter(student=student, unit__in=request.units).order_by("-created_at")
-        problems = Problem.objects.filter(person=student, unit__in=request.units).order_by("-created_at")
-        models = list(itertools.chain(notes, problems))
+        alerts = Alert.objects.filter(person=student, alerttype__unit__in=request.units, hidden=False).order_by("-created_at")
+        models = list(itertools.chain(notes, alerts))
+        #models = list(itertools.chain(notes))
         models.sort(key=lambda x: x.created_at, reverse=True)
         items = []
         for model in models:
@@ -662,51 +663,3 @@ def rest_notes(request):
     return HttpResponse(status=200)
 
 
-@requires_role('ADVS')
-def view_problems(request):
-    """
-    View reported problems created via the API
-    """
-    problems = Problem.objects.filter(unit__in=request.units, status__in=OPEN_STATUSES)
-    return render(request, 'advisornotes/view_problems.html', {'problems': problems})
-
-
-@requires_role('ADVS')
-def view_resolved_problems(request):
-    """
-    View reported problems that have been resolved
-    """
-    problems = Problem.objects.filter(unit__in=request.units, status__in=CLOSED_STATUSES)
-    return render(request, 'advisornotes/view_resolved_problems.html', {'problems': problems})
-
-
-@requires_role('ADVS')
-def edit_problem(request, prob_id):
-    """
-    View to view and edit a problem's status
-    """
-    problem = get_object_or_404(Problem, pk=prob_id, unit__in=request.units)
-    from_page = request.GET.get('from', '')
-    if not from_page in ('resolved', ''):
-        userid = from_page
-        try:
-            from_page = Person.objects.get(userid=userid)
-        except Person.DoesNotExist:
-            from_page = ''
-    if request.method == 'POST':
-        form = ProblemStatusForm(request.POST, instance=problem)
-        if form.is_valid():
-            problem = form.save(commit=False)
-            if problem.is_closed():
-                problem.resolved_at = datetime.datetime.now()
-            else:
-                problem.resolved_at = None
-            problem.save()
-            messages.add_message(request, messages.SUCCESS, "Problem status successfully changed.")
-            return HttpResponseRedirect(reverse('advisornotes.views.view_problems'))
-    else:
-        if problem.is_closed():
-            form = ProblemStatusForm(instance=problem)
-        else:
-            form = ProblemStatusForm(instance=problem, initial={'resolved_until': problem.default_resolved_until()})
-    return render(request, 'advisornotes/edit_problem.html', {'problem': problem, 'from_page': from_page, 'form': form})
