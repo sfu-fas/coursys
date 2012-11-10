@@ -282,7 +282,7 @@ def edit_sheet(request, form_slug, sheet_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
     owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
     fields = Field.objects.filter(sheet=owner_sheet, active=True).order_by('order')
-
+    nonactive_fields = Field.objects.filter(sheet=owner_sheet, active=False).order_by('order')
     # Non Ajax way to reorder activity, please also see reorder_activity view function for ajax way to reorder
     order = None
     field_slug = None
@@ -317,7 +317,15 @@ def edit_sheet(request, form_slug, sheet_slug):
     for (counter, field) in enumerate(form):
         modelFormFields.append({'modelField': fields[counter], 'formField': field})
 
-    context = {'owner_form': owner_form, 'owner_sheet': owner_sheet, 'form': form, 'fields': modelFormFields}
+    #test for nonactive fields
+    nonactive_form = DynamicForm(owner_sheet.title)
+    form.fromFields(nonactive_fields)
+    
+    modelNonFormFields = []
+    for (counter, field) in enumerate(form):
+        modelNonFormFields.append({'modelField': nonactive_fields[counter], 'formField': field})
+
+    context = {'owner_form': owner_form, 'owner_sheet': owner_sheet, 'form': form, 'fields': modelFormFields, 'nonactive_fields': modelNonFormFields }
     return render(request, "onlineforms/edit_sheet.html", context)
 
 
