@@ -6,7 +6,7 @@ from courselib.auth import requires_role
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 
-@requires_role("GRAD")
+@requires_role("GRAD", get_only=["GRPD"])
 def remove_completedrequirement(request, grad_slug, cr_id):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     cr = get_object_or_404(CompletedRequirement, student=grad, id=cr_id)

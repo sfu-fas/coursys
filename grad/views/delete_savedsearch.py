@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 
-@requires_role("GRAD")
+@requires_role("GRAD", get_only=["GRPD"])
 def delete_savedsearch(request):
     current_user = Person.objects.get(userid=request.user.username)
     if request.method != 'POST':

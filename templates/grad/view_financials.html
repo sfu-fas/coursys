@@ -126,7 +126,7 @@ table#financial td.programchange {
   <span class="label">Financial Comments:</span>
   <ul>
     {% for c in semester.comments %}
-     {{ c.comment|linebreaksbr }} [{{ c.created_by}}, {{ c.created_at|date:GRAD_DATE_FORMAT }}] <br/>
+     <li>{{ c.comment|linebreaksbr }} [{{ c.created_by}}, {{ c.created_at|date:GRAD_DATE_FORMAT }}] </li>
     {% endfor %}
   </ul>
   {% endif %}

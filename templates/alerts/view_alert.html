@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Alert {{alert.alerttype.code}} for {{ alert.person }}{% endblock %}
+{% block h1 %}Alert {{alert.alerttype.code}} for {{ alert.person }}{% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url alerts.views.view_alert_types %}">Alerts</a></li>
+<li>&gt; <a href="{% url alerts.views.view_alerts alert_type=alert.alerttype.slug %}">{{alert.alerttype.code}}</a></li>
+<li>&gt; {{alert.person}} </li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2>Actions</h2>
+    <ul>
+        {% if alert.resolved %}
+            <li><a href='{% url alerts.views.reopen_alert alert_type=alert.alerttype.slug alert_id=alert.pk %}'>Reopen Alert</a></li>
+        {% else %}
+            <li><a href='{% url alerts.views.resolve_alert alert_type=alert.alerttype.slug alert_id=alert.pk %}'>Resolve Alert</a></li>
+        {% endif %}
+        <li><a href='{% url alerts.views.comment_alert alert_type=alert.alerttype.slug alert_id=alert.pk %}'>Comment</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{%block content%}
+<div class="table_container">
+    <table class="info">
+        <tbody>
+            <tr>
+                <th class="ui-state-default">Last Name</th>
+                <td>{{ alert.person.last_name }}</td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">First Name</th>
+                <td>{{ alert.person.first_name }}</td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Middle Name</th>
+                <td>{{ alert.person.middle_name|default:"—" }} </td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Student Number</th>
+                <td>
+                    {{ alert.person.emplid }}
+                    [<a href='{% url advisornotes.views.student_notes userid=alert.person.userid %}'>Advising Record</a>]
+                </td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Email Address</th>
+                <td>{{ alert.person.email_mailto }}</td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Updates</th>
+                <td>{{alert.n_updates}}</td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Actions</th>
+                <td>{{alert.n_emails}}</td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Comments</th>
+                <td>{{alert.n_comments}}</td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Last Updated</th>
+                <td><abbr title="{{ alert.last_updated.date }}">{{ alert.last_updated|date:"Y/m/d" }}</abbr></td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Created</th>
+                <td><abbr title="{{ alert.created_at.date }}">{{ alert.created_at|date:"Y/m/d" }}</abbr></td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Description</th>
+                <td>{{ alert.description }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+{%if alert_updates %}
+    {% for update in alert_updates %}
+
+    <h2>{{update.get_update_type_display}} - {{update.created_at|date:"Y/m/d"}}</h2>
+    <div class="note-box" id="alert-box-{{update.id}}">
+        <div class="note-content">
+            {{update.comments}}
+        </div>
+    </div>
+
+    {% endfor %}
+{%else%}
+<p>
+    No problem updates. 
+</p>
+{%endif%}
+
+
+{%endblock content%}

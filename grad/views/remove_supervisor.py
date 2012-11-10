@@ -7,7 +7,7 @@ from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from manage_supervisors import manage_supervisors
 
-@requires_role("GRAD")
+@requires_role("GRAD", get_only=["GRPD"])
 def remove_supervisor(request, grad_slug, sup_id):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     supervisor = get_object_or_404(Supervisor, student=grad, id=sup_id)

@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, render
 from grad.models import GradStudent
 from grad.models import Letter
 
-@requires_role("GRAD")
+@requires_role("GRAD", get_only=["GRPD"])
 def manage_letters(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug)
     letters = Letter.objects.filter(student=grad)

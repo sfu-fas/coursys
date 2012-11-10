@@ -6,7 +6,7 @@ from django.contrib import messages
 from coredata.models import Person
 from django.core.urlresolvers import reverse
 
-@requires_role("GRAD")
+@requires_role("GRAD", get_only=["GRPD"])
 def save_search(request):
     current_user = Person.objects.get(userid=request.user.username)
     saveform = SaveSearchForm(request.POST)

@@ -2,7 +2,7 @@ from courselib.auth import requires_role
 from django.shortcuts import render
 from grad.models import GradRequirement
 
-@requires_role("GRAD")
+@requires_role("GRAD", get_only=["GRPD"])
 def requirements(request):
     requirements = GradRequirement.objects.filter(program__unit__in=request.units)
 

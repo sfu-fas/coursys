@@ -1,6 +1,7 @@
 import os
 from lxml import etree
 import urllib
+from django.core.urlresolvers import reverse
 
 # course with the test data
 TEST_COURSE_SLUG = '2012fa-cmpt-165-c1'
@@ -41,3 +42,11 @@ def basic_page_tests(testcase, client, url):
     testcase.assertEquals(response.status_code, 200)
     validate_content(testcase, response.content, url)
     return response
+
+def test_auth(client, userid):
+    """
+    Login as this user for testing
+    """
+    client.get(reverse('dashboard.views.fake_login') + '?userid=' + 'ggbaker')
+
+

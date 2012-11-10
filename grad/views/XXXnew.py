@@ -9,7 +9,7 @@ import datetime
 from django.core.urlresolvers import reverse
 from view_all import view_all
 
-@requires_role("GRAD")
+@requires_role("GRAD", get_only=["GRPD"])
 def new(request):
     if request.method == 'POST':
         grad_form = GradStudentForm(request.POST, prefix="grad")

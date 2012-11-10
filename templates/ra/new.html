@@ -3,8 +3,27 @@
 
 {% block headextra %}
 <script type="text/javascript">
-var payperiods_url = "{% url ra.views.pay_periods %}"; 
-</script>
+//<![CDATA[
+// Disable "Enter" key while filling out this form. 
+
+$(document).ready(function() {
+  $(window).keydown(function(event){
+    if(event.keyCode == 13) {
+      event.preventDefault();
+      return false;
+    }
+  });
+});
+
+
+var personinfo_url = "{% url ra.views.person_info %}";
+var payperiods_url = "{% url ra.views.pay_periods %}";
+{% if person %}
+var emplid = '{{ person.emplid }}';
+{% else %}
+var emplid = null;
+{% endif %}
+//]]</script>
 <script type="text/javascript" src="/media/js/ra.js"></script>
 <link rel="stylesheet" type="text/css" href="/media/ra/ra.css" />
 {% endblock %}

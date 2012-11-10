@@ -42,17 +42,36 @@
 </p>
 
 <form action="{% url grad.views.quick_search %}" method="get">
-{{form.as_p}}
+<p>{{form.search.label}}: {{form.search}} <span class="helptext">{{form.search.help_text}}</span></p>
+{% comment %}
+<p>Include who?
+{{form.incl_active}} Active
+{{form.incl_appl}} Applicants
+{{form.incl_grad}} Graduated
+{{form.incl_oldappl}} Old Applicants
+</p>
+{% endcomment %}
 <p><input class="submit" type="submit" value="Go" /></p>
 </form>
 
 {% if savedsearches %}
-<h2 id="saved" style="clear: right;">Saved Searches</h2>
+<h2 id="saved" style="clear: right;">My Saved Searches</h2>
 <ul>
 {% for s in savedsearches %}
 <li><a href="{% url grad.views.search %}?{{ s.query }}">{{s.name}}</a></li>
 {% endfor %}
 </ul>
 {% endif %}
+
+{% if other_savedsearches %}
+<h2 id="saved" style="clear: right;">All Saved Searches</h2>
+<ul>
+{% for s in other_savedsearches %}
+<li><a href="{% url grad.views.search %}?{{ s.query }}">{{s.name}}</a></li>
+{% endfor %}
+</ul>
+{% endif %}
+
+
 
 {% endblock %} 

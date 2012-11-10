@@ -9,7 +9,7 @@ from django.forms.util import ErrorList
 from coredata.models import Semester
 from log.models import LogEntry
 
-@requires_role("GRAD")
+@requires_role("GRAD", get_only=["GRPD"])
 def manage_promises(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug = grad_slug)
     promises = Promise.objects.filter(student=grad).order_by('start_semester__name')

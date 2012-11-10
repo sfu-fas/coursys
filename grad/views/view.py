@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render
 from django.utils.safestring import mark_safe
 from grad.models import GradStudent, Supervisor, GradStatus, CompletedRequirement, GradRequirement, \
-        Scholarship, OtherFunding, Promise, Letter, GradProgramHistory
+        Scholarship, OtherFunding, Promise, Letter, GradProgramHistory, FinancialComment
 
 def _can_view_student(request, grad_slug, funding=False):
     """
@@ -19,6 +19,11 @@ def _can_view_student(request, grad_slug, funding=False):
         grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
         return grad, 'admin'
 
+    # grad directors can ONLY view within their unit
+    if request.method=='GET' and has_role('GRPD', request):
+        grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
+        return grad, 'admin'
+
     # funding admins can view some pages within their unit
     if funding and has_role('FUND', request):
         grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
@@ -26,19 +31,19 @@ def _can_view_student(request, grad_slug, funding=False):
 
     # students can see their own page
     students = GradStudent.objects.filter(slug=grad_slug, person__userid=request.user.username)
-    if students:
+    if request.method=='GET' and students:
         return students[0], 'student'
         
     # senior supervisors can see their students
     supervisors = Supervisor.objects.filter(supervisor__userid=request.user.username, student__slug=grad_slug, supervisor_type='SEN', removed=False).select_related('student')
-    if supervisors:
+    if request.method=='GET' and supervisors:
         grad = supervisors[0].student
         return grad, 'supervisor'
 
     return None, None
 
-
-all_sections = ['general', 'supervisors', 'status', 'requirements', 'scholarships', 'otherfunding', 'promises', 'letters']
+all_sections = ['general', 'supervisors', 'status', 'requirements', 
+                'scholarships', 'otherfunding', 'promises', 'financialcomments', 'letters']
 
 @login_required
 def view(request, grad_slug, section=None):
@@ -46,8 +51,8 @@ def view(request, grad_slug, section=None):
     if grad is None or authtype == 'student':
         return ForbiddenResponse(request)
     
-    context = {'grad': grad, 'index': True, 'can_edit': True}
-    if authtype == 'supervisor':
+    context = {'grad': grad, 'index': True, 'can_edit': True, 'authtype': authtype}
+    if authtype in ['supervisor', 'graddir']:
         context['can_edit'] = False
     
     for s in all_sections:
@@ -89,7 +94,9 @@ def view(request, grad_slug, section=None):
 
         elif section == 'scholarships':
             scholarships = Scholarship.objects.filter(student=grad, removed=False).select_related('scholarship_type').order_by('start_semester__name')
+            comments = FinancialComment.objects.filter(student=grad, comment_type='SCO', removed=False).order_by('created_at')
             context['scholarships'] = scholarships
+            context['scholarship_comments'] = comments
             return render(request, 'grad/view__scholarships.html', context)
 
         elif section == 'otherfunding':
@@ -101,7 +108,12 @@ def view(request, grad_slug, section=None):
             promises = Promise.objects.filter(student=grad, removed=False).order_by('start_semester__name')
             context['promises'] = promises
             return render(request, 'grad/view__promises.html', context)
-
+        
+        elif section == 'financialcomments':
+            comments = FinancialComment.objects.filter(student=grad, removed=False).order_by('created_at')
+            context['financial_comments'] = comments
+            return render(request, 'grad/view__financialcomments.html', context)
+        
         elif section == 'letters':
             letters = Letter.objects.filter(student=grad).select_related('template').order_by('date')
             context['letters'] = letters

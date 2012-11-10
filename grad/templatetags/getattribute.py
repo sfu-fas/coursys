@@ -8,7 +8,7 @@ register = template.Library()
 
 # getattribute from http://snipt.net/Fotinakis/django-template-tag-for-dynamic-attribute-lookups/
 # recursive idea from http://mousebender.wordpress.com/2006/11/10/recursive-getattrsetattr/
-def getattribute(value, arg):
+def getattribute(value, arg, html=True):
     """Gets an attribute of an object dynamically from a string name"""
     # special cases
     if arg == 'application_status':
@@ -20,22 +20,34 @@ def getattribute(value, arg):
             pot_sups = value.supervisor_set.filter(supervisor_type='POT', removed=False)
             names = [s.sortname()+"*" for s in pot_sups]
         return '; '.join(names)
+    elif arg == 'supervisors':
+        sups = value.supervisor_set.filter(supervisor_type__in=['SEN','COM'], removed=False)
+        names = [s.sortname() for s in sups]
+        return '; '.join(names)
     elif arg == 'completed_req':
         reqs = value.completedrequirement_set.all().select_related('requirement')
         return ', '.join(r.requirement.description for r in reqs)
     elif arg == 'current_status':
         return value.get_current_status_display()
+    elif arg == 'active_semesters':
+        return value.active_semesters_display()
     elif arg == 'gpa':
         res = value.person.gpa()
         if res:
             return res
         else:
             return ''
+    elif arg == 'gender':
+        return value.person.gender()
     elif arg == 'visa':
         return value.person.visa()
     elif arg == 'person.emplid':
         return unicode(value.person.emplid)
-
+    elif arg == 'email':
+        if html:
+            return value.person.email_mailto()
+        else:
+            return value.person.email()
     elif '.' not in arg:
         if hasattr(value, str(arg)):
             res = getattr(value, arg)

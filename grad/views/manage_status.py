@@ -9,7 +9,7 @@ import datetime
 from coredata.models import Semester
 from django.core.urlresolvers import reverse
 
-@requires_role("GRAD")
+@requires_role("GRAD", get_only=["GRPD"])
 def manage_status(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     statuses = GradStatus.objects.filter(student=grad)

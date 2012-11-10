@@ -1,13 +1,12 @@
 from django.test import TestCase
 from django.test.client import Client
-from settings import CAS_SERVER_URL
 from django.core.urlresolvers import reverse
 import json, datetime
 from coredata.models import Person, Semester
 from grad.models import GradStudent, GradRequirement, GradProgram, Letter, LetterTemplate, \
         Supervisor, GradStatus, CompletedRequirement, ScholarshipType, Scholarship, OtherFunding, \
-        Promise, GradProgramHistory
-from courselib.testing import basic_page_tests
+        Promise, GradProgramHistory, FinancialComment
+from courselib.testing import basic_page_tests, test_auth
 from grad.views.view import all_sections
 
 
@@ -19,7 +18,7 @@ class GradTest(TestCase):
         Tests grad quicksearch (index page) functionality
         """
         client = Client()
-        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        test_auth(client, 'ggbaker')
         response = client.get(reverse('grad.views.index'))
         self.assertEqual(response.status_code, 200)
         
@@ -51,13 +50,13 @@ class GradTest(TestCase):
         Tests that /grad/search is available.
         """
         client = Client()
-        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        test_auth(client, 'ggbaker')
         response = client.get(reverse('grad.views.search'))
         self.assertEqual(response.status_code, 200)
     
     def test_that_grad_search_with_csv_option_returns_csv(self):
         client = Client()
-        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        test_auth(client, 'ggbaker')
         response = client.get(reverse('grad.views.search'), {'columns':'person.first_name', 'csv':'sure'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'text/csv')
@@ -67,10 +66,11 @@ class GradTest(TestCase):
         Check overall pages for the grad module and make sure they all load
         """
         client = Client()
-        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        test_auth(client, 'ggbaker')
         
         prog = GradProgram.objects.all()[0]
         GradRequirement(program=prog, description="Some Requirement").save()
+        Supervisor(student=GradStudent.objects.all()[0], supervisor=Person.objects.get(userid='ggbaker'), supervisor_type='SEN').save()
         
         # search results
         url = reverse('grad.views.search', kwargs={}) + "?last_name_contains=Grad&columns=person.userid&columns=person.first_name"
@@ -90,13 +90,7 @@ class GradTest(TestCase):
                 raise
 
 
-
-    def test_grad_student_pages(self):
-        """
-        Check the pages for a grad student and make sure they all load
-        """
-        client = Client()
-        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+    def __make_test_grad(self):
         gs = GradStudent.objects.get(person__userid='0nnngrad')
         sem = Semester.current()
         
@@ -105,16 +99,28 @@ class GradTest(TestCase):
         req.save()
         st = ScholarshipType(unit=gs.program.unit, name="Some Scholarship")
         st.save()
-        lt = LetterTemplate(unit=gs.program.unit, label='Template', content="This is the\n\nletter for {{first_name}}.")
-        lt.save()
         Supervisor(student=gs, supervisor=Person.objects.get(userid='ggbaker'), supervisor_type='SEN').save()
+        GradProgramHistory(student=gs, program=gs.program).save()
         GradStatus(student=gs, status='ACTI', start=sem).save()
         CompletedRequirement(student=gs, requirement=req, semester=sem).save()
         Scholarship(student=gs, scholarship_type=st, amount=1000, start_semester=sem, end_semester=sem).save()
         OtherFunding(student=gs, amount=100, semester=sem, description="Some Other Funding", comments="Other Funding\n\nComment").save()
         Promise(student=gs, amount=10000, start_semester=sem, end_semester=sem.next_semester()).save()
-        GradProgramHistory(student=gs, program=gs.program).save()
+        FinancialComment(student=gs, semester=sem, comment_type='SCO', comment='Some comment.\nMore.', created_by='ggbaker').save()
+        Supervisor(student=gs, supervisor=Person.objects.get(userid='ggbaker'), supervisor_type='SEN').save()
         
+        return gs
+
+    def test_grad_student_pages(self):
+        """
+        Check the pages for a grad student and make sure they all load
+        """
+        client = Client()
+        test_auth(client, 'ggbaker')
+        gs = self.__make_test_grad()
+
+        lt = LetterTemplate(unit=gs.program.unit, label='Template', content="This is the\n\nletter for {{first_name}}.")
+        lt.save()
         url = reverse('grad.views.get_letter_text', kwargs={'grad_slug': gs.slug, 'letter_template_id': lt.id})
         content = client.get(url).content
         Letter(student=gs, template=lt, date=datetime.date.today(), content=content).save()
@@ -150,7 +156,7 @@ class GradTest(TestCase):
         # check management pages
         for view in ['financials', 'manage_general', 'manage_requirements', 'manage_scholarships', 'new_letter',
                       'manage_otherfunding', 'manage_promises', 'manage_letters', 'manage_status', 'manage_supervisors',
-                      'manage_program']:
+                      'manage_program', 'manage_financialcomments', 'manage_defence']:
             try:
                 url = reverse('grad.views.'+view, kwargs={'grad_slug': gs.slug})
                 response = basic_page_tests(self, client, url)
@@ -164,7 +170,7 @@ class GradTest(TestCase):
         Check handling of letters for grad students
         """
         client = Client()
-        client.login(ticket="ggbaker", service=CAS_SERVER_URL)
+        test_auth(client, 'ggbaker')
         gs = GradStudent.objects.get(person__userid='0nnngrad')
 
         # get template text and make sure substitutions are made
@@ -187,4 +193,21 @@ class GradTest(TestCase):
         self.assertEqual(response.status_code, 200)
         
         
+    def test_advanced_search(self):
+        """
+        Basics of the advanced search toolkit
+        """
+        from grad.forms import COLUMN_CHOICES, COLUMN_WIDTHS_DATA
+        from grad.templatetags.getattribute import getattribute
         
+        cols = set(k for k,v in COLUMN_CHOICES)
+        widths = set(k for k,v in COLUMN_WIDTHS_DATA)
+        self.assertEquals(cols, widths)
+        
+        gs = self.__make_test_grad()
+        for key in cols:
+            # make sure each column returns *something* without error
+            getattribute(gs, key)
+
+
+

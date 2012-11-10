@@ -4,7 +4,12 @@
 {% block title %}RA Appointments{% endblock %}
 {% block h1 %}RA Appointments{% endblock %}
 
-{% block headextra %}<script type="text/javascript">
+{% block headextra %}
+<style>
+.warning { background-color: #ECF073; padding:2px; text-decoration: underline; }
+</style>
+
+<script type="text/javascript">
 //<![CDATA[
 var datatable;
 var RAURL = '{% url ra.views.view ra_slug="RASLUG" %}'
@@ -25,11 +30,21 @@ function update_table() {
 				$("#truncated").hide();
 			}
 			$.each(data.data, function(index, radata) {
+                var project = radata.project
+                if (radata.project_hidden){
+                    project = '<abbr class="warning" title="This project has been deleted from the project list!">' + 
+                                    project + "</abbr>";
+                }
+                var account = radata.account
+                if (radata.account_hidden){
+                    account = '<abbr class="warning" title="This account has been deleted from the account list!">' + 
+                                    account + "</abbr>";
+                }
 				datatable.fnAddData([
 					'<a href="' + RAURL.replace('RASLUG', radata.slug)+ '">'+radata.name+'</a>',
 					radata.hiring,
-					radata.project,
-					radata.account,
+					project,
+					account,
 					radata.start,
 					radata.end,
 					radata.amount

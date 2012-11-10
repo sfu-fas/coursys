@@ -97,6 +97,7 @@ function datatable_grad_table(elt) {
 	elt.dataTable({
 		'bPaginate': false,
 	    'bInfo': false,
+        'bFilter': false,
 		'bLengthChange': false,
 	    'bJQueryUI': true,
 	    "aaSorting": [[ sortcol, "asc" ]],
@@ -271,3 +272,35 @@ function prep_content() {
 			}
 		});
 	}
+
+function full_querystring() {
+	// rebuild query string with current datatable sort
+	if ( typeof query_string == 'undefined' ) {
+		return;
+	}
+	var sort_query = $.deparam.querystring(query_string);
+	var coln, dir;
+	var sort='';
+	
+	$(table.fnSettings().aaSorting).each(function(i, col) {
+		coln = col[0];
+		dir = col[1][0];
+		sort += ',' + coln + dir;
+		
+	});
+    sort_query.sort = sort.substr(1);
+	return $.param(sort_query, true);
+}
+
+function update_search_links() {
+	// update links on this page with current datatable sort
+	if ( typeof table == 'undefined' ) {
+		return;
+	}
+	var qs = full_querystring();
+	var new_url = self_url + '?' + qs;
+	$('#csvlink').attr('href', new_url+"&csv=yes");
+	$('#excellink').attr('href', new_url+"&excel=yes");
+	$('#editlink').attr('href', new_url+"&edit_search=yes");
+	$('#id_query').val(qs);
+}

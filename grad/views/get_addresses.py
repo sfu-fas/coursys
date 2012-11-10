@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from coredata.queries import more_personal_info, SIMSProblem
 import json
 
-@requires_role("GRAD")
+@requires_role("GRAD", get_only=["GRPD"])
 def get_addresses(request):
     if 'id' not in request.GET:
         return ForbiddenResponse(request, 'must send id')

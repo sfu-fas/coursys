@@ -11,11 +11,12 @@
 {% endblock %}
 
 {% block actions %}
-{% if application.posting.is_open %}
+{% if application.posting.is_open or contract %}
 <div id="actions">
 <h2 class="heading">Actions</h2>
 <ul>
-<li><a href="{% url ta.views.edit_application post_slug=application.posting.slug userid=application.person.userid %}">Edit Application</a></li>
+{% if application.posting.is_open %}<li><a href="{% url ta.views.edit_application post_slug=application.posting.slug userid=application.person.userid %}">Edit Application</a></li>{% endif %}
+{% if contract %}<li><a href="{% url ta.views.view_contract post_slug=application.posting.slug userid=application.person.userid %}">View Contract</a></li>{% endif %}
 </ul>
 </div>
 {% endif %}

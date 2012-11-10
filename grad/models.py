@@ -1,4 +1,6 @@
-from django.db import models
+
+from django.db import models, transaction
+from django.core.cache import cache
 from coredata.models import Person, Unit, Semester, CAMPUS_CHOICES
 from autoslug import AutoSlugField
 from courselib.slugs import make_slug
@@ -51,6 +53,7 @@ STATUS_CHOICES = (
         ('ARSP', 'Completed Special'), # Special Arrangements + GONE
         )
 STATUS_APPLICANT = ('APPL', 'INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'REJE', 'DECL', 'EXPI', 'CONF', 'CANC', 'ARIV') # statuses that mean "applicant"
+STATUS_CURRENTAPPLICANT = ('INCO', 'COMP', 'INRE', 'HOLD', 'OFFO', 'CONF', 'ARIV') # statuses that mean "currently applying"
 STATUS_ACTIVE = ('ACTI', 'PART', 'NOND') # statuses that mean "still around"
 STATUS_DONE = ('WIDR', 'GRAD', 'GONE', 'ARSP') # statuses that mean "done"
 STATUS_INACTIVE = ('LEAV',) + STATUS_DONE # statuses that mean "not here"
@@ -67,7 +70,7 @@ class GradStudent(models.Model):
         return make_slug(userid + "-" + self.program.slug)
     slug = AutoSlugField(populate_from=autoslug, null=False, editable=False, unique=True)
     research_area = models.TextField('Research Area', blank=True)
-    campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES, blank=True)
+    campus = models.CharField(max_length=5, choices=CAMPUS_CHOICES, blank=True, db_index=True)
 
     english_fluency = models.CharField(max_length=50, blank=True, help_text="I.e. Read, Write, Speak, All.")
     mother_tongue = models.CharField(max_length=25, blank=True, help_text="I.e. English, Chinese, French")
@@ -83,12 +86,14 @@ class GradStudent(models.Model):
     # fields that are essentially denormalized caches for advanced search. Updated by self.update_status_fields()
     start_semester = models.ForeignKey(Semester, null=True, help_text="Semester when the student started the program.", related_name='grad_start_sem')
     end_semester = models.ForeignKey(Semester, null=True, help_text="Semester when the student finished/left the program.", related_name='grad_end_sem')
-    current_status = models.CharField(max_length=4, null=True, choices=STATUS_CHOICES, help_text="Current student status")
+    current_status = models.CharField(max_length=4, null=True, choices=STATUS_CHOICES, help_text="Current student status", db_index=True)
 
     config = JSONField(default={}) # addition configuration
         # 'sin': Social Insurance Number
         # 'app_id': unique identifier for the PCS application import (so we can detect duplicate imports)
         # 'start_semester': first semester of project (if known from PCS import), as a semester.name (e.g. '1127')
+        # 'thesis_type': 'T'/'P'/'E' for Thesis/Project/Extended Essay
+        # 'work_title': title of the Thesis/Project/Extended Essay
     defaults = {'sin': '000000000'}
     sin, set_sin = getter_setter('sin')
 
@@ -123,37 +128,75 @@ class GradStudent(models.Model):
             self.current_status = last_status[0].status
         
         # start_semester
-        starts = all_gs.filter(status__in=STATUS_ACTIVE).order_by('start__name')
-        if starts.count() > 0:
-            start_status = starts[0]
-            self.start_semester = start_status.start
+        first_program = GradProgramHistory.objects.filter(student=self).order_by('start_semester__name')[0]
+        self.start_semester = first_program.start_semester
 
         # end_semester
-        ends = all_gs.filter(status__in=STATUS_DONE).order_by('-start__name')
-        if ends.count() > 0:
-            end_status = ends[0]
-            self.end_semester = end_status.start
+        if self.current_status in STATUS_DONE:
+            ends = all_gs.filter(status__in=STATUS_DONE).order_by('-start__name')
+            if ends.count() > 0:
+                end_status = ends[0]
+                self.end_semester = end_status.start
+        else:
+            self.end_semester = None
         
         if old != (self.start_semester_id, self.end_semester_id, self.current_status):
+            key = 'grad-activesem-%i' % (self.id)
+            cache.delete(key)
             self.save()
 
-    def start_semester_guess(self):
+    def _active_semesters(self):
         """
-        Semester this student started, guessing if necessary
+        Number of active and total semesters
         """
-        # do we actually know?
-        if 'start_semester' in self.config:
-            return Semester.objects.get(name=self.config['start_semester'])
-        # first active semester
-        active = GradStatus.objects.filter(student=self, status__in=STATUS_ACTIVE).order_by('start')
-        if active:
-            return active[0].start
-        # semester after application
-        applic = GradStatus.objects.filter(student=self, status='APPL').order_by('start')
-        if applic:
-            return applic[0].start.next_semester()
-        # next semester
-        return Semester.current().next_semester()
+        # actually flips through every relevant semester and checks to see
+        # their (final) status in that semester. The data is messy enough
+        # that I don't see any better way.
+        next_sem = Semester.current().offset(1)
+        start = self.start_semester
+        end = self.end_semester or next_sem
+        
+        statuses = GradStatus.objects.filter(student=self, hidden=False) \
+                   .order_by('start__name', 'start_date', 'created_at') \
+                   .select_related('start')
+        statuses = list(statuses)
+        sem = start
+        active = 0
+        total = 0
+        while sem.name < end.name:
+            prev_statuses = [st for st in statuses if st.start.name <= sem.name]
+            if prev_statuses:
+                this_status = prev_statuses[-1]
+                if this_status.status in STATUS_ACTIVE:
+                    active += 1
+            total += 1
+            sem = sem.next_semester()
+        
+        return active, total
+
+
+    def active_semesters(self):
+        """
+        Number of active and total semesters (caches self._active_semesters).
+        
+        Invalidated by self.update_status_fields.
+        """
+        key = 'grad-activesem-%i' % (self.id)
+        res = cache.get(key)
+        if res:
+            return res
+        else:
+            res = self._active_semesters()
+            cache.set(key, res, 24*3600)
+            return res
+
+
+    def active_semesters_display(self):
+        """
+        Format self.active_semesters_display for display
+        """
+        active, total = self.active_semesters()
+        return u"%i/%i" % (active, total)
     
     def flags_and_values(self):
         """
@@ -207,7 +250,7 @@ class GradStudent(models.Model):
             promise = u'$0'
 
         tas = TAContract.objects.filter(application__person=self.person).order_by('-posting__semester__name')
-        ras = RAAppointment.objects.filter(person=self.person).order_by('-start_date')
+        ras = RAAppointment.objects.filter(person=self.person, deleted=False).order_by('-start_date')
         schols = Scholarship.objects.filter(student=self).order_by('start_semester__name').select_related('start_semester')
         if tas and ras:
             if tas[0].application.posting.semester.name > ras[0].start_semester().name:
@@ -248,7 +291,7 @@ class GradStudent(models.Model):
                         s.amount, s.scholarship_type.name)
 
         # starting info
-        startsem = self.start_semester_guess()
+        startsem = self.start_semester
         if startsem:
             startyear = unicode(startsem.start.year)
             startsem = startsem.label()
@@ -340,7 +383,7 @@ class GradStudent(models.Model):
             semesters[tacrs.contract.posting.semester]['ta'].append(tacrs)
         
         # RAs
-        ras = RAAppointment.objects.filter(person=self.person)
+        ras = RAAppointment.objects.filter(person=self.person, deleted=False)
         for ra in ras:
             # RAs are by date, not semester, so have to filter more here...
             st = ra.start_semester()
@@ -387,6 +430,10 @@ class GradProgramHistory(models.Model):
             help_text="Semester when the student entered the program")
     starting = models.DateField(default=datetime.date.today)
     
+    def save(self, *args, **kwargs):
+        super(GradProgramHistory, self).save(*args, **kwargs)
+        self.student.update_status_fields()
+
     def __unicode__(self):
         return "%s: %s/%s" % (self.student.person, self.program, self.start_semester.name)
 
@@ -450,6 +497,8 @@ class Supervisor(models.Model):
     modified_by = models.CharField(max_length=32, null=True, help_text='Committee member modified by.', verbose_name='Last Modified By')
     config = JSONField(default={}) # addition configuration
         # 'email': Email address (for external)
+        # 'contact': Address etc (for external)
+        # 'attend': 'P'/'A'/'T' for attending in person/in abstentia/by teleconference (probably only for external)
     defaults = {'email': None}
     email, set_email = getter_setter('email')
           
@@ -463,6 +512,12 @@ class Supervisor(models.Model):
     def sortname(self):
         if self.supervisor:
             return self.supervisor.sortname()
+        else:
+            return self.external
+
+    def shortname(self):
+        if self.supervisor:
+            return self.supervisor.last_name
         else:
             return self.external
 
@@ -487,11 +542,40 @@ class GradRequirement(models.Model):
     """
     program = models.ForeignKey(GradProgram, null=False, blank=False)
     description = models.CharField(max_length=100)
+    series = models.PositiveIntegerField(null=False, db_index=True, help_text='The category of requirement for searching by requirement, across programs')
+    # .series is used to allow searching by type/series/category of requirement (e.g. "Completed Courses"),
+    # instead of requiring selection of a specifi GradRequirement in the search (which is too specific to a
+    # program).
+    # Values of .series are automatically maintained in self.save
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Last Updated At')
     hidden = models.BooleanField(default=False)
     def __unicode__(self):
         return u"%s" % (self.description)
+    class Meta:
+        unique_together = (('program', 'description'),)
+
+    @transaction.commit_on_success
+    def save(self, *args, **kwargs):
+        # maintain self.series as identifying the category of requirements across programs in this unit    
+        if not self.series:
+            others = GradRequirement.objects \
+                    .filter(description=self.description,
+                            program__unit=self.program.unit)
+            if others:
+                # use the series from an identically-named requirement
+                ser = others[0].series
+            else:
+                # need a new series id
+                used = set(r.series for r in GradRequirement.objects.all())
+                try:
+                    ser = max(used) + 1
+                except ValueError:
+                    ser = 1
+            
+            self.series = ser
+        
+        super(GradRequirement, self).save(*args, **kwargs)
         
 
 class CompletedRequirement(models.Model):
@@ -648,7 +732,7 @@ class ScholarshipType(models.Model):
     comments = models.TextField(blank=True, null=True)
     hidden = models.BooleanField(default=False)
     class meta:
-        unique_together = ("unit", "name")
+        unique_together = (("unit", "name"),)
     def __unicode__(self):
         return u"%s - %s" % (self.unit.label, self.name)
 
@@ -729,7 +813,7 @@ COMMENT_TYPE_CHOICES = [
 class FinancialComment(models.Model):
     student = models.ForeignKey(GradStudent)
     semester = models.ForeignKey(Semester, related_name="+")
-    comment_type = models.CharField(max_length=3, choices=COMMENT_TYPE_CHOICES, blank=False, null=False)
+    comment_type = models.CharField(max_length=3, choices=COMMENT_TYPE_CHOICES, default='OTH', blank=False, null=False)
     comment = models.TextField(blank=False, null=False)
     created_by = models.CharField(max_length=32, null=False, help_text='Entered by (userid)')
     created_at = models.DateTimeField(default=datetime.datetime.now)
@@ -746,6 +830,8 @@ class GradFlag(models.Model):
     
     def __unicode__(self):
         return self.label
+    class Meta:
+        unique_together = (('unit', 'label'),)
 
 class GradFlagValue(models.Model):
     student = models.ForeignKey(GradStudent)

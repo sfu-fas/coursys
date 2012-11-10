@@ -15,3 +15,10 @@ td.salary_first, td.salary_label {
     text-align: right;
     font-weight: bold;
 }
+div#programs {
+	float: right;
+	width: 25%;
+}
+div#programs li {
+	list-style-type: disc;
+}
