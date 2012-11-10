@@ -7,10 +7,13 @@ from view import view
 from grad_more_info import grad_more_info
 from manage_supervisors import manage_supervisors
 from remove_supervisor import remove_supervisor
+from manage_financialcomments import manage_financialcomments
+from remove_financialcomment import remove_financialcomment
 from manage_requirements import manage_requirements
 from remove_completedrequirement import remove_completedrequirement
 from manage_general import manage_general
 from manage_program import manage_program
+from manage_defence import manage_defence
 from manage_status import manage_status
 from remove_status import remove_status
 from manage_otherfunding import manage_otherfunding

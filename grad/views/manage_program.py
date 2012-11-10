@@ -8,7 +8,7 @@ from log.models import LogEntry
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 
-@requires_role("GRAD")
+@requires_role("GRAD", get_only=["GRPD"])
 def manage_program(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
     program_choices = [(p.id, unicode(p)) for p in GradProgram.objects.filter(unit__in=request.units)]
@@ -26,7 +26,7 @@ def manage_program(request, grad_slug):
 
             messages.success(request, "Updated program info for %s." % (grad.person))
             l = LogEntry(userid=request.user.username,
-                  description="Updated grad general info for %s." % (grad),
+                  description="Updated grad program for %s." % (grad),
                   related_object=gph)
             l.save()    
             return HttpResponseRedirect(reverse('grad.views.view', kwargs={'grad_slug':grad.slug}))

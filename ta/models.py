@@ -401,6 +401,24 @@ class TAApplication(models.Model):
         unique_together = (('person', 'posting'),)
     def __unicode__(self):
         return "%s  Posting: %s" % (self.person, self.posting)
+    
+    def course_pref_display(self):
+        crs = []
+        cps = self.coursepreference_set.exclude(rank=0).order_by('rank').select_related('course')
+        for cp in cps:
+            crs.append(cp.course.subject + ' ' + cp.course.number)
+        return ', '.join(crs)
+    
+    def course_assigned_display(self):
+        crs = []
+        tacrss = TACourse.objects.filter(contract__application=self).select_related('course')
+        for tacrs in tacrss:
+            crs.append(tacrs.course.subject + ' ' + tacrs.course.number)
+        return ', '.join(crs)
+    
+    def base_units_assigned(self):
+        crs = TACourse.objects.filter(contract__application=self).aggregate(Sum('bu'))
+        return crs['bu__sum']
 
 PREFERENCE_CHOICES = (
         ('PRF', 'Preferred'),

@@ -10,7 +10,8 @@ function ra_autocomplete() {
         label = ui.item.label.replace(regexp, "")
         $('#label_person_name').text(" " + label);
         update_person($(this).data("val"));
-      }
+      },
+      change: update_person,
     });
   });
 }
@@ -68,8 +69,12 @@ function update_pay_periods() {
 }
 
 
-function update_person(id) {
-  $.getJSON("/data/scholarships/" + id, function(json) {
+function update_person() {
+	emplid = $('#id_person').first().val();
+	// update program list
+	get_person_info(emplid);
+	// get scholarships
+    $.getJSON("/data/scholarships/" + emplid, function(json) {
     var options = '<option value="">—</option>';
     for (var i=0; i < json.length; i++) {
       options += '<option value="' + json[i].value +'">' + json[i].display + '</option>';
@@ -77,6 +82,37 @@ function update_person(id) {
     $('#id_scholarship').html(options);
   });
 }
+
+function get_person_info(emplid) {
+	$('div#programs').remove();
+	$('dl.dlform').first().before('<div id="programs">...</div>');	
+	$.ajax({
+		url: personinfo_url + '?emplid=' + emplid,
+		success: function(data, textStatus, jqXHR) {
+			var html = '';
+			html += '<h3>Program(s)</h3><ul>';
+			if ( data['programs'].length == 0) {
+				html += '<li class="empty">No grad program in system</li>';
+			} else {
+				$(data['programs']).each(function(e,prog) {
+					html += '<li>';
+					html += prog['program'] + ', ' + prog['unit'] + ' (' + prog['status'] + ')';
+					html += '</li>';
+				});
+			}
+			html += '</ul>';
+
+	        if (data['citizen']) {
+	        	html += '<p>Citizenship: ' + data['citizen'] + '</p>'
+	        } else {
+	        	html += '<p>Citizenship: unknown</p>'	        	
+	        }
+
+			$('div#programs').html(html);
+		},
+	})
+}
+
 
 $(document).ready(function() {
   name_label = document.createElement("span");
@@ -102,4 +138,7 @@ $(document).ready(function() {
   $("#id_start_date").change(update_pay_periods);
   $("#id_end_date").change(update_pay_periods);
   update_pay_periods();
+  if ( emplid ) {
+  	get_person_info(emplid);
+  }
 });

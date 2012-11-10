@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load form_display %}
+{% block title %} Preview Email {% endblock %}
+{% block h1 %} Preview Email {% endblock %}
+
+{% block subbreadcrumbs %}
+<li>&gt; <a href="{% url alerts.views.view_alert_types %}">Alerts</a></li>
+<li>&gt; <a href="{% url alerts.views.view_alerts alert_type=alert.alerttype.slug %}">{{alert.alerttype.code}}</a></li>
+<li>&gt; <a href="{% url alerts.views.view_automation alert_type=alert_type.slug %}">Automation</a></li> 
+<li>&gt; Email Preview </li>
+{% endblock %}
+
+{% block content %}
+
+
+<div class="table_container">
+    <table class="info">
+        <tbody>
+            <tr>
+                <th class="ui-state-default">To</th>
+                <td>{{ alert.person.email }}</td>
+            </tr>
+            <tr>
+                <th class="ui-state-default">Subject</th>
+                <td>{{ alert_email.subject }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div>
+{{ rendered_text|linebreaksbr }}
+</div>
+
+<br/>
+<a href="{% url alerts.views.view_automation alert_type=alert_type.slug %}">Back</a> 
+
+{% endblock %}

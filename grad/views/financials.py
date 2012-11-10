@@ -24,7 +24,7 @@ def financials(request, grad_slug):
     other_fundings = OtherFunding.objects.filter(student=grad, removed=False).select_related('semester')
     
     contracts = TAContract.objects.filter(application__person=grad.person, status="SGN").select_related('posting__semester')
-    appointments = RAAppointment.objects.filter(person=grad.person)
+    appointments = RAAppointment.objects.filter(person=grad.person, deleted=False)
     program_history = GradProgramHistory.objects.filter(student=grad).select_related('start_semester', 'program')
     financial_comments = FinancialComment.objects.filter(student=grad, removed=False).select_related('semester')
     

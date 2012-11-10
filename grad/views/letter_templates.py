@@ -2,7 +2,7 @@ from courselib.auth import requires_role
 from django.shortcuts import render
 from grad.models import LetterTemplate
 
-@requires_role("GRAD")
+@requires_role("GRAD", get_only=["GRPD"])
 def letter_templates(request):
     templates = LetterTemplate.objects.filter(unit__in=request.units, hidden=False)
 

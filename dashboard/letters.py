@@ -421,8 +421,11 @@ class RAForm(object):
         self.c.drawCentredString(4*inch, 7.6*inch, "PLEASE SEE GUIDE TO THE COMPLETION OF APPOINTMENT FOR FPP4")
         
         # SIN
-        sin = "%09i" % (self.ra.sin)
-        sin = sin[:3] + '-' + sin[3:6] + '-' + sin[6:]
+        if self.ra.sin:
+            sin = "%09i" % (self.ra.sin)
+            sin = sin[:3] + '-' + sin[3:6] + '-' + sin[6:]
+        else:
+            sin = ''
         self._draw_box_left(0, self.MAIN_HEIGHT, width=3.125*inch, label="SOCIAL INSURANCE NUMBER (SIN)", content=sin)
 
         # emplid

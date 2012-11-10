@@ -9,7 +9,7 @@
 
 {% block subbreadcrumbs %}
 <li>&gt; <a href="{% url ra.views.search %}">RAs</a></li>
-<li>&gt; <a href="{% url ra.views.student_appointments userid=appointment.person.userid %}">{{ student.name }}</a></li>
+<li>&gt; <a href="{% url ra.views.student_appointments userid=appointment.person.emplid %}">{{ student.name }}</a></li>
 <li>&gt; {{ appointment.account.title }} starting {{ appointment.start_date }}</li>
 {% endblock %}
 
@@ -57,10 +57,18 @@
     <tr><th>Fund Number:</th>
       <td>{{ appointment.project.fund_number }}</td></tr>
     <tr><th>Project Number:</th>
-      <td>{{ appointment.project.project_number }}</td></tr>
+      <td>{{ appointment.project.project_number }}
+          {% if appointment.project.hidden %}
+            : <span class='warning'>Warning! This project has been deleted! </span>
+          {% endif %} 
+      </td></tr>
     <tr><th>Account Number:</th>
       <td>{{ appointment.account.account_number }} - 
-          {{ appointment.account.title }}</td></tr>
+          {{ appointment.account.title }}
+          {% if appointment.account.hidden %}
+            : <span class='warning'>Warning! This account has been deleted! </span> 
+          {% endif %} 
+      </td></tr>
     <tr><th>Position Number:</th>
       <td>{{ appointment.account.position_number }}</td></tr>
     <tr><th>Start Date:</th>
@@ -123,4 +131,12 @@
       <td>{{ appointment.comments }}</td></tr>
   </table>
 </div>
+
+                        <form action="{% url ra.views.delete_ra ra_slug=appointment.slug %}" method="post">
+                            {% csrf_token %}
+                                <p class="actionbutton">
+                                    <input type="submit" value="Delete Appointment" onclick="return confirmSubmit('delete this appointment')" />
+                                </p>
+                        </form>
+
 {%endblock content%}

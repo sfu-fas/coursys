@@ -8,7 +8,7 @@ from grad.forms import LetterTemplateForm
 from django.core.urlresolvers import reverse
 from letter_templates import letter_templates
 
-@requires_role("GRAD")
+@requires_role("GRAD", get_only=["GRPD"])
 def new_letter_template(request):
     unit_choices = [(u.id, u.name) for u in request.units]
     if request.method == 'POST':

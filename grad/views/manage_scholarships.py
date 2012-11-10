@@ -1,6 +1,6 @@
 from courselib.auth import requires_role
 from django.shortcuts import get_object_or_404, render
-from grad.models import GradStudent, ScholarshipType, Scholarship
+from grad.models import GradStudent, ScholarshipType, Scholarship, FinancialComment
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from grad.forms import ScholarshipForm
@@ -10,11 +10,12 @@ from log.models import LogEntry
 
 get_semester = Semester.get_semester
 
-@requires_role("GRAD")
+@requires_role("GRAD", get_only=["GRPD"])
 def manage_scholarships(request, grad_slug):
     grad = get_object_or_404(GradStudent, slug = grad_slug)
     scholarship_type_choices = [(st.id, st.name) for st in ScholarshipType.objects.filter(unit__in=request.units, hidden=False).order_by('unit__slug', 'name')]
     scholarships = Scholarship.objects.filter(student=grad).select_related('scholarship_type').order_by('start_semester__name')
+    comments = FinancialComment.objects.filter(student=grad, comment_type='SCO', removed=False).order_by('created_at')
     
     if request.method == 'POST':
         form = ScholarshipForm(request.POST)
@@ -39,5 +40,6 @@ def manage_scholarships(request, grad_slug):
                 'grad':grad,
                 'form': form,
                 'scholarships': scholarships,
+                'scholarship_comments': comments
     }
     return render(request, 'grad/manage_scholarships.html', context)

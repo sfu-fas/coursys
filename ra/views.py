@@ -8,13 +8,15 @@ from ra.models import RAAppointment, Project, Account
 from ra.forms import RAForm, RASearchForm, AccountForm, ProjectForm, RALetterForm, RABrowseForm
 from grad.forms import possible_supervisors
 from coredata.models import Person, Role, Semester
+from coredata.queries import more_personal_info, SIMSProblem
 from courselib.auth import requires_role, ForbiddenResponse
-from courselib.search import find_userid_or_emplid
+from courselib.search import find_userid_or_emplid, get_query
 from grad.models import GradStudent, Scholarship
+from log.models import LogEntry
 from dashboard.letters import ra_form, OfficialLetter, LetterContents
 from django import forms
 
-import json, datetime
+import json, datetime, urllib
 
 #This is the search function that that returns a list of RA Appointments related to the query.
 @requires_role("FUND")
@@ -26,9 +28,7 @@ def search(request, student_id=None):
     if request.method == 'POST':
         form = RASearchForm(request.POST)
         if not form.is_valid():
-            messages.add_message(request, messages.ERROR, 'Invalid search')
-            context = {'form': form}
-            return render(request, 'ra/search.html', context)
+            return HttpResponseRedirect(reverse('ra.views.found') + "?search=" + urllib.quote_plus(form.data['search']))
         search = form.cleaned_data['search']
         # deal with people without active computing accounts
         if search.userid:
@@ -44,13 +44,29 @@ def search(request, student_id=None):
     return render(request, 'ra/search.html', context)
 
 
+@requires_role("FUND")
+def found(request):
+    """
+    View to handle the enter-search/press-enter behaviour in the autocomplete box
+    """
+    if 'search' not in request.GET:
+        return ForbiddenResponse(request, 'must give search in query')
+    search = request.GET['search']
+    studentQuery = get_query(search, ['userid', 'emplid', 'first_name', 'last_name'])
+    people = Person.objects.filter(studentQuery)[:200]
+    for p in people:
+        # decorate with RAAppointment count
+        p.ras = RAAppointment.objects.filter(person=p, deleted=False).count()
+
+    context = {'people': people}
+    return render(request, 'ra/found.html', context)
 
 
 #This is an index of all RA Appointments belonging to a given person.
 @requires_role("FUND")
 def student_appointments(request, userid):
     student = get_object_or_404(Person, find_userid_or_emplid(userid))
-    appointments = RAAppointment.objects.filter(person=student, unit__in=request.units).order_by("-created_at")
+    appointments = RAAppointment.objects.filter(person=student, unit__in=request.units, deleted=False).order_by("-created_at")
     grads = GradStudent.objects.filter(person=student, program__unit__in=request.units)
     context = {'appointments': appointments, 'student': student,
                'grads': grads}
@@ -132,7 +148,7 @@ def new_student(request, userid):
 #Edit RA Appointment
 @requires_role("FUND")
 def edit(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug)    
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)    
     scholarship_choices, hiring_faculty_choices, unit_choices, project_choices, account_choices = _appointment_defaults(request.units, emplid=appointment.person.emplid)
     if request.method == 'POST':
         data = request.POST.copy()
@@ -169,7 +185,7 @@ def edit(request, ra_slug):
 #Since all reappointments will be new appointments, no post method is present, rather the new appointment template is rendered with the existing data which will call the new method above when posting.
 @requires_role("FUND")
 def reappoint(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug)    
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
     semester = Semester.first_relevant()
     raform = RAForm(instance=appointment, initial={'person': appointment.person.emplid, 'reappointment': True, 'start_date': semester.start, 'end_date': semester.end, 'hours': 70 })
     raform.fields['hiring_faculty'].choices = possible_supervisors(request.units)
@@ -184,7 +200,7 @@ def reappoint(request, ra_slug):
 
 @requires_role("FUND")
 def edit_letter(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug)  
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
 
     if request.method == 'POST':
         form = RALetterForm(request.POST, instance=appointment)
@@ -204,14 +220,14 @@ def edit_letter(request, ra_slug):
 #View RA Appointment
 @requires_role("FUND")
 def view(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug)
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
     student = appointment.person
     return render(request, 'ra/view.html', {'appointment': appointment, 'student': student})
 
 #View RA Appointment Form (PDF)
 @requires_role("FUND")
 def form(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug)
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename=%s.pdf' % (appointment.slug)
     ra_form(appointment, response)
@@ -219,7 +235,7 @@ def form(request, ra_slug):
 
 @requires_role("FUND")
 def letter(request, ra_slug):
-    appointment = get_object_or_404(RAAppointment, slug=ra_slug)
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug, deleted=False)
     response = HttpResponse(content_type="application/pdf")
     response['Content-Disposition'] = 'inline; filename=%s-letter.pdf' % (appointment.slug)
     letter = OfficialLetter(response, unit=appointment.unit)
@@ -235,6 +251,22 @@ def letter(request, ra_slug):
     letter.write()
     return response
 
+@requires_role("FUND")
+def delete_ra(request, ra_slug):
+    appointment = get_object_or_404(RAAppointment, slug=ra_slug)
+    if request.method == 'POST':
+        appointment.deleted = True
+        appointment.save()
+        messages.success(request, "Deleted RA appointment." )
+        l = LogEntry(userid=request.user.username,
+              description="Deleted RA appointment %s." % (str(appointment),),
+              related_object=appointment)
+        l.save()              
+    
+    return HttpResponseRedirect(reverse('ra.views.student_appointments', kwargs={'userid': appointment.person.emplid}))
+
+
+
 
 #Methods relating to Account creation. These are all straight forward.
 @requires_role("FUND")
@@ -249,18 +281,12 @@ def new_account(request):
             return HttpResponseRedirect(reverse('ra.views.accounts_index'))
     return render(request, 'ra/new_account.html', {'accountform': accountform})
 
+
 @requires_role("FUND")
 def accounts_index(request):
     depts = Role.objects.filter(person__userid=request.user.username, role='FUND').values('unit_id')
     accounts = Account.objects.filter(unit__id__in=depts, hidden=False).order_by("account_number")
     return render(request, 'ra/accounts_index.html', {'accounts': accounts})
-
-#@requires_role("FUND")
-#def delete_account(request, account_slug):
-#    account = get_object_or_404(Account, slug=account_slug)
-#    messages.success(request, 'Deleted account ' + str(account.account_number))
-#    account.delete()
-#    return HttpResponseRedirect(reverse(accounts_index))
 
 @requires_role("FUND")
 def edit_account(request, account_slug):
@@ -275,6 +301,18 @@ def edit_account(request, account_slug):
         accountform = AccountForm(instance=account)
         accountform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
     return render(request, 'ra/edit_account.html', {'accountform': accountform, 'account': account})
+
+@requires_role("FUND")
+def remove_account(request, account_slug):
+    account = get_object_or_404(Account, slug=account_slug)
+    account.delete()
+    messages.success(request, "Removed account %s." % str(account.account_number))
+    l = LogEntry(userid=request.user.username,
+          description="Removed account %s" % (str(account.account_number)),
+          related_object=account)
+    l.save()              
+    
+    return HttpResponseRedirect(reverse('ra.views.accounts_index'))
 
 #Project methods. Also straight forward.
 @requires_role("FUND")
@@ -295,13 +333,6 @@ def projects_index(request):
     projects = Project.objects.filter(unit__id__in=depts, hidden=False).order_by("project_number")
     return render(request, 'ra/projects_index.html', {'projects': projects})
 
-#@requires_role("FUND")
-#def delete_project(request, project_slug):
-#    project = get_object_or_404(Project, slug=project_slug)
-#    messages.success(request, 'Deleted project ' + str(project.project_number))
-#    project.delete()
-#    return HttpResponseRedirect(reverse(projects_index))
-
 @requires_role("FUND")
 def edit_project(request, project_slug):
     project = get_object_or_404(Project, slug=project_slug)
@@ -315,6 +346,18 @@ def edit_project(request, project_slug):
         projectform = ProjectForm(instance=project)
         projectform.fields['unit'].choices = [(u.id, u.name) for u in request.units]
     return render(request, 'ra/edit_project.html', {'projectform': projectform, 'project': project})
+
+@requires_role("FUND")
+def remove_project(request, project_slug):
+    project = get_object_or_404(Project, slug=project_slug)
+    project.delete()
+    messages.success(request, "Removed project %s." % str(project.project_number))
+    l = LogEntry(userid=request.user.username,
+          description="Removed project %s" % (str(project.project_number)),
+          related_object=project)
+    l.save()              
+    
+    return HttpResponseRedirect(reverse('ra.views.projects_index'))
 
 @requires_role("FUND")
 def search_scholarships_by_student(request, student_id):
@@ -337,7 +380,7 @@ def browse(request):
     account_choices = [('all', 'All')] + [(a.id, unicode(a)) for a in Account.objects.filter(unit__in=units, hidden=False)]
     if 'data' in request.GET:
         # AJAX query for data
-        ras = RAAppointment.objects.filter(unit__in=units) \
+        ras = RAAppointment.objects.filter(unit__in=units, deleted=False) \
                 .select_related('person', 'hiring_faculty', 'project', 'account')
         if 'hiring_faculty' in request.GET and request.GET['hiring_faculty'] != 'all':
             ras = ras.filter(hiring_faculty__id=request.GET['hiring_faculty'])
@@ -357,7 +400,9 @@ def browse(request):
                 'name': ra.person.sortname(),
                 'hiring': ra.hiring_faculty.sortname(),
                 'project': unicode(ra.project),
+                'project_hidden': ra.project.hidden,
                 'account': unicode(ra.account),
+                'account_hidden': ra.account.hidden,
                 'start': datefilter(ra.start_date, settings.GRAD_DATE_FORMAT),
                 'end': datefilter(ra.end_date, settings.GRAD_DATE_FORMAT),
                 'amount': '$'+unicode(ra.lump_sum_pay),
@@ -426,4 +471,34 @@ def pay_periods(request):
     return HttpResponse(result, mimetype='text/plain;charset=utf-8')
 
 
+@requires_role("FUND")
+def person_info(request):
+    """
+    Get more info about this person, for AJAX updates on new RA form
+    """
+    result = {}
+    if 'emplid' not in request.GET:
+        pass
+    else:
+        programs = []
+        
+        # GradPrograms
+        emplid = request.GET['emplid']
+        for gs in GradStudent.objects.filter(person__emplid=emplid, program__unit__in=request.units):
+            pdata = {
+                     'program': gs.program.label,
+                     'unit': gs.program.unit.name,
+                     'status': gs.get_current_status_display(),
+                     }
+            programs.append(pdata)
 
+        result['programs'] = programs
+        
+        # other SIMS info
+        try:
+            otherinfo = more_personal_info(emplid, needed=['citizen', 'visa'])
+            result.update(otherinfo)
+        except SIMSProblem, e:
+            result['error'] = e.message
+
+    return HttpResponse(json.dumps(result), mimetype='application/json;charset=utf-8')

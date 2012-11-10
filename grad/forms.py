@@ -4,7 +4,7 @@ from django.db.models import Q
 import grad.models as gradmodels
 from grad.models import Supervisor, GradProgram, GradStudent, GradStatus, GradProgramHistory, \
     GradRequirement, CompletedRequirement, LetterTemplate, Letter, Promise, Scholarship, \
-    ScholarshipType, SavedSearch, OtherFunding, GradFlagValue
+    ScholarshipType, SavedSearch, OtherFunding, GradFlagValue, FinancialComment
 from courselib.forms import StaffSemesterField
 from coredata.models import Person, Member, Semester, CAMPUS_CHOICES, VISA_STATUSES
 from django.forms.models import BaseModelFormSet
@@ -18,7 +18,12 @@ from django.utils.safestring import mark_safe
 from django.core.validators import EMPTY_VALUES
 from advisornotes.forms import StudentSearchForm
 
-QuickSearchForm = StudentSearchForm
+class QuickSearchForm(StudentSearchForm):
+    pass
+#    incl_active = forms.BooleanField(initial=True)
+#    incl_appl = forms.BooleanField(initial=True)
+#    incl_grad = forms.BooleanField(initial=False)
+#   incl_oldappl = forms.BooleanField(initial=False)
 
 class LabelTextInput(forms.TextInput):
     "TextInput with a bonus label"
@@ -218,7 +223,7 @@ class GradStatusForm(ModelForm):
 class GradRequirementForm(ModelForm):
     class Meta:
         model = GradRequirement
-        exclude = ('hidden',)
+        exclude = ('hidden','series')
 
 class LetterTemplateForm(ModelForm):
     content = forms.CharField(widget=forms.Textarea(attrs={'rows':'35', 'cols': '60'}))
@@ -294,6 +299,12 @@ class OtherFundingForm(ModelForm):
         model = OtherFunding
         exclude = ('student', 'removed')
 
+class FinancialCommentForm(ModelForm):
+    semester = StaffSemesterField()
+    class Meta:
+        model = FinancialComment
+        exclude = ('student', 'removed', 'created_at', 'created_by')
+
 class GradFlagValueForm(ModelForm):
     class Meta:
         model = GradFlagValue
@@ -304,6 +315,37 @@ class new_scholarshipTypeForm(ModelForm):
     class Meta:
         model = ScholarshipType
         exclude = ('hidden',)
+
+class GradDefenceForm(forms.Form):
+    thesis_type = forms.ChoiceField(choices=[('T','Thesis'), ('P','Project'), ('E','Extended Essay')],
+                                    required=True, label='Work type')
+    work_title = forms.CharField(help_text='Title of the Thesis/Project/Extended Essay', max_length=300,
+                                 widget=forms.TextInput(attrs={'size': 70}))
+    exam_date = forms.DateField(required=False)
+    
+    chair = SupervisorField(required=False, label="Defence chair")
+    internal = SupervisorField(required=False, label="SFU examiner")
+    external = forms.CharField(max_length=200, required=False, label="External examiner",
+                               help_text='Name of the external examiner')
+    external_email = forms.EmailField(required=False, label="External email",
+                                      help_text='Email address of the external examiner')
+    external_contact = forms.CharField(required=False, label="External contact",
+                                       help_text='Contact information for the external examiner',
+                                       widget=forms.Textarea(attrs={'rows': 4, 'cols': 40}))
+    external_attend = forms.ChoiceField(choices=[('','Unknown'), ('P','In-person'), ('A','in abstentia'), ('T','By teleconference')],
+                                    required=False, label='External Attending')
+        
+    def set_supervisor_choices(self, choices):
+        """
+        Set choices for the supervisor
+        """
+        self.fields['chair'].fields[0].choices = [("","Other")] + choices
+        self.fields['chair'].widget.widgets[0].choices = [("","Other")] + choices
+        self.fields['internal'].fields[0].choices = [("","Other")] + choices
+        self.fields['internal'].widget.widgets[0].choices = [("","Other")] + choices
+
+        
+
 
 # creates an 'atom' to represent 'Unknown' (but it's not None) 
 Unknown = type('Unknown', (object,), {'__repr__':lambda self:'Unknown'})()
@@ -372,19 +414,23 @@ COLUMN_CHOICES = (
         # TODO Include stuff from config eg. email, phone, address
         ('person.emplid',           'Employee ID'),
         ('person.userid',           'User ID'),
+        ('email',                   'Email Address'),
         ('program',                 'Program'),
         ('research_area',           'Research Area'),
         ('campus',                  'Campus'),
         ('start_semester',          'Start Sem'),
         ('end_semester',            'End Sem'),
         ('current_status',          'Current Status'),
+        ('active_semesters',        'Active Semesters'),
         ('senior_supervisors',      'Supervisor(s)'),
+        ('supervisors',             'Committee Members'),
         ('completed_req',           'Completed Req'),
         ('gpa',                     'CGPA'),
         ('visa',                    'Visa'),
+        ('gender',                  'Gender')
         )
 COLUMN_WIDTHS_DATA = (
-        # first field is interpreted by getattribute template filter (grad/templatetags/getattribute.py)
+        # column widths for Excel export
         # units seem to be ~1/100 mm
         ('person.emplid',           3000),
         ('person.userid',           2800),
@@ -392,16 +438,20 @@ COLUMN_WIDTHS_DATA = (
         ('person.middle_name',      5000),
         ('person.last_name',        6000),
         ('person.pref_first_name',  4000),
+        ('email',                   5000),
         ('program',                 3000),
         ('research_area',           6000),
         ('campus',                  3000),
         ('start_semester',          3000),
         ('end_semester',            3000),
         ('current_status',          3000),
+        ('active_semesters',        2000),
         ('senior_supervisors',      6000),
+        ('supervisors',             9000),
         ('completed_req',           10000),
         ('gpa',                     2000),
         ('visa',                    3000),
+        ('gender',                  2000),
         )
 COLUMN_WIDTHS = dict(COLUMN_WIDTHS_DATA)
 
@@ -422,15 +472,17 @@ class SearchForm(forms.Form):
             )
     
     program = forms.ModelMultipleChoiceField(GradProgram.objects.all(), required=False)
+    campus = forms.MultipleChoiceField(CAMPUS_CHOICES, required=False)
+    supervisor = forms.MultipleChoiceField([], required=False, label='Senior Supervisor')
     
-    requirements = forms.ModelMultipleChoiceField(GradRequirement.objects.all(),
+    requirements = forms.MultipleChoiceField(choices=[],
             label='Completed requirements', required=False)
     requirements_st = forms.ChoiceField((
             ('AND',mark_safe(u'Student must have completed <em>all</em> of these requirements')),
             ('OR',mark_safe(u'Student must have completed <em>any</em> of these requirements'))),
             label='Requirements search type', required=False, initial='AND',
             widget=forms.RadioSelect)
-    incomplete_requirements = forms.ModelMultipleChoiceField(GradRequirement.objects.all(),
+    incomplete_requirements = forms.MultipleChoiceField([],
             label='Incomplete requirements', required=False)
 
     is_canadian = NullBooleanSearchField(required=False)
@@ -442,7 +494,6 @@ class SearchForm(forms.Form):
             ('P','Promise')
             ),required=False)
     
-    campus = forms.MultipleChoiceField(CAMPUS_CHOICES, required=False)
     gpa_min = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False)
     gpa_max = forms.DecimalField(max_value=4.33, min_value=0, decimal_places=2, required=False)
     gender = forms.ChoiceField((('','---------'), ('M','Male'), ('F','Female'), ('U','Unknown')),
@@ -455,6 +506,8 @@ class SearchForm(forms.Form):
 
     columns = forms.MultipleChoiceField(COLUMN_CHOICES, initial=('person.last_name', 'person.first_name', 'person.emplid', 'person.userid', 'program', 'current_status', ),
             help_text='Columns to display in the search results.')
+
+    sort = forms.CharField(required=False, widget=forms.HiddenInput()) # used to persist table sorting across "modify search" workflow
     
     semester_range_fields = [
             'start_semester_start',
@@ -474,6 +527,7 @@ class SearchForm(forms.Form):
     program_fields = [
             'program',
             'campus',
+            'supervisor',
             ]
     requirement_fields = [
             'requirements',
@@ -492,7 +546,7 @@ class SearchForm(forms.Form):
             ]
 
     col_fields = [
-            'columns']
+            'columns', 'sort']
     
     def clean_requirements_st(self):
         value = self.cleaned_data['requirements_st']
@@ -545,6 +599,12 @@ class SearchForm(forms.Form):
             manual_queries.append( Q(end_semester__name__gte=self.cleaned_data['end_semester_start'].name) )
         if self.cleaned_data.get('end_semester_end', None) is not None:
             manual_queries.append( Q(end_semester__name__lte=self.cleaned_data['end_semester_end'].name) )
+
+        if self.cleaned_data.get('supervisor', None):
+            person_ids = self.cleaned_data['supervisor']
+            supervisors = Supervisor.objects.filter(supervisor__in=person_ids, supervisor_type='SEN', removed=False)
+            student_ids = [s.student_id for s in supervisors]
+            manual_queries.append( Q(id__in=student_ids) )
         
         if self.cleaned_data.get('financial_support', None) is not None:
             if 'S' in self.cleaned_data['financial_support']:
@@ -560,19 +620,24 @@ class SearchForm(forms.Form):
                         ~Q(pk__in=gradmodels.Promise.objects.all().values('student')))
 
         if self.cleaned_data.get('incomplete_requirements', False):
-            # If a student has ANY of the incomplete requirements he will be included.
-            all_completed_requirement_query_list = [Q(pk__in=requirement.completedrequirement_set.all().values('student_id')) 
-                        for requirement in self.cleaned_data['incomplete_requirements']]
-            all_completed_requirement_query = reduce( Q.__and__, all_completed_requirement_query_list, Q() )
-            any_not_completed_requirement_query = ~all_completed_requirement_query
-            manual_queries.append( any_not_completed_requirement_query )
-        
+            # If a student has ANY of these requirements he will be included.
+            inc_req = self.cleaned_data['incomplete_requirements']
+            completed_req = CompletedRequirement.objects.filter(requirement__series__in=inc_req)
+            completed_req_students = set(cr['student_id'] for cr in completed_req.values('student_id'))
+            manual_queries.append(~Q(pk__in=completed_req_students))
+                    
         if self.cleaned_data.get('requirements', False):
             if self.cleaned_data['requirements_st'] == 'OR':
-                auto_queries.append(('requirements', 'completedrequirement__requirement__in'))
+                # completed OR
+                auto_queries.append(('requirements', 'completedrequirement__requirement__series__in'))
             else:
-                manual_queries += [Q(pk__in=requirement.completedrequirement_set.all().values('student_id')) 
-                        for requirement in self.cleaned_data['requirements']]
+                # completed AND
+                for series in self.cleaned_data['requirements']:
+                    manual_queries.append(
+                            Q(pk__in=
+                              CompletedRequirement.objects.filter(requirement__series=series).values('student_id')
+                              )
+                            )
             
         # passes all of the tuples in auto_queries to _make_query as arguments
         # (which returns a single Q object) and then reduces the auto_queries

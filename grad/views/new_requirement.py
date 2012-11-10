@@ -8,7 +8,7 @@ from grad.forms import GradRequirementForm
 from django.core.urlresolvers import reverse
 from requirements import requirements
 
-@requires_role("GRAD")
+@requires_role("GRAD", get_only=["GRPD"])
 def new_requirement(request):
     program_choices = [(p.id, p.label) for p in GradProgram.objects.filter(unit__in=request.units)]
     if request.method == 'POST':

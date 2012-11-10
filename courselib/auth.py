@@ -74,22 +74,32 @@ def has_global_role(role, request, **kwargs):
     count = perms.count()
     return count>0
 
-def requires_role(role, login_url=None):
+def requires_role(role, get_only=None, login_url=None):
     """
     Allows access if user has the given role in ANY unit
     """
     def has_this_role(req, **kwargs):
-        return has_role(role, req, **kwargs)
+        return has_role(role, req, get_only=get_only, **kwargs)
         
     actual_decorator = user_passes_test(has_this_role, login_url=login_url)
     return actual_decorator
 
-def has_role(role, request, **kwargs):
+def has_role(role, request, get_only=None, **kwargs):
     """
     Return True is the given user has the specified role in ANY unit
     """
-    roles = Role.objects.filter(person__userid=request.user.username, role=role)
-    request.units = [r.unit for r in roles]
+    if isinstance(role, (list, tuple)):
+        allowed = list(role)
+    else:
+        allowed = [role]
+    if get_only and request.method == 'GET':
+        if isinstance(get_only, (list, tuple)):
+            allowed += list(get_only)
+        else:
+            allowed.append(get_only)
+        
+    roles = Role.objects.filter(person__userid=request.user.username, role__in=allowed)
+    request.units = set(r.unit for r in roles)
     count = roles.count()
     return count>0
 

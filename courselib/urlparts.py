@@ -55,3 +55,5 @@ FORMSUBMIT_SLUG = '(?P<formsubmit_slug>' + SLUG_RE + ')'
 SHEETSUBMIT_SLUG = '(?P<sheetsubmit_slug>' + SLUG_RE + ')'
 FORMGROUP_SLUG = '(?P<formgroup_slug>' + SLUG_RE + ')'
 
+ALERT_TYPE_SLUG = '(?P<alert_type>' + SLUG_RE + ')'
+

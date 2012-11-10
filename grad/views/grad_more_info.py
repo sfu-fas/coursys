@@ -5,7 +5,7 @@ from courselib.auth import requires_role
 from coredata.queries import more_personal_info, SIMSProblem, GRADFIELDS
 from grad.models import GradStudent
 
-@requires_role('GRAD')
+@requires_role("GRAD", get_only=["GRPD"])
 def grad_more_info(request, grad_slug):
     """
     AJAX request for contact info, etc. (queries SIMS directly)

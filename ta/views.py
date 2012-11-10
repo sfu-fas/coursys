@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.db import transaction
 from django.contrib import messages
-from courselib.auth import requires_course_staff_by_slug, requires_course_instr_by_slug, requires_role, \
+from courselib.auth import requires_course_staff_by_slug, requires_course_instr_by_slug, requires_role, has_role, \
     requires_course_staff_or_dept_admn_by_slug, ForbiddenResponse, NotFoundResponse, HttpError
 from django.contrib.auth.decorators import login_required
 from ta.models import TUG, Skill, SkillLevel, TAApplication, TAPosting, TAContract, TACourse, CoursePreference, \
@@ -208,8 +208,15 @@ def _new_application(request, post_slug, manual=False, userid=None):
     posting = get_object_or_404(TAPosting, slug=post_slug)
     editing = bool(userid)
     
-    if editing and userid != request.user.username:
-        return ForbiddenResponse(request)
+    if editing:
+        if userid == request.user.username and posting.is_open():
+            # can edit own application until closes
+            pass
+        elif has_role('TAAD', request) and posting.unit in request.units:
+            # admin can always edit
+            pass
+        else:
+            return ForbiddenResponse(request)
 
     course_choices = [(c.id, unicode(c) + " (" + c.title + ")") for c in posting.selectable_courses()]
     used_campuses = set((vals['campus'] for vals in posting.selectable_offerings().order_by('campus').values('campus').distinct()))
@@ -220,12 +227,9 @@ def _new_application(request, post_slug, manual=False, userid=None):
     sin = None
     # build basic objects, whether new or editing application
     if editing:
-        if not posting.is_open():
-            return ForbiddenResponse(request, "Cannot edit application after posting has closed.")
-
         person = Person.objects.get(userid=userid)
         application = get_object_or_404(TAApplication, posting=posting, person__userid=userid)
-        old_coursepref = CoursePreference.objects.filter(app=application).exclude(rank=0)
+        old_coursepref = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
         CoursesFormSet = formset_factory(CoursePreferenceForm, extra=max(0, min_courses-old_coursepref.count()), max_num=max_courses)
     else:
         CoursesFormSet = formset_factory(CoursePreferenceForm, extra=min_courses, max_num=max_courses)
@@ -239,7 +243,7 @@ def _new_application(request, post_slug, manual=False, userid=None):
                 acct = ComputingAccount.objects.get(userid=request.user.username)
                 person = add_person(acct.emplid)
             except ComputingAccount.DoesNotExist:
-                return NotFoundResponse(request, "Unable to find your computing account in the system: this is likely because your account was recently activated, and it should be fixed tomorrow")
+                return NotFoundResponse(request, "Unable to find your computing account in the system: this is likely because your account was recently activated, and it should be fixed tomorrow. If not, email helpdesk@cs.sfu.ca.")
             except SIMSProblem:
                 return HttpError(request, status=503, title="Service Unavailable", error="Currently unable to handle the request.", errormsg="Problem with SIMS connection while trying to find your account info")
         existing_app = TAApplication.objects.filter(person=person, posting=posting)
@@ -435,6 +439,15 @@ def update_application(request, post_slug, userid):
     messages.success(request, "Removed late status from the application.")
     return HttpResponseRedirect(reverse(view_application, kwargs={'post_slug': application.posting.slug, 'userid': application.person.userid}))
     
+@requires_role("TAAD")
+def view_all_applications(request,post_slug):
+    posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
+    applications = TAApplication.objects.filter(posting=posting)
+    context = {
+            'applications': applications,
+            'posting': posting,
+            }
+    return render(request, 'ta/view_all_applications.html', context)
 
 @login_required
 def view_application(request, post_slug, userid):
@@ -449,14 +462,21 @@ def view_application(request, post_slug, userid):
         elif application.posting.unit not in units:
             return ForbiddenResponse(request, 'You cannot access this application')
    
-    courses = CoursePreference.objects.filter(app=application).exclude(rank=0)
+    courses = CoursePreference.objects.filter(app=application).exclude(rank=0).order_by('rank')
     skills = SkillLevel.objects.filter(app=application).select_related('skill')
     campuses = CampusPreference.objects.filter(app=application).select_related('campus')
+    contracts = TAContract.objects.filter(application=application)
+    if roles and contracts:
+        contract = contracts[0]
+    else:
+        contract = None
+
     context = {
             'application':application,
             'courses':courses,
             'skills': skills,
             'campuses': campuses,
+            'contract': contract,
             }
     return render(request, 'ta/view_application.html', context)
 
@@ -491,6 +511,12 @@ def assign_tas(request, post_slug):
         ForbiddenResponse(request, 'You cannot access this page')
     
     all_offerings = CourseOffering.objects.filter(semester=posting.semester, owner=posting.unit)
+
+    # decorate offerings with currently-assigned TAs
+    all_assignments = TACourse.objects.filter(contract__posting=posting).select_related('course', 'contract__application__person')
+    for o in all_offerings:
+        o.assigned = [crs for crs in all_assignments if crs.course==o]
+    
     # ignore excluded courses
     excl = set(posting.excluded())
     offerings = [o for o in all_offerings if o.course_id not in excl]
@@ -505,7 +531,7 @@ def assign_bus(request, post_slug, course_slug):
     posting = get_object_or_404(TAPosting, slug=post_slug, unit__in=request.units)
     offering = get_object_or_404(CourseOffering, slug=course_slug)
     instructors = offering.instructors()
-    course_prefs = CoursePreference.objects.filter(app__posting=posting, course=offering.course, app__late=False) 
+    course_prefs = CoursePreference.objects.filter(app__posting=posting, course=offering.course, app__late=False)
     #a ta that has been assigned BU to this course might not be on the list
     tacourses = TACourse.objects.filter(course=offering)
     
