@@ -132,7 +132,8 @@ def admin_list_all(request):
 @requires_formgroup()
 def admin_assign(request, formsubmit_slug):
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
-    form = AdminAssignForm(data=request.POST or None, form=form_submission.form)
+    form = AdminAssignForm(data=request.POST or None, label='sheet', 
+        query_set=Sheet.objects.filter(form=form_submission.form, active=True))
     if form.is_valid():
         # make new sheet submission for next sheet choosen
         assignee = form.cleaned_data['assignee']
@@ -147,6 +148,24 @@ def admin_assign(request, formsubmit_slug):
 
     context = {'form': form, 'form_submission': form_submission}
     return render(request, "onlineforms/admin/admin_assign.html", context)
+    
+@requires_formgroup()
+def admin_assign_any(request):
+    form = AdminAssignForm(data=request.POST or None, label='form', 
+        query_set=Form.objects.filter(active=True))
+    if form.is_valid():
+        assignee = form.cleaned_data['assignee']
+        
+        # create new form submission with a blank sheet submission 
+        SheetSubmission.objects.create(form_submission=form_submission,
+            sheet=form.cleaned_data['form'],
+            filler=userToFormFiller(assignee))
+
+        # change form submission status back to wait status
+        return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
+
+    context = {'form': form}
+    return render(request, "onlineforms/admin/admin_assign_any.html", context)
 
 @requires_formgroup()
 def admin_done(request, formsubmit_slug):

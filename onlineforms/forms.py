@@ -53,7 +53,7 @@ class FieldForm(forms.Form):
     type = forms.ChoiceField(required=True, choices=FIELD_TYPE_CHOICES, label='Type')
 
 # Administrate forms
-class SheetModelChoiceField(forms.ModelChoiceField):
+class FormModelChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj):
         return obj.title    
     
@@ -63,11 +63,11 @@ class AdminAssignForm(forms.Form):
                 label='Assign to e-mail',
                 help_text='Assign this form to an external email address.')"""
     
-    def __init__(self, form, *args, **kwargs):
+    def __init__(self, label, query_set, *args, **kwargs):
         super(AdminAssignForm, self).__init__(*args, **kwargs)
-        self.fields.insert(0, 'sheet', SheetModelChoiceField(required=True, 
-            queryset=Sheet.objects.filter(form=form, active=True), 
-            label='Sheet'))
+        self.fields.insert(0, label, FormModelChoiceField(required=True, 
+            queryset=query_set, 
+            label=label.capitalize()))
 
     def is_valid(self, *args, **kwargs):
         PersonField.person_data_prep(self)
