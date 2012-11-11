@@ -14,8 +14,7 @@ class CustomMultipleInputField(fields.MultiValueField):
         super(CustomMultipleInputField, self).__init__(fields=field_set, *args, **kwargs)
 
     def compress(self, data_list):
-        print "COMPRESS"
-        print data_list
+        #not used
         if data_list:
             return "|".join(data_list)
         return None
@@ -40,7 +39,13 @@ class ListField(FieldBase):
         return{'info': cleaned_data}
 
     def to_html(self, fieldsubmission=None):
-        raise NotImplementedError
+        infos = fieldsubmission.data['info']
+        list = '<ul>'
+        for info in infos:
+            list += '<li>'+info+'</li>'
+        list += '</ul>'
+
+        return mark_safe(list)
 
 
 class FileCustomField(FieldBase):
