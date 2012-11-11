@@ -22,7 +22,6 @@ class CustomMultipleInputField(fields.MultiValueField):
 
 class ListField(FieldBase):
     class ListConfigForm(FieldConfigForm):
-        field_length = forms.IntegerField(min_value=1, max_value=500)
         max_responses = forms.IntegerField(min_value=1, max_value=20)
 
     def make_config_form(self):
@@ -40,12 +39,12 @@ class ListField(FieldBase):
 
     def to_html(self, fieldsubmission=None):
         infos = fieldsubmission.data['info']
-        list = '<ul>'
+        html = '<ul>'
         for info in infos:
-            list += '<li>'+info+'</li>'
-        list += '</ul>'
+            html += '<li>'+info+'</li>'
+        html += '</ul>'
 
-        return mark_safe(list)
+        return mark_safe(html)
 
 
 class FileCustomField(FieldBase):
