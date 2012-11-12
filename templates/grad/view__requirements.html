@@ -1,4 +1,4 @@
-{% if index %}<p class="manage_link"><a href="{% url grad.views.manage_requirements grad_slug=grad.slug  %}">Manage Requirements</a></p>{% endif %}
+{% if index and can_edit %}<p class="manage_link"><a href="{% url grad.views.manage_requirements grad_slug=grad.slug  %}">Manage Requirements</a></p>{% endif %}
 <div class="datatable_container datatable">
 	<table class="display sort-1" id="grads">
 		<thead>

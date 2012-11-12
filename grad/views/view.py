@@ -10,17 +10,13 @@ def _can_view_student(request, grad_slug, funding=False):
     Return GradStudent object and authorization type if user is either
     (1) admin for the student's unit,
     (2) the student him-/herself,
-    (3) a senior supervisor of the student.
+    (3) a senior supervisor of the student,
+    (4) is a grad director in the student's unit.
     
-    Return None if neither condition is met
+    Return None if no condition is met
     """
     # grad admins can view within their unit
     if has_role('GRAD', request):
-        grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
-        return grad, 'admin'
-
-    # grad directors can ONLY view within their unit
-    if request.method=='GET' and has_role('GRPD', request):
         grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
         return grad, 'admin'
 
@@ -29,14 +25,19 @@ def _can_view_student(request, grad_slug, funding=False):
         grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
         return grad, 'admin'
 
+    # grad directors can ONLY view within their unit
+    if request.method=='GET' and has_role('GRPD', request):
+        grad = get_object_or_404(GradStudent, slug=grad_slug, program__unit__in=request.units)
+        return grad, 'graddir'
+
     # students can see their own page
     students = GradStudent.objects.filter(slug=grad_slug, person__userid=request.user.username)
     if request.method=='GET' and students:
         return students[0], 'student'
         
     # senior supervisors can see their students
-    supervisors = Supervisor.objects.filter(supervisor__userid=request.user.username, student__slug=grad_slug, supervisor_type='SEN').select_related('student')
-    if request.method=='GET' and supervisors:
+    supervisors = Supervisor.objects.filter(supervisor__userid=request.user.username, student__slug=grad_slug, supervisor_type='SEN', removed=False).select_related('student')
+    if supervisors:
         grad = supervisors[0].student
         return grad, 'supervisor'
 
