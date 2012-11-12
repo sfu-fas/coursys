@@ -172,6 +172,25 @@ class RAAppointment(models.Model):
             se = 7
         semname = str((date.year-1900)*10 + se)
         return Semester.objects.get(name=semname)
+
+    @classmethod
+    def start_end_dates(cls, semester):
+        """
+        First and last days of the semester, in the way that financial people do (without regard to class start/end dates)
+        """
+        yr = int(semester.name[0:3]) + 1900
+        sm = int(semester.name[3])
+        if sm == 1:
+            start = datetime.date(yr, 1, 1)
+            end = datetime.date(yr, 4, 30)
+        elif sm == 4:
+            start = datetime.date(yr, 5, 1)
+            end = datetime.date(yr, 8, 31)
+        elif sm == 7:
+            start = datetime.date(yr, 9, 1)
+            end = datetime.date(yr, 12, 31)
+        return start, end
+
         
     def start_semester(self):
         "Guess the starting semester of this appointment"

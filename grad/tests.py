@@ -80,7 +80,7 @@ class GradTest(TestCase):
 
         # other pages
         for view in ['search', 'programs', 'new_program', 'requirements', 'new_requirement',
-                     'letter_templates', 'new_letter_template', 'manage_scholarshipType']:
+                     'letter_templates', 'new_letter_template', 'manage_scholarshipType', 'funding_report']:
             try:
                 url = reverse('grad.views.'+view, kwargs={})
                 response = basic_page_tests(self, client, url)

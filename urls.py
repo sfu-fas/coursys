@@ -356,6 +356,8 @@ urlpatterns += patterns('',
     url(r'^grad/letterTemplates/' + LETTER_TEMPLATE_SLUG + '/manage', 'grad.views.manage_letter_template'),
     url(r'^grad/promises/$', 'grad.views.all_promises'),
     url(r'^grad/promises/(?P<semester_name>\d{4})$', 'grad.views.all_promises'),
+    url(r'^grad/funding/$', 'grad.views.funding_report'),
+    url(r'^grad/funding/(?P<semester_name>\d{4})$', 'grad.views.funding_report'),
 
     #url(r'^grad/' + GRAD_SLUG + '/old$', 'grad.views.view_all'),
     url(r'^grad/' + GRAD_SLUG + '/$', 'grad.views.view'),
