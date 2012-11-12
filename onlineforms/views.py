@@ -341,16 +341,18 @@ def edit_sheet(request, form_slug, sheet_slug):
         modelFormFields.append({'modelField': fields[counter], 'formField': field})
 
     #test for nonactive fields
-    nonactive_form = DynamicForm(owner_sheet.title)
-    form.fromFields(nonactive_fields)
+    # nonactive_form = DynamicForm(owner_sheet.title)
+    # form.fromFields(nonactive_fields)
     
-    modelNonFormFields = []
-    for (counter, field) in enumerate(form):
-        modelNonFormFields.append({'modelField': nonactive_fields[counter], 'formField': field})
+    # modelNonFormFields = []
+    # for (counter, field) in enumerate(form):
+    #     modelNonFormFields.append({'modelField': nonactive_fields[counter], 'formField': field})
 
-    context = {'owner_form': owner_form, 'owner_sheet': owner_sheet, 'form': form, 'fields': modelFormFields, 'nonactive_fields': modelNonFormFields }
+    # context = {'owner_form': owner_form, 'owner_sheet': owner_sheet, 'form': form, 'fields': modelFormFields, 'nonactive_fields': modelNonFormFields }
+    # return render(request, "onlineforms/edit_sheet.html", context)
+
+    context = {'owner_form': owner_form, 'owner_sheet': owner_sheet, 'form': form, 'fields': modelFormFields}
     return render(request, "onlineforms/edit_sheet.html", context)
-
 
 @requires_form_admin_by_slug()
 def reorder_field(request, form_slug, sheet_slug):
@@ -493,8 +495,11 @@ def edit_field(request, form_slug, sheet_slug, field_slug):
             messages.info(request, "Nothing modified")
 
         elif form.is_valid():
+            new_sheet = owner_sheet.safe_save()
+            # newfield = field.safe_save()
             new_field = Field.objects.create(label=form.cleaned_data['label'],
-                sheet=owner_sheet,
+                #sheet=owner_sheet,
+                sheet=new_sheet,
                 fieldtype=field.fieldtype,
                 config=clean_config,
                 active=True,
