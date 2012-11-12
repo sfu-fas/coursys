@@ -15,7 +15,12 @@
                     "bPaginate": false,
                     "bJQueryUI": true,
                     "aaSorting": [[0, "asc"]],
-        }); 
+        });
+        $('#done_table').dataTable({
+                    "bPaginate": false,
+                    "bJQueryUI": true,
+                    "aaSorting": [[0, "asc"]],
+        });
     });
 </script>
 {% endblock %}
@@ -23,6 +28,15 @@
 {% block subbreadcrumbs %}
     <li>&gt; <a href="{% url onlineforms.views.submissions_list_all_forms %}">Forms</a></li>
     <li>&gt; Admin Forms</li>
+{% endblock %}
+
+{% block actions %}
+<div id="actions">
+    <h2 class="heading">Actions</h2>
+    <ul>
+        <li><a href="{% url onlineforms.views.admin_assign_any %}">Assign Form</a></li>
+    </ul>
+</div>
 {% endblock %}
 
 {% block content %}
@@ -33,6 +47,7 @@
             <thead>
                 <tr>
                     <th scope="col">Title</th>
+                    <th scope="col">Form Group</th>
                     <th scope="col">Initiator</th>
                     <th scope="col">Assign</th>
                     <th scope="col">Done</th>
@@ -42,6 +57,7 @@
             {% for form_sub in pend_submissions %}
                 <tr>
                     <td>{{ form_sub.form.title }}</td>
+                    <td>{{ form_sub.owner }}</td>
                     <td>{{ form_sub.initiator }}</td>
                     <td>
                         <a href="{% url onlineforms.views.admin_assign formsubmit_slug=form_sub.slug %}">Assign to Person</a>
@@ -68,20 +84,28 @@
             <thead>
                 <tr>
                     <th scope="col">Title</th>
+                    <th scope="col">Form Group</th>
                     <th scope="col">Initiator</th>
                     <th scope="col">Sheet</th>
                     <th scope="col">Assigned to</th>
                     <th scope="col">Elasped Time</th>
+                    <th scope="col">Done</th>
                     <th scope="col">View Form</th>    
                 </tr>
             </thead>
             {% for form_sub in wait_submissions %}
                 <tr>
                     <td>{{ form_sub.form.title }}</td>
+                    <td>{{ form_sub.owner }}</td>
                     <td>{{ form_sub.initiator }}</td>
                     <td>{{ form_sub.assigned_to.sheet.title }}</td>
                     <td>{{ form_sub.assigned_to.filler }}</td>
                     <td>{{ form_sub.assigned_to.given_at|timesince }}</td>
+                      <td class="miniaction">
+                        <form action="{% url onlineforms.views.admin_done formsubmit_slug=form_sub.slug %}" method="post">{% csrf_token %}
+                            <input type="submit" onclick="return confirmSubmit('Set this Form to 'Done'?)" value="Done" />
+                        </form>
+                    </td>
                     <td>
                         <a href="{% url onlineforms.views.view_submission formsubmit_slug=form_sub.slug %}">View Form</a>
                     </td>
@@ -90,6 +114,33 @@
         </table>
     {% else %}
             <p>There are currently no forms being worked on.</p>
+    {% endif %}
+</div>
+<h2>Completed Forms</h2>
+<div class="datatable_container">
+    {% if done_submissions %}
+        <table class="display" id="done_table">
+            <thead>
+                <tr>
+                    <th scope="col">Title</th>
+                    <th scope="col">Form Group</th>
+                    <th scope="col">Initiator</th>
+                    <th scope="col">View Form</th>    
+                </tr>
+            </thead>
+            {% for form_sub in done_submissions %}
+                <tr>
+                    <td>{{ form_sub.form.title }}</td>
+                    <td>{{ form_sub.owner }}</td>
+                    <td>{{ form_sub.initiator }}</td>
+                    <td>
+                        <a href="{% url onlineforms.views.view_submission formsubmit_slug=form_sub.slug %}">View Form</a>
+                    </td>
+                </tr>
+              {% endfor %}
+        </table>
+    {% else %}
+            <p>No forms have been set to done.</p>
     {% endif %}
 </div>
 {% endblock %}

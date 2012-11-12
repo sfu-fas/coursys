@@ -124,14 +124,16 @@ def admin_list_all(request):
         for wait_sub in wait_submissions:
             last_sheet_assigned = SheetSubmission.objects.filter(form_submission=wait_sub).latest('given_at')
             wait_sub.assigned_to = last_sheet_assigned
+        done_submissions = FormSubmission.objects.filter(owner__in=form_groups, status='DONE')
 
-    context = {'pend_submissions': pend_submissions, 'wait_submissions': wait_submissions}
+    context = {'pend_submissions': pend_submissions, 'wait_submissions': wait_submissions, 'done_submissions': done_submissions}
     return render(request, "onlineforms/admin/admin_forms.html", context)
 
 @requires_formgroup()
 def admin_assign(request, formsubmit_slug):
     form_submission = get_object_or_404(FormSubmission, slug=formsubmit_slug)
-    form = AdminAssignForm(data=request.POST or None, form=form_submission.form)
+    form = AdminAssignForm(data=request.POST or None, label='sheet', 
+        query_set=Sheet.objects.filter(form=form_submission.form, active=True))
     if form.is_valid():
         # make new sheet submission for next sheet choosen
         assignee = form.cleaned_data['assignee']
@@ -146,6 +148,27 @@ def admin_assign(request, formsubmit_slug):
 
     context = {'form': form, 'form_submission': form_submission}
     return render(request, "onlineforms/admin/admin_assign.html", context)
+    
+@requires_formgroup()
+def admin_assign_any(request):
+    form = AdminAssignForm(data=request.POST or None, label='form', 
+        query_set=Form.objects.filter(active=True))
+    if form.is_valid():
+        assignee = form.cleaned_data['assignee']
+        # create new form submission with a blank sheet submission 
+        form = form.cleaned_data['form']
+        user = userToFormFiller(assignee)
+        
+        # selector for assigning if in multiple form groups?
+        """FormSubmission.objects.create(form=form, initiator=user, 
+        SheetSubmission.objects.create(form_submission=form_submission,
+            sheet=Sheet.objects.filter(form=form, is_initial=True, active=True)
+            filler=user)"""
+
+        return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
+
+    context = {'form': form}
+    return render(request, "onlineforms/admin/admin_assign_any.html", context)
 
 @requires_formgroup()
 def admin_done(request, formsubmit_slug):
@@ -282,7 +305,7 @@ def edit_sheet(request, form_slug, sheet_slug):
     owner_form = get_object_or_404(Form, slug=form_slug)
     owner_sheet = get_object_or_404(Sheet, form=owner_form, slug=sheet_slug)
     fields = Field.objects.filter(sheet=owner_sheet, active=True).order_by('order')
-
+    nonactive_fields = Field.objects.filter(sheet=owner_sheet, active=False).order_by('order')
     # Non Ajax way to reorder activity, please also see reorder_activity view function for ajax way to reorder
     order = None
     field_slug = None
@@ -317,7 +340,15 @@ def edit_sheet(request, form_slug, sheet_slug):
     for (counter, field) in enumerate(form):
         modelFormFields.append({'modelField': fields[counter], 'formField': field})
 
-    context = {'owner_form': owner_form, 'owner_sheet': owner_sheet, 'form': form, 'fields': modelFormFields}
+    #test for nonactive fields
+    nonactive_form = DynamicForm(owner_sheet.title)
+    form.fromFields(nonactive_fields)
+    
+    modelNonFormFields = []
+    for (counter, field) in enumerate(form):
+        modelNonFormFields.append({'modelField': nonactive_fields[counter], 'formField': field})
+
+    context = {'owner_form': owner_form, 'owner_sheet': owner_sheet, 'form': form, 'fields': modelFormFields, 'nonactive_fields': modelNonFormFields }
     return render(request, "onlineforms/edit_sheet.html", context)
 
 
