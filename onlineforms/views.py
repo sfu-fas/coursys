@@ -155,13 +155,16 @@ def admin_assign_any(request):
         query_set=Form.objects.filter(active=True))
     if form.is_valid():
         assignee = form.cleaned_data['assignee']
-        
         # create new form submission with a blank sheet submission 
+        form = form.cleaned_data['form']
+        user = userToFormFiller(assignee)
+        
+        # selector for assigning if in multiple form groups?
+        """FormSubmission.objects.create(form=form, initiator=user, 
         SheetSubmission.objects.create(form_submission=form_submission,
-            sheet=form.cleaned_data['form'],
-            filler=userToFormFiller(assignee))
+            sheet=Sheet.objects.filter(form=form, is_initial=True, active=True)
+            filler=user)"""
 
-        # change form submission status back to wait status
         return HttpResponseRedirect(reverse('onlineforms.views.admin_list_all'))
 
     context = {'form': form}

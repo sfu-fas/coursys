@@ -47,6 +47,7 @@
             <thead>
                 <tr>
                     <th scope="col">Title</th>
+                    <th scope="col">Form Group</th>
                     <th scope="col">Initiator</th>
                     <th scope="col">Assign</th>
                     <th scope="col">Done</th>
@@ -56,6 +57,7 @@
             {% for form_sub in pend_submissions %}
                 <tr>
                     <td>{{ form_sub.form.title }}</td>
+                    <td>{{ form_sub.owner }}</td>
                     <td>{{ form_sub.initiator }}</td>
                     <td>
                         <a href="{% url onlineforms.views.admin_assign formsubmit_slug=form_sub.slug %}">Assign to Person</a>
@@ -82,6 +84,7 @@
             <thead>
                 <tr>
                     <th scope="col">Title</th>
+                    <th scope="col">Form Group</th>
                     <th scope="col">Initiator</th>
                     <th scope="col">Sheet</th>
                     <th scope="col">Assigned to</th>
@@ -93,6 +96,7 @@
             {% for form_sub in wait_submissions %}
                 <tr>
                     <td>{{ form_sub.form.title }}</td>
+                    <td>{{ form_sub.owner }}</td>
                     <td>{{ form_sub.initiator }}</td>
                     <td>{{ form_sub.assigned_to.sheet.title }}</td>
                     <td>{{ form_sub.assigned_to.filler }}</td>
@@ -119,6 +123,7 @@
             <thead>
                 <tr>
                     <th scope="col">Title</th>
+                    <th scope="col">Form Group</th>
                     <th scope="col">Initiator</th>
                     <th scope="col">View Form</th>    
                 </tr>
@@ -126,6 +131,7 @@
             {% for form_sub in done_submissions %}
                 <tr>
                     <td>{{ form_sub.form.title }}</td>
+                    <td>{{ form_sub.owner }}</td>
                     <td>{{ form_sub.initiator }}</td>
                     <td>
                         <a href="{% url onlineforms.views.view_submission formsubmit_slug=form_sub.slug %}">View Form</a>
