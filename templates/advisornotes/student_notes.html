@@ -148,22 +148,30 @@
 </div>
 {% endwith %}
 {% else %}
-{% with item.item as problem %}
+{% with item.item as alert %}
 <h2 style="padding-left: 15px; line-height: 1.6; color: gray;">
-	{{ problem.created_at }} -
-	<a href="{% url advisornotes.views.edit_problem prob_id=problem.pk %}?from={{ student.userid }}" {% if problem.is_closed %}style="color: green;">{% else %}style="color: #B5111B;">{% endif %}Problem: "{{ problem.code }}" ({{problem.get_status_display}})</a>
+	{{ alert.created_at }} -
+	<a href="{% url alerts.views.view_alert alert_type=alert.alerttype.slug alert_id=alert.pk %}" 
+        {% if alert.resolved %}style="color: green;">{% else %}style="color: #B5111B;">{% endif %}
+        Automated Alert: "{{ alert.alerttype.code }}"</a>
 </h2>
-<div class="note-box">
-<p>
-<b>Description:</b> {{ problem.description }}</br>
-<b>Comments:</b></br>
-{% if problem.comments %}
-{{ problem.comments }}
-{% else %}
-<i>No comments</i>
-{% endif %}
-</p>
-</div>
+    <div class="note-box" id="alert-box-{{update.id}}">
+    {% if alert.last_resolution %}
+    <h3> Resolution: </h3>
+            <h4>{{alert.last_resolution.get_update_type_display}} - {{alert.last_resolution.created_at|date:"Y/m/d"}}</h3>
+            <div class="note-content">
+                {{alert.last_resolution.comments}}
+            </div>
+    {% else %}
+        {% if alert.last_update %}
+        <h3> Last Update: </h3>
+                <h4>{{alert.last_update.get_update_type_display}} - {{alert.last_update.created_at|date:"Y/m/d"}}</h3>
+                <div class="note-content">
+                    {{alert.last_update.comments}}
+                </div>
+        {% endif %}
+    {% endif %}
+    </div>
 {% endwith %}
 {% endif %}
 

@@ -600,7 +600,7 @@ class SearchForm(forms.Form):
         if self.cleaned_data.get('end_semester_end', None) is not None:
             manual_queries.append( Q(end_semester__name__lte=self.cleaned_data['end_semester_end'].name) )
 
-        if self.cleaned_data.get('supervisor', None) is not None:
+        if self.cleaned_data.get('supervisor', None):
             person_ids = self.cleaned_data['supervisor']
             supervisors = Supervisor.objects.filter(supervisor__in=person_ids, supervisor_type='SEN', removed=False)
             student_ids = [s.student_id for s in supervisors]

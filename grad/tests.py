@@ -70,6 +70,7 @@ class GradTest(TestCase):
         
         prog = GradProgram.objects.all()[0]
         GradRequirement(program=prog, description="Some Requirement").save()
+        Supervisor(student=GradStudent.objects.all()[0], supervisor=Person.objects.get(userid='ggbaker'), supervisor_type='SEN').save()
         
         # search results
         url = reverse('grad.views.search', kwargs={}) + "?last_name_contains=Grad&columns=person.userid&columns=person.first_name"
@@ -106,6 +107,7 @@ class GradTest(TestCase):
         OtherFunding(student=gs, amount=100, semester=sem, description="Some Other Funding", comments="Other Funding\n\nComment").save()
         Promise(student=gs, amount=10000, start_semester=sem, end_semester=sem.next_semester()).save()
         FinancialComment(student=gs, semester=sem, comment_type='SCO', comment='Some comment.\nMore.', created_by='ggbaker').save()
+        Supervisor(student=gs, supervisor=Person.objects.get(userid='ggbaker'), supervisor_type='SEN').save()
         
         return gs
 
