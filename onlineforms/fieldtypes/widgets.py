@@ -8,16 +8,60 @@ class CustomMultipleInputWidget(forms.MultiWidget):
     <script type="text/javascript">
     $('document').ready(function () {
 
-        var scripts = document.getElementsByTagName( 'script' );
-        var thisScriptTag = scripts[ scripts.length - 1 ];
+        var min = '%(min)s'
+        var max = '%(max)s'
+        var current = parseInt(min)
 
-        $(thisScriptTag).after('HELLO');
-        $(thisScriptTag).closest('dl').after('<dt id="add_dt"><label for="add_button">Add</label></dt><dd>\ ' +
-                        '<div class="field"><input type="button" name="Add Choice" value="Add Choice" id="add_button" /></div>\ ' +
+        widget_dts = []
+        widget_dds = []
+
+        var scripts = document.getElementsByTagName( 'script' )
+        var thisScriptTag = scripts[ scripts.length - 1 ]
+
+        var amount = function () {
+
+            var count = 0;
+            for (var i = 0; i < max; i++){
+                if (widget_dds[i].is(':visible')){
+                    count += 1;
+                }
+            }
+            return count
+        }
+
+        cursor = $(thisScriptTag).parents('dd')
+
+        for(var i=max; i > 0; i--){
+            widget_dds[i] = cursor;
+            cursor = $(cursor).prev()
+            widget_dts[i] = cursor;
+            cursor = $(cursor).prev()
+            if(i-min > 0){
+                widget_dds[i].hide();
+                widget_dts[i].hide();
+            }
+        }
+
+        $(widget_dts[max]).after('<dt><label>Add</label></dt><dd class="add_button">\ ' +
+                        '<div class="field"><input type="button" name="Add Choice" value="Add Choice" class="button" /></div>\ ' +
                         '</dd>');
-        //$("dd").last().after('<dt id="add_dt"><label for="add_button">Add</label></dt><dd>\ ' +
-         //               '<div class="field"><input type="button" name="Add Choice" value="Add Choice" id="add_button" /></div>\ ' +
-         //               '</dd>');
+
+        add_button = $(widget_dts[max]).next().next().find('input')
+
+
+        $(add_button).click(function () {
+            if(current <= max){
+
+                widget_dts[current].show()
+                widget_dds[current].show()
+                current += 1
+            }
+
+            if (amount() >= max){
+                $(add_button).parents('.add_button').prev().hide()
+                $(add_button).parents('.add_button').hide()
+            }
+        });
     });
     </script>
     """
@@ -34,13 +78,13 @@ class CustomMultipleInputWidget(forms.MultiWidget):
     def decompress(self, value):
         if value:
             return value
-            #return value.split("|")
         return [None] * int(self.max)
 
     def format_output(self, rendered_widgets):
         output = rendered_widgets[0]
         for widget in rendered_widgets[1:]:
-            output += u'<dt style="visibility:hidden"> <label>{0}</label></dt><dd><div class="field">{1}<br/></div</dd>'.format(self.name, widget)
+            output += u'<dt style="visibility:hidden"> <label>{0}</label></dt><dd><div class="field">{1}</div</dd>'.format(
+                self.name, widget)
         output += mark_safe(self.WIDGET_JAVASCRIPT) % {'max': self.max, 'min': self.min}
         return output
 
